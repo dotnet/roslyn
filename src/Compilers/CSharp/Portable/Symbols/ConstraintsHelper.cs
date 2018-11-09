@@ -689,7 +689,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // some implemented interfaces are related
             // will have to instantiate interfaces and check
             hasRelatedInterfaces:
-            return type.InterfacesNoUseSiteDiagnostics(basesBeingResolved).HasDuplicates(TypeSymbol.EqualsIgnoringDynamicAndTupleNamesComparer);
+            return type.InterfacesNoUseSiteDiagnostics(basesBeingResolved).HasDuplicates(TypeSymbol.EqualsIgnoringDynamicTupleNamesAndNullabilityComparer);
         }
 
         public static bool CheckConstraints(
@@ -1198,7 +1198,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return false;
             }
 
-            Debug.Assert(!type.ConstructedFrom.Equals(type, TypeCompareKind.CompareNullableModifiersForReferenceTypes));
+            Debug.Assert(!type.ConstructedFrom.Equals(type, TypeCompareKind.ConsiderEverything));
             return true;
         }
 

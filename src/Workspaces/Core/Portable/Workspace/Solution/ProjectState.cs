@@ -269,6 +269,9 @@ namespace Microsoft.CodeAnalysis
         public string OutputRefFilePath => this.ProjectInfo.OutputRefFilePath;
 
         [DebuggerBrowsable(DebuggerBrowsableState.Collapsed)]
+        public string DefaultNamespace => this.ProjectInfo.DefaultNamespace;
+
+        [DebuggerBrowsable(DebuggerBrowsableState.Collapsed)]
         public HostLanguageServices LanguageServices => _languageServices;
 
         [DebuggerBrowsable(DebuggerBrowsableState.Collapsed)]
@@ -422,6 +425,16 @@ namespace Microsoft.CodeAnalysis
             }
 
             return this.With(projectInfo: this.ProjectInfo.WithOutputRefFilePath(outputRefFilePath).WithVersion(this.Version.GetNewerVersion()));
+        }
+
+        public ProjectState UpdateDefaultNamespace(string defaultNamespace)
+        {
+            if (defaultNamespace == this.DefaultNamespace)
+            {
+                return this;
+            }
+
+            return this.With(projectInfo: this.ProjectInfo.WithDefaultNamespace(defaultNamespace).WithVersion(this.Version.GetNewerVersion()));
         }
 
         public ProjectState UpdateCompilationOptions(CompilationOptions options)

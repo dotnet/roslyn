@@ -17,11 +17,7 @@ namespace Roslyn.Test.Utilities
             _threadId = Thread.CurrentThread.ManagedThreadId;
             _threadCulture = CultureInfo.CurrentCulture;
 
-#if DNX
             CultureInfo.CurrentCulture = CultureInfo.InvariantCulture;
-#else
-            Thread.CurrentThread.CurrentCulture = CultureInfo.InvariantCulture;
-#endif
 		}
 
 		public void Dispose()
@@ -30,11 +26,7 @@ namespace Roslyn.Test.Utilities
 
             if (_threadId == Thread.CurrentThread.ManagedThreadId)
             {
-#if DNX
                 CultureInfo.CurrentCulture = _threadCulture;
-#else
-                Thread.CurrentThread.CurrentCulture = _threadCulture;
-#endif
             }
         }
     }

@@ -589,6 +589,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             return UpdateStatement(builder, node.Update(node.RefKind, expression), substituteTemps: true);
         }
 
+        public override BoundNode VisitYieldReturnStatement(BoundYieldReturnStatement node)
+        {
+            EnterStatement(node);
+
+            BoundSpillSequenceBuilder builder = null;
+            var expression = VisitExpression(ref builder, node.Expression);
+            return UpdateStatement(builder, node.Update(expression), substituteTemps: true);
+        }
+
 #if DEBUG
         public override BoundNode DefaultVisit(BoundNode node)
         {

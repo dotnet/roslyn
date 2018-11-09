@@ -107,7 +107,8 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
                         !symbol.IsConst &&
                         !symbol.IsImplicitlyDeclared &&
                         symbol.Locations.Length == 1 &&
-                        symbol.Type.IsMutableValueType() == false;
+                        symbol.Type.IsMutableValueType() == false &&
+                        !symbol.IsFixedSizeBuffer;
 
                 // Method to update the field state for a candidate field written outside constructor and field initializer.
                 void UpdateFieldStateOnWrite(IFieldSymbol field)

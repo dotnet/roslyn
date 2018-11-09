@@ -124,7 +124,7 @@
       </trans-unit>
       <trans-unit id="Location_must_be_null_or_from_source">
         <source>Location must be null or from source.</source>
-        <target state="translated">Ort muss null oder von Quelle sein.</target>
+        <target state="translated">Ort muss NULL oder von Quelle sein.</target>
         <note />
       </trans-unit>
       <trans-unit id="Duplicate_source_file_0_in_project_1">
@@ -174,22 +174,22 @@
       </trans-unit>
       <trans-unit id="_0_is_not_part_of_the_workspace">
         <source>'{0}' is not part of the workspace.</source>
-        <target state="translated">'"{0}" ist nicht Teil des Arbeitsbereichs.</target>
+        <target state="translated">"{0}" ist nicht Teil des Arbeitsbereichs.</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_is_already_part_of_the_workspace">
         <source>'{0}' is already part of the workspace.</source>
-        <target state="translated">'{0}' ist bereits Teil des Workspace.</target>
+        <target state="translated">"{0}" ist bereits Teil des Workspace.</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_is_not_referenced">
         <source>'{0}' is not referenced.</source>
-        <target state="translated">'"{0}" ist nicht referenziert.</target>
+        <target state="translated">"{0}" ist nicht referenziert.</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_is_already_referenced">
         <source>'{0}' is already referenced.</source>
-        <target state="translated">'"{0}" ist bereits referenziert.</target>
+        <target state="translated">"{0}" ist bereits referenziert.</target>
         <note />
       </trans-unit>
       <trans-unit id="Adding_project_reference_from_0_to_1_will_cause_a_circular_reference">
@@ -264,7 +264,7 @@
       </trans-unit>
       <trans-unit id="_0_is_not_open">
         <source>'{0}' is not open.</source>
-        <target state="translated">'"{0}" ist nicht geöffnet.</target>
+        <target state="translated">"{0}" ist nicht geöffnet.</target>
         <note />
       </trans-unit>
       <trans-unit id="A_language_name_cannot_be_specified_for_this_option">
@@ -319,7 +319,7 @@
       </trans-unit>
       <trans-unit id="_0_must_be_a_non_null_and_non_empty_string">
         <source>"{0}" must be a non-null and non-empty string.</source>
-        <target state="translated">"{0}" muss eine Zeichenfolge sein, die nicht null und nicht leer ist.</target>
+        <target state="translated">"{0}" muss eine Zeichenfolge sein, die nicht NULL und nicht leer ist.</target>
         <note />
       </trans-unit>
       <trans-unit id="Expected_header_colon_0">
@@ -449,17 +449,17 @@
       </trans-unit>
       <trans-unit id="Fix_all_0">
         <source>Fix all '{0}'</source>
-        <target state="translated">Alle '{0}' reparieren</target>
+        <target state="translated">Alle "{0}" reparieren</target>
         <note />
       </trans-unit>
       <trans-unit id="Fix_all_0_in_1">
         <source>Fix all '{0}' in '{1}'</source>
-        <target state="translated">Alle '{0}' in '{1}' reparieren</target>
+        <target state="translated">Alle "{0}" in "{1}" reparieren</target>
         <note />
       </trans-unit>
       <trans-unit id="Fix_all_0_in_Solution">
         <source>Fix all '{0}' in Solution</source>
-        <target state="translated">Alle '{0}' in Lösung reparieren</target>
+        <target state="translated">Alle "{0}" in Lösung reparieren</target>
         <note />
       </trans-unit>
       <trans-unit id="After_colon">
@@ -554,7 +554,7 @@
       </trans-unit>
       <trans-unit id="Supplied_diagnostic_cannot_be_null">
         <source>Supplied diagnostic cannot be null.</source>
-        <target state="translated">Bereitgestellte Diagnose darf nicht null sein.</target>
+        <target state="translated">Bereitgestellte Diagnose darf nicht NULL sein.</target>
         <note />
       </trans-unit>
       <trans-unit id="At_least_one_diagnostic_must_be_supplied">
@@ -584,27 +584,27 @@
       </trans-unit>
       <trans-unit id="Label_for_node_0_is_invalid_it_must_be_within_bracket_0_1">
         <source>Label for node '{0}' is invalid, it must be within [0, {1}).</source>
-        <target state="translated">Die Bezeichnung für Knoten '{0}' ist ungültig, sie muss innerhalb von [0, {1}) liegen.</target>
+        <target state="translated">Die Bezeichnung für Knoten "{0}" ist ungültig, sie muss innerhalb von [0, {1}) liegen.</target>
         <note />
       </trans-unit>
       <trans-unit id="Matching_nodes_0_and_1_must_have_the_same_label">
         <source>Matching nodes '{0}' and '{1}' must have the same label.</source>
-        <target state="translated">Die übereinstimmenden Knoten '{0}' und '{1}' müssen dieselbe Bezeichnung aufweisen.</target>
+        <target state="translated">Die übereinstimmenden Knoten "{0}" und "{1}" müssen dieselbe Bezeichnung aufweisen.</target>
         <note />
       </trans-unit>
       <trans-unit id="Node_0_must_be_contained_in_the_new_tree">
         <source>Node '{0}' must be contained in the new tree.</source>
-        <target state="translated">Der Knoten '{0}' muss im neuen Baum enthalten sein.</target>
+        <target state="translated">Der Knoten "{0}" muss im neuen Baum enthalten sein.</target>
         <note />
       </trans-unit>
       <trans-unit id="Node_0_must_be_contained_in_the_old_tree">
         <source>Node '{0}' must be contained in the old tree.</source>
-        <target state="translated">Der Knoten '{0}' muss im alten Baum enthalten sein.</target>
+        <target state="translated">Der Knoten "{0}" muss im alten Baum enthalten sein.</target>
         <note />
       </trans-unit>
       <trans-unit id="The_member_0_is_not_declared_within_the_declaration_of_the_symbol">
         <source>The member '{0}' is not declared within the declaration of the symbol.</source>
-        <target state="translated">Der Member '{0}' wird nicht innerhalb der Deklaration des Symbols deklariert.</target>
+        <target state="translated">Der Member "{0}" wird nicht innerhalb der Deklaration des Symbols deklariert.</target>
         <note />
       </trans-unit>
       <trans-unit id="The_position_is_not_within_the_symbol_s_declaration">
@@ -614,7 +614,7 @@
       </trans-unit>
       <trans-unit id="The_symbol_0_cannot_be_located_within_the_current_solution">
         <source>The symbol '{0}' cannot be located within the current solution.</source>
-        <target state="translated">Das Symbol '{0}' kann nicht in die aktuelle Projektmappe geladen werden.</target>
+        <target state="translated">Das Symbol "{0}" kann nicht in die aktuelle Projektmappe geladen werden.</target>
         <note />
       </trans-unit>
       <trans-unit id="Changing_compilation_options_is_not_supported">
@@ -649,7 +649,7 @@
       </trans-unit>
       <trans-unit id="_0_returned_an_uninitialized_ImmutableArray">
         <source>'{0}' returned an uninitialized ImmutableArray</source>
-        <target state="translated">'"{0}" hat ein nicht initialisiertes "ImmutableArray" zurückgegeben.</target>
+        <target state="translated">"{0}" hat ein nicht initialisiertes "ImmutableArray" zurückgegeben.</target>
         <note />
       </trans-unit>
       <trans-unit id="Failure">
@@ -694,7 +694,7 @@
       </trans-unit>
       <trans-unit id="_0_encountered_an_error_and_has_been_disabled">
         <source>'{0}' encountered an error and has been disabled.</source>
-        <target state="translated">'"{0}" hat einen Fehler festgestellt und wurde deaktiviert.</target>
+        <target state="translated">"{0}" hat einen Fehler festgestellt und wurde deaktiviert.</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_Stack_Trace">
@@ -704,7 +704,7 @@
       </trans-unit>
       <trans-unit id="Stream_is_too_long">
         <source>Stream is too long.</source>
-        <target state="translated">Der Datenstrom ist zu lang.</target>
+        <target state="translated">Der Stream ist zu lang.</target>
         <note />
       </trans-unit>
       <trans-unit id="Deserialization_reader_for_0_read_incorrect_number_of_values">

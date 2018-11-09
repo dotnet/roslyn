@@ -201,7 +201,7 @@
       </trans-unit>
       <trans-unit id="Arrays_with_more_than_one_dimension_cannot_be_serialized">
         <source>Arrays with more than one dimension cannot be serialized.</source>
-        <target state="translated">複数の次元を持つ配列はシリアル化できません。</target>
+        <target state="translated">複数のディメンションを持つ配列はシリアル化できません。</target>
         <note />
       </trans-unit>
       <trans-unit id="InvalidAssemblyName">
@@ -331,7 +331,7 @@
       </trans-unit>
       <trans-unit id="SpanDoesNotIncludeStartOfLine">
         <source>The span does not include the start of a line.</source>
-        <target state="translated">範囲には、行の先頭が含まれません。</target>
+        <target state="translated">範囲に、行の先頭が含まれません。</target>
         <note />
       </trans-unit>
       <trans-unit id="SpanDoesNotIncludeEndOfLine">
@@ -441,7 +441,7 @@
       </trans-unit>
       <trans-unit id="CoffResourceInvalidRelocation">
         <source>Win32 resources, assumed to be in COFF object format, have one or more invalid relocation header values.</source>
-        <target state="translated">Win32 リソースは、COFF オブジェクト形式であると見なされますが、1 つ以上の再配置ヘッダー値が無効です。</target>
+        <target state="translated">COFF オブジェクト形式であると見なされている Win32 リソースの 1 つ以上の再配置ヘッダー値が無効です。</target>
         <note />
       </trans-unit>
       <trans-unit id="CoffResourceInvalidSectionSize">
@@ -538,12 +538,12 @@
       </trans-unit>
       <trans-unit id="DiagnosticIdCantBeNullOrWhitespace">
         <source>A DiagnosticDescriptor must have an Id that is neither null nor an empty string nor a string that only contains white space.</source>
-        <target state="translated">DiagnosticDescriptor の ID は、null、空の文字列、または空白のみの文字列でもない必要があります。</target>
+        <target state="translated">DiagnosticDescriptor の ID は、null、空の文字列、または空白のみの文字列であってはなりません。</target>
         <note />
       </trans-unit>
       <trans-unit id="RuleSetHasDuplicateRules">
         <source>The rule set file has duplicate rules for '{0}' with differing actions '{1}' and '{2}'.</source>
-        <target state="translated">規則セット ファイルは、異なるアクション '{1}' と '{2}' を持つ '{0}' の規則が重複しています。</target>
+        <target state="translated">規則セット ファイルの '{0}' の規則が重複しており、異なるアクション '{1}' と '{2}' を含んでいます。</target>
         <note />
       </trans-unit>
       <trans-unit id="CantCreateModuleReferenceToAssembly">
@@ -608,7 +608,7 @@
       </trans-unit>
       <trans-unit id="InvalidNodeToTrack">
         <source>Node to track is not a descendant of the root.</source>
-        <target state="translated">追跡する Node、ルートの子孫ではありません。</target>
+        <target state="translated">追跡するノードはそのルートの子孫ではありません。</target>
         <note />
       </trans-unit>
       <trans-unit id="NodeOrTokenOutOfSequence">
@@ -683,7 +683,7 @@
       </trans-unit>
       <trans-unit id="MismatchedVersion">
         <source>Roslyn compiler server reports different protocol version than build task.</source>
-        <target state="translated">Roslyn コンパイル サーバーは、ビルド タスクとは異なるバージョンのプロトコルを報告しています。</target>
+        <target state="translated">Roslyn コンパイラ サーバーは、ビルド タスクとは異なるバージョンのプロトコルを報告しています。</target>
         <note />
       </trans-unit>
       <trans-unit id="MissingKeepAlive">
@@ -693,7 +693,7 @@
       </trans-unit>
       <trans-unit id="AnalyzerTotalExecutionTime">
         <source>Total analyzer execution time: {0} seconds.</source>
-        <target state="translated">アナライザー実行の合計時間: {0} 秒。</target>
+        <target state="translated">アナライザーの合計実行時間: {0} 秒。</target>
         <note />
       </trans-unit>
       <trans-unit id="MultithreadedAnalyzerExecutionNote">

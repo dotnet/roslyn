@@ -95,10 +95,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             return VSConstants.VSITEMID_NIL;
         }
 
-        public static string GetProjectFilePath(this IVsHierarchy hierarchy)
+        public static string TryGetProjectFilePath(this IVsHierarchy hierarchy)
         {
-            Marshal.ThrowExceptionForHR(((IVsProject3)hierarchy).GetMkDocument((uint)VSConstants.VSITEMID.Root, out var projectFilePath));
-            return projectFilePath;
+            if (ErrorHandler.Succeeded(((IVsProject3)hierarchy).GetMkDocument((uint)VSConstants.VSITEMID.Root, out var projectFilePath)) && !string.IsNullOrEmpty(projectFilePath))
+            {
+                return projectFilePath;
+            }
+
+            return null;
         }
     }
 }
