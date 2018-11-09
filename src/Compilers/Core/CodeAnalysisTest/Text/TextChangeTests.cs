@@ -797,14 +797,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 .WithChanges(new TextChange(new TextSpan(5, 1), "_")) // "Hello_World"
                 .WithChanges(new TextChange(new TextSpan(6, 0), "+")); // "Hello_+World"
 
-            var changedText2 = sourceText.WithChanges(
-                new TextChange(new TextSpan(5, 1), "_"), // "Hello_World"
-                new TextChange(new TextSpan(6, 0), "+")); // "Hello_+World"
-
-            var changedText1 = sourceText
-                .WithChanges(new TextChange(new TextSpan(6, 0), "+"))
-                .WithChanges(new TextChange(new TextSpan(5, 1), "_"));
-
             var changeList = changedText.GetTextChanges(sourceText);
             Assert.Equal(1, changeList.Count);
             Assert.Equal(new TextSpan(5, 1), changeList[0].Span);
@@ -846,25 +838,7 @@ namespace ConsoleApp22
             var text8 = text7.WithChanges(new TextChange(TextSpan.FromBounds(233, 233), "E"));
             var text9 = text8.WithChanges(new TextChange(TextSpan.FromBounds(231, 232), ""));
 
-            var textb = text0
-                .WithChanges(new TextChange(TextSpan.FromBounds(228, 229), ""))
-                .WithChanges(new TextChange(TextSpan.FromBounds(228, 228), "."))
-                .WithChanges(new TextChange(TextSpan.FromBounds(229, 229), "w"));
-
-            var changesb = textb
-                .GetTextChanges(text0)
-                .ToList();
-
-            var textc = text0.WithChanges(
-                new TextChange(TextSpan.FromBounds(228, 229), ""),
-                new TextChange(TextSpan.FromBounds(228, 228), "."),
-                new TextChange(TextSpan.FromBounds(229, 229), "w"));
-
-            var changesc = textc
-                .GetTextChanges(text0)
-                .ToList();
-
-            var changes = text4.GetTextChanges(text2).ToList();
+            var changes = text9.GetTextChanges(text0).ToList();
         }
     }
 }

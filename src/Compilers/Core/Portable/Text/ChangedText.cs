@@ -299,7 +299,6 @@ namespace Microsoft.CodeAnalysis.Text
                         AddRange(list, new TextChangeRange(oldChange.Span, oldChangeLeadingInsertion));
                         oldDelta = oldDelta - oldChange.Span.Length + oldChangeLeadingInsertion;
                         oldChange = new TextChangeRange(new TextSpan(oldChange.Span.Start, 0), oldChange.NewLength - oldChangeLeadingInsertion);
-                        //newChange = new TextChangeRange(new TextSpan(oldChange.Span.Start + oldDelta, newChange.Span.Length), newChange.NewLength);
                         goto tryAgain;
                     }
                     else if (newChange.Span.Start == oldChange.Span.Start + oldDelta)
