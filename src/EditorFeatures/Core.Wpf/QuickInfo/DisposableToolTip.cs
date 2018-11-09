@@ -13,8 +13,6 @@ namespace Microsoft.CodeAnalysis.Editor.QuickInfo
         public readonly ToolTip ToolTip;
         private PreviewWorkspace _workspaceOpt;
 
-        private bool _disposed;
-
         public DisposableToolTip(ToolTip toolTip, PreviewWorkspace workspaceOpt)
         {
             ToolTip = toolTip;
@@ -23,10 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.QuickInfo
 
         public void Dispose()
         {
-            Debug.Assert(!_disposed);
-            _disposed = true;
-            _workspaceOpt?.Dispose();
-            _workspaceOpt = null;
+            Interlocked.Exchange(ref _workspaceOpt, null)?.Dispose();
         }
     }
 }
