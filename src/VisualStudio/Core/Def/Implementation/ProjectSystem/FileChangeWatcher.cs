@@ -163,9 +163,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                             ErrorHandler.ThrowOnFailure(service.UnadviseDirChange(_directoryWatchCookie));
                         }
 
+                        // it runs after disposed. so no lock is needed for _activeFileWatchingTokens
                         foreach (var token in _activeFileWatchingTokens)
                         {
-                            ErrorHandler.ThrowOnFailure(service.UnadviseFileChange(token.Cookie.Value));
+                            UnsubscribeFileChangeEvents(service, token);
                         }
                     });
             }
@@ -213,8 +214,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     Contract.ThrowIfFalse(_activeFileWatchingTokens.Remove(typedToken), "This token was no longer being watched.");
                 }
 
-                _fileChangeWatcher.EnqueueWork(service =>
-                    ErrorHandler.ThrowOnFailure(service.UnadviseFileChange(typedToken.Cookie.Value)));
+                _fileChangeWatcher.EnqueueWork(service => UnsubscribeFileChangeEvents(service, typedToken));
+            }
+
+            private void UnsubscribeFileChangeEvents(IVsFileChangeEx service, FileWatchingToken typedToken)
+            {
+                ErrorHandler.ThrowOnFailure(service.UnadviseFileChange(typedToken.Cookie.Value));
             }
 
             public event EventHandler<string> FileChanged;
