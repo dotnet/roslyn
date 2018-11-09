@@ -1033,10 +1033,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             overloadResolutionResult.Free();
-            if (arguments.Arguments.Count == 0)
-            {
-                arguments.Free();
-            }
+            arguments.Free();
             typeArguments.Free();
 
             return result;
