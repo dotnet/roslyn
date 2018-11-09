@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.Editor.Implementation.Classification;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Preview;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
@@ -31,12 +32,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
         private readonly ClassificationTypeMap _typeMap;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public PreviewStaticClassificationTaggerProvider(ClassificationTypeMap typeMap)
         {
             _typeMap = typeMap;
         }
 
-        public ITagger<T> CreateTagger<T>(ITextBuffer buffer) where T : ITag
+        public ITagger<T> CreateTagger<T>(ITextBuffer buffer)
+            where T : ITag
         {
             return new Tagger(_typeMap, buffer) as ITagger<T>;
         }
@@ -51,6 +54,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
                 _typeMap = typeMap;
                 _buffer = buffer;
             }
+
+            /// <summary>
+            /// The tags never change for this tagger.
+            /// </summary>
+            event EventHandler<SnapshotSpanEventArgs> ITagger<IClassificationTag>.TagsChanged { add { } remove { } }
 
             public IEnumerable<ITagSpan<IClassificationTag>> GetTags(NormalizedSnapshotSpanCollection spans)
             {
@@ -73,8 +81,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
                     }
                 }
             }
-
-            public event EventHandler<SnapshotSpanEventArgs> TagsChanged = (s, e) => { };
         }
     }
 }

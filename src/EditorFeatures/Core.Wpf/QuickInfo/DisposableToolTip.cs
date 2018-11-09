@@ -2,18 +2,16 @@
 
 using System;
 using System.Diagnostics;
+using System.Threading;
 using System.Windows.Controls;
 using Microsoft.CodeAnalysis.Editor.Shared.Preview;
 
 namespace Microsoft.CodeAnalysis.Editor.QuickInfo
 {
-    internal class DisposableToolTip : IDisposable
+    internal sealed class DisposableToolTip : IDisposable
     {
         public readonly ToolTip ToolTip;
-
         private PreviewWorkspace _workspaceOpt;
-
-        private bool _disposed;
 
         public DisposableToolTip(ToolTip toolTip, PreviewWorkspace workspaceOpt)
         {
@@ -23,12 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.QuickInfo
 
         public void Dispose()
         {
-            Debug.Assert(!_disposed);
-
-            _disposed = true;
-            _workspaceOpt?.Dispose();
-            _workspaceOpt = null;
+            Interlocked.Exchange(ref _workspaceOpt, null)?.Dispose();
         }
     }
 }
-
