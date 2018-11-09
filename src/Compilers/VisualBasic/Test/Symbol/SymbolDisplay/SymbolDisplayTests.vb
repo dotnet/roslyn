@@ -4777,10 +4777,10 @@ class Outer
             Verify(SymbolDisplay.FormatPrimitiveToDisplayParts("x"c, noQuotesDecimalOptions), "x", SymbolDisplayPartKind.StringLiteral)
             Verify(SymbolDisplay.FormatPrimitiveToDisplayParts("x"c, noQuotesHexadecimalOptions), "x", SymbolDisplayPartKind.StringLiteral)
 
-            Verify(SymbolDisplay.FormatPrimitiveToDisplayParts("x", decimalOptions), """x""", SymbolDisplayPartKind.StringLiteral)
-            Verify(SymbolDisplay.FormatPrimitiveToDisplayParts("x", hexadecimalOptions), """x""", SymbolDisplayPartKind.StringLiteral)
-            Verify(SymbolDisplay.FormatPrimitiveToDisplayParts("x", noQuotesDecimalOptions), "x", SymbolDisplayPartKind.StringLiteral)
-            Verify(SymbolDisplay.FormatPrimitiveToDisplayParts("x", noQuotesHexadecimalOptions), "x", SymbolDisplayPartKind.StringLiteral)
+            Verify(SymbolDisplay.FormatPrimitiveToDisplayParts("abc", decimalOptions), """abc""", SymbolDisplayPartKind.StringLiteral)
+            Verify(SymbolDisplay.FormatPrimitiveToDisplayParts("abc", hexadecimalOptions), """abc""", SymbolDisplayPartKind.StringLiteral)
+            Verify(SymbolDisplay.FormatPrimitiveToDisplayParts("abc", noQuotesDecimalOptions), "abc", SymbolDisplayPartKind.StringLiteral)
+            Verify(SymbolDisplay.FormatPrimitiveToDisplayParts("abc", noQuotesHexadecimalOptions), "abc", SymbolDisplayPartKind.StringLiteral)
 
             Verify(SymbolDisplay.FormatPrimitiveToDisplayParts(True, decimalOptions), "True", SymbolDisplayPartKind.Keyword)
             Verify(SymbolDisplay.FormatPrimitiveToDisplayParts(True, noQuotesHexadecimalOptions), "True", SymbolDisplayPartKind.Keyword)
