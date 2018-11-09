@@ -9,16 +9,24 @@
   <Target Name="ShimReferencePathsWhenCommonTargetsDoesNotUnderstandReferenceAssemblies"
           BeforeTargets="CoreCompile"
           Condition="'@(ReferencePathWithRefAssemblies)' == ''">
-    <!-- Common targets should populate this item from dev15.3, but this file
-         may be used (via NuGet package) on earlier MSBuilds. If the
-         adjusted-for-reference-assemblies item is not populated, just use
-         the older item's contents. -->
+    <!-- 
+      FindReferenceAssembliesForReferences target in Common targets populate this item 
+      since dev15.3. The compiler targets may be used (via NuGet package) on earlier MSBuilds. 
+      If the ReferencePathWithRefAssemblies item is not populated, just use ReferencePaths 
+      (implementation assemblies) as they are.
+      
+      Since XAML inner build runs CoreCompile directly (instead of Compile target),
+      it also doesn't invoke FindReferenceAssembliesForReferences listed in CompileDependsOn.
+      In that case we also populate ReferencePathWithRefAssemblies with implementation assemblies.
+    -->
     <ItemGroup>
       <ReferencePathWithRefAssemblies Include="@(ReferencePath)" />
     </ItemGroup>
   </Target>
 
-  <Target Name="_BeforeVBCSCoreCompile">
+  <Target Name="_BeforeVBCSCoreCompile"
+          DependsOnTargets="ShimReferencePathsWhenCommonTargetsDoesNotUnderstandReferenceAssemblies">
+    
     <ItemGroup Condition="'$(TargetingClr2Framework)' == 'true'">
       <ReferencePathWithRefAssemblies>
         <EmbedInteropTypes />

@@ -1898,7 +1898,7 @@ public class Test
                 // (6,18): error CS0103: The name 'i' does not exist in the current context
                 //     foreach(int; i < 5; i++)
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "i").WithArguments("i").WithLocation(6, 18),
-                // (6,18): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+                // (6,18): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
                 //     foreach(int; i < 5; i++)
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "i < 5").WithLocation(6, 18),
                 // (6,25): error CS0103: The name 'i' does not exist in the current context
@@ -2241,9 +2241,55 @@ class C
 ";
             var comp = CreateEmptyCompilation(text);
             comp.VerifyDiagnostics(
-                // (30,27): error CS0656: Missing compiler required member 'System.Nullable`1.get_Value'
-                //         foreach (var c in e) { }
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "e").WithArguments("System.Nullable`1", "get_Value"));
+                // (28,55): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
+                //     void Goo(System.Collections.Generic.IEnumerable<C>? e)
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(28, 55)
+                );
+        }
+
+        [WorkItem(798000, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/798000")]
+        [Fact]
+        public void MissingNullableValue_CSharp7()
+        {
+            var text = @"
+namespace System
+{
+    public class Object { }
+
+    public class ValueType {}
+    public struct Void { }
+    public struct Nullable<T> { }
+    public struct Boolean { }
+}
+
+namespace System.Collections.Generic
+{
+    public interface IEnumerable<T>
+    {
+        IEnumerator<T> GetEnumerator();
+    }
+
+    public interface IEnumerator<T>
+    {
+        T Current { get; }
+        bool MoveNext();
+    }
+}
+
+class C
+{
+    void Goo(System.Collections.Generic.IEnumerable<C>? e)
+    {
+        foreach (var c in e) { }
+    }
+}
+";
+            var comp = CreateEmptyCompilation(text, parseOptions: TestOptions.Regular7_3, skipUsesIsNullable: true);
+            comp.VerifyDiagnostics(
+                // (28,55): error CS8370: Feature 'nullable reference types' is not available in C# 7.3. Please use language version 8.0 or greater.
+                //     void Goo(System.Collections.Generic.IEnumerable<C>? e)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "?").WithArguments("nullable reference types", "8.0").WithLocation(28, 55)
+                );
         }
 
         [WorkItem(798000, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/798000")]
@@ -3049,7 +3095,7 @@ namespace System.Collections
                     Assert.Null(statementInfo.DisposeMethod);
                 }
 
-                Assert.Equal(enumeratorInfo.ElementType, statementInfo.ElementType);
+                Assert.Equal(enumeratorInfo.ElementType.TypeSymbol, statementInfo.ElementType);
                 Assert.Equal(boundNode.ElementConversion, statementInfo.ElementConversion);
                 Assert.Equal(enumeratorInfo.CurrentConversion, statementInfo.CurrentConversion);
             }
@@ -3195,6 +3241,163 @@ class Program
                 Diagnostic(ErrorCode.ERR_NoTypeDef, @"foreach (var x in new Enumerable())
         { }").WithArguments("System.ValueType", "MissingBaseType1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(6, 9)
                 );
+        }
+
+        [Fact]
+        [WorkItem(26585, "https://github.com/dotnet/roslyn/issues/26585")]
+        public void ForEachIteratorWithCurrentRefKind_Async_Ref()
+        {
+            CreateCompilation(@"
+using System.Threading.Tasks;
+
+class E
+{
+    public class Enumerator
+    {
+        public ref int Current => throw null;
+        public bool MoveNext() => throw null;
+    }
+
+    public Enumerator GetEnumerator() => new Enumerator();
+}
+class C
+{
+    public async static Task Test()
+    {
+        await Task.CompletedTask;
+
+        foreach (ref int x in new E())
+        {
+            System.Console.Write(x);
+        }
+    }
+}").VerifyDiagnostics(
+                // (20,26): error CS8177: Async methods cannot have by-reference locals
+                //         foreach (ref int x in new E())
+                Diagnostic(ErrorCode.ERR_BadAsyncLocalType, "x").WithLocation(20, 26));
+        }
+
+        [Fact]
+        [WorkItem(26585, "https://github.com/dotnet/roslyn/issues/26585")]
+        public void ForEachIteratorWithCurrentRefKind_Async_RefReadonly()
+        {
+            CreateCompilation(@"
+using System.Threading.Tasks;
+
+class E
+{
+    public class Enumerator
+    {
+        public ref readonly int Current => throw null;
+        public bool MoveNext() => throw null;
+    }
+
+    public Enumerator GetEnumerator() => new Enumerator();
+}
+class C
+{
+    public async static Task Test()
+    {
+        await Task.CompletedTask;
+
+        foreach (ref readonly int x in new E())
+        {
+            System.Console.Write(x);
+        }
+    }
+}").VerifyDiagnostics(
+                // (20,35): error CS8177: Async methods cannot have by-reference locals
+                //         foreach (ref readonly int x in new E())
+                Diagnostic(ErrorCode.ERR_BadAsyncLocalType, "x").WithLocation(20, 35));
+        }
+
+        [Fact]
+        [WorkItem(26585, "https://github.com/dotnet/roslyn/issues/26585")]
+        public void ForEachIteratorWithCurrentRefKind_Iterator_Ref()
+        {
+            CreateCompilation(@"
+using System.Collections.Generic;
+
+class E
+{
+    public class Enumerator
+    {
+        public ref int Current => throw null;
+        public bool MoveNext() => throw null;
+    }
+
+    public Enumerator GetEnumerator() => new Enumerator();
+}
+class C
+{
+    public static IEnumerable<int> Test()
+    {
+        foreach (ref int x in new E())
+        {
+            yield return x;
+        }
+    }
+}").VerifyDiagnostics(
+                // (18,26): error CS8176: Iterators cannot have by-reference locals
+                //         foreach (ref int x in new E())
+                Diagnostic(ErrorCode.ERR_BadIteratorLocalType, "x").WithLocation(18, 26));
+        }
+
+        [Fact]
+        [WorkItem(26585, "https://github.com/dotnet/roslyn/issues/26585")]
+        public void ForEachIteratorWithCurrentRefKind_Iterator_RefReadonly()
+        {
+            CreateCompilation(@"
+using System.Collections.Generic;
+
+class E
+{
+    public class Enumerator
+    {
+        public ref readonly int Current => throw null;
+        public bool MoveNext() => throw null;
+    }
+
+    public Enumerator GetEnumerator() => new Enumerator();
+}
+class C
+{
+    public static IEnumerable<int> Test()
+    {
+        foreach (ref readonly int x in new E())
+        {
+            yield return x;
+        }
+    }
+}").VerifyDiagnostics(
+                // (18,35): error CS8176: Iterators cannot have by-reference locals
+                //         foreach (ref readonly int x in new E())
+                Diagnostic(ErrorCode.ERR_BadIteratorLocalType, "x").WithLocation(18, 35));
+        }
+
+
+        [Fact]
+        [WorkItem(30016, "https://github.com/dotnet/roslyn/issues/30016")]
+        public void ForEachIteratorWithCurrentRefKind_DontPassFieldByValue()
+        {
+            var source = @"
+using System;
+struct S1
+{
+    public int A;
+}
+class C
+{
+    public static void Main()
+    {
+        Span<S1> items = new Span<S1>(new S1[1]);
+        foreach (ref var t in items) t.A++; 
+        Console.WriteLine(items[0].A);
+    }
+}";
+            var comp = CreateCompilationWithMscorlibAndSpan(source, options: TestOptions.ReleaseDebugExe).VerifyDiagnostics();
+
+            CompileAndVerify(comp, expectedOutput: "1");
         }
     }
 }

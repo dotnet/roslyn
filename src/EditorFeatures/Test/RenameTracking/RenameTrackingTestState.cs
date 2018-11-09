@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.RenameTracking;
 using Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Editor.VisualBasic.RenameTracking;
@@ -98,6 +99,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
             notificationService.NotificationCallback = callback;
 
             var tracker = new RenameTrackingTaggerProvider(
+                Workspace.ExportProvider.GetExportedValue<IThreadingContext>(),
                 _historyRegistry,
                 Workspace.ExportProvider.GetExport<Host.IWaitIndicator>().Value,
                 Workspace.ExportProvider.GetExport<IInlineRenameService>().Value,

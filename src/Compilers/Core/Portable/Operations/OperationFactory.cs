@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Operations
             return new BinaryOperatorExpression(
                 operatorKind, left, right,
                 isLifted: isLifted, isChecked: isChecked,
-                isCompareText: isCompareText, operatorMethod: null,
+                isCompareText: isCompareText, operatorMethod: null, unaryOperatorMethod: null,
                 semanticModel: semanticModel, syntax: syntax, type: resultType, constantValue: default, isImplicit: isImplicit);
         }
 

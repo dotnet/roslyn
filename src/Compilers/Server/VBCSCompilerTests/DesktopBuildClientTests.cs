@@ -16,6 +16,7 @@ using Roslyn.Test.Utilities;
 using System.Threading;
 using System.IO.Pipes;
 using System.Security.AccessControl;
+using System.Security.Principal;
 
 namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 {
@@ -146,7 +147,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 }
             }
 
-#if NET46
+#if NET472
             [Fact]
             public void TestMutexConstructorException()
             {
@@ -154,8 +155,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 {
                     Assert.True(createdNew);
                     var mutexSecurity = outer.GetAccessControl();
-                    var user = Environment.UserDomainName + "\\" + Environment.UserName;
-                    mutexSecurity.AddAccessRule(new MutexAccessRule(user, MutexRights.FullControl, AccessControlType.Deny));
+                    mutexSecurity.AddAccessRule(new MutexAccessRule(WindowsIdentity.GetCurrent().Owner, MutexRights.FullControl, AccessControlType.Deny));
                     outer.SetAccessControl(mutexSecurity);
 
                     var ranLocal = false;
@@ -287,99 +287,115 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                     out _errorMessage);
             }
 
-            [Fact]
-            public void Shared()
+            [Theory]
+            [InlineData('-')]
+            [InlineData('/')]
+            public void Shared(char optionPrefix)
             {
-                Assert.True(Parse("/shared", "test.cs"));
+                Assert.True(Parse(optionPrefix + "shared", "test.cs"));
                 Assert.True(_hasShared);
                 Assert.Null(_sessionKey);
                 Assert.Equal(new[] { "test.cs" }, _parsedArgs);
             }
 
-            [Fact]
-            public void SharedWithSessionKey()
+            [Theory]
+            [InlineData('-')]
+            [InlineData('/')]
+            public void SharedWithSessionKey(char optionPrefix)
             {
-                Assert.True(Parse("/shared:pipe", "test.cs"));
+                Assert.True(Parse(optionPrefix + "shared:pipe", "test.cs"));
                 Assert.True(_hasShared);
                 Assert.Equal("pipe", _sessionKey);
                 Assert.Equal(new[] { "test.cs" }, _parsedArgs);
 
-                Assert.True(Parse("/shared:1:2", "test.cs"));
+                Assert.True(Parse(optionPrefix + "shared:1:2", "test.cs"));
                 Assert.True(_hasShared);
                 Assert.Equal("1:2", _sessionKey);
                 Assert.Equal(new[] { "test.cs" }, _parsedArgs);
 
-                Assert.True(Parse("/shared=1:2", "test.cs"));
+                Assert.True(Parse(optionPrefix + "shared=1:2", "test.cs"));
                 Assert.True(_hasShared);
                 Assert.Equal("1:2", _sessionKey);
                 Assert.Equal(new[] { "test.cs" }, _parsedArgs);
             }
 
-            [Fact]
-            public void SharedWithEmptySessionKey()
+            [Theory]
+            [InlineData('-')]
+            [InlineData('/')]
+            public void SharedWithEmptySessionKey(char optionPrefix)
             {
-                Assert.False(Parse("/shared:", "test.cs"));
+                Assert.False(Parse(optionPrefix + "shared:", "test.cs"));
                 Assert.False(_hasShared);
                 Assert.Equal(CodeAnalysisResources.SharedArgumentMissing, _errorMessage);
             }
 
-            [Fact]
-            public void SharedPrefix()
+            [Theory]
+            [InlineData('-')]
+            [InlineData('/')]
+            public void SharedPrefix(char optionPrefix)
             {
-                Assert.True(Parse("/sharedstart", "test.cs"));
+                Assert.True(Parse(optionPrefix + "sharedstart", "test.cs"));
                 Assert.False(_hasShared);
-                Assert.Equal(new[] { "/sharedstart", "test.cs" }, _parsedArgs);
+                Assert.Equal(new[] { optionPrefix + "sharedstart", "test.cs" }, _parsedArgs);
             }
 
-            [Fact]
-            public void Basic()
+            [Theory]
+            [InlineData('-')]
+            [InlineData('/')]
+            public void Basic(char optionPrefix)
             {
                 Assert.True(Parse("test.cs"));
                 Assert.False(_hasShared);
                 Assert.Null(_sessionKey);
                 Assert.Equal(new[] { "test.cs" }, _parsedArgs);
 
-                Assert.True(Parse("/keepalive:100", "/shared", "test.cs"));
+                Assert.True(Parse(optionPrefix + "keepalive:100", "/shared", "test.cs"));
                 Assert.True(_hasShared);
                 Assert.Null(_sessionKey);
                 Assert.Equal("100", _keepAlive);
                 Assert.Equal(new[] { "test.cs" }, _parsedArgs);
             }
 
-            [Fact]
-            public void KeepAliveBad()
+            [Theory]
+            [InlineData('-')]
+            [InlineData('/')]
+            public void KeepAliveBad(char optionPrefix)
             {
-                Assert.False(Parse("/keepalive", "test.cs"));
+                Assert.False(Parse(optionPrefix + "keepalive", "test.cs"));
                 Assert.Equal(CodeAnalysisResources.MissingKeepAlive, _errorMessage);
 
-                Assert.False(Parse("/keepalive:", "test.cs"));
+                Assert.False(Parse(optionPrefix + "keepalive:", "test.cs"));
                 Assert.Equal(CodeAnalysisResources.MissingKeepAlive, _errorMessage);
 
-                Assert.False(Parse("/keepalive:-100", "test.cs"));
+                Assert.False(Parse(optionPrefix + "keepalive:-100", "test.cs"));
                 Assert.Equal(CodeAnalysisResources.KeepAliveIsTooSmall, _errorMessage);
 
-                Assert.False(Parse("/keepalive:100", "test.cs"));
+                Assert.False(Parse(optionPrefix + "keepalive:100", "test.cs"));
                 Assert.Equal(CodeAnalysisResources.KeepAliveWithoutShared, _errorMessage);
             }
 
-            [Fact]
-            public void KeepAlivePrefix()
+            [Theory]
+            [InlineData('-')]
+            [InlineData('/')]
+            public void KeepAlivePrefix(char optionPrefix)
             {
-                Assert.True(Parse("/keepalivestart", "test.cs"));
+                Assert.True(Parse(optionPrefix + "keepalivestart", "test.cs"));
                 Assert.Null(_keepAlive);
-                Assert.Equal(new[] { "/keepalivestart", "test.cs" }, _parsedArgs);
+                Assert.Equal(new[] { optionPrefix + "keepalivestart", "test.cs" }, _parsedArgs);
             }
 
-            [Fact]
-            public void KeepAlive()
+            [Theory]
+            [InlineData('-')]
+            [InlineData('/')]
+            public void KeepAlive(char optionPrefix)
             {
-                Assert.True(Parse("/keepalive:100", "/shared", "test.cs"));
+                Assert.True(Parse(optionPrefix + "keepalive:100", optionPrefix + "shared", "test.cs"));
                 Assert.Equal("100", _keepAlive);
                 Assert.Equal(new[] { "test.cs" }, _parsedArgs);
                 Assert.True(_hasShared);
                 Assert.Null(_sessionKey);
 
-                Assert.True(Parse("/keepalive=100", "/shared", "test.cs"));
+                Assert.True(Parse(optionPrefix + "keepalive=100", optionPrefix + "shared", "test.cs"));
                 Assert.Equal("100", _keepAlive);
                 Assert.Equal(new[] { "test.cs" }, _parsedArgs);
                 Assert.True(_hasShared);

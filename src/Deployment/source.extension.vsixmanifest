@@ -1,19 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011" xmlns:d="http://schemas.microsoft.com/developer/vsx-schema-design/2011">
   <Metadata>
-    <Identity Id="f6d4ae9d-5ca3-4e0b-9035-9457cccf53fa" Version="|%CurrentProject%;GetBuildVersion|" Language="en-US" Publisher="Microsoft" />
+    <Identity Id="f6d4ae9d-5ca3-4e0b-9035-9457cccf53fa" Version="|%CurrentProject%;GetVsixVersion|" Language="en-US" Publisher="Microsoft" />
     <DisplayName>Roslyn Insiders (Without Tool Window)</DisplayName>
     <Description>Pre-release build of Roslyn compilers and language services.</Description>
   </Metadata>
   <Installation>
-    <InstallationTarget Id="Microsoft.VisualStudio.Pro" Version="[14.0,]" />
+    <InstallationTarget Id="Microsoft.VisualStudio.Pro" Version="[15.0,]" />
   </Installation>
   <Dependencies>
-    <Dependency Id="Microsoft.Framework.NDP" DisplayName="Microsoft .NET Framework" d:Source="Manual" Version="[4.5,)" />
-    
     <Dependency d:ProjectName="CompilerExtension" 
                 DisplayName="Roslyn Compilers" 
-                Version="[|%CurrentProject%;GetBuildVersion|,)"
+                Version="[|%CurrentProject%;GetVsixVersion|,)"
                 d:Source="Project" 
                 d:InstallSource="Embed" 
                 d:VsixSubPath="Vsixes" 
@@ -22,7 +20,7 @@
     
     <Dependency d:ProjectName="VisualStudioSetup"
                 DisplayName="Roslyn Language Services"
-                Version="[|%CurrentProject%;GetBuildVersion|,)"
+                Version="[|%CurrentProject%;GetVsixVersion|,)"
                 d:Source="Project"
                 d:InstallSource="Embed"
                 d:VsixSubPath="Vsixes"
@@ -31,7 +29,7 @@
     
     <Dependency d:ProjectName="VisualStudioInteractiveComponents" 
                 DisplayName="Roslyn Interactive Components" 
-                Version="[|%CurrentProject%;GetBuildVersion|,)"
+                Version="[|%CurrentProject%;GetVsixVersion|,)"
                 d:Source="Project"  
                 d:InstallSource="Embed" 
                 d:VsixSubPath="Vsixes" 
@@ -40,7 +38,7 @@
     
     <Dependency  d:ProjectName="ExpressionEvaluatorPackage" 
                  DisplayName="Roslyn Expression Evaluators" 
-                 Version="[|%CurrentProject%;GetBuildVersion|,)"
+                 Version="[|%CurrentProject%;GetVsixVersion|,)"
                  d:Source="Project" 
                  d:InstallSource="Embed" 
                  d:VsixSubPath="Vsixes" 
@@ -48,6 +46,6 @@
                  Id="21BAC26D-2935-4D0D-A282-AD647E2592B5" />
   </Dependencies>
   <Prerequisites>
-    <Prerequisite Id="Microsoft.VisualStudio.Component.CoreEditor" Version="[15.0,16.0)" DisplayName="Visual Studio core editor" />
+    <Prerequisite Id="Microsoft.VisualStudio.Component.CoreEditor" Version="[15.0,17.0)" DisplayName="Visual Studio core editor" />
   </Prerequisites>
 </PackageManifest>

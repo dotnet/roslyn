@@ -66,7 +66,7 @@ class A {
             var sym = a.GetMembers("F").Single() as FieldSymbol;
 
             Assert.Equal(TypeKind.Class, sym.Type.TypeKind);
-            Assert.Equal<TypeSymbol>(a, sym.Type);
+            Assert.Equal<TypeSymbol>(a, sym.Type.TypeSymbol);
             Assert.Equal(Accessibility.Private, sym.DeclaredAccessibility);
             Assert.Equal(SymbolKind.Field, sym.Kind);
             Assert.False(sym.IsStatic);
@@ -93,13 +93,13 @@ class A {
             var a = global.GetTypeMembers("A", 0).Single();
             var f = a.GetMembers("F").Single() as FieldSymbol;
             Assert.Equal(TypeKind.Class, f.Type.TypeKind);
-            Assert.Equal<TypeSymbol>(a, f.Type);
+            Assert.Equal<TypeSymbol>(a, f.Type.TypeSymbol);
             Assert.Equal(Accessibility.Private, f.DeclaredAccessibility);
             var gs = a.GetMembers("G");
             Assert.Equal(2, gs.Length);
             foreach (var g in gs)
             {
-                Assert.Equal(a, (g as FieldSymbol).Type); // duplicate, but all the same.
+                Assert.Equal(a, (g as FieldSymbol).Type.TypeSymbol); // duplicate, but all the same.
             }
 
             var errors = comp.GetDeclarationDiagnostics();
@@ -124,7 +124,7 @@ class A {
             Assert.Equal(2, fs.Length);
             foreach (var f in fs)
             {
-                Assert.Equal(a, (f as FieldSymbol).Type);
+                Assert.Equal(a, (f as FieldSymbol).Type.TypeSymbol);
             }
         }
 
@@ -148,14 +148,14 @@ class A
             Assert.True(n1.IsConst);
             Assert.False(n1.IsVolatile);
             Assert.True(n1.IsStatic);
-            Assert.Equal(0, n1.CustomModifiers.Length);
+            Assert.Equal(0, n1.Type.CustomModifiers.Length);
 
             var n2 = a.GetMembers("N2").Single() as FieldSymbol;
             Assert.False(n2.IsConst);
             Assert.True(n2.IsVolatile);
             Assert.False(n2.IsStatic);
-            Assert.Equal(1, n2.CustomModifiers.Length);
-            CustomModifier mod = n2.CustomModifiers[0];
+            Assert.Equal(1, n2.Type.CustomModifiers.Length);
+            CustomModifier mod = n2.Type.CustomModifiers[0];
             Assert.False(mod.IsOptional);
             Assert.Equal("System.Runtime.CompilerServices.IsVolatile[missing]", mod.Modifier.ToTestDisplayString());
 
@@ -163,7 +163,7 @@ class A
             Assert.False(n3.IsConst);
             Assert.False(n3.IsVolatile);
             Assert.True(n3.IsStatic);
-            Assert.Equal(0, n3.CustomModifiers.Length);
+            Assert.Equal(0, n3.Type.CustomModifiers.Length);
         }
 
         [Fact]
@@ -181,7 +181,7 @@ class A {
             var sym = a.GetMembers("F").Single() as FieldSymbol;
             Assert.Equal("System.Int32? A.F", sym.ToTestDisplayString());
             Assert.Equal(TypeKind.Struct, sym.Type.TypeKind);
-            Assert.Equal("System.Int32?", sym.Type.ToTestDisplayString());
+            Assert.Equal("System.Int32?", sym.Type.TypeSymbol.ToTestDisplayString());
         }
 
         [Fact]
@@ -210,17 +210,17 @@ class A {
             var sym = type2.GetMembers("field1").Single() as FieldSymbol;
             Assert.Equal("System.Collections.Generic.List<T> C<T>.S<V>.field1", sym.ToTestDisplayString());
             Assert.Equal(TypeKind.Class, sym.Type.TypeKind);
-            Assert.Equal("System.Collections.Generic.List<T>", sym.Type.ToTestDisplayString());
+            Assert.Equal("System.Collections.Generic.List<T>", sym.Type.TypeSymbol.ToTestDisplayString());
 
             sym = type2.GetMembers("field2").Single() as FieldSymbol;
             Assert.Equal("System.Collections.Generic.IList<V> C<T>.S<V>.field2", sym.ToTestDisplayString());
             Assert.Equal(TypeKind.Interface, sym.Type.TypeKind);
-            Assert.Equal("System.Collections.Generic.IList<V>", sym.Type.ToTestDisplayString());
+            Assert.Equal("System.Collections.Generic.IList<V>", sym.Type.TypeSymbol.ToTestDisplayString());
 
             sym = type2.GetMembers("field3").Single() as FieldSymbol;
             Assert.Equal("C<T>.S<System.String> C<T>.S<V>.field3", sym.ToTestDisplayString());
             Assert.Equal(TypeKind.Struct, sym.Type.TypeKind);
-            Assert.Equal("C<T>.S<System.String>", sym.Type.ToTestDisplayString());
+            Assert.Equal("C<T>.S<System.String>", sym.Type.TypeSymbol.ToTestDisplayString());
         }
 
         [WorkItem(537401, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537401")]
@@ -239,7 +239,7 @@ class C1
             FieldSymbol ein = (FieldSymbol)c1.GetMembers("in").Single();
             Assert.Equal("in", ein.Name);
             Assert.Equal("C1.@in", ein.ToString());
-            NamedTypeSymbol dout = (NamedTypeSymbol)ein.Type;
+            NamedTypeSymbol dout = (NamedTypeSymbol)ein.Type.TypeSymbol;
             Assert.Equal("out", dout.Name);
             Assert.Equal("@out", dout.ToString());
         }
@@ -488,6 +488,44 @@ class K
                 "Error: Field name value__ is reserved for Enums only.",
                 "Error: Field name value__ is reserved for Enums only.",
                 "Error: Field name value__ is reserved for Enums only.");
+        }
+
+        [WorkItem(26364, "https://github.com/dotnet/roslyn/issues/26364")]
+        [Fact]
+        public void FixedSizeBufferTrue()
+        {
+            var text =
+@"
+unsafe struct S
+{
+    private fixed byte goo[10];
+}
+";
+            var comp = CreateEmptyCompilation(text);
+            var global = comp.GlobalNamespace;
+            var s = global.GetTypeMember("S");
+            var goo = s.GetMember<FieldSymbol>("goo");
+
+            Assert.True(goo.IsFixedSizeBuffer);
+        }
+
+        [WorkItem(26364, "https://github.com/dotnet/roslyn/issues/26364")]
+        [Fact]
+        public void FixedSizeBufferFalse()
+        {
+            var text =
+@"
+unsafe struct S
+{
+    private byte goo;
+}
+";
+            var comp = CreateEmptyCompilation(text);
+            var global = comp.GlobalNamespace;
+            var s = global.GetTypeMember("S");
+            var goo = s.GetMember<FieldSymbol>("goo");
+
+            Assert.False(goo.IsFixedSizeBuffer);
         }
     }
 }

@@ -64,7 +64,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         {
             return new List<NotificationOptionViewModel>
             {
-                new NotificationOptionViewModel(NotificationOption.None, KnownMonikers.None),
+                new NotificationOptionViewModel(NotificationOption.Silent, KnownMonikers.None),
                 new NotificationOptionViewModel(NotificationOption.Suggestion, KnownMonikers.StatusInformation),
                 new NotificationOptionViewModel(NotificationOption.Warning, KnownMonikers.StatusWarning),
                 new NotificationOptionViewModel(NotificationOption.Error, KnownMonikers.StatusError)

@@ -4,17 +4,16 @@ Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
 Imports Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
 Imports Microsoft.CodeAnalysis.PickMembers
-Imports Microsoft.CodeAnalysis.VisualBasic.GenerateEqualsAndGetHashCodeFromMembers
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.GenerateConstructorFromMembers
     Public Class GenerateEqualsAndGetHashCodeFromMembersTests
         Inherits AbstractVisualBasicCodeActionTest
 
-        Private Const GenerateOperatorsId = AbstractGenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider.GenerateOperatorsId
-        Private Const ImplementIEquatableId = AbstractGenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider.ImplementIEquatableId
+        Private Const GenerateOperatorsId = GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider.GenerateOperatorsId
+        Private Const ImplementIEquatableId = GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider.ImplementIEquatableId
 
         Protected Overrides Function CreateCodeRefactoringProvider(workspace As Workspace, parameters As TestParameters) As CodeRefactoringProvider
-            Return New VisualBasicGenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider(
+            Return New GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider(
                 DirectCast(parameters.fixProviderData, IPickMembersService))
         End Function
 

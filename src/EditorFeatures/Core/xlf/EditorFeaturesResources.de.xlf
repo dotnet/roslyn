@@ -2,6 +2,51 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="de" original="../EditorFeaturesResources.resx">
     <body>
+      <trans-unit id="Applying_changes">
+        <source>Applying changes</source>
+        <target state="translated">Änderungen anwenden</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Change_configuration">
+        <source>Change configuration</source>
+        <target state="translated">Konfiguration ändern</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Code_cleanup_is_not_configured">
+        <source>Code cleanup is not configured</source>
+        <target state="translated">Die Codebereinigung wurde nicht konfiguriert.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Configure_it_now">
+        <source>Configure it now</source>
+        <target state="translated">Jetzt konfigurieren</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Do_not_show_this_message_again">
+        <source>Do not show this message again</source>
+        <target state="translated">Diese Meldung nicht mehr anzeigen</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Do_you_still_want_to_proceed_This_may_produce_broken_code">
+        <source>Do you still want to proceed? This may produce broken code.</source>
+        <target state="new">Do you still want to proceed? This may produce broken code.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Extract_method_encountered_the_following_issues">
+        <source>Extract method encountered the following issues:</source>
+        <target state="new">Extract method encountered the following issues:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Format_document_performed_additional_cleanup">
+        <source>Format Document performed additional cleanup</source>
+        <target state="translated">Durch "Dokument formatieren" wurde eine zusätzliche Bereinigung durchgeführt.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Paste_Tracking">
+        <source>Paste Tracking</source>
+        <target state="new">Paste Tracking</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Preprocessor_Text">
         <source>Preprocessor Text</source>
         <target state="translated">Präprozessortext</target>
@@ -12,39 +57,44 @@
         <target state="translated">Interpunktion</target>
         <note />
       </trans-unit>
+      <trans-unit id="String_Escape_Character">
+        <source>String - Escape Character</source>
+        <target state="new">String - Escape Character</target>
+        <note />
+      </trans-unit>
       <trans-unit id="User_Types_Classes">
         <source>User Types - Classes</source>
-        <target state="translated">Benutzertypen - Klassen</target>
+        <target state="translated">Benutzertypen: Klassen</target>
         <note />
       </trans-unit>
       <trans-unit id="User_Types_Delegates">
         <source>User Types - Delegates</source>
-        <target state="translated">Benutzertypen - Delegaten</target>
+        <target state="translated">Benutzertypen: Delegaten</target>
         <note />
       </trans-unit>
       <trans-unit id="User_Types_Enums">
         <source>User Types - Enums</source>
-        <target state="translated">Benutzertypen - Aufzählungen</target>
+        <target state="translated">Benutzertypen – Enumerationen</target>
         <note />
       </trans-unit>
       <trans-unit id="User_Types_Interfaces">
         <source>User Types - Interfaces</source>
-        <target state="translated">Benutzertypen - Schnittstellen</target>
+        <target state="translated">Benutzertypen: Schnittstellen</target>
         <note />
       </trans-unit>
       <trans-unit id="User_Types_Structures">
         <source>User Types - Structures</source>
-        <target state="translated">Benutzertypen - Strukturen</target>
+        <target state="translated">Benutzertypen: Strukturen</target>
         <note />
       </trans-unit>
       <trans-unit id="User_Types_Type_Parameters">
         <source>User Types - Type Parameters</source>
-        <target state="translated">Benutzertypen - Typparameter</target>
+        <target state="translated">Benutzertypen: Typparameter</target>
         <note />
       </trans-unit>
       <trans-unit id="String_Verbatim">
         <source>String - Verbatim</source>
-        <target state="translated">Zeichenfolge - ausführlich</target>
+        <target state="translated">Zeichenfolge: ausführlich</target>
         <note />
       </trans-unit>
       <trans-unit id="XML_Doc_Comments_Attribute_Name">
@@ -54,92 +104,92 @@
       </trans-unit>
       <trans-unit id="XML_Doc_Comments_CData_Section">
         <source>XML Doc Comments - CData Section</source>
-        <target state="translated">XML-Dok-Kommentare - CData-Abschnitt</target>
+        <target state="translated">XML-Dok-Kommentare: CData-Abschnitt</target>
         <note />
       </trans-unit>
       <trans-unit id="XML_Doc_Comments_Text">
         <source>XML Doc Comments - Text</source>
-        <target state="translated">XML-Dok-Kommentare - Text</target>
+        <target state="translated">XML-Dok-Kommentare: Text</target>
         <note />
       </trans-unit>
       <trans-unit id="XML_Doc_Comments_Delimiter">
         <source>XML Doc Comments - Delimiter</source>
-        <target state="translated">XML-Dok-Kommentare - Trennzeichen</target>
+        <target state="translated">XML-Dok-Kommentare: Trennzeichen</target>
         <note />
       </trans-unit>
       <trans-unit id="XML_Doc_Comments_Comment">
         <source>XML Doc Comments - Comment</source>
-        <target state="translated">XML-Dok-Kommentare - Kommentar</target>
+        <target state="translated">XML-Dok-Kommentare: Kommentar</target>
         <note />
       </trans-unit>
       <trans-unit id="User_Types_Modules">
         <source>User Types - Modules</source>
-        <target state="translated">Benutzertypen - Module</target>
+        <target state="translated">Benutzertypen: Module</target>
         <note />
       </trans-unit>
       <trans-unit id="VB_XML_Literals_Attribute_Name">
         <source>VB XML Literals - Attribute Name</source>
-        <target state="translated">VB XML-Literale - Attributname</target>
+        <target state="translated">VB XML-Literale: Attributname</target>
         <note />
       </trans-unit>
       <trans-unit id="VB_XML_Literals_Attribute_Quotes">
         <source>VB XML Literals - Attribute Quotes</source>
-        <target state="translated">VB XML-Literale - Attributanführungszeichen</target>
+        <target state="translated">VB XML-Literale: Attributanführungszeichen</target>
         <note />
       </trans-unit>
       <trans-unit id="VB_XML_Literals_Attribute_Value">
         <source>VB XML Literals - Attribute Value</source>
-        <target state="translated">VB XML-Literale - Attributwert</target>
+        <target state="translated">VB XML-Literale: Attributwert</target>
         <note />
       </trans-unit>
       <trans-unit id="VB_XML_Literals_CData_Section">
         <source>VB XML Literals - CData Section</source>
-        <target state="translated">VB XML-Literale - CData-Abschnitt</target>
+        <target state="translated">VB XML-Literale: CData-Abschnitt</target>
         <note />
       </trans-unit>
       <trans-unit id="VB_XML_Literals_Comment">
         <source>VB XML Literals - Comment</source>
-        <target state="translated">VB XML-Literale - Kommentar</target>
+        <target state="translated">VB XML-Literale: Kommentar</target>
         <note />
       </trans-unit>
       <trans-unit id="VB_XML_Literals_Delimiter">
         <source>VB XML Literals - Delimiter</source>
-        <target state="translated">VB XML-Literale - Trennzeichen</target>
+        <target state="translated">VB XML-Literale: Trennzeichen</target>
         <note />
       </trans-unit>
       <trans-unit id="VB_XML_Literals_Embedded_Expression">
         <source>VB XML Literals - Embedded Expression</source>
-        <target state="translated">VB XML-Literale - Eingebetteter Ausdruck</target>
+        <target state="translated">VB XML-Literale: Eingebetteter Ausdruck</target>
         <note />
       </trans-unit>
       <trans-unit id="VB_XML_Literals_Entity_Reference">
         <source>VB XML Literals - Entity Reference</source>
-        <target state="translated">VB XML-Literale - Entitätsverweis</target>
+        <target state="translated">VB XML-Literale: Entitätsverweis</target>
         <note />
       </trans-unit>
       <trans-unit id="VB_XML_Literals_Name">
         <source>VB XML Literals - Name</source>
-        <target state="translated">VB XML-Literale - Name</target>
+        <target state="translated">VB XML-Literale: Name</target>
         <note />
       </trans-unit>
       <trans-unit id="VB_XML_Literals_Processing_Instruction">
         <source>VB XML Literals - Processing Instruction</source>
-        <target state="translated">VB XML-Literale - Verarbeitungsanweisung</target>
+        <target state="translated">VB XML-Literale: Verarbeitungsanweisung</target>
         <note />
       </trans-unit>
       <trans-unit id="VB_XML_Literals_Text">
         <source>VB XML Literals - Text</source>
-        <target state="translated">VB XML-Literale - Text</target>
+        <target state="translated">VB XML-Literale: Text</target>
         <note />
       </trans-unit>
       <trans-unit id="XML_Doc_Comments_Attribute_Quotes">
         <source>XML Doc Comments - Attribute Quotes</source>
-        <target state="translated">XML-Dok-Kommentare - Attributanführungszeichen</target>
+        <target state="translated">XML-Dok-Kommentare: Attributanführungszeichen</target>
         <note />
       </trans-unit>
       <trans-unit id="XML_Doc_Comments_Attribute_Value">
         <source>XML Doc Comments - Attribute Value</source>
-        <target state="translated">XML-Dok-Kommentare - Attributwert</target>
+        <target state="translated">XML-Dok-Kommentare: Attributwert</target>
         <note />
       </trans-unit>
       <trans-unit id="Unnecessary_Code">
@@ -334,7 +384,7 @@
       </trans-unit>
       <trans-unit id="_0_Line_1">
         <source>{0} - (Line {1})</source>
-        <target state="translated">{0} - (Zeile {1})</target>
+        <target state="translated">{0}: (Zeile {1})</target>
         <note />
       </trans-unit>
       <trans-unit id="Class_Parts">
@@ -594,7 +644,7 @@
       </trans-unit>
       <trans-unit id="Go_to_Definition">
         <source>Go to Definition</source>
-        <target state="translated">Gehe zu Definition</target>
+        <target state="translated">Zur Definition wechseln</target>
         <note />
       </trans-unit>
       <trans-unit id="Navigating_to_definition">
@@ -704,7 +754,7 @@
       </trans-unit>
       <trans-unit id="Renaming_anonymous_type_members_is_not_yet_supported">
         <source>Renaming anonymous type members is not yet supported.</source>
-        <target state="translated">Das Umbenennen von Elementen des Typs anonym wird noch nicht unterstützt.</target>
+        <target state="translated">Das Umbenennen von Membern des Typs anonym wird noch nicht unterstützt.</target>
         <note />
       </trans-unit>
       <trans-unit id="Engine_must_be_attached_to_an_Interactive_Window">
@@ -749,17 +799,17 @@
       </trans-unit>
       <trans-unit id="XML_Doc_Comments_Entity_Reference">
         <source>XML Doc Comments - Entity Reference</source>
-        <target state="translated">XML-Dok-Kommentare - Entitätsverweis</target>
+        <target state="translated">XML-Dok-Kommentare: Entitätsverweis</target>
         <note />
       </trans-unit>
       <trans-unit id="XML_Doc_Comments_Name">
         <source>XML Doc Comments - Name</source>
-        <target state="translated">XML-Dok-Kommentare - Name</target>
+        <target state="translated">XML-Dok-Kommentare: Name</target>
         <note />
       </trans-unit>
       <trans-unit id="XML_Doc_Comments_Processing_Instruction">
         <source>XML Doc Comments - Processing Instruction</source>
-        <target state="translated">XML-Dok-Kommentare - Verarbeitungsanweisung</target>
+        <target state="translated">XML-Dok-Kommentare: Verarbeitungsanweisung</target>
         <note />
       </trans-unit>
       <trans-unit id="Active_Statement">
@@ -779,7 +829,7 @@
       </trans-unit>
       <trans-unit id="symbol_cannot_be_a_namespace">
         <source>'symbol' cannot be a namespace.</source>
-        <target state="translated">'"symbol" kann kein Namespace sein.</target>
+        <target state="translated">"symbol" kann kein Namespace sein.</target>
         <note />
       </trans-unit>
       <trans-unit id="Apply1">
@@ -814,7 +864,7 @@
       </trans-unit>
       <trans-unit id="Preview_Changes_0">
         <source>Preview Changes - {0}</source>
-        <target state="translated">Vorschau der Änderungen - {0}</target>
+        <target state="translated">Vorschau der Änderungen: {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="Preview_Code_Changes_colon">
@@ -847,20 +897,10 @@
         <target state="translated">Automatische Formatierung</target>
         <note />
       </trans-unit>
-      <trans-unit id="Extract_method_failed_with_following_reasons_colon">
-        <source>Extract method failed with following reasons :</source>
-        <target state="translated">Extrahieren der Methode aufgrund folgender Ursachen fehlgeschlagen :</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Do_you_still_want_to_proceed_it_will_generate_broken_code">
-        <source>Do you still want to proceed? it will generate broken code.</source>
-        <target state="translated">Möchten Sie dennnoch fortfahren? Es wird fehlerhafter Code generiert.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="We_can_fix_the_error_by_not_making_struct_out_ref_parameter_s_Do_you_want_to_proceed">
-        <source>We can fix the error by not making struct "out/ref" parameter(s). 
+        <source>We can fix the error by not making struct "out/ref" parameter(s).
 Do you want to proceed?</source>
-        <target state="translated">Wir können den Fehler beheben, indem die Struktur der "out/ref"-Parameter nicht erstellt wird. 
+        <target state="translated">Wir können den Fehler beheben, indem die Struktur der "out/ref"-Parameter nicht erstellt wird.
 Möchten Sie fortfahren?</target>
         <note />
       </trans-unit>
@@ -971,7 +1011,7 @@ Möchten Sie fortfahren?</target>
       </trans-unit>
       <trans-unit id="_0_does_not_support_the_1_operation_However_it_may_contain_nested_2_s_see_2_3_that_support_this_operation">
         <source>'{0}' does not support the '{1}' operation. However, it may contain nested '{2}'s (see '{2}.{3}') that support this operation.</source>
-        <target state="translated">'Der Vorgang "{1}" wird von "{0}" nicht unterstützt. Es können jedoch geschachtelte "{2}" enthalten sein (siehe "{2}.{3}"), die diesen Vorgang unterstützen.</target>
+        <target state="translated">Der Vorgang "{1}" wird von "{0}" nicht unterstützt. Es können jedoch geschachtelte "{2}" enthalten sein (siehe "{2}.{3}"), die diesen Vorgang unterstützen.</target>
         <note />
       </trans-unit>
       <trans-unit id="Brace_Completion">
@@ -1051,17 +1091,17 @@ Möchten Sie fortfahren?</target>
       </trans-unit>
       <trans-unit id="_0_references">
         <source>'{0}' references</source>
-        <target state="translated">'"{0}"-Verweise</target>
+        <target state="translated">{0}-Verweise</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_implementations">
         <source>'{0}' implementations</source>
-        <target state="translated">'"{0}"-Implementierungen</target>
+        <target state="translated">{0}-Implementierungen</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_declarations">
         <source>'{0}' declarations</source>
-        <target state="translated">'"{0}"-Deklarationen</target>
+        <target state="translated">{0}-Deklarationen</target>
         <note />
       </trans-unit>
       <trans-unit id="An_inline_rename_session_is_active">
@@ -1084,139 +1124,69 @@ Möchten Sie fortfahren?</target>
         <target state="translated">Text für das Feld zur Inlineumbenennung</target>
         <note />
       </trans-unit>
-      <trans-unit id="View_Call_Hierarchy_Command_Handler">
-        <source>View Call Hierarchy Command Handler</source>
-        <target state="new">View Call Hierarchy Command Handler</target>
+      <trans-unit id="Block_Comment_Editing">
+        <source>Block Comment Editing</source>
+        <target state="translated">Blockkommentarbearbeitung</target>
         <note />
       </trans-unit>
-      <trans-unit id="Automatic_Line_Ender_Command_Handler">
-        <source>Automatic Line Ender Command Handler</source>
-        <target state="new">Automatic Line Ender Command Handler</target>
+      <trans-unit id="Comment_Uncomment_Selection">
+        <source>Comment/Uncomment Selection</source>
+        <target state="translated">Auswahl auskommentieren/Auskommentierung aufheben</target>
         <note />
       </trans-unit>
-      <trans-unit id="Block_Comment_Editing_Command_Handler">
-        <source>Block Comment Editing Command Handler</source>
-        <target state="new">Block Comment Editing Command Handler</target>
+      <trans-unit id="Code_Completion">
+        <source>Code Completion</source>
+        <target state="translated">Codevervollständigung</target>
         <note />
       </trans-unit>
-      <trans-unit id="Change_Signature_Command_Handler">
-        <source>Change Signature Command Handler</source>
-        <target state="new">Change Signature Command Handler</target>
+      <trans-unit id="Execute_In_Interactive">
+        <source>Execute In Interactive</source>
+        <target state="translated">In interaktivem Fenster ausführen</target>
         <note />
       </trans-unit>
-      <trans-unit id="Comment_Uncomment_Selection_Command_Handler">
-        <source>Comment/Uncomment Selection Command Handler</source>
-        <target state="new">Comment/Uncomment Selection Command Handler</target>
+      <trans-unit id="Extract_Interface">
+        <source>Extract Interface</source>
+        <target state="translated">Schnittstelle extrahieren</target>
         <note />
       </trans-unit>
-      <trans-unit id="Completion_Command_Handler">
-        <source>Code Completion Command Handler</source>
-        <target state="new">Code Completion Command Handler</target>
+      <trans-unit id="Go_To_Adjacent_Member">
+        <source>Go To Adjacent Member</source>
+        <target state="translated">Zu angrenzendem Member wechseln</target>
         <note />
       </trans-unit>
-      <trans-unit id="Documentation_Comment_Command_Handler">
-        <source>Documentation Comment Command Handler</source>
-        <target state="new">Documentation Comment Command Handler</target>
+      <trans-unit id="Interactive">
+        <source>Interactive</source>
+        <target state="translated">Interaktiv</target>
         <note />
       </trans-unit>
-      <trans-unit id="Encapsulate_Field_Command_Handler">
-        <source>Encapsulate Field Command Handler</source>
-        <target state="new">Encapsulate Field Command Handler</target>
+      <trans-unit id="Paste_in_Interactive">
+        <source>Paste in Interactive</source>
+        <target state="translated">In interaktivem Fenster einfügen</target>
         <note />
       </trans-unit>
-      <trans-unit id="Execute_In_Interactive_Command_Handler">
-        <source>Execute In Interactive Command Handler</source>
-        <target state="new">Execute In Interactive Command Handler</target>
+      <trans-unit id="Navigate_To_Highlight_Reference">
+        <source>Navigate To Highlighted Reference</source>
+        <target state="translated">Zu hervorgehobenem Verweis navigieren</target>
         <note />
       </trans-unit>
-      <trans-unit id="Extract_Interface_Command_Handler">
-        <source>Extract Interface Command Handler</source>
-        <target state="new">Extract Interface Command Handler</target>
+      <trans-unit id="Outlining">
+        <source>Outlining</source>
+        <target state="translated">Gliederung</target>
         <note />
       </trans-unit>
-      <trans-unit id="Extract_Method_Command_Handler">
-        <source>Extract Method Command Handler</source>
-        <target state="new">Extract Method Command Handler</target>
+      <trans-unit id="Rename_Tracking_Cancellation">
+        <source>Rename Tracking Cancellation</source>
+        <target state="translated">Abbruch der Umbenennungsnachverfolgung</target>
         <note />
       </trans-unit>
-      <trans-unit id="Find_References_Command_Handler">
-        <source>Find References Command Handler</source>
-        <target state="new">Find References Command Handler</target>
+      <trans-unit id="Signature_Help">
+        <source>Signature Help</source>
+        <target state="translated">Signaturhilfe</target>
         <note />
       </trans-unit>
-      <trans-unit id="Format_Command_Handler">
-        <source>Format Command Handler</source>
-        <target state="new">Format Command Handler</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Go_To_Adjacent_Member_Command_Handler">
-        <source>Go To Adjacent Member Command Handler</source>
-        <target state="new">Go To Adjacent Member Command Handler</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Go_To_Definition_Command_Handler">
-        <source>Go To Definition Command Handler</source>
-        <target state="new">Go To Definition Command Handler</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Go_To_Implementation_Command_Handler">
-        <source>Go To Implementation Command Handler</source>
-        <target state="new">Go To Implementation Command Handler</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="IntelliSense_Command_Handler">
-        <source>IntelliSense Command Handler</source>
-        <target state="new">IntelliSense Command Handler</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Interactive_Command_Handler">
-        <source>Interactive Command Handler</source>
-        <target state="new">Interactive Command Handler</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Interactive_Paste_Command_Handler">
-        <source>Interactive Paste Command Handler</source>
-        <target state="new">Interactive Paste Command Handler</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Navigate_To_Highlight_Reference_Command_Handler">
-        <source>Navigate To Highlighted Reference Command Handler</source>
-        <target state="new">Navigate To Highlighted Reference Command Handler</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Organize_Document_Command_Handler">
-        <source>Organize Document Command Handler</source>
-        <target state="new">Organize Document Command Handler</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Outlining_Command_Handler">
-        <source>Outlining Command Handler</source>
-        <target state="new">Outlining Command Handler</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Rename_Command_Handler">
-        <source>Rename Command Handler</source>
-        <target state="new">Rename Command Handler</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Rename_Tracking_Cancellation_Command_Handler">
-        <source>Rename Tracking Cancellation Command Handler</source>
-        <target state="new">Rename Tracking Cancellation Command Handler</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Signature_Help_Command_Handler">
-        <source>Signature Help Command Handler</source>
-        <target state="new">Signature Help Command Handler</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Smart_Token_Formatter_Command_Handler">
-        <source>Smart Token Formatter Command Handler</source>
-        <target state="new">Smart Token Formatter Command Handler</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Xml_Tag_Completion_Command_Handler">
-        <source>XML Tag Completion Command Handler</source>
-        <target state="new">XML Tag Completion Command Handler</target>
+      <trans-unit id="Smart_Token_Formatter">
+        <source>Smart Token Formatter</source>
+        <target state="translated">Intelligente Tokenformatierung</target>
         <note />
       </trans-unit>
     </body>

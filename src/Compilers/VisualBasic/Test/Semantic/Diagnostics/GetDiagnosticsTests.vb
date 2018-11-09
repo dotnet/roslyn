@@ -446,7 +446,7 @@ BC31030: Conditional compilation constant '2' is not valid: Identifier expected.
 
         <Fact>
         Public Sub TestEventQueueCompletionForEmptyCompilation()
-            Dim compilation = CreateCompilationWithMscorlib45(SpecializedCollections.EmptyEnumerable(Of SyntaxTree)()).WithEventQueue(New AsyncQueue(Of CompilationEvent)())
+            Dim compilation = CreateCompilationWithMscorlib45(source:=Nothing).WithEventQueue(New AsyncQueue(Of CompilationEvent)())
 
             ' Force complete compilation event queue
             Dim unused = compilation.GetDiagnostics()

@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
     /// 
     /// </summary>
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    internal class CSharpInlineDeclarationDiagnosticAnalyzer : AbstractCodeStyleDiagnosticAnalyzer
+    internal class CSharpInlineDeclarationDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
     {
         private const string CS0165 = nameof(CS0165); // Use of unassigned local variable 's'
 
@@ -240,10 +240,12 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
                 ? (SyntaxNode)localDeclaration
                 : localDeclarator;
 
-            context.ReportDiagnostic(Diagnostic.Create(
-                GetDescriptorWithSeverity(option.Notification.Value),
+            context.ReportDiagnostic(DiagnosticHelper.Create(
+                Descriptor,
                 reportNode.GetLocation(),
-                additionalLocations: allLocations));
+                option.Notification.Severity,
+                additionalLocations: allLocations,
+                properties: null));
         }
 
         private bool WouldCauseDefiniteAssignmentErrors(

@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
 {
     internal abstract class AbstractUseConditionalExpressionDiagnosticAnalyzer<
         TIfStatementSyntax>
-        : AbstractCodeStyleDiagnosticAnalyzer
+        : AbstractBuiltInCodeStyleDiagnosticAnalyzer
         where TIfStatementSyntax : SyntaxNode
     {
         private readonly PerLanguageOption<CodeStyleOption<bool>> _option;
@@ -68,10 +68,12 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
             }
 
             var additionalLocations = ImmutableArray.Create(ifStatement.GetLocation());
-            context.ReportDiagnostic(Diagnostic.Create(
-                this.CreateDescriptorWithSeverity(option.Notification.Value),
+            context.ReportDiagnostic(DiagnosticHelper.Create(
+                Descriptor,
                 ifStatement.GetFirstToken().GetLocation(),
-                additionalLocations));
+                option.Notification.Severity,
+                additionalLocations,
+                properties: null));
         }
     }
 }

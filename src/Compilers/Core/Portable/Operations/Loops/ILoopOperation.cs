@@ -30,6 +30,14 @@ namespace Microsoft.CodeAnalysis.Operations
         /// Declared locals.
         /// </summary>
         ImmutableArray<ILocalSymbol> Locals { get; }
+        /// <summary>
+        /// Loop continue label.
+        /// </summary>
+        ILabelSymbol ContinueLabel { get; }
+        /// <summary>
+        /// Loop exit/break label.
+        /// </summary>
+        ILabelSymbol ExitLabel { get; }
     }
 }
 

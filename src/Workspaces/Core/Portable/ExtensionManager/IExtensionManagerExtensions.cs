@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Extensions
             {
                 if (!extensionManager.IsDisabled(extension))
                 {
-                    var task = function() ?? SpecializedTasks.EmptyTask;
+                    var task = function() ?? Task.CompletedTask;
                     await task.ConfigureAwait(false);
                 }
             }

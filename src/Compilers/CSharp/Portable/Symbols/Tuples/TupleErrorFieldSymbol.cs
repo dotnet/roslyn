@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// </summary>
     internal sealed class TupleErrorFieldSymbol : SynthesizedFieldSymbolBase
     {
-        private readonly TypeSymbol _type;
+        private readonly TypeSymbolWithAnnotations _type;
 
         /// <summary>
         /// If this field represents a tuple element with index X
@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             string name, 
             int tupleElementIndex, 
             Location location, 
-            TypeSymbol type, 
+            TypeSymbolWithAnnotations type, 
             DiagnosticInfo useSiteDiagnosticInfo, 
             bool isImplicitlyDeclared,
             TupleErrorFieldSymbol correspondingDefaultFieldOpt)
@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override TypeSymbol GetFieldType(ConsList<FieldSymbol> fieldsBeingBound)
+        internal override TypeSymbolWithAnnotations GetFieldType(ConsList<FieldSymbol> fieldsBeingBound)
         {
             return _type;
         }

@@ -28,6 +28,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool isDynamic = kind.IsDynamic();
             var binaryOperator = kind.Operator();
 
+            // This will be filled in with the LHS that uses temporaries to prevent
+            // double-evaluation of side effects.
+            BoundExpression transformedLHS = TransformCompoundAssignmentLHS(node.Left, stores, temps, isDynamic);
+
             // if LHS is a member access and the operation is += or -=, we need to check at runtime if the LHS is an event.
             // We rewrite dyn.Member op= RHS to the following:
             //
@@ -36,19 +40,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool isPossibleEventHandlerOperation = node.Left.Kind == BoundKind.DynamicMemberAccess &&
                 (binaryOperator == BinaryOperatorKind.Addition || binaryOperator == BinaryOperatorKind.Subtraction);
 
-            // save RHS to a temp, we need to use it twice:
+            var lhsRead = MakeRValue(transformedLHS);
+
+            // If RHS needs to be saved to a temp, we save the LHS read to a temp first to ensure order
+            // of operations is preserved
             if (isPossibleEventHandlerOperation && CanChangeValueBetweenReads(loweredRight))
             {
-                BoundAssignmentOperator assignmentToTemp;
-                var temp = _factory.StoreToTemp(loweredRight, out assignmentToTemp);
-                loweredRight = temp;
-                stores.Add(assignmentToTemp);
-                temps.Add(temp.LocalSymbol);
-            }
+                lhsRead = storeToTemp(lhsRead);
+                loweredRight = storeToTemp(loweredRight);
 
-            // This will be filled in with the LHS that uses temporaries to prevent
-            // double-evaluation of side effects.
-            BoundExpression transformedLHS = TransformCompoundAssignmentLHS(node.Left, stores, temps, isDynamic);
+                BoundExpression storeToTemp(BoundExpression expression)
+                {
+                    var temp = _factory.StoreToTemp(expression, out BoundAssignmentOperator assignmentToTemp);
+                    stores.Add(assignmentToTemp);
+                    temps.Add(temp.LocalSymbol);
+                    return temp;
+                }
+            }
 
             SyntaxNode syntax = node.Syntax;
 
@@ -60,8 +68,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             // And then wrap it up with the generated temporaries.
             //
             // (The right hand side has already been converted to the type expected by the operator.)
-
-            var lhsRead = MakeRValue(transformedLHS);
 
             BoundExpression opLHS = isDynamic ? lhsRead : MakeConversionNode(
                 syntax: syntax,
@@ -615,7 +621,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static bool IsInvariantArray(TypeSymbol type)
         {
-            return (type as ArrayTypeSymbol)?.ElementType.IsSealed == true;
+            return (type as ArrayTypeSymbol)?.ElementType.TypeSymbol.IsSealed == true;
         }
 
         private BoundExpression BoxReceiver(BoundExpression rewrittenReceiver, NamedTypeSymbol memberContainingType)

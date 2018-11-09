@@ -101,6 +101,15 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
         }
 
+        public static ImmutableArray<T> ExplicitOrImplicitInterfaceImplementations<T>(this T symbol) where T : ISymbol
+        {
+            var containingType = symbol.ContainingType;
+            var allMembersInAllInterfaces = containingType.AllInterfaces.SelectMany(i => i.GetMembers(symbol.Name));
+            var membersImplementingAnInterfaceMember = allMembersInAllInterfaces.Where(
+                memberInInterface => symbol.Equals(containingType.FindImplementationForInterfaceMember(memberInInterface)));
+            return membersImplementingAnInterfaceMember.Cast<T>().ToImmutableArrayOrEmpty();
+        }
+
         public static bool IsOverridable(this ISymbol symbol)
         {
             // Members can only have overrides if they are virtual, abstract or override and is not
@@ -126,9 +135,15 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     return true;
                 }
 
-                if (symbol.Kind == SymbolKind.Method && ((IMethodSymbol)symbol).MethodKind == MethodKind.Ordinary)
+                if (symbol.Kind == SymbolKind.Method)
                 {
-                    return true;
+                    var methodSymbol = (IMethodSymbol)symbol;
+                    if (methodSymbol.MethodKind == MethodKind.Ordinary ||
+                        methodSymbol.MethodKind == MethodKind.PropertyGet ||
+                        methodSymbol.MethodKind == MethodKind.PropertySet)
+                    {
+                        return true;
+                    }
                 }
             }
 
@@ -899,6 +914,10 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             var getAwaiters = potentialGetAwaiters.OfType<IMethodSymbol>().Where(x => !x.Parameters.Any());
             return getAwaiters.Any(VerifyGetAwaiter);
         }
+
+        public static bool IsValidGetAwaiter(this IMethodSymbol symbol)
+            => symbol.Name == WellKnownMemberNames.GetAwaiter &&
+            VerifyGetAwaiter(symbol);
 
         private static bool VerifyGetAwaiter(IMethodSymbol getAwaiter)
         {

@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
 
         private void AnalyzeSyntaxTree(SyntaxTreeAnalysisContext context)
         {
-            var diagnostics = RenameTrackingTaggerProvider.GetDiagnosticsAsync(context.Tree, DiagnosticDescriptor, context.CancellationToken).WaitAndGetResult(context.CancellationToken);
+            var diagnostics = RenameTrackingTaggerProvider.GetDiagnosticsAsync(context.Tree, DiagnosticDescriptor, context.CancellationToken).WaitAndGetResult_CanCallOnBackground(context.CancellationToken);
 
             foreach (var diagnostic in diagnostics)
             {

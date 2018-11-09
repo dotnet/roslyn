@@ -69,6 +69,39 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
                 return false;
             }
 
+            if (trueReturnOp.Kind != falseReturnOp.Kind)
+            {
+                // Not allowed if these are different types of returns.  i.e.
+                // "yield return ..." and "return ...".
+                return false;
+            }
+
+            if (trueReturnOp.Kind == OperationKind.YieldBreak)
+            {
+                // This check is just paranoia.  We likely shouldn't get here since we already
+                // checked if .ReturnedValue was null above.
+                return false;
+            }
+
+            if (trueReturnOp.Kind == OperationKind.YieldReturn &&
+                ifOperation.WhenFalse == null)
+            {
+                // we have the following:
+                //
+                //   if (...) {
+                //       yield return ...
+                //   }
+                //
+                //   yield return ...
+                //
+                // It is *not* correct to replace this with:
+                //
+                //      yield return ... ? ... ? ...
+                //
+                // as both yields need to be hit.
+                return false;
+            }
+
             trueReturn = trueReturnOp;
             falseReturn = falseReturnOp;
 

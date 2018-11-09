@@ -105,7 +105,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
 
             Return CreateSignatureHelpItems(
                 accessibleSymbols.Select(Function(s) Convert(s, genericName, semanticModel, symbolDisplayService, anonymousTypeDisplayService, documentationCommentFormattingService, cancellationToken)).ToList(),
-                textSpan, GetCurrentArgumentState(root, position, _syntaxFacts, textSpan, cancellationToken))
+                textSpan, GetCurrentArgumentState(root, position, _syntaxFacts, textSpan, cancellationToken), selectedItem:=Nothing)
         End Function
 
         Private Overloads Function Convert(symbol As ISymbol, genericName As GenericNameSyntax, semanticModel As SemanticModel, symbolDisplayService As ISymbolDisplayService, anonymousTypeDisplayService As IAnonymousTypeDisplayService, documentationCommentFormattingService As IDocumentationCommentFormattingService, cancellationToken As CancellationToken) As SignatureHelpItem

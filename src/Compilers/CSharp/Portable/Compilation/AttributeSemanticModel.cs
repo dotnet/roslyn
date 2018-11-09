@@ -15,8 +15,15 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         private readonly AliasSymbol _aliasOpt;
 
-        private AttributeSemanticModel(CSharpCompilation compilation, AttributeSyntax syntax, NamedTypeSymbol attributeType, AliasSymbol aliasOpt, Binder rootBinder, SyntaxTreeSemanticModel parentSemanticModelOpt = null, int speculatedPosition = 0)
-            : base(compilation, syntax, attributeType, new ExecutableCodeBinder(syntax, rootBinder.ContainingMember(), rootBinder), parentSemanticModelOpt, speculatedPosition)
+        private AttributeSemanticModel(
+            AttributeSyntax syntax,
+            NamedTypeSymbol attributeType,
+            AliasSymbol aliasOpt,
+            Binder rootBinder,
+            SyntaxTreeSemanticModel containingSemanticModelOpt = null,
+            SyntaxTreeSemanticModel parentSemanticModelOpt = null,
+            int speculatedPosition = 0)
+            : base(syntax, attributeType, new ExecutableCodeBinder(syntax, rootBinder.ContainingMember(), rootBinder), containingSemanticModelOpt, parentSemanticModelOpt, speculatedPosition)
         {
             Debug.Assert(syntax != null);
             _aliasOpt = aliasOpt;
@@ -25,9 +32,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Creates an AttributeSemanticModel that allows asking semantic questions about an attribute node.
         /// </summary>
-        public static AttributeSemanticModel Create(CSharpCompilation compilation, AttributeSyntax syntax, NamedTypeSymbol attributeType, AliasSymbol aliasOpt, Binder rootBinder)
+        public static AttributeSemanticModel Create(SyntaxTreeSemanticModel containingSemanticModel, AttributeSyntax syntax, NamedTypeSymbol attributeType, AliasSymbol aliasOpt, Binder rootBinder)
         {
-            return new AttributeSemanticModel(compilation, syntax, attributeType, aliasOpt, rootBinder);
+            return new AttributeSemanticModel(syntax, attributeType, aliasOpt, rootBinder, containingSemanticModel);
         }
 
         /// <summary>
@@ -39,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(rootBinder != null);
             Debug.Assert(rootBinder.IsSemanticModelBinder);
 
-            return new AttributeSemanticModel(parentSemanticModel.Compilation, syntax, attributeType, aliasOpt, rootBinder, parentSemanticModel, position);
+            return new AttributeSemanticModel(syntax, attributeType, aliasOpt, rootBinder, parentSemanticModelOpt: parentSemanticModel, speculatedPosition: position);
         }
 
         private NamedTypeSymbol AttributeType

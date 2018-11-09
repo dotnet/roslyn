@@ -81,7 +81,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var scopeDesignator = incrementors.First();
                 var incrementBinder = originalBinder.GetBinder(scopeDesignator);
-                increment = incrementBinder.WrapWithVariablesIfAny(scopeDesignator, incrementBinder.BindStatementExpressionList(incrementors, diagnostics));
+                increment = incrementBinder.BindStatementExpressionList(incrementors, diagnostics);
+                Debug.Assert(increment.Kind != BoundKind.StatementList || ((BoundStatementList)increment).Statements.Length > 1);
+
+                var locals = incrementBinder.GetDeclaredLocalsForScope(scopeDesignator);
+                if (!locals.IsEmpty)
+                {
+                    if (increment.Kind == BoundKind.StatementList)
+                    {
+                        increment = new BoundBlock(scopeDesignator, locals, ((BoundStatementList)increment).Statements)
+                                            { WasCompilerGenerated = true };
+                    }
+                    else
+                    {
+                        increment = new BoundBlock(increment.Syntax, locals, ImmutableArray.Create(increment))
+                                            { WasCompilerGenerated = true };
+                    }
+                }
             }
 
             var body = originalBinder.BindPossibleEmbeddedStatement(node.Statement, diagnostics);

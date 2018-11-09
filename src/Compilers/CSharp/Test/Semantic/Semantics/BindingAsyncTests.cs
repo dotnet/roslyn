@@ -2457,10 +2457,10 @@ class Test
                 // (41,9): warning CS4014: Because this call is not awaited, execution of the current method continues before the call is completed. Consider applying the 'await' operator to the result of the call.
                 //         Meth(1); //warning CS4014
                 Diagnostic(ErrorCode.WRN_UnobservedAwaitableExpression, "Meth(1)"),
-                // (47,9): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+                // (47,9): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
                 //         test.Prop; //error CS0201
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "test.Prop"),
-                // (48,9): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+                // (48,9): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
                 //         test[1]; //error CS0201
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "test[1]"),
                 // (44,23): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.

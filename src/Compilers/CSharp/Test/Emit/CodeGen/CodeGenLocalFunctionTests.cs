@@ -212,7 +212,7 @@ class Program
                 }
             });
     }
-}", references: new[] { LinqAssemblyRef });
+}");
         }
 
         [Fact]
@@ -4644,7 +4644,7 @@ class C
         Console.WriteLine(y);
     }
 }";
-            VerifyOutput(src, "10\r\n4", TestOptions.ReleaseExe.WithAllowUnsafe(true), verify: Verification.Fails);
+            VerifyOutput(src, $"10{Environment.NewLine}4", TestOptions.ReleaseExe.WithAllowUnsafe(true), verify: Verification.Fails);
         }
 
         [Fact]

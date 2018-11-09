@@ -4365,9 +4365,9 @@ End Module
             <![CDATA[
 IRangeCaseClauseOperation (CaseKind.Range) (OperationKind.CaseClause, Type: null) (Syntax: '"6" To "8"')
   Min: 
-    null
+    ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "6") (Syntax: '"6"')
   Max: 
-    null
+    ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "8") (Syntax: '"8"')
 ]]>.Value)
         End Sub
 

@@ -40,14 +40,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         End Function
 
         Private Function ReplaceTrailingColonToEndOfLineTrivia(Of TNode As SyntaxNode)(node As TNode) As TNode
-            Return node.WithTrailingTrivia(node.GetTrailingTrivia().Select(Function(t) If(t.Kind = SyntaxKind.ColonTrivia, SyntaxFactory.CarriageReturnLineFeed, t)))
+            Return node.WithTrailingTrivia(node.GetTrailingTrivia().Select(Function(t) If(t.Kind = SyntaxKind.ColonTrivia, SyntaxFactory.ElasticCarriageReturnLineFeed, t)))
         End Function
 
         Private Function EnsureProperList(Of TSyntax As SyntaxNode)(list As SyntaxList(Of TSyntax)) As SyntaxList(Of TSyntax)
             Dim allElements = list
             If Not allElements.Last().GetTrailingTrivia().Any(Function(t) t.Kind = SyntaxKind.EndOfLineTrivia OrElse t.Kind = SyntaxKind.ColonTrivia) Then
                 Return SyntaxFactory.SingletonList(Of TSyntax)(
-                    allElements.Last().WithAppendedTrailingTrivia(SyntaxFactory.CarriageReturnLineFeed))
+                    allElements.Last().WithAppendedTrailingTrivia(SyntaxFactory.ElasticCarriageReturnLineFeed))
             ElseIf allElements.Last().GetTrailingTrivia().Any(Function(t) t.Kind = SyntaxKind.ColonTrivia) Then
                 Return SyntaxFactory.List(Of TSyntax)(
                     allElements.Take(allElements.Count - 1).Concat(ReplaceTrailingColonToEndOfLineTrivia(allElements.Last())))

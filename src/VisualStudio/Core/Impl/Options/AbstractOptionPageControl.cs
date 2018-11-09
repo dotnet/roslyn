@@ -8,7 +8,6 @@ using System.Windows.Controls;
 using System.Windows.Data;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.ComponentModelHost;
-using Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 {
@@ -54,11 +53,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             radioButtonStyle.Setters.Add(new Setter(RadioButton.MarginProperty, new Thickness() { Bottom = 7 }));
             radioButtonStyle.Setters.Add(new Setter(RadioButton.ForegroundProperty, new DynamicResourceExtension(SystemColors.WindowTextBrushKey)));
             Resources.Add(typeof(RadioButton), radioButtonStyle);
-        }
-
-        protected void AddBinding(BindingExpressionBase bindingExpression)
-        {
-            _bindingExpressions.Add(bindingExpression);
         }
 
         protected void BindToOption(CheckBox checkbox, Option<bool> optionKey)
@@ -132,7 +126,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         {
             checkbox.Visibility = Visibility.Visible;
 
-            Binding binding = new Binding()
+            var binding = new Binding()
             {
                 Source = new FullSolutionAnalysisOptionBinding(OptionService, languageName),
                 Path = new PropertyPath("Value"),

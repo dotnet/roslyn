@@ -47,6 +47,137 @@ End Class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)>
+        Public Async Function TestMultipleFields_VerticalSelection() As Task
+            Await TestInRegularAndScriptAsync(
+"Class Program[|
+    Private i As Integer
+    Private b As String|]
+End Class",
+"Class Program
+    Private i As Integer
+    Private b As String
+
+    Public Sub New(i As Integer, b As String{|Navigation:)|}
+        Me.i = i
+        Me.b = b
+    End Sub
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)>
+        Public Async Function TestMultipleFields_VerticalSelectionUpToExcludedField() As Task
+            Await TestInRegularAndScriptAsync(
+"Class Program
+    Private a As String[|
+    Private i As Integer
+    Private b As String|]
+End Class",
+"Class Program
+    Private a As String
+    Private i As Integer
+    Private b As String
+
+    Public Sub New(i As Integer, b As String{|Navigation:)|}
+        Me.i = i
+        Me.b = b
+    End Sub
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)>
+        Public Async Function TestMultipleFields_VerticalSelectionUpToMethod() As Task
+            Await TestInRegularAndScriptAsync(
+"Class Program
+    Public Sub Foo
+    End Sub[|
+
+    Private i As Integer
+    Private b As String|]
+End Class",
+"Class Program
+    Public Sub Foo
+    End Sub
+
+    Private i As Integer
+    Private b As String
+
+    Public Sub New(i As Integer, b As String{|Navigation:)|}
+        Me.i = i
+        Me.b = b
+    End Sub
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)>
+        Public Async Function TestMultipleFields_VerticalSelectionUpToInherits() As Task
+            Await TestInRegularAndScriptAsync(
+"Class Program
+    Inherits Object[|
+
+    Private i As Integer
+    Private b As String|]
+End Class",
+"Class Program
+    Inherits Object
+
+    Private i As Integer
+    Private b As String
+
+    Public Sub New(i As Integer, b As String{|Navigation:)|}
+        Me.i = i
+        Me.b = b
+    End Sub
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)>
+        Public Async Function TestMultipleFields_VerticalSelectionUpToGeneric() As Task
+            Await TestInRegularAndScriptAsync(
+"Class Program(Of T)[|
+    Private i As Integer
+    Private b As String|]
+End Class",
+"Class Program(Of T)
+    Private i As Integer
+    Private b As String
+
+    Public Sub New(i As Integer, b As String{|Navigation:)|}
+        Me.i = i
+        Me.b = b
+    End Sub
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)>
+        Public Async Function TestMultipleFields_SelectionIncludingClassName() As Task
+            Await TestMissingAsync(
+"Class Progra[|m
+    Private i As Integer
+    Private b As String|]
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)>
+        Public Async Function TestMultipleFields_SelectionIncludingInherits() As Task
+
+            Await TestMissingAsync(
+"Class Program
+    Inherits Objec[|t
+    Private i As Integer
+    Private b As String|]
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)>
+        Public Async Function TestMultipleFields_SelectionIncludingGeneric() As Task
+            Await TestMissingAsync(
+"Class Program(Of T[|)
+    Private i As Integer
+    Private b As String|]
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)>
         Public Async Function TestSecondField() As Task
             Await TestInRegularAndScriptAsync(
 "Class Program

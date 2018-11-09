@@ -1,16 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Globalization;
-using System.Runtime.CompilerServices;
 using System.Threading;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -28,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly TypeMap _inputMap;
         private readonly MethodSymbol _constructedFrom;
 
-        private TypeSymbol _lazyReturnType;
+        private TypeSymbolWithAnnotations.Builder _lazyReturnType;
         private ImmutableArray<ParameterSymbol> _lazyParameters;
         private TypeMap _lazyMap;
         private ImmutableArray<TypeParameterSymbol> _lazyTypeParameters;
@@ -133,11 +127,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override ImmutableArray<TypeSymbol> TypeArguments
+        public override ImmutableArray<TypeSymbolWithAnnotations> TypeArguments
         {
             get
             {
-                return TypeParameters.Cast<TypeParameterSymbol, TypeSymbol>();
+                return GetTypeParametersAsTypeArguments();
             }
         }
 
@@ -168,7 +162,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return this.ContainingType;
                 }
 
-                return reduced.Parameters[0].Type;
+                return reduced.Parameters[0].Type.TypeSymbol;
             }
         }
 
@@ -178,7 +172,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var notUsed = OriginalDefinition.GetTypeInferredDuringReduction(reducedFromTypeParameter);
 
             Debug.Assert((object)notUsed == null && (object)OriginalDefinition.ReducedFrom != null);
-            return this.TypeArguments[reducedFromTypeParameter.Ordinal];
+            return this.TypeArguments[reducedFromTypeParameter.Ordinal].TypeSymbol;
         }
 
         public sealed override MethodSymbol ReducedFrom
@@ -232,28 +226,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public sealed override TypeSymbol ReturnType
+        public sealed override TypeSymbolWithAnnotations ReturnType
         {
             get
             {
-                var returnType = _lazyReturnType;
-                if (returnType != null)
+                if (_lazyReturnType.IsNull)
                 {
-                    return returnType;
+                    var returnType = Map.SubstituteTypeWithTupleUnification(OriginalDefinition.ReturnType);
+                    _lazyReturnType.InterlockedInitialize(returnType);
                 }
-
-                returnType = Map.SubstituteTypeWithTupleUnification(OriginalDefinition.ReturnType).Type;
-                return Interlocked.CompareExchange(ref _lazyReturnType, returnType, null) ?? returnType;
+                return _lazyReturnType.ToType();
             }
         }
 
-        public sealed override ImmutableArray<CustomModifier> ReturnTypeCustomModifiers
-        {
-            get
-            {
-                return Map.SubstituteCustomModifiers(OriginalDefinition.ReturnType, OriginalDefinition.ReturnTypeCustomModifiers);
-            }
-        }
 
         public sealed override ImmutableArray<CustomModifier> RefCustomModifiers
         {
@@ -373,6 +358,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             throw ExceptionUtilities.Unreachable;
         }
 
+        public sealed override bool? NonNullTypes => false;
+
         private int ComputeHashCode()
         {
             int code = this.OriginalDefinition.GetHashCode();
@@ -393,7 +380,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 foreach (var arg in this.TypeArguments)
                 {
-                    code = Hash.Combine(arg, code);
+                    code = Hash.Combine(arg.TypeSymbol, code);
                 }
             }
 
@@ -431,7 +418,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             int arity = this.Arity;
             for (int i = 0; i < arity; i++)
             {
-                if (this.TypeArguments[i] != other.TypeArguments[i])
+                // TODO: what about annotations
+                if (this.TypeArguments[i].TypeSymbol != other.TypeArguments[i].TypeSymbol)
                 {
                     return false;
                 }

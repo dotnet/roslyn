@@ -5,11 +5,12 @@ using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.UseAutoProperty
 {
     internal abstract class AbstractUseAutoPropertyAnalyzer<
-        TPropertyDeclaration, TFieldDeclaration, TVariableDeclarator, TExpression> : AbstractCodeStyleDiagnosticAnalyzer
+        TPropertyDeclaration, TFieldDeclaration, TVariableDeclarator, TExpression> : AbstractBuiltInCodeStyleDiagnosticAnalyzer
         where TPropertyDeclaration : SyntaxNode
         where TFieldDeclaration : SyntaxNode
         where TVariableDeclarator : SyntaxNode
@@ -159,6 +160,12 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
 
             // Property and field have to agree on type.
             if (!property.Type.Equals(getterField.Type))
+            {
+                return;
+            }
+
+            // Mutable value type fields are mutable unless they are marked read-only
+            if (!getterField.IsReadOnly && getterField.Type.IsMutableValueType() != false)
             {
                 return;
             }
@@ -314,35 +321,29 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
                 propertyDeclaration.GetLocation(), variableDeclarator.GetLocation());
 
             var option = optionSet.GetOption(CodeStyleOptions.PreferAutoProperties, propertyDeclaration.Language);
+            if (option.Notification.Severity == ReportDiagnostic.Suppress)
+            {
+                // Avoid reporting diagnostics when the feature is disabled. This primarily avoids reporting the hidden
+                // helper diagnostic which is not otherwise influenced by the severity settings.
+                return;
+            }
 
             // Place the appropriate marker on the field depending on the user option.
-            var diagnostic1 = Diagnostic.Create(
-                GetFieldDescriptor(option), nodeToFade.GetLocation(),
-                additionalLocations: additionalLocations);
+            var diagnostic1 = DiagnosticHelper.Create(
+                UnnecessaryWithSuggestionDescriptor,
+                nodeToFade.GetLocation(),
+                option.Notification.Severity,
+                additionalLocations: additionalLocations,
+                properties: null);
 
             // Also, place a hidden marker on the property.  If they bring up a lightbulb
             // there, they'll be able to see that they can convert it to an auto-prop.
             var diagnostic2 = Diagnostic.Create(
-                HiddenDescriptor, propertyDeclaration.GetLocation(),
+                Descriptor, propertyDeclaration.GetLocation(),
                 additionalLocations: additionalLocations);
 
             context.ReportDiagnostic(diagnostic1);
             context.ReportDiagnostic(diagnostic2);
-        }
-
-        private DiagnosticDescriptor GetFieldDescriptor(CodeStyleOption<bool> styleOption)
-        {
-            if (styleOption.Value)
-            {
-                switch (styleOption.Notification.Value)
-                {
-                    case DiagnosticSeverity.Error: return ErrorDescriptor;
-                    case DiagnosticSeverity.Warning: return WarningDescriptor;
-                    case DiagnosticSeverity.Info: return InfoDescriptor;
-                }
-            }
-
-            return UnnecessaryWithSuggestionDescriptor;
         }
 
         protected virtual bool IsEligibleHeuristic(

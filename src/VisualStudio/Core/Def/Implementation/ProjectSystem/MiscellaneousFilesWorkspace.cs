@@ -6,12 +6,11 @@ using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Scripting;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Editor;
@@ -53,7 +52,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private readonly ForegroundThreadAffinitizedObject _foregroundThreadAffinitization;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public MiscellaneousFilesWorkspace(
+            IThreadingContext threadingContext,
             IVsEditorAdaptersFactoryService editorAdaptersFactoryService,
             IMetadataAsSourceFileService fileTrackingMetadataAsSourceService,
             SaveEventsService saveEventsService,
@@ -61,7 +62,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             SVsServiceProvider serviceProvider) :
             base(visualStudioWorkspace.Services.HostServices, WorkspaceKind.MiscellaneousFiles)
         {
-            _foregroundThreadAffinitization = new ForegroundThreadAffinitizedObject(assertIsForeground: true);
+            _foregroundThreadAffinitization = new ForegroundThreadAffinitizedObject(threadingContext, assertIsForeground: true);
 
             _editorAdaptersFactoryService = editorAdaptersFactoryService;
             _fileTrackingMetadataAsSourceService = fileTrackingMetadataAsSourceService;
@@ -104,7 +105,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private IEnumerable<MetadataReference> CreateMetadataReferences()
         {
             var manager = this.Services.GetService<VisualStudioMetadataReferenceManager>();
-            var searchPaths = ReferencePathUtilities.GetReferencePaths();
+            var searchPaths = VisualStudioMetadataReferenceManager.GetReferencePaths();
 
             return from fileName in new[] { "mscorlib.dll", "System.dll", "System.Core.dll" }
                    let fullPath = FileUtilities.ResolveRelativePath(fileName, basePath: null, baseDirectory: null, searchPaths: searchPaths, fileExists: File.Exists)

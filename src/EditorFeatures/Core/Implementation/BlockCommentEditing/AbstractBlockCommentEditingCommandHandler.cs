@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.BlockCommentEditing
 
         #region Modern editor ICommandHandler
 
-        public string DisplayName => EditorFeaturesResources.Block_Comment_Editing_Command_Handler;
+        public string DisplayName => EditorFeaturesResources.Block_Comment_Editing;
 
         public VSCommanding.CommandState GetCommandState(VSEditorCommands.ReturnKeyCommandArgs args) => VSCommanding.CommandState.Unspecified;
 

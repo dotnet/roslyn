@@ -2,6 +2,51 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="pt-BR" original="../EditorFeaturesResources.resx">
     <body>
+      <trans-unit id="Applying_changes">
+        <source>Applying changes</source>
+        <target state="translated">Aplicando mudanças</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Change_configuration">
+        <source>Change configuration</source>
+        <target state="translated">Alterar configuração</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Code_cleanup_is_not_configured">
+        <source>Code cleanup is not configured</source>
+        <target state="translated">A limpeza de código não está configurada</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Configure_it_now">
+        <source>Configure it now</source>
+        <target state="translated">Configurar agora</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Do_not_show_this_message_again">
+        <source>Do not show this message again</source>
+        <target state="translated">Não exibir esta mensagem novamente</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Do_you_still_want_to_proceed_This_may_produce_broken_code">
+        <source>Do you still want to proceed? This may produce broken code.</source>
+        <target state="new">Do you still want to proceed? This may produce broken code.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Extract_method_encountered_the_following_issues">
+        <source>Extract method encountered the following issues:</source>
+        <target state="new">Extract method encountered the following issues:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Format_document_performed_additional_cleanup">
+        <source>Format Document performed additional cleanup</source>
+        <target state="translated">A formatação de documento realizou uma limpeza adicional</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Paste_Tracking">
+        <source>Paste Tracking</source>
+        <target state="new">Paste Tracking</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Preprocessor_Text">
         <source>Preprocessor Text</source>
         <target state="translated">Texto de Pré-Processador</target>
@@ -10,6 +55,11 @@
       <trans-unit id="Punctuation">
         <source>Punctuation</source>
         <target state="translated">Pontuação</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="String_Escape_Character">
+        <source>String - Escape Character</source>
+        <target state="new">String - Escape Character</target>
         <note />
       </trans-unit>
       <trans-unit id="User_Types_Classes">
@@ -249,12 +299,12 @@
       </trans-unit>
       <trans-unit id="Given_Workspace_doesn_t_support_Undo">
         <source>Given Workspace doesn't support Undo</source>
-        <target state="translated">Espaço de Trabalho fornecido não suporta Desfazer</target>
+        <target state="translated">Workspace fornecido não suporta Desfazer</target>
         <note />
       </trans-unit>
       <trans-unit id="Document_must_be_contained_in_the_workspace_that_created_this_service">
         <source>Document must be contained in the workspace that created this service</source>
-        <target state="translated">O Documento deve estar contido no espaço de trabalho que criou este serviço</target>
+        <target state="translated">O Documento deve estar contido no workspace que criou este serviço</target>
         <note />
       </trans-unit>
       <trans-unit id="Searching">
@@ -444,12 +494,12 @@
       </trans-unit>
       <trans-unit id="The_buffer_is_not_part_of_a_workspace">
         <source>The buffer is not part of a workspace.</source>
-        <target state="translated">O buffer não é parte de um espaço de trabalho.</target>
+        <target state="translated">O buffer não é parte de um workspace.</target>
         <note />
       </trans-unit>
       <trans-unit id="The_token_is_not_contained_in_the_workspace">
         <source>The token is not contained in the workspace.</source>
-        <target state="translated">O token não está contido no espaço de trabalho.</target>
+        <target state="translated">O token não está contido no workspace.</target>
         <note />
       </trans-unit>
       <trans-unit id="You_must_rename_an_identifier">
@@ -724,7 +774,7 @@
       </trans-unit>
       <trans-unit id="The_triggerSpan_is_not_included_in_the_given_workspace">
         <source>The triggerSpan is not included in the given workspace.</source>
-        <target state="translated">O triggerSpan não está incluído no espaço de trabalho fornecido.</target>
+        <target state="translated">O triggerSpan não está incluído no workspace fornecido.</target>
         <note />
       </trans-unit>
       <trans-unit id="This_session_has_already_been_dismissed">
@@ -847,21 +897,10 @@
         <target state="translated">Formatação Automática</target>
         <note />
       </trans-unit>
-      <trans-unit id="Extract_method_failed_with_following_reasons_colon">
-        <source>Extract method failed with following reasons :</source>
-        <target state="translated">Falha por extrair método pelos seguintes motivos:</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Do_you_still_want_to_proceed_it_will_generate_broken_code">
-        <source>Do you still want to proceed? it will generate broken code.</source>
-        <target state="translated">Você ainda deseja continuar? isso gerará código desfeito.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="We_can_fix_the_error_by_not_making_struct_out_ref_parameter_s_Do_you_want_to_proceed">
-        <source>We can fix the error by not making struct "out/ref" parameter(s). 
+        <source>We can fix the error by not making struct "out/ref" parameter(s).
 Do you want to proceed?</source>
-        <target state="translated">Podemos corrigir o erro ao não fazer struct de parâmetro(s) "out/ref". 
-Deseja continuar?</target>
+        <target state="translated">Podemos corrigir o erro ao não fazer struct de parâmetros "out/ref". Deseja continuar?</target>
         <note />
       </trans-unit>
       <trans-unit id="Change_Signature_colon">
@@ -1084,139 +1123,69 @@ Deseja continuar?</target>
         <target state="translated">Texto do Campo de Renomeação Embutida</target>
         <note />
       </trans-unit>
-      <trans-unit id="View_Call_Hierarchy_Command_Handler">
-        <source>View Call Hierarchy Command Handler</source>
-        <target state="new">View Call Hierarchy Command Handler</target>
+      <trans-unit id="Block_Comment_Editing">
+        <source>Block Comment Editing</source>
+        <target state="translated">Bloquear Edição de Comentário</target>
         <note />
       </trans-unit>
-      <trans-unit id="Automatic_Line_Ender_Command_Handler">
-        <source>Automatic Line Ender Command Handler</source>
-        <target state="new">Automatic Line Ender Command Handler</target>
+      <trans-unit id="Comment_Uncomment_Selection">
+        <source>Comment/Uncomment Selection</source>
+        <target state="translated">Comentar/Remover Marca de Comentário da Seleção</target>
         <note />
       </trans-unit>
-      <trans-unit id="Block_Comment_Editing_Command_Handler">
-        <source>Block Comment Editing Command Handler</source>
-        <target state="new">Block Comment Editing Command Handler</target>
+      <trans-unit id="Code_Completion">
+        <source>Code Completion</source>
+        <target state="translated">Conclusão de Código</target>
         <note />
       </trans-unit>
-      <trans-unit id="Change_Signature_Command_Handler">
-        <source>Change Signature Command Handler</source>
-        <target state="new">Change Signature Command Handler</target>
+      <trans-unit id="Execute_In_Interactive">
+        <source>Execute In Interactive</source>
+        <target state="translated">Executar em Interativo</target>
         <note />
       </trans-unit>
-      <trans-unit id="Comment_Uncomment_Selection_Command_Handler">
-        <source>Comment/Uncomment Selection Command Handler</source>
-        <target state="new">Comment/Uncomment Selection Command Handler</target>
+      <trans-unit id="Extract_Interface">
+        <source>Extract Interface</source>
+        <target state="translated">Extrair Interface</target>
         <note />
       </trans-unit>
-      <trans-unit id="Completion_Command_Handler">
-        <source>Code Completion Command Handler</source>
-        <target state="new">Code Completion Command Handler</target>
+      <trans-unit id="Go_To_Adjacent_Member">
+        <source>Go To Adjacent Member</source>
+        <target state="translated">Ir para Membro Adjacente</target>
         <note />
       </trans-unit>
-      <trans-unit id="Documentation_Comment_Command_Handler">
-        <source>Documentation Comment Command Handler</source>
-        <target state="new">Documentation Comment Command Handler</target>
+      <trans-unit id="Interactive">
+        <source>Interactive</source>
+        <target state="translated">Interativo</target>
         <note />
       </trans-unit>
-      <trans-unit id="Encapsulate_Field_Command_Handler">
-        <source>Encapsulate Field Command Handler</source>
-        <target state="new">Encapsulate Field Command Handler</target>
+      <trans-unit id="Paste_in_Interactive">
+        <source>Paste in Interactive</source>
+        <target state="translated">Colar em Interativo</target>
         <note />
       </trans-unit>
-      <trans-unit id="Execute_In_Interactive_Command_Handler">
-        <source>Execute In Interactive Command Handler</source>
-        <target state="new">Execute In Interactive Command Handler</target>
+      <trans-unit id="Navigate_To_Highlight_Reference">
+        <source>Navigate To Highlighted Reference</source>
+        <target state="translated">Navegar para Referência Realçada</target>
         <note />
       </trans-unit>
-      <trans-unit id="Extract_Interface_Command_Handler">
-        <source>Extract Interface Command Handler</source>
-        <target state="new">Extract Interface Command Handler</target>
+      <trans-unit id="Outlining">
+        <source>Outlining</source>
+        <target state="translated">Estrutura de Tópicos</target>
         <note />
       </trans-unit>
-      <trans-unit id="Extract_Method_Command_Handler">
-        <source>Extract Method Command Handler</source>
-        <target state="new">Extract Method Command Handler</target>
+      <trans-unit id="Rename_Tracking_Cancellation">
+        <source>Rename Tracking Cancellation</source>
+        <target state="translated">Renomear Cancelamento de Acompanhamento</target>
         <note />
       </trans-unit>
-      <trans-unit id="Find_References_Command_Handler">
-        <source>Find References Command Handler</source>
-        <target state="new">Find References Command Handler</target>
+      <trans-unit id="Signature_Help">
+        <source>Signature Help</source>
+        <target state="translated">Ajuda da Assinatura</target>
         <note />
       </trans-unit>
-      <trans-unit id="Format_Command_Handler">
-        <source>Format Command Handler</source>
-        <target state="new">Format Command Handler</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Go_To_Adjacent_Member_Command_Handler">
-        <source>Go To Adjacent Member Command Handler</source>
-        <target state="new">Go To Adjacent Member Command Handler</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Go_To_Definition_Command_Handler">
-        <source>Go To Definition Command Handler</source>
-        <target state="new">Go To Definition Command Handler</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Go_To_Implementation_Command_Handler">
-        <source>Go To Implementation Command Handler</source>
-        <target state="new">Go To Implementation Command Handler</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="IntelliSense_Command_Handler">
-        <source>IntelliSense Command Handler</source>
-        <target state="new">IntelliSense Command Handler</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Interactive_Command_Handler">
-        <source>Interactive Command Handler</source>
-        <target state="new">Interactive Command Handler</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Interactive_Paste_Command_Handler">
-        <source>Interactive Paste Command Handler</source>
-        <target state="new">Interactive Paste Command Handler</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Navigate_To_Highlight_Reference_Command_Handler">
-        <source>Navigate To Highlighted Reference Command Handler</source>
-        <target state="new">Navigate To Highlighted Reference Command Handler</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Organize_Document_Command_Handler">
-        <source>Organize Document Command Handler</source>
-        <target state="new">Organize Document Command Handler</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Outlining_Command_Handler">
-        <source>Outlining Command Handler</source>
-        <target state="new">Outlining Command Handler</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Rename_Command_Handler">
-        <source>Rename Command Handler</source>
-        <target state="new">Rename Command Handler</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Rename_Tracking_Cancellation_Command_Handler">
-        <source>Rename Tracking Cancellation Command Handler</source>
-        <target state="new">Rename Tracking Cancellation Command Handler</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Signature_Help_Command_Handler">
-        <source>Signature Help Command Handler</source>
-        <target state="new">Signature Help Command Handler</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Smart_Token_Formatter_Command_Handler">
-        <source>Smart Token Formatter Command Handler</source>
-        <target state="new">Smart Token Formatter Command Handler</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Xml_Tag_Completion_Command_Handler">
-        <source>XML Tag Completion Command Handler</source>
-        <target state="new">XML Tag Completion Command Handler</target>
+      <trans-unit id="Smart_Token_Formatter">
+        <source>Smart Token Formatter</source>
+        <target state="translated">Formatador de Token Inteligente</target>
         <note />
       </trans-unit>
     </body>

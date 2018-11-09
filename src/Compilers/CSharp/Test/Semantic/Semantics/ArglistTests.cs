@@ -369,7 +369,7 @@ Diagnostic(ErrorCode.ERR_ValueCantBeNull, "__reftype(null)").WithArguments("Syst
                 );
         }
 
-        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
+        [ConditionalFact(typeof(DesktopOnly), Reason = ConditionalSkipReason.RestrictedTypesNeedDesktop)]
         public void ArglistTest01()
         {
             var text = @"
@@ -399,7 +399,7 @@ public class C
             verifier.VerifyIL("C.M(__arglist)", expectedIL);
         }
 
-        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
+        [ConditionalFact(typeof(DesktopOnly), Reason = ConditionalSkipReason.RestrictedTypesNeedDesktop)]
         public void ArglistTest02()
         {
             var text = @"
@@ -470,7 +470,7 @@ public class C
             verifier.VerifyIL("C.Main", expectedIL);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly), Reason = ConditionalSkipReason.RestrictedTypesNeedDesktop)]
         public void ArglistTest03()
         {
             // The native parser produces "type expected" when __arglist is preceded by an illegal
@@ -1331,7 +1331,7 @@ class A
         }
 
         [WorkItem(545086, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545086")]
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly), Reason = ConditionalSkipReason.RestrictedTypesNeedDesktop)]
         public void BoxReceiverTest()
         {
             var text = @"
@@ -1565,7 +1565,7 @@ public class SpecialCases
                 );
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly), Reason = ConditionalSkipReason.RestrictedTypesNeedDesktop)]
         public void ArgListMayNotHaveAnOutArgument()
         {
             CreateCompilation(@"
@@ -1601,7 +1601,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_CantUseInOrOutInArglist, "a").WithLocation(7, 24));
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.RestrictedTypesNeedDesktop)]
         public void ArgListMayHaveARefArgument()
         {
             CompileAndVerify(@"
@@ -1625,7 +1625,7 @@ class Program
                 expectedOutput: "5");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly), Reason = ConditionalSkipReason.RestrictedTypesNeedDesktop)]
         public void ArgListMayHaveAByValArgument()
         {
             CompileAndVerify(@"

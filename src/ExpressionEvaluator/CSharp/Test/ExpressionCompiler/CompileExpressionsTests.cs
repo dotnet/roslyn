@@ -399,7 +399,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
         d.F();
     }
 }";
-            var comp = CreateCompilation(source, new[] { SystemCoreRef, CSharpRef }, options: TestOptions.DebugDll);
+            var comp = CreateCompilation(source, new[] { CSharpRef }, options: TestOptions.DebugDll);
             WithRuntimeInstance(
                 comp,
                 references: null,

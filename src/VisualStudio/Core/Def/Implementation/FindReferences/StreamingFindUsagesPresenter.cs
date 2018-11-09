@@ -2,12 +2,13 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Composition;
-using Microsoft.CodeAnalysis;
+using System.Linq;
 using Microsoft.CodeAnalysis.Editor.Host;
-using Microsoft.CodeAnalysis.Editor.QuickInfo;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.FindUsages;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.VisualStudio.Shell.FindAllReferences;
 using Microsoft.VisualStudio.Shell.TableControl;
@@ -37,38 +38,47 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
         public readonly ClassificationTypeMap TypeMap;
         public readonly IEditorFormatMapService FormatMapService;
         public readonly IClassificationFormatMap ClassificationFormatMap;
-        public readonly DeferredContentFrameworkElementFactory DeferredContentFrameworkElementFactory;
+        public readonly IProjectionBufferFactoryService ProjectionBufferFactoryService;
+        public readonly IEditorOptionsFactoryService EditorOptionsFactoryService;
 
         private readonly IFindAllReferencesService _vsFindAllReferencesService;
         private readonly VisualStudioWorkspace _workspace;
 
         private readonly HashSet<AbstractTableDataSourceFindUsagesContext> _currentContexts =
             new HashSet<AbstractTableDataSourceFindUsagesContext>();
+        private readonly ImmutableArray<AbstractFindUsagesCustomColumnDefinition> _customColumns;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public StreamingFindUsagesPresenter(
+            IThreadingContext threadingContext,
             VisualStudioWorkspace workspace,
             Shell.SVsServiceProvider serviceProvider,
             ITextBufferFactoryService textBufferFactoryService,
             ITextEditorFactoryService textEditorFactoryService,
             IContentTypeRegistryService contentTypeRegistryService,
-            DeferredContentFrameworkElementFactory frameworkElementFactory,
             ClassificationTypeMap typeMap,
             IEditorFormatMapService formatMapService,
-            IClassificationFormatMapService classificationFormatMapService)
+            IClassificationFormatMapService classificationFormatMapService,
+            IProjectionBufferFactoryService projectionBufferFactoryService,
+            IEditorOptionsFactoryService editorOptionsFactoryService,
+            [ImportMany]IEnumerable<ITableColumnDefinition> columns)
+            : base(threadingContext)
         {
             _workspace = workspace;
             _serviceProvider = serviceProvider;
             TextBufferFactoryService = textBufferFactoryService;
             ContentTypeRegistryService = contentTypeRegistryService;
-            DeferredContentFrameworkElementFactory = frameworkElementFactory;
 
             TextEditorFactoryService = textEditorFactoryService;
             TypeMap = typeMap;
             FormatMapService = formatMapService;
             ClassificationFormatMap = classificationFormatMapService.GetClassificationFormatMap("tooltip");
+            ProjectionBufferFactoryService = projectionBufferFactoryService;
+            EditorOptionsFactoryService = editorOptionsFactoryService;
 
             _vsFindAllReferencesService = (IFindAllReferencesService)_serviceProvider.GetService(typeof(SVsFindAllReferences));
+            _customColumns = columns.OfType<AbstractFindUsagesCustomColumnDefinition>().ToImmutableArray();
         }
 
         public void ClearAll()
@@ -131,7 +141,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             var tableControl = (IWpfTableControl2)window.TableControl;
             tableControl.GroupingsChanged += (s, e) => StoreCurrentGroupingPriority(window);
 
-            return new WithReferencesFindUsagesContext(this, window);
+            return new WithReferencesFindUsagesContext(this, window, _customColumns);
         }
 
         private AbstractTableDataSourceFindUsagesContext StartSearchWithoutReferences(IFindAllReferencesWindow window)
@@ -140,7 +150,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             // just lead to a poor experience.  i.e. we'll have the definition entry buckets, 
             // with the same items showing underneath them.
             SetDefinitionGroupingPriority(window, 0);
-            return new WithoutReferencesFindUsagesContext(this, window);
+            return new WithoutReferencesFindUsagesContext(this, window, _customColumns);
         }
 
         private void StoreCurrentGroupingPriority(IFindAllReferencesWindow window)

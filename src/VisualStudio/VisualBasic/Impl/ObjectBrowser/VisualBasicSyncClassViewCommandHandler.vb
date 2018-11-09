@@ -2,6 +2,8 @@
 
 Imports System.ComponentModel.Composition
 Imports Microsoft.CodeAnalysis.Editor
+Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
+Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Library.ClassView
 Imports Microsoft.VisualStudio.Shell
 Imports Microsoft.VisualStudio.Utilities
@@ -14,8 +16,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ObjectBrowser
         Inherits AbstractSyncClassViewCommandHandler
 
         <ImportingConstructor>
-        Private Sub New(serviceProvider As SVsServiceProvider)
-            MyBase.New(serviceProvider)
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
+        Private Sub New(threadingContext As IThreadingContext, serviceProvider As SVsServiceProvider)
+            MyBase.New(threadingContext, serviceProvider)
         End Sub
     End Class
 End Namespace

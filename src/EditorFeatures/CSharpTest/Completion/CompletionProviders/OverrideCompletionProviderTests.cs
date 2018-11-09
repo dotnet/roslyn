@@ -31,8 +31,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         protected override void SetWorkspaceOptions(TestWorkspace workspace)
         {
             workspace.Options = workspace.Options
-                .WithChangedOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.NeverWithNoneEnforcement)
-                .WithChangedOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.NeverWithNoneEnforcement);
+                .WithChangedOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.NeverWithSilentEnforcement)
+                .WithChangedOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.NeverWithSilentEnforcement);
         }
 
         #region "CompletionItem tests"
@@ -707,8 +707,8 @@ public class SomeClass : Base
 }";
             MarkupTestFile.GetPosition(markup, out var code, out int position);
 
-            await BaseVerifyWorkerAsync(code, position, "@class()", "void Base.@class()", SourceCodeKind.Regular, false, false, null, null, null);
-            await BaseVerifyWorkerAsync(code, position, "@class()", "void Base.@class()", SourceCodeKind.Script, false, false, null, null, null);
+            await BaseVerifyWorkerAsync(code, position, "@class()", "void Base.@class()", SourceCodeKind.Regular, false, false, null, null, null, null);
+            await BaseVerifyWorkerAsync(code, position, "@class()", "void Base.@class()", SourceCodeKind.Script, false, false, null, null, null, null);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -725,8 +725,8 @@ public class SomeClass : Base
 }";
             MarkupTestFile.GetPosition(markup, out var code, out int position);
 
-            await BaseVerifyWorkerAsync(code, position, "@class", "int Base.@class { get; set; }", SourceCodeKind.Regular, false, false, null, null, null);
-            await BaseVerifyWorkerAsync(code, position, "@class", "int Base.@class { get; set; }", SourceCodeKind.Script, false, false, null, null, null);
+            await BaseVerifyWorkerAsync(code, position, "@class", "int Base.@class { get; set; }", SourceCodeKind.Regular, false, false, null, null, null, null);
+            await BaseVerifyWorkerAsync(code, position, "@class", "int Base.@class { get; set; }", SourceCodeKind.Script, false, false, null, null, null, null);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]

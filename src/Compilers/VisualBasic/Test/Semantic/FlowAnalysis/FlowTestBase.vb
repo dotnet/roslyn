@@ -86,9 +86,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
             Dim assemblyName As String = Nothing
             Dim spans As IEnumerable(Of IEnumerable(Of TextSpan)) = Nothing
-            Dim trees = ParseSourceXml(program, parseOptions, assemblyName, spans)
+            Dim trees = ParseSourceXml(program, parseOptions, assemblyName, spans).ToArray()
 
-            Dim comp = CreateEmptyCompilation(trees, references, Nothing, assemblyName)
+            Dim comp = CreateEmptyCompilation(trees, references, assemblyName:=assemblyName)
 
             If errors IsNot Nothing Then
                 AssertTheseDiagnostics(comp, errors)

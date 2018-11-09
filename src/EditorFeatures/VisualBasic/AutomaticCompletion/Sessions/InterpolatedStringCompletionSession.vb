@@ -32,7 +32,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.AutomaticCompletion.Sessions
                 Return False
             End If
 
-            Dim text = document.GetTextAsync(cancellationToken).WaitAndGetResult(cancellationToken)
+            Dim text = document.GetTextSynchronously(cancellationToken)
 
             Return text(position - 1) = "$"c
         End Function

@@ -109,6 +109,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 ReportBinaryOperatorError(node, diagnostics, node.OperatorToken, left, right, resultKind);
             }
+            ReportDiagnosticsIfObsolete(diagnostics, analysisResult.LeftConversion, left.Syntax, hasBaseReceiver: false);
+            ReportDiagnosticsIfObsolete(diagnostics, analysisResult.RightConversion, right.Syntax, hasBaseReceiver: false);
 
             PrepareBoolConversionAndTruthOperator(signature.ReturnType, node, kind, diagnostics, out Conversion conversionIntoBoolOperator, out UnaryOperatorSignature boolOperator);
 
@@ -134,6 +136,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (conversion.IsImplicit)
             {
+                ReportDiagnosticsIfObsolete(diagnostics, conversion, node, hasBaseReceiver: false);
                 conversionForBool = conversion;
                 boolOperator = default;
                 return;
@@ -383,7 +386,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // placeholder bound nodes with the proper types are sufficient to bind the element-wise binary operators
             TypeSymbol tupleType = expr.Type.StrippedType();
             ImmutableArray<BoundExpression> placeholders = tupleType.TupleElementTypes
-                .SelectAsArray((t, s) => (BoundExpression)new BoundTupleOperandPlaceholder(s, t), expr.Syntax);
+                .SelectAsArray((t, s) => (BoundExpression)new BoundTupleOperandPlaceholder(s, t.TypeSymbol), expr.Syntax);
 
             return (placeholders, tupleType.TupleElementNames);
         }
@@ -407,7 +410,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             ImmutableArray<Location> elementLocations = elements.SelectAsArray(e => e.Syntax.Location);
 
-            var tuple = TupleTypeSymbol.Create(locationOpt: null, elementTypes: convertedTypes,
+            var tuple = TupleTypeSymbol.Create(locationOpt: null,
+                elementTypes: convertedTypes.SelectAsArray((t, m) => TypeSymbolWithAnnotations.Create(nonNullTypesContext: m, t), compilation.SourceModule),
                 elementLocations, elementNames: names, compilation,
                 shouldCheckConstraints: true, errorPositions: default, syntax, diagnostics);
 

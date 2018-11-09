@@ -2352,6 +2352,64 @@ class C
             CreateCompilationWithMscorlib45(source).VerifyDiagnostics();
         }
 
+        // DataFlowPass.VisitConversion with IsConditionalState.
+        [Fact]
+        public void OutVarConversion()
+        {
+            var source =
+@"class C
+{
+    static object F(bool b)
+    {
+        return ((bool)(b && G(out var o))) ? o : null;
+    }
+    static bool G(out object o)
+    {
+        o = null;
+        return true;
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+        }
+
+        // DataFlowPass.VisitConversion with IsConditionalState.
+        [Fact]
+        public void IsPatternConversion()
+        {
+            var source =
+@"class C
+{
+    static object F(object o)
+    {
+        return ((bool)(o is C c)) ? c: null;
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+        }
+
+        // DataFlowPass.VisitConversion with IsConditionalState.
+        [Fact]
+        public void IsPatternBadValueConversion()
+        {
+            // C#7.0 does not support this particular pattern so the pattern
+            // expression is bound as a BadExpression with a conversion.
+            var source =
+@"class C
+{
+    static T F<T>(System.ValueType o)
+    {
+        return o is T t ? t : default(T);
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7);
+            comp.VerifyDiagnostics(
+                // (5,21): error CS8314: An expression of type 'ValueType' cannot be handled by a pattern of type 'T' in C# 7. Please use language version 7.1 or greater.
+                //         return o is T t ? t : default(T);
+                Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "T").WithArguments("System.ValueType", "T", "7.0", "7.1").WithLocation(5, 21));
+        }
+
         [Fact, WorkItem(19831, "https://github.com/dotnet/roslyn/issues/19831")]
         public void AssignedInFinallyUsedInTry()
         {

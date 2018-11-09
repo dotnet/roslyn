@@ -229,9 +229,12 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         /// Creates a parameter symbol that can be used to describe a parameter declaration.
         /// </summary>
         public static IParameterSymbol CreateParameterSymbol(ITypeSymbol type, string name)
+            => CreateParameterSymbol(RefKind.None, type, name);
+
+        public static IParameterSymbol CreateParameterSymbol(RefKind refKind, ITypeSymbol type, string name)
         {
             return CreateParameterSymbol(
-                attributes: default, refKind: RefKind.None, isParams: false, type: type, name: name, isOptional: false);
+                attributes: default, refKind, isParams: false, type: type, name: name, isOptional: false);
         }
 
         /// <summary>

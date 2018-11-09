@@ -851,7 +851,7 @@ namespace Microsoft.CodeAnalysis
                         {
                             Debug.Assert(keyIndex < i);
                             var primaryPair = nestedNamespaces[keyIndex];
-                            nestedNamespaces[keyIndex] = KeyValuePair.Create(primaryPair.Key, primaryPair.Value.Concat(pair.Value));
+                            nestedNamespaces[keyIndex] = KeyValuePairUtil.Create(primaryPair.Key, primaryPair.Value.Concat(pair.Value));
                             nestedNamespaces[i] = default(KeyValuePair<string, IEnumerable<IGrouping<string, TypeDefinitionHandle>>>);
                         }
                     }

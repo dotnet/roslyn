@@ -407,11 +407,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Prefer &apos;Is Nothing&apos; over &apos;Object.ReferenceEquals(..., Nothing)&apos;.
+        '''  Looks up a localized string similar to Prefer &apos;Is Nothing&apos; for reference equality checks.
         '''</summary>
-        Friend Shared ReadOnly Property Prefer_Is_Nothing_over_ReferenceEquals() As String
+        Friend Shared ReadOnly Property Prefer_Is_Nothing_for_reference_equality_checks() As String
             Get
-                Return ResourceManager.GetString("Prefer_Is_Nothing_over_ReferenceEquals", resourceCulture)
+                Return ResourceManager.GetString("Prefer_Is_Nothing_for_reference_equality_checks", resourceCulture)
             End Get
         End Property
         
@@ -574,6 +574,15 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
         Friend Shared ReadOnly Property Suggest_imports_for_types_in_reference_assemblies() As String
             Get
                 Return ResourceManager.GetString("Suggest_imports_for_types_in_reference_assemblies", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to VB Coding Conventions.
+        '''</summary>
+        Friend Shared ReadOnly Property VB_Coding_Conventions() As String
+            Get
+                Return ResourceManager.GetString("VB_Coding_Conventions", resourceCulture)
             End Get
         End Property
     End Class

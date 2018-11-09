@@ -2,15 +2,14 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Classification;
-using Microsoft.CodeAnalysis.DocumentHighlighting;
 using Microsoft.CodeAnalysis.Editor;
-using Microsoft.CodeAnalysis.Editor.FindUsages;
-using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo;
+using Microsoft.CodeAnalysis.Editor.QuickInfo;
 using Microsoft.CodeAnalysis.Editor.ReferenceHighlighting;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Preview;
@@ -36,6 +35,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
         {
             private readonly DocumentHighlighting.HighlightSpanKind _spanKind;
             private readonly ClassifiedSpansAndHighlightSpan _classifiedSpansAndHighlights;
+            private readonly ImmutableDictionary<string, string> _customColumnsData;
 
             public DocumentSpanEntry(
                 AbstractTableDataSourceFindUsagesContext context,
@@ -45,11 +45,13 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 string documentName,
                 Guid projectGuid,
                 SourceText sourceText,
-                ClassifiedSpansAndHighlightSpan classifiedSpans)
+                ClassifiedSpansAndHighlightSpan classifiedSpans,
+                ImmutableDictionary<string, string> customColumnsData)
                 : base(context, definitionBucket, documentSpan, documentName, projectGuid, sourceText)
             {
                 _spanKind = spanKind;
                 _classifiedSpansAndHighlights = classifiedSpans;
+                _customColumnsData = customColumnsData;
             }
 
             protected override IList<System.Windows.Documents.Inline> CreateLineTextInlines()
@@ -92,13 +94,16 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             {
                 if (base.TryCreateColumnContent(columnName, out content))
                 {
-                    LazyToolTip.AttachTo(content, CreateDisposableToolTip);
+                    LazyToolTip.AttachTo(content, Presenter.ThreadingContext, CreateDisposableToolTip);
 
                     return true;
                 }
 
                 return false;
             }
+
+            protected override object GetValueWorker(string keyName)
+                => _customColumnsData.TryGetValue(keyName, out var value) ? value : base.GetValueWorker(keyName);
 
             private DisposableToolTip CreateDisposableToolTip()
             {
@@ -141,12 +146,14 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                     PredefinedTextViewRoles.Document,
                     PredefinedTextViewRoles.Editable);
 
-                var content = new ProjectionBufferDeferredContent(
-                    snapshotSpan,
+                return ProjectionBufferContent.Create(
+                    Presenter.ThreadingContext,
+                    ImmutableArray.Create(snapshotSpan),
+                    Presenter.ProjectionBufferFactoryService,
+                    Presenter.EditorOptionsFactoryService,
+                    Presenter.TextEditorFactoryService,
                     contentType,
                     roleSet);
-
-                return (ContentControl)Presenter.DeferredContentFrameworkElementFactory.CreateElement(content);
             }
 
             private ITextBuffer CreateNewBuffer()

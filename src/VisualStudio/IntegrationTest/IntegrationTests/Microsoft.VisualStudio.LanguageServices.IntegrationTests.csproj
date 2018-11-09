@@ -1,0 +1,67 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <OutputType>Library</OutputType>
+    <RootNamespace>Roslyn.VisualStudio.IntegrationTests</RootNamespace>
+    <TargetFramework>net472</TargetFramework>
+    <RoslynProjectType>UnitTest</RoslynProjectType>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj" />
+    <ProjectReference Include="..\..\..\Compilers\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.csproj" />
+    <ProjectReference Include="..\..\..\Compilers\Test\Resources\Core\Microsoft.CodeAnalysis.Compiler.Test.Resources.csproj" />
+    <ProjectReference Include="..\..\..\Compilers\VisualBasic\Portable\Microsoft.CodeAnalysis.VisualBasic.vbproj" />
+    <ProjectReference Include="..\..\..\EditorFeatures\Core\Microsoft.CodeAnalysis.EditorFeatures.csproj" />
+    <ProjectReference Include="..\..\..\EditorFeatures\Core.Wpf\Microsoft.CodeAnalysis.EditorFeatures.Wpf.csproj" />
+    <ProjectReference Include="..\..\..\EditorFeatures\CSharp\Microsoft.CodeAnalysis.CSharp.EditorFeatures.csproj" />
+    <ProjectReference Include="..\..\..\EditorFeatures\TestUtilities\Roslyn.Services.Test.Utilities.csproj" />
+    <ProjectReference Include="..\..\..\EditorFeatures\Text\Microsoft.CodeAnalysis.EditorFeatures.Text.csproj" />
+    <ProjectReference Include="..\..\..\EditorFeatures\VisualBasic\Microsoft.CodeAnalysis.VisualBasic.EditorFeatures.vbproj" />
+    <ProjectReference Include="..\..\..\Features\Core\Portable\Microsoft.CodeAnalysis.Features.csproj" />
+    <ProjectReference Include="..\..\..\Features\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.Features.csproj" />
+    <ProjectReference Include="..\..\..\Features\VisualBasic\Portable\Microsoft.CodeAnalysis.VisualBasic.Features.vbproj" />
+    <ProjectReference Include="..\..\..\Interactive\EditorFeatures\Core\Microsoft.CodeAnalysis.InteractiveEditorFeatures.csproj" />
+    <ProjectReference Include="..\..\..\Interactive\EditorFeatures\CSharp\Microsoft.CodeAnalysis.CSharp.InteractiveEditorFeatures.csproj" />
+    <ProjectReference Include="..\..\..\Interactive\EditorFeatures\VisualBasic\Microsoft.CodeAnalysis.VisualBasic.InteractiveEditorFeatures.vbproj" />
+    <ProjectReference Include="..\..\..\Interactive\Features\Microsoft.CodeAnalysis.InteractiveFeatures.csproj" />
+    <ProjectReference Include="..\..\..\Interactive\Host\InteractiveHost32.csproj" />
+    <ProjectReference Include="..\..\..\Scripting\Core\Microsoft.CodeAnalysis.Scripting.csproj" />
+    <ProjectReference Include="..\..\..\Scripting\CSharp\Microsoft.CodeAnalysis.CSharp.Scripting.csproj" />
+    <ProjectReference Include="..\..\..\Scripting\VisualBasic\Microsoft.CodeAnalysis.VisualBasic.Scripting.vbproj" />
+    <ProjectReference Include="..\..\..\Test\Diagnostics\Roslyn.Hosting.Diagnostics.csproj" />
+    <ProjectReference Include="..\..\..\Test\PdbUtilities\Roslyn.Test.PdbUtilities.csproj" />
+    <ProjectReference Include="..\..\..\Test\Utilities\Portable\Roslyn.Test.Utilities.csproj" />
+    <ProjectReference Include="..\..\..\Workspaces\CoreTestUtilities\Roslyn.Services.UnitTests.Utilities.csproj" />
+    <ProjectReference Include="..\..\..\Workspaces\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.Workspaces.csproj" />
+    <ProjectReference Include="..\..\..\Workspaces\Remote\Core\Microsoft.CodeAnalysis.Remote.Workspaces.csproj" />
+    <ProjectReference Include="..\..\..\Workspaces\Remote\ServiceHub\Microsoft.CodeAnalysis.Remote.ServiceHub.csproj" />
+    <ProjectReference Include="..\..\..\Workspaces\VisualBasic\Portable\Microsoft.CodeAnalysis.VisualBasic.Workspaces.vbproj" />
+    <ProjectReference Include="..\..\Core\Def\Microsoft.VisualStudio.LanguageServices.csproj" />
+    <ProjectReference Include="..\..\Core\Impl\Microsoft.VisualStudio.LanguageServices.Implementation.csproj" />
+    <ProjectReference Include="..\..\CSharp\Repl\Microsoft.VisualStudio.CSharp.Repl.csproj" />
+    <ProjectReference Include="..\..\InteractiveServices\Microsoft.VisualStudio.InteractiveServices.csproj" />
+    <ProjectReference Include="..\IntegrationService\Microsoft.VisualStudio.IntegrationTest.IntegrationService.csproj" />
+    <ProjectReference Include="..\TestUtilities\Microsoft.VisualStudio.IntegrationTest.Utilities.csproj" />
+    <ProjectReference Include="..\..\..\Workspaces\Core\Portable\Microsoft.CodeAnalysis.Workspaces.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="EnvDTE" Version="$(EnvDTEVersion)" />
+    <PackageReference Include="EnvDTE80" Version="$(EnvDTE80Version)" />
+    <PackageReference Include="System.Collections.Immutable" Version="$(SystemCollectionsImmutableVersion)" />
+    <!-- 
+      Required to avoid double write of System.Threading.Tasks.Dataflow.dll caused by both 
+      Microsoft.VisualStudio.ProjectSystem and Microsoft.VisualStudio.Composition containing it.
+      This is tracked by CPS issue https://devdiv.visualstudio.com/DevDiv/_workitems/edit/547065.
+      Remove this reference once it's fixed.
+     -->
+    <PackageReference Include="Microsoft.Tpl.Dataflow" Version="$(MicrosoftTplDataflowVersion)" ExcludeAssets="all" />
+  </ItemGroup>
+</Project>

@@ -15,6 +15,7 @@ using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.Text.Tagging;
+using Roslyn.Utilities;
 using OLECMDEXECOPT = Microsoft.VisualStudio.OLE.Interop.OLECMDEXECOPT;
 using ThreadHelper = Microsoft.VisualStudio.Shell.ThreadHelper;
 
@@ -230,17 +231,10 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         public string GetQuickInfo()
             => ExecuteOnActiveView(view =>
             {
-#pragma warning disable CS0618 // IQuickInfo* is obsolete, tracked by https://github.com/dotnet/roslyn/issues/24094
-                var broker = GetComponentModelService<IQuickInfoBroker>();
-#pragma warning restore CS0618 // IQuickInfo* is obsolete, tracked by https://github.com/dotnet/roslyn/issues/24094
+                var broker = GetComponentModelService<IAsyncQuickInfoBroker>();
 
-                var sessions = broker.GetSessions(view);
-                if (sessions.Count != 1)
-                {
-                    throw new InvalidOperationException($"Expected exactly one QuickInfo session, but found {sessions.Count}");
-                }
-
-                return QuickInfoToStringConverter.GetStringFromBulkContent(sessions[0].QuickInfoContent);
+                var session = broker.GetSession(view);
+                return QuickInfoToStringConverter.GetStringFromBulkContent(session.Content);
             });
 
         public void VerifyTags(string tagTypeName, int expectedCount)
@@ -319,7 +313,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         public void ApplyLightBulbAction(string actionName, FixAllScope? fixAllScope, bool blockUntilComplete)
         {
-            var lightBulbAction = GetLightBulbApplicationAction(actionName, fixAllScope);
+            var lightBulbAction = GetLightBulbApplicationAction(actionName, fixAllScope, blockUntilComplete);
             var task = ThreadHelper.JoinableTaskFactory.RunAsync(async () =>
             {
                 await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
@@ -340,7 +334,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         private void BeginInvokeExecuteOnActiveView(Action<IWpfTextView> action)
             => BeginInvokeOnUIThread(GetExecuteOnActionViewCallback(action));
 
-        private Func<IWpfTextView, Task> GetLightBulbApplicationAction(string actionName, FixAllScope? fixAllScope)
+        private Func<IWpfTextView, Task> GetLightBulbApplicationAction(string actionName, FixAllScope? fixAllScope, bool willBlockUntilComplete)
         {
             return async view =>
             {
@@ -376,6 +370,16 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                     if (action == null)
                     {
                         throw new InvalidOperationException($"Unable to find FixAll in {fixAllScope.ToString()} code fix for suggested action '{action.DisplayText}'.");
+                    }
+
+                    if (willBlockUntilComplete
+                        && action is FixAllSuggestedAction fixAllSuggestedAction
+                        && fixAllSuggestedAction.CodeAction is FixSomeCodeAction fixSomeCodeAction)
+                    {
+                        // Ensure the preview changes dialog will not be shown. Since the operation 'willBlockUntilComplete',
+                        // the caller would not be able to interact with the preview changes dialog, and the tests would
+                        // either timeout or deadlock.
+                        fixSomeCodeAction.GetTestAccessor().ShowPreviewChangesDialog = false;
                     }
 
                     if (string.IsNullOrEmpty(actionName))

@@ -278,5 +278,59 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
                 $@"[/_1/]=[https://raw.githubusercontent.com/Source/Package/*]",
                 File.ReadAllText(sourceLinkJsonPath));
         }
+
+        /// <summary>
+        /// Validates dependencies of _BeforeVBCSCoreCompile target. 
+        /// </summary>
+        [ConditionalFact(typeof(DotNetSdkAvailable))]
+        public void BeforeVBCSCoreCompileDependencies()
+        {
+            VerifyValues(
+                customProps: $@"
+  <ItemGroup>
+    <ReferencePath Include=""A"" />
+  </ItemGroup>",
+                customTargets: null,
+                targets: new[]
+                {
+                    "_BeforeVBCSCoreCompile"
+                },
+                expressions: new[]
+                {
+                    "@(ReferencePathWithRefAssemblies)",
+                },
+                expectedResults: new[]
+                {
+                    "A",
+                });
+        }
+
+        [ConditionalFact(typeof(DotNetSdkAvailable))]
+        public void ClearEmbedInteropTypes()
+        {
+            VerifyValues(
+                customProps: $@"
+  <PropertyGroup>
+    <TargetingClr2Framework>true</TargetingClr2Framework>
+  </PropertyGroup>
+  <ItemGroup>
+    <ReferencePathWithRefAssemblies Include=""A"" EmbedInteropTypes=""false""/>
+    <ReferencePathWithRefAssemblies Include=""B"" EmbedInteropTypes=""true""/>
+  </ItemGroup>",
+                customTargets: null,
+                targets: new[]
+                {
+                    "CoreCompile"
+                },
+                expressions: new[]
+                {
+                    "@(ReferencePathWithRefAssemblies->'EmbedInteropTypes=`%(EmbedInteropTypes)`')",
+                },
+                expectedResults: new[]
+                {
+                    "EmbedInteropTypes=``",
+                    "EmbedInteropTypes=``"
+                });
+        }
     }
 }

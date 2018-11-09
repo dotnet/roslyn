@@ -3233,7 +3233,7 @@ End Class
     ]]></file>
 </compilation>
 
-            Dim comp1 = CreateEmptyCompilation(ParseSourceXml(source1, Nothing), references:={MscorlibRef_v20}, options:=TestOptions.ReleaseDll)
+            Dim comp1 = CreateEmptyCompilation(ParseSourceXml(source1, Nothing).ToArray(), references:={MscorlibRef_v20}, options:=TestOptions.ReleaseDll)
             comp1.VerifyDiagnostics()
 
             Dim source2 =
@@ -3242,7 +3242,7 @@ End Class
     </file>
 </compilation>
 
-            Dim comp2 = CreateEmptyCompilation(ParseSourceXml(source2, Nothing), references:={MscorlibRef_v4_0_30316_17626, New VisualBasicCompilationReference(comp1)}, options:=TestOptions.ReleaseDll)
+            Dim comp2 = CreateEmptyCompilation(ParseSourceXml(source2, Nothing).ToArray(), references:={MscorlibRef_v4_0_30316_17626, New VisualBasicCompilationReference(comp1)}, options:=TestOptions.ReleaseDll)
 
             Dim c As NamedTypeSymbol = comp2.GlobalNamespace.GetTypeMembers("C").Single
             Assert.IsType(Of RetargetingNamedTypeSymbol)(c)

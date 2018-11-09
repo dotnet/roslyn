@@ -60,9 +60,10 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsNullLiteralExpression(SyntaxNode node);
         bool IsDefaultLiteralExpression(SyntaxNode node);
         bool IsLiteralExpression(SyntaxNode node);
-        bool IsFalseLiteralExpression(SyntaxNode expression);
-        bool IsTrueLiteralExpression(SyntaxNode expression);
-
+        bool IsFalseLiteralExpression(SyntaxNode node);
+        bool IsTrueLiteralExpression(SyntaxNode node);
+        bool IsThisExpression(SyntaxNode node);
+        bool IsBaseExpression(SyntaxNode node);
 
         string GetText(int kind);
         bool IsInInactiveRegion(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken);
@@ -93,6 +94,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         SyntaxNode GetExpressionOfExpressionStatement(SyntaxNode node);
 
+        bool IsAwaitExpression(SyntaxNode node);
         bool IsExpressionOfAwaitExpression(SyntaxNode node);
         SyntaxNode GetExpressionOfAwaitExpression(SyntaxNode node);
 
@@ -102,14 +104,22 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsConditionalAnd(SyntaxNode node);
         bool IsConditionalOr(SyntaxNode node);
 
+        bool IsTupleExpression(SyntaxNode node);
+        void GetPartsOfTupleExpression<TArgumentSyntax>(SyntaxNode node,
+            out SyntaxToken openParen, out SeparatedSyntaxList<TArgumentSyntax> arguments, out SyntaxToken closeParen) where TArgumentSyntax : SyntaxNode;
+
+        bool IsTupleType(SyntaxNode node);
+
         SyntaxNode GetOperandOfPrefixUnaryExpression(SyntaxNode node);
         SyntaxToken GetOperatorTokenOfPrefixUnaryExpression(SyntaxNode node);
+
 
         // Left side of = assignment.
         bool IsLeftSideOfAssignment(SyntaxNode node);
 
         bool IsSimpleAssignmentStatement(SyntaxNode statement);
         void GetPartsOfAssignmentStatement(SyntaxNode statement, out SyntaxNode left, out SyntaxToken operatorToken, out SyntaxNode right);
+        void GetPartsOfAssignmentExpressionOrStatement(SyntaxNode statement, out SyntaxNode left, out SyntaxToken operatorToken, out SyntaxNode right);
 
         // Left side of any assignment (for example  *=  or += )
         bool IsLeftSideOfAnyAssignment(SyntaxNode node);
@@ -146,6 +156,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsPointerMemberAccessExpression(SyntaxNode node);
 
         bool IsNamedParameter(SyntaxNode node);
+        SyntaxToken? GetNameOfParameter(SyntaxNode node);
         SyntaxNode GetDefaultOfParameter(SyntaxNode node);
         SyntaxNode GetParameterList(SyntaxNode node);
 
@@ -155,15 +166,14 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsEndOfLineTrivia(SyntaxTrivia trivia);
         bool IsDocumentationCommentExteriorTrivia(SyntaxTrivia trivia);
 
-        SyntaxNode GetExpressionOfConditionalAccessExpression(SyntaxNode node);
-
-        SyntaxNode GetExpressionOfElementAccessExpression(SyntaxNode node);
-        SyntaxNode GetArgumentListOfElementAccessExpression(SyntaxNode node);
+        void GetPartsOfElementAccessExpression(SyntaxNode node, out SyntaxNode expression, out SyntaxNode argumentList);
 
         SyntaxNode GetExpressionOfArgument(SyntaxNode node);
         SyntaxNode GetExpressionOfInterpolation(SyntaxNode node);
-        bool IsConditionalMemberAccessExpression(SyntaxNode node);
         SyntaxNode GetNameOfAttribute(SyntaxNode node);
+
+        bool IsConditionalAccessExpression(SyntaxNode node);
+        void GetPartsOfConditionalAccessExpression(SyntaxNode node, out SyntaxNode expression, out SyntaxNode whenNotNull);
 
         bool IsParenthesizedExpression(SyntaxNode node);
         SyntaxNode GetExpressionOfParenthesizedExpression(SyntaxNode node);
@@ -195,6 +205,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsUsingDirectiveName(SyntaxNode node);
         bool IsIdentifierName(SyntaxNode node);
         bool IsGenericName(SyntaxNode node);
+        bool IsQualifiedName(SyntaxNode node);
 
         bool IsAttribute(SyntaxNode node);
         bool IsAttributeName(SyntaxNode node);
@@ -268,8 +279,6 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsInNamespaceOrTypeContext(SyntaxNode node);
 
         bool IsAnonymousFunction(SyntaxNode n);
-
-        bool IsLocalFunction(SyntaxNode n);
 
         bool IsInConstantContext(SyntaxNode node);
         bool IsInConstructor(SyntaxNode node);

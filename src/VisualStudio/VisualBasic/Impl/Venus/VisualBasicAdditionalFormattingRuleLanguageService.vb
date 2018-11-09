@@ -12,9 +12,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Venus
     <ExportLanguageService(GetType(IAdditionalFormattingRuleLanguageService), LanguageNames.VisualBasic), [Shared]>
     Friend Class VisualBasicAdditionalFormattingRuleLanguageService
         Implements IAdditionalFormattingRuleLanguageService
-
+        Private Shared ReadOnly s_rule As New LineAdjustmentFormattingRule()
         Public Function GetAdditionalCodeGenerationRule() As IFormattingRule Implements IAdditionalFormattingRuleLanguageService.GetAdditionalCodeGenerationRule
-            Return New LineAdjustmentFormattingRule()
+            Return s_rule
         End Function
     End Class
 End Namespace

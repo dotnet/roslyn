@@ -2,7 +2,6 @@
 
 Imports System.Composition
 Imports System.Threading
-Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Classification
 Imports Microsoft.CodeAnalysis.Editor.Implementation.Classification
 Imports Microsoft.CodeAnalysis.Editor.Shared.Extensions
@@ -39,6 +38,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
                 Dim listenerProvider = exportProvider.GetExportedValue(Of IAsynchronousOperationListenerProvider)
 
                 Dim provider = New SemanticClassificationViewTaggerProvider(
+                    workspace.ExportProvider.GetExportedValue(Of IThreadingContext),
                     workspace.GetService(Of IForegroundNotificationService),
                     workspace.GetService(Of ISemanticChangeNotificationService),
                     workspace.GetService(Of ClassificationTypeMap),
@@ -91,11 +91,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
             End Sub
 
             Public Function AddSemanticClassificationsAsync(document As Document, textSpan As TextSpan, result As List(Of ClassifiedSpan), cancellationToken As CancellationToken) As Task Implements IEditorClassificationService.AddSemanticClassificationsAsync
-                Return SpecializedTasks.EmptyTask
+                Return Task.CompletedTask
             End Function
 
             Public Function AddSyntacticClassificationsAsync(document As Document, textSpan As TextSpan, result As List(Of ClassifiedSpan), cancellationToken As CancellationToken) As Task Implements IEditorClassificationService.AddSyntacticClassificationsAsync
-                Return SpecializedTasks.EmptyTask
+                Return Task.CompletedTask
             End Function
 
             Public Function AdjustStaleClassification(text As SourceText, classifiedSpan As ClassifiedSpan) As ClassifiedSpan Implements IEditorClassificationService.AdjustStaleClassification

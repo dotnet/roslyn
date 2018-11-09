@@ -6,7 +6,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-#if NET46
+#if NET472
 using System.Runtime;
 #else
 using System.Runtime.Loader;
@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 var assemblyName = Assembly.GetExecutingAssembly().GetName();
                 var profileName = assemblyName.Name + assemblyName.Version + ".profile";
                 Directory.CreateDirectory(profileRoot);
-#if NET46
+#if NET472
                 ProfileOptimization.SetProfileRoot(profileRoot);
                 ProfileOptimization.StartProfile(profileName);
 #else
@@ -202,6 +202,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
                     }
 
                 case BuildResponse.ResponseType.MismatchedVersion:
+                case BuildResponse.ResponseType.IncorrectHash:
                 case BuildResponse.ResponseType.Rejected:
                 case BuildResponse.ResponseType.AnalyzerInconsistency:
                     // Build could not be completed on the server.

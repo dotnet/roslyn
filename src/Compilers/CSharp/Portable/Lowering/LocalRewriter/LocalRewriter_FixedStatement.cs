@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (pinnedTemp.RefKind == RefKind.None)
                 {
                     // temp = null;
-                    cleanup[i] = _factory.Assignment(_factory.Local(pinnedTemp), _factory.Null(pinnedTemp.Type));
+                    cleanup[i] = _factory.Assignment(_factory.Local(pinnedTemp), _factory.Null(pinnedTemp.Type.TypeSymbol));
                 }
                 else
                 {
@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     cleanup[i] = _factory.Assignment(_factory.Local(pinnedTemp), new BoundPointerIndirectionOperator(
                         _factory.Syntax,
                         _factory.Default(new PointerTypeSymbol(pinnedTemp.Type)),
-                        pinnedTemp.Type),
+                        pinnedTemp.Type.TypeSymbol),
                         isRef: true);
                 }
             }
@@ -239,14 +239,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             SyntheticBoundNodeFactory factory,
             out LocalSymbol pinnedTemp)
         {
-            TypeSymbol localType = localSymbol.Type;
+            TypeSymbol localType = localSymbol.Type.TypeSymbol;
             BoundExpression initializerExpr = VisitExpression(fixedInitializer.Expression);
 
             // initializer expr should be either an address(&) of something or a fixed field access.
             // either should lower into addressof
             Debug.Assert(initializerExpr.Kind == BoundKind.AddressOfOperator);
 
-            TypeSymbol initializerType = ((PointerTypeSymbol)initializerExpr.Type).PointedAtType;
+            TypeSymbol initializerType = ((PointerTypeSymbol)initializerExpr.Type).PointedAtType.TypeSymbol;
 
             // initializer expressions are bound/lowered right into addressof operators here
             // that is a bit too far
@@ -308,7 +308,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             SyntheticBoundNodeFactory factory,
             out LocalSymbol pinnedTemp)
         {
-            TypeSymbol localType = localSymbol.Type;
+            TypeSymbol localType = localSymbol.Type.TypeSymbol;
             BoundExpression initializerExpr = VisitExpression(fixedInitializer.Expression);
 
             var initializerType = initializerExpr.Type;
@@ -321,7 +321,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // pinned ref int pinnedTemp
             pinnedTemp = factory.SynthesizedLocal(
-                getPinnableMethod.ReturnType,
+                getPinnableMethod.ReturnType.TypeSymbol,
                 syntax: declarator,
                 isPinned: true,
                 //NOTE: different from the array and string cases
@@ -410,7 +410,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             SyntheticBoundNodeFactory factory,
             out LocalSymbol pinnedTemp)
         {
-            TypeSymbol localType = localSymbol.Type;
+            TypeSymbol localType = localSymbol.Type.TypeSymbol;
             BoundExpression initializerExpr = VisitExpression(fixedInitializer.Expression);
             TypeSymbol initializerType = initializerExpr.Type;
 
@@ -481,13 +481,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             SyntheticBoundNodeFactory factory,
             out LocalSymbol pinnedTemp)
         {
-            TypeSymbol localType = localSymbol.Type;
+            TypeSymbol localType = localSymbol.Type.TypeSymbol;
             BoundExpression initializerExpr = VisitExpression(fixedInitializer.Expression);
             TypeSymbol initializerType = initializerExpr.Type;
 
             pinnedTemp = factory.SynthesizedLocal(initializerType, isPinned: true);
-            ArrayTypeSymbol arrayType = (ArrayTypeSymbol)pinnedTemp.Type;
-            TypeSymbol arrayElementType = arrayType.ElementType;
+            ArrayTypeSymbol arrayType = (ArrayTypeSymbol)pinnedTemp.Type.TypeSymbol;
+            TypeSymbolWithAnnotations arrayElementType = arrayType.ElementType;
 
             // NOTE: we pin the array, not the pointer.
             Debug.Assert(pinnedTemp.IsPinned);
