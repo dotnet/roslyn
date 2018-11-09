@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
         /// based dataflow analysis OR for the entire executable code block for high level operation
         /// tree based analysis.
         /// </summary>
-        private sealed class BasicBlockAnalysisData : IEquatable<BasicBlockAnalysisData>
+        private sealed class BasicBlockAnalysisData
         {
             private static readonly ObjectPool<BasicBlockAnalysisData> s_pool =
                 new ObjectPool<BasicBlockAnalysisData>(() => new BasicBlockAnalysisData());
@@ -95,26 +95,43 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
             }
 
             public bool Equals(BasicBlockAnalysisData other)
-                => this.GetHashCode() == (other?.GetHashCode() ?? 0);
-
-            public override bool Equals(object obj)
             {
-                return Equals(obj as BasicBlockAnalysisData);
-            }
-
-            public override int GetHashCode()
-            {
-                var hashCode = _reachingWrites.Count;
-                foreach ((int keyHash, int valueHash) in _reachingWrites.Select(GetKeyValueHashCodeTuple).OrderBy(hashTuple => hashTuple.keyHash))
+                // Check if both _reachingWrites maps have same key-value pair count.
+                if (other == null ||
+                    other._reachingWrites.Count != _reachingWrites.Count)
                 {
-                    hashCode = Hash.Combine(Hash.Combine(keyHash, valueHash), hashCode);
+                    return false;
                 }
 
-                return hashCode;
+                var uniqueSymbols = PooledHashSet<ISymbol>.GetInstance();
+                try
+                {
+                    // Check if both _reachingWrites maps have same set of keys.
+                    uniqueSymbols.AddRange(_reachingWrites.Keys);
+                    uniqueSymbols.AddRange(other._reachingWrites.Keys);
+                    if (uniqueSymbols.Count != _reachingWrites.Count)
+                    {
+                        return false;
+                    }
 
-                // Local functions.
-                (int keyHash, int valueHash) GetKeyValueHashCodeTuple(KeyValuePair<ISymbol, PooledHashSet<IOperation>> keyValuePair)
-                    => (keyValuePair.Key.GetHashCode(), Hash.Combine(keyValuePair.Value.Count, Hash.CombineValues(keyValuePair.Value)));
+                    // Check if both _reachingWrites maps have same set of write
+                    // operations for each tracked symbol.
+                    foreach (var symbol in uniqueSymbols)
+                    {
+                        var writes1 = _reachingWrites[symbol];
+                        var writes2 = other._reachingWrites[symbol];
+                        if (!writes1.SetEquals(writes2))
+                        {
+                            return false;
+                        }
+                    }
+
+                    return true;
+                }
+                finally
+                {
+                    uniqueSymbols.Free();
+                }
             }
 
             private bool IsEmpty => _reachingWrites.Count == 0;
