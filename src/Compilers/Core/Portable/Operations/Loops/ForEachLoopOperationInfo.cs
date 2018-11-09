@@ -5,7 +5,7 @@ using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.Operations
 {
-    internal struct ForEachLoopOperationInfo
+    internal class ForEachLoopOperationInfo
     {
         /// <summary>
         /// Element type of the collection

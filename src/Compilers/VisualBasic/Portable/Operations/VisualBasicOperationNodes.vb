@@ -5,23 +5,6 @@ Imports System.Threading
 Imports Microsoft.CodeAnalysis.VisualBasic
 
 Namespace Microsoft.CodeAnalysis.Operations
-    Friend NotInheritable Class VisualBasicLazyAddressOfOperation
-        Inherits LazyAddressOfOperation
-
-        Private ReadOnly _operationFactory As VisualBasicOperationFactory
-        Private ReadOnly _reference As BoundNode
-
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, reference As BoundNode, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As [Optional](Of Object), isImplicit As Boolean)
-            MyBase.New(semanticModel, syntax, type, constantValue, isImplicit)
-            _operationFactory = operationFactory
-            _reference = reference
-        End Sub
-
-        Protected Overrides Function CreateReference() As IOperation
-            Return SetParentOperation(_operationFactory.Create(_reference), Me)
-        End Function
-    End Class
-
     Friend NotInheritable Class VisualBasicLazyNameOfOperation
         Inherits LazyNameOfOperation
 
@@ -35,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.Operations
         End Sub
 
         Protected Overrides Function CreateArgument() As IOperation
-            Return SetParentOperation(_operationFactory.Create(_argument), Me)
+            Return _operationFactory.Create(_argument)
         End Function
     End Class
 
@@ -52,7 +35,7 @@ Namespace Microsoft.CodeAnalysis.Operations
         End Sub
 
         Protected Overrides Function CreateException() As IOperation
-            Return SetParentOperation(_operationFactory.Create(_exception), Me)
+            Return _operationFactory.Create(_exception)
         End Function
     End Class
 
@@ -69,7 +52,7 @@ Namespace Microsoft.CodeAnalysis.Operations
         End Sub
 
         Protected Overrides Function CreateValue() As IOperation
-            Return SetParentOperation(_operationFactory.Create(_value), Me)
+            Return _operationFactory.Create(_value)
         End Function
     End Class
 
@@ -88,11 +71,11 @@ Namespace Microsoft.CodeAnalysis.Operations
         End Sub
 
         Protected Overrides Function CreateDimensionSizes() As ImmutableArray(Of IOperation)
-            Return SetParentOperation(_operationFactory.CreateFromArray(Of BoundExpression, IOperation)(_dimensionSizes), Me)
+            Return _operationFactory.CreateFromArray(Of BoundExpression, IOperation)(_dimensionSizes)
         End Function
 
         Protected Overrides Function CreateInitializer() As IArrayInitializerOperation
-            Return DirectCast(SetParentOperation(_operationFactory.Create(_initializer), Me), IArrayInitializerOperation)
+            Return DirectCast(_operationFactory.Create(_initializer), IArrayInitializerOperation)
         End Function
     End Class
 
@@ -111,11 +94,11 @@ Namespace Microsoft.CodeAnalysis.Operations
         End Sub
 
         Protected Overrides Function CreateArrayReference() As IOperation
-            Return SetParentOperation(_operationFactory.Create(_arrayReference), Me)
+            Return _operationFactory.Create(_arrayReference)
         End Function
 
         Protected Overrides Function CreateIndices() As ImmutableArray(Of IOperation)
-            Return SetParentOperation(_operationFactory.CreateFromArray(Of BoundExpression, IOperation)(_indices), Me)
+            Return _operationFactory.CreateFromArray(Of BoundExpression, IOperation)(_indices)
         End Function
     End Class
 
@@ -132,7 +115,7 @@ Namespace Microsoft.CodeAnalysis.Operations
         End Sub
 
         Protected Overrides Function CreateElementValues() As ImmutableArray(Of IOperation)
-            Return SetParentOperation(_operationFactory.CreateFromArray(Of BoundExpression, IOperation)(_elementValues), Me)
+            Return _operationFactory.CreateFromArray(Of BoundExpression, IOperation)(_elementValues)
         End Function
     End Class
 
@@ -151,51 +134,11 @@ Namespace Microsoft.CodeAnalysis.Operations
         End Sub
 
         Protected Overrides Function CreateTarget() As IOperation
-            Return SetParentOperation(_operationFactory.Create(_target), Me)
+            Return _operationFactory.Create(_target)
         End Function
 
         Protected Overrides Function CreateValue() As IOperation
-            Return SetParentOperation(_operationFactory.Create(_value), Me)
-        End Function
-    End Class
-
-    Friend NotInheritable Class VisualBasicLazyDeconstructionAssignmentOperation
-        Inherits LazyDeconstructionAssignmentOperation
-
-        Private ReadOnly _operationFactory As VisualBasicOperationFactory
-        Private ReadOnly _target As BoundNode
-        Private ReadOnly _value As BoundNode
-
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, target As BoundNode, value As BoundNode, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As [Optional](Of Object), isImplicit As Boolean)
-            MyBase.New(semanticModel, syntax, type, constantValue, isImplicit)
-            _operationFactory = operationFactory
-            _target = target
-            _value = value
-        End Sub
-
-        Protected Overrides Function CreateTarget() As IOperation
-            Return SetParentOperation(_operationFactory.Create(_target), Me)
-        End Function
-
-        Protected Overrides Function CreateValue() As IOperation
-            Return SetParentOperation(_operationFactory.Create(_value), Me)
-        End Function
-    End Class
-
-    Friend NotInheritable Class VisualBasicLazyDeclarationExpressionOperation
-        Inherits LazyDeclarationExpressionOperation
-
-        Private ReadOnly _operationFactory As VisualBasicOperationFactory
-        Private ReadOnly _expression As BoundNode
-
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, expression As BoundNode, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As [Optional](Of Object), isImplicit As Boolean)
-            MyBase.New(semanticModel, syntax, type, constantValue, isImplicit)
-            _operationFactory = operationFactory
-            _expression = expression
-        End Sub
-
-        Protected Overrides Function CreateExpression() As IOperation
-            Return SetParentOperation(_operationFactory.Create(_expression), Me)
+            Return _operationFactory.Create(_value)
         End Function
     End Class
 
@@ -212,7 +155,7 @@ Namespace Microsoft.CodeAnalysis.Operations
         End Sub
 
         Protected Overrides Function CreateOperation() As IOperation
-            Return SetParentOperation(_operationFactory.Create(_operation), Me)
+            Return _operationFactory.Create(_operation)
         End Function
     End Class
 
@@ -229,34 +172,11 @@ Namespace Microsoft.CodeAnalysis.Operations
         End Sub
 
         Protected Overrides Function CreateLeftOperand() As IOperation
-            Return SetParentOperation(_operationFactory.CreateBoundBinaryOperatorChild(_operator, isLeft:=True), Me)
+            Return _operationFactory.CreateBoundBinaryOperatorChild(_operator, isLeft:=True)
         End Function
 
         Protected Overrides Function CreateRightOperand() As IOperation
-            Return SetParentOperation(_operationFactory.CreateBoundBinaryOperatorChild(_operator, isLeft:=False), Me)
-        End Function
-    End Class
-
-    Friend NotInheritable Class VisualBasicLazyTupleBinaryOperation
-        Inherits LazyTupleBinaryOperation
-
-        Private ReadOnly _operationFactory As VisualBasicOperationFactory
-        Private ReadOnly _leftOperand As BoundNode
-        Private ReadOnly _rightOperand As BoundNode
-
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, leftOperand As BoundNode, rightOperand As BoundNode, operatorKind As BinaryOperatorKind, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As [Optional](Of Object), isImplicit As Boolean)
-            MyBase.New(operatorKind, semanticModel, syntax, type, constantValue, isImplicit)
-            _operationFactory = operationFactory
-            _leftOperand = leftOperand
-            _rightOperand = rightOperand
-        End Sub
-
-        Protected Overrides Function CreateLeftOperand() As IOperation
-            Return SetParentOperation(_operationFactory.Create(_leftOperand), Me)
-        End Function
-
-        Protected Overrides Function CreateRightOperand() As IOperation
-            Return SetParentOperation(_operationFactory.Create(_rightOperand), Me)
+            Return _operationFactory.CreateBoundBinaryOperatorChild(_operator, isLeft:=False)
         End Function
     End Class
 
@@ -273,7 +193,7 @@ Namespace Microsoft.CodeAnalysis.Operations
         End Sub
 
         Protected Overrides Function CreateOperations() As ImmutableArray(Of IOperation)
-            Return SetParentOperation(_operationFactory.CreateFromArray(Of BoundStatement, IOperation)(_operations), Me)
+            Return _operationFactory.CreateFromArray(Of BoundStatement, IOperation)(_operations)
         End Function
     End Class
 
@@ -290,15 +210,15 @@ Namespace Microsoft.CodeAnalysis.Operations
         End Sub
 
         Protected Overrides Function CreateExceptionDeclarationOrExpression() As IOperation
-            Return SetParentOperation(_operationFactory.CreateBoundCatchBlockExceptionDeclarationOrExpression(_boundCatchBlock), Me)
+            Return _operationFactory.CreateBoundCatchBlockExceptionDeclarationOrExpression(_boundCatchBlock)
         End Function
 
         Protected Overrides Function CreateFilter() As IOperation
-            Return SetParentOperation(_operationFactory.Create(_boundCatchBlock.ExceptionFilterOpt), Me)
+            Return _operationFactory.Create(_boundCatchBlock.ExceptionFilterOpt)
         End Function
 
         Protected Overrides Function CreateHandler() As IBlockOperation
-            Return DirectCast(SetParentOperation(_operationFactory.Create(_boundCatchBlock.Body), Me), IBlockOperation)
+            Return DirectCast(_operationFactory.Create(_boundCatchBlock.Body), IBlockOperation)
         End Function
     End Class
 
@@ -315,11 +235,11 @@ Namespace Microsoft.CodeAnalysis.Operations
         End Sub
 
         Protected Overrides Function CreateTarget() As IOperation
-            Return SetParentOperation(_operationFactory.Create(_assignment.Left), Me)
+            Return _operationFactory.Create(_assignment.Left)
         End Function
 
         Protected Overrides Function CreateValue() As IOperation
-            Return SetParentOperation(_operationFactory.CreateCompoundAssignmentRightOperand(_assignment), Me)
+            Return _operationFactory.CreateCompoundAssignmentRightOperand(_assignment)
         End Function
     End Class
 
@@ -338,11 +258,11 @@ Namespace Microsoft.CodeAnalysis.Operations
         End Sub
 
         Protected Overrides Function CreateOperation() As IOperation
-            Return SetParentOperation(_operationFactory.Create(_operation), Me)
+            Return _operationFactory.Create(_operation)
         End Function
 
         Protected Overrides Function CreateWhenNotNull() As IOperation
-            Return SetParentOperation(_operationFactory.Create(_whenNotNull), Me)
+            Return _operationFactory.Create(_whenNotNull)
         End Function
     End Class
 
@@ -363,32 +283,15 @@ Namespace Microsoft.CodeAnalysis.Operations
         End Sub
 
         Protected Overrides Function CreateCondition() As IOperation
-            Return SetParentOperation(_operationFactory.Create(_condition), Me)
+            Return _operationFactory.Create(_condition)
         End Function
 
         Protected Overrides Function CreateWhenTrue() As IOperation
-            Return SetParentOperation(_operationFactory.Create(_whenTrue), Me)
+            Return _operationFactory.Create(_whenTrue)
         End Function
 
         Protected Overrides Function CreateWhenFalse() As IOperation
-            Return SetParentOperation(_operationFactory.Create(_whenFalse), Me)
-        End Function
-    End Class
-
-    Friend NotInheritable Class VisualBasicLazyConversionOperation
-        Inherits LazyConversionOperation
-
-        Private ReadOnly _operationFactory As VisualBasicOperationFactory
-        Private ReadOnly _operand As BoundNode
-
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, operand As BoundNode, convertibleConversion As IConvertibleConversion, isTryCast As Boolean, isChecked As Boolean, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As [Optional](Of Object), isImplicit As Boolean)
-            MyBase.New(convertibleConversion, isTryCast, isChecked, semanticModel, syntax, type, constantValue, isImplicit)
-            _operationFactory = operationFactory
-            _operand = operand
-        End Sub
-
-        Protected Overrides Function CreateOperand() As IOperation
-            Return SetParentOperation(_operationFactory.Create(_operand), Me)
+            Return _operationFactory.Create(_whenFalse)
         End Function
     End Class
 
@@ -407,11 +310,11 @@ Namespace Microsoft.CodeAnalysis.Operations
         End Sub
 
         Protected Overrides Function CreateEventReference() As IOperation
-            Return SetParentOperation(_operationFactory.Create(_eventReference), Me)
+            Return _operationFactory.Create(_eventReference)
         End Function
 
         Protected Overrides Function CreateHandlerValue() As IOperation
-            Return SetParentOperation(_operationFactory.Create(_handlerValue), Me)
+            Return _operationFactory.Create(_handlerValue)
         End Function
     End Class
 
@@ -428,7 +331,7 @@ Namespace Microsoft.CodeAnalysis.Operations
         End Sub
 
         Protected Overrides Function CreateInstance() As IOperation
-            Return SetParentOperation(_operationFactory.CreateReceiverOperation(_instance, [Event]), Me)
+            Return _operationFactory.CreateReceiverOperation(_instance, [Event])
         End Function
     End Class
 
@@ -445,7 +348,7 @@ Namespace Microsoft.CodeAnalysis.Operations
         End Sub
 
         Protected Overrides Function CreateOperation() As IOperation
-            Return SetParentOperation(_operationFactory.Create(_operation), Me)
+            Return _operationFactory.Create(_operation)
         End Function
     End Class
 
@@ -462,7 +365,7 @@ Namespace Microsoft.CodeAnalysis.Operations
         End Sub
 
         Protected Overrides Function CreateValue() As IOperation
-            Return SetParentOperation(_operationFactory.Create(_value), Me)
+            Return _operationFactory.Create(_value)
         End Function
     End Class
 
@@ -479,7 +382,7 @@ Namespace Microsoft.CodeAnalysis.Operations
         End Sub
 
         Protected Overrides Function CreateValue() As IOperation
-            Return SetParentOperation(_operationFactory.Create(_value), Me)
+            Return _operationFactory.Create(_value)
         End Function
     End Class
 
@@ -496,74 +399,40 @@ Namespace Microsoft.CodeAnalysis.Operations
         End Sub
 
         Protected Overrides Function CreateInstance() As IOperation
-            Return SetParentOperation(_operationFactory.CreateReceiverOperation(_instance, Field), Me)
-        End Function
-    End Class
-
-    Friend NotInheritable Class VisualBasicLazyFixedOperation
-        Inherits LazyFixedOperation
-
-        Private ReadOnly _operationFactory As VisualBasicOperationFactory
-        Private ReadOnly _variables As BoundNode
-        Private ReadOnly _body As BoundNode
-
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, variables As BoundNode, body As BoundNode, locals As ImmutableArray(Of ILocalSymbol), semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As [Optional](Of Object), isImplicit As Boolean)
-            MyBase.New(locals, semanticModel, syntax, type, constantValue, isImplicit)
-            _operationFactory = operationFactory
-            _variables = variables
-            _body = body
-        End Sub
-
-        Protected Overrides Function CreateVariables() As IVariableDeclarationGroupOperation
-            Return DirectCast(SetParentOperation(_operationFactory.Create(_variables), Me), IVariableDeclarationGroupOperation)
-        End Function
-
-        Protected Overrides Function CreateBody() As IOperation
-            Return SetParentOperation(_operationFactory.Create(_body), Me)
+            Return _operationFactory.CreateReceiverOperation(_instance, Field)
         End Function
     End Class
 
     Friend NotInheritable Class VisualBasicLazyForEachLoopOperation
         Inherits LazyForEachLoopOperation
 
-        Private Class ForEachLoopInfoWrapper
-            Public Info As ForEachLoopOperationInfo
-        End Class
-
         Private ReadOnly _operationFactory As VisualBasicOperationFactory
         Private ReadOnly _forEachLoop As BoundForEachStatement
-        Private _lazyForEachInfoInterlocked As ForEachLoopInfoWrapper
 
         Friend Sub New(operationFactory As VisualBasicOperationFactory, forEachLoop As BoundForEachStatement, locals As ImmutableArray(Of ILocalSymbol), continueLabel As ILabelSymbol, exitLabel As ILabelSymbol, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As [Optional](Of Object), isImplicit As Boolean)
-            MyBase.New(locals, continueLabel, exitLabel, Nothing, semanticModel, syntax, type, constantValue, isImplicit)
+            MyBase.New(locals, continueLabel, exitLabel, semanticModel, syntax, type, constantValue, isImplicit)
             _operationFactory = operationFactory
             _forEachLoop = forEachLoop
         End Sub
 
-        Public Overrides ReadOnly Property Info As ForEachLoopOperationInfo
-            Get
-                If _lazyForEachInfoInterlocked Is Nothing Then
-                    Dim loopInfo = New ForEachLoopInfoWrapper() With {.Info = _operationFactory.GetForEachLoopOperationInfo(_forEachLoop)}
-                    Interlocked.CompareExchange(_lazyForEachInfoInterlocked, loopInfo, Nothing)
-                End If
-                Return _lazyForEachInfoInterlocked.Info
-            End Get
-        End Property
+        Protected Overrides Function CreateLoopInfo() As ForEachLoopOperationInfo
+            Return _operationFactory.GetForEachLoopOperationInfo(_forEachLoop)
+        End Function
 
         Protected Overrides Function CreateLoopControlVariable() As IOperation
-            Return SetParentOperation(_operationFactory.CreateBoundControlVariableOperation(_forEachLoop), Me)
+            Return _operationFactory.CreateBoundControlVariableOperation(_forEachLoop)
         End Function
 
         Protected Overrides Function CreateCollection() As IOperation
-            Return SetParentOperation(_operationFactory.Create(_forEachLoop.Collection), Me)
+            Return _operationFactory.Create(_forEachLoop.Collection)
         End Function
 
         Protected Overrides Function CreateNextVariables() As ImmutableArray(Of IOperation)
-            Return If(_forEachLoop.NextVariablesOpt.IsDefault, ImmutableArray(Of IOperation).Empty, SetParentOperation(_operationFactory.CreateFromArray(Of BoundExpression, IOperation)(_forEachLoop.NextVariablesOpt), Me))
+            Return If(_forEachLoop.NextVariablesOpt.IsDefault, ImmutableArray(Of IOperation).Empty, _operationFactory.CreateFromArray(Of BoundExpression, IOperation)(_forEachLoop.NextVariablesOpt))
         End Function
 
         Protected Overrides Function CreateBody() As IOperation
-            Return SetParentOperation(_operationFactory.Create(_forEachLoop.Body), Me)
+            Return _operationFactory.Create(_forEachLoop.Body)
         End Function
     End Class
 
@@ -580,46 +449,29 @@ Namespace Microsoft.CodeAnalysis.Operations
         End Sub
 
         Protected Overrides Function CreateLoopControlVariable() As IOperation
-            Return SetParentOperation(_operationFactory.CreateBoundControlVariableOperation(_boundForToLoop), Me)
+            Return _operationFactory.CreateBoundControlVariableOperation(_boundForToLoop)
         End Function
 
         Protected Overrides Function CreateInitialValue() As IOperation
-            Return SetParentOperation(_operationFactory.Create(_boundForToLoop.InitialValue), Me)
+            Return _operationFactory.Create(_boundForToLoop.InitialValue)
         End Function
 
         Protected Overrides Function CreateLimitValue() As IOperation
-            Return SetParentOperation(_operationFactory.Create(_boundForToLoop.LimitValue), Me)
+            Return _operationFactory.Create(_boundForToLoop.LimitValue)
         End Function
 
         Protected Overrides Function CreateStepValue() As IOperation
-            Return SetParentOperation(_operationFactory.Create(_boundForToLoop.StepValue), Me)
+            Return _operationFactory.Create(_boundForToLoop.StepValue)
         End Function
 
         Protected Overrides Function CreateBody() As IOperation
-            Return SetParentOperation(_operationFactory.Create(_boundForToLoop.Body), Me)
+            Return _operationFactory.Create(_boundForToLoop.Body)
         End Function
 
         Protected Overrides Function CreateNextVariables() As ImmutableArray(Of IOperation)
             Return If(_boundForToLoop.NextVariablesOpt.IsDefault,
                       ImmutableArray(Of IOperation).Empty,
-                      SetParentOperation(_operationFactory.CreateFromArray(Of BoundExpression, IOperation)(_boundForToLoop.NextVariablesOpt), Me))
-        End Function
-    End Class
-
-    Friend NotInheritable Class VisualBasicLazyIncrementOrDecrementOperation
-        Inherits LazyIncrementOrDecrementOperation
-
-        Private ReadOnly _operationFactory As VisualBasicOperationFactory
-        Private ReadOnly _target As BoundNode
-
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, target As BoundNode, isDecrement As Boolean, isPostfix As Boolean, isLifted As Boolean, isChecked As Boolean, operatorMethod As IMethodSymbol, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As [Optional](Of Object), isImplicit As Boolean)
-            MyBase.New(isDecrement, isPostfix, isLifted, isChecked, operatorMethod, semanticModel, syntax, type, constantValue, isImplicit)
-            _operationFactory = operationFactory
-            _target = target
-        End Sub
-
-        Protected Overrides Function CreateTarget() As IOperation
-            Return SetParentOperation(_operationFactory.Create(_target), Me)
+_operationFactory.CreateFromArray(Of BoundExpression, IOperation)(_boundForToLoop.NextVariablesOpt))
         End Function
     End Class
 
@@ -636,7 +488,7 @@ Namespace Microsoft.CodeAnalysis.Operations
         End Sub
 
         Protected Overrides Function CreateParts() As ImmutableArray(Of IInterpolatedStringContentOperation)
-            Return SetParentOperation(_operationFactory.CreateBoundInterpolatedStringContentOperation(_parts), Me)
+            Return _operationFactory.CreateBoundInterpolatedStringContentOperation(_parts)
         End Function
     End Class
 
@@ -653,7 +505,7 @@ Namespace Microsoft.CodeAnalysis.Operations
         End Sub
 
         Protected Overrides Function CreateText() As IOperation
-            Return SetParentOperation(_operationFactory.CreateBoundLiteralOperation(_text, implicit:=True), Me)
+            Return _operationFactory.CreateBoundLiteralOperation(_text, implicit:=True)
         End Function
     End Class
 
@@ -674,15 +526,15 @@ Namespace Microsoft.CodeAnalysis.Operations
         End Sub
 
         Protected Overrides Function CreateExpression() As IOperation
-            Return SetParentOperation(_operationFactory.Create(_expression), Me)
+            Return _operationFactory.Create(_expression)
         End Function
 
         Protected Overrides Function CreateAlignment() As IOperation
-            Return SetParentOperation(_operationFactory.Create(_alignment), Me)
+            Return _operationFactory.Create(_alignment)
         End Function
 
         Protected Overrides Function CreateFormatString() As IOperation
-            Return SetParentOperation(_operationFactory.Create(_formatString), Me)
+            Return _operationFactory.Create(_formatString)
         End Function
     End Class
 
@@ -699,7 +551,7 @@ Namespace Microsoft.CodeAnalysis.Operations
         End Sub
 
         Protected Overrides Function CreateChildren() As ImmutableArray(Of IOperation)
-            Return SetParentOperation(_operationFactory.CreateFromArray(Of BoundNode, IOperation)(_children), Me)
+            Return _operationFactory.CreateFromArray(Of BoundNode, IOperation)(_children)
         End Function
     End Class
 
@@ -718,11 +570,11 @@ Namespace Microsoft.CodeAnalysis.Operations
         End Sub
 
         Protected Overrides Function CreateInstance() As IOperation
-            Return SetParentOperation(_operationFactory.CreateReceiverOperation(_instance, TargetMethod), Me)
+            Return _operationFactory.CreateReceiverOperation(_instance, TargetMethod)
         End Function
 
         Protected Overrides Function CreateArguments() As ImmutableArray(Of IArgumentOperation)
-            Return If(_boundCall IsNot Nothing, SetParentOperation(_operationFactory.DeriveArguments(_boundCall), Me), ImmutableArray(Of IArgumentOperation).Empty)
+            Return If(_boundCall IsNot Nothing, _operationFactory.DeriveArguments(_boundCall), ImmutableArray(Of IArgumentOperation).Empty)
         End Function
     End Class
 
@@ -739,11 +591,11 @@ Namespace Microsoft.CodeAnalysis.Operations
         End Sub
 
         Protected Overrides Function CreateEventReference() As IEventReferenceOperation
-            Return SetParentOperation(_operationFactory.CreateBoundRaiseEventStatementEventReference(_raiseEventStatement), Me)
+            Return _operationFactory.CreateBoundRaiseEventStatementEventReference(_raiseEventStatement)
         End Function
 
         Protected Overrides Function CreateArguments() As ImmutableArray(Of IArgumentOperation)
-            Return SetParentOperation(_operationFactory.DeriveArguments(_raiseEventStatement), Me)
+            Return _operationFactory.DeriveArguments(_raiseEventStatement)
         End Function
     End Class
 
@@ -760,7 +612,7 @@ Namespace Microsoft.CodeAnalysis.Operations
         End Sub
 
         Protected Overrides Function CreateValueOperand() As IOperation
-            Return SetParentOperation(_operationFactory.Create(_valueOperand), Me)
+            Return _operationFactory.Create(_valueOperand)
         End Function
     End Class
 
@@ -777,7 +629,7 @@ Namespace Microsoft.CodeAnalysis.Operations
         End Sub
 
         Protected Overrides Function CreateOperation() As IOperation
-            Return SetParentOperation(_operationFactory.Create(_operation), Me)
+            Return _operationFactory.Create(_operation)
         End Function
     End Class
 
@@ -794,7 +646,7 @@ Namespace Microsoft.CodeAnalysis.Operations
         End Sub
 
         Protected Overrides Function CreateBody() As IBlockOperation
-            Return DirectCast(SetParentOperation(_operationFactory.Create(_body), Me), IBlockOperation)
+            Return DirectCast(_operationFactory.Create(_body), IBlockOperation)
         End Function
     End Class
 
@@ -811,7 +663,7 @@ Namespace Microsoft.CodeAnalysis.Operations
         End Sub
 
         Protected Overrides Function CreateTarget() As IOperation
-            Return SetParentOperation(_operationFactory.CreateBoundDelegateCreationExpressionChildOperation(_delegateCreation), Me)
+            Return _operationFactory.CreateBoundDelegateCreationExpressionChildOperation(_delegateCreation)
         End Function
     End Class
 
@@ -828,7 +680,7 @@ Namespace Microsoft.CodeAnalysis.Operations
         End Sub
 
         Protected Overrides Function CreateInstance() As IOperation
-            Return SetParentOperation(_operationFactory.Create(_instance), Me)
+            Return _operationFactory.Create(_instance)
         End Function
     End Class
 
@@ -847,11 +699,11 @@ Namespace Microsoft.CodeAnalysis.Operations
         End Sub
 
         Protected Overrides Function CreateLockedValue() As IOperation
-            Return SetParentOperation(_operationFactory.Create(_lockedValue), Me)
+            Return _operationFactory.Create(_lockedValue)
         End Function
 
         Protected Overrides Function CreateBody() As IOperation
-            Return SetParentOperation(_operationFactory.Create(_body), Me)
+            Return _operationFactory.Create(_body)
         End Function
     End Class
 
@@ -868,7 +720,7 @@ Namespace Microsoft.CodeAnalysis.Operations
         End Sub
 
         Protected Overrides Function CreateInstance() As IOperation
-            Return SetParentOperation(_operationFactory.CreateReceiverOperation(_instance, Method), Me)
+            Return _operationFactory.CreateReceiverOperation(_instance, Method)
         End Function
     End Class
 
@@ -887,34 +739,11 @@ Namespace Microsoft.CodeAnalysis.Operations
         End Sub
 
         Protected Overrides Function CreateValue() As IOperation
-            Return SetParentOperation(_operationFactory.Create(_value), Me)
+            Return _operationFactory.Create(_value)
         End Function
 
         Protected Overrides Function CreateWhenNull() As IOperation
-            Return SetParentOperation(_operationFactory.Create(_whenNull), Me)
-        End Function
-    End Class
-
-    Friend NotInheritable Class VisualBasicLazyCoalesceAssignmentOperation
-        Inherits LazyCoalesceAssignmentOperation
-
-        Private ReadOnly _operationFactory As VisualBasicOperationFactory
-        Private ReadOnly _target As BoundNode
-        Private ReadOnly _value As BoundNode
-
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, target As BoundNode, value As BoundNode, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As [Optional](Of Object), isImplicit As Boolean)
-            MyBase.New(semanticModel, syntax, type, constantValue, isImplicit)
-            _operationFactory = operationFactory
-            _target = target
-            _value = value
-        End Sub
-
-        Protected Overrides Function CreateTarget() As IOperation
-            Return SetParentOperation(_operationFactory.Create(_target), Me)
-        End Function
-
-        Protected Overrides Function CreateValue() As IOperation
-            Return SetParentOperation(_operationFactory.Create(_value), Me)
+            Return _operationFactory.Create(_whenNull)
         End Function
     End Class
 
@@ -931,11 +760,11 @@ Namespace Microsoft.CodeAnalysis.Operations
         End Sub
 
         Protected Overrides Function CreateInitializer() As IObjectOrCollectionInitializerOperation
-            Return DirectCast(SetParentOperation(_operationFactory.Create(_objectCreation.InitializerOpt), Me), IObjectOrCollectionInitializerOperation)
+            Return DirectCast(_operationFactory.Create(_objectCreation.InitializerOpt), IObjectOrCollectionInitializerOperation)
         End Function
 
         Protected Overrides Function CreateArguments() As ImmutableArray(Of IArgumentOperation)
-            Return SetParentOperation(_operationFactory.DeriveArguments(_objectCreation), Me)
+            Return _operationFactory.DeriveArguments(_objectCreation)
         End Function
     End Class
 
@@ -952,7 +781,7 @@ Namespace Microsoft.CodeAnalysis.Operations
         End Sub
 
         Protected Overrides Function CreateInitializers() As ImmutableArray(Of IOperation)
-            Return SetParentOperation(_operationFactory.GetAnonymousTypeCreationInitializers(_anonymousTypeCreation), Me)
+            Return _operationFactory.GetAnonymousTypeCreationInitializers(_anonymousTypeCreation)
         End Function
     End Class
 
@@ -969,7 +798,7 @@ Namespace Microsoft.CodeAnalysis.Operations
         End Sub
 
         Protected Overrides Function CreateValue() As IOperation
-            Return SetParentOperation(_operationFactory.Create(_value), Me)
+            Return _operationFactory.Create(_value)
         End Function
     End Class
 
@@ -986,7 +815,7 @@ Namespace Microsoft.CodeAnalysis.Operations
         End Sub
 
         Protected Overrides Function CreateOperand() As IOperation
-            Return SetParentOperation(_operationFactory.Create(_operand), Me)
+            Return _operationFactory.Create(_operand)
         End Function
     End Class
 
@@ -1003,7 +832,7 @@ Namespace Microsoft.CodeAnalysis.Operations
         End Sub
 
         Protected Overrides Function CreateValue() As IOperation
-            Return SetParentOperation(_operationFactory.Create(_value), Me)
+            Return _operationFactory.Create(_value)
         End Function
     End Class
 
@@ -1022,11 +851,11 @@ Namespace Microsoft.CodeAnalysis.Operations
         End Sub
 
         Protected Overrides Function CreateInstance() As IOperation
-            Return SetParentOperation(_operationFactory.CreateReceiverOperation(_instance, [Property]), Me)
+            Return _operationFactory.CreateReceiverOperation(_instance, [Property])
         End Function
 
         Protected Overrides Function CreateArguments() As ImmutableArray(Of IArgumentOperation)
-            Return SetParentOperation(_operationFactory.DeriveArguments(_boundProperty), Me)
+            Return _operationFactory.DeriveArguments(_boundProperty)
         End Function
     End Class
 
@@ -1045,11 +874,11 @@ Namespace Microsoft.CodeAnalysis.Operations
         End Sub
 
         Protected Overrides Function CreateMinimumValue() As IOperation
-            Return SetParentOperation(_operationFactory.Create(_minimumValue), Me)
+            Return _operationFactory.Create(_minimumValue)
         End Function
 
         Protected Overrides Function CreateMaximumValue() As IOperation
-            Return SetParentOperation(_operationFactory.Create(_maximumValue), Me)
+            Return _operationFactory.Create(_maximumValue)
         End Function
     End Class
 
@@ -1066,7 +895,7 @@ Namespace Microsoft.CodeAnalysis.Operations
         End Sub
 
         Protected Overrides Function CreateValue() As IOperation
-            Return SetParentOperation(_operationFactory.Create(_value), Me)
+            Return _operationFactory.Create(_value)
         End Function
     End Class
 
@@ -1083,7 +912,7 @@ Namespace Microsoft.CodeAnalysis.Operations
         End Sub
 
         Protected Overrides Function CreateReturnedValue() As IOperation
-            Return SetParentOperation(_operationFactory.Create(_returnedValue), Me)
+            Return _operationFactory.Create(_returnedValue)
         End Function
     End Class
 
@@ -1100,7 +929,7 @@ Namespace Microsoft.CodeAnalysis.Operations
         End Sub
 
         Protected Overrides Function CreateValue() As IOperation
-            Return SetParentOperation(_operationFactory.Create(_value), Me)
+            Return _operationFactory.Create(_value)
         End Function
     End Class
 
@@ -1117,15 +946,15 @@ Namespace Microsoft.CodeAnalysis.Operations
         End Sub
 
         Protected Overrides Function CreateClauses() As ImmutableArray(Of ICaseClauseOperation)
-            Return SetParentOperation(_operationFactory.CreateBoundCaseBlockClauses(_caseBlock), Me)
+            Return _operationFactory.CreateBoundCaseBlockClauses(_caseBlock)
         End Function
 
         Protected Overrides Function CreateCondition() As IOperation
-            Return SetParentOperation(_operationFactory.CreateBoundCaseBlockCondition(_caseBlock), Nothing)
+            Return _operationFactory.CreateBoundCaseBlockCondition(_caseBlock)
         End Function
 
         Protected Overrides Function CreateBody() As ImmutableArray(Of IOperation)
-            Return ImmutableArray.Create(SetParentOperation(_operationFactory.Create(_caseBlock.Body), Me))
+            Return ImmutableArray.Create(_operationFactory.Create(_caseBlock.Body))
         End Function
     End Class
 
@@ -1144,11 +973,11 @@ Namespace Microsoft.CodeAnalysis.Operations
         End Sub
 
         Protected Overrides Function CreateValue() As IOperation
-            Return SetParentOperation(_operationFactory.Create(_value), Me)
+            Return _operationFactory.Create(_value)
         End Function
 
         Protected Overrides Function CreateCases() As ImmutableArray(Of ISwitchCaseOperation)
-            Return SetParentOperation(_operationFactory.CreateFromArray(Of BoundCaseBlock, ISwitchCaseOperation)(_cases), Me)
+            Return _operationFactory.CreateFromArray(Of BoundCaseBlock, ISwitchCaseOperation)(_cases)
         End Function
     End Class
 
@@ -1169,15 +998,15 @@ Namespace Microsoft.CodeAnalysis.Operations
         End Sub
 
         Protected Overrides Function CreateBody() As IBlockOperation
-            Return DirectCast(SetParentOperation(_operationFactory.Create(_body), Me), IBlockOperation)
+            Return DirectCast(_operationFactory.Create(_body), IBlockOperation)
         End Function
 
         Protected Overrides Function CreateCatches() As ImmutableArray(Of ICatchClauseOperation)
-            Return SetParentOperation(_operationFactory.CreateFromArray(Of BoundCatchBlock, ICatchClauseOperation)(_catches), Me)
+            Return _operationFactory.CreateFromArray(Of BoundCatchBlock, ICatchClauseOperation)(_catches)
         End Function
 
         Protected Overrides Function CreateFinally() As IBlockOperation
-            Return DirectCast(SetParentOperation(_operationFactory.Create(_finally), Me), IBlockOperation)
+            Return DirectCast(_operationFactory.Create(_finally), IBlockOperation)
         End Function
     End Class
 
@@ -1211,7 +1040,7 @@ Namespace Microsoft.CodeAnalysis.Operations
         End Sub
 
         Protected Overrides Function CreateInitializer() As IObjectOrCollectionInitializerOperation
-            Return DirectCast(SetParentOperation(_operationFactory.Create(_initializer), Me), IObjectOrCollectionInitializerOperation)
+            Return DirectCast(_operationFactory.Create(_initializer), IObjectOrCollectionInitializerOperation)
         End Function
     End Class
 
@@ -1230,11 +1059,11 @@ Namespace Microsoft.CodeAnalysis.Operations
         End Sub
 
         Protected Overrides Function CreateOperation() As IOperation
-            Return SetParentOperation(_operationFactory.Create(_operation), Me)
+            Return _operationFactory.Create(_operation)
         End Function
 
         Protected Overrides Function CreateArguments() As ImmutableArray(Of IOperation)
-            Return SetParentOperation(_operationFactory.CreateFromArray(Of BoundExpression, IOperation)(_arguments), Me)
+            Return _operationFactory.CreateFromArray(Of BoundExpression, IOperation)(_arguments)
         End Function
     End Class
 
@@ -1251,7 +1080,7 @@ Namespace Microsoft.CodeAnalysis.Operations
         End Sub
 
         Protected Overrides Function CreateOperand() As IOperation
-            Return SetParentOperation(_operationFactory.CreateBoundUnaryOperatorChild(_operator), Me)
+            Return _operationFactory.CreateBoundUnaryOperatorChild(_operator)
         End Function
     End Class
 
@@ -1268,11 +1097,11 @@ Namespace Microsoft.CodeAnalysis.Operations
         End Sub
 
         Protected Overrides Function CreateResources() As IOperation
-            Return SetParentOperation(_operationFactory.CreateBoundUsingStatementResources(_boundUsingStatement), Me)
+            Return _operationFactory.CreateBoundUsingStatementResources(_boundUsingStatement)
         End Function
 
         Protected Overrides Function CreateBody() As IOperation
-            Return SetParentOperation(_operationFactory.Create(_boundUsingStatement.Body), Me)
+            Return _operationFactory.Create(_boundUsingStatement.Body)
         End Function
     End Class
 
@@ -1289,7 +1118,7 @@ Namespace Microsoft.CodeAnalysis.Operations
         End Sub
 
         Protected Overrides Function CreateDeclarations() As ImmutableArray(Of IVariableDeclarationOperation)
-            Return SetParentOperation(_operationFactory.GetVariableDeclarationStatementVariables(_declarations), Me)
+            Return _operationFactory.GetVariableDeclarationStatementVariables(_declarations)
         End Function
     End Class
 
@@ -1310,15 +1139,15 @@ Namespace Microsoft.CodeAnalysis.Operations
         End Sub
 
         Protected Overrides Function CreateCondition() As IOperation
-            Return SetParentOperation(_operationFactory.Create(_condition), Me)
+            Return _operationFactory.Create(_condition)
         End Function
 
         Protected Overrides Function CreateBody() As IOperation
-            Return SetParentOperation(_operationFactory.Create(_body), Me)
+            Return _operationFactory.Create(_body)
         End Function
 
         Protected Overrides Function CreateIgnoredCondition() As IOperation
-            Return SetParentOperation(_operationFactory.Create(_ignoredCondition), Me)
+            Return _operationFactory.Create(_ignoredCondition)
         End Function
     End Class
 
@@ -1337,11 +1166,11 @@ Namespace Microsoft.CodeAnalysis.Operations
         End Sub
 
         Protected Overrides Function CreateBody() As IOperation
-            Return SetParentOperation(_operationFactory.Create(_body), Me)
+            Return _operationFactory.Create(_body)
         End Function
 
         Protected Overrides Function CreateValue() As IOperation
-            Return SetParentOperation(_operationFactory.Create(_value), Me)
+            Return _operationFactory.Create(_value)
         End Function
     End Class
 
@@ -1360,74 +1189,11 @@ Namespace Microsoft.CodeAnalysis.Operations
         End Sub
 
         Protected Overrides Function CreateBody() As IBlockOperation
-            Return DirectCast(SetParentOperation(_operationFactory.Create(_body), Me), IBlockOperation)
+            Return DirectCast(_operationFactory.Create(_body), IBlockOperation)
         End Function
 
         Protected Overrides Function CreateIgnoredBody() As IBlockOperation
-            Return DirectCast(SetParentOperation(_operationFactory.Create(_ignoredBody), Me), IBlockOperation)
-        End Function
-    End Class
-
-    Friend NotInheritable Class VisualBasicLazyConstantPatternOperation
-        Inherits LazyConstantPatternOperation
-
-        Private ReadOnly _operationFactory As VisualBasicOperationFactory
-        Private ReadOnly _value As BoundNode
-
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, value As BoundNode, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As [Optional](Of Object), isImplicit As Boolean)
-            MyBase.New(semanticModel, syntax, type, constantValue, isImplicit)
-            _operationFactory = operationFactory
-            _value = value
-        End Sub
-
-        Protected Overrides Function CreateValue() As IOperation
-            Return SetParentOperation(_operationFactory.Create(_value), Me)
-        End Function
-    End Class
-
-    Friend NotInheritable Class VisualBasicLazyPatternCaseClauseOperation
-        Inherits LazyPatternCaseClauseOperation
-
-        Private ReadOnly _operationFactory As VisualBasicOperationFactory
-        Private ReadOnly _pattern As BoundNode
-        Private ReadOnly _guard As BoundNode
-
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, pattern As BoundNode, guard As BoundNode, label As ILabelSymbol, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As [Optional](Of Object), isImplicit As Boolean)
-            MyBase.New(label, semanticModel, syntax, type, constantValue, isImplicit)
-            _operationFactory = operationFactory
-            _pattern = pattern
-            _guard = guard
-        End Sub
-
-        Protected Overrides Function CreatePattern() As IPatternOperation
-            Return DirectCast(SetParentOperation(_operationFactory.Create(_pattern), Me), IPatternOperation)
-        End Function
-
-        Protected Overrides Function CreateGuard() As IOperation
-            Return SetParentOperation(_operationFactory.Create(_guard), Me)
-        End Function
-    End Class
-
-    Friend NotInheritable Class VisualBasicLazyIsPatternOperation
-        Inherits LazyIsPatternOperation
-
-        Private ReadOnly _operationFactory As VisualBasicOperationFactory
-        Private ReadOnly _value As BoundNode
-        Private ReadOnly _pattern As BoundNode
-
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, value As BoundNode, pattern As BoundNode, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As [Optional](Of Object), isImplicit As Boolean)
-            MyBase.New(semanticModel, syntax, type, constantValue, isImplicit)
-            _operationFactory = operationFactory
-            _value = value
-            _pattern = pattern
-        End Sub
-
-        Protected Overrides Function CreateValue() As IOperation
-            Return SetParentOperation(_operationFactory.Create(_value), Me)
-        End Function
-
-        Protected Overrides Function CreatePattern() As IPatternOperation
-            Return DirectCast(SetParentOperation(_operationFactory.Create(_pattern), Me), IPatternOperation)
+            Return DirectCast(_operationFactory.Create(_ignoredBody), IBlockOperation)
         End Function
     End Class
 
@@ -1444,30 +1210,7 @@ Namespace Microsoft.CodeAnalysis.Operations
         End Sub
 
         Protected Overrides Function CreateInitializers() As ImmutableArray(Of IOperation)
-            Return SetParentOperation(_operationFactory.CreateFromArray(Of BoundExpression, IOperation)(_initializers), Me)
-        End Function
-    End Class
-
-    Friend NotInheritable Class VisualBasicLazyMemberInitializerOperation
-        Inherits LazyMemberInitializerOperation
-
-        Private ReadOnly _operationFactory As VisualBasicOperationFactory
-        Private ReadOnly _initializedMember As BoundNode
-        Private ReadOnly _initializer As BoundNode
-
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, initializedMember As BoundNode, initializer As BoundNode, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As [Optional](Of Object), isImplicit As Boolean)
-            MyBase.New(semanticModel, syntax, type, constantValue, isImplicit)
-            _operationFactory = operationFactory
-            _initializedMember = initializedMember
-            _initializer = initializer
-        End Sub
-
-        Protected Overrides Function CreateInitializedMember() As IOperation
-            Return SetParentOperation(_operationFactory.Create(_initializedMember), Me)
-        End Function
-
-        Protected Overrides Function CreateInitializer() As IObjectOrCollectionInitializerOperation
-            Return DirectCast(SetParentOperation(_operationFactory.Create(_initializer), Me), IObjectOrCollectionInitializerOperation)
+            Return _operationFactory.CreateFromArray(Of BoundExpression, IOperation)(_initializers)
         End Function
     End Class
 
@@ -1484,59 +1227,7 @@ Namespace Microsoft.CodeAnalysis.Operations
         End Sub
 
         Protected Overrides Function CreateOperation() As IOperation
-            Return SetParentOperation(_operationFactory.Create(_operation), Me)
-        End Function
-    End Class
-
-    Friend NotInheritable Class VisualBasicLazyMethodBodyOperation
-        Inherits LazyMethodBodyOperation
-
-        Private ReadOnly _operationFactory As VisualBasicOperationFactory
-        Private ReadOnly _blockBody As BoundNode
-        Private ReadOnly _expressionBody As BoundNode
-
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, blockBody As BoundNode, expressionBody As BoundNode, semanticModel As SemanticModel, syntax As SyntaxNode)
-            MyBase.New(semanticModel, syntax)
-            _operationFactory = operationFactory
-            _blockBody = blockBody
-            _expressionBody = expressionBody
-        End Sub
-
-        Protected Overrides Function CreateBlockBody() As IBlockOperation
-            Return DirectCast(SetParentOperation(_operationFactory.Create(_blockBody), Me), IBlockOperation)
-        End Function
-
-        Protected Overrides Function CreateExpressionBody() As IBlockOperation
-            Return DirectCast(SetParentOperation(_operationFactory.Create(_expressionBody), Me), IBlockOperation)
-        End Function
-    End Class
-
-    Friend NotInheritable Class VisualBasicLazyConstructorBodyOperation
-        Inherits LazyConstructorBodyOperation
-
-        Private ReadOnly _operationFactory As VisualBasicOperationFactory
-        Private ReadOnly _initializer As BoundNode
-        Private ReadOnly _blockBody As BoundNode
-        Private ReadOnly _expressionBody As BoundNode
-
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, initializer As BoundNode, blockBody As BoundNode, expressionBody As BoundNode, locals As ImmutableArray(Of ILocalSymbol), semanticModel As SemanticModel, syntax As SyntaxNode)
-            MyBase.New(locals, semanticModel, syntax)
-            _operationFactory = operationFactory
-            _initializer = initializer
-            _blockBody = blockBody
-            _expressionBody = expressionBody
-        End Sub
-
-        Protected Overrides Function CreateInitializer() As IOperation
-            Return SetParentOperation(_operationFactory.Create(_initializer), Me)
-        End Function
-
-        Protected Overrides Function CreateBlockBody() As IBlockOperation
-            Return DirectCast(SetParentOperation(_operationFactory.Create(_blockBody), Me), IBlockOperation)
-        End Function
-
-        Protected Overrides Function CreateExpressionBody() As IBlockOperation
-            Return DirectCast(SetParentOperation(_operationFactory.Create(_expressionBody), Me), IBlockOperation)
+            Return _operationFactory.Create(_operation)
         End Function
     End Class
 
@@ -1555,11 +1246,11 @@ Namespace Microsoft.CodeAnalysis.Operations
         End Sub
 
         Protected Overrides Function CreateGroup() As IOperation
-            Return SetParentOperation(_operationFactory.Create(_group), Me)
+            Return _operationFactory.Create(_group)
         End Function
 
         Protected Overrides Function CreateAggregation() As IOperation
-            Return SetParentOperation(_operationFactory.Create(_aggregation), Me)
+            Return _operationFactory.Create(_aggregation)
         End Function
     End Class
 
@@ -1576,47 +1267,7 @@ Namespace Microsoft.CodeAnalysis.Operations
         End Sub
 
         Protected Overrides Function CreateInitializer() As IObjectOrCollectionInitializerOperation
-            Return DirectCast(SetParentOperation(_operationFactory.Create(_initializer), Me), IObjectOrCollectionInitializerOperation)
-        End Function
-    End Class
-
-    Friend NotInheritable Class VisualBasicLazyFromEndIndexOperation
-        Inherits LazyFromEndIndexOperation
-
-        Private ReadOnly _operationFactory As VisualBasicOperationFactory
-        Private ReadOnly _operand As BoundNode
-
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, operand As BoundNode, isLifted As Boolean, isImplicit As Boolean, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, symbol As IMethodSymbol)
-            MyBase.New(isLifted, isImplicit, semanticModel, syntax, type, symbol)
-            _operationFactory = operationFactory
-            _operand = operand
-        End Sub
-
-        Protected Overrides Function CreateOperand() As IOperation
-            Return SetParentOperation(_operationFactory.Create(_operand), Me)
-        End Function
-    End Class
-
-    Friend NotInheritable Class VisualBasicLazyRangeOperation
-        Inherits LazyRangeOperation
-
-        Private ReadOnly _operationFactory As VisualBasicOperationFactory
-        Private ReadOnly _leftOperand As BoundNode
-        Private ReadOnly _rightOperand As BoundNode
-
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, leftOperand As BoundNode, rightOperand As BoundNode, isLifted As Boolean, isImplicit As Boolean, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, symbol As IMethodSymbol)
-            MyBase.New(isLifted, isImplicit, semanticModel, syntax, type, symbol)
-            _operationFactory = operationFactory
-            _leftOperand = leftOperand
-            _rightOperand = rightOperand
-        End Sub
-
-        Protected Overrides Function CreateLeftOperand() As IOperation
-            Return SetParentOperation(_operationFactory.Create(_leftOperand), Me)
-        End Function
-
-        Protected Overrides Function CreateRightOperand() As IOperation
-            Return SetParentOperation(_operationFactory.Create(_rightOperand), Me)
+            Return DirectCast(_operationFactory.Create(_initializer), IObjectOrCollectionInitializerOperation)
         End Function
     End Class
 
@@ -1633,7 +1284,7 @@ Namespace Microsoft.CodeAnalysis.Operations
         End Sub
 
         Protected Overrides Function CreateClauses() As ImmutableArray(Of IReDimClauseOperation)
-            Return SetParentOperation(_operationFactory.CreateFromArray(Of BoundRedimClause, IReDimClauseOperation)(_clauses), Me)
+            Return _operationFactory.CreateFromArray(Of BoundRedimClause, IReDimClauseOperation)(_clauses)
         End Function
     End Class
 
@@ -1652,11 +1303,11 @@ Namespace Microsoft.CodeAnalysis.Operations
         End Sub
 
         Protected Overrides Function CreateOperand() As IOperation
-            Return SetParentOperation(_operationFactory.Create(_operand), Me)
+            Return _operationFactory.Create(_operand)
         End Function
 
         Protected Overrides Function CreateDimensionSizes() As ImmutableArray(Of IOperation)
-            Return SetParentOperation(_operationFactory.CreateFromArray(Of BoundExpression, IOperation)(_dimensionSizes), Me)
+            Return _operationFactory.CreateFromArray(Of BoundExpression, IOperation)(_dimensionSizes)
         End Function
     End Class
 End Namespace

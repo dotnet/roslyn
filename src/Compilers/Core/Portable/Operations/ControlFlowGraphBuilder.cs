@@ -3962,7 +3962,7 @@ oneMoreTime:
                 LeaveRegion();
             }
 
-            if (info.NeedsDispose)
+            if (info?.NeedsDispose == true)
             {
                 EnterRegion(new RegionBuilder(ControlFlowRegionKind.TryAndFinally));
                 EnterRegion(new RegionBuilder(ControlFlowRegionKind.Try));
@@ -3983,7 +3983,7 @@ oneMoreTime:
             EnterRegion(localsRegion);
 
             frame = PushStackFrame();
-            AddStatement(getLoopControlVariableAssignment(applyConversion(info.CurrentConversion, getCurrent(OperationCloner.CloneOperation(enumerator)), info.ElementType)));
+            AddStatement(getLoopControlVariableAssignment(applyConversion(info?.CurrentConversion, getCurrent(OperationCloner.CloneOperation(enumerator)), info?.ElementType)));
             PopStackFrameAndLeaveRegion(frame);
 
             VisitStatement(operation.Body);
@@ -3994,7 +3994,7 @@ oneMoreTime:
 
             AppendNewBlock(@break);
 
-            if (info.NeedsDispose)
+            if (info?.NeedsDispose == true)
             {
                 var afterTryFinally = new BasicBlockBuilder(BasicBlockKind.Block);
                 LinkBlocks(CurrentBasicBlock, afterTryFinally);
@@ -4033,7 +4033,7 @@ oneMoreTime:
                 IOperation result;
                 EvalStackFrame getEnumeratorFrame = PushStackFrame();
 
-                if (info.GetEnumeratorMethod != null)
+                if (info?.GetEnumeratorMethod != null)
                 {
                     IOperation invocation = makeInvocation(operation.Collection.Syntax,
                                                            info.GetEnumeratorMethod,
@@ -4059,7 +4059,7 @@ oneMoreTime:
 
             IOperation getCondition(IOperation enumeratorRef)
             {
-                if (info.MoveNextMethod != null)
+                if (info?.MoveNextMethod != null)
                 {
                     return makeInvocationDroppingInstanceForStaticMethods(info.MoveNextMethod, enumeratorRef, info.MoveNextArguments);
                 }
@@ -4072,7 +4072,7 @@ oneMoreTime:
 
             IOperation getCurrent(IOperation enumeratorRef)
             {
-                if (info.CurrentProperty != null)
+                if (info?.CurrentProperty != null)
                 {
                     return new PropertyReferenceOperation(info.CurrentProperty,
                                                            info.CurrentProperty.IsStatic ? null : enumeratorRef,
@@ -4094,7 +4094,7 @@ oneMoreTime:
                     case OperationKind.VariableDeclarator:
                         var declarator = (IVariableDeclaratorOperation)operation.LoopControlVariable;
                         ILocalSymbol local = declarator.Symbol;
-                        current = applyConversion(info.ElementConversion, current, local.Type);
+                        current = applyConversion(info?.ElementConversion, current, local.Type);
 
                         return new SimpleAssignmentOperation(new LocalReferenceOperation(local, isDeclaration: true, semanticModel: null,
                                                                                            declarator.Syntax, local.Type, constantValue: default, isImplicit: true),
@@ -4103,7 +4103,7 @@ oneMoreTime:
 
                     case OperationKind.Tuple:
                     case OperationKind.DeclarationExpression:
-                        Debug.Assert(info.ElementConversion?.ToCommonConversion().IsIdentity != false);
+                        Debug.Assert(info?.ElementConversion?.ToCommonConversion().IsIdentity != false);
 
                         return new DeconstructionAssignmentOperation(VisitPreservingTupleOperations(operation.LoopControlVariable),
                                                                       current, semanticModel: null,

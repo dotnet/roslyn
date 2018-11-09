@@ -39,28 +39,25 @@ namespace Microsoft.CodeAnalysis.Operations
 
         internal IArgumentOperation CreateArgumentOperation(ArgumentKind kind, IParameterSymbol parameter, BoundExpression expression)
         {
-            var value = Create(expression);
-
             // put argument syntax to argument operation
-            var argument = value.Syntax?.Parent as ArgumentSyntax;
+            var argument = expression.Syntax?.Parent as ArgumentSyntax;
 
             // if argument syntax doesn't exist, this operation is implicit
-            return new ArgumentOperation(value,
+            return new CSharpLazyArgumentOperation(this,
+                expression,
                 kind,
+                s_boxedIdentityConversion,
+                s_boxedIdentityConversion,
                 parameter,
-                s_boxedIdentityConversion,
-                s_boxedIdentityConversion,
                 semanticModel: _semanticModel,
-                syntax: argument ?? value.Syntax,
+                syntax: argument ?? expression.Syntax,
                 isImplicit: expression.WasCompilerGenerated || argument == null);
         }
 
-        private IVariableDeclaratorOperation CreateVariableDeclaratorInternal(BoundLocalDeclaration boundLocalDeclaration, SyntaxNode syntax)
+        internal IVariableInitializerOperation CreateVariableDeclaratorInitializer(BoundLocalDeclaration boundLocalDeclaration, SyntaxNode syntax)
         {
-            IVariableInitializerOperation initializer = null;
             if (boundLocalDeclaration.InitializerOpt != null)
             {
-                IOperation initializerValue = Create(boundLocalDeclaration.InitializerOpt);
                 SyntaxNode initializerSyntax = null;
                 bool initializerIsImplicit = false;
                 if (syntax is VariableDeclaratorSyntax variableDeclarator)
@@ -75,41 +72,43 @@ namespace Microsoft.CodeAnalysis.Operations
                 if (initializerSyntax == null)
                 {
                     // There is no explicit syntax for the initializer, so we use the initializerValue's syntax and mark the operation as implicit.
-                    initializerSyntax = initializerValue.Syntax;
+                    initializerSyntax = boundLocalDeclaration.InitializerOpt.Syntax;
                     initializerIsImplicit = true;
                 }
 
-                initializer = OperationFactory.CreateVariableInitializer(initializerSyntax, initializerValue, _semanticModel, initializerIsImplicit);
+                return new CSharpLazyVariableInitializerOperation(this, boundLocalDeclaration.InitializerOpt, _semanticModel, initializerSyntax, type: null, constantValue: default, initializerIsImplicit);
             }
 
-            ImmutableArray<IOperation> ignoredArguments = boundLocalDeclaration.ArgumentsOpt.IsDefault ?
-                                                            ImmutableArray<IOperation>.Empty :
-                                                            CreateFromArray<BoundExpression, IOperation>(boundLocalDeclaration.ArgumentsOpt);
+            return null;
+        }
+
+        private IVariableDeclaratorOperation CreateVariableDeclaratorInternal(BoundLocalDeclaration boundLocalDeclaration, SyntaxNode syntax)
+        {
             ILocalSymbol symbol = boundLocalDeclaration.LocalSymbol;
             SyntaxNode syntaxNode = boundLocalDeclaration.Syntax;
             ITypeSymbol type = null;
             Optional<object> constantValue = default;
             bool isImplicit = false;
 
-            return new VariableDeclaratorOperation(symbol, initializer, ignoredArguments, _semanticModel, syntax, type, constantValue, isImplicit);
+            return new CSharpLazyVariableDeclaratorOperation(this, boundLocalDeclaration, symbol, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         internal IVariableDeclaratorOperation CreateVariableDeclarator(BoundLocal boundLocal)
         {
-            return new VariableDeclaratorOperation(boundLocal.LocalSymbol, initializer: null, ignoredArguments: ImmutableArray<IOperation>.Empty, semanticModel: _semanticModel, syntax: boundLocal.Syntax, type: null, constantValue: default, isImplicit: false);
+            return boundLocal == null ? null : new VariableDeclaratorOperation(boundLocal.LocalSymbol, initializer: null, ignoredArguments: ImmutableArray<IOperation>.Empty, semanticModel: _semanticModel, syntax: boundLocal.Syntax, type: null, constantValue: default, isImplicit: false);
         }
 
         internal IOperation CreateReceiverOperation(BoundNode instance, ISymbol symbol)
         {
             if (instance == null || instance.Kind == BoundKind.TypeExpression)
             {
-                return OperationFactory.NullOperation;
+                return null;
             }
 
             // Static members cannot have an implicit this receiver
             if (symbol != null && symbol.IsStatic && instance.WasCompilerGenerated && instance.Kind == BoundKind.ThisReference)
             {
-                return OperationFactory.NullOperation;
+                return null;
             }
 
             return Create(instance);

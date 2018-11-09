@@ -63,7 +63,8 @@ namespace Microsoft.CodeAnalysis.Operations
     {
         private IOperation _lazyReferenceInterlocked = s_unset;
 
-        public LazyAddressOfOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(semanticModel, syntax, type, constantValue, isImplicit)
+        public LazyAddressOfOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+			base(semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 
@@ -75,8 +76,9 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 if (_lazyReferenceInterlocked == s_unset)
                 {
-                    Interlocked.CompareExchange(ref _lazyReferenceInterlocked, CreateReference(), s_unset);
-                    VerifyParentOperation(this, _lazyReferenceInterlocked);
+                    IOperation reference = CreateReference();
+                    SetParentOperation(reference, this);
+                    Interlocked.CompareExchange(ref _lazyReferenceInterlocked, reference, s_unset);
                 }
 
                 return _lazyReferenceInterlocked;
@@ -138,7 +140,8 @@ namespace Microsoft.CodeAnalysis.Operations
     {
         private IOperation _lazyArgumentInterlocked = s_unset;
 
-        public LazyNameOfOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(semanticModel, syntax, type, constantValue, isImplicit)
+        public LazyNameOfOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+			base(semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 
@@ -150,8 +153,9 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 if (_lazyArgumentInterlocked == s_unset)
                 {
-                    Interlocked.CompareExchange(ref _lazyArgumentInterlocked, CreateArgument(), s_unset);
-                    VerifyParentOperation(this, _lazyArgumentInterlocked);
+                    IOperation argument = CreateArgument();
+                    SetParentOperation(argument, this);
+                    Interlocked.CompareExchange(ref _lazyArgumentInterlocked, argument, s_unset);
                 }
 
                 return _lazyArgumentInterlocked;
@@ -213,7 +217,8 @@ namespace Microsoft.CodeAnalysis.Operations
     {
         private IOperation _lazyExceptionInterlocked = s_unset;
 
-        public LazyThrowOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(semanticModel, syntax, type, constantValue, isImplicit)
+        public LazyThrowOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+			base(semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 
@@ -225,8 +230,9 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 if (_lazyExceptionInterlocked == s_unset)
                 {
-                    Interlocked.CompareExchange(ref _lazyExceptionInterlocked, CreateException(), s_unset);
-                    VerifyParentOperation(this, _lazyExceptionInterlocked);
+                    IOperation exception = CreateException();
+                    SetParentOperation(exception, this);
+                    Interlocked.CompareExchange(ref _lazyExceptionInterlocked, exception, s_unset);
                 }
 
                 return _lazyExceptionInterlocked;
@@ -305,7 +311,8 @@ namespace Microsoft.CodeAnalysis.Operations
     {
         private IOperation _lazyValueInterlocked = s_unset;
 
-        public LazyArgumentOperation(ArgumentKind argumentKind, IConvertibleConversion inConversionOpt, IConvertibleConversion outConversionOpt, IParameterSymbol parameter, SemanticModel semanticModel, SyntaxNode syntax, bool isImplicit) : base(argumentKind, parameter, inConversionOpt, outConversionOpt, semanticModel, syntax, isImplicit)
+        public LazyArgumentOperation(ArgumentKind argumentKind, IConvertibleConversion inConversionOpt, IConvertibleConversion outConversionOpt, IParameterSymbol parameter, SemanticModel semanticModel, SyntaxNode syntax, bool isImplicit) :
+			base(argumentKind, parameter, inConversionOpt, outConversionOpt, semanticModel, syntax, isImplicit)
         {
         }
 
@@ -317,8 +324,9 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 if (_lazyValueInterlocked == s_unset)
                 {
-                    Interlocked.CompareExchange(ref _lazyValueInterlocked, CreateValue(), s_unset);
-                    VerifyParentOperation(this, _lazyValueInterlocked);
+                    IOperation value = CreateValue();
+                    SetParentOperation(value, this);
+                    Interlocked.CompareExchange(ref _lazyValueInterlocked, value, s_unset);
                 }
 
                 return _lazyValueInterlocked;
@@ -394,7 +402,8 @@ namespace Microsoft.CodeAnalysis.Operations
         private ImmutableArray<IOperation> _lazyDimensionSizesInterlocked;
         private IArrayInitializerOperation _lazyInitializerInterlocked = s_unsetArrayInitializer;
 
-        public LazyArrayCreationOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(semanticModel, syntax, type, constantValue, isImplicit)
+        public LazyArrayCreationOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+			base(semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 
@@ -407,8 +416,9 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 if (_lazyDimensionSizesInterlocked.IsDefault)
                 {
-                    ImmutableInterlocked.InterlockedCompareExchange(ref _lazyDimensionSizesInterlocked, CreateDimensionSizes(), default);
-                    VerifyParentOperation(this, _lazyDimensionSizesInterlocked);
+                    ImmutableArray<IOperation> dimensionSizes = CreateDimensionSizes();
+                    SetParentOperation(dimensionSizes, this);
+                    ImmutableInterlocked.InterlockedCompareExchange(ref _lazyDimensionSizesInterlocked, dimensionSizes, default);
                 }
 
                 return _lazyDimensionSizesInterlocked;
@@ -421,8 +431,9 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 if (_lazyInitializerInterlocked == s_unsetArrayInitializer)
                 {
-                    Interlocked.CompareExchange(ref _lazyInitializerInterlocked, CreateInitializer(), s_unsetArrayInitializer);
-                    VerifyParentOperation(this, _lazyInitializerInterlocked);
+                    IArrayInitializerOperation initializer = CreateInitializer();
+                    SetParentOperation(initializer, this);
+                    Interlocked.CompareExchange(ref _lazyInitializerInterlocked, initializer, s_unsetArrayInitializer);
                 }
 
                 return _lazyInitializerInterlocked;
@@ -500,7 +511,8 @@ namespace Microsoft.CodeAnalysis.Operations
         private IOperation _lazyArrayReferenceInterlocked = s_unset;
         private ImmutableArray<IOperation> _lazyIndicesInterlocked;
 
-        public LazyArrayElementReferenceOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(semanticModel, syntax, type, constantValue, isImplicit)
+        public LazyArrayElementReferenceOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+			base(semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 
@@ -513,8 +525,9 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 if (_lazyArrayReferenceInterlocked == s_unset)
                 {
-                    Interlocked.CompareExchange(ref _lazyArrayReferenceInterlocked, CreateArrayReference(), s_unset);
-                    VerifyParentOperation(this, _lazyArrayReferenceInterlocked);
+                    IOperation arrayReference = CreateArrayReference();
+                    SetParentOperation(arrayReference, this);
+                    Interlocked.CompareExchange(ref _lazyArrayReferenceInterlocked, arrayReference, s_unset);
                 }
 
                 return _lazyArrayReferenceInterlocked;
@@ -527,8 +540,9 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 if (_lazyIndicesInterlocked.IsDefault)
                 {
-                    ImmutableInterlocked.InterlockedCompareExchange(ref _lazyIndicesInterlocked, CreateIndices(), default);
-                    VerifyParentOperation(this, _lazyIndicesInterlocked);
+                    ImmutableArray<IOperation> indices = CreateIndices();
+                    SetParentOperation(indices, this);
+                    ImmutableInterlocked.InterlockedCompareExchange(ref _lazyIndicesInterlocked, indices, default);
                 }
 
                 return _lazyIndicesInterlocked;
@@ -594,7 +608,8 @@ namespace Microsoft.CodeAnalysis.Operations
     {
         private ImmutableArray<IOperation> _lazyElementValuesInterlocked;
 
-        public LazyArrayInitializerOperation(SemanticModel semanticModel, SyntaxNode syntax, Optional<object> constantValue, bool isImplicit) : base(semanticModel, syntax, constantValue, isImplicit)
+        public LazyArrayInitializerOperation(SemanticModel semanticModel, SyntaxNode syntax, Optional<object> constantValue, bool isImplicit) :
+			base(semanticModel, syntax, constantValue, isImplicit)
         {
         }
 
@@ -606,8 +621,9 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 if (_lazyElementValuesInterlocked.IsDefault)
                 {
-                    ImmutableInterlocked.InterlockedCompareExchange(ref _lazyElementValuesInterlocked, CreateElementValues(), default);
-                    VerifyParentOperation(this, _lazyElementValuesInterlocked);
+                    ImmutableArray<IOperation> elementValues = CreateElementValues();
+                    SetParentOperation(elementValues, this);
+                    ImmutableInterlocked.InterlockedCompareExchange(ref _lazyElementValuesInterlocked, elementValues, default);
                 }
 
                 return _lazyElementValuesInterlocked;
@@ -696,7 +712,8 @@ namespace Microsoft.CodeAnalysis.Operations
         private IOperation _lazyTargetInterlocked = s_unset;
         private IOperation _lazyValueInterlocked = s_unset;
 
-        public LazySimpleAssignmentOperation(bool isRef, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(isRef, semanticModel, syntax, type, constantValue, isImplicit)
+        public LazySimpleAssignmentOperation(bool isRef, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+			base(isRef, semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 
@@ -709,8 +726,9 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 if (_lazyTargetInterlocked == s_unset)
                 {
-                    Interlocked.CompareExchange(ref _lazyTargetInterlocked, CreateTarget(), s_unset);
-                    VerifyParentOperation(this, _lazyTargetInterlocked);
+                    IOperation target = CreateTarget();
+                    SetParentOperation(target, this);
+                    Interlocked.CompareExchange(ref _lazyTargetInterlocked, target, s_unset);
                 }
 
                 return _lazyTargetInterlocked;
@@ -723,8 +741,9 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 if (_lazyValueInterlocked == s_unset)
                 {
-                    Interlocked.CompareExchange(ref _lazyValueInterlocked, CreateValue(), s_unset);
-                    VerifyParentOperation(this, _lazyValueInterlocked);
+                    IOperation value = CreateValue();
+                    SetParentOperation(value, this);
+                    Interlocked.CompareExchange(ref _lazyValueInterlocked, value, s_unset);
                 }
 
                 return _lazyValueInterlocked;
@@ -774,7 +793,8 @@ namespace Microsoft.CodeAnalysis.Operations
         private IOperation _lazyTargetInterlocked = s_unset;
         private IOperation _lazyValueInterlocked = s_unset;
 
-        public LazyDeconstructionAssignmentOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(semanticModel, syntax, type, constantValue, isImplicit)
+        public LazyDeconstructionAssignmentOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+			base(semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 
@@ -787,8 +807,9 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 if (_lazyTargetInterlocked == s_unset)
                 {
-                    Interlocked.CompareExchange(ref _lazyTargetInterlocked, CreateTarget(), s_unset);
-                    VerifyParentOperation(this, _lazyTargetInterlocked);
+                    IOperation target = CreateTarget();
+                    SetParentOperation(target, this);
+                    Interlocked.CompareExchange(ref _lazyTargetInterlocked, target, s_unset);
                 }
 
                 return _lazyTargetInterlocked;
@@ -801,8 +822,9 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 if (_lazyValueInterlocked == s_unset)
                 {
-                    Interlocked.CompareExchange(ref _lazyValueInterlocked, CreateValue(), s_unset);
-                    VerifyParentOperation(this, _lazyValueInterlocked);
+                    IOperation value = CreateValue();
+                    SetParentOperation(value, this);
+                    Interlocked.CompareExchange(ref _lazyValueInterlocked, value, s_unset);
                 }
 
                 return _lazyValueInterlocked;
@@ -878,7 +900,8 @@ namespace Microsoft.CodeAnalysis.Operations
     {
         private IOperation _lazyExpressionInterlocked = s_unset;
 
-        public LazyDeclarationExpressionOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(semanticModel, syntax, type, constantValue, isImplicit)
+        public LazyDeclarationExpressionOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+			base(semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 
@@ -890,8 +913,9 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 if (_lazyExpressionInterlocked == s_unset)
                 {
-                    Interlocked.CompareExchange(ref _lazyExpressionInterlocked, CreateExpression(), s_unset);
-                    VerifyParentOperation(this, _lazyExpressionInterlocked);
+                    IOperation expression = CreateExpression();
+                    SetParentOperation(expression, this);
+                    Interlocked.CompareExchange(ref _lazyExpressionInterlocked, expression, s_unset);
                 }
 
                 return _lazyExpressionInterlocked;
@@ -954,7 +978,8 @@ namespace Microsoft.CodeAnalysis.Operations
     {
         private IOperation _lazyOperationInterlocked = s_unset;
 
-        public LazyAwaitOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(semanticModel, syntax, type, constantValue, isImplicit)
+        public LazyAwaitOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+			base(semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 
@@ -966,8 +991,9 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 if (_lazyOperationInterlocked == s_unset)
                 {
-                    Interlocked.CompareExchange(ref _lazyOperationInterlocked, CreateOperation(), s_unset);
-                    VerifyParentOperation(this, _lazyOperationInterlocked);
+                    IOperation operation = CreateOperation();
+                    SetParentOperation(operation, this);
+                    Interlocked.CompareExchange(ref _lazyOperationInterlocked, operation, s_unset);
                 }
 
                 return _lazyOperationInterlocked;
@@ -1080,7 +1106,8 @@ namespace Microsoft.CodeAnalysis.Operations
         private IOperation _lazyLeftOperandInterlocked = s_unset;
         private IOperation _lazyRightOperandInterlocked = s_unset;
 
-        public LazyBinaryOperation(BinaryOperatorKind operatorKind, bool isLifted, bool isChecked, bool isCompareText, IMethodSymbol operatorMethod, IMethodSymbol unaryOperatorMethod, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(operatorKind, isLifted, isChecked, isCompareText, operatorMethod, unaryOperatorMethod, semanticModel, syntax, type, constantValue, isImplicit)
+        public LazyBinaryOperation(BinaryOperatorKind operatorKind, bool isLifted, bool isChecked, bool isCompareText, IMethodSymbol operatorMethod, IMethodSymbol unaryOperatorMethod, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+			base(operatorKind, isLifted, isChecked, isCompareText, operatorMethod, unaryOperatorMethod, semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 
@@ -1093,8 +1120,9 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 if (_lazyLeftOperandInterlocked == s_unset)
                 {
-                    Interlocked.CompareExchange(ref _lazyLeftOperandInterlocked, CreateLeftOperand(), s_unset);
-                    VerifyParentOperation(this, _lazyLeftOperandInterlocked);
+                    IOperation leftOperand = CreateLeftOperand();
+                    SetParentOperation(leftOperand, this);
+                    Interlocked.CompareExchange(ref _lazyLeftOperandInterlocked, leftOperand, s_unset);
                 }
 
                 return _lazyLeftOperandInterlocked;
@@ -1107,8 +1135,9 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 if (_lazyRightOperandInterlocked == s_unset)
                 {
-                    Interlocked.CompareExchange(ref _lazyRightOperandInterlocked, CreateRightOperand(), s_unset);
-                    VerifyParentOperation(this, _lazyRightOperandInterlocked);
+                    IOperation rightOperand = CreateRightOperand();
+                    SetParentOperation(rightOperand, this);
+                    Interlocked.CompareExchange(ref _lazyRightOperandInterlocked, rightOperand, s_unset);
                 }
 
                 return _lazyRightOperandInterlocked;
@@ -1122,7 +1151,8 @@ namespace Microsoft.CodeAnalysis.Operations
     internal abstract class BaseTupleBinaryOperation : Operation, ITupleBinaryOperation
     {
         public BaseTupleBinaryOperation(BinaryOperatorKind operatorKind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit)
-            : base(OperationKind.TupleBinary, semanticModel, syntax, type, constantValue, isImplicit)
+            :
+			base(OperationKind.TupleBinary, semanticModel, syntax, type, constantValue, isImplicit)
         {
             OperatorKind = operatorKind;
         }
@@ -1171,7 +1201,8 @@ namespace Microsoft.CodeAnalysis.Operations
     internal sealed class TupleBinaryOperation : BaseTupleBinaryOperation, ITupleBinaryOperation
     {
         public TupleBinaryOperation(BinaryOperatorKind operatorKind, IOperation leftOperand, IOperation rightOperand, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit)
-            : base(operatorKind, semanticModel, syntax, type, constantValue, isImplicit)
+            :
+			base(operatorKind, semanticModel, syntax, type, constantValue, isImplicit)
         {
             LeftOperand = SetParentOperation(leftOperand, this);
             RightOperand = SetParentOperation(rightOperand, this);
@@ -1189,7 +1220,8 @@ namespace Microsoft.CodeAnalysis.Operations
         private IOperation _lazyLeftOperandInterlocked = s_unset;
         private IOperation _lazyRightOperandInterlocked = s_unset;
 
-        public LazyTupleBinaryOperation(BinaryOperatorKind operatorKind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(operatorKind, semanticModel, syntax, type, constantValue, isImplicit)
+        public LazyTupleBinaryOperation(BinaryOperatorKind operatorKind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+			base(operatorKind, semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 
@@ -1202,8 +1234,9 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 if (_lazyLeftOperandInterlocked == s_unset)
                 {
-                    Interlocked.CompareExchange(ref _lazyLeftOperandInterlocked, CreateLeftOperand(), s_unset);
-                    VerifyParentOperation(this, _lazyLeftOperandInterlocked);
+                    IOperation leftOperand = CreateLeftOperand();
+                    SetParentOperation(leftOperand, this);
+                    Interlocked.CompareExchange(ref _lazyLeftOperandInterlocked, leftOperand, s_unset);
                 }
 
                 return _lazyLeftOperandInterlocked;
@@ -1216,8 +1249,9 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 if (_lazyRightOperandInterlocked == s_unset)
                 {
-                    Interlocked.CompareExchange(ref _lazyRightOperandInterlocked, CreateRightOperand(), s_unset);
-                    VerifyParentOperation(this, _lazyRightOperandInterlocked);
+                    IOperation rightOperand = CreateRightOperand();
+                    SetParentOperation(rightOperand, this);
+                    Interlocked.CompareExchange(ref _lazyRightOperandInterlocked, rightOperand, s_unset);
                 }
 
                 return _lazyRightOperandInterlocked;
@@ -1288,7 +1322,8 @@ namespace Microsoft.CodeAnalysis.Operations
     {
         private ImmutableArray<IOperation> _lazyOperationsInterlocked;
 
-        public LazyBlockOperation(ImmutableArray<ILocalSymbol> locals, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(locals, semanticModel, syntax, type, constantValue, isImplicit)
+        public LazyBlockOperation(ImmutableArray<ILocalSymbol> locals, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+			base(locals, semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 
@@ -1300,8 +1335,9 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 if (_lazyOperationsInterlocked.IsDefault)
                 {
-                    ImmutableInterlocked.InterlockedCompareExchange(ref _lazyOperationsInterlocked, CreateOperations(), default);
-                    VerifyParentOperation(this, _lazyOperationsInterlocked);
+                    ImmutableArray<IOperation> operations = CreateOperations();
+                    SetParentOperation(operations, this);
+                    ImmutableInterlocked.InterlockedCompareExchange(ref _lazyOperationsInterlocked, operations, default);
                 }
 
                 return _lazyOperationsInterlocked;
@@ -1454,7 +1490,8 @@ namespace Microsoft.CodeAnalysis.Operations
         private IOperation _lazyFilterInterlocked = s_unset;
         private IBlockOperation _lazyHandlerInterlocked = s_unsetBlock;
 
-        public LazyCatchClauseOperation(ITypeSymbol exceptionType, ImmutableArray<ILocalSymbol> locals, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(exceptionType, locals, semanticModel, syntax, type, constantValue, isImplicit)
+        public LazyCatchClauseOperation(ITypeSymbol exceptionType, ImmutableArray<ILocalSymbol> locals, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+			base(exceptionType, locals, semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 
@@ -1468,8 +1505,9 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 if (_lazyExceptionDeclarationOrExpressionInterlocked == s_unset)
                 {
-                    Interlocked.CompareExchange(ref _lazyExceptionDeclarationOrExpressionInterlocked, CreateExceptionDeclarationOrExpression(), s_unset);
-                    VerifyParentOperation(this, _lazyExceptionDeclarationOrExpressionInterlocked);
+                    IOperation exceptionDeclarationOrExpression = CreateExceptionDeclarationOrExpression();
+                    SetParentOperation(exceptionDeclarationOrExpression, this);
+                    Interlocked.CompareExchange(ref _lazyExceptionDeclarationOrExpressionInterlocked, exceptionDeclarationOrExpression, s_unset);
                 }
 
                 return _lazyExceptionDeclarationOrExpressionInterlocked;
@@ -1482,8 +1520,9 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 if (_lazyFilterInterlocked == s_unset)
                 {
-                    Interlocked.CompareExchange(ref _lazyFilterInterlocked, CreateFilter(), s_unset);
-                    VerifyParentOperation(this, _lazyFilterInterlocked);
+                    IOperation filter = CreateFilter();
+                    SetParentOperation(filter, this);
+                    Interlocked.CompareExchange(ref _lazyFilterInterlocked, filter, s_unset);
                 }
 
                 return _lazyFilterInterlocked;
@@ -1496,8 +1535,9 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 if (_lazyHandlerInterlocked == s_unsetBlock)
                 {
-                    Interlocked.CompareExchange(ref _lazyHandlerInterlocked, CreateHandler(), s_unsetBlock);
-                    VerifyParentOperation(this, _lazyHandlerInterlocked);
+                    IBlockOperation handler = CreateHandler();
+                    SetParentOperation(handler, this);
+                    Interlocked.CompareExchange(ref _lazyHandlerInterlocked, handler, s_unsetBlock);
                 }
 
                 return _lazyHandlerInterlocked;
@@ -1569,7 +1609,8 @@ namespace Microsoft.CodeAnalysis.Operations
         private IOperation _lazyTargetInterlocked = s_unset;
         private IOperation _lazyValueInterlocked = s_unset;
 
-        public LazyCompoundAssignmentOperation(IConvertibleConversion inConversionConvertible, IConvertibleConversion outConversionConvertible, BinaryOperatorKind operatorKind, bool isLifted, bool isChecked, IMethodSymbol operatorMethod, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(inConversionConvertible, outConversionConvertible, operatorKind, isLifted, isChecked, operatorMethod, semanticModel, syntax, type, constantValue, isImplicit)
+        public LazyCompoundAssignmentOperation(IConvertibleConversion inConversionConvertible, IConvertibleConversion outConversionConvertible, BinaryOperatorKind operatorKind, bool isLifted, bool isChecked, IMethodSymbol operatorMethod, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+			base(inConversionConvertible, outConversionConvertible, operatorKind, isLifted, isChecked, operatorMethod, semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 
@@ -1582,8 +1623,9 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 if (_lazyTargetInterlocked == s_unset)
                 {
-                    Interlocked.CompareExchange(ref _lazyTargetInterlocked, CreateTarget(), s_unset);
-                    VerifyParentOperation(this, _lazyTargetInterlocked);
+                    IOperation target = CreateTarget();
+                    SetParentOperation(target, this);
+                    Interlocked.CompareExchange(ref _lazyTargetInterlocked, target, s_unset);
                 }
 
                 return _lazyTargetInterlocked;
@@ -1596,8 +1638,9 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 if (_lazyValueInterlocked == s_unset)
                 {
-                    Interlocked.CompareExchange(ref _lazyValueInterlocked, CreateValue(), s_unset);
-                    VerifyParentOperation(this, _lazyValueInterlocked);
+                    IOperation value = CreateValue();
+                    SetParentOperation(value, this);
+                    Interlocked.CompareExchange(ref _lazyValueInterlocked, value, s_unset);
                 }
 
                 return _lazyValueInterlocked;
@@ -1671,7 +1714,8 @@ namespace Microsoft.CodeAnalysis.Operations
         private IOperation _lazyWhenNotNullInterlocked = s_unset;
         private IOperation _lazyOperationInterlocked = s_unset;
 
-        public LazyConditionalAccessOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(semanticModel, syntax, type, constantValue, isImplicit)
+        public LazyConditionalAccessOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+			base(semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 
@@ -1684,8 +1728,9 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 if (_lazyWhenNotNullInterlocked == s_unset)
                 {
-                    Interlocked.CompareExchange(ref _lazyWhenNotNullInterlocked, CreateOperation(), s_unset);
-                    VerifyParentOperation(this, _lazyWhenNotNullInterlocked);
+                    IOperation operation = CreateOperation();
+                    SetParentOperation(operation, this);
+                    Interlocked.CompareExchange(ref _lazyWhenNotNullInterlocked, operation, s_unset);
                 }
 
                 return _lazyWhenNotNullInterlocked;
@@ -1698,8 +1743,9 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 if (_lazyOperationInterlocked == s_unset)
                 {
-                    Interlocked.CompareExchange(ref _lazyOperationInterlocked, CreateWhenNotNull(), s_unset);
-                    VerifyParentOperation(this, _lazyOperationInterlocked);
+                    IOperation whenNotNull = CreateWhenNotNull();
+                    SetParentOperation(whenNotNull, this);
+                    Interlocked.CompareExchange(ref _lazyOperationInterlocked, whenNotNull, s_unset);
                 }
 
                 return _lazyOperationInterlocked;
@@ -1830,7 +1876,8 @@ namespace Microsoft.CodeAnalysis.Operations
         private IOperation _lazyWhenTrueInterlocked = s_unset;
         private IOperation _lazyWhenFalseInterlocked = s_unset;
 
-        public LazyConditionalOperation(bool isRef, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(isRef, semanticModel, syntax, type, constantValue, isImplicit)
+        public LazyConditionalOperation(bool isRef, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+			base(isRef, semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 
@@ -1844,8 +1891,9 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 if (_lazyConditionInterlocked == s_unset)
                 {
-                    Interlocked.CompareExchange(ref _lazyConditionInterlocked, CreateCondition(), s_unset);
-                    VerifyParentOperation(this, _lazyConditionInterlocked);
+                    IOperation condition = CreateCondition();
+                    SetParentOperation(condition, this);
+                    Interlocked.CompareExchange(ref _lazyConditionInterlocked, condition, s_unset);
                 }
 
                 return _lazyConditionInterlocked;
@@ -1858,8 +1906,9 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 if (_lazyWhenTrueInterlocked == s_unset)
                 {
-                    Interlocked.CompareExchange(ref _lazyWhenTrueInterlocked, CreateWhenTrue(), s_unset);
-                    VerifyParentOperation(this, _lazyWhenTrueInterlocked);
+                    IOperation whenTrue = CreateWhenTrue();
+                    SetParentOperation(whenTrue, this);
+                    Interlocked.CompareExchange(ref _lazyWhenTrueInterlocked, whenTrue, s_unset);
                 }
 
                 return _lazyWhenTrueInterlocked;
@@ -1872,8 +1921,9 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 if (_lazyWhenFalseInterlocked == s_unset)
                 {
-                    Interlocked.CompareExchange(ref _lazyWhenFalseInterlocked, CreateWhenFalse(), s_unset);
-                    VerifyParentOperation(this, _lazyWhenFalseInterlocked);
+                    IOperation whenFalse = CreateWhenFalse();
+                    SetParentOperation(whenFalse, this);
+                    Interlocked.CompareExchange(ref _lazyWhenFalseInterlocked, whenFalse, s_unset);
                 }
 
                 return _lazyWhenFalseInterlocked;
@@ -1938,7 +1988,8 @@ namespace Microsoft.CodeAnalysis.Operations
     {
         private IOperation _lazyOperandInterlocked = s_unset;
 
-        public LazyConversionOperation(IConvertibleConversion convertibleConversion, bool isTryCast, bool isChecked, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(convertibleConversion, isTryCast, isChecked, semanticModel, syntax, type, constantValue, isImplicit)
+        public LazyConversionOperation(IConvertibleConversion convertibleConversion, bool isTryCast, bool isChecked, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+			base(convertibleConversion, isTryCast, isChecked, semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 
@@ -1950,8 +2001,9 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 if (_lazyOperandInterlocked == s_unset)
                 {
-                    Interlocked.CompareExchange(ref _lazyOperandInterlocked, CreateOperand(), s_unset);
-                    VerifyParentOperation(this, _lazyOperandInterlocked);
+                    IOperation operand = CreateOperand();
+                    SetParentOperation(operand, this);
+                    Interlocked.CompareExchange(ref _lazyOperandInterlocked, operand, s_unset);
                 }
 
                 return _lazyOperandInterlocked;
@@ -2111,7 +2163,8 @@ namespace Microsoft.CodeAnalysis.Operations
         private IOperation _lazyEventReferenceInterlocked = s_unset;
         private IOperation _lazyHandlerValueInterlocked = s_unset;
 
-        public LazyEventAssignmentOperation(bool adds, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(adds, semanticModel, syntax, type, constantValue, isImplicit)
+        public LazyEventAssignmentOperation(bool adds, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+			base(adds, semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 
@@ -2124,8 +2177,9 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 if (_lazyEventReferenceInterlocked == s_unset)
                 {
-                    Interlocked.CompareExchange(ref _lazyEventReferenceInterlocked, CreateEventReference(), s_unset);
-                    VerifyParentOperation(this, _lazyEventReferenceInterlocked);
+                    IOperation eventReference = CreateEventReference();
+                    SetParentOperation(eventReference, this);
+                    Interlocked.CompareExchange(ref _lazyEventReferenceInterlocked, eventReference, s_unset);
                 }
 
                 return _lazyEventReferenceInterlocked;
@@ -2138,8 +2192,9 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 if (_lazyHandlerValueInterlocked == s_unset)
                 {
-                    Interlocked.CompareExchange(ref _lazyHandlerValueInterlocked, CreateHandlerValue(), s_unset);
-                    VerifyParentOperation(this, _lazyHandlerValueInterlocked);
+                    IOperation handlerValue = CreateHandlerValue();
+                    SetParentOperation(handlerValue, this);
+                    Interlocked.CompareExchange(ref _lazyHandlerValueInterlocked, handlerValue, s_unset);
                 }
 
                 return _lazyHandlerValueInterlocked;
@@ -2202,7 +2257,8 @@ namespace Microsoft.CodeAnalysis.Operations
     {
         private IOperation _lazyInstanceInterlocked = s_unset;
 
-        public LazyEventReferenceOperation(IEventSymbol @event, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(@event, semanticModel, syntax, type, constantValue, isImplicit)
+        public LazyEventReferenceOperation(IEventSymbol @event, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+			base(@event, semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 
@@ -2214,8 +2270,9 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 if (_lazyInstanceInterlocked == s_unset)
                 {
-                    Interlocked.CompareExchange(ref _lazyInstanceInterlocked, CreateInstance(), s_unset);
-                    VerifyParentOperation(this, _lazyInstanceInterlocked);
+                    IOperation instance = CreateInstance();
+                    SetParentOperation(instance, this);
+                    Interlocked.CompareExchange(ref _lazyInstanceInterlocked, instance, s_unset);
                 }
 
                 return _lazyInstanceInterlocked;
@@ -2278,7 +2335,8 @@ namespace Microsoft.CodeAnalysis.Operations
     {
         private IOperation _lazyOperationInterlocked = s_unset;
 
-        public LazyExpressionStatementOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(semanticModel, syntax, type, constantValue, isImplicit)
+        public LazyExpressionStatementOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+			base(semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 
@@ -2290,8 +2348,9 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 if (_lazyOperationInterlocked == s_unset)
                 {
-                    Interlocked.CompareExchange(ref _lazyOperationInterlocked, CreateOperation(), s_unset);
-                    VerifyParentOperation(this, _lazyOperationInterlocked);
+                    IOperation operation = CreateOperation();
+                    SetParentOperation(operation, this);
+                    Interlocked.CompareExchange(ref _lazyOperationInterlocked, operation, s_unset);
                 }
 
                 return _lazyOperationInterlocked;
@@ -2351,7 +2410,8 @@ namespace Microsoft.CodeAnalysis.Operations
     {
         private IOperation _lazyValueInterlocked = s_unset;
 
-        public LazyVariableInitializerOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(semanticModel, syntax, type, constantValue, isImplicit)
+        public LazyVariableInitializerOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+			base(semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 
@@ -2363,8 +2423,9 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 if (_lazyValueInterlocked == s_unset)
                 {
-                    Interlocked.CompareExchange(ref _lazyValueInterlocked, CreateValue(), s_unset);
-                    VerifyParentOperation(this, _lazyValueInterlocked);
+                    IOperation value = CreateValue();
+                    SetParentOperation(value, this);
+                    Interlocked.CompareExchange(ref _lazyValueInterlocked, value, s_unset);
                 }
 
                 return _lazyValueInterlocked;
@@ -2431,7 +2492,8 @@ namespace Microsoft.CodeAnalysis.Operations
     {
         private IOperation _lazyValueInterlocked = s_unset;
 
-        public LazyFieldInitializerOperation(ImmutableArray<ILocalSymbol> locals, ImmutableArray<IFieldSymbol> initializedFields, OperationKind kind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(locals, initializedFields, kind, semanticModel, syntax, type, constantValue, isImplicit)
+        public LazyFieldInitializerOperation(ImmutableArray<ILocalSymbol> locals, ImmutableArray<IFieldSymbol> initializedFields, OperationKind kind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+			base(locals, initializedFields, kind, semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 
@@ -2443,8 +2505,9 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 if (_lazyValueInterlocked == s_unset)
                 {
-                    Interlocked.CompareExchange(ref _lazyValueInterlocked, CreateValue(), s_unset);
-                    VerifyParentOperation(this, _lazyValueInterlocked);
+                    IOperation value = CreateValue();
+                    SetParentOperation(value, this);
+                    Interlocked.CompareExchange(ref _lazyValueInterlocked, value, s_unset);
                 }
 
                 return _lazyValueInterlocked;
@@ -2508,7 +2571,8 @@ namespace Microsoft.CodeAnalysis.Operations
     {
         private IOperation _lazyInstanceInterlocked = s_unset;
 
-        public LazyFieldReferenceOperation(IFieldSymbol field, bool isDeclaration, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(field, isDeclaration, semanticModel, syntax, type, constantValue, isImplicit)
+        public LazyFieldReferenceOperation(IFieldSymbol field, bool isDeclaration, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+			base(field, isDeclaration, semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 
@@ -2520,8 +2584,9 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 if (_lazyInstanceInterlocked == s_unset)
                 {
-                    Interlocked.CompareExchange(ref _lazyInstanceInterlocked, CreateInstance(), s_unset);
-                    VerifyParentOperation(this, _lazyInstanceInterlocked);
+                    IOperation instance = CreateInstance();
+                    SetParentOperation(instance, this);
+                    Interlocked.CompareExchange(ref _lazyInstanceInterlocked, instance, s_unset);
                 }
 
                 return _lazyInstanceInterlocked;
@@ -2601,7 +2666,8 @@ namespace Microsoft.CodeAnalysis.Operations
         private IVariableDeclarationGroupOperation _lazyVariablesInterlocked = s_unsetVariableDeclarationGroup;
         private IOperation _lazyBodyInterlocked = s_unset;
 
-        public LazyFixedOperation(ImmutableArray<ILocalSymbol> locals, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(locals, semanticModel, syntax, type, constantValue, isImplicit)
+        public LazyFixedOperation(ImmutableArray<ILocalSymbol> locals, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+			base(locals, semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 
@@ -2614,8 +2680,9 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 if (_lazyVariablesInterlocked == s_unsetVariableDeclarationGroup)
                 {
-                    Interlocked.CompareExchange(ref _lazyVariablesInterlocked, CreateVariables(), s_unsetVariableDeclarationGroup);
-                    VerifyParentOperation(this, _lazyVariablesInterlocked);
+                    IVariableDeclarationGroupOperation variables = CreateVariables();
+                    SetParentOperation(variables, this);
+                    Interlocked.CompareExchange(ref _lazyVariablesInterlocked, variables, s_unsetVariableDeclarationGroup);
                 }
 
                 return _lazyVariablesInterlocked;
@@ -2628,8 +2695,9 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 if (_lazyBodyInterlocked == s_unset)
                 {
-                    Interlocked.CompareExchange(ref _lazyBodyInterlocked, CreateBody(), s_unset);
-                    VerifyParentOperation(this, _lazyBodyInterlocked);
+                    IOperation body = CreateBody();
+                    SetParentOperation(body, this);
+                    Interlocked.CompareExchange(ref _lazyBodyInterlocked, body, s_unset);
                 }
 
                 return _lazyBodyInterlocked;
@@ -2642,11 +2710,9 @@ namespace Microsoft.CodeAnalysis.Operations
     /// </summary>
     internal abstract partial class BaseForEachLoopOperation : LoopOperation, IForEachLoopOperation
     {
-        public BaseForEachLoopOperation(ImmutableArray<ILocalSymbol> locals, ILabelSymbol continueLabel, ILabelSymbol exitLabel, ForEachLoopOperationInfo info,
-                                        SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+        public BaseForEachLoopOperation(ImmutableArray<ILocalSymbol> locals, ILabelSymbol continueLabel, ILabelSymbol exitLabel, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(LoopKind.ForEach, locals, continueLabel, exitLabel, OperationKind.Loop, semanticModel, syntax, type, constantValue, isImplicit)
         {
-            Info = info;
         }
 
         public override IEnumerable<IOperation> Children
@@ -2675,7 +2741,7 @@ namespace Microsoft.CodeAnalysis.Operations
             }
         }
 
-        public virtual ForEachLoopOperationInfo Info { get; }
+        public abstract ForEachLoopOperationInfo Info { get; }
 
         /// <summary>
         /// Optional loop control variable in VB that refers to the operation for declaring a new local variable or reference an existing variable or an expression.
@@ -2709,14 +2775,16 @@ namespace Microsoft.CodeAnalysis.Operations
         public ForEachLoopOperation(ImmutableArray<ILocalSymbol> locals, ILabelSymbol continueLabel, ILabelSymbol exitLabel, IOperation loopControlVariable,
                                     IOperation collection, ImmutableArray<IOperation> nextVariables, IOperation body, ForEachLoopOperationInfo info,
                                     SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(locals, continueLabel, exitLabel, info, semanticModel, syntax, type, constantValue, isImplicit)
+            base(locals, continueLabel, exitLabel, semanticModel, syntax, type, constantValue, isImplicit)
         {
             LoopControlVariable = SetParentOperation(loopControlVariable, this);
             Collection = SetParentOperation(collection, this);
             NextVariables = SetParentOperation(nextVariables, this);
             Body = SetParentOperation(body, this);
+            Info = info;
         }
 
+        public override ForEachLoopOperationInfo Info { get; }
         public override IOperation LoopControlVariable { get; }
         public override IOperation Collection { get; }
         public override ImmutableArray<IOperation> NextVariables { get; }
@@ -2728,19 +2796,35 @@ namespace Microsoft.CodeAnalysis.Operations
     /// </summary>
     internal abstract class LazyForEachLoopOperation : BaseForEachLoopOperation, IForEachLoopOperation
     {
+        private ForEachLoopOperationInfo _lazyForEachLoopInfoInterlocked = null;
         private IOperation _lazyLoopControlVariableInterlocked = s_unset;
         private IOperation _lazyCollectionInterlocked = s_unset;
         private ImmutableArray<IOperation> _lazyNextVariablesInterlocked;
         private IOperation _lazyBodyInterlocked = s_unset;
 
-        public LazyForEachLoopOperation(ImmutableArray<ILocalSymbol> locals, ILabelSymbol continueLabel, ILabelSymbol exitLabel, ForEachLoopOperationInfo info, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(locals, continueLabel, exitLabel, info, semanticModel, syntax, type, constantValue, isImplicit)
+        public LazyForEachLoopOperation(ImmutableArray<ILocalSymbol> locals, ILabelSymbol continueLabel, ILabelSymbol exitLabel, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+			base(locals, continueLabel, exitLabel, semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 
+        protected abstract ForEachLoopOperationInfo CreateLoopInfo();
         protected abstract IOperation CreateLoopControlVariable();
         protected abstract IOperation CreateCollection();
         protected abstract ImmutableArray<IOperation> CreateNextVariables();
         protected abstract IOperation CreateBody();
+
+        public override ForEachLoopOperationInfo Info
+        {
+            get
+            {
+                if (_lazyForEachLoopInfoInterlocked == null)
+                {
+                    Interlocked.CompareExchange(ref _lazyForEachLoopInfoInterlocked, CreateLoopInfo(), null);
+                }
+
+                return _lazyForEachLoopInfoInterlocked;
+            }
+        }
 
         public override IOperation LoopControlVariable
         {
@@ -2748,8 +2832,9 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 if (_lazyLoopControlVariableInterlocked == s_unset)
                 {
-                    Interlocked.CompareExchange(ref _lazyLoopControlVariableInterlocked, CreateLoopControlVariable(), s_unset);
-                    VerifyParentOperation(this, _lazyLoopControlVariableInterlocked);
+                    IOperation loopControlVariable = CreateLoopControlVariable();
+                    SetParentOperation(loopControlVariable, this);
+                    Interlocked.CompareExchange(ref _lazyLoopControlVariableInterlocked, loopControlVariable, s_unset);
                 }
 
                 return _lazyLoopControlVariableInterlocked;
@@ -2762,8 +2847,9 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 if (_lazyCollectionInterlocked == s_unset)
                 {
-                    Interlocked.CompareExchange(ref _lazyCollectionInterlocked, CreateCollection(), s_unset);
-                    VerifyParentOperation(this, _lazyCollectionInterlocked);
+                    IOperation collection = CreateCollection();
+                    SetParentOperation(collection, this);
+                    Interlocked.CompareExchange(ref _lazyCollectionInterlocked, collection, s_unset);
                 }
 
                 return _lazyCollectionInterlocked;
@@ -2776,8 +2862,9 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 if (_lazyNextVariablesInterlocked.IsDefault)
                 {
-                    ImmutableInterlocked.InterlockedCompareExchange(ref _lazyNextVariablesInterlocked, CreateNextVariables(), default);
-                    VerifyParentOperation(this, _lazyNextVariablesInterlocked);
+                    ImmutableArray<IOperation> nextVariables = CreateNextVariables();
+                    SetParentOperation(nextVariables, this);
+                    ImmutableInterlocked.InterlockedCompareExchange(ref _lazyNextVariablesInterlocked, nextVariables, default);
                 }
 
                 return _lazyNextVariablesInterlocked;
@@ -2790,8 +2877,9 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 if (_lazyBodyInterlocked == s_unset)
                 {
-                    Interlocked.CompareExchange(ref _lazyBodyInterlocked, CreateBody(), s_unset);
-                    VerifyParentOperation(this, _lazyBodyInterlocked);
+                    IOperation body = CreateBody();
+                    SetParentOperation(body, this);
+                    Interlocked.CompareExchange(ref _lazyBodyInterlocked, body, s_unset);
                 }
 
                 return _lazyBodyInterlocked;
@@ -2896,7 +2984,8 @@ namespace Microsoft.CodeAnalysis.Operations
         private ImmutableArray<IOperation> _lazyAtLoopBottomInterlocked;
         private IOperation _lazyBodyInterlocked = s_unset;
 
-        public LazyForLoopOperation(ImmutableArray<ILocalSymbol> locals, ImmutableArray<ILocalSymbol> conditionLocals, ILabelSymbol continueLabel, ILabelSymbol exitLabel, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(locals, conditionLocals, continueLabel, exitLabel, semanticModel, syntax, type, constantValue, isImplicit)
+        public LazyForLoopOperation(ImmutableArray<ILocalSymbol> locals, ImmutableArray<ILocalSymbol> conditionLocals, ILabelSymbol continueLabel, ILabelSymbol exitLabel, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+			base(locals, conditionLocals, continueLabel, exitLabel, semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 
@@ -2911,8 +3000,9 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 if (_lazyBeforeInterlocked.IsDefault)
                 {
-                    ImmutableInterlocked.InterlockedCompareExchange(ref _lazyBeforeInterlocked, CreateBefore(), default);
-                    VerifyParentOperation(this, _lazyBeforeInterlocked);
+                    ImmutableArray<IOperation> before = CreateBefore();
+                    SetParentOperation(before, this);
+                    ImmutableInterlocked.InterlockedCompareExchange(ref _lazyBeforeInterlocked, before, default);
                 }
 
                 return _lazyBeforeInterlocked;
@@ -2925,8 +3015,9 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 if (_lazyConditionInterlocked == s_unset)
                 {
-                    Interlocked.CompareExchange(ref _lazyConditionInterlocked, CreateCondition(), s_unset);
-                    VerifyParentOperation(this, _lazyConditionInterlocked);
+                    IOperation condition = CreateCondition();
+                    SetParentOperation(condition, this);
+                    Interlocked.CompareExchange(ref _lazyConditionInterlocked, condition, s_unset);
                 }
 
                 return _lazyConditionInterlocked;
@@ -2939,8 +3030,9 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 if (_lazyAtLoopBottomInterlocked.IsDefault)
                 {
-                    ImmutableInterlocked.InterlockedCompareExchange(ref _lazyAtLoopBottomInterlocked, CreateAtLoopBottom(), default);
-                    VerifyParentOperation(this, _lazyAtLoopBottomInterlocked);
+                    ImmutableArray<IOperation> atLoopBottom = CreateAtLoopBottom();
+                    SetParentOperation(atLoopBottom, this);
+                    ImmutableInterlocked.InterlockedCompareExchange(ref _lazyAtLoopBottomInterlocked, atLoopBottom, default);
                 }
 
                 return _lazyAtLoopBottomInterlocked;
@@ -2953,8 +3045,9 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 if (_lazyBodyInterlocked == s_unset)
                 {
-                    Interlocked.CompareExchange(ref _lazyBodyInterlocked, CreateBody(), s_unset);
-                    VerifyParentOperation(this, _lazyBodyInterlocked);
+                    IOperation body = CreateBody();
+                    SetParentOperation(body, this);
+                    Interlocked.CompareExchange(ref _lazyBodyInterlocked, body, s_unset);
                 }
 
                 return _lazyBodyInterlocked;
@@ -3091,7 +3184,8 @@ namespace Microsoft.CodeAnalysis.Operations
         private IOperation _lazyBodyInterlocked = s_unset;
         private ImmutableArray<IOperation> _lazyNextVariablesInterlocked;
 
-        public LazyForToLoopOperation(ImmutableArray<ILocalSymbol> locals, bool isChecked, (ILocalSymbol LoopObject, ForToLoopOperationUserDefinedInfo UserDefinedInfo) info, ILabelSymbol continueLabel, ILabelSymbol exitLabel, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(locals, isChecked, info, continueLabel, exitLabel, semanticModel, syntax, type, constantValue, isImplicit)
+        public LazyForToLoopOperation(ImmutableArray<ILocalSymbol> locals, bool isChecked, (ILocalSymbol LoopObject, ForToLoopOperationUserDefinedInfo UserDefinedInfo) info, ILabelSymbol continueLabel, ILabelSymbol exitLabel, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+			base(locals, isChecked, info, continueLabel, exitLabel, semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 
@@ -3108,8 +3202,9 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 if (_lazyLoopControlVariableInterlocked == s_unset)
                 {
-                    Interlocked.CompareExchange(ref _lazyLoopControlVariableInterlocked, CreateLoopControlVariable(), s_unset);
-                    VerifyParentOperation(this, _lazyLoopControlVariableInterlocked);
+                    IOperation loopControlVariable = CreateLoopControlVariable();
+                    SetParentOperation(loopControlVariable, this);
+                    Interlocked.CompareExchange(ref _lazyLoopControlVariableInterlocked, loopControlVariable, s_unset);
                 }
 
                 return _lazyLoopControlVariableInterlocked;
@@ -3122,8 +3217,9 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 if (_lazyInitialValueInterlocked == s_unset)
                 {
-                    Interlocked.CompareExchange(ref _lazyInitialValueInterlocked, CreateInitialValue(), s_unset);
-                    VerifyParentOperation(this, _lazyInitialValueInterlocked);
+                    IOperation initialValue = CreateInitialValue();
+                    SetParentOperation(initialValue, this);
+                    Interlocked.CompareExchange(ref _lazyInitialValueInterlocked, initialValue, s_unset);
                 }
 
                 return _lazyInitialValueInterlocked;
@@ -3136,8 +3232,9 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 if (_lazyLimitValueInterlocked == s_unset)
                 {
-                    Interlocked.CompareExchange(ref _lazyLimitValueInterlocked, CreateLimitValue(), s_unset);
-                    VerifyParentOperation(this, _lazyLimitValueInterlocked);
+                    IOperation limitValue = CreateLimitValue();
+                    SetParentOperation(limitValue, this);
+                    Interlocked.CompareExchange(ref _lazyLimitValueInterlocked, limitValue, s_unset);
                 }
 
                 return _lazyLimitValueInterlocked;
@@ -3150,8 +3247,9 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 if (_lazyStepValueInterlocked == s_unset)
                 {
-                    Interlocked.CompareExchange(ref _lazyStepValueInterlocked, CreateStepValue(), s_unset);
-                    VerifyParentOperation(this, _lazyStepValueInterlocked);
+                    IOperation stepValue = CreateStepValue();
+                    SetParentOperation(stepValue, this);
+                    Interlocked.CompareExchange(ref _lazyStepValueInterlocked, stepValue, s_unset);
                 }
 
                 return _lazyStepValueInterlocked;
@@ -3164,8 +3262,9 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 if (_lazyBodyInterlocked == s_unset)
                 {
-                    Interlocked.CompareExchange(ref _lazyBodyInterlocked, CreateBody(), s_unset);
-                    VerifyParentOperation(this, _lazyBodyInterlocked);
+                    IOperation body = CreateBody();
+                    SetParentOperation(body, this);
+                    Interlocked.CompareExchange(ref _lazyBodyInterlocked, body, s_unset);
                 }
 
                 return _lazyBodyInterlocked;
@@ -3178,8 +3277,9 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 if (_lazyNextVariablesInterlocked.IsDefault)
                 {
-                    ImmutableInterlocked.InterlockedCompareExchange(ref _lazyNextVariablesInterlocked, CreateNextVariables(), default);
-                    VerifyParentOperation(this, _lazyNextVariablesInterlocked);
+                    ImmutableArray<IOperation> nextVariables = CreateNextVariables();
+                    SetParentOperation(nextVariables, this);
+                    ImmutableInterlocked.InterlockedCompareExchange(ref _lazyNextVariablesInterlocked, nextVariables, default);
                 }
 
                 return _lazyNextVariablesInterlocked;
@@ -3266,7 +3366,8 @@ namespace Microsoft.CodeAnalysis.Operations
     {
         private IOperation _lazyTargetInterlocked = s_unset;
 
-        public LazyIncrementOrDecrementOperation(bool isDecrement, bool isPostfix, bool isLifted, bool isChecked, IMethodSymbol operatorMethod, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(isDecrement, isPostfix, isLifted, isChecked, operatorMethod, semanticModel, syntax, type, constantValue, isImplicit)
+        public LazyIncrementOrDecrementOperation(bool isDecrement, bool isPostfix, bool isLifted, bool isChecked, IMethodSymbol operatorMethod, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+			base(isDecrement, isPostfix, isLifted, isChecked, operatorMethod, semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 
@@ -3278,8 +3379,9 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 if (_lazyTargetInterlocked == s_unset)
                 {
-                    Interlocked.CompareExchange(ref _lazyTargetInterlocked, CreateTarget(), s_unset);
-                    VerifyParentOperation(this, _lazyTargetInterlocked);
+                    IOperation target = CreateTarget();
+                    SetParentOperation(target, this);
+                    Interlocked.CompareExchange(ref _lazyTargetInterlocked, target, s_unset);
                 }
 
                 return _lazyTargetInterlocked;
@@ -3373,7 +3475,8 @@ namespace Microsoft.CodeAnalysis.Operations
     {
         private ImmutableArray<IInterpolatedStringContentOperation> _lazyPartsInterlocked;
 
-        public LazyInterpolatedStringOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(semanticModel, syntax, type, constantValue, isImplicit)
+        public LazyInterpolatedStringOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+			base(semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 
@@ -3385,8 +3488,9 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 if (_lazyPartsInterlocked.IsDefault)
                 {
-                    ImmutableInterlocked.InterlockedCompareExchange(ref _lazyPartsInterlocked, CreateParts(), default);
-                    VerifyParentOperation(this, _lazyPartsInterlocked);
+                    ImmutableArray<IInterpolatedStringContentOperation> parts = CreateParts();
+                    SetParentOperation(parts, this);
+                    ImmutableInterlocked.InterlockedCompareExchange(ref _lazyPartsInterlocked, parts, default);
                 }
 
                 return _lazyPartsInterlocked;
@@ -3449,7 +3553,8 @@ namespace Microsoft.CodeAnalysis.Operations
     {
         private IOperation _lazyTextInterlocked = s_unset;
 
-        public LazyInterpolatedStringTextOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(semanticModel, syntax, type, constantValue, isImplicit)
+        public LazyInterpolatedStringTextOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+			base(semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 
@@ -3461,8 +3566,9 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 if (_lazyTextInterlocked == s_unset)
                 {
-                    Interlocked.CompareExchange(ref _lazyTextInterlocked, CreateText(), s_unset);
-                    VerifyParentOperation(this, _lazyTextInterlocked);
+                    IOperation text = CreateText();
+                    SetParentOperation(text, this);
+                    Interlocked.CompareExchange(ref _lazyTextInterlocked, text, s_unset);
                 }
 
                 return _lazyTextInterlocked;
@@ -3547,7 +3653,8 @@ namespace Microsoft.CodeAnalysis.Operations
         private IOperation _lazyAlignmentInterlocked = s_unset;
         private IOperation _lazyFormatStringInterlocked = s_unset;
 
-        public LazyInterpolationOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(semanticModel, syntax, type, constantValue, isImplicit)
+        public LazyInterpolationOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+			base(semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 
@@ -3561,8 +3668,9 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 if (_lazyExpressionInterlocked == s_unset)
                 {
-                    Interlocked.CompareExchange(ref _lazyExpressionInterlocked, CreateExpression(), s_unset);
-                    VerifyParentOperation(this, _lazyExpressionInterlocked);
+                    IOperation expression = CreateExpression();
+                    SetParentOperation(expression, this);
+                    Interlocked.CompareExchange(ref _lazyExpressionInterlocked, expression, s_unset);
                 }
 
                 return _lazyExpressionInterlocked;
@@ -3575,8 +3683,9 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 if (_lazyAlignmentInterlocked == s_unset)
                 {
-                    Interlocked.CompareExchange(ref _lazyAlignmentInterlocked, CreateAlignment(), s_unset);
-                    VerifyParentOperation(this, _lazyAlignmentInterlocked);
+                    IOperation alignment = CreateAlignment();
+                    SetParentOperation(alignment, this);
+                    Interlocked.CompareExchange(ref _lazyAlignmentInterlocked, alignment, s_unset);
                 }
 
                 return _lazyAlignmentInterlocked;
@@ -3589,8 +3698,9 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 if (_lazyFormatStringInterlocked == s_unset)
                 {
-                    Interlocked.CompareExchange(ref _lazyFormatStringInterlocked, CreateFormatString(), s_unset);
-                    VerifyParentOperation(this, _lazyFormatStringInterlocked);
+                    IOperation formatString = CreateFormatString();
+                    SetParentOperation(formatString, this);
+                    Interlocked.CompareExchange(ref _lazyFormatStringInterlocked, formatString, s_unset);
                 }
 
                 return _lazyFormatStringInterlocked;
@@ -3655,8 +3765,9 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 if (_lazyChildrenInterlocked.IsDefault)
                 {
-                    ImmutableInterlocked.InterlockedCompareExchange(ref _lazyChildrenInterlocked, CreateChildren(), default);
-                    VerifyParentOperation(this, _lazyChildrenInterlocked);
+                    ImmutableArray<IOperation> children = CreateChildren();
+                    SetParentOperation(children, this);
+                    ImmutableInterlocked.InterlockedCompareExchange(ref _lazyChildrenInterlocked, children, default);
                 }
 
                 return _lazyChildrenInterlocked;
@@ -3746,7 +3857,8 @@ namespace Microsoft.CodeAnalysis.Operations
         private IOperation _lazyInstanceInterlocked = s_unset;
         private ImmutableArray<IArgumentOperation> _lazyArgumentsInterlocked;
 
-        public LazyInvocationOperation(IMethodSymbol targetMethod, bool isVirtual, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(targetMethod, isVirtual, semanticModel, syntax, type, constantValue, isImplicit)
+        public LazyInvocationOperation(IMethodSymbol targetMethod, bool isVirtual, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+			base(targetMethod, isVirtual, semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 
@@ -3759,8 +3871,9 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 if (_lazyInstanceInterlocked == s_unset)
                 {
-                    Interlocked.CompareExchange(ref _lazyInstanceInterlocked, CreateInstance(), s_unset);
-                    VerifyParentOperation(this, _lazyInstanceInterlocked);
+                    IOperation instance = CreateInstance();
+                    SetParentOperation(instance, this);
+                    Interlocked.CompareExchange(ref _lazyInstanceInterlocked, instance, s_unset);
                 }
 
                 return _lazyInstanceInterlocked;
@@ -3773,8 +3886,9 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 if (_lazyArgumentsInterlocked.IsDefault)
                 {
-                    ImmutableInterlocked.InterlockedCompareExchange(ref _lazyArgumentsInterlocked, CreateArguments(), default);
-                    VerifyParentOperation(this, _lazyArgumentsInterlocked);
+                    ImmutableArray<IArgumentOperation> arguments = CreateArguments();
+                    SetParentOperation(arguments, this);
+                    ImmutableInterlocked.InterlockedCompareExchange(ref _lazyArgumentsInterlocked, arguments, default);
                 }
 
                 return _lazyArgumentsInterlocked;
@@ -3849,7 +3963,8 @@ namespace Microsoft.CodeAnalysis.Operations
         private IEventReferenceOperation _lazyEventReferenceInterlocked = s_unsetEventReference;
         private ImmutableArray<IArgumentOperation> _lazyArgumentsInterlocked;
 
-        public LazyRaiseEventOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(semanticModel, syntax, type, constantValue, isImplicit)
+        public LazyRaiseEventOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+			base(semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 
@@ -3862,8 +3977,9 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 if (_lazyEventReferenceInterlocked == s_unsetEventReference)
                 {
-                    Interlocked.CompareExchange(ref _lazyEventReferenceInterlocked, CreateEventReference(), s_unsetEventReference);
-                    VerifyParentOperation(this, _lazyEventReferenceInterlocked);
+                    IEventReferenceOperation eventReference = CreateEventReference();
+                    SetParentOperation(eventReference, this);
+                    Interlocked.CompareExchange(ref _lazyEventReferenceInterlocked, eventReference, s_unsetEventReference);
                 }
 
                 return _lazyEventReferenceInterlocked;
@@ -3876,8 +3992,9 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 if (_lazyArgumentsInterlocked.IsDefault)
                 {
-                    ImmutableInterlocked.InterlockedCompareExchange(ref _lazyArgumentsInterlocked, CreateArguments(), default);
-                    VerifyParentOperation(this, _lazyArgumentsInterlocked);
+                    ImmutableArray<IArgumentOperation> arguments = CreateArguments();
+                    SetParentOperation(arguments, this);
+                    ImmutableInterlocked.InterlockedCompareExchange(ref _lazyArgumentsInterlocked, arguments, default);
                 }
 
                 return _lazyArgumentsInterlocked;
@@ -3951,7 +4068,8 @@ namespace Microsoft.CodeAnalysis.Operations
     {
         private IOperation _lazyOperandInterlocked = s_unset;
 
-        public LazyIsTypeOperation(ITypeSymbol isType, bool isNotTypeExpression, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(isType, isNotTypeExpression, semanticModel, syntax, type, constantValue, isImplicit)
+        public LazyIsTypeOperation(ITypeSymbol isType, bool isNotTypeExpression, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+			base(isType, isNotTypeExpression, semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 
@@ -3963,8 +4081,9 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 if (_lazyOperandInterlocked == s_unset)
                 {
-                    Interlocked.CompareExchange(ref _lazyOperandInterlocked, CreateValueOperand(), s_unset);
-                    VerifyParentOperation(this, _lazyOperandInterlocked);
+                    IOperation valueOperand = CreateValueOperand();
+                    SetParentOperation(valueOperand, this);
+                    Interlocked.CompareExchange(ref _lazyOperandInterlocked, valueOperand, s_unset);
                 }
 
                 return _lazyOperandInterlocked;
@@ -4031,7 +4150,8 @@ namespace Microsoft.CodeAnalysis.Operations
     {
         private IOperation _lazyOperationInterlocked = s_unset;
 
-        public LazyLabeledOperation(ILabelSymbol label, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(label, semanticModel, syntax, type, constantValue, isImplicit)
+        public LazyLabeledOperation(ILabelSymbol label, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+			base(label, semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 
@@ -4043,8 +4163,9 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 if (_lazyOperationInterlocked == s_unset)
                 {
-                    Interlocked.CompareExchange(ref _lazyOperationInterlocked, CreateOperation(), s_unset);
-                    VerifyParentOperation(this, _lazyOperationInterlocked);
+                    IOperation operation = CreateOperation();
+                    SetParentOperation(operation, this);
+                    Interlocked.CompareExchange(ref _lazyOperationInterlocked, operation, s_unset);
                 }
 
                 return _lazyOperationInterlocked;
@@ -4096,7 +4217,8 @@ namespace Microsoft.CodeAnalysis.Operations
     {
         private IBlockOperation _lazyBodyInterlocked = s_unsetBlock;
 
-        public LazyAnonymousFunctionOperation(IMethodSymbol symbol, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(symbol, semanticModel, syntax, type, constantValue, isImplicit)
+        public LazyAnonymousFunctionOperation(IMethodSymbol symbol, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+			base(symbol, semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 
@@ -4108,8 +4230,9 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 if (_lazyBodyInterlocked == s_unsetBlock)
                 {
-                    Interlocked.CompareExchange(ref _lazyBodyInterlocked, CreateBody(), s_unsetBlock);
-                    VerifyParentOperation(this, _lazyBodyInterlocked);
+                    IBlockOperation body = CreateBody();
+                    SetParentOperation(body, this);
+                    Interlocked.CompareExchange(ref _lazyBodyInterlocked, body, s_unsetBlock);
                 }
 
                 return _lazyBodyInterlocked;
@@ -4191,7 +4314,8 @@ namespace Microsoft.CodeAnalysis.Operations
     {
         private IOperation _lazyTargetInterlocked = s_unset;
 
-        public LazyDelegateCreationOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(semanticModel, syntax, type, constantValue, isImplicit)
+        public LazyDelegateCreationOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+			base(semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 
@@ -4203,8 +4327,9 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 if (_lazyTargetInterlocked == s_unset)
                 {
-                    Interlocked.CompareExchange(ref _lazyTargetInterlocked, CreateTarget(), s_unset);
-                    VerifyParentOperation(this, _lazyTargetInterlocked);
+                    IOperation target = CreateTarget();
+                    SetParentOperation(target, this);
+                    Interlocked.CompareExchange(ref _lazyTargetInterlocked, target, s_unset);
                 }
 
                 return _lazyTargetInterlocked;
@@ -4284,7 +4409,8 @@ namespace Microsoft.CodeAnalysis.Operations
     {
         private IOperation _lazyInstanceInterlocked = s_unset;
 
-        public LazyDynamicMemberReferenceOperation(string memberName, ImmutableArray<ITypeSymbol> typeArguments, ITypeSymbol containingType, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(memberName, typeArguments, containingType, semanticModel, syntax, type, constantValue, isImplicit)
+        public LazyDynamicMemberReferenceOperation(string memberName, ImmutableArray<ITypeSymbol> typeArguments, ITypeSymbol containingType, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+			base(memberName, typeArguments, containingType, semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 
@@ -4296,8 +4422,9 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 if (_lazyInstanceInterlocked == s_unset)
                 {
-                    Interlocked.CompareExchange(ref _lazyInstanceInterlocked, CreateInstance(), s_unset);
-                    VerifyParentOperation(this, _lazyInstanceInterlocked);
+                    IOperation instance = CreateInstance();
+                    SetParentOperation(instance, this);
+                    Interlocked.CompareExchange(ref _lazyInstanceInterlocked, instance, s_unset);
                 }
 
                 return _lazyInstanceInterlocked;
@@ -4432,7 +4559,8 @@ namespace Microsoft.CodeAnalysis.Operations
         private IOperation _lazyLockedValueInterlocked = s_unset;
         private IOperation _lazyBodyInterlocked = s_unset;
 
-        public LazyLockOperation(ILocalSymbol lockTakenSymbol, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(lockTakenSymbol, semanticModel, syntax, type, constantValue, isImplicit)
+        public LazyLockOperation(ILocalSymbol lockTakenSymbol, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+			base(lockTakenSymbol, semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 
@@ -4445,8 +4573,9 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 if (_lazyLockedValueInterlocked == s_unset)
                 {
-                    Interlocked.CompareExchange(ref _lazyLockedValueInterlocked, CreateLockedValue(), s_unset);
-                    VerifyParentOperation(this, _lazyLockedValueInterlocked);
+                    IOperation lockedValue = CreateLockedValue();
+                    SetParentOperation(lockedValue, this);
+                    Interlocked.CompareExchange(ref _lazyLockedValueInterlocked, lockedValue, s_unset);
                 }
 
                 return _lazyLockedValueInterlocked;
@@ -4459,8 +4588,9 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 if (_lazyBodyInterlocked == s_unset)
                 {
-                    Interlocked.CompareExchange(ref _lazyBodyInterlocked, CreateBody(), s_unset);
-                    VerifyParentOperation(this, _lazyBodyInterlocked);
+                    IOperation body = CreateBody();
+                    SetParentOperation(body, this);
+                    Interlocked.CompareExchange(ref _lazyBodyInterlocked, body, s_unset);
                 }
 
                 return _lazyBodyInterlocked;
@@ -4582,7 +4712,8 @@ namespace Microsoft.CodeAnalysis.Operations
     {
         private IOperation _lazyInstanceInterlocked = s_unset;
 
-        public LazyMethodReferenceOperation(IMethodSymbol method, bool isVirtual, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(method, isVirtual, semanticModel, syntax, type, constantValue, isImplicit)
+        public LazyMethodReferenceOperation(IMethodSymbol method, bool isVirtual, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+			base(method, isVirtual, semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 
@@ -4594,8 +4725,9 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 if (_lazyInstanceInterlocked == s_unset)
                 {
-                    Interlocked.CompareExchange(ref _lazyInstanceInterlocked, CreateInstance(), s_unset);
-                    VerifyParentOperation(this, _lazyInstanceInterlocked);
+                    IOperation instance = CreateInstance();
+                    SetParentOperation(instance, this);
+                    Interlocked.CompareExchange(ref _lazyInstanceInterlocked, instance, s_unset);
                 }
 
                 return _lazyInstanceInterlocked;
@@ -4674,7 +4806,8 @@ namespace Microsoft.CodeAnalysis.Operations
         private IOperation _lazyValueInterlocked = s_unset;
         private IOperation _lazyWhenNullInterlocked = s_unset;
 
-        public LazyCoalesceOperation(IConvertibleConversion convertibleValueConversion, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(convertibleValueConversion, semanticModel, syntax, type, constantValue, isImplicit)
+        public LazyCoalesceOperation(IConvertibleConversion convertibleValueConversion, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+			base(convertibleValueConversion, semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 
@@ -4687,8 +4820,9 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 if (_lazyValueInterlocked == s_unset)
                 {
-                    Interlocked.CompareExchange(ref _lazyValueInterlocked, CreateValue(), s_unset);
-                    VerifyParentOperation(this, _lazyValueInterlocked);
+                    IOperation value = CreateValue();
+                    SetParentOperation(value, this);
+                    Interlocked.CompareExchange(ref _lazyValueInterlocked, value, s_unset);
                 }
 
                 return _lazyValueInterlocked;
@@ -4701,8 +4835,9 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 if (_lazyWhenNullInterlocked == s_unset)
                 {
-                    Interlocked.CompareExchange(ref _lazyWhenNullInterlocked, CreateWhenNull(), s_unset);
-                    VerifyParentOperation(this, _lazyWhenNullInterlocked);
+                    IOperation whenNull = CreateWhenNull();
+                    SetParentOperation(whenNull, this);
+                    Interlocked.CompareExchange(ref _lazyWhenNullInterlocked, whenNull, s_unset);
                 }
 
                 return _lazyWhenNullInterlocked;
@@ -4763,7 +4898,8 @@ namespace Microsoft.CodeAnalysis.Operations
         private IOperation _lazyTargetInterlocked = s_unset;
         private IOperation _lazyWhenNullInterlocked = s_unset;
 
-        public LazyCoalesceAssignmentOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(semanticModel, syntax, type, constantValue, isImplicit)
+        public LazyCoalesceAssignmentOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+			base(semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 
@@ -4776,8 +4912,9 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 if (_lazyTargetInterlocked == s_unset)
                 {
-                    Interlocked.CompareExchange(ref _lazyTargetInterlocked, CreateTarget(), s_unset);
-                    VerifyParentOperation(this, _lazyTargetInterlocked);
+                    IOperation target = CreateTarget();
+                    SetParentOperation(target, this);
+                    Interlocked.CompareExchange(ref _lazyTargetInterlocked, target, s_unset);
                 }
 
                 return _lazyTargetInterlocked;
@@ -4790,8 +4927,9 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 if (_lazyWhenNullInterlocked == s_unset)
                 {
-                    Interlocked.CompareExchange(ref _lazyWhenNullInterlocked, CreateValue(), s_unset);
-                    VerifyParentOperation(this, _lazyWhenNullInterlocked);
+                    IOperation value = CreateValue();
+                    SetParentOperation(value, this);
+                    Interlocked.CompareExchange(ref _lazyWhenNullInterlocked, value, s_unset);
                 }
 
                 return _lazyWhenNullInterlocked;
@@ -4876,7 +5014,8 @@ namespace Microsoft.CodeAnalysis.Operations
         private IObjectOrCollectionInitializerOperation _lazyInitializerInterlocked = s_unsetObjectOrCollectionInitializer;
         private ImmutableArray<IArgumentOperation> _lazyArgumentsInterlocked;
 
-        public LazyObjectCreationOperation(IMethodSymbol constructor, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(constructor, semanticModel, syntax, type, constantValue, isImplicit)
+        public LazyObjectCreationOperation(IMethodSymbol constructor, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+			base(constructor, semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 
@@ -4889,8 +5028,9 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 if (_lazyInitializerInterlocked == s_unsetObjectOrCollectionInitializer)
                 {
-                    Interlocked.CompareExchange(ref _lazyInitializerInterlocked, CreateInitializer(), s_unsetObjectOrCollectionInitializer);
-                    VerifyParentOperation(this, _lazyInitializerInterlocked);
+                    IObjectOrCollectionInitializerOperation initializer = CreateInitializer();
+                    SetParentOperation(initializer, this);
+                    Interlocked.CompareExchange(ref _lazyInitializerInterlocked, initializer, s_unsetObjectOrCollectionInitializer);
                 }
 
                 return _lazyInitializerInterlocked;
@@ -4903,8 +5043,9 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 if (_lazyArgumentsInterlocked.IsDefault)
                 {
-                    ImmutableInterlocked.InterlockedCompareExchange(ref _lazyArgumentsInterlocked, CreateArguments(), default);
-                    VerifyParentOperation(this, _lazyArgumentsInterlocked);
+                    ImmutableArray<IArgumentOperation> arguments = CreateArguments();
+                    SetParentOperation(arguments, this);
+                    ImmutableInterlocked.InterlockedCompareExchange(ref _lazyArgumentsInterlocked, arguments, default);
                 }
 
                 return _lazyArgumentsInterlocked;
@@ -4970,7 +5111,8 @@ namespace Microsoft.CodeAnalysis.Operations
     {
         private ImmutableArray<IOperation> _lazyInitializersInterlocked;
 
-        public LazyAnonymousObjectCreationOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(semanticModel, syntax, type, constantValue, isImplicit)
+        public LazyAnonymousObjectCreationOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+			base(semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 
@@ -4982,8 +5124,9 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 if (_lazyInitializersInterlocked.IsDefault)
                 {
-                    ImmutableInterlocked.InterlockedCompareExchange(ref _lazyInitializersInterlocked, CreateInitializers(), default);
-                    VerifyParentOperation(this, _lazyInitializersInterlocked);
+                    ImmutableArray<IOperation> initializers = CreateInitializers();
+                    SetParentOperation(initializers, this);
+                    ImmutableInterlocked.InterlockedCompareExchange(ref _lazyInitializersInterlocked, initializers, default);
                 }
 
                 return _lazyInitializersInterlocked;
@@ -5076,7 +5219,8 @@ namespace Microsoft.CodeAnalysis.Operations
     {
         private IOperation _lazyValueInterlocked = s_unset;
 
-        public LazyParameterInitializerOperation(ImmutableArray<ILocalSymbol> locals, IParameterSymbol parameter, OperationKind kind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(locals, parameter, kind, semanticModel, syntax, type, constantValue, isImplicit)
+        public LazyParameterInitializerOperation(ImmutableArray<ILocalSymbol> locals, IParameterSymbol parameter, OperationKind kind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+			base(locals, parameter, kind, semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 
@@ -5088,8 +5232,9 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 if (_lazyValueInterlocked == s_unset)
                 {
-                    Interlocked.CompareExchange(ref _lazyValueInterlocked, CreateValue(), s_unset);
-                    VerifyParentOperation(this, _lazyValueInterlocked);
+                    IOperation value = CreateValue();
+                    SetParentOperation(value, this);
+                    Interlocked.CompareExchange(ref _lazyValueInterlocked, value, s_unset);
                 }
 
                 return _lazyValueInterlocked;
@@ -5183,7 +5328,8 @@ namespace Microsoft.CodeAnalysis.Operations
     {
         private IOperation _lazyOperandInterlocked = s_unset;
 
-        public LazyParenthesizedOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(semanticModel, syntax, type, constantValue, isImplicit)
+        public LazyParenthesizedOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+			base(semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 
@@ -5195,8 +5341,9 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 if (_lazyOperandInterlocked == s_unset)
                 {
-                    Interlocked.CompareExchange(ref _lazyOperandInterlocked, CreateOperand(), s_unset);
-                    VerifyParentOperation(this, _lazyOperandInterlocked);
+                    IOperation operand = CreateOperand();
+                    SetParentOperation(operand, this);
+                    Interlocked.CompareExchange(ref _lazyOperandInterlocked, operand, s_unset);
                 }
 
                 return _lazyOperandInterlocked;
@@ -5296,7 +5443,8 @@ namespace Microsoft.CodeAnalysis.Operations
     {
         private IOperation _lazyValueInterlocked = s_unset;
 
-        public LazyPropertyInitializerOperation(ImmutableArray<ILocalSymbol> locals, ImmutableArray<IPropertySymbol> initializedProperties, OperationKind kind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(locals, initializedProperties, kind, semanticModel, syntax, type, constantValue, isImplicit)
+        public LazyPropertyInitializerOperation(ImmutableArray<ILocalSymbol> locals, ImmutableArray<IPropertySymbol> initializedProperties, OperationKind kind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+			base(locals, initializedProperties, kind, semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 
@@ -5308,8 +5456,9 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 if (_lazyValueInterlocked == s_unset)
                 {
-                    Interlocked.CompareExchange(ref _lazyValueInterlocked, CreateValue(), s_unset);
-                    VerifyParentOperation(this, _lazyValueInterlocked);
+                    IOperation value = CreateValue();
+                    SetParentOperation(value, this);
+                    Interlocked.CompareExchange(ref _lazyValueInterlocked, value, s_unset);
                 }
 
                 return _lazyValueInterlocked;
@@ -5389,7 +5538,8 @@ namespace Microsoft.CodeAnalysis.Operations
         private IOperation _lazyInstanceInterlocked = s_unset;
         private ImmutableArray<IArgumentOperation> _lazyArgumentsInterlocked;
 
-        public LazyPropertyReferenceOperation(IPropertySymbol property, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(property, semanticModel, syntax, type, constantValue, isImplicit)
+        public LazyPropertyReferenceOperation(IPropertySymbol property, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+			base(property, semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 
@@ -5402,8 +5552,9 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 if (_lazyInstanceInterlocked == s_unset)
                 {
-                    Interlocked.CompareExchange(ref _lazyInstanceInterlocked, CreateInstance(), s_unset);
-                    VerifyParentOperation(this, _lazyInstanceInterlocked);
+                    IOperation instance = CreateInstance();
+                    SetParentOperation(instance, this);
+                    Interlocked.CompareExchange(ref _lazyInstanceInterlocked, instance, s_unset);
                 }
 
                 return _lazyInstanceInterlocked;
@@ -5416,8 +5567,9 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 if (_lazyArgumentsInterlocked.IsDefault)
                 {
-                    ImmutableInterlocked.InterlockedCompareExchange(ref _lazyArgumentsInterlocked, CreateArguments(), default);
-                    VerifyParentOperation(this, _lazyArgumentsInterlocked);
+                    ImmutableArray<IArgumentOperation> arguments = CreateArguments();
+                    SetParentOperation(arguments, this);
+                    ImmutableInterlocked.InterlockedCompareExchange(ref _lazyArgumentsInterlocked, arguments, default);
                 }
 
                 return _lazyArgumentsInterlocked;
@@ -5494,7 +5646,8 @@ namespace Microsoft.CodeAnalysis.Operations
         private IOperation _lazyMinimumValueInterlocked = s_unset;
         private IOperation _lazyMaximumValueInterlocked = s_unset;
 
-        public LazyRangeCaseClauseOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(semanticModel, syntax, type, constantValue, isImplicit)
+        public LazyRangeCaseClauseOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+			base(semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 
@@ -5507,8 +5660,9 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 if (_lazyMinimumValueInterlocked == s_unset)
                 {
-                    Interlocked.CompareExchange(ref _lazyMinimumValueInterlocked, CreateMinimumValue(), s_unset);
-                    VerifyParentOperation(this, _lazyMinimumValueInterlocked);
+                    IOperation minimumValue = CreateMinimumValue();
+                    SetParentOperation(minimumValue, this);
+                    Interlocked.CompareExchange(ref _lazyMinimumValueInterlocked, minimumValue, s_unset);
                 }
 
                 return _lazyMinimumValueInterlocked;
@@ -5521,8 +5675,9 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 if (_lazyMaximumValueInterlocked == s_unset)
                 {
-                    Interlocked.CompareExchange(ref _lazyMaximumValueInterlocked, CreateMaximumValue(), s_unset);
-                    VerifyParentOperation(this, _lazyMaximumValueInterlocked);
+                    IOperation maximumValue = CreateMaximumValue();
+                    SetParentOperation(maximumValue, this);
+                    Interlocked.CompareExchange(ref _lazyMaximumValueInterlocked, maximumValue, s_unset);
                 }
 
                 return _lazyMaximumValueInterlocked;
@@ -5593,7 +5748,8 @@ namespace Microsoft.CodeAnalysis.Operations
     {
         private IOperation _lazyValueInterlocked = s_unset;
 
-        public LazyRelationalCaseClauseOperation(BinaryOperatorKind relation, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(relation, semanticModel, syntax, type, constantValue, isImplicit)
+        public LazyRelationalCaseClauseOperation(BinaryOperatorKind relation, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+			base(relation, semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 
@@ -5605,8 +5761,9 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 if (_lazyValueInterlocked == s_unset)
                 {
-                    Interlocked.CompareExchange(ref _lazyValueInterlocked, CreateValue(), s_unset);
-                    VerifyParentOperation(this, _lazyValueInterlocked);
+                    IOperation value = CreateValue();
+                    SetParentOperation(value, this);
+                    Interlocked.CompareExchange(ref _lazyValueInterlocked, value, s_unset);
                 }
 
                 return _lazyValueInterlocked;
@@ -5672,7 +5829,8 @@ namespace Microsoft.CodeAnalysis.Operations
     {
         private IOperation _lazyReturnedValueInterlocked = s_unset;
 
-        public LazyReturnOperation(OperationKind kind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(kind, semanticModel, syntax, type, constantValue, isImplicit)
+        public LazyReturnOperation(OperationKind kind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+			base(kind, semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 
@@ -5684,8 +5842,9 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 if (_lazyReturnedValueInterlocked == s_unset)
                 {
-                    Interlocked.CompareExchange(ref _lazyReturnedValueInterlocked, CreateReturnedValue(), s_unset);
-                    VerifyParentOperation(this, _lazyReturnedValueInterlocked);
+                    IOperation returnedValue = CreateReturnedValue();
+                    SetParentOperation(returnedValue, this);
+                    Interlocked.CompareExchange(ref _lazyReturnedValueInterlocked, returnedValue, s_unset);
                 }
 
                 return _lazyReturnedValueInterlocked;
@@ -5751,7 +5910,8 @@ namespace Microsoft.CodeAnalysis.Operations
     {
         private IOperation _lazyValueInterlocked = s_unset;
 
-        public LazySingleValueCaseClauseOperation(ILabelSymbol label, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(label, semanticModel, syntax, type, constantValue, isImplicit)
+        public LazySingleValueCaseClauseOperation(ILabelSymbol label, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+			base(label, semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 
@@ -5763,8 +5923,9 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 if (_lazyValueInterlocked == s_unset)
                 {
-                    Interlocked.CompareExchange(ref _lazyValueInterlocked, CreateValue(), s_unset);
-                    VerifyParentOperation(this, _lazyValueInterlocked);
+                    IOperation value = CreateValue();
+                    SetParentOperation(value, this);
+                    Interlocked.CompareExchange(ref _lazyValueInterlocked, value, s_unset);
                 }
 
                 return _lazyValueInterlocked;
@@ -5946,7 +6107,8 @@ namespace Microsoft.CodeAnalysis.Operations
         private IOperation _lazyConditionInterlocked = s_unset;
         private ImmutableArray<IOperation> _lazyBodyInterlocked;
 
-        public LazySwitchCaseOperation(ImmutableArray<ILocalSymbol> locals, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(locals, semanticModel, syntax, type, constantValue, isImplicit)
+        public LazySwitchCaseOperation(ImmutableArray<ILocalSymbol> locals, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+			base(locals, semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 
@@ -5960,8 +6122,9 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 if (_lazyClausesInterlocked.IsDefault)
                 {
-                    ImmutableInterlocked.InterlockedCompareExchange(ref _lazyClausesInterlocked, CreateClauses(), default);
-                    VerifyParentOperation(this, _lazyClausesInterlocked);
+                    ImmutableArray<ICaseClauseOperation> clauses = CreateClauses();
+                    SetParentOperation(clauses, this);
+                    ImmutableInterlocked.InterlockedCompareExchange(ref _lazyClausesInterlocked, clauses, default);
                 }
 
                 return _lazyClausesInterlocked;
@@ -5974,8 +6137,9 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 if (_lazyConditionInterlocked == s_unset)
                 {
-                    Interlocked.CompareExchange(ref _lazyConditionInterlocked, CreateCondition(), s_unset);
-                    VerifyParentOperation(null, _lazyConditionInterlocked);
+                    IOperation condition = CreateCondition();
+                    SetParentOperation(condition, null);
+                    Interlocked.CompareExchange(ref _lazyConditionInterlocked, condition, s_unset);
                 }
 
                 return _lazyConditionInterlocked;
@@ -5988,8 +6152,9 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 if (_lazyBodyInterlocked.IsDefault)
                 {
-                    ImmutableInterlocked.InterlockedCompareExchange(ref _lazyBodyInterlocked, CreateBody(), default);
-                    VerifyParentOperation(this, _lazyBodyInterlocked);
+                    ImmutableArray<IOperation> body = CreateBody();
+                    SetParentOperation(body, this);
+                    ImmutableInterlocked.InterlockedCompareExchange(ref _lazyBodyInterlocked, body, default);
                 }
 
                 return _lazyBodyInterlocked;
@@ -6071,7 +6236,8 @@ namespace Microsoft.CodeAnalysis.Operations
         private IOperation _lazyValueInterlocked = s_unset;
         private ImmutableArray<ISwitchCaseOperation> _lazyCasesInterlocked;
 
-        public LazySwitchOperation(ImmutableArray<ILocalSymbol> locals, ILabelSymbol exitLabel, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(locals, exitLabel, semanticModel, syntax, type, constantValue, isImplicit)
+        public LazySwitchOperation(ImmutableArray<ILocalSymbol> locals, ILabelSymbol exitLabel, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+			base(locals, exitLabel, semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 
@@ -6084,8 +6250,9 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 if (_lazyValueInterlocked == s_unset)
                 {
-                    Interlocked.CompareExchange(ref _lazyValueInterlocked, CreateValue(), s_unset);
-                    VerifyParentOperation(this, _lazyValueInterlocked);
+                    IOperation value = CreateValue();
+                    SetParentOperation(value, this);
+                    Interlocked.CompareExchange(ref _lazyValueInterlocked, value, s_unset);
                 }
 
                 return _lazyValueInterlocked;
@@ -6098,8 +6265,9 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 if (_lazyCasesInterlocked.IsDefault)
                 {
-                    ImmutableInterlocked.InterlockedCompareExchange(ref _lazyCasesInterlocked, CreateCases(), default);
-                    VerifyParentOperation(this, _lazyCasesInterlocked);
+                    ImmutableArray<ISwitchCaseOperation> cases = CreateCases();
+                    SetParentOperation(cases, this);
+                    ImmutableInterlocked.InterlockedCompareExchange(ref _lazyCasesInterlocked, cases, default);
                 }
 
                 return _lazyCasesInterlocked;
@@ -6201,7 +6369,8 @@ namespace Microsoft.CodeAnalysis.Operations
         private ImmutableArray<ICatchClauseOperation> _lazyCatchesInterlocked;
         private IBlockOperation _lazyFinallyHandlerInterlocked = s_unsetBlock;
 
-        public LazyTryOperation(ILabelSymbol exitLabel, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(exitLabel, semanticModel, syntax, type, constantValue, isImplicit)
+        public LazyTryOperation(ILabelSymbol exitLabel, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+			base(exitLabel, semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 
@@ -6215,8 +6384,9 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 if (_lazyBodyInterlocked == s_unsetBlock)
                 {
-                    Interlocked.CompareExchange(ref _lazyBodyInterlocked, CreateBody(), s_unsetBlock);
-                    VerifyParentOperation(this, _lazyBodyInterlocked);
+                    IBlockOperation body = CreateBody();
+                    SetParentOperation(body, this);
+                    Interlocked.CompareExchange(ref _lazyBodyInterlocked, body, s_unsetBlock);
                 }
 
                 return _lazyBodyInterlocked;
@@ -6229,8 +6399,9 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 if (_lazyCatchesInterlocked.IsDefault)
                 {
-                    ImmutableInterlocked.InterlockedCompareExchange(ref _lazyCatchesInterlocked, CreateCatches(), default);
-                    VerifyParentOperation(this, _lazyCatchesInterlocked);
+                    ImmutableArray<ICatchClauseOperation> catches = CreateCatches();
+                    SetParentOperation(catches, this);
+                    ImmutableInterlocked.InterlockedCompareExchange(ref _lazyCatchesInterlocked, catches, default);
                 }
 
                 return _lazyCatchesInterlocked;
@@ -6243,8 +6414,9 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 if (_lazyFinallyHandlerInterlocked == s_unsetBlock)
                 {
-                    Interlocked.CompareExchange(ref _lazyFinallyHandlerInterlocked, CreateFinally(), s_unsetBlock);
-                    VerifyParentOperation(this, _lazyFinallyHandlerInterlocked);
+                    IBlockOperation @finally = CreateFinally();
+                    SetParentOperation(@finally, this);
+                    Interlocked.CompareExchange(ref _lazyFinallyHandlerInterlocked, @finally, s_unsetBlock);
                 }
 
                 return _lazyFinallyHandlerInterlocked;
@@ -6318,7 +6490,8 @@ namespace Microsoft.CodeAnalysis.Operations
     {
         private ImmutableArray<IOperation> _lazyElementsInterlocked;
 
-        public LazyTupleOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ITypeSymbol naturalType, Optional<object> constantValue, bool isImplicit) : base(semanticModel, syntax, type, naturalType, constantValue, isImplicit)
+        public LazyTupleOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ITypeSymbol naturalType, Optional<object> constantValue, bool isImplicit) :
+			base(semanticModel, syntax, type, naturalType, constantValue, isImplicit)
         {
         }
 
@@ -6330,8 +6503,9 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 if (_lazyElementsInterlocked.IsDefault)
                 {
-                    ImmutableInterlocked.InterlockedCompareExchange(ref _lazyElementsInterlocked, CreateElements(), default);
-                    VerifyParentOperation(this, _lazyElementsInterlocked);
+                    ImmutableArray<IOperation> elements = CreateElements();
+                    SetParentOperation(elements, this);
+                    ImmutableInterlocked.InterlockedCompareExchange(ref _lazyElementsInterlocked, elements, default);
                 }
 
                 return _lazyElementsInterlocked;
@@ -6423,7 +6597,8 @@ namespace Microsoft.CodeAnalysis.Operations
     {
         private IObjectOrCollectionInitializerOperation _lazyInitializerInterlocked = s_unsetObjectOrCollectionInitializer;
 
-        public LazyTypeParameterObjectCreationOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(semanticModel, syntax, type, constantValue, isImplicit)
+        public LazyTypeParameterObjectCreationOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+			base(semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 
@@ -6435,8 +6610,9 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 if (_lazyInitializerInterlocked == s_unsetObjectOrCollectionInitializer)
                 {
-                    Interlocked.CompareExchange(ref _lazyInitializerInterlocked, CreateInitializer(), s_unsetObjectOrCollectionInitializer);
-                    VerifyParentOperation(this, _lazyInitializerInterlocked);
+                    IObjectOrCollectionInitializerOperation initializer = CreateInitializer();
+                    SetParentOperation(initializer, this);
+                    Interlocked.CompareExchange(ref _lazyInitializerInterlocked, initializer, s_unsetObjectOrCollectionInitializer);
                 }
 
                 return _lazyInitializerInterlocked;
@@ -6533,7 +6709,8 @@ namespace Microsoft.CodeAnalysis.Operations
         private ImmutableArray<IOperation> _lazyArgumentsInterlocked;
         private IObjectOrCollectionInitializerOperation _lazyInitializerInterlocked = s_unsetObjectOrCollectionInitializer;
 
-        public LazyDynamicObjectCreationOperation(ImmutableArray<string> argumentNames, ImmutableArray<RefKind> argumentRefKinds, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(argumentNames, argumentRefKinds, semanticModel, syntax, type, constantValue, isImplicit)
+        public LazyDynamicObjectCreationOperation(ImmutableArray<string> argumentNames, ImmutableArray<RefKind> argumentRefKinds, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+			base(argumentNames, argumentRefKinds, semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 
@@ -6546,8 +6723,9 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 if (_lazyArgumentsInterlocked.IsDefault)
                 {
-                    ImmutableInterlocked.InterlockedCompareExchange(ref _lazyArgumentsInterlocked, CreateArguments(), default);
-                    VerifyParentOperation(this, _lazyArgumentsInterlocked);
+                    ImmutableArray<IOperation> arguments = CreateArguments();
+                    SetParentOperation(arguments, this);
+                    ImmutableInterlocked.InterlockedCompareExchange(ref _lazyArgumentsInterlocked, arguments, default);
                 }
 
                 return _lazyArgumentsInterlocked;
@@ -6560,8 +6738,9 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 if (_lazyInitializerInterlocked == s_unsetObjectOrCollectionInitializer)
                 {
-                    Interlocked.CompareExchange(ref _lazyInitializerInterlocked, CreateInitializer(), s_unsetObjectOrCollectionInitializer);
-                    VerifyParentOperation(this, _lazyInitializerInterlocked);
+                    IObjectOrCollectionInitializerOperation initializer = CreateInitializer();
+                    SetParentOperation(initializer, this);
+                    Interlocked.CompareExchange(ref _lazyInitializerInterlocked, initializer, s_unsetObjectOrCollectionInitializer);
                 }
 
                 return _lazyInitializerInterlocked;
@@ -6632,7 +6811,8 @@ namespace Microsoft.CodeAnalysis.Operations
         private IOperation _lazyOperationInterlocked = s_unset;
         private ImmutableArray<IOperation> _lazyArgumentsInterlocked;
 
-        public LazyDynamicInvocationOperation(ImmutableArray<string> argumentNames, ImmutableArray<RefKind> argumentRefKinds, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(argumentNames, argumentRefKinds, semanticModel, syntax, type, constantValue, isImplicit)
+        public LazyDynamicInvocationOperation(ImmutableArray<string> argumentNames, ImmutableArray<RefKind> argumentRefKinds, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+			base(argumentNames, argumentRefKinds, semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 
@@ -6645,8 +6825,9 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 if (_lazyOperationInterlocked == s_unset)
                 {
-                    Interlocked.CompareExchange(ref _lazyOperationInterlocked, CreateOperation(), s_unset);
-                    VerifyParentOperation(this, _lazyOperationInterlocked);
+                    IOperation operation = CreateOperation();
+                    SetParentOperation(operation, this);
+                    Interlocked.CompareExchange(ref _lazyOperationInterlocked, operation, s_unset);
                 }
 
                 return _lazyOperationInterlocked;
@@ -6659,8 +6840,9 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 if (_lazyArgumentsInterlocked.IsDefault)
                 {
-                    ImmutableInterlocked.InterlockedCompareExchange(ref _lazyArgumentsInterlocked, CreateArguments(), default);
-                    VerifyParentOperation(this, _lazyArgumentsInterlocked);
+                    ImmutableArray<IOperation> arguments = CreateArguments();
+                    SetParentOperation(arguments, this);
+                    ImmutableInterlocked.InterlockedCompareExchange(ref _lazyArgumentsInterlocked, arguments, default);
                 }
 
                 return _lazyArgumentsInterlocked;
@@ -6731,7 +6913,8 @@ namespace Microsoft.CodeAnalysis.Operations
         private IOperation _lazyOperationInterlocked = s_unset;
         private ImmutableArray<IOperation> _lazyArgumentsInterlocked;
 
-        public LazyDynamicIndexerAccessOperation(ImmutableArray<string> argumentNames, ImmutableArray<RefKind> argumentRefKinds, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(argumentNames, argumentRefKinds, semanticModel, syntax, type, constantValue, isImplicit)
+        public LazyDynamicIndexerAccessOperation(ImmutableArray<string> argumentNames, ImmutableArray<RefKind> argumentRefKinds, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+			base(argumentNames, argumentRefKinds, semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 
@@ -6744,8 +6927,9 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 if (_lazyOperationInterlocked == s_unset)
                 {
-                    Interlocked.CompareExchange(ref _lazyOperationInterlocked, CreateOperation(), s_unset);
-                    VerifyParentOperation(this, _lazyOperationInterlocked);
+                    IOperation operation = CreateOperation();
+                    SetParentOperation(operation, this);
+                    Interlocked.CompareExchange(ref _lazyOperationInterlocked, operation, s_unset);
                 }
 
                 return _lazyOperationInterlocked;
@@ -6758,8 +6942,9 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 if (_lazyArgumentsInterlocked.IsDefault)
                 {
-                    ImmutableInterlocked.InterlockedCompareExchange(ref _lazyArgumentsInterlocked, CreateArguments(), default);
-                    VerifyParentOperation(this, _lazyArgumentsInterlocked);
+                    ImmutableArray<IOperation> arguments = CreateArguments();
+                    SetParentOperation(arguments, this);
+                    ImmutableInterlocked.InterlockedCompareExchange(ref _lazyArgumentsInterlocked, arguments, default);
                 }
 
                 return _lazyArgumentsInterlocked;
@@ -6844,7 +7029,8 @@ namespace Microsoft.CodeAnalysis.Operations
     {
         private IOperation _lazyOperandInterlocked = s_unset;
 
-        public LazyUnaryOperation(UnaryOperatorKind unaryOperationKind, bool isLifted, bool isChecked, IMethodSymbol operatorMethod, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(unaryOperationKind, isLifted, isChecked, operatorMethod, semanticModel, syntax, type, constantValue, isImplicit)
+        public LazyUnaryOperation(UnaryOperatorKind unaryOperationKind, bool isLifted, bool isChecked, IMethodSymbol operatorMethod, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+			base(unaryOperationKind, isLifted, isChecked, operatorMethod, semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 
@@ -6856,8 +7042,9 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 if (_lazyOperandInterlocked == s_unset)
                 {
-                    Interlocked.CompareExchange(ref _lazyOperandInterlocked, CreateOperand(), s_unset);
-                    VerifyParentOperation(this, _lazyOperandInterlocked);
+                    IOperation operand = CreateOperand();
+                    SetParentOperation(operand, this);
+                    Interlocked.CompareExchange(ref _lazyOperandInterlocked, operand, s_unset);
                 }
 
                 return _lazyOperandInterlocked;
@@ -6939,7 +7126,8 @@ namespace Microsoft.CodeAnalysis.Operations
         private IOperation _lazyResourcesInterlocked = s_unset;
         private IOperation _lazyBodyInterlocked = s_unset;
 
-        public LazyUsingOperation(ImmutableArray<ILocalSymbol> locals, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(locals, semanticModel, syntax, type, constantValue, isImplicit)
+        public LazyUsingOperation(ImmutableArray<ILocalSymbol> locals, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+			base(locals, semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 
@@ -6952,8 +7140,9 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 if (_lazyResourcesInterlocked == s_unset)
                 {
-                    Interlocked.CompareExchange(ref _lazyResourcesInterlocked, CreateResources(), s_unset);
-                    VerifyParentOperation(this, _lazyResourcesInterlocked);
+                    IOperation resources = CreateResources();
+                    SetParentOperation(resources, this);
+                    Interlocked.CompareExchange(ref _lazyResourcesInterlocked, resources, s_unset);
                 }
 
                 return _lazyResourcesInterlocked;
@@ -6966,8 +7155,9 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 if (_lazyBodyInterlocked == s_unset)
                 {
-                    Interlocked.CompareExchange(ref _lazyBodyInterlocked, CreateBody(), s_unset);
-                    VerifyParentOperation(this, _lazyBodyInterlocked);
+                    IOperation body = CreateBody();
+                    SetParentOperation(body, this);
+                    Interlocked.CompareExchange(ref _lazyBodyInterlocked, body, s_unset);
                 }
 
                 return _lazyBodyInterlocked;
@@ -7040,7 +7230,8 @@ namespace Microsoft.CodeAnalysis.Operations
         private IVariableInitializerOperation _lazyInitializerInterlocked = s_unsetVariableInitializer;
         private ImmutableArray<IOperation> _lazyIgnoredArgumentsInterlocked;
 
-        public LazyVariableDeclaratorOperation(ILocalSymbol symbol, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(symbol, semanticModel, syntax, type, constantValue, isImplicit)
+        public LazyVariableDeclaratorOperation(ILocalSymbol symbol, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+			base(symbol, semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 
@@ -7053,8 +7244,9 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 if (_lazyInitializerInterlocked == s_unsetVariableInitializer)
                 {
-                    Interlocked.CompareExchange(ref _lazyInitializerInterlocked, CreateInitializer(), s_unsetVariableInitializer);
-                    VerifyParentOperation(this, _lazyInitializerInterlocked);
+                    IVariableInitializerOperation initializer = CreateInitializer();
+                    SetParentOperation(initializer, this);
+                    Interlocked.CompareExchange(ref _lazyInitializerInterlocked, initializer, s_unsetVariableInitializer);
                 }
 
                 return _lazyInitializerInterlocked;
@@ -7067,8 +7259,9 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 if (_lazyIgnoredArgumentsInterlocked.IsDefault)
                 {
-                    ImmutableInterlocked.InterlockedCompareExchange(ref _lazyIgnoredArgumentsInterlocked, CreateIgnoredArguments(), default);
-                    VerifyParentOperation(this, _lazyIgnoredArgumentsInterlocked);
+                    ImmutableArray<IOperation> ignoredArguments = CreateIgnoredArguments();
+                    SetParentOperation(ignoredArguments, this);
+                    ImmutableInterlocked.InterlockedCompareExchange(ref _lazyIgnoredArgumentsInterlocked, ignoredArguments, default);
                 }
 
                 return _lazyIgnoredArgumentsInterlocked;
@@ -7135,7 +7328,8 @@ namespace Microsoft.CodeAnalysis.Operations
         private ImmutableArray<IVariableDeclaratorOperation> _lazyDeclaratorsInterlocked;
         private IVariableInitializerOperation _lazyInitializerInterlocked = s_unsetVariableInitializer;
 
-        public LazyVariableDeclarationOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(semanticModel, syntax, type, constantValue, isImplicit)
+        public LazyVariableDeclarationOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+			base(semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 
@@ -7148,8 +7342,9 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 if (_lazyDeclaratorsInterlocked.IsDefault)
                 {
-                    ImmutableInterlocked.InterlockedCompareExchange(ref _lazyDeclaratorsInterlocked, CreateDeclarators(), default);
-                    VerifyParentOperation(this, _lazyDeclaratorsInterlocked);
+                    ImmutableArray<IVariableDeclaratorOperation> declarators = CreateDeclarators();
+                    SetParentOperation(declarators, this);
+                    ImmutableInterlocked.InterlockedCompareExchange(ref _lazyDeclaratorsInterlocked, declarators, default);
                 }
 
                 return _lazyDeclaratorsInterlocked;
@@ -7162,8 +7357,9 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 if (_lazyInitializerInterlocked == s_unsetVariableInitializer)
                 {
-                    Interlocked.CompareExchange(ref _lazyInitializerInterlocked, CreateInitializer(), s_unsetVariableInitializer);
-                    VerifyParentOperation(this, _lazyInitializerInterlocked);
+                    IVariableInitializerOperation initializer = CreateInitializer();
+                    SetParentOperation(initializer, this);
+                    Interlocked.CompareExchange(ref _lazyInitializerInterlocked, initializer, s_unsetVariableInitializer);
                 }
 
                 return _lazyInitializerInterlocked;
@@ -7229,7 +7425,8 @@ namespace Microsoft.CodeAnalysis.Operations
     {
         private ImmutableArray<IVariableDeclarationOperation> _lazyDeclarationsInterlocked;
 
-        public LazyVariableDeclarationGroupOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(semanticModel, syntax, type, constantValue, isImplicit)
+        public LazyVariableDeclarationGroupOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+			base(semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 
@@ -7241,8 +7438,9 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 if (_lazyDeclarationsInterlocked.IsDefault)
                 {
-                    ImmutableInterlocked.InterlockedCompareExchange(ref _lazyDeclarationsInterlocked, CreateDeclarations(), default);
-                    VerifyParentOperation(this, _lazyDeclarationsInterlocked);
+                    ImmutableArray<IVariableDeclarationOperation> declarations = CreateDeclarations();
+                    SetParentOperation(declarations, this);
+                    ImmutableInterlocked.InterlockedCompareExchange(ref _lazyDeclarationsInterlocked, declarations, default);
                 }
 
                 return _lazyDeclarationsInterlocked;
@@ -7363,7 +7561,8 @@ namespace Microsoft.CodeAnalysis.Operations
         private IOperation _lazyBodyInterlocked = s_unset;
         private IOperation _lazyIgnoredConditionInterlocked = s_unset;
 
-        public LazyWhileLoopOperation(ImmutableArray<ILocalSymbol> locals, ILabelSymbol continueLabel, ILabelSymbol exitLabel, bool conditionIsTop, bool conditionIsUntil, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(locals, continueLabel, exitLabel, conditionIsTop, conditionIsUntil, semanticModel, syntax, type, constantValue, isImplicit)
+        public LazyWhileLoopOperation(ImmutableArray<ILocalSymbol> locals, ILabelSymbol continueLabel, ILabelSymbol exitLabel, bool conditionIsTop, bool conditionIsUntil, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+			base(locals, continueLabel, exitLabel, conditionIsTop, conditionIsUntil, semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 
@@ -7377,8 +7576,9 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 if (_lazyConditionInterlocked == s_unset)
                 {
-                    Interlocked.CompareExchange(ref _lazyConditionInterlocked, CreateCondition(), s_unset);
-                    VerifyParentOperation(this, _lazyConditionInterlocked);
+                    IOperation condition = CreateCondition();
+                    SetParentOperation(condition, this);
+                    Interlocked.CompareExchange(ref _lazyConditionInterlocked, condition, s_unset);
                 }
 
                 return _lazyConditionInterlocked;
@@ -7391,8 +7591,9 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 if (_lazyBodyInterlocked == s_unset)
                 {
-                    Interlocked.CompareExchange(ref _lazyBodyInterlocked, CreateBody(), s_unset);
-                    VerifyParentOperation(this, _lazyBodyInterlocked);
+                    IOperation body = CreateBody();
+                    SetParentOperation(body, this);
+                    Interlocked.CompareExchange(ref _lazyBodyInterlocked, body, s_unset);
                 }
 
                 return _lazyBodyInterlocked;
@@ -7405,8 +7606,9 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 if (_lazyIgnoredConditionInterlocked == s_unset)
                 {
-                    Interlocked.CompareExchange(ref _lazyIgnoredConditionInterlocked, CreateIgnoredCondition(), s_unset);
-                    VerifyParentOperation(this, _lazyIgnoredConditionInterlocked);
+                    IOperation ignoredCondition = CreateIgnoredCondition();
+                    SetParentOperation(ignoredCondition, this);
+                    Interlocked.CompareExchange(ref _lazyIgnoredConditionInterlocked, ignoredCondition, s_unset);
                 }
 
                 return _lazyIgnoredConditionInterlocked;
@@ -7481,7 +7683,8 @@ namespace Microsoft.CodeAnalysis.Operations
         private IOperation _lazyBodyInterlocked = s_unset;
         private IOperation _lazyValueInterlocked = s_unset;
 
-        public LazyWithOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(semanticModel, syntax, type, constantValue, isImplicit)
+        public LazyWithOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+			base(semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 
@@ -7494,8 +7697,9 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 if (_lazyBodyInterlocked == s_unset)
                 {
-                    Interlocked.CompareExchange(ref _lazyBodyInterlocked, CreateBody(), s_unset);
-                    VerifyParentOperation(this, _lazyBodyInterlocked);
+                    IOperation body = CreateBody();
+                    SetParentOperation(body, this);
+                    Interlocked.CompareExchange(ref _lazyBodyInterlocked, body, s_unset);
                 }
 
                 return _lazyBodyInterlocked;
@@ -7508,8 +7712,9 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 if (_lazyValueInterlocked == s_unset)
                 {
-                    Interlocked.CompareExchange(ref _lazyValueInterlocked, CreateValue(), s_unset);
-                    VerifyParentOperation(this, _lazyValueInterlocked);
+                    IOperation value = CreateValue();
+                    SetParentOperation(value, this);
+                    Interlocked.CompareExchange(ref _lazyValueInterlocked, value, s_unset);
                 }
 
                 return _lazyValueInterlocked;
@@ -7586,7 +7791,8 @@ namespace Microsoft.CodeAnalysis.Operations
         private IBlockOperation _lazyBodyInterlocked = s_unsetBlock;
         private IBlockOperation _lazyIgnoredBodyInterlocked = s_unsetBlock;
 
-        public LazyLocalFunctionOperation(IMethodSymbol symbol, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(symbol, semanticModel, syntax, type, constantValue, isImplicit)
+        public LazyLocalFunctionOperation(IMethodSymbol symbol, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+			base(symbol, semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 
@@ -7599,8 +7805,9 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 if (_lazyBodyInterlocked == s_unsetBlock)
                 {
-                    Interlocked.CompareExchange(ref _lazyBodyInterlocked, CreateBody(), s_unsetBlock);
-                    VerifyParentOperation(this, _lazyBodyInterlocked);
+                    IBlockOperation body = CreateBody();
+                    SetParentOperation(body, this);
+                    Interlocked.CompareExchange(ref _lazyBodyInterlocked, body, s_unsetBlock);
                 }
 
                 return _lazyBodyInterlocked;
@@ -7613,8 +7820,9 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 if (_lazyIgnoredBodyInterlocked == s_unsetBlock)
                 {
-                    Interlocked.CompareExchange(ref _lazyIgnoredBodyInterlocked, CreateIgnoredBody(), s_unsetBlock);
-                    VerifyParentOperation(this, _lazyIgnoredBodyInterlocked);
+                    IBlockOperation ignoredBody = CreateIgnoredBody();
+                    SetParentOperation(ignoredBody, this);
+                    Interlocked.CompareExchange(ref _lazyIgnoredBodyInterlocked, ignoredBody, s_unsetBlock);
                 }
 
                 return _lazyIgnoredBodyInterlocked;
@@ -7677,7 +7885,8 @@ namespace Microsoft.CodeAnalysis.Operations
     {
         private IOperation _lazyValueInterlocked = s_unset;
 
-        public LazyConstantPatternOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(semanticModel, syntax, type, constantValue, isImplicit)
+        public LazyConstantPatternOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+			base(semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 
@@ -7689,8 +7898,9 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 if (_lazyValueInterlocked == s_unset)
                 {
-                    Interlocked.CompareExchange(ref _lazyValueInterlocked, CreateValue(), s_unset);
-                    VerifyParentOperation(this, _lazyValueInterlocked);
+                    IOperation value = CreateValue();
+                    SetParentOperation(value, this);
+                    Interlocked.CompareExchange(ref _lazyValueInterlocked, value, s_unset);
                 }
 
                 return _lazyValueInterlocked;
@@ -7797,7 +8007,8 @@ namespace Microsoft.CodeAnalysis.Operations
         private IPatternOperation _lazyPatternInterlocked = s_unsetPattern;
         private IOperation _lazyGuardExpressionInterlocked = s_unset;
 
-        public LazyPatternCaseClauseOperation(ILabelSymbol label, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(label, semanticModel, syntax, type, constantValue, isImplicit)
+        public LazyPatternCaseClauseOperation(ILabelSymbol label, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+			base(label, semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 
@@ -7810,8 +8021,9 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 if (_lazyPatternInterlocked == s_unsetPattern)
                 {
-                    Interlocked.CompareExchange(ref _lazyPatternInterlocked, CreatePattern(), s_unsetPattern);
-                    VerifyParentOperation(this, _lazyPatternInterlocked);
+                    IPatternOperation pattern = CreatePattern();
+                    SetParentOperation(pattern, this);
+                    Interlocked.CompareExchange(ref _lazyPatternInterlocked, pattern, s_unsetPattern);
                 }
 
                 return _lazyPatternInterlocked;
@@ -7824,8 +8036,9 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 if (_lazyGuardExpressionInterlocked == s_unset)
                 {
-                    Interlocked.CompareExchange(ref _lazyGuardExpressionInterlocked, CreateGuard(), s_unset);
-                    VerifyParentOperation(this, _lazyGuardExpressionInterlocked);
+                    IOperation guard = CreateGuard();
+                    SetParentOperation(guard, this);
+                    Interlocked.CompareExchange(ref _lazyGuardExpressionInterlocked, guard, s_unset);
                 }
 
                 return _lazyGuardExpressionInterlocked;
@@ -7899,7 +8112,8 @@ namespace Microsoft.CodeAnalysis.Operations
         private IOperation _lazyValueInterlocked = s_unset;
         private IPatternOperation _lazyPatternInterlocked = s_unsetPattern;
 
-        public LazyIsPatternOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(semanticModel, syntax, type, constantValue, isImplicit)
+        public LazyIsPatternOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+			base(semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 
@@ -7912,8 +8126,9 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 if (_lazyValueInterlocked == s_unset)
                 {
-                    Interlocked.CompareExchange(ref _lazyValueInterlocked, CreateValue(), s_unset);
-                    VerifyParentOperation(this, _lazyValueInterlocked);
+                    IOperation value = CreateValue();
+                    SetParentOperation(value, this);
+                    Interlocked.CompareExchange(ref _lazyValueInterlocked, value, s_unset);
                 }
 
                 return _lazyValueInterlocked;
@@ -7926,8 +8141,9 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 if (_lazyPatternInterlocked == s_unsetPattern)
                 {
-                    Interlocked.CompareExchange(ref _lazyPatternInterlocked, CreatePattern(), s_unsetPattern);
-                    VerifyParentOperation(this, _lazyPatternInterlocked);
+                    IPatternOperation pattern = CreatePattern();
+                    SetParentOperation(pattern, this);
+                    Interlocked.CompareExchange(ref _lazyPatternInterlocked, pattern, s_unsetPattern);
                 }
 
                 return _lazyPatternInterlocked;
@@ -7993,7 +8209,8 @@ namespace Microsoft.CodeAnalysis.Operations
     {
         private ImmutableArray<IOperation> _lazyInitializersInterlocked;
 
-        public LazyObjectOrCollectionInitializerOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(semanticModel, syntax, type, constantValue, isImplicit)
+        public LazyObjectOrCollectionInitializerOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+			base(semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 
@@ -8005,8 +8222,9 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 if (_lazyInitializersInterlocked.IsDefault)
                 {
-                    ImmutableInterlocked.InterlockedCompareExchange(ref _lazyInitializersInterlocked, CreateInitializers(), default);
-                    VerifyParentOperation(this, _lazyInitializersInterlocked);
+                    ImmutableArray<IOperation> initializers = CreateInitializers();
+                    SetParentOperation(initializers, this);
+                    ImmutableInterlocked.InterlockedCompareExchange(ref _lazyInitializersInterlocked, initializers, default);
                 }
 
                 return _lazyInitializersInterlocked;
@@ -8081,7 +8299,8 @@ namespace Microsoft.CodeAnalysis.Operations
         private IOperation _lazyInitializedMemberInterlocked = s_unset;
         private IObjectOrCollectionInitializerOperation _lazyInitializerInterlocked = s_unsetObjectOrCollectionInitializer;
 
-        public LazyMemberInitializerOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(semanticModel, syntax, type, constantValue, isImplicit)
+        public LazyMemberInitializerOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+			base(semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 
@@ -8094,8 +8313,9 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 if (_lazyInitializedMemberInterlocked == s_unset)
                 {
-                    Interlocked.CompareExchange(ref _lazyInitializedMemberInterlocked, CreateInitializedMember(), s_unset);
-                    VerifyParentOperation(this, _lazyInitializedMemberInterlocked);
+                    IOperation initializedMember = CreateInitializedMember();
+                    SetParentOperation(initializedMember, this);
+                    Interlocked.CompareExchange(ref _lazyInitializedMemberInterlocked, initializedMember, s_unset);
                 }
 
                 return _lazyInitializedMemberInterlocked;
@@ -8108,8 +8328,9 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 if (_lazyInitializerInterlocked == s_unsetObjectOrCollectionInitializer)
                 {
-                    Interlocked.CompareExchange(ref _lazyInitializerInterlocked, CreateInitializer(), s_unsetObjectOrCollectionInitializer);
-                    VerifyParentOperation(this, _lazyInitializerInterlocked);
+                    IObjectOrCollectionInitializerOperation initializer = CreateInitializer();
+                    SetParentOperation(initializer, this);
+                    Interlocked.CompareExchange(ref _lazyInitializerInterlocked, initializer, s_unsetObjectOrCollectionInitializer);
                 }
 
                 return _lazyInitializerInterlocked;
@@ -8185,7 +8406,8 @@ namespace Microsoft.CodeAnalysis.Operations
     {
         private IOperation _lazyOperationInterlocked = s_unset;
 
-        public LazyTranslatedQueryOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(semanticModel, syntax, type, constantValue, isImplicit)
+        public LazyTranslatedQueryOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+			base(semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 
@@ -8197,8 +8419,9 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 if (_lazyOperationInterlocked == s_unset)
                 {
-                    Interlocked.CompareExchange(ref _lazyOperationInterlocked, CreateOperation(), s_unset);
-                    VerifyParentOperation(this, _lazyOperationInterlocked);
+                    IOperation operation = CreateOperation();
+                    SetParentOperation(operation, this);
+                    Interlocked.CompareExchange(ref _lazyOperationInterlocked, operation, s_unset);
                 }
 
                 return _lazyOperationInterlocked;
@@ -8418,7 +8641,8 @@ namespace Microsoft.CodeAnalysis.Operations
         private IBlockOperation _lazyBlockBodyInterlocked = s_unsetBlock;
         private IBlockOperation _lazyExpressionBodyInterlocked = s_unsetBlock;
 
-        public LazyMethodBodyOperation(SemanticModel semanticModel, SyntaxNode syntax) : base(semanticModel, syntax)
+        public LazyMethodBodyOperation(SemanticModel semanticModel, SyntaxNode syntax) :
+			base(semanticModel, syntax)
         {
         }
 
@@ -8431,8 +8655,9 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 if (_lazyBlockBodyInterlocked == s_unsetBlock)
                 {
-                    Interlocked.CompareExchange(ref _lazyBlockBodyInterlocked, CreateBlockBody(), s_unsetBlock);
-                    VerifyParentOperation(this, _lazyBlockBodyInterlocked);
+                    IBlockOperation blockBody = CreateBlockBody();
+                    SetParentOperation(blockBody, this);
+                    Interlocked.CompareExchange(ref _lazyBlockBodyInterlocked, blockBody, s_unsetBlock);
                 }
 
                 return _lazyBlockBodyInterlocked;
@@ -8445,8 +8670,9 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 if (_lazyExpressionBodyInterlocked == s_unsetBlock)
                 {
-                    Interlocked.CompareExchange(ref _lazyExpressionBodyInterlocked, CreateExpressionBody(), s_unsetBlock);
-                    VerifyParentOperation(this, _lazyExpressionBodyInterlocked);
+                    IBlockOperation expressionBody = CreateExpressionBody();
+                    SetParentOperation(expressionBody, this);
+                    Interlocked.CompareExchange(ref _lazyExpressionBodyInterlocked, expressionBody, s_unsetBlock);
                 }
 
                 return _lazyExpressionBodyInterlocked;
@@ -8522,7 +8748,8 @@ namespace Microsoft.CodeAnalysis.Operations
         private IBlockOperation _lazyBlockBodyInterlocked = s_unsetBlock;
         private IBlockOperation _lazyExpressionBodyInterlocked = s_unsetBlock;
 
-        public LazyConstructorBodyOperation(ImmutableArray<ILocalSymbol> locals, SemanticModel semanticModel, SyntaxNode syntax) : base(locals, semanticModel, syntax)
+        public LazyConstructorBodyOperation(ImmutableArray<ILocalSymbol> locals, SemanticModel semanticModel, SyntaxNode syntax) :
+			base(locals, semanticModel, syntax)
         {
         }
 
@@ -8536,8 +8763,9 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 if (_lazyInitializerInterlocked == s_unset)
                 {
-                    Interlocked.CompareExchange(ref _lazyInitializerInterlocked, CreateInitializer(), s_unset);
-                    VerifyParentOperation(this, _lazyInitializerInterlocked);
+                    IOperation initializer = CreateInitializer();
+                    SetParentOperation(initializer, this);
+                    Interlocked.CompareExchange(ref _lazyInitializerInterlocked, initializer, s_unset);
                 }
 
                 return _lazyInitializerInterlocked;
@@ -8550,8 +8778,9 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 if (_lazyBlockBodyInterlocked == s_unsetBlock)
                 {
-                    Interlocked.CompareExchange(ref _lazyBlockBodyInterlocked, CreateBlockBody(), s_unsetBlock);
-                    VerifyParentOperation(this, _lazyBlockBodyInterlocked);
+                    IBlockOperation blockBody = CreateBlockBody();
+                    SetParentOperation(blockBody, this);
+                    Interlocked.CompareExchange(ref _lazyBlockBodyInterlocked, blockBody, s_unsetBlock);
                 }
 
                 return _lazyBlockBodyInterlocked;
@@ -8564,8 +8793,9 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 if (_lazyExpressionBodyInterlocked == s_unsetBlock)
                 {
-                    Interlocked.CompareExchange(ref _lazyExpressionBodyInterlocked, CreateExpressionBody(), s_unsetBlock);
-                    VerifyParentOperation(this, _lazyExpressionBodyInterlocked);
+                    IBlockOperation expressionBody = CreateExpressionBody();
+                    SetParentOperation(expressionBody, this);
+                    Interlocked.CompareExchange(ref _lazyExpressionBodyInterlocked, expressionBody, s_unsetBlock);
                 }
 
                 return _lazyExpressionBodyInterlocked;
@@ -8665,7 +8895,8 @@ namespace Microsoft.CodeAnalysis.Operations
         private IOperation _lazyGroupInterlocked = s_unset;
         private IOperation _lazyAggregationInterlocked = s_unset;
 
-        public LazyAggregateQueryOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(semanticModel, syntax, type, constantValue, isImplicit)
+        public LazyAggregateQueryOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+			base(semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 
@@ -8678,8 +8909,9 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 if (_lazyGroupInterlocked == s_unset)
                 {
-                    Interlocked.CompareExchange(ref _lazyGroupInterlocked, CreateGroup(), s_unset);
-                    VerifyParentOperation(this, _lazyGroupInterlocked);
+                    IOperation group = CreateGroup();
+                    SetParentOperation(group, this);
+                    Interlocked.CompareExchange(ref _lazyGroupInterlocked, group, s_unset);
                 }
 
                 return _lazyGroupInterlocked;
@@ -8692,8 +8924,9 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 if (_lazyAggregationInterlocked == s_unset)
                 {
-                    Interlocked.CompareExchange(ref _lazyAggregationInterlocked, CreateAggregation(), s_unset);
-                    VerifyParentOperation(this, _lazyAggregationInterlocked);
+                    IOperation aggregation = CreateAggregation();
+                    SetParentOperation(aggregation, this);
+                    Interlocked.CompareExchange(ref _lazyAggregationInterlocked, aggregation, s_unset);
                 }
 
                 return _lazyAggregationInterlocked;
@@ -8755,7 +8988,8 @@ namespace Microsoft.CodeAnalysis.Operations
     {
         private IObjectOrCollectionInitializerOperation _lazyInitializerInterlocked = s_unsetObjectOrCollectionInitializer;
 
-        public LazyNoPiaObjectCreationOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(semanticModel, syntax, type, constantValue, isImplicit)
+        public LazyNoPiaObjectCreationOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+			base(semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 
@@ -8767,8 +9001,9 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 if (_lazyInitializerInterlocked == s_unsetObjectOrCollectionInitializer)
                 {
-                    Interlocked.CompareExchange(ref _lazyInitializerInterlocked, CreateInitializer(), s_unsetObjectOrCollectionInitializer);
-                    VerifyParentOperation(this, _lazyInitializerInterlocked);
+                    IObjectOrCollectionInitializerOperation initializer = CreateInitializer();
+                    SetParentOperation(initializer, this);
+                    Interlocked.CompareExchange(ref _lazyInitializerInterlocked, initializer, s_unsetObjectOrCollectionInitializer);
                 }
 
                 return _lazyInitializerInterlocked;
@@ -8827,7 +9062,8 @@ namespace Microsoft.CodeAnalysis.Operations
     {
         private IOperation _operandInterlocked = s_unset;
 
-        public LazyFromEndIndexOperation(bool isLifted, bool isImplicit, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, IMethodSymbol symbol) : base(isLifted, isImplicit, semanticModel, syntax, type, symbol)
+        public LazyFromEndIndexOperation(bool isLifted, bool isImplicit, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, IMethodSymbol symbol) :
+			base(isLifted, isImplicit, semanticModel, syntax, type, symbol)
         {
         }
 
@@ -8839,8 +9075,9 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 if (_operandInterlocked == s_unset)
                 {
-                    Interlocked.CompareExchange(ref _operandInterlocked, CreateOperand(), s_unset);
-                    VerifyParentOperation(this, _operandInterlocked);
+                    IOperation operand = CreateOperand();
+                    SetParentOperation(operand, this);
+                    Interlocked.CompareExchange(ref _operandInterlocked, operand, s_unset);
                 }
 
                 return _operandInterlocked;
@@ -8909,7 +9146,8 @@ namespace Microsoft.CodeAnalysis.Operations
         private IOperation _leftOperandInterlocked = s_unset;
         private IOperation _rightOperandInterlocked = s_unset;
 
-        public LazyRangeOperation(bool isLifted, bool isImplicit, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, IMethodSymbol symbol) : base(isLifted, isImplicit, semanticModel, syntax, type, symbol)
+        public LazyRangeOperation(bool isLifted, bool isImplicit, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, IMethodSymbol symbol) :
+			base(isLifted, isImplicit, semanticModel, syntax, type, symbol)
         {
         }
 
@@ -8922,8 +9160,9 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 if (_leftOperandInterlocked == s_unset)
                 {
-                    Interlocked.CompareExchange(ref _leftOperandInterlocked, CreateLeftOperand(), s_unset);
-                    VerifyParentOperation(this, _leftOperandInterlocked);
+                    IOperation leftOperand = CreateLeftOperand();
+                    SetParentOperation(leftOperand, this);
+                    Interlocked.CompareExchange(ref _leftOperandInterlocked, leftOperand, s_unset);
                 }
 
                 return _leftOperandInterlocked;
@@ -8936,8 +9175,9 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 if (_rightOperandInterlocked == s_unset)
                 {
-                    Interlocked.CompareExchange(ref _rightOperandInterlocked, CreateRightOperand(), s_unset);
-                    VerifyParentOperation(this, _rightOperandInterlocked);
+                    IOperation rightOperand = CreateRightOperand();
+                    SetParentOperation(rightOperand, this);
+                    Interlocked.CompareExchange(ref _rightOperandInterlocked, rightOperand, s_unset);
                 }
 
                 return _rightOperandInterlocked;
@@ -8993,7 +9233,8 @@ namespace Microsoft.CodeAnalysis.Operations
     {
         private ImmutableArray<IReDimClauseOperation> _lazyClausesInterlocked;
 
-        public LazyReDimOperation(bool preserve, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(preserve, semanticModel, syntax, type, constantValue, isImplicit)
+        public LazyReDimOperation(bool preserve, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+			base(preserve, semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 
@@ -9005,8 +9246,9 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 if (_lazyClausesInterlocked.IsDefault)
                 {
-                    ImmutableInterlocked.InterlockedCompareExchange(ref _lazyClausesInterlocked, CreateClauses(), default);
-                    VerifyParentOperation(this, _lazyClausesInterlocked);
+                    ImmutableArray<IReDimClauseOperation> clauses = CreateClauses();
+                    SetParentOperation(clauses, this);
+                    ImmutableInterlocked.InterlockedCompareExchange(ref _lazyClausesInterlocked, clauses, default);
                 }
 
                 return _lazyClausesInterlocked;
@@ -9068,7 +9310,8 @@ namespace Microsoft.CodeAnalysis.Operations
         private IOperation _lazyOperandInterlocked = s_unset;
         private ImmutableArray<IOperation> _lazyDimensionSizesInterlocked;
 
-        public LazyReDimClauseOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(semanticModel, syntax, type, constantValue, isImplicit)
+        public LazyReDimClauseOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+			base(semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 
@@ -9081,8 +9324,9 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 if (_lazyOperandInterlocked == s_unset)
                 {
-                    Interlocked.CompareExchange(ref _lazyOperandInterlocked, CreateOperand(), s_unset);
-                    VerifyParentOperation(this, _lazyOperandInterlocked);
+                    IOperation operand = CreateOperand();
+                    SetParentOperation(operand, this);
+                    Interlocked.CompareExchange(ref _lazyOperandInterlocked, operand, s_unset);
                 }
 
                 return _lazyOperandInterlocked;
@@ -9095,8 +9339,9 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 if (_lazyDimensionSizesInterlocked.IsDefault)
                 {
-                    ImmutableInterlocked.InterlockedCompareExchange(ref _lazyDimensionSizesInterlocked, CreateDimensionSizes(), default);
-                    VerifyParentOperation(this, _lazyDimensionSizesInterlocked);
+                    ImmutableArray<IOperation> dimensionSizes = CreateDimensionSizes();
+                    SetParentOperation(dimensionSizes, this);
+                    ImmutableInterlocked.InterlockedCompareExchange(ref _lazyDimensionSizesInterlocked, dimensionSizes, default);
                 }
 
                 return _lazyDimensionSizesInterlocked;

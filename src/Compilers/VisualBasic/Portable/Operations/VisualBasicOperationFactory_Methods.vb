@@ -213,12 +213,11 @@ Namespace Microsoft.CodeAnalysis.Operations
                 Case BoundKind.ByRefArgumentWithCopyBack
                     Dim byRefArgument = DirectCast(argument, BoundByRefArgumentWithCopyBack)
                     Dim parameter = parameters(index)
-                    Dim value = Create(byRefArgument.OriginalArgument)
 
                     Return CreateArgumentOperation(
                         ArgumentKind.Explicit,
                         parameter,
-                        value,
+                        byRefArgument.OriginalArgument,
                         CreateConversion(byRefArgument.InConversion),
                         CreateConversion(byRefArgument.OutConversion),
                         isImplicit)
@@ -234,11 +233,10 @@ Namespace Microsoft.CodeAnalysis.Operations
                         End If
                     End If
 
-                    Dim value = Create(argument)
                     Return CreateArgumentOperation(
                         kind,
                         parameters(index),
-                        value,
+                        argument,
                         New Conversion(Conversions.Identity),
                         New Conversion(Conversions.Identity),
                         isImplicit)
@@ -248,23 +246,24 @@ Namespace Microsoft.CodeAnalysis.Operations
         Private Function CreateArgumentOperation(
             kind As ArgumentKind,
             parameter As IParameterSymbol,
-            value As IOperation,
+            valueNode As BoundNode,
             inConversion As Conversion,
             outConversion As Conversion,
             isImplicit As Boolean) As IArgumentOperation
 
             ' put argument syntax to argument operation
-            Dim argument = If(value.Syntax.Kind = SyntaxKind.OmittedArgument, value.Syntax, TryCast(value.Syntax?.Parent, ArgumentSyntax))
+            Dim argument = If(valueNode.Syntax.Kind = SyntaxKind.OmittedArgument, valueNode.Syntax, TryCast(valueNode.Syntax?.Parent, ArgumentSyntax))
 
             ' if argument syntax doesn't exist, then this operation is implicit
-            Return New ArgumentOperation(
-                value,
+            Return New VisualBasicLazyArgumentOperation(
+                Me,
+                valueNode,
                 kind,
-                parameter,
                 inConversion,
                 outConversion,
+                parameter,
                 semanticModel:=_semanticModel,
-                syntax:=If(argument, value.Syntax),
+                syntax:=If(argument, valueNode.Syntax),
                 isImplicit:=isImplicit OrElse argument Is Nothing)
         End Function
 
@@ -420,7 +419,6 @@ Namespace Microsoft.CodeAnalysis.Operations
                     Dim last = DirectCast(declarationGroup.Last(), BoundLocalDeclaration)
                     If last.DeclarationInitializerOpt IsNot Nothing Then
                         Debug.Assert(last.Syntax.IsKind(SyntaxKind.ModifiedIdentifier))
-                        Dim initializerValue As IOperation = Create(last.InitializerOpt)
                         Dim declaratorSyntax = DirectCast(last.Syntax.Parent, VariableDeclaratorSyntax)
                         Dim initializerSyntax As SyntaxNode = declaratorSyntax.Initializer
 
@@ -430,17 +428,17 @@ Namespace Microsoft.CodeAnalysis.Operations
                             initializerSyntax = declaratorSyntax.AsClause
                         ElseIf initializerSyntax Is Nothing Then
                             ' There is no explicit syntax for the initializer, so we use the initializerValue's syntax and mark the operation as implicit.
-                            initializerSyntax = initializerValue.Syntax
+                            initializerSyntax = last.InitializerOpt.Syntax
                             isImplicit = True
                         End If
-                        initializer = OperationFactory.CreateVariableInitializer(initializerSyntax, initializerValue, _semanticModel, isImplicit)
+                        initializer = New VisualBasicLazyVariableInitializerOperation(Me, last.InitializerOpt, _semanticModel, initializerSyntax, type:=Nothing, constantValue:=Nothing, isImplicit)
                     End If
                 Else
                     Dim asNewDeclarations = DirectCast(first, BoundAsNewLocalDeclarations)
                     declarators = asNewDeclarations.LocalDeclarations.SelectAsArray(AddressOf GetVariableDeclarator)
                     Dim initializerSyntax As AsClauseSyntax = DirectCast(asNewDeclarations.Syntax, VariableDeclaratorSyntax).AsClause
                     Dim initializerValue As IOperation = Create(asNewDeclarations.Initializer)
-                    initializer = OperationFactory.CreateVariableInitializer(initializerSyntax, initializerValue, _semanticModel, isImplicit:=False)
+                    initializer = New VisualBasicLazyVariableInitializerOperation(Me, asNewDeclarations.Initializer, _semanticModel, initializerSyntax, type:=Nothing, constantValue:=Nothing, isImplicit:=False)
                 End If
 
                 builder.Add(New VariableDeclarationOperation(declarators,
@@ -479,11 +477,11 @@ Namespace Microsoft.CodeAnalysis.Operations
         End Function
 
         Friend Function GetAddRemoveHandlerStatementExpression(statement As BoundAddRemoveHandlerStatement) As IOperation
-            Dim eventAccess As IOperation = Create(statement.EventAccess)
-            Dim handler As IOperation = Create(statement.Handler)
+            Dim eventAccess As BoundNode = statement.EventAccess
+            Dim handler As BoundNode = statement.Handler
             Dim adds = statement.Kind = BoundKind.AddHandlerStatement
-            Return New EventAssignmentOperation(
-                eventAccess, handler, adds:=adds, semanticModel:=_semanticModel, syntax:=statement.Syntax, type:=Nothing, constantValue:=Nothing, isImplicit:=True)
+            Return New VisualBasicLazyEventAssignmentOperation(
+                Me, eventAccess, handler, adds:=adds, semanticModel:=_semanticModel, syntax:=statement.Syntax, type:=Nothing, constantValue:=Nothing, isImplicit:=True)
         End Function
 
 #Region "Conversions"

@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Assert.Equal(OperationKind.Switch, operation.Kind);
             VisitLocals(operation.Locals);
             Assert.NotNull(operation.ExitLabel);
-            AssertEx.Equal(new [] { operation.Value}.Concat(operation.Cases), operation.Children);
+            AssertEx.Equal(new[] { operation.Value }.Concat(operation.Cases), operation.Children);
         }
 
         public override void VisitSwitchCase(ISwitchCaseOperation operation)
@@ -245,7 +245,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             if (operation.Condition != null)
             {
-                children = children.Concat( new[] { operation.Condition} );
+                children = children.Concat(new[] { operation.Condition });
             }
 
             children = children.Concat(new[] { operation.Body });
@@ -283,9 +283,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             IEnumerable<IOperation> children = new[] { operation.Collection, operation.LoopControlVariable, operation.Body }.Concat(operation.NextVariables);
             AssertEx.Equal(children, operation.Children);
             ForEachLoopOperationInfo info = ((BaseForEachLoopOperation)operation).Info;
-            visitArguments(info.GetEnumeratorArguments);
-            visitArguments(info.MoveNextArguments);
-            visitArguments(info.CurrentArguments);
+            if (info != null)
+            {
+                visitArguments(info.GetEnumeratorArguments);
+                visitArguments(info.MoveNextArguments);
+                visitArguments(info.CurrentArguments);
+            }
 
             void visitArguments(ImmutableArray<IArgumentOperation> arguments)
             {
@@ -866,7 +869,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public override void VisitDynamicInvocation(IDynamicInvocationOperation operation)
         {
             Assert.Equal(OperationKind.DynamicInvocation, operation.Kind);
-            AssertEx.Equal(new[] { operation.Operation}.Concat(operation.Arguments), operation.Children);
+            AssertEx.Equal(new[] { operation.Operation }.Concat(operation.Arguments), operation.Children);
         }
 
         public override void VisitDynamicIndexerAccess(IDynamicIndexerAccessOperation operation)

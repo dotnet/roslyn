@@ -233,7 +233,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
 
                 if (advanceAssignment.Target.Kind == OperationKind.LocalReference &&
                     ((ILocalReferenceOperation)advanceAssignment.Target).Local == testVariable &&
-                    advanceAssignment.Value.Kind == OperationKind.Binary&&
+                    advanceAssignment.Value.Kind == OperationKind.Binary &&
                     advanceAssignment.Value.Type.SpecialType == SpecialType.System_Int32)
                 {
                     // Advance is known to be an assignment of a binary operation to the local used in the test.
