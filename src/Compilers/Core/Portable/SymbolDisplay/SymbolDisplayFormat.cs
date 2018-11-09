@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.ComponentModel;
 using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis
@@ -316,6 +317,12 @@ namespace Microsoft.CodeAnalysis
         public SymbolDisplayMiscellaneousOptions MiscellaneousOptions { get; }
 
         /// <summary>
+        /// Determines how constant values are displayed.
+        /// This includes values of initializers and default parameters.
+        /// </summary>
+        public SymbolDisplayConstantValueOptions ConstantValueOptions { get; }
+
+        /// <summary>
         /// Flags that can only be set within the compiler.
         /// </summary>
         internal SymbolDisplayCompilerInternalOptions CompilerInternalOptions { get; }
@@ -357,6 +364,10 @@ namespace Microsoft.CodeAnalysis
         /// <param name="miscellaneousOptions">
         /// The settings that determine other characteristics of how symbols are displayed.
         /// </param>
+        /// <param name="constantValueOptions">
+        /// The settings that determine how constant values are displayed.
+        /// This includes values of initializers and default parameters.
+        /// </param>
         public SymbolDisplayFormat(
             SymbolDisplayGlobalNamespaceStyle globalNamespaceStyle = default(SymbolDisplayGlobalNamespaceStyle),
             SymbolDisplayTypeQualificationStyle typeQualificationStyle = default(SymbolDisplayTypeQualificationStyle),
@@ -368,7 +379,8 @@ namespace Microsoft.CodeAnalysis
             SymbolDisplayPropertyStyle propertyStyle = default(SymbolDisplayPropertyStyle),
             SymbolDisplayLocalOptions localOptions = default(SymbolDisplayLocalOptions),
             SymbolDisplayKindOptions kindOptions = default(SymbolDisplayKindOptions),
-            SymbolDisplayMiscellaneousOptions miscellaneousOptions = default(SymbolDisplayMiscellaneousOptions))
+            SymbolDisplayMiscellaneousOptions miscellaneousOptions = default(SymbolDisplayMiscellaneousOptions),
+            SymbolDisplayConstantValueOptions constantValueOptions = default)
             : this(
                 default(SymbolDisplayCompilerInternalOptions),
                 globalNamespaceStyle,
@@ -381,7 +393,39 @@ namespace Microsoft.CodeAnalysis
                 propertyStyle,
                 localOptions,
                 kindOptions,
-                miscellaneousOptions)
+                miscellaneousOptions,
+                constantValueOptions)
+        {
+        }
+
+        // 15.9 BACKCOMPAT OVERLOAD -- DO NOT TOUCH
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public SymbolDisplayFormat(
+            SymbolDisplayGlobalNamespaceStyle globalNamespaceStyle,
+            SymbolDisplayTypeQualificationStyle typeQualificationStyle,
+            SymbolDisplayGenericsOptions genericsOptions,
+            SymbolDisplayMemberOptions memberOptions,
+            SymbolDisplayDelegateStyle delegateStyle,
+            SymbolDisplayExtensionMethodStyle extensionMethodStyle,
+            SymbolDisplayParameterOptions parameterOptions,
+            SymbolDisplayPropertyStyle propertyStyle,
+            SymbolDisplayLocalOptions localOptions,
+            SymbolDisplayKindOptions kindOptions,
+            SymbolDisplayMiscellaneousOptions miscellaneousOptions)
+            : this(
+                default(SymbolDisplayCompilerInternalOptions),
+                globalNamespaceStyle,
+                typeQualificationStyle,
+                genericsOptions,
+                memberOptions,
+                parameterOptions,
+                delegateStyle,
+                extensionMethodStyle,
+                propertyStyle,
+                localOptions,
+                kindOptions,
+                miscellaneousOptions,
+                constantValueOptions: default)
         {
         }
 
@@ -400,7 +444,8 @@ namespace Microsoft.CodeAnalysis
             SymbolDisplayPropertyStyle propertyStyle = default(SymbolDisplayPropertyStyle),
             SymbolDisplayLocalOptions localOptions = default(SymbolDisplayLocalOptions),
             SymbolDisplayKindOptions kindOptions = default(SymbolDisplayKindOptions),
-            SymbolDisplayMiscellaneousOptions miscellaneousOptions = default(SymbolDisplayMiscellaneousOptions))
+            SymbolDisplayMiscellaneousOptions miscellaneousOptions = default(SymbolDisplayMiscellaneousOptions),
+            SymbolDisplayConstantValueOptions constantValueOptions = default)
         {
             // If we want to display `!`, then we surely also want to display `?`
             Debug.Assert(miscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier)
@@ -417,6 +462,7 @@ namespace Microsoft.CodeAnalysis
             this.LocalOptions = localOptions;
             this.KindOptions = kindOptions;
             this.MiscellaneousOptions = miscellaneousOptions;
+            this.ConstantValueOptions = constantValueOptions;
             this.CompilerInternalOptions = compilerInternalOptions;
         }
 
@@ -441,7 +487,8 @@ namespace Microsoft.CodeAnalysis
                 this.PropertyStyle,
                 this.LocalOptions,
                 this.KindOptions,
-                options
+                options,
+                this.ConstantValueOptions
             );
         }
 
@@ -490,7 +537,8 @@ namespace Microsoft.CodeAnalysis
                 this.PropertyStyle,
                 this.LocalOptions,
                 this.KindOptions,
-                this.MiscellaneousOptions);
+                this.MiscellaneousOptions,
+                this.ConstantValueOptions);
         }
 
         /// <summary>
@@ -540,7 +588,8 @@ namespace Microsoft.CodeAnalysis
                 this.PropertyStyle,
                 this.LocalOptions,
                 this.KindOptions,
-                this.MiscellaneousOptions);
+                this.MiscellaneousOptions,
+                this.ConstantValueOptions);
         }
 
         /// <summary>
@@ -594,7 +643,8 @@ namespace Microsoft.CodeAnalysis
                 this.PropertyStyle,
                 this.LocalOptions,
                 options,
-                this.MiscellaneousOptions);
+                this.MiscellaneousOptions,
+                this.ConstantValueOptions);
         }
 
         /// <summary>
@@ -646,7 +696,8 @@ namespace Microsoft.CodeAnalysis
                 this.PropertyStyle,
                 this.LocalOptions,
                 this.KindOptions,
-                this.MiscellaneousOptions);
+                this.MiscellaneousOptions,
+                this.ConstantValueOptions);
         }
 
         /// <summary>
@@ -698,7 +749,8 @@ namespace Microsoft.CodeAnalysis
                 this.PropertyStyle,
                 this.LocalOptions,
                 this.KindOptions,
-                this.MiscellaneousOptions);
+                this.MiscellaneousOptions,
+                this.ConstantValueOptions);
         }
 
         /// <summary>
@@ -722,7 +774,8 @@ namespace Microsoft.CodeAnalysis
                 this.PropertyStyle,
                 options,
                 this.KindOptions,
-                this.MiscellaneousOptions);
+                this.MiscellaneousOptions,
+                this.ConstantValueOptions);
         }
 
         /// <summary>
@@ -754,6 +807,31 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
+        /// Creates a copy of the <see cref="SymbolDisplayFormat"/> but with replaced <see cref="ConstantValueOptions"/>.
+        /// </summary>
+        /// <param name="options">
+        /// An object representing how constant values will be displayed.
+        /// </param>
+        /// <returns>A duplicate of the <see cref="SymbolDisplayFormat"/>, with replaced <see cref="ConstantValueOptions"/>.</returns>
+        public SymbolDisplayFormat WithConstantValueOptions(SymbolDisplayConstantValueOptions options)
+        {
+            return new SymbolDisplayFormat(
+                this.CompilerInternalOptions,
+                this.GlobalNamespaceStyle,
+                this.TypeQualificationStyle,
+                this.GenericsOptions,
+                this.MemberOptions,
+                this.ParameterOptions,
+                this.DelegateStyle,
+                this.ExtensionMethodStyle,
+                this.PropertyStyle,
+                this.LocalOptions,
+                this.KindOptions,
+                this.MiscellaneousOptions,
+                options);
+        }
+
+        /// <summary>
         /// Creates a copy of the SymbolDisplayFormat but with replaced set of <seealso cref="SymbolDisplayCompilerInternalOptions"/>.
         /// </summary>
         internal SymbolDisplayFormat WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions options)
@@ -770,7 +848,8 @@ namespace Microsoft.CodeAnalysis
                 this.PropertyStyle,
                 this.LocalOptions,
                 this.KindOptions,
-                this.MiscellaneousOptions);
+                this.MiscellaneousOptions,
+                this.ConstantValueOptions);
         }
     }
 }
