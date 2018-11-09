@@ -55,7 +55,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
             var componentModel = (IComponentModel)serviceProvider.GetService(typeof(SComponentModel));
             Workspace = componentModel.GetService<VisualStudioWorkspace>();
 
-            var projectFilePath = hierarchy.GetProjectFilePath();
+            var projectFilePath = hierarchy.TryGetProjectFilePath();
 
             if (projectFilePath != null && !File.Exists(projectFilePath))
             {

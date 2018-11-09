@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
 using Microsoft.VisualStudio.LanguageServices.ProjectSystem;
+using Microsoft.VisualStudio.Shell.Interop;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.CPS
@@ -27,6 +28,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
         private readonly VisualStudioWorkspaceImpl _visualStudioWorkspace;
         private readonly IProjectCodeModel _projectCodeModel;
         private readonly ProjectExternalErrorReporter _externalErrorReporterOpt;
+        private readonly EditAndContinue.VsENCRebuildableProjectImpl _editAndContinueProject;
 
         public string DisplayName
         {
@@ -64,6 +66,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
             if (visualStudioWorkspace.Services.GetLanguageServices(visualStudioProject.Language).GetService<ICommandLineParserService>() != null)
             {
                 _visualStudioProjectOptionsProcessor = new VisualStudioProjectOptionsProcessor(_visualStudioProject, visualStudioWorkspace.Services);
+            }
+
+            // We don't have a SVsShellDebugger service in unit tests, in that case we can't implement ENC. We're OK
+            // leaving the field null in that case.
+            if (Shell.ServiceProvider.GlobalProvider.GetService(typeof(SVsShellDebugger)) != null)
+            {
+                // TODO: make this lazier, as fetching all the services up front during load shoudn't be necessary
+                _editAndContinueProject = new EditAndContinue.VsENCRebuildableProjectImpl(_visualStudioWorkspace, _visualStudioProject, Shell.ServiceProvider.GlobalProvider);
             }
 
             Guid = projectGuid;
