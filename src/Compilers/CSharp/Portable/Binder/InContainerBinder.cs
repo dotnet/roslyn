@@ -234,13 +234,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal override TypeSymbolWithAnnotations GetIteratorElementType(YieldStatementSyntax node, DiagnosticBag diagnostics)
+        internal override TypeSymbol GetIteratorElementType(YieldStatementSyntax node, DiagnosticBag diagnostics)
         {
             if (IsScriptClass)
             {
                 // This is the scenario where a `yield return` exists in the script file as a global statement.
                 // This method is to guard against hitting `BuckStopsHereBinder` and crash. 
-                return TypeSymbolWithAnnotations.Create(this.Compilation.GetSpecialType(SpecialType.System_Object));
+                return this.Compilation.GetSpecialType(SpecialType.System_Object);
             }
             else
             {

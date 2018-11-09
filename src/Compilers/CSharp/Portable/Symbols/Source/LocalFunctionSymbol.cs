@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         // Initialized in two steps. Hold a copy if accessing during initialization.
         private ImmutableArray<TypeParameterConstraintClause> _lazyTypeParameterConstraints;
         private TypeSymbolWithAnnotations _lazyReturnType;
-        private TypeSymbolWithAnnotations.Builder _iteratorElementType;
+        private TypeSymbol _iteratorElementType;
 
         // Lock for initializing lazy fields and registering their diagnostics
         // Acquire this lock when initializing lazy objects to guarantee their declaration
@@ -286,16 +286,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override TypeSymbolWithAnnotations IteratorElementType
+        internal override TypeSymbol IteratorElementType
         {
             get
             {
-                return _iteratorElementType.ToType();
+                return _iteratorElementType;
             }
             set
             {
-                Debug.Assert(_iteratorElementType.IsNull || _iteratorElementType.ToType().Equals(value, TypeCompareKind.ConsiderEverything));
-                _iteratorElementType.InterlockedInitialize(value);
+                Debug.Assert((object)_iteratorElementType == null || _iteratorElementType == value);
+                Interlocked.CompareExchange(ref _iteratorElementType, value, null);
             }
         }
 

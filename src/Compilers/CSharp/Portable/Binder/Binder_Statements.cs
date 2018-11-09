@@ -206,7 +206,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var binder = this;
 
-            TypeSymbol elementType = binder.GetIteratorElementType(node, diagnostics).TypeSymbol;
+            TypeSymbol elementType = binder.GetIteratorElementType(node, diagnostics);
             BoundExpression argument = (node.Expression == null)
                 ? BadExpression(node).MakeCompilerGenerated()
                 : binder.BindValue(node.Expression, diagnostics, BindValueKind.RValue);
@@ -1637,7 +1637,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var method = ContainingMemberOrLambda as MethodSymbol;
                 if ((object)method != null)
                 {
-                    method.IteratorElementType = GetIteratorElementType(node: null, diagnostics);
+                    method.IteratorElementType = GetIteratorElementType(null, diagnostics);
                 }
                 else
                 {

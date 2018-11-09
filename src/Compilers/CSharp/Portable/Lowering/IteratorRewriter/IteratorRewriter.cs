@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             DiagnosticBag diagnostics,
             out IteratorStateMachine stateMachineType)
         {
-            TypeSymbol elementType = method.IteratorElementType.TypeSymbol;
+            TypeSymbol elementType = method.IteratorElementType;
             if ((object)elementType == null || method.IsAsync)
             {
                 stateMachineType = null;

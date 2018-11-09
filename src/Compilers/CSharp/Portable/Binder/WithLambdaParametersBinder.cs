@@ -69,13 +69,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         // NOTE: Specifically not overriding IsIndirectlyInIterator.
 
-        internal override TypeSymbolWithAnnotations GetIteratorElementType(YieldStatementSyntax node, DiagnosticBag diagnostics)
+        internal override TypeSymbol GetIteratorElementType(YieldStatementSyntax node, DiagnosticBag diagnostics)
         {
             if (node != null)
             {
                 diagnostics.Add(ErrorCode.ERR_YieldInAnonMeth, node.YieldKeyword.GetLocation());
             }
-            return TypeSymbolWithAnnotations.Create(CreateErrorType());
+            return CreateErrorType();
         }
 
         internal override void LookupSymbolsInSingleBinder(
