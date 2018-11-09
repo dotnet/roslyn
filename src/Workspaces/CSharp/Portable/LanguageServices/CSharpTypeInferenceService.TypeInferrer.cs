@@ -1777,6 +1777,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var memberSymbol = GetDeclaredMemberSymbolFromOriginalSemanticModel(declaration);
 
                 var memberType = GetMemberType(memberSymbol, out _);
+
                 // We don't care what the type is, as long as it has 1 type argument. This will work for IEnumerable, IEnumerator,
                 // IAsyncEnumerable, IAsyncEnumerator and it's also good for error recovery in case there is a missing using.
                 return memberType is INamedTypeSymbol namedType && namedType.TypeArguments.Length == 1
