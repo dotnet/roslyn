@@ -195,6 +195,10 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
 
         private static void MarkReachableBlocks(ArrayBuilder<BasicBlockBuilder> blocks)
         {
+            // NOTE: This flow graph walking algorithm has been forked into Workspaces layer's
+            //       implementation of "CustomDataFlowAnalysis",
+            //       we should keep them in sync as much as possible.
+
             var continueDispatchAfterFinally = PooledDictionary<ControlFlowRegion, bool>.GetInstance();
             var dispatchedExceptionsFromRegions = PooledHashSet<ControlFlowRegion>.GetInstance();
             MarkReachableBlocks(blocks, firstBlockOrdinal: 0, lastBlockOrdinal: blocks.Count - 1,

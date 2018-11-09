@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
     ///     FCR0 = result
     /// </summary>
     /// <remarks>
-    /// NOTE: This type is a temporary workaround for https://github.com/dotnet/roslyn/issues/31007
+    /// NOTE: This type is a workaround for https://github.com/dotnet/roslyn/issues/31007
     /// and it can be deleted once that feature is implemented.
     /// </remarks>
     internal static class LValueFlowCapturesProvider

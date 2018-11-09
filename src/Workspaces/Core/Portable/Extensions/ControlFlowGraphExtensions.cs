@@ -2,6 +2,8 @@
 
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
+using Microsoft.CodeAnalysis.Utilities;
 
 namespace Microsoft.CodeAnalysis.FlowAnalysis
 {
@@ -16,34 +18,16 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
 
         public static BasicBlock ExitBlock(this ControlFlowGraph cfg)
         {
-            var lastBlock = cfg.Blocks[cfg.Blocks.Length - 1];
+            var lastBlock = cfg.Blocks.Last();
             Debug.Assert(lastBlock.Kind == BasicBlockKind.Exit);
             return lastBlock;
         }
 
         public static IEnumerable<IOperation> DescendantOperations(this ControlFlowGraph cfg)
-        {
-            foreach (BasicBlock block in cfg.Blocks)
-            {
-                foreach (IOperation operation in block.DescendantOperations())
-                {
-                    yield return operation;
-                }
-            }
-        }
+            => cfg.Blocks.SelectMany(b => b.DescendantOperations());
 
         public static IEnumerable<T> DescendantOperations<T>(this ControlFlowGraph cfg, OperationKind operationKind)
             where T : IOperation
-        {
-            Debug.Assert(cfg != null);
-
-            foreach (var descendant in cfg.DescendantOperations())
-            {
-                if (descendant?.Kind == operationKind)
-                {
-                    yield return (T)descendant;
-                }
-            }
-        }
+            => cfg.DescendantOperations().Where(d => d?.Kind == operationKind).Cast<T>();
     }
 }

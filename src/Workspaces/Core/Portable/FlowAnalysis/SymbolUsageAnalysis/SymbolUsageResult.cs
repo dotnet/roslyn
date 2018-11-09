@@ -2,11 +2,12 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
 {
-    internal sealed class SymbolUsageResult
+    internal readonly struct SymbolUsageResult
     {
         public SymbolUsageResult(
             ImmutableDictionary<(ISymbol symbol, IOperation write), bool> symbolWritesMap,
@@ -19,6 +20,18 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
         /// <summary>
         /// Map from each symbol write to a boolean indicating if the value assinged
         /// at write is used/read on some control flow path.
+        /// For example, consider the following code:
+        /// <code>
+        ///     int x = 0;
+        ///     x = 1;
+        ///     Console.WriteLine(x);
+        /// </code>
+        /// This map will have two entries for 'x':
+        ///     1. Key = (symbol: x, write: 'int x = 0')
+        ///        Value = 'false', because value assigned to 'x' here **is never** read. 
+        ///     2. Key = (symbol: x, write: 'x = 1')
+        ///        Value = 'true', because value assigned to 'x' here **may be** read on
+        ///        some control flow path.
         /// </summary>
         public ImmutableDictionary<(ISymbol symbol, IOperation write), bool> SymbolWritesMap { get; }
 
@@ -28,32 +41,14 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
         public ImmutableHashSet<ISymbol> SymbolsRead { get; }
 
         public bool HasUnreadSymbolWrites()
-        {
-            foreach (var kvp in SymbolWritesMap)
-            {
-                if (!kvp.Value)
-                {
-                    return true;
-                }
-            }
-
-            return false;
-        }
+            => SymbolWritesMap.Values.Any(value => !value);
 
         /// <summary>
         /// Gets symbol writes that have are never read.
         /// </summary>
         public IEnumerable<(ISymbol Symbol, IOperation WriteOperation)> GetUnreadSymbolWrites()
-        {
-            foreach (var kvp in SymbolWritesMap)
-            {
-                if (!kvp.Value)
-                {
-                    yield return kvp.Key;
-                }
-            }
-        }
-
+            => SymbolWritesMap.Where(kvp => !kvp.Value).Select(kvp => kvp.Key);
+        
         /// <summary>
         /// Returns true if the initial value of the parameter from the caller is used.
         /// </summary>
@@ -61,6 +56,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
         {
             foreach (var kvp in SymbolWritesMap)
             {
+                // 'write' operation is 'null' for the initial write of the parameter,
+                // which may be from the caller's argument or parameter initializer.
                 if (kvp.Key.write == null && kvp.Key.symbol == parameter)
                 {
                     return kvp.Value;
