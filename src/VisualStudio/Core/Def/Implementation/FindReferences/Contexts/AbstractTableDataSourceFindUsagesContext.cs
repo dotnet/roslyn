@@ -349,7 +349,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                         // If we've been cleared, then just return an empty list of entries.
                         // Otherwise return the appropriate list based on how we're currently
                         // grouping.
-                        var entries = _cleared 
+                        var entries = _cleared
                             ? ImmutableList<Entry>.Empty
                             : _currentlyGroupingByDefinition
                                 ? EntriesWhenGroupingByDefinition

@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             get { return _backgroundCompiler != null; }
         }
 
-        public TestHostDocument DocumentWithCursor 
+        public TestHostDocument DocumentWithCursor
             => Documents.Single(d => d.CursorPosition.HasValue && !d.IsLinkFile);
 
         protected override void OnDocumentTextChanged(Document document)
@@ -186,7 +186,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         {
             base.OnDocumentOpened(documentId, textContainer, isCurrentContext);
         }
-        
+
         public new void OnParseOptionsChanged(ProjectId projectId, ParseOptions parseOptions)
         {
             base.OnParseOptionsChanged(projectId, parseOptions);
@@ -275,7 +275,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         {
             var hostProject = this.GetTestProject(info.Id.ProjectId);
             var hostDocument = new TestHostDocument(
-                text.ToString(), info.Name, info.SourceCodeKind, 
+                text.ToString(), info.Name, info.SourceCodeKind,
                 info.Id, folders: info.Folders);
             hostProject.AddDocument(hostDocument);
             this.OnDocumentAdded(hostDocument.ToDocumentInfo());
@@ -367,7 +367,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         /// <param name="baseDocuments">The set of documents from which the projection buffer 
         /// document will be composed.</param>
         /// <returns></returns>
-        public TestHostDocument CreateProjectionBufferDocument(string markup, IList<TestHostDocument> baseDocuments, string languageName, string path = "projectionbufferdocumentpath", ProjectionBufferOptions options = ProjectionBufferOptions.None, IProjectionEditResolver editResolver = null)
+        public TestHostDocument CreateProjectionBufferDocument(
+            string markup,
+            IList<TestHostDocument> baseDocuments,
+            string languageName,
+            string path = "projectionbufferdocumentpath",
+            ProjectionBufferOptions options = ProjectionBufferOptions.None,
+            IProjectionEditResolver editResolver = null)
         {
             GetSpansAndCaretFromSurfaceBufferMarkup(markup, baseDocuments,
                 out var projectionBufferSpans, out Dictionary<string, ImmutableArray<TextSpan>> mappedSpans, out var mappedCaretLocation);
@@ -378,8 +384,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             // Add in mapped spans from each of the base documents
             foreach (var document in baseDocuments)
             {
-                mappedSpans[string.Empty] = mappedSpans.ContainsKey(string.Empty) 
-                    ? mappedSpans[string.Empty] 
+                mappedSpans[string.Empty] = mappedSpans.ContainsKey(string.Empty)
+                    ? mappedSpans[string.Empty]
                     : ImmutableArray<TextSpan>.Empty;
                 foreach (var span in document.SelectedSpans)
                 {
@@ -395,7 +401,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 foreach (var kvp in document.AnnotatedSpans)
                 {
                     mappedSpans[kvp.Key] = mappedSpans.ContainsKey(kvp.Key)
-                        ? mappedSpans[kvp.Key] 
+                        ? mappedSpans[kvp.Key]
                         : ImmutableArray<TextSpan>.Empty;
 
                     foreach (var span in kvp.Value)
@@ -422,7 +428,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         }
 
         private void GetSpansAndCaretFromSurfaceBufferMarkup(
-            string markup, IList<TestHostDocument> baseDocuments, 
+            string markup, IList<TestHostDocument> baseDocuments,
             out IList<object> projectionBufferSpans,
             out Dictionary<string, ImmutableArray<TextSpan>> mappedMarkupSpans, out int? mappedCaretLocation)
         {
@@ -539,7 +545,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
                     foreach (var projectionSpan in projectionBufferSpans)
                     {
-
                         if (projectionSpan is string text)
                         {
                             if (spanStartLocation == null && positionInMarkup <= markupSpanStart && markupSpanStart <= positionInMarkup + text.Length)
