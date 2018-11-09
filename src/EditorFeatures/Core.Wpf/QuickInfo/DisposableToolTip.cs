@@ -11,22 +11,22 @@ namespace Microsoft.CodeAnalysis.Editor.QuickInfo
     internal sealed class DisposableToolTip : IDisposable
     {
         public readonly ToolTip ToolTip;
-        private PreviewWorkspace _workspace;
+        private PreviewWorkspace _workspaceOpt;
 
         private bool _disposed;
 
-        public DisposableToolTip(ToolTip toolTip, PreviewWorkspace workspace)
+        public DisposableToolTip(ToolTip toolTip, PreviewWorkspace workspaceOpt)
         {
             ToolTip = toolTip;
-            _workspace = workspace;
+            _workspaceOpt = workspaceOpt;
         }
 
         public void Dispose()
         {
             Debug.Assert(!_disposed);
             _disposed = true;
-            _workspace.Dispose();
-            _workspace = null;
+            _workspaceOpt?.Dispose();
+            _workspaceOpt = null;
         }
     }
 }
