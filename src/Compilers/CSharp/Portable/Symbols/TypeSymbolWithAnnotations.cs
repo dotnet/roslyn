@@ -372,7 +372,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     // If nullability on both sides matches - result is that nullability (trivial cases like these are handled before the switch)
                     // If either candidate is "oblivious" - result is the nullability of the other candidate
-                    // Otherwise - we declare a mismatch and result is "oblivious". 
+                    // Otherwise - we declare a mismatch and result is not nullable. 
 
                     if (a == NullableAnnotation.Unknown)
                     {
@@ -403,7 +403,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
 
                     hadNullabilityMismatch = true;
-                    return NullableAnnotation.Unknown;
+                    return NullableAnnotation.NotNullable;
             }
         }
 
