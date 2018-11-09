@@ -1,7 +1,7 @@
 ﻿<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net46</TargetFramework>
+    <TargetFramework>net472</TargetFramework>
     <RoslynProjectType>Custom</RoslynProjectType>
 
     <!-- The package is inserted to Visual Studio CoreXT package store -->
@@ -84,9 +84,9 @@
       <_File Include="$(_Dlls)Microsoft.CodeAnalysis.VisualBasic.Features\Microsoft.CodeAnalysis.VisualBasic.Features.dll" TargetDir="" />
       <_File Include="$(_Dlls)Microsoft.CodeAnalysis.VisualBasic.Workspaces\Microsoft.CodeAnalysis.VisualBasic.Workspaces.dll" TargetDir="" />
       <_File Include="$(_Dlls)Microsoft.CodeAnalysis.VisualBasic\Microsoft.CodeAnalysis.VisualBasic.dll" TargetDir="" />
-      <_File Include="$(_Dlls)Microsoft.CodeAnalysis.Workspaces.Desktop\Microsoft.CodeAnalysis.Workspaces.Desktop.dll" TargetDir="" />
-      <_File Include="$(_Dlls)Microsoft.CodeAnalysis.Workspaces.MSBuild\net46\Microsoft.CodeAnalysis.Workspaces.MSBuild.dll" TargetDir="" />
+      <_File Include="$(_Dlls)Microsoft.CodeAnalysis.Workspaces.MSBuild\net472\Microsoft.CodeAnalysis.Workspaces.MSBuild.dll" TargetDir="" />
       <_File Include="$(_Dlls)Microsoft.CodeAnalysis.Workspaces\Microsoft.CodeAnalysis.Workspaces.dll" TargetDir="" />
+      <_File Include="$(_Dlls)Microsoft.CodeAnalysis.Workspaces.Desktop\Microsoft.CodeAnalysis.Workspaces.Desktop.dll" TargetDir="" />
       <_File Include="$(_Dlls)Microsoft.VisualStudio.LanguageServices.CSharp\Microsoft.VisualStudio.LanguageServices.CSharp.dll" TargetDir="" />
       <_File Include="$(_Dlls)Microsoft.VisualStudio.LanguageServices.Implementation\Microsoft.VisualStudio.LanguageServices.Implementation.dll" TargetDir="" />
       <_File Include="$(_Dlls)Microsoft.VisualStudio.LanguageServices.Razor.RemoteClient\Microsoft.VisualStudio.LanguageServices.Razor.RemoteClient.dll" TargetDir="" />
@@ -98,20 +98,21 @@
       <_File Include="$(_Dlls)Microsoft.CodeAnalysis.ResultProvider\Microsoft.CodeAnalysis.ExpressionEvaluator.ResultProvider.dll" TargetDir="" />
       <_File Include="$(_Dlls)Microsoft.CodeAnalysis.CSharp.ResultProvider\Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.ResultProvider.dll" TargetDir="" />
       <_File Include="$(_Dlls)Microsoft.CodeAnalysis.VisualBasic.ResultProvider\Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.ResultProvider.dll" TargetDir="" />
-      <_File Include="$(_Dlls)Microsoft.CodeAnalysis.FunctionResolver\Microsoft.CodeAnalysis.ExpressionEvaluator.FunctionResolver.dll" TargetDir="" />
+      <_File Include="$(_Dlls)Microsoft.CodeAnalysis.FunctionResolver\netstandard1.3\Microsoft.CodeAnalysis.ExpressionEvaluator.FunctionResolver.dll" TargetDir="" />
       <_File Include="$(_Dlls)Microsoft.CodeAnalysis.VisualBasic.ExpressionCompiler\Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.ExpressionCompiler.dll" TargetDir="" />
       <_File Include="$(_Dlls)Microsoft.CodeAnalysis.CSharp.ExpressionCompiler\Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.ExpressionCompiler.dll" TargetDir="" />
       <_File Include="$(_Dlls)Microsoft.CodeAnalysis.ExpressionCompiler\Microsoft.CodeAnalysis.ExpressionEvaluator.ExpressionCompiler.dll" TargetDir="" />
 
-      <_File Include="$(_Dlls)BasicResultProvider.NetFX20\Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.ResultProvider.dll" TargetDir="Dlls\BasicResultProvider.NetFX20" />
-      <_File Include="$(_Dlls)CSharpResultProvider.NetFX20\Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.ResultProvider.dll" TargetDir="Dlls\CSharpResultProvider.NetFX20" />
-      <_File Include="$(_Dlls)ResultProvider.NetFX20\Microsoft.CodeAnalysis.ExpressionEvaluator.ResultProvider.dll" TargetDir="Dlls\ResultProvider.NetFX20" />
+      <_File Include="$(_Dlls)BasicResultProvider.NetFX20\Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.ResultProvider.dll" TargetDir="RemoteDebugger\net20" />
+      <_File Include="$(_Dlls)CSharpResultProvider.NetFX20\Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.ResultProvider.dll" TargetDir="RemoteDebugger\net20" />
+      <_File Include="$(_Dlls)ResultProvider.NetFX20\Microsoft.CodeAnalysis.ExpressionEvaluator.ResultProvider.dll" TargetDir="RemoteDebugger\net20" />
+      <_File Include="$(_Dlls)Microsoft.CodeAnalysis.FunctionResolver\net45\Microsoft.CodeAnalysis.ExpressionEvaluator.FunctionResolver.dll" TargetDir="RemoteDebugger\net45" />
 
       <_File Include="$(_Dlls)Microsoft.CodeAnalysis.CSharp.ResultProvider\Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.ResultProvider.vsdconfig" TargetDir="LanguageServiceRegistration\ExpressionEvaluatorPackage" />
       <_File Include="$(_Dlls)Microsoft.CodeAnalysis.CSharp.ExpressionCompiler\Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.ExpressionCompiler.vsdconfig" TargetDir="LanguageServiceRegistration\ExpressionEvaluatorPackage" />
       <_File Include="$(_Dlls)Microsoft.CodeAnalysis.VisualBasic.ResultProvider\Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.ResultProvider.vsdconfig" TargetDir="LanguageServiceRegistration\ExpressionEvaluatorPackage" />
       <_File Include="$(_Dlls)Microsoft.VisualStudio.LanguageServices\Microsoft.VisualStudio.LanguageServices.vsdconfig" TargetDir="LanguageServiceRegistration\ExpressionEvaluatorPackage" />
-      <_File Include="$(_Dlls)Microsoft.CodeAnalysis.FunctionResolver\Microsoft.CodeAnalysis.ExpressionEvaluator.FunctionResolver.vsdconfig" TargetDir="LanguageServiceRegistration\ExpressionEvaluatorPackage" />
+      <_File Include="$(_Dlls)Microsoft.CodeAnalysis.FunctionResolver\netstandard1.3\Microsoft.CodeAnalysis.ExpressionEvaluator.FunctionResolver.vsdconfig" TargetDir="LanguageServiceRegistration\ExpressionEvaluatorPackage" />
       <_File Include="$(_Dlls)Microsoft.CodeAnalysis.VisualBasic.ExpressionCompiler\Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.ExpressionCompiler.vsdconfig" TargetDir="LanguageServiceRegistration\ExpressionEvaluatorPackage" />
 
       <!-- Include a few dependencies of Roslyn. These right now are consumed out of the ExternalAPIs NuGet package to do assembly consistency checking in the main VS

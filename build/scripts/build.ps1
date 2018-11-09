@@ -251,7 +251,9 @@ function Build-Artifacts() {
     }
 
     if ($build -and $pack -and (-not $buildCoreClr)) {
-        Build-InsertionItems
+        if ($official){
+            Build-OptProfData
+        }
     }
 
     if ($cibuild) {
@@ -260,17 +262,23 @@ function Build-Artifacts() {
     }
 }
 
-function Build-InsertionItems() {
+function Build-OptProfData() {
+    $optProfToolDir = Get-PackageDir "RoslynTools.OptProf"
+    $optProfToolExe = Join-Path $optProfToolDir "tools\roslyn.optprof.exe"
+    $configFile = Join-Path $RepoRoot "build\config\optprof.json"
+    $insertionFolder = Join-Path $vsSetupDir "Insertion"
+    $outputFolder = Join-Path $configDir "DevDivInsertionFiles\OptProf"
+    Write-Host "Generating optprof data using '$configFile' into '$outputFolder'"
+    $optProfArgs = "--configFile $configFile --insertionFolder $insertionFolder --outputFolder $outputFolder"
+    Exec-Console $optProfToolExe $optProfArgs
 
-    $setupDir = Join-Path $RepoRoot "src\Setup"
-    Push-Location $setupDir
-    try {
-        Write-Host "Building VS Insertion artifacts"
-        Exec-Console (Join-Path $configDir "Exes\Roslyn.BuildDevDivInsertionFiles\Roslyn.BuildDevDivInsertionFiles.exe") "$configDir $(Get-PackagesDir)"
-    }
-    finally {
-        Pop-Location
-    }
+    # Write Out Branch we are inserting into
+    $vsBranchFolder = Join-Path $configDir "DevDivInsertionFiles\BranchInfo"
+    New-Item -ItemType Directory -Force -Path $vsBranchFolder
+    $vsBranchText = Join-Path $vsBranchFolder "vsbranch.txt"
+    # InsertTargetBranchFullName is defined in .vsts-ci.yml
+    $vsBranch = $Env:InsertTargetBranchFullName
+    $vsBranch >> $vsBranchText
 }
 
 function Build-CheckLocStatus() {
@@ -350,7 +358,7 @@ function Test-XUnit() {
 
     $unitDir = Join-Path $configDir "UnitTests"
     $runTests = Join-Path $configDir "Exes\RunTests\RunTests.exe"
-    $xunitDir = Join-Path (Get-PackageDir "xunit.runner.console") "tools\net452"
+    $xunitDir = Join-Path (Get-PackageDir "xunit.runner.console") "tools\net472"
     $args = "$xunitDir"
     $args += " -logpath:$logsDir"
     $args += " -nocache"

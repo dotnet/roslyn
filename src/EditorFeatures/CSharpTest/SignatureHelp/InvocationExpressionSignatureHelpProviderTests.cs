@@ -2365,5 +2365,34 @@ class C
 
             await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger: true);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        public async Task PickCorrectOverload_WithCorrectSelectionAfterFilteringOutNoApplicableItems()
+        {
+            var markup = @"
+class Comparer
+{
+    public static bool Equals(object x, object y) => true;
+    public bool Equals(object x) => true;
+    public bool Equals(string x, string y) => true;
+}
+
+class Program
+{
+    static void Main(string x, string y)
+    {
+        var comparer = new Comparer();
+        comparer.Equals(x, y$$);
+    }
+}";
+
+            var expectedOrderedItems = new List<SignatureHelpTestItem>
+            {
+                new SignatureHelpTestItem("bool Comparer.Equals(object x)", currentParameterIndex: 1),
+                new SignatureHelpTestItem("bool Comparer.Equals(string x, string y)", currentParameterIndex: 1, isSelected: true),
+            };
+
+            await TestAsync(markup, expectedOrderedItems);
+        }
     }
 }

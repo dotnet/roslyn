@@ -224,7 +224,7 @@
       </trans-unit>
       <trans-unit id="given_workspace_doesn_t_support_undo">
         <source>given workspace doesn't support undo</source>
-        <target state="translated">o espaço de trabalho fornecido não dá suporte a desfazer</target>
+        <target state="translated">o workspace fornecido não dá suporte a desfazer</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_a_reference_to_0">
@@ -359,7 +359,7 @@
       </trans-unit>
       <trans-unit id="The_given_DocumentId_did_not_come_from_the_Visual_Studio_workspace">
         <source>The given DocumentId did not come from the Visual Studio workspace.</source>
-        <target state="translated">O DocumentId fornecido não veio do espaço de trabalho do Visual Studio.</target>
+        <target state="translated">O DocumentId fornecido não veio do workspace do Visual Studio.</target>
         <note />
       </trans-unit>
       <trans-unit id="Project_colon_0_1_Use_the_dropdown_to_view_and_switch_to_other_projects_this_file_may_belong_to">
@@ -731,12 +731,12 @@ Use a lista suspensa para exibir e mudar entre outros projetos aos quais este ar
       </trans-unit>
       <trans-unit id="This_workspace_only_supports_opening_documents_on_the_UI_thread">
         <source>This workspace only supports opening documents on the UI thread.</source>
-        <target state="translated">Este espaço de trabalho só dá suporte à abertura de documentos no thread da interface do usuário.</target>
+        <target state="translated">Este workspace só dá suporte à abertura de documentos no thread da interface do usuário.</target>
         <note />
       </trans-unit>
       <trans-unit id="This_workspace_does_not_support_updating_Visual_Basic_parse_options">
         <source>This workspace does not support updating Visual Basic parse options.</source>
-        <target state="translated">Este espaço de trabalho não dá suporte à atualização das opções de análise do Visual Basic.</target>
+        <target state="translated">Este workspace não dá suporte à atualização das opções de análise do Visual Basic.</target>
         <note />
       </trans-unit>
       <trans-unit id="Synchronize_0">
