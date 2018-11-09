@@ -19,6 +19,17 @@ namespace Microsoft.CodeAnalysis.Utilities
         /// Initializes a target reference type by using a specified asynchronous function if it hasn't already been
         /// initialized.
         /// </summary>
+        /// <remarks>
+        /// <para>This method may only be used on reference types, and <paramref name="valueFactory"/> may not return
+        /// <see langword="null"/>.</para>
+        ///
+        /// <para>This method may be used concurrently by multiple threads to initialize the target returned by
+        /// <paramref name="targetAccessor"/>. In the event that multiple threads access this method concurrently,
+        /// multiple instances of <typeparamref name="T"/> may be created, but only one will be stored into
+        /// the target. In such an occurrence, this method will not dispose of the objects that were not stored. If such
+        /// objects must be disposed, it is up to the caller to determine if an object was not used and to then dispose
+        /// of the object appropriately.</para>
+        /// </remarks>
         /// <typeparam name="T">The reference type of the reference to be initialized.</typeparam>
         /// <param name="targetAccessor">An accessor that provides a reference of type <typeparamref name="T"/> to initialize if it hasn't already been initialized.</param>
         /// <param name="valueFactory">The function that is called to initialize the reference.</param>
@@ -46,6 +57,17 @@ namespace Microsoft.CodeAnalysis.Utilities
         /// Initializes a target reference type by using a specified asynchronous function if it hasn't already been
         /// initialized.
         /// </summary>
+        /// <remarks>
+        /// <para>This method may only be used on reference types, and <paramref name="valueFactory"/> may not return
+        /// <see langword="null"/>.</para>
+        ///
+        /// <para>This method may be used concurrently by multiple threads to initialize the target returned by
+        /// <paramref name="targetAccessor"/>. In the event that multiple threads access this method concurrently,
+        /// multiple instances of <typeparamref name="T"/> may be created, but only one will be stored into
+        /// the target. In such an occurrence, this method will not dispose of the objects that were not stored. If such
+        /// objects must be disposed, it is up to the caller to determine if an object was not used and to then dispose
+        /// of the object appropriately.</para>
+        /// </remarks>
         /// <typeparam name="T">The reference type of the reference to be initialized.</typeparam>
         /// <typeparam name="TState">The type of the state object to pass to the accessor and value factory.</typeparam>
         /// <param name="targetAccessor">An accessor that provides a reference of type <typeparamref name="T"/> to initialize if it hasn't already been initialized.</param>
