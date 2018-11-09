@@ -209,6 +209,160 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         }
         #endregion
 
+        #region User Identifier - Field Name 
+        [Export(typeof(EditorFormatDefinition))]
+        [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.FieldName)]
+        [Name(ClassificationTypeNames.FieldName)]
+        [Order(After = PredefinedClassificationTypeNames.Identifier)]
+        [Order(After = PredefinedClassificationTypeNames.Keyword)]
+        [UserVisible(true)]
+        [ExcludeFromCodeCoverage]
+        private class UserIdentifierFieldNameFormatDefinition : ClassificationFormatDefinition
+        {
+            private UserIdentifierFieldNameFormatDefinition()
+            {
+                this.DisplayName = "User Identifier - Field Name"; // EditorFeaturesResources.User_Types_Type_Parameters;
+                //this.ForegroundColor = Color.FromRgb(0x2B, 0x91, 0xAF);
+            }
+        }
+        #endregion
+        #region User Identifier - Enum Member Name 
+        [Export(typeof(EditorFormatDefinition))]
+        [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.EnumMemberName)]
+        [Name(ClassificationTypeNames.EnumMemberName)]
+        [Order(After = PredefinedClassificationTypeNames.Identifier)]
+        [Order(After = PredefinedClassificationTypeNames.Keyword)]
+        [UserVisible(true)]
+        [ExcludeFromCodeCoverage]
+        private class UserIdentifierEnumMemberNameFormatDefinition : ClassificationFormatDefinition
+        {
+            private UserIdentifierEnumMemberNameFormatDefinition()
+            {
+                this.DisplayName = "User Identifier - Enum Member Name"; // EditorFeaturesResources.User_Types_Type_Parameters;
+                //this.ForegroundColor = Color.FromRgb(0x2B, 0x91, 0xAF);
+            }
+        }
+        #endregion
+        #region User Identifier - Constant Name 
+        [Export(typeof(EditorFormatDefinition))]
+        [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.ConstantName)]
+        [Name(ClassificationTypeNames.ConstantName)]
+        [Order(After = PredefinedClassificationTypeNames.Identifier)]
+        [Order(After = PredefinedClassificationTypeNames.Keyword)]
+        [UserVisible(true)]
+        [ExcludeFromCodeCoverage]
+        private class UserIdentifierConstantNameFormatDefinition : ClassificationFormatDefinition
+        {
+            private UserIdentifierConstantNameFormatDefinition()
+            {
+                this.DisplayName = "User Identifier - Constant Name"; // EditorFeaturesResources.User_Types_Type_Parameters;
+                //this.ForegroundColor = Color.FromRgb(0x2B, 0x91, 0xAF);
+            }
+        }
+        #endregion
+        #region User Identifier - Local Name 
+        [Export(typeof(EditorFormatDefinition))]
+        [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.LocalName)]
+        [Name(ClassificationTypeNames.LocalName)]
+        [Order(After = PredefinedClassificationTypeNames.Identifier)]
+        [Order(After = PredefinedClassificationTypeNames.Keyword)]
+        [UserVisible(true)]
+        [ExcludeFromCodeCoverage]
+        private class UserIdentifierLocalNameFormatDefinition : ClassificationFormatDefinition
+        {
+            private UserIdentifierLocalNameFormatDefinition()
+            {
+                this.DisplayName = "User Identifier - Local Name"; // EditorFeaturesResources.User_Types_Type_Parameters;
+                //this.ForegroundColor = Color.FromRgb(0x2B, 0x91, 0xAF);
+            }
+        }
+        #endregion
+        #region User Identifier - Parameter Name 
+        [Export(typeof(EditorFormatDefinition))]
+        [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.ParameterName)]
+        [Name(ClassificationTypeNames.ParameterName)]
+        [Order(After = PredefinedClassificationTypeNames.Identifier)]
+        [Order(After = PredefinedClassificationTypeNames.Keyword)]
+        [UserVisible(true)]
+        [ExcludeFromCodeCoverage]
+        private class UserIdentifierParameterNameFormatDefinition : ClassificationFormatDefinition
+        {
+            private UserIdentifierParameterNameFormatDefinition()
+            {
+                this.DisplayName = "User Identifier - Parameter Name"; // EditorFeaturesResources.User_Types_Type_Parameters;
+                //this.ForegroundColor = Color.FromRgb(0x2B, 0x91, 0xAF);
+            }
+        }
+        #endregion
+        #region User Identifier - Method Name 
+        [Export(typeof(EditorFormatDefinition))]
+        [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.MethodName)]
+        [Name(ClassificationTypeNames.MethodName)]
+        [Order(After = PredefinedClassificationTypeNames.Identifier)]
+        [Order(After = PredefinedClassificationTypeNames.Keyword)]
+        [UserVisible(true)]
+        [ExcludeFromCodeCoverage]
+        private class UserIdentifierMethodNameFormatDefinition : ClassificationFormatDefinition
+        {
+            private UserIdentifierMethodNameFormatDefinition()
+            {
+                this.DisplayName = "User Identifier - Method Name"; // EditorFeaturesResources.User_Types_Type_Parameters;
+                //this.ForegroundColor = Color.FromRgb(0x2B, 0x91, 0xAF);
+            }
+        }
+        #endregion
+        #region User Identifier - Extension Method Name 
+        [Export(typeof(EditorFormatDefinition))]
+        [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.ExtensionMethodName)]
+        [Name(ClassificationTypeNames.ExtensionMethodName)]
+        [Order(After = PredefinedClassificationTypeNames.Identifier)]
+        [Order(After = PredefinedClassificationTypeNames.Keyword)]
+        [UserVisible(true)]
+        [ExcludeFromCodeCoverage]
+        private class UserIdentifierExtensionMethodNameFormatDefinition : ClassificationFormatDefinition
+        {
+            private UserIdentifierExtensionMethodNameFormatDefinition()
+            {
+                this.DisplayName = "User Identifier - Extension Method Name"; // EditorFeaturesResources.User_Types_Type_Parameters;
+                //this.ForegroundColor = Color.FromRgb(0x2B, 0x91, 0xAF);
+            }
+        }
+        #endregion
+        #region User Identifier - Property Name 
+        [Export(typeof(EditorFormatDefinition))]
+        [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.PropertyName)]
+        [Name(ClassificationTypeNames.PropertyName)]
+        [Order(After = PredefinedClassificationTypeNames.Identifier)]
+        [Order(After = PredefinedClassificationTypeNames.Keyword)]
+        [UserVisible(true)]
+        [ExcludeFromCodeCoverage]
+        private class UserIdentifierPropertyNameFormatDefinition : ClassificationFormatDefinition
+        {
+            private UserIdentifierPropertyNameFormatDefinition()
+            {
+                this.DisplayName = "User Identifier - Property Name"; // EditorFeaturesResources.User_Types_Type_Parameters;
+                //this.ForegroundColor = Color.FromRgb(0x2B, 0x91, 0xAF);
+            }
+        }
+        #endregion
+        #region User Identifier - Event Name 
+        [Export(typeof(EditorFormatDefinition))]
+        [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.EventName)]
+        [Name(ClassificationTypeNames.EventName)]
+        [Order(After = PredefinedClassificationTypeNames.Identifier)]
+        [Order(After = PredefinedClassificationTypeNames.Keyword)]
+        [UserVisible(true)]
+        [ExcludeFromCodeCoverage]
+        private class UserIdentifierEventNameFormatDefinition : ClassificationFormatDefinition
+        {
+            private UserIdentifierEventNameFormatDefinition()
+            {
+                this.DisplayName = "User Identifier - Event Name"; // EditorFeaturesResources.User_Types_Type_Parameters;
+                //this.ForegroundColor = Color.FromRgb(0x2B, 0x91, 0xAF);
+            }
+        }
+        #endregion
+
         #region XML Doc Comments - Attribute Name 
         [Export(typeof(EditorFormatDefinition))]
         [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.XmlDocCommentAttributeName)]
