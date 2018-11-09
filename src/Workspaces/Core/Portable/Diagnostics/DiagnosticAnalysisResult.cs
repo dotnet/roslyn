@@ -1,8 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Host;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
@@ -100,8 +102,9 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
             // so we put everything in as semantic local with default version. this lets us to replace those to live diagnostics when needed easily.
             var version = VersionStamp.Default;
 
-            // filter out any document that doesn't support diagnostics
-            var group = diagnostics.GroupBy(d => d.DocumentId);
+            // filter out any document that doesn't support diagnostics.
+            // g.Key == null means diagnostics on the project which assigned to "others" error category
+            var group = diagnostics.GroupBy(d => d.DocumentId).Where(g => g.Key == null || project.GetDocument(g.Key).SupportsDiagnostics()).ToList();
 
             var result = new DiagnosticAnalysisResult(
                 project.Id,
@@ -117,7 +120,7 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
         }
 
         public static DiagnosticAnalysisResult CreateFromSerialization(
-            ProjectId projectId,
+            Project project,
             VersionStamp version,
             ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>> syntaxLocalMap,
             ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>> semanticLocalMap,
@@ -125,8 +128,12 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
             ImmutableArray<DiagnosticData> others,
             ImmutableHashSet<DocumentId> documentIds = null)
         {
+            VerifyDocumentMap(project, syntaxLocalMap);
+            VerifyDocumentMap(project, semanticLocalMap);
+            VerifyDocumentMap(project, nonLocalMap);
+
             return new DiagnosticAnalysisResult(
-                projectId,
+                project.Id,
                 version,
                 syntaxLocalMap,
                 semanticLocalMap,
@@ -139,7 +146,7 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
         public static DiagnosticAnalysisResult CreateFromBuilder(DiagnosticAnalysisResultBuilder builder)
         {
             return CreateFromSerialization(
-                builder.Project.Id,
+                builder.Project,
                 builder.Version,
                 builder.SyntaxLocals,
                 builder.SemanticLocals,
@@ -232,6 +239,15 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
             }
 
             return ImmutableHashSet.CreateRange(documents);
+        }
+
+        [Conditional("DEBUG")]
+        private static void VerifyDocumentMap(Project project, ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>> map)
+        {
+            foreach (var documentId in map.Keys)
+            {
+                Debug.Assert(project.GetDocument(documentId)?.SupportsDiagnostics() == true);
+            }
         }
     }
 }

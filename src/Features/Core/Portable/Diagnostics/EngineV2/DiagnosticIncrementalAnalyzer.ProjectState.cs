@@ -7,6 +7,7 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Experimentation;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Shared.Options;
 using Microsoft.CodeAnalysis.Workspaces.Diagnostics;
 using Roslyn.Utilities;
@@ -82,7 +83,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 // loading data can be cancelled any time.
                 var serializer = new DiagnosticDataSerializer(_owner.AnalyzerVersion, lastResult.Version);
-                var builder = new Builder(project.Id, lastResult.Version, lastResult.DocumentIds);
+                var builder = new Builder(project, lastResult.Version, lastResult.DocumentIds);
 
                 foreach (var documentId in lastResult.DocumentIds)
                 {
@@ -141,7 +142,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 // loading data can be cancelled any time.
                 var serializer = new DiagnosticDataSerializer(_owner.AnalyzerVersion, lastResult.Version);
-                var builder = new Builder(document.Project.Id, lastResult.Version);
+                var builder = new Builder(document.Project, lastResult.Version);
 
                 if (!await TryDeserializeDocumentAsync(serializer, document, builder, cancellationToken).ConfigureAwait(false))
                 {
@@ -182,7 +183,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 // loading data can be cancelled any time.
                 var serializer = new DiagnosticDataSerializer(_owner.AnalyzerVersion, lastResult.Version);
-                var builder = new Builder(project.Id, lastResult.Version);
+                var builder = new Builder(project, lastResult.Version);
 
                 if (!await TryDeserializeAsync(serializer, project, project.Id, _owner.NonLocalStateName, s_addOthers, builder, cancellationToken).ConfigureAwait(false))
                 {
@@ -300,7 +301,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 // loading data can be cancelled any time.
                 var version = await GetDiagnosticVersionAsync(project, cancellationToken).ConfigureAwait(false);
                 var serializer = new DiagnosticDataSerializer(_owner.AnalyzerVersion, version);
-                var builder = new Builder(project.Id, version);
+                var builder = new Builder(project, version);
 
                 foreach (var document in project.Documents)
                 {
@@ -327,7 +328,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 var version = await GetDiagnosticVersionAsync(project, cancellationToken).ConfigureAwait(false);
                 var serializer = new DiagnosticDataSerializer(_owner.AnalyzerVersion, version);
-                var builder = new Builder(project.Id, version);
+                var builder = new Builder(project, version);
 
                 if (!await TryDeserializeDocumentAsync(serializer, document, builder, cancellationToken).ConfigureAwait(false))
                 {
@@ -342,7 +343,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 // loading data can be cancelled any time.
                 var version = await GetDiagnosticVersionAsync(project, cancellationToken).ConfigureAwait(false);
                 var serializer = new DiagnosticDataSerializer(_owner.AnalyzerVersion, version);
-                var builder = new Builder(project.Id, version);
+                var builder = new Builder(project, version);
 
                 if (!await TryDeserializeAsync(serializer, project, project.Id, _owner.NonLocalStateName, s_addOthers, builder, cancellationToken).ConfigureAwait(false))
                 {
@@ -458,7 +459,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             // we have this builder to avoid allocating collections unnecessarily.
             private class Builder
             {
-                private readonly ProjectId _projectId;
+                private readonly Project _project;
                 private readonly VersionStamp _version;
                 private readonly ImmutableHashSet<DocumentId> _documentIds;
 
@@ -467,9 +468,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 private ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Builder _nonLocals;
                 private ImmutableArray<DiagnosticData> _others;
 
-                public Builder(ProjectId projectId, VersionStamp version, ImmutableHashSet<DocumentId> documentIds = null)
+                public Builder(Project project, VersionStamp version, ImmutableHashSet<DocumentId> documentIds = null)
                 {
-                    _projectId = projectId;
+                    _project = project;
                     _version = version;
                     _documentIds = documentIds;
                 }
@@ -496,13 +497,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 private void Add(ref ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Builder locals, DocumentId documentId, ImmutableArray<DiagnosticData> diagnostics)
                 {
+                    if (_project.GetDocument(documentId)?.SupportsDiagnostics() == false)
+                    {
+                        return;
+                    }
+
                     locals = locals ?? ImmutableDictionary.CreateBuilder<DocumentId, ImmutableArray<DiagnosticData>>();
                     locals.Add(documentId, diagnostics);
                 }
 
                 public DiagnosticAnalysisResult ToResult()
                 {
-                    return DiagnosticAnalysisResult.CreateFromSerialization(_projectId, _version,
+                    return DiagnosticAnalysisResult.CreateFromSerialization(_project, _version,
                         _syntaxLocals?.ToImmutable() ?? ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Empty,
                         _semanticLocals?.ToImmutable() ?? ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Empty,
                         _nonLocals?.ToImmutable() ?? ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Empty,

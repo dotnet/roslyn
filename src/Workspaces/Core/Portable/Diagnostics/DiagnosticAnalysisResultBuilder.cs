@@ -5,6 +5,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Host;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
@@ -112,7 +113,7 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
 
         private void AppendDiagnostics(ref Dictionary<DocumentId, List<DiagnosticData>> map, Document documentOpt, Diagnostic diagnostic)
         {
-            if (documentOpt is null)
+            if (documentOpt?.SupportsDiagnostics() == false)
             {
                 return;
             }
