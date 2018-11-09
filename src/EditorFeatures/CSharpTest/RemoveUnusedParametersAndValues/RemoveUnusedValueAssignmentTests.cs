@@ -1602,6 +1602,117 @@ $@"class C
 }", new TestParameters(options: PreferUnusedLocal));
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        public async Task DeclarationPatternInIsPattern_WithNoReference_PreferDiscard()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M(object p)
+    {
+        if (p is C [|x|])
+        {
+        }
+    }
+}",
+@"class C
+{
+    void M(object p)
+    {
+        if (p is C _)
+        {
+        }
+    }
+}", options: PreferDiscard);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        public async Task DeclarationPatternInIsPattern_WithNoReference_PreferUnusedLocal()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    void M(object p)
+    {
+        if (p is C [|x|])
+        {
+        }
+    }
+}", options: PreferUnusedLocal);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        public async Task DeclarationPatternInIsPattern_WithOnlyWriteReference_PreferDiscard()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M(object p)
+    {
+        if (p is C [|x|])
+        {
+            C x = null;
+        }
+    }
+}",
+@"class C
+{
+    void M(object p)
+    {
+        if (p is C _)
+        {
+            C x = null;
+        }
+    }
+}", options: PreferDiscard);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        public async Task DeclarationPatternInIsPattern_WithOnlyWriteReference_PreferUnusedLocal()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    void M(object p)
+    {
+        if (p is C [|x|])
+        {
+            x = null;
+        }
+    }
+}", options: PreferUnusedLocal);
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        [InlineData(nameof(PreferDiscard), "_")]
+        [InlineData(nameof(PreferUnusedLocal), "unused")]
+        public async Task DeclarationPatternInIsPattern_WithReadAndWriteReference(string optionName, string fix)
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M(object p)
+    {
+        if (p is C [|x|])
+        {
+            x = null;
+            p = x;
+        }
+    }
+}",
+$@"class C
+{{
+    void M(object p)
+    {{
+        if (p is C {fix})
+        {{
+            C x = null;
+            p = x;
+        }}
+    }}
+}}", optionName: optionName);
+        }
+
         [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         [InlineData(nameof(PreferDiscard))]
         [InlineData(nameof(PreferUnusedLocal))]
