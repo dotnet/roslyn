@@ -68,45 +68,45 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
                 switch (diagnostic.Location.Kind)
                 {
                     case LocationKind.ExternalFile:
-                    {
-                        var diagnosticDocumentId = GetExternalDocumentId(diagnostic);
-                        if (documentId == diagnosticDocumentId)
                         {
-                            // local diagnostics to a file
-                            AppendDiagnostics(ref lazyLocals, Project.GetDocument(diagnosticDocumentId), diagnostic);
+                            var diagnosticDocumentId = GetExternalDocumentId(diagnostic);
+                            if (documentId == diagnosticDocumentId)
+                            {
+                                // local diagnostics to a file
+                                AppendDiagnostics(ref lazyLocals, Project.GetDocument(diagnosticDocumentId), diagnostic);
+                            }
+                            else if (diagnosticDocumentId != null)
+                            {
+                                // non local diagnostics to a file
+                                AppendDiagnostics(ref _lazyNonLocals, Project.GetDocument(diagnosticDocumentId), diagnostic);
+                            }
+                            else
+                            {
+                                // non local diagnostics without location
+                                _lazyOthers = _lazyOthers ?? new List<DiagnosticData>();
+                                _lazyOthers.Add(DiagnosticData.Create(Project, diagnostic));
+                            }
+
+                            break;
                         }
-                        else if (diagnosticDocumentId != null)
+                    case LocationKind.None:
                         {
-                            // non local diagnostics to a file
-                            AppendDiagnostics(ref _lazyNonLocals, Project.GetDocument(diagnosticDocumentId), diagnostic);
-                        }
-                        else
-                        {
-                            // non local diagnostics without location
                             _lazyOthers = _lazyOthers ?? new List<DiagnosticData>();
                             _lazyOthers.Add(DiagnosticData.Create(Project, diagnostic));
+                            break;
                         }
-
-                        break;
-                    }
-                    case LocationKind.None:
-                    {
-                        _lazyOthers = _lazyOthers ?? new List<DiagnosticData>();
-                        _lazyOthers.Add(DiagnosticData.Create(Project, diagnostic));
-                        break;
-                    }
                     case LocationKind.SourceFile:
                     case LocationKind.MetadataFile:
                     case LocationKind.XmlFile:
-                    {
-                        // something we don't care
-                        continue;
-                    }
+                        {
+                            // something we don't care
+                            continue;
+                        }
                     default:
-                    {
-                        Contract.Fail("should not reach");
-                        break;
-                    }
+                        {
+                            Contract.Fail("should not reach");
+                            break;
+                        }
                 }
             }
         }
@@ -152,48 +152,48 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
                 switch (diagnostic.Location.Kind)
                 {
                     case LocationKind.ExternalFile:
-                    {
-                        // TODO: currently additional file location is not supported.
-                        break;
-                    }
+                        {
+                            // TODO: currently additional file location is not supported.
+                            break;
+                        }
                     case LocationKind.None:
-                    {
-                        _lazyOthers = _lazyOthers ?? new List<DiagnosticData>();
-                        _lazyOthers.Add(DiagnosticData.Create(Project, diagnostic));
-                        break;
-                    }
-                    case LocationKind.SourceFile:
-                    {
-                        if (tree != null && diagnostic.Location.SourceTree == tree)
                         {
-                            // local diagnostics to a file
-                            AppendDiagnostics(ref lazyLocals, GetDocument(diagnostic), diagnostic);
-                        }
-                        else if (diagnostic.Location.SourceTree != null)
-                        {
-                            // non local diagnostics to a file
-                            AppendDiagnostics(ref _lazyNonLocals, Project.GetDocument(diagnostic.Location.SourceTree), diagnostic);
-                        }
-                        else
-                        {
-                            // non local diagnostics without location
                             _lazyOthers = _lazyOthers ?? new List<DiagnosticData>();
                             _lazyOthers.Add(DiagnosticData.Create(Project, diagnostic));
+                            break;
                         }
+                    case LocationKind.SourceFile:
+                        {
+                            if (tree != null && diagnostic.Location.SourceTree == tree)
+                            {
+                                // local diagnostics to a file
+                                AppendDiagnostics(ref lazyLocals, GetDocument(diagnostic), diagnostic);
+                            }
+                            else if (diagnostic.Location.SourceTree != null)
+                            {
+                                // non local diagnostics to a file
+                                AppendDiagnostics(ref _lazyNonLocals, Project.GetDocument(diagnostic.Location.SourceTree), diagnostic);
+                            }
+                            else
+                            {
+                                // non local diagnostics without location
+                                _lazyOthers = _lazyOthers ?? new List<DiagnosticData>();
+                                _lazyOthers.Add(DiagnosticData.Create(Project, diagnostic));
+                            }
 
-                        break;
-                    }
+                            break;
+                        }
                     case LocationKind.MetadataFile:
                     case LocationKind.XmlFile:
-                    {
-                        // something we don't care
-                        continue;
-                    }
+                        {
+                            // something we don't care
+                            continue;
+                        }
                     default:
-                    {
-                        Contract.Fail("should not reach");
-                        break;
-                    }
+                        {
+                            Contract.Fail("should not reach");
+                            break;
+                        }
                 }
             }
         }
