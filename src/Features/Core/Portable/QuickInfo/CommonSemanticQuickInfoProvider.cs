@@ -361,7 +361,8 @@ namespace Microsoft.CodeAnalysis.QuickInfo
 
             ImmutableArray<TaggedText> FormatValue(object value)
             {
-                return TrimTaggedTextRun(displayService.FormatPrimitiveToDisplayParts(value).ToTaggedText(), 42);
+                var taggedText = displayService.FormatPrimitiveToDisplayParts(value, options: default).ToTaggedText();
+                return TrimTaggedTextRun(taggedText, 42);
             }
         }
 

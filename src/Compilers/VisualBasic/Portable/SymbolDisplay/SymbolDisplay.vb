@@ -121,20 +121,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <see cref="Date"/>, and <see langword="Nothing"/>.
         ''' </remarks>
         Public Function FormatPrimitive(obj As Object, quoteStrings As Boolean, useHexadecimalNumbers As Boolean) As String
-            Dim options = GetObjectDisplayOptions(quoteStrings, useHexadecimalNumbers)
-            Return ObjectDisplay.FormatPrimitive(obj, options)
-        End Function
-
-        Private Function GetObjectDisplayOptions(quoteStrings As Boolean, useHexadecimalNumbers As Boolean) As ObjectDisplayOptions
-            Dim options = ObjectDisplayOptions.None
-            If quoteStrings Then
-                options = options Or ObjectDisplayOptions.UseQuotes Or ObjectDisplayOptions.EscapeNonPrintableCharacters
-            End If
-            If useHexadecimalNumbers Then
-                options = options Or ObjectDisplayOptions.UseHexadecimalNumbers
-                options = options Or ObjectDisplayOptions.UseHexadecimalNumbersForCharacters
-            End If
-            Return options
+            Return ObjectDisplay.FormatPrimitive(obj, ToObjectDisplayOptions(quoteStrings, useHexadecimalNumbers))
         End Function
 
         ''' <summary>
@@ -142,8 +129,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' each of which has a kind. Useful for colorizing the display string.
         ''' </summary>
         ''' <param name="obj">A value to display as string parts.</param>
-        ''' <param name="quoteStrings">Whether or not to quote string literals.</param>
-        ''' <param name="useHexadecimalNumbers">Whether or not to display integral literals in hexadecimal.</param>
+        ''' <param name="options">Specifies the display options.</param>
         ''' <returns>A list of display parts (or <see langword="Nothing"/> if the type is not supported).</returns>
         ''' <remarks>
         ''' Handles <see cref="Boolean"/>, <see cref="String"/>, <see cref="Char"/>, <see cref="SByte"/>
@@ -151,14 +137,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <see cref="Long"/>, <see cref="ULong"/>, <see cref="Double"/>, <see cref="Single"/>, <see cref="Decimal"/>,
         ''' <see cref="Date"/>, and <see langword="Nothing"/>.
         ''' </remarks>
-        Public Function FormatPrimitiveToDisplayParts(obj As Object, quoteStrings As Boolean, useHexadecimalNumbers As Boolean) As ImmutableArray(Of SymbolDisplayPart)
+        Public Function FormatPrimitiveToDisplayParts(obj As Object, options As SymbolDisplayConstantValueOptions) As ImmutableArray(Of SymbolDisplayPart)
             If Not (obj Is Nothing OrElse obj.GetType().IsPrimitive OrElse obj.GetType().IsEnum OrElse TypeOf obj Is String OrElse TypeOf obj Is Decimal OrElse TypeOf obj Is Date) Then
                 Return Nothing
             End If
 
-            Dim options = GetObjectDisplayOptions(quoteStrings, useHexadecimalNumbers)
             Dim builder = ArrayBuilder(Of SymbolDisplayPart).GetInstance()
-            AddConstantValue(builder, obj, options)
+            AddConstantValue(builder, obj, ToObjectDisplayOptions(options))
             Return builder.ToImmutableAndFree()
         End Function
 
@@ -239,5 +224,28 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             parts.Add(New SymbolDisplayPart(SymbolDisplayPartKind.NumericLiteral, Nothing, codepointLiteral))
             parts.Add(New SymbolDisplayPart(SymbolDisplayPartKind.Punctuation, Nothing, ")"))
         End Sub
+
+        Private Function ToObjectDisplayOptions(quoteStrings As Boolean, useHexadecimalNumbers As Boolean) As ObjectDisplayOptions
+            Dim numberFormat = If(useHexadecimalNumbers, NumericFormat.Hexadecimal, NumericFormat.Decimal)
+            Return ToObjectDisplayOptions(New SymbolDisplayConstantValueOptions(numberFormat, numberFormat, Not quoteStrings))
+        End Function
+
+        Private Function ToObjectDisplayOptions(constantValueOptions As SymbolDisplayConstantValueOptions) As ObjectDisplayOptions
+            Dim options = ObjectDisplayOptions.None
+
+            If constantValueOptions.NumericLiteralFormat = NumericFormat.Hexadecimal Then
+                options = options Or ObjectDisplayOptions.UseHexadecimalNumbers
+            End If
+
+            If constantValueOptions.CharacterValueFormat = NumericFormat.Hexadecimal Then
+                options = options Or ObjectDisplayOptions.UseHexadecimalNumbersForCharacters
+            End If
+
+            If Not constantValueOptions.NoQuotes Then
+                options = options Or ObjectDisplayOptions.UseQuotes Or ObjectDisplayOptions.EscapeNonPrintableCharacters
+            End If
+
+            Return options
+        End Function
     End Module
 End Namespace

@@ -146,23 +146,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </remarks>
         public static string FormatPrimitive(object obj, bool quoteStrings, bool useHexadecimalNumbers)
         {
-            var options = GetObjectDisplayOptions(quoteStrings, useHexadecimalNumbers);
-            return ObjectDisplay.FormatPrimitive(obj, options);
-        }
-
-        private static ObjectDisplayOptions GetObjectDisplayOptions(bool quoteStrings, bool useHexadecimalNumbers)
-        {
-            var options = ObjectDisplayOptions.EscapeNonPrintableCharacters;
-            if (quoteStrings)
-            {
-                options |= ObjectDisplayOptions.UseQuotes;
-            }
-            if (useHexadecimalNumbers)
-            {
-                options |= ObjectDisplayOptions.UseHexadecimalNumbers;
-                options |= ObjectDisplayOptions.UseHexadecimalNumbersForCharacters;
-            }
-            return options;
+            return ObjectDisplay.FormatPrimitive(obj, ToObjectDisplayOptions(quoteStrings, useHexadecimalNumbers));
         }
 
         /// <summary>
@@ -202,8 +186,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// each of which has a kind. Useful for colorizing the display string.
         /// </summary>
         /// <param name="obj">A value to display as string parts.</param>
-        /// <param name="quoteStrings">Whether or not to quote string literals.</param>
-        /// <param name="useHexadecimalNumbers">Whether or not to display integral literals in hexadecimal.</param>
+        /// <param name="options">Specifies the display options.</param>
         /// <returns>A list of display parts (or <see langword="default"/> if the type is not supported).</returns>
         /// <remarks>
         /// Handles <see cref="bool"/>, <see cref="string"/>, <see cref="char"/>, <see cref="sbyte"/>
@@ -211,17 +194,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <see cref="long"/>, <see cref="ulong"/>, <see cref="double"/>, <see cref="float"/>, <see cref="decimal"/>,
         /// and <see langword="null"/>.
         /// </remarks>
-        public static ImmutableArray<SymbolDisplayPart> FormatPrimitiveToDisplayParts(object obj, bool quoteStrings, bool useHexadecimalNumbers)
+        public static ImmutableArray<SymbolDisplayPart> FormatPrimitiveToDisplayParts(object obj, SymbolDisplayConstantValueOptions options)
         {
             if (!(obj is null || obj.GetType().IsPrimitive || obj.GetType().IsEnum || obj is string || obj is decimal))
             {
                 return default;
             }
 
-            var options = GetObjectDisplayOptions(quoteStrings, useHexadecimalNumbers);
-
             var builder = ArrayBuilder<SymbolDisplayPart>.GetInstance();
-            AddConstantValue(builder, obj, options);
+            AddConstantValue(builder, obj, ToObjectDisplayOptions(options));
             return builder.ToImmutableAndFree();
         }
 
@@ -257,6 +238,28 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             builder.Add(new SymbolDisplayPart(kind, null, valueString));
+        }
+
+        private static ObjectDisplayOptions ToObjectDisplayOptions(bool quoteStrings, bool useHexadecimalNumbers)
+        {
+            var numberFormat = useHexadecimalNumbers ? NumericFormat.Hexadecimal : NumericFormat.Decimal;
+            return ToObjectDisplayOptions(new SymbolDisplayConstantValueOptions(numberFormat, numberFormat, !quoteStrings));
+        }
+
+        private static ObjectDisplayOptions ToObjectDisplayOptions(SymbolDisplayConstantValueOptions constantValueOptions)
+        {
+            var options = ObjectDisplayOptions.EscapeNonPrintableCharacters;
+
+            if (constantValueOptions.NumericLiteralFormat == NumericFormat.Hexadecimal)
+                options |= ObjectDisplayOptions.UseHexadecimalNumbers;
+
+            if (constantValueOptions.CharacterValueFormat == NumericFormat.Hexadecimal)
+                options |= ObjectDisplayOptions.UseHexadecimalNumbersForCharacters;
+
+            if (!constantValueOptions.NoQuotes)
+                options |= ObjectDisplayOptions.UseQuotes;
+
+            return options;
         }
     }
 }

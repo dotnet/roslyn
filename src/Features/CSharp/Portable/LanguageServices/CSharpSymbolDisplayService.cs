@@ -14,8 +14,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.LanguageServices
         {
         }
 
-        public override ImmutableArray<SymbolDisplayPart> FormatPrimitiveToDisplayParts(object value)
-            => Microsoft.CodeAnalysis.CSharp.SymbolDisplay.FormatPrimitiveToDisplayParts(value, quoteStrings: true, useHexadecimalNumbers: false);
+        public override ImmutableArray<SymbolDisplayPart> FormatPrimitiveToDisplayParts(object value, SymbolDisplayConstantValueOptions options)
+            => Microsoft.CodeAnalysis.CSharp.SymbolDisplay.FormatPrimitiveToDisplayParts(value, options);
 
         public override ImmutableArray<SymbolDisplayPart> ToDisplayParts(ISymbol symbol, SymbolDisplayFormat format = null)
         {

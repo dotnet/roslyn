@@ -4757,95 +4757,121 @@ class Outer
 
         <Fact>
         Public Sub FormatPrimitiveToDisplayParts()
-            Verify(SymbolDisplay.FormatPrimitiveToDisplayParts(Nothing, quoteStrings:=True, useHexadecimalNumbers:=True), "Nothing", SymbolDisplayPartKind.Keyword)
+            Dim decimalOptions = New SymbolDisplayConstantValueOptions(NumericFormat.Decimal, NumericFormat.Decimal, noQuotes:=False)
+            Dim hexadecimalNumbersOptions = New SymbolDisplayConstantValueOptions(NumericFormat.Hexadecimal, NumericFormat.Decimal, noQuotes:=False)
+            Dim hexadecimalCharactersOptions = New SymbolDisplayConstantValueOptions(NumericFormat.Decimal, NumericFormat.Hexadecimal, noQuotes:=False)
+            Dim hexadecimalOptions = New SymbolDisplayConstantValueOptions(NumericFormat.Hexadecimal, NumericFormat.Hexadecimal, noQuotes:=False)
 
-            Verify(SymbolDisplay.FormatPrimitiveToDisplayParts(OutputKind.NetModule, quoteStrings:=False, useHexadecimalNumbers:=False), "3", SymbolDisplayPartKind.NumericLiteral)
-            Verify(SymbolDisplay.FormatPrimitiveToDisplayParts(OutputKind.NetModule, quoteStrings:=False, useHexadecimalNumbers:=True), "&H00000003", SymbolDisplayPartKind.NumericLiteral)
+            Dim noQuotesDecimalOptions = New SymbolDisplayConstantValueOptions(NumericFormat.Decimal, NumericFormat.Decimal, noQuotes:=True)
+            Dim noQuotesHexadecimalOptions = New SymbolDisplayConstantValueOptions(NumericFormat.Hexadecimal, NumericFormat.Hexadecimal, noQuotes:=True)
 
-            Verify(SymbolDisplay.FormatPrimitiveToDisplayParts("x"c, quoteStrings:=True, useHexadecimalNumbers:=True), """x""c", SymbolDisplayPartKind.StringLiteral)
-            Verify(SymbolDisplay.FormatPrimitiveToDisplayParts("x"c, quoteStrings:=False, useHexadecimalNumbers:=True), "x", SymbolDisplayPartKind.StringLiteral)
-            Verify(SymbolDisplay.FormatPrimitiveToDisplayParts("x"c, quoteStrings:=True, useHexadecimalNumbers:=False), """x""c", SymbolDisplayPartKind.StringLiteral)
-            Verify(SymbolDisplay.FormatPrimitiveToDisplayParts("x"c, quoteStrings:=False, useHexadecimalNumbers:=False), "x", SymbolDisplayPartKind.StringLiteral)
+            Verify(SymbolDisplay.FormatPrimitiveToDisplayParts(Nothing, decimalOptions), "Nothing", SymbolDisplayPartKind.Keyword)
+            Verify(SymbolDisplay.FormatPrimitiveToDisplayParts(Nothing, noQuotesHexadecimalOptions), "Nothing", SymbolDisplayPartKind.Keyword)
 
-            Verify(SymbolDisplay.FormatPrimitiveToDisplayParts("x", quoteStrings:=False, useHexadecimalNumbers:=False), "x", SymbolDisplayPartKind.StringLiteral)
-            Verify(SymbolDisplay.FormatPrimitiveToDisplayParts("x", quoteStrings:=True, useHexadecimalNumbers:=False), """x""", SymbolDisplayPartKind.StringLiteral)
+            Verify(SymbolDisplay.FormatPrimitiveToDisplayParts(OutputKind.NetModule, decimalOptions), "3", SymbolDisplayPartKind.NumericLiteral)
+            Verify(SymbolDisplay.FormatPrimitiveToDisplayParts(OutputKind.NetModule, hexadecimalCharactersOptions), "3", SymbolDisplayPartKind.NumericLiteral)
+            Verify(SymbolDisplay.FormatPrimitiveToDisplayParts(OutputKind.NetModule, hexadecimalNumbersOptions), "&H00000003", SymbolDisplayPartKind.NumericLiteral)
 
-            Verify(SymbolDisplay.FormatPrimitiveToDisplayParts(True, quoteStrings:=False, useHexadecimalNumbers:=False), "True", SymbolDisplayPartKind.Keyword)
+            Verify(SymbolDisplay.FormatPrimitiveToDisplayParts("x"c, decimalOptions), """x""c", SymbolDisplayPartKind.StringLiteral)
+            Verify(SymbolDisplay.FormatPrimitiveToDisplayParts("x"c, hexadecimalOptions), """x""c", SymbolDisplayPartKind.StringLiteral)
+            Verify(SymbolDisplay.FormatPrimitiveToDisplayParts("x"c, noQuotesDecimalOptions), "x", SymbolDisplayPartKind.StringLiteral)
+            Verify(SymbolDisplay.FormatPrimitiveToDisplayParts("x"c, noQuotesHexadecimalOptions), "x", SymbolDisplayPartKind.StringLiteral)
 
-            Verify(SymbolDisplay.FormatPrimitiveToDisplayParts(1, quoteStrings:=False, useHexadecimalNumbers:=False), "1", SymbolDisplayPartKind.NumericLiteral)
-            Verify(SymbolDisplay.FormatPrimitiveToDisplayParts(1, quoteStrings:=False, useHexadecimalNumbers:=True), "&H00000001", SymbolDisplayPartKind.NumericLiteral)
+            Verify(SymbolDisplay.FormatPrimitiveToDisplayParts("x", decimalOptions), """x""", SymbolDisplayPartKind.StringLiteral)
+            Verify(SymbolDisplay.FormatPrimitiveToDisplayParts("x", hexadecimalOptions), """x""", SymbolDisplayPartKind.StringLiteral)
+            Verify(SymbolDisplay.FormatPrimitiveToDisplayParts("x", noQuotesDecimalOptions), "x", SymbolDisplayPartKind.StringLiteral)
+            Verify(SymbolDisplay.FormatPrimitiveToDisplayParts("x", noQuotesHexadecimalOptions), "x", SymbolDisplayPartKind.StringLiteral)
 
-            Verify(SymbolDisplay.FormatPrimitiveToDisplayParts(CUInt(1), quoteStrings:=False, useHexadecimalNumbers:=False), "1", SymbolDisplayPartKind.NumericLiteral)
-            Verify(SymbolDisplay.FormatPrimitiveToDisplayParts(CUInt(1), quoteStrings:=False, useHexadecimalNumbers:=True), "&H00000001", SymbolDisplayPartKind.NumericLiteral)
+            Verify(SymbolDisplay.FormatPrimitiveToDisplayParts(True, decimalOptions), "True", SymbolDisplayPartKind.Keyword)
+            Verify(SymbolDisplay.FormatPrimitiveToDisplayParts(True, noQuotesHexadecimalOptions), "True", SymbolDisplayPartKind.Keyword)
 
-            Verify(SymbolDisplay.FormatPrimitiveToDisplayParts(CByte(1), quoteStrings:=False, useHexadecimalNumbers:=False), "1", SymbolDisplayPartKind.NumericLiteral)
-            Verify(SymbolDisplay.FormatPrimitiveToDisplayParts(CByte(1), quoteStrings:=False, useHexadecimalNumbers:=True), "&H01", SymbolDisplayPartKind.NumericLiteral)
+            Verify(SymbolDisplay.FormatPrimitiveToDisplayParts(1, decimalOptions), "1", SymbolDisplayPartKind.NumericLiteral)
+            Verify(SymbolDisplay.FormatPrimitiveToDisplayParts(1, hexadecimalCharactersOptions), "1", SymbolDisplayPartKind.NumericLiteral)
+            Verify(SymbolDisplay.FormatPrimitiveToDisplayParts(1, hexadecimalNumbersOptions), "&H00000001", SymbolDisplayPartKind.NumericLiteral)
 
-            Verify(SymbolDisplay.FormatPrimitiveToDisplayParts(CSByte(1), quoteStrings:=False, useHexadecimalNumbers:=False), "1", SymbolDisplayPartKind.NumericLiteral)
-            Verify(SymbolDisplay.FormatPrimitiveToDisplayParts(CSByte(1), quoteStrings:=False, useHexadecimalNumbers:=True), "&H01", SymbolDisplayPartKind.NumericLiteral)
+            Verify(SymbolDisplay.FormatPrimitiveToDisplayParts(CUInt(1), decimalOptions), "1", SymbolDisplayPartKind.NumericLiteral)
+            Verify(SymbolDisplay.FormatPrimitiveToDisplayParts(CUInt(1), hexadecimalCharactersOptions), "1", SymbolDisplayPartKind.NumericLiteral)
+            Verify(SymbolDisplay.FormatPrimitiveToDisplayParts(CUInt(1), hexadecimalNumbersOptions), "&H00000001", SymbolDisplayPartKind.NumericLiteral)
 
-            Verify(SymbolDisplay.FormatPrimitiveToDisplayParts(CShort(1), quoteStrings:=False, useHexadecimalNumbers:=False), "1", SymbolDisplayPartKind.NumericLiteral)
-            Verify(SymbolDisplay.FormatPrimitiveToDisplayParts(CShort(1), quoteStrings:=False, useHexadecimalNumbers:=True), "&H0001", SymbolDisplayPartKind.NumericLiteral)
+            Verify(SymbolDisplay.FormatPrimitiveToDisplayParts(CByte(1), decimalOptions), "1", SymbolDisplayPartKind.NumericLiteral)
+            Verify(SymbolDisplay.FormatPrimitiveToDisplayParts(CByte(1), hexadecimalCharactersOptions), "1", SymbolDisplayPartKind.NumericLiteral)
+            Verify(SymbolDisplay.FormatPrimitiveToDisplayParts(CByte(1), hexadecimalNumbersOptions), "&H01", SymbolDisplayPartKind.NumericLiteral)
 
-            Verify(SymbolDisplay.FormatPrimitiveToDisplayParts(CUShort(1), quoteStrings:=False, useHexadecimalNumbers:=False), "1", SymbolDisplayPartKind.NumericLiteral)
-            Verify(SymbolDisplay.FormatPrimitiveToDisplayParts(CUShort(1), quoteStrings:=False, useHexadecimalNumbers:=True), "&H0001", SymbolDisplayPartKind.NumericLiteral)
+            Verify(SymbolDisplay.FormatPrimitiveToDisplayParts(CSByte(1), decimalOptions), "1", SymbolDisplayPartKind.NumericLiteral)
+            Verify(SymbolDisplay.FormatPrimitiveToDisplayParts(CSByte(1), hexadecimalCharactersOptions), "1", SymbolDisplayPartKind.NumericLiteral)
+            Verify(SymbolDisplay.FormatPrimitiveToDisplayParts(CSByte(1), hexadecimalNumbersOptions), "&H01", SymbolDisplayPartKind.NumericLiteral)
 
-            Verify(SymbolDisplay.FormatPrimitiveToDisplayParts(CLng(1), quoteStrings:=False, useHexadecimalNumbers:=False), "1", SymbolDisplayPartKind.NumericLiteral)
-            Verify(SymbolDisplay.FormatPrimitiveToDisplayParts(CLng(1), quoteStrings:=False, useHexadecimalNumbers:=True), "&H0000000000000001", SymbolDisplayPartKind.NumericLiteral)
+            Verify(SymbolDisplay.FormatPrimitiveToDisplayParts(CShort(1), decimalOptions), "1", SymbolDisplayPartKind.NumericLiteral)
+            Verify(SymbolDisplay.FormatPrimitiveToDisplayParts(CShort(1), hexadecimalCharactersOptions), "1", SymbolDisplayPartKind.NumericLiteral)
+            Verify(SymbolDisplay.FormatPrimitiveToDisplayParts(CShort(1), hexadecimalNumbersOptions), "&H0001", SymbolDisplayPartKind.NumericLiteral)
 
-            Verify(SymbolDisplay.FormatPrimitiveToDisplayParts(CULng(1), quoteStrings:=False, useHexadecimalNumbers:=False), "1", SymbolDisplayPartKind.NumericLiteral)
-            Verify(SymbolDisplay.FormatPrimitiveToDisplayParts(CULng(1), quoteStrings:=False, useHexadecimalNumbers:=True), "&H0000000000000001", SymbolDisplayPartKind.NumericLiteral)
+            Verify(SymbolDisplay.FormatPrimitiveToDisplayParts(CUShort(1), decimalOptions), "1", SymbolDisplayPartKind.NumericLiteral)
+            Verify(SymbolDisplay.FormatPrimitiveToDisplayParts(CUShort(1), hexadecimalCharactersOptions), "1", SymbolDisplayPartKind.NumericLiteral)
+            Verify(SymbolDisplay.FormatPrimitiveToDisplayParts(CUShort(1), hexadecimalNumbersOptions), "&H0001", SymbolDisplayPartKind.NumericLiteral)
 
-            Verify(SymbolDisplay.FormatPrimitiveToDisplayParts(1.1, quoteStrings:=False, useHexadecimalNumbers:=False), "1.1", SymbolDisplayPartKind.NumericLiteral)
-            Verify(SymbolDisplay.FormatPrimitiveToDisplayParts(1.1, quoteStrings:=False, useHexadecimalNumbers:=True), "1.1", SymbolDisplayPartKind.NumericLiteral)
+            Verify(SymbolDisplay.FormatPrimitiveToDisplayParts(CLng(1), decimalOptions), "1", SymbolDisplayPartKind.NumericLiteral)
+            Verify(SymbolDisplay.FormatPrimitiveToDisplayParts(CLng(1), hexadecimalCharactersOptions), "1", SymbolDisplayPartKind.NumericLiteral)
+            Verify(SymbolDisplay.FormatPrimitiveToDisplayParts(CLng(1), hexadecimalNumbersOptions), "&H0000000000000001", SymbolDisplayPartKind.NumericLiteral)
 
-            Verify(SymbolDisplay.FormatPrimitiveToDisplayParts(CSng(1.1), quoteStrings:=False, useHexadecimalNumbers:=False), "1.1", SymbolDisplayPartKind.NumericLiteral)
-            Verify(SymbolDisplay.FormatPrimitiveToDisplayParts(CSng(1.1), quoteStrings:=False, useHexadecimalNumbers:=True), "1.1", SymbolDisplayPartKind.NumericLiteral)
+            Verify(SymbolDisplay.FormatPrimitiveToDisplayParts(CULng(1), decimalOptions), "1", SymbolDisplayPartKind.NumericLiteral)
+            Verify(SymbolDisplay.FormatPrimitiveToDisplayParts(CULng(1), hexadecimalCharactersOptions), "1", SymbolDisplayPartKind.NumericLiteral)
+            Verify(SymbolDisplay.FormatPrimitiveToDisplayParts(CULng(1), hexadecimalNumbersOptions), "&H0000000000000001", SymbolDisplayPartKind.NumericLiteral)
 
-            Verify(SymbolDisplay.FormatPrimitiveToDisplayParts(CDec(1.1), quoteStrings:=False, useHexadecimalNumbers:=False), "1.1", SymbolDisplayPartKind.NumericLiteral)
-            Verify(SymbolDisplay.FormatPrimitiveToDisplayParts(CDec(1.1), quoteStrings:=False, useHexadecimalNumbers:=True), "1.1", SymbolDisplayPartKind.NumericLiteral)
+            Verify(SymbolDisplay.FormatPrimitiveToDisplayParts(1.1, decimalOptions), "1.1", SymbolDisplayPartKind.NumericLiteral)
+            Verify(SymbolDisplay.FormatPrimitiveToDisplayParts(1.1, hexadecimalCharactersOptions), "1.1", SymbolDisplayPartKind.NumericLiteral)
+            Verify(SymbolDisplay.FormatPrimitiveToDisplayParts(1.1, hexadecimalNumbersOptions), "1.1", SymbolDisplayPartKind.NumericLiteral)
 
-            Verify(SymbolDisplay.FormatPrimitiveToDisplayParts(Double.PositiveInfinity, quoteStrings:=False, useHexadecimalNumbers:=False), "Infinity", SymbolDisplayPartKind.NumericLiteral)
-            Verify(SymbolDisplay.FormatPrimitiveToDisplayParts(Double.PositiveInfinity, quoteStrings:=False, useHexadecimalNumbers:=True), "Infinity", SymbolDisplayPartKind.NumericLiteral)
+            Verify(SymbolDisplay.FormatPrimitiveToDisplayParts(CSng(1.1), decimalOptions), "1.1", SymbolDisplayPartKind.NumericLiteral)
+            Verify(SymbolDisplay.FormatPrimitiveToDisplayParts(CSng(1.1), hexadecimalCharactersOptions), "1.1", SymbolDisplayPartKind.NumericLiteral)
+            Verify(SymbolDisplay.FormatPrimitiveToDisplayParts(CSng(1.1), hexadecimalNumbersOptions), "1.1", SymbolDisplayPartKind.NumericLiteral)
 
-            Verify(SymbolDisplay.FormatPrimitiveToDisplayParts(#1/1/2000#, quoteStrings:=False, useHexadecimalNumbers:=False), "#1/1/2000 12:00:00 AM#", SymbolDisplayPartKind.NumericLiteral)
-            Verify(SymbolDisplay.FormatPrimitiveToDisplayParts(#1/1/2000#, quoteStrings:=False, useHexadecimalNumbers:=True), "#1/1/2000 12:00:00 AM#", SymbolDisplayPartKind.NumericLiteral)
+            Verify(SymbolDisplay.FormatPrimitiveToDisplayParts(CDec(1.1), decimalOptions), "1.1", SymbolDisplayPartKind.NumericLiteral)
+            Verify(SymbolDisplay.FormatPrimitiveToDisplayParts(CDec(1.1), hexadecimalCharactersOptions), "1.1", SymbolDisplayPartKind.NumericLiteral)
+            Verify(SymbolDisplay.FormatPrimitiveToDisplayParts(CDec(1.1), hexadecimalNumbersOptions), "1.1", SymbolDisplayPartKind.NumericLiteral)
 
-            Assert.True(SymbolDisplay.FormatPrimitiveToDisplayParts(New Object(), quoteStrings:=False, useHexadecimalNumbers:=False).IsDefault)
+            Verify(SymbolDisplay.FormatPrimitiveToDisplayParts(Double.PositiveInfinity, decimalOptions), "Infinity", SymbolDisplayPartKind.NumericLiteral)
+            Verify(SymbolDisplay.FormatPrimitiveToDisplayParts(Double.PositiveInfinity, hexadecimalCharactersOptions), "Infinity", SymbolDisplayPartKind.NumericLiteral)
+            Verify(SymbolDisplay.FormatPrimitiveToDisplayParts(Double.PositiveInfinity, hexadecimalNumbersOptions), "Infinity", SymbolDisplayPartKind.NumericLiteral)
+
+            Verify(SymbolDisplay.FormatPrimitiveToDisplayParts(#1/1/2000#, decimalOptions), "#1/1/2000 12:00:00 AM#", SymbolDisplayPartKind.NumericLiteral)
+            Verify(SymbolDisplay.FormatPrimitiveToDisplayParts(#1/1/2000#, hexadecimalCharactersOptions), "#1/1/2000 12:00:00 AM#", SymbolDisplayPartKind.NumericLiteral)
+            Verify(SymbolDisplay.FormatPrimitiveToDisplayParts(#1/1/2000#, hexadecimalNumbersOptions), "#1/1/2000 12:00:00 AM#", SymbolDisplayPartKind.NumericLiteral)
+
+            Assert.True(SymbolDisplay.FormatPrimitiveToDisplayParts(New Object(), decimalOptions).IsDefault)
         End Sub
 
         <Fact>
         Public Sub FormatPrimitiveToDisplayParts2()
+            Dim decimalOptions = New SymbolDisplayConstantValueOptions(NumericFormat.Decimal, NumericFormat.Decimal, noQuotes:=False)
+            Dim hexadecimalNumbersOptions = New SymbolDisplayConstantValueOptions(NumericFormat.Hexadecimal, NumericFormat.Decimal, noQuotes:=False)
+            Dim hexadecimalCharactersOptions = New SymbolDisplayConstantValueOptions(NumericFormat.Decimal, NumericFormat.Hexadecimal, noQuotes:=False)
+            Dim hexadecimalOptions = New SymbolDisplayConstantValueOptions(NumericFormat.Hexadecimal, NumericFormat.Hexadecimal, noQuotes:=False)
+
+            Dim noQuotesDecimalOptions = New SymbolDisplayConstantValueOptions(NumericFormat.Decimal, NumericFormat.Decimal, noQuotes:=True)
+            Dim noQuotesHexadecimalOptions = New SymbolDisplayConstantValueOptions(NumericFormat.Hexadecimal, NumericFormat.Hexadecimal, noQuotes:=True)
+
             Verify(
-                SymbolDisplay.FormatPrimitiveToDisplayParts(ChrW(8), quoteStrings:=True, useHexadecimalNumbers:=True),
+                SymbolDisplay.FormatPrimitiveToDisplayParts(ChrW(8), decimalOptions),
                 "vbBack",
                 SymbolDisplayPartKind.FieldName)
 
             Verify(
-                SymbolDisplay.FormatPrimitiveToDisplayParts(ChrW(8), quoteStrings:=True, useHexadecimalNumbers:=False),
+                SymbolDisplay.FormatPrimitiveToDisplayParts(ChrW(8), hexadecimalOptions),
                 "vbBack",
                 SymbolDisplayPartKind.FieldName)
 
             Verify(
-                SymbolDisplay.FormatPrimitiveToDisplayParts(ChrW(8), quoteStrings:=False, useHexadecimalNumbers:=True),
+                SymbolDisplay.FormatPrimitiveToDisplayParts(ChrW(8), noQuotesDecimalOptions),
                 vbBack,
                 SymbolDisplayPartKind.StringLiteral)
 
             Verify(
-                SymbolDisplay.FormatPrimitiveToDisplayParts(ChrW(8), quoteStrings:=False, useHexadecimalNumbers:=False),
+                SymbolDisplay.FormatPrimitiveToDisplayParts(ChrW(8), noQuotesHexadecimalOptions),
                 vbBack,
                 SymbolDisplayPartKind.StringLiteral)
 
             Verify(
-                SymbolDisplay.FormatPrimitiveToDisplayParts(ChrW(&HFFFE), quoteStrings:=True, useHexadecimalNumbers:=True),
-                "ChrW(&HFFFE)",
-                SymbolDisplayPartKind.MethodName,
-                SymbolDisplayPartKind.Punctuation,
-                SymbolDisplayPartKind.NumericLiteral,
-                SymbolDisplayPartKind.Punctuation)
-
-            Verify(
-                SymbolDisplay.FormatPrimitiveToDisplayParts(ChrW(&HFFFE), quoteStrings:=True, useHexadecimalNumbers:=False),
+                SymbolDisplay.FormatPrimitiveToDisplayParts(ChrW(&HFFFE), decimalOptions),
                 "ChrW(65534)",
                 SymbolDisplayPartKind.MethodName,
                 SymbolDisplayPartKind.Punctuation,
@@ -4853,37 +4879,33 @@ class Outer
                 SymbolDisplayPartKind.Punctuation)
 
             Verify(
-                SymbolDisplay.FormatPrimitiveToDisplayParts(ChrW(&HFFFE), quoteStrings:=False, useHexadecimalNumbers:=True),
-                ChrW(&HFFFE),
-                SymbolDisplayPartKind.StringLiteral)
-
-            Verify(
-                SymbolDisplay.FormatPrimitiveToDisplayParts(ChrW(&HFFFE), quoteStrings:=False, useHexadecimalNumbers:=False),
-                ChrW(&HFFFE),
-                SymbolDisplayPartKind.StringLiteral)
-
-            Verify(
-                SymbolDisplay.FormatPrimitiveToDisplayParts(ChrW(&HFFFE) & "a" & ChrW(0) & vbCrLf, quoteStrings:=True, useHexadecimalNumbers:=True),
-                "ChrW(&HFFFE) & ""a"" & vbNullChar & vbCrLf",
+                SymbolDisplay.FormatPrimitiveToDisplayParts(ChrW(&HFFFE), hexadecimalNumbersOptions),
+                "ChrW(65534)",
                 SymbolDisplayPartKind.MethodName,
                 SymbolDisplayPartKind.Punctuation,
-                SymbolDisplayPartKind.NumericLiteral, ' &HFFFE
-                SymbolDisplayPartKind.Punctuation,
-                SymbolDisplayPartKind.Space,
-                SymbolDisplayPartKind.Operator,
-                SymbolDisplayPartKind.Space,
-                SymbolDisplayPartKind.StringLiteral, ' "a"
-                SymbolDisplayPartKind.Space,
-                SymbolDisplayPartKind.Operator,
-                SymbolDisplayPartKind.Space,
-                SymbolDisplayPartKind.FieldName, ' vbNullChar
-                SymbolDisplayPartKind.Space,
-                SymbolDisplayPartKind.Operator,
-                SymbolDisplayPartKind.Space,
-                SymbolDisplayPartKind.FieldName) ' vbCrLf
+                SymbolDisplayPartKind.NumericLiteral,
+                SymbolDisplayPartKind.Punctuation)
 
             Verify(
-                SymbolDisplay.FormatPrimitiveToDisplayParts(ChrW(&HFFFE) & "a" & ChrW(0) & vbCrLf, quoteStrings:=True, useHexadecimalNumbers:=False),
+                SymbolDisplay.FormatPrimitiveToDisplayParts(ChrW(&HFFFE), hexadecimalCharactersOptions),
+                "ChrW(&HFFFE)",
+                SymbolDisplayPartKind.MethodName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.NumericLiteral,
+                SymbolDisplayPartKind.Punctuation)
+
+            Verify(
+                SymbolDisplay.FormatPrimitiveToDisplayParts(ChrW(&HFFFE), noQuotesDecimalOptions),
+                ChrW(&HFFFE),
+                SymbolDisplayPartKind.StringLiteral)
+
+            Verify(
+                SymbolDisplay.FormatPrimitiveToDisplayParts(ChrW(&HFFFE), noQuotesHexadecimalOptions),
+                ChrW(&HFFFE),
+                SymbolDisplayPartKind.StringLiteral)
+
+            Verify(
+                SymbolDisplay.FormatPrimitiveToDisplayParts(ChrW(&HFFFE) & "a" & ChrW(0) & vbCrLf, decimalOptions),
                 "ChrW(65534) & ""a"" & vbNullChar & vbCrLf",
                 SymbolDisplayPartKind.MethodName,
                 SymbolDisplayPartKind.Punctuation,
@@ -4903,12 +4925,52 @@ class Outer
                 SymbolDisplayPartKind.FieldName) ' vbCrLf
 
             Verify(
-                SymbolDisplay.FormatPrimitiveToDisplayParts(ChrW(&HFFFE) & "a" & ChrW(0) & vbCrLf, quoteStrings:=False, useHexadecimalNumbers:=True),
+            SymbolDisplay.FormatPrimitiveToDisplayParts(ChrW(&HFFFE) & "a" & ChrW(0) & vbCrLf, hexadecimalNumbersOptions),
+                "ChrW(65534) & ""a"" & vbNullChar & vbCrLf",
+                SymbolDisplayPartKind.MethodName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.NumericLiteral, ' 65534
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Operator,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.StringLiteral, ' "a"
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Operator,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.FieldName, ' vbNullChar
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Operator,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.FieldName) ' vbCrLf
+
+            Verify(
+                SymbolDisplay.FormatPrimitiveToDisplayParts(ChrW(&HFFFE) & "a" & ChrW(0) & vbCrLf, hexadecimalCharactersOptions),
+                "ChrW(&HFFFE) & ""a"" & vbNullChar & vbCrLf",
+                SymbolDisplayPartKind.MethodName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.NumericLiteral, ' &HFFFE
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Operator,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.StringLiteral, ' "a"
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Operator,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.FieldName, ' vbNullChar
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Operator,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.FieldName) ' vbCrLf
+
+            Verify(
+                SymbolDisplay.FormatPrimitiveToDisplayParts(ChrW(&HFFFE) & "a" & ChrW(0) & vbCrLf, noQuotesDecimalOptions),
                 ChrW(&HFFFE) & "a" & vbNullChar & vbCrLf,
                 SymbolDisplayPartKind.StringLiteral)
 
             Verify(
-                SymbolDisplay.FormatPrimitiveToDisplayParts(ChrW(&HFFFE) & "a" & ChrW(0) & vbCrLf, quoteStrings:=False, useHexadecimalNumbers:=False),
+                SymbolDisplay.FormatPrimitiveToDisplayParts(ChrW(&HFFFE) & "a" & ChrW(0) & vbCrLf, noQuotesHexadecimalOptions),
                 ChrW(&HFFFE) & "a" & vbNullChar & vbCrLf,
                 SymbolDisplayPartKind.StringLiteral)
         End Sub
