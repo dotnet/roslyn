@@ -1499,4 +1499,7 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   <data name="DateTimeKind_must_be_Utc" xml:space="preserve">
     <value>DateTimeKind must be Utc</value>
   </data>
+  <data name="AsyncLazy_StaticInit_InvalidOperation" xml:space="preserve">
+    <value>ValueFactory returned null.</value>
+  </data>
 </root>

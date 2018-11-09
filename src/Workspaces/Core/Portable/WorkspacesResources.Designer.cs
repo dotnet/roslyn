@@ -358,6 +358,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to ValueFactory returned null..
+        /// </summary>
+        internal static string AsyncLazy_StaticInit_InvalidOperation {
+            get {
+                return ResourceManager.GetString("AsyncLazy_StaticInit_InvalidOperation", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to At least one diagnostic must be supplied..
         /// </summary>
         internal static string At_least_one_diagnostic_must_be_supplied {
