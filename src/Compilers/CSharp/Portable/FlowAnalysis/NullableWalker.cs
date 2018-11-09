@@ -4461,7 +4461,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     int slot = MakeSlot(receiverOpt);
                     if (slot > 0)
                     {
-                        this.State[slot] = true;
+                        this.State[slot] = NullableAnnotation.NotNullableBasedOnAnalysis;
                     }
                 }
             }
