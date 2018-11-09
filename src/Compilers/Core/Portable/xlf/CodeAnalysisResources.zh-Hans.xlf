@@ -391,7 +391,7 @@
       </trans-unit>
       <trans-unit id="PdbStreamUnexpectedWhenEmbedding">
         <source>PDB stream should not be given when embedding PDB into the PE stream.</source>
-        <target state="translated">将 PE 流嵌入 PDB 时，无法提供 PDB 流。</target>
+        <target state="translated">将 PDB 嵌入 PE 流时，不应提供 PDB 流。</target>
         <note />
       </trans-unit>
       <trans-unit id="PdbStreamUnexpectedWhenEmittingMetadataOnly">

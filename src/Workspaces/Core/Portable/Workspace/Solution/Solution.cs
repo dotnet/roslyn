@@ -305,6 +305,20 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
+        /// Creates a new solution instance with the project specified updated to have the default namespace.
+        /// </summary>
+        internal Solution WithProjectDefaultNamespace(ProjectId projectId, string defaultNamespace)
+        {
+            var newState = _state.WithProjectDefaultNamespace(projectId, defaultNamespace);
+            if (newState == _state)
+            {
+                return this;
+            }
+
+            return new Solution(newState);
+        }
+
+        /// <summary>
         /// Creates a new solution instance with the project specified updated to have the name.
         /// </summary>
         public Solution WithProjectName(ProjectId projectId, string name)

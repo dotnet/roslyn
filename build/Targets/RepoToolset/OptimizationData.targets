@@ -1,31 +1,31 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
+<!-- All Rights Reserved. Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this file to you under the MIT license. See the LICENSE file in the project root for more information. -->
 <Project>
 
   <PropertyGroup>
     <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
   </PropertyGroup>
-  
-  <!-- 
-    Support for in-place modification of the compiled binary.
-    Since there may be more than one post compile modification, we must take care not
-    to break incremental builds. A timestemp file is written out when all modification
-    targets have completed.
-    Note that the targets participating in post compile modification must list the
-    sentinel file as one of their outputs, but they should not modify it.
-   -->
 
+  <UsingTask TaskName="RoslynTools.Unsign" AssemblyFile="$(RoslynToolsBuildTasksAssembly)" />
+
+  <!--
+    Required properties:
+      IbcOptimizationDataDir           The directory containing IBC optimization data.
+  -->
   <PropertyGroup>
+    <_PreviousOptimizedFile>$([System.IO.Path]::Combine($(IbcOptimizationDataDir), '$(TargetName).pgo'))</_PreviousOptimizedFile>
     <PostCompileBinaryModificationSentinelFile>$(IntermediateOutputPath)$(TargetFileName).pcbm</PostCompileBinaryModificationSentinelFile>
-    <OptimizationDataFolderPath>$(NuGetPackageRoot)\RoslynDependencies.OptimizationData\$(RoslynDependenciesOptimizationDataVersion)\content\OptimizationData</OptimizationDataFolderPath>
-    <OptimizationDataFile>$([System.IO.Path]::GetFullPath('$(OptimizationDataFolderPath)\$(TargetName).pgo'))</OptimizationDataFile>
-    <IbcMergePath>$(NuGetPackageRoot)\Microsoft.DotNet.IBCMerge\$(MicrosoftDotNetIBCMerge)\lib\net45\ibcmerge.exe</IbcMergePath>
   </PropertyGroup>
-  
+
+  <!--
+    We need to write out this sentinel file so that when ApplyOptimizations runs and compares the intermediate assemby location
+    against itself the PostCompileBinaryModificationSentinelFile will have a newer timestamp allowing the target to be run.
+  -->
   <Target Name="PostCompileBinaryModification"
           AfterTargets="CoreCompile"
-          DependsOnTargets="ApplyOptimizations"
-          Inputs="@(IntermediateAssembly)"
+          DependsOnTargets="_InitializeAssemblyOptimizationWithTargetAssembly;ApplyOptimizations"
+          Condition="'$(IsWpfTempProject)' != 'true' and Exists('$(_PreviousOptimizedFile)')"
+          Inputs="$(MSBuildAllProjects);@(IntermediateAssembly)"
           Outputs="@(IntermediateAssembly);$(PostCompileBinaryModificationSentinelFile)">
 
     <!-- Write out a sentinel timestamp file to prevent unnecessary work in incremental builds. -->
@@ -36,27 +36,55 @@
     </ItemGroup>
   </Target>
 
-  <!-- The IBCMerge tool is internal only and hence only available during official Microbuild runs.  This target is 
-       specifically not gated on the existance of this file.  During an official build it shoudl always be present and 
-       if it's not then an error needs to be raised.
+  <Target Name="_InitializeAssemblyOptimizationWithTargetAssembly">
+    <ItemGroup>
+      <OptimizeAssembly Include="@(IntermediateAssembly)" PreviousOptimizedFile="$(_PreviousOptimizedFile)" />
+    </ItemGroup>
+  </Target>
 
-       A local build emulating an official build can pass /p:SkipApplyOptimizations=true to avoid this error.
-       -->
+  <!--
+    Merges optimization data to assemblies specified in OptimizeAssembly item group.
+
+    Non-incremental. Calling targets need to handle incremental build if necessary.
+    Runs during any CI build. Performs the actual merge only when IBCMerge tool is available. It is expected to be available in an official build.
+  -->
+  <Target Name="_CalculateIbcArgs">
+    <ItemGroup>
+      <OptimizeAssembly>
+        <!--
+          -delete to delete data previously embedded in the binary. This is a no-op for binaries produced by this build, but is needed for dependencies such as System.Reflection.Metadata.
+          -incremental to map data stored in the optimized binary, which comes from a previous build, to the new build of the binary.
+        -->
+        <_IbcArgs>-q -f -partialNGEN -minify -delete -mo "%(OptimizeAssembly.Identity)" -incremental "%(OptimizeAssembly.PreviousOptimizedFile)"</_IbcArgs>
+      </OptimizeAssembly>
+    </ItemGroup>
+  </Target>
+
   <Target Name="ApplyOptimizations"
-          Condition="'$(OfficialBuild)' == 'true' AND '$(IsShipping)' == 'true' AND '$(SkipApplyOptimizations)' != 'true' AND Exists('$(OptimizationDataFile)')"
-          Inputs="@(IntermediateAssembly)"
-          Outputs="@(IntermediateAssembly);$(PostCompileBinaryModificationSentinelFile)">
-    <Message Text="Adding optimization data to @(IntermediateAssembly)" />
+          DependsOnTargets="_CalculateIbcArgs"
+          Condition="'@(OptimizeAssembly)' != '' and '$(Configuration)' == 'Release' and '$(ContinuousIntegrationBuild)' == 'true'">
+    
+    <PropertyGroup>
+      <_IbcMergePath>$(NuGetPackageRoot)microsoft.dotnet.ibcmerge\$(MicrosoftDotNetIBCMergeVersion)\lib\net45\ibcmerge.exe</_IbcMergePath>
 
-    <Error Text="IBCMerge not found at $(IbcMergePath). Local developer builds should pass /p:SkipApplyOptimizations=true to avoid this"
-           Condition="!Exists('$(IbcMergePath)')" />
+      <_RunIbcMerge>false</_RunIbcMerge>
+      <_RunIbcMerge Condition="'$(OfficialBuild)' == 'true' or Exists('$(_IbcMergePath)')">true</_RunIbcMerge>
+    </PropertyGroup>
 
-    <Exec Command="&quot;$(IbcMergePath)&quot; -q -f -partialNGEN -minify -mo &quot;@(IntermediateAssembly)&quot; -excludeGenmethUnboxingStubs -incremental &quot;$(OptimizationDataFile)&quot;"
+    <Message Text='IBCMerge tool will be run in an official build with arguments: %(OptimizeAssembly._IbcArgs)'
+             Condition="'$(_RunIbcMerge)' != 'true'" 
+             Importance="normal"/>
+
+    <Exec Command='"$(_IbcMergePath)" %(OptimizeAssembly._IbcArgs)' 
           ConsoleToMSBuild="true"
-          Condition="Exists('$(IbcMergePath)')">
+          Condition="'$(_RunIbcMerge)' == 'true'">
       <Output TaskParameter="ConsoleOutput" PropertyName="IbcMergeOutput" />
     </Exec>
 
+    <!-- Remove Authenticode signing record if present. -->
+    <RoslynTools.Unsign FilePath="%(OptimizeAssembly.Identity)" />
+
     <Message Text="$(IbcMergeOutput)" />
   </Target>
+
 </Project>

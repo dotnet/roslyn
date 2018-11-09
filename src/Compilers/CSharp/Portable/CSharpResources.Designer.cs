@@ -4427,6 +4427,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Expression tree cannot contain value of ref struct or restricted type &apos;{0}&apos;..
+        /// </summary>
+        internal static string ERR_ExpressionTreeCantContainRefStruct {
+            get {
+                return ResourceManager.GetString("ERR_ExpressionTreeCantContainRefStruct", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to An expression tree may not contain an anonymous method expression.
         /// </summary>
         internal static string ERR_ExpressionTreeContainsAnonymousMethod {
