@@ -9,6 +9,7 @@ const Microsoft.CodeAnalysis.Classification.ClassificationTypeNames.RegexOtherEs
 const Microsoft.CodeAnalysis.Classification.ClassificationTypeNames.RegexQuantifier = "regex - quantifier" -> string
 const Microsoft.CodeAnalysis.Classification.ClassificationTypeNames.RegexSelfEscapedCharacter = "regex - self escaped character" -> string
 const Microsoft.CodeAnalysis.Classification.ClassificationTypeNames.RegexText = "regex - text" -> string
+const Microsoft.CodeAnalysis.Classification.ClassificationTypeNames.StaticSymbol = "static symbol" -> string
 const Microsoft.CodeAnalysis.Classification.ClassificationTypeNames.StringEscapeCharacter = "string - escape character" -> string
 const Microsoft.CodeAnalysis.WorkspaceKind.MSBuild = "MSBuildWorkspace" -> string
 Microsoft.CodeAnalysis.CodeStyle.NotificationOption.Severity.get -> Microsoft.CodeAnalysis.ReportDiagnostic

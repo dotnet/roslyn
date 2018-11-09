@@ -306,5 +306,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [BaseDefinition(PredefinedClassificationTypeNames.FormalLanguage)]
         internal readonly ClassificationTypeDefinition XmlLiteralTextTypeDefinition;
         #endregion
+
+        #region Static Symbol
+        [Export]
+        [Name(ClassificationTypeNames.StaticSymbol)]
+        [BaseDefinition(PredefinedClassificationTypeNames.FormalLanguage)]
+        internal readonly ClassificationTypeDefinition StaticSymbolTypeDefinition;
+        #endregion
+
     }
 }

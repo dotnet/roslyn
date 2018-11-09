@@ -76,6 +76,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
             var symbol = TryGetSymbol(name, symbolInfo, semanticModel);
             if (TryClassifySymbol(name, symbol, semanticModel, cancellationToken, out var classifiedSpan))
             {
+                if (symbol?.IsStatic == true)
+                {
+                    result.Add(new ClassifiedSpan(classifiedSpan.TextSpan, ClassificationTypeNames.StaticSymbol));
+                }
+
                 result.Add(classifiedSpan);
                 return true;
             }
@@ -98,6 +103,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
                 {
                     if (TryClassifySymbol(name, symbol, semanticModel, cancellationToken, out var classifiedSpan))
                     {
+                        if (symbol?.IsStatic == true)
+                        {
+                            result.Add(new ClassifiedSpan(classifiedSpan.TextSpan, ClassificationTypeNames.StaticSymbol));
+                        }
+
                         set.Add(classifiedSpan);
                     }
                 }
