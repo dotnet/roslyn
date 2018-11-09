@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis
             | typeof(x)       |      |       |             |             |       ✔️        | ️
             | out var x       |      |  ✔️   |             |             |                 | ️
             | case X x:       |      |  ✔️   |             |             |                 | ️
-            | obj is X x      |  ✔️  |  ✔️   |             |             |                 |
+            | obj is X x      |      |  ✔️   |             |             |                 |
 
             */
             if (operation is ILocalReferenceOperation localReference &&
@@ -68,15 +68,15 @@ namespace Microsoft.CodeAnalysis
 
                     case IIsPatternOperation _:
                         // A declaration pattern within an is pattern is a
-                        // both a write and read for the declared local.
-                        // For example, 'x' is both written and read in the following expression:
+                        // write for the declared local.
+                        // For example, 'x' is defined and assigned the value from 'obj' below:
                         //      if (obj is X x)
                         //
-                        return ValueUsageInfo.ReadWrite;
+                        return ValueUsageInfo.Write;
 
                     default:
                         Debug.Fail("Unhandled declaration pattern context");
-                        
+
                         // Conservatively assume read/write.
                         return ValueUsageInfo.ReadWrite;
                 }

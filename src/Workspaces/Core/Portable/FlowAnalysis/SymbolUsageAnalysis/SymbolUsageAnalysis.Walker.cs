@@ -113,35 +113,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
                     isWrittenTo = false;
                 }
 
-                if (isReadFrom && isWrittenTo)
-                {
-                    // Read/Write could either be:
-                    //  1. A read followed by a write. For example, increment "i++", compound assignment "i += 1", etc.
-                    //  2. A declaration/write followed by a read. For example, declaration pattern 'int i' inside
-                    //     an is pattern exprssion "if (x is int i)").
-                    // Handle scenario 2 (declaration pattern) specially and use an assert to catch unknown cases.
-                    if (operation.Kind == OperationKind.DeclarationPattern && operation.Parent?.Kind == OperationKind.IsPattern)
-                    {
-                        OnWriteReferenceFound(symbol, operation, maybeWritten: false);
-
-                        // Special handling for implicit IsPattern parent operation.
-                        // In ControlFlowGraph, we generate implicit IsPattern operation for pattern case clauses,
-                        // where is the read is not observable and we want to consider such case clause declaration patterns
-                        // as just a write.
-                        if (!operation.Parent.IsImplicit)
-                        {
-                            OnReadReferenceFound(symbol);
-                        }
-
-                        return;
-                    }
-
-                    Debug.Assert(operation.Parent is IIncrementOrDecrementOperation ||
-                                 operation.Parent is IArgumentOperation argument && argument.Parameter.RefKind == RefKind.Ref ||
-                                 operation.Parent is IReDimClauseOperation reDimClause && reDimClause.Operand == operation,
-                                 "Unhandled read-write ordering");
-                }
-
                 if (isReadFrom)
                 {
                     if (operation.Parent is IFlowCaptureOperation flowCapture &&
@@ -156,7 +127,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
                 }
 
                 if (isWrittenTo)
-                {   
+                {
                     // maybeWritten == 'ref' argument.
                     OnWriteReferenceFound(symbol, operation, maybeWritten: valueUsageInfo == ValueUsageInfo.ReadableWritableReference);
                 }
@@ -320,7 +291,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
                     AnalyzePossibleDelegateInvocation(operation.Value);
                 }
             }
-            
+
             public override void VisitLocalFunction(ILocalFunctionOperation operation)
             {
                 // Skip visiting if we are doing an operation tree walk.
@@ -461,7 +432,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
                     _currentAnalysisData.ResetState();
                     return;
                 }
-                
+
                 switch (targets.Count)
                 {
                     case 0:
