@@ -37,26 +37,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
             ArrayBuilder<ClassifiedSpan> result,
             CancellationToken cancellationToken)
         {
-            if (!IsNamespaceName(name))
-            {
-                var symbolInfo = semanticModel.GetSymbolInfo(name, cancellationToken);
+            var symbolInfo = semanticModel.GetSymbolInfo(name, cancellationToken);
 
-                var _ =
-                    TryClassifySymbol(name, symbolInfo, semanticModel, result, cancellationToken) ||
-                    TryClassifyFromIdentifier(name, symbolInfo, result) ||
-                    TryClassifyValueIdentifier(name, symbolInfo, result) ||
-                    TryClassifyNameOfIdentifier(name, symbolInfo, result);
-            }
-        }
-
-        private static bool IsNamespaceName(NameSyntax name)
-        {
-            while (name.Parent is NameSyntax)
-            {
-                name = (NameSyntax)name.Parent;
-            }
-
-            return name.IsParentKind(SyntaxKind.NamespaceDeclaration);
+            var _ =
+                TryClassifySymbol(name, symbolInfo, semanticModel, result, cancellationToken) ||
+                TryClassifyFromIdentifier(name, symbolInfo, result) ||
+                TryClassifyValueIdentifier(name, symbolInfo, result) ||
+                TryClassifyNameOfIdentifier(name, symbolInfo, result);
         }
 
         private bool TryClassifySymbol(
@@ -125,7 +112,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
             Text.TextSpan span,
             ArrayBuilder<ClassifiedSpan> result)
         {
-            if (symbol?.IsStatic == true)
+            if (symbol?.IsStatic == true
+                // && (!symbol.IsKind(SymbolKind.Field) || symbol.ContainingType?.IsEnumType() == false) // TODO: Since Enum members are always static is it useful to classify them as static?
+                && !symbol.IsKind(SymbolKind.Namespace)) // TODO: Since Namespace are always static is it useful to classify them as static?
             {
                 result.Add(new ClassifiedSpan(span, ClassificationTypeNames.StaticSymbol));
             }
