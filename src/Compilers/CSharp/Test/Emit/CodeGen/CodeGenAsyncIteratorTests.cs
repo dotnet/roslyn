@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
     {
         private void VerifyMissingMember(WellKnownMember member, params DiagnosticDescription[] expected)
         {
-            var lib = CreateCompilationWithTasksExtensions(AsyncStreamsTypes);
+            var lib = CreateCompilationWithAsyncIterator("");
             var lib_ref = lib.EmitToImageReference();
 
             string source = @"
@@ -41,7 +41,7 @@ class C
 
         private void VerifyMissingType(WellKnownType type, params DiagnosticDescription[] expected)
         {
-            var lib = CreateCompilationWithTasksExtensions(AsyncStreamsTypes);
+            var lib = CreateCompilationWithAsyncIterator("");
             var lib_ref = lib.EmitToImageReference();
 
             string source = @"
@@ -57,7 +57,7 @@ class C
         }
 
         private CSharpCompilation CreateCompilationWithAsyncIterator(string source, CSharpCompilationOptions options = null)
-            => CreateCompilationWithTasksExtensions(new[] { source, AsyncStreamsTypes }, options: options);
+            => CreateCompilationWithAsyncIterator(source, options: options);
 
         [Fact]
         [WorkItem(30566, "https://github.com/dotnet/roslyn/issues/30566")]
@@ -353,7 +353,7 @@ class C
 ref struct S
 {
 }";
-            var comp = CreateCompilationWithTasksExtensions(new[] { source, AsyncStreamsTypes }, options: TestOptions.DebugExe);
+            var comp = CreateCompilationWithAsyncIterator(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
                 // (4,65): error CS0306: The type 'S' may not be used as a type argument
                 //     static async System.Collections.Generic.IAsyncEnumerable<S> M()
@@ -377,7 +377,7 @@ class C
         yield return 42;
     }
 }";
-            var comp = CreateCompilationWithTasksExtensions(new[] { source, AsyncStreamsTypes });
+            var comp = CreateCompilationWithAsyncIterator(source);
             comp.VerifyDiagnostics();
 
             var m2 = comp.GlobalNamespace.GetMember<MethodSymbol>("C.M2");
@@ -401,7 +401,7 @@ public class C
         yield return 4;
     }
 }";
-            var comp = CreateCompilationWithTasksExtensions(new[] { source, AsyncStreamsTypes }, options: TestOptions.DebugDll);
+            var comp = CreateCompilationWithAsyncIterator(source, options: TestOptions.DebugDll);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, symbolValidator: module =>
             {
@@ -423,7 +423,7 @@ public class C
         yield return 4;
     }
 }";
-            var comp = CreateCompilationWithTasksExtensions(new[] { source, s_common });
+            var comp = CreateCompilationWithAsyncIterator(source);
             comp.VerifyDiagnostics(
                 // (4,74): error CS1983: The return type of an async method must be void, Task, Task<T>, a task-like type, or IAsyncEnumerable<T>
                 //     public static async System.Collections.Generic.IAsyncEnumerator<int> M()
@@ -781,7 +781,7 @@ class C
         break;
     }
 }";
-            var comp = CreateCompilationWithTasksExtensions(new[] { source, AsyncStreamsTypes });
+            var comp = CreateCompilationWithAsyncIterator(source);
             comp.VerifyDiagnostics(
                 // (8,9): error CS0139: No enclosing loop out of which to break or continue
                 //         break;
@@ -806,7 +806,7 @@ class C
         return 4;
     }
 }";
-            var comp = CreateCompilationWithTasksExtensions(new[] { source, AsyncStreamsTypes });
+            var comp = CreateCompilationWithAsyncIterator(source);
             comp.VerifyDiagnostics(
                 // (8,9): error CS1622: Cannot return a value from an iterator. Use the yield return statement to return a value, or yield break to end the iteration.
                 //         return 1;
@@ -837,7 +837,7 @@ class C
         return null;
     }
 }";
-            var comp = CreateCompilationWithTasksExtensions(new[] { source, AsyncStreamsTypes });
+            var comp = CreateCompilationWithAsyncIterator(source);
             comp.VerifyDiagnostics(
                 // (8,9): error CS1622: Cannot return a value from an iterator. Use the yield return statement to return a value, or yield break to end the iteration.
                 //         return null;
@@ -868,7 +868,7 @@ class C
         return ref s2;
     }
 }";
-            var comp = CreateCompilationWithTasksExtensions(new[] { source, AsyncStreamsTypes });
+            var comp = CreateCompilationWithAsyncIterator(source);
             comp.VerifyDiagnostics(
                 // (4,73): error CS1988: Async methods cannot have ref, in or out parameters
                 //     async System.Collections.Generic.IAsyncEnumerable<int> M(ref string s)
@@ -908,7 +908,7 @@ class C
         return default;
     }
 }";
-            var comp = CreateCompilationWithTasksExtensions(new[] { source, AsyncStreamsTypes });
+            var comp = CreateCompilationWithAsyncIterator(source);
             comp.VerifyDiagnostics(
                 // (8,9): error CS1622: Cannot return a value from an iterator. Use the yield return statement to return a value, or yield break to end the iteration.
                 //         return default;
@@ -954,7 +954,7 @@ class C
         }
     }
 }";
-            var comp = CreateCompilationWithTasksExtensions(new[] { source, AsyncStreamsTypes }, options: TestOptions.DebugExe);
+            var comp = CreateCompilationWithAsyncIterator(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "0 1 2 3 4 5");
         }
@@ -986,7 +986,7 @@ class C
 }";
             foreach (var options in new[] { TestOptions.DebugExe, TestOptions.ReleaseExe })
             {
-                var comp = CreateCompilationWithTasksExtensions(new[] { source, AsyncStreamsTypes }, options: options);
+                var comp = CreateCompilationWithAsyncIterator(source, options: options);
                 comp.VerifyDiagnostics();
                 var verifier = CompileAndVerify(comp, expectedOutput: "0 1 2 3 4 5");
 
@@ -1383,7 +1383,7 @@ class C
         Write(""5"");
     }
 }";
-            var comp = CreateCompilationWithTasksExtensions(new[] { source, AsyncStreamsTypes }, options: TestOptions.DebugExe);
+            var comp = CreateCompilationWithAsyncIterator(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "0 1 2 3 4 5");
         }
@@ -1416,7 +1416,7 @@ class D
         Write(""5"");
     }
 }";
-            var comp = CreateCompilationWithTasksExtensions(new[] { source, AsyncStreamsTypes }, options: TestOptions.DebugExe);
+            var comp = CreateCompilationWithAsyncIterator(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "0 1 2 3 4 5");
         }
@@ -1448,7 +1448,7 @@ class C
         Write(""End"");
     }
 }";
-            var comp = CreateCompilationWithTasksExtensions(new[] { source, AsyncStreamsTypes }, options: TestOptions.DebugExe);
+            var comp = CreateCompilationWithAsyncIterator(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "Start p:10 p:11 Value p:12 End");
         }
@@ -1481,7 +1481,7 @@ class C
         Write(""End"");
     }
 }";
-            var comp = CreateCompilationWithTasksExtensions(new[] { source, AsyncStreamsTypes }, options: TestOptions.DebugExe);
+            var comp = CreateCompilationWithAsyncIterator(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             var v = CompileAndVerify(comp, expectedOutput: "Start f:10 f:11 Value f:12 End");
         }
@@ -1499,7 +1499,7 @@ class C
         return null;
     }
 }";
-            var comp = CreateCompilationWithTasksExtensions(new[] { source, AsyncStreamsTypes });
+            var comp = CreateCompilationWithAsyncIterator(source);
             comp.VerifyDiagnostics(
                 // (8,9): error CS1622: Cannot return a value from an iterator. Use the yield return statement to return a value, or yield break to end the iteration.
                 //         return null;
@@ -1532,7 +1532,7 @@ class C
         Write(""Done"");
     }
 }";
-            var comp = CreateCompilationWithTasksExtensions(new[] { source, AsyncStreamsTypes }, options: TestOptions.DebugExe);
+            var comp = CreateCompilationWithAsyncIterator(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "0 1 2 3 4 Done");
         }
@@ -1563,7 +1563,7 @@ class C
         Write(""Done"");
     }
 }";
-            var comp = CreateCompilationWithTasksExtensions(new[] { source, AsyncStreamsTypes }, options: TestOptions.DebugExe);
+            var comp = CreateCompilationWithAsyncIterator(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "0 1 2 3 4 5 Done");
         }
@@ -1592,7 +1592,7 @@ class C
         Write(""Done"");
     }
 }";
-            var comp = CreateCompilationWithTasksExtensions(new[] { source, AsyncStreamsTypes }, options: TestOptions.DebugExe);
+            var comp = CreateCompilationWithAsyncIterator(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "0 1 2 3 Done");
         }
@@ -1621,7 +1621,7 @@ class C
         Write(""Done"");
     }
 }";
-            var comp = CreateCompilationWithTasksExtensions(new[] { source, AsyncStreamsTypes }, options: TestOptions.DebugExe);
+            var comp = CreateCompilationWithAsyncIterator(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "0 1 2 Done");
         }
@@ -1655,7 +1655,7 @@ label2:
         Write(""Done"");
     }
 }";
-            var comp = CreateCompilationWithTasksExtensions(new[] { source, AsyncStreamsTypes }, options: TestOptions.DebugExe);
+            var comp = CreateCompilationWithAsyncIterator(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "0 1 2 3 Done");
         }
@@ -1699,7 +1699,7 @@ class C
         Write(""Done"");
     }}
 }}";
-                var comp = CreateCompilationWithTasksExtensions(new[] { source, AsyncStreamsTypes }, options: TestOptions.DebugExe);
+                var comp = CreateCompilationWithAsyncIterator(source, options: TestOptions.DebugExe);
                 comp.VerifyDiagnostics();
                 var verifier = CompileAndVerify(comp, expectedOutput: expectation);
             }
@@ -1727,7 +1727,7 @@ class C
         }}
     }}
 }}";
-                var comp = CreateCompilationWithTasksExtensions(new[] { source, AsyncStreamsTypes }, options: TestOptions.DebugExe);
+                var comp = CreateCompilationWithAsyncIterator(source, options: TestOptions.DebugExe);
                 comp.VerifyDiagnostics();
                 var verifier = CompileAndVerify(comp, expectedOutput: expectation);
             }
@@ -1800,7 +1800,7 @@ class C
         Write(""Done"");
     }
 }";
-            var comp = CreateCompilationWithTasksExtensions(new[] { source, AsyncStreamsTypes }, options: TestOptions.DebugExe);
+            var comp = CreateCompilationWithAsyncIterator(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             var verifier = CompileAndVerify(comp, expectedOutput: "0 1 2 3 4 Done");
         }
@@ -1816,7 +1816,7 @@ class C
         await System.Threading.Tasks.Task.CompletedTask;
     }
 }";
-            var comp = CreateCompilationWithTasksExtensions(new[] { source, AsyncStreamsTypes });
+            var comp = CreateCompilationWithAsyncIterator(source);
             comp.VerifyDiagnostics(
                 // (4,60): error CS0161: 'C.M()': not all code paths return a value
                 //     async System.Collections.Generic.IAsyncEnumerable<int> M()
@@ -1842,7 +1842,7 @@ class C
         }
     }
 }";
-            var comp = CreateCompilationWithTasksExtensions(new[] { source, AsyncStreamsTypes }, options: TestOptions.DebugExe);
+            var comp = CreateCompilationWithAsyncIterator(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
                 // (4,67): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
                 //     static async System.Collections.Generic.IAsyncEnumerable<int> M()
@@ -1870,7 +1870,7 @@ class C
         System.Console.Write(""none"");
     }
 }";
-            var comp = CreateCompilationWithTasksExtensions(new[] { source, AsyncStreamsTypes }, options: TestOptions.DebugExe);
+            var comp = CreateCompilationWithAsyncIterator(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
                 // (4,67): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
                 //     static async System.Collections.Generic.IAsyncEnumerable<int> M()
@@ -1889,7 +1889,7 @@ class C
     {
     }
 }";
-            var comp = CreateCompilationWithTasksExtensions(new[] { source, AsyncStreamsTypes });
+            var comp = CreateCompilationWithAsyncIterator(source);
             comp.VerifyDiagnostics(
                 // (4,60): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
                 //     async System.Collections.Generic.IAsyncEnumerable<int> M()
@@ -1912,7 +1912,7 @@ class C
         yield return;
     }
 }";
-            var comp = CreateCompilationWithTasksExtensions(new[] { source, AsyncStreamsTypes });
+            var comp = CreateCompilationWithAsyncIterator(source);
             comp.VerifyDiagnostics(
                 // (7,15): error CS1627: Expression expected after yield return
                 //         yield return;

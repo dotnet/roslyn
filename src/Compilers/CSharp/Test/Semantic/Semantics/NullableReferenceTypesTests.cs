@@ -28261,6 +28261,7 @@ public class C
         yield return null; // 1
         yield return """";
         yield return null; // 2
+        yield break;
     }
     public System.Collections.Generic.IEnumerable<string?> M2()
     {
@@ -28307,6 +28308,7 @@ class C
             yield return null; // 1
             yield return """";
             yield return null; // 2
+            yield break;
         }
         System.Collections.Generic.IEnumerable<string?> M2()
         {
@@ -28491,6 +28493,7 @@ class C
         yield return null; // 1
         yield return null; // 2
         await Task.Delay(1);
+        yield break;
     }
     public static async IAsyncEnumerable<string?> M2()
     {
@@ -28507,6 +28510,7 @@ class C
         {
             yield return null; // 3
             await Task.Delay(1);
+            yield break;
         }
         async IAsyncEnumerable<string?> local2()
         {
@@ -28522,9 +28526,9 @@ class C
                 // (9,22): warning CS8603: Possible null reference return.
                 //         yield return null; // 2
                 Diagnostic(ErrorCode.WRN_NullReferenceReturn, "null").WithLocation(9, 22),
-                // (25,26): warning CS8603: Possible null reference return.
+                // (26,26): warning CS8603: Possible null reference return.
                 //             yield return null; // 3
-                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "null").WithLocation(25, 26)
+                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "null").WithLocation(26, 26)
                 );
         }
 
@@ -28541,6 +28545,7 @@ class C
         yield return null; // 1
         yield return null; // 2
         await Task.Delay(1);
+        yield break;
     }
     async IAsyncEnumerator<string?> M2()
     {
@@ -28562,6 +28567,7 @@ class C
         {
             yield return null;
             await Task.Delay(1);
+            yield break;
         }
     }
 }";
@@ -28572,9 +28578,9 @@ class C
                 // (9,22): warning CS8603: Possible null reference return.
                 //         yield return null; // 2
                 Diagnostic(ErrorCode.WRN_NullReferenceReturn, "null").WithLocation(9, 22),
-                // (25,26): warning CS8603: Possible null reference return.
+                // (26,26): warning CS8603: Possible null reference return.
                 //             yield return null; // 3
-                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "null").WithLocation(25, 26)
+                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "null").WithLocation(26, 26)
                 );
         }
 

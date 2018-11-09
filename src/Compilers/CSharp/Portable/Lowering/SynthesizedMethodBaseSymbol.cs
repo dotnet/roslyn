@@ -165,11 +165,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (_iteratorElementType.IsNull)
                 {
-                    if (BaseMethod.IteratorElementType.IsNull)
-                    {
-                        return default;
-                    }
-                    _iteratorElementType = BaseMethod.IteratorElementType.SubstituteType(TypeMap);
+                    _iteratorElementType = TypeMap.SubstituteType(BaseMethod.IteratorElementType);
                 }
                 return _iteratorElementType;
             }

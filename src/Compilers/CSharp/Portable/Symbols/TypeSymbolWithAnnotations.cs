@@ -639,9 +639,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         public TypeSymbolWithAnnotations SubstituteType(AbstractTypeMap typeMap) =>
-            _extensions.SubstituteType(this, typeMap, withTupleUnification: false);
+            IsNull ? default : _extensions.SubstituteType(this, typeMap, withTupleUnification: false);
         public TypeSymbolWithAnnotations SubstituteTypeWithTupleUnification(AbstractTypeMap typeMap) =>
-            _extensions.SubstituteType(this, typeMap, withTupleUnification: true);
+            IsNull ? default : _extensions.SubstituteType(this, typeMap, withTupleUnification: true);
 
         internal TypeSymbolWithAnnotations TransformToTupleIfCompatible() => _extensions.TransformToTupleIfCompatible(this);
 
