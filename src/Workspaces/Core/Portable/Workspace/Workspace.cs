@@ -282,7 +282,7 @@ namespace Microsoft.CodeAnalysis
         /// Override this method if you want to do additional work when a document is removed.
         /// Call the base method at the end of your method.
         /// </summary>
-        protected virtual void ClearDocumentData(DocumentId documentId)
+        protected internal virtual void ClearDocumentData(DocumentId documentId)
         {
             this.ClearOpenDocument(documentId);
         }
@@ -735,7 +735,6 @@ namespace Microsoft.CodeAnalysis
 
         protected virtual void CheckDocumentCanBeRemoved(DocumentId documentId)
         {
-            CheckDocumentIsClosed(documentId);
         }
 
         /// <summary>
@@ -1446,7 +1445,8 @@ namespace Microsoft.CodeAnalysis
                 project.AdditionalDocuments.Select(d => CreateDocumentInfoWithText(d)),
                 project.IsSubmission,
                 project.State.HostObjectType,
-                project.OutputRefFilePath);
+                project.OutputRefFilePath)
+                .WithDefaultNamespace(project.DefaultNamespace);
         }
 
         private DocumentInfo CreateDocumentInfoWithText(TextDocument doc)

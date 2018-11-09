@@ -312,7 +312,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>
         /// A pending branch.  These are created for a return, break, continue, goto statement,
-        /// yield return, yield break, await expression, foreach/using await, and if PreciseAbstractFlowPass.trackExceptions
+        /// yield return, yield break, await expression, await foreach/using, and if PreciseAbstractFlowPass._trackExceptions
         /// is true for other
         /// constructs that can cause an exception to be raised such as a throw statement or method
         /// invocation.
@@ -1775,7 +1775,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void VisitFieldAccessInternal(BoundExpression receiverOpt, FieldSymbol fieldSymbol)
         {
             bool asLvalue = (object)fieldSymbol != null &&
-                (fieldSymbol.IsFixed ||
+                (fieldSymbol.IsFixedSizeBuffer ||
                 !fieldSymbol.IsStatic &&
                 fieldSymbol.ContainingType.TypeKind == TypeKind.Struct &&
                 receiverOpt != null &&
@@ -2577,14 +2577,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (_trackExceptions) NotePossibleException(node);
             VisitStatement(node.Body);
 
-            if (AsyncUsingAddsPendingBranch && node.AwaitOpt != null)
+            if (AwaitUsingAddsPendingBranch && node.AwaitOpt != null)
             {
                 _pendingBranches.Add(new PendingBranch(node, this.State));
             }
             return null;
         }
 
-        public abstract bool AsyncUsingAddsPendingBranch { get; }
+        public abstract bool AwaitUsingAddsPendingBranch { get; }
 
         public override BoundNode VisitFixedStatement(BoundFixedStatement node)
         {

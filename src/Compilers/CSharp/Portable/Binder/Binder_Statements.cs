@@ -1105,7 +1105,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundKind.FieldAccess:
                     var fa = (BoundFieldAccess)initializerOpt;
-                    if (fa.FieldSymbol.IsFixed)
+                    if (fa.FieldSymbol.IsFixedSizeBuffer)
                     {
                         elementType = ((PointerTypeSymbol)fa.Type).PointedAtType.TypeSymbol;
                         break;
@@ -1604,7 +1604,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         internal virtual uint LocalScopeDepth => Next.LocalScopeDepth;
 
-        internal BoundBlock BindEmbeddedBlock(BlockSyntax node, DiagnosticBag diagnostics)
+        internal virtual BoundBlock BindEmbeddedBlock(BlockSyntax node, DiagnosticBag diagnostics)
         {
             return BindBlock(node, diagnostics);
         }

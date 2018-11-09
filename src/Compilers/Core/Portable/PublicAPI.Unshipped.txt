@@ -1,4 +1,5 @@
 *REMOVED*Microsoft.CodeAnalysis.Operations.IEventAssignmentOperation.EventReference.get -> Microsoft.CodeAnalysis.Operations.IEventReferenceOperation
+Microsoft.CodeAnalysis.IFieldSymbol.IsFixedSizeBuffer.get -> bool
 Microsoft.CodeAnalysis.OperationKind.FromEndIndex = 100 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.OperationKind.Range = 99 -> Microsoft.CodeAnalysis.OperationKind
 abstract Microsoft.CodeAnalysis.Compilation.ClassifyCommonConversion(Microsoft.CodeAnalysis.ITypeSymbol source, Microsoft.CodeAnalysis.ITypeSymbol destination) -> Microsoft.CodeAnalysis.Operations.CommonConversion
@@ -74,7 +75,9 @@ Microsoft.CodeAnalysis.FlowAnalysis.ControlFlowGraph.GetAnonymousFunctionControl
 Microsoft.CodeAnalysis.FlowAnalysis.ControlFlowGraph.GetLocalFunctionControlFlowGraph(Microsoft.CodeAnalysis.IMethodSymbol localFunction, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> Microsoft.CodeAnalysis.FlowAnalysis.ControlFlowGraph
 Microsoft.CodeAnalysis.FlowAnalysis.ControlFlowGraph.LocalFunctions.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.IMethodSymbol>
 Microsoft.CodeAnalysis.FlowAnalysis.ControlFlowGraph.OriginalOperation.get -> Microsoft.CodeAnalysis.IOperation
+Microsoft.CodeAnalysis.FlowAnalysis.ControlFlowGraph.Parent.get -> Microsoft.CodeAnalysis.FlowAnalysis.ControlFlowGraph
 Microsoft.CodeAnalysis.FlowAnalysis.ControlFlowGraph.Root.get -> Microsoft.CodeAnalysis.FlowAnalysis.ControlFlowRegion
+Microsoft.CodeAnalysis.FlowAnalysis.ControlFlowGraphExtensions
 Microsoft.CodeAnalysis.FlowAnalysis.ControlFlowRegion
 Microsoft.CodeAnalysis.FlowAnalysis.ControlFlowRegion.CaptureIds.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.FlowAnalysis.CaptureId>
 Microsoft.CodeAnalysis.FlowAnalysis.ControlFlowRegion.EnclosingRegion.get -> Microsoft.CodeAnalysis.FlowAnalysis.ControlFlowRegion
@@ -168,6 +171,8 @@ static Microsoft.CodeAnalysis.FlowAnalysis.ControlFlowGraph.Create(Microsoft.Cod
 static Microsoft.CodeAnalysis.FlowAnalysis.ControlFlowGraph.Create(Microsoft.CodeAnalysis.Operations.IParameterInitializerOperation initializer, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> Microsoft.CodeAnalysis.FlowAnalysis.ControlFlowGraph
 static Microsoft.CodeAnalysis.FlowAnalysis.ControlFlowGraph.Create(Microsoft.CodeAnalysis.Operations.IPropertyInitializerOperation initializer, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> Microsoft.CodeAnalysis.FlowAnalysis.ControlFlowGraph
 static Microsoft.CodeAnalysis.FlowAnalysis.ControlFlowGraph.Create(Microsoft.CodeAnalysis.SyntaxNode node, Microsoft.CodeAnalysis.SemanticModel semanticModel, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> Microsoft.CodeAnalysis.FlowAnalysis.ControlFlowGraph
+static Microsoft.CodeAnalysis.FlowAnalysis.ControlFlowGraphExtensions.GetAnonymousFunctionControlFlowGraphInScope(this Microsoft.CodeAnalysis.FlowAnalysis.ControlFlowGraph controlFlowGraph, Microsoft.CodeAnalysis.FlowAnalysis.IFlowAnonymousFunctionOperation anonymousFunction, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> Microsoft.CodeAnalysis.FlowAnalysis.ControlFlowGraph
+static Microsoft.CodeAnalysis.FlowAnalysis.ControlFlowGraphExtensions.GetLocalFunctionControlFlowGraphInScope(this Microsoft.CodeAnalysis.FlowAnalysis.ControlFlowGraph controlFlowGraph, Microsoft.CodeAnalysis.IMethodSymbol localFunction, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> Microsoft.CodeAnalysis.FlowAnalysis.ControlFlowGraph
 static Microsoft.CodeAnalysis.Operations.OperationExtensions.GetCorrespondingOperation(this Microsoft.CodeAnalysis.Operations.IBranchOperation operation) -> Microsoft.CodeAnalysis.IOperation
 virtual Microsoft.CodeAnalysis.Diagnostics.AnalysisContext.RegisterSymbolStartAction(System.Action<Microsoft.CodeAnalysis.Diagnostics.SymbolStartAnalysisContext> action, Microsoft.CodeAnalysis.SymbolKind symbolKind) -> void
 virtual Microsoft.CodeAnalysis.Diagnostics.CompilationStartAnalysisContext.RegisterSymbolStartAction(System.Action<Microsoft.CodeAnalysis.Diagnostics.SymbolStartAnalysisContext> action, Microsoft.CodeAnalysis.SymbolKind symbolKind) -> void

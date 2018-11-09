@@ -6,7 +6,7 @@
     <PlatformTarget>AnyCPU</PlatformTarget>
     <OutputType>Library</OutputType>
     <RootNamespace>Roslyn.Test.PdbUtilities</RootNamespace>
-    <TargetFramework>netstandard1.3</TargetFramework>
+    <TargetFramework>netstandard2.0</TargetFramework>
     <MinimumVisualStudioVersion>14.0</MinimumVisualStudioVersion>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <IsShipping>false</IsShipping>
@@ -49,8 +49,16 @@
     <PackageReference Include="Microsoft.Metadata.Visualizer" Version="$(MicrosoftMetadataVisualizerVersion)" />
     <PackageReference Include="System.Collections.Immutable" Version="$(SystemCollectionsImmutableVersion)" />
     <PackageReference Include="System.Reflection.Metadata" Version="$(SystemReflectionMetadataVersion)" />
-    <PackageReference Include="System.ValueTuple" Version="$(SystemValueTupleVersion)" />
     <PackageReference Include="xunit.assert" Version="$(xunitassertVersion)" />
+  </ItemGroup>
+  <ItemGroup>
+    <!--
+      Package references needed due to Microsoft.DiaSymReader.Converter dependency on Newtonsoft.Json 9.0.1, 
+      which doesn't have netstandard 2.0 binaries.
+    -->
+    <PackageReference Include="System.IO.FileSystem" Version="$(SystemIOFileSystemVersion)" />
+    <PackageReference Include="System.IO.FileSystem.Primitives" Version="$(SystemIOFileSystemPrimitivesVersion)" />
+    <PackageReference Include="System.Text.Encoding.Extensions" Version="$(SystemTextEncodingExtensionsVersion)" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj" />

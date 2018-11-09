@@ -10,7 +10,6 @@
 
 namespace Microsoft.CodeAnalysis.CSharp {
     using System;
-    using System.Reflection;
     
     
     /// <summary>
@@ -20,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "15.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class CSharpResources {
@@ -40,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Microsoft.CodeAnalysis.CSharp.CSharpResources", typeof(CSharpResources).GetTypeInfo().Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Microsoft.CodeAnalysis.CSharp.CSharpResources", typeof(CSharpResources).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
@@ -710,24 +709,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Async foreach statement cannot operate on variables of type &apos;{0}&apos; because &apos;{0}&apos; does not contain a public instance definition for &apos;{1}&apos;.
-        /// </summary>
-        internal static string ERR_AsyncForEachMissingMember {
-            get {
-                return ResourceManager.GetString("ERR_AsyncForEachMissingMember", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Async foreach statement cannot operate on variables of type &apos;{0}&apos; because &apos;{0}&apos; does not contain a public instance definition for &apos;{1}&apos;. Did you mean &apos;foreach&apos; rather than &apos;foreach await&apos;?.
-        /// </summary>
-        internal static string ERR_AsyncForEachMissingMemberWrongAsync {
-            get {
-                return ResourceManager.GetString("ERR_AsyncForEachMissingMemberWrongAsync", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to &apos;{0}&apos;: an attribute argument cannot use type parameters.
         /// </summary>
         internal static string ERR_AttrArgWithTypeVars {
@@ -859,6 +840,24 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_AutoPropsInRoStruct {
             get {
                 return ResourceManager.GetString("ERR_AutoPropsInRoStruct", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Asynchronous foreach statement cannot operate on variables of type &apos;{0}&apos; because &apos;{0}&apos; does not contain a public instance definition for &apos;{1}&apos;.
+        /// </summary>
+        internal static string ERR_AwaitForEachMissingMember {
+            get {
+                return ResourceManager.GetString("ERR_AwaitForEachMissingMember", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Asynchronous foreach statement cannot operate on variables of type &apos;{0}&apos; because &apos;{0}&apos; does not contain a public instance definition for &apos;{1}&apos;. Did you mean &apos;foreach&apos; rather than &apos;await foreach&apos;?.
+        /// </summary>
+        internal static string ERR_AwaitForEachMissingMemberWrongAsync {
+            get {
+                return ResourceManager.GetString("ERR_AwaitForEachMissingMemberWrongAsync", resourceCulture);
             }
         }
         
@@ -1432,9 +1431,9 @@ namespace Microsoft.CodeAnalysis.CSharp {
         /// <summary>
         ///   Looks up a localized string similar to Cannot use a collection of dynamic type in an asynchronous foreach.
         /// </summary>
-        internal static string ERR_BadDynamicAsyncForEach {
+        internal static string ERR_BadDynamicAwaitForEach {
             get {
-                return ResourceManager.GetString("ERR_BadDynamicAsyncForEach", resourceCulture);
+                return ResourceManager.GetString("ERR_BadDynamicAwaitForEach", resourceCulture);
             }
         }
         
@@ -1619,7 +1618,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Async foreach requires that the return type &apos;{0}&apos; of &apos;{1}&apos; must have a suitable public &apos;MoveNextAsync&apos; method and public &apos;Current&apos; property.
+        ///   Looks up a localized string similar to Asynchronous foreach requires that the return type &apos;{0}&apos; of &apos;{1}&apos; must have a suitable public &apos;MoveNextAsync&apos; method and public &apos;Current&apos; property.
         /// </summary>
         internal static string ERR_BadGetAsyncEnumerator {
             get {
@@ -4976,7 +4975,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to foreach statement cannot operate on variables of type &apos;{0}&apos; because &apos;{0}&apos; does not contain a public instance definition for &apos;{1}&apos;. Did you mean &apos;foreach await&apos;?.
+        ///   Looks up a localized string similar to foreach statement cannot operate on variables of type &apos;{0}&apos; because &apos;{0}&apos; does not contain a public instance definition for &apos;{1}&apos;. Did you mean &apos;await foreach&apos; rather than &apos;foreach&apos;?.
         /// </summary>
         internal static string ERR_ForEachMissingMemberWrongAsync {
             get {
@@ -6731,7 +6730,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Async foreach statement cannot operate on variables of type &apos;{0}&apos; because it implements multiple instantiations of &apos;{1}&apos;; try casting to a specific interface instantiation.
+        ///   Looks up a localized string similar to Asynchronous foreach statement cannot operate on variables of type &apos;{0}&apos; because it implements multiple instantiations of &apos;{1}&apos;; try casting to a specific interface instantiation.
         /// </summary>
         internal static string ERR_MultipleIAsyncEnumOfT {
             get {
@@ -7118,11 +7117,29 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to &apos;{0}&apos;: type used in an async using statement must be implicitly convertible to &apos;System.IAsyncDisposable&apos;. Did you mean &apos;using&apos; rather than &apos;await using&apos;?.
+        /// </summary>
+        internal static string ERR_NoConvToIAsyncDispWrongAsync {
+            get {
+                return ResourceManager.GetString("ERR_NoConvToIAsyncDispWrongAsync", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to &apos;{0}&apos;: type used in a using statement must be implicitly convertible to &apos;System.IDisposable&apos;.
         /// </summary>
         internal static string ERR_NoConvToIDisp {
             get {
                 return ResourceManager.GetString("ERR_NoConvToIDisp", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &apos;{0}&apos;: type used in a using statement must be implicitly convertible to &apos;System.IDisposable&apos;. Did you mean &apos;await using&apos; rather than &apos;using&apos;?.
+        /// </summary>
+        internal static string ERR_NoConvToIDispWrongAsync {
+            get {
+                return ResourceManager.GetString("ERR_NoConvToIDispWrongAsync", resourceCulture);
             }
         }
         
@@ -11016,6 +11033,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to nullable reference types.
+        /// </summary>
+        internal static string IDS_FeatureNullableReferenceTypes {
+            get {
+                return ResourceManager.GetString("IDS_FeatureNullableReferenceTypes", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to null propagating operator.
         /// </summary>
         internal static string IDS_FeatureNullPropagatingOperator {
@@ -11237,15 +11263,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string IDS_FeatureStaticClasses {
             get {
                 return ResourceManager.GetString("IDS_FeatureStaticClasses", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to static null checking.
-        /// </summary>
-        internal static string IDS_FeatureStaticNullChecking {
-            get {
-                return ResourceManager.GetString("IDS_FeatureStaticNullChecking", resourceCulture);
             }
         }
         

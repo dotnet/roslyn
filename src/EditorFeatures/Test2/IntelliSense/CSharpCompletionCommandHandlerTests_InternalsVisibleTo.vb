@@ -639,5 +639,277 @@ using System.Reflection;
                 Await state.AssertNoCompletionSession()
             End Using
         End Function
+
+        <MemberData(NameOf(AllCompletionImplementations))>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(29447, "https://github.com/dotnet/roslyn/pull/29447")>
+        Public Async Function CodeCompletionReplacesExisitingAssemblyNameWithDots_1(completionImplementation As CompletionImplementation) As Task
+            Using state = TestStateFactory.CreateTestStateFromWorkspace(completionImplementation,
+                <Workspace>
+                    <Project Language="C#" AssemblyName="Dotted.Assembly.Name"/>
+                    <Project Language="C#" CommonReferences="true" AssemblyName="TestAssembly">
+                        <Document FilePath="C.cs">
+[assembly: System.Runtime.CompilerServices.InternalsVisibleTo("Dotted.Assem$$bly")]
+                        </Document>
+                    </Project>
+                </Workspace>)
+                state.SendInvokeCompletionList()
+                Await state.AssertSelectedCompletionItem("Dotted.Assembly.Name")
+                state.SendTab()
+                Await state.WaitForAsynchronousOperationsAsync()
+                state.AssertMatchesTextStartingAtLine(1, "[assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""Dotted.Assembly.Name"")]")
+            End Using
+        End Function
+
+        <MemberData(NameOf(AllCompletionImplementations))>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(29447, "https://github.com/dotnet/roslyn/pull/29447")>
+        Public Async Function CodeCompletionReplacesExisitingAssemblyNameWithDots_2(completionImplementation As CompletionImplementation) As Task
+            Using state = TestStateFactory.CreateTestStateFromWorkspace(completionImplementation,
+                <Workspace>
+                    <Project Language="C#" AssemblyName="Dotted.Assembly.Name"/>
+                    <Project Language="C#" CommonReferences="true" AssemblyName="TestAssembly">
+                        <Document FilePath="C.cs">
+[assembly: System.Runtime.CompilerServices.InternalsVisibleTo("Dotted.Assem$$bly
+                        </Document>
+                    </Project>
+                </Workspace>)
+                state.SendInvokeCompletionList()
+                Await state.AssertSelectedCompletionItem("Dotted.Assembly.Name")
+                state.SendTab()
+                Await state.WaitForAsynchronousOperationsAsync()
+                state.AssertMatchesTextStartingAtLine(1, "[assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""Dotted.Assembly.Name")
+            End Using
+        End Function
+
+        <MemberData(NameOf(AllCompletionImplementations))>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(29447, "https://github.com/dotnet/roslyn/pull/29447")>
+        Public Async Function CodeCompletionReplacesExisitingAssemblyNameWithDots_3(completionImplementation As CompletionImplementation) As Task
+            Using state = TestStateFactory.CreateTestStateFromWorkspace(completionImplementation,
+                <Workspace>
+                    <Project Language="C#" AssemblyName="Dotted.Assembly.Name"/>
+                    <Project Language="C#" CommonReferences="true" AssemblyName="TestAssembly">
+                        <Document FilePath="C.cs">
+[assembly: System.Runtime.CompilerServices.InternalsVisibleTo("  Dotted.Assem$$bly  ")]
+                        </Document>
+                    </Project>
+                </Workspace>)
+                state.SendInvokeCompletionList()
+                Await state.AssertSelectedCompletionItem("Dotted.Assembly.Name")
+                state.SendTab()
+                Await state.WaitForAsynchronousOperationsAsync()
+                state.AssertMatchesTextStartingAtLine(1, "[assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""Dotted.Assembly.Name"")]")
+            End Using
+        End Function
+
+        <MemberData(NameOf(AllCompletionImplementations))>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(29447, "https://github.com/dotnet/roslyn/pull/29447")>
+        Public Async Function CodeCompletionReplacesExisitingAssemblyNameWithDots_4(completionImplementation As CompletionImplementation) As Task
+            Using state = TestStateFactory.CreateTestStateFromWorkspace(completionImplementation,
+                <Workspace>
+                    <Project Language="C#" AssemblyName="Dotted1.Dotted2.Assembly.Dotted3"/>
+                    <Project Language="C#" CommonReferences="true" AssemblyName="TestAssembly">
+                        <Document FilePath="C.cs">
+[assembly: System.Runtime.CompilerServices.InternalsVisibleTo("Dotted1.Dotted2.Assem$$bly.Dotted")]
+                        </Document>
+                    </Project>
+                </Workspace>)
+                state.SendInvokeCompletionList()
+                Await state.AssertSelectedCompletionItem("Dotted1.Dotted2.Assembly.Dotted3")
+                state.SendTab()
+                Await state.WaitForAsynchronousOperationsAsync()
+                state.AssertMatchesTextStartingAtLine(1, "[assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""Dotted1.Dotted2.Assembly.Dotted3"")]")
+            End Using
+        End Function
+
+        <MemberData(NameOf(AllCompletionImplementations))>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(29447, "https://github.com/dotnet/roslyn/pull/29447")>
+        Public Async Function CodeCompletionReplacesExisitingAssemblyNameWithDots_Verbatim_1(completionImplementation As CompletionImplementation) As Task
+            Using state = TestStateFactory.CreateTestStateFromWorkspace(completionImplementation,
+                <Workspace>
+                    <Project Language="C#" AssemblyName="Dotted1.Dotted2.Assembly.Dotted3"/>
+                    <Project Language="C#" CommonReferences="true" AssemblyName="TestAssembly">
+                        <Document FilePath="C.cs">
+[assembly: System.Runtime.CompilerServices.InternalsVisibleTo(@"Dotted1.Dotted2.Assem$$bly.Dotted")]
+                        </Document>
+                    </Project>
+                </Workspace>)
+                state.SendInvokeCompletionList()
+                Await state.AssertSelectedCompletionItem("Dotted1.Dotted2.Assembly.Dotted3")
+                state.SendTab()
+                Await state.WaitForAsynchronousOperationsAsync()
+                state.AssertMatchesTextStartingAtLine(1, "[assembly: System.Runtime.CompilerServices.InternalsVisibleTo(@""Dotted1.Dotted2.Assembly.Dotted3"")]")
+            End Using
+        End Function
+
+        <MemberData(NameOf(AllCompletionImplementations))>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(29447, "https://github.com/dotnet/roslyn/pull/29447")>
+        Public Async Function CodeCompletionReplacesExisitingAssemblyNameWithDots_Verbatim_2(completionImplementation As CompletionImplementation) As Task
+            Using state = TestStateFactory.CreateTestStateFromWorkspace(completionImplementation,
+                <Workspace>
+                    <Project Language="C#" AssemblyName="Dotted1.Dotted2.Assembly.Dotted3"/>
+                    <Project Language="C#" CommonReferences="true" AssemblyName="TestAssembly">
+                        <Document FilePath="C.cs">
+[assembly: System.Runtime.CompilerServices.InternalsVisibleTo(@"Dotted1.Dotted2.Assem$$bly
+                        </Document>
+                    </Project>
+                </Workspace>)
+                state.SendInvokeCompletionList()
+                Await state.AssertSelectedCompletionItem("Dotted1.Dotted2.Assembly.Dotted3")
+                state.SendTab()
+                Await state.WaitForAsynchronousOperationsAsync()
+                state.AssertMatchesTextStartingAtLine(1, "[assembly: System.Runtime.CompilerServices.InternalsVisibleTo(@""Dotted1.Dotted2.Assembly.Dotted3")
+            End Using
+        End Function
+
+        <MemberData(NameOf(AllCompletionImplementations))>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(29447, "https://github.com/dotnet/roslyn/pull/29447")>
+        Public Async Function CodeCompletionReplacesExisitingAssemblyNameWithDots_EscapeSequence_1(completionImplementation As CompletionImplementation) As Task
+            ' Escaped double quotes are not handled properly: The selection is expanded from the cursor position until
+            ' a double quote or new line is reached. But because double quotes are not allowed in this context this 
+            ' case is rare enough to ignore. Supporting it would require more complicated code that was reverted in
+            ' https://github.com/dotnet/roslyn/pull/29447/commits/e7a852a7e83fffe1f25a8dee0aaec68f67fcc1d8
+            Using state = TestStateFactory.CreateTestStateFromWorkspace(completionImplementation,
+                <Workspace>
+                    <Project Language="C#" AssemblyName="Dotted1.Dotted2.Assembly.Dotted3"/>
+                    <Project Language="C#" CommonReferences="true" AssemblyName="TestAssembly">
+                        <Document FilePath="C.cs">
+[assembly: System.Runtime.CompilerServices.InternalsVisibleTo("\"Dotted1.Dotted2.Assem$$bly\"")]
+                        </Document>
+                    </Project>
+                </Workspace>)
+                state.SendInvokeCompletionList()
+                Await state.AssertSelectedCompletionItem("Dotted1.Dotted2.Assembly.Dotted3")
+                state.SendTab()
+                Await state.WaitForAsynchronousOperationsAsync()
+                state.AssertMatchesTextStartingAtLine(1, "[assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""\""Dotted1.Dotted2.Assembly.Dotted3"""")]")
+            End Using
+        End Function
+
+        <MemberData(NameOf(AllCompletionImplementations))>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(29447, "https://github.com/dotnet/roslyn/pull/29447")>
+        Public Async Function CodeCompletionReplacesExisitingAssemblyNameWithDots_OpenEnded(completionImplementation As CompletionImplementation) As Task
+            Using state = TestStateFactory.CreateTestStateFromWorkspace(completionImplementation,
+                <Workspace>
+                    <Project Language="C#" AssemblyName="Dotted1.Dotted2.Assembly.Dotted3"/>
+                    <Project Language="C#" CommonReferences="true" AssemblyName="TestAssembly">
+                        <Document FilePath="C.cs">
+[assembly: System.Runtime.CompilerServices.InternalsVisibleTo("Dotted1.Dotted2.Assem$$bly.Dotted4
+                        </Document>
+                    </Project>
+                </Workspace>)
+                state.SendInvokeCompletionList()
+                Await state.AssertSelectedCompletionItem("Dotted1.Dotted2.Assembly.Dotted3")
+                state.SendTab()
+                Await state.WaitForAsynchronousOperationsAsync()
+                state.AssertMatchesTextStartingAtLine(1, "[assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""Dotted1.Dotted2.Assembly.Dotted3")
+            End Using
+        End Function
+
+        <MemberData(NameOf(AllCompletionImplementations))>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(29447, "https://github.com/dotnet/roslyn/pull/29447")>
+        Public Async Function CodeCompletionReplacesExisitingAssemblyNameWithDots_AndPublicKey_OpenEnded(completionImplementation As CompletionImplementation) As Task
+            Using state = TestStateFactory.CreateTestStateFromWorkspace(completionImplementation,
+                <Workspace>
+                    <Project Language="C#" AssemblyName="Dotted1.Dotted2.Assembly.Dotted3"/>
+                    <Project Language="C#" CommonReferences="true" AssemblyName="TestAssembly">
+                        <Document FilePath="C.cs">
+[assembly: System.Runtime.CompilerServices.InternalsVisibleTo("Company.Asse$$mbly, PublicKey=123
+                        </Document>
+                    </Project>
+                </Workspace>)
+                state.SendInvokeCompletionList()
+                Await state.AssertSelectedCompletionItem("Dotted1.Dotted2.Assembly.Dotted3")
+                state.SendTab()
+                Await state.WaitForAsynchronousOperationsAsync()
+                state.AssertMatchesTextStartingAtLine(1, "[assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""Dotted1.Dotted2.Assembly.Dotted3")
+            End Using
+        End Function
+
+        <MemberData(NameOf(AllCompletionImplementations))>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(29447, "https://github.com/dotnet/roslyn/pull/29447")>
+        Public Async Function CodeCompletionReplacesExisitingAssemblyNameWithDots_AndPublicKey_LineBreakExampleFromMSDN(completionImplementation As CompletionImplementation) As Task
+            ' Source https://msdn.microsoft.com/de-de/library/system.runtime.compilerservices.internalsvisibletoattribute(v=vs.110).aspx
+            Using state = TestStateFactory.CreateTestStateFromWorkspace(completionImplementation,
+                <Workspace>
+                    <Project Language="C#" AssemblyName="Dotted1.Dotted2.Assembly.Dotted3"/>
+                    <Project Language="C#" CommonReferences="true" AssemblyName="TestAssembly">
+                        <Document FilePath="C.cs">
+[assembly: System.Runtime.CompilerServices.InternalsVisibleTo("$$Friend1, PublicKey=002400000480000094" +
+                                                              "0000000602000000240000525341310004000" +
+                                                              "001000100bf8c25fcd44838d87e245ab35bf7" +
+                                                              "3ba2615707feea295709559b3de903fb95a93" +
+                                                              "3d2729967c3184a97d7b84c7547cd87e435b5" +
+                                                              "6bdf8621bcb62b59c00c88bd83aa62c4fcdd4" +
+                                                              "712da72eec2533dc00f8529c3a0bbb4103282" +
+                                                              "f0d894d5f34e9f0103c473dce9f4b457a5dee" +
+                                                              "fd8f920d8681ed6dfcb0a81e96bd9b176525a" +
+                                                              "26e0b3")]
+                        </Document>
+                    </Project>
+                </Workspace>)
+                state.SendInvokeCompletionList()
+                Await state.AssertSelectedCompletionItem("Dotted1.Dotted2.Assembly.Dotted3")
+                state.SendTab()
+                Await state.WaitForAsynchronousOperationsAsync()
+                state.AssertMatchesTextStartingAtLine(1, "[assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""Dotted1.Dotted2.Assembly.Dotted3"" +")
+                state.AssertMatchesTextStartingAtLine(2, "                                                              ""0000000602000000240000525341310004000"" +")
+            End Using
+        End Function
+
+        <MemberData(NameOf(AllCompletionImplementations))>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(29447, "https://github.com/dotnet/roslyn/pull/29447")>
+        Public Async Function CodeCompletionReplacesExisitingAssemblyNameWithDots_OpenEndedStringFollowedByEOF(completionImplementation As CompletionImplementation) As Task
+            ' Source https://msdn.microsoft.com/de-de/library/system.runtime.compilerservices.internalsvisibletoattribute(v=vs.110).aspx
+            Using state = TestStateFactory.CreateTestStateFromWorkspace(completionImplementation,
+                <Workspace>
+                    <Project Language="C#" AssemblyName="Dotted1.Dotted2.Assembly.Dotted3"/>
+                    <Project Language="C#" CommonReferences="true" AssemblyName="TestAssembly">
+                        <Document FilePath="C.cs">
+[assembly: System.Runtime.CompilerServices.InternalsVisibleTo("Friend1$$</Document>
+                    </Project>
+                </Workspace>)
+                state.SendInvokeCompletionList()
+                Await state.AssertSelectedCompletionItem("Dotted1.Dotted2.Assembly.Dotted3")
+                state.SendTab()
+                Await state.WaitForAsynchronousOperationsAsync()
+                state.AssertMatchesTextStartingAtLine(1, "[assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""Dotted1.Dotted2.Assembly.Dotted3")
+            End Using
+        End Function
+
+        <MemberData(NameOf(AllCompletionImplementations))>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(29447, "https://github.com/dotnet/roslyn/pull/29447")>
+        Public Async Function CodeCompletionReplacesExisitingAssemblyNameWithDots_OpenEndedStringFollowedByNewLines(completionImplementation As CompletionImplementation) As Task
+            ' Source https://msdn.microsoft.com/de-de/library/system.runtime.compilerservices.internalsvisibletoattribute(v=vs.110).aspx
+            Using state = TestStateFactory.CreateTestStateFromWorkspace(completionImplementation,
+                <Workspace>
+                    <Project Language="C#" AssemblyName="Dotted1.Dotted2.Assembly.Dotted3"/>
+                    <Project Language="C#" CommonReferences="true" AssemblyName="TestAssembly">
+                        <Document FilePath="C.cs"><![CDATA[
+[assembly: System.Runtime.CompilerServices.InternalsVisibleTo("Friend1$$
+
+
+]]>
+                        </Document>
+                    </Project>
+                </Workspace>)
+                state.SendInvokeCompletionList()
+                Await state.AssertSelectedCompletionItem("Dotted1.Dotted2.Assembly.Dotted3")
+                state.SendTab()
+                Await state.WaitForAsynchronousOperationsAsync()
+                state.AssertMatchesTextStartingAtLine(1, "[assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""Dotted1.Dotted2.Assembly.Dotted3")
+                state.AssertMatchesTextStartingAtLine(2, "")
+            End Using
+        End Function
     End Class
 End Namespace

@@ -666,7 +666,7 @@ namespace System.Runtime.CompilerServices
                 return false;
             }
             var options = (CSharpParseOptions)trees[0].Options;
-            return options.IsFeatureEnabled(MessageID.IDS_FeatureStaticNullChecking);
+            return options.IsFeatureEnabled(MessageID.IDS_FeatureNullableReferenceTypes);
         }
 
         internal static void VerifyUsesOfNullability(Symbol symbol, ImmutableArray<string> expectedUsesOfNullable)
@@ -1706,5 +1706,28 @@ namespace System
                 parseOptions: parseOptions);
         }
         #endregion
+
+        protected static readonly string s_IAsyncEnumerable = @"
+namespace System.Collections.Generic
+{
+    public interface IAsyncEnumerable<out T>
+    {
+        IAsyncEnumerator<T> GetAsyncEnumerator();
+    }
+
+    public interface IAsyncEnumerator<out T> : System.IAsyncDisposable
+    {
+        System.Threading.Tasks.ValueTask<bool> MoveNextAsync();
+        T Current { get; }
+    }
+}
+namespace System
+{
+    public interface IAsyncDisposable
+    {
+        System.Threading.Tasks.ValueTask DisposeAsync();
+    }
+}
+";
     }
 }

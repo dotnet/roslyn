@@ -5,6 +5,7 @@ using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.UseAutoProperty
 {
@@ -159,6 +160,12 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
 
             // Property and field have to agree on type.
             if (!property.Type.Equals(getterField.Type))
+            {
+                return;
+            }
+
+            // Mutable value type fields are mutable unless they are marked read-only
+            if (!getterField.IsReadOnly && getterField.Type.IsMutableValueType() != false)
             {
                 return;
             }

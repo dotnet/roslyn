@@ -56,9 +56,9 @@ class C
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_3);
             comp.VerifyDiagnostics(
-                // (7,11): error CS8370: Feature 'static null checking' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // (7,11): error CS8370: Feature 'nullable reference types' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     string? s1 = null;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "?").WithArguments("static null checking", "8.0").WithLocation(7, 11),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "?").WithArguments("nullable reference types", "8.0").WithLocation(7, 11),
                 // (8,14): error CS0453: The type 'string' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
                 //     Nullable<string> s2 = null;
                 Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "string").WithArguments("System.Nullable<T>", "T", "string").WithLocation(8, 14)

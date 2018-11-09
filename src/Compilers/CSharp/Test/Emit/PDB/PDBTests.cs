@@ -8940,7 +8940,7 @@ class Program
 ", sequencePoints: "Program+<Test>d__0.MoveNext", source: source);
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         [WorkItem(23525, "https://github.com/dotnet/roslyn/issues/23525")]
         public void InvalidCharacterInPdbPath()
         {

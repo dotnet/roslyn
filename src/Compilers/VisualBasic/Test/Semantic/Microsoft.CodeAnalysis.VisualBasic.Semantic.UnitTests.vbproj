@@ -21,7 +21,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
   <ItemGroup>
-    <PackageReference Include="System.Drawing.Common" Version="$(SystemDrawingCommonVersion)" Condition="$(TargetFramework) == 'netcoreapp2.0'" />
+    <PackageReference Include="System.Drawing.Common" Version="$(SystemDrawingCommonVersion)" Condition="$(TargetFramework) == 'netcoreapp2.1'" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="My Project\" />

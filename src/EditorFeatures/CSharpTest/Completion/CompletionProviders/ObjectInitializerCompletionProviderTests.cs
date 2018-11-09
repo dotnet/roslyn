@@ -821,6 +821,94 @@ class Program
             await VerifyItemExistsAsync(markup, "Value");
         }
 
+        [WorkItem(24612, "https://github.com/dotnet/roslyn/issues/24612")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task ObjectInitializerOfGenericTypeСonstraint1()
+        {
+            var markup = @"
+internal interface IExample
+{
+    string A { get; set; }
+    string B { get; set; }
+}
+
+internal class Example
+{
+    public static T Create<T>()
+        where T : IExample, new()
+    {
+        return new T
+        {
+            $$
+        };
+    }
+}";
+
+            await VerifyItemExistsAsync(markup, "A");
+            await VerifyItemExistsAsync(markup, "B");
+        }
+
+        [WorkItem(24612, "https://github.com/dotnet/roslyn/issues/24612")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task ObjectInitializerOfGenericTypeСonstraint2()
+        {
+            var markup = @"
+internal class Example
+{
+    public static T Create<T>()
+        where T : new()
+    {
+        return new T
+        {
+            $$
+        };
+    }
+}";
+
+            await VerifyNoItemsExistAsync(markup);
+        }
+
+        [WorkItem(24612, "https://github.com/dotnet/roslyn/issues/24612")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task ObjectInitializerOfGenericTypeСonstraint3()
+        {
+            var markup = @"
+internal class Example
+{
+    public static T Create<T>()
+        where T : System.Delegate, new()
+    {
+        return new T
+        {
+            $$
+        };
+    }
+}";
+
+            await VerifyItemExistsAsync(markup, "Target");
+            await VerifyItemExistsAsync(markup, "Method");
+        }
+
+        [WorkItem(24612, "https://github.com/dotnet/roslyn/issues/24612")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task ObjectInitializerOfGenericTypeСonstraint4()
+        {
+            var markup = @"
+internal class Example
+{
+    public static T Create<T>()
+        where T : unmanaged
+    {
+        return new T
+        {
+            $$
+        };
+    }
+}";
+
+            await VerifyNoItemsExistAsync(markup);
+		}
+
         [WorkItem(26560, "https://github.com/dotnet/roslyn/issues/26560")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task ObjectInitializerEscapeKeywords()
