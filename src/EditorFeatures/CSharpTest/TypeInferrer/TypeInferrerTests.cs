@@ -1088,9 +1088,9 @@ class C
             var markup =
 $@"namespace System.Collections.Generic
 {{
+    interface {returnTypeName}<T> {{ }}
     class C
     {{
-        interface {returnTypeName}<T> {{ }}
         async {returnTypeName}<int> M()
         {{
             yield return [|abc|]
