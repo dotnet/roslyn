@@ -367,7 +367,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         /// <param name="baseDocuments">The set of documents from which the projection buffer 
         /// document will be composed.</param>
         /// <returns></returns>
-        public TestHostDocument CreateProjectionBufferDocument(string markup, IList<TestHostDocument> baseDocuments, string languageName, string path = "projectionbufferdocumentpath", ProjectionBufferOptions options = ProjectionBufferOptions.None, IProjectionEditResolver editResolver = null)
+        public TestHostDocument CreateProjectionBufferDocument(
+            string markup,
+            IList<TestHostDocument> baseDocuments,
+            string languageName,
+            string path = "projectionbufferdocumentpath",
+            ProjectionBufferOptions options = ProjectionBufferOptions.None,
+            IProjectionEditResolver editResolver = null)
         {
             GetSpansAndCaretFromSurfaceBufferMarkup(markup, baseDocuments,
                 out var projectionBufferSpans, out Dictionary<string, ImmutableArray<TextSpan>> mappedSpans, out var mappedCaretLocation);
