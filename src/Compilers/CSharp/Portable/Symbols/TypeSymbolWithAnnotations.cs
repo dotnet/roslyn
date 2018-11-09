@@ -303,7 +303,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         return a;
                     }
                     hadNullabilityMismatch = true;
-                    return null;
+                    return false;
             }
         }
 
