@@ -111,17 +111,17 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
             }
         }
 
-        private void AppendDiagnostics(ref Dictionary<DocumentId, List<DiagnosticData>> map, Document document, Diagnostic diagnostic)
+        private void AppendDiagnostics(ref Dictionary<DocumentId, List<DiagnosticData>> map, Document documentOpt, Diagnostic diagnostic)
         {
-            if (document?.SupportsDiagnostics() == false)
+            if (documentOpt?.SupportsDiagnostics() == false)
             {
                 return;
             }
 
             map = map ?? new Dictionary<DocumentId, List<DiagnosticData>>();
-            map.GetOrAdd(document.Id, _ => new List<DiagnosticData>()).Add(DiagnosticData.Create(document, diagnostic));
+            map.GetOrAdd(documentOpt.Id, _ => new List<DiagnosticData>()).Add(DiagnosticData.Create(documentOpt, diagnostic));
 
-            AddDocumentToSet(document);
+            AddDocumentToSet(documentOpt);
         }
 
         public void AddSyntaxDiagnostics(SyntaxTree tree, IEnumerable<Diagnostic> diagnostics)
