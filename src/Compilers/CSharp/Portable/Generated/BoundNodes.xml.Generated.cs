@@ -192,6 +192,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
 
 
+
     internal abstract partial class BoundInitializer : BoundNode
     {
         protected BoundInitializer(BoundKind kind, SyntaxNode syntax, bool hasErrors)
@@ -6560,31 +6561,31 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundExpressionWithNullability : BoundExpression
     {
-        public BoundExpressionWithNullability(SyntaxNode syntax, BoundExpression expression, bool? isNullable, TypeSymbol type, bool hasErrors = false)
+        public BoundExpressionWithNullability(SyntaxNode syntax, BoundExpression expression, NullableAnnotation nullableAnnotation, TypeSymbol type, bool hasErrors = false)
             : base(BoundKind.ExpressionWithNullability, syntax, type, hasErrors || expression.HasErrors())
         {
 
             Debug.Assert(expression != null, "Field 'expression' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
 
             this.Expression = expression;
-            this.IsNullable = isNullable;
+            this.NullableAnnotation = nullableAnnotation;
         }
 
 
         public BoundExpression Expression { get; }
 
-        public bool? IsNullable { get; }
+        public NullableAnnotation NullableAnnotation { get; }
 
         public override BoundNode Accept(BoundTreeVisitor visitor)
         {
             return visitor.VisitExpressionWithNullability(this);
         }
 
-        public BoundExpressionWithNullability Update(BoundExpression expression, bool? isNullable, TypeSymbol type)
+        public BoundExpressionWithNullability Update(BoundExpression expression, NullableAnnotation nullableAnnotation, TypeSymbol type)
         {
-            if (expression != this.Expression || isNullable != this.IsNullable || type != this.Type)
+            if (expression != this.Expression || nullableAnnotation != this.NullableAnnotation || type != this.Type)
             {
-                var result = new BoundExpressionWithNullability(this.Syntax, expression, isNullable, type, this.HasErrors);
+                var result = new BoundExpressionWithNullability(this.Syntax, expression, nullableAnnotation, type, this.HasErrors);
                 result.WasCompilerGenerated = this.WasCompilerGenerated;
                 return result;
             }
@@ -10005,7 +10006,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             BoundExpression expression = (BoundExpression)this.Visit(node.Expression);
             TypeSymbol type = this.VisitType(node.Type);
-            return node.Update(expression, node.IsNullable, type);
+            return node.Update(expression, node.NullableAnnotation, type);
         }
     }
 
@@ -11686,7 +11687,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new TreeDumperNode("expressionWithNullability", null, new TreeDumperNode[]
             {
                 new TreeDumperNode("expression", null, new TreeDumperNode[] { Visit(node.Expression, null) }),
-                new TreeDumperNode("isNullable", node.IsNullable, null),
+                new TreeDumperNode("nullableAnnotation", node.NullableAnnotation, null),
                 new TreeDumperNode("type", node.Type, null)
             }
             );

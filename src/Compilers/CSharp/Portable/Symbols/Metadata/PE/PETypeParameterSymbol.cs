@@ -208,10 +208,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                         // https://github.com/dotnet/roslyn/issues/30075: Test different [NonNullTypes] on method and containing type.
                         var type = TypeSymbolWithAnnotations.Create(this, typeSymbol);
-                        type = NullableTypeDecoder.TransformType(type, constraintHandle, moduleSymbol);
+                        type = NullableTypeDecoder.TransformType(type, constraintHandle, moduleSymbol, nonNullTypesContext: this);
 
                         // Drop 'System.Object?' constraint type.
-                        if (type.SpecialType == SpecialType.System_Object && type.IsAnnotated)
+                        if (type.SpecialType == SpecialType.System_Object && type.NullableAnnotation.IsAnyNullable())
                         {
                             continue;
                         }
