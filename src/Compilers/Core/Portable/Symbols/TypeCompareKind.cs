@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>
         /// Different flavors of Nullable are equivalent,
-        /// different flavors of Not-Nullable are equivalent unless the type is possibly nullable refernce type parameter.
+        /// different flavors of Not-Nullable are equivalent unless the type is possibly nullable reference type parameter.
         /// This option can cause cycles in binding if used too early!
         /// </summary>
         IgnoreInsignificantNullableModifiersDifference = 32,

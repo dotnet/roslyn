@@ -1378,6 +1378,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert((object)type1 != null);
             Debug.Assert((object)type2 != null);
 
+            // Note, when we are paying attention to nullability, we ignore insignificant differences and oblivious mismatch. 
+            // See TypeCompareKind.UnknownNullableModifierMatchesAny and TypeCompareKind.IgnoreInsignificantNullableModifiersDifference
             var compareKind = includeNullability ?
                 TypeCompareKind.AllIgnoreOptions & ~TypeCompareKind.IgnoreNullableModifiersForReferenceTypes :
                 TypeCompareKind.AllIgnoreOptions;
@@ -1392,7 +1394,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Returns true if:
         /// - Either type has no nullability information (oblivious).
-        /// - Both types cannot have different nullability at the same time.
+        /// - Both types cannot have different nullability at the same time,
+        ///   including the case of type parameters that by themselves can represent nullable and not nullable reference types.
         /// </summary>
         internal bool HasTopLevelNullabilityIdentityConversion(TypeSymbolWithAnnotations source, TypeSymbolWithAnnotations destination)
         {
@@ -1421,7 +1424,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Returns false if source type can be nullable at the same time when destination type can be not nullable. 
+        /// Returns false if source type can be nullable at the same time when destination type can be not nullable, 
+        /// including the case of type parameters that by themselves can represent nullable and not nullable reference types.
         /// When either type has no nullability information (oblivious), this method returns true.
         /// </summary>
         internal bool HasTopLevelNullabilityImplicitConversion(TypeSymbolWithAnnotations source, TypeSymbolWithAnnotations destination)

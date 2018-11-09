@@ -1695,6 +1695,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             NullableAnnotation resultNullableAnnotation;
 
+            // We want to check if the value can be nullable based on annotations and getValueNullableAnnotation might
+            // adjust the value that it returns to emphasize the fact. However, we want the original annotation to flow through the system.
             if (getValueNullableAnnotation(leftOperand, leftResult).IsAnyNotNullable())
             {
                 resultNullableAnnotation = getNullableAnnotation(leftOperand, leftResult);
@@ -2441,12 +2443,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             resultType = parameterType;
                         }
 
-                        TypeSymbolWithAnnotations adjustedParameterType = parameterType;
-
-                        if (adjustedParameterType.IsPossiblyNullableReferenceTypeTypeParameter() && !resultType.IsPossiblyNullableReferenceTypeTypeParameter())
-                        {
-                            adjustedParameterType = TypeSymbolWithAnnotations.Create(adjustedParameterType.TypeSymbol, NullableAnnotation.NullableBasedOnAnalysis);
-                        }
+                        TypeSymbolWithAnnotations adjustedParameterType = adjustNullableAnnotationForNullabilityCheck(parameterType, resultType);
 
                         if (!ReportNullableAssignmentIfNecessary(argument, resultType, adjustedParameterType, useLegacyWarnings: UseLegacyWarnings(argument)))
                         {
@@ -2465,25 +2462,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                         bool reportedWarning = false;
                         if (argument.Kind != BoundKind.SuppressNullableWarningExpression)
                         {
-                            TypeSymbolWithAnnotations adjustedResultType = resultType;
-
-                            if (adjustedResultType.IsPossiblyNullableReferenceTypeTypeParameter() && !parameterType.IsPossiblyNullableReferenceTypeTypeParameter())
-                            {
-                                // This code path is likely not reachable due to https://github.com/dotnet/roslyn/issues/30946.
-                                // See unit test NullabilityOfTypeParameters_080 for an attempt to get here.
-                                adjustedResultType = TypeSymbolWithAnnotations.Create(adjustedResultType.TypeSymbol, NullableAnnotation.NullableBasedOnAnalysis);
-                            }
+                            // Effect of this call is likely not observable due to https://github.com/dotnet/roslyn/issues/30946.
+                            // See unit test NullabilityOfTypeParameters_080 for an attempt to see the effect.
+                            TypeSymbolWithAnnotations adjustedResultType = adjustNullableAnnotationForNullabilityCheck(resultType, parameterType);
 
                             reportedWarning = ReportNullableAssignmentIfNecessary(argument, parameterType, adjustedResultType, useLegacyWarnings: false, assignmentKind: AssignmentKind.Argument, target: parameter);
 
                             if (!reportedWarning)
                             {
-                                TypeSymbolWithAnnotations adjustedParameterType = parameterType;
-
-                                if (adjustedParameterType.IsPossiblyNullableReferenceTypeTypeParameter() && !resultType.IsPossiblyNullableReferenceTypeTypeParameter())
-                                {
-                                    adjustedParameterType = TypeSymbolWithAnnotations.Create(adjustedParameterType.TypeSymbol, NullableAnnotation.NullableBasedOnAnalysis);
-                                }
+                                TypeSymbolWithAnnotations adjustedParameterType = adjustNullableAnnotationForNullabilityCheck(parameterType, resultType);
 
                                 reportedWarning = ReportNullableAssignmentIfNecessary(argument, resultType, adjustedParameterType, useLegacyWarnings: UseLegacyWarnings(argument));
                             }
@@ -2503,6 +2490,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 default:
                     throw ExceptionUtilities.UnexpectedValue(refKind);
+            }
+
+            TypeSymbolWithAnnotations adjustNullableAnnotationForNullabilityCheck(TypeSymbolWithAnnotations sourceType, TypeSymbolWithAnnotations destinationType)
+            {
+                if (sourceType.IsPossiblyNullableReferenceTypeTypeParameter() && !destinationType.IsPossiblyNullableReferenceTypeTypeParameter())
+                {
+                    return TypeSymbolWithAnnotations.Create(sourceType.TypeSymbol, NullableAnnotation.NullableBasedOnAnalysis);
+                }
+
+                return sourceType;
             }
         }
 
@@ -4432,12 +4429,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static bool IsNullabilityMismatch(TypeSymbolWithAnnotations type1, TypeSymbolWithAnnotations type2)
         {
+            // Note, when we are paying attention to nullability, we ignore insignificant differences and oblivious mismatch. 
+            // See TypeCompareKind.UnknownNullableModifierMatchesAny and TypeCompareKind.IgnoreInsignificantNullableModifiersDifference
             return type1.Equals(type2, TypeCompareKind.AllIgnoreOptions) &&
                 !type1.Equals(type2, TypeCompareKind.AllIgnoreOptions & ~TypeCompareKind.IgnoreNullableModifiersForReferenceTypes);
         }
 
         private static bool IsNullabilityMismatch(TypeSymbol type1, TypeSymbol type2)
         {
+            // Note, when we are paying attention to nullability, we ignore insignificant differences and oblivious mismatch. 
+            // See TypeCompareKind.UnknownNullableModifierMatchesAny and TypeCompareKind.IgnoreInsignificantNullableModifiersDifference
             return type1.Equals(type2, TypeCompareKind.AllIgnoreOptions) &&
                 !type1.Equals(type2, TypeCompareKind.AllIgnoreOptions & ~TypeCompareKind.IgnoreNullableModifiersForReferenceTypes);
         }
