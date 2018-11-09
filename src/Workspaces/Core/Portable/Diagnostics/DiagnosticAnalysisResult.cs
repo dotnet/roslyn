@@ -32,6 +32,47 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
         private readonly ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>> _nonLocals;
         private readonly ImmutableArray<DiagnosticData> _others;
 
+        private DiagnosticAnalysisResult(
+            ProjectId projectId, VersionStamp version, ImmutableHashSet<DocumentId> documentIds, bool isEmpty, bool fromBuild)
+        {
+            ProjectId = projectId;
+            Version = version;
+            DocumentIds = documentIds;
+            IsEmpty = isEmpty;
+            FromBuild = fromBuild;
+
+            _syntaxLocals = null;
+            _semanticLocals = null;
+            _nonLocals = null;
+            _others = default;
+        }
+
+        private DiagnosticAnalysisResult(
+            ProjectId projectId, VersionStamp version,
+            ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>> syntaxLocals,
+            ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>> semanticLocals,
+            ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>> nonLocals,
+            ImmutableArray<DiagnosticData> others,
+            ImmutableHashSet<DocumentId> documentIds,
+            bool fromBuild)
+        {
+            ProjectId = projectId;
+            Version = version;
+            FromBuild = fromBuild;
+
+            _syntaxLocals = syntaxLocals;
+            _semanticLocals = semanticLocals;
+            _nonLocals = nonLocals;
+            _others = others;
+
+            DocumentIds = documentIds;
+            IsEmpty = false;
+
+            // do after all fields are assigned.
+            DocumentIds = DocumentIds ?? CreateDocumentIds();
+            IsEmpty = DocumentIds.IsEmpty && _others.IsEmpty;
+        }
+
         public static DiagnosticAnalysisResult CreateEmpty(ProjectId projectId, VersionStamp version)
         {
             return new DiagnosticAnalysisResult(
@@ -112,47 +153,6 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
                 builder.NonLocals,
                 builder.Others,
                 builder.DocumentIds);
-        }
-
-        private DiagnosticAnalysisResult(
-            ProjectId projectId, VersionStamp version, ImmutableHashSet<DocumentId> documentIds, bool isEmpty, bool fromBuild)
-        {
-            ProjectId = projectId;
-            Version = version;
-            DocumentIds = documentIds;
-            IsEmpty = isEmpty;
-            FromBuild = fromBuild;
-
-            _syntaxLocals = null;
-            _semanticLocals = null;
-            _nonLocals = null;
-            _others = default;
-        }
-
-        private DiagnosticAnalysisResult(
-            ProjectId projectId, VersionStamp version,
-            ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>> syntaxLocals,
-            ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>> semanticLocals,
-            ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>> nonLocals,
-            ImmutableArray<DiagnosticData> others,
-            ImmutableHashSet<DocumentId> documentIds,
-            bool fromBuild)
-        {
-            ProjectId = projectId;
-            Version = version;
-            FromBuild = fromBuild;
-
-            _syntaxLocals = syntaxLocals;
-            _semanticLocals = semanticLocals;
-            _nonLocals = nonLocals;
-            _others = others;
-
-            DocumentIds = documentIds;
-            IsEmpty = false;
-
-            // do after all fields are assigned.
-            DocumentIds = DocumentIds ?? CreateDocumentIds();
-            IsEmpty = DocumentIds.IsEmpty && _others.IsEmpty;
         }
 
         // aggregated form means it has aggregated information but no actual data.
