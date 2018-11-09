@@ -72,11 +72,6 @@ namespace Microsoft.CodeAnalysis.SymbolDisplay
             }
         }
 
-        protected const ObjectDisplayOptions LiteralDisplayOptions =
-            ObjectDisplayOptions.UseQuotes |
-            ObjectDisplayOptions.EscapeNonPrintableCharacters |
-            ObjectDisplayOptions.UseHexadecimalNumbersForCharacters;
-
         protected abstract AbstractSymbolDisplayVisitor MakeNotFirstVisitor(bool inNamespaceOrType = false);
 
         protected abstract void AddNonEnumConstantValue(ITypeSymbol type, object value);

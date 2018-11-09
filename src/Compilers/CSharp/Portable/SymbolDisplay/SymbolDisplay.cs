@@ -206,7 +206,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return builder.ToImmutableAndFree();
         }
 
-        internal static void AddConstantValue(ArrayBuilder<SymbolDisplayPart> builder, object value, ObjectDisplayOptions options)
+        internal static void AddConstantValue(ArrayBuilder<SymbolDisplayPart> builder, object value, SymbolDisplayConstantValueOptions options)
+        {
+            AddConstantValue(builder, value, ToObjectDisplayOptions(options));
+        }
+
+        private static void AddConstantValue(ArrayBuilder<SymbolDisplayPart> builder, object value, ObjectDisplayOptions options)
         {
             if (!(value is null))
             {

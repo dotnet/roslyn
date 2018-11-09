@@ -147,7 +147,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return builder.ToImmutableAndFree()
         End Function
 
-        Friend Sub AddConstantValue(builder As ArrayBuilder(Of SymbolDisplayPart), constantValue As Object, options As ObjectDisplayOptions)
+        Friend Sub AddConstantValue(builder As ArrayBuilder(Of SymbolDisplayPart), constantValue As Object, options As SymbolDisplayConstantValueOptions)
+            AddConstantValue(builder, constantValue, ToObjectDisplayOptions(options))
+        End Sub
+
+        Private Sub AddConstantValue(builder As ArrayBuilder(Of SymbolDisplayPart), constantValue As Object, options As ObjectDisplayOptions)
             If constantValue IsNot Nothing Then
                 AddLiteralValue(builder, constantValue, options)
             Else

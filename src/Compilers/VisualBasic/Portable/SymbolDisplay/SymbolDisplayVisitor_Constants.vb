@@ -21,7 +21,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Protected Overrides Sub AddNonEnumConstantValue(type As ITypeSymbol, value As Object)
             Debug.Assert(type.TypeKind <> TypeKind.Enum)
 
-            SymbolDisplay.AddConstantValue(builder, value, LiteralDisplayOptions)
+            SymbolDisplay.AddConstantValue(builder, value, format.ConstantValueOptions)
         End Sub
     End Class
 End Namespace

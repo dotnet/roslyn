@@ -2103,8 +2103,10 @@ End Class
                 })
         End Sub
 
-        <Fact>
-        Public Sub TestConstantFieldValue()
+        <Theory>
+        <InlineData(NumericFormat.Decimal, "1")>
+        <InlineData(NumericFormat.Hexadecimal, "&H00000001")>
+        Public Sub TestConstantFieldValue_Integer(numberFormat As NumericFormat, displayValue As String)
             Dim text =
 <compilation>
     <file name="a.vb">
@@ -2126,13 +2128,15 @@ End Class
                     SymbolDisplayMemberOptions.IncludeModifiers Or
                     SymbolDisplayMemberOptions.IncludeParameters Or
                     SymbolDisplayMemberOptions.IncludeType Or
-                    SymbolDisplayMemberOptions.IncludeConstantValue)
+                    SymbolDisplayMemberOptions.IncludeConstantValue,
+                constantValueOptions:=
+                    New SymbolDisplayConstantValueOptions(numberFormat, NumericFormat.Decimal, noQuotes:=False))
 
             TestSymbolDescription(
                 text,
                 findSymbol,
                 format,
-                "Private Const C.f As Int32 = 1",
+                $"Private Const C.f As Int32 = {displayValue}",
                 SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.Keyword,
@@ -2148,6 +2152,57 @@ End Class
                 SymbolDisplayPartKind.Punctuation,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.NumericLiteral)
+        End Sub
+
+        <Theory>
+        <InlineData(False, """Hello""")>
+        <InlineData(True, "Hello")>
+        Public Sub TestConstantFieldValue_String(noQuotes As Boolean, displayValue As String)
+            Dim text =
+<compilation>
+    <file name="a.vb">
+Class C
+    Const f As String = "Hello"
+End Class
+    </file>
+</compilation>
+
+            Dim findSymbol = Function(globalns As NamespaceSymbol) _
+                                 globalns.GetTypeMembers("C", 0).Single().
+                                 GetMembers("f").Single()
+
+            Dim format = New SymbolDisplayFormat(
+                memberOptions:=
+                    SymbolDisplayMemberOptions.IncludeAccessibility Or
+                    SymbolDisplayMemberOptions.IncludeContainingType Or
+                    SymbolDisplayMemberOptions.IncludeExplicitInterface Or
+                    SymbolDisplayMemberOptions.IncludeModifiers Or
+                    SymbolDisplayMemberOptions.IncludeParameters Or
+                    SymbolDisplayMemberOptions.IncludeType Or
+                    SymbolDisplayMemberOptions.IncludeConstantValue,
+                constantValueOptions:=
+                    New SymbolDisplayConstantValueOptions(NumericFormat.Decimal, NumericFormat.Decimal, noQuotes))
+
+            TestSymbolDescription(
+                text,
+                findSymbol,
+                format,
+                $"Private Const C.f As String = {displayValue}",
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.ClassName,
+                SymbolDisplayPartKind.Operator,
+                SymbolDisplayPartKind.FieldName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.ClassName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.StringLiteral)
         End Sub
 
         <Theory>

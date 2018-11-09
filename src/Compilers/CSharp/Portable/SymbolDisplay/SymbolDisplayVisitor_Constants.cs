@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                SymbolDisplay.AddConstantValue(builder, value, LiteralDisplayOptions);
+                SymbolDisplay.AddConstantValue(builder, value, format.ConstantValueOptions);
             }
         }
 
