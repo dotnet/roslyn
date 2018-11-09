@@ -37,6 +37,7 @@ namespace Microsoft.CodeAnalysis.Classification
         public const string ExtensionMethodName = "extension method name";
         public const string PropertyName = "property name";
         public const string EventName = "event name";
+        public const string NamespaceName = "namespace name";
 
         public const string XmlDocCommentAttributeName = "xml doc comment - attribute name";
         public const string XmlDocCommentAttributeQuotes = "xml doc comment - attribute quotes";

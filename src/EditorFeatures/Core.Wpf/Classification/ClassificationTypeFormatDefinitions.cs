@@ -209,7 +209,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         }
         #endregion
 
-        #region User Identifier - Field Name 
+        #region User Identifiers - Field Name 
         [Export(typeof(EditorFormatDefinition))]
         [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.FieldName)]
         [Name(ClassificationTypeNames.FieldName)]
@@ -221,12 +221,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         {
             private UserIdentifierFieldNameFormatDefinition()
             {
-                this.DisplayName = "User Identifier - Field Name"; // EditorFeaturesResources.User_Types_Type_Parameters;
+                this.DisplayName = "User Identifiers - Field Name"; // EditorFeaturesResources.User_Types_Type_Parameters;
                 //this.ForegroundColor = Color.FromRgb(0x2B, 0x91, 0xAF);
             }
         }
         #endregion
-        #region User Identifier - Enum Member Name 
+        #region User Identifiers - Enum Member Name 
         [Export(typeof(EditorFormatDefinition))]
         [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.EnumMemberName)]
         [Name(ClassificationTypeNames.EnumMemberName)]
@@ -238,12 +238,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         {
             private UserIdentifierEnumMemberNameFormatDefinition()
             {
-                this.DisplayName = "User Identifier - Enum Member Name"; // EditorFeaturesResources.User_Types_Type_Parameters;
+                this.DisplayName = "User Identifiers - Enum Member Name"; // EditorFeaturesResources.User_Types_Type_Parameters;
                 //this.ForegroundColor = Color.FromRgb(0x2B, 0x91, 0xAF);
             }
         }
         #endregion
-        #region User Identifier - Constant Name 
+        #region User Identifiers - Constant Name 
         [Export(typeof(EditorFormatDefinition))]
         [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.ConstantName)]
         [Name(ClassificationTypeNames.ConstantName)]
@@ -255,12 +255,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         {
             private UserIdentifierConstantNameFormatDefinition()
             {
-                this.DisplayName = "User Identifier - Constant Name"; // EditorFeaturesResources.User_Types_Type_Parameters;
+                this.DisplayName = "User Identifiers - Constant Name"; // EditorFeaturesResources.User_Types_Type_Parameters;
                 //this.ForegroundColor = Color.FromRgb(0x2B, 0x91, 0xAF);
             }
         }
         #endregion
-        #region User Identifier - Local Name 
+        #region User Identifiers - Local Name 
         [Export(typeof(EditorFormatDefinition))]
         [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.LocalName)]
         [Name(ClassificationTypeNames.LocalName)]
@@ -272,12 +272,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         {
             private UserIdentifierLocalNameFormatDefinition()
             {
-                this.DisplayName = "User Identifier - Local Name"; // EditorFeaturesResources.User_Types_Type_Parameters;
+                this.DisplayName = "User Identifiers - Local Name"; // EditorFeaturesResources.User_Types_Type_Parameters;
                 //this.ForegroundColor = Color.FromRgb(0x2B, 0x91, 0xAF);
             }
         }
         #endregion
-        #region User Identifier - Parameter Name 
+        #region User Identifiers - Parameter Name 
         [Export(typeof(EditorFormatDefinition))]
         [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.ParameterName)]
         [Name(ClassificationTypeNames.ParameterName)]
@@ -289,12 +289,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         {
             private UserIdentifierParameterNameFormatDefinition()
             {
-                this.DisplayName = "User Identifier - Parameter Name"; // EditorFeaturesResources.User_Types_Type_Parameters;
+                this.DisplayName = "User Identifiers - Parameter Name"; // EditorFeaturesResources.User_Types_Type_Parameters;
                 //this.ForegroundColor = Color.FromRgb(0x2B, 0x91, 0xAF);
             }
         }
         #endregion
-        #region User Identifier - Method Name 
+        #region User Identifiers - Method Name 
         [Export(typeof(EditorFormatDefinition))]
         [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.MethodName)]
         [Name(ClassificationTypeNames.MethodName)]
@@ -306,12 +306,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         {
             private UserIdentifierMethodNameFormatDefinition()
             {
-                this.DisplayName = "User Identifier - Method Name"; // EditorFeaturesResources.User_Types_Type_Parameters;
+                this.DisplayName = "User Identifiers - Method Name"; // EditorFeaturesResources.User_Types_Type_Parameters;
                 //this.ForegroundColor = Color.FromRgb(0x2B, 0x91, 0xAF);
             }
         }
         #endregion
-        #region User Identifier - Extension Method Name 
+        #region User Identifiers - Extension Method Name 
         [Export(typeof(EditorFormatDefinition))]
         [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.ExtensionMethodName)]
         [Name(ClassificationTypeNames.ExtensionMethodName)]
@@ -323,12 +323,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         {
             private UserIdentifierExtensionMethodNameFormatDefinition()
             {
-                this.DisplayName = "User Identifier - Extension Method Name"; // EditorFeaturesResources.User_Types_Type_Parameters;
+                this.DisplayName = "User Identifiers - Extension Method Name"; // EditorFeaturesResources.User_Types_Type_Parameters;
                 //this.ForegroundColor = Color.FromRgb(0x2B, 0x91, 0xAF);
             }
         }
         #endregion
-        #region User Identifier - Property Name 
+        #region User Identifiers - Property Name 
         [Export(typeof(EditorFormatDefinition))]
         [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.PropertyName)]
         [Name(ClassificationTypeNames.PropertyName)]
@@ -340,12 +340,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         {
             private UserIdentifierPropertyNameFormatDefinition()
             {
-                this.DisplayName = "User Identifier - Property Name"; // EditorFeaturesResources.User_Types_Type_Parameters;
+                this.DisplayName = "User Identifiers - Property Name"; // EditorFeaturesResources.User_Types_Type_Parameters;
                 //this.ForegroundColor = Color.FromRgb(0x2B, 0x91, 0xAF);
             }
         }
         #endregion
-        #region User Identifier - Event Name 
+        #region User Identifiers - Event Name 
         [Export(typeof(EditorFormatDefinition))]
         [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.EventName)]
         [Name(ClassificationTypeNames.EventName)]
@@ -357,7 +357,24 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         {
             private UserIdentifierEventNameFormatDefinition()
             {
-                this.DisplayName = "User Identifier - Event Name"; // EditorFeaturesResources.User_Types_Type_Parameters;
+                this.DisplayName = "User Identifiers - Event Name"; // EditorFeaturesResources.User_Types_Type_Parameters;
+                //this.ForegroundColor = Color.FromRgb(0x2B, 0x91, 0xAF);
+            }
+        }
+        #endregion
+        #region User Identifiers - Namespace Name 
+        [Export(typeof(EditorFormatDefinition))]
+        [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.NamespaceName)]
+        [Name(ClassificationTypeNames.NamespaceName)]
+        [Order(After = PredefinedClassificationTypeNames.Identifier)]
+        [Order(After = PredefinedClassificationTypeNames.Keyword)]
+        [UserVisible(true)]
+        [ExcludeFromCodeCoverage]
+        private class UserIdentifierNamespaceNameFormatDefinition : ClassificationFormatDefinition
+        {
+            private UserIdentifierNamespaceNameFormatDefinition()
+            {
+                this.DisplayName = "User Identifiers - Namespace Name"; // EditorFeaturesResources.User_Types_Type_Parameters;
                 //this.ForegroundColor = Color.FromRgb(0x2B, 0x91, 0xAF);
             }
         }
