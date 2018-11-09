@@ -1999,19 +1999,26 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Note: we analyze even omitted calls
             var method = node.Method;
             var receiverOpt = node.ReceiverOpt;
+            TypeSymbolWithAnnotations receiverType = default;
+
             if (receiverOpt != null && method.MethodKind != MethodKind.Constructor)
             {
-                VisitRvalue(receiverOpt);
+                receiverType = VisitRvalueWithResult(receiverOpt);
                 // https://github.com/dotnet/roslyn/issues/30598: Mark receiver as not null
                 // after arguments have been visited, and only if the receiver has not changed.
                 CheckPossibleNullReceiver(receiverOpt);
-                // Update method based on inferred receiver type: see https://github.com/dotnet/roslyn/issues/29605.
             }
 
             // https://github.com/dotnet/roslyn/issues/29605 Can we handle some error cases?
             // (Compare with CSharpOperationFactory.CreateBoundCallOperation.)
             if (!node.HasErrors)
             {
+                if (!receiverType.IsNull)
+                {
+                    // Update method based on inferred receiver type.
+                    method = (MethodSymbol)AsMemberOfResultType(receiverType, method);
+                }
+
                 ImmutableArray<RefKind> refKindsOpt = node.ArgumentRefKindsOpt;
                 (ImmutableArray<BoundExpression> arguments, ImmutableArray<Conversion> conversions) = RemoveArgumentConversions(node.Arguments, refKindsOpt);
                 ImmutableArray<int> argsToParamsOpt = node.ArgsToParamsOpt;
@@ -2868,9 +2875,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return type;
         }
 
-        private Symbol AsMemberOfResultType(Symbol symbol)
+        private static Symbol AsMemberOfResultType(TypeSymbolWithAnnotations resultType, Symbol symbol)
         {
-            var containingType = _resultType.TypeSymbol as NamedTypeSymbol;
+            var containingType = resultType.TypeSymbol as NamedTypeSymbol;
             if ((object)containingType == null || containingType.IsErrorType())
             {
                 return symbol;
@@ -2902,7 +2909,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         return AsMemberOfTupleType((TupleTypeSymbol)containingType, symbol);
                     }
-                    return symbolDef.SymbolAsMember(containingType);
+                    var result = symbolDef.SymbolAsMember(containingType);
+                    if (result is MethodSymbol resultMethod && resultMethod.IsGenericMethod)
+                    {
+                        return resultMethod.Construct(((MethodSymbol)symbol).TypeArguments);
+                    }
+                    return result;
                 }
                 containingType = containingType.BaseTypeNoUseSiteDiagnostics;
                 if ((object)containingType == null)
@@ -2911,7 +2923,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
             // https://github.com/dotnet/roslyn/issues/29967 Handle other cases such as interfaces.
-            Debug.Assert(symbolDefContainer.IsInterface);
             return symbol;
         }
 
@@ -2936,6 +2947,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return tupleType.GetTupleMemberSymbolForUnderlyingMember(((TuplePropertySymbol)symbol).UnderlyingProperty);
                 case SymbolKind.Event:
                     return tupleType.GetTupleMemberSymbolForUnderlyingMember(((TupleEventSymbol)symbol).UnderlyingEvent);
+                case SymbolKind.Method:
+                    return tupleType.GetTupleMemberSymbolForUnderlyingMember(((TupleMethodSymbol)symbol).UnderlyingMethod);
                 default:
                     throw ExceptionUtilities.UnexpectedValue(symbol.Kind);
             }
@@ -3824,7 +3837,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (!member.IsStatic)
                 {
-                    member = AsMemberOfResultType(member);
+                    member = AsMemberOfResultType(_resultType, member);
                     // https://github.com/dotnet/roslyn/issues/30598: For l-values, mark receiver as not null
                     // after RHS has been visited, and only if the receiver has not changed.
                     CheckPossibleNullReceiver(receiverOpt);
@@ -4337,13 +4350,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             VisitRvalue(node.ReceiverOpt);
             Debug.Assert(!IsConditionalState);
             var receiverOpt = node.ReceiverOpt;
+            var @event = node.Event;
             if (!node.Event.IsStatic)
             {
+                @event = (EventSymbol)AsMemberOfResultType(_resultType, @event);
                 // https://github.com/dotnet/roslyn/issues/30598: Mark receiver as not null
                 // after arguments have been visited, and only if the receiver has not changed.
                 CheckPossibleNullReceiver(receiverOpt);
             }
             VisitRvalue(node.Argument);
+            // https://github.com/dotnet/roslyn/issues/31018: Check for delegate mismatch.
             SetResult(node); // https://github.com/dotnet/roslyn/issues/29969 Review whether this is the correct result
             return null;
         }
