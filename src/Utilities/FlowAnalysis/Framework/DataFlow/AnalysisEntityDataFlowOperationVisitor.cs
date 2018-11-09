@@ -206,7 +206,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             Debug.Assert(analysisEntity.Type.HasValueCopySemantics());
 
             IEnumerable<AnalysisEntity> dependantAnalysisEntities = GetChildAnalysisEntities(analysisEntity);
-            ResetInstanceAnalysisDataCore(dependantAnalysisEntities);
+            ResetInstanceAnalysisDataCore(dependantAnalysisEntities.Concat(analysisEntity));
         }
 
         protected override void ResetReferenceTypeInstanceAnalysisData(PointsToAbstractValue pointsToValue)
@@ -266,7 +266,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             var hasValueCopySemantics = analysisEntity.Type.HasValueCopySemantics();
             foreach (var entity in GetChildAnalysisEntities(analysisEntity.InstanceLocation))
             {
-                if (!hasValueCopySemantics || entity.HasAncestorOrSelf(analysisEntity))
+                if (!hasValueCopySemantics || entity.HasAncestor(analysisEntity))
                 {
                     yield return entity;
                 }
