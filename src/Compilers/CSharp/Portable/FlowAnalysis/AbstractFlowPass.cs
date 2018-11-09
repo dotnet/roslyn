@@ -44,6 +44,20 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected abstract void UnionWith(ref TLocalState self, ref TLocalState other);
 
+        /// <summary>
+        /// Nontrivial implementation is required for DataFlowsOutWalker or any flow analysis pass that "tracks
+        /// unassignments" like the nullable walker. The result should be a state, for each variable, that is
+        /// the strongest result possible (i.e. definitely assigned for the data flow passes, or not null for
+        /// the nullable analysis).  Slightly more formally, this should be a reachable state that won't affect
+        /// another reachable state when this is intersected with the other state.
+        /// </summary>
+        protected virtual TLocalState AllBitsSet()
+        {
+            return default(TLocalState);
+        }
+
+        #region TryStatements
+
         public override BoundNode VisitTryStatement(BoundTryStatement node)
         {
             var oldPending = SavePending(); // we do not allow branches into a try statement
@@ -52,13 +66,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             // use this state to resolve all the branches introduced and internal to try/catch
             var pendingBeforeTry = SavePending(); 
 
-            VisitTryBlock(node.TryBlock, node, ref initialState);
+            VisitTryBlock0(node.TryBlock, node, ref initialState);
             var finallyState = initialState.Clone();
             var endState = this.State;
             foreach (var catchBlock in node.CatchBlocks)
             {
                 SetState(initialState.Clone());
-                VisitCatchBlock(catchBlock, ref finallyState);
+                VisitCatchBlock0(catchBlock, ref finallyState);
                 IntersectWith(ref endState, ref this.State);
             }
 
@@ -84,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // we will need pending branches as they were before finally later
                 var tryAndCatchPending = SavePending();
                 var unsetInFinally = AllBitsSet();
-                VisitFinallyBlock(node.FinallyBlockOpt, ref unsetInFinally);                
+                VisitFinallyBlock0(node.FinallyBlockOpt, ref unsetInFinally);
                 foreach (var pend in tryAndCatchPending.PendingBranches)
                 {
                     if (pend.Branch == null) continue; // a tracked exception
@@ -103,6 +117,80 @@ namespace Microsoft.CodeAnalysis.CSharp
             SetState(endState);
             RestorePending(oldPending);
             return null;
+        }
+
+        protected Optional<TLocalState> _tryState;
+
+        private void VisitTryBlock0(BoundStatement tryBlock, BoundTryStatement node, ref TLocalState tryState)
+        {
+            if (trackUnassignments)
+            {
+                Optional<TLocalState> oldTryState = _tryState;
+                _tryState = AllBitsSet();
+                VisitTryBlock(tryBlock, node, ref tryState);
+                var tts = _tryState.Value;
+                IntersectWith(ref tryState, ref tts);
+                if (oldTryState.HasValue)
+                {
+                    var ots = oldTryState.Value;
+                    IntersectWith(ref ots, ref tts);
+                    oldTryState = ots;
+                }
+
+                _tryState = oldTryState;
+            }
+            else
+            {
+                VisitTryBlock(tryBlock, node, ref tryState);
+            }
+        }
+
+        private void VisitCatchBlock0(BoundCatchBlock catchBlock, ref TLocalState finallyState)
+        {
+            if (trackUnassignments)
+            {
+                Optional<TLocalState> oldTryState = _tryState;
+                _tryState = AllBitsSet();
+                VisitCatchBlock(catchBlock, ref finallyState);
+                var tts = _tryState.Value;
+                IntersectWith(ref finallyState, ref tts);
+                if (oldTryState.HasValue)
+                {
+                    var ots = oldTryState.Value;
+                    IntersectWith(ref ots, ref tts);
+                    oldTryState = ots;
+                }
+
+                _tryState = oldTryState;
+            }
+            else
+            {
+                VisitCatchBlock(catchBlock, ref finallyState);
+            }
+        }
+
+        private void VisitFinallyBlock0(BoundStatement finallyBlock, ref TLocalState unsetInFinally)
+        {
+            if (trackUnassignments)
+            {
+                Optional<TLocalState> oldTryState = _tryState;
+                _tryState = AllBitsSet();
+                VisitFinallyBlock(finallyBlock, ref unsetInFinally);
+                var tts = _tryState.Value;
+                IntersectWith(ref unsetInFinally, ref tts);
+                if (oldTryState.HasValue)
+                {
+                    var ots = oldTryState.Value;
+                    IntersectWith(ref ots, ref tts);
+                    oldTryState = ots;
+                }
+
+                _tryState = oldTryState;
+            }
+            else
+            {
+                VisitFinallyBlock(finallyBlock, ref unsetInFinally);
+            }
         }
 
         protected virtual void VisitTryBlock(BoundStatement tryBlock, BoundTryStatement node, ref TLocalState tryState)
@@ -130,5 +218,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             VisitStatement(finallyBlock); // this should generate no pending branches
         }
+
+        #endregion TryStatements
     }
 }
