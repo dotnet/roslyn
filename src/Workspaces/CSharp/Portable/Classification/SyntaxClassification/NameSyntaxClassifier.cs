@@ -76,10 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
             var symbol = TryGetSymbol(name, symbolInfo, semanticModel);
             if (TryClassifySymbol(name, symbol, semanticModel, cancellationToken, out var classifiedSpan))
             {
-                if (symbol?.IsStatic == true)
-                {
-                    result.Add(new ClassifiedSpan(classifiedSpan.TextSpan, ClassificationTypeNames.StaticSymbol));
-                }
+                TryClassifyStaticSymbol(symbol, classifiedSpan.TextSpan, result);
 
                 result.Add(classifiedSpan);
                 return true;
@@ -103,10 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
                 {
                     if (TryClassifySymbol(name, symbol, semanticModel, cancellationToken, out var classifiedSpan))
                     {
-                        if (symbol?.IsStatic == true)
-                        {
-                            result.Add(new ClassifiedSpan(classifiedSpan.TextSpan, ClassificationTypeNames.StaticSymbol));
-                        }
+                        TryClassifyStaticSymbol(symbol, classifiedSpan.TextSpan, result);
 
                         set.Add(classifiedSpan);
                     }
@@ -123,6 +117,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
             finally
             {
                 set.Free();
+            }
+        }
+
+        private void TryClassifyStaticSymbol(
+            ISymbol symbol,
+            Text.TextSpan span,
+            ArrayBuilder<ClassifiedSpan> result)
+        {
+            if (symbol?.IsStatic == true)
+            {
+                result.Add(new ClassifiedSpan(span, ClassificationTypeNames.StaticSymbol));
             }
         }
 
