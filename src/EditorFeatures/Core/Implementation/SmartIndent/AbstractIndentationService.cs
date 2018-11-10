@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent
                 root.SyntaxTree, lineToBeIndented, formattingRules,
                 documentOptions, cancellationToken);
 
-            return indenter.GetDesiredIndentation(document, indentStyle);
+            return indenter.GetDesiredIndentation(indentStyle);
         }
 
         protected abstract AbstractIndenter GetIndenter(

@@ -58,8 +58,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent
                          tokenStream: null);
             }
 
-            public IndentationResult GetDesiredIndentation(
-                Document document, FormattingOptions.IndentStyle indentStyle)
+            public IndentationResult GetDesiredIndentation(FormattingOptions.IndentStyle indentStyle)
             {
                 Debug.Assert(indentStyle != FormattingOptions.IndentStyle.None);
 
