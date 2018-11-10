@@ -2,14 +2,14 @@
 
 Imports System.Composition
 Imports Microsoft.CodeAnalysis.CodeRefactorings
-Imports Microsoft.CodeAnalysis.Editor.Wrapping
+Imports Microsoft.CodeAnalysis.Editor
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Editor.Wrapping
     <ExportCodeRefactoringProvider(LanguageNames.VisualBasic), [Shared]>
     Partial Friend Class VisualBasicArgumentWrappingCodeRefactoringProvider
-        Inherits AbstractWrappingCodeRefactoringProvider(Of ArgumentListSyntax, ArgumentSyntax)
+        Inherits AbstractVisualBasicWrappingCodeRefactoringProvider(Of ArgumentListSyntax, ArgumentSyntax)
 
         Protected Overrides ReadOnly Property ListName As String = FeaturesResources.argument_list
         Protected Overrides ReadOnly Property ItemNamePlural As String = FeaturesResources.arguments

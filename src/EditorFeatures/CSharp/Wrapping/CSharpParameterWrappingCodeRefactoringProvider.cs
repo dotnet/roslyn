@@ -5,6 +5,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Wrapping;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -13,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Editor.Wrapping
 {
     [ExportCodeRefactoringProvider(LanguageNames.CSharp), Shared]
     internal partial class CSharpParameterWrappingCodeRefactoringProvider 
-        : AbstractWrappingCodeRefactoringProvider<BaseParameterListSyntax, ParameterSyntax>
+        : AbstractCSharpWrappingCodeRefactoringProvider<BaseParameterListSyntax, ParameterSyntax>
     {
         protected override string ListName => FeaturesResources.parameter_list;
         protected override string ItemNamePlural => FeaturesResources.parameters;

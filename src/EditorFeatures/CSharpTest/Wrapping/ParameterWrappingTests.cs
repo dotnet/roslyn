@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping
         {
             await TestMissingAsync(
 @"class C {
-    void Foo([||]int i, int j {
+    void Goo([||]int i, int j {
     }
 }");
         }
@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping
         {
             await TestMissingAsync(
 @"class C {
-    void Foo([|int|] i, int j) {
+    void Goo([|int|] i, int j) {
     }
 }");
         }
@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping
         {
             await TestMissingAsync(
 @"class C {
-    void Foo(int i, int j) {[||]
+    void Goo(int i, int j) {[||]
     }
 }");
         }
@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping
             await TestMissingAsync(
 @"class C {
     [||][Attr]
-    void Foo(int i, int j) {
+    void Goo(int i, int j) {
     }
 }");
         }
@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping
         {
             await TestMissingAsync(
 @"class C {
-    void Foo([||]int i) {
+    void Goo([||]int i) {
     }
 }");
         }
@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping
         {
             await TestMissingAsync(
 @"class C {
-    void Foo([||]int i, int j =
+    void Goo([||]int i, int j =
         initializer) {
     }
 }");
@@ -80,11 +80,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping
         {
             await TestInRegularAndScript1Async(
 @"class C {
-    [||]void Foo(int i, int j) {
+    [||]void Goo(int i, int j) {
     }
 }",
 @"class C {
-    void Foo(int i,
+    void Goo(int i,
              int j) {
     }
 }");
@@ -95,11 +95,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping
         {
             await TestInRegularAndScript1Async(
 @"class C {
-    void [||]Foo(int i, int j) {
+    void [||]Goo(int i, int j) {
     }
 }",
 @"class C {
-    void Foo(int i,
+    void Goo(int i,
              int j) {
     }
 }");
@@ -110,11 +110,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping
         {
             await TestInRegularAndScript1Async(
 @"class C {
-    [||]public void Foo(int i, int j) {
+    [||]public void Goo(int i, int j) {
     }
 }",
 @"class C {
-    public void Foo(int i,
+    public void Goo(int i,
                     int j) {
     }
 }");
@@ -125,11 +125,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping
         {
             await TestInRegularAndScript1Async(
 @"class C {
-    public void Foo(int i, int j)[||] {
+    public void Goo(int i, int j)[||] {
     }
 }",
 @"class C {
-    public void Foo(int i,
+    public void Goo(int i,
                     int j) {
     }
 }");
@@ -140,27 +140,27 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping
         {
             await TestAllWrappingCasesAsync(
 @"class C {
-    void Foo([||]int i, int j) {
+    void Goo([||]int i, int j) {
     }
 }",
 @"class C {
-    void Foo(int i,
+    void Goo(int i,
              int j) {
     }
 }",
 @"class C {
-    void Foo(
+    void Goo(
         int i,
         int j) {
     }
 }",
 @"class C {
-    void Foo(int i,
+    void Goo(int i,
         int j) {
     }
 }",
 @"class C {
-    void Foo(
+    void Goo(
         int i, int j) {
     }
 }");
@@ -171,30 +171,30 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping
         {
             await TestAllWrappingCasesAsync(
 @"class C {
-    void Foo([||]int i, int j, int k) {
+    void Goo([||]int i, int j, int k) {
     }
 }",
 @"class C {
-    void Foo(int i,
+    void Goo(int i,
              int j,
              int k) {
     }
 }",
 @"class C {
-    void Foo(
+    void Goo(
         int i,
         int j,
         int k) {
     }
 }",
 @"class C {
-    void Foo(int i,
+    void Goo(int i,
         int j,
         int k) {
     }
 }",
 @"class C {
-    void Foo(
+    void Goo(
         int i, int j, int k) {
     }
 }");
@@ -205,37 +205,37 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping
         {
             await TestAllWrappingCasesAsync(
 @"class C {
-    void Foo([||]
+    void Goo([||]
         int i,
             int j,
                 int k) {
     }
 }",
 @"class C {
-    void Foo(int i,
+    void Goo(int i,
              int j,
              int k) {
     }
 }",
 @"class C {
-    void Foo(
+    void Goo(
         int i,
         int j,
         int k) {
     }
 }",
 @"class C {
-    void Foo(int i,
+    void Goo(int i,
         int j,
         int k) {
     }
 }",
 @"class C {
-    void Foo(int i, int j, int k) {
+    void Goo(int i, int j, int k) {
     }
 }",
 @"class C {
-    void Foo(
+    void Goo(
         int i, int j, int k) {
     }
 }");
@@ -246,14 +246,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping
         {
             await TestAllWrappingCasesAsync(
 @"class C {
-    void Foo([||]
+    void Goo([||]
         int i, int j, int k, int l, int m,
         int n) {
     }
 }",
 GetIndentionColumn(30),
 @"class C {
-    void Foo(int i,
+    void Goo(int i,
              int j,
              int k,
              int l,
@@ -262,7 +262,7 @@ GetIndentionColumn(30),
     }
 }",
 @"class C {
-    void Foo(
+    void Goo(
         int i,
         int j,
         int k,
@@ -272,7 +272,7 @@ GetIndentionColumn(30),
     }
 }",
 @"class C {
-    void Foo(int i,
+    void Goo(int i,
         int j,
         int k,
         int l,
@@ -281,28 +281,28 @@ GetIndentionColumn(30),
     }
 }",
 @"class C {
-    void Foo(int i, int j, int k, int l, int m, int n) {
+    void Goo(int i, int j, int k, int l, int m, int n) {
     }
 }",
 @"class C {
-    void Foo(
+    void Goo(
         int i, int j, int k, int l, int m, int n) {
     }
 }",
 @"class C {
-    void Foo(int i, int j,
+    void Goo(int i, int j,
              int k, int l,
              int m, int n) {
     }
 }",
 @"class C {
-    void Foo(
+    void Goo(
         int i, int j, int k,
         int l, int m, int n) {
     }
 }",
 @"class C {
-    void Foo(int i, int j, int k,
+    void Goo(int i, int j, int k,
         int l, int m, int n) {
     }
 }");
@@ -313,14 +313,14 @@ GetIndentionColumn(30),
         {
             await TestAllWrappingCasesAsync(
 @"class C {
-    void Foo([||]
+    void Goo([||]
         int i, int jj, int kkkk, int llllllll, int mmmmmmmmmmmmmmmm,
         int nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn) {
     }
 }",
 GetIndentionColumn(30),
 @"class C {
-    void Foo(int i,
+    void Goo(int i,
              int jj,
              int kkkk,
              int llllllll,
@@ -329,7 +329,7 @@ GetIndentionColumn(30),
     }
 }",
 @"class C {
-    void Foo(
+    void Goo(
         int i,
         int jj,
         int kkkk,
@@ -339,7 +339,7 @@ GetIndentionColumn(30),
     }
 }",
 @"class C {
-    void Foo(int i,
+    void Goo(int i,
         int jj,
         int kkkk,
         int llllllll,
@@ -348,16 +348,16 @@ GetIndentionColumn(30),
     }
 }",
 @"class C {
-    void Foo(int i, int jj, int kkkk, int llllllll, int mmmmmmmmmmmmmmmm, int nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn) {
+    void Goo(int i, int jj, int kkkk, int llllllll, int mmmmmmmmmmmmmmmm, int nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn) {
     }
 }",
 @"class C {
-    void Foo(
+    void Goo(
         int i, int jj, int kkkk, int llllllll, int mmmmmmmmmmmmmmmm, int nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn) {
     }
 }",
 @"class C {
-    void Foo(int i, int jj,
+    void Goo(int i, int jj,
              int kkkk,
              int llllllll,
              int mmmmmmmmmmmmmmmm,
@@ -365,7 +365,7 @@ GetIndentionColumn(30),
     }
 }",
 @"class C {
-    void Foo(
+    void Goo(
         int i, int jj,
         int kkkk, int llllllll,
         int mmmmmmmmmmmmmmmm,
@@ -373,7 +373,7 @@ GetIndentionColumn(30),
     }
 }",
 @"class C {
-    void Foo(int i, int jj,
+    void Goo(int i, int jj,
         int kkkk, int llllllll,
         int mmmmmmmmmmmmmmmm,
         int nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn) {
@@ -386,14 +386,14 @@ GetIndentionColumn(30),
         {
             await TestAllWrappingCasesAsync(
 @"class C {
-    void Foo([||]
+    void Goo([||]
         int iiiii, int jjjjj, int kkkkk, int lllll, int mmmmm,
         int nnnnn) {
     }
 }",
 GetIndentionColumn(30),
 @"class C {
-    void Foo(int iiiii,
+    void Goo(int iiiii,
              int jjjjj,
              int kkkkk,
              int lllll,
@@ -402,7 +402,7 @@ GetIndentionColumn(30),
     }
 }",
 @"class C {
-    void Foo(
+    void Goo(
         int iiiii,
         int jjjjj,
         int kkkkk,
@@ -412,7 +412,7 @@ GetIndentionColumn(30),
     }
 }",
 @"class C {
-    void Foo(int iiiii,
+    void Goo(int iiiii,
         int jjjjj,
         int kkkkk,
         int lllll,
@@ -421,23 +421,23 @@ GetIndentionColumn(30),
     }
 }",
 @"class C {
-    void Foo(int iiiii, int jjjjj, int kkkkk, int lllll, int mmmmm, int nnnnn) {
+    void Goo(int iiiii, int jjjjj, int kkkkk, int lllll, int mmmmm, int nnnnn) {
     }
 }",
 @"class C {
-    void Foo(
+    void Goo(
         int iiiii, int jjjjj, int kkkkk, int lllll, int mmmmm, int nnnnn) {
     }
 }",
 @"class C {
-    void Foo(
+    void Goo(
         int iiiii, int jjjjj,
         int kkkkk, int lllll,
         int mmmmm, int nnnnn) {
     }
 }",
 @"class C {
-    void Foo(int iiiii, int jjjjj,
+    void Goo(int iiiii, int jjjjj,
         int kkkkk, int lllll,
         int mmmmm, int nnnnn) {
     }
@@ -449,14 +449,14 @@ GetIndentionColumn(30),
         {
             await TestAllWrappingCasesAsync(
 @"class C {
-    void Foo([||]
+    void Goo([||]
         int iiiii, int jjjjj, int kkkkk, int lllll, int mmmmm,
         int nnnnn) {
     }
 }",
 GetIndentionColumn(20),
 @"class C {
-    void Foo(int iiiii,
+    void Goo(int iiiii,
              int jjjjj,
              int kkkkk,
              int lllll,
@@ -465,7 +465,7 @@ GetIndentionColumn(20),
     }
 }",
 @"class C {
-    void Foo(
+    void Goo(
         int iiiii,
         int jjjjj,
         int kkkkk,
@@ -475,7 +475,7 @@ GetIndentionColumn(20),
     }
 }",
 @"class C {
-    void Foo(int iiiii,
+    void Goo(int iiiii,
         int jjjjj,
         int kkkkk,
         int lllll,
@@ -484,11 +484,11 @@ GetIndentionColumn(20),
     }
 }",
 @"class C {
-    void Foo(int iiiii, int jjjjj, int kkkkk, int lllll, int mmmmm, int nnnnn) {
+    void Goo(int iiiii, int jjjjj, int kkkkk, int lllll, int mmmmm, int nnnnn) {
     }
 }",
 @"class C {
-    void Foo(
+    void Goo(
         int iiiii, int jjjjj, int kkkkk, int lllll, int mmmmm, int nnnnn) {
     }
 }");
@@ -499,14 +499,14 @@ GetIndentionColumn(20),
         {
             await TestAllWrappingCasesAsync(
 @"class C {
-    void Foo([||]
+    void Goo([||]
         int i, int jj, int kkkk, int lll, int mm,
         int n) {
     }
 }",
 GetIndentionColumn(30),
 @"class C {
-    void Foo(int i,
+    void Goo(int i,
              int jj,
              int kkkk,
              int lll,
@@ -515,7 +515,7 @@ GetIndentionColumn(30),
     }
 }",
 @"class C {
-    void Foo(
+    void Goo(
         int i,
         int jj,
         int kkkk,
@@ -525,7 +525,7 @@ GetIndentionColumn(30),
     }
 }",
 @"class C {
-    void Foo(int i,
+    void Goo(int i,
         int jj,
         int kkkk,
         int lll,
@@ -534,29 +534,29 @@ GetIndentionColumn(30),
     }
 }",
 @"class C {
-    void Foo(int i, int jj, int kkkk, int lll, int mm, int n) {
+    void Goo(int i, int jj, int kkkk, int lll, int mm, int n) {
     }
 }",
 @"class C {
-    void Foo(
+    void Goo(
         int i, int jj, int kkkk, int lll, int mm, int n) {
     }
 }",
 @"class C {
-    void Foo(int i, int jj,
+    void Goo(int i, int jj,
              int kkkk, int lll,
              int mm, int n) {
     }
 }",
 @"class C {
-    void Foo(
+    void Goo(
         int i, int jj,
         int kkkk, int lll,
         int mm, int n) {
     }
 }",
 @"class C {
-    void Foo(int i, int jj,
+    void Goo(int i, int jj,
         int kkkk, int lll,
         int mm, int n) {
     }
@@ -568,7 +568,7 @@ GetIndentionColumn(30),
         {
             await TestAllWrappingCasesAsync(
 @"class C {
-    void Foo([||]int i,
+    void Goo([||]int i,
              int jj,
              int kkkk,
              int lll,
@@ -578,7 +578,7 @@ GetIndentionColumn(30),
 }",
 GetIndentionColumn(30),
 @"class C {
-    void Foo(
+    void Goo(
         int i,
         int jj,
         int kkkk,
@@ -588,7 +588,7 @@ GetIndentionColumn(30),
     }
 }",
 @"class C {
-    void Foo(int i,
+    void Goo(int i,
         int jj,
         int kkkk,
         int lll,
@@ -597,29 +597,29 @@ GetIndentionColumn(30),
     }
 }",
 @"class C {
-    void Foo(int i, int jj, int kkkk, int lll, int mm, int n) {
+    void Goo(int i, int jj, int kkkk, int lll, int mm, int n) {
     }
 }",
 @"class C {
-    void Foo(
+    void Goo(
         int i, int jj, int kkkk, int lll, int mm, int n) {
     }
 }",
 @"class C {
-    void Foo(int i, int jj,
+    void Goo(int i, int jj,
              int kkkk, int lll,
              int mm, int n) {
     }
 }",
 @"class C {
-    void Foo(
+    void Goo(
         int i, int jj,
         int kkkk, int lll,
         int mm, int n) {
     }
 }",
 @"class C {
-    void Foo(int i, int jj,
+    void Goo(int i, int jj,
         int kkkk, int lll,
         int mm, int n) {
     }
@@ -631,7 +631,7 @@ GetIndentionColumn(30),
         {
             await TestAllWrappingCasesAsync(
 @"class C {
-    void Foo([||]
+    void Goo([||]
         int i,
         int jj,
         int kkkk,
@@ -642,7 +642,7 @@ GetIndentionColumn(30),
 }",
 GetIndentionColumn(30),
 @"class C {
-    void Foo(int i,
+    void Goo(int i,
              int jj,
              int kkkk,
              int lll,
@@ -651,7 +651,7 @@ GetIndentionColumn(30),
     }
 }",
 @"class C {
-    void Foo(int i,
+    void Goo(int i,
         int jj,
         int kkkk,
         int lll,
@@ -660,29 +660,29 @@ GetIndentionColumn(30),
     }
 }",
 @"class C {
-    void Foo(int i, int jj, int kkkk, int lll, int mm, int n) {
+    void Goo(int i, int jj, int kkkk, int lll, int mm, int n) {
     }
 }",
 @"class C {
-    void Foo(
+    void Goo(
         int i, int jj, int kkkk, int lll, int mm, int n) {
     }
 }",
 @"class C {
-    void Foo(int i, int jj,
+    void Goo(int i, int jj,
              int kkkk, int lll,
              int mm, int n) {
     }
 }",
 @"class C {
-    void Foo(
+    void Goo(
         int i, int jj,
         int kkkk, int lll,
         int mm, int n) {
     }
 }",
 @"class C {
-    void Foo(int i, int jj,
+    void Goo(int i, int jj,
         int kkkk, int lll,
         int mm, int n) {
     }

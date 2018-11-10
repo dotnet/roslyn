@@ -27,10 +27,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent
             return formattingRules;
         }
 
-        public IndentationResult? GetDesiredIndentation(Document document, int lineNumber, CancellationToken cancellationToken)
+        public virtual IndentationResult? GetDesiredIndentation(Document document, int lineNumber, CancellationToken cancellationToken)
             => GetDesiredIndentation(document, lineNumber, force: false, cancellationToken);
 
-        public IndentationResult? GetDesiredIndentation(
+        private IndentationResult? GetDesiredIndentation(
             Document document, int lineNumber, bool force, CancellationToken cancellationToken)
         {
             var root = document.GetSyntaxRootSynchronously(cancellationToken);

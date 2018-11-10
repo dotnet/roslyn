@@ -5,7 +5,6 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -32,6 +31,8 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping
             private readonly string _newLine;
             private readonly int _wrappingColumn;
 
+            private readonly ISynchronousIndentationService _indentationService;
+
             private SourceText _originalSourceText;
             private string _singleIndentionOpt;
             private string _afterOpenTokenIndentation;
@@ -51,6 +52,8 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping
                 _tabSize = options.GetOption(FormattingOptions.TabSize);
                 _newLine = options.GetOption(FormattingOptions.NewLine);
                 _wrappingColumn = options.GetOption(FormattingOptions.PreferredWrappingColumn);
+
+                _indentationService = service.GetIndentationService();
             }
 
             private static TextChange DeleteBetween(SyntaxNodeOrToken left, SyntaxNodeOrToken right)
@@ -92,12 +95,13 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping
                 var openToken = _listSyntax.GetFirstToken();
 
                 var newSourceText = _originalSourceText.WithChanges(new TextChange(new TextSpan(openToken.Span.End, 0), _newLine));
+                newSourceText = newSourceText.WithChanges(
+                    new TextChange(TextSpan.FromBounds(openToken.Span.End + _newLine.Length, newSourceText.Length), ""));
                 var newDocument = _originalDocument.WithText(newSourceText);
 
-                var indentationService = (AbstractIndentationService)newDocument.GetLanguageService<ISynchronousIndentationService>();
                 var originalLineNumber = newSourceText.Lines.GetLineFromPosition(openToken.Span.Start).LineNumber;
-                var desiredIndentation = indentationService.GetDesiredIndentation(
-                    newDocument, originalLineNumber + 1, force: true, cancellationToken);
+                var desiredIndentation = _indentationService.GetDesiredIndentation(
+                    newDocument, originalLineNumber + 1, cancellationToken);
 
                 if (desiredIndentation == null)
                 {

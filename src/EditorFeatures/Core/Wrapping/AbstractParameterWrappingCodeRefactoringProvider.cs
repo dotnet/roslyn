@@ -24,6 +24,8 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping
         protected abstract string ItemNamePlural { get; }
         protected abstract string ItemNameSingular { get; }
 
+        protected abstract ISynchronousIndentationService GetIndentationService();
+
         protected abstract TListSyntax GetApplicableList(SyntaxNode node);
         protected abstract SeparatedSyntaxList<TListItemSyntax> GetListItems(TListSyntax listSyntax);
         protected abstract bool PositionIsApplicable(

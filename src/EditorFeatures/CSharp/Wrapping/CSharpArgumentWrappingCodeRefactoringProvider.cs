@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Editor.Wrapping
 {
     [ExportCodeRefactoringProvider(LanguageNames.CSharp), Shared]
     internal partial class CSharpArgumentWrappingCodeRefactoringProvider 
-        : AbstractWrappingCodeRefactoringProvider<BaseArgumentListSyntax, ArgumentSyntax>
+        : AbstractCSharpWrappingCodeRefactoringProvider<BaseArgumentListSyntax, ArgumentSyntax>
     {
         protected override string ListName => FeaturesResources.argument_list;
         protected override string ItemNamePlural => FeaturesResources.arguments;
