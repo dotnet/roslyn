@@ -67,26 +67,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent
 
         private AbstractIndenter GetIndenter(Document document, int lineNumber, CancellationToken cancellationToken)
         {
-            GetIndenterData(document, lineNumber,
-                out var documentOptions, out var root, out var lineToBeIndented,
-                out var formattingRules, cancellationToken);
+            var documentOptions = document.GetOptionsAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+            var root = document.GetSyntaxRootSynchronously(cancellationToken);
+
+            var sourceText = root.SyntaxTree.GetText(cancellationToken);
+            var lineToBeIndented = sourceText.Lines[lineNumber];
+
+            var formattingRules = GetFormattingRules(document, lineToBeIndented.Start);
 
             var indenter = GetIndenter(
                 document.GetLanguageService<ISyntaxFactsService>(),
                 root.SyntaxTree, lineToBeIndented, formattingRules,
                 documentOptions, cancellationToken);
             return indenter;
-        }
-
-        private void GetIndenterData(Document document, int lineNumber, out DocumentOptionSet documentOptions, out SyntaxNode root, out TextLine lineToBeIndented, out IEnumerable<IFormattingRule> formattingRules, CancellationToken cancellationToken)
-        {
-            documentOptions = document.GetOptionsAsync(cancellationToken).WaitAndGetResult(cancellationToken);
-            root = document.GetSyntaxRootSynchronously(cancellationToken);
-
-            var sourceText = root.SyntaxTree.GetText(cancellationToken);
-            lineToBeIndented = sourceText.Lines[lineNumber];
-
-            formattingRules = GetFormattingRules(document, lineToBeIndented.Start);
         }
 
         protected abstract AbstractIndenter GetIndenter(
