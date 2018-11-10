@@ -20,22 +20,12 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.SeparatedSyntaxList
         /// <summary>
         /// Class responsible for actually computing the entire set of code actions to offer the user.
         /// </summary>
-        private class CodeActionComputer
+        private class CodeActionComputer : AbstractComputer<AbstractSeparatedSyntaxListWrapper<TListSyntax, TListItemSyntax>>
         {
-            private readonly AbstractSeparatedSyntaxListWrapper<TListSyntax, TListItemSyntax> _service;
-            private readonly Document _originalDocument;
-            private readonly DocumentOptionSet _options;
             private readonly TListSyntax _listSyntax;
             private readonly SeparatedSyntaxList<TListItemSyntax> _listItems;
 
-            private readonly bool _useTabs;
-            private readonly int _tabSize;
-            private readonly string _newLine;
-            private readonly int _wrappingColumn;
-
             private readonly IBlankLineIndentationService _indentationService;
-
-            private SourceText _originalSourceText;
 
             /// <summary>
             /// The indentation string necessary to indent an item in a list such that the start of
@@ -62,41 +52,25 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.SeparatedSyntaxList
 
             public CodeActionComputer(
                 AbstractSeparatedSyntaxListWrapper<TListSyntax, TListItemSyntax> service,
-                Document document, DocumentOptionSet options,
+                Document document, SourceText sourceText, DocumentOptionSet options,
                 TListSyntax listSyntax, SeparatedSyntaxList<TListItemSyntax> listItems)
+                : base(service, document, sourceText, options)
             {
-                _service = service;
-                _originalDocument = document;
-                _options = options;
                 _listSyntax = listSyntax;
                 _listItems = listItems;
-
-                _useTabs = options.GetOption(FormattingOptions.UseTabs);
-                _tabSize = options.GetOption(FormattingOptions.TabSize);
-                _newLine = options.GetOption(FormattingOptions.NewLine);
-                _wrappingColumn = options.GetOption(FormattingOptions.PreferredWrappingColumn);
 
                 _indentationService = service.GetIndentationService();
             }
 
-            private static TextChange DeleteBetween(SyntaxNodeOrToken left, SyntaxNodeOrToken right)
-                => UpdateBetween(left, right, "");
-
-            private static TextChange UpdateBetween(SyntaxNodeOrToken left, SyntaxNodeOrToken right, string text)
-                => new TextChange(TextSpan.FromBounds(left.Span.End, right.Span.Start), text);
-
             private void AddTextChangeBetweenOpenAndFirstItem(bool indentFirst, ArrayBuilder<TextChange> result)
             {
                 result.Add(indentFirst
-                    ? UpdateBetween(_listSyntax.GetFirstToken(), _listItems[0], _newLine + _singleIndention)
+                    ? UpdateBetween(_listSyntax.GetFirstToken(), _listItems[0], NewLine + _singleIndention)
                     : DeleteBetween(_listSyntax.GetFirstToken(), _listItems[0]));
             }
 
             public async Task<ImmutableArray<CodeAction>> DoAsync(CancellationToken cancellationToken)
             {
-                _originalSourceText = await _originalDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
-                _afterOpenTokenIndentation = GetAfterOpenTokenIdentation(cancellationToken);
-                _singleIndention = GetSingleIdentation(cancellationToken);
 
                 return await GetTopLevelCodeActionsAsync(cancellationToken).ConfigureAwait(false);
             }
@@ -104,9 +78,9 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.SeparatedSyntaxList
             private string GetAfterOpenTokenIdentation(CancellationToken cancellationToken)
             {
                 var openToken = _listSyntax.GetFirstToken();
-                var afterOpenTokenOffset = _originalSourceText.GetOffset(openToken.Span.End);
+                var afterOpenTokenOffset = OriginalSourceText.GetOffset(openToken.Span.End);
 
-                var indentString = afterOpenTokenOffset.CreateIndentationString(_useTabs, _tabSize);
+                var indentString = afterOpenTokenOffset.CreateIndentationString(UseTabs, TabSize);
                 return indentString;
             }
 
@@ -117,10 +91,10 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.SeparatedSyntaxList
                 // indented.
                 var openToken = _listSyntax.GetFirstToken();
 
-                var newSourceText = _originalSourceText.WithChanges(new TextChange(new TextSpan(openToken.Span.End, 0), _newLine));
+                var newSourceText = OriginalSourceText.WithChanges(new TextChange(new TextSpan(openToken.Span.End, 0), NewLine));
                 newSourceText = newSourceText.WithChanges(
-                    new TextChange(TextSpan.FromBounds(openToken.Span.End + _newLine.Length, newSourceText.Length), ""));
-                var newDocument = _originalDocument.WithText(newSourceText);
+                    new TextChange(TextSpan.FromBounds(openToken.Span.End + NewLine.Length, newSourceText.Length), ""));
+                var newDocument = OriginalDocument.WithText(newSourceText);
 
                 var originalLineNumber = newSourceText.Lines.GetLineFromPosition(openToken.Span.Start).LineNumber;
                 var desiredIndentation = _indentationService.GetBlankLineIndentation(
@@ -132,7 +106,7 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.SeparatedSyntaxList
 
                 var indent = baseOffsetInLine + desiredIndentation.Offset;
 
-                var indentString = indent.CreateIndentationString(_useTabs, _tabSize);
+                var indentString = indent.CreateIndentationString(UseTabs, TabSize);
                 return indentString;
             }
 
@@ -151,75 +125,20 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.SeparatedSyntaxList
                 return _afterOpenTokenIndentation;
             }
 
-            private async Task<CodeAction> CreateCodeActionAsync(
-                HashSet<string> seenDocuments, ImmutableArray<TextChange> edits,
-                string parentTitle, string title, CancellationToken cancellationToken)
+            protected override async Task<TextSpan> GetSpanToFormatAsync(
+                Document newDocument, CancellationToken cancellationToken)
             {
-                if (edits.Length == 0)
-                {
-                    return null;
-                }
-
-                var finalEdits = ArrayBuilder<TextChange>.GetInstance();
-
-                try
-                {
-                    foreach (var edit in edits)
-                    {
-                        var text = _originalSourceText.ToString(edit.Span);
-                        if (!string.IsNullOrWhiteSpace(text))
-                        {
-                            // editing some piece of non-whitespace trivia.  We don't support this.
-                            return null;
-                        }
-
-                        // Make sure we're not about to make an edit that just changes the code to what
-                        // is already there.
-                        if (text != edit.NewText)
-                        {
-                            finalEdits.Add(edit);
-                        }
-                    }
-
-                    if (finalEdits.Count == 0)
-                    {
-                        return null;
-                    }
-
-                    var newSourceText = _originalSourceText.WithChanges(finalEdits);
-                    var newDocument = _originalDocument.WithText(newSourceText);
-
-                    var newRoot = await newDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-                    var newOpenToken = newRoot.FindToken(_listSyntax.SpanStart);
-                    var newList = newOpenToken.Parent;
-
-                    var formattedDocument = await Formatter.FormatAsync(
-                        newDocument, newList.Span, cancellationToken: cancellationToken).ConfigureAwait(false);
-
-                    // make sure we've actually made a textual change.
-                    var finalSourceText = await formattedDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
-
-                    var originalText = _originalSourceText.ToString();
-                    var finalText = finalSourceText.ToString();
-
-                    if (!seenDocuments.Add(finalText) ||
-                        originalText == finalText)
-                    {
-                        return null;
-                    }
-
-                    return new WrapItemsAction(title, parentTitle, _ => Task.FromResult(formattedDocument));
-                }
-                finally
-                {
-                    finalEdits.Free();
-                }
+                var newRoot = await newDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+                var newOpenToken = newRoot.FindToken(_listSyntax.SpanStart);
+                var newList = newOpenToken.Parent;
+                var spanToFormat = newList.Span;
+                return spanToFormat;
             }
 
-            private async Task<ImmutableArray<CodeAction>> GetTopLevelCodeActionsAsync(CancellationToken cancellationToken)
+            protected override async Task AddTopLevelCodeActionsAsync(ArrayBuilder<CodeAction> codeActions, HashSet<string> seenDocuments, CancellationToken cancellationToken)
             {
-                var codeActions = ArrayBuilder<CodeAction>.GetInstance();
-                var seenDocuments = new HashSet<string>();
+                _afterOpenTokenIndentation = GetAfterOpenTokenIdentation(cancellationToken);
+                _singleIndention = GetSingleIdentation(cancellationToken);
 
                 codeActions.AddIfNotNull(await GetWrapEveryTopLevelCodeActionAsync(
                     seenDocuments, cancellationToken).ConfigureAwait(false));
@@ -229,8 +148,6 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.SeparatedSyntaxList
 
                 codeActions.AddIfNotNull(await GetWrapLongTopLevelCodeActionAsync(
                     seenDocuments, cancellationToken).ConfigureAwait(false));
-
-                return SortActionsByMostRecentlyUsed(codeActions.ToImmutableAndFree());
             }
 
             #region unwrap all
@@ -240,7 +157,7 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.SeparatedSyntaxList
             {
                 var unwrapActions = ArrayBuilder<CodeAction>.GetInstance();
 
-                var parentTitle = string.Format(FeaturesResources.Unwrap_0, _service.ListName);
+                var parentTitle = string.Format(FeaturesResources.Unwrap_0, Service.ListName);
 
                 // 1. Unwrap:
                 //      MethodName(int a, int b, int c, int d, int e, int f, int g, int h, int i, int j)
@@ -268,8 +185,8 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.SeparatedSyntaxList
             {
                 var edits = GetUnwrapAllEdits(indentFirst);
                 var title = indentFirst
-                    ? string.Format(FeaturesResources.Unwrap_and_indent_all_0, _service.ItemNamePlural)
-                    : string.Format(FeaturesResources.Unwrap_all_0, _service.ItemNamePlural);
+                    ? string.Format(FeaturesResources.Unwrap_and_indent_all_0, Service.ItemNamePlural)
+                    : string.Format(FeaturesResources.Unwrap_all_0, Service.ItemNamePlural);
                 
                 return await CreateCodeActionAsync(
                     seenDocuments, edits, parentTitle, title, cancellationToken).ConfigureAwait(false);
@@ -298,7 +215,7 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.SeparatedSyntaxList
             private async Task<CodeAction> GetWrapLongTopLevelCodeActionAsync(
                 HashSet<string> seenDocuments, CancellationToken cancellationToken)
             {
-                var parentTitle = string.Format(FeaturesResources.Wrap_long_0, _service.ListName);
+                var parentTitle = string.Format(FeaturesResources.Wrap_long_0, Service.ListName);
                 var codeActions = ArrayBuilder<CodeAction>.GetInstance();
 
                 // Wrap at long length, align with first item:
@@ -365,7 +282,7 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.SeparatedSyntaxList
 
                     if (i > 0)
                     {
-                        if (currentOffset < _wrappingColumn)
+                        if (currentOffset < WrappingColumn)
                         {
                             // this item would not make us go pass our preferred wrapping column. So
                             // keep it on this line, making sure there's a space between the previous
@@ -377,7 +294,7 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.SeparatedSyntaxList
                         {
                             // not the first item on the line and this item makes us go past the wrapping
                             // limit.  We want to wrap before this item.
-                            result.Add(UpdateBetween(itemsAndSeparators[i - 1], item, _newLine + indentation));
+                            result.Add(UpdateBetween(itemsAndSeparators[i - 1], item, NewLine + indentation));
                             currentOffset = indentation.Length + item.Span.Length;
                         }
                     }
@@ -399,7 +316,7 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.SeparatedSyntaxList
 
             private async Task<CodeAction> GetWrapEveryTopLevelCodeActionAsync(HashSet<string> seenDocuments, CancellationToken cancellationToken)
             {
-                var parentTitle = string.Format(FeaturesResources.Wrap_every_0, _service.ItemNameSingular);
+                var parentTitle = string.Format(FeaturesResources.Wrap_every_0, Service.ItemNameSingular);
 
                 var codeActions = ArrayBuilder<CodeAction>.GetInstance();
 
@@ -453,10 +370,10 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.SeparatedSyntaxList
             private string GetNestedCodeActionTitle(bool indentFirst, bool alignWithFirst)
             {
                 return indentFirst
-                    ? string.Format(FeaturesResources.Indent_all_0, _service.ItemNamePlural)
+                    ? string.Format(FeaturesResources.Indent_all_0, Service.ItemNamePlural)
                     : alignWithFirst
-                        ? string.Format(FeaturesResources.Align_wrapped_0, _service.ItemNamePlural)
-                        : string.Format(FeaturesResources.Indent_wrapped_0, _service.ItemNamePlural);
+                        ? string.Format(FeaturesResources.Align_wrapped_0, Service.ItemNamePlural)
+                        : string.Format(FeaturesResources.Indent_wrapped_0, Service.ItemNamePlural);
             }
 
             private ImmutableArray<TextChange> GetWrapEachEdits(bool indentFirst, string indentation)
@@ -477,7 +394,7 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.SeparatedSyntaxList
                         result.Add(DeleteBetween(item, comma));
 
                         // Always wrap between this comma and the next item.
-                        result.Add(UpdateBetween(comma, itemsAndSeparators[i + 2], _newLine + indentation));
+                        result.Add(UpdateBetween(comma, itemsAndSeparators[i + 2], NewLine + indentation));
                     }
                 }
 

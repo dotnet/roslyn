@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.SeparatedSyntaxList
             }
 
             var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-            var computer = new CodeActionComputer(this, document, options, listSyntax, listItems);
+            var computer = new CodeActionComputer(this, document, sourceText, options, listSyntax, listItems);
             var codeActions = await computer.DoAsync(cancellationToken).ConfigureAwait(false);
             return codeActions;
         }

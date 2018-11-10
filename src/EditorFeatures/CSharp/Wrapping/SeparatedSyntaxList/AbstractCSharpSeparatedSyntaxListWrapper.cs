@@ -2,8 +2,6 @@
 
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.CSharp.Formatting.Indentation;
-using Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent;
-using Microsoft.CodeAnalysis.Editor.Wrapping;
 using Microsoft.CodeAnalysis.Editor.Wrapping.SeparatedSyntaxList;
 
 namespace Microsoft.CodeAnalysis.CSharp.Editor.Wrapping.SeparatedSyntaxList
