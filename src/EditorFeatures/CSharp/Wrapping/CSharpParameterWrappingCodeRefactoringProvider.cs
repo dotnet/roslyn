@@ -10,7 +10,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Editor.Wrapping
 {
-    [ExportCodeRefactoringProvider(LanguageNames.CSharp), Shared]
+    [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.ParameterWrapping), Shared]
     internal partial class CSharpParameterWrappingCodeRefactoringProvider 
         : AbstractCSharpWrappingCodeRefactoringProvider<BaseParameterListSyntax, ParameterSyntax>
     {

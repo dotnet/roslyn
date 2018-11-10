@@ -6,7 +6,7 @@ Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Editor.Wrapping
-    <ExportCodeRefactoringProvider(LanguageNames.VisualBasic), [Shared]>
+    <ExportCodeRefactoringProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeRefactoringProviderNames.ArgumentWrapping), [Shared]>
     Partial Friend Class VisualBasicArgumentWrappingCodeRefactoringProvider
         Inherits AbstractVisualBasicWrappingCodeRefactoringProvider(Of ArgumentListSyntax, ArgumentSyntax)
 
