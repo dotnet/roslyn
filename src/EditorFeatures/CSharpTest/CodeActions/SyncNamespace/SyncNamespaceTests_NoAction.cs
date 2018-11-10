@@ -289,5 +289,25 @@ namespace [||]NS
 
             await TestMissingInRegularAndScriptAsync(code);
         }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSyncNamespace)]
+        public async Task NoAction_NoDeclaration()
+        {
+            var folders = new[] { "A" };
+            var documentPath = CreateDocumentFilePath(folders);
+
+            var code =
+$@"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" CommonReferences=""true"">
+        <Document Folders=""{documentPath.folder}"" FilePath=""{documentPath.filePath}""> 
+using System;   
+[||]
+        </Document>
+    </Project>
+</Workspace>";
+
+            await TestMissingInRegularAndScriptAsync(code);
+        }
     }
 }
