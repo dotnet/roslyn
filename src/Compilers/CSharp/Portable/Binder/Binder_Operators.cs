@@ -268,7 +268,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                type = method.ReturnType;
+                type = method.ReturnType.TypeSymbol;
                 if (!this.IsAccessible(method, ref useSiteDiagnostics, this.GetAccessThroughType(receiverOpt)))
                 {
                     // CONSIDER: depending on the accessibility (e.g. if it's private), dev10 might just report the whole event bogus.
@@ -1042,7 +1042,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var op = operators[i];
                     if (op.ParameterCount == 1 && op.DeclaredAccessibility == Accessibility.Public)
                     {
-                        var conversion = this.Conversions.ClassifyConversionFromType(argumentType, op.ParameterTypes[0], ref useSiteDiagnostics);
+                        var conversion = this.Conversions.ClassifyConversionFromType(argumentType, op.ParameterTypes[0].TypeSymbol, ref useSiteDiagnostics);
                         if (conversion.IsImplicit)
                         {
                             @operator = op;
@@ -2038,6 +2038,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                 hasErrors);
         }
 
+        private BoundExpression BindSuppressNullableWarningExpression(PostfixUnaryExpressionSyntax node, DiagnosticBag diagnostics)
+        {
+            if (this.Flags.Includes(BinderFlags.AttributeArgument))
+            {
+                diagnostics.Add(new LazyMissingNonNullTypesContextForSuppressionDiagnosticInfo(NonNullTypesContext), node.OperatorToken.GetLocation());
+            }
+            else if (NonNullTypesContext.NonNullTypes == null)
+            {
+                diagnostics.Add(ErrorCode.WRN_MissingNonNullTypesContext, node.OperatorToken.GetLocation());
+            }
+
+            var expr = BindExpression(node.Operand, diagnostics);
+            var type = expr.Type;
+            if (type?.IsValueType == true)
+            {
+                Error(diagnostics, ErrorCode.WRN_SuppressionOperatorNotReferenceType, node);
+            }
+            return new BoundSuppressNullableWarningExpression(node, expr, type);
+        }
+
         // Based on ExpressionBinder::bindPtrIndirection.
         private BoundExpression BindPointerIndirectionExpression(PrefixUnaryExpressionSyntax node, DiagnosticBag diagnostics)
         {
@@ -2070,7 +2090,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                pointedAtType = operandType.PointedAtType;
+                pointedAtType = operandType.PointedAtType.TypeSymbol;
 
                 if (pointedAtType.SpecialType == SpecialType.System_Void)
                 {
@@ -2128,9 +2148,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            TypeSymbol pointerType = new PointerTypeSymbol(isManagedType && allowManagedAddressOf
+            TypeSymbol pointedAtType = isManagedType && allowManagedAddressOf
                 ? GetSpecialType(SpecialType.System_IntPtr, diagnostics, node)
-                : operandType ?? CreateErrorType());
+                : operandType ?? CreateErrorType();
+            TypeSymbol pointerType = new PointerTypeSymbol(TypeSymbolWithAnnotations.Create(pointedAtType));
 
             return new BoundAddressOfOperator(node, operand, pointerType, hasErrors);
         }
@@ -2242,7 +2263,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             // is not a fixed size buffer expression, or if the expression is a fixed size buffer
                             // member_access of the form E.I and E is a fixed variable
                             BoundExpression underlyingExpr = ((BoundPointerElementAccess)expr).Expression;
-                            if (underlyingExpr is BoundFieldAccess fieldAccess && fieldAccess.FieldSymbol.IsFixed)
+                            if (underlyingExpr is BoundFieldAccess fieldAccess && fieldAccess.FieldSymbol.IsFixedSizeBuffer)
                             {
                                 expr = fieldAccess.ReceiverOpt;
                                 continue;
@@ -2329,7 +2350,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var signature = best.Signature;
 
-            var resultOperand = CreateConversion(operand.Syntax, operand, best.Conversion, false, signature.OperandType, diagnostics);
+            var resultOperand = CreateConversion(operand.Syntax, operand, best.Conversion, isCast: false, conversionGroupOpt: null, signature.OperandType, diagnostics);
             var resultType = signature.ReturnType;
             UnaryOperatorKind resultOperatorKind = signature.Kind;
             var resultMethod = signature.Method;
@@ -2680,7 +2701,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return operand.HasAnyErrors;
-        }
+            }
 
         private bool IsOperatorErrors(CSharpSyntaxNode node, TypeSymbol operandType, BoundTypeExpression typeExpression, DiagnosticBag diagnostics)
         {
@@ -2715,9 +2736,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             var operandHasErrors = IsOperandErrors(node, ref operand, diagnostics);
             // try binding as a type, but back off to binding as an expression if that does not work.
             AliasSymbol alias;
-            TypeSymbol targetType;
             var isTypeDiagnostics = DiagnosticBag.GetInstance();
-            targetType = BindType(node.Right, isTypeDiagnostics, out alias);
+            TypeSymbol targetType = BindType(node.Right, isTypeDiagnostics, out alias).TypeSymbol;
 
             if (targetType?.IsErrorType() == true && isTypeDiagnostics.HasAnyResolvedErrors() &&
                     ((CSharpParseOptions)node.SyntaxTree.Options).IsFeatureEnabled(MessageID.IDS_FeaturePatternMatching))
@@ -3103,7 +3123,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var operand = BindValue(node.Left, diagnostics, BindValueKind.RValue);
             AliasSymbol alias;
-            var targetType = BindType(node.Right, diagnostics, out alias);
+            var targetType = BindType(node.Right, diagnostics, out alias).TypeSymbol;
             var typeExpression = new BoundTypeExpression(node.Right, alias, targetType);
             var targetTypeKind = targetType.TypeKind;
             var resultType = targetType;
@@ -3338,7 +3358,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Error(diagnostics, ErrorCode.ERR_BadBinaryOps, node, SyntaxFacts.GetText(node.OperatorToken.Kind()), leftOperand.Display, rightOperand.Display);
 
             return new BoundNullCoalescingOperator(node, leftOperand, rightOperand,
-                leftConversion, CreateErrorType(), hasErrors: true);
+                leftConversion, BoundNullCoalescingOperatorResultKind.NoCommonType, CreateErrorType(), hasErrors: true);
         }
 
         private BoundExpression BindNullCoalescingOperator(BinaryExpressionSyntax node, DiagnosticBag diagnostics)
@@ -3350,7 +3370,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (leftOperand.HasAnyErrors || rightOperand.HasAnyErrors)
             {
                 return new BoundNullCoalescingOperator(node, leftOperand, rightOperand,
-                    Conversion.NoConversion, CreateErrorType(), hasErrors: true);
+                    Conversion.NoConversion, BoundNullCoalescingOperatorResultKind.NoCommonType, CreateErrorType(), hasErrors: true);
             }
 
             // The specification does not permit the left hand side to be a default literal
@@ -3359,7 +3379,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Error(diagnostics, ErrorCode.ERR_BadOpOnNullOrDefault, node, node.OperatorToken.Text, "default");
 
                 return new BoundNullCoalescingOperator(node, leftOperand, rightOperand,
-                    Conversion.NoConversion, CreateErrorType(), hasErrors: true);
+                    Conversion.NoConversion, BoundNullCoalescingOperatorResultKind.NoCommonType, CreateErrorType(), hasErrors: true);
             }
 
             // SPEC: The type of the expression a ?? b depends on which implicit conversions are available
@@ -3409,7 +3429,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var leftConversion = Conversions.ClassifyConversionFromExpression(leftOperand, GetSpecialType(SpecialType.System_Object, diagnostics, node), ref useSiteDiagnostics);
                 diagnostics.Add(node, useSiteDiagnostics);
                 return new BoundNullCoalescingOperator(node, leftOperand, rightOperand,
-                    leftConversion, optRightType);
+                    leftConversion, BoundNullCoalescingOperatorResultKind.RightDynamicType, optRightType);
             }
 
             // SPEC:    Otherwise, if A exists and is a nullable type and an implicit conversion exists from b to A0,
@@ -3426,7 +3446,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     diagnostics.Add(node, useSiteDiagnostics);
                     var convertedRightOperand = CreateConversion(rightOperand, rightConversion, optLeftType0, diagnostics);
                     return new BoundNullCoalescingOperator(node, leftOperand, convertedRightOperand,
-                        leftConversion, optLeftType0);
+                        leftConversion, BoundNullCoalescingOperatorResultKind.LeftUnwrappedType, optLeftType0);
                 }
             }
 
@@ -3443,7 +3463,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var leftConversion = Conversion.Identity;
                     diagnostics.Add(node, useSiteDiagnostics);
                     return new BoundNullCoalescingOperator(node, leftOperand, convertedRightOperand,
-                        leftConversion, optLeftType);
+                        leftConversion, BoundNullCoalescingOperatorResultKind.LeftType, optLeftType);
                 }
             }
 
@@ -3473,6 +3493,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if ((object)optRightType != null)
             {
                 Conversion leftConversion;
+                BoundNullCoalescingOperatorResultKind resultKind;
 
                 if (isLeftNullable)
                 {
@@ -3484,10 +3505,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // the null coalescing operator. See method LocalRewriter.GetConvertedLeftForNullCoalescingOperator.
 
                     leftConversion = Conversions.ClassifyImplicitConversionFromType(optLeftType0, optRightType, ref useSiteDiagnostics);
+                    resultKind = BoundNullCoalescingOperatorResultKind.LeftUnwrappedRightType;
                 }
                 else
                 {
                     leftConversion = Conversions.ClassifyImplicitConversionFromExpression(leftOperand, optRightType, ref useSiteDiagnostics);
+                    resultKind = BoundNullCoalescingOperatorResultKind.RightType;
                 }
 
                 if (leftConversion.Exists)
@@ -3514,7 +3537,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     diagnostics.Add(node, useSiteDiagnostics);
-                    return new BoundNullCoalescingOperator(node, leftOperand, rightOperand, leftConversion, optRightType);
+                    return new BoundNullCoalescingOperator(node, leftOperand, rightOperand, leftConversion, resultKind, optRightType);
                 }
             }
 
@@ -3673,7 +3696,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 bool hadMultipleCandidates;
                 HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                TypeSymbol bestType = BestTypeInferrer.InferBestTypeForConditionalOperator(trueExpr, falseExpr, this.Conversions, out hadMultipleCandidates, ref useSiteDiagnostics);
+                TypeSymbol bestType = BestTypeInferrer.InferBestTypeForConditionalOperator(trueExpr, falseExpr, this.Conversions, out hadMultipleCandidates, out _, ref useSiteDiagnostics);
                 diagnostics.Add(node, useSiteDiagnostics);
 
                 if ((object)bestType == null)

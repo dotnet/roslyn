@@ -714,6 +714,72 @@ class Customer
 }}
 ";
 
+        private static readonly string s_preferCompoundAssignments = $@"
+using System;
+class Customer
+{{
+    void M1(int value)
+    {{
+//[
+        // {ServicesVSResources.Prefer_colon}
+        value += 10;
+//]
+    }}
+    void M2(int value)
+    {{
+//[
+        // {ServicesVSResources.Over_colon}
+        value = value + 10
+//]
+    }}
+}}
+";
+
+        private static readonly string s_preferIndexOperator = $@"
+using System;
+
+class Customer
+{{
+    void M1(string value)
+    {{
+//[
+        // {ServicesVSResources.Prefer_colon}
+        var ch = value[^1];
+//]
+    }}
+    void M2(string value)
+    {{
+//[
+        // {ServicesVSResources.Over_colon}
+        var ch = value[value.Length - 1];
+//]
+    }}
+}}
+";
+
+        private static readonly string s_preferRangeOperator = $@"
+using System;
+
+class Customer
+{{
+    void M1(string value)
+    {{
+//[
+        // {ServicesVSResources.Prefer_colon}
+        var sub = value[1..^1];
+//]
+    }}
+    void M2(string value)
+    {{
+//[
+        // {ServicesVSResources.Over_colon}
+        var sub = value.Substring(1, value.Length - 2);
+>>>>>>> UI options.  Also support arrays.
+//]
+    }}
+}}
+";
+
         private static readonly string s_preferIsNullOverReferenceEquals = $@"
 using System;
 
@@ -908,6 +974,38 @@ class List<T>
     public T this[int i] { get { return _values[i]; } }
 }
 //]
+";
+
+        private const string s_preferExpressionBodyForLambdas = @"
+
+using System;
+
+class Customer
+{
+    void Method()
+    {
+//[
+        Func<int, string> f = a => a.ToString();
+//]
+    }
+}
+";
+
+        private const string s_preferBlockBodyForLambdas = @"
+using System;
+
+class Customer
+{
+    void Method()
+    {
+//[
+        Func<int, string> f = a =>
+        {
+            return a.ToString();
+        };
+//]
+    }
+}
 ";
 
         private static readonly string s_preferReadonly = $@"
@@ -1137,6 +1235,10 @@ class C
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CodeStyleOptions.PreferInferredTupleNames, ServicesVSResources.Prefer_inferred_tuple_names, s_preferInferredTupleName, s_preferInferredTupleName, this, optionSet, expressionPreferencesGroupTitle));
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CodeStyleOptions.PreferInferredAnonymousTypeMemberNames, ServicesVSResources.Prefer_inferred_anonymous_type_member_names, s_preferInferredAnonymousTypeMemberName, s_preferInferredAnonymousTypeMemberName, this, optionSet, expressionPreferencesGroupTitle));
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CSharpCodeStyleOptions.PreferLocalOverAnonymousFunction, ServicesVSResources.Prefer_local_function_over_anonymous_function, s_preferLocalFunctionOverAnonymousFunction, s_preferLocalFunctionOverAnonymousFunction, this, optionSet, expressionPreferencesGroupTitle));
+            CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CodeStyleOptions.PreferCompoundAssignment, ServicesVSResources.Prefer_compound_assignments, s_preferCompoundAssignments, s_preferCompoundAssignments, this, optionSet, expressionPreferencesGroupTitle));
+
+            CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CSharpCodeStyleOptions.PreferIndexOperator, ServicesVSResources.Prefer_index_operator, s_preferIndexOperator, s_preferIndexOperator, this, optionSet, expressionPreferencesGroupTitle));
+            CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CSharpCodeStyleOptions.PreferRangeOperator, ServicesVSResources.Prefer_range_operator, s_preferRangeOperator, s_preferRangeOperator, this, optionSet, expressionPreferencesGroupTitle));
 
             AddExpressionBodyOptions(optionSet, expressionPreferencesGroupTitle);
 
@@ -1233,6 +1335,13 @@ class C
                 ServicesVSResources.Use_expression_body_for_accessors,
                 enumValues,
                 new[] { s_preferBlockBodyForAccessors, s_preferExpressionBodyForAccessors, s_preferExpressionBodyForAccessors },
+                this, optionSet, expressionPreferencesGroupTitle, expressionBodyPreferences));
+
+            CodeStyleItems.Add(new EnumCodeStyleOptionViewModel<ExpressionBodyPreference>(
+                CSharpCodeStyleOptions.PreferExpressionBodiedLambdas,
+                ServicesVSResources.Use_expression_body_for_lambdas,
+                enumValues,
+                new[] { s_preferBlockBodyForLambdas, s_preferExpressionBodyForLambdas, s_preferExpressionBodyForLambdas },
                 this, optionSet, expressionPreferencesGroupTitle, expressionBodyPreferences));
         }
     }

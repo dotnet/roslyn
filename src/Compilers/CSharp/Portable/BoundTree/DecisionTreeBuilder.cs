@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!localByType.TryGetValue(type, out var localSymbol))
             {
-                localSymbol = new SynthesizedLocal(_enclosingSymbol as MethodSymbol, type, SynthesizedLocalKind.SwitchCasePatternMatching, _switchSyntax);
+                localSymbol = new SynthesizedLocal(_enclosingSymbol as MethodSymbol, TypeSymbolWithAnnotations.Create(type), SynthesizedLocalKind.SwitchCasePatternMatching, _switchSyntax);
                 localByType.Add(type, localSymbol);
             }
 
@@ -185,7 +185,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private DecisionTree AddByValue(DecisionTree.ByValue byValue, BoundConstantPattern value, DecisionMaker makeDecision)
         {
-            Debug.Assert(value.Value.Type.Equals(byValue.Type, TypeCompareKind.IgnoreDynamicAndTupleNames));
+            Debug.Assert(value.Value.Type.Equals(byValue.Type, TypeCompareKind.IgnoreDynamicAndTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes));
             if (byValue.Default != null)
             {
                 return AddByValue(byValue.Default, value, makeDecision);
@@ -277,7 +277,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var kvp = byType.TypeAndDecision[i];
                 var matchedType = kvp.Key;
                 var decision = kvp.Value;
-                if (matchedType.Equals(value.Value.Type, TypeCompareKind.IgnoreDynamicAndTupleNames))
+                if (matchedType.Equals(value.Value.Type, TypeCompareKind.IgnoreDynamicAndTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes))
                 {
                     forType = decision;
                     break;
@@ -354,7 +354,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         DecisionTree result;
                         if (byValue.Default == null)
                         {
-                            if (byValue.Type.Equals(type, TypeCompareKind.IgnoreDynamicAndTupleNames))
+                            if (byValue.Type.Equals(type, TypeCompareKind.IgnoreDynamicAndTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes))
                             {
                                 result = byValue.Default = makeDecision(byValue.Expression, byValue.Type);
                             }
@@ -421,7 +421,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (byType.TypeAndDecision.Count != 0)
             {
                 var lastTypeAndDecision = byType.TypeAndDecision.Last();
-                if (lastTypeAndDecision.Key.Equals(type, TypeCompareKind.IgnoreDynamicAndTupleNames))
+                if (lastTypeAndDecision.Key.Equals(type, TypeCompareKind.IgnoreDynamicAndTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes))
                 {
                     result = Add(lastTypeAndDecision.Value, makeDecision);
                 }

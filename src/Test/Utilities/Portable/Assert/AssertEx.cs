@@ -475,13 +475,17 @@ namespace Roslyn.Test.Utilities
                 }
             }
 
-            var expectedString = string.Join(itemSeparator, expected.Select(itemInspector));
+            var expectedString = string.Join(itemSeparator, expected.Take(10).Select(itemInspector));
             var actualString = string.Join(itemSeparator, actual.Select(itemInspector));
 
             var message = new StringBuilder();
             message.AppendLine();
             message.AppendLine("Expected:");
             message.AppendLine(expectedString);
+            if (expected.Count() > 10)
+            {
+                message.AppendLine("... truncated ...");
+            }
             message.AppendLine("Actual:");
             message.AppendLine(actualString);
             message.AppendLine("Differences:");

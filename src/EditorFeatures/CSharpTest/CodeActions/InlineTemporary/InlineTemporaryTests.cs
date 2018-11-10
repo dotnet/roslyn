@@ -3719,9 +3719,9 @@ class C
 
         [WorkItem(4583, "https://github.com/dotnet/roslyn/issues/4583")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
-        public async Task DontParenthesizeInterpolatedStringWithNoInterpolationWithCSharp7()
+        public async Task DontParenthesizeInterpolatedStringWithNoInterpolation_CSharp7()
         {
-            await TestInRegularAndScript1Async(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     public void M()
@@ -3729,14 +3729,14 @@ class C
         var [|s1|] = $""hello"";
         var s2 = string.Replace(s1, ""world"");
     }
-}", 
+}",
 @"class C
 {
     public void M()
     {
         var s2 = string.Replace($""hello"", ""world"");
     }
-}", parameters: new TestParameters(parseOptions: new CSharpParseOptions(LanguageVersion.CSharp7)));
+}", parseOptions: TestOptions.Regular7);
         }
 
         [WorkItem(4583, "https://github.com/dotnet/roslyn/issues/4583")]
@@ -3749,16 +3749,38 @@ class C
     public void M()
     {
         var [|s1|] = $""hello"";
-        var s2 = ""string"".Replace(s1, ""world"");
+        var s2 = string.Replace(s1, ""world"");
     }
 }",
 @"class C
 {
     public void M()
     {
-        var s2 = ""string"".Replace($""hello"", ""world"");
+        var s2 = string.Replace($""hello"", ""world"");
     }
 }");
+        }
+
+        [WorkItem(4583, "https://github.com/dotnet/roslyn/issues/4583")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task DontParenthesizeInterpolatedStringWithInterpolation_CSharp7()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    public void M(int x)
+    {
+        var [|s1|] = $""hello {x}"";
+        var s2 = string.Replace(s1, ""world"");
+    }
+}",
+@"class C
+{
+    public void M(int x)
+    {
+        var s2 = string.Replace($""hello {x}"", ""world"");
+    }
+}", parseOptions: TestOptions.Regular7);
         }
 
         [WorkItem(4583, "https://github.com/dotnet/roslyn/issues/4583")]
@@ -3771,14 +3793,14 @@ class C
     public void M(int x)
     {
         var [|s1|] = $""hello {x}"";
-        var s2 = ""string"".Replace(s1, ""world"");
+        var s2 = string.Replace(s1, ""world"");
     }
-}", 
+}",
 @"class C
 {
     public void M(int x)
     {
-        var s2 = ""string"".Replace($""hello {x}"", ""world"");
+        var s2 = string.Replace($""hello {x}"", ""world"");
     }
 }");
         }

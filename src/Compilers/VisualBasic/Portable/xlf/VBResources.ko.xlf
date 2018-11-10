@@ -8405,7 +8405,7 @@
 -vbruntime:&lt;file&gt;                 Compile with the alternate Visual Basic
                                   runtime in &lt;file&gt;.
 </source>
-        <target state="needs-review-translation">                  Visual Basic 컴파일러 옵션
+        <target state="translated">                  Visual Basic 컴파일러 옵션
 
                                   - 출력 파일 -
 /out:&lt;file&gt;                       출력 파일 이름을 지정합니다.
@@ -9098,7 +9098,7 @@
       </trans-unit>
       <trans-unit id="FTL_InvalidInputFileName">
         <source>File name '{0}' is empty, contains invalid characters, has a drive specification without an absolute path, or is too long</source>
-        <target state="new">File name '{0}' is empty, contains invalid characters, has a drive specification without an absolute path, or is too long</target>
+        <target state="translated">{0}' 파일 이름이 비어 있거나, 잘못된 문자가 있거나, 절대 경로가 없는 드라이브 사양이 있거나, 너무 깁니다.</target>
         <note />
       </trans-unit>
     </body>

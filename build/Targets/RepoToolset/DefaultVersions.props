@@ -6,6 +6,11 @@
     <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <OfficialBuild>false</OfficialBuild>
+    <OfficialBuild Condition="'$(OfficialBuildId)' != ''">true</OfficialBuild>
+  </PropertyGroup>
+
   <!-- 
     RepoToolset diff: 
     Initialize DotNetPackageVersionPropsPath from PB_PackageVersionPropsUrl. This is done in Build.proj in RepoToolset and propagated to the build.

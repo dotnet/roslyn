@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis.GenerateType;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UnitTests;
 using Microsoft.CodeAnalysis.UnitTests.Diagnostics;
@@ -35,7 +36,37 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         internal abstract Task<IEnumerable<Diagnostic>> GetDiagnosticsAsync(
             TestWorkspace workspace, TestParameters parameters);
 
-        protected override async Task<(ImmutableArray<CodeAction>, CodeAction actionToInvoke)> GetCodeActionsWorkerAsync(
+        protected async Task TestDiagnosticsAsync(
+            string initialMarkup, TestParameters parameters = default, params DiagnosticDescription[] expected)
+        {
+            using (var workspace = CreateWorkspaceFromOptions(initialMarkup, parameters))
+            {
+                var diagnostics = await GetDiagnosticsAsync(workspace, parameters).ConfigureAwait(false);
+
+                // Special case for single diagnostic reported with annotated span.
+                if (expected.Length == 1)
+                {
+                    var hostDocumentsWithAnnotations = workspace.Documents.Where(d => d.SelectedSpans.Any());
+                    if (hostDocumentsWithAnnotations.Count() == 1)
+                    {
+                        var expectedSpan = hostDocumentsWithAnnotations.Single().SelectedSpans.Single();
+
+                        Assert.Equal(1, diagnostics.Count());
+                        var diagnostic = diagnostics.Single();
+
+                        var actualSpan = diagnostic.Location.SourceSpan;
+                        Assert.Equal(expectedSpan, actualSpan);
+
+                        Assert.Equal(expected[0].Code, diagnostic.Id);
+                        return;
+                    }
+                }
+
+                DiagnosticExtensions.Verify(diagnostics, expected);
+            }
+        }
+
+        protected override async Task<(ImmutableArray<CodeAction>, CodeAction actionToInvoke)> GetCodeActionsAsync(
             TestWorkspace workspace, TestParameters parameters)
         {
             var (_, actions, actionToInvoke) = await GetDiagnosticAndFixesAsync(workspace, parameters);

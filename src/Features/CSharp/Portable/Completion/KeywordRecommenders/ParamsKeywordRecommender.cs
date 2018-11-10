@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
 
         protected override bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
         {
-            return context.SyntaxTree.IsParamsModifierContext(context.Position, context.LeftToken, cancellationToken);
+            return context.SyntaxTree.IsParamsModifierContext(context.Position, context.LeftToken);
         }
     }
 }

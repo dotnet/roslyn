@@ -36,6 +36,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             internal readonly CompilationOptions compilationOptions;
             internal readonly int index;
             internal readonly CodeActionPriority? priority;
+            internal readonly bool retainNonFixableDiagnostics;
 
             internal TestParameters(
                 ParseOptions parseOptions = null,
@@ -43,7 +44,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                 IDictionary<OptionKey, object> options = null,
                 object fixProviderData = null,
                 int index = 0,
-                CodeActionPriority? priority = null)
+                CodeActionPriority? priority = null,
+                bool retainNonFixableDiagnostics = false)
             {
                 this.parseOptions = parseOptions;
                 this.compilationOptions = compilationOptions;
@@ -51,6 +53,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                 this.fixProviderData = fixProviderData;
                 this.index = index;
                 this.priority = priority;
+                this.retainNonFixableDiagnostics = retainNonFixableDiagnostics;
             }
 
             public TestParameters WithParseOptions(ParseOptions parseOptions)
@@ -115,14 +118,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             }
         }
 
-        protected async Task<(ImmutableArray<CodeAction>, CodeAction actionToInvoke)> GetCodeActionsAsync(
-            TestWorkspace workspace, TestParameters parameters)
-        {
-            var (actions, actionToInvoke) = await GetCodeActionsWorkerAsync(workspace, parameters);
-            return (MassageActions(actions), actionToInvoke);
-        }
-
-        protected abstract Task<(ImmutableArray<CodeAction>, CodeAction actionToInvoke)> GetCodeActionsWorkerAsync(
+        protected abstract Task<(ImmutableArray<CodeAction>, CodeAction actionToInvoke)> GetCodeActionsAsync(
             TestWorkspace workspace, TestParameters parameters);
 
         protected abstract Task<ImmutableArray<Diagnostic>> GetDiagnosticsWorkerAsync(
@@ -326,11 +322,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             CodeActionPriority? priority = null,
             CompilationOptions compilationOptions = null,
             IDictionary<OptionKey, object> options = null,
-            object fixProviderData = null)
+            object fixProviderData = null,
+            ParseOptions parseOptions = null)
         {
             return TestInRegularAndScript1Async(
                 initialMarkup, expectedMarkup, index, priority,
-                new TestParameters(null, compilationOptions, options, fixProviderData, index, priority));
+                new TestParameters(parseOptions, compilationOptions, options, fixProviderData, index));
         }
 
         internal async Task TestInRegularAndScript1Async(
@@ -432,7 +429,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 
             // To help when a user just writes a test (and supplied no 'expectedText') just print
             // out the entire 'actualText' (without any trimming).  in the case that we have both,
-            // call the normal Assert helper which will print out a good trimmed diff. 
+            // call the normal Assert helper which will print out a good trimmed diff.
             if (expectedText == "")
             {
                 Assert.Equal((object)expectedText, actualText);
@@ -520,7 +517,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
         internal static Task<ImmutableArray<CodeActionOperation>> VerifyActionAndGetOperationsAsync(
             CodeAction action, TestParameters parameters)
         {
-            Assert.NotNull(action);
+            Assert.False(action is null, "No action was offered when one was expected.");
+
             if (parameters.priority != null)
             {
                 Assert.Equal(parameters.priority.Value, action.Priority);
@@ -568,6 +566,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                 ? a.NestedCodeActions
                 : ImmutableArray.Create(a)).ToImmutableArray();
         }
+
+        protected static ImmutableArray<CodeAction> GetNestedActions(ImmutableArray<CodeAction> codeActions)
+            => codeActions.SelectMany(a => a.NestedCodeActions).ToImmutableArray();
 
         protected (OptionKey, object) SingleOption<T>(Option<T> option, T enabled)
             => (new OptionKey(option), enabled);

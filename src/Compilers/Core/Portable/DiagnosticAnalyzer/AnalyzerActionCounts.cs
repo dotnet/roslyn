@@ -73,7 +73,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Telemetry
                 SyntaxNodeActionsCount > 0 ||
                 OperationActionsCount > 0 ||
                 OperationBlockActionsCount > 0 ||
-                OperationBlockStartActionsCount > 0;
+                OperationBlockStartActionsCount > 0 ||
+                SymbolStartActionsCount > 0;
         }
 
         /// <summary>

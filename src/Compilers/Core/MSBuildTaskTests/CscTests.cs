@@ -333,6 +333,24 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
         }
 
         [Fact]
+        public void NullableReferenceTypes_True()
+        {
+            var csc = new Csc();
+            csc.Sources = MSBuildUtil.CreateTaskItems("test.cs");
+            csc.NullableReferenceTypes = true;
+            Assert.Equal("/nullable+ /out:test.exe test.cs", csc.GenerateResponseFileContents());
+        }
+
+        [Fact]
+        public void NullableReferenceTypes_False()
+        {
+            var csc = new Csc();
+            csc.Sources = MSBuildUtil.CreateTaskItems("test.cs");
+            csc.NullableReferenceTypes = false;
+            Assert.Equal("/nullable- /out:test.exe test.cs", csc.GenerateResponseFileContents());
+        }
+
+        [Fact]
         public void SharedCompilationId()
         {
             var csc = new Csc();

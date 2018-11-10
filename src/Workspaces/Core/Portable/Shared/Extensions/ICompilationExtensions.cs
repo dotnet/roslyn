@@ -8,6 +8,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Runtime.Serialization;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.PooledObjects;
 
@@ -58,6 +59,12 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static INamedTypeSymbol ExceptionType(this Compilation compilation)
             => compilation.GetTypeByMetadataName(typeof(Exception).FullName);
 
+        public static INamedTypeSymbol DebuggerDisplayAttributeType(this Compilation compilation)
+            => compilation.GetTypeByMetadataName(typeof(System.Diagnostics.DebuggerDisplayAttribute).FullName);
+
+        public static INamedTypeSymbol StructLayoutAttributeType(this Compilation compilation)
+            => compilation.GetTypeByMetadataName(typeof(System.Runtime.InteropServices.StructLayoutAttribute).FullName);
+
         public static INamedTypeSymbol DesignerCategoryAttributeType(this Compilation compilation)
             => compilation.GetTypeByMetadataName("System.ComponentModel.DesignerCategoryAttribute");
 
@@ -101,13 +108,13 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             => compilation.GetTypeByMetadataName(typeof(IEnumerable<>).FullName);
 
         public static INamedTypeSymbol SerializableAttributeType(this Compilation compilation)
-            => compilation.GetTypeByMetadataName("System.SerializableAttribute");
+            => compilation.GetTypeByMetadataName(typeof(SerializableAttribute).FullName);
 
         public static INamedTypeSymbol CoClassType(this Compilation compilation)
             => compilation.GetTypeByMetadataName(typeof(CoClassAttribute).FullName);
 
         public static INamedTypeSymbol ComAliasNameAttributeType(this Compilation compilation)
-            => compilation.GetTypeByMetadataName("System.Runtime.InteropServices.ComAliasNameAttribute");
+            => compilation.GetTypeByMetadataName(typeof(ComAliasNameAttribute).FullName);
 
         public static INamedTypeSymbol SuppressMessageAttributeType(this Compilation compilation)
             => compilation.GetTypeByMetadataName(typeof(SuppressMessageAttribute).FullName);
@@ -116,9 +123,36 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             => compilation.GetTypeByMetadataName(typeof(TupleElementNamesAttribute).FullName);
 
         public static INamedTypeSymbol DynamicAttributeType(this Compilation compilation)
-            => compilation.GetTypeByMetadataName("System.Runtime.CompilerServices.DynamicAttribute");
+            => compilation.GetTypeByMetadataName(typeof(DynamicAttribute).FullName);
 
         public static INamedTypeSymbol LazyOfTType(this Compilation compilation)
             => compilation.GetTypeByMetadataName(typeof(Lazy<>).FullName);
+
+        public static INamedTypeSymbol ISerializableType(this Compilation compilation)
+            => compilation.GetTypeByMetadataName(typeof(ISerializable).FullName);
+
+        public static INamedTypeSymbol SerializationInfoType(this Compilation compilation)
+            => compilation.GetTypeByMetadataName(typeof(SerializationInfo).FullName);
+
+        public static INamedTypeSymbol StreamingContextType(this Compilation compilation)
+            => compilation.GetTypeByMetadataName(typeof(StreamingContext).FullName);
+
+        public static INamedTypeSymbol OnDeserializingAttribute(this Compilation compilation)
+            => compilation.GetTypeByMetadataName(typeof(OnDeserializingAttribute).FullName);
+
+        public static INamedTypeSymbol OnDeserializedAttribute(this Compilation compilation)
+            => compilation.GetTypeByMetadataName(typeof(OnDeserializedAttribute).FullName);
+
+        public static INamedTypeSymbol OnSerializingAttribute(this Compilation compilation)
+            => compilation.GetTypeByMetadataName(typeof(OnSerializingAttribute).FullName);
+
+        public static INamedTypeSymbol OnSerializedAttribute(this Compilation compilation)
+            => compilation.GetTypeByMetadataName(typeof(OnSerializedAttribute).FullName);
+
+        public static INamedTypeSymbol ComRegisterFunctionAttribute(this Compilation compilation)
+            => compilation.GetTypeByMetadataName(typeof(ComRegisterFunctionAttribute).FullName);
+
+        public static INamedTypeSymbol ComUnregisterFunctionAttribute(this Compilation compilation)
+            => compilation.GetTypeByMetadataName(typeof(ComUnregisterFunctionAttribute).FullName);
     }
 }

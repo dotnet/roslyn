@@ -2,9 +2,29 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="fr" original="../VBFeaturesResources.resx">
     <body>
+      <trans-unit id="Add_Await">
+        <source>Add Await</source>
+        <target state="new">Add Await</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_Await_and_ConfigureAwaitFalse">
+        <source>Add Await and 'ConfigureAwait(false)'</source>
+        <target state="new">Add Await and 'ConfigureAwait(false)'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_missing_Imports">
+        <source>Add missing Imports</source>
+        <target state="new">Add missing Imports</target>
+        <note>{Locked="Import"} "Import" is a VB keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Add_Shadows">
+        <source>Add 'Shadows'</source>
+        <target state="new">Add 'Shadows'</target>
+        <note>{Locked="Shadows"} "Shadows" is a VB keyword and should not be localized.</note>
+      </trans-unit>
       <trans-unit id="If_statement_can_be_simplified">
         <source>'If' statement can be simplified</source>
-        <target state="new">'If' statement can be simplified</target>
+        <target state="translated">L'instruction 'If' peut être simplifiée</target>
         <note />
       </trans-unit>
       <trans-unit id="Insert_0">
@@ -42,6 +62,11 @@
         <target state="translated">Conflit(s) détecté(s).</target>
         <note />
       </trans-unit>
+      <trans-unit id="Introduce_Using_statement">
+        <source>Introduce 'Using' statement</source>
+        <target state="new">Introduce 'Using' statement</target>
+        <note>{Locked="Using"} "Using" is a VB keyword and should not be localized.</note>
+      </trans-unit>
       <trans-unit id="Move_the_0_statement_to_line_1">
         <source>Move the '{0}' statement to line {1}.</source>
         <target state="translated">Déplacez l'instruction '{0}' à la ligne {1}.</target>
@@ -50,6 +75,11 @@
       <trans-unit id="Delete_the_0_statement2">
         <source>Delete the '{0}' statement.</source>
         <target state="translated">Supprimez l'instruction '{0}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Multiple_Types">
+        <source>&lt;Multiple Types&gt;</source>
+        <target state="translated">&lt;Plusieurs types&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_Unnecessary_Imports">
@@ -1693,9 +1723,9 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_Overloads">
-        <source>Add Overloads</source>
-        <target state="translated">Ajouter des surcharges</target>
-        <note />
+        <source>Add 'Overloads'</source>
+        <target state="needs-review-translation">Ajouter des surcharges</target>
+        <note>{Locked="Overloads"} "Overloads" is a VB keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Add_a_metadata_reference_to_specified_assembly_and_all_its_dependencies_e_g_Sharpr_myLib_dll">
         <source>Add a metadata reference to specified assembly and all its dependencies, e.g. #r "myLib.dll".</source>
@@ -1819,7 +1849,7 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</target>
       </trans-unit>
       <trans-unit id="Invert_If">
         <source>Invert If</source>
-        <target state="new">Invert If</target>
+        <target state="translated">Inverser If</target>
         <note />
       </trans-unit>
     </body>

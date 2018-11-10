@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
         {
             var body = this.GetBody(declaration);
 
-            return body.TryConvertToExpressionBody(
+            return body.TryConvertToArrowExpressionBody(
                 declaration.Kind(), options, conversionPreference,
                 out expressionWhenOnSingleLine, out semicolonWhenOnSingleLine);
         }

@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var r = new ExpressionLambdaRewriter(compilationState, typeMap, node.Syntax, recursionDepth, diagnostics);
                 var result = r.VisitLambdaInternal(node);
-                if (node.Type != result.Type)
+                if (!node.Type.Equals(result.Type, TypeCompareKind.IgnoreNullableModifiersForReferenceTypes))
                 {
                     diagnostics.Add(ErrorCode.ERR_MissingPredefinedMember, node.Syntax.Location, r.ExpressionType, "Lambda");
                 }
@@ -335,7 +335,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundExpression VisitArrayCreation(BoundArrayCreation node)
         {
             var arrayType = (ArrayTypeSymbol)node.Type;
-            var boundType = _bound.Typeof(arrayType.ElementType);
+            var boundType = _bound.Typeof(arrayType.ElementType.TypeSymbol);
             if (node.InitializerOpt != null)
             {
                 if (arrayType.IsSZArray)
@@ -492,7 +492,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return
                 ((object)methodOpt == null) ? ExprFactory(opName, loweredLeft, loweredRight) :
-                    requiresLifted ? ExprFactory(opName, loweredLeft, loweredRight, _bound.Literal(isLifted && methodOpt.ReturnType != type), _bound.MethodInfo(methodOpt)) :
+                    requiresLifted ? ExprFactory(opName, loweredLeft, loweredRight, _bound.Literal(isLifted && methodOpt.ReturnType.TypeSymbol != type), _bound.MethodInfo(methodOpt)) :
                         ExprFactory(opName, loweredLeft, loweredRight, _bound.MethodInfo(methodOpt));
         }
 
@@ -593,6 +593,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     isBaseConversion: conversion.IsBaseConversion,
                     @checked: conversion.Checked,
                     explicitCastInCode: true,
+                    conversionGroupOpt: conversion.ConversionGroupOpt,
                     constantValueOpt: conversion.ConstantValueOpt,
                     type: conversion.Type);
             }
@@ -616,13 +617,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var method = node.SymbolOpt;
                         var operandType = node.Operand.Type;
                         var strippedOperandType = operandType.StrippedType();
-                        var conversionInputType = method.Parameters[0].Type;
+                        var conversionInputType = method.Parameters[0].Type.TypeSymbol;
                         var isLifted = operandType != conversionInputType && strippedOperandType == conversionInputType;
                         bool requireAdditionalCast =
                             strippedOperandType != ((node.ConversionKind == ConversionKind.ExplicitUserDefined) ? conversionInputType : conversionInputType.StrippedType());
-                        var resultType = (isLifted && method.ReturnType.IsNonNullableValueType() && node.Type.IsNullableType()) ? _nullableType.Construct(method.ReturnType) : method.ReturnType;
+                        var resultType = (isLifted && method.ReturnType.TypeSymbol.IsNonNullableValueType() && node.Type.IsNullableType()) ? 
+                                            _nullableType.Construct(method.ReturnType.TypeSymbol) : method.ReturnType.TypeSymbol;
                         var e1 = requireAdditionalCast
-                            ? Convert(Visit(node.Operand), node.Operand.Type, method.Parameters[0].Type, node.Checked, false)
+                            ? Convert(Visit(node.Operand), node.Operand.Type, method.Parameters[0].Type.TypeSymbol, node.Checked, false)
                             : Visit(node.Operand);
                         var e2 = ExprFactory("Convert", e1, _bound.Typeof(resultType), _bound.MethodInfo(method));
                         return Convert(e2, resultType, node.Type, node.Checked, false);
@@ -642,7 +644,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         // the native compiler performs this conversion in two steps, so we follow suit
                         var nullable = (NamedTypeSymbol)node.Type;
-                        var intermediate = nullable.TypeArgumentsNoUseSiteDiagnostics[0];
+                        var intermediate = nullable.TypeArgumentsNoUseSiteDiagnostics[0].TypeSymbol;
                         var e1 = Convert(Visit(node.Operand), node.Operand.Type, intermediate, node.Checked, false);
                         return Convert(e1, intermediate, node.Type, node.Checked, false);
                     }
@@ -751,7 +753,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 parameters.Add(parameterReference);
                 var parameter = ExprFactory(
                     "Parameter",
-                    _bound.Typeof(_typeMap.SubstituteType(p.Type).Type), _bound.Literal(p.Name));
+                    _bound.Typeof(_typeMap.SubstituteType(p.Type.TypeSymbol).TypeSymbol), _bound.Literal(p.Name));
                 initializers.Add(_bound.AssignmentExpression(parameterReference, parameter));
                 _parameterMap[p] = parameterReference;
             }

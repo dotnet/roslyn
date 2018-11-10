@@ -418,7 +418,25 @@ namespace Microsoft.CodeAnalysis
 
             var newProjectIds = _projectIds.ToImmutableArray().Add(projectId);
             var newStateMap = _projectIdToProjectStateMap.Add(projectId, projectState);
-            var newDependencyGraph = CreateDependencyGraph(newProjectIds, newStateMap);
+            var newDependencyGraph = _dependencyGraph
+                                        .WithAdditionalProjects(SpecializedCollections.SingletonEnumerable(projectId))
+                                        .WithAdditionalProjectReferences(projectId,
+                                            projectState.ProjectReferences.Where(r => _projectIdToProjectStateMap.ContainsKey(r.ProjectId)).Select(r => r.ProjectId).ToList());
+
+            // It's possible that another project already in newStateMap has a reference to this project that we're adding, since we allow
+            // dangling references like that. If so, we'll need to link those in too.
+            foreach (var newState in newStateMap)
+            {
+                foreach (var projectReference in newState.Value.ProjectReferences)
+                { 
+                    if (projectReference.ProjectId == projectId)
+                    {
+                        newDependencyGraph = newDependencyGraph.WithAdditionalProjectReferences(newState.Key, ImmutableArray.Create(projectId));
+                        break;
+                    }
+                }
+            }
+            
             var newTrackerMap = CreateCompilationTrackerMap(projectId, newDependencyGraph);
             var newLinkedFilesMap = CreateLinkedFilesMapWithAddedProject(newStateMap[projectId]);
 
@@ -604,7 +622,15 @@ namespace Microsoft.CodeAnalysis
 
             CheckContainsProject(projectId);
 
-            return this.ForkProject(this.GetProjectState(projectId).UpdateOutputFilePath(outputFilePath));
+            var oldProjectState = this.GetProjectState(projectId);
+            var newProjectState = oldProjectState.UpdateOutputFilePath(outputFilePath);
+
+            if (oldProjectState == newProjectState)
+            {
+                return this;
+            }
+
+            return this.ForkProject(newProjectState);
         }
 
         /// <summary>
@@ -619,7 +645,38 @@ namespace Microsoft.CodeAnalysis
 
             CheckContainsProject(projectId);
 
-            return this.ForkProject(this.GetProjectState(projectId).UpdateOutputRefFilePath(outputRefFilePath));
+            var oldProjectState = this.GetProjectState(projectId);
+            var newProjectState = oldProjectState.UpdateOutputRefFilePath(outputRefFilePath);
+
+            if (oldProjectState == newProjectState)
+            {
+                return this;
+            }
+
+            return this.ForkProject(newProjectState);
+        }
+
+        /// <summary>
+        /// Creates a new solution instance with the project specified updated to have the default namespace.
+        /// </summary>
+        public SolutionState WithProjectDefaultNamespace(ProjectId projectId, string defaultNamespace)
+        {
+            if (projectId == null)
+            {
+                throw new ArgumentNullException(nameof(projectId));
+            }
+
+            CheckContainsProject(projectId);
+
+            var oldProjectState = this.GetProjectState(projectId);
+            var newProjectState = oldProjectState.UpdateDefaultNamespace(defaultNamespace);
+
+            if (oldProjectState == newProjectState)
+            {
+                return this;
+            }
+
+            return this.ForkProject(newProjectState);
         }
 
         /// <summary>
@@ -634,7 +691,15 @@ namespace Microsoft.CodeAnalysis
 
             CheckContainsProject(projectId);
 
-            return this.ForkProject(this.GetProjectState(projectId).UpdateName(name));
+            var oldProjectState = this.GetProjectState(projectId);
+            var newProjectState = oldProjectState.UpdateName(name);
+
+            if (oldProjectState == newProjectState)
+            {
+                return this;
+            }
+
+            return this.ForkProject(newProjectState);
         }
 
         /// <summary>
@@ -649,7 +714,15 @@ namespace Microsoft.CodeAnalysis
 
             CheckContainsProject(projectId);
 
-            return this.ForkProject(this.GetProjectState(projectId).UpdateFilePath(filePath));
+            var oldProjectState = this.GetProjectState(projectId);
+            var newProjectState = oldProjectState.UpdateFilePath(filePath);
+
+            if (oldProjectState == newProjectState)
+            {
+                return this;
+            }
+
+            return this.ForkProject(newProjectState);
         }
 
         /// <summary>
@@ -772,35 +845,6 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>
         /// Create a new solution instance with the project specified updated to include
-        /// the specified project reference.
-        /// </summary>
-        public SolutionState AddProjectReference(ProjectId projectId, ProjectReference projectReference)
-        {
-            if (projectId == null)
-            {
-                throw new ArgumentNullException(nameof(projectId));
-            }
-
-            if (projectReference == null)
-            {
-                throw new ArgumentNullException(nameof(projectReference));
-            }
-
-            CheckContainsProject(projectId);
-            CheckContainsProject(projectReference.ProjectId);
-            CheckNotContainsProjectReference(projectId, projectReference);
-            CheckNotContainsTransitiveReference(projectReference.ProjectId, projectId);
-
-            CheckNotSecondSubmissionReference(projectId, projectReference.ProjectId);
-
-            var oldProject = this.GetProjectState(projectId);
-            var newProject = oldProject.AddProjectReference(projectReference);
-
-            return this.ForkProject(newProject, withProjectReferenceChange: true);
-        }
-
-        /// <summary>
-        /// Create a new solution instance with the project specified updated to include
         /// the specified project references.
         /// </summary>
         public SolutionState AddProjectReferences(ProjectId projectId, IEnumerable<ProjectReference> projectReferences)
@@ -827,8 +871,9 @@ namespace Microsoft.CodeAnalysis
 
             var oldProject = this.GetProjectState(projectId);
             var newProject = oldProject.AddProjectReferences(projectReferences);
+            var newDependencyGraph = _dependencyGraph.WithAdditionalProjectReferences(projectId, projectReferences.Select(r => r.ProjectId).ToList());
 
-            return this.ForkProject(newProject, withProjectReferenceChange: true);
+            return this.ForkProject(newProject, newDependencyGraph: newDependencyGraph);
         }
 
         /// <summary>
@@ -853,7 +898,7 @@ namespace Microsoft.CodeAnalysis
             var oldProject = this.GetProjectState(projectId);
             var newProject = oldProject.RemoveProjectReference(projectReference);
 
-            return this.ForkProject(newProject, withProjectReferenceChange: true);
+            return this.ForkProject(newProject, newDependencyGraph: _dependencyGraph.WithProjectReferences(projectId, newProject.ProjectReferences.Select(p => p.ProjectId)));
         }
 
         /// <summary>
@@ -877,7 +922,7 @@ namespace Microsoft.CodeAnalysis
             var oldProject = this.GetProjectState(projectId);
             var newProject = oldProject.WithProjectReferences(projectReferences);
 
-            return this.ForkProject(newProject, withProjectReferenceChange: true);
+            return this.ForkProject(newProject, newDependencyGraph: _dependencyGraph.WithProjectReferences(projectId, projectReferences.Select(p => p.ProjectId)));
         }
 
         /// <summary>
@@ -1045,33 +1090,55 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Create a new solution instance with the corresponding project updated to include a new 
-        /// document instanced defined by the document info.
+        /// Create a new solution instance with the corresponding projects updated to include new 
+        /// documents defined by the document info.
         /// </summary>
-        public SolutionState AddDocument(DocumentInfo documentInfo)
+        public SolutionState AddDocuments(ImmutableArray<DocumentInfo> documentInfos)
         {
-            if (documentInfo == null)
+            if (documentInfos.IsDefault)
             {
-                throw new ArgumentNullException(nameof(documentInfo));
+                throw new ArgumentNullException(nameof(documentInfos));
             }
 
-            CheckContainsProject(documentInfo.Id.ProjectId);
-            CheckNotContainsDocument(documentInfo.Id);
+            if (documentInfos.IsEmpty)
+            {
+                return this;
+            }
 
-            var oldProject = this.GetProjectState(documentInfo.Id.ProjectId);
+            // The documents might be contributing to multiple different projects; split them by project and then we'll process
+            // project-at-a-time.
+            var documentInfosByProjectId = documentInfos.ToLookup(d => d.Id.ProjectId);
 
-            var state = DocumentState.Create(
-                documentInfo,
-                oldProject.ParseOptions,
-                oldProject.LanguageServices,
-                _solutionServices).UpdateSourceCodeKind(documentInfo.SourceCodeKind);
+            var newSolutionState = this;
 
-            var newProject = oldProject.AddDocument(state);
+            foreach (var documentInfosInProject in documentInfosByProjectId)
+            {
+                CheckContainsProject(documentInfosInProject.Key);
+                var oldProject = this.GetProjectState(documentInfosInProject.Key);
 
-            return this.ForkProject(
-                newProject,
-                CompilationTranslationAction.AddDocument(state),
-                newLinkedFilesMap: CreateLinkedFilesMapWithAddedDocuments(newProject, SpecializedCollections.SingletonEnumerable(state.Id)));
+                var newDocumentStatesForProjectBuilder = ArrayBuilder<DocumentState>.GetInstance();
+
+                foreach (var documentInfo in documentInfosInProject)
+                {
+                    CheckNotContainsDocument(documentInfo.Id);
+
+                    newDocumentStatesForProjectBuilder.Add(DocumentState.Create(
+                        documentInfo,
+                        oldProject.ParseOptions,
+                        oldProject.LanguageServices,
+                        _solutionServices).UpdateSourceCodeKind(documentInfo.SourceCodeKind));
+                }
+
+                var newDocumentStatesForProject = newDocumentStatesForProjectBuilder.ToImmutableAndFree();
+
+                var newProjectState = oldProject.AddDocuments(newDocumentStatesForProject);
+
+                newSolutionState = newSolutionState.ForkProject(newProjectState, 
+                    CompilationTranslationAction.AddDocuments(newDocumentStatesForProject),
+                    newLinkedFilesMap: CreateLinkedFilesMapWithAddedDocuments(newProjectState, documentInfosInProject.Select(d => d.Id)));
+            }
+
+            return newSolutionState;
         }
 
         public SolutionState AddAdditionalDocument(DocumentInfo documentInfo)
@@ -1455,14 +1522,14 @@ namespace Microsoft.CodeAnalysis
         private SolutionState ForkProject(
             ProjectState newProjectState,
             CompilationTranslationAction translate = null,
-            bool withProjectReferenceChange = false,
+            ProjectDependencyGraph newDependencyGraph = null,
             ImmutableDictionary<string, ImmutableArray<DocumentId>> newLinkedFilesMap = null,
             bool forkTracker = true)
         {
             var projectId = newProjectState.Id;
 
             var newStateMap = _projectIdToProjectStateMap.SetItem(projectId, newProjectState);
-            var newDependencyGraph = withProjectReferenceChange ? CreateDependencyGraph(_projectIds, newStateMap) : _dependencyGraph;
+            newDependencyGraph = newDependencyGraph ?? _dependencyGraph;
             var newTrackerMap = CreateCompilationTrackerMap(projectId, newDependencyGraph);
             // If we have a tracker for this project, then fork it as well (along with the
             // translation action and store it in the tracker map.
@@ -1512,7 +1579,7 @@ namespace Microsoft.CodeAnalysis
                     state.ProjectReferences.Where(pr => projectStates.ContainsKey(pr.ProjectId)).Select(pr => pr.ProjectId).ToImmutableHashSet()))
                     .ToImmutableDictionary();
 
-            return new ProjectDependencyGraph(projectIds.ToImmutableArray(), map);
+            return new ProjectDependencyGraph(projectIds.ToImmutableHashSet(), map);
         }
 
         private ImmutableDictionary<ProjectId, CompilationTracker> CreateCompilationTrackerMap(ProjectId projectId, ProjectDependencyGraph dependencyGraph)

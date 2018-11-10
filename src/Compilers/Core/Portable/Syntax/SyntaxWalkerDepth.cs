@@ -3,7 +3,7 @@
 namespace Microsoft.CodeAnalysis
 {
     /// <summary>
-    /// Syntax the <see cref="SyntaxWalker"/> should descent into.
+    /// Syntax the <see cref="SyntaxWalker"/> should descend into.
     /// </summary>
     public enum SyntaxWalkerDepth : int
     {

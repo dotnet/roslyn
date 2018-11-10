@@ -67,13 +67,19 @@ namespace Microsoft.CodeAnalysis.Text.Shared.Extensions
         /// <summary>
         /// Determines whether the specified line is empty or contains whitespace only.
         /// </summary>
-        public static bool IsEmptyOrWhitespace(this ITextSnapshotLine line)
+        public static bool IsEmptyOrWhitespace(this ITextSnapshotLine line, int startIndex = 0, int endIndex = -1)
         {
             Contract.ThrowIfNull("line");
+            Contract.ThrowIfFalse(startIndex >= 0);
 
             var text = line.GetText();
 
-            for (int i = 0; i < text.Length; i++)
+            if (endIndex == -1)
+            {
+                endIndex = text.Length;
+            }
+
+            for (int i = startIndex; i < endIndex; i++)
             {
                 if (!char.IsWhiteSpace(text[i]))
                 {

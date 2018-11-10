@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Completion;
+using Microsoft.CodeAnalysis.Tags;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindUsages
@@ -43,7 +44,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
         private const string NonNavigable = nameof(NonNavigable);
 
         /// <summary>
-        /// Descriptive tags from <see cref="CompletionTags"/>. These tags may influence how the 
+        /// Descriptive tags from <see cref="WellKnownTags"/>. These tags may influence how the 
         /// item is displayed.
         /// </summary>
         public ImmutableArray<string> Tags { get; }

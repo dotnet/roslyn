@@ -170,7 +170,7 @@ namespace Microsoft.CodeAnalysis
                     {
                         inProgressCompilation = inProgressCompilation.AddSyntaxTrees(tree);
                         Debug.Assert(!inProgressProject.DocumentIds.Contains(docState.Id));
-                        inProgressProject = inProgressProject.AddDocument(docState);
+                        inProgressProject = inProgressProject.AddDocuments(ImmutableArray.Create(docState));
                     }
                 }
 

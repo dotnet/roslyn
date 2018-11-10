@@ -35,9 +35,9 @@ function Run-Build([string]$rootDir, [string]$logFile = $null) {
         Remove-Item -Recurse (Get-ObjDir $rootDir) 
 
         Write-Host "Restoring the packages"
-        Restore-Project $dotnet "Roslyn.sln"
+        Restore-Project "Roslyn.sln"
 
-        $args = "/nologo /v:m /nodeReuse:false /m /p:DebugDeterminism=true /p:DeveloperBuild=false /p:BootstrapBuildPath=$script:bootstrapDir /p:Features=`"debug-determinism`" /p:UseRoslynAnalyzers=false /p:DeployExtension=false Roslyn.sln"
+        $args = "/nologo /v:m /nodeReuse:false /m /p:DebugDeterminism=true /p:ContinuousIntegrationBuild=true /p:BootstrapBuildPath=$script:bootstrapDir /p:Features=`"debug-determinism`" /p:UseRoslynAnalyzers=false /p:DeployExtension=false Roslyn.sln"
         if ($logFile -ne $null) {
             $logFile = Join-Path $logDir $logFile
             $args += " /bl:$logFile"
@@ -201,23 +201,23 @@ function Test-Build([string]$rootDir, $dataMap, [string]$logFile) {
 }
 
 function Run-Test() {
-    $rootDir = $repoDir
+    $rootDir = $RepoRoot
 
     # Run the initial build so that we can populate the maps
-    Run-Build $repoDir -logFile "initial.binlog"
-    $dataMap = Record-Binaries $repoDir
+    Run-Build $RepoRoot -logFile "initial.binlog"
+    $dataMap = Record-Binaries $RepoRoot
     Test-MapContents $dataMap
 
     # Run a test against the source in the same directory location
-    Test-Build -rootDir $repoDir -dataMap $dataMap -logFile "test1.binlog"
+    Test-Build -rootDir $RepoRoot -dataMap $dataMap -logFile "test1.binlog"
 
     # Run another build in a different source location and verify that path mapping 
     # allows the build to be identical.  To do this we'll copy the entire source 
     # tree under the Binaries\q directory and run a build from there.
     Write-Host "Building in a different directory"
-    Exec-Command "subst" "$altRootDrive $(Split-Path -parent $repoDir)"
+    Exec-Command "subst" "$altRootDrive $(Split-Path -parent $RepoRoot)"
     try {
-        $altRootDir = Join-Path "$($altRootDrive)\" (Split-Path -leaf $repoDir)
+        $altRootDir = Join-Path "$($altRootDrive)\" (Split-Path -leaf $RepoRoot)
         Test-Build -rootDir $altRootDir -dataMap $dataMap -logFile "test2.binlog"
     }
     finally {
@@ -230,7 +230,7 @@ try {
 
     # Create all of the logging directories
     $buildConfiguration = if ($release) { "Release" } else { "Debug" }
-    $logDir = Join-Path (Get-ConfigDir $repoDir) "Logs"
+    $logDir = Join-Path (Get-ConfigDir $RepoRoot) "Logs"
     $errorDir = Join-Path $binariesDir "Determinism"
     $errorDirLeft = Join-Path $errorDir "Left"
     $errorDirRight = Join-Path $errorDir "Right"
