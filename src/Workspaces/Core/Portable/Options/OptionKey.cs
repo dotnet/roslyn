@@ -48,6 +48,20 @@ namespace Microsoft.CodeAnalysis.Options
             return hash;
         }
 
+        public override string ToString()
+        {
+            if (Option is null)
+            {
+                return "";
+            }
+
+            var languageDisplay = Option.IsPerLanguage
+                ? $"({Language}) "
+                : string.Empty;
+
+            return languageDisplay + Option.ToString();
+        }
+
         public static bool operator ==(OptionKey left, OptionKey right)
         {
             return left.Equals(right);

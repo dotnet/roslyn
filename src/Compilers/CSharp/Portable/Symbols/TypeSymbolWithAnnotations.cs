@@ -149,7 +149,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Debug.Assert(nonNullTypesContext != null);
             Debug.Assert((nonNullTypesContext as Symbol)?.IsDefinition != false);
-
+#if DEBUG
+            _ = nonNullTypesContext.NonNullTypes; // Should be able to ask this question right away.
+#endif
             if (typeSymbol is null)
             {
                 return default;
@@ -182,7 +184,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return default;
             }
 
-            var context = isNullableIfReferenceType == null ? NonNullTypesFalseContext.Instance : NonNullTypesTrueContext.Instance;
+            var context = isNullableIfReferenceType == null ? NonNullTypesNullContext.Instance : NonNullTypesTrueContext.Instance;
             bool isAnnotated = isNullableIfReferenceType == true;
             bool treatPossiblyNullableReferenceTypeTypeParameterAsNullable = false;
 
@@ -259,6 +261,51 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public TypeSymbolWithAnnotations AsNullableReferenceType() => _extensions.AsNullableReferenceType(this);
         public TypeSymbolWithAnnotations AsNotNullableReferenceType() => _extensions.AsNotNullableReferenceType(this);
+
+        /// <summary>
+        /// Merges top-level and nested nullability from an otherwise identical type.
+        /// <paramref name="hadNullabilityMismatch"/> is true if there was conflict
+        /// merging nullability and warning should be reported by the caller.
+        /// </summary>
+        internal TypeSymbolWithAnnotations MergeNullability(TypeSymbolWithAnnotations other, VarianceKind variance, out bool hadNullabilityMismatch)
+        {
+            bool? isNullable = MergeIsNullable(IsNullable, other.IsNullable, variance, out bool hadTopLevelMismatch);
+            TypeSymbol type = TypeSymbol.MergeNullability(other.TypeSymbol, variance, out bool hadNestedMismatch);
+            Debug.Assert((object)type != null);
+            hadNullabilityMismatch = hadTopLevelMismatch | hadNestedMismatch;
+            return Create(type, isNullable, CustomModifiers);
+        }
+
+        /// <summary>
+        /// Merges nullability.
+        /// <paramref name="hadNullabilityMismatch"/> is true if there was conflict.
+        /// </summary>
+        private static bool? MergeIsNullable(bool? a, bool? b, VarianceKind variance, out bool hadNullabilityMismatch)
+        {
+            hadNullabilityMismatch = false;
+            if (a == b)
+            {
+                return a;
+            }
+            switch (variance)
+            {
+                case VarianceKind.In:
+                    return (a == false || b == false) ? (bool?)false : null;
+                case VarianceKind.Out:
+                    return (a == true || b == true) ? (bool?)true : null;
+                default:
+                    if (a == null)
+                    {
+                        return b;
+                    }
+                    if (b == null)
+                    {
+                        return a;
+                    }
+                    hadNullabilityMismatch = true;
+                    return null;
+            }
+        }
 
         public TypeSymbolWithAnnotations WithModifiers(ImmutableArray<CustomModifier> customModifiers) =>
             _extensions.WithModifiers(this, customModifiers);
@@ -394,7 +441,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return false;
             }
 
-            if ((comparison & TypeCompareKind.CompareNullableModifiersForReferenceTypes) != 0)
+            if ((comparison & TypeCompareKind.IgnoreNullableModifiersForReferenceTypes) == 0)
             {
                 var thisIsNullable = IsNullable;
                 var otherIsNullable = other.IsNullable;
@@ -434,7 +481,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     return y.IsNull;
                 }
-                return x.Equals(y, TypeCompareKind.CompareNullableModifiersForReferenceTypes);
+                return x.Equals(y, TypeCompareKind.ConsiderEverything);
             }
         }
 
@@ -468,37 +515,83 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal TypeSymbolWithAnnotations SubstituteTypeCore(AbstractTypeMap typeMap, bool withTupleUnification)
         {
             var newCustomModifiers = typeMap.SubstituteCustomModifiers(this.CustomModifiers);
-            var newTypeWithModifiers = typeMap.SubstituteType(this.TypeSymbol, withTupleUnification);
-            bool newIsAnnotated = this.IsAnnotated || newTypeWithModifiers.IsAnnotated;
+            TypeSymbol typeSymbol = this.TypeSymbol;
+            var newTypeWithModifiers = typeMap.SubstituteType(typeSymbol, withTupleUnification);
 
-            // https://github.com/dotnet/roslyn/issues/30052: Can we use Equals instead?
-            if (this.TypeSymbolEquals(newTypeWithModifiers, TypeCompareKind.CompareNullableModifiersForReferenceTypes) &&
-                newTypeWithModifiers.CustomModifiers.IsEmpty &&
-                newIsAnnotated == this.IsAnnotated &&
-                newCustomModifiers == this.CustomModifiers)
+            if (!typeSymbol.IsTypeParameter())
             {
-                // https://github.com/dotnet/roslyn/issues/30052: We're dropping newTypeWithModifiers.NonNullTypes!
-                return this; // substitution had no effect on the type or modifiers
-            }
+                Debug.Assert(newTypeWithModifiers.IsAnnotated == false || typeSymbol.IsNullableType());
+                Debug.Assert(newTypeWithModifiers.NonNullTypesContext.NonNullTypes == null);
+                Debug.Assert(newTypeWithModifiers.CustomModifiers.IsEmpty);
 
-            bool newIsNullableType = newTypeWithModifiers.TypeSymbol.IsNullableType();
-            if (newIsNullableType)
-            {
-                if (newCustomModifiers.IsEmpty)
+                if (typeSymbol.Equals(newTypeWithModifiers.TypeSymbol, TypeCompareKind.ConsiderEverything) &&
+                    newCustomModifiers == CustomModifiers)
+                {
+                    return this; // substitution had no effect on the type or modifiers
+                }
+                else if (IsAnnotated == false &&
+                    NonNullTypesContext.NonNullTypes == null &&
+                    newCustomModifiers.IsEmpty)
                 {
                     return newTypeWithModifiers;
                 }
-                newIsAnnotated = newTypeWithModifiers.IsAnnotated;
-                Debug.Assert(newIsAnnotated);
+
+                return Create(NonNullTypesContext, newTypeWithModifiers.TypeSymbol, IsAnnotated, newCustomModifiers);
             }
-            else if (newCustomModifiers.IsEmpty && newTypeWithModifiers.IsAnnotated == newIsAnnotated)
+
+            if (newTypeWithModifiers.Is((TypeParameterSymbol)typeSymbol) &&
+                newCustomModifiers == CustomModifiers)
+            {
+                return this; // substitution had no effect on the type or modifiers
+            }
+            else if(Is((TypeParameterSymbol)typeSymbol))
             {
                 return newTypeWithModifiers;
             }
 
+            bool newIsAnnotated = this.IsAnnotated || newTypeWithModifiers.IsAnnotated;
+            INonNullTypesContext newContext;
+
+            if (!newIsAnnotated)
+            {
+                if (NonNullTypesContext.NonNullTypes == true)
+                {
+                    if (IsIndexedTypeParameter(newTypeWithModifiers.TypeSymbol) || !typeSymbol.IsUnconstrainedTypeParameter())
+                    {
+                        newContext = NonNullTypesContext;
+                    }
+                    else
+                    {
+                        newContext = newTypeWithModifiers.NonNullTypesContext;
+                    }
+                }
+                else if (newTypeWithModifiers.NonNullTypesContext.NonNullTypes == true)
+                {
+                    newContext = newTypeWithModifiers.NonNullTypesContext;
+                }
+                else if (NonNullTypesContext.NonNullTypes == null)
+                {
+                    newContext = newTypeWithModifiers.NonNullTypesContext;
+                }
+                else if (newTypeWithModifiers.NonNullTypesContext.NonNullTypes == null)
+                {
+                    newContext = NonNullTypesContext;
+                }
+                else
+                {
+                    Debug.Assert(NonNullTypesContext.NonNullTypes == false);
+                    Debug.Assert(newTypeWithModifiers.NonNullTypesContext.NonNullTypes == false);
+                    newContext = NonNullTypesContext;
+                }
+            }
+            else
+            {
+                newContext = newTypeWithModifiers.NonNullTypesContext;
+            }
+
             return CreateNonLazyType(
                 newTypeWithModifiers.TypeSymbol,
-                newTypeWithModifiers.NonNullTypesContext,
+                newContext,
                 isAnnotated: newIsAnnotated,
                 newTypeWithModifiers._treatPossiblyNullableReferenceTypeTypeParameterAsNullable,
                 newCustomModifiers.Concat(newTypeWithModifiers.CustomModifiers));
@@ -526,7 +619,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Is this the given type parameter?
         /// </summary>
-        public bool Is(TypeParameterSymbol other) => _extensions.Is(_defaultType, other);
+        public bool Is(TypeParameterSymbol other)
+        {
+            return !IsAnnotated && NonNullTypesContext.NonNullTypes == null && ((object)_defaultType == other) &&
+                   CustomModifiers.IsEmpty;
+        }
 
         public TypeSymbolWithAnnotations WithTypeAndModifiers(TypeSymbol typeSymbol, ImmutableArray<CustomModifier> customModifiers) =>
             _extensions.WithTypeAndModifiers(this, typeSymbol, customModifiers);
@@ -641,7 +738,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     typeSymbol = typeSymbol.SetUnknownNullabilityForReferenceTypes();
 
-                    return CreateNonLazyType(typeSymbol, NonNullTypesFalseContext.Instance, isAnnotated: false, 
+                    return CreateNonLazyType(typeSymbol, NonNullTypesNullContext.Instance, isAnnotated: false, 
                         treatPossiblyNullableReferenceTypeTypeParameterAsNullable: false, CustomModifiers);
                 }
             }
@@ -673,7 +770,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 return 0;
             }
-            return Hash.Combine(TypeSymbol.GetHashCode(), IsAnnotated.GetHashCode());
+            return TypeSymbol.GetHashCode();
         }
 
 #pragma warning disable CS0809
@@ -744,8 +841,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             internal abstract bool IsVoid(TypeSymbol typeSymbol);
             internal abstract bool IsSZArray(TypeSymbol typeSymbol);
 
-            internal abstract bool Is(TypeSymbol typeSymbol, TypeParameterSymbol other);
-
             internal abstract TypeSymbolWithAnnotations WithTypeAndModifiers(TypeSymbolWithAnnotations type, TypeSymbol typeSymbol, ImmutableArray<CustomModifier> customModifiers);
 
             internal abstract bool TypeSymbolEquals(TypeSymbolWithAnnotations type, TypeSymbolWithAnnotations other, TypeCompareKind comparison);
@@ -808,11 +903,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             internal override TypeSymbol AsTypeSymbolOnly(TypeSymbol typeSymbol) => typeSymbol;
 
-            // https://github.com/dotnet/roslyn/issues/30054: Use WithCustomModifiers.Is() => false
-            // and set IsNullable=null always for GetTypeParametersAsTypeArguments.
-            internal override bool Is(TypeSymbol typeSymbol, TypeParameterSymbol other) =>
-                typeSymbol.Equals(other, TypeCompareKind.CompareNullableModifiersForReferenceTypes) && _customModifiers.IsEmpty;
-
             internal override TypeSymbolWithAnnotations WithTypeAndModifiers(TypeSymbolWithAnnotations type, TypeSymbol typeSymbol, ImmutableArray<CustomModifier> customModifiers)
             {
                 return CreateNonLazyType(typeSymbol, type.NonNullTypesContext, isAnnotated: type.IsAnnotated,
@@ -848,7 +938,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var transformedType = TupleTypeSymbol.TransformToTupleIfCompatible(defaultType);
                 if ((object)defaultType != transformedType)
                 {
-                    return TypeSymbolWithAnnotations.Create(transformedType, type.IsNullable, _customModifiers);
+                    return TypeSymbolWithAnnotations.Create(type.NonNullTypesContext, transformedType, type.IsAnnotated, _customModifiers);
                 }
                 return type;
             }
@@ -928,19 +1018,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return resolvedType;
             }
 
-            // https://github.com/dotnet/roslyn/issues/30054: This implementation looks
-            // incorrect since a type parameter cannot be Nullable<T>.
-            internal override bool Is(TypeSymbol typeSymbol, TypeParameterSymbol other)
-            {
-                if (!other.IsNullableType())
-                {
-                    return false;
-                }
-
-                var resolvedType = GetResolvedType();
-                return resolvedType.Equals(other, TypeCompareKind.CompareNullableModifiersForReferenceTypes);
-            }
-
             internal override TypeSymbol GetResolvedType(TypeSymbol defaultType) => GetResolvedType();
             internal override ImmutableArray<CustomModifier> CustomModifiers => ImmutableArray<CustomModifier>.Empty;
 
@@ -1001,7 +1078,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var newUnderlying = _underlying.SubstituteTypeCore(typeMap, withTupleUnification);
                 if (!newUnderlying.IsSameAs(this._underlying))
                 {
-                    if ((newUnderlying.TypeSymbol.Equals(this._underlying.TypeSymbol, TypeCompareKind.CompareNullableModifiersForReferenceTypes) ||
+                    if ((newUnderlying.TypeSymbol.Equals(this._underlying.TypeSymbol, TypeCompareKind.ConsiderEverything) ||
                             newUnderlying.TypeSymbol is IndexedTypeParameterSymbolForOverriding) &&
                         newUnderlying.CustomModifiers.IsEmpty)
                     {

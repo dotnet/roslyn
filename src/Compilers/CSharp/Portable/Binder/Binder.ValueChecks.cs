@@ -411,7 +411,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
 
                         var receiver = ((BoundPointerElementAccess)expr).Expression;
-                        if (receiver is BoundFieldAccess fieldAccess && fieldAccess.FieldSymbol.IsFixed)
+                        if (receiver is BoundFieldAccess fieldAccess && fieldAccess.FieldSymbol.IsFixedSizeBuffer)
                         {
                             return CheckValueKind(node, fieldAccess.ReceiverOpt, valueKind, checkingReceiver: true, diagnostics);
                         }
@@ -458,6 +458,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return false;
                     }
 
+                    return true;
+
+                case BoundKind.ImplicitReceiver:
+                    Debug.Assert(!RequiresRefAssignableVariable(valueKind));
                     return true;
 
                 case BoundKind.Call:
@@ -688,7 +692,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
-                if (fieldSymbol.IsFixed)
+                if (fieldSymbol.IsFixedSizeBuffer)
                 {
                     Error(diagnostics, GetStandardLvalueError(valueKind), node);
                     return false;

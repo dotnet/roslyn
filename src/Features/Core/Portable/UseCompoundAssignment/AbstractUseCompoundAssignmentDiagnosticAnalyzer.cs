@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.UseCompoundAssignment
         TSyntaxKind,
         TAssignmentSyntax,
         TBinaryExpressionSyntax>
-        : AbstractCodeStyleDiagnosticAnalyzer
+        : AbstractBuiltInCodeStyleDiagnosticAnalyzer
         where TSyntaxKind : struct
         where TAssignmentSyntax : SyntaxNode
         where TBinaryExpressionSyntax : SyntaxNode
@@ -46,6 +46,7 @@ namespace Microsoft.CodeAnalysis.UseCompoundAssignment
 
         protected abstract TSyntaxKind GetKind(int rawKind);
         protected abstract TSyntaxKind GetAnalysisKind();
+        protected abstract bool IsSupported(TSyntaxKind assignmentKind, ParseOptions options);
 
         public override bool OpenFileOnly(Workspace workspace)
             => false;
@@ -87,6 +88,12 @@ namespace Microsoft.CodeAnalysis.UseCompoundAssignment
 
             var binaryKind = GetKind(binaryExpression.RawKind);
             if (!_binaryToAssignmentMap.ContainsKey(binaryKind))
+            {
+                return;
+            }
+
+            // Requires at least C# 8 for Coalesce compound expression
+            if (!IsSupported(binaryKind, syntaxTree.Options))
             {
                 return;
             }

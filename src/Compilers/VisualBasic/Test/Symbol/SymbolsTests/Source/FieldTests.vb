@@ -538,6 +538,24 @@ End Class
             Assert.Equal(substitutedProperty, substitutedField.AssociatedSymbol)
         End Sub
 
+        <WorkItem(26364, "https://github.com/dotnet/roslyn/issues/26364")>
+        <Fact>
+        Public Sub FixedSizeBufferFalse()
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
+<compilation name="AAA">
+    <file name="a.vb">
+Public Structure S
+    Private goo as Byte
+End Structure
+    </file>
+</compilation>)
+            Dim globalNS = compilation.SourceModule.GlobalNamespace
+            Dim s = globalNS.GetMember(Of NamedTypeSymbol)("S")
+            Dim goo = DirectCast(s.GetMember(Of FieldSymbol)("goo"), IFieldSymbol)
+
+            Assert.False(goo.IsFixedSizeBuffer)
+        End Sub
+
 
     End Class
 End Namespace

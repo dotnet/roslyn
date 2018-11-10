@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -49,17 +50,28 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
 
         protected sealed override void InitializeWorker(AnalysisContext context)
             => context.RegisterCompilationStartAction(compilationStartContext
-                => CompilationAnalyzer.CreateAndRegisterActions(compilationStartContext));
+                => CompilationAnalyzer.CreateAndRegisterActions(compilationStartContext, this));
+
+        /// <summary>
+        /// Override this method to register custom language specific actions to find symbol usages.
+        /// </summary>
+        protected virtual void HandleNamedTypeSymbolStart(SymbolStartAnalysisContext context, Action<ISymbol, ValueUsageInfo> onSymbolUsageFound)
+        {
+        }
 
         private sealed class CompilationAnalyzer
         {
             private readonly object _gate;
             private readonly Dictionary<ISymbol, ValueUsageInfo> _symbolValueUsageStateMap;
             private readonly INamedTypeSymbol _taskType, _genericTaskType, _debuggerDisplayAttributeType, _structLayoutAttributeType;
+            private readonly AbstractRemoveUnusedMembersDiagnosticAnalyzer<TDocumentationCommentTriviaSyntax, TIdentifierNameSyntax> _analyzer;
 
-            private CompilationAnalyzer(Compilation compilation)
+            private CompilationAnalyzer(
+                Compilation compilation,
+                AbstractRemoveUnusedMembersDiagnosticAnalyzer<TDocumentationCommentTriviaSyntax, TIdentifierNameSyntax> analyzer)
             {
                 _gate = new object();
+                _analyzer = analyzer;
 
                 // State map for candidate member symbols, with the value indicating how each symbol is used in executable code.
                 _symbolValueUsageStateMap = new Dictionary<ISymbol, ValueUsageInfo>();
@@ -70,9 +82,11 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                 _structLayoutAttributeType = compilation.StructLayoutAttributeType();
             }
 
-            public static void CreateAndRegisterActions(CompilationStartAnalysisContext compilationStartContext)
+            public static void CreateAndRegisterActions(
+                CompilationStartAnalysisContext compilationStartContext,
+                AbstractRemoveUnusedMembersDiagnosticAnalyzer<TDocumentationCommentTriviaSyntax, TIdentifierNameSyntax> analyzer)
             {
-                var compilationAnalyzer = new CompilationAnalyzer(compilationStartContext.Compilation);
+                var compilationAnalyzer = new CompilationAnalyzer(compilationStartContext.Compilation, analyzer);
                 compilationAnalyzer.RegisterActions(compilationStartContext);
             }
 
@@ -89,6 +103,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
 
                 compilationStartContext.RegisterSymbolAction(AnalyzeSymbolDeclaration, SymbolKind.Method, SymbolKind.Field, SymbolKind.Property, SymbolKind.Event);
 
+                Action<ISymbol, ValueUsageInfo> onSymbolUsageFound = OnSymbolUsage;
                 compilationStartContext.RegisterSymbolStartAction(symbolStartContext =>
                 {
                     if (symbolStartContext.Symbol.GetAttributes().Any(a => a.AttributeClass == _structLayoutAttributeType))
@@ -105,6 +120,9 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                     symbolStartContext.RegisterOperationAction(AnalyzeObjectCreationOperation, OperationKind.ObjectCreation);
                     symbolStartContext.RegisterOperationAction(_ => hasInvalidOperation = true, OperationKind.Invalid);
                     symbolStartContext.RegisterSymbolEndAction(symbolEndContext => OnSymbolEnd(symbolEndContext, hasInvalidOperation));
+
+                    // Register custom language-specific actions, if any.
+                    _analyzer.HandleNamedTypeSymbolStart(symbolStartContext, onSymbolUsageFound);
                 }, SymbolKind.NamedType);
             }
 
@@ -141,17 +159,17 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                 {
                     foreach (var field in initializer.InitializedFields)
                     {
-                        if (IsCandidateSymbol(field))
-                        {
-                            OnSymbolUsage(field, ValueUsageInfo.Write);
-                        }
+                        OnSymbolUsage(field, ValueUsageInfo.Write);
                     }
                 }
             }
 
             private void OnSymbolUsage(ISymbol memberSymbol, ValueUsageInfo usageInfo)
             {
-                Debug.Assert(IsCandidateSymbol(memberSymbol));
+                if (!IsCandidateSymbol(memberSymbol))
+                {
+                    return;
+                }
 
                 lock (_gate)
                 {
@@ -194,7 +212,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                             compoundAssignment.Target == memberReference ||
                             memberReference.Parent is IIncrementOrDecrementOperation);
 
-                        // Compound assignment or increment whose value is being dropped (parent has null type)
+                        // Compound assignment or increment whose value is being dropped (parent is an expression statement)
                         // is treated as a Write as the value was never actually 'read' in a way that is observable.
                         //
                         // Consider the following example:
@@ -209,7 +227,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                         // while the increment operation '_f2++' is child of a return statement, which uses the result of the increment.
                         // For the above test, '_f1' can be safely removed without affecting the semantics of the program, while '_f2' cannot be removed.
 
-                        if (memberReference.Parent.Parent?.Type == null)
+                        if (memberReference.Parent.Parent is IExpressionStatementOperation)
                         {
                             valueUsageInfo = ValueUsageInfo.Write;
                         }
@@ -222,23 +240,19 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
             private void AnalyzeInvocationOperation(OperationAnalysisContext operationContext)
             {
                 var targetMethod = ((IInvocationOperation)operationContext.Operation).TargetMethod.OriginalDefinition;
-                if (IsCandidateSymbol(targetMethod))
-                {
-                    // A method invocation is considered as a read reference to the symbol
-                    // to ensure that we consider the method as "used".
-                    OnSymbolUsage(targetMethod, ValueUsageInfo.Read);
-                }
+                
+                // A method invocation is considered as a read reference to the symbol
+                // to ensure that we consider the method as "used".
+                OnSymbolUsage(targetMethod, ValueUsageInfo.Read);
             }
 
             private void AnalyzeObjectCreationOperation(OperationAnalysisContext operationContext)
             {
                 var constructor = ((IObjectCreationOperation)operationContext.Operation).Constructor.OriginalDefinition;
-                if (IsCandidateSymbol(constructor))
-                {
-                    // An object creation is considered as a read reference to the constructor
-                    // to ensure that we consider the constructor as "used".
-                    OnSymbolUsage(constructor, ValueUsageInfo.Read);
-                }
+                
+                // An object creation is considered as a read reference to the constructor
+                // to ensure that we consider the constructor as "used".
+                OnSymbolUsage(constructor, ValueUsageInfo.Read);
             }
 
             private void OnSymbolEnd(SymbolAnalysisContext symbolEndContext, bool hasInvalidOperation)
@@ -302,6 +316,16 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                             var rule = !valueUsageInfo.IsWrittenTo() && !valueUsageInfo.IsNameOnly() && !symbolsReferencedInDocComments.Contains(member)
                                 ? s_removeUnusedMembersRule
                                 : s_removeUnreadMembersRule;
+
+                            // Do not flag write-only properties that are not read.
+                            // Write-only properties are assumed to have side effects
+                            // visible through other means than a property getter.
+                            if (rule == s_removeUnreadMembersRule &&
+                                member is IPropertySymbol property &&
+                                property.IsWriteOnly)
+                            {
+                                continue;
+                            }
 
                             // Most of the members should have a single location, except for partial methods.
                             // We report the diagnostic on the first location of the member.
@@ -405,6 +429,22 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                 }
             }
 
+            /// <summary>
+            /// Returns true if the given symbol meets the following criteria to be
+            /// a candidate for dead code analysis:
+            ///     1. It is marked as "private".
+            ///     2. It is not an implicitly declared symbol.
+            ///     3. It is either a method, field, property or an event.
+            ///     4. If method, then one of the following must be true:
+            ///         a. It is a constructor with non-zero parameters OR
+            ///         b. It is a method with <see cref="MethodKind.Ordinary"/>,
+            ///            such that it is not an accessor, not an entry point method,
+            ///            not an extern method and is not an explicit interface method implementation.
+            ///     5. If field, then it must not be a backing field for an auto property.
+            ///        Backing fields have a non-null <see cref="IFieldSymbol.AssociatedSymbol"/>.
+            ///     6. If property, then it must not be an explicit interface property implementation.
+            ///     7. If event, then it must not be an explicit interface event implementation.
+            /// </summary>
             private bool IsCandidateSymbol(ISymbol memberSymbol)
             {
                 Debug.Assert(memberSymbol == memberSymbol.OriginalDefinition);
@@ -412,36 +452,28 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                 if (memberSymbol.DeclaredAccessibility == Accessibility.Private &&
                     !memberSymbol.IsImplicitlyDeclared)
                 {
-                    // Do not track accessors, as we will track the associated symbol.
                     switch (memberSymbol.Kind)
                     {
                         case SymbolKind.Method:
-                            // Skip following methods:
-                            //   1. Entry point (Main) method
-                            //   2. Abstract/Virtual/Override methods
-                            //   3. Extern methods
-                            //   4. Interface implementation methods
-                            //   5. Constructors with no parameters.
-                            //   6. Static constructors.
-                            //   7. Destructors.
                             var methodSymbol = (IMethodSymbol)memberSymbol;
                             switch (methodSymbol.MethodKind)
                             {
                                 case MethodKind.Constructor:
+                                    // It is fine to have an unused private constructor
+                                    // without parameters.
+                                    // This is commonly used for static holder types
+                                    // that want to block instantiation of the type.
                                     return methodSymbol.Parameters.Length > 0;
 
-                                case MethodKind.StaticConstructor:
-                                case MethodKind.Destructor:
-                                    return false;
-
-                                default:
+                                case MethodKind.Ordinary:
+                                    // Do not flag accessors, as we will track the associated symbol.
                                     return methodSymbol.AssociatedSymbol == null &&
                                            !IsEntryPoint(methodSymbol) &&
-                                           !methodSymbol.IsAbstract &&
-                                           !methodSymbol.IsVirtual &&
-                                           !methodSymbol.IsOverride &&
                                            !methodSymbol.IsExtern &&
                                            methodSymbol.ExplicitInterfaceImplementations.IsEmpty;
+
+                                default:
+                                    return false;
                             }
 
                         case SymbolKind.Field:
@@ -450,8 +482,8 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                         case SymbolKind.Property:
                             return ((IPropertySymbol)memberSymbol).ExplicitInterfaceImplementations.IsEmpty;
 
-                        default:
-                            return true;
+                        case SymbolKind.Event:
+                            return ((IEventSymbol)memberSymbol).ExplicitInterfaceImplementations.IsEmpty;
                     }
                 }
 

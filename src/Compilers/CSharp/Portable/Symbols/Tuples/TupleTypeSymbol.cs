@@ -1456,6 +1456,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return this.WithUnderlyingType(underlyingType);
         }
 
+        internal override TypeSymbol MergeNullability(TypeSymbol other, VarianceKind variance, out bool hadNullabilityMismatch)
+        {
+            Debug.Assert(this.Equals(other, TypeCompareKind.IgnoreDynamicAndTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes));
+            var otherTuple = other as TupleTypeSymbol;
+            if (otherTuple is null)
+            {
+                hadNullabilityMismatch = false;
+                return this;
+            }
+            TypeSymbol underlyingType = _underlyingType.MergeNullability(otherTuple._underlyingType, variance, out hadNullabilityMismatch);
+            return WithUnderlyingType((NamedTypeSymbol)underlyingType);
+        }
+
         #region Use-Site Diagnostics
 
         internal override DiagnosticInfo GetUseSiteDiagnostic()

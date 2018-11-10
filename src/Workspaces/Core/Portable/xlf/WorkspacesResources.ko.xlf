@@ -364,7 +364,7 @@
       </trans-unit>
       <trans-unit id="Value_too_large_to_be_represented_as_a_30_bit_unsigned_integer">
         <source>Value too large to be represented as a 30 bit unsigned integer.</source>
-        <target state="translated">값이 너무 커서 30비트 정수로 표시할 수 없습니다.</target>
+        <target state="translated">값이 너무 커서 30비트 부호 없는 정수로 표시할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Specified_path_must_be_absolute">

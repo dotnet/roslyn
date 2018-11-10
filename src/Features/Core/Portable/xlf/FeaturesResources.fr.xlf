@@ -32,11 +32,6 @@
         <target state="new">Adding a method with an explicit interface specifier will prevent the debug session from continuing.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Align_wrapped_0">
-        <source>Align wrapped {0}</source>
-        <target state="new">Align wrapped {0}</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Code_Quality">
         <source>Code Quality</source>
         <target state="new">Code Quality</target>
@@ -72,6 +67,16 @@
         <target state="new">Convert to tuple</target>
         <note />
       </trans-unit>
+      <trans-unit id="Failed_to_analyze_data_flow_for_0">
+        <source>Failed to analyze data-flow for: {0}</source>
+        <target state="new">Failed to analyze data-flow for: {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Fix_formatting">
+        <source>Fix formatting</source>
+        <target state="new">Fix formatting</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Fix_typo_0">
         <source>Fix typo '{0}'</source>
         <target state="translated">Corriger la faute de frappe '{0}'</target>
@@ -82,14 +87,9 @@
         <target state="translated">Mise en forme du document</target>
         <note />
       </trans-unit>
-      <trans-unit id="Indent_all_0">
-        <source>Indent all {0}</source>
-        <target state="new">Indent all {0}</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Indent_wrapped_0">
-        <source>Indent wrapped {0}</source>
-        <target state="new">Indent wrapped {0}</target>
+      <trans-unit id="Indexing_can_be_simplified">
+        <source>Indexing can be simplified</source>
+        <target state="new">Indexing can be simplified</target>
         <note />
       </trans-unit>
       <trans-unit id="Introduce_constant">
@@ -124,7 +124,7 @@
       </trans-unit>
       <trans-unit id="Modifying_source_file_will_prevent_the_debug_session_from_continuing_due_to_internal_error">
         <source>Modifying source file {0} will prevent the debug session from continuing due to internal error: {1}.</source>
-        <target state="new">Modifying source file {0} will prevent the debug session from continuing due to internal error: {1}.</target>
+        <target state="translated">La modification du fichier source {0} empêche la session de débogage de continuer à cause d'une erreur interne : {1}.</target>
         <note />
       </trans-unit>
       <trans-unit id="Invert_conditional">
@@ -157,21 +157,6 @@
         <target state="new">Replace '{0}' with '{1}' </target>
         <note />
       </trans-unit>
-      <trans-unit id="Unwrap_0">
-        <source>Unwrap {0}</source>
-        <target state="new">Unwrap {0}</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Unwrap_all_0">
-        <source>Unwrap all {0}</source>
-        <target state="new">Unwrap all {0}</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Unwrap_and_indent_all_0">
-        <source>Unwrap and indent all {0}</source>
-        <target state="new">Unwrap and indent all {0}</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Use_block_body_for_lambda_expressions">
         <source>Use block body for lambda expressions</source>
         <target state="new">Use block body for lambda expressions</target>
@@ -187,34 +172,24 @@
         <target state="new">Use expression body for lambda expressions</target>
         <note />
       </trans-unit>
+      <trans-unit id="Use_index_operator">
+        <source>Use index operator</source>
+        <target state="new">Use index operator</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Use_interpolated_verbatim_string">
         <source>Use interpolated verbatim string</source>
         <target state="new">Use interpolated verbatim string</target>
         <note />
       </trans-unit>
-      <trans-unit id="Wrap_every_0">
-        <source>Wrap every {0}</source>
-        <target state="new">Wrap every {0}</target>
+      <trans-unit id="Use_range_operator">
+        <source>Use range operator</source>
+        <target state="new">Use range operator</target>
         <note />
       </trans-unit>
-      <trans-unit id="Wrap_long_0">
-        <source>Wrap long {0}</source>
-        <target state="new">Wrap long {0}</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="argument">
-        <source>argument</source>
-        <target state="new">argument</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="argument_list">
-        <source>argument list</source>
-        <target state="new">argument list</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="arguments">
-        <source>arguments</source>
-        <target state="new">arguments</target>
+      <trans-unit id="_0_can_be_simplified">
+        <source>{0} can be simplified</source>
+        <target state="new">{0} can be simplified</target>
         <note />
       </trans-unit>
       <trans-unit id="generic_overload">
@@ -550,16 +525,6 @@
       <trans-unit id="label">
         <source>label</source>
         <target state="translated">étiquette</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="parameter_list">
-        <source>parameter list</source>
-        <target state="new">parameter list</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="parameters">
-        <source>parameters</source>
-        <target state="new">parameters</target>
         <note />
       </trans-unit>
       <trans-unit id="range_variable">

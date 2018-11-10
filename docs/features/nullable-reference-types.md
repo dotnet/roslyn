@@ -102,7 +102,13 @@ T t = default; // assigns ?, warning
 ```
 
 ### Conversions
-_Describe valid top-level and variance conversions._
+Conversions can be calculated with ~ considered distinct from ? and !, or with ~ implicitly convertible to ? and !.
+Given `IIn<in T>` and `IOut<out T>`, with ~ distinct:
+- `T!` is a `T~` is a `T?`
+- `IIn<T!>` is a `IIn<T~>` is a `IIn<T?>`
+- `IOut<T?>` is a `IOut<T~>` is a `IOut<T!>`
+Most conversions are considered with ~ implicitly convertible to ? and !.
+
 _Describe warnings from user-defined conversions._
 
 ### Assignment
@@ -157,9 +163,69 @@ var y = (IEnumerable<object>)x;  // warning
 var z = (IEnumerable<object?>)x; // no warning
 ```
 
+### Method type inference
+
+We modify the spec rule for [Fixing](https://github.com/dotnet/csharplang/blob/master/spec/expressions.md#fixing "Fixing") to take account of types that may be equivalent (i.e. have an identity conversion) yet may not be identical in the set of bounds. The existing spec says (third bullet)
+
+> If among the remaining candidate types `Uj` there is a unique type `V` from which there is an implicit conversion to all the other candidate types, then `Xi` is fixed to `V`.
+
+This is not correct for C# 5 (i.e., it is a bug in the language specification), as it fails to handle bounds such as `Dictionary<object, dynamic>` and `Dictionary<dynamic, object>`, which are merged to `Dictionary<dynamic, dynamic>`. This is [an open issue](https://github.com/ECMA-TC49-TG2/spec/issues/951) that we anticipate will be addressed in the next iteration of the ECMA specification.  Handling nullability properly will require additional changes beyond those in that next iteration of the ECMA spec.
+
+When adding to the set of exact bounds of a type parameter, types that are equivalent (i.e. have an identity conversion) but not identical are merged using *invariant* rules.  When adding to the set of lower bounds of a type parameter, types that are equivalent but not identical are merged using *covariant* rules.  When adding to the set of upper bounds of a type parameter, types that are equivalent but not identical are merged using *contravariant* rules.  In the final fixing step, types that are equivalent but not identical are merged using *covariant* rules.
+
+Merging equivalent but not identical types is done as follows:
+
+#### Invariant merging rules
+
+- Merging `dynamic` and `object` results in the type `dynamic`.
+- Merging tuple types that differ in element names is specified elsewhere.
+- Merging equivalent types that differ in nullability is performed as follows: merging the types `Tn` and `Um` (where `n` and `m` are differing nullability annotations) results in the type `Vk` where `V` is the result of merging `T` and `U` using the invariant rule, and `k` is as follows:
+ - if either `n` or `m` are non-nullable, non-nullable. In this case, if the other is nullable, a warning should be produced.
+ - if either `n` or `m` are nullable, nullable.
+ - otherwise oblivious.
+- Merging constructed generic types is performed as follows: Merging the types `K<A1, A2, ...>` and `K<B1, B2, ...>` results in the type `K<C1, C2, ...>` where `Ci` is the result of merging `Ai` and `Bi` by the invariant rule.
+- Merging the array types `T[]` and `U[]` results in the type `V[]` where `V` is the result of merging `T` and `U` by the invariant rule.
+
+#### Covariant merging rules
+
+- Merging `dynamic` and `object` results in the type `dynamic`.
+- Merging tuple types that differ in element names is specified elsewhere.
+- Merging equivalent types that differ in nullability is performed as follows: merging the types `Tn` and `Um` (where `n` and `m` are differing nullability annotations) results in the type `Vk` where `V` is the result of merging `T` and `U` using the covariant rule, and `k` is as follows:
+ - if either `n` or `m` are nullable, nullable.
+ - if either `n` or `m` are oblivious, oblivious.
+ - otherwise non-nullable.
+- Merging constructed generic types is performed as follows: Merging the types `K<A1, A2, ...>` and `K<B1, B2, ...>` results in the type `K<C1, C2, ...>` where `Ci` is the result of merging `Ai` and `Bi` by
+  - the invariant rule if `K`'s type parameter in the `i` position is invariant.
+  - the covariant rule if `K`'s type parameter in the `i` position is declared `out`.
+  - the contravariant rule if the `K`'s type parameter in the `i` position is declared `in`.
+- Merging the array types `T[]` and `U[]` results in the type `V[]` where `V` is the result of merging `T` and `U` by the invariant rule.
+
+#### Contravariant merging rules
+
+- Merging `dynamic` and `object` results in the type `dynamic`.
+- Merging tuple types that differ in element names is specified elsewhere.
+- Merging equivalent types that differ in nullability is performed as follows: merging the types `Tn` and `Um` (where `n` and `m` are differing nullability annotations) results in the type `Vk` where `V` is the result of merging `T` and `U` using the contravariant rule, and `k` is as follows:
+ - if either `n` or `m` are non-nullable, non-nullable.
+ - if either `n` or `m` are oblivious, oblivious.
+ - otherwise nullable.
+- Merging constructed generic types is performed as follows: Merging the types `K<A1, A2, ...>` and `K<B1, B2, ...>` results in the type `K<C1, C2, ...>` where `Ci` is the result of merging `Ai` and `Bi` by
+  - the invariant rule if `K`'s type parameter in the `i` position is invariant.
+  - the covariant rule if `K`'s type parameter in the `i` position is declared `in`.
+  - the contravariant rule if `K`'s type parameter in the `i` position is declared `out`.
+- Merging the array types `T[]` and `U[]` results in the type `V[]` where `V` is the result of merging `T` and `U` by the invariant rule.
+
+It is intended that these merging rules are associative and commutative, so that a compiler may merge a set of equivalent types pairwise in any order to compute the final result.
+
+> ***Open issue***: these rules do not describe the handling of merging a nested generic type `K<A>.L<B>` with `K<C>.L<D>`. That should be handled the same as a hypothetical type `KL<A, B>` would be merged with `KL<C, D>`.
+
+> ***Open issue***: these rules do not describe the handling of merging pointer types.
+
 ### Array creation
-The _best type_ calculation uses the most relaxed nullability: `T!` is a `T~` is a `T?`.
-If there is no best nested nullability, a warning is reported.
+The calculation of the _best type_ element nullability uses the Conversions rules above.
+The top-level and nested nullability are calculated independently.
+The top-level nullability is the most relaxed of the elements, where `!` is a `~` is a `?`.
+The nested nullability is the merged nullability of the best common type. If there is a merge conflict,
+the nested nullability is `~` and a warning is reported.
 ```c#
 var w = new [] { notNull, oblivious }; // ~[]!
 var x = new [] { notNull, maybeNull, oblivious }; // ?[]!

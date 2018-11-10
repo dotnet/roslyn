@@ -98,6 +98,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Add missing usings.
+        /// </summary>
+        internal static string Add_missing_usings {
+            get {
+                return ResourceManager.GetString("Add_missing_usings", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Add parentheses.
         /// </summary>
         internal static string Add_parentheses_around_conditional_expression_in_interpolated_string {
@@ -653,6 +662,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string into_clause {
             get {
                 return ResourceManager.GetString("into_clause", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Introduce &apos;using&apos; statement.
+        /// </summary>
+        internal static string Introduce_using_statement {
+            get {
+                return ResourceManager.GetString("Introduce_using_statement", resourceCulture);
             }
         }
         
@@ -1240,6 +1258,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string Upgrade_this_project_to_csharp_language_version_0 {
             get {
                 return ResourceManager.GetString("Upgrade_this_project_to_csharp_language_version_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use &apos;{0}&apos;.
+        /// </summary>
+        internal static string Use_0 {
+            get {
+                return ResourceManager.GetString("Use_0", resourceCulture);
             }
         }
         

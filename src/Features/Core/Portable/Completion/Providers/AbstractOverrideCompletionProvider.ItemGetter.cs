@@ -116,6 +116,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
                 return  MemberInsertionCompletionItem.Create(
                     displayString,
+                    displayTextSuffix: "",
                     modifiers,
                     _startLineNumber,
                     symbol,

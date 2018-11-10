@@ -271,7 +271,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     // We do an extra check before copying the type to handle the case where the overriding
                     // property (incorrectly) has a different type than the overridden property.  In such cases,
                     // we want to retain the original (incorrect) type to avoid hiding the type given in source.
-                    if (type.TypeSymbol.Equals(overriddenPropertyType.TypeSymbol, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds | TypeCompareKind.IgnoreDynamic))
+                    if (type.TypeSymbol.Equals(overriddenPropertyType.TypeSymbol, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes | TypeCompareKind.IgnoreDynamic))
                     {
                         type = type.WithTypeAndModifiers(
                             CustomModifierUtils.CopyTypeCustomModifiers(overriddenPropertyType.TypeSymbol, type.TypeSymbol, this.ContainingAssembly, nonNullTypesContext: this),
@@ -1132,7 +1132,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <remarks>
         /// Forces binding and decoding of attributes.
         /// </remarks>
-        private PropertyWellKnownAttributeData GetDecodedWellKnownAttributeData()
+        private CommonPropertyWellKnownAttributeData GetDecodedWellKnownAttributeData()
         {
             var attributesBag = _lazyCustomAttributesBag;
             if (attributesBag == null || !attributesBag.IsDecodedWellKnownAttributeDataComputed)
@@ -1140,7 +1140,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 attributesBag = this.GetAttributesBag();
             }
 
-            return (PropertyWellKnownAttributeData)attributesBag.DecodedWellKnownAttributeData;
+            return (CommonPropertyWellKnownAttributeData)attributesBag.DecodedWellKnownAttributeData;
         }
 
         /// <summary>
@@ -1177,6 +1177,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 AddSynthesizedAttribute(ref attributes,
                     DeclaringCompilation.SynthesizeTupleNamesAttribute(type.TypeSymbol));
             }
+
+            AddSynthesizedNonNullTypesAttributeForMember(ref attributes);
 
             if (type.ContainsNullableReferenceTypes())
             {
@@ -1278,11 +1280,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.SpecialNameAttribute))
             {
-                arguments.GetOrCreateData<PropertyWellKnownAttributeData>().HasSpecialNameAttribute = true;
+                arguments.GetOrCreateData<CommonPropertyWellKnownAttributeData>().HasSpecialNameAttribute = true;
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.ExcludeFromCodeCoverageAttribute))
             {
-                arguments.GetOrCreateData<PropertyWellKnownAttributeData>().HasExcludeFromCodeCoverageAttribute = true;
+                arguments.GetOrCreateData<CommonPropertyWellKnownAttributeData>().HasExcludeFromCodeCoverageAttribute = true;
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.DynamicAttribute))
             {
@@ -1315,8 +1317,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.NonNullTypesAttribute))
             {
-                bool value = attribute.GetConstructorArgument<bool>(0, SpecialType.System_Boolean);
-                arguments.GetOrCreateData<PropertyWellKnownAttributeData>().NonNullTypes = value;
+                // NonNullTypesAttribute should not be set explicitly.
+                arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitNonNullTypesAttribute, arguments.AttributeSyntaxOpt.Location);
             }
         }
 
@@ -1534,8 +1536,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                var data = GetDecodedWellKnownAttributeData();
-                return data?.NonNullTypes ?? base.NonNullTypes;
+                return GetNonNullTypesFromSyntax() ?? ContainingModule?.NonNullTypes;
             }
         }
     }

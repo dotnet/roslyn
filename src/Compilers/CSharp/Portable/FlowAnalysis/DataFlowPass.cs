@@ -241,7 +241,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (currentSymbol is MethodSymbol currentMethod && currentMethod.IsAsync && !currentMethod.IsImplicitlyDeclared)
             {
-                var foundAwait = result.Any(pending => pending.Branch?.Kind == BoundKind.AwaitExpression);
+                var foundAwait = result.Any(pending => HasAwait(pending));
                 if (!foundAwait)
                 {
                     // If we're on a LambdaSymbol, then use its 'DiagnosticLocation'.  That will be
@@ -256,6 +256,32 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return result;
         }
+
+        private static bool HasAwait(PendingBranch pending)
+        {
+            if (pending.Branch is null)
+            {
+                return false;
+            }
+
+            BoundKind kind = pending.Branch.Kind;
+            switch (kind)
+            {
+                case BoundKind.AwaitExpression:
+                    return true;
+                case BoundKind.UsingStatement:
+                    var usingStatement = (BoundUsingStatement)pending.Branch;
+                    return usingStatement.AwaitOpt != null;
+                case BoundKind.ForEachStatement:
+                    var foreachStatement = (BoundForEachStatement)pending.Branch;
+                    return foreachStatement.AwaitOpt != null;
+                default:
+                    return false;
+            }
+        }
+
+        // For purpose of data flow analysis, awaits create pending branches, so async usings do too
+        public sealed override bool AwaitUsingAddsPendingBranch => true;
 
         protected virtual void ReportUnassignedOutParameter(ParameterSymbol parameter, SyntaxNode node, Location location)
         {
@@ -349,8 +375,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 walker.Free();
             }
 
-            if (member.NonNullTypes != null &&
-                compilation.LanguageVersion >= MessageID.IDS_FeatureStaticNullChecking.RequiredVersion())
+            if (member.NonNullTypes == true &&
+                compilation.LanguageVersion >= MessageID.IDS_FeatureNullableReferenceTypes.RequiredVersion())
             {
                 NullableWalker.Analyze(compilation, member, node, diagnostics);
             }
@@ -745,7 +771,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         var fieldAccess = (BoundFieldAccess)expr;
                         var fieldSymbol = fieldAccess.FieldSymbol;
-                        if (fieldSymbol.IsStatic || fieldSymbol.IsFixed)
+                        if (fieldSymbol.IsStatic || fieldSymbol.IsFixedSizeBuffer)
                         {
                             return false;
                         }
@@ -801,7 +827,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 (object)fieldSymbol != null && //simplifies calling pattern for events
                 receiverOpt != null &&
                 !fieldSymbol.IsStatic &&
-                !fieldSymbol.IsFixed &&
+                !fieldSymbol.IsFixedSizeBuffer &&
                 receiverOpt.Kind != BoundKind.TypeExpression &&
                 MayRequireTrackingReceiverType(receiverOpt.Type) &&
                 !receiverOpt.Type.IsPrimitiveRecursiveStruct();
@@ -1859,7 +1885,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.FieldAccess:
                     var field = (BoundFieldAccess)expr;
                     var symbol = field.FieldSymbol;
-                    if (!symbol.IsFixed && MayRequireTracking(field.ReceiverOpt, symbol))
+                    if (!symbol.IsFixedSizeBuffer && MayRequireTracking(field.ReceiverOpt, symbol))
                     {
                         CheckAssigned(expr, symbol, node);
                     }
@@ -2024,7 +2050,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var result = base.VisitFieldAccess(node);
             NoteRead(node.FieldSymbol);
 
-            if (node.FieldSymbol.IsFixed && node.Syntax != null && !SyntaxFacts.IsFixedStatementExpression(node.Syntax))
+            if (node.FieldSymbol.IsFixedSizeBuffer && node.Syntax != null && !SyntaxFacts.IsFixedStatementExpression(node.Syntax))
             {
                 Symbol receiver = UseNonFieldSymbolUnsafely(node.ReceiverOpt);
                 if ((object)receiver != null)

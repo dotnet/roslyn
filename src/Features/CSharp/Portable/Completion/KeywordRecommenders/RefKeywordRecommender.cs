@@ -58,13 +58,34 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
         {
             var syntaxTree = context.SyntaxTree;
             return
-                syntaxTree.IsParameterModifierContext(position, context.LeftToken, cancellationToken) ||
+                IsRefParameterModifierContext(position, context) ||
                 syntaxTree.IsAnonymousMethodParameterModifierContext(position, context.LeftToken, cancellationToken) ||
                 IsValidContextForType(context, cancellationToken) ||
                 syntaxTree.IsPossibleLambdaParameterModifierContext(position, context.LeftToken, cancellationToken) ||
                 context.TargetToken.IsConstructorOrMethodParameterArgumentContext() ||
                 context.TargetToken.IsXmlCrefParameterModifierContext() ||
                 IsValidNewByRefContext(syntaxTree, position, context, cancellationToken);
+        }
+
+        private static bool IsRefParameterModifierContext(int position, CSharpSyntaxContext context)
+        {
+            if (context.SyntaxTree.IsParameterModifierContext(
+                    position, context.LeftToken, includeOperators: false, out var parameterIndex, out var previousModifier))
+            {
+                if (previousModifier == SyntaxKind.None)
+                {
+                    return true;
+                }
+
+                if (previousModifier == SyntaxKind.ThisKeyword &&
+                    parameterIndex == 0 &&
+                    context.SyntaxTree.IsPossibleExtensionMethodContext(context.LeftToken))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         private bool IsValidNewByRefContext(SyntaxTree syntaxTree, int position, CSharpSyntaxContext context, CancellationToken cancellationToken)

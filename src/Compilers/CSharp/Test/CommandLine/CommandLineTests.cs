@@ -1454,6 +1454,7 @@ d.cs
             InlineData("7.3", true, LanguageVersion.CSharp7_3),
             InlineData("8", true, LanguageVersion.CSharp8),
             InlineData("8.0", true, LanguageVersion.CSharp8),
+            InlineData("08", false, LanguageVersion.Default),
             InlineData("07.1", false, LanguageVersion.Default),
             InlineData("default", true, LanguageVersion.Default),
             InlineData("latest", true, LanguageVersion.Latest),
@@ -4093,6 +4094,88 @@ C:\*.cs(100,7): error CS0103: The name 'Goo' does not exist in the current conte
         }
 
         [Fact]
+        public void Nullable()
+        {
+            var parsedArgs = DefaultParse(new[] { "a.cs" }, WorkingDirectory);
+            parsedArgs.Errors.Verify();
+            Assert.Null(parsedArgs.CompilationOptions.Nullable);
+
+            parsedArgs = DefaultParse(new[] { @"/nullable+", "a.cs" }, WorkingDirectory);
+            parsedArgs.Errors.Verify(
+                // error CS8630: Invalid 'nullable' value: 'True' for C# 7.0. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_NullableOptionNotAvailable).WithArguments("nullable", "True", "7.0", "8.0").WithLocation(1, 1)
+                );
+            Assert.True(parsedArgs.CompilationOptions.Nullable);
+
+            parsedArgs = DefaultParse(new[] { @"/nullable-", "a.cs" }, WorkingDirectory);
+            parsedArgs.Errors.Verify(
+                // error CS8630: Invalid 'nullable' value: 'False' for C# 7.0. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_NullableOptionNotAvailable).WithArguments("nullable", "False", "7.0", "8.0").WithLocation(1, 1)
+                );
+            Assert.False(parsedArgs.CompilationOptions.Nullable);
+
+            parsedArgs = DefaultParse(new[] { @"/nullable", "a.cs" }, WorkingDirectory);
+            parsedArgs.Errors.Verify(
+                // error CS8630: Invalid 'nullable' value: 'True' for C# 7.0. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_NullableOptionNotAvailable).WithArguments("nullable", "True", "7.0", "8.0").WithLocation(1, 1)
+                );
+            Assert.True(parsedArgs.CompilationOptions.Nullable);
+
+            parsedArgs = DefaultParse(new[] { @"/nullable+", "/langversion:8", "a.cs" }, WorkingDirectory);
+            parsedArgs.Errors.Verify();
+            Assert.True(parsedArgs.CompilationOptions.Nullable);
+
+            parsedArgs = DefaultParse(new[] { @"/nullable-", "/langversion:8", "a.cs" }, WorkingDirectory);
+            parsedArgs.Errors.Verify();
+            Assert.False(parsedArgs.CompilationOptions.Nullable);
+
+            parsedArgs = DefaultParse(new[] { @"/nullable", "/langversion:8", "a.cs" }, WorkingDirectory);
+            parsedArgs.Errors.Verify();
+            Assert.True(parsedArgs.CompilationOptions.Nullable);
+
+            parsedArgs = DefaultParse(new[] { @"/nullable-", @"/nullable", "/langversion:8", "a.cs" }, WorkingDirectory);
+            parsedArgs.Errors.Verify();
+            Assert.True(parsedArgs.CompilationOptions.Nullable);
+
+            parsedArgs = DefaultParse(new[] { @"/nullable+", @"/nullable-", "/langversion:8", "a.cs" }, WorkingDirectory);
+            parsedArgs.Errors.Verify();
+            Assert.False(parsedArgs.CompilationOptions.Nullable);
+
+            parsedArgs = DefaultParse(new[] { @"/nullable:", "/langversion:8", "a.cs" }, WorkingDirectory);
+            parsedArgs.Errors.Verify(Diagnostic(ErrorCode.ERR_BadSwitch).WithArguments("/nullable:"));
+            Assert.Null(parsedArgs.CompilationOptions.Nullable);
+
+            parsedArgs = DefaultParse(new[] { @"/nullable+", "/langversion:7.3", "a.cs" }, WorkingDirectory);
+            parsedArgs.Errors.Verify(
+                // error CS8630: Invalid 'nullable' value: 'True' for C# 7.3. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_NullableOptionNotAvailable).WithArguments("nullable", "True", "7.3", "8.0").WithLocation(1, 1)
+                );
+            Assert.True(parsedArgs.CompilationOptions.Nullable);
+
+            parsedArgs = DefaultParse(new[] { @"/nullable-", "/langversion:7.3", "a.cs" }, WorkingDirectory);
+            parsedArgs.Errors.Verify(
+                // error CS8630: Invalid 'nullable' value: 'False' for C# 7.3. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_NullableOptionNotAvailable).WithArguments("nullable", "False", "7.3", "8.0").WithLocation(1, 1)
+                );
+            Assert.False(parsedArgs.CompilationOptions.Nullable);
+
+            parsedArgs = DefaultParse(new[] { @"/nullable", "/langversion:7.3", "a.cs" }, WorkingDirectory);
+            parsedArgs.Errors.Verify(
+                // error CS8630: Invalid 'nullable' value: 'True' for C# 7.3. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_NullableOptionNotAvailable).WithArguments("nullable", "True", "7.3", "8.0").WithLocation(1, 1)
+                );
+            Assert.True(parsedArgs.CompilationOptions.Nullable);
+
+            parsedArgs = DefaultParse(new[] { "a.cs", "/langversion:8" }, WorkingDirectory);
+            parsedArgs.Errors.Verify();
+            Assert.Null(parsedArgs.CompilationOptions.Nullable);
+
+            parsedArgs = DefaultParse(new[] { "a.cs", "/langversion:7.3" }, WorkingDirectory);
+            parsedArgs.Errors.Verify();
+            Assert.Null(parsedArgs.CompilationOptions.Nullable);
+        }
+
+        [Fact]
         public void Usings()
         {
             CSharpCommandLineArguments parsedArgs;
@@ -4958,7 +5041,7 @@ public class CS1698_a {}
             CleanupAllGeneratedFiles(cs1698.Path);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason="https://github.com/dotnet/roslyn/issues/30926")]
         public void BinaryFileErrorTest()
         {
             var binaryPath = Temp.CreateFile().WriteAllBytes(TestResources.NetFX.v4_0_30319.mscorlib).Path;
@@ -9770,6 +9853,24 @@ class C
                 result.Output.Trim());
         }
 
+#if NET472
+        [ConditionalFact(typeof(WindowsDesktopOnly), typeof(IsEnglishLocal), Reason = "https://github.com/dotnet/roslyn/issues/30321")]
+        public void LoadingAnalyzerNetStandard13()
+        {
+            var analyzerFileName = "AnalyzerNS13.dll";
+            var srcFileName = "src.cs";
+
+            var analyzerDir = Temp.CreateDirectory();
+            var analyzerFile = analyzerDir.CreateFile(analyzerFileName).WriteAllBytes(DesktopTestHelpers.CreateCSharpAnalyzerNetStandard13(Path.GetFileNameWithoutExtension(analyzerFileName)));
+            var srcFile = analyzerDir.CreateFile(srcFileName).WriteAllText("public class C { }");
+
+            var result = ProcessUtilities.Run(s_CSharpCompilerExecutable, arguments: $"/nologo /t:library /analyzer:{analyzerFileName} {srcFileName}", workingDirectory: analyzerDir.Path);
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(
+                $"warning AD0001: Analyzer 'TestAnalyzer' threw an exception of type 'System.NotImplementedException' with message '28'.", result.Output);
+
+            Assert.Equal(0, result.ExitCode);
+        }
+#endif
         [WorkItem(406649, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=484417")]
         [ConditionalFact(typeof(WindowsDesktopOnly), typeof(IsEnglishLocal), Reason = "https://github.com/dotnet/roslyn/issues/30321")]
         public void MicrosoftDiaSymReaderNativeAltLoadPath()

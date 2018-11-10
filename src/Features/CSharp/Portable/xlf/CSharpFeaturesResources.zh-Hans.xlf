@@ -17,6 +17,11 @@
         <target state="new">Add await</target>
         <note />
       </trans-unit>
+      <trans-unit id="Add_missing_usings">
+        <source>Add missing usings</source>
+        <target state="new">Add missing usings</target>
+        <note>{Locked="using"} "using" is a C# keyword and should not be localized.</note>
+      </trans-unit>
       <trans-unit id="Add_remove_braces_for_single_line_control_statements">
         <source>Add/remove braces for single-line control statements</source>
         <target state="new">Add/remove braces for single-line control statements</target>
@@ -72,6 +77,11 @@
         <target state="translated">检测到冲突。</target>
         <note />
       </trans-unit>
+      <trans-unit id="Introduce_using_statement">
+        <source>Introduce 'using' statement</source>
+        <target state="new">Introduce 'using' statement</target>
+        <note>{Locked="using"} "using" is a C# keyword and should not be localized.</note>
+      </trans-unit>
       <trans-unit id="Make_private_field_readonly_when_possible">
         <source>Make private fields readonly when possible</source>
         <target state="new">Make private fields readonly when possible</target>
@@ -105,6 +115,11 @@
       <trans-unit id="Sort_accessibility_modifiers">
         <source>Sort accessibility modifiers</source>
         <target state="new">Sort accessibility modifiers</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_0">
+        <source>Use '{0}'</source>
+        <target state="new">Use '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="if_statement_can_be_simplified">

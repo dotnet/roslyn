@@ -62,6 +62,16 @@
         <target state="new">Prefer compound assignments</target>
         <note />
       </trans-unit>
+      <trans-unit id="Prefer_index_operator">
+        <source>Prefer index operator</source>
+        <target state="new">Prefer index operator</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_range_operator">
+        <source>Prefer range operator</source>
+        <target state="new">Prefer range operator</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Regular_Expressions">
         <source>Regular Expressions</source>
         <target state="new">Regular Expressions</target>

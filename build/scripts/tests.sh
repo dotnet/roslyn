@@ -43,7 +43,7 @@ if [[ "${runtime}" == "dotnet" ]]; then
     )
     xunit_console="${nuget_dir}"/xunit.runner.console/"${xunit_console_version}"/tools/netcoreapp2.0/xunit.console.dll
 elif [[ "${runtime}" =~ ^(mono|mono-debug)$ ]]; then
-    file_list=( "${unittest_dir}"/*/net46/*.UnitTests.dll )
+    file_list=( "${unittest_dir}"/*/net472/*.UnitTests.dll )
     file_skiplist=(
         # Omitted because we appear to be missing things necessary to compile vb.net.
         # See https://github.com/mono/mono/issues/10679
@@ -108,7 +108,8 @@ do
     if [[ "${runtime}" == "dotnet" ]]; then
         # Disable the VB Semantic tests while we investigate the core dump issue
         # https://github.com/dotnet/roslyn/issues/29660
-        if [[ "${file_name[@]}" == *'Microsoft.CodeAnalysis.VisualBasic.Semantic.UnitTests.dll' ]] 
+        if [[ "${file_name[@]}" == *'Microsoft.CodeAnalysis.VisualBasic.Semantic.UnitTests.dll' ||
+              "${file_name[@]}" == *'Microsoft.CodeAnalysis.CSharp.WinRT.UnitTests.dll' ]]
         then
             echo "Skipping ${file_name[@]}"
             continue

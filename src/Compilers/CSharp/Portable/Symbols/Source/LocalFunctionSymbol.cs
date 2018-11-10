@@ -214,15 +214,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             var diagnostics = DiagnosticBag.GetInstance();
-            TypeSyntax returnTypeSyntax = _syntax.ReturnType.SkipRef();
-            TypeSymbolWithAnnotations returnType = _binder.BindType(returnTypeSyntax, diagnostics);
-            if (IsAsync &&
-                returnType.SpecialType != SpecialType.System_Void &&
-                !returnType.TypeSymbol.IsNonGenericTaskType(_binder.Compilation) &&
-                !returnType.TypeSymbol.IsGenericTaskType(_binder.Compilation))
+            TypeSyntax returnTypeSyntax = _syntax.ReturnType;
+            TypeSymbolWithAnnotations returnType = _binder.BindType(returnTypeSyntax.SkipRef(), diagnostics);
+
+            if (this.IsAsync)
             {
-                // The return type of an async method must be void, Task or Task<T>
-                diagnostics.Add(ErrorCode.ERR_BadAsyncReturn, this.Locations[0]);
+                if (this.RefKind != RefKind.None)
+                {
+                    ReportBadRefToken(returnTypeSyntax, diagnostics);
+                }
+                else if (returnType.TypeSymbol.IsBadAsyncReturn(this.DeclaringCompilation))
+                {
+                    diagnostics.Add(ErrorCode.ERR_BadAsyncReturn, this.Locations[0]);
+                }
             }
 
             var location = _syntax.ReturnType.Location;
@@ -235,6 +239,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 DeclaringCompilation.EnsureNullableAttributeExists(diagnostics, location, modifyCompilation: false);
                 // Note: we don't need to warn on annotations used without NonNullTypes context for local functions, as this is handled in binding already
+            }
+
+            // span-like types are returnable in general
+            if (returnType.IsRestrictedType(ignoreSpanLikeTypes: true))
+            {
+                // Method or delegate cannot return type '{0}'
+                diagnostics.Add(ErrorCode.ERR_MethodReturnCantBeRefAny, returnTypeSyntax.Location, returnType.TypeSymbol);
             }
 
             Debug.Assert(_refKind == RefKind.None

@@ -540,7 +540,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     SetGlobalErrorIfTrue(constantValue == null || constantValue.IsBad);
                                 }
 
-                                if (fieldSymbol.IsFixed && compilationState.Emitting)
+                                if (fieldSymbol.IsFixedSizeBuffer && compilationState.Emitting)
                                 {
                                     // force the generation of implementation types for fixed-size buffers
                                     TypeSymbol discarded = fieldSymbol.FixedImplementationType(compilationState.ModuleBuilderOpt);
@@ -1419,7 +1419,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // This is a heuristic since it's possible that there is no user code awaiting the task.
                     moveNextBodyDebugInfoOpt = new AsyncMoveNextBodyDebugInfo(
                         kickoffMethod,
-                        kickoffMethod.ReturnsVoid ? asyncCatchHandlerOffset : -1,
+                        catchHandlerOffset: kickoffMethod.ReturnsVoid ? asyncCatchHandlerOffset : -1,
                         asyncYieldPoints,
                         asyncResumePoints);
                 }

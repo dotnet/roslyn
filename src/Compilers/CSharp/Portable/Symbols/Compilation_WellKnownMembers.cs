@@ -447,6 +447,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new SynthesizedAttributeData(ctorSymbol, arguments, namedStringArguments);
         }
 
+        internal SynthesizedAttributeData TrySynthesizeNonNullTypesAttribute(bool value)
+        {
+            return TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_NonNullTypesAttribute__ctor,
+                                          ImmutableArray.Create(new TypedConstant(GetSpecialType(SpecialType.System_Boolean), TypedConstantKind.Primitive, value)),
+                                          isOptionalUse: true);
+        }
+
         internal SynthesizedAttributeData SynthesizeDecimalConstantAttribute(decimal value)
         {
             bool isNegative;
@@ -1016,6 +1023,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return method.RefKind != RefKind.None;
             }
 
+            protected override bool IsByRefProperty(PropertySymbol property)
+            {
+                return property.RefKind != RefKind.None;
+            }
+
             protected override bool IsGenericMethodTypeParam(TypeSymbol type, int paramPosition)
             {
                 if (type.Kind != SymbolKind.TypeParameter)
@@ -1057,7 +1069,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             protected override bool MatchTypeToTypeId(TypeSymbol type, int typeId)
             {
-                return (int)type.SpecialType == typeId;
+                if ((int)type.OriginalDefinition.SpecialType == typeId)
+                {
+                    if (type.IsDefinition)
+                    {
+                        return true;
+                    }
+
+                    return type.Equals(type.OriginalDefinition, TypeCompareKind.IgnoreNullableModifiersForReferenceTypes);
+                }
+
+                return false;
             }
         }
 
@@ -1075,7 +1097,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 WellKnownType wellKnownId = (WellKnownType)typeId;
                 if (wellKnownId.IsWellKnownType())
                 {
-                    return (type == _compilation.GetWellKnownType(wellKnownId));
+                    return type.Equals(_compilation.GetWellKnownType(wellKnownId), TypeCompareKind.IgnoreNullableModifiersForReferenceTypes);
                 }
 
                 return base.MatchTypeToTypeId(type, typeId);

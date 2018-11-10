@@ -2263,7 +2263,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             // is not a fixed size buffer expression, or if the expression is a fixed size buffer
                             // member_access of the form E.I and E is a fixed variable
                             BoundExpression underlyingExpr = ((BoundPointerElementAccess)expr).Expression;
-                            if (underlyingExpr is BoundFieldAccess fieldAccess && fieldAccess.FieldSymbol.IsFixed)
+                            if (underlyingExpr is BoundFieldAccess fieldAccess && fieldAccess.FieldSymbol.IsFixedSizeBuffer)
                             {
                                 expr = fieldAccess.ReceiverOpt;
                                 continue;
@@ -3696,7 +3696,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 bool hadMultipleCandidates;
                 HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                TypeSymbol bestType = BestTypeInferrer.InferBestTypeForConditionalOperator(trueExpr, falseExpr, this.Conversions, out hadMultipleCandidates, ref useSiteDiagnostics);
+                TypeSymbol bestType = BestTypeInferrer.InferBestTypeForConditionalOperator(trueExpr, falseExpr, this.Conversions, out hadMultipleCandidates, out _, ref useSiteDiagnostics);
                 diagnostics.Add(node, useSiteDiagnostics);
 
                 if ((object)bestType == null)
