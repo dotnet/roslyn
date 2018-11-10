@@ -10,19 +10,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Editor.Wrapping
         Of TListSyntax As SyntaxNode, TListItemSyntax As SyntaxNode)
         Inherits AbstractWrappingCodeRefactoringProvider(Of TListSyntax, TListItemSyntax)
 
-        Protected Overrides Function GetIndentationService() As ISynchronousIndentationService
+        Protected Overrides Function GetIndentationService() As IBlankLineIndentationService
             Return New IndentationService()
         End Function
 
         Private Class IndentationService
             Inherits VisualBasicIndentationService
-
-            Public Sub New()
-                ' In our scenario we want to control all formatting ourselves. So tell the indenter
-                ' to not depend on a formatter being available so it does all the work to figure out 
-                ' the indentation itself.
-                MyBase.New(formatterAvailable:=False)
-            End Sub
 
             Protected Overrides Function GetSpecializedIndentationFormattingRule() As IFormattingRule
                 ' Override default indentation behavior.  The special indentation rule tries to 

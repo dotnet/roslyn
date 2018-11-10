@@ -27,7 +27,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Formatting.Indentation
             Protected Overrides Function GetDesiredIndentationWorker(
                     token As SyntaxToken,
                     previousLine As TextLine,
-                    lastNonWhitespacePosition As Integer) As IndentationResult?
+                    lastNonWhitespacePosition As Integer) As IndentationResult
 
                 If token.Span.End = lastNonWhitespacePosition + 1 Then
                     Return GetIndentationBasedOnToken(token)
@@ -75,7 +75,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Formatting.Indentation
                 Return token.GetPreviousToken()
             End Function
 
-            Private Function GetIndentationBasedOnToken(token As SyntaxToken, Optional trivia As SyntaxTrivia = Nothing) As IndentationResult?
+            Private Function GetIndentationBasedOnToken(token As SyntaxToken, Optional trivia As SyntaxTrivia = Nothing) As IndentationResult
                 Dim sourceText = LineToBeIndented.Text
 
                 Dim position = GetCurrentPositionNotBelongToEndOfFileToken(LineToBeIndented.Start)

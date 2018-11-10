@@ -1,12 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
-using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
@@ -30,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping
         protected abstract string ItemNamePlural { get; }
         protected abstract string ItemNameSingular { get; }
 
-        protected abstract ISynchronousIndentationService GetIndentationService();
+        protected abstract IBlankLineIndentationService GetIndentationService();
 
         protected abstract TListSyntax GetApplicableList(SyntaxNode node);
         protected abstract SeparatedSyntaxList<TListItemSyntax> GetListItems(TListSyntax listSyntax);

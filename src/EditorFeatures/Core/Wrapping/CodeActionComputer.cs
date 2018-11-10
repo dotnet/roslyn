@@ -5,6 +5,7 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -34,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping
             private readonly string _newLine;
             private readonly int _wrappingColumn;
 
-            private readonly ISynchronousIndentationService _indentationService;
+            private readonly IBlankLineIndentationService _indentationService;
 
             private SourceText _originalSourceText;
 
@@ -59,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping
             ///         ^
             ///         |
             /// </summary>
-            private string _singleIndentionOpt;
+            private string _singleIndention;
 
             public CodeActionComputer(
                 AbstractWrappingCodeRefactoringProvider<TListSyntax, TListItemSyntax> service,
@@ -89,7 +90,7 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping
             private void AddTextChangeBetweenOpenAndFirstItem(bool indentFirst, ArrayBuilder<TextChange> result)
             {
                 result.Add(indentFirst
-                    ? UpdateBetween(_listSyntax.GetFirstToken(), _listItems[0], _newLine + _singleIndentionOpt)
+                    ? UpdateBetween(_listSyntax.GetFirstToken(), _listItems[0], _newLine + _singleIndention)
                     : DeleteBetween(_listSyntax.GetFirstToken(), _listItems[0]));
             }
 
@@ -97,7 +98,7 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping
             {
                 _originalSourceText = await _originalDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
                 _afterOpenTokenIndentation = GetAfterOpenTokenIdentation(cancellationToken);
-                _singleIndentionOpt = TryGetSingleIdentation(cancellationToken);
+                _singleIndention = GetSingleIdentation(cancellationToken);
 
                 return await GetTopLevelCodeActionsAsync(cancellationToken).ConfigureAwait(false);
             }
@@ -111,7 +112,7 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping
                 return indentString;
             }
 
-            private string TryGetSingleIdentation(CancellationToken cancellationToken)
+            private string GetSingleIdentation(CancellationToken cancellationToken)
             {
                 // Insert a newline after the open token of the list.  Then ask the
                 // ISynchronousIndentationService where it thinks that the next line should be
@@ -124,18 +125,14 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping
                 var newDocument = _originalDocument.WithText(newSourceText);
 
                 var originalLineNumber = newSourceText.Lines.GetLineFromPosition(openToken.Span.Start).LineNumber;
-                var desiredIndentation = _indentationService.GetDesiredIndentation(
-                    newDocument, originalLineNumber + 1, cancellationToken);
+                var desiredIndentation = _indentationService.GetBlankLineIndentation(
+                    newDocument, originalLineNumber + 1,
+                    FormattingOptions.IndentStyle.Smart, cancellationToken);
 
-                if (desiredIndentation == null)
-                {
-                    return null;
-                }
+                var baseLine = newSourceText.Lines.GetLineFromPosition(desiredIndentation.BasePosition);
+                var baseOffsetInLine = desiredIndentation.BasePosition - baseLine.Start;
 
-                var baseLine = newSourceText.Lines.GetLineFromPosition(desiredIndentation.Value.BasePosition);
-                var baseOffsetInLine = desiredIndentation.Value.BasePosition - baseLine.Start;
-
-                var indent = baseOffsetInLine + desiredIndentation.Value.Offset;
+                var indent = baseOffsetInLine + desiredIndentation.Offset;
 
                 var indentString = indent.CreateIndentationString(_useTabs, _tabSize);
                 return indentString;
@@ -145,12 +142,12 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping
             {
                 if (indentFirst)
                 {
-                    return _singleIndentionOpt;
+                    return _singleIndention;
                 }
 
                 if (!alignWithFirst)
                 {
-                    return _singleIndentionOpt;
+                    return _singleIndention;
                 }
 
                 return _afterOpenTokenIndentation;
@@ -271,11 +268,6 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping
                 HashSet<string> seenDocuments, string parentTitle,
                 bool indentFirst, CancellationToken cancellationToken)
             {
-                if (indentFirst && _singleIndentionOpt == null)
-                {
-                    return null;
-                }
-
                 var edits = GetUnwrapAllEdits(indentFirst);
                 var title = indentFirst
                     ? string.Format(FeaturesResources.Unwrap_and_indent_all_0, _service.ItemNamePlural)
@@ -347,10 +339,6 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping
                 bool indentFirst, bool alignWithFirst, CancellationToken cancellationToken)
             {
                 var indentation = GetIndentationString(indentFirst, alignWithFirst);
-                if (indentation == null)
-                {
-                    return null;
-                }
 
                 var edits = GetWrapLongLinesEdits(indentFirst, indentation);
                 var title = GetNestedCodeActionTitle(indentFirst, alignWithFirst);
@@ -456,10 +444,6 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping
                 bool indentFirst, bool alignWithFirst, CancellationToken cancellationToken)
             {
                 var indentation = GetIndentationString(indentFirst, alignWithFirst);
-                if (indentation == null)
-                {
-                    return null;
-                }
 
                 var edits = GetWrapEachEdits(indentFirst, indentation);
                 var title = GetNestedCodeActionTitle(indentFirst, alignWithFirst);

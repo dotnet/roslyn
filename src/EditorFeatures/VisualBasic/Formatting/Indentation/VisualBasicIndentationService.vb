@@ -18,14 +18,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Formatting.Indentation
 
         Private Shared ReadOnly s_instance As IFormattingRule = New SpecialFormattingRule()
 
-        Public Sub New()
-            Me.New(formatterAvailable:=True)
-        End Sub
-
-        Public Sub New(formatterAvailable As Boolean)
-            MyBase.New(formatterAvailable)
-        End Sub
-
         Protected Overrides Function GetSpecializedIndentationFormattingRule() As IFormattingRule
             Return s_instance
         End Function

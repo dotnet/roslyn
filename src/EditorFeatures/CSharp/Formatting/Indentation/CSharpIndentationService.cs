@@ -27,16 +27,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting.Indentation
     {
         private static readonly IFormattingRule s_instance = new FormattingRule();
 
-        public CSharpIndentationService()
-            : this(formatterAvailable: true)
-        {
-        }
-
-        public CSharpIndentationService(bool formatterAvailable)
-            : base(formatterAvailable)
-        {
-        }
-
         protected override IFormattingRule GetSpecializedIndentationFormattingRule()
         {
             return s_instance;

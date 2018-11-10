@@ -58,14 +58,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent
                          tokenStream: null);
             }
 
-            public IndentationResult? GetDesiredIndentation(Document document)
+            public IndentationResult GetDesiredIndentation(FormattingOptions.IndentStyle indentStyle)
             {
-                var indentStyle = OptionSet.GetOption(FormattingOptions.SmartIndent, document.Project.Language);
-                if (indentStyle == FormattingOptions.IndentStyle.None)
-                {
-                    // If there is no indent style, then do nothing.
-                    return null;
-                }
+                Debug.Assert(indentStyle != FormattingOptions.IndentStyle.None);
 
                 // find previous line that is not blank.  this will skip over things like preprocessor
                 // regions and inactive code.
@@ -107,7 +102,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent
                     token, previousNonWhitespaceOrPreprocessorLine, lastNonWhitespacePosition);
             }
 
-            protected abstract IndentationResult? GetDesiredIndentationWorker(
+            protected abstract IndentationResult GetDesiredIndentationWorker(
                 SyntaxToken token, TextLine previousLine, int lastNonWhitespacePosition);
 
             protected IndentationResult IndentFromStartOfLine(int addedSpaces)

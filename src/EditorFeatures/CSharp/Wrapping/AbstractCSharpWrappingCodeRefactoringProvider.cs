@@ -2,6 +2,7 @@
 
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.CSharp.Formatting.Indentation;
+using Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent;
 using Microsoft.CodeAnalysis.Editor.Wrapping;
 
 namespace Microsoft.CodeAnalysis.CSharp.Editor.Wrapping
@@ -14,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Editor.Wrapping
         // In our scenario we want to control all formatting ourselves. So tell the indenter to not
         // depend on a formatter being available so it does all the work to figure out indentation
         // itself.
-        protected override ISynchronousIndentationService GetIndentationService()
-            => new CSharpIndentationService(formatterAvailable: false);
+        protected override IBlankLineIndentationService GetIndentationService()
+            => new CSharpIndentationService();
     }
 }
