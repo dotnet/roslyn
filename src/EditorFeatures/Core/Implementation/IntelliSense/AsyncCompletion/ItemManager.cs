@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
             AssertIsBackground();
 
             SubscribeEvents(session);
-            if (!session.Properties.TryGetProperty<bool>(CompletionSource.HasSuggestionItemOptions, out bool hasSuggestedItemOptions))
+            if (!session.Properties.TryGetProperty(CompletionSource.HasSuggestionItemOptions, out bool hasSuggestedItemOptions))
             {
                 // This is the scenario when the session is created out of Roslyn, in some other provider, e.g. in Debugger.
                 // For now, the default hasSuggestedItemOptions is false. We can discuss if the opposite is required.
@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
             // We do not care about the character in the case. We care about the reason only.
             var roslynTrigger = Helpers.GetRoslynTrigger(data.Trigger, data.Trigger.Character);
 
-            if (!session.Properties.TryGetProperty<CompletionTriggerKind>(CompletionSource.InitialTriggerKind, out var initialRoslynTriggerKind))
+            if (!session.Properties.TryGetProperty(CompletionSource.InitialTriggerKind, out CompletionTriggerKind initialRoslynTriggerKind))
             {
                 initialRoslynTriggerKind = CompletionTriggerKind.Invoke;
             }
@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
                     continue;
                 }
 
-                if (!item.Properties.TryGetProperty<RoslynCompletionItem>(CompletionSource.RoslynItem, out var roslynItem))
+                if (!item.Properties.TryGetProperty(CompletionSource.RoslynItem, out RoslynCompletionItem roslynItem))
                 {
                     roslynItem = RoslynCompletionItem.Create(
                         displayText: item.DisplayText, 

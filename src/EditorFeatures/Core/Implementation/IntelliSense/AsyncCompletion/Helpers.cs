@@ -46,14 +46,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
                 case AsyncCompletionData.CompletionTriggerReason.Backspace:
                     return RoslynTrigger.CreateDeletionTrigger(c);
                 case AsyncCompletionData.CompletionTriggerReason.SnippetsMode:
-                    return  new RoslynTrigger(CompletionTriggerKind.Snippets);
-                default: return RoslynTrigger.Invoke;
+                    return new RoslynTrigger(CompletionTriggerKind.Snippets);
+                default:
+                    return RoslynTrigger.Invoke;
             }
         }
 
         internal static CompletionFilterReason GetFilterReason(RoslynTrigger trigger)
         {
-            switch(trigger.Kind)
+            switch (trigger.Kind)
             {
                 case CompletionTriggerKind.Insertion:
                     return CompletionFilterReason.Insertion;

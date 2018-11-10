@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
         internal const string ExcludedCommitCharacters = nameof(ExcludedCommitCharacters);
         internal const string NonBlockingCompletion = nameof(NonBlockingCompletion);
 
-        private static readonly ImmutableArray<ImageElement> s_WarningImageAttributeImagesArray = 
+        private static readonly ImmutableArray<ImageElement> s_WarningImageAttributeImagesArray =
             ImmutableArray.Create(new ImageElement(Glyph.CompletionWarning.GetImageId(), EditorFeaturesResources.Warning_image_element_automation_name));
 
         private static readonly EditorOptionKey<bool> NonBlockingCompletionEditorOption = new EditorOptionKey<bool>(NonBlockingCompletion);
@@ -49,8 +49,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
         }
 
         public AsyncCompletionData.CompletionStartData InitializeCompletion(
-            AsyncCompletionData.CompletionTrigger trigger, 
-            SnapshotPoint triggerLocation, 
+            AsyncCompletionData.CompletionTrigger trigger,
+            SnapshotPoint triggerLocation,
             CancellationToken cancellationToken)
         {
             AssertIsForeground();
@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
                 return AsyncCompletionData.CompletionStartData.DoesNotParticipateInCompletion;
             }
 
-            if (document.Project.Solution.Workspace.Options.GetOption(CompletionOptions.BlockForCompletionItems, service.Language) == false)
+            if (!document.Project.Solution.Workspace.Options.GetOption(CompletionOptions.BlockForCompletionItems, service.Language))
             {
                 _textView.Options.GlobalOptions.SetOptionValue(NonBlockingCompletionEditorOption, true);
             }
@@ -75,27 +75,49 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
             triggerLocation.Snapshot.TextBuffer.Properties.RemoveProperty(PotentialCommitCharacters);
             triggerLocation.Snapshot.TextBuffer.Properties.AddProperty(PotentialCommitCharacters, service.GetRules().DefaultCommitCharacters);
 
-            var roslynTrigger = Helpers.GetRoslynTrigger(trigger, triggerLocation);
-
             var sourceText = document.GetTextSynchronously(cancellationToken);
 
-            if (trigger.Reason != AsyncCompletionData.CompletionTriggerReason.Invoke &&
-                trigger.Reason != AsyncCompletionData.CompletionTriggerReason.InvokeAndCommitIfUnique && 
-                !service.ShouldTriggerCompletion(sourceText, triggerLocation.Position, roslynTrigger))
+            return ShouldTriggerCompletion(trigger, triggerLocation, sourceText, document, service) 
+                ? new AsyncCompletionData.CompletionStartData(
+                    participation: AsyncCompletionData.CompletionParticipation.ProvidesItems,
+                    applicableToSpan: new SnapshotSpan(
+                        triggerLocation.Snapshot,
+                        service.GetDefaultCompletionListSpan(sourceText, triggerLocation.Position).ToSpan()))
+                : AsyncCompletionData.CompletionStartData.DoesNotParticipateInCompletion;
+        }
+
+        private bool ShouldTriggerCompletion(
+            AsyncCompletionData.CompletionTrigger trigger,
+            SnapshotPoint triggerLocation,
+            SourceText sourceText,
+            Document document,
+            CompletionService completionService)
+        {
+            // The trigger reason guarantees that user wants a completion.
+            if (trigger.Reason == AsyncCompletionData.CompletionTriggerReason.Invoke || 
+                trigger.Reason == AsyncCompletionData.CompletionTriggerReason.InvokeAndCommitIfUnique)
             {
-                if (!(trigger.Reason == AsyncCompletionData.CompletionTriggerReason.Insertion &&
-                    trigger.Character == '\t' &&
-                    TryInvokeSnippetCompletion(service, document, sourceText, triggerLocation.Position)))
-                {
-                    return AsyncCompletionData.CompletionStartData.DoesNotParticipateInCompletion;
-                }
+                return true;
             }
 
-            return new AsyncCompletionData.CompletionStartData(
-                participation: AsyncCompletionData.CompletionParticipation.ProvidesItems,
-                applicableToSpan: new SnapshotSpan(
-                    triggerLocation.Snapshot, 
-                    service.GetDefaultCompletionListSpan(sourceText, triggerLocation.Position).ToSpan()));
+            var roslynTrigger = Helpers.GetRoslynTrigger(trigger, triggerLocation);
+
+            // The completion service decides that user may want a completion.
+            if (completionService.ShouldTriggerCompletion(sourceText, triggerLocation.Position, roslynTrigger))
+            {
+                return true;
+            }
+
+            // The user may be trying to invoke snippets through question-tab.
+            // We may provide a completion after that.
+            if (trigger.Reason == AsyncCompletionData.CompletionTriggerReason.Insertion &&
+                trigger.Character == '\t' &&
+                TryInvokeSnippetCompletion(completionService, document, sourceText, triggerLocation.Position))
+            {
+                return true;
+            }
+
+            return false;
         }
 
         private static bool TryInvokeSnippetCompletion(
@@ -125,10 +147,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
         }
 
         public async Task<AsyncCompletionData.CompletionContext> GetCompletionContextAsync(
-            IAsyncCompletionSession session, 
-            AsyncCompletionData.CompletionTrigger trigger, 
-            SnapshotPoint triggerLocation, 
-            SnapshotSpan applicableToSpan, 
+            IAsyncCompletionSession session,
+            AsyncCompletionData.CompletionTrigger trigger,
+            SnapshotPoint triggerLocation,
+            SnapshotSpan applicableToSpan,
             CancellationToken cancellationToken)
         {
             AssertIsBackground();
@@ -177,7 +199,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
                             : string.Empty)
                     : null;
 
-            // This is a code supporting legacy completion scenarios:
+            // This is a code supporting original completion scenarios: 
+            // Controller.Session_ComputeModel: if completionList.SuggestionModeItem != null, then suggestionMode = true
             // If there are suggestionItemOptions, then later HandleNormalFiltering should set selection to SoftSelection.
             session.Properties.AddProperty(HasSuggestionItemOptions, suggestionItemOptions != null);
 
@@ -191,18 +214,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
             return new AsyncCompletionData.CompletionContext(
                 items,
                 suggestionItemOptions,
-                suggestionItemOptions == null 
-                ? AsyncCompletionData.InitialSelectionHint.RegularSelection 
-                : AsyncCompletionData.InitialSelectionHint.SoftSelection);
+                suggestionItemOptions == null
+                    ? AsyncCompletionData.InitialSelectionHint.RegularSelection
+                    : AsyncCompletionData.InitialSelectionHint.SoftSelection);
         }
 
         public async Task<object> GetDescriptionAsync(IAsyncCompletionSession session, VSCompletionItem item, CancellationToken cancellationToken)
         {
-            // The method is async but is called in the UI thread.
-            AssertIsForeground();
-
-            if (!item.Properties.TryGetProperty<RoslynCompletionItem>(RoslynItem, out var roslynItem) ||
-                !item.Properties.TryGetProperty<ITextSnapshot>(TriggerSnapshot, out var triggerSnapshot))
+            if (!item.Properties.TryGetProperty(RoslynItem, out RoslynCompletionItem roslynItem) ||
+                !item.Properties.TryGetProperty(TriggerSnapshot, out ITextSnapshot triggerSnapshot))
             {
                 return null;
             }
@@ -233,7 +253,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
         {
             var imageId = roslynItem.Tags.GetFirstGlyph().GetImageId();
             var filters = GetFilters(roslynItem, filterCache);
-            
+
             // roslynItem generated by providers can contain an insertionText in a property bag.
             // We will not use it but other providers may need it.
             // We actually will calculate the insertion text once again when called TryCommit.
@@ -263,13 +283,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
         private ImmutableArray<char> GetExcludedCommitCharacters(ImmutableArray<RoslynCompletionItem> roslynItems)
         {
             var hashSet = new HashSet<char>();
-            foreach(var roslynItem in roslynItems)
+            foreach (var roslynItem in roslynItems)
             {
-                foreach(var rule in  roslynItem.Rules?.FilterCharacterRules)
+                foreach (var rule in roslynItem.Rules?.FilterCharacterRules)
                 {
                     if (rule.Kind == CharacterSetModificationKind.Add)
                     {
-                        foreach(var c in rule.Characters)
+                        foreach (var c in rule.Characters)
                         {
                             hashSet.Add(c);
                         }

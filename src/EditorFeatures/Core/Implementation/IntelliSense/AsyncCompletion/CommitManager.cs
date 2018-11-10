@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
             CancellationToken cancellationToken)
         {
             AssertIsForeground();
-            if (session.Properties.TryGetProperty<ImmutableArray<char>>(CompletionSource.ExcludedCommitCharacters, out var excludedCommitCharacter))
+            if (session.Properties.TryGetProperty(CompletionSource.ExcludedCommitCharacters, out ImmutableArray<char> excludedCommitCharacter))
             {
                 if (excludedCommitCharacter.Contains(typedChar))
                 {
@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
                 return CommitResultUnhandled;
             }
 
-            if (!item.Properties.TryGetProperty<RoslynCompletionItem>(CompletionSource.RoslynItem, out var roslynItem))
+            if (!item.Properties.TryGetProperty(CompletionSource.RoslynItem, out RoslynCompletionItem roslynItem))
             {
                 // This isn't an item we provided (e.g. Razor). Let the editor handle it normally.
                 return CommitResultUnhandled;
@@ -101,8 +101,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
                 return new AsyncCompletionData.CommitResult(isHandled: true, AsyncCompletionData.CommitBehavior.CancelCommit);
             }
 
-            if (!item.Properties.TryGetProperty<ITextSnapshot>(CompletionSource.TriggerSnapshot, out var triggerSnapshot))
+            if (!item.Properties.TryGetProperty(CompletionSource.TriggerSnapshot, out ITextSnapshot triggerSnapshot))
             {
+                // Need the trigger snapshot to calculate the span when the commit changes to be applied.
+                // It should be inserted into a property bag within GetCompletionContextAsync for each item created by Roslyn.
+                // If not found here, Roslyn should not make a commit.
                 return CommitResultUnhandled;
             }
 
