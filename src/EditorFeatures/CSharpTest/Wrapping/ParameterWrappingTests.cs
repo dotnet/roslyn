@@ -121,7 +121,22 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping
 }",
 @"class C {
     public void Foo(int i,
-             int j) {
+                    int j) {
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
+        public async Task TestInHeader4()
+        {
+            await TestInRegularAndScript1Async(
+@"class C {
+    public void Foo(int i, int j)[||] {
+    }
+}",
+@"class C {
+    public void Foo(int i,
+                    int j) {
     }
 }");
         }
@@ -219,6 +234,99 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping
         int k) {
     }
 }", index: 2);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
+        public async Task Test_AllOptions_Index0()
+        {
+            await TestInRegularAndScript1Async(
+@"class C {
+    void Foo([||]
+        int i,
+            int j,
+                int k) {
+    }
+}",
+@"class C {
+    void Foo(int i,
+             int j,
+             int k) {
+    }
+}", index: 0);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
+        public async Task Test_AllOptions_Index1()
+        {
+            await TestInRegularAndScript1Async(
+@"class C {
+    void Foo([||]
+        int i,
+            int j,
+                int k) {
+    }
+}",
+@"class C {
+    void Foo(
+        int i,
+        int j,
+        int k) {
+    }
+}", index: 1);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
+        public async Task Test_AllOptions_Index2()
+        {
+            await TestInRegularAndScript1Async(
+@"class C {
+    void Foo([||]
+        int i,
+            int j,
+                int k) {
+    }
+}",
+@"class C {
+    void Foo(int i,
+        int j,
+        int k) {
+    }
+}", index: 2);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
+        public async Task Test_AllOptions_Index3()
+        {
+            await TestInRegularAndScript1Async(
+@"class C {
+    void Foo([||]
+        int i,
+            int j,
+                int k) {
+    }
+}",
+@"class C {
+    void Foo(int i, int j, int k) {
+    }
+}", index: 3);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
+        public async Task Test_AllOptions_Index4()
+        {
+            await TestInRegularAndScript1Async(
+@"class C {
+    void Foo([||]
+        int i,
+            int j,
+                int k) {
+    }
+}",
+@"class C {
+    void Foo(
+        int i, int j, int k) {
+    }
+}", index: 4);
         }
     }
 }
