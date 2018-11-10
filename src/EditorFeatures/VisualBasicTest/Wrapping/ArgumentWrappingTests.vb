@@ -1,14 +1,14 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.CodeRefactorings
-Imports Microsoft.CodeAnalysis.VisualBasic.Editor.Wrapping
+Imports Microsoft.CodeAnalysis.Editor.VisualBasic.Wrapping
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Wrapping
     Public Class ArgumentWrappingTests
         Inherits AbstractWrappingTests
 
         Protected Overrides Function CreateCodeRefactoringProvider(workspace As Workspace, parameters As TestParameters) As CodeRefactoringProvider
-            Return New VisualBasicArgumentWrappingCodeRefactoringProvider()
+            Return New VisualBasicWrappingCodeRefactoringProvider()
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)>

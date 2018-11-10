@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent
 
         private AbstractIndenter GetIndenter(Document document, int lineNumber, CancellationToken cancellationToken)
         {
-            var documentOptions = document.GetOptionsAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+            var documentOptions = document.GetOptionsAsync(cancellationToken).WaitAndGetResult_CanCallOnBackground(cancellationToken);
             var root = document.GetSyntaxRootSynchronously(cancellationToken);
 
             var sourceText = root.SyntaxTree.GetText(cancellationToken);

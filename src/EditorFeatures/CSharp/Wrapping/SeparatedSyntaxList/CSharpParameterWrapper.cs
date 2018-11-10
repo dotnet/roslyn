@@ -8,11 +8,10 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.Editor.Wrapping
+namespace Microsoft.CodeAnalysis.CSharp.Editor.Wrapping.SeparatedSyntaxList
 {
-    [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.ParameterWrapping), Shared]
-    internal partial class CSharpParameterWrappingCodeRefactoringProvider 
-        : AbstractCSharpWrappingCodeRefactoringProvider<BaseParameterListSyntax, ParameterSyntax>
+    internal partial class CSharpParameterWrapper
+        : AbstractCSharpSeparatedSyntaxListWrapper<BaseParameterListSyntax, ParameterSyntax>
     {
         protected override string ListName => FeaturesResources.parameter_list;
         protected override string ItemNamePlural => FeaturesResources.parameters;

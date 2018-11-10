@@ -1,15 +1,12 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Composition
-Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
-Namespace Microsoft.CodeAnalysis.VisualBasic.Editor.Wrapping
-    <ExportCodeRefactoringProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeRefactoringProviderNames.ParameterWrapping), [Shared]>
-    Partial Friend Class VisualBasicParameterWrappingCodeRefactoringProvider
-        Inherits AbstractVisualBasicWrappingCodeRefactoringProvider(Of ParameterListSyntax, ParameterSyntax)
+Namespace Microsoft.CodeAnalysis.VisualBasic.Editor.Wrapping.SeparatedSyntaxList
+    Partial Friend Class VisualBasicParameterWrapper
+        Inherits AbstractVisualBasicSeparatedSyntaxListWrapper(Of ParameterListSyntax, ParameterSyntax)
 
         Protected Overrides ReadOnly Property ListName As String = FeaturesResources.parameter_list
         Protected Overrides ReadOnly Property ItemNamePlural As String = FeaturesResources.parameters

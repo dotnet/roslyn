@@ -10,11 +10,9 @@ using static Microsoft.CodeAnalysis.CodeActions.CodeAction;
 
 namespace Microsoft.CodeAnalysis.Editor.Wrapping
 {
-    internal abstract partial class AbstractWrappingCodeRefactoringProvider<
-        TListSyntax,
-        TListItemSyntax>
+    internal abstract partial class AbstractWrapper
     {
-        private class WrapItemsAction : DocumentChangeAction
+        protected class WrapItemsAction : DocumentChangeAction
         {
             private readonly string _parentTitle;
 

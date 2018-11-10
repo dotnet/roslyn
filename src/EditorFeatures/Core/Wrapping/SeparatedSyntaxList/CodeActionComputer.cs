@@ -13,18 +13,16 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using static Microsoft.CodeAnalysis.CodeActions.CodeAction;
 
-namespace Microsoft.CodeAnalysis.Editor.Wrapping
+namespace Microsoft.CodeAnalysis.Editor.Wrapping.SeparatedSyntaxList
 {
-    internal abstract partial class AbstractWrappingCodeRefactoringProvider<
-        TListSyntax,
-        TListItemSyntax>
+    internal abstract partial class AbstractSeparatedSyntaxListWrapper<TListSyntax, TListItemSyntax>
     {
         /// <summary>
         /// Class responsible for actually computing the entire set of code actions to offer the user.
         /// </summary>
         private class CodeActionComputer
         {
-            private readonly AbstractWrappingCodeRefactoringProvider<TListSyntax, TListItemSyntax> _service;
+            private readonly AbstractSeparatedSyntaxListWrapper<TListSyntax, TListItemSyntax> _service;
             private readonly Document _originalDocument;
             private readonly DocumentOptionSet _options;
             private readonly TListSyntax _listSyntax;
@@ -63,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping
             private string _singleIndention;
 
             public CodeActionComputer(
-                AbstractWrappingCodeRefactoringProvider<TListSyntax, TListItemSyntax> service,
+                AbstractSeparatedSyntaxListWrapper<TListSyntax, TListItemSyntax> service,
                 Document document, DocumentOptionSet options,
                 TListSyntax listSyntax, SeparatedSyntaxList<TListItemSyntax> listItems)
             {

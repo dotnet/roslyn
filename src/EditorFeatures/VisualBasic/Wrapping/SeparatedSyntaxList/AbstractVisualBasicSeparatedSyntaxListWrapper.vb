@@ -2,13 +2,13 @@
 
 Imports Microsoft.CodeAnalysis.Editor
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.Formatting.Indentation
-Imports Microsoft.CodeAnalysis.Editor.Wrapping
+Imports Microsoft.CodeAnalysis.Editor.Wrapping.SeparatedSyntaxList
 Imports Microsoft.CodeAnalysis.Formatting.Rules
 
-Namespace Microsoft.CodeAnalysis.VisualBasic.Editor.Wrapping
-    Friend MustInherit Class AbstractVisualBasicWrappingCodeRefactoringProvider(
+Namespace Microsoft.CodeAnalysis.VisualBasic.Editor.Wrapping.SeparatedSyntaxList
+    Friend MustInherit Class AbstractVisualBasicSeparatedSyntaxListWrapper(
         Of TListSyntax As SyntaxNode, TListItemSyntax As SyntaxNode)
-        Inherits AbstractWrappingCodeRefactoringProvider(Of TListSyntax, TListItemSyntax)
+        Inherits AbstractSeparatedSyntaxListWrapper(Of TListSyntax, TListItemSyntax)
 
         Protected Overrides Function GetIndentationService() As IBlankLineIndentationService
             Return New IndentationService()
