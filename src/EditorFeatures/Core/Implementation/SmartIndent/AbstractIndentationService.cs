@@ -31,33 +31,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent
         public IndentationResult? GetDesiredIndentation(
             Document document, int lineNumber, CancellationToken cancellationToken)
         {
-            var documentOptions = document.GetOptionsAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+            GetIndenterData(document, lineNumber,
+                out var documentOptions, out var root, out var lineToBeIndented,
+                out var formattingRules, cancellationToken);
+
             var indentStyle = documentOptions.GetOption(FormattingOptions.SmartIndent, document.Project.Language);
             if (indentStyle == FormattingOptions.IndentStyle.None)
             {
                 // If there is no indent style, then do nothing.
                 return null;
             }
-
-            return GetDesiredIndentation(document, lineNumber, indentStyle, cancellationToken);
-        }
-
-        /// <summary>
-        /// Similar to <see cref="GetDesiredIndentation(Document, int, CancellationToken)"/> except that
-        /// an explicit indent style can be provided that is independent of the style specified by the
-        /// <paramref name="document"/>.  This indent style cannot be <see cref="FormattingOptions.IndentStyle.None"/>;
-        /// </summary>
-        private IndentationResult? GetDesiredIndentation(
-            Document document, int lineNumber, FormattingOptions.IndentStyle indentStyle, CancellationToken cancellationToken)
-        {
-            if (indentStyle == FormattingOptions.IndentStyle.None)
-            {
-                throw new ArgumentException(nameof(indentStyle));
-            }
-
-            GetIndenterData(document, lineNumber,
-                out var documentOptions, out var root, out var lineToBeIndented,
-                out var formattingRules, cancellationToken);
 
             // There are two important cases for indentation.  The first is when we're simply
             // trying to figure out the appropriate indentation on a blank line (i.e. after
@@ -77,11 +60,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent
 
         /// <summary>
         /// Determines indentation for a blank line (i.e. after hitting enter at the end of a line,
-        /// or after moving to a blank line).
+        /// or after moving to a blank line). This indent style cannot be <see cref="FormattingOptions.IndentStyle.None"/>;
         /// </summary>
         public IndentationResult GetBlankLineIndentation(
             Document document, int lineNumber, FormattingOptions.IndentStyle indentStyle, CancellationToken cancellationToken)
         {
+            if (indentStyle == FormattingOptions.IndentStyle.None)
+            {
+                throw new ArgumentException(nameof(indentStyle));
+            }
+
             GetIndenterData(document, lineNumber,
                 out var documentOptions, out var root, out var lineToBeIndented,
                 out var formattingRules, cancellationToken);
