@@ -18,6 +18,9 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping
         TListSyntax,
         TListItemSyntax>
     {
+        /// <summary>
+        /// Class responsible for actually computing the entire set of code actions to offer the user.
+        /// </summary>
         private class CodeActionComputer
         {
             private readonly AbstractWrappingCodeRefactoringProvider<TListSyntax, TListItemSyntax> _service;
@@ -34,8 +37,29 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping
             private readonly ISynchronousIndentationService _indentationService;
 
             private SourceText _originalSourceText;
-            private string _singleIndentionOpt;
+
+            /// <summary>
+            /// The indentation string necessary to indent an item in a list such that the start of
+            /// that item will exact start at the end of the open-token for the containing list. i.e.
+            /// 
+            ///     void Goobar(
+            ///                 ^
+            ///                 |
+            /// 
+            /// This is the indentation we want when we're aligning wrapped items with the first item 
+            /// in the list.
+            /// </summary>
             private string _afterOpenTokenIndentation;
+
+            /// <summary>
+            /// Indentation amount for any items that have been wrapped to a new line.  Valid if we're
+            /// not aligning with the first item. i.e.
+            /// 
+            ///     void Goobar(
+            ///         ^
+            ///         |
+            /// </summary>
+            private string _singleIndentionOpt;
 
             public CodeActionComputer(
                 AbstractWrappingCodeRefactoringProvider<TListSyntax, TListItemSyntax> service,
