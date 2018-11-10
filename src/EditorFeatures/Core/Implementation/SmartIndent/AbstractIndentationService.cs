@@ -14,7 +14,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent
 {
-    internal abstract partial class AbstractIndentationService : ISynchronousIndentationService
+    internal abstract partial class AbstractIndentationService : ISynchronousIndentationService, IBlankLineIndentationService
     {
         protected abstract IFormattingRule GetSpecializedIndentationFormattingRule();
 

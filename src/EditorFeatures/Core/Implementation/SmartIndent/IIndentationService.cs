@@ -45,6 +45,12 @@ namespace Microsoft.CodeAnalysis.Editor
 
     internal interface ISynchronousIndentationService : ILanguageService
     {
+        /// <summary>
+        /// Determines the desired indentation of a given line.  May return <code>null</code> if the
+        /// <paramref name="document"/> does not want any sort of automatic indentation.  May also return
+        /// <code>null</code> if the line in question is not blank and thus indentation should be deferred
+        /// to the formatting command handler to handle.
+        /// </summary>
         IndentationResult? GetDesiredIndentation(Document document, int lineNumber, CancellationToken cancellationToken);
     }
 }
