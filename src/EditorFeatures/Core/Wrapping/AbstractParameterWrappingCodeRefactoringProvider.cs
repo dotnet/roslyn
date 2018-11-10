@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
@@ -92,11 +93,44 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping
                 }
             }
 
+            // If there are comments between any nodes/tokens in the list then don't offer the
+            // refactoring.  We'll likely not be able to properly keep the comments in the right
+            // place as we move things around.
+            var openToken = listSyntax.GetFirstToken();
+            var closeToken = listSyntax.GetLastToken();
+            if (ContainsNonWhitespaceTrivia(syntaxFacts, openToken.TrailingTrivia) ||
+                ContainsNonWhitespaceTrivia(syntaxFacts, closeToken.LeadingTrivia))
+            {
+                return;
+            }
+
+            foreach (var nodeOrToken in listItems.GetWithSeparators())
+            {
+                if (ContainsNonWhitespaceTrivia(syntaxFacts, nodeOrToken.GetLeadingTrivia()) ||
+                    ContainsNonWhitespaceTrivia(syntaxFacts, nodeOrToken.GetTrailingTrivia()))
+                {
+                    return;
+                }
+            }
+
             var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
             var computer = new CodeActionComputer(this, document, options, listSyntax, listItems);
             var codeActions = await computer.DoAsync(cancellationToken).ConfigureAwait(false);
 
             context.RegisterRefactorings(codeActions);
+        }
+
+        private bool ContainsNonWhitespaceTrivia(ISyntaxFactsService syntaxFacts, SyntaxTriviaList triviaList)
+        {
+            foreach (var trivia in triviaList)
+            {
+                if (!syntaxFacts.IsWhitespaceOrEndOfLineTrivia(trivia))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         private static ImmutableArray<CodeAction> SortActionsByMRU(ImmutableArray<CodeAction> codeActions)

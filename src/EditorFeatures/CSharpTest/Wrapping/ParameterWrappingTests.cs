@@ -55,6 +55,105 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
+        public async Task TestMissingWithOpenTokenTrailingComment()
+        {
+            await TestMissingAsync(
+@"class C {
+    void Goo([||]/**/int i, int j) {
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
+        public async Task TestMissingWithItemLeadingComment()
+        {
+            await TestMissingAsync(
+@"class C {
+    void Goo([||]
+        /**/int i, int j) {
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
+        public async Task TestMissingWithItemTrailingComment()
+        {
+            await TestMissingAsync(
+@"class C {
+    void Goo([||]
+        int i/**/, int j) {
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
+        public async Task TestMissingWithCommaTrailingComment()
+        {
+            await TestMissingAsync(
+@"class C {
+    void Goo([||]
+        int i,/**/int j) {
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
+        public async Task TestMissingWithLastItemTrailingComment()
+        {
+            await TestMissingAsync(
+@"class C {
+    void Goo([||]
+        int i, int j/**/
+        ) {
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
+        public async Task TestMissingWithCloseTokenLeadingComment()
+        {
+            await TestMissingAsync(
+@"class C {
+    void Goo([||]
+        int i, int j
+        /**/) {
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
+        public async Task TestWithOpenTokenLeadingComment()
+        {
+            await TestInRegularAndScript1Async(
+@"class C {
+    void Goo/**/([||]int i, int j) {
+    }
+}",
+
+@"class C {
+    void Goo/**/(int i,
+                 int j) {
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
+        public async Task TestWithCloseTokenTrailingComment()
+        {
+            await TestInRegularAndScript1Async(
+@"class C {
+    void Goo([||]int i, int j)/**/ {
+    }
+}",
+
+@"class C {
+    void Goo(int i,
+             int j)/**/ {
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
         public async Task TestMissingWithSingleParameter()
         {
             await TestMissingAsync(
