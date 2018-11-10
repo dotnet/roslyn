@@ -29,11 +29,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             public override int GetHashCode()
             {
-                return Roslyn.Utilities.Hash.Combine(Symbol, ContainingSlot);
+                return Roslyn.Utilities.Hash.Combine(Symbol?.OriginalDefinition, ContainingSlot);
             }
             public bool Equals(VariableIdentifier other)
             {
-                return ((object)Symbol == null ? (object)other.Symbol == null : Symbol.Equals(other.Symbol)) && ContainingSlot == other.ContainingSlot;
+                return ((object)Symbol == null ? (object)other.Symbol == null : Symbol.OriginalDefinition.Equals(other.Symbol.OriginalDefinition)) && ContainingSlot == other.ContainingSlot;
             }
             public override bool Equals(object obj)
             {
