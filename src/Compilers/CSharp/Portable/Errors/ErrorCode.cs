@@ -1592,6 +1592,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_ForEachMissingMemberWrongAsync = 8414,
         ERR_AwaitForEachMissingMemberWrongAsync = 8415,
         ERR_BadDynamicAwaitForEach = 8416,
+        ERR_NoConvToIAsyncDispWrongAsync = 8417,
+        ERR_NoConvToIDispWrongAsync = 8418,
 
         WRN_ConvertingNullableToNonNullable = 8600,
         WRN_NullReferenceAssignment = 8601,

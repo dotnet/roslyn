@@ -433,7 +433,7 @@ class C
             await TestDiagnosticMissingAsync(
 @"class C
 {
-    private abstract void [|M|]();
+    protected abstract void [|M|]();
 }");
         }
 
@@ -474,6 +474,52 @@ class C : I
 class C : I
 {
     int I.[|P|] { get { return 0; } set { } }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
+        [WorkItem(30965, "https://github.com/dotnet/roslyn/issues/30965")]
+        public async Task EventIsUnused_ExplicitInterfaceImplementation()
+        {
+            await TestDiagnosticMissingAsync(
+@"interface I
+{
+    event System.Action E;
+}
+
+class C : I
+{
+    event System.Action [|I.E|]
+    {
+        add { }
+        remove { }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
+        [WorkItem(30894, "https://github.com/dotnet/roslyn/issues/30894")]
+        public async Task WriteOnlyProperty_NotWritten()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    int [|P|] { set { } }
+}",
+@"class C
+{
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
+        [WorkItem(30894, "https://github.com/dotnet/roslyn/issues/30894")]
+        public async Task WriteOnlyProperty_Written()
+        {
+            await TestDiagnosticMissingAsync(
+@"class C
+{
+    int [|P|] { set { } }
+    void M(int i) => P = i;
 }");
         }
 
@@ -1846,6 +1892,106 @@ class C
         public int M;
     }
 }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
+        [WorkItem(30886, "https://github.com/dotnet/roslyn/issues/30886")]
+        public async Task SerializableConstructor_TypeImplementsISerializable()
+        {
+            await TestDiagnosticMissingAsync(
+@"using System.Runtime.Serialization;
+
+class C : ISerializable
+{
+    public C()
+    {
+    }
+
+    private [|C|](SerializationInfo info, StreamingContext context)
+    {
+    }
+
+    public void GetObjectData(SerializationInfo info, StreamingContext context)
+    {
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
+        [WorkItem(30886, "https://github.com/dotnet/roslyn/issues/30886")]
+        public async Task SerializableConstructor_BaseTypeImplementsISerializable()
+        {
+            await TestDiagnosticMissingAsync(
+@"using System;
+using System.Runtime.Serialization;
+
+class C : Exception 
+{
+    public C()
+    {
+    }
+
+    private [|C|](SerializationInfo info, StreamingContext context)
+        : base(info, context)
+    {
+    }
+
+    public void GetObjectData(SerializationInfo info, StreamingContext context)
+    {
+    }
+}");
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
+        [InlineData(@"[System.Runtime.Serialization.OnDeserializingAttribute]")]
+        [InlineData(@"[System.Runtime.Serialization.OnDeserializedAttribute]")]
+        [InlineData(@"[System.Runtime.Serialization.OnSerializingAttribute]")]
+        [InlineData(@"[System.Runtime.Serialization.OnSerializedAttribute]")]
+        [InlineData(@"[System.Runtime.InteropServices.ComRegisterFunctionAttribute]")]
+        [InlineData(@"[System.Runtime.InteropServices.ComUnregisterFunctionAttribute]")]
+        public async Task MethodsWithSpecialAttributes(string attribute)
+        {
+            await TestDiagnosticMissingAsync(
+$@"class C
+{{
+    {attribute}
+    private void [|M|]()
+    {{
+    }}
+}}");
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
+        [InlineData("ShouldSerialize")]
+        [InlineData("Reset")]
+        [WorkItem(30887, "https://github.com/dotnet/roslyn/issues/30887")]
+        public async Task ShouldSerializeOrResetPropertyMethod(string prefix)
+        {
+            await TestDiagnosticMissingAsync(
+$@"class C
+{{
+    private bool [|{prefix}Data|]()
+    {{
+        return true;
+    }}
+
+    public int Data {{ get; private set; }}
+}}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
+        [WorkItem(30377, "https://github.com/dotnet/roslyn/issues/30377")]
+        public async Task EventHandlerMethod()
+        {
+            await TestDiagnosticMissingAsync(
+$@"using System;
+
+class C
+{{
+    private void [|M|](object o, EventArgs args)
+    {{
+    }}
+}}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
