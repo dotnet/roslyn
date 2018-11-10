@@ -418,5 +418,313 @@ GetIndentionColumn(30),
     }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
+        public async Task Test_DoNotOfferLongWrappingOptionThatAlreadyAppeared()
+        {
+            await TestAllWrappingCasesAsync(
+@"class C {
+    void Foo([||]
+        int iiiii, int jjjjj, int kkkkk, int lllll, int mmmmm,
+        int nnnnn) {
+    }
+}",
+GetIndentionColumn(30),
+@"class C {
+    void Foo(int iiiii,
+             int jjjjj,
+             int kkkkk,
+             int lllll,
+             int mmmmm,
+             int nnnnn) {
+    }
+}",
+@"class C {
+    void Foo(
+        int iiiii,
+        int jjjjj,
+        int kkkkk,
+        int lllll,
+        int mmmmm,
+        int nnnnn) {
+    }
+}",
+@"class C {
+    void Foo(int iiiii,
+        int jjjjj,
+        int kkkkk,
+        int lllll,
+        int mmmmm,
+        int nnnnn) {
+    }
+}",
+@"class C {
+    void Foo(int iiiii, int jjjjj, int kkkkk, int lllll, int mmmmm, int nnnnn) {
+    }
+}",
+@"class C {
+    void Foo(
+        int iiiii, int jjjjj, int kkkkk, int lllll, int mmmmm, int nnnnn) {
+    }
+}",
+@"class C {
+    void Foo(
+        int iiiii, int jjjjj,
+        int kkkkk, int lllll,
+        int mmmmm, int nnnnn) {
+    }
+}",
+@"class C {
+    void Foo(int iiiii, int jjjjj,
+        int kkkkk, int lllll,
+        int mmmmm, int nnnnn) {
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
+        public async Task Test_DoNotOfferAllLongWrappingOptionThatAlreadyAppeared()
+        {
+            await TestAllWrappingCasesAsync(
+@"class C {
+    void Foo([||]
+        int iiiii, int jjjjj, int kkkkk, int lllll, int mmmmm,
+        int nnnnn) {
+    }
+}",
+GetIndentionColumn(20),
+@"class C {
+    void Foo(int iiiii,
+             int jjjjj,
+             int kkkkk,
+             int lllll,
+             int mmmmm,
+             int nnnnn) {
+    }
+}",
+@"class C {
+    void Foo(
+        int iiiii,
+        int jjjjj,
+        int kkkkk,
+        int lllll,
+        int mmmmm,
+        int nnnnn) {
+    }
+}",
+@"class C {
+    void Foo(int iiiii,
+        int jjjjj,
+        int kkkkk,
+        int lllll,
+        int mmmmm,
+        int nnnnn) {
+    }
+}",
+@"class C {
+    void Foo(int iiiii, int jjjjj, int kkkkk, int lllll, int mmmmm, int nnnnn) {
+    }
+}",
+@"class C {
+    void Foo(
+        int iiiii, int jjjjj, int kkkkk, int lllll, int mmmmm, int nnnnn) {
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
+        public async Task Test_LongWrapping_VariadicLengthIds2()
+        {
+            await TestAllWrappingCasesAsync(
+@"class C {
+    void Foo([||]
+        int i, int jj, int kkkk, int lll, int mm,
+        int n) {
+    }
+}",
+GetIndentionColumn(30),
+@"class C {
+    void Foo(int i,
+             int jj,
+             int kkkk,
+             int lll,
+             int mm,
+             int n) {
+    }
+}",
+@"class C {
+    void Foo(
+        int i,
+        int jj,
+        int kkkk,
+        int lll,
+        int mm,
+        int n) {
+    }
+}",
+@"class C {
+    void Foo(int i,
+        int jj,
+        int kkkk,
+        int lll,
+        int mm,
+        int n) {
+    }
+}",
+@"class C {
+    void Foo(int i, int jj, int kkkk, int lll, int mm, int n) {
+    }
+}",
+@"class C {
+    void Foo(
+        int i, int jj, int kkkk, int lll, int mm, int n) {
+    }
+}",
+@"class C {
+    void Foo(int i, int jj,
+             int kkkk, int lll,
+             int mm, int n) {
+    }
+}",
+@"class C {
+    void Foo(
+        int i, int jj,
+        int kkkk, int lll,
+        int mm, int n) {
+    }
+}",
+@"class C {
+    void Foo(int i, int jj,
+        int kkkk, int lll,
+        int mm, int n) {
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
+        public async Task Test_DoNotOfferExistingOption1()
+        {
+            await TestAllWrappingCasesAsync(
+@"class C {
+    void Foo([||]int i,
+             int jj,
+             int kkkk,
+             int lll,
+             int mm,
+             int n) {
+    }
+}",
+GetIndentionColumn(30),
+@"class C {
+    void Foo(
+        int i,
+        int jj,
+        int kkkk,
+        int lll,
+        int mm,
+        int n) {
+    }
+}",
+@"class C {
+    void Foo(int i,
+        int jj,
+        int kkkk,
+        int lll,
+        int mm,
+        int n) {
+    }
+}",
+@"class C {
+    void Foo(int i, int jj, int kkkk, int lll, int mm, int n) {
+    }
+}",
+@"class C {
+    void Foo(
+        int i, int jj, int kkkk, int lll, int mm, int n) {
+    }
+}",
+@"class C {
+    void Foo(int i, int jj,
+             int kkkk, int lll,
+             int mm, int n) {
+    }
+}",
+@"class C {
+    void Foo(
+        int i, int jj,
+        int kkkk, int lll,
+        int mm, int n) {
+    }
+}",
+@"class C {
+    void Foo(int i, int jj,
+        int kkkk, int lll,
+        int mm, int n) {
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
+        public async Task Test_DoNotOfferExistingOption2()
+        {
+            await TestAllWrappingCasesAsync(
+@"class C {
+    void Foo([||]
+        int i,
+        int jj,
+        int kkkk,
+        int lll,
+        int mm,
+        int n) {
+    }
+}",
+GetIndentionColumn(30),
+@"class C {
+    void Foo(int i,
+             int jj,
+             int kkkk,
+             int lll,
+             int mm,
+             int n) {
+    }
+}",
+@"class C {
+    void Foo(int i,
+        int jj,
+        int kkkk,
+        int lll,
+        int mm,
+        int n) {
+    }
+}",
+@"class C {
+    void Foo(int i, int jj, int kkkk, int lll, int mm, int n) {
+    }
+}",
+@"class C {
+    void Foo(
+        int i, int jj, int kkkk, int lll, int mm, int n) {
+    }
+}",
+@"class C {
+    void Foo(int i, int jj,
+             int kkkk, int lll,
+             int mm, int n) {
+    }
+}",
+@"class C {
+    void Foo(
+        int i, int jj,
+        int kkkk, int lll,
+        int mm, int n) {
+    }
+}",
+@"class C {
+    void Foo(int i, int jj,
+        int kkkk, int lll,
+        int mm, int n) {
+    }
+}");
+        }
     }
 }
