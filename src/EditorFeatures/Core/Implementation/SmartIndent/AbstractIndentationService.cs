@@ -51,12 +51,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent
                 return null;
             }
 
+            var indentStyle = documentOptions.GetOption(FormattingOptions.SmartIndent, document.Project.Language);
+            if (indentStyle == FormattingOptions.IndentStyle.None)
+            {
+                // If there is no indent style, then do nothing.
+                return null;
+            }
+
             var indenter = GetIndenter(
                 document.GetLanguageService<ISyntaxFactsService>(),
                 root.SyntaxTree, lineToBeIndented, formattingRules,
                 documentOptions, cancellationToken);
 
-            return indenter.GetDesiredIndentation(document);
+            return indenter.GetDesiredIndentation(document, indentStyle);
         }
 
         protected abstract AbstractIndenter GetIndenter(
