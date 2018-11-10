@@ -345,5 +345,78 @@ GetIndentionColumn(30),
     }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
+        public async Task Test_LongWrapping_VariadicLengthIds()
+        {
+            await TestAllWrappingCasesAsync(
+@"class C {
+    void Foo([||]
+        int i, int jj, int kkkk, int llllllll, int mmmmmmmmmmmmmmmm,
+        int nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn) {
+    }
+}",
+GetIndentionColumn(30),
+@"class C {
+    void Foo(int i,
+             int jj,
+             int kkkk,
+             int llllllll,
+             int mmmmmmmmmmmmmmmm,
+             int nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn) {
+    }
+}",
+@"class C {
+    void Foo(
+        int i,
+        int jj,
+        int kkkk,
+        int llllllll,
+        int mmmmmmmmmmmmmmmm,
+        int nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn) {
+    }
+}",
+@"class C {
+    void Foo(int i,
+        int jj,
+        int kkkk,
+        int llllllll,
+        int mmmmmmmmmmmmmmmm,
+        int nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn) {
+    }
+}",
+@"class C {
+    void Foo(int i, int jj, int kkkk, int llllllll, int mmmmmmmmmmmmmmmm, int nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn) {
+    }
+}",
+@"class C {
+    void Foo(
+        int i, int jj, int kkkk, int llllllll, int mmmmmmmmmmmmmmmm, int nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn) {
+    }
+}",
+@"class C {
+    void Foo(int i, int jj,
+             int kkkk,
+             int llllllll,
+             int mmmmmmmmmmmmmmmm,
+             int nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn) {
+    }
+}",
+@"class C {
+    void Foo(
+        int i, int jj,
+        int kkkk, int llllllll,
+        int mmmmmmmmmmmmmmmm,
+        int nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn) {
+    }
+}",
+@"class C {
+    void Foo(int i, int jj,
+        int kkkk, int llllllll,
+        int mmmmmmmmmmmmmmmm,
+        int nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn) {
+    }
+}");
+        }
     }
 }
