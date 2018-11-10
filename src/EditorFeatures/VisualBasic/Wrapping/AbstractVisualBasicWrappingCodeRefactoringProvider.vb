@@ -5,7 +5,6 @@ Imports Microsoft.CodeAnalysis.Editor.VisualBasic.Formatting.Indentation
 Imports Microsoft.CodeAnalysis.Editor.Wrapping
 Imports Microsoft.CodeAnalysis.Formatting.Rules
 
-
 Namespace Microsoft.CodeAnalysis.VisualBasic.Editor.Wrapping
     Friend MustInherit Class AbstractVisualBasicWrappingCodeRefactoringProvider(
         Of TListSyntax As SyntaxNode, TListItemSyntax As SyntaxNode)
