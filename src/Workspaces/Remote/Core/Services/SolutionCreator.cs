@@ -267,6 +267,11 @@ namespace Microsoft.CodeAnalysis.Remote
                 project = project.Solution.WithProjectOutputRefFilePath(project.Id, newProjectInfo.OutputRefFilePath).GetProject(project.Id);
             }
 
+            if (project.State.ProjectInfo.Attributes.DefaultNamespace != newProjectInfo.DefaultNamespace)
+            {
+                project = project.Solution.WithProjectDefaultNamespace(project.Id, newProjectInfo.DefaultNamespace).GetProject(project.Id);
+            }
+
             if (project.State.ProjectInfo.Attributes.HasAllInformation != newProjectInfo.HasAllInformation)
             {
                 project = project.Solution.WithHasAllInformation(project.Id, newProjectInfo.HasAllInformation).GetProject(project.Id);
@@ -516,7 +521,9 @@ namespace Microsoft.CodeAnalysis.Remote
                 projectInfo.Id, projectInfo.Version, projectInfo.Name, projectInfo.AssemblyName,
                 projectInfo.Language, projectInfo.FilePath, projectInfo.OutputFilePath,
                 compilationOptions, parseOptions,
-                documents, p2p, metadata, analyzers, additionals, projectInfo.IsSubmission).WithHasAllInformation(projectInfo.HasAllInformation);
+                documents, p2p, metadata, analyzers, additionals, projectInfo.IsSubmission)
+                .WithHasAllInformation(projectInfo.HasAllInformation)
+                .WithDefaultNamespace(projectInfo.DefaultNamespace);
         }
 
         private async Task<List<T>> CreateCollectionAsync<T>(ChecksumCollection collections)

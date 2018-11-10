@@ -341,12 +341,12 @@
       </trans-unit>
       <trans-unit id="StartMustNotBeNegative">
         <source>'start' must not be negative</source>
-        <target state="translated">'Element „start” nie może być wartością ujemną</target>
+        <target state="translated">Element „start” nie może być wartością ujemną</target>
         <note />
       </trans-unit>
       <trans-unit id="EndMustNotBeLessThanStart">
         <source>'end' must not be less than 'start'</source>
-        <target state="translated">'Element „end” nie może mieć mniejszej wartości niż element „start”</target>
+        <target state="translated">Element „end” nie może mieć mniejszej wartości niż element „start”</target>
         <note />
       </trans-unit>
       <trans-unit id="InvalidContentType">
@@ -381,17 +381,17 @@
       </trans-unit>
       <trans-unit id="StreamMustSupportRead">
         <source>Stream must be readable.</source>
-        <target state="translated">Strumień musi być możliwy do odczytania.</target>
+        <target state="translated">Strumień musi być możliwy do odczytu.</target>
         <note />
       </trans-unit>
       <trans-unit id="StreamMustSupportWrite">
         <source>Stream must be writable.</source>
-        <target state="translated">Strumień musi być zapisywalny.</target>
+        <target state="translated">Strumień musi być możliwy do zapisu.</target>
         <note />
       </trans-unit>
       <trans-unit id="PdbStreamUnexpectedWhenEmbedding">
         <source>PDB stream should not be given when embedding PDB into the PE stream.</source>
-        <target state="translated">Nie należy podawać strumienia PDB podczas wbudowywania pliku PDB w strumieniu PE.</target>
+        <target state="translated">Nie należy podawać strumienia PDB podczas osadzania pliku PDB w strumieniu PE.</target>
         <note />
       </trans-unit>
       <trans-unit id="PdbStreamUnexpectedWhenEmittingMetadataOnly">
@@ -456,7 +456,7 @@
       </trans-unit>
       <trans-unit id="CoffResourceMissingSection">
         <source>Win32 resources, assumed to be in COFF object format, are missing one or both of sections '.rsrc$01' and '.rsrc$02'</source>
-        <target state="translated">Zasoby Win32, w przypadku których zakłada się, że format obiektu to COFF, nie zawierają jednej sekcji „rsrc$01” lub „rsrc$02” albo obu tych sekcji.</target>
+        <target state="translated">Zasoby Win32, w przypadku których zakłada się, że format obiektu to COFF, nie zawierają sekcji „rsrc$01” lub „rsrc$02” albo obu tych sekcji.</target>
         <note />
       </trans-unit>
       <trans-unit id="IconStreamUnexpectedFormat">
@@ -678,7 +678,7 @@
       </trans-unit>
       <trans-unit id="KeepAliveWithoutShared">
         <source>'/keepalive' option is only valid with '/shared' option.</source>
-        <target state="translated">'Opcja „/keepalive” jest prawidłowa tylko z opcją „/shared”.</target>
+        <target state="translated">Opcja „/keepalive” jest prawidłowa tylko z opcją „/shared”.</target>
         <note />
       </trans-unit>
       <trans-unit id="MismatchedVersion">
@@ -693,7 +693,7 @@
       </trans-unit>
       <trans-unit id="AnalyzerTotalExecutionTime">
         <source>Total analyzer execution time: {0} seconds.</source>
-        <target state="translated">Łączny czas wykonywania analizatora: {0} sek.</target>
+        <target state="translated">Łączny czas wykonywania analizatora: {0} s</target>
         <note />
       </trans-unit>
       <trans-unit id="MultithreadedAnalyzerExecutionNote">
@@ -830,7 +830,7 @@
       </trans-unit>
       <trans-unit id="ElementIsExpected">
         <source>element is expected</source>
-        <target state="translated">element jest oczekiwany</target>
+        <target state="translated">oczekiwano elementu</target>
         <note />
       </trans-unit>
       <trans-unit id="SeparatorIsExpected">

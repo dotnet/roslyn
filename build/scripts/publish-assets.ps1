@@ -60,7 +60,7 @@ function Publish-NuGet([string]$packageDir, [string]$uploadUrl) {
 function Publish-Vsix([string]$uploadUrl) {
     Write-Host "Publishing VSIX to $uploadUrl"
     $apiKey = Get-PublishKey $uploadUrl
-    $extensions = [xml](Get-Content (Join-Path $repoDir "build\config\myget_org-extensions.config"))
+    $extensions = [xml](Get-Content (Join-Path $RepoRoot "build\config\myget_org-extensions.config"))
     foreach ($extension in $extensions.extensions.extension) {
         $vsix = Join-Path $vsSetupDir ($extension.id + ".vsix")
         if (-not (Test-Path $vsix)) {

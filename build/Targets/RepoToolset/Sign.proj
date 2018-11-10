@@ -5,13 +5,23 @@
   <Import Project="$(NuGetPackageRoot)microsoft.dotnet.signtool\$(MicrosoftDotNetSignToolVersion)\build\Microsoft.DotNet.SignTool.props" />
 
   <ItemGroup>
+    <!-- 
+      This is intended to hold information about the certificates used for signing. 
+      For now the only information required is whether or not the certificate can be 
+      used for signing already signed files - DualSigningAllowed==true.
+    -->
+    <CertificatesSignInfo Include="3PartyDual" DualSigningAllowed="true" />
+    <CertificatesSignInfo Include="3PartySHA2" DualSigningAllowed="true" />
+    
     <!-- List of container files that will be opened and checked for files that need to be signed. -->
     <ItemsToSign Include="$(ArtifactsPackagesDir)**\*.nupkg" />
     <ItemsToSign Include="$(VisualStudioSetupOutputPath)**\*.vsix" />
-  
+
     <!-- Default certificate/strong-name to be used for all files with PKT=="31bf3856ad364e35". -->
-    <StrongNameSignInfo Include="MsSharedLib72" PublicKeyToken="31bf3856ad364e35" CertificateName="MicrosoftSHA2" />
-  
+    <StrongNameSignInfo Include="MsSharedLib72" PublicKeyToken="31bf3856ad364e35" CertificateName="Microsoft400" />
+    <StrongNameSignInfo Include="SilverlightCert121" PublicKeyToken="7cec85d7bea7798e" CertificateName="Microsoft400" />
+    <StrongNameSignInfo Include="StrongName" PublicKeyToken="b03f5f7f11d50a3a" CertificateName="Microsoft400" />
+
     <!-- 
       Map of file extensions to default certificate name. Files with these extensions are
       signed with the specified certificate. Particularly useful for files that don't have
@@ -19,9 +29,8 @@
       The certificate can be overriden using the StrongNameSignInfo or the FileSignInfo item group.
     -->
     <FileExtensionSignInfo Include=".jar" CertificateName="MicrosoftJAR" />
-    <FileExtensionSignInfo Include=".dylib" CertificateName="Apple" />
-    <FileExtensionSignInfo Include=".js;.ps1;.psd1;.psm1;.psc1" CertificateName="Microsoft" />
-    <FileExtensionSignInfo Include=".dll;.exe" CertificateName="MicrosoftSHA2" />
+    <FileExtensionSignInfo Include=".js;.ps1;.psd1;.psm1;.psc1" CertificateName="Microsoft400" />
+    <FileExtensionSignInfo Include=".dll;.exe" CertificateName="Microsoft400" />
     <FileExtensionSignInfo Include=".nupkg" CertificateName="NuGet" />
     <FileExtensionSignInfo Include=".vsix" CertificateName="VsixSHA2" />
     <FileExtensionSignInfo Include=".zip" CertificateName="None" />
@@ -60,15 +69,16 @@
     <Microsoft.DotNet.SignTool.SignToolTask
         DryRun="$(_DryRun)"
         TestSign="$(_TestSign)"
+        CertificatesSignInfo="$(CertificatesSignInfo)"
         ItemsToSign="@(ItemsToSign)"
         StrongNameSignInfo="@(StrongNameSignInfo)"
-        FileExtensionSignInfo="@(FileExtensionSignInfo)"
         FileSignInfo="@(FileSignInfo)"
+        FileExtensionSignInfo="@(FileExtensionSignInfo)"
         TempDir="$(ArtifactsTmpDir)"
         LogDir="$(ArtifactsLogDir)"
         MSBuildPath="$(_DesktopMSBuildPath)"
         MicroBuildCorePath="$(NuGetPackageRoot)microbuild.core\$(MicroBuildCoreVersion)"/>
-       
+
   </Target>
 
 </Project>
