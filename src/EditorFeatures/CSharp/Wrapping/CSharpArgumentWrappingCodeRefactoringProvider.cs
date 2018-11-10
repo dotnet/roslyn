@@ -41,14 +41,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Editor.Wrapping
         {
             var startToken = listSyntax.GetFirstToken();
 
-            // If we have something like  Foo(...)  or  this.Foo(...)  allow anywhere in the Foo(...)
-            // section.
             if (declaration is InvocationExpressionSyntax ||
                 declaration is ElementAccessExpressionSyntax)
             {
+                // If we have something like  Foo(...)  or  this.Foo(...)  allow anywhere in the Foo(...)
+                // section.
                 var expr = (declaration as InvocationExpressionSyntax)?.Expression ??
                            (declaration as ElementAccessExpressionSyntax).Expression;
-                var name = GetNameExpr(expr);
+                var name = GetPrecedingRelevantExpressionPortion(expr);
 
                 startToken = name == null ? listSyntax.GetFirstToken() : name.GetFirstToken();
             }
@@ -87,18 +87,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Editor.Wrapping
             return true;
         }
 
-        private ExpressionSyntax GetNameExpr(ExpressionSyntax expr)
+        private ExpressionSyntax GetPrecedingRelevantExpressionPortion(ExpressionSyntax expr)
         {
+            // `Foo(...)`.  Allow up through the 'Foo' portion
             if (expr is NameSyntax name)
             {
                 return name;
             }
 
+            // `this[...]`. Allow up throught the 'this' token.
             if (expr is ThisExpressionSyntax || expr is BaseExpressionSyntax)
             {
                 return expr;
             }
 
+            // expr.Foo(...) or expr?.Foo(...)
+            // All up through the 'Foo' portion.
+            //
+            // Otherwise, only allow in the arg list.
             return (expr as MemberAccessExpressionSyntax)?.Name ??
                    (expr as MemberBindingExpressionSyntax)?.Name;
         }
