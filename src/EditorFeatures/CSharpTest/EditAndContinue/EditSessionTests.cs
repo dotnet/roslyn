@@ -92,10 +92,11 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             ImmutableDictionary<ActiveMethodId, ImmutableArray<NonRemappableRegion>> nonRemappableRegions = null,
             Func<Solution, Solution> adjustSolution = null)
         {
-            var exportProvider = ExportProviderCache
-                .GetOrCreateExportProviderFactory(
-                    TestExportProvider.MinimumCatalogWithCSharpAndVisualBasic.WithPart(typeof(CSharpEditAndContinueAnalyzer)).WithPart(typeof(DummyLanguageService)))
-                .CreateExportProvider();
+            
+            var exportProviderFactory = ExportProviderCache.GetOrCreateExportProviderFactory(
+                TestExportProvider.MinimumCatalogWithCSharpAndVisualBasic.WithPart(typeof(CSharpEditAndContinueAnalyzer)).WithPart(typeof(DummyLanguageService)));
+
+            var exportProvider = exportProviderFactory.CreateExportProvider();
 
             using (var workspace = TestWorkspace.CreateCSharp(
                 ActiveStatementsDescription.ClearTags(markedSource),

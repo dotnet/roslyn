@@ -4,7 +4,7 @@
     <body>
       <trans-unit id="In_relational_binary_operators">
         <source>In relational operators:  =   &lt;&gt;   &lt;   &gt;   &lt;=   &gt;=   Like   Is</source>
-        <target state="new">In relational operators:  =   &lt;&gt;   &lt;   &gt;   &lt;=   &gt;=   Like   Is</target>
+        <target state="translated">In operatori relazionali:  =   &lt;&gt;   &lt;   &gt;   &lt;=   &gt;=   Like   Is</target>
         <note />
       </trans-unit>
       <trans-unit id="Microsoft_Visual_Basic">
@@ -34,7 +34,7 @@
       </trans-unit>
       <trans-unit id="Prefer_Is_Nothing_for_reference_equality_checks">
         <source>Prefer 'Is Nothing' for reference equality checks</source>
-        <target state="new">Prefer 'Is Nothing' for reference equality checks</target>
+        <target state="translated">Preferisci 'Is Nothing' per i controlli di uguaglianza dei riferimenti</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_procedure_line_separators">
@@ -69,7 +69,7 @@
       </trans-unit>
       <trans-unit id="Pretty_listing_reformatting_of_code">
         <source>_Pretty listing (reformatting) of code</source>
-        <target state="translated">_Riformatta il listato di codice</target>
+        <target state="translated">_Riformattazione del codice</target>
         <note />
       </trans-unit>
       <trans-unit id="Enter_outlining_mode_when_files_open">
@@ -129,7 +129,7 @@
       </trans-unit>
       <trans-unit id="Go_to_Definition">
         <source>Go to Definition</source>
-        <target state="translated">Vai a definizione</target>
+        <target state="translated">Vai alla definizione</target>
         <note />
       </trans-unit>
       <trans-unit id="Import_Directives">
@@ -257,6 +257,11 @@
         <target state="translated">Mo_stra elenco di completamento dopo la digitazione di un carattere</target>
         <note />
       </trans-unit>
+      <trans-unit id="VB_Coding_Conventions">
+        <source>VB Coding Conventions</source>
+        <target state="new">VB Coding Conventions</target>
+        <note />
+      </trans-unit>
       <trans-unit id="nothing_checking_colon">
         <source>'nothing' checking:</source>
         <target state="translated">'Controllo 'nothing':</target>
@@ -279,12 +284,12 @@
       </trans-unit>
       <trans-unit id="In_arithmetic_binary_operators">
         <source>In arithmetic operators:  ^   *   /   \   Mod   +   -   &amp;   &lt;&lt;   &gt;&gt;</source>
-        <target state="new">In arithmetic operators:  ^   *   /   \   Mod   +   -   &amp;   &lt;&lt;   &gt;&gt;</target>
+        <target state="translated">In operatori aritmetici:  ^   *   /   \   Mod   +   -   &amp;   &lt;&lt;   &gt;&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="In_other_binary_operators">
         <source>In other binary operators:  And   AndAlso   Or   OrElse</source>
-        <target state="new">In other binary operators:  And   AndAlso   Or   OrElse</target>
+        <target state="translated">In altri operatori binari:  And   AndAlso   Or   OrElse</target>
         <note />
       </trans-unit>
     </body>

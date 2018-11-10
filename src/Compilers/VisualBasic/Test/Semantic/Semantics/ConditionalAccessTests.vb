@@ -9616,7 +9616,7 @@ End Class
     ]]></file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(compilationDef, parseOptions:=TestOptions.RegularWithFlowAnalysisFeature)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(compilationDef)
 
             compilation.AssertTheseDiagnostics(<expected>
 BC32022: 'Public Event TestEvent As Action' is an event, and cannot be called directly. Use a 'RaiseEvent' statement to raise an event.

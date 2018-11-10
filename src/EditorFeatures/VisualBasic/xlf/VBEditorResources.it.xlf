@@ -87,11 +87,6 @@
         <target state="translated">Elenco Visual Basic</target>
         <note />
       </trans-unit>
-      <trans-unit id="Multiple_Types">
-        <source>&lt;Multiple Types&gt;</source>
-        <target state="translated">&lt;Più tipi&gt;</target>
-        <note />
-      </trans-unit>
       <trans-unit id="not_supported">
         <source>not supported</source>
         <target state="translated">non supportato</target>

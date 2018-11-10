@@ -298,7 +298,16 @@ namespace Microsoft.CodeAnalysis.ValidateFormatString
                 return null;
             }
 
-            var containingType = (INamedTypeSymbol)symbolInfo.Symbol.ContainingSymbol;
+            if (((IMethodSymbol)symbolInfo.Symbol).MethodKind == MethodKind.LocalFunction)
+            {
+                return null;
+            }
+
+            var containingType = symbolInfo.Symbol.ContainingType;
+            if (containingType == null)
+            {
+                return null;
+            }
 
             if (containingType.SpecialType != SpecialType.System_String)
             {

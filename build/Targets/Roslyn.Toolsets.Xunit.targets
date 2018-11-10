@@ -6,6 +6,34 @@
     <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="xunit" Version="$(xunitVersion)" IsImplicitlyDefined="true" PrivateAssets="all"/>
+    <PackageReference Include="xunit.analyzers" Version="$(xunitanalyzersVersion)" IsImplicitlyDefined="true" PrivateAssets="all"/>
+    <PackageReference Include="xunit.runner.visualstudio" Version="$(xunitrunnervisualstudioVersion)" IsImplicitlyDefined="true" PrivateAssets="all"/>
+    <PackageReference Include="xunit.runner.console" Version="$(xunitrunnerconsoleVersion)" IsImplicitlyDefined="true" PrivateAssets="all"/>
+
+    <!-- xunit.runner.visualstudio has a reference to Microsoft.NET.Test.Sdk, override it here to work around https://github.com/Microsoft/vstest/issues/1764 -->
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="$(MicrosoftNETTestSdkVersion)" />
+  </ItemGroup>
+
+  <!-- 
+    In order to use Test Explorer in Visual Studio as well as leverage LUT testing we need to have both of the follownig packages in 
+    our build.  
+
+        - xunit.runner.visualstudio
+        - xunit
+
+    Both of these include xunit.abstractions.dll in different forms: None and reference
+    respectively.  This creates a double write violation in our build.  The None item
+    is unnecessary for us since we reference the xunit package hence remove it here. 
+
+    https://github.com/xunit/xunit/issues/1651
+    https://github.com/dotnet/roslyn/issues/18753
+  -->
+  <ItemGroup>
+    <None Remove="$(NuGetPackageRoot)xunit.runner.visualstudio\$(xunitrunnervisualstudioVersion)\build\net20\..\_common\xunit.abstractions.dll" />
+  </ItemGroup>
+
   <PropertyGroup>
     <!-- xUnit.net Console Runner -->
     <XUnitPath>$(NuGetPackageRoot)\xunit.runner.console\$(xunitrunnerconsoleVersion)\tools\net452\xunit.console.x86.exe</XUnitPath>
@@ -19,7 +47,7 @@
 
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
 
-    <RuntimeIdentifier Condition="'$(TargetFramework)' == 'net46' AND '$(RuntimeIdentifier)' == '' AND '$(OS)' == 'Windows_NT'">$(RoslynDesktopRuntimeIdentifier)</RuntimeIdentifier>
+    <RuntimeIdentifier Condition="'$(TargetFramework)' == 'net472' AND '$(RuntimeIdentifier)' == '' AND '$(OS)' == 'Windows_NT'">$(RoslynDesktopRuntimeIdentifier)</RuntimeIdentifier>
   </PropertyGroup>
 
   <Target Name="Test" DependsOnTargets="Build">

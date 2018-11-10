@@ -64,7 +64,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource,
             PrimaryWorkspace primaryWorkspace,
             Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException = null)
-           : base(SpecializedCollections.EmptyEnumerable<HostDiagnosticAnalyzerPackage>(), null, hostDiagnosticUpdateSource, primaryWorkspace, new MockDiagnosticUpdateSourceRegistrationService())
+           : base(new Lazy<ImmutableArray<HostDiagnosticAnalyzerPackage>>(() => ImmutableArray<HostDiagnosticAnalyzerPackage>.Empty),
+                  hostAnalyzerAssemblyLoader: null, hostDiagnosticUpdateSource, primaryWorkspace, new MockDiagnosticUpdateSourceRegistrationService())
         {
             _onAnalyzerException = onAnalyzerException;
         }

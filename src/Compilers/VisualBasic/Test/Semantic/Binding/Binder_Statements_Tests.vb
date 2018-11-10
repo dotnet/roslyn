@@ -4852,7 +4852,7 @@ goo
 >7
 goo
 >8
-<8]]>.Value.Replace(vbLf, vbCrLf))
+<8]]>.Value.Replace(vbLf, Environment.NewLine))
         End Sub
 
     End Class

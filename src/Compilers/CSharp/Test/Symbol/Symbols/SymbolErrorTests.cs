@@ -1615,7 +1615,7 @@ namespace n3
 
             var structS = ns3.GetMember<NamedTypeSymbol>("S");
             var structSField = structS.GetMember<FieldSymbol>("a");
-            Assert.Equal("A", structSField.Type.Name);
+            Assert.Equal("A", structSField.Type.TypeSymbol.Name);
             Assert.Equal(TypeKind.Error, structSField.Type.TypeKind);
         }
 
@@ -12317,10 +12317,6 @@ interface IB<T> where T : System.Object { }
 interface IC<T, U> where T : ValueType { }
 interface ID<T> where T : Array { }";
             CreateCompilation(source).VerifyDiagnostics(
-                // (2,27): error CS0702: Constraint cannot be special class 'object'
-                Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "object").WithArguments("object").WithLocation(2, 27),
-                // (3,27): error CS0702: Constraint cannot be special class 'object'
-                Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "System.Object").WithArguments("object").WithLocation(3, 27),
                 // (4,30): error CS0702: Constraint cannot be special class 'System.ValueType'
                 Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "ValueType").WithArguments("System.ValueType").WithLocation(4, 30),
                 // (5,27): error CS0702: Constraint cannot be special class 'System.Array'
@@ -12349,18 +12345,24 @@ public class C2 : C1
         where V : A<A<V>> { }
 }";
             CreateCompilation(source).VerifyDiagnostics(
-                // (5,26): error CS0703: Inconsistent accessibility: constraint type 'C1.A<T>' is less accessible than 'C1.D<T>'
-                Diagnostic(ErrorCode.ERR_BadVisBound, "D").WithArguments("C1.D<T>", "C1.A<T>").WithLocation(5, 26),
-                // (5,26): error CS0703: Inconsistent accessibility: constraint type 'C1.I<T>' is less accessible than 'C1.D<T>'
-                Diagnostic(ErrorCode.ERR_BadVisBound, "D").WithArguments("C1.D<T>", "C1.I<T>").WithLocation(5, 26),
-                // (13,19): error CS0703: Inconsistent accessibility: constraint type 'C1.A<C1.I<T>>' is less accessible than 'C2.M<T, U, V>()'
-                Diagnostic(ErrorCode.ERR_BadVisBound, "M").WithArguments("C2.M<T, U, V>()", "C1.A<C1.I<T>>").WithLocation(13, 19),
-                // (13,19): error CS0703: Inconsistent accessibility: constraint type 'C1.I<C1.I<U>>' is less accessible than 'C2.M<T, U, V>()'
-                Diagnostic(ErrorCode.ERR_BadVisBound, "M").WithArguments("C2.M<T, U, V>()", "C1.I<C1.I<U>>").WithLocation(13, 19),
-                // (9,22): error CS0703: Inconsistent accessibility: constraint type 'C1.I<C1.A<T>>' is less accessible than 'C2.S<T, U, V>'
-                Diagnostic(ErrorCode.ERR_BadVisBound, "S").WithArguments("C2.S<T, U, V>", "C1.I<C1.A<T>>").WithLocation(9, 22),
-                // (9,22): error CS0703: Inconsistent accessibility: constraint type 'C1.A<C1.A<V>>' is less accessible than 'C2.S<T, U, V>'
-                Diagnostic(ErrorCode.ERR_BadVisBound, "S").WithArguments("C2.S<T, U, V>", "C1.A<C1.A<V>>").WithLocation(9, 22));
+                // (5,43): error CS0703: Inconsistent accessibility: constraint type 'C1.A<T>' is less accessible than 'C1.D<T>'
+                //     public delegate void D<T>() where T : A<T>, I<T>;
+                Diagnostic(ErrorCode.ERR_BadVisBound, "A<T>").WithArguments("C1.D<T>", "C1.A<T>").WithLocation(5, 43),
+                // (5,49): error CS0703: Inconsistent accessibility: constraint type 'C1.I<T>' is less accessible than 'C1.D<T>'
+                //     public delegate void D<T>() where T : A<T>, I<T>;
+                Diagnostic(ErrorCode.ERR_BadVisBound, "I<T>").WithArguments("C1.D<T>", "C1.I<T>").WithLocation(5, 49),
+                // (14,19): error CS0703: Inconsistent accessibility: constraint type 'C1.A<C1.I<T>>' is less accessible than 'C2.M<T, U, V>()'
+                //         where T : A<I<T>>
+                Diagnostic(ErrorCode.ERR_BadVisBound, "A<I<T>>").WithArguments("C2.M<T, U, V>()", "C1.A<C1.I<T>>").WithLocation(14, 19),
+                // (15,19): error CS0703: Inconsistent accessibility: constraint type 'C1.I<C1.I<U>>' is less accessible than 'C2.M<T, U, V>()'
+                //         where U : I<I<U>>
+                Diagnostic(ErrorCode.ERR_BadVisBound, "I<I<U>>").WithArguments("C2.M<T, U, V>()", "C1.I<C1.I<U>>").WithLocation(15, 19),
+                // (10,19): error CS0703: Inconsistent accessibility: constraint type 'C1.I<C1.A<T>>' is less accessible than 'C2.S<T, U, V>'
+                //         where T : I<A<T>>
+                Diagnostic(ErrorCode.ERR_BadVisBound, "I<A<T>>").WithArguments("C2.S<T, U, V>", "C1.I<C1.A<T>>").WithLocation(10, 19),
+                // (12,19): error CS0703: Inconsistent accessibility: constraint type 'C1.A<C1.A<V>>' is less accessible than 'C2.S<T, U, V>'
+                //         where V : A<A<V>> { }
+                Diagnostic(ErrorCode.ERR_BadVisBound, "A<A<V>>").WithArguments("C2.S<T, U, V>", "C1.A<C1.A<V>>").WithLocation(12, 19));
         }
 
         [Fact]
@@ -12381,16 +12383,24 @@ public partial class C
     public partial void M<T>() where T : IA<T> { }
 }";
             CreateCompilation(source).VerifyDiagnostics(
-                // (6,26): error CS0703: Inconsistent accessibility: constraint type 'IB<U, IA<T>>' is less accessible than 'A.B<T, U>'
-                Diagnostic(ErrorCode.ERR_BadVisBound, "B").WithArguments("A.B<T, U>", "IB<U, IA<T>>").WithLocation(6, 26),
+                // (6,44): error CS0703: Inconsistent accessibility: constraint type 'IB<U, IA<T>>' is less accessible than 'A.B<T, U>'
+                //     public partial class B<T, U> where U : IB<U, IA<T>> { }
+                Diagnostic(ErrorCode.ERR_BadVisBound, "IB<U, IA<T>>").WithArguments("A.B<T, U>", "IB<U, IA<T>>").WithLocation(6, 44),
+                // (7,44): error CS0703: Inconsistent accessibility: constraint type 'IB<U, IA<T>>' is less accessible than 'A.B<T, U>'
+                //     public partial class B<T, U> where U : IB<U, IA<T>> { }
+                Diagnostic(ErrorCode.ERR_BadVisBound, "IB<U, IA<T>>").WithArguments("A.B<T, U>", "IB<U, IA<T>>").WithLocation(7, 44),
                 // (11,25): error CS0750: A partial method cannot have access modifiers or the virtual, abstract, override, new, sealed, or extern modifiers
+                //     public partial void M<T>() where T : IA<T>;
                 Diagnostic(ErrorCode.ERR_PartialMethodInvalidModifier, "M").WithLocation(11, 25),
                 // (12,25): error CS0750: A partial method cannot have access modifiers or the virtual, abstract, override, new, sealed, or extern modifiers
+                //     public partial void M<T>() where T : IA<T> { }
                 Diagnostic(ErrorCode.ERR_PartialMethodInvalidModifier, "M").WithLocation(12, 25),
-                // (11,25): error CS0703: Inconsistent accessibility: constraint type 'IA<T>' is less accessible than 'C.M<T>()'
-                Diagnostic(ErrorCode.ERR_BadVisBound, "M").WithArguments("C.M<T>()", "IA<T>").WithLocation(11, 25),
-                // (12,25): error CS0703: Inconsistent accessibility: constraint type 'IA<T>' is less accessible than 'C.M<T>()'
-                Diagnostic(ErrorCode.ERR_BadVisBound, "M").WithArguments("C.M<T>()", "IA<T>").WithLocation(12, 25));
+                // (11,42): error CS0703: Inconsistent accessibility: constraint type 'IA<T>' is less accessible than 'C.M<T>()'
+                //     public partial void M<T>() where T : IA<T>;
+                Diagnostic(ErrorCode.ERR_BadVisBound, "IA<T>").WithArguments("C.M<T>()", "IA<T>").WithLocation(11, 42),
+                // (12,42): error CS0703: Inconsistent accessibility: constraint type 'IA<T>' is less accessible than 'C.M<T>()'
+                //     public partial void M<T>() where T : IA<T> { }
+                Diagnostic(ErrorCode.ERR_BadVisBound, "IA<T>").WithArguments("C.M<T>()", "IA<T>").WithLocation(12, 42));
         }
 
         [Fact]
@@ -14467,6 +14477,67 @@ Diagnostic(ErrorCode.ERR_MethodReturnCantBeRefAny, "TypedReference").WithArgumen
                 );
         }
 
+        [Fact, WorkItem(27463, "https://github.com/dotnet/roslyn/issues/27463")]
+        public void CS1599ERR_LocalFunctionReturnCantBeRefAny()
+        {
+            var text = @"
+class C
+{
+    public void Goo()
+    {
+        System.TypedReference local1() // 1599
+        {
+            return default;
+        }
+        local1();
+
+        System.RuntimeArgumentHandle local2() // 1599
+        {
+            return default;
+        }
+        local2();
+
+        System.ArgIterator local3() // 1599
+        {
+            return default;
+        }
+        local3();
+    }
+}
+";
+            CreateCompilationWithMscorlib46(text).VerifyDiagnostics(
+                // (6,9): error CS1599: Method or delegate cannot return type 'TypedReference'
+                //         System.TypedReference local1() // 1599
+                Diagnostic(ErrorCode.ERR_MethodReturnCantBeRefAny, "System.TypedReference").WithArguments("System.TypedReference").WithLocation(6, 9),
+                // (12,9): error CS1599: Method or delegate cannot return type 'RuntimeArgumentHandle'
+                //         System.RuntimeArgumentHandle local2() // 1599
+                Diagnostic(ErrorCode.ERR_MethodReturnCantBeRefAny, "System.RuntimeArgumentHandle").WithArguments("System.RuntimeArgumentHandle").WithLocation(12, 9),
+                // (18,9): error CS1599: Method or delegate cannot return type 'ArgIterator'
+                //         System.ArgIterator local3() // 1599
+                Diagnostic(ErrorCode.ERR_MethodReturnCantBeRefAny, "System.ArgIterator").WithArguments("System.ArgIterator").WithLocation(18, 9));
+        }
+
+        [Fact, WorkItem(27463, "https://github.com/dotnet/roslyn/issues/27463")]
+        public void CS1599ERR_LocalFunctionReturnCanBeSpan()
+        {
+            var text = @"
+using System;
+class C
+{
+    static void M()
+    {
+        byte[] bytes = new byte[1];
+        Span<byte> local1()
+        {
+            return new Span<byte>(bytes);
+        }
+        Span<byte> res = local1();
+    }
+}
+";
+            CreateCompilationWithMscorlibAndSpanSrc(text).VerifyDiagnostics();
+        }
+
         [Fact, WorkItem(544910, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544910")]
         public void CS1601ERR_MethodArgCantBeRefAny()
         {
@@ -14513,6 +14584,91 @@ Diagnostic(ErrorCode.ERR_MethodArgCantBeRefAny, "ref TypedReference t1").WithArg
 //         var x = __makeref(r3); // CS1601
 Diagnostic(ErrorCode.ERR_MethodArgCantBeRefAny, "__makeref(r3)").WithArguments("System.RuntimeArgumentHandle")
                  );
+        }
+
+        [Fact, WorkItem(27463, "https://github.com/dotnet/roslyn/issues/27463")]
+        public void CS1599ERR_LocalFunctionParamCantBeRefAny()
+        {
+            var text = @"
+class C
+{
+    public void Goo()
+    {
+        {
+            System.TypedReference _arg = default;
+            void local1(ref System.TypedReference tr) { } // 1601
+            local1(ref _arg);
+
+            void local2(in System.TypedReference tr) { } // 1601
+            local2(in _arg);
+
+            void local3(out System.TypedReference tr) // 1601
+            {
+                tr = default;
+            }
+            local3(out _arg);
+        }
+
+        {
+            System.ArgIterator _arg = default;
+            void local1(ref System.ArgIterator ai) { } // 1601
+            local1(ref _arg);
+
+            void local2(in System.ArgIterator ai) { } // 1601
+            local2(in _arg);
+
+            void local3(out System.ArgIterator ai) // 1601
+            {
+                ai = default;
+            }
+            local3(out _arg);
+        }
+
+        {
+            System.RuntimeArgumentHandle _arg = default;
+            void local1(ref System.RuntimeArgumentHandle ah) { } // 1601
+            local1(ref _arg);
+
+            void local2(in System.RuntimeArgumentHandle ah) { } // 1601
+            local2(in _arg);
+
+            void local3(out System.RuntimeArgumentHandle ah) // 1601
+            {
+                ah = default;
+            }
+            local3(out _arg);
+        }
+    }
+}
+";
+            CreateCompilationWithMscorlib46(text).VerifyDiagnostics(
+                // (8,25): error CS1601: Cannot make reference to variable of type 'TypedReference'
+                //             void local1(ref System.TypedReference tr) { } // 1601
+                Diagnostic(ErrorCode.ERR_MethodArgCantBeRefAny, "ref System.TypedReference tr").WithArguments("System.TypedReference").WithLocation(8, 25),
+                // (11,25): error CS1601: Cannot make reference to variable of type 'TypedReference'
+                //             void local2(in System.TypedReference tr) { } // 1601
+                Diagnostic(ErrorCode.ERR_MethodArgCantBeRefAny, "in System.TypedReference tr").WithArguments("System.TypedReference").WithLocation(11, 25),
+                // (14,25): error CS1601: Cannot make reference to variable of type 'TypedReference'
+                //             void local3(out System.TypedReference tr) // 1601
+                Diagnostic(ErrorCode.ERR_MethodArgCantBeRefAny, "out System.TypedReference tr").WithArguments("System.TypedReference").WithLocation(14, 25),
+                // (23,25): error CS1601: Cannot make reference to variable of type 'ArgIterator'
+                //             void local1(ref System.ArgIterator ai) { } // 1601
+                Diagnostic(ErrorCode.ERR_MethodArgCantBeRefAny, "ref System.ArgIterator ai").WithArguments("System.ArgIterator").WithLocation(23, 25),
+                // (26,25): error CS1601: Cannot make reference to variable of type 'ArgIterator'
+                //             void local2(in System.ArgIterator ai) { } // 1601
+                Diagnostic(ErrorCode.ERR_MethodArgCantBeRefAny, "in System.ArgIterator ai").WithArguments("System.ArgIterator").WithLocation(26, 25),
+                // (29,25): error CS1601: Cannot make reference to variable of type 'ArgIterator'
+                //             void local3(out System.ArgIterator ai) // 1601
+                Diagnostic(ErrorCode.ERR_MethodArgCantBeRefAny, "out System.ArgIterator ai").WithArguments("System.ArgIterator").WithLocation(29, 25),
+                // (38,25): error CS1601: Cannot make reference to variable of type 'RuntimeArgumentHandle'
+                //             void local1(ref System.RuntimeArgumentHandle ah) { } // 1601
+                Diagnostic(ErrorCode.ERR_MethodArgCantBeRefAny, "ref System.RuntimeArgumentHandle ah").WithArguments("System.RuntimeArgumentHandle").WithLocation(38, 25),
+                // (41,25): error CS1601: Cannot make reference to variable of type 'RuntimeArgumentHandle'
+                //             void local2(in System.RuntimeArgumentHandle ah) { } // 1601
+                Diagnostic(ErrorCode.ERR_MethodArgCantBeRefAny, "in System.RuntimeArgumentHandle ah").WithArguments("System.RuntimeArgumentHandle").WithLocation(41, 25),
+                // (44,25): error CS1601: Cannot make reference to variable of type 'RuntimeArgumentHandle'
+                //             void local3(out System.RuntimeArgumentHandle ah) // 1601
+                Diagnostic(ErrorCode.ERR_MethodArgCantBeRefAny, "out System.RuntimeArgumentHandle ah").WithArguments("System.RuntimeArgumentHandle").WithLocation(44, 25));
         }
 
         [WorkItem(542003, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542003")]
@@ -15943,7 +16099,7 @@ class A {
             Assert.Equal(SymbolKind.ErrorType, fieldType.Kind);
             Assert.Equal("B", fieldType.Name);
 
-            var errorFieldType = (ErrorTypeSymbol)fieldType;
+            var errorFieldType = (ErrorTypeSymbol)fieldType.TypeSymbol;
             Assert.Equal(CandidateReason.None, errorFieldType.CandidateReason);
             Assert.Equal(0, errorFieldType.CandidateSymbols.Length);
         }
@@ -15965,7 +16121,7 @@ class A : C {
             var classC = (NamedTypeSymbol)comp.GlobalNamespace.GetTypeMembers("C").Single();
             var classB = (NamedTypeSymbol)classC.GetTypeMembers("B").Single();
             var fieldSym = (FieldSymbol)classA.GetMembers("n").Single();
-            var fieldType = fieldSym.Type;
+            var fieldType = fieldSym.Type.TypeSymbol;
 
             Assert.Equal(SymbolKind.ErrorType, fieldType.Kind);
             Assert.Equal("B", fieldType.Name);
@@ -16002,7 +16158,7 @@ class A : C {
             var classBinN1 = (NamedTypeSymbol)ns1.GetTypeMembers("B").Single();
             var classBinN2 = (NamedTypeSymbol)ns2.GetTypeMembers("B").Single();
             var fieldSym = (FieldSymbol)classA.GetMembers("n").Single();
-            var fieldType = fieldSym.Type;
+            var fieldType = fieldSym.Type.TypeSymbol;
 
             Assert.Equal(SymbolKind.ErrorType, fieldType.Kind);
             Assert.Equal("B", fieldType.Name);
@@ -19773,7 +19929,8 @@ namespace A
                 Diagnostic(ErrorCode.ERR_TypeForwardedToMultipleAssemblies, "ClassB.MethodB").WithArguments("CModule.dll", "C, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "C.ClassC", "D1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "D2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"));
         }
 
-        [Fact, WorkItem(16484, "https://github.com/dotnet/roslyn/issues/16484")]
+        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/10332")]
+        [WorkItem(16484, "https://github.com/dotnet/roslyn/issues/16484")]
         public void MultipleTypeForwardersToTheSameAssemblyShouldNotResultInMultipleForwardError()
         {
             var codeC = @"

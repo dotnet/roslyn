@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             return true;
         }
 
-        private string GetAbsolutePath(string path, string baseDirectory)
-            => Path.GetFullPath(FileUtilities.ResolveRelativePath(path, baseDirectory) ?? path);
+        private static string GetAbsolutePath(string path, string baseDirectory)
+            => FileUtilities.NormalizeAbsolutePath(FileUtilities.ResolveRelativePath(path, baseDirectory) ?? path);
     }
 }

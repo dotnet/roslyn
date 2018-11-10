@@ -782,7 +782,7 @@ True");
             VerifyModelForDeclarationPattern(model, x1Decl, x1Ref);
         }
 
-        [ConditionalFact(typeof(DesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/28026")]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/28026")]
         public void Query_01()
         {
             var source =
@@ -5716,10 +5716,10 @@ public class Program
 ";
             var compilation = CreateCompilationWithMscorlib45(source, references: new MetadataReference[] { CSharpRef, SystemCoreRef }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular7);
             compilation.VerifyDiagnostics(
-                // (13,28): error CS9003: An expression of type 'T' cannot be handled by a pattern of type 'Derived' in C# 7.0. Please use language version 7.1 or greater.
+                // (13,28): error CS8413: An expression of type 'T' cannot be handled by a pattern of type 'Derived' in C# 7.0. Please use language version 7.1 or greater.
                 //         Console.Write(x is Derived b0);
                 Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "Derived").WithArguments("T", "Derived", "7.0", "7.1").WithLocation(13, 28),
-                // (16,18): error CS9003: An expression of type 'T' cannot be handled by a pattern of type 'Derived' in C# 7.0. Please use language version 7.1 or greater.
+                // (16,18): error CS8413: An expression of type 'T' cannot be handled by a pattern of type 'Derived' in C# 7.0. Please use language version 7.1 or greater.
                 //             case Derived b1:
                 Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "Derived").WithArguments("T", "Derived", "7.0", "7.1").WithLocation(16, 18)
                 );
@@ -5759,10 +5759,10 @@ public class Program
 ";
             var compilation = CreateCompilationWithMscorlib45(source, references: new MetadataReference[] { CSharpRef, SystemCoreRef }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular7);
             compilation.VerifyDiagnostics(
-                // (13,28): error CS9003: An expression of type 'Base' cannot be handled by a pattern of type 'T' in C# 7.0. Please use language version 7.1 or greater.
+                // (13,28): error CS8413: An expression of type 'Base' cannot be handled by a pattern of type 'T' in C# 7.0. Please use language version 7.1 or greater.
                 //         Console.Write(x is T b0);
                 Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "T").WithArguments("Base", "T", "7.0", "7.1").WithLocation(13, 28),
-                // (16,18): error CS9003: An expression of type 'Base' cannot be handled by a pattern of type 'T' in C# 7.0. Please use language version 7.1 or greater.
+                // (16,18): error CS8413: An expression of type 'Base' cannot be handled by a pattern of type 'T' in C# 7.0. Please use language version 7.1 or greater.
                 //             case T b1:
                 Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "T").WithArguments("Base", "T", "7.0", "7.1")
                 );
@@ -5802,10 +5802,10 @@ public class Program
 ";
             var compilation = CreateCompilationWithMscorlib45(source, references: new MetadataReference[] { CSharpRef, SystemCoreRef }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular7);
             compilation.VerifyDiagnostics(
-                // (13,28): error CS9003: An expression of type 'T' cannot be handled by a pattern of type 'Derived<T>' in C# 7.0. Please use language version 7.1 or greater.
+                // (13,28): error CS8413: An expression of type 'T' cannot be handled by a pattern of type 'Derived<T>' in C# 7.0. Please use language version 7.1 or greater.
                 //         Console.Write(x is Derived<T> b0);
                 Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "Derived<T>").WithArguments("T", "Derived<T>", "7.0", "7.1").WithLocation(13, 28),
-                // (16,18): error CS9003: An expression of type 'T' cannot be handled by a pattern of type 'Derived<T>' in C# 7.0. Please use language version 7.1 or greater.
+                // (16,18): error CS8413: An expression of type 'T' cannot be handled by a pattern of type 'Derived<T>' in C# 7.0. Please use language version 7.1 or greater.
                 //             case Derived<T> b1:
                 Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "Derived<T>").WithArguments("T", "Derived<T>", "7.0", "7.1").WithLocation(16, 18)
                 );
@@ -5848,10 +5848,10 @@ public class Program
 ";
             var compilation = CreateCompilationWithMscorlib45(source, references: new MetadataReference[] { CSharpRef, SystemCoreRef }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular7);
             compilation.VerifyDiagnostics(
-                // (16,28): error CS9003: An expression of type 'T' cannot be handled by a pattern of type 'Container<T>.Derived' in C# 7.0. Please use language version 7.1 or greater.
+                // (16,28): error CS8413: An expression of type 'T' cannot be handled by a pattern of type 'Container<T>.Derived' in C# 7.0. Please use language version 7.1 or greater.
                 //         Console.Write(x is Container<T>.Derived b0);
                 Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "Container<T>.Derived").WithArguments("T", "Container<T>.Derived", "7.0", "7.1").WithLocation(16, 28),
-                // (19,18): error CS9003: An expression of type 'T' cannot be handled by a pattern of type 'Container<T>.Derived' in C# 7.0. Please use language version 7.1 or greater.
+                // (19,18): error CS8413: An expression of type 'T' cannot be handled by a pattern of type 'Container<T>.Derived' in C# 7.0. Please use language version 7.1 or greater.
                 //             case Container<T>.Derived b1:
                 Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "Container<T>.Derived").WithArguments("T", "Container<T>.Derived", "7.0", "7.1").WithLocation(19, 18)
                 );
@@ -5894,10 +5894,10 @@ public class Program
 ";
             var compilation = CreateCompilationWithMscorlib45(source, references: new MetadataReference[] { CSharpRef, SystemCoreRef }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular7);
             compilation.VerifyDiagnostics(
-                // (16,28): error CS9003: An expression of type 'T[]' cannot be handled by a pattern of type 'Container<T>.Derived[]' in C# 7.0. Please use language version 7.1 or greater.
+                // (16,28): error CS8413: An expression of type 'T[]' cannot be handled by a pattern of type 'Container<T>.Derived[]' in C# 7.0. Please use language version 7.1 or greater.
                 //         Console.Write(x is Container<T>.Derived[] b0);
                 Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "Container<T>.Derived[]").WithArguments("T[]", "Container<T>.Derived[]", "7.0", "7.1").WithLocation(16, 28),
-                // (19,18): error CS9003: An expression of type 'T[]' cannot be handled by a pattern of type 'Container<T>.Derived[]' in C# 7.0. Please use language version 7.1 or greater.
+                // (19,18): error CS8413: An expression of type 'T[]' cannot be handled by a pattern of type 'Container<T>.Derived[]' in C# 7.0. Please use language version 7.1 or greater.
                 //             case Container<T>.Derived[] b1:
                 Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "Container<T>.Derived[]").WithArguments("T[]", "Container<T>.Derived[]", "7.0", "7.1").WithLocation(19, 18)
                 );

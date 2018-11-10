@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         public override BoundNode VisitThisReference(BoundThisReference node)
         {
             var rewrittenThis = GenerateThisReference(node);
-            Debug.Assert(rewrittenThis.Type.Equals(node.Type, TypeCompareKind.IgnoreDynamicAndTupleNames));
+            Debug.Assert(rewrittenThis.Type.Equals(node.Type, TypeCompareKind.IgnoreDynamicAndTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes));
             return rewrittenThis;
         }
 
@@ -103,6 +103,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 isBaseConversion: true,
                 @checked: false,
                 explicitCastInCode: false,
+                conversionGroupOpt: null,
                 constantValueOpt: null,
                 type: baseType,
                 hasErrors: !conversion.IsValid)

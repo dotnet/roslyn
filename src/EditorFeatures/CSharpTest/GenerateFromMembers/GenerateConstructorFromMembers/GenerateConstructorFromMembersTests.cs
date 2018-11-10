@@ -466,7 +466,7 @@ struct S
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
-        public async Task TestStruct1()
+        public async Task TestStructInitializingAutoProperty()
         {
             await TestInRegularAndScriptAsync(
 @"using System.Collections.Generic;
@@ -479,12 +479,37 @@ struct S
 
 struct S
 {
-    public S(int i{|Navigation:)|} : this()
+    public S(int i{|Navigation:)|}
     {
         this.i = i;
     }
 
     int i { get; set; }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        public async Task TestStructNotInitializingAutoProperty()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System.Collections.Generic;
+
+struct S
+{
+    [|int i { get => f; set => f = value; }|]
+    int j { get; set; }
+}",
+@"using System.Collections.Generic;
+
+struct S
+{
+    public S(int i{|Navigation:)|} : this()
+    {
+        this.i = i;
+    }
+
+    int i { get => f; set => f = value; }
+    int j { get; set; }
 }");
         }
 

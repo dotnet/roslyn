@@ -1,5 +1,4 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
-#if NET46
 using System;
 using System.Collections.Immutable;
 using System.IO;
@@ -13,7 +12,6 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
-using Roslyn.Test.Utilities.Desktop;
 using Roslyn.Utilities;
 using Xunit;
 using static Roslyn.Test.Utilities.SigningTestHelpers;
@@ -41,7 +39,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         #region Naming Tests
 
-        [Fact, WorkItem(529419, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529419")]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
+        [WorkItem(529419, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529419")]
         public void AssemblyKeyFileAttributeNotExistFile()
         {
             string source = @"
@@ -69,7 +68,7 @@ public class Test
                 Diagnostic(ErrorCode.ERR_PublicKeyFileFailure).WithArguments("MyKey.snk", CodeAnalysisResources.FileNotFound));
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
         public void PubKeyFromKeyFileAttribute()
         {
             var x = s_keyPairFile;
@@ -96,7 +95,7 @@ public class Test
             });
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
         public void PubKeyFromKeyFileAttribute_AssemblyKeyFileResolver()
         {
             string keyFileDir = Path.GetDirectoryName(s_keyPairFile);
@@ -124,7 +123,7 @@ public class Test
             Assert.True(ByteSequenceComparer.Equals(s_publicKey, comp.Assembly.Identity.PublicKey));
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
         public void PubKeyFromKeyFileAttribute_AssemblyKeyFileResolver_RelativeToCurrentParent()
         {
             string keyFileDir = Path.GetDirectoryName(s_keyPairFile);
@@ -152,7 +151,7 @@ public class Test
             Assert.True(ByteSequenceComparer.Equals(s_publicKey, comp.Assembly.Identity.PublicKey));
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
         public void SigningNotAvailable001()
         {
             string keyFileDir = Path.GetDirectoryName(s_keyPairFile);
@@ -180,7 +179,7 @@ public class Test
             );
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
         public void PubKeyFromKeyContainerAttribute()
         {
             var x = s_keyPairFile;
@@ -207,7 +206,7 @@ public class Test
             });
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
         public void PubKeyFromKeyFileOptions()
         {
             string s = "public class C {}";
@@ -217,7 +216,7 @@ public class Test
             Assert.True(ByteSequenceComparer.Equals(s_publicKey, other.Assembly.Identity.PublicKey));
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
         public void PubKeyFromKeyFileOptions_ReferenceResolver()
         {
             string keyFileDir = Path.GetDirectoryName(s_keyPairFile);
@@ -246,7 +245,7 @@ public class Test
             Assert.True(ByteSequenceComparer.Equals(s_publicKey, comp.Assembly.Identity.PublicKey));
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
         public void PubKeyFromKeyFileOptionsJustPublicKey()
         {
             string s = "public class C {}";
@@ -256,7 +255,7 @@ public class Test
             Assert.True(ByteSequenceComparer.Equals(TestResources.General.snPublicKey.AsImmutableOrNull(), other.Assembly.Identity.PublicKey));
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
         public void PubKeyFromKeyFileOptionsJustPublicKey_ReferenceResolver()
         {
             string publicKeyFileDir = Path.GetDirectoryName(s_publicKeyFile);
@@ -288,7 +287,7 @@ public class Test
             Assert.True(ByteSequenceComparer.Equals(s_publicKey, comp.Assembly.Identity.PublicKey));
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
         public void PubKeyFileNotFoundOptions()
         {
             string s = "public class C {}";
@@ -301,7 +300,7 @@ public class Test
             Assert.True(other.Assembly.Identity.PublicKey.IsEmpty);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
         public void PubKeyFileBogusOptions()
         {
             var tempFile = Temp.CreateFile().WriteAllBytes(new byte[] { 1, 2, 3, 4 });
@@ -315,7 +314,7 @@ public class Test
         }
 
         [WorkItem(5662, "https://github.com/dotnet/roslyn/issues/5662")]
-        [ConditionalFact(typeof(IsEnglishLocal))]
+        [ConditionalFact(typeof(IsEnglishLocal),typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
         public void PubKeyContainerBogusOptions()
         {
             string s = "public class C {}";
@@ -333,7 +332,7 @@ public class Test
             Assert.True(other.Assembly.Identity.PublicKey.IsEmpty);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
         public void KeyFileAttributeOptionConflict()
         {
             string s = @"[assembly: System.Reflection.AssemblyKeyFile(""bogus"")] public class C {}";
@@ -345,7 +344,7 @@ public class Test
             Assert.True(ByteSequenceComparer.Equals(s_publicKey, other.Assembly.Identity.PublicKey));
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
         public void KeyContainerAttributeOptionConflict()
         {
             string s = @"[assembly: System.Reflection.AssemblyKeyName(""bogus"")] public class C {}";
@@ -357,7 +356,7 @@ public class Test
             Assert.True(ByteSequenceComparer.Equals(s_publicKey, other.Assembly.Identity.PublicKey));
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
         public void KeyFileAttributeEmpty()
         {
             string s = @"[assembly: System.Reflection.AssemblyKeyFile("""")] public class C {}";
@@ -367,7 +366,7 @@ public class Test
             other.VerifyDiagnostics();
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
         public void KeyContainerEmpty()
         {
             string s = @"[assembly: System.Reflection.AssemblyKeyName("""")] public class C {}";
@@ -377,7 +376,7 @@ public class Test
             other.VerifyDiagnostics();
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
         public void PublicKeyFromOptions_DelaySigned()
         {
             string source = @"
@@ -396,7 +395,8 @@ public class C {}";
             Assert.Equal(CorFlags.ILOnly, metadata.Module.PEReaderOpt.PEHeaders.CorHeader.Flags);
         }
 
-        [Fact, WorkItem(9150, "https://github.com/dotnet/roslyn/issues/9150")]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
+        [WorkItem(9150, "https://github.com/dotnet/roslyn/issues/9150")]
         public void PublicKeyFromOptions_PublicSign()
         {
             // attributes are ignored
@@ -453,7 +453,8 @@ public class C {}
             );
         }
 
-        [Fact, WorkItem(9150, "https://github.com/dotnet/roslyn/issues/9150")]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
+        [WorkItem(9150, "https://github.com/dotnet/roslyn/issues/9150")]
         public void KeyFileFromAttributes_PublicSign()
         {
             string source = @"
@@ -471,7 +472,8 @@ public class C {}
             Assert.True(c.Options.PublicSign);
         }
 
-        [Fact, WorkItem(9150, "https://github.com/dotnet/roslyn/issues/9150")]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
+        [WorkItem(9150, "https://github.com/dotnet/roslyn/issues/9150")]
         public void KeyContainerFromAttributes_PublicSign()
         {
             string source = @"
@@ -503,7 +505,7 @@ public class C {}
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
         public void SnkFile_PublicSign()
         {
             var snk = Temp.CreateFile().WriteAllBytes(TestResources.General.snKey);
@@ -523,7 +525,7 @@ public class C {}
             VerifySignedBitSetAfterEmit(comp);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
         public void PublicKeyFile_PublicSign()
         {
             var pubKeyFile = Temp.CreateFile().WriteAllBytes(TestResources.General.snPublicKey);
@@ -543,7 +545,7 @@ public class C {}
             VerifySignedBitSetAfterEmit(comp);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
         public void PublicSign_DelaySignAttribute()
         {
             var pubKeyFile = Temp.CreateFile().WriteAllBytes(TestResources.General.snPublicKey);
@@ -567,7 +569,7 @@ public class C {}",
             VerifySignedBitSetAfterEmit(comp);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
         public void KeyContainerNoSNProvider_PublicSign()
         {
             var comp = CreateCompilation("public class C {}",
@@ -582,7 +584,7 @@ public class C {}",
     Diagnostic(ErrorCode.ERR_PublicSignButNoKey).WithLocation(1, 1));
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
         public void KeyContainerDesktopProvider_PublicSign()
         {
             var comp = CreateCompilation("public class C {}",
@@ -603,7 +605,7 @@ public class C {}",
             Assert.NotNull(comp.Options.CryptoKeyContainer);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
         public void PublicSignAndDelaySign()
         {
             var snk = Temp.CreateFile().WriteAllBytes(TestResources.General.snKey);
@@ -622,7 +624,7 @@ public class C {}",
             Assert.True(comp.Options.DelaySign);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
         public void PublicSignAndDelaySignFalse()
         {
             var snk = Temp.CreateFile().WriteAllBytes(TestResources.General.snKey);
@@ -639,7 +641,7 @@ public class C {}",
             Assert.False(comp.Options.DelaySign);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
         public void PublicSignNoKey()
         {
             var comp = CreateCompilation("public class C {}",
@@ -653,7 +655,7 @@ public class C {}",
             Assert.True(comp.Assembly.PublicKey.IsDefaultOrEmpty);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
         public void PublicKeyFromOptions_InvalidCompilationOptions()
         {
             string source = @"public class C {}";
@@ -677,7 +679,7 @@ public class C {}",
 
         #region IVT Access Checking
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
         public void IVTBasicCompilation()
         {
             string s = @"[assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""WantsIVTAccess"")]
@@ -726,7 +728,7 @@ public class C {}",
             Assert.Empty(c2.GetDiagnostics());
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
         public void IVTBasicMetadata()
         {
             string s = @"[assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""WantsIVTAccess"")]
@@ -772,7 +774,7 @@ public class C {}",
             Assert.Empty(c2.GetDiagnostics());
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
         public void IVTSigned()
         {
             string s = @"[assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""John, PublicKey=00240000048000009400000006020000002400005253413100040000010001002b986f6b5ea5717d35c72d38561f413e267029efa9b5f107b9331d83df657381325b3a67b75812f63a9436ceccb49494de8f574f8e639d4d26c0fcf8b0e9a1a196b80b6f6ed053628d10d027e032df2ed1d60835e5f47d32c9ef6da10d0366a319573362c821b5f8fa5abc5bb22241de6f666a85d82d6ba8c3090d01636bd2bb"")]
@@ -802,7 +804,7 @@ public class C {}",
             Assert.Empty(requestor.GetDiagnostics());
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
         public void IVTNotBothSigned_CStoCS()
         {
             string s = @"[assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""John, PublicKey=00240000048000009400000006020000002400005253413100040000010001002b986f6b5ea5717d35c72d38561f413e267029efa9b5f107b9331d83df657381325b3a67b75812f63a9436ceccb49494de8f574f8e639d4d26c0fcf8b0e9a1a196b80b6f6ed053628d10d027e032df2ed1d60835e5f47d32c9ef6da10d0366a319573362c821b5f8fa5abc5bb22241de6f666a85d82d6ba8c3090d01636bd2bb"")]
@@ -834,7 +836,7 @@ public class C {}",
             requestor.VerifyDiagnostics();
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
         public void CS0281Method()
         {
             var friendClass = CreateCompilation(@"
@@ -883,7 +885,7 @@ public class Test
                     );
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
         public void CS0281Class()
         {
             var friendClass = CreateCompilation(@"
@@ -916,7 +918,7 @@ public class Test
             );
         }
         
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
         public void IVTNotBothSigned_VBtoCS()
         {
             string s = @"<assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""John, PublicKey=00240000048000009400000006020000002400005253413100040000010001002b986f6b5ea5717d35c72d38561f413e267029efa9b5f107b9331d83df657381325b3a67b75812f63a9436ceccb49494de8f574f8e639d4d26c0fcf8b0e9a1a196b80b6f6ed053628d10d027e032df2ed1d60835e5f47d32c9ef6da10d0366a319573362c821b5f8fa5abc5bb22241de6f666a85d82d6ba8c3090d01636bd2bb"")>
@@ -955,7 +957,7 @@ public class Test
             requestor.VerifyDiagnostics();
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
         public void IVTDeferredSuccess()
         {
             string s = @"[assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""John, PublicKey=00240000048000009400000006020000002400005253413100040000010001002b986f6b5ea5717d35c72d38561f413e267029efa9b5f107b9331d83df657381325b3a67b75812f63a9436ceccb49494de8f574f8e639d4d26c0fcf8b0e9a1a196b80b6f6ed053628d10d027e032df2ed1d60835e5f47d32c9ef6da10d0366a319573362c821b5f8fa5abc5bb22241de6f666a85d82d6ba8c3090d01636bd2bb"")]
@@ -982,7 +984,7 @@ public class A
             Assert.Empty(requestor.GetDiagnostics());
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
         public void IVTDeferredFailSignMismatch()
         {
             string s = @"[assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""John, PublicKey=00240000048000009400000006020000002400005253413100040000010001002b986f6b5ea5717d35c72d38561f413e267029efa9b5f107b9331d83df657381325b3a67b75812f63a9436ceccb49494de8f574f8e639d4d26c0fcf8b0e9a1a196b80b6f6ed053628d10d027e032df2ed1d60835e5f47d32c9ef6da10d0366a319573362c821b5f8fa5abc5bb22241de6f666a85d82d6ba8c3090d01636bd2bb"")]
@@ -1010,7 +1012,7 @@ public class A
                 Diagnostic(ErrorCode.ERR_FriendRefSigningMismatch, arguments: new object[] { "Paul, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null" }));
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
         public void IVTDeferredFailKeyMismatch()
         {
             //key is wrong in the first digit. correct key starts with 0
@@ -1045,7 +1047,7 @@ public class A
                 );
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
         public void IVTSuccessThroughIAssembly()
         {
             string s = @"[assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""John, PublicKey=00240000048000009400000006020000002400005253413100040000010001002b986f6b5ea5717d35c72d38561f413e267029efa9b5f107b9331d83df657381325b3a67b75812f63a9436ceccb49494de8f574f8e639d4d26c0fcf8b0e9a1a196b80b6f6ed053628d10d027e032df2ed1d60835e5f47d32c9ef6da10d0366a319573362c821b5f8fa5abc5bb22241de6f666a85d82d6ba8c3090d01636bd2bb"")]
@@ -1072,7 +1074,7 @@ public class A
             Assert.Empty(requestor.GetDiagnostics());
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
         public void IVTDeferredFailKeyMismatchIAssembly()
         {
             //key is wrong in the first digit. correct key starts with 0
@@ -1109,7 +1111,7 @@ public class A
         }
 
         [WorkItem(820450, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/820450")]
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
         public void IVTGivesAccessToUsingDifferentKeys()
         {
             string s = @"[assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""John, PublicKey=00240000048000009400000006020000002400005253413100040000010001002b986f6b5ea5717d35c72d38561f413e267029efa9b5f107b9331d83df657381325b3a67b75812f63a9436ceccb49494de8f574f8e639d4d26c0fcf8b0e9a1a196b80b6f6ed053628d10d027e032df2ed1d60835e5f47d32c9ef6da10d0366a319573362c821b5f8fa5abc5bb22241de6f666a85d82d6ba8c3090d01636bd2bb"")]
@@ -1143,7 +1145,7 @@ namespace ClassLibrary2
 
         #region IVT instantiations
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
         public void IVTHasCulture()
         {
             var other = CreateCompilation(
@@ -1159,7 +1161,7 @@ public class C
             other.VerifyDiagnostics(Diagnostic(ErrorCode.ERR_FriendAssemblyBadArgs, @"InternalsVisibleTo(""WantsIVTAccess, Culture=neutral"")").WithArguments("WantsIVTAccess, Culture=neutral"));
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
         public void IVTNoKey()
         {
             var other = CreateCompilation(
@@ -1179,7 +1181,7 @@ public class C
 
         #region Signing
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
         public void MaxSizeKey()
         {
             var pubKey = TestResources.General.snMaxSizePublicKeyString;
@@ -1241,7 +1243,7 @@ options: TestOptions.ReleaseExe
             Assert.Equal<byte>(pubKeyTokenBytes, comp3.Assembly.Identity.PublicKeyToken);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
         public void SignIt()
         {
             var other = CreateCompilation(
@@ -1317,7 +1319,7 @@ public class Z
             Assert.True(IsFileFullSigned(tempFile));
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
         public void SignModuleKeyFileAttr()
         {
             var x = s_keyPairFile;
@@ -1331,7 +1333,7 @@ public class Z
             ConfirmModuleAttributePresentAndAddingToAssemblyResultsInSignedOutput(outStrm, AttributeDescription.AssemblyKeyFileAttribute, legacyStrongName: false);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
         public void SignModuleKeyFileAttr_Legacy()
         {
             var x = s_keyPairFile;
@@ -1345,7 +1347,7 @@ public class Z
             ConfirmModuleAttributePresentAndAddingToAssemblyResultsInSignedOutput(outStrm, AttributeDescription.AssemblyKeyFileAttribute, legacyStrongName: true);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
         public void SignModuleKeyContainerAttr_Legacy()
         {
             string s = @"[assembly: System.Reflection.AssemblyKeyName(""roslynTestContainer"")] public class C {}";
@@ -1359,7 +1361,7 @@ public class Z
         }
 
         [WorkItem(5665, "https://github.com/dotnet/roslyn/issues/5665")]
-        [ConditionalFact(typeof(IsEnglishLocal))]
+        [ConditionalFact(typeof(IsEnglishLocal), typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
         public void SignModuleKeyContainerBogus()
         {
             string s = @"[assembly: System.Reflection.AssemblyKeyName(""bogus"")] public class C {}";
@@ -1381,7 +1383,7 @@ public class Z
             Assert.True(((string)err.Arguments[1]).EndsWith(" HRESULT: 0x80090016)", StringComparison.Ordinal));
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
         public void SignModuleKeyFileBogus()
         {
             string s = @"[assembly: System.Reflection.AssemblyKeyFile(""bogus"")] public class C {}";
@@ -1397,7 +1399,7 @@ public class Z
             other.VerifyDiagnostics(Diagnostic(ErrorCode.ERR_PublicKeyFileFailure).WithArguments("bogus", CodeAnalysisResources.FileNotFound));
         }
 
-        [Fact()]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
         public void AttemptToStrongNameWithOnlyPublicKey()
         {
             string s = "public class C {}";
@@ -1414,7 +1416,7 @@ public class Z
             Assert.True(success.Diagnostics[0].Code == (int)ErrorCode.ERR_SignButNoPrivateKey);
         }
 
-        [Fact()]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
         public void AttemptToStrongNameWithOnlyPublicKey_Legacy()
         {
             string s = "public class C {}";
@@ -1432,7 +1434,7 @@ public class Z
         }
 
         [WorkItem(531195, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531195")]
-        [Fact()]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
         public void SignModuleKeyContainerCmdLine_Legacy()
         {
             string s = "public class C {}";
@@ -1448,7 +1450,7 @@ public class Z
         }
 
         [WorkItem(531195, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531195")]
-        [Fact()]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
         public void SignModuleKeyContainerCmdLine_1_Legacy()
         {
             string s = @"
@@ -1467,7 +1469,7 @@ public class C {}";
         }
 
         [WorkItem(531195, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531195")]
-        [Fact()]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
         public void SignModuleKeyContainerCmdLine_2()
         {
             string s = @"
@@ -1486,7 +1488,7 @@ public class C {}";
         }
 
         [WorkItem(531195, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531195")]
-        [Fact()]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
         public void SignModuleKeyFileCmdLine()
         {
             string s = "public class C {}";
@@ -1501,7 +1503,7 @@ public class C {}";
             ConfirmModuleAttributePresentAndAddingToAssemblyResultsInSignedOutput(outStrm, AttributeDescription.AssemblyKeyFileAttribute, legacyStrongName: false);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
         public void BothLegacyAndNonLegacyGiveTheSameOutput()
         {
             string s = "public class C {}";
@@ -1529,7 +1531,7 @@ public class C {}";
             Assert.True(portable.SequenceEqual(desktop));
         }
 
-        [Fact()]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
         public void SignRefAssemblyKeyFileCmdLine()
         {
             string s = "public class C {}";
@@ -1550,7 +1552,7 @@ public class C {}";
         }
 
         [WorkItem(531195, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531195")]
-        [Fact()]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
         public void SignModuleKeyFileCmdLine_Legacy()
         {
             string s = "public class C {}";
@@ -1566,7 +1568,7 @@ public class C {}";
         }
 
         [WorkItem(531195, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531195")]
-        [Fact()]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
         public void SignModuleKeyFileCmdLine_1()
         {
             var x = s_keyPairFile;
@@ -1583,7 +1585,7 @@ public class C {}";
         }
 
         [WorkItem(531195, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531195")]
-        [Fact()]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
         public void SignModuleKeyFileCmdLine_1_Legacy()
         {
             var x = s_keyPairFile;
@@ -1600,7 +1602,7 @@ public class C {}";
         }
 
         [WorkItem(531195, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531195")]
-        [Fact()]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
         public void SignModuleKeyFileCmdLine_2()
         {
             var x = s_keyPairFile;
@@ -1616,7 +1618,7 @@ public class C {}";
                 Diagnostic(ErrorCode.ERR_CmdOptionConflictsSource).WithArguments("System.Reflection.AssemblyKeyFileAttribute", "CryptoKeyFile"));
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
         public void SignItWithOnlyPublicKey()
         {
             var other = CreateCompilation(
@@ -1640,7 +1642,7 @@ public class C
             assembly.VerifyDiagnostics(Diagnostic(ErrorCode.ERR_SignButNoPrivateKey).WithArguments(s_publicKeyFile));
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
         public void DelaySignItWithOnlyPublicKey()
         {
             var other = CreateCompilation(
@@ -1658,7 +1660,7 @@ public class C
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
         public void DelaySignButNoKey()
         {
             var other = CreateCompilation(
@@ -1679,7 +1681,7 @@ public class C
             Assert.True(emitResult.Success);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
         public void SignInMemory()
         {
             var other = CreateCompilation(
@@ -1694,7 +1696,7 @@ public class C
             Assert.True(emitResult.Success);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
         public void DelaySignConflict()
         {
             var other = CreateCompilation(
@@ -1712,7 +1714,7 @@ public class C
             Assert.True(emitResult.Success);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
         public void DelaySignNoConflict()
         {
             var other = CreateCompilation(
@@ -1730,7 +1732,7 @@ public class C
             Assert.True(emitResult.Success);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
         public void DelaySignWithAssemblySignatureKey()
         {
             DelaySignWithAssemblySignatureKeyHelper(s_defaultPortableProvider);
@@ -1774,7 +1776,7 @@ public class C
 
         [WorkItem(545720, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545720")]
         [WorkItem(530050, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530050")]
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
         public void InvalidAssemblyName()
         {
             var il = @"
@@ -1815,7 +1817,7 @@ class Derived : Base
         }
 
         [WorkItem(546331, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546331")]
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
         public void IvtVirtualCall1()
         {
             var source1 = @"
@@ -1921,7 +1923,7 @@ public class C : B
         }
 
         [WorkItem(546331, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546331")]
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
         public void IvtVirtualCall2()
         {
             var source1 = @"
@@ -2041,7 +2043,7 @@ public class D : C
 }");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
         public void IvtVirtual_ParamsAndDynamic()
         {
             var source1 = @"
@@ -2163,7 +2165,7 @@ public class C : B
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "c[1]").WithArguments("a", "B.this[int, int[]]").WithLocation(10, 17));
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
         [WorkItem(529779, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529779")]
         public void Bug529779_1()
         {
@@ -2190,7 +2192,7 @@ public class C
             CompileAndVerify(other.WithReferences(new[] { other.References.ElementAt(0), MetadataReference.CreateFromStream(unsigned.EmitToStream()) })).VerifyDiagnostics();
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
         [WorkItem(529779, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529779")]
         public void Bug529779_2()
         {
@@ -2229,12 +2231,13 @@ public class C
             }
         }
 
-        [Fact]
+#if !NETCOREAPP2_1
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
         [WorkItem(399, "https://github.com/dotnet/roslyn/issues/399")]
         public void Bug399()
         {
             // The referenced assembly Signed.dll from the repro steps
-            var signed = DesktopRuntimeUtil.CreateMetadataReferenceFromHexGZipImage(@"
+            var signed = Roslyn.Test.Utilities.Desktop.DesktopRuntimeUtil.CreateMetadataReferenceFromHexGZipImage(@"
 1f8b0800000000000400f38d9ac0c0ccc0c0c002c4ffff3330ec6080000706c2a00188f9e477f1316ce13cabb883d1e7ac62
 484666b14241517e7a5162ae4272625e5e7e894252aa4251699e42669e828b7fb0426e7e4aaa1e2f2f970ad48c005706061f
 4626869e0db74260e63e606052e466e486388a0922f64f094828c01d26006633419430302068860488f8790f06a0bf1c5a41
@@ -2264,8 +2267,9 @@ e29df38b5c72727c1333f32001949a0a0e2c10f8af0a344300ab2123052840cb16e30176c7281810
             // EXPECTED: no errors
             compilation.VerifyEmitDiagnostics();
         }
+#endif
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
         public void AssemblySignatureKeyAttribute_1()
         {
             var other = CreateEmptyCompilation(
@@ -2291,7 +2295,7 @@ public class C
             Assert.True(IsFileFullSigned(tempFile));
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
         public void AssemblySignatureKeyAttribute_2()
         {
             var other = CreateEmptyCompilation(
@@ -2319,7 +2323,7 @@ public class C
             }
         }
 
-        [ConditionalFact(typeof(IsEnglishLocal))]
+        [ConditionalFact(typeof(IsEnglishLocal), typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
         public void AssemblySignatureKeyAttribute_3()
         {
             var source = @"
@@ -2348,7 +2352,7 @@ public class C
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
         public void AssemblySignatureKeyAttribute_4()
         {
             var other = CreateEmptyCompilation(
@@ -2377,7 +2381,7 @@ public class C
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
         public void AssemblySignatureKeyAttribute_5()
         {
             var other = CreateEmptyCompilation(
@@ -2401,7 +2405,7 @@ public class C
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
         public void AssemblySignatureKeyAttribute_6()
         {
             var other = CreateEmptyCompilation(
@@ -2430,7 +2434,7 @@ public class C
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
         public void AssemblySignatureKeyAttribute_7()
         {
             var other = CreateEmptyCompilation(
@@ -2454,7 +2458,8 @@ public class C
             }
         }
 
-        [Fact, WorkItem(781312, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/781312")]
+        [WorkItem(781312, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/781312")]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
         public void Bug781312()
         {
             var ca = CreateCompilation(
@@ -2485,7 +2490,8 @@ internal class B
             CompileAndVerify(cb, verify: Verification.Fails).Diagnostics.Verify();
         }
 
-        [Fact, WorkItem(1072350, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1072350")]
+        [WorkItem(1072350, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1072350")]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
         public void Bug1072350()
         {
             const string sourceA = @"
@@ -2511,7 +2517,8 @@ class B
             CompileAndVerify(cb, expectedOutput: "42").Diagnostics.Verify();
         }
 
-        [Fact, WorkItem(1072339, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1072339")]
+        [WorkItem(1072339, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1072339")]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
         public void Bug1072339()
         {
             const string sourceA = @"
@@ -2537,7 +2544,8 @@ class B
             CompileAndVerify(cb, expectedOutput: "42").Diagnostics.Verify();
         }
 
-        [Fact, WorkItem(1095618, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1095618")]
+        [WorkItem(1095618, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1095618")]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
         public void Bug1095618()
         {
             const string source = @"[assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""System.Runtime.Serialization, PublicKey = 10000000000000000400000000000000"")]";
@@ -2556,7 +2564,7 @@ class B
             });
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
         [WorkItem(11497, "https://github.com/dotnet/roslyn/issues/11497")]
         public void ConsistentErrorMessageWhenProvidingNullKeyFile()
         {
@@ -2566,7 +2574,7 @@ class B
             VerifySignedBitSetAfterEmit(compilation, expectedToBeSigned: false);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
         [WorkItem(11497, "https://github.com/dotnet/roslyn/issues/11497")]
         public void ConsistentErrorMessageWhenProvidingEmptyKeyFile()
         {
@@ -2576,7 +2584,7 @@ class B
             VerifySignedBitSetAfterEmit(compilation, expectedToBeSigned: false);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
         [WorkItem(11497, "https://github.com/dotnet/roslyn/issues/11497")]
         public void ConsistentErrorMessageWhenProvidingNullKeyFile_PublicSign()
         {
@@ -2586,7 +2594,7 @@ class B
                 Diagnostic(ErrorCode.ERR_PublicSignButNoKey).WithLocation(1, 1));
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
         [WorkItem(11497, "https://github.com/dotnet/roslyn/issues/11497")]
         public void ConsistentErrorMessageWhenProvidingEmptyKeyFile_PublicSign()
         {
@@ -2599,5 +2607,3 @@ class B
         #endregion
     }
 }
-
-#endif

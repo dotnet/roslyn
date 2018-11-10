@@ -10,11 +10,13 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
+using static Microsoft.CodeAnalysis.CodeActions.CodeAction;
 
 namespace Microsoft.CodeAnalysis.IntroduceVariable
 {
@@ -49,7 +51,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             return block.OverlapsHiddenPosition(cancellationToken);
         }
 
-        public async Task<ImmutableArray<CodeAction>> IntroduceVariableAsync(
+        public async Task<CodeAction> IntroduceVariableAsync(
             Document document,
             TextSpan textSpan,
             CancellationToken cancellationToken)
@@ -61,10 +63,16 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                 var state = State.Generate((TService)this, semanticDocument, textSpan, cancellationToken);
                 if (state != null)
                 {
-                    var actions = await CreateActionsAsync(state, cancellationToken).ConfigureAwait(false);
-                    if (actions.Count > 0)
+                    var (title, actions) = await CreateActionsAsync(state, cancellationToken).ConfigureAwait(false);
+                    if (actions.Length > 0)
                     {
-                        return actions.AsImmutableOrNull();
+                        // We may end up creating a lot of viable code actions for the selected
+                        // piece of code.  Create a top level code action so that we don't overwhelm
+                        // the light bulb if there are a lot of other options in the list.  Set 
+                        // the code action as 'inlinable' so that if the lightbulb is not cluttered
+                        // then the nested items can just be lifted into it, giving the user fast
+                        // access to them.
+                        return new CodeActionWithNestedActions(title, actions, isInlinable: true);
                     }
                 }
 
@@ -72,39 +80,57 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             }
         }
 
-        private async Task<List<CodeAction>> CreateActionsAsync(State state, CancellationToken cancellationToken)
+        private async Task<(string title, ImmutableArray<CodeAction>)> CreateActionsAsync(State state, CancellationToken cancellationToken)
         {
-            var actions = new List<CodeAction>();
+            var actions = ArrayBuilder<CodeAction>.GetInstance();
+            var title = await AddActionsAndGetTitleAsync(state, actions, cancellationToken).ConfigureAwait(false);
 
+            return (title, actions.ToImmutableAndFree());
+        }
+
+        private async Task<string> AddActionsAndGetTitleAsync(State state, ArrayBuilder<CodeAction> actions, CancellationToken cancellationToken)
+        {
             if (state.InQueryContext)
             {
                 actions.Add(CreateAction(state, allOccurrences: false, isConstant: false, isLocal: false, isQueryLocal: true));
                 actions.Add(CreateAction(state, allOccurrences: true, isConstant: false, isLocal: false, isQueryLocal: true));
+
+                return FeaturesResources.Introduce_query_variable;
             }
             else if (state.InParameterContext)
             {
                 actions.Add(CreateAction(state, allOccurrences: false, isConstant: true, isLocal: false, isQueryLocal: false));
                 actions.Add(CreateAction(state, allOccurrences: true, isConstant: true, isLocal: false, isQueryLocal: false));
+
+                return FeaturesResources.Introduce_constant;
             }
             else if (state.InFieldContext)
             {
                 actions.Add(CreateAction(state, allOccurrences: false, isConstant: state.IsConstant, isLocal: false, isQueryLocal: false));
                 actions.Add(CreateAction(state, allOccurrences: true, isConstant: state.IsConstant, isLocal: false, isQueryLocal: false));
+
+                return GetConstantOrFieldResource(state.IsConstant);
             }
             else if (state.InConstructorInitializerContext)
             {
                 actions.Add(CreateAction(state, allOccurrences: false, isConstant: state.IsConstant, isLocal: false, isQueryLocal: false));
                 actions.Add(CreateAction(state, allOccurrences: true, isConstant: state.IsConstant, isLocal: false, isQueryLocal: false));
+
+                return GetConstantOrFieldResource(state.IsConstant);
             }
             else if (state.InAutoPropertyInitializerContext)
             {
                 actions.Add(CreateAction(state, allOccurrences: false, isConstant: state.IsConstant, isLocal: false, isQueryLocal: false));
                 actions.Add(CreateAction(state, allOccurrences: true, isConstant: state.IsConstant, isLocal: false, isQueryLocal: false));
+
+                return GetConstantOrFieldResource(state.IsConstant);
             }
             else if (state.InAttributeContext)
             {
                 actions.Add(CreateAction(state, allOccurrences: false, isConstant: true, isLocal: false, isQueryLocal: false));
                 actions.Add(CreateAction(state, allOccurrences: true, isConstant: true, isLocal: false, isQueryLocal: false));
+
+                return FeaturesResources.Introduce_constant;
             }
             else if (state.InBlockContext)
             {
@@ -122,18 +148,30 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                         actions.Add(CreateAction(state, allOccurrences: true, isConstant: state.IsConstant, isLocal: true, isQueryLocal: false));
                     }
                 }
+
+                return GetConstantOrLocalResource(state.IsConstant);
             }
             else if (state.InExpressionBodiedMemberContext)
             {
                 await CreateConstantFieldActionsAsync(state, actions, cancellationToken).ConfigureAwait(false);
                 actions.Add(CreateAction(state, allOccurrences: false, isConstant: state.IsConstant, isLocal: true, isQueryLocal: false));
                 actions.Add(CreateAction(state, allOccurrences: true, isConstant: state.IsConstant, isLocal: true, isQueryLocal: false));
-            }
 
-            return actions;
+                return GetConstantOrLocalResource(state.IsConstant);
+            }
+            else
+            {
+                return null;
+            }
         }
 
-        private async Task CreateConstantFieldActionsAsync(State state, List<CodeAction> actions, CancellationToken cancellationToken)
+        private static string GetConstantOrFieldResource(bool isConstant)
+            => isConstant ? FeaturesResources.Introduce_constant : FeaturesResources.Introduce_field;
+
+        private static string GetConstantOrLocalResource(bool isConstant)
+            => isConstant ? FeaturesResources.Introduce_constant : FeaturesResources.Introduce_local;
+
+        private async Task CreateConstantFieldActionsAsync(State state, ArrayBuilder<CodeAction> actions, CancellationToken cancellationToken)
         {
             if (state.IsConstant &&
                 !state.GetSemanticMap(cancellationToken).AllReferencedSymbols.OfType<ILocalSymbol>().Any() &&

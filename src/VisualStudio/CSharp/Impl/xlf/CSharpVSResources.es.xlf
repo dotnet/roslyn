@@ -4,7 +4,7 @@
     <body>
       <trans-unit id="Apply_all_csharp_formatting_rules_indentation_wrapping_spacing">
         <source>Apply all C# formatting rules (indentation, wrapping, spacing)</source>
-        <target state="new">Apply all C# formatting rules (indentation, wrapping, spacing)</target>
+        <target state="translated">Aplicar todas las reglas de formato de C# (sangría, ajuste, espaciado)</target>
         <note />
       </trans-unit>
       <trans-unit id="CSharp">
@@ -12,34 +12,44 @@
         <target state="translated">C#</target>
         <note />
       </trans-unit>
+      <trans-unit id="CSharp_Coding_Conventions">
+        <source>C# Coding Conventions</source>
+        <target state="new">C# Coding Conventions</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CSharp_Formatting_Rules">
+        <source>C# Formatting Rules</source>
+        <target state="new">C# Formatting Rules</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Format_document_settings">
         <source>Format Document Settings (Experiment) </source>
-        <target state="new">Format Document Settings (Experiment) </target>
+        <target state="translated">Configuración de “Dar formato al documento” (experimento) </target>
         <note />
       </trans-unit>
       <trans-unit id="In_relational_binary_operators">
         <source>In relational operators:  &lt;   &gt;   &lt;=   &gt;=   is   as   ==   !=</source>
-        <target state="new">In relational operators:  &lt;   &gt;   &lt;=   &gt;=   is   as   ==   !=</target>
+        <target state="translated">En operadores relacionales:  &lt;   &gt;   &lt;=   &gt;=   is   as   ==   !=</target>
         <note />
       </trans-unit>
       <trans-unit id="Perform_additional_code_cleanup_during_formatting">
         <source>Perform additional code cleanup during formatting</source>
-        <target state="new">Perform additional code cleanup during formatting</target>
+        <target state="translated">Realizar limpieza de código adicional durante la aplicación de formato</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_is_null_for_reference_equality_checks">
         <source>Prefer 'is null' for reference equality checks</source>
-        <target state="new">Prefer 'is null' for reference equality checks</target>
+        <target state="translated">Preferir “is null” para comprobaciones de igualdad de referencias</target>
         <note>'is null' is a C# string and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Remove_unnecessary_usings">
         <source>Remove unnecessary usings</source>
-        <target state="new">Remove unnecessary usings</target>
+        <target state="translated">Quitar instrucciones Using innecesarias</target>
         <note />
       </trans-unit>
       <trans-unit id="Sort_usings">
         <source>Sort usings</source>
-        <target state="new">Sort usings</target>
+        <target state="translated">Ordenar instrucciones Using</target>
         <note />
       </trans-unit>
       <trans-unit id="Surround_With">
@@ -359,7 +369,7 @@
       </trans-unit>
       <trans-unit id="Use_var_when_generating_locals">
         <source>Use 'var' when generating locals</source>
-        <target state="translated">Usar 'var' al generar variables locales</target>
+        <target state="translated">Usar "var" al generar variables locales</target>
         <note />
       </trans-unit>
       <trans-unit id="Move_local_declaration_to_the_extracted_method_if_it_is_not_used_elsewhere">
@@ -374,7 +384,7 @@
       </trans-unit>
       <trans-unit id="Don_t_put_ref_or_out_on_custom_struct">
         <source>_Don't put ref or out on custom struct</source>
-        <target state="translated">_No colocar 'out' o 'ref' en estructura personalizada</target>
+        <target state="translated">_No colocar "out" o "ref" en estructura personalizada</target>
         <note />
       </trans-unit>
       <trans-unit id="Editor_Help">
@@ -449,7 +459,7 @@
       </trans-unit>
       <trans-unit id="Place_System_directives_first_when_sorting_usings">
         <source>_Place 'System' directives first when sorting usings</source>
-        <target state="translated">Al ordenar instrucciones Using, _colocar primero las directivas 'System'</target>
+        <target state="translated">Al ordenar instrucciones Using, _colocar primero las directivas "System"</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_completion_list_after_a_character_is_typed">
@@ -524,22 +534,22 @@
       </trans-unit>
       <trans-unit id="Qualify_event_access_with_this">
         <source>Qualify event access with 'this'</source>
-        <target state="translated">Calificar acceso a evento con 'this'</target>
+        <target state="translated">Calificar acceso a evento con "this"</target>
         <note />
       </trans-unit>
       <trans-unit id="Qualify_field_access_with_this">
         <source>Qualify field access with 'this'</source>
-        <target state="translated">Calificar acceso a campo con 'this'</target>
+        <target state="translated">Calificar acceso a campo con "this"</target>
         <note />
       </trans-unit>
       <trans-unit id="Qualify_method_access_with_this">
         <source>Qualify method access with 'this'</source>
-        <target state="translated">Calificar acceso a método con 'this'</target>
+        <target state="translated">Calificar acceso a método con "this"</target>
         <note />
       </trans-unit>
       <trans-unit id="Qualify_property_access_with_this">
         <source>Qualify property access with 'this'</source>
-        <target state="translated">Calificar acceso a propiedad con 'this'</target>
+        <target state="translated">Calificar acceso a propiedad con "this"</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_explicit_type">
@@ -554,17 +564,17 @@
       </trans-unit>
       <trans-unit id="Prefer_var">
         <source>Prefer 'var'</source>
-        <target state="translated">Preferir 'var'</target>
+        <target state="translated">Preferir "var"</target>
         <note />
       </trans-unit>
       <trans-unit id="this_preferences_colon">
         <source>'this.' preferences:</source>
-        <target state="translated">'Preferencias de "this.":</target>
+        <target state="translated">"Preferencias de "this.":</target>
         <note />
       </trans-unit>
       <trans-unit id="var_preferences_colon">
         <source>'var' preferences:</source>
-        <target state="translated">'Preferencias de 'var':</target>
+        <target state="translated">"Preferencias de "var":</target>
         <note />
       </trans-unit>
       <trans-unit id="Do_not_prefer_this">
@@ -639,7 +649,7 @@
       </trans-unit>
       <trans-unit id="null_checking_colon">
         <source>'null' checking:</source>
-        <target state="translated">'Comprobación de "null":</target>
+        <target state="translated">"Comprobación de "null":</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_throw_expression">
@@ -722,19 +732,19 @@
         <target state="translated">Mostrar s_ugerencias de nombres</target>
         <note />
       </trans-unit>
-      <trans-unit id="Generate Event Subscription">
+      <trans-unit id="Generate_Event_Subscription">
         <source>Generate Event Subscription</source>
         <target state="translated">Generar suscripción de eventos</target>
         <note />
       </trans-unit>
       <trans-unit id="In_arithmetic_binary_operators">
         <source>In arithmetic operators:  *   /   %   +   -   &lt;&lt;   &gt;&gt;   &amp;   ^   |</source>
-        <target state="new">In arithmetic operators:  *   /   %   +   -   &lt;&lt;   &gt;&gt;   &amp;   ^   |</target>
+        <target state="translated">En operadores aritméticos:  *   /   %   +   -   &lt;&lt;   &gt;&gt;   &amp;   ^   |</target>
         <note />
       </trans-unit>
       <trans-unit id="In_other_binary_operators">
         <source>In other binary operators:  &amp;&amp;   ||   ??</source>
-        <target state="new">In other binary operators:  &amp;&amp;   ||   ??</target>
+        <target state="translated">En otros operadores binarios:  &amp;&amp;   ||   ??</target>
         <note />
       </trans-unit>
     </body>

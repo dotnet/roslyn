@@ -298,7 +298,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             if (parseOptions == null)
             {
-                parseOptions = CSharp.CSharpParseOptions.Default.WithDocumentationMode(DocumentationMode.None);
+                parseOptions = CSharp.CSharpParseOptions.Default.WithLanguageVersion(CSharp.LanguageVersion.Default).WithDocumentationMode(DocumentationMode.None);
             }
 
             if (compilationOptions == null)

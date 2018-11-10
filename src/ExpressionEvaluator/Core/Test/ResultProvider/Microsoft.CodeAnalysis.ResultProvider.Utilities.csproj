@@ -8,7 +8,7 @@
     <RootNamespace>Microsoft.CodeAnalysis.ExpressionEvaluator</RootNamespace>
     <AssemblyName>Microsoft.CodeAnalysis.ExpressionEvaluator.ResultProvider.Utilities</AssemblyName>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <TargetFramework>net46</TargetFramework>
+    <TargetFramework>net472</TargetFramework>
     <IsShipping>false</IsShipping>
 
     <!-- Disable CA1825 (Avoid unnecessary zero-length array allocations. Use Array.Empty<X>() instead) as Array.Empty not available in one of the targets for this shared project -->
@@ -24,9 +24,6 @@
     <Reference Include="System" />
     <PackageReference Include="System.Collections.Immutable" Version="$(SystemCollectionsImmutableVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Debugger.Metadata" Version="$(MicrosoftVisualStudioDebuggerMetadataVersion)" />
-    <PackageReference Include="xunit" Version="$(xunitVersion)" />
-    <PackageReference Include="xunit.analyzers" Version="$(xunitanalyzersVersion)" />
-    <PackageReference Include="xunit.runner.console" Version="$(xunitrunnerconsoleVersion)" />
   </ItemGroup>
   <ItemGroup Label="Linked Files">
     <Compile Include="..\..\..\..\Dependencies\PooledObjects\PooledStringBuilder.cs">

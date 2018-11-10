@@ -20,16 +20,15 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
   <ItemGroup>
-    <PackageReference Include="System.ValueTuple" Version="$(SystemValueTupleVersion)" />
     <PackageReference Include="Microsoft.VisualBasic" Version="$(MicrosoftVisualBasicVersion)" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
-    <None Include="vbi.coreclr.rsp" Condition="'$(TargetFramework)' == 'netcoreapp2.0'">
+    <None Include="vbi.coreclr.rsp" Condition="'$(TargetFramework)' == 'netcoreapp2.1'">
       <Link>vbi.rsp</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="vbi.desktop.rsp" Condition="'$(TargetFramework)' != 'netcoreapp2.0'">
+    <None Include="vbi.desktop.rsp" Condition="'$(TargetFramework)' != 'netcoreapp2.1'">
       <Link>vbi.rsp</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

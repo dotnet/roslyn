@@ -51,7 +51,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.EditAndContinue
             Public Sub Reanalyze(workspace As Microsoft.CodeAnalysis.Workspace, Optional projectIds As IEnumerable(Of ProjectId) = Nothing, Optional documentIds As IEnumerable(Of DocumentId) = Nothing, Optional highPriority As Boolean = False) Implements IDiagnosticAnalyzerService.Reanalyze
             End Sub
 
-            Public Function GetDiagnosticDescriptors(projectOpt As Project) As ImmutableDictionary(Of String, ImmutableArray(Of DiagnosticDescriptor)) Implements IDiagnosticAnalyzerService.GetDiagnosticDescriptors
+            Public Function GetDiagnosticDescriptors(projectOpt As Project) As ImmutableDictionary(Of String, ImmutableArray(Of DiagnosticDescriptor)) Implements IDiagnosticAnalyzerService.CreateDiagnosticDescriptorsPerReference
                 Return ImmutableDictionary(Of String, ImmutableArray(Of DiagnosticDescriptor)).Empty
             End Function
 
@@ -108,6 +108,14 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.EditAndContinue
             End Function
 
             Public Function GetHostAnalyzerReferences() As IEnumerable(Of AnalyzerReference) Implements IDiagnosticAnalyzerService.GetHostAnalyzerReferences
+                Throw New NotImplementedException()
+            End Function
+
+            Public Function GetDiagnosticAnalyzers(project As Project) As ImmutableArray(Of DiagnosticAnalyzer) Implements IDiagnosticAnalyzerService.GetDiagnosticAnalyzers
+                Throw New NotImplementedException()
+            End Function
+
+            Public Function IsCompilationEndAnalyzer(analyzer As DiagnosticAnalyzer, project As Project, compilation As Compilation) As Boolean Implements IDiagnosticAnalyzerService.IsCompilationEndAnalyzer
                 Throw New NotImplementedException()
             End Function
         End Class

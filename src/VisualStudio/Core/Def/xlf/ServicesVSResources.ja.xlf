@@ -4,12 +4,17 @@
     <body>
       <trans-unit id="Always_for_clarity">
         <source>Always for clarity</source>
-        <target state="new">Always for clarity</target>
+        <target state="translated">わかりやすくするために常に</target>
         <note />
       </trans-unit>
       <trans-unit id="Apply_0_keymapping_scheme">
         <source>Apply '{0}' keymapping scheme</source>
-        <target state="new">Apply '{0}' keymapping scheme</target>
+        <target state="translated">'{0}' のキー マップ スキームを適用します</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Colorize_regular_expressions">
+        <source>Colorize regular expressions</source>
+        <target state="new">Colorize regular expressions</target>
         <note />
       </trans-unit>
       <trans-unit id="Element_is_not_valid">
@@ -17,34 +22,84 @@
         <target state="translated">要素が有効ではありません。</target>
         <note />
       </trans-unit>
+      <trans-unit id="Generate_dot_editorconfig_file_from_settings">
+        <source>Generate .editorconfig file from settings</source>
+        <target state="new">Generate .editorconfig file from settings</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Highlight_related_components_under_cursor">
+        <source>Highlight related components under cursor</source>
+        <target state="new">Highlight related components under cursor</target>
+        <note />
+      </trans-unit>
       <trans-unit id="In_other_operators">
         <source>In other operators</source>
-        <target state="new">In other operators</target>
+        <target state="translated">その他の演算子内で</target>
         <note />
       </trans-unit>
       <trans-unit id="Keep_all_parentheses_in_colon">
         <source>Keep all parentheses in:</source>
-        <target state="new">Keep all parentheses in:</target>
+        <target state="translated">すべてのかっこを保持:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Kind">
+        <source>Kind</source>
+        <target state="new">Kind</target>
         <note />
       </trans-unit>
       <trans-unit id="Never_if_unnecessary">
         <source>Never if unnecessary</source>
-        <target state="new">Never if unnecessary</target>
+        <target state="translated">不必要なら保持しない</target>
         <note />
       </trans-unit>
       <trans-unit id="Parentheses_preferences_colon">
         <source>Parentheses preferences:</source>
-        <target state="new">Parentheses preferences:</target>
+        <target state="translated">かっこの優先順位:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_compound_assignments">
+        <source>Prefer compound assignments</source>
+        <target state="new">Prefer compound assignments</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_index_operator">
+        <source>Prefer index operator</source>
+        <target state="new">Prefer index operator</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_range_operator">
+        <source>Prefer range operator</source>
+        <target state="new">Prefer range operator</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regular_Expressions">
+        <source>Regular Expressions</source>
+        <target state="new">Regular Expressions</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Report_invalid_regular_expressions">
+        <source>Report invalid regular expressions</source>
+        <target state="new">Report invalid regular expressions</target>
         <note />
       </trans-unit>
       <trans-unit id="Reset_Visual_Studio_default_keymapping">
         <source>Reset Visual Studio default keymapping</source>
-        <target state="new">Reset Visual Studio default keymapping</target>
+        <target state="translated">Visual Studio の既定のキーマップをリセットします</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Save_dot_editorconfig_file">
+        <source>Save .editorconfig file</source>
+        <target state="new">Save .editorconfig file</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_expression_body_for_lambdas">
+        <source>Use expression body for lambdas</source>
+        <target state="new">Use expression body for lambdas</target>
         <note />
       </trans-unit>
       <trans-unit id="We_notice_you_suspended_0_Reset_keymappings_to_continue_to_navigate_and_refactor">
         <source>We notice you suspended '{0}'. Reset keymappings to continue to navigate and refactor.</source>
-        <target state="new">We notice you suspended '{0}'. Reset keymappings to continue to navigate and refactor.</target>
+        <target state="translated">'{0}' が中断されました。キーマップをリセットして、移動とリファクターを続行してください。</target>
         <note />
       </trans-unit>
       <trans-unit id="You_must_select_at_least_one_member">
@@ -1533,29 +1588,29 @@ I agree to all of the foregoing:</source>
         <target state="translated">読み取り専用を優先する</target>
         <note />
       </trans-unit>
+      <trans-unit id="Analyzing_0">
+        <source>Analyzing '{0}'</source>
+        <target state="translated">'{0}' の分析</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Manage_naming_styles">
         <source>Manage naming styles</source>
         <target state="translated">名前付けスタイルを管理する</target>
         <note />
       </trans-unit>
-      <trans-unit id="Analyzing_0">
-        <source>Analyzing '{0}'</source>
-        <target state="new">Analyzing '{0}'</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Live_code_analysis">
         <source>Live code analysis</source>
-        <target state="new">Live code analysis</target>
+        <target state="translated">ライブ コード分析</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_conditional_expression_over_if_with_assignments">
         <source>Prefer conditional expression over 'if' with assignments</source>
-        <target state="new">Prefer conditional expression over 'if' with assignments</target>
+        <target state="translated">割り当てのある 'if' より条件式を優先する</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_conditional_expression_over_if_with_returns">
         <source>Prefer conditional expression over 'if' with returns</source>
-        <target state="new">Prefer conditional expression over 'if' with returns</target>
+        <target state="translated">戻り値のある 'if' より条件式を優先する</target>
         <note />
       </trans-unit>
     </body>

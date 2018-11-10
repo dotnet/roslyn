@@ -72,8 +72,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         /// <remarks>
         /// Specifying the slot manually may be necessary if the symbol is a field,
-        /// in which case <see cref="VariableSlot(Symbol, int)"/> will not know
-        /// which containing slot to look for.
+        /// in which case <see cref="DataFlowPassBase{TLocalState}.VariableSlot(Symbol, int)"/>
+        /// will not know which containing slot to look for.
         /// </remarks>
         private void CheckIfAssignedDuringLocalFunctionReplay(Symbol symbol, SyntaxNode node, int slot)
         {
@@ -222,7 +222,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // fields we need to record each field assignment separately,
             // since some fields may be assigned when this read is replayed
             VariableIdentifier id = variableBySlot[slot];
-            var type = VariableType(id.Symbol);
+            var type = VariableType(id.Symbol).TypeSymbol;
 
             Debug.Assert(!_emptyStructTypeCache.IsEmptyStructType(type));
             

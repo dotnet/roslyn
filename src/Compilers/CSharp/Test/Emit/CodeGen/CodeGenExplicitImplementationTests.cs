@@ -686,7 +686,7 @@ Derived1.Method`2",
                 Diagnostic(ErrorCode.WRN_TypeParameterSameAsOuterTypeParameter, "Y").WithArguments("Y", "Outer<T>.Inner<U>.Derived1<X, Y>"));
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/10837")]
         public void TestExplicitImplementationInBaseGenericType()
         {
             // Tests:
@@ -754,7 +754,7 @@ Derived`2.Method()");
             comp.VerifyDiagnostics(); // No errors
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/10837")]
         public void TestExplicitImplementationInBaseGenericType2()
         {
             // Tests:

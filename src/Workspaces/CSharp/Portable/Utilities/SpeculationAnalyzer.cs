@@ -512,7 +512,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
         {
             return node.IsKind(SyntaxKind.InvocationExpression) ||
                 node.IsKind(SyntaxKind.ElementAccessExpression) ||
-                node.IsKind(SyntaxKind.SimpleMemberAccessExpression);
+                node.IsKind(SyntaxKind.SimpleMemberAccessExpression) ||
+                node.IsKind(SyntaxKind.ImplicitElementAccess);
         }
 
         protected override ImmutableArray<ArgumentSyntax> GetArguments(ExpressionSyntax expression)

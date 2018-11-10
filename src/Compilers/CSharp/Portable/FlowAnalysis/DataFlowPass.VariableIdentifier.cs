@@ -6,9 +6,10 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    internal partial class DataFlowPass
+    internal partial class DataFlowPassBase<TLocalState>
     {
-        protected struct VariableIdentifier : IEquatable<VariableIdentifier>
+        [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
+        internal struct VariableIdentifier : IEquatable<VariableIdentifier>
         {
             public readonly Symbol Symbol;
             public readonly int ContainingSlot;
@@ -16,7 +17,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             public VariableIdentifier(Symbol symbol, int containingSlot = 0)
             {
                 Debug.Assert(symbol.Kind == SymbolKind.Local || symbol.Kind == SymbolKind.Field || symbol.Kind == SymbolKind.Parameter ||
-                    (symbol as MethodSymbol)?.MethodKind == MethodKind.LocalFunction);
+                    (symbol as MethodSymbol)?.MethodKind == MethodKind.LocalFunction ||
+                    symbol.Kind == SymbolKind.Property || symbol.Kind == SymbolKind.Event);
                 Symbol = symbol;
                 ContainingSlot = containingSlot;
             }
@@ -27,11 +29,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             public override int GetHashCode()
             {
-                return Roslyn.Utilities.Hash.Combine(Symbol, ContainingSlot);
+                return Roslyn.Utilities.Hash.Combine(Symbol?.OriginalDefinition, ContainingSlot);
             }
             public bool Equals(VariableIdentifier other)
             {
-                return ((object)Symbol == null ? (object)other.Symbol == null : Symbol.Equals(other.Symbol)) && ContainingSlot == other.ContainingSlot;
+                return ((object)Symbol == null ? (object)other.Symbol == null : Symbol.OriginalDefinition.Equals(other.Symbol.OriginalDefinition)) && ContainingSlot == other.ContainingSlot;
             }
             public override bool Equals(object obj)
             {
@@ -45,6 +47,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             public static bool operator !=(VariableIdentifier left, VariableIdentifier right)
             {
                 return !left.Equals(right);
+            }
+
+            internal string GetDebuggerDisplay()
+            {
+                return $"ContainingSlot={ContainingSlot}, Symbol={Symbol.GetDebuggerDisplay()}";
             }
         }
     }

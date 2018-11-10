@@ -206,10 +206,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     return false;
 
                 case SymbolKind.ArrayType:
-                    return IsOrClosedOverATypeFromAssemblies(((ArrayTypeSymbol)symbol).ElementType, assemblies);
+                    return IsOrClosedOverATypeFromAssemblies(((ArrayTypeSymbol)symbol).ElementType.TypeSymbol, assemblies);
 
                 case SymbolKind.PointerType:
-                    return IsOrClosedOverATypeFromAssemblies(((PointerTypeSymbol)symbol).PointedAtType, assemblies);
+                    return IsOrClosedOverATypeFromAssemblies(((PointerTypeSymbol)symbol).PointedAtType.TypeSymbol, assemblies);
 
                 case SymbolKind.DynamicType:
                     return false;
@@ -244,7 +244,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                         for (i = 0; i < count; i++)
                         {
-                            if (IsOrClosedOverATypeFromAssemblies(arguments[i], assemblies))
+                            if (IsOrClosedOverATypeFromAssemblies(arguments[i].TypeSymbol, assemblies))
                             {
                                 return true;
                             }
@@ -515,8 +515,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 HashSet<DiagnosticInfo> useSiteDiagnostics = null;
                 if (scope != targetTypeSymbol &&
                     !(targetTypeSymbol.IsInterfaceType()
-                        ? scope.AllInterfacesNoUseSiteDiagnostics.Contains((NamedTypeSymbol)targetTypeSymbol)
-                        : scope.IsDerivedFrom(targetTypeSymbol, TypeCompareKind.ConsiderEverything, useSiteDiagnostics: ref useSiteDiagnostics)))
+                        ? scope.AllInterfacesNoUseSiteDiagnostics.IndexOf((NamedTypeSymbol)targetTypeSymbol, 0, TypeSymbol.EqualsIgnoringNullableComparer) != -1
+                        : scope.IsDerivedFrom(targetTypeSymbol, TypeCompareKind.IgnoreNullableModifiersForReferenceTypes, useSiteDiagnostics: ref useSiteDiagnostics)))
                 {
                     return null;
                 }

@@ -1636,7 +1636,7 @@ End Class
         ''' <summary>
         ''' Local slots must be preserved based on signature.
         ''' </summary>
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub PreserveLocalSlots()
             Dim sources0 = <compilation>
                                <file><![CDATA[
@@ -1929,7 +1929,7 @@ End Class
         ''' <summary>
         ''' Preserve locals for method added after initial compilation.
         ''' </summary>
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub PreserveLocalSlots_NewMethod()
             Dim sources0 = <compilation>
                                <file><![CDATA[
@@ -4764,7 +4764,7 @@ End Module
 
 #End Region
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub SymWriterErrors()
             Dim source0 =
 <compilation>

@@ -614,6 +614,10 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                     LogErrorOutput("Roslyn compiler server reports different protocol version than build task.");
                     return base.ExecuteTool(pathToTool, responseFileCommands, commandLineCommands);
 
+                case BuildResponse.ResponseType.IncorrectHash:
+                    LogErrorOutput("Roslyn compiler server reports different hash version than build task.");
+                    return base.ExecuteTool(pathToTool, responseFileCommands, commandLineCommands);
+
                 case BuildResponse.ResponseType.Rejected:
                 case BuildResponse.ResponseType.AnalyzerInconsistency:
                     return base.ExecuteTool(pathToTool, responseFileCommands, commandLineCommands);

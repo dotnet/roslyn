@@ -183,6 +183,7 @@ namespace My
         static A() 
         {
             int x = default;
+            string y = null!;
         }
 
         [method: Obsolete]
@@ -811,6 +812,8 @@ namespace Comments.XmlComments.UndocumentedKeywords
             i &lt;&lt;= i;/*&lt;&lt;=*/
             i &gt;&gt;= i;/*&gt;&gt;=*/
             object s = x =&gt; x + 1;/*=&gt;*/
+            var index = ^1;
+            var range = 1..2;
             Point point;
             unsafe
             {

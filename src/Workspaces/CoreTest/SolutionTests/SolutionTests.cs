@@ -129,6 +129,70 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        public async Task AddTwoDocumentsForSingleProject()
+        {
+            var projectId = ProjectId.CreateNewId();
+
+            var documentInfo1 = DocumentInfo.Create(DocumentId.CreateNewId(projectId), "file1.cs");
+            var documentInfo2 = DocumentInfo.Create(DocumentId.CreateNewId(projectId), "file2.cs");
+
+            var solution = CreateSolution()
+                .AddProject(projectId, "goo", "goo.dll", LanguageNames.CSharp)
+                .AddDocuments(ImmutableArray.Create(documentInfo1, documentInfo2));
+
+            var project = Assert.Single(solution.Projects);
+
+            var document1 = project.GetDocument(documentInfo1.Id);
+            var document2 = project.GetDocument(documentInfo2.Id);
+
+            Assert.NotSame(document1, document2);
+
+            await ValidateSolutionAndCompilationsAsync(solution);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        public async Task AddTwoDocumentsForTwoProjects()
+        {
+            var projectId1 = ProjectId.CreateNewId();
+            var projectId2 = ProjectId.CreateNewId();
+
+            var documentInfo1 = DocumentInfo.Create(DocumentId.CreateNewId(projectId1), "file1.cs");
+            var documentInfo2 = DocumentInfo.Create(DocumentId.CreateNewId(projectId2), "file2.cs");
+
+            var solution = CreateSolution()
+                .AddProject(projectId1, "project1", "project1.dll", LanguageNames.CSharp)
+                .AddProject(projectId2, "project2", "project2.dll", LanguageNames.CSharp)
+                .AddDocuments(ImmutableArray.Create(documentInfo1, documentInfo2));
+
+            var project1 = solution.GetProject(projectId1);
+            var project2 = solution.GetProject(projectId2);
+
+            var document1 = project1.GetDocument(documentInfo1.Id);
+            var document2 = project2.GetDocument(documentInfo2.Id);
+
+            Assert.NotSame(document1, document2);
+            Assert.NotSame(document1.Project, document2.Project);
+
+            await ValidateSolutionAndCompilationsAsync(solution);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        public void AddTwoDocumentsWithMissingProject()
+        {
+            var projectId1 = ProjectId.CreateNewId();
+            var projectId2 = ProjectId.CreateNewId();
+
+            var documentInfo1 = DocumentInfo.Create(DocumentId.CreateNewId(projectId1), "file1.cs");
+            var documentInfo2 = DocumentInfo.Create(DocumentId.CreateNewId(projectId2), "file2.cs");
+
+            // We're only adding the first project, but not the second one
+            var solution = CreateSolution()
+                .AddProject(projectId1, "project1", "project1.dll", LanguageNames.CSharp);
+
+            Assert.ThrowsAny<InvalidOperationException>(() => solution.AddDocuments(ImmutableArray.Create(documentInfo1, documentInfo2)));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
         public async Task TestOneCSharpProjectAsync()
         {
             var sol = CreateSolutionWithOneCSharpProject();
@@ -1086,42 +1150,6 @@ End Class";
         {
             var observed = solution.GetProject(projectId).GetCompilationAsync().Result;
             return new ObjectReference<Compilation>(observed);
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
-        public void TestLoadProjectFromCommandLine()
-        {
-            string commandLine = @"goo.cs subdir\bar.cs /out:goo.dll /target:library";
-            var info = CommandLineProject.CreateProjectInfo("TestProject", LanguageNames.CSharp, commandLine, @"C:\ProjectDirectory");
-            var ws = new AdhocWorkspace();
-            ws.AddProject(info);
-            var project = ws.CurrentSolution.GetProject(info.Id);
-
-            Assert.Equal("TestProject", project.Name);
-            Assert.Equal("goo", project.AssemblyName);
-            Assert.Equal(OutputKind.DynamicallyLinkedLibrary, project.CompilationOptions.OutputKind);
-
-            Assert.Equal(2, project.Documents.Count());
-
-            var gooDoc = project.Documents.First(d => d.Name == "goo.cs");
-            Assert.Equal(0, gooDoc.Folders.Count);
-            Assert.Equal(@"C:\ProjectDirectory\goo.cs", gooDoc.FilePath);
-
-            var barDoc = project.Documents.First(d => d.Name == "bar.cs");
-            Assert.Equal(1, barDoc.Folders.Count);
-            Assert.Equal("subdir", barDoc.Folders[0]);
-            Assert.Equal(@"C:\ProjectDirectory\subdir\bar.cs", barDoc.FilePath);
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
-        public void TestCommandLineProjectWithRelativePathOutsideProjectCone()
-        {
-            string commandLine = @"..\goo.cs";
-            var info = CommandLineProject.CreateProjectInfo("TestProject", LanguageNames.CSharp, commandLine, @"C:\ProjectDirectory");
-
-            var docInfo = info.Documents.First();
-            Assert.Equal(0, docInfo.Folders.Count);
-            Assert.Equal("goo.cs", docInfo.Name);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]

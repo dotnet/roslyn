@@ -31,6 +31,7 @@
   <Import Project="Version.targets"/>
 
   <Import Project="Localization.targets" />
+  <Import Project="VisualStudio.targets" Condition="'$(UsingToolVSSDK)' == 'true' and '$(DesignTimeBuild)' != 'true' and '$(BuildingForLiveUnitTesting)' != 'true' and '$(MSBuildRuntimeType)' != 'Core'"/>
   <Import Project="OptimizationData.targets"/>
   <Import Project="SymStore.targets"/>
 

@@ -188,6 +188,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to A subtraction must be the last element in a character class.
+        /// </summary>
+        internal static string A_subtraction_must_be_the_last_element_in_a_character_class {
+            get {
+                return ResourceManager.GetString("A_subtraction_must_be_the_last_element_in_a_character_class", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Absolute path expected..
         /// </summary>
         internal static string Absolute_path_expected {
@@ -296,6 +305,24 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Alternation conditions cannot be comments.
+        /// </summary>
+        internal static string Alternation_conditions_cannot_be_comments {
+            get {
+                return ResourceManager.GetString("Alternation_conditions_cannot_be_comments", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Alternation conditions do not capture and cannot be named.
+        /// </summary>
+        internal static string Alternation_conditions_do_not_capture_and_cannot_be_named {
+            get {
+                return ResourceManager.GetString("Alternation_conditions_do_not_capture_and_cannot_be_named", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to An element with the same key but a different value already exists..
         /// </summary>
         internal static string An_element_with_the_same_key_but_a_different_value_already_exists {
@@ -395,6 +422,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Cannot include class \{0} in character range.
+        /// </summary>
+        internal static string Cannot_include_class_0_in_character_range {
+            get {
+                return ResourceManager.GetString("Cannot_include_class_0_in_character_range", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Cannot open project &apos;{0}&apos; because the file extension &apos;{1}&apos; is not associated with a language..
         /// </summary>
         internal static string Cannot_open_project_0_because_the_file_extension_1_is_not_associated_with_a_language {
@@ -419,6 +455,24 @@ namespace Microsoft.CodeAnalysis {
         internal static string Cannot_serialize_type_0 {
             get {
                 return ResourceManager.GetString("Cannot_serialize_type_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Capture group numbers must be less than or equal to Int32.MaxValue.
+        /// </summary>
+        internal static string Capture_group_numbers_must_be_less_than_or_equal_to_Int32_MaxValue {
+            get {
+                return ResourceManager.GetString("Capture_group_numbers_must_be_less_than_or_equal_to_Int32_MaxValue", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Capture number cannot be zero.
+        /// </summary>
+        internal static string Capture_number_cannot_be_zero {
+            get {
+                return ResourceManager.GetString("Capture_number_cannot_be_zero", resourceCulture);
             }
         }
         
@@ -495,11 +549,29 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Core EditorConfig Options.
+        /// </summary>
+        internal static string Core_EditorConfig_Options {
+            get {
+                return ResourceManager.GetString("Core_EditorConfig_Options", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Could not find location to generation symbol into..
         /// </summary>
         internal static string Could_not_find_location_to_generation_symbol_into {
             get {
                 return ResourceManager.GetString("Could_not_find_location_to_generation_symbol_into", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to C# files.
+        /// </summary>
+        internal static string CSharp_files {
+            get {
+                return ResourceManager.GetString("CSharp_files", resourceCulture);
             }
         }
         
@@ -590,6 +662,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Documentation_comment_id_must_start_with_E_F_M_N_P_or_T {
             get {
                 return ResourceManager.GetString("Documentation_comment_id_must_start_with_E_F_M_N_P_or_T", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to .NET Coding Conventions.
+        /// </summary>
+        internal static string dot_NET_Coding_Conventions {
+            get {
+                return ResourceManager.GetString("dot_NET_Coding_Conventions", resourceCulture);
             }
         }
         
@@ -693,11 +774,29 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Expression-level preferences.
+        /// </summary>
+        internal static string Expression_level_preferences {
+            get {
+                return ResourceManager.GetString("Expression_level_preferences", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Failure.
         /// </summary>
         internal static string Failure {
             get {
                 return ResourceManager.GetString("Failure", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Field preferences.
+        /// </summary>
+        internal static string Field_preferences {
+            get {
+                return ResourceManager.GetString("Field_preferences", resourceCulture);
             }
         }
         
@@ -747,6 +846,51 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Illegal \ at end of pattern.
+        /// </summary>
+        internal static string Illegal_backslash_at_end_of_pattern {
+            get {
+                return ResourceManager.GetString("Illegal_backslash_at_end_of_pattern", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Illegal {x,y} with x &gt; y.
+        /// </summary>
+        internal static string Illegal_x_y_with_x_less_than_y {
+            get {
+                return ResourceManager.GetString("Illegal_x_y_with_x_less_than_y", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Incomplete \p{X} character escape.
+        /// </summary>
+        internal static string Incomplete_character_escape {
+            get {
+                return ResourceManager.GetString("Incomplete_character_escape", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Indentation and spacing.
+        /// </summary>
+        internal static string Indentation_and_spacing {
+            get {
+                return ResourceManager.GetString("Indentation_and_spacing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Insufficient hexadecimal digits.
+        /// </summary>
+        internal static string Insufficient_hexadecimal_digits {
+            get {
+                return ResourceManager.GetString("Insufficient_hexadecimal_digits", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Interface.
         /// </summary>
         internal static string Interface {
@@ -761,6 +905,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Invalid_CodePage_value_colon_0 {
             get {
                 return ResourceManager.GetString("Invalid_CodePage_value_colon_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid group name: Group names must begin with a word character.
+        /// </summary>
+        internal static string Invalid_group_name_Group_names_must_begin_with_a_word_character {
+            get {
+                return ResourceManager.GetString("Invalid_group_name_Group_names_must_begin_with_a_word_character", resourceCulture);
             }
         }
         
@@ -837,11 +990,47 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Language keywords vs BCL types preferences.
+        /// </summary>
+        internal static string Language_keywords_vs_BCL_types_preferences {
+            get {
+                return ResourceManager.GetString("Language_keywords_vs_BCL_types_preferences", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Location must be null or from source..
         /// </summary>
         internal static string Location_must_be_null_or_from_source {
             get {
                 return ResourceManager.GetString("Location_must_be_null_or_from_source", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to malformed.
+        /// </summary>
+        internal static string Malformed {
+            get {
+                return ResourceManager.GetString("Malformed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Malformed \p{X} character escape.
+        /// </summary>
+        internal static string Malformed_character_escape {
+            get {
+                return ResourceManager.GetString("Malformed_character_escape", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Malformed \k&lt;...&gt; named back reference.
+        /// </summary>
+        internal static string Malformed_named_back_reference {
+            get {
+                return ResourceManager.GetString("Malformed_named_back_reference", resourceCulture);
             }
         }
         
@@ -891,6 +1080,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Missing control character.
+        /// </summary>
+        internal static string Missing_control_character {
+            get {
+                return ResourceManager.GetString("Missing_control_character", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Missing prefix: &apos;{0}&apos;.
         /// </summary>
         internal static string Missing_prefix_colon_0 {
@@ -909,11 +1107,38 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Modifier preferences.
+        /// </summary>
+        internal static string Modifier_preferences {
+            get {
+                return ResourceManager.GetString("Modifier_preferences", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Name can be simplified..
         /// </summary>
         internal static string Name_can_be_simplified {
             get {
                 return ResourceManager.GetString("Name_can_be_simplified", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Nested quantifier {0}.
+        /// </summary>
+        internal static string Nested_quantifier_0 {
+            get {
+                return ResourceManager.GetString("Nested_quantifier_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to New line preferences.
+        /// </summary>
+        internal static string New_line_preferences {
+            get {
+                return ResourceManager.GetString("New_line_preferences", resourceCulture);
             }
         }
         
@@ -972,11 +1197,38 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Not enough )&apos;s.
+        /// </summary>
+        internal static string Not_enough_close_parens {
+            get {
+                return ResourceManager.GetString("Not_enough_close_parens", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Options did not come from Workspace.
         /// </summary>
         internal static string Options_did_not_come_from_Workspace {
             get {
                 return ResourceManager.GetString("Options_did_not_come_from_Workspace", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Organize usings.
+        /// </summary>
+        internal static string Organize_usings {
+            get {
+                return ResourceManager.GetString("Organize_usings", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Parentheses preferences.
+        /// </summary>
+        internal static string Parentheses_preferences {
+            get {
+                return ResourceManager.GetString("Parentheses_preferences", resourceCulture);
             }
         }
         
@@ -1053,11 +1305,66 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Quantifier {x,y} following nothing.
+        /// </summary>
+        internal static string Quantifier_x_y_following_nothing {
+            get {
+                return ResourceManager.GetString("Quantifier_x_y_following_nothing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Refactoring Only.
         /// </summary>
         internal static string Refactoring_Only {
             get {
                 return ResourceManager.GetString("Refactoring_Only", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to reference to undefined group.
+        /// </summary>
+        internal static string Reference_to_undefined_group {
+            get {
+                return ResourceManager.GetString("Reference_to_undefined_group", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Reference to undefined group name {0}.
+        /// </summary>
+        internal static string Reference_to_undefined_group_name_0 {
+            get {
+                return ResourceManager.GetString("Reference_to_undefined_group_name_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Reference to undefined group number {0}.
+        /// </summary>
+        internal static string Reference_to_undefined_group_number_0 {
+            get {
+                return ResourceManager.GetString("Reference_to_undefined_group_number_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Regex issue: {0}.
+        /// </summary>
+        internal static string Regex_issue_0 {
+            get {
+                return ResourceManager.GetString("Regex_issue_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Remove the line below if you want to inherit .editorconfig settings from higher directories.
+        /// </summary>
+        internal static string Remove_the_line_below_if_you_want_to_inherit_dot_editorconfig_settings_from_higher_directories {
+            get {
+                return ResourceManager.GetString("Remove_the_line_below_if_you_want_to_inherit_dot_editorconfig_settings_from_highe" +
+                        "r_directories", resourceCulture);
             }
         }
         
@@ -1414,6 +1721,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to this. and Me. preferences.
+        /// </summary>
+        internal static string this_dot_and_Me_dot_preferences {
+            get {
+                return ResourceManager.GetString("this_dot_and_Me_dot_preferences", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to This submission already references another submission project..
         /// </summary>
         internal static string This_submission_already_references_another_submission_project {
@@ -1428,6 +1744,24 @@ namespace Microsoft.CodeAnalysis {
         internal static string This_workspace_does_not_support_opening_and_closing_documents {
             get {
                 return ResourceManager.GetString("This_workspace_does_not_support_opening_and_closing_documents", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Too many | in (?()|).
+        /// </summary>
+        internal static string Too_many_bars_in_conditional_grouping {
+            get {
+                return ResourceManager.GetString("Too_many_bars_in_conditional_grouping", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Too many )&apos;s.
+        /// </summary>
+        internal static string Too_many_close_parens {
+            get {
+                return ResourceManager.GetString("Too_many_close_parens", resourceCulture);
             }
         }
         
@@ -1450,6 +1784,24 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Unknown property.
+        /// </summary>
+        internal static string Unknown_property {
+            get {
+                return ResourceManager.GetString("Unknown_property", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unknown property &apos;{0}&apos;.
+        /// </summary>
+        internal static string Unknown_property_0 {
+            get {
+                return ResourceManager.GetString("Unknown_property_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Unmerged change from project &apos;{0}&apos;.
         /// </summary>
         internal static string Unmerged_change_from_project_0 {
@@ -1459,11 +1811,56 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Unrecognized control character.
+        /// </summary>
+        internal static string Unrecognized_control_character {
+            get {
+                return ResourceManager.GetString("Unrecognized_control_character", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unrecognized escape sequence \{0}.
+        /// </summary>
+        internal static string Unrecognized_escape_sequence_0 {
+            get {
+                return ResourceManager.GetString("Unrecognized_escape_sequence_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unrecognized grouping construct.
+        /// </summary>
+        internal static string Unrecognized_grouping_construct {
+            get {
+                return ResourceManager.GetString("Unrecognized_grouping_construct", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Unrecognized language name..
         /// </summary>
         internal static string Unrecognized_language_name {
             get {
                 return ResourceManager.GetString("Unrecognized_language_name", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unterminated [] set.
+        /// </summary>
+        internal static string Unterminated_character_class_set {
+            get {
+                return ResourceManager.GetString("Unterminated_character_class_set", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unterminated (?#...) comment.
+        /// </summary>
+        internal static string Unterminated_regex_comment {
+            get {
+                return ResourceManager.GetString("Unterminated_regex_comment", resourceCulture);
             }
         }
         
@@ -1486,11 +1883,56 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to NameOnly.
+        /// </summary>
+        internal static string ValueUsageInfo_NameOnly {
+            get {
+                return ResourceManager.GetString("ValueUsageInfo_NameOnly", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Read.
+        /// </summary>
+        internal static string ValueUsageInfo_Read {
+            get {
+                return ResourceManager.GetString("ValueUsageInfo_Read", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Reference.
+        /// </summary>
+        internal static string ValueUsageInfo_Reference {
+            get {
+                return ResourceManager.GetString("ValueUsageInfo_Reference", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Write.
+        /// </summary>
+        internal static string ValueUsageInfo_Write {
+            get {
+                return ResourceManager.GetString("ValueUsageInfo_Write", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Variables captured:.
         /// </summary>
         internal static string Variables_captured_colon {
             get {
                 return ResourceManager.GetString("Variables_captured_colon", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Visual Basic files.
+        /// </summary>
+        internal static string Visual_Basic_files {
+            get {
+                return ResourceManager.GetString("Visual_Basic_files", resourceCulture);
             }
         }
         
@@ -1509,6 +1951,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Workspace_is_not_empty {
             get {
                 return ResourceManager.GetString("Workspace_is_not_empty", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [x-y] range in reverse order.
+        /// </summary>
+        internal static string x_y_range_in_reverse_order {
+            get {
+                return ResourceManager.GetString("x_y_range_in_reverse_order", resourceCulture);
             }
         }
     }

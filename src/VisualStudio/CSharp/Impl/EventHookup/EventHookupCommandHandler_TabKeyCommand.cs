@@ -95,14 +95,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
                 return;
             }
 
-            // If QuickInfoSession is null, then Tab was pressed before the background task
-            // finished (that is, the Wait call above actually needed to wait). Since we know an
-            // event hookup was found, we should set everything up now because the background task 
-            // will not have a chance to set things up until after this Tab has been handled, and
-            // by then it's too late. When the background task alerts that it found an event hookup
-            // nothing will change because QuickInfoSession will already be set.
-            EventHookupSessionManager.EventHookupFoundInSession(EventHookupSessionManager.CurrentSession);
-
             // This tab means we should generate the event handler method. Begin the code
             // generation process.
             GenerateAndAddEventHandler(textView, subjectBuffer, eventHandlerMethodName, nextHandler, cancellationToken);

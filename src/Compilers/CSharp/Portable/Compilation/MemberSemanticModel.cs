@@ -815,7 +815,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return default(AwaitExpressionInfo);
             }
 
-            return new AwaitExpressionInfo(boundAwait.GetAwaiter, boundAwait.IsCompleted, boundAwait.GetResult, boundAwait.IsDynamic);
+            return new AwaitExpressionInfo(boundAwait.AwaitableInfo);
         }
 
         public override ForEachStatementInfo GetForEachStatementInfo(ForEachStatementSyntax node)
@@ -854,12 +854,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             // NOTE: we're going to list GetEnumerator, etc for array and string
             // collections, even though we know that's not how the implementation
             // actually enumerates them.
+            MethodSymbol disposeMethod = enumeratorInfoOpt.NeedsDisposeMethod
+                ? enumeratorInfoOpt.IsAsync
+                    ? (MethodSymbol)Compilation.GetWellKnownTypeMember(WellKnownMember.System_IAsyncDisposable__DisposeAsync)
+                    : (MethodSymbol)Compilation.GetSpecialTypeMember(SpecialMember.System_IDisposable__Dispose)
+                : null;
+
             return new ForEachStatementInfo(
                 enumeratorInfoOpt.GetEnumeratorMethod,
                 enumeratorInfoOpt.MoveNextMethod,
-                (PropertySymbol)enumeratorInfoOpt.CurrentPropertyGetter.AssociatedSymbol,
-                enumeratorInfoOpt.NeedsDisposeMethod ? (MethodSymbol)Compilation.GetSpecialTypeMember(SpecialMember.System_IDisposable__Dispose) : null,
-                enumeratorInfoOpt.ElementType,
+                currentProperty: (PropertySymbol)enumeratorInfoOpt.CurrentPropertyGetter?.AssociatedSymbol,
+                disposeMethod,
+                enumeratorInfoOpt.ElementType.TypeSymbol,
                 boundForEach.ElementConversion,
                 enumeratorInfoOpt.CurrentConversion);
         }
@@ -2083,6 +2089,13 @@ done:
                 }
 
                 return (BoundStatement)boundNode;
+            }
+
+            internal override BoundBlock BindEmbeddedBlock(BlockSyntax node, DiagnosticBag diagnostics)
+            {
+                BoundBlock block = (BoundBlock)TryGetBoundNodeFromMap(node) ?? base.BindEmbeddedBlock(node, diagnostics);
+                Debug.Assert(!block.WasCompilerGenerated);
+                return block;
             }
 
             private BoundNode TryGetBoundNodeFromMap(CSharpSyntaxNode node)

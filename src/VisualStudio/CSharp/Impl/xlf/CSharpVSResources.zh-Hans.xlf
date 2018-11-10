@@ -4,7 +4,7 @@
     <body>
       <trans-unit id="Apply_all_csharp_formatting_rules_indentation_wrapping_spacing">
         <source>Apply all C# formatting rules (indentation, wrapping, spacing)</source>
-        <target state="new">Apply all C# formatting rules (indentation, wrapping, spacing)</target>
+        <target state="translated">应用所有 C# 格式规则(缩进、换行、间隔)</target>
         <note />
       </trans-unit>
       <trans-unit id="CSharp">
@@ -12,34 +12,44 @@
         <target state="translated">C#</target>
         <note />
       </trans-unit>
+      <trans-unit id="CSharp_Coding_Conventions">
+        <source>C# Coding Conventions</source>
+        <target state="new">C# Coding Conventions</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CSharp_Formatting_Rules">
+        <source>C# Formatting Rules</source>
+        <target state="new">C# Formatting Rules</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Format_document_settings">
         <source>Format Document Settings (Experiment) </source>
-        <target state="new">Format Document Settings (Experiment) </target>
+        <target state="translated">设定文档设置的格式(试验)</target>
         <note />
       </trans-unit>
       <trans-unit id="In_relational_binary_operators">
         <source>In relational operators:  &lt;   &gt;   &lt;=   &gt;=   is   as   ==   !=</source>
-        <target state="new">In relational operators:  &lt;   &gt;   &lt;=   &gt;=   is   as   ==   !=</target>
+        <target state="translated">在关系运算符中:  &lt;   &gt;   &lt;=   &gt;=   is   as   ==   !=</target>
         <note />
       </trans-unit>
       <trans-unit id="Perform_additional_code_cleanup_during_formatting">
         <source>Perform additional code cleanup during formatting</source>
-        <target state="new">Perform additional code cleanup during formatting</target>
+        <target state="translated">在格式设置期间执行其他代码清理</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_is_null_for_reference_equality_checks">
         <source>Prefer 'is null' for reference equality checks</source>
-        <target state="new">Prefer 'is null' for reference equality checks</target>
+        <target state="translated">引用相等检查偏好 “is null”</target>
         <note>'is null' is a C# string and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Remove_unnecessary_usings">
         <source>Remove unnecessary usings</source>
-        <target state="new">Remove unnecessary usings</target>
+        <target state="translated">删除不必要的 using</target>
         <note />
       </trans-unit>
       <trans-unit id="Sort_usings">
         <source>Sort usings</source>
-        <target state="new">Sort usings</target>
+        <target state="translated">对 using 排序</target>
         <note />
       </trans-unit>
       <trans-unit id="Surround_With">
@@ -722,19 +732,19 @@
         <target state="translated">显示名称建议(_U)</target>
         <note />
       </trans-unit>
-      <trans-unit id="Generate Event Subscription">
+      <trans-unit id="Generate_Event_Subscription">
         <source>Generate Event Subscription</source>
         <target state="translated">生成事件订阅</target>
         <note />
       </trans-unit>
       <trans-unit id="In_arithmetic_binary_operators">
         <source>In arithmetic operators:  *   /   %   +   -   &lt;&lt;   &gt;&gt;   &amp;   ^   |</source>
-        <target state="new">In arithmetic operators:  *   /   %   +   -   &lt;&lt;   &gt;&gt;   &amp;   ^   |</target>
+        <target state="translated">在算术运算符中:  *   /   %   +   -   &lt;&lt;   &gt;&gt;   &amp;   ^   |</target>
         <note />
       </trans-unit>
       <trans-unit id="In_other_binary_operators">
         <source>In other binary operators:  &amp;&amp;   ||   ??</source>
-        <target state="new">In other binary operators:  &amp;&amp;   ||   ??</target>
+        <target state="translated">在其他二进制运算符中:  &amp;&amp;   ||   ??</target>
         <note />
       </trans-unit>
     </body>
