@@ -134,12 +134,141 @@ namespace [||]{declaredNamespace}
 
     class Class2 : Class1
     {
-        D1 d;  
+        D1 d;
 
-        void Class1.M1(){}
+        void Class1.M1() { }
     }
 }";
             await TestChangeNamespaceAsync(code, expectedSourceOriginal);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSyncNamespace)]
+        public async Task ChangeNamespace_WithCrefReference()
+        {
+            var defaultNamespace = "A";
+            var declaredNamespace = "Foo.Bar.Baz";
+
+            var documentPath1 = CreateDocumentFilePath(new[] { "B", "C" }, "File1.cs");
+            var documentPath2 = CreateDocumentFilePath(Array.Empty<string>(), "File2.cs");
+            var code =
+$@"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" DefaultNamespace=""{defaultNamespace}"" CommonReferences=""true"">
+        <Document Folders=""{documentPath1.folder}"" FilePath=""{documentPath1.filePath}""> 
+namespace [||]{declaredNamespace}
+{{
+    /// &lt;summary&gt;
+    /// See &lt;see cref=""Class1""/&gt;
+    /// See &lt;see cref=""{declaredNamespace}.Class1""/&gt;
+    /// &lt;/summary&gt;
+    public class Class1
+    {{
+    }}
+}}</Document>
+<Document Folders=""{documentPath2.folder}"" FilePath=""{documentPath2.filePath}""> 
+namespace Foo
+{{
+    using {declaredNamespace};
+
+    /// &lt;summary&gt;
+    /// See &lt;see cref=""Class1""/&gt;
+    /// See &lt;see cref=""{declaredNamespace}.Class1""/&gt;
+    /// &lt;/summary&gt;
+    class RefClass
+    {{
+    }}
+}}</Document>
+    </Project>
+</Workspace>";
+
+            var expectedSourceOriginal =
+@"namespace A.B.C
+{
+    /// <summary>
+    /// See <see cref=""Class1""/>
+    /// See <see cref=""Class1""/>
+    /// </summary>
+    public class Class1
+    {
+    }
+}";
+            var expectedSourceReference =
+@"
+namespace Foo
+{
+    using A.B.C;
+
+    /// <summary>
+    /// See <see cref=""Class1""/>
+    /// See <see cref=""A.B.C.Class1""/>
+    /// </summary>
+    class RefClass
+    {
+    }
+}";
+            await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSyncNamespace)]
+        public async Task ChangeNamespace_WithCrefReferencesInVB()
+        {
+            var defaultNamespace = "A.B.C";
+            var declaredNamespace = "A.B.C.D";
+
+            var documentPath1 = CreateDocumentFilePath(Array.Empty<string>(), "File1.cs");
+            var code =
+$@"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" DefaultNamespace=""{defaultNamespace}"" CommonReferences=""true"">
+        <Document Folders=""{documentPath1.folder}"" FilePath=""{documentPath1.filePath}""> 
+namespace [||]{declaredNamespace}
+{{
+    /// &lt;summary&gt;
+    /// See &lt;see cref=""Class1""/&gt;
+    /// See &lt;see cref=""{declaredNamespace}.Class1""/&gt;
+    /// &lt;/summary&gt;
+    public class Class1
+    {{
+    }}
+}}</Document>
+    </Project>    
+<Project Language=""Visual Basic"" AssemblyName=""Assembly2"" CommonReferences=""true"">
+        <Document> 
+Imports {declaredNamespace}
+
+''' &lt;summary&gt;
+''' See &lt;see cref=""Class1""/&gt;
+''' See &lt;see cref=""{declaredNamespace}.Class1""/&gt;
+''' &lt;/summary&gt;
+Public Class VBClass
+    Public ReadOnly Property C1 As Class1
+End Class</Document>
+    </Project>
+</Workspace>";
+
+            var expectedSourceOriginal =
+@"namespace A.B.C
+{
+    /// <summary>
+    /// See <see cref=""Class1""/>
+    /// See <see cref=""Class1""/>
+    /// </summary>
+    public class Class1
+    {
+    }
+}";
+            var expectedSourceReference =
+@"
+Imports A.B.C
+
+''' <summary>
+''' See <see cref=""Class1""/>
+''' See <see cref=""Class1""/>
+''' </summary>
+Public Class VBClass
+    Public ReadOnly Property C1 As Class1
+End Class";
+            await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSyncNamespace)]
@@ -190,8 +319,8 @@ using Foo.Bar.Baz;
 
 namespace A.B.C
 {
-    class Class1 
-    { 
+    class Class1
+    {
         private Class2 c2;
         private Class3 c3;
         private Class4 c4;
@@ -248,8 +377,8 @@ using Foo.Bar.Baz;
 
 namespace A.B.C
 {
-    class Class1 
-    { 
+    class Class1
+    {
         private Class2 c2;
         private Class3 c3;
         private Class4 c4;
@@ -302,12 +431,12 @@ namespace Foo
             var expectedSourceOriginal =
 @"namespace A.B.C
 {
-    class Class1 
-    { 
+    class Class1
+    {
     }
-    
-    class Class2 
-    { 
+
+    class Class2
+    {
     }
 }";
             var expectedSourceReference =
@@ -365,9 +494,9 @@ namespace Foo
             var expectedSourceOriginal =
 @"namespace A.B.C
 {
-    interface Interface1 
+    interface Interface1
     {
-        void M1(Interface1 c1);   
+        void M1(Interface1 c1);
     }
 }";
             var expectedSourceReference =
@@ -500,12 +629,12 @@ namespace Foo
             var expectedSourceOriginal =
 @"namespace A.B.C
 {
-    class Class1 
-    { 
+    class Class1
+    {
     }
-    
-    class Class2 
-    { 
+
+    class Class2
+    {
     }
 }";
             var expectedSourceReference =
@@ -593,7 +722,7 @@ namespace [||]{declaredNamespace}
 
     class Class2 : {declaredNamespace}.Class1
     {{
-        {declaredNamespace}.D1 d;  
+        global::{declaredNamespace}.D1 d;  
 
         void {declaredNamespace}.Class1.M1() {{ }}
     }}
@@ -611,7 +740,7 @@ interface Class1
 
 class Class2 : Class1
 {
-    D1 d;
+    global::D1 d;
 
     void Class1.M1() { }
 }
@@ -1412,7 +1541,7 @@ End Class</Document>
 @"namespace A.B.C
 {
     public class Class1
-    { 
+    {
     }
 }";
             var expectedSourceReference =
@@ -1456,7 +1585,7 @@ End Class</Document>
 @"namespace A.B.C
 {
     public class Class1
-    { 
+    {
     }
 }";
             var expectedSourceReference =
@@ -1504,6 +1633,62 @@ Imports A.B.C
 Public Class VBClass
     Public ReadOnly Property C1 As Class1
 End Class";
+            await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSyncNamespace)]
+        public async Task ChangeFromGlobalNamespace_WithCredReferences()
+        {
+            var defaultNamespace = "A";
+            var documentPath1 = CreateDocumentFilePath(new[] { "B", "C" }, "File1.cs");
+            var documentPath2 = CreateDocumentFilePath(Array.Empty<string>(), "File2.cs");
+            var code =
+$@"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" DefaultNamespace=""{defaultNamespace}"" CommonReferences=""true"">
+        <Document Folders=""{documentPath1.folder}"" FilePath=""{documentPath1.filePath}""> 
+/// &lt;summary&gt;
+/// See &lt;see cref=""Class1""/&gt;
+/// &lt;/summary&gt;
+class [||]Class1 
+{{
+}}</Document>
+<Document Folders=""{documentPath2.folder}"" FilePath=""{documentPath2.filePath}""> 
+namespace Foo
+{{
+    /// &lt;summary&gt;
+    /// See &lt;see cref=""Class1""/&gt;
+    /// &lt;/summary&gt;
+    class Bar
+    {{
+    }}
+}}</Document>
+    </Project>
+</Workspace>";
+
+            var expectedSourceOriginal =
+@"namespace A.B.C
+{
+    /// <summary>
+    /// See <see cref=""Class1""/>
+    /// </summary>
+    class Class1
+    {
+    }
+}";
+            var expectedSourceReference =
+@"
+using A.B.C;
+
+namespace Foo
+{
+    /// <summary>
+    /// See <see cref=""Class1""/>
+    /// </summary>
+    class Bar
+    {
+    }
+}";
             await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
         }
 
@@ -1594,6 +1779,69 @@ End Namespace</Document>
     Public Class MyClass
     End Class
 End Namespace";
+            await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSyncNamespace)]
+        public async Task ChangeToGlobalNamespace_WithCredReferences()
+        {
+            var defaultNamespace = "";
+            var declaredNamespace = "Foo.Bar.Baz";
+
+            var documentPath1 = CreateDocumentFilePath(Array.Empty<string>(), "File1.cs");
+            var documentPath2 = CreateDocumentFilePath(Array.Empty<string>(), "File2.cs");
+            var code =
+$@"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" DefaultNamespace=""{defaultNamespace}"" CommonReferences=""true"">
+        <Document Folders=""{documentPath1.folder}"" FilePath=""{documentPath1.filePath}"">
+namespace [||]{declaredNamespace}
+{{
+    /// &lt;summary&gt;
+    /// See &lt;see cref=""Class1""/&gt;
+    /// See &lt;see cref=""{declaredNamespace}.Class1""/&gt;
+    /// &lt;/summary&gt;
+    public class Class1
+    {{
+    }}
+}}</Document>
+<Document Folders=""{documentPath2.folder}"" FilePath=""{documentPath2.filePath}""> 
+namespace Foo
+{{
+    using {declaredNamespace};
+
+    /// &lt;summary&gt;
+    /// See &lt;see cref=""Class1""/&gt;
+    /// See &lt;see cref=""{declaredNamespace}.Class1""/&gt;
+    /// &lt;/summary&gt;
+    class RefClass
+    {{
+    }}
+}}</Document>
+    </Project>
+</Workspace>";
+
+            var expectedSourceOriginal =
+@"/// <summary>
+/// See <see cref=""Class1""/>
+/// See <see cref=""Class1""/>
+/// </summary>
+public class Class1
+{
+}
+";
+            var expectedSourceReference =
+@"
+namespace Foo
+{
+    /// <summary>
+    /// See <see cref=""Class1""/>
+    /// See <see cref=""Class1""/>
+    /// </summary>
+    class RefClass
+    {
+    }
+}";
             await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
         }
     }

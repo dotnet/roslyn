@@ -44,6 +44,8 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
         {
             private readonly State _state;
             private readonly AbstractSyncNamespaceService<TNamespaceDeclarationSyntax, TCompilationUnitSyntax, TMemberDeclarationSyntax> _service;
+            private readonly ImmutableArray<string> _oldNamespaceParts;
+            private readonly ImmutableArray<string> _newNamespaceParts;
 
             public override string Title => _state.TargetNamespace.Length == 0 
                 ? FeaturesResources.Change_to_global_namespace
@@ -62,10 +64,6 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
                 _oldNamespaceParts = _state.DeclaredNamespace.Split(dotSeparator).ToImmutableArray();
                 _newNamespaceParts = _state.TargetNamespace.Split(dotSeparator).ToImmutableArray();
             }
-
-            private readonly ImmutableArray<string> _oldNamespaceParts;
-
-            private readonly ImmutableArray<string> _newNamespaceParts;
 
             private ImmutableArray<ISymbol> GetDeclaredSymbolsInContainer(
                 SemanticModel semanticModel, 
@@ -260,7 +258,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
                     cancellationToken: cancellationToken).ConfigureAwait(false);
 
                 var referencedSymbols = progress.GetReferencedSymbols();
-                return referencedSymbols.Where(refSymbol => refSymbol.Definition == symbol)
+                return referencedSymbols.Where(refSymbol => refSymbol.Definition.Equals(symbol))
                         .SelectMany(refSymbol => refSymbol.Locations).ToImmutableArray();
             }
 
@@ -320,7 +318,8 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
                         cancellationToken).ConfigureAwait(false);
 
                 var root = await documentWithAddedImports.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-                root = _service.ChangeNamespaceDeclaration((TCompilationUnitSyntax)root, _oldNamespaceParts, _newNamespaceParts);
+                root = _service.ChangeNamespaceDeclaration((TCompilationUnitSyntax)root, _oldNamespaceParts, _newNamespaceParts)
+                    .WithAdditionalAnnotations(Formatter.Annotation);
 
                 // Need to invoke formatter explicitly since we are doing the diff merge ourselves.
                 root = await Formatter.FormatAsync(root, Formatter.Annotation, documentWithAddedImports.Project.Solution.Workspace, optionSet, cancellationToken)
@@ -414,7 +413,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
                     // For the reference to Foo where it is used as a base class, the BaseTypeSyntax and the TypeSyntax
                     // have exact same span.
 
-                    var refNode = root.FindNode(refLoc.Location.SourceSpan, getInnermostNodeForTie: true);
+                    var refNode = root.FindNode(refLoc.Location.SourceSpan, findInsideTrivia: true, getInnermostNodeForTie: true);
                     if (syncNamespaceService.TryGetReplacementReferenceSyntax(
                             refNode, namespaceParts, syntaxFacts, out var oldNode, out var newNode))
                     {

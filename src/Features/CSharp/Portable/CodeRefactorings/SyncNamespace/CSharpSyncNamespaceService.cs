@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace;
+using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting;
@@ -74,36 +75,72 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.SyncNamespace
             // 4. When the namespace is specified and not "", i.e. we are moving referenced type to a different non-global 
             //    namespace. We need to replace the qualified reference with a new qualified reference (which is qualified 
             //    with new namespace.)
-
-            old = syntaxFacts.IsRightSideOfQualifiedName(nameRef) ? nameRef.Parent : nameRef;
-
-            // If no namespace is specified, we just find and return the full NameSyntax.
-            if (old == nameRef || newNamespaceParts.IsDefaultOrEmpty)
+                        
+            if (syntaxFacts.IsRightSideOfQualifiedName(nameRef))
             {
-                @new = old;
-            }
-            else
-            {
-                if (newNamespaceParts.Length == 1 && newNamespaceParts[0].Length == 0)
+                old = nameRef.Parent;
+                var aliasQualifier = GetAliasQualifierOpt(old);
+
+                // TODO: handle cref when changing namespace from global to non-global.
+
+                if (IsGlobalNamespace(newNamespaceParts))
                 {
                     // If new namespace is "", then name will be declared in global namespace.
-                    // We will replace qualified reference with simple name + global alias.
-                    @new = SyntaxFactory.AliasQualifiedName(
-                        SyntaxFactory.IdentifierName(SyntaxFactory.Token(SyntaxKind.GlobalKeyword)), 
-                        nameRef.WithoutTrivia());
+                    // We will replace qualified reference with simple name qualified with alias (global if it's not alias qualified)
+                    var aliasNode = aliasQualifier?.ToIdentifierName() ?? SyntaxFactory.IdentifierName(SyntaxFactory.Token(SyntaxKind.GlobalKeyword));
+                    @new = SyntaxFactory.AliasQualifiedName(aliasNode, nameRef.WithoutTrivia());
                 }
                 else
                 {
-                    var aliasQualifier = GetAliasQualifierOpt(old);
                     var qualifiedNamespaceName = CreateNameSyntax(newNamespaceParts, aliasQualifier, newNamespaceParts.Length - 1);
                     @new = SyntaxFactory.QualifiedName(qualifiedNamespaceName, nameRef.WithoutTrivia());
                 }
 
                 // We might lose some trivia associated with children of `outerMostNode`.  
                 @new = @new.WithTriviaFrom(old);
+                return true;
             }
 
-            return true;
+            if (nameRef.Parent is NameMemberCrefSyntax crefName && crefName.Parent is QualifiedCrefSyntax qualifiedCref)
+            {
+                // This is the case where the reference is a qualified name in `cref`.
+                // for example, `<see cref="Foo.Baz.Bar"/>` and `<see cref="SomeAlias::Foo.Baz.Bar"/>`. 
+                // This is the form of `cref` we need to handle as a spacial case when changing namespace name or
+                // changing namespace from non-global to global, other cases in these 2 scenarios can be handled in the 
+                // same way we handle non cref references, for example, `<see cref="SomeAlias::Foo"/>` and `<see cref="Foo"/>`.
+
+                var container = qualifiedCref.Container;
+                var aliasQualifier = GetAliasQualifierOpt(container);
+
+                if (IsGlobalNamespace(newNamespaceParts))
+                {
+                    // If new namespace is "", then name will be declared in global namespace.
+                    // We will replace entire `QualifiedCrefSyntax` with a `TypeCrefSyntax`, 
+                    // which is a alias qualified simple name, similar to the regular case above.
+
+                    old = qualifiedCref;
+                    var aliasNode = aliasQualifier?.ToIdentifierName() ?? SyntaxFactory.IdentifierName(SyntaxFactory.Token(SyntaxKind.GlobalKeyword));
+                    var aliasQualifiedNode = SyntaxFactory.AliasQualifiedName(aliasNode, nameRef.WithoutTrivia());
+                    @new = SyntaxFactory.TypeCref(aliasQualifiedNode);
+                }
+                else
+                {
+                    // if the new namespace is not global, then we just need to change the container in `QualifiedCrefSyntax`,
+                    // which is just a regular namespace node, no cref node involve here.
+                    old = container;
+                    @new = CreateNameSyntax(newNamespaceParts, aliasQualifier, newNamespaceParts.Length - 1);
+                }
+
+                return true;
+            }
+
+            // Simple name reference, nothing to be done. 
+            // The name will be resolved by adding proper import.
+            old = @new = nameRef;
+            return false;
+
+            bool IsGlobalNamespace(ImmutableArray<string> parts)
+                => parts.Length == 1 && parts[0].Length == 0;
         }
 
         protected override string EscapeIdentifier(string identifier)
@@ -141,7 +178,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.SyncNamespace
 
             return default;
 
-
             SyntaxNode GetTriggeringNode(CompilationUnitSyntax compUnit, int pos)
             {
                 var namespaceDecls = compilationUnit.DescendantNodes().OfType<NamespaceDeclarationSyntax>().ToImmutableArray();
@@ -174,7 +210,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.SyncNamespace
 
         /// <summary>
         /// Try to change the namespace declaration based on the refacoring rules:
-        /// 
         ///     - if neither declared and target namespace are "" (i.e. global namespace),
         ///     then we try to change the name of the namespace.
         ///     - if declared namespace is "", then we try to move all types declared 
@@ -198,8 +233,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.SyncNamespace
                     externs: default, 
                     usings: default,
                     members: compilationUnit.Members);
-                return compilationUnit.WithMembers(new SyntaxList<MemberDeclarationSyntax>(targetNamespaceDecl))
-                    .WithAdditionalAnnotations(Formatter.Annotation);
+                return compilationUnit.WithMembers(new SyntaxList<MemberDeclarationSyntax>(targetNamespaceDecl));
             }
 
             // We should have a single member which is a namespace declaration in this compilation unit.
@@ -249,15 +283,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.SyncNamespace
                     compilationUnit.Usings.AddRange(namespaceDeclaration.Usings), 
                     compilationUnit.AttributeLists, 
                     members,
-                    eofToken).WithAdditionalAnnotations(Formatter.Annotation);
+                    eofToken);
             }
 
             // Change namespace name
             return compilationUnit.ReplaceNode(namespaceDeclaration, 
                 namespaceDeclaration.WithName(
                     CreateNameSyntax(targetNamespaceParts, aliasQualifier: null, targetNamespaceParts.Length - 1)
-                    .WithTriviaFrom(namespaceDeclaration.Name)
-                    .WithAdditionalAnnotations(WarningAnnotation, Formatter.Annotation)));
+                    .WithTriviaFrom(namespaceDeclaration.Name)));
         }
 
         private static string GetAliasQualifierOpt(SyntaxNode name)
@@ -280,6 +313,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.SyncNamespace
         private NameSyntax CreateNameSyntax(ImmutableArray<string> namespaceParts, string aliasQualifier, int index)
         {
             var part = namespaceParts[index].EscapeIdentifier();
+            Debug.Assert(part.Length > 0);
+
             var namePiece = SyntaxFactory.IdentifierName(part);
 
             if (index == 0)
