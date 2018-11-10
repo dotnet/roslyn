@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent
 
         private void GetIndenterData(Document document, int lineNumber, out DocumentOptionSet documentOptions, out SyntaxNode root, out TextLine lineToBeIndented, out IEnumerable<IFormattingRule> formattingRules, CancellationToken cancellationToken)
         {
-            documentOptions = document.GetOptionsAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+            documentOptions = document.GetOptionsAsync(cancellationToken).WaitAndGetResult_CanCallOnBackground(cancellationToken);
             root = document.GetSyntaxRootSynchronously(cancellationToken);
 
             var sourceText = root.SyntaxTree.GetText(cancellationToken);
