@@ -959,7 +959,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(!IsConditionalState);
 
             BoundExpression expr = node.ExpressionOpt;
-            if (expr == null || expr.HasErrors)
+            if (expr == null)
             {
                 return null;
             }
@@ -4595,7 +4595,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitYieldReturnStatement(BoundYieldReturnStatement node)
         {
             BoundExpression expr = node.Expression;
-            if (expr == null || expr.HasErrors)
+            if (expr == null)
             {
                 return null;
             }

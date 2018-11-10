@@ -22598,6 +22598,9 @@ static class E
                 // (5,13): error CS0815: Cannot assign lambda expression to an implicitly-typed variable
                 //         var z = y => y ?? x.ToString();
                 Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "z = y => y ?? x.ToString()").WithArguments("lambda expression").WithLocation(5, 13),
+                // (5,27): warning CS8602: Possible dereference of a null reference.
+                //         var z = y => y ?? x.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(5, 27),
                 // (6,53): warning CS8602: Possible dereference of a null reference.
                 //         System.Func<object?, object> z2 = y => y ?? x.ToString();
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(6, 53),
@@ -38346,6 +38349,12 @@ class C<T> where T : class
                 // (3,35): error CS0716: Cannot convert to static type 'C'
                 //     static object F(object? x) => (C)x;
                 Diagnostic(ErrorCode.ERR_ConvertToStaticClass, "(C)x").WithArguments("C").WithLocation(3, 35),
+                // (3,35): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //     static object F(object? x) => (C)x;
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(C)x").WithLocation(3, 35),
+                // (3,35): warning CS8603: Possible null reference return.
+                //     static object F(object? x) => (C)x;
+                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "(C)x").WithLocation(3, 35),
                 // (4,36): error CS0716: Cannot convert to static type 'C'
                 //     static object? G(object? y) => (C?)y;
                 Diagnostic(ErrorCode.ERR_ConvertToStaticClass, "(C?)y").WithArguments("C").WithLocation(4, 36));
