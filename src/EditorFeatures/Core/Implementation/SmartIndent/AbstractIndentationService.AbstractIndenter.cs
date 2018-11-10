@@ -16,7 +16,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent
 {
-    internal abstract partial class AbstractIndentationService
+    internal abstract partial class AbstractIndentationService<TSyntaxRoot>
     {
         internal abstract class AbstractIndenter
         {
@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent
             protected readonly int TabSize;
             protected readonly CancellationToken CancellationToken;
 
-            protected readonly SyntaxNode Root;
+            protected readonly TSyntaxRoot Root;
             protected readonly SyntaxTree Tree;
             protected readonly IEnumerable<IFormattingRule> Rules;
             protected readonly BottomUpBaseIndentationFinder Finder;
@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent
                 TextLine lineToBeIndented,
                 CancellationToken cancellationToken)
             {
-                this.Root = syntaxTree.GetRoot(cancellationToken);
+                this.Root = (TSyntaxRoot)syntaxTree.GetRoot(cancellationToken);
 
                 this._syntaxFacts = syntaxFacts;
                 this.OptionSet = optionSet;

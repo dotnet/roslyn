@@ -23,7 +23,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting.Indentation
 {
     [ExportLanguageService(typeof(ISynchronousIndentationService), LanguageNames.CSharp), Shared]
-    internal partial class CSharpIndentationService : AbstractIndentationService
+    internal partial class CSharpIndentationService : AbstractIndentationService<CompilationUnitSyntax>
     {
         private static readonly IFormattingRule s_instance = new FormattingRule();
 
