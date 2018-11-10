@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
             var generator = document.GetLanguageService<SyntaxGenerator>();
 
-            var declaration = token.Parent.Ancestors().FirstOrDefault(n => GetApplicableList(n) != null);
+            var declaration = token.Parent.AncestorsAndSelf().FirstOrDefault(n => GetApplicableList(n) != null);
             if (declaration == null)
             {
                 return;
