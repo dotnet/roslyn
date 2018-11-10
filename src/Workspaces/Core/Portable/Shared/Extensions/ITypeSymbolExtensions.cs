@@ -49,11 +49,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static bool IsNullable(this ITypeSymbol symbol)
             => symbol?.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T;
 
-        public static bool IsErrorType(this ITypeSymbol symbol)
-        {
-            return symbol?.TypeKind == TypeKind.Error;
-        }
-
         public static bool IsModuleType(this ITypeSymbol symbol)
         {
             return symbol?.TypeKind == TypeKind.Module;
