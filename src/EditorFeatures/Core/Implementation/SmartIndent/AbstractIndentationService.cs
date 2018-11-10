@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent
 {
     internal abstract partial class AbstractIndentationService<TSyntaxRoot> 
         : ISynchronousIndentationService, IBlankLineIndentationService
-        where TSyntaxRoot : SyntaxNode
+        where TSyntaxRoot : SyntaxNode, ICompilationUnitSyntax
     {
         protected abstract IFormattingRule GetSpecializedIndentationFormattingRule();
 

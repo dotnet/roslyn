@@ -12,7 +12,6 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent
 {
@@ -210,15 +209,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent
             }
 
             protected int GetCurrentPositionNotBelongToEndOfFileToken(int position)
-            {
-                var compilationUnit = Root as ICompilationUnitSyntax;
-                if (compilationUnit == null)
-                {
-                    return position;
-                }
-
-                return Math.Min(compilationUnit.EndOfFileToken.FullSpan.Start, position);
-            }
+                => Math.Min(Root.EndOfFileToken.FullSpan.Start, position);
 
             protected bool HasPreprocessorCharacter(TextLine currentLine)
             {
