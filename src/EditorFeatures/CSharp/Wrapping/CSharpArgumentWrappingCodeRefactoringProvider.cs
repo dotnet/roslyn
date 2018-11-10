@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Composition;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeRefactorings;
@@ -11,7 +12,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.Editor.Wrapping
 {
     [ExportCodeRefactoringProvider(LanguageNames.CSharp), Shared]
-    internal partial class CSharpArgumentWrappingCodeRefactoringProvider 
+    internal partial class CSharpArgumentWrappingCodeRefactoringProvider
         : AbstractCSharpWrappingCodeRefactoringProvider<BaseArgumentListSyntax, ArgumentSyntax>
     {
         protected override string ListName => FeaturesResources.argument_list;
@@ -47,9 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Editor.Wrapping
             {
                 var expr = (declaration as InvocationExpressionSyntax)?.Expression ??
                            (declaration as ElementAccessExpressionSyntax).Expression;
-                var name = expr as NameSyntax ??
-                           (expr as MemberAccessExpressionSyntax)?.Name ??
-                           (expr as MemberBindingExpressionSyntax)?.Name;
+                var name = GetNameExpr(expr);
 
                 startToken = name == null ? listSyntax.GetFirstToken() : name.GetFirstToken();
             }
@@ -86,6 +85,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Editor.Wrapping
             }
 
             return true;
+        }
+
+        private ExpressionSyntax GetNameExpr(ExpressionSyntax expr)
+        {
+            if (expr is NameSyntax name)
+            {
+                return name;
+            }
+
+            if (expr is ThisExpressionSyntax || expr is BaseExpressionSyntax)
+            {
+                return expr;
+            }
+
+            return (expr as MemberAccessExpressionSyntax)?.Name ??
+                   (expr as MemberBindingExpressionSyntax)?.Name;
         }
     }
 }

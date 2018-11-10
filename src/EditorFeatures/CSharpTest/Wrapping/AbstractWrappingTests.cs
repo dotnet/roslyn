@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping
 {
-    public abstract class AbstractParameterWrappingTests : AbstractCSharpCodeActionTest
+    public abstract class AbstractWrappingTests : AbstractCSharpCodeActionTest
     {
         protected sealed override ImmutableArray<CodeAction> MassageActions(ImmutableArray<CodeAction> actions)
             => FlattenActions(actions);

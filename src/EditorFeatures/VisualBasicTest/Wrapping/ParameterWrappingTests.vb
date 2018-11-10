@@ -424,9 +424,10 @@ end class",
     end sub
 end class",
 "class C
-    sub Goobar(iiiii as integer, jjjjj as integer,
-            kkkkk as integer, lllll as integer,
-            mmmmm as integer, nnnnn as integer)
+    sub Goobar(iiiii as integer,
+            jjjjj as integer, kkkkk as integer,
+            lllll as integer, mmmmm as integer,
+            nnnnn as integer)
     end sub
 end class")
         End Function

@@ -341,7 +341,9 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping
 
                 AddTextChangeBetweenOpenAndFirstItem(indentFirst, result);
 
-                var currentOffset = indentation.Length;
+                var currentOffset = indentFirst
+                    ? indentation.Length
+                    : _afterOpenTokenIndentation.Length;
                 var itemsAndSeparators = _listItems.GetWithSeparators();
 
                 for (var i = 0; i < itemsAndSeparators.Count; i += 2)

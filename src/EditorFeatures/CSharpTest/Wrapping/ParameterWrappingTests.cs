@@ -8,7 +8,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping
 {
-    public class ParameterWrappingTests : AbstractParameterWrappingTests
+    public class ParameterWrappingTests : AbstractWrappingTests
     {
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
             => new CSharpParameterWrappingCodeRefactoringProvider();
@@ -302,8 +302,9 @@ GetIndentionColumn(30),
     }
 }",
 @"class C {
-    void Goo(int i, int j, int k,
-        int l, int m, int n) {
+    void Goo(int i, int j,
+        int k, int l, int m,
+        int n) {
     }
 }");
         }
@@ -437,9 +438,10 @@ GetIndentionColumn(30),
     }
 }",
 @"class C {
-    void Goo(int iiiii, int jjjjj,
-        int kkkkk, int lllll,
-        int mmmmm, int nnnnn) {
+    void Goo(int iiiii,
+        int jjjjj, int kkkkk,
+        int lllll, int mmmmm,
+        int nnnnn) {
     }
 }");
         }
