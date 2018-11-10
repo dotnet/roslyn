@@ -59,9 +59,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent
                     tokenStream: null);
             }
 
-            public bool ShouldUseFormatterIfAvailable(AbstractIndentationService service)
-                => service.ShouldUseSmartTokenFormatterInsteadOfIndenter(
-                    Rules, Root, LineToBeIndented, OptionSet, CancellationToken);
+            public abstract bool ShouldUseFormatterIfAvailable();
 
             public IndentationResult GetDesiredIndentation(FormattingOptions.IndentStyle indentStyle)
             {

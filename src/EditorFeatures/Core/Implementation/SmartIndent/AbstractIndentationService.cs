@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent
             // the next line).  If we're in the latter case, we defer to the Formatting engine
             // as we need it to use all its rules to determine where the appropriate location is
             // for the following tokens to go.
-            if (indenter.ShouldUseFormatterIfAvailable(this))
+            if (indenter.ShouldUseFormatterIfAvailable())
             {
                 return null;
             }
@@ -99,8 +99,5 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent
 
         protected abstract AbstractIndenter GetIndenter(
             ISyntaxFactsService syntaxFacts, SyntaxTree syntaxTree, TextLine lineToBeIndented, IEnumerable<IFormattingRule> formattingRules, OptionSet optionSet, CancellationToken cancellationToken);
-
-        protected abstract bool ShouldUseSmartTokenFormatterInsteadOfIndenter(
-            IEnumerable<IFormattingRule> formattingRules, SyntaxNode root, TextLine line, OptionSet optionSet, CancellationToken cancellationToken);
     }
 }

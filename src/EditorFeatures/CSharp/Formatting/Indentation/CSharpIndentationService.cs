@@ -40,17 +40,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting.Indentation
                 optionSet, lineToBeIndented, cancellationToken);
         }
 
-        protected override bool ShouldUseSmartTokenFormatterInsteadOfIndenter(
-            IEnumerable<IFormattingRule> formattingRules,
-            SyntaxNode root,
-            TextLine line,
-            OptionSet optionSet,
-            CancellationToken cancellationToken)
-        {
-            return ShouldUseSmartTokenFormatterInsteadOfIndenter(
-                formattingRules, (CompilationUnitSyntax)root, line, optionSet, cancellationToken);
-        }
-
         public static bool ShouldUseSmartTokenFormatterInsteadOfIndenter(
             IEnumerable<IFormattingRule> formattingRules,
             CompilationUnitSyntax root,

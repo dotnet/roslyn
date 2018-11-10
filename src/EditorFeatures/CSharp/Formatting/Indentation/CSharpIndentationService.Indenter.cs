@@ -35,6 +35,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting.Indentation
             {
             }
 
+            public override bool ShouldUseFormatterIfAvailable()
+                => ShouldUseSmartTokenFormatterInsteadOfIndenter(
+                    Rules, (CompilationUnitSyntax)Root, LineToBeIndented, OptionSet, CancellationToken);
+
             protected override IndentationResult GetDesiredIndentationWorker(
                 SyntaxToken token, TextLine previousLine, int lastNonWhitespacePosition)
             {

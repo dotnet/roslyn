@@ -24,6 +24,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Formatting.Indentation
                 MyBase.New(syntaxFacts, syntaxTree, rules, optionSet, line, cancellationToken)
             End Sub
 
+            Public Overrides Function ShouldUseFormatterIfAvailable() As Boolean
+                Return ShouldUseSmartTokenFormatterInsteadOfIndenter(
+                    Rules, DirectCast(Root, CompilationUnitSyntax), LineToBeIndented, OptionSet, CancellationToken)
+            End Function
+
             Protected Overrides Function GetDesiredIndentationWorker(
                     token As SyntaxToken,
                     previousLine As TextLine,
