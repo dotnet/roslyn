@@ -150,10 +150,33 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
-        public async Task Test_NoIndentFirst_AlignAll_TwoParams()
+        private Task TestAllWrappingCasesAsync(
+            string input,
+            params string[] outputs)
         {
-            await TestInRegularAndScript1Async(
+            return TestAllWrappingCasesAsync(input, options: null, outputs);
+        }
+
+        private async Task TestAllWrappingCasesAsync(
+            string input,
+            Dictionary<OptionKey, object> options,
+            params string[] outputs)
+        {
+            var parameters = new TestParameters(options: options);
+
+            for (int index = 0; index < outputs.Length; index++)
+            {
+                var output = outputs[index];
+                await TestInRegularAndScript1Async(input, output, index, parameters: parameters);
+            }
+
+            await TestActionCountAsync(input, outputs.Length, parameters);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
+        public async Task TestTwoParamWrappingCases()
+        {
+            await TestAllWrappingCasesAsync(
 @"class C {
     void Foo([||]int i, int j) {
     }
@@ -162,13 +185,29 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping
     void Foo(int i,
              int j) {
     }
+}",
+@"class C {
+    void Foo(
+        int i,
+        int j) {
+    }
+}",
+@"class C {
+    void Foo(int i,
+        int j) {
+    }
+}",
+@"class C {
+    void Foo(
+        int i, int j) {
+    }
 }");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
-        public async Task Test_NoIndentFirst_AlignAll_ThreeParams()
+        public async Task TestThreeParamWrappingCases()
         {
-            await TestInRegularAndScript1Async(
+            await TestAllWrappingCasesAsync(
 @"class C {
     void Foo([||]int i, int j, int k) {
     }
@@ -178,32 +217,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping
              int j,
              int k) {
     }
-}");
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
-        public async Task Test_IndentFirst_AlignAll_TwoParams()
-        {
-            await TestInRegularAndScript1Async(
-@"class C {
-    void Foo([||]int i, int j) {
-    }
-}",
-@"class C {
-    void Foo(
-        int i,
-        int j) {
-    }
-}", index: 1);
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
-        public async Task Test_IndentFirst_AlignAll_ThreeParams()
-        {
-            await TestInRegularAndScript1Async(
-@"class C {
-    void Foo([||]int i, int j, int k) {
-    }
 }",
 @"class C {
     void Foo(
@@ -211,141 +224,107 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping
         int j,
         int k) {
     }
-}", index: 1);
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
-        public async Task Test_NoIndentFirst_NoAlignAll_TwoParams()
-        {
-            await TestInRegularAndScript1Async(
-@"class C {
-    void Foo([||]int i, int j) {
-    }
-}",
-@"class C {
-    void Foo(int i,
-        int j) {
-    }
-}", index: 2);
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
-        public async Task Test_NoIndentFirst_NoAlignAll_ThreeParams()
-        {
-            await TestInRegularAndScript1Async(
-@"class C {
-    void Foo([||]int i, int j, int k) {
-    }
 }",
 @"class C {
     void Foo(int i,
         int j,
         int k) {
-    }
-}", index: 2);
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
-        public async Task Test_AllOptions_Index0()
-        {
-            await TestInRegularAndScript1Async(
-@"class C {
-    void Foo([||]
-        int i,
-            int j,
-                int k) {
-    }
-}",
-@"class C {
-    void Foo(int i,
-             int j,
-             int k) {
-    }
-}", index: 0);
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
-        public async Task Test_AllOptions_Index1()
-        {
-            await TestInRegularAndScript1Async(
-@"class C {
-    void Foo([||]
-        int i,
-            int j,
-                int k) {
-    }
-}",
-@"class C {
-    void Foo(
-        int i,
-        int j,
-        int k) {
-    }
-}", index: 1);
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
-        public async Task Test_AllOptions_Index2()
-        {
-            await TestInRegularAndScript1Async(
-@"class C {
-    void Foo([||]
-        int i,
-            int j,
-                int k) {
-    }
-}",
-@"class C {
-    void Foo(int i,
-        int j,
-        int k) {
-    }
-}", index: 2);
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
-        public async Task Test_AllOptions_Index3()
-        {
-            await TestInRegularAndScript1Async(
-@"class C {
-    void Foo([||]
-        int i,
-            int j,
-                int k) {
-    }
-}",
-@"class C {
-    void Foo(int i, int j, int k) {
-    }
-}", index: 3);
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
-        public async Task Test_AllOptions_Index4()
-        {
-            await TestInRegularAndScript1Async(
-@"class C {
-    void Foo([||]
-        int i,
-            int j,
-                int k) {
     }
 }",
 @"class C {
     void Foo(
         int i, int j, int k) {
     }
-}", index: 4);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
-        public async Task Test_LongWrapping1()
+        public async Task Test_AllOptions_NoInitialMatches()
         {
-            await TestInRegularAndScriptAsync(
+            await TestAllWrappingCasesAsync(
+@"class C {
+    void Foo([||]
+        int i,
+            int j,
+                int k) {
+    }
+}",
+@"class C {
+    void Foo(int i,
+             int j,
+             int k) {
+    }
+}",
+@"class C {
+    void Foo(
+        int i,
+        int j,
+        int k) {
+    }
+}",
+@"class C {
+    void Foo(int i,
+        int j,
+        int k) {
+    }
+}",
+@"class C {
+    void Foo(int i, int j, int k) {
+    }
+}",
+@"class C {
+    void Foo(
+        int i, int j, int k) {
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
+        public async Task Test_LongWrapping_ShortIds()
+        {
+            await TestAllWrappingCasesAsync(
 @"class C {
     void Foo([||]
         int i, int j, int k, int l, int m,
         int n) {
+    }
+}",
+GetIndentionColumn(30),
+@"class C {
+    void Foo(int i,
+             int j,
+             int k,
+             int l,
+             int m,
+             int n) {
+    }
+}",
+@"class C {
+    void Foo(
+        int i,
+        int j,
+        int k,
+        int l,
+        int m,
+        int n) {
+    }
+}",
+@"class C {
+    void Foo(int i,
+        int j,
+        int k,
+        int l,
+        int m,
+        int n) {
+    }
+}",
+@"class C {
+    void Foo(int i, int j, int k, int l, int m, int n) {
+    }
+}",
+@"class C {
+    void Foo(
+        int i, int j, int k, int l, int m, int n) {
     }
 }",
 @"class C {
@@ -353,42 +332,18 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping
              int k, int l,
              int m, int n) {
     }
-}", index: 5, options: GetIndentionColumn(30));
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
-        public async Task Test_LongWrapping2()
-        {
-            await TestInRegularAndScriptAsync(
-@"class C {
-    void Foo([||]
-        int i, int j, int k, int l, int m,
-        int n) {
-    }
 }",
 @"class C {
     void Foo(
         int i, int j, int k,
         int l, int m, int n) {
     }
-}", index: 6, options: GetIndentionColumn(30));
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
-        public async Task Test_LongWrapping3()
-        {
-            await TestInRegularAndScriptAsync(
-@"class C {
-    void Foo([||]
-        int i, int j, int k, int l, int m,
-        int n) {
-    }
 }",
 @"class C {
     void Foo(int i, int j, int k,
         int l, int m, int n) {
     }
-}", index: 7, options: GetIndentionColumn(30));
+}");
         }
     }
 }
