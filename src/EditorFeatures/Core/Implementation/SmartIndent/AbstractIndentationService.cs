@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -37,6 +38,24 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent
                 // If there is no indent style, then do nothing.
                 return null;
             }
+
+            return GetDesiredIndentation(document, lineNumber, indentStyle, cancellationToken);
+        }
+
+        /// <summary>
+        /// Similar to <see cref="GetDesiredIndentation(Document, int, CancellationToken)"/> except that
+        /// an explicit indent style can be provided that is independent of the style specified by the
+        /// <paramref name="document"/>.  This indent style cannot be <see cref="FormattingOptions.IndentStyle.None"/>;
+        /// </summary>
+        private IndentationResult? GetDesiredIndentation(
+            Document document, int lineNumber, FormattingOptions.IndentStyle indentStyle, CancellationToken cancellationToken)
+        {
+            if (indentStyle == FormattingOptions.IndentStyle.None)
+            {
+                throw new ArgumentException(nameof(indentStyle));
+            }
+
+            var documentOptions = document.GetOptionsAsync(cancellationToken).WaitAndGetResult(cancellationToken);
 
             var root = document.GetSyntaxRootSynchronously(cancellationToken);
             var sourceText = root.SyntaxTree.GetText(cancellationToken);
