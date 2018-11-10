@@ -1,11 +1,14 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.Editor.Wrapping;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
+using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
@@ -18,6 +21,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping
 
         protected override ImmutableArray<CodeAction> MassageActions(ImmutableArray<CodeAction> actions)
             => FlattenActions(actions);
+
+        private Dictionary<OptionKey, object> GetIndentionColumn(int column)
+            => new Dictionary<OptionKey, object>
+               {
+                   { FormattingOptions.PreferredWrappingColumn, column }
+               };
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
         public async Task TestMissingWithSyntaxError()
@@ -327,6 +336,59 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping
         int i, int j, int k) {
     }
 }", index: 4);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
+        public async Task Test_LongWrapping1()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C {
+    void Foo([||]
+        int i, int j, int k, int l, int m,
+        int n) {
+    }
+}",
+@"class C {
+    void Foo(int i, int j,
+             int k, int l,
+             int m, int n) {
+    }
+}", index: 5, options: GetIndentionColumn(30));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
+        public async Task Test_LongWrapping2()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C {
+    void Foo([||]
+        int i, int j, int k, int l, int m,
+        int n) {
+    }
+}",
+@"class C {
+    void Foo(
+        int i, int j, int k,
+        int l, int m, int n) {
+    }
+}", index: 6, options: GetIndentionColumn(30));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
+        public async Task Test_LongWrapping3()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C {
+    void Foo([||]
+        int i, int j, int k, int l, int m,
+        int n) {
+    }
+}",
+@"class C {
+    void Foo(int i, int j, int k,
+        int l, int m, int n) {
+    }
+}", index: 7, options: GetIndentionColumn(30));
         }
     }
 }

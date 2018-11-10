@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping
                     // action.  This way we any invocation of a code action helps prioritize both
                     // the parent lists and the nested lists.
                     s_mruTitles = s_mruTitles.Remove(_sortTitle).Remove(_parentTitle)
-                                           .Insert(0, _sortTitle).Insert(0, _parentTitle);
+                                             .Insert(0, _sortTitle).Insert(0, _parentTitle);
                 }
             }
         }
