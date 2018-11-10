@@ -47,9 +47,6 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var token = root.FindToken(position);
 
-            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-            var generator = document.GetLanguageService<SyntaxGenerator>();
-
             var declaration = token.Parent.AncestorsAndSelf().FirstOrDefault(n => GetApplicableList(n) != null);
             if (declaration == null)
             {
@@ -93,11 +90,14 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping
                 }
             }
 
+            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+
             // If there are comments between any nodes/tokens in the list then don't offer the
             // refactoring.  We'll likely not be able to properly keep the comments in the right
             // place as we move things around.
             var openToken = listSyntax.GetFirstToken();
             var closeToken = listSyntax.GetLastToken();
+
             if (ContainsNonWhitespaceTrivia(syntaxFacts, openToken.TrailingTrivia) ||
                 ContainsNonWhitespaceTrivia(syntaxFacts, closeToken.LeadingTrivia))
             {
