@@ -19,8 +19,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 { "namespace", TargetScope.Namespace },
                 { "resource", TargetScope.Resource },
                 { "type", TargetScope.Type },
-                { "member", TargetScope.Member }
+                { "member", TargetScope.Member },
+                { "namespaceandchildren", TargetScope.NamespaceAndChildren }
             };
+
+        private static bool TryGetTargetScope(SuppressMessageInfo info, out TargetScope scope)
+        {
+            string scopeString = info.Scope != null ? info.Scope.ToLowerInvariant() : null;
+            return s_suppressMessageScopeTypes.TryGetValue(scopeString, out scope);
+        }
 
         private readonly Compilation _compilation;
         private GlobalSuppressions _lazyGlobalSuppressions;
@@ -56,14 +63,31 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return _compilationWideSuppressions.TryGetValue(id, out info);
             }
 
-            public bool HasGlobalSymbolSuppression(ISymbol symbol, string id, out SuppressMessageInfo info)
+            public bool HasGlobalSymbolSuppression(ISymbol symbol, string id, bool isImmediatelyContainingSymbol, out SuppressMessageInfo info)
             {
                 Debug.Assert(symbol != null);
                 Dictionary<string, SuppressMessageInfo> suppressions;
                 if (_globalSymbolSuppressions.TryGetValue(symbol, out suppressions) &&
                     suppressions.TryGetValue(id, out info))
                 {
-                    return true;
+                    if (symbol.Kind != SymbolKind.Namespace)
+                    {
+                        return true;
+                    }
+
+                    if (TryGetTargetScope(info, out TargetScope targetScope))
+                    {
+                        switch (targetScope)
+                        {
+                            case TargetScope.Namespace:
+                                // Special case: Only suppress syntax diagnostics in namespace declarations if the namespace is the closest containing symbol.
+                                // In other words, only apply suppression to the immediately containing namespace declaration and not to its children or parents.
+                                return isImmediatelyContainingSymbol;
+
+                            case TargetScope.NamespaceAndChildren:
+                                return true;
+                        }
+                    }
                 }
 
                 info = default(SuppressMessageInfo);
@@ -118,7 +142,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             info = default(SuppressMessageInfo);
 
-            if (IsDiagnosticGloballySuppressed(id, symbolOpt: null, info: out info))
+            if (IsDiagnosticGloballySuppressed(id, symbolOpt: null, isImmediatelyContainingSymbol: false, info: out info))
             {
                 return true;
             }
@@ -140,11 +164,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     {
                         if (symbol.Kind == SymbolKind.Namespace)
                         {
-                            // Special case: Only suppress syntax diagnostics in namespace declarations if the namespace is the closest containing symbol.
-                            // In other words, only apply suppression to the immediately containing namespace declaration and not to its children or parents.
-                            return inImmediatelyContainingSymbol && IsDiagnosticGloballySuppressed(id, symbol, out info);
+                            return hasNamespaceSuppression((INamespaceSymbol)symbol, inImmediatelyContainingSymbol);
                         }
-                        else if (IsDiagnosticLocallySuppressed(id, symbol, out info) || IsDiagnosticGloballySuppressed(id, symbol, out info))
+                        else if (IsDiagnosticLocallySuppressed(id, symbol, out info) || IsDiagnosticGloballySuppressed(id, symbol, inImmediatelyContainingSymbol, out info))
                         {
                             return true;
                         }
@@ -155,13 +177,30 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             return false;
+
+            bool hasNamespaceSuppression(INamespaceSymbol namespaceSymbol, bool inImmediatelyContainingSymbol)
+            {
+                do
+                {
+                    if (IsDiagnosticGloballySuppressed(id, namespaceSymbol, inImmediatelyContainingSymbol, out _))
+                    {
+                        return true;
+                    }
+
+                    namespaceSymbol = namespaceSymbol.ContainingNamespace;
+                    inImmediatelyContainingSymbol = false;
+                }
+                while (namespaceSymbol != null);
+
+                return false;
+            }
         }
 
-        private bool IsDiagnosticGloballySuppressed(string id, ISymbol symbolOpt, out SuppressMessageInfo info)
+        private bool IsDiagnosticGloballySuppressed(string id, ISymbol symbolOpt, bool isImmediatelyContainingSymbol, out SuppressMessageInfo info)
         {
             this.DecodeGlobalSuppressMessageAttributes();
             return _lazyGlobalSuppressions.HasCompilationWideSuppression(id, out info) ||
-                symbolOpt != null && _lazyGlobalSuppressions.HasGlobalSymbolSuppression(symbolOpt, id, out info);
+                symbolOpt != null && _lazyGlobalSuppressions.HasGlobalSymbolSuppression(symbolOpt, id, isImmediatelyContainingSymbol, out info);
         }
 
         private bool IsDiagnosticLocallySuppressed(string id, ISymbol symbol, out SuppressMessageInfo info)
@@ -251,10 +290,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     continue;
                 }
 
-                string scopeString = info.Scope != null ? info.Scope.ToLowerInvariant() : null;
-                TargetScope scope;
-
-                if (s_suppressMessageScopeTypes.TryGetValue(scopeString, out scope))
+                if (TryGetTargetScope(info, out TargetScope scope))
                 {
                     if ((scope == TargetScope.Module || scope == TargetScope.None) && info.Target == null)
                     {
@@ -294,6 +330,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         new TargetSymbolResolver(compilation, scope, target).Resolve(results);
                         return results;
                     }
+
+                case TargetScope.NamespaceAndChildren:
+                    return ResolveTargetSymbols(compilation, target, TargetScope.Namespace);
+
                 default:
                     return SpecializedCollections.EmptyEnumerable<ISymbol>();
             }
@@ -341,7 +381,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Namespace,
             Resource,
             Type,
-            Member
+            Member,
+            NamespaceAndChildren
         }
     }
 }
