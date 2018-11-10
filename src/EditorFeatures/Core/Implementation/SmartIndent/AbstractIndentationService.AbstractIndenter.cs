@@ -60,7 +60,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent
 
             public IndentationResult GetDesiredIndentation(FormattingOptions.IndentStyle indentStyle)
             {
-                Debug.Assert(indentStyle != FormattingOptions.IndentStyle.None);
+                // If the caller wants no indent, then we'll return an effective '0' indent.
+                if (indentStyle == FormattingOptions.IndentStyle.None)
+                {
+                    return new IndentationResult(basePosition: 0, offset: 0);
+                }
 
                 // find previous line that is not blank.  this will skip over things like preprocessor
                 // regions and inactive code.
