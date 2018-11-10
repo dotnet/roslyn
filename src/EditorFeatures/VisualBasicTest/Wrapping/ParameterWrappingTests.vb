@@ -5,7 +5,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Editor.Wrapping
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Wrapping
     Public Class ParameterWrappingTests
-        Inherits AbstractParameterWrappingTests
+        Inherits AbstractWrappingTests
 
         Protected Overrides Function CreateCodeRefactoringProvider(workspace As Workspace, parameters As TestParameters) As CodeRefactoringProvider
             Return New VisualBasicParameterWrappingCodeRefactoringProvider()

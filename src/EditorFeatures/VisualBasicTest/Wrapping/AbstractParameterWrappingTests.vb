@@ -7,7 +7,7 @@ Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Options
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Wrapping
-    Public MustInherit Class AbstractParameterWrappingTests
+    Public MustInherit Class AbstractWrappingTests
         Inherits AbstractVisualBasicCodeActionTest
 
         Protected Overrides Function MassageActions(actions As ImmutableArray(Of CodeAction)) As ImmutableArray(Of CodeAction)
