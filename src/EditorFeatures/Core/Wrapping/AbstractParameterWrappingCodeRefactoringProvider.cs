@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping
             return false;
         }
 
-        private static ImmutableArray<CodeAction> SortActionsByMRU(ImmutableArray<CodeAction> codeActions)
+        private static ImmutableArray<CodeAction> SortActionsByMostRecentlyUsed(ImmutableArray<CodeAction> codeActions)
         {
             // make a local so this array can't change out from under us.
             var mruTitles = s_mruTitles;

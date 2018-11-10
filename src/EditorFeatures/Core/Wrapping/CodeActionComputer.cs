@@ -211,7 +211,7 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping
                 codeActions.AddIfNotNull(await GetWrapLongTopLevelCodeActionAsync(
                     seenDocuments, cancellationToken).ConfigureAwait(false));
 
-                return SortActionsByMRU(codeActions.ToImmutableAndFree());
+                return SortActionsByMostRecentlyUsed(codeActions.ToImmutableAndFree());
             }
 
             #region unwrap all
@@ -232,7 +232,7 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping
                 unwrapActions.AddIfNotNull(await GetUnwrapAllCodeActionAsync(seenDocuments, parentTitle, indentFirst: false, cancellationToken).ConfigureAwait(false));
                 unwrapActions.AddIfNotNull(await GetUnwrapAllCodeActionAsync(seenDocuments, parentTitle, indentFirst: true, cancellationToken).ConfigureAwait(false));
 
-                var sorted = SortActionsByMRU(unwrapActions.ToImmutableAndFree());
+                var sorted = SortActionsByMostRecentlyUsed(unwrapActions.ToImmutableAndFree());
                 if (sorted.Length == 0)
                 {
                     return null;
@@ -309,7 +309,7 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping
                 codeActions.AddIfNotNull(await GetWrapLongLineCodeActionAsync(
                     seenDocuments, parentTitle, indentFirst: false, alignWithFirst: false, cancellationToken).ConfigureAwait(false));
 
-                var sorted = SortActionsByMRU(codeActions.ToImmutableAndFree());
+                var sorted = SortActionsByMostRecentlyUsed(codeActions.ToImmutableAndFree());
                 if (sorted.Length == 0)
                 {
                     return null;
@@ -418,7 +418,7 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping
                 codeActions.AddIfNotNull(await GetWrapEveryNestedCodeActionAsync(
                     seenDocuments, parentTitle, indentFirst: false, alignWithFirst: false, cancellationToken).ConfigureAwait(false));
 
-                var sorted = SortActionsByMRU(codeActions.ToImmutableAndFree());
+                var sorted = SortActionsByMostRecentlyUsed(codeActions.ToImmutableAndFree());
                 if (sorted.Length == 0)
                 {
                     return null;
