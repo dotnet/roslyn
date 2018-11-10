@@ -10,6 +10,7 @@ namespace Microsoft.CodeAnalysis.Classification
         public const string Keyword = "keyword";
         public const string NumericLiteral = "number";
         public const string Operator = "operator";
+        public const string OperatorOverload = "operator - overload";
         public const string PreprocessorKeyword = "preprocessor keyword";
         public const string StringLiteral = "string";
         public const string WhiteSpace = "whitespace";

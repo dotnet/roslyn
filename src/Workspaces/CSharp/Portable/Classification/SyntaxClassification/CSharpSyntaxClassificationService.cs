@@ -20,7 +20,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
                 new EmbeddedLanguagesClassifier(),
                 new NameSyntaxClassifier(),
                 new SyntaxTokenClassifier(),
-                new UsingDirectiveSyntaxClassifier());
+                new UsingDirectiveSyntaxClassifier(),
+                new OperatorOverloadSyntaxClassifier());
 
         public override ImmutableArray<ISyntaxClassifier> GetDefaultSyntaxClassifiers()
             => s_defaultSyntaxClassifiers;

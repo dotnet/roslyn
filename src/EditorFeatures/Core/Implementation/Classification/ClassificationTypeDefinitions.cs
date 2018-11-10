@@ -306,5 +306,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [BaseDefinition(PredefinedClassificationTypeNames.FormalLanguage)]
         internal readonly ClassificationTypeDefinition XmlLiteralTextTypeDefinition;
         #endregion
+
+        #region Operator - Overload Name
+        [Export]
+        [Name(ClassificationTypeNames.OperatorOverload)]
+        [BaseDefinition(PredefinedClassificationTypeNames.Operator)]
+        internal readonly ClassificationTypeDefinition OperatorOverloadTypeDefinition;
+        #endregion
     }
 }
