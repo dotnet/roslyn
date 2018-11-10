@@ -19,6 +19,11 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping
         where TListSyntax : SyntaxNode
         where TListItemSyntax : SyntaxNode
     {
+        // Keeps track of the invoked code actions.  That way we can prioritize those code actions 
+        // in the future since they're more likely the ones the user wants.  This is important as 
+        // we have 9 different code actions offered (3 major groups, with 3 actions per group).  
+        // It's likely the user will just pick from a few of these. So we'd like the ones they
+        // choose to be prioritized accordingly.
         private static ImmutableArray<string> s_mruTitles = ImmutableArray<string>.Empty;
 
         protected abstract string ListName { get; }
