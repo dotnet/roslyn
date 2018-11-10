@@ -17,6 +17,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Editor.Wrapping
         Private Class IndentationService
             Inherits VisualBasicIndentationService
 
+            Public Sub New()
+                ' In our scenario we want to control all formatting ourselves. So tell the indenter
+                ' to not depend on a formatter being available so it does all the work to figure out 
+                ' the indentation itself.
+                MyBase.New(formatterAvailable:=False)
+            End Sub
+
             Protected Overrides Function GetSpecializedIndentationFormattingRule() As IFormattingRule
                 ' Override default indentation behavior.  The special indentation rule tries to 
                 ' align parameters.  But that's what we're actually trying to control, so we need

@@ -5,8 +5,6 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Editor;
-using Microsoft.CodeAnalysis.Editor.Wrapping;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -29,7 +27,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Editor.Wrapping
         protected override bool PositionIsApplicable(
             SyntaxNode root, int position, SyntaxNode declaration, BaseParameterListSyntax listSyntax)
         {
-            // CSharpSyntaxGenerator.GetParameterList synthesized a parameter list for simple-lambdas.
+            // CSharpSyntaxGenerator.GetParameterList synthesizes a parameter list for simple-lambdas.
+            // In that case, we're not applicable in that list.
             if (declaration.Kind() == SyntaxKind.SimpleLambdaExpression)
             {
                 return false;
