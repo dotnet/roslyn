@@ -30,9 +30,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent
         public IndentationResult? GetDesiredIndentation(
             Document document, int lineNumber, CancellationToken cancellationToken)
         {
+            var documentOptions = document.GetOptionsAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+            var indentStyle = documentOptions.GetOption(FormattingOptions.SmartIndent, document.Project.Language);
+            if (indentStyle == FormattingOptions.IndentStyle.None)
+            {
+                // If there is no indent style, then do nothing.
+                return null;
+            }
+
             var root = document.GetSyntaxRootSynchronously(cancellationToken);
             var sourceText = root.SyntaxTree.GetText(cancellationToken);
-            var documentOptions = document.GetOptionsAsync(cancellationToken).WaitAndGetResult(cancellationToken);
 
             var lineToBeIndented = sourceText.Lines[lineNumber];
 
@@ -48,13 +55,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent
             // for the following tokens to go.
             if (ShouldUseSmartTokenFormatterInsteadOfIndenter(formattingRules, root, lineToBeIndented, documentOptions, cancellationToken))
             {
-                return null;
-            }
-
-            var indentStyle = documentOptions.GetOption(FormattingOptions.SmartIndent, document.Project.Language);
-            if (indentStyle == FormattingOptions.IndentStyle.None)
-            {
-                // If there is no indent style, then do nothing.
                 return null;
             }
 
