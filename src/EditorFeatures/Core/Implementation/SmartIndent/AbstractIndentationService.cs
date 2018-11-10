@@ -55,14 +55,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent
                 throw new ArgumentException(nameof(indentStyle));
             }
 
-            var documentOptions = document.GetOptionsAsync(cancellationToken).WaitAndGetResult(cancellationToken);
-
-            var root = document.GetSyntaxRootSynchronously(cancellationToken);
-            var sourceText = root.SyntaxTree.GetText(cancellationToken);
-
-            var lineToBeIndented = sourceText.Lines[lineNumber];
-
-            var formattingRules = GetFormattingRules(document, lineToBeIndented.Start);
+            GetIndenterData(document, lineNumber,
+                out var documentOptions, out var root, out var lineToBeIndented,
+                out var formattingRules, cancellationToken);
 
             // There are two important cases for indentation.  The first is when we're simply
             // trying to figure out the appropriate indentation on a blank line (i.e. after
@@ -77,12 +72,37 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent
                 return null;
             }
 
+            return GetBlankLineIndentation(document, lineNumber, indentStyle, cancellationToken);
+        }
+
+        /// <summary>
+        /// Determines indentation for a blank line (i.e. after hitting enter at the end of a line,
+        /// or after moving to a blank line).
+        /// </summary>
+        public IndentationResult GetBlankLineIndentation(
+            Document document, int lineNumber, FormattingOptions.IndentStyle indentStyle, CancellationToken cancellationToken)
+        {
+            GetIndenterData(document, lineNumber,
+                out var documentOptions, out var root, out var lineToBeIndented,
+                out var formattingRules, cancellationToken);
+
             var indenter = GetIndenter(
                 document.GetLanguageService<ISyntaxFactsService>(),
                 root.SyntaxTree, lineToBeIndented, formattingRules,
                 documentOptions, cancellationToken);
 
             return indenter.GetDesiredIndentation(indentStyle);
+        }
+
+        private void GetIndenterData(Document document, int lineNumber, out DocumentOptionSet documentOptions, out SyntaxNode root, out TextLine lineToBeIndented, out IEnumerable<IFormattingRule> formattingRules, CancellationToken cancellationToken)
+        {
+            documentOptions = document.GetOptionsAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+            root = document.GetSyntaxRootSynchronously(cancellationToken);
+
+            var sourceText = root.SyntaxTree.GetText(cancellationToken);
+            lineToBeIndented = sourceText.Lines[lineNumber];
+
+            formattingRules = GetFormattingRules(document, lineToBeIndented.Start);
         }
 
         protected abstract AbstractIndenter GetIndenter(
