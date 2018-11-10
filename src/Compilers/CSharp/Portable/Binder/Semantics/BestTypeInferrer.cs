@@ -10,36 +10,65 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal static class BestTypeInferrer
     {
-        public static bool? GetIsNullable(ArrayBuilder<TypeSymbolWithAnnotations> types)
+        public static NullableAnnotation GetNullableAnnotation(TypeSymbol bestType, ArrayBuilder<TypeSymbolWithAnnotations> types)
         {
-            bool? isNullable = false;
+            bool bestTypeIsPossiblyNullableReferenceTypeTypeParameter = bestType.IsPossiblyNullableReferenceTypeTypeParameter();
+            NullableAnnotation? result = null;
             foreach (var type in types)
             {
                 if (type.IsNull)
                 {
                     // https://github.com/dotnet/roslyn/issues/27961 Should ignore untyped
                     // expressions such as unbound lambdas and typeless tuples.
-                    isNullable = true;
+                    result = NullableAnnotation.NullableBasedOnAnalysis;
                     continue;
                 }
-                if (!type.IsReferenceType)
+
+                if (!type.IsReferenceType && !type.TypeSymbol.IsPossiblyNullableReferenceTypeTypeParameter())
                 {
-                    return null;
+                    return NullableAnnotation.Unknown;
                 }
-                switch (type.IsNullable)
+
+                NullableAnnotation nullableAnnotation;
+
+                if (type.IsPossiblyNullableReferenceTypeTypeParameter() && !bestTypeIsPossiblyNullableReferenceTypeTypeParameter)
                 {
-                    case null:
-                        if (isNullable == false)
-                        {
-                            isNullable = null;
-                        }
-                        break;
-                    case true:
-                        isNullable = true;
-                        break;
+                    nullableAnnotation = NullableAnnotation.NullableBasedOnAnalysis;
+                }
+                else
+                {
+                    nullableAnnotation = type.NullableAnnotation;
+                }
+
+                if (nullableAnnotation == NullableAnnotation.Unknown)
+                {
+                    if (result?.IsAnyNotNullable() != false)
+                    {
+                        result = NullableAnnotation.Unknown;
+                    }
+                }
+                else if (nullableAnnotation.IsAnyNullable())
+                {
+                    if (result?.IsAnyNullable() != true)
+                    {
+                        result = nullableAnnotation;
+                    }
+                    else if (result != nullableAnnotation)
+                    {
+                        result = NullableAnnotation.Nullable;
+                    }
+                }
+                else if (result == null)
+                {
+                    result = nullableAnnotation;
+                }
+                else if (result.GetValueOrDefault() == NullableAnnotation.NotNullableBasedOnAnalysis && nullableAnnotation == NullableAnnotation.NotNullable)
+                {
+                    result = NullableAnnotation.NotNullable;
                 }
             }
-            return isNullable;
+
+            return result ?? NullableAnnotation.NotNullable;
         }
 
         /// <remarks>
