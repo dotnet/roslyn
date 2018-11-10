@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting.Indentation
                         return IndentFromStartOfLine(0);
                     }
 
-                    var trivia = Tree.GetRoot(CancellationToken).FindTrivia(firstNonWhitespacePosition.Value, findInsideTrivia: true);
+                    var trivia = Root.FindTrivia(firstNonWhitespacePosition.Value, findInsideTrivia: true);
                     if (trivia.Kind() == SyntaxKind.None || this.LineToBeIndented.LineNumber > previousLine.LineNumber + 1)
                     {
                         // If the token belongs to the next statement and is also the first token of the statement, then it means the user wants

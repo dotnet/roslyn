@@ -20,11 +20,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent
     {
         internal abstract class AbstractIndenter
         {
-            protected readonly OptionSet OptionSet;
+            public readonly OptionSet OptionSet;
             protected readonly TextLine LineToBeIndented;
             protected readonly int TabSize;
             protected readonly CancellationToken CancellationToken;
 
+            protected readonly SyntaxNode Root;
             protected readonly SyntaxTree Tree;
             protected readonly IEnumerable<IFormattingRule> Rules;
             protected readonly BottomUpBaseIndentationFinder Finder;
@@ -41,27 +42,34 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent
                 TextLine lineToBeIndented,
                 CancellationToken cancellationToken)
             {
-                var syntaxRoot = syntaxTree.GetRoot(cancellationToken);
+                this.Root = syntaxTree.GetRoot(cancellationToken);
 
                 this._syntaxFacts = syntaxFacts;
                 this.OptionSet = optionSet;
                 this.Tree = syntaxTree;
                 this.LineToBeIndented = lineToBeIndented;
-                this.TabSize = this.OptionSet.GetOption(FormattingOptions.TabSize, syntaxRoot.Language);
+                this.TabSize = this.OptionSet.GetOption(FormattingOptions.TabSize, Root.Language);
                 this.CancellationToken = cancellationToken;
 
                 this.Rules = rules;
                 this.Finder = new BottomUpBaseIndentationFinder(
-                         new ChainedFormattingRules(this.Rules, OptionSet),
-                         this.TabSize,
-                         this.OptionSet.GetOption(FormattingOptions.IndentationSize, syntaxRoot.Language),
-                         tokenStream: null);
+                    new ChainedFormattingRules(this.Rules, OptionSet),
+                    this.TabSize,
+                    this.OptionSet.GetOption(FormattingOptions.IndentationSize, Root.Language),
+                    tokenStream: null);
             }
+
+            public bool ShouldUseFormatterIfAvailable(AbstractIndentationService service)
+                => service.ShouldUseSmartTokenFormatterInsteadOfIndenter(
+                    Rules, Root, LineToBeIndented, OptionSet, CancellationToken);
 
             public IndentationResult GetDesiredIndentation(FormattingOptions.IndentStyle indentStyle)
             {
-                // Our sole caller already handled IndentStyle.None.  We would not get it here.
-                Debug.Assert(indentStyle != FormattingOptions.IndentStyle.None);
+                // If the caller wants no indent, then we'll return an effective '0' indent.
+                if (indentStyle == FormattingOptions.IndentStyle.None)
+                {
+                    return new IndentationResult(basePosition: 0, offset: 0);
+                }
 
                 // find previous line that is not blank.  this will skip over things like preprocessor
                 // regions and inactive code.
@@ -96,7 +104,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent
                 // able to get the last non-whitespace position.
                 var lastNonWhitespacePosition = previousNonWhitespaceOrPreprocessorLine.GetLastNonWhitespacePosition().Value;
 
-                var token = Tree.GetRoot(CancellationToken).FindToken(lastNonWhitespacePosition);
+                var token = Root.FindToken(lastNonWhitespacePosition);
                 Debug.Assert(token.RawKind != 0, "FindToken should always return a valid token");
 
                 return GetDesiredIndentationWorker(
@@ -132,8 +140,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent
                 {
                     // Oops, the line we want to line up to is either hidden, or is in a different
                     // visible region.
-                    var root = this.Tree.GetRoot(CancellationToken.None);
-                    var token = root.FindTokenFromEnd(LineToBeIndented.Start);
+                    var token = Root.FindTokenFromEnd(LineToBeIndented.Start);
                     var indentation = Finder.GetIndentationOfCurrentPosition(this.Tree, token, LineToBeIndented.Start, CancellationToken.None);
 
                     return new IndentationResult(LineToBeIndented.Start, indentation);
@@ -175,8 +182,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent
 
                     // No preprocessors in the entire tree, so this
                     // line definitely doesn't have one
-                    var root = Tree.GetRoot(CancellationToken);
-                    if (!root.ContainsDirectives)
+                    if (!Root.ContainsDirectives)
                     {
                         return sourceText.Lines[lineNumber];
                     }
@@ -193,7 +199,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent
 
                     // A preprocessor directive starts on this line.
                     if (HasPreprocessorCharacter(actualLine) &&
-                        root.DescendantTokens(actualLine.Span, tk => tk.FullWidth() > 0).Any(s_tokenHasDirective))
+                        Root.DescendantTokens(actualLine.Span, tk => tk.FullWidth() > 0).Any(s_tokenHasDirective))
                     {
                         lineNumber--;
                         continue;
@@ -207,7 +213,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent
 
             protected int GetCurrentPositionNotBelongToEndOfFileToken(int position)
             {
-                var compilationUnit = Tree.GetRoot(CancellationToken) as ICompilationUnitSyntax;
+                var compilationUnit = Root as ICompilationUnitSyntax;
                 if (compilationUnit == null)
                 {
                     return position;

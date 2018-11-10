@@ -34,7 +34,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Formatting.Indentation
                 Else
                     Debug.Assert(token.FullSpan.Contains(lastNonWhitespacePosition))
 
-                    Dim trivia = Tree.GetRoot(CancellationToken).FindTrivia(lastNonWhitespacePosition)
+                    Dim trivia = Root.FindTrivia(lastNonWhitespacePosition)
 
                     ' preserve the indentation of the comment trivia before a case statement
                     If trivia.Kind = SyntaxKind.CommentTrivia AndAlso trivia.Token.IsKind(SyntaxKind.CaseKeyword) AndAlso trivia.Token.Parent.IsKind(SyntaxKind.CaseStatement) Then
@@ -56,7 +56,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Formatting.Indentation
                         Return IndentFromStartOfLine(0)
                     End If
 
-                    Dim firstTokenOnLine = Tree.GetRoot(CancellationToken).FindToken(firstNonWhitespacePosition.Value, findInsideTrivia:=True)
+                    Dim firstTokenOnLine = Root.FindToken(firstNonWhitespacePosition.Value, findInsideTrivia:=True)
                     If firstTokenOnLine.Kind <> SyntaxKind.None AndAlso firstTokenOnLine.Span.Contains(firstNonWhitespacePosition.Value) Then
                         'okay, beginning of the line is not trivia, use this token as the base token
                         Return GetIndentationBasedOnToken(firstTokenOnLine)
