@@ -28022,6 +28022,66 @@ class Test
                 );
         }
 
+        [WorkItem(31018, "https://github.com/dotnet/roslyn/issues/31018")]
+        [Fact]
+        public void EventAssignment()
+        {
+            var source =
+@"#pragma warning disable 0067
+using System;
+class A<T> { }
+class B
+{
+    event Action<A<object?>> E;
+    static void M1()
+    {
+        var b1 = new B();
+        b1.E += F1; // 1
+        b1.E += F2; // 2
+        b1.E += F3;
+        b1.E += F4;
+    }
+    static void M2(Action<A<object>> f1, Action<A<object>?> f2, Action<A<object?>> f3, Action<A<object?>?> f4)
+    {
+        var b2 = new B();
+        b2.E += f1; // 3
+        b2.E += f2; // 4
+        b2.E += f3;
+        b2.E += f4;
+    }
+    static void M3()
+    {
+        var b3 = new B();
+        b3.E += (A<object> a) => { }; // 5
+        b3.E += (A<object>? a) => { }; // 6
+        b3.E += (A<object?> a) => { };
+        b3.E += (A<object?>? a) => { }; // 7
+    }
+    static void F1(A<object> a) { }
+    static void F2(A<object>? a) { }
+    static void F3(A<object?> a) { }
+    static void F4(A<object?>? a) { }
+}";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+            // https://github.com/dotnet/roslyn/issues/31018: Report warnings for // 3 and // 4.
+            comp.VerifyDiagnostics(
+                // (10,17): warning CS8622: Nullability of reference types in type of parameter 'a' of 'void B.F1(A<object> a)' doesn't match the target delegate 'Action<A<object?>>'.
+                //         b1.E += F1; // 1
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, "F1").WithArguments("a", "void B.F1(A<object> a)", "System.Action<A<object?>>").WithLocation(10, 17),
+                // (11,17): warning CS8622: Nullability of reference types in type of parameter 'a' of 'void B.F2(A<object>? a)' doesn't match the target delegate 'Action<A<object?>>'.
+                //         b1.E += F2; // 2
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, "F2").WithArguments("a", "void B.F2(A<object>? a)", "System.Action<A<object?>>").WithLocation(11, 17),
+                // (26,17): warning CS8622: Nullability of reference types in type of parameter 'a' of 'lambda expression' doesn't match the target delegate 'Action<A<object?>>'.
+                //         b3.E += (A<object> a) => { }; // 5
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, "(A<object> a) => { }").WithArguments("a", "lambda expression", "System.Action<A<object?>>").WithLocation(26, 17),
+                // (27,17): warning CS8622: Nullability of reference types in type of parameter 'a' of 'lambda expression' doesn't match the target delegate 'Action<A<object?>>'.
+                //         b3.E += (A<object>? a) => { }; // 6
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, "(A<object>? a) => { }").WithArguments("a", "lambda expression", "System.Action<A<object?>>").WithLocation(27, 17),
+                // (29,17): warning CS8622: Nullability of reference types in type of parameter 'a' of 'lambda expression' doesn't match the target delegate 'Action<A<object?>>'.
+                //         b3.E += (A<object?>? a) => { }; // 7
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, "(A<object?>? a) => { }").WithArguments("a", "lambda expression", "System.Action<A<object?>>").WithLocation(29, 17));
+        }
+
         [Fact]
         public void AsOperator_01()
         {
@@ -36653,6 +36713,22 @@ class C
                 // (11,13): warning CS8620: Nullability of reference types in argument of type '(string?, string?)' doesn't match target type '(string, string?)' for parameter 'item' in 'void List<(string, string?)>.Add((string, string?) item)'.
                 //             (y, y), // 2
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "(y, y)").WithArguments("(string?, string?)", "(string, string?)", "item", "void List<(string, string?)>.Add((string, string?) item)").WithLocation(11, 13));
+        }
+
+        [Fact]
+        public void Tuple_Method()
+        {
+            var source =
+@"class C
+{
+    static void F(object? x, object? y)
+    {
+        if (x == null) return;
+        (x, y).ToString();
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics();
         }
 
         [Fact]
@@ -51949,6 +52025,212 @@ class Test
 }";
             var comp = CreateCompilation(source2, new[] { ref1.WithEmbedInteropTypes(true), CSharpRef }, options: WithNonNullTypesTrue(TestOptions.ReleaseExe));
             CompileAndVerify(comp, expectedOutput: "4");
+        }
+
+        [Fact]
+        public void UpdateFieldFromReceiverType()
+        {
+            var source =
+@"class A<T> { }
+class B<T>
+{
+    internal T F = default!;
+}
+class Program
+{
+    internal static B<T> Create<T>(T t) => throw null;
+    static void M1(object x, object? y)
+    {
+        var b1 = Create(x);
+        b1.F = x;
+        b1.F = y; // 1
+    }
+    static void M2(A<object?> x, A<object> y, A<object?> z)
+    {
+        var b2 = Create(x);
+        b2.F = y; // 2
+        b2.F = z;
+    }
+}";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (13,16): warning CS8601: Possible null reference assignment.
+                //         b1.F = y; // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "y").WithLocation(13, 16),
+                // (18,16): warning CS8619: Nullability of reference types in value of type 'A<object>' doesn't match target type 'A<object?>'.
+                //         b2.F = y; // 2
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "y").WithArguments("A<object>", "A<object?>").WithLocation(18, 16));
+        }
+
+        [Fact]
+        public void UpdatePropertyFromReceiverType()
+        {
+            var source =
+@"class A<T> { }
+class B<T>
+{
+    internal T P { get; set; } = default!;
+}
+class Program
+{
+    internal static B<T> Create<T>(T t) => throw null;
+    static void M1(object x, object? y)
+    {
+        var b1 = Create(x);
+        b1.P = x;
+        b1.P = y; // 1
+    }
+    static void M2(A<object?> x, A<object> y, A<object?> z)
+    {
+        var b2 = Create(x);
+        b2.P = y; // 2
+        b2.P = z;
+    }
+}";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (13,16): warning CS8601: Possible null reference assignment.
+                //         b1.P = y; // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "y").WithLocation(13, 16),
+                // (18,16): warning CS8619: Nullability of reference types in value of type 'A<object>' doesn't match target type 'A<object?>'.
+                //         b2.P = y; // 2
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "y").WithArguments("A<object>", "A<object?>").WithLocation(18, 16));
+        }
+
+        [WorkItem(31018, "https://github.com/dotnet/roslyn/issues/31018")]
+        [Fact]
+        public void UpdateEventFromReceiverType()
+        {
+            var source =
+@"#pragma warning disable 0067
+delegate void D<T>(T t);
+class C<T>
+{
+    internal event D<T> E;
+}
+class Program
+{
+    internal static C<T> Create<T>(T t) => throw null;
+    static void M1(object x, D<object> y, D<object?> z)
+    {
+        var c1 = Create(x);
+        c1.E += y;
+        c1.E += z; // 1
+    }
+    static void M2(object? x, D<object> y, D<object?> z)
+    {
+        var c2 = Create(x);
+        c2.E += y; // 2
+        c2.E += z;
+    }
+}";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+            // https://github.com/dotnet/roslyn/issues/31018: Report warnings.
+            comp.VerifyDiagnostics();
+        }
+
+        [WorkItem(29605, "https://github.com/dotnet/roslyn/issues/29605")]
+        [Fact]
+        public void UpdateMethodFromReceiverType_01()
+        {
+            var source =
+@"class C<T>
+{
+    internal void F(T t) { }
+}
+class Program
+{
+    internal static C<T> Create<T>(T t) => throw null;
+    static void M(object x, object? y, string? z)
+    {
+        var c = Create(x);
+        c.F(x);
+        c.F(y); // 1
+        c.F(z); // 2
+        c.F(null); // 3
+    }
+}";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (12,13): warning CS8604: Possible null reference argument for parameter 't' in 'void C<object>.F(object t)'.
+                //         c.F(y); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "y").WithArguments("t", "void C<object>.F(object t)").WithLocation(12, 13),
+                // (13,13): warning CS8604: Possible null reference argument for parameter 't' in 'void C<object>.F(object t)'.
+                //         c.F(z); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "z").WithArguments("t", "void C<object>.F(object t)").WithLocation(13, 13),
+                // (14,13): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //         c.F(null); // 3
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(14, 13));
+        }
+
+        [WorkItem(29605, "https://github.com/dotnet/roslyn/issues/29605")]
+        [Fact]
+        public void UpdateMethodFromReceiverType_02()
+        {
+            var source =
+@"class A<T> { }
+class B<T>
+{
+    internal void F<U>(U u) where U : A<T> { }
+}
+class Program
+{
+    internal static B<T> Create<T>(T t) => throw null;
+    static void M1(object x, A<object> y, A<object?> z)
+    {
+        var b1 = Create(x);
+        b1.F(y);
+        b1.F(z); // 1
+    }
+    static void M2(object? x, A<object> y, A<object?> z)
+    {
+        var b2 = Create(x);
+        b2.F(y); // 2
+        b2.F(z);
+    }
+}";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (13,9): warning CS8631: The type 'A<object?>' cannot be used as type parameter 'U' in the generic type or method 'B<object>.F<U>(U)'. Nullability of type argument 'A<object?>' doesn't match constraint type 'A<object>'.
+                //         b1.F(z); // 1
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "b1.F").WithArguments("B<object>.F<U>(U)", "A<object>", "U", "A<object?>").WithLocation(13, 9),
+                // (18,9): warning CS8631: The type 'A<object>' cannot be used as type parameter 'U' in the generic type or method 'B<object?>.F<U>(U)'. Nullability of type argument 'A<object>' doesn't match constraint type 'A<object?>'.
+                //         b2.F(y); // 2
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "b2.F").WithArguments("B<object?>.F<U>(U)", "A<object?>", "U", "A<object>").WithLocation(18, 9));
+        }
+
+        [WorkItem(29605, "https://github.com/dotnet/roslyn/issues/29605")]
+        [Fact]
+        public void UpdateMethodFromReceiverType_03()
+        {
+            var source =
+@"class C<T>
+{
+    internal static T F() => throw null;
+}
+class Program
+{
+    internal static C<T> Create<T>(T t) => throw null;
+    static void M(object x)
+    {
+        var c1 = Create(x);
+        c1.F().ToString();
+        x = null;
+        var c2 = Create(x);
+        c2.F().ToString();
+    }
+}";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (11,9): error CS0176: Member 'C<object>.F()' cannot be accessed with an instance reference; qualify it with a type name instead
+                //         c1.F().ToString();
+                Diagnostic(ErrorCode.ERR_ObjectProhibited, "c1.F").WithArguments("C<object>.F()").WithLocation(11, 9),
+                // (12,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         x = null;
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(12, 13),
+                // (14,9): error CS0176: Member 'C<object>.F()' cannot be accessed with an instance reference; qualify it with a type name instead
+                //         c2.F().ToString();
+                Diagnostic(ErrorCode.ERR_ObjectProhibited, "c2.F").WithArguments("C<object>.F()").WithLocation(14, 9));
         }
     }
 }
