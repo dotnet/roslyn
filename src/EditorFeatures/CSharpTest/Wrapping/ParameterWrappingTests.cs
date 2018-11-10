@@ -14,19 +14,10 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping
 {
-    public class ParameterWrappingTests : AbstractCSharpCodeActionTest
+    public class ParameterWrappingTests : AbstractParameterWrappingTests
     {
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
             => new CSharpParameterWrappingCodeRefactoringProvider();
-
-        protected override ImmutableArray<CodeAction> MassageActions(ImmutableArray<CodeAction> actions)
-            => FlattenActions(actions);
-
-        private Dictionary<OptionKey, object> GetIndentionColumn(int column)
-            => new Dictionary<OptionKey, object>
-               {
-                   { FormattingOptions.PreferredWrappingColumn, column }
-               };
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
         public async Task TestMissingWithSyntaxError()
@@ -148,29 +139,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping
                     int j) {
     }
 }");
-        }
-
-        private Task TestAllWrappingCasesAsync(
-            string input,
-            params string[] outputs)
-        {
-            return TestAllWrappingCasesAsync(input, options: null, outputs);
-        }
-
-        private async Task TestAllWrappingCasesAsync(
-            string input,
-            Dictionary<OptionKey, object> options,
-            params string[] outputs)
-        {
-            var parameters = new TestParameters(options: options);
-
-            for (int index = 0; index < outputs.Length; index++)
-            {
-                var output = outputs[index];
-                await TestInRegularAndScript1Async(input, output, index, parameters: parameters);
-            }
-
-            await TestActionCountAsync(input, outputs.Length, parameters);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
@@ -723,6 +691,136 @@ GetIndentionColumn(30),
     void Foo(int i, int jj,
         int kkkk, int lll,
         int mm, int n) {
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
+        public async Task TestInConstructor()
+        {
+            await TestInRegularAndScript1Async(
+@"class C {
+    public [||]C(int i, int j) {
+    }
+}",
+@"class C {
+    public C(int i,
+             int j) {
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
+        public async Task TestInIndexer()
+        {
+            await TestInRegularAndScript1Async(
+@"class C {
+    public int [||]this[int i, int j] => 0;
+}",
+@"class C {
+    public int this[int i,
+                    int j] => 0;
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
+        public async Task TestInOperator()
+        {
+            await TestInRegularAndScript1Async(
+@"class C {
+    public shared int operator [||]+(C c1, C c2) => 0;
+}",
+@"class C {
+    public shared int operator +(C c1,
+                                 C c2) => 0;
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
+        public async Task TestInDelegate()
+        {
+            await TestInRegularAndScript1Async(
+@"class C {
+    public delegate int [||]D(C c1, C c2);
+}",
+@"class C {
+    public delegate int D(C c1,
+                          C c2);
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
+        public async Task TestInParenthesizedLambda()
+        {
+            await TestInRegularAndScript1Async(
+@"class C {
+    void Goo()
+    {
+        var v = ([||]C c, C d) => {
+        };
+    }
+}",
+@"class C {
+    void Goo()
+    {
+        var v = (C c,
+                 C d) => {
+        };
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
+        public async Task TestInParenthesizedLambda2()
+        {
+            await TestInRegularAndScript1Async(
+@"class C {
+    void Goo()
+    {
+        var v = ([||]c, d) => {
+        };
+    }
+}",
+@"class C {
+    void Goo()
+    {
+        var v = (c,
+                 d) => {
+        };
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
+        public async Task TestNotOnSimpleLambda()
+        {
+            await TestMissingAsync(
+@"class C {
+    void Goo()
+    {
+        var v = [||]c => {
+        };
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
+        public async Task TestLocalFunction()
+        {
+            await TestInRegularAndScript1Async(
+@"class C {
+    void Goo()
+    {
+        void Local([||]C c, C d) {
+        }
+    }
+}",
+@"class C {
+    void Goo()
+    {
+        void Local(C c,
+                   C d) {
+        }
     }
 }");
         }

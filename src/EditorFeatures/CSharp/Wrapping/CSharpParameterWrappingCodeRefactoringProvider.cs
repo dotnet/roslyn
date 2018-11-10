@@ -28,6 +28,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Editor.Wrapping
         protected override bool PositionIsApplicable(
             SyntaxNode root, int position, SyntaxNode declaration, BaseParameterListSyntax listSyntax)
         {
+            // CSharpSyntaxGenerator.GetParameterList synthesized a parameter list for simple-lambdas.
+            if (declaration.Kind() == SyntaxKind.SimpleLambdaExpression)
+            {
+                return false;
+            }
+
             var generator = CSharpSyntaxGenerator.Instance;
             var attributes = generator.GetAttributes(declaration);
 

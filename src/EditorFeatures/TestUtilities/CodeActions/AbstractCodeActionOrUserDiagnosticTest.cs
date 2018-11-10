@@ -617,5 +617,28 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 
             return result;
         }
+
+
+
+        protected Task TestAllInRegularAndScriptAsync(
+            string input,
+            params string[] outputs)
+        {
+            return TestAllInRegularAndScriptAsync(input, parameters: default, outputs);
+        }
+
+        protected async Task TestAllInRegularAndScriptAsync(
+            string input,
+            TestParameters parameters,
+            params string[] outputs)
+        {
+            for (int index = 0; index < outputs.Length; index++)
+            {
+                var output = outputs[index];
+                await TestInRegularAndScript1Async(input, output, index, parameters: parameters);
+            }
+
+            await TestActionCountAsync(input, outputs.Length, parameters);
+        }
     }
 }
