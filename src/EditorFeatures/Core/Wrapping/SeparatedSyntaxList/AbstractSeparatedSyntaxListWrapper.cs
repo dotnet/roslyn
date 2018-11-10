@@ -9,6 +9,9 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.Editor.Wrapping.SeparatedSyntaxList
 {
+    /// <summary>
+    /// Base type for all wrappers that involve wrapping a comma-separated list of items.
+    /// </summary>
     internal abstract partial class AbstractSeparatedSyntaxListWrapper<
         TListSyntax,
         TListItemSyntax>
