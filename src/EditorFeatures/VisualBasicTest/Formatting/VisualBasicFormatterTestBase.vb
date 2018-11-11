@@ -19,6 +19,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Formatting
     Public Class VisualBasicFormatterTestBase
         Inherits CoreFormatterTestsBase
 
+        Friend Overrides Function GetLanguageName() As String
+            Return LanguageNames.VisualBasic
+        End Function
+
         Friend Overrides Function CreateSmartTokenFormatterCommandHandler(registry As ITextUndoHistoryRegistry, operations As IEditorOperationsFactoryService) As AbstractSmartTokenFormatterCommandHandler
             Return New SmartTokenFormatterCommandHandler(registry, operations)
         End Function

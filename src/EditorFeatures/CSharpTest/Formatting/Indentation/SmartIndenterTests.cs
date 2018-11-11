@@ -2739,7 +2739,7 @@ class C
             }
         }
 
-        private static void AssertSmartIndent(
+        private void AssertSmartIndent(
             string code,
             int indentationLine,
             int? expectedIndentation,
@@ -2760,7 +2760,7 @@ class C
             }
         }
 
-        private static void AssertSmartIndent(
+        private void AssertSmartIndent(
             string code,
             int? expectedIndentation,
             CSharpParseOptions options = null,

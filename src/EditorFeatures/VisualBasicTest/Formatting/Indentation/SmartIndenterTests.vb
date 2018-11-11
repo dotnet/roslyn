@@ -2901,47 +2901,11 @@ End Class
         End Sub
 
         ''' <param name="indentationLine">0-based. The line number in code to get indentation for.</param>
-        Private Shared Sub AssertSmartIndent(code As String, indentationLine As Integer, expectedIndentation As Integer?, Optional indentStyle As FormattingOptions.IndentStyle = FormattingOptions.IndentStyle.Smart)
+        Private Sub AssertSmartIndent(code As String, indentationLine As Integer, expectedIndentation As Integer?, Optional indentStyle As FormattingOptions.IndentStyle = FormattingOptions.IndentStyle.Smart)
             Using workspace = TestWorkspace.CreateVisualBasic(code)
                 workspace.Options = workspace.Options.WithChangedOption(FormattingOptions.SmartIndent, LanguageNames.VisualBasic, indentStyle)
 
-                Dim buffer = workspace.Documents.First().GetTextBuffer()
-                Dim bufferGraph = New Mock(Of IBufferGraph)(MockBehavior.Strict)
-                bufferGraph.Setup(Function(x) x.MapUpToSnapshot(It.IsAny(Of SnapshotPoint)(),
-                                                                It.IsAny(Of PointTrackingMode)(),
-                                                                It.IsAny(Of PositionAffinity)(),
-                                                                It.IsAny(Of ITextSnapshot))).
-                    Returns(Of SnapshotPoint, PointTrackingMode, PositionAffinity, ITextSnapshot)(
-                        Function(p, m, a, s)
-                            Dim factory = TryCast(workspace.Services.GetService(Of IHostDependentFormattingRuleFactoryService)(),
-                                            TestFormattingRuleFactoryServiceFactory.Factory)
-
-                            If factory IsNot Nothing AndAlso factory.BaseIndentation <> 0 AndAlso factory.TextSpan.Contains(p.Position) Then
-                                Dim line = p.GetContainingLine()
-                                Dim projectedOffset = line.GetFirstNonWhitespaceOffset().Value - factory.BaseIndentation
-                                Return New SnapshotPoint(p.Snapshot, p.Position - projectedOffset)
-                            End If
-
-                            Return p
-                        End Function)
-
-                WpfTestRunner.RequireWpfFact($"Test helper creates mocks of {NameOf(ITextView)}")
-
-                Dim textView = New Mock(Of ITextView)(MockBehavior.Strict)
-                textView.Setup(Function(x) x.Options).Returns(TestEditorOptions.Instance)
-                textView.Setup(Function(x) x.BufferGraph).Returns(bufferGraph.Object)
-                textView.SetupGet(Function(x) x.TextSnapshot).Returns(buffer.CurrentSnapshot)
-
-                Using indenter = New SmartIndent(textView.Object)
-                    Dim indentationLineFromBuffer = buffer.CurrentSnapshot.GetLineFromLineNumber(indentationLine)
-                    Dim actualIndentation = indenter.GetDesiredIndentation(indentationLineFromBuffer)
-
-                    If expectedIndentation.HasValue Then
-                        Assert.Equal(Of Integer)(expectedIndentation.Value, actualIndentation.Value)
-                    Else
-                        Assert.Null(actualIndentation)
-                    End If
-                End Using
+                TestIndentation(workspace, indentationLine, expectedIndentation)
             End Using
         End Sub
     End Class

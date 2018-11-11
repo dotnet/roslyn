@@ -40,6 +40,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
 </html>";
         protected const int BaseIndentationOfNugget = 8;
 
+        internal override string GetLanguageName()
+            => LanguageNames.CSharp;
+
         internal override AbstractSmartTokenFormatterCommandHandler CreateSmartTokenFormatterCommandHandler(ITextUndoHistoryRegistry registry, IEditorOperationsFactoryService operations)
             => new SmartTokenFormatterCommandHandler(registry, operations);
 
@@ -125,47 +128,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
                 var buffer = workspace.Documents.First().GetTextBuffer();
                 return await GetSmartTokenFormatterIndentationWorkerAsync(workspace, buffer, indentationLine, ch);
             }
-        }
-
-        public static void TestIndentation(
-            TestWorkspace workspace, int indentationLine, int? expectedIndentation)
-        {
-            var snapshot = workspace.Documents.First().TextBuffer.CurrentSnapshot;
-            var bufferGraph = new Mock<IBufferGraph>(MockBehavior.Strict);
-            bufferGraph.Setup(x => x.MapUpToSnapshot(It.IsAny<SnapshotPoint>(),
-                                                     It.IsAny<PointTrackingMode>(),
-                                                     It.IsAny<PositionAffinity>(),
-                                                     It.IsAny<ITextSnapshot>()))
-                .Returns<SnapshotPoint, PointTrackingMode, PositionAffinity, ITextSnapshot>((p, m, a, s) =>
-                {
-
-                    if (workspace.Services.GetService<IHostDependentFormattingRuleFactoryService>() is TestFormattingRuleFactoryServiceFactory.Factory factory && factory.BaseIndentation != 0 && factory.TextSpan.Contains(p.Position))
-                    {
-                        var line = p.GetContainingLine();
-                        var projectedOffset = line.GetFirstNonWhitespaceOffset().Value - factory.BaseIndentation;
-                        return new SnapshotPoint(p.Snapshot, p.Position - projectedOffset);
-                    }
-
-                    return p;
-                });
-
-            var projectionBuffer = new Mock<ITextBuffer>(MockBehavior.Strict);
-            projectionBuffer.Setup(x => x.ContentType.DisplayName).Returns("None");
-
-            var textView = new Mock<ITextView>(MockBehavior.Strict);
-            textView.Setup(x => x.Options).Returns(TestEditorOptions.Instance);
-            textView.Setup(x => x.BufferGraph).Returns(bufferGraph.Object);
-            textView.SetupGet(x => x.TextSnapshot.TextBuffer).Returns(projectionBuffer.Object);
-
-            var provider = new SmartIndent(textView.Object);
-
-            var indentationLineFromBuffer = snapshot.GetLineFromLineNumber(indentationLine);
-            var actualIndentation = provider.GetDesiredIndentation(indentationLineFromBuffer);
-
-            Assert.Equal(expectedIndentation, actualIndentation);
-
-            TestBlankLineIndentationService(
-                workspace, textView.Object, indentationLine, expectedIndentation);
         }
     }
 }
