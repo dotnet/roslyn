@@ -4,6 +4,7 @@ using System.Collections.Immutable;
 using System.Composition;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.Editor.Wrapping.SeparatedSyntaxList;
+using Microsoft.CodeAnalysis.Editor.CSharp.Wrapping.BinaryExpression;
 using Microsoft.CodeAnalysis.Editor.Wrapping;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.Wrapping
@@ -14,7 +15,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Wrapping
         private static readonly ImmutableArray<IWrapper> s_wrappers =
             ImmutableArray.Create<IWrapper>(
                 new CSharpArgumentWrapper(),
-                new CSharpParameterWrapper());
+                new CSharpParameterWrapper(),
+                new CSharpBinaryExpressionWrapper());
 
         public CSharpWrappingCodeRefactoringProvider()
             : base(s_wrappers)

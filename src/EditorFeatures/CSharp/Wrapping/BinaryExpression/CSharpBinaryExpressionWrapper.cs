@@ -1,13 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
@@ -46,6 +42,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Wrapping.BinaryExpression
             var exprsAndOperators = GetExpressionsAndOperators(binaryExpr);
 #if DEBUG
             Debug.Assert(exprsAndOperators.Length >= 3);
+            Debug.Assert(exprsAndOperators.Length % 2 == 1, "Should have odd number of exprs and operators");
             for (int i = 0; i < exprsAndOperators.Length; i++)
             {
                 var item = exprsAndOperators[i];
@@ -96,7 +93,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Wrapping.BinaryExpression
 
         private static bool IsLogicalExpression(SyntaxNode node)
             => node.Kind() == SyntaxKind.LogicalAndExpression ||
-               node.Kind() == SyntaxKind.LogicalAndExpression;
+               node.Kind() == SyntaxKind.LogicalOrExpression;
 
         private class BinaryExpressionCodeActionComputer : AbstractCodeActionComputer<CSharpBinaryExpressionWrapper>
         {
@@ -118,7 +115,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Wrapping.BinaryExpression
                 _exprsAndOperators = exprsAndOperators;
 
                 var generator = SyntaxGenerator.GetGenerator(document);
-                var indentationString = OriginalSourceText.GetOffset(binaryExpression.Span.End)
+                var indentationString = OriginalSourceText.GetOffset(binaryExpression.Span.Start)
                                                           .CreateIndentationString(UseTabs, TabSize);
 
                 _indentationTrivia = new SyntaxTriviaList(generator.Whitespace(indentationString));
@@ -133,27 +130,55 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Wrapping.BinaryExpression
                 actions.Add(await GetUnwrapCodeActionAsync().ConfigureAwait(false));
 
                 return ImmutableArray.Create(new WrappingGroup(
-                    FeaturesResources.Wrapping,
-                    isInlinable: true,
-                    actions.ToImmutableAndFree()));
+                    isInlinable: true, actions.ToImmutableAndFree()));
             }
 
             private Task<WrapItemsAction> GetWrapCodeActionAsync(bool includeOperators)
-                => Task.FromResult(TryCreateCodeActionAsync(
+                => TryCreateCodeActionAsync(
                     GetWrapEdits(includeOperators),
-                    FeaturesResources.Wrapping, 
+                    FeaturesResources.Wrapping,
                     includeOperators
                         ? FeaturesResources.Wrap_expression_including_operators
-                        : FeaturesResources.Wrap_expression));
+                        : FeaturesResources.Wrap_expression);
 
             private ImmutableArray<Edit> GetWrapEdits(bool includeOperators)
             {
-                throw new NotImplementedException();
+                var result = ArrayBuilder<Edit>.GetInstance();
+
+                for (int i = 1; i < _exprsAndOperators.Length; i += 2)
+                {
+                    var left = _exprsAndOperators[i - 1].AsNode();
+                    var opToken = _exprsAndOperators[i].AsToken();
+                    var right = _exprsAndOperators[i + 1].AsNode();
+
+                    if (includeOperators)
+                    {
+                        // convert: 
+                        //      (a == b) && (c == d) to
+                        //
+                        //      (a == b)
+                        //      && (c == d)
+                        result.Add(Edit.UpdateBetween(left, NewLineTrivia, _indentationTrivia, opToken));
+                        result.Add(Edit.UpdateBetween(opToken, SingleWhitespaceTrivia, NoTrivia, right));
+                    }
+                    else
+                    {
+                        // convert: 
+                        //      (a == b) && (c == d) to
+                        //
+                        //      (a == b) &&
+                        //      (c == d)
+                        result.Add(Edit.UpdateBetween(left, SingleWhitespaceTrivia, NoTrivia, opToken));
+                        result.Add(Edit.UpdateBetween(opToken, NewLineTrivia, _indentationTrivia, right));
+                    }
+                }
+
+                return result.ToImmutableAndFree();
             }
 
             private Task<WrapItemsAction> GetUnwrapCodeActionAsync()
-                => Task.FromResult(TryCreateCodeActionAsync(
-                    GetUnwrapEdits(), FeaturesResources.Wrapping, FeaturesResources.Unwrap_expression));
+                => TryCreateCodeActionAsync(
+                    GetUnwrapEdits(), FeaturesResources.Wrapping, FeaturesResources.Unwrap_expression);
 
             private ImmutableArray<Edit> GetUnwrapEdits()
             {
@@ -161,7 +186,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Wrapping.BinaryExpression
 
                 for (int i = 0; i < _exprsAndOperators.Length - 1; i++)
                 {
-                    result.Add(Edit.DeleteBetween(_exprsAndOperators[0], _exprsAndOperators[1]));
+                    result.Add(Edit.UpdateBetween(
+                        _exprsAndOperators[i], SingleWhitespaceTrivia,
+                        NoTrivia, _exprsAndOperators[i + 1]));
                 }
 
                 return result.ToImmutableAndFree();
