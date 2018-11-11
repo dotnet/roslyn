@@ -120,11 +120,11 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.SeparatedSyntaxList
             protected override async Task<ImmutableArray<WrappingGroup>> ComputeWrappingGroupsAsync(CancellationToken cancellationToken)
             {
                 var result = ArrayBuilder<WrappingGroup>.GetInstance();
-                await AddTopLevelCodeActionsAsync(result, cancellationToken).ConfigureAwait(false);
+                await AddWrappingGroups(result, cancellationToken).ConfigureAwait(false);
                 return result.ToImmutableAndFree();
             }
 
-            private async Task AddTopLevelCodeActionsAsync(
+            private async Task AddWrappingGroups(
                 ArrayBuilder<WrappingGroup> result, CancellationToken cancellationToken)
             {
                 var generator = SyntaxGenerator.GetGenerator(this.OriginalDocument);
@@ -132,14 +132,14 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.SeparatedSyntaxList
                 _afterOpenTokenIndentationTrivia = generator.Whitespace(GetAfterOpenTokenIdentation(cancellationToken));
                 _singleIndentationTrivia = generator.Whitespace(GetSingleIdentation(cancellationToken));
 
-                result.Add(await GetWrapEveryTopLevelCodeActionAsync(cancellationToken).ConfigureAwait(false));
-                result.Add(await GetUnwrapAllTopLevelCodeActionsAsync(cancellationToken).ConfigureAwait(false));
-                result.Add(await GetWrapLongTopLevelCodeActionAsync(cancellationToken).ConfigureAwait(false));
+                result.Add(await GetWrapEveryGroupAsync(cancellationToken).ConfigureAwait(false));
+                result.Add(await GetUnwrapGroupAsync(cancellationToken).ConfigureAwait(false));
+                result.Add(await GetWrapLongGroupAsync(cancellationToken).ConfigureAwait(false));
             }
 
             #region unwrap all
 
-            private async Task<WrappingGroup> GetUnwrapAllTopLevelCodeActionsAsync(CancellationToken cancellationToken)
+            private async Task<WrappingGroup> GetUnwrapGroupAsync(CancellationToken cancellationToken)
             {
                 var unwrapActions = ArrayBuilder<WrapItemsAction>.GetInstance();
 
@@ -191,7 +191,7 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.SeparatedSyntaxList
 
             #region wrap long line
 
-            private async Task<WrappingGroup> GetWrapLongTopLevelCodeActionAsync(CancellationToken cancellationToken)
+            private async Task<WrappingGroup> GetWrapLongGroupAsync(CancellationToken cancellationToken)
             {
                 var parentTitle = string.Format(FeaturesResources.Wrap_long_0, Wrapper.ListName);
                 var codeActions = ArrayBuilder<WrapItemsAction>.GetInstance();
@@ -298,7 +298,7 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.SeparatedSyntaxList
 
             #region wrap every
 
-            private async Task<WrappingGroup> GetWrapEveryTopLevelCodeActionAsync(CancellationToken cancellationToken)
+            private async Task<WrappingGroup> GetWrapEveryGroupAsync(CancellationToken cancellationToken)
             {
                 var parentTitle = string.Format(FeaturesResources.Wrap_every_0, Wrapper.ItemNameSingular);
 
