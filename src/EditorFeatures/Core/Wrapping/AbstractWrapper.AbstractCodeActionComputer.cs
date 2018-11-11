@@ -15,47 +15,13 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Editor.Wrapping
 {
-    internal readonly struct Edit
-    {
-        public readonly SyntaxToken Left;
-        public readonly SyntaxToken Right;
-        public readonly SyntaxTriviaList LeftTrailingTrivia;
-        public readonly SyntaxTriviaList RightLeadingTrivia;
-
-        public Edit(
-            SyntaxToken left, SyntaxTriviaList leftTrailingTrivia,
-            SyntaxToken right, SyntaxTriviaList rightLeadingTrivia)
-        {
-            Left = left;
-            Right = right;
-            LeftTrailingTrivia = leftTrailingTrivia;
-            RightLeadingTrivia = rightLeadingTrivia;
-        }
-
-        public string GetNewTrivia()
-        {
-            var result = PooledStringBuilder.GetInstance();
-            foreach (var trivia in LeftTrailingTrivia)
-            {
-                result.Builder.Append(trivia.ToFullString());
-            }
-
-            foreach (var trivia in RightLeadingTrivia)
-            {
-                result.Builder.Append(trivia.ToFullString());
-            }
-
-            return result.ToStringAndFree();
-        }
-    }
-
     internal abstract partial class AbstractWrapper
     {
         /// <summary>
         /// Class responsible for actually computing the entire set of code actions to offer the user.
         /// Contains lots of helper functionality used by all the different Wrapper implementations.
         /// </summary>
-        protected abstract class AbstractComputer<TService> where TService : AbstractWrapper
+        protected abstract class AbstractCodeActionComputer<TService> where TService : AbstractWrapper
         {
             private static readonly SyntaxAnnotation s_toFormatAnnotation = new SyntaxAnnotation();
 
@@ -73,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping
             protected readonly SyntaxTriviaList SingleWhitespaceTrivia;
             protected readonly SyntaxTriviaList NoTrivia = default;
 
-            public AbstractComputer(
+            public AbstractCodeActionComputer(
                 TService service,
                 Document document,
                 SourceText originalSourceText,

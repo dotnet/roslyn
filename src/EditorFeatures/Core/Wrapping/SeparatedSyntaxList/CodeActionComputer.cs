@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.SeparatedSyntaxList
         /// <summary>
         /// Class responsible for actually computing the entire set of code actions to offer the user.
         /// </summary>
-        private class CodeActionComputer : AbstractComputer<AbstractSeparatedSyntaxListWrapper<TListSyntax, TListItemSyntax>>
+        private class CodeActionComputer : AbstractCodeActionComputer<AbstractSeparatedSyntaxListWrapper<TListSyntax, TListItemSyntax>>
         {
             private readonly TListSyntax _listSyntax;
             private readonly SeparatedSyntaxList<TListItemSyntax> _listItems;
