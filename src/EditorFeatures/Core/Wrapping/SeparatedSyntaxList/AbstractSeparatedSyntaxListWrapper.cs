@@ -60,7 +60,8 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.SeparatedSyntaxList
 
             var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
             var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            return new SeparatedSyntaxListCodeActionComputer(this, document, sourceText, options, listSyntax, listItems);
+            return new SeparatedSyntaxListCodeActionComputer(
+                this, document, sourceText, options, listSyntax, listItems, cancellationToken);
         }
     }
 }

@@ -43,6 +43,7 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping
 
             protected readonly Document OriginalDocument;
             protected readonly SourceText OriginalSourceText;
+            protected readonly CancellationToken CancellationToken;
 
             protected readonly bool UseTabs;
             protected readonly int TabSize;
@@ -63,11 +64,13 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping
                 TWrapper service,
                 Document document,
                 SourceText originalSourceText,
-                DocumentOptionSet options)
+                DocumentOptionSet options,
+                CancellationToken cancellationToken)
             {
                 Wrapper = service;
                 OriginalDocument = document;
                 OriginalSourceText = originalSourceText;
+                CancellationToken = cancellationToken;
 
                 UseTabs = options.GetOption(FormattingOptions.UseTabs);
                 TabSize = options.GetOption(FormattingOptions.TabSize);
@@ -79,7 +82,7 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping
                 SingleWhitespaceTrivia = new SyntaxTriviaList(generator.Whitespace(" "));
             }
 
-            protected abstract Task<ImmutableArray<WrappingGroup>> ComputeWrappingGroupsAsync(CancellationToken cancellationToken);
+            protected abstract Task<ImmutableArray<WrappingGroup>> ComputeWrappingGroupsAsync();
 
             /// <summary>
             /// Try to create a CodeAction representing these edits.  Can return <see langword="null"/> in several 
@@ -90,13 +93,10 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping
             ///     3. A previous code action was created that already had the same effect.
             /// </summary>
             protected async Task<WrapItemsAction> TryCreateCodeActionAsync(
-                ImmutableArray<Edit> edits,
-                string parentTitle,
-                string title,
-                CancellationToken cancellationToken)
+                ImmutableArray<Edit> edits, string parentTitle, string title)
             {
                 // First, rewrite the tree with the edits provided.
-                var (root, rewrittenRoot, spanToFormat) = await RewriteTreeAsync(edits, cancellationToken).ConfigureAwait(false);
+                var (root, rewrittenRoot, spanToFormat) = await RewriteTreeAsync(edits).ConfigureAwait(false);
                 if (rewrittenRoot == null)
                 {
                     // Couldn't rewrite for some reason.  No code action to create.
@@ -105,8 +105,8 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping
 
                 // Now, format the part of the tree that we edited.  This will ensure we properly 
                 // respect the user preferences around things like comma/operator spacing.
-                var formattedDocument = await FormatDocumentAsync(rewrittenRoot, spanToFormat, cancellationToken);
-                var formattedRoot = await formattedDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+                var formattedDocument = await FormatDocumentAsync(rewrittenRoot, spanToFormat);
+                var formattedRoot = await formattedDocument.GetSyntaxRootAsync(CancellationToken).ConfigureAwait(false);
 
                 // Now, check if this new formatted tree matches our starting tree, or any of the
                 // trees we've already created for our other code actions.  If so, we don't want to
@@ -135,16 +135,15 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping
                 return new WrapItemsAction(title, parentTitle, _ => Task.FromResult(formattedDocument));
             }
 
-            private async Task<Document> FormatDocumentAsync(SyntaxNode rewrittenRoot, TextSpan spanToFormat, CancellationToken cancellationToken)
+            private async Task<Document> FormatDocumentAsync(SyntaxNode rewrittenRoot, TextSpan spanToFormat)
             {
                 var newDocument = OriginalDocument.WithSyntaxRoot(rewrittenRoot);
                 var formattedDocument = await Formatter.FormatAsync(
-                    newDocument, spanToFormat, cancellationToken: cancellationToken).ConfigureAwait(false);
+                    newDocument, spanToFormat, cancellationToken: CancellationToken).ConfigureAwait(false);
                 return formattedDocument;
             }
 
-            private async Task<(SyntaxNode root, SyntaxNode rewrittenRoot, TextSpan spanToFormat)> RewriteTreeAsync(
-                ImmutableArray<Edit> edits, CancellationToken cancellationToken)
+            private async Task<(SyntaxNode root, SyntaxNode rewrittenRoot, TextSpan spanToFormat)> RewriteTreeAsync(ImmutableArray<Edit> edits)
             {
                 var leftTokenToTrailingTrivia = PooledDictionary<SyntaxToken, SyntaxTriviaList>.GetInstance();
                 var rightTokenToLeadingTrivia = PooledDictionary<SyntaxToken, SyntaxTriviaList>.GetInstance();
@@ -177,7 +176,7 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping
                     }
 
                     return await RewriteTreeAsync(
-                        leftTokenToTrailingTrivia, rightTokenToLeadingTrivia, cancellationToken).ConfigureAwait(false);
+                        leftTokenToTrailingTrivia, rightTokenToLeadingTrivia).ConfigureAwait(false);
                 }
                 finally
                 {
@@ -188,10 +187,9 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping
 
             private async Task<(SyntaxNode root, SyntaxNode rewrittenRoot, TextSpan spanToFormat)> RewriteTreeAsync(
                 PooledDictionary<SyntaxToken, SyntaxTriviaList> leftTokenToTrailingTrivia,
-                PooledDictionary<SyntaxToken, SyntaxTriviaList> rightTokenToLeadingTrivia,
-                CancellationToken cancellationToken)
+                PooledDictionary<SyntaxToken, SyntaxTriviaList> rightTokenToLeadingTrivia)
             {
-                var root = await OriginalDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+                var root = await OriginalDocument.GetSyntaxRootAsync(CancellationToken).ConfigureAwait(false);
                 var tokens = leftTokenToTrailingTrivia.Keys.Concat(rightTokenToLeadingTrivia.Keys).Distinct().ToImmutableArray();
 
                 // Find the closest node that contains all the tokens we're editing.  That's the
@@ -234,10 +232,10 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping
                 return (root, rewrittenRoot, trackedNode.Span);
             }
 
-            public async Task<ImmutableArray<CodeAction>> GetTopLevelCodeActionsAsync(CancellationToken cancellationToken)
+            public async Task<ImmutableArray<CodeAction>> GetTopLevelCodeActionsAsync()
             {
                 // Ask subclass to produce whole nested list of wrapping code actions
-                var wrappingGroups = await ComputeWrappingGroupsAsync(cancellationToken).ConfigureAwait(false);
+                var wrappingGroups = await ComputeWrappingGroupsAsync().ConfigureAwait(false);
 
                 var result = ArrayBuilder<CodeAction>.GetInstance();
                 foreach (var group in wrappingGroups)

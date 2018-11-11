@@ -54,6 +54,8 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping
                 // keep walking up.
                 foreach (var wrapper in _wrappers)
                 {
+                    cancellationToken.ThrowIfCancellationRequested();
+
                     var computer = await wrapper.TryCreateComputerAsync(
                         document, position, node, cancellationToken).ConfigureAwait(false);
 
@@ -62,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping
                         continue;
                     }
 
-                    var actions = await computer.GetTopLevelCodeActionsAsync(cancellationToken);
+                    var actions = await computer.GetTopLevelCodeActionsAsync();
                     if (actions.IsDefaultOrEmpty)
                     {
                         continue;

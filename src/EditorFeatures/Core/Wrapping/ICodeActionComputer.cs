@@ -12,6 +12,6 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping
         /// <summary>
         /// Produces the actual top-level code wrapping actions for the original node provided.
         /// </summary>
-        Task<ImmutableArray<CodeAction>> GetTopLevelCodeActionsAsync(CancellationToken cancellationToken);
+        Task<ImmutableArray<CodeAction>> GetTopLevelCodeActionsAsync();
     }
 }
