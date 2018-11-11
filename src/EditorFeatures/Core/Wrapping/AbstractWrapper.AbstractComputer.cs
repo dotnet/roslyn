@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -18,13 +19,33 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping
     {
         public readonly SyntaxToken Left;
         public readonly SyntaxToken Right;
-        public readonly string NewTrivia;
+        public readonly SyntaxTriviaList LeftTrailingTrivia;
+        public readonly SyntaxTriviaList RightLeadingTrivia;
 
-        public Edit(SyntaxToken left, SyntaxToken right, string newTrivia)
+        public Edit(
+            SyntaxToken left, SyntaxTriviaList leftTrailingTrivia,
+            SyntaxToken right, SyntaxTriviaList rightLeadingTrivia)
         {
             Left = left;
             Right = right;
-            NewTrivia = newTrivia;
+            LeftTrailingTrivia = leftTrailingTrivia;
+            RightLeadingTrivia = rightLeadingTrivia;
+        }
+
+        public string GetNewTrivia()
+        {
+            var result = PooledStringBuilder.GetInstance();
+            foreach (var trivia in LeftTrailingTrivia)
+            {
+                result.Builder.Append(trivia.ToFullString());
+            }
+
+            foreach (var trivia in RightLeadingTrivia)
+            {
+                result.Builder.Append(trivia.ToFullString());
+            }
+
+            return result.ToStringAndFree();
         }
     }
 
@@ -48,6 +69,10 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping
             protected readonly string NewLine;
             protected readonly int WrappingColumn;
 
+            protected readonly SyntaxTriviaList NewLineTrivia;
+            protected readonly SyntaxTriviaList SingleWhitespaceTrivia;
+            protected readonly SyntaxTriviaList NoTrivia = default;
+
             public AbstractComputer(
                 TService service,
                 Document document,
@@ -63,18 +88,31 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping
                 TabSize = options.GetOption(FormattingOptions.TabSize);
                 NewLine = options.GetOption(FormattingOptions.NewLine);
                 WrappingColumn = options.GetOption(FormattingOptions.PreferredWrappingColumn);
+
+                var generator = SyntaxGenerator.GetGenerator(document);
+                NewLineTrivia = new SyntaxTriviaList(generator.EndOfLine(NewLine));
+                SingleWhitespaceTrivia = new SyntaxTriviaList(generator.Whitespace(" "));
             }
 
             protected abstract Task AddTopLevelCodeActionsAsync(ArrayBuilder<CodeAction> codeActions, HashSet<string> seenDocuments, CancellationToken cancellationToken);
 
             protected static Edit DeleteBetween(SyntaxNodeOrToken left, SyntaxNodeOrToken right)
-                => UpdateBetween(left, right, "");
+                => UpdateBetween(left, default, right, default(SyntaxTriviaList));
 
-            protected static Edit UpdateBetween(SyntaxNodeOrToken left, SyntaxNodeOrToken right, string text)
+            protected static Edit UpdateBetween(
+                SyntaxNodeOrToken left, SyntaxTriviaList leftTrailingTrivia,
+                SyntaxNodeOrToken right, SyntaxTrivia rightLeadingTrivia)
+            {
+                return UpdateBetween(left, leftTrailingTrivia, right, new SyntaxTriviaList(rightLeadingTrivia));
+            }
+
+            protected static Edit UpdateBetween(
+                SyntaxNodeOrToken left, SyntaxTriviaList leftTrailingTrivia,
+                SyntaxNodeOrToken right, SyntaxTriviaList rightLeadingTrivia)
             {
                 var leftLastToken = left.IsToken ? left.AsToken() : left.AsNode().GetLastToken();
                 var rightFirstToken = right.IsToken ? right.AsToken() : right.AsNode().GetFirstToken();
-                return new Edit(leftLastToken, rightFirstToken, text);
+                return new Edit(leftLastToken, leftTrailingTrivia, rightFirstToken, rightLeadingTrivia);
             }
 
             protected async Task<CodeAction> CreateCodeActionAsync(
@@ -90,8 +128,8 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping
                     return null;
                 }
 
-                var leftTokenToNewTrailingTrivia = PooledDictionary<SyntaxToken, string>.GetInstance();
-                var rightTokens = PooledHashSet<SyntaxToken>.GetInstance();
+                var leftTokenToTrailingTrivia = PooledDictionary<SyntaxToken, SyntaxTriviaList>.GetInstance();
+                var rightTokenToLeadingTrivia = PooledDictionary<SyntaxToken, SyntaxTriviaList>.GetInstance();
 
                 try
                 {
@@ -108,14 +146,14 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping
 
                         // Make sure we're not about to make an edit that just changes the code to what
                         // is already there.
-                        if (text != edit.NewTrivia)
+                        if (text != edit.GetNewTrivia())
                         {
-                            leftTokenToNewTrailingTrivia.Add(edit.Left, edit.NewTrivia);
-                            rightTokens.Add(edit.Right);
+                            leftTokenToTrailingTrivia.Add(edit.Left, edit.LeftTrailingTrivia);
+                            rightTokenToLeadingTrivia.Add(edit.Right, edit.RightLeadingTrivia);
                         }
                     }
 
-                    if (leftTokenToNewTrailingTrivia.Count == 0)
+                    if (leftTokenToTrailingTrivia.Count == 0)
                     {
                         return null;
                     }
@@ -126,17 +164,17 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping
                     var rewrittenRoot = root.ReplaceSyntax(
                         new [] { nodeToFormat },
                         (oldNode, newNode) => newNode.WithAdditionalAnnotations(s_toFormatAnnotation),
-                        leftTokenToNewTrailingTrivia.Keys.Concat(rightTokens).Distinct(),
+                        leftTokenToTrailingTrivia.Keys.Concat(rightTokenToLeadingTrivia.Keys).Distinct(),
                         (oldToken, newToken) =>
                         {
-                            if (leftTokenToNewTrailingTrivia.TryGetValue(oldToken, out var trivia))
+                            if (leftTokenToTrailingTrivia.TryGetValue(oldToken, out var trailingTrivia))
                             {
-                                return newToken.WithTrailingTrivia(generator.Whitespace(trivia));
+                                newToken = newToken.WithTrailingTrivia(trailingTrivia);
                             }
 
-                            if (rightTokens.Contains(oldToken))
+                            if (rightTokenToLeadingTrivia.TryGetValue(oldToken, out var leadingTrivia))
                             {
-                                return newToken.WithLeadingTrivia(default(SyntaxTriviaList));
+                                newToken = newToken.WithLeadingTrivia(leadingTrivia);
                             }
 
                             return newToken;
@@ -183,8 +221,8 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping
                 }
                 finally
                 {
-                    leftTokenToNewTrailingTrivia.Free();
-                    rightTokens.Free();
+                    leftTokenToTrailingTrivia.Free();
+                    rightTokenToLeadingTrivia.Free();
                 }
             }
 

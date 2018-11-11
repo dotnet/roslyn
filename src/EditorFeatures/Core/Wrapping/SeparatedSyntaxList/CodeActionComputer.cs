@@ -5,6 +5,7 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -37,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.SeparatedSyntaxList
             /// This is the indentation we want when we're aligning wrapped items with the first item 
             /// in the list.
             /// </summary>
-            private string _afterOpenTokenIndentation;
+            private SyntaxTrivia _afterOpenTokenIndentationTrivia;
 
             /// <summary>
             /// Indentation amount for any items that have been wrapped to a new line.  Valid if we're
@@ -47,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.SeparatedSyntaxList
             ///         ^
             ///         |
             /// </summary>
-            private string _singleIndention;
+            private SyntaxTrivia _singleIndentationTrivia;
 
             public CodeActionComputer(
                 AbstractSeparatedSyntaxListWrapper<TListSyntax, TListItemSyntax> service,
@@ -61,10 +62,11 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.SeparatedSyntaxList
                 _indentationService = service.GetIndentationService();
             }
 
-            private void AddTextChangeBetweenOpenAndFirstItem(bool indentFirst, ArrayBuilder<Edit> result)
+            private void AddTextChangeBetweenOpenAndFirstItem(
+                bool indentFirst, ArrayBuilder<Edit> result)
             {
                 result.Add(indentFirst
-                    ? UpdateBetween(_listSyntax.GetFirstToken(), _listItems[0], NewLine + _singleIndention)
+                    ? UpdateBetween(_listSyntax.GetFirstToken(), NewLineTrivia, _listItems[0], _singleIndentationTrivia)
                     : DeleteBetween(_listSyntax.GetFirstToken(), _listItems[0]));
             }
 
@@ -103,19 +105,19 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.SeparatedSyntaxList
                 return indentString;
             }
 
-            private string GetIndentationString(bool indentFirst, bool alignWithFirst)
+            private SyntaxTrivia GetIndentationTrivia(bool indentFirst, bool alignWithFirst)
             {
                 if (indentFirst)
                 {
-                    return _singleIndention;
+                    return _singleIndentationTrivia;
                 }
 
                 if (!alignWithFirst)
                 {
-                    return _singleIndention;
+                    return _singleIndentationTrivia;
                 }
 
-                return _afterOpenTokenIndentation;
+                return _afterOpenTokenIndentationTrivia;
             }
 
             //protected override async Task<TextSpan> GetSpanToFormatAsync(
@@ -130,8 +132,10 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.SeparatedSyntaxList
 
             protected override async Task AddTopLevelCodeActionsAsync(ArrayBuilder<CodeAction> codeActions, HashSet<string> seenDocuments, CancellationToken cancellationToken)
             {
-                _afterOpenTokenIndentation = GetAfterOpenTokenIdentation(cancellationToken);
-                _singleIndention = GetSingleIdentation(cancellationToken);
+                var generator = SyntaxGenerator.GetGenerator(this.OriginalDocument);
+
+                _afterOpenTokenIndentationTrivia = generator.Whitespace(GetAfterOpenTokenIdentation(cancellationToken));
+                _singleIndentationTrivia = generator.Whitespace(GetSingleIdentation(cancellationToken));
 
                 codeActions.AddIfNotNull(await GetWrapEveryTopLevelCodeActionAsync(
                     seenDocuments, cancellationToken).ConfigureAwait(false));
@@ -249,24 +253,25 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.SeparatedSyntaxList
                 HashSet<string> seenDocuments, string parentTitle, 
                 bool indentFirst, bool alignWithFirst, CancellationToken cancellationToken)
             {
-                var indentation = GetIndentationString(indentFirst, alignWithFirst);
+                var indentationTrivia = GetIndentationTrivia(indentFirst, alignWithFirst);
 
-                var edits = GetWrapLongLinesEdits(indentFirst, indentation);
+                var edits = GetWrapLongLinesEdits(indentFirst, indentationTrivia);
                 var title = GetNestedCodeActionTitle(indentFirst, alignWithFirst);
 
                 return await CreateCodeActionAsync(
                     seenDocuments, edits, parentTitle, title, cancellationToken).ConfigureAwait(false);
             }
 
-            private ImmutableArray<Edit> GetWrapLongLinesEdits(bool indentFirst, string indentation)
+            private ImmutableArray<Edit> GetWrapLongLinesEdits(
+                bool indentFirst, SyntaxTrivia indentationTrivia)
             {
                 var result = ArrayBuilder<Edit>.GetInstance();
 
                 AddTextChangeBetweenOpenAndFirstItem(indentFirst, result);
 
                 var currentOffset = indentFirst
-                    ? indentation.Length
-                    : _afterOpenTokenIndentation.Length;
+                    ? indentationTrivia.FullWidth()
+                    : _afterOpenTokenIndentationTrivia.FullWidth();
                 var itemsAndSeparators = _listItems.GetWithSeparators();
 
                 for (var i = 0; i < itemsAndSeparators.Count; i += 2)
@@ -283,15 +288,15 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.SeparatedSyntaxList
                             // this item would not make us go pass our preferred wrapping column. So
                             // keep it on this line, making sure there's a space between the previous
                             // comma and us.
-                            result.Add(UpdateBetween(itemsAndSeparators[i - 1], item, " "));
+                            result.Add(UpdateBetween(itemsAndSeparators[i - 1], SingleWhitespaceTrivia, item, NoTrivia));
                             currentOffset += " ".Length;
                         }
                         else
                         {
                             // not the first item on the line and this item makes us go past the wrapping
                             // limit.  We want to wrap before this item.
-                            result.Add(UpdateBetween(itemsAndSeparators[i - 1], item, NewLine + indentation));
-                            currentOffset = indentation.Length + item.Span.Length;
+                            result.Add(UpdateBetween(itemsAndSeparators[i - 1], NewLineTrivia, item, indentationTrivia));
+                            currentOffset = indentationTrivia.FullWidth() + item.Span.Length;
                         }
                     }
 
@@ -354,9 +359,9 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.SeparatedSyntaxList
                 HashSet<string> seenDocuments, string parentTitle, 
                 bool indentFirst, bool alignWithFirst, CancellationToken cancellationToken)
             {
-                var indentation = GetIndentationString(indentFirst, alignWithFirst);
+                var indentationTrivia = GetIndentationTrivia(indentFirst, alignWithFirst);
 
-                var edits = GetWrapEachEdits(indentFirst, indentation);
+                var edits = GetWrapEachEdits(indentFirst, indentationTrivia);
                 var title = GetNestedCodeActionTitle(indentFirst, alignWithFirst);
 
                 return await CreateCodeActionAsync(
@@ -372,7 +377,8 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.SeparatedSyntaxList
                         : string.Format(FeaturesResources.Indent_wrapped_0, Service.ItemNamePlural);
             }
 
-            private ImmutableArray<Edit> GetWrapEachEdits(bool indentFirst, string indentation)
+            private ImmutableArray<Edit> GetWrapEachEdits(
+                bool indentFirst, SyntaxTrivia indentationTrivia)
             {
                 var result = ArrayBuilder<Edit>.GetInstance();
 
@@ -390,7 +396,8 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.SeparatedSyntaxList
                         result.Add(DeleteBetween(item, comma));
 
                         // Always wrap between this comma and the next item.
-                        result.Add(UpdateBetween(comma, itemsAndSeparators[i + 2], NewLine + indentation));
+                        result.Add(UpdateBetween(
+                            comma, NewLineTrivia, itemsAndSeparators[i + 2], indentationTrivia));
                     }
                 }
 
