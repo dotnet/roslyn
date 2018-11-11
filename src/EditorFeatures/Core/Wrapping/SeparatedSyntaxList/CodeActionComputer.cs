@@ -69,12 +69,6 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.SeparatedSyntaxList
                     : DeleteBetween(_listSyntax.GetFirstToken(), _listItems[0]));
             }
 
-            public async Task<ImmutableArray<CodeAction>> DoAsync(CancellationToken cancellationToken)
-            {
-
-                return await GetTopLevelCodeActionsAsync(cancellationToken).ConfigureAwait(false);
-            }
-
             private string GetAfterOpenTokenIdentation(CancellationToken cancellationToken)
             {
                 var openToken = _listSyntax.GetFirstToken();

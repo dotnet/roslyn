@@ -54,28 +54,20 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.SeparatedSyntaxList
                 return default;
             }
 
-            // For now, don't offer if any item spans multiple lines.  We'll very likely screw up
-            // formatting badly.  If this is really important to support, we can put in the effort
-            // to properly move multi-line items around (which would involve properly fixing up the
-            // indentation of lines within them.
-            var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            foreach (var item in listItems)
-            {
-                if (item == null ||
-                    item.Span.IsEmpty ||
-                    !sourceText.AreOnSameLine(item.GetFirstToken(), item.GetLastToken()))
-                {
-                    return default;
-                }
-            }
+            var containsUnformattableContent = await ContainsUnformattableContentAsync(
+                document, listItems.GetWithSeparators(), cancellationToken).ConfigureAwait(false);
 
-            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+            if (containsUnformattableContent)
+            {
+                return default;
+            }
 
             // If there are comments between any nodes/tokens in the list then don't offer the
             // refactoring.  We'll likely not be able to properly keep the comments in the right
             // place as we move things around.
             var openToken = listSyntax.GetFirstToken();
             var closeToken = listSyntax.GetLastToken();
+            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
 
             if (ContainsNonWhitespaceTrivia(syntaxFacts, openToken.TrailingTrivia) ||
                 ContainsNonWhitespaceTrivia(syntaxFacts, closeToken.LeadingTrivia))
@@ -83,32 +75,11 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.SeparatedSyntaxList
                 return default;
             }
 
-            foreach (var nodeOrToken in listItems.GetWithSeparators())
-            {
-                if (ContainsNonWhitespaceTrivia(syntaxFacts, nodeOrToken.GetLeadingTrivia()) ||
-                    ContainsNonWhitespaceTrivia(syntaxFacts, nodeOrToken.GetTrailingTrivia()))
-                {
-                    return default;
-                }
-            }
-
             var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+            var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             var computer = new CodeActionComputer(this, document, sourceText, options, listSyntax, listItems);
-            var codeActions = await computer.DoAsync(cancellationToken).ConfigureAwait(false);
+            var codeActions = await computer.GetTopLevelCodeActionsAsync(cancellationToken).ConfigureAwait(false);
             return codeActions;
-        }
-
-        private bool ContainsNonWhitespaceTrivia(ISyntaxFactsService syntaxFacts, SyntaxTriviaList triviaList)
-        {
-            foreach (var trivia in triviaList)
-            {
-                if (!syntaxFacts.IsWhitespaceOrEndOfLineTrivia(trivia))
-                {
-                    return true;
-                }
-            }
-
-            return false;
         }
     }
 }

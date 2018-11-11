@@ -10,7 +10,6 @@
 
 namespace Microsoft.CodeAnalysis {
     using System;
-    using System.Reflection;
     
     
     /// <summary>
@@ -40,7 +39,7 @@ namespace Microsoft.CodeAnalysis {
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Microsoft.CodeAnalysis.FeaturesResources", typeof(FeaturesResources).GetTypeInfo().Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Microsoft.CodeAnalysis.FeaturesResources", typeof(FeaturesResources).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
@@ -3645,6 +3644,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Unwrap expression.
+        /// </summary>
+        internal static string Unwrap_expression {
+            get {
+                return ResourceManager.GetString("Unwrap_expression", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Updating &apos;{0}&apos; will prevent the debug session from continuing..
         /// </summary>
         internal static string Updating_0_will_prevent_the_debug_session_from_continuing {
@@ -4255,6 +4263,24 @@ namespace Microsoft.CodeAnalysis {
         internal static string Wrap_every_0 {
             get {
                 return ResourceManager.GetString("Wrap_every_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Wrap expression.
+        /// </summary>
+        internal static string Wrap_expression {
+            get {
+                return ResourceManager.GetString("Wrap_expression", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Wrap expression (including operators).
+        /// </summary>
+        internal static string Wrap_expression_including_operators {
+            get {
+                return ResourceManager.GetString("Wrap_expression_including_operators", resourceCulture);
             }
         }
         

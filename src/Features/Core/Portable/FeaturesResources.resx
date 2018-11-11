@@ -1497,8 +1497,8 @@ This version used in: {2}</value>
     <value>Introduce field</value>
   </data>
   <data name="Introduce_local" xml:space="preserve">
-    <value>Introduce local</value> 
-  </data> 
+    <value>Introduce local</value>
+  </data>
   <data name="Introduce_query_variable" xml:space="preserve">
     <value>Introduce query variable</value>
   </data>
@@ -1519,5 +1519,14 @@ This version used in: {2}</value>
   </data>
   <data name="_0_can_be_simplified" xml:space="preserve">
     <value>{0} can be simplified</value>
+  </data>
+  <data name="Unwrap_expression" xml:space="preserve">
+    <value>Unwrap expression</value>
+  </data>
+  <data name="Wrap_expression" xml:space="preserve">
+    <value>Wrap expression</value>
+  </data>
+  <data name="Wrap_expression_including_operators" xml:space="preserve">
+    <value>Wrap expression (including operators)</value>
   </data>
 </root>

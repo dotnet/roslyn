@@ -1,9 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.Editor.Wrapping
 {
@@ -54,5 +57,57 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping
             => (codeAction as WrapItemsAction)?.SortTitle ?? codeAction.Title;
 
         public abstract Task<ImmutableArray<CodeAction>> ComputeRefactoringsAsync(Document document, int position, SyntaxNode node, CancellationToken cancellationToken);
+
+        protected static async Task<bool> ContainsUnformattableContentAsync(
+            Document document, IEnumerable<SyntaxNodeOrToken> nodesAndTokens, CancellationToken cancellationToken)
+        {
+            // For now, don't offer if any item spans multiple lines.  We'll very likely screw up
+            // formatting badly.  If this is really important to support, we can put in the effort
+            // to properly move multi-line items around (which would involve properly fixing up the
+            // indentation of lines within them.
+            var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            foreach (var item in nodesAndTokens)
+            {
+                if (item == null ||
+                    item.Span.IsEmpty)
+                {
+                    return true;
+                }
+
+                var firstToken = item.IsToken ? item.AsToken() : item.AsNode().GetFirstToken();
+                var lastToken = item.IsToken ? item.AsToken() : item.AsNode().GetLastToken();
+
+                if (!sourceText.AreOnSameLine(firstToken, lastToken))
+                {
+                    return true;
+                }
+            }
+
+            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+            foreach (var nodeOrToken in nodesAndTokens)
+            {
+                if (ContainsNonWhitespaceTrivia(syntaxFacts, nodeOrToken.GetLeadingTrivia()) ||
+                    ContainsNonWhitespaceTrivia(syntaxFacts, nodeOrToken.GetTrailingTrivia()))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        protected static bool ContainsNonWhitespaceTrivia(
+            ISyntaxFactsService syntaxFacts, SyntaxTriviaList triviaList)
+        {
+            foreach (var trivia in triviaList)
+            {
+                if (!syntaxFacts.IsWhitespaceOrEndOfLineTrivia(trivia))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
     }
 }
