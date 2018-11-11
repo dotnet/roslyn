@@ -29,77 +29,46 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // First int:
             //
-            // | |d|yy|xxxxxxxxxxxxxxxxxxxxxxx|wwwwww|
+            // |            |zzzz|f|d|yy|wwwwww|
             //
             // w = special type.  6 bits.
-            // x = modifiers.  23 bits.
             // y = IsManagedType.  2 bits.
             // d = FieldDefinitionsNoted. 1 bit
+            // f = FlattenedMembersIsSorted.  1 bit.
+            // z = TypeKind. 4 bits.
             private const int SpecialTypeOffset = 0;
             private const int SpecialTypeSize = 6;
 
-            private const int DeclarationModifiersOffset = SpecialTypeSize;
-            private const int DeclarationModifiersSize = 23;
-
-            private const int IsManagedTypeOffset = DeclarationModifiersOffset + DeclarationModifiersSize;
+            private const int IsManagedTypeOffset = SpecialTypeSize;
             private const int IsManagedTypeSize = 2;
 
             private const int FieldDefinitionsNotedOffset = IsManagedTypeOffset + IsManagedTypeSize;
             private const int FieldDefinitionsNotedSize = 1;
 
             private const int SpecialTypeMask = (1 << SpecialTypeSize) - 1;
-            private const int DeclarationModifiersMask = (1 << DeclarationModifiersSize) - 1;
             private const int IsManagedTypeMask = (1 << IsManagedTypeSize) - 1;
 
             private const int FieldDefinitionsNotedBit = 1 << FieldDefinitionsNotedOffset;
 
-            private int _flags;
+            private const int FlattenedMembersIsSortedOffset = FieldDefinitionsNotedOffset + 1;
+            private const int FlattenedMembersIsSortedBit = 1 << FlattenedMembersIsSortedOffset;
 
-            // More flags.
-            //
-            // |                           |zzzz|f|
-            //
-            // f = FlattenedMembersIsSorted.  1 bit.
-            // z = TypeKind. 4 bits.
-            private const int TypeKindOffset = 1;
-
+            private const int TypeKindOffset = FlattenedMembersIsSortedOffset + 1;
             private const int TypeKindMask = 0xF;
 
-            private const int FlattenedMembersIsSortedBit = 1 << 0;
+            private int _flags;
+            public DeclarationModifiers DeclarationModifiers { get; }
 
-            private int _flags2;
+            public SpecialType SpecialType => (SpecialType)((_flags >> SpecialTypeOffset) & SpecialTypeMask);
 
-            public SpecialType SpecialType
-            {
-                get { return (SpecialType)((_flags >> SpecialTypeOffset) & SpecialTypeMask); }
-            }
+            public ThreeState IsManagedType => (ThreeState)((_flags >> IsManagedTypeOffset) & IsManagedTypeMask);
 
-            public DeclarationModifiers DeclarationModifiers
-            {
-                get { return (DeclarationModifiers)((_flags >> DeclarationModifiersOffset) & DeclarationModifiersMask); }
-            }
-
-            public ThreeState IsManagedType
-            {
-                get { return (ThreeState)((_flags >> IsManagedTypeOffset) & IsManagedTypeMask); }
-            }
-
-            public bool FieldDefinitionsNoted
-            {
-                get { return (_flags & FieldDefinitionsNotedBit) != 0; }
-            }
+            public bool FieldDefinitionsNoted => (_flags & FieldDefinitionsNotedBit) != 0;
 
             // True if "lazyMembersFlattened" is sorted.
-            public bool FlattenedMembersIsSorted
-            {
-                get { return (_flags2 & FlattenedMembersIsSortedBit) != 0; }
-            }
+            public bool FlattenedMembersIsSorted => (_flags & FlattenedMembersIsSortedBit) != 0;
 
-            public TypeKind TypeKind
-            {
-                get { return (TypeKind)((_flags2 >> TypeKindOffset) & TypeKindMask); }
-            }
-
+            public TypeKind TypeKind => (TypeKind)((_flags >> TypeKindOffset) & TypeKindMask);
 
 #if DEBUG
             static Flags()
@@ -112,23 +81,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var specialTypes = EnumUtilities.GetValues<SpecialType>();
                 var maxSpecialType = (int)specialTypes.Aggregate((s1, s2) => s1 | s2);
                 Debug.Assert((maxSpecialType & SpecialTypeMask) == maxSpecialType);
-
-                // 2) Verify that the range of declaration modifiers doesn't fall outside the bounds of
-                // the declaration modifier mask.
-                var declarationModifiers = EnumUtilities.GetValues<DeclarationModifiers>();
-                var maxDeclarationModifier = (int)declarationModifiers.Aggregate((d1, d2) => d1 | d2);
-                Debug.Assert((maxDeclarationModifier & DeclarationModifiersMask) == maxDeclarationModifier);
             }
 #endif
 
             public Flags(SpecialType specialType, DeclarationModifiers declarationModifiers, TypeKind typeKind)
             {
                 int specialTypeInt = ((int)specialType & SpecialTypeMask) << SpecialTypeOffset;
-                int declarationModifiersInt = ((int)declarationModifiers & DeclarationModifiersMask) << DeclarationModifiersOffset;
                 int typeKindInt = ((int)typeKind & TypeKindMask) << TypeKindOffset;
 
-                _flags = specialTypeInt | declarationModifiersInt;
-                _flags2 = typeKindInt;
+                _flags = (specialTypeInt | typeKindInt);
+                DeclarationModifiers = declarationModifiers;
             }
 
             public void SetFieldDefinitionsNoted()
@@ -138,7 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             public void SetFlattenedMembersIsSorted()
             {
-                ThreadSafeFlagOperations.Set(ref _flags2, (FlattenedMembersIsSortedBit));
+                ThreadSafeFlagOperations.Set(ref _flags, (FlattenedMembersIsSortedBit));
             }
 
             private static bool BitsAreUnsetOrSame(int bits, int mask)

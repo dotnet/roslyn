@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Emit;
@@ -23,11 +24,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             // We currently pack everything into a 32 bit int with the following layout:
             //
-            // |   |s|r|q|z|xxxxxxxxxxxxxxxxxxxxxxx|wwwww|
+            // | |t|s|r|q|z|xxxxxxxxxxxxxxxxxxxxxxxx|wwwww|
             // 
             // w = method kind.  5 bits.
             //
-            // x = modifiers.  23 bits.
+            // x = modifiers.  24 bits.
             //
             // z = isExtensionMethod. 1 bit.
             //
@@ -36,47 +37,53 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // r = isMetadataVirtual. 1 bit. (At least as true as isMetadataVirtualIgnoringInterfaceChanges.)
             //
             // s = isMetadataVirtualLocked. 1 bit.
+            //
+            // t = returnsVoid. 1 bit.
 
             private const int MethodKindOffset = 0;
-            private const int DeclarationModifiersOffset = 5;
-
             private const int MethodKindMask = 0x1F;
-            private const int DeclarationModifiersMask = 0x7FFFFF;
+            private const int MethodKindSize = 5;
 
-            private const int ReturnsVoidBit = 1 << 27;
-            private const int IsExtensionMethodBit = 1 << 28;
-            private const int IsMetadataVirtualIgnoringInterfaceChangesBit = 1 << 29;
-            private const int IsMetadataVirtualBit = 1 << 30;
-            private const int IsMetadataVirtualLockedBit = 1 << 31;
+            private const int DeclarationModifiersOffset = MethodKindSize + MethodKindOffset;
+            private const int DeclarationModifiersSize = 0;
+
+            private const int IsExtensionMethodOffset = DeclarationModifiersOffset + DeclarationModifiersSize;
+            private const int IsMetadataVirtualIgnoringInterfaceChangesOffset = IsExtensionMethodOffset + 1;
+            private const int IsMetadataVirtualOffset = IsMetadataVirtualIgnoringInterfaceChangesOffset + 1;
+            private const int IsMetadataVirtualLockedOffset = IsMetadataVirtualOffset + 1;
+            private const int ReturnsVoidOffset = IsMetadataVirtualLockedOffset + 1;
 
             private int _flags;
-            private bool _returnsVoid;
+            public DeclarationModifiers DeclarationModifiers { get; }
+
+            private bool this[int offset]
+            {
+                [MethodImpl(MethodImplOptions.AggressiveInlining)]
+                get => (_flags & (1 << offset)) != 0;
+                set
+                {
+                    if (value)
+                    {
+                        ThreadSafeFlagOperations.Set(ref _flags, 1 << offset);
+                    }
+                    else
+                    {
+                        ThreadSafeFlagOperations.Clear(ref _flags, 1 << offset);
+                    }
+                }
+            }
 
             public bool ReturnsVoid
             {
-                get { return _returnsVoid; }
-                set { _returnsVoid = value; }
+                get => this[ReturnsVoidOffset];
+                set => this[ReturnsVoidOffset] = value;
             }
 
-            public MethodKind MethodKind
-            {
-                get { return (MethodKind)((_flags >> MethodKindOffset) & MethodKindMask); }
-            }
+            public MethodKind MethodKind => (MethodKind)((_flags >> MethodKindOffset) & MethodKindMask);
 
-            public bool IsExtensionMethod
-            {
-                get { return (_flags & IsExtensionMethodBit) != 0; }
-            }
+            public bool IsExtensionMethod => this[IsExtensionMethodOffset];
 
-            public bool IsMetadataVirtualLocked
-            {
-                get { return (_flags & IsMetadataVirtualLockedBit) != 0; }
-            }
-
-            public DeclarationModifiers DeclarationModifiers
-            {
-                get { return (DeclarationModifiers)((_flags >> DeclarationModifiersOffset) & DeclarationModifiersMask); }
-            }
+            public bool IsMetadataVirtualLocked => this[IsMetadataVirtualLockedOffset];
 
 #if DEBUG
             static Flags()
@@ -89,12 +96,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var methodKinds = EnumUtilities.GetValues<MethodKind>();
                 var maxMethodKind = (int)methodKinds.Aggregate((m1, m2) => m1 | m2);
                 Debug.Assert((maxMethodKind & MethodKindMask) == maxMethodKind);
-
-                // 2) Verify that the range of declaration modifiers doesn't fall outside the bounds of
-                // the declaration modifier mask.
-                var declarationModifiers = EnumUtilities.GetValues<DeclarationModifiers>();
-                var maxDeclarationModifier = (int)declarationModifiers.Aggregate((d1, d2) => d1 | d2);
-                Debug.Assert((maxDeclarationModifier & DeclarationModifiersMask) == maxDeclarationModifier);
             }
 #endif
 
@@ -113,13 +114,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 bool isMetadataVirtual = isMetadataVirtualIgnoringModifiers || ModifiersRequireMetadataVirtual(declarationModifiers);
 
                 int methodKindInt = ((int)methodKind & MethodKindMask) << MethodKindOffset;
-                int declarationModifiersInt = ((int)declarationModifiers & DeclarationModifiersMask) << DeclarationModifiersOffset;
-                int isExtensionMethodInt = isExtensionMethod ? IsExtensionMethodBit : 0;
-                int isMetadataVirtualIgnoringInterfaceImplementationChangesInt = isMetadataVirtual ? IsMetadataVirtualIgnoringInterfaceChangesBit : 0;
-                int isMetadataVirtualInt = isMetadataVirtual ? IsMetadataVirtualBit : 0;
+                int isExtensionMethodInt = isExtensionMethod ? (1 << IsExtensionMethodOffset) : 0;
+                int isMetadataVirtualIgnoringInterfaceImplementationChangesInt = isMetadataVirtual ? (1 << IsMetadataVirtualIgnoringInterfaceChangesOffset) : 0;
+                int isMetadataVirtualInt = isMetadataVirtual ? (1 << IsMetadataVirtualOffset) : 0;
+                int returnsVoidInt = returnsVoid ? (1 << ReturnsVoidOffset) : 0;
 
-                _flags = methodKindInt | declarationModifiersInt | isExtensionMethodInt | isMetadataVirtualIgnoringInterfaceImplementationChangesInt | isMetadataVirtualInt;
-                _returnsVoid = returnsVoid;
+                _flags = methodKindInt |
+                    isExtensionMethodInt |
+                    isMetadataVirtualIgnoringInterfaceImplementationChangesInt |
+                    isMetadataVirtualInt |
+                    returnsVoidInt;
+                DeclarationModifiers = declarationModifiers;
             }
 
             public bool IsMetadataVirtual(bool ignoreInterfaceImplementationChanges = false)
@@ -127,15 +132,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // This flag is immutable, so there's no reason to set a lock bit, as we do below.
                 if (ignoreInterfaceImplementationChanges)
                 {
-                    return (_flags & IsMetadataVirtualIgnoringInterfaceChangesBit) != 0;
+                    return this[IsMetadataVirtualIgnoringInterfaceChangesOffset];
                 }
 
                 if (!IsMetadataVirtualLocked)
                 {
-                    ThreadSafeFlagOperations.Set(ref _flags, IsMetadataVirtualLockedBit);
+                    this[IsMetadataVirtualLockedOffset] = true;
                 }
 
-                return (_flags & IsMetadataVirtualBit) != 0;
+                return this[IsMetadataVirtualOffset];
             }
 
             public void EnsureMetadataVirtual()
@@ -146,9 +151,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // ignoreInterfaceImplementationChanges: true, but you must be conscious that seeing "false" may not
                 // reflect the final, emitted modifier.
                 Debug.Assert(!IsMetadataVirtualLocked);
-                if ((_flags & IsMetadataVirtualBit) == 0)
+                if (!this[IsMetadataVirtualOffset])
                 {
-                    ThreadSafeFlagOperations.Set(ref _flags, IsMetadataVirtualBit);
+                    this[IsMetadataVirtualOffset] = true;
                 }
             }
         }
