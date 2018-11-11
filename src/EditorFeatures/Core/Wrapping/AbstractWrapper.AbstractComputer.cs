@@ -2,18 +2,32 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Editor.Wrapping
 {
+    internal readonly struct Edit
+    {
+        public readonly SyntaxToken Left;
+        public readonly SyntaxToken Right;
+        public readonly string NewTrivia;
+
+        public Edit(SyntaxToken left, SyntaxToken right, string newTrivia)
+        {
+            Left = left;
+            Right = right;
+            NewTrivia = newTrivia;
+        }
+    }
+
     internal abstract partial class AbstractWrapper
     {
         /// <summary>
@@ -22,6 +36,8 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping
         /// </summary>
         protected abstract class AbstractComputer<TService> where TService : AbstractWrapper
         {
+            private static readonly SyntaxAnnotation s_toFormatAnnotation = new SyntaxAnnotation();
+
             protected readonly TService Service;
             protected readonly Document OriginalDocument;
             protected readonly SourceText OriginalSourceText;
@@ -50,30 +66,40 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping
             }
 
             protected abstract Task AddTopLevelCodeActionsAsync(ArrayBuilder<CodeAction> codeActions, HashSet<string> seenDocuments, CancellationToken cancellationToken);
-            protected abstract Task<TextSpan> GetSpanToFormatAsync(Document newDocument, CancellationToken cancellationToken);
 
-            protected static TextChange DeleteBetween(SyntaxNodeOrToken left, SyntaxNodeOrToken right)
+            protected static Edit DeleteBetween(SyntaxNodeOrToken left, SyntaxNodeOrToken right)
                 => UpdateBetween(left, right, "");
 
-            protected static TextChange UpdateBetween(SyntaxNodeOrToken left, SyntaxNodeOrToken right, string text)
-                => new TextChange(TextSpan.FromBounds(left.Span.End, right.Span.Start), text);
+            protected static Edit UpdateBetween(SyntaxNodeOrToken left, SyntaxNodeOrToken right, string text)
+            {
+                var leftLastToken = left.IsToken ? left.AsToken() : left.AsNode().GetLastToken();
+                var rightFirstToken = right.IsToken ? right.AsToken() : right.AsNode().GetFirstToken();
+                return new Edit(leftLastToken, rightFirstToken, text);
+            }
 
             protected async Task<CodeAction> CreateCodeActionAsync(
-                HashSet<string> seenDocuments, ImmutableArray<TextChange> edits,
-                string parentTitle, string title, CancellationToken cancellationToken)
+                HashSet<string> seenDocuments,
+                SyntaxNode nodeToFormat,
+                ImmutableArray<Edit> edits,
+                string parentTitle,
+                string title,
+                CancellationToken cancellationToken)
             {
                 if (edits.Length == 0)
                 {
                     return null;
                 }
 
-                var finalEdits = ArrayBuilder<TextChange>.GetInstance();
+                var leftTokenToNewTrailingTrivia = PooledDictionary<SyntaxToken, string>.GetInstance();
+                var rightTokens = PooledHashSet<SyntaxToken>.GetInstance();
 
                 try
                 {
+
                     foreach (var edit in edits)
                     {
-                        var text = OriginalSourceText.ToString(edit.Span);
+                        var span = TextSpan.FromBounds(edit.Left.Span.End, edit.Right.Span.Start);
+                        var text = OriginalSourceText.ToString(span);
                         if (!string.IsNullOrWhiteSpace(text))
                         {
                             // editing some piece of non-whitespace trivia.  We don't support this.
@@ -82,24 +108,64 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping
 
                         // Make sure we're not about to make an edit that just changes the code to what
                         // is already there.
-                        if (text != edit.NewText)
+                        if (text != edit.NewTrivia)
                         {
-                            finalEdits.Add(edit);
+                            leftTokenToNewTrailingTrivia.Add(edit.Left, edit.NewTrivia);
+                            rightTokens.Add(edit.Right);
                         }
                     }
 
-                    if (finalEdits.Count == 0)
+                    if (leftTokenToNewTrailingTrivia.Count == 0)
                     {
                         return null;
                     }
 
-                    var newSourceText = OriginalSourceText.WithChanges(finalEdits);
-                    var newDocument = OriginalDocument.WithText(newSourceText);
+                    var generator = SyntaxGenerator.GetGenerator(OriginalDocument);
+                    var root = await OriginalDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-                    var spanToFormat = await GetSpanToFormatAsync(newDocument, cancellationToken).ConfigureAwait(false);
+                    var rewrittenRoot = root.ReplaceSyntax(
+                        new [] { nodeToFormat },
+                        (oldNode, newNode) => newNode.WithAdditionalAnnotations(s_toFormatAnnotation),
+                        leftTokenToNewTrailingTrivia.Keys.Concat(rightTokens).Distinct(),
+                        (oldToken, newToken) =>
+                        {
+                            if (leftTokenToNewTrailingTrivia.TryGetValue(oldToken, out var trivia))
+                            {
+                                return newToken.WithTrailingTrivia(generator.Whitespace(trivia));
+                            }
+
+                            if (rightTokens.Contains(oldToken))
+                            {
+                                return newToken.WithLeadingTrivia(default(SyntaxTriviaList));
+                            }
+
+                            return newToken;
+                        }, null, null);
+
+                    // root = root.TrackNodes(nodeToFormat);
+                    // var rewrittenRoot = Service.Rewrite(root, edits);
+                    var trackedNode = rewrittenRoot.GetAnnotatedNodes(s_toFormatAnnotation).Single();
+
+                    //var root = await OriginalDocument.GetSyntaxRootAsync(cancellationToken);
+                    //var editor = new SyntaxEditor(root, OriginalDocument.Project.Solution.Workspace);
+                    //editor.ReplaceNode(nodeToFormat, (n, _) => n.WithAdditionalAnnotations(s_toFormatAnnotation));
+
+                    //foreach (var edit in edits)
+                    //{
+                    //    editor.Generator.token
+                    //}
+
+                    //var newSourceText = OriginalSourceText.WithChanges(finalEdits);
+                    //var newDocument = OriginalDocument.WithText(newSourceText);
+
+                    //var newRoot = 
+                    //var currentNode = new
+                    //var spanToFormat = await GetSpanToFormatAsync(newDocument, cancellationToken).ConfigureAwait(false);
+
+                    var newDocument = OriginalDocument.WithSyntaxRoot(rewrittenRoot);
 
                     var formattedDocument = await Formatter.FormatAsync(
-                        newDocument, spanToFormat, cancellationToken: cancellationToken).ConfigureAwait(false);
+                        newDocument, trackedNode.Span, cancellationToken: cancellationToken).ConfigureAwait(false);
 
                     // make sure we've actually made a textual change.
                     var finalSourceText = await formattedDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
@@ -117,7 +183,8 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping
                 }
                 finally
                 {
-                    finalEdits.Free();
+                    leftTokenToNewTrailingTrivia.Free();
+                    rightTokens.Free();
                 }
             }
 

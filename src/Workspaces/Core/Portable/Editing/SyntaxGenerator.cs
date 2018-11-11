@@ -37,6 +37,7 @@ namespace Microsoft.CodeAnalysis.Editing
         internal abstract ISyntaxFactsService SyntaxFacts { get; }
 
         internal abstract SyntaxTrivia EndOfLine(string text);
+        internal abstract SyntaxTrivia Whitespace(string text);
 
         /// <summary>
         /// Gets the <see cref="SyntaxGenerator"/> for the specified language.

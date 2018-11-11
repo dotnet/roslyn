@@ -5,7 +5,6 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -62,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.SeparatedSyntaxList
                 _indentationService = service.GetIndentationService();
             }
 
-            private void AddTextChangeBetweenOpenAndFirstItem(bool indentFirst, ArrayBuilder<TextChange> result)
+            private void AddTextChangeBetweenOpenAndFirstItem(bool indentFirst, ArrayBuilder<Edit> result)
             {
                 result.Add(indentFirst
                     ? UpdateBetween(_listSyntax.GetFirstToken(), _listItems[0], NewLine + _singleIndention)
@@ -119,15 +118,15 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.SeparatedSyntaxList
                 return _afterOpenTokenIndentation;
             }
 
-            protected override async Task<TextSpan> GetSpanToFormatAsync(
-                Document newDocument, CancellationToken cancellationToken)
-            {
-                var newRoot = await newDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-                var newOpenToken = newRoot.FindToken(_listSyntax.SpanStart);
-                var newList = newOpenToken.Parent;
-                var spanToFormat = newList.Span;
-                return spanToFormat;
-            }
+            //protected override async Task<TextSpan> GetSpanToFormatAsync(
+            //    Document newDocument, CancellationToken cancellationToken)
+            //{
+            //    var newRoot = await newDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            //    var newOpenToken = newRoot.FindToken(_listSyntax.SpanStart);
+            //    var newList = newOpenToken.Parent;
+            //    var spanToFormat = newList.Span;
+            //    return spanToFormat;
+            //}
 
             protected override async Task AddTopLevelCodeActionsAsync(ArrayBuilder<CodeAction> codeActions, HashSet<string> seenDocuments, CancellationToken cancellationToken)
             {
@@ -186,9 +185,12 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.SeparatedSyntaxList
                     seenDocuments, edits, parentTitle, title, cancellationToken).ConfigureAwait(false);
             }
 
-            private ImmutableArray<TextChange> GetUnwrapAllEdits(bool indentFirst)
+            private Task<CodeAction> CreateCodeActionAsync(HashSet<string> seenDocuments, ImmutableArray<Edit> edits, string parentTitle, string title, CancellationToken cancellationToken)
+                => base.CreateCodeActionAsync(seenDocuments, _listSyntax, edits, parentTitle, title, cancellationToken);
+
+            private ImmutableArray<Edit> GetUnwrapAllEdits(bool indentFirst)
             {
-                var result = ArrayBuilder<TextChange>.GetInstance();
+                var result = ArrayBuilder<Edit>.GetInstance();
 
                 AddTextChangeBetweenOpenAndFirstItem(indentFirst, result);
 
@@ -256,9 +258,9 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.SeparatedSyntaxList
                     seenDocuments, edits, parentTitle, title, cancellationToken).ConfigureAwait(false);
             }
 
-            private ImmutableArray<TextChange> GetWrapLongLinesEdits(bool indentFirst, string indentation)
+            private ImmutableArray<Edit> GetWrapLongLinesEdits(bool indentFirst, string indentation)
             {
-                var result = ArrayBuilder<TextChange>.GetInstance();
+                var result = ArrayBuilder<Edit>.GetInstance();
 
                 AddTextChangeBetweenOpenAndFirstItem(indentFirst, result);
 
@@ -370,9 +372,9 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.SeparatedSyntaxList
                         : string.Format(FeaturesResources.Indent_wrapped_0, Service.ItemNamePlural);
             }
 
-            private ImmutableArray<TextChange> GetWrapEachEdits(bool indentFirst, string indentation)
+            private ImmutableArray<Edit> GetWrapEachEdits(bool indentFirst, string indentation)
             {
-                var result = ArrayBuilder<TextChange>.GetInstance();
+                var result = ArrayBuilder<Edit>.GetInstance();
 
                 AddTextChangeBetweenOpenAndFirstItem(indentFirst, result);
 

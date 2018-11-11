@@ -187,6 +187,11 @@
         <target state="new">Unwrap and indent all {0}</target>
         <note />
       </trans-unit>
+      <trans-unit id="Unwrap_expression">
+        <source>Unwrap expression</source>
+        <target state="new">Unwrap expression</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Use_block_body_for_lambda_expressions">
         <source>Use block body for lambda expressions</source>
         <target state="new">Use block body for lambda expressions</target>
@@ -220,6 +225,16 @@
       <trans-unit id="Wrap_every_0">
         <source>Wrap every {0}</source>
         <target state="new">Wrap every {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Wrap_expression">
+        <source>Wrap expression</source>
+        <target state="new">Wrap expression</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Wrap_expression_including_operators">
+        <source>Wrap expression (including operators)</source>
+        <target state="new">Wrap expression (including operators)</target>
         <note />
       </trans-unit>
       <trans-unit id="Wrap_long_0">

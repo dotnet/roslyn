@@ -30,6 +30,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         internal override SyntaxTrivia EndOfLine(string text)
             => SyntaxFactory.EndOfLine(text);
 
+        internal override SyntaxTrivia Whitespace(string text)
+            => SyntaxFactory.Whitespace(text);
+
         internal override SeparatedSyntaxList<TElement> SeparatedList<TElement>(SyntaxNodeOrTokenList list)
             => SyntaxFactory.SeparatedList<TElement>(list);
 

@@ -58,6 +58,8 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping
 
         public abstract Task<ImmutableArray<CodeAction>> ComputeRefactoringsAsync(Document document, int position, SyntaxNode node, CancellationToken cancellationToken);
 
+        // protected abstract SyntaxNode Rewrite(SyntaxNode root, ImmutableArray<Edit> edits);
+
         protected static async Task<bool> ContainsUnformattableContentAsync(
             Document document, IEnumerable<SyntaxNodeOrToken> nodesAndTokens, CancellationToken cancellationToken)
         {

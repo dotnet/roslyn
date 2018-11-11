@@ -28,6 +28,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return SyntaxFactory.EndOfLine(text)
         End Function
 
+        Friend Overrides Function Whitespace(text As String) As SyntaxTrivia
+            Return SyntaxFactory.Whitespace(text)
+        End Function
+
         Friend Overrides Function SeparatedList(Of TElement As SyntaxNode)(list As SyntaxNodeOrTokenList) As SeparatedSyntaxList(Of TElement)
             Return SyntaxFactory.SeparatedList(Of TElement)(list)
         End Function
