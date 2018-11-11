@@ -63,13 +63,13 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping
 
                 if (titleIndex1 >= 0 && titleIndex2 >= 0)
                 {
-                        // we've invoked both of these before.  Order by how recently it was invoked.
-                        return titleIndex1 - titleIndex2;
+                    // we've invoked both of these before.  Order by how recently it was invoked.
+                    return titleIndex1 - titleIndex2;
                 }
 
-                    // one of these has never been invoked.  It's always after an item that has been
-                    // invoked.
-                    if (titleIndex1 >= 0)
+                // one of these has never been invoked.  It's always after an item that has been
+                // invoked.
+                if (titleIndex1 >= 0)
                 {
                     return -1;
                 }
@@ -79,10 +79,10 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping
                     return 1;
                 }
 
-                    // Neither of these has been invoked.   Keep it in the same order we found it in the
-                    // array.  Note: we cannot return 0 here as ImmutableArray/Array are not guaranteed
-                    // to sort stably.
-                    return codeActions.IndexOf(ca1) - codeActions.IndexOf(ca2);
+                // Neither of these has been invoked.   Keep it in the same order we found it in the
+                // array.  Note: we cannot return 0 here as ImmutableArray/Array are not guaranteed
+                // to sort stably.
+                return codeActions.IndexOf(ca1) - codeActions.IndexOf(ca2);
             });
         }
 
