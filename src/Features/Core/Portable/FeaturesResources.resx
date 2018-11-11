@@ -1529,4 +1529,7 @@ This version used in: {2}</value>
   <data name="Wrap_expression_including_operators" xml:space="preserve">
     <value>Wrap expression (including operators)</value>
   </data>
+  <data name="Wrapping" xml:space="preserve">
+    <value>Wrapping</value>
+  </data>
 </root>

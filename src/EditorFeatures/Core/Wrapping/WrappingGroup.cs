@@ -1,0 +1,41 @@
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System.Collections.Immutable;
+
+namespace Microsoft.CodeAnalysis.Editor.Wrapping
+{
+    /// <summary>
+    /// A group of wrapping actions placed under a common title.  For example:
+    ///     Unwrap group:
+    ///         unwrap option 1
+    ///         unwrap option 2
+    ///     Wrap all group:
+    ///         wrap all option 1
+    ///         wrap all optoin 2
+    ///         ...
+    /// </summary>
+    internal readonly struct WrappingGroup
+    {
+        /// <summary>
+        /// The title to place in the light-bulb code action for this group.
+        /// </summary>
+        public readonly string Title;
+
+        /// <summary>
+        /// Whether or not the items in this group can be inlined in the topmost lightbulb.
+        /// </summary>
+        public readonly bool IsInlinable;
+
+        /// <summary>
+        /// The actual wrapping code actions for this group to present to the user.
+        /// </summary>
+        public readonly ImmutableArray<WrapItemsAction> WrappingActions;
+
+        public WrappingGroup(string title, bool isInlinable, ImmutableArray<WrapItemsAction> wrappingActions)
+        {
+            Title = title;
+            IsInlinable = isInlinable;
+            WrappingActions = wrappingActions;
+        }
+    }
+}

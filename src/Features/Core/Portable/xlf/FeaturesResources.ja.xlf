@@ -242,6 +242,11 @@
         <target state="new">Wrap long {0}</target>
         <note />
       </trans-unit>
+      <trans-unit id="Wrapping">
+        <source>Wrapping</source>
+        <target state="new">Wrapping</target>
+        <note />
+      </trans-unit>
       <trans-unit id="_0_can_be_simplified">
         <source>{0} can be simplified</source>
         <target state="new">{0} can be simplified</target>

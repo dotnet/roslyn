@@ -7,6 +7,15 @@ using Microsoft.CodeAnalysis.CodeRefactorings;
 
 namespace Microsoft.CodeAnalysis.Editor.Wrapping
 {
+    /// <summary>
+    /// Base type for the C# and VB wrapping refactorings.  The only responsibility of this type is
+    /// to walk up the tree at the position the user is at, seeing if any node above the user can be
+    /// wrapped by any provided <see cref="IWrapper"/>s.
+    /// 
+    /// Once we get any wrapping actions, we stop looking further.  This keeps the refactorings
+    /// scoped as closely as possible to where the user is, as well as preventing overloading of the
+    /// lightbulb with too many actions.
+    /// </summary>
     internal abstract class AbstractWrappingCodeRefactoringProvider : CodeRefactoringProvider
     {
         private readonly ImmutableArray<IWrapper> _wrappers;
@@ -41,11 +50,21 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping
                     return;
                 }
 
+                // Check if any wrapper can handle this node.  If so, then we're done, otherwise
+                // keep walking up.
                 foreach (var wrapper in _wrappers)
                 {
-                    var actions = await wrapper.ComputeRefactoringsAsync(
+                    cancellationToken.ThrowIfCancellationRequested();
+
+                    var computer = await wrapper.TryCreateComputerAsync(
                         document, position, node, cancellationToken).ConfigureAwait(false);
 
+                    if (computer == null)
+                    {
+                        continue;
+                    }
+
+                    var actions = await computer.GetTopLevelCodeActionsAsync();
                     if (actions.IsDefaultOrEmpty)
                     {
                         continue;

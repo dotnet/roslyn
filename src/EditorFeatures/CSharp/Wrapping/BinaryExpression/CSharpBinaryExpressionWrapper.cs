@@ -3,35 +3,26 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Editor.Wrapping;
-using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Text;
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using static Microsoft.CodeAnalysis.CodeActions.CodeAction;
-using Microsoft.CodeAnalysis.CSharp;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.Wrapping.BinaryExpression
 {
     internal class CSharpBinaryExpressionWrapper : AbstractWrapper
     {
-        public override async Task<ImmutableArray<CodeAction>> ComputeRefactoringsAsync(
+        public override async Task<ICodeActionComputer> TryCreateComputerAsync(
             Document document, int position, SyntaxNode node, CancellationToken cancellationToken)
         {
             if (!(node is BinaryExpressionSyntax binaryExpr))
@@ -53,6 +44,16 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Wrapping.BinaryExpression
             }
 
             var exprsAndOperators = GetExpressionsAndOperators(binaryExpr);
+#if DEBUG
+            Debug.Assert(exprsAndOperators.Length >= 3);
+            for (int i = 0; i < exprsAndOperators.Length; i++)
+            {
+                var item = exprsAndOperators[i];
+                Debug.Assert(((i % 2) == 0 && item.IsNode) ||
+                             ((i % 2) == 1 && item.IsToken));
+            }
+#endif
+
             var containsUnformattableContent = await ContainsUnformattableContentAsync(
                 document, exprsAndOperators, cancellationToken).ConfigureAwait(false);
 
@@ -63,10 +64,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Wrapping.BinaryExpression
 
             var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-            var computer = new CodeActionComputer(
-                this, document, sourceText, options, binaryExpr, exprsAndOperators);
-
-            return await computer.GetTopLevelCodeActionsAsync(cancellationToken).ConfigureAwait(false);
+            return new BinaryExpressionCodeActionComputer(
+                this, document, sourceText, options, binaryExpr,
+                exprsAndOperators, cancellationToken);
         }
 
         private static ImmutableArray<SyntaxNodeOrToken> GetExpressionsAndOperators(BinaryExpressionSyntax binaryExpr)
@@ -81,8 +81,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Wrapping.BinaryExpression
         private static void AddExpressionsAndOperators(
             ExpressionSyntax expr, ArrayBuilder<SyntaxNodeOrToken> result)
         {
-            if (expr is BinaryExpressionSyntax binaryExpr)
+            if (IsLogicalExpression(expr))
             {
+                var binaryExpr = (BinaryExpressionSyntax)expr;
                 AddExpressionsAndOperators(binaryExpr.Left, result);
                 result.Add(binaryExpr.OperatorToken);
                 AddExpressionsAndOperators(binaryExpr.Right, result);
@@ -97,77 +98,73 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Wrapping.BinaryExpression
             => node.Kind() == SyntaxKind.LogicalAndExpression ||
                node.Kind() == SyntaxKind.LogicalAndExpression;
 
-        private class CodeActionComputer : AbstractComputer<CSharpBinaryExpressionWrapper>
+        private class BinaryExpressionCodeActionComputer : AbstractCodeActionComputer<CSharpBinaryExpressionWrapper>
         {
             private readonly BinaryExpressionSyntax _binaryExpression;
-            private readonly string _indentationString;
+            private readonly ImmutableArray<SyntaxNodeOrToken> _exprsAndOperators;
+            private readonly SyntaxTriviaList _indentationTrivia;
 
-            public CodeActionComputer(
+            public BinaryExpressionCodeActionComputer(
                 CSharpBinaryExpressionWrapper service,
                 Document document,
                 SourceText originalSourceText,
                 DocumentOptionSet options,
-                BinaryExpressionSyntax binaryExpression)
-                : base(service, document, originalSourceText, options)
+                BinaryExpressionSyntax binaryExpression,
+                ImmutableArray<SyntaxNodeOrToken> exprsAndOperators,
+                CancellationToken cancellationToken)
+                : base(service, document, originalSourceText, options, cancellationToken)
             {
                 _binaryExpression = binaryExpression;
-                _indentationString = OriginalSourceText.GetOffset(binaryExpression.Span.End)
-                                                       .CreateIndentationString(UseTabs, TabSize);
+                _exprsAndOperators = exprsAndOperators;
+
+                var generator = SyntaxGenerator.GetGenerator(document);
+                var indentationString = OriginalSourceText.GetOffset(binaryExpression.Span.End)
+                                                          .CreateIndentationString(UseTabs, TabSize);
+
+                _indentationTrivia = new SyntaxTriviaList(generator.Whitespace(indentationString));
             }
 
-            protected override Task<TextSpan> GetSpanToFormatAsync(
-                Document newDocument, CancellationToken cancellationToken)
+            protected override async Task<ImmutableArray<WrappingGroup>> ComputeWrappingGroupsAsync()
             {
-                return default;
+                var actions = ArrayBuilder<WrapItemsAction>.GetInstance();
+
+                actions.Add(await GetWrapCodeActionAsync(includeOperators: false).ConfigureAwait(false));
+                actions.Add(await GetWrapCodeActionAsync(includeOperators: true).ConfigureAwait(false));
+                actions.Add(await GetUnwrapCodeActionAsync().ConfigureAwait(false));
+
+                return ImmutableArray.Create(new WrappingGroup(
+                    FeaturesResources.Wrapping,
+                    isInlinable: true,
+                    actions.ToImmutableAndFree()));
             }
 
-            protected override async Task AddTopLevelCodeActionsAsync(
-                ArrayBuilder<CodeAction> codeActions,
-                HashSet<string> seenDocuments,
-                CancellationToken cancellationToken)
+            private Task<WrapItemsAction> GetWrapCodeActionAsync(bool includeOperators)
+                => Task.FromResult(TryCreateCodeActionAsync(
+                    GetWrapEdits(includeOperators),
+                    FeaturesResources.Wrapping, 
+                    includeOperators
+                        ? FeaturesResources.Wrap_expression_including_operators
+                        : FeaturesResources.Wrap_expression));
+
+            private ImmutableArray<Edit> GetWrapEdits(bool includeOperators)
             {
-                codeActions.AddIfNotNull(await GetUnwrapCodeAction(seenDocuments, cancellationToken).ConfigureAwait(false));
+                throw new NotImplementedException();
             }
 
-            private async Task<CodeAction> GetUnwrapCodeAction(HashSet<string> seenDocuments, CancellationToken cancellationToken)
+            private Task<WrapItemsAction> GetUnwrapCodeActionAsync()
+                => Task.FromResult(TryCreateCodeActionAsync(
+                    GetUnwrapEdits(), FeaturesResources.Wrapping, FeaturesResources.Unwrap_expression));
+
+            private ImmutableArray<Edit> GetUnwrapEdits()
             {
-                var edits = GetUnwrapEdits();
-                var title = FeaturesResources.Unwrap_expression;
+                var result = ArrayBuilder<Edit>.GetInstance();
 
-                return await CreateCodeActionAsync(
-                    seenDocuments, edits, parentTitle: nameof(BinaryExpressionSyntax), title, cancellationToken).ConfigureAwait(false);
-            }
-
-            private ImmutableArray<TextChange> GetUnwrapEdits()
-            {
-                var result = ArrayBuilder<TextChange>.GetInstance();
-
-                AddUnwrapEdits(result, _binaryExpression);
-
-                return result.ToImmutableAndFree();
-
-                AddTextChangeBetweenOpenAndFirstItem(indentFirst, result);
-
-                foreach (var comma in _listItems.GetSeparators())
+                for (int i = 0; i < _exprsAndOperators.Length - 1; i++)
                 {
-                    result.Add(DeleteBetween(comma.GetPreviousToken(), comma));
-                    result.Add(DeleteBetween(comma, comma.GetNextToken()));
+                    result.Add(Edit.DeleteBetween(_exprsAndOperators[0], _exprsAndOperators[1]));
                 }
 
-                result.Add(DeleteBetween(_listItems.Last(), _listSyntax.GetLastToken()));
                 return result.ToImmutableAndFree();
-            }
-
-            private void AddUnwrapEdits(
-                ArrayBuilder<TextChange> result, BinaryExpressionSyntax binaryExpression)
-            {
-                if (binaryExpression == null)
-                {
-                    return;
-                }
-
-                AddUnwrapEdits(result, binaryExpression.Left as BinaryExpressionSyntax);
-                AddUnwrapEdits(result, binaryExpression.Right as BinaryExpressionSyntax);
             }
         }
     }

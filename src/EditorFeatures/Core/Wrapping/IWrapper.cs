@@ -1,9 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeActions;
 
 namespace Microsoft.CodeAnalysis.Editor.Wrapping
 {
@@ -15,7 +13,11 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping
     /// </summary>
     internal interface IWrapper
     {
-        Task<ImmutableArray<CodeAction>> ComputeRefactoringsAsync(
+        /// <summary>
+        /// Returns the <see cref="ICodeActionComputer"/> that produces wrapping code actions for the  
+        /// node passed in.  Returns <see langword="null"/> if this Wrapper cannot wrap this node.
+        /// </summary>
+        Task<ICodeActionComputer> TryCreateComputerAsync(
             Document document, int position, SyntaxNode node, CancellationToken cancellationToken);
     }
 }

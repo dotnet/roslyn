@@ -1,11 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.LanguageServices;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.Editor.Wrapping.SeparatedSyntaxList
 {
@@ -30,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.SeparatedSyntaxList
         protected abstract bool PositionIsApplicable(
             SyntaxNode root, int position, SyntaxNode declaration, TListSyntax listSyntax);
 
-        public override async Task<ImmutableArray<CodeAction>> ComputeRefactoringsAsync(
+        public override async Task<ICodeActionComputer> TryCreateComputerAsync(
             Document document, int position, SyntaxNode declaration, CancellationToken cancellationToken)
         {
             var listSyntax = GetApplicableList(declaration);
@@ -62,24 +58,10 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.SeparatedSyntaxList
                 return default;
             }
 
-            // If there are comments between any nodes/tokens in the list then don't offer the
-            // refactoring.  We'll likely not be able to properly keep the comments in the right
-            // place as we move things around.
-            var openToken = listSyntax.GetFirstToken();
-            var closeToken = listSyntax.GetLastToken();
-            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-
-            if (ContainsNonWhitespaceTrivia(syntaxFacts, openToken.TrailingTrivia) ||
-                ContainsNonWhitespaceTrivia(syntaxFacts, closeToken.LeadingTrivia))
-            {
-                return default;
-            }
-
             var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
             var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            var computer = new CodeActionComputer(this, document, sourceText, options, listSyntax, listItems);
-            var codeActions = await computer.GetTopLevelCodeActionsAsync(cancellationToken).ConfigureAwait(false);
-            return codeActions;
+            return new SeparatedSyntaxListCodeActionComputer(
+                this, document, sourceText, options, listSyntax, listItems, cancellationToken);
         }
     }
 }
