@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.SeparatedSyntaxList
         protected abstract bool PositionIsApplicable(
             SyntaxNode root, int position, SyntaxNode declaration, TListSyntax listSyntax);
 
-        public override async Task<ImmutableArray<CodeAction>> ComputeRefactoringsAsync(
+        public override async Task<ICodeActionComputer> TryCreateComputerAsync(
             Document document, int position, SyntaxNode declaration, CancellationToken cancellationToken)
         {
             var listSyntax = GetApplicableList(declaration);
@@ -64,9 +64,7 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.SeparatedSyntaxList
 
             var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
             var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            var computer = new CodeActionComputer(this, document, sourceText, options, listSyntax, listItems);
-            var codeActions = await computer.GetTopLevelCodeActionsAsync(cancellationToken).ConfigureAwait(false);
-            return codeActions;
+            return new CodeActionComputer(this, document, sourceText, options, listSyntax, listItems);
         }
     }
 }

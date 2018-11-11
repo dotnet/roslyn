@@ -54,9 +54,15 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping
                 // keep walking up.
                 foreach (var wrapper in _wrappers)
                 {
-                    var actions = await wrapper.ComputeRefactoringsAsync(
+                    var computer = await wrapper.TryCreateComputerAsync(
                         document, position, node, cancellationToken).ConfigureAwait(false);
 
+                    if (computer == null)
+                    {
+                        continue;
+                    }
+
+                    var actions = await computer.GetTopLevelCodeActionsAsync(cancellationToken);
                     if (actions.IsDefaultOrEmpty)
                     {
                         continue;

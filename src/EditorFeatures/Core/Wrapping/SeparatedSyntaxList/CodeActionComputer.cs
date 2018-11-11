@@ -130,31 +130,26 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.SeparatedSyntaxList
             //    return spanToFormat;
             //}
 
-            protected override async Task AddTopLevelCodeActionsAsync(ArrayBuilder<CodeAction> codeActions, HashSet<string> seenDocuments, CancellationToken cancellationToken)
+            protected override async Task AddTopLevelCodeActionsAsync(
+                ArrayBuilder<CodeAction> codeActions, CancellationToken cancellationToken)
             {
                 var generator = SyntaxGenerator.GetGenerator(this.OriginalDocument);
 
                 _afterOpenTokenIndentationTrivia = generator.Whitespace(GetAfterOpenTokenIdentation(cancellationToken));
                 _singleIndentationTrivia = generator.Whitespace(GetSingleIdentation(cancellationToken));
 
-                codeActions.AddIfNotNull(await GetWrapEveryTopLevelCodeActionAsync(
-                    seenDocuments, cancellationToken).ConfigureAwait(false));
-
-                codeActions.AddIfNotNull(await GetUnwrapAllTopLevelCodeActionsAsync(
-                    seenDocuments, cancellationToken).ConfigureAwait(false));
-
-                codeActions.AddIfNotNull(await GetWrapLongTopLevelCodeActionAsync(
-                    seenDocuments, cancellationToken).ConfigureAwait(false));
+                codeActions.AddIfNotNull(await GetWrapEveryTopLevelCodeActionAsync(cancellationToken).ConfigureAwait(false));
+                codeActions.AddIfNotNull(await GetUnwrapAllTopLevelCodeActionsAsync(cancellationToken).ConfigureAwait(false));
+                codeActions.AddIfNotNull(await GetWrapLongTopLevelCodeActionAsync(cancellationToken).ConfigureAwait(false));
             }
 
             #region unwrap all
 
-            private async Task<CodeAction> GetUnwrapAllTopLevelCodeActionsAsync(
-                HashSet<string> seenDocuments, CancellationToken cancellationToken)
+            private async Task<CodeAction> GetUnwrapAllTopLevelCodeActionsAsync(CancellationToken cancellationToken)
             {
                 var unwrapActions = ArrayBuilder<CodeAction>.GetInstance();
 
-                var parentTitle = string.Format(FeaturesResources.Unwrap_0, Service.ListName);
+                var parentTitle = string.Format(FeaturesResources.Unwrap_0, Wrapper.ListName);
 
                 // 1. Unwrap:
                 //      MethodName(int a, int b, int c, int d, int e, int f, int g, int h, int i, int j)
@@ -162,8 +157,8 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.SeparatedSyntaxList
                 // 2. Unwrap with indent:
                 //      MethodName(
                 //          int a, int b, int c, int d, int e, int f, int g, int h, int i, int j)
-                unwrapActions.AddIfNotNull(await GetUnwrapAllCodeActionAsync(seenDocuments, parentTitle, indentFirst: false, cancellationToken).ConfigureAwait(false));
-                unwrapActions.AddIfNotNull(await GetUnwrapAllCodeActionAsync(seenDocuments, parentTitle, indentFirst: true, cancellationToken).ConfigureAwait(false));
+                unwrapActions.AddIfNotNull(await GetUnwrapAllCodeActionAsync(parentTitle, indentFirst: false, cancellationToken).ConfigureAwait(false));
+                unwrapActions.AddIfNotNull(await GetUnwrapAllCodeActionAsync(parentTitle, indentFirst: true, cancellationToken).ConfigureAwait(false));
 
                 var sorted = SortActionsByMostRecentlyUsed(unwrapActions.ToImmutableAndFree());
                 if (sorted.Length == 0)
@@ -177,20 +172,16 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.SeparatedSyntaxList
             }
 
             private async Task<CodeAction> GetUnwrapAllCodeActionAsync(
-                HashSet<string> seenDocuments, string parentTitle,
-                bool indentFirst, CancellationToken cancellationToken)
+                string parentTitle, bool indentFirst, CancellationToken cancellationToken)
             {
                 var edits = GetUnwrapAllEdits(indentFirst);
                 var title = indentFirst
-                    ? string.Format(FeaturesResources.Unwrap_and_indent_all_0, Service.ItemNamePlural)
-                    : string.Format(FeaturesResources.Unwrap_all_0, Service.ItemNamePlural);
+                    ? string.Format(FeaturesResources.Unwrap_and_indent_all_0, Wrapper.ItemNamePlural)
+                    : string.Format(FeaturesResources.Unwrap_all_0, Wrapper.ItemNamePlural);
                 
-                return await CreateCodeActionAsync(
-                    seenDocuments, edits, parentTitle, title, cancellationToken).ConfigureAwait(false);
+                return await TryCreateCodeActionAsync(
+                    edits, parentTitle, title, cancellationToken).ConfigureAwait(false);
             }
-
-            private Task<CodeAction> CreateCodeActionAsync(HashSet<string> seenDocuments, ImmutableArray<Edit> edits, string parentTitle, string title, CancellationToken cancellationToken)
-                => base.CreateCodeActionAsync(seenDocuments, _listSyntax, edits, parentTitle, title, cancellationToken);
 
             private ImmutableArray<Edit> GetUnwrapAllEdits(bool indentFirst)
             {
@@ -212,10 +203,9 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.SeparatedSyntaxList
 
             #region wrap long line
 
-            private async Task<CodeAction> GetWrapLongTopLevelCodeActionAsync(
-                HashSet<string> seenDocuments, CancellationToken cancellationToken)
+            private async Task<CodeAction> GetWrapLongTopLevelCodeActionAsync(CancellationToken cancellationToken)
             {
-                var parentTitle = string.Format(FeaturesResources.Wrap_long_0, Service.ListName);
+                var parentTitle = string.Format(FeaturesResources.Wrap_long_0, Wrapper.ListName);
                 var codeActions = ArrayBuilder<CodeAction>.GetInstance();
 
                 // Wrap at long length, align with first item:
@@ -224,21 +214,21 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.SeparatedSyntaxList
                 //                 int g, int h, int i,
                 //                 int j)
                 codeActions.AddIfNotNull(await GetWrapLongLineCodeActionAsync(
-                    seenDocuments, parentTitle, indentFirst: false, alignWithFirst: true, cancellationToken).ConfigureAwait(false));
+                    parentTitle, indentFirst: false, alignWithFirst: true, cancellationToken).ConfigureAwait(false));
 
                 // Wrap at long length, indent all items:
                 //      MethodName(
                 //          int a, int b, int c, int d, int e,
                 //          int f, int g, int h, int i, int j)
                 codeActions.AddIfNotNull(await GetWrapLongLineCodeActionAsync(
-                    seenDocuments, parentTitle, indentFirst: true, alignWithFirst: true, cancellationToken).ConfigureAwait(false));
+                    parentTitle, indentFirst: true, alignWithFirst: true, cancellationToken).ConfigureAwait(false));
 
                 // Wrap at long length, indent wrapped items:
                 //      MethodName(int a, int b, int c, 
                 //          int d, int e, int f, int g,
                 //          int h, int i, int j)
                 codeActions.AddIfNotNull(await GetWrapLongLineCodeActionAsync(
-                    seenDocuments, parentTitle, indentFirst: false, alignWithFirst: false, cancellationToken).ConfigureAwait(false));
+                    parentTitle, indentFirst: false, alignWithFirst: false, cancellationToken).ConfigureAwait(false));
 
                 var sorted = SortActionsByMostRecentlyUsed(codeActions.ToImmutableAndFree());
                 if (sorted.Length == 0)
@@ -250,16 +240,15 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.SeparatedSyntaxList
             }
 
             private async Task<CodeAction> GetWrapLongLineCodeActionAsync(
-                HashSet<string> seenDocuments, string parentTitle, 
-                bool indentFirst, bool alignWithFirst, CancellationToken cancellationToken)
+                string parentTitle, bool indentFirst, bool alignWithFirst, CancellationToken cancellationToken)
             {
                 var indentationTrivia = GetIndentationTrivia(indentFirst, alignWithFirst);
 
                 var edits = GetWrapLongLinesEdits(indentFirst, indentationTrivia);
                 var title = GetNestedCodeActionTitle(indentFirst, alignWithFirst);
 
-                return await CreateCodeActionAsync(
-                    seenDocuments, edits, parentTitle, title, cancellationToken).ConfigureAwait(false);
+                return await TryCreateCodeActionAsync(
+                    edits, parentTitle, title, cancellationToken).ConfigureAwait(false);
             }
 
             private ImmutableArray<Edit> GetWrapLongLinesEdits(
@@ -315,9 +304,9 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.SeparatedSyntaxList
 
             #region wrap every
 
-            private async Task<CodeAction> GetWrapEveryTopLevelCodeActionAsync(HashSet<string> seenDocuments, CancellationToken cancellationToken)
+            private async Task<CodeAction> GetWrapEveryTopLevelCodeActionAsync(CancellationToken cancellationToken)
             {
-                var parentTitle = string.Format(FeaturesResources.Wrap_every_0, Service.ItemNameSingular);
+                var parentTitle = string.Format(FeaturesResources.Wrap_every_0, Wrapper.ItemNameSingular);
 
                 var codeActions = ArrayBuilder<CodeAction>.GetInstance();
 
@@ -327,7 +316,7 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.SeparatedSyntaxList
                 //                 ...
                 //                 int j);
                 codeActions.AddIfNotNull(await GetWrapEveryNestedCodeActionAsync(
-                    seenDocuments, parentTitle, indentFirst: false, alignWithFirst: true, cancellationToken).ConfigureAwait(false));
+                    parentTitle, indentFirst: false, alignWithFirst: true, cancellationToken).ConfigureAwait(false));
 
                 // Wrap each item, indent all items
                 //      MethodName(
@@ -336,7 +325,7 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.SeparatedSyntaxList
                 //          ...
                 //          int j)
                 codeActions.AddIfNotNull(await GetWrapEveryNestedCodeActionAsync(
-                    seenDocuments, parentTitle, indentFirst: true, alignWithFirst: true, cancellationToken).ConfigureAwait(false));
+                    parentTitle, indentFirst: true, alignWithFirst: true, cancellationToken).ConfigureAwait(false));
 
                 // Wrap each item. indent wrapped items:
                 //      MethodName(int a,
@@ -344,7 +333,7 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.SeparatedSyntaxList
                 //          ...
                 //          int j)
                 codeActions.AddIfNotNull(await GetWrapEveryNestedCodeActionAsync(
-                    seenDocuments, parentTitle, indentFirst: false, alignWithFirst: false, cancellationToken).ConfigureAwait(false));
+                    parentTitle, indentFirst: false, alignWithFirst: false, cancellationToken).ConfigureAwait(false));
 
                 var sorted = SortActionsByMostRecentlyUsed(codeActions.ToImmutableAndFree());
                 if (sorted.Length == 0)
@@ -356,25 +345,24 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.SeparatedSyntaxList
             }
 
             private async Task<CodeAction> GetWrapEveryNestedCodeActionAsync(
-                HashSet<string> seenDocuments, string parentTitle, 
-                bool indentFirst, bool alignWithFirst, CancellationToken cancellationToken)
+                string parentTitle, bool indentFirst, bool alignWithFirst, CancellationToken cancellationToken)
             {
                 var indentationTrivia = GetIndentationTrivia(indentFirst, alignWithFirst);
 
                 var edits = GetWrapEachEdits(indentFirst, indentationTrivia);
                 var title = GetNestedCodeActionTitle(indentFirst, alignWithFirst);
 
-                return await CreateCodeActionAsync(
-                    seenDocuments, edits, parentTitle, title, cancellationToken).ConfigureAwait(false);
+                return await TryCreateCodeActionAsync(
+                    edits, parentTitle, title, cancellationToken).ConfigureAwait(false);
             }
 
             private string GetNestedCodeActionTitle(bool indentFirst, bool alignWithFirst)
             {
                 return indentFirst
-                    ? string.Format(FeaturesResources.Indent_all_0, Service.ItemNamePlural)
+                    ? string.Format(FeaturesResources.Indent_all_0, Wrapper.ItemNamePlural)
                     : alignWithFirst
-                        ? string.Format(FeaturesResources.Align_wrapped_0, Service.ItemNamePlural)
-                        : string.Format(FeaturesResources.Indent_wrapped_0, Service.ItemNamePlural);
+                        ? string.Format(FeaturesResources.Align_wrapped_0, Wrapper.ItemNamePlural)
+                        : string.Format(FeaturesResources.Indent_wrapped_0, Wrapper.ItemNamePlural);
             }
 
             private ImmutableArray<Edit> GetWrapEachEdits(

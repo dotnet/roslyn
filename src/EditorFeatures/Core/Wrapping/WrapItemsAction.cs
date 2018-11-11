@@ -12,6 +12,11 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping
 {
     internal abstract partial class AbstractWrapper
     {
+        /// <summary>
+        /// Code action for actually wrapping items.  Provided as a special subclass because it will
+        /// also update the wrapping most-recently-used list when the code action is actually
+        /// invoked.
+        /// </summary>
         protected class WrapItemsAction : DocumentChangeAction
         {
             private readonly string _parentTitle;

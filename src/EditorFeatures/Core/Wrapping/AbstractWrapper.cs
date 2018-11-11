@@ -10,8 +10,22 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.Editor.Wrapping
 {
+    /// <summary>
+    /// Common implementation of all IWrappers.  This type takes care of a lot of common logic for
+    /// all of them, including:
+    /// 
+    /// 1. Keeping track of code action invocations, allowing code actions to then be prioritized on
+    ///    subsequent invocations.
+    ///    
+    /// 2. Checking nodes and tokens to make sure they are safe to be wrapped.
+    /// 
+    /// Individual subclasses may be targeted at specific syntactic forms.  For example, wrapping
+    /// lists, or wrapping logical expressions.  Most subclasses should 
+    /// </summary>
     internal abstract partial class AbstractWrapper : IWrapper
     {
+        public abstract Task<ICodeActionComputer> TryCreateComputerAsync(Document document, int position, SyntaxNode node, CancellationToken cancellationToken);
+
         // Keeps track of the invoked code actions.  That way we can prioritize those code actions 
         // in the future since they're more likely the ones the user wants.  This is important as 
         // we have 9 different code actions offered (3 major groups, with 3 actions per group).  
@@ -55,10 +69,6 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping
 
         private static string GetSortTitle(CodeAction codeAction)
             => (codeAction as WrapItemsAction)?.SortTitle ?? codeAction.Title;
-
-        public abstract Task<ImmutableArray<CodeAction>> ComputeRefactoringsAsync(Document document, int position, SyntaxNode node, CancellationToken cancellationToken);
-
-        // protected abstract SyntaxNode Rewrite(SyntaxNode root, ImmutableArray<Edit> edits);
 
         protected static async Task<bool> ContainsUnformattableContentAsync(
             Document document, IEnumerable<SyntaxNodeOrToken> nodesAndTokens, CancellationToken cancellationToken)
