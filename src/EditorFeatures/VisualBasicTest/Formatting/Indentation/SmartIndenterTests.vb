@@ -2903,10 +2903,9 @@ End Class
         ''' <param name="indentationLine">0-based. The line number in code to get indentation for.</param>
         Private Shared Sub AssertSmartIndent(code As String, indentationLine As Integer, expectedIndentation As Integer?, Optional indentStyle As FormattingOptions.IndentStyle = FormattingOptions.IndentStyle.Smart)
             Using workspace = TestWorkspace.CreateVisualBasic(code)
+                workspace.Options = workspace.Options.WithChangedOption(FormattingOptions.SmartIndent, LanguageNames.VisualBasic, indentStyle)
+
                 Dim buffer = workspace.Documents.First().GetTextBuffer()
-
-                SetIndentStyle(buffer, indentStyle)
-
                 Dim bufferGraph = New Mock(Of IBufferGraph)(MockBehavior.Strict)
                 bufferGraph.Setup(Function(x) x.MapUpToSnapshot(It.IsAny(Of SnapshotPoint)(),
                                                                 It.IsAny(Of PointTrackingMode)(),
@@ -2944,11 +2943,6 @@ End Class
                     End If
                 End Using
             End Using
-        End Sub
-
-        Friend Shared Sub SetIndentStyle(buffer As ITextBuffer, indentStyle As FormattingOptions.IndentStyle)
-            Dim workspace = buffer.GetWorkspace()
-            workspace.Options = workspace.Options.WithChangedOption(FormattingOptions.SmartIndent, LanguageNames.VisualBasic, indentStyle)
         End Sub
     End Class
 End Namespace
