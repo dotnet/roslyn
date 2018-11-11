@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editor.CSharp.Formatting.Indentation;
 using Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Formatting;
@@ -23,6 +24,7 @@ using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.Text.Projection;
 using Moq;
 using Xunit;
+using static Microsoft.CodeAnalysis.Formatting.FormattingOptions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
 {
@@ -120,7 +122,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
             }
         }
 
-        internal static void TestIndentation(int point, int? expectedIndentation, ITextView textView, TestHostDocument subjectDocument)
+        internal static void TestIndentation(
+            TestWorkspace workspace, int point, int? expectedIndentation, 
+            ITextView textView, TestHostDocument subjectDocument)
         {
             var textUndoHistory = new Mock<ITextUndoHistoryRegistry>();
             var editorOperationsFactory = new Mock<IEditorOperationsFactoryService>();
@@ -146,9 +150,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
             }
 
             Assert.Equal(expectedIndentation, actualIndentation.Value);
+
+            TestBlankLineIndentationService(
+                workspace, indentationLineFromBuffer.LineNumber, expectedIndentation, textView);
         }
 
-        public static void TestIndentation(int indentationLine, int? expectedIndentation, TestWorkspace workspace)
+        public static void TestIndentation(
+            TestWorkspace workspace, int indentationLine, int? expectedIndentation)
         {
             var snapshot = workspace.Documents.First().TextBuffer.CurrentSnapshot;
             var bufferGraph = new Mock<IBufferGraph>(MockBehavior.Strict);
@@ -183,6 +191,35 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
             var actualIndentation = provider.GetDesiredIndentation(indentationLineFromBuffer);
 
             Assert.Equal(expectedIndentation, actualIndentation);
+
+            TestBlankLineIndentationService(
+                workspace, indentationLine, expectedIndentation, textView.Object);
+        }
+
+        private static void TestBlankLineIndentationService(
+            TestWorkspace workspace, int indentationLine, int? expectedIndentation, ITextView textView)
+        {
+            var snapshot = workspace.Documents.First().TextBuffer.CurrentSnapshot;
+            var indentationLineFromBuffer = snapshot.GetLineFromLineNumber(indentationLine);
+
+            var document = workspace.CurrentSolution.Projects.Single().Documents.Single();
+            var blankLineIndenter = (IBlankLineIndentationService)document.GetLanguageService<ISynchronousIndentationService>();
+            var indentStyle = workspace.Options.GetOption(FormattingOptions.SmartIndent, LanguageNames.CSharp);
+            var blankLineIndentResult = blankLineIndenter.GetBlankLineIndentation(
+                document, indentationLine, indentStyle, CancellationToken.None);
+
+            var blankLineIndentation = blankLineIndentResult.GetIndentation(textView, indentationLineFromBuffer);
+            if (expectedIndentation == null)
+            {
+                if (indentStyle == IndentStyle.None)
+                {
+                    Assert.Equal(0, blankLineIndentation);
+                }
+            }
+            else
+            {
+                Assert.Equal(expectedIndentation, blankLineIndentation);
+            }
         }
     }
 }
