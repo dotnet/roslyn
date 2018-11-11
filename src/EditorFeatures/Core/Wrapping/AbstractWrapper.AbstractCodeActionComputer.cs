@@ -23,6 +23,10 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping
         /// </summary>
         protected abstract class AbstractCodeActionComputer<TService> where TService : AbstractWrapper
         {
+            /// <summary>
+            /// Annotation used so that we can track the top-most node we want to format after
+            /// performing all our edits.
+            /// </summary>
             private static readonly SyntaxAnnotation s_toFormatAnnotation = new SyntaxAnnotation();
 
             protected readonly TService Service;
@@ -146,26 +150,7 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping
                             return newToken;
                         }, null, null);
 
-                    // root = root.TrackNodes(nodeToFormat);
-                    // var rewrittenRoot = Service.Rewrite(root, edits);
                     var trackedNode = rewrittenRoot.GetAnnotatedNodes(s_toFormatAnnotation).Single();
-
-                    //var root = await OriginalDocument.GetSyntaxRootAsync(cancellationToken);
-                    //var editor = new SyntaxEditor(root, OriginalDocument.Project.Solution.Workspace);
-                    //editor.ReplaceNode(nodeToFormat, (n, _) => n.WithAdditionalAnnotations(s_toFormatAnnotation));
-
-                    //foreach (var edit in edits)
-                    //{
-                    //    editor.Generator.token
-                    //}
-
-                    //var newSourceText = OriginalSourceText.WithChanges(finalEdits);
-                    //var newDocument = OriginalDocument.WithText(newSourceText);
-
-                    //var newRoot = 
-                    //var currentNode = new
-                    //var spanToFormat = await GetSpanToFormatAsync(newDocument, cancellationToken).ConfigureAwait(false);
-
                     var newDocument = OriginalDocument.WithSyntaxRoot(rewrittenRoot);
 
                     var formattedDocument = await Formatter.FormatAsync(

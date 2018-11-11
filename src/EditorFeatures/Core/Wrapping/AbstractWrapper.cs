@@ -85,30 +85,6 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping
                 }
             }
 
-            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-            foreach (var nodeOrToken in nodesAndTokens)
-            {
-                if (ContainsNonWhitespaceTrivia(syntaxFacts, nodeOrToken.GetLeadingTrivia()) ||
-                    ContainsNonWhitespaceTrivia(syntaxFacts, nodeOrToken.GetTrailingTrivia()))
-                {
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
-        protected static bool ContainsNonWhitespaceTrivia(
-            ISyntaxFactsService syntaxFacts, SyntaxTriviaList triviaList)
-        {
-            foreach (var trivia in triviaList)
-            {
-                if (!syntaxFacts.IsWhitespaceOrEndOfLineTrivia(trivia))
-                {
-                    return true;
-                }
-            }
-
             return false;
         }
     }

@@ -62,19 +62,6 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.SeparatedSyntaxList
                 return default;
             }
 
-            // If there are comments between any nodes/tokens in the list then don't offer the
-            // refactoring.  We'll likely not be able to properly keep the comments in the right
-            // place as we move things around.
-            var openToken = listSyntax.GetFirstToken();
-            var closeToken = listSyntax.GetLastToken();
-            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-
-            if (ContainsNonWhitespaceTrivia(syntaxFacts, openToken.TrailingTrivia) ||
-                ContainsNonWhitespaceTrivia(syntaxFacts, closeToken.LeadingTrivia))
-            {
-                return default;
-            }
-
             var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
             var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             var computer = new CodeActionComputer(this, document, sourceText, options, listSyntax, listItems);
