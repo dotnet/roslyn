@@ -223,10 +223,10 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.SeparatedSyntaxList
 
                 // The wrap-all and wrap-long code action titles are not unique.  i.e. we show them
                 // as:
-                //      Wrap all parameters:
+                //      Wrap every parameter:
                 //          Align parameters
                 //          Indent wrapped parameters
-                //      Wrap long parameters:
+                //      Wrap long parameter list:
                 //          Align parameters
                 //          Indent wrapped parameters
                 //
