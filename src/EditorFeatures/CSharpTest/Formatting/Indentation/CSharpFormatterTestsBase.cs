@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editor.CSharp.Formatting.Indentation;
 using Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Formatting;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Formatting;
@@ -29,7 +30,7 @@ using static Microsoft.CodeAnalysis.Formatting.FormattingOptions;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
 {
     [UseExportProvider]
-    public class FormatterTestsBase
+    public class CSharpFormatterTestsBase : CoreFormatterTestsBase
     {
         protected const string HtmlMarkup = @"<html>
     <body>

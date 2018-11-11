@@ -9,10 +9,13 @@ Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.Text.Shared.Extensions
 Imports Microsoft.VisualStudio.Text
 Imports Roslyn.Test.EditorUtilities
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.Formatting
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Formatting
     <[UseExportProvider]>
-    Public Class FormattingTestBase
+    Public Class VisualBasicFormatterTestBase
+        Inherits CoreFormatterTestsBase
+
         Protected Async Function AssertFormatSpanAsync(content As String, expected As String, Optional baseIndentation As Integer? = Nothing, Optional span As TextSpan = Nothing) As Tasks.Task
             Using workspace = TestWorkspace.CreateVisualBasic(content)
                 Dim hostdoc = workspace.Documents.First()

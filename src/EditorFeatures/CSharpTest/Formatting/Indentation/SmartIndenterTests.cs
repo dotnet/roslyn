@@ -12,7 +12,7 @@ using static Microsoft.CodeAnalysis.Formatting.FormattingOptions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
 {
-    public partial class SmartIndenterTests : FormatterTestsBase
+    public partial class SmartIndenterTests : CSharpFormatterTestsBase
     {
         [WpfFact]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
