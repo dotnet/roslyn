@@ -618,8 +618,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             return result;
         }
 
-
-
         protected Task TestAllInRegularAndScriptAsync(
             string input,
             params string[] outputs)
