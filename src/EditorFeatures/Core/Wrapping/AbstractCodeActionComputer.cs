@@ -278,13 +278,13 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping
                     }
 
                     // Otherwise, sort items and add to the resultant list
-                    var sorted = SortActionsByMostRecentlyUsed(ImmutableArray<CodeAction>.CastUp(wrappingActions));
+                    var sorted = WrapItemsAction.SortActionsByMostRecentlyUsed(ImmutableArray<CodeAction>.CastUp(wrappingActions));
                     result.Add(new CodeActionWithNestedActions(group.Title, sorted, group.IsInlinable));
                 }
 
                 // Finally, sort the topmost list we're building and return that.  This ensures that
                 // both the top level items and the nested items are ordered appropriate.
-                return SortActionsByMostRecentlyUsed(result.ToImmutableAndFree());
+                return WrapItemsAction.SortActionsByMostRecentlyUsed(result.ToImmutableAndFree());
             }
         }
     }
