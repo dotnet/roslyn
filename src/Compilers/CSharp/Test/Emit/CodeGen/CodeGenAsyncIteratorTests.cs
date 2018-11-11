@@ -9,6 +9,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
+    using System.Linq;
     using static Instruction;
     internal enum Instruction
     {
@@ -22,18 +23,32 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
     [CompilerTrait(CompilerFeature.AsyncStreams)]
     public class CodeGenAsyncIteratorTests : EmitMetadataTestBase
     {
-        private void VerifyMissingMember(WellKnownMember member, params DiagnosticDescription[] expected)
-        {
-            var lib = CreateCompilationWithAsyncIterator("");
-            var lib_ref = lib.EmitToImageReference();
-
-            string source = @"
+        private const string _enumerable = @"
 using System.Threading.Tasks;
 class C
 {
     async System.Collections.Generic.IAsyncEnumerable<int> M() { await Task.CompletedTask; yield return 3; }
 }
 ";
+        private const string _enumerator = @"
+using System.Threading.Tasks;
+class C
+{
+    async System.Collections.Generic.IAsyncEnumerator<int> M() { await Task.CompletedTask; yield return 3; }
+}
+";
+        private void VerifyMissingMember(WellKnownMember member, params DiagnosticDescription[] expected)
+        {
+            foreach (var source in new[] { _enumerable, _enumerator })
+            {
+                VerifyMissingMember(source, member, expected);
+            }
+        }
+
+        private static void VerifyMissingMember(string source, WellKnownMember member, params DiagnosticDescription[] expected)
+        {
+            var lib = CreateCompilationWithTasksExtensions(AsyncStreamsTypes);
+            var lib_ref = lib.EmitToImageReference();
             var comp = CreateCompilationWithTasksExtensions(source, references: new[] { lib_ref });
             comp.MakeMemberMissing(member);
             comp.VerifyEmitDiagnostics(expected);
@@ -41,16 +56,16 @@ class C
 
         private void VerifyMissingType(WellKnownType type, params DiagnosticDescription[] expected)
         {
-            var lib = CreateCompilationWithAsyncIterator("");
-            var lib_ref = lib.EmitToImageReference();
+            foreach (var source in new[] { _enumerable, _enumerator })
+            {
+                VerifyMissingType(source, type, expected);
+            }
+        }
 
-            string source = @"
-using System.Threading.Tasks;
-class C
-{
-    async System.Collections.Generic.IAsyncEnumerable<int> M() { await Task.CompletedTask; yield return 3; }
-}
-";
+        private static void VerifyMissingType(string source, WellKnownType type, params DiagnosticDescription[] expected)
+        {
+            var lib = CreateCompilationWithTasksExtensions(AsyncStreamsTypes);
+            var lib_ref = lib.EmitToImageReference();
             var comp = CreateCompilationWithTasksExtensions(source, references: new[] { lib_ref });
             comp.MakeTypeMissing(type);
             comp.VerifyEmitDiagnostics(expected);
@@ -389,6 +404,53 @@ class C
             Assert.True(m.IsIterator);
         }
 
+        [Fact]
+        public void ReturnAfterAwait()
+        {
+            string source = @"
+class C
+{
+    async System.Collections.Generic.IAsyncEnumerable<int> M()
+    {
+        await System.Threading.Tasks.Task.CompletedTask;
+        return null;
+    }
+}";
+            var comp = CreateCompilationWithAsyncIterator(source, options: TestOptions.DebugDll);
+            comp.VerifyDiagnostics(
+                // (7,9): error CS1622: Cannot return a value from an iterator. Use the yield return statement to return a value, or yield break to end the iteration.
+                //         return null;
+                Diagnostic(ErrorCode.ERR_ReturnInIterator, "return").WithLocation(7, 9)
+                );
+        }
+
+        [Fact]
+        public void AwaitAfterReturn()
+        {
+            string source = @"
+class C
+{
+    async System.Collections.Generic.IAsyncEnumerable<int> M()
+    {
+        return null;
+        await System.Threading.Tasks.Task.CompletedTask;
+    }
+}";
+            var comp = CreateCompilationWithAsyncIterator(source);
+            comp.VerifyDiagnostics(
+                // (6,9): error CS1622: Cannot return a value from an iterator. Use the yield return statement to return a value, or yield break to end the iteration.
+                //         return null;
+                Diagnostic(ErrorCode.ERR_ReturnInIterator, "return").WithLocation(6, 9),
+                // (7,9): warning CS0162: Unreachable code detected
+                //         await System.Threading.Tasks.Task.CompletedTask;
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "await").WithLocation(7, 9)
+                );
+
+            var m = comp.GlobalNamespace.GetMember<MethodSymbol>("C.M");
+            Assert.True(m.IsAsync);
+            Assert.False(m.IsIterator);
+        }
+
         [ConditionalFact(typeof(WindowsDesktopOnly))]
         public void AttributesSynthesized()
         {
@@ -409,29 +471,6 @@ public class C
                 AssertEx.SetEqual(new[] { "AsyncStateMachineAttribute", "IteratorStateMachineAttribute" },
                     GetAttributeNames(method.GetAttributes()));
             });
-        }
-
-        [Fact]
-        public void ReturnIAsyncEnumerator()
-        {
-            string source = @"
-public class C
-{
-    public static async System.Collections.Generic.IAsyncEnumerator<int> M()
-    {
-        await System.Threading.Tasks.Task.CompletedTask;
-        yield return 4;
-    }
-}";
-            var comp = CreateCompilationWithAsyncIterator(source);
-            comp.VerifyDiagnostics(
-                // (4,74): error CS1983: The return type of an async method must be void, Task, Task<T>, a task-like type, or IAsyncEnumerable<T>
-                //     public static async System.Collections.Generic.IAsyncEnumerator<int> M()
-                Diagnostic(ErrorCode.ERR_BadAsyncReturn, "M").WithLocation(4, 74),
-                // (4,74): error CS1624: The body of 'C.M()' cannot be an iterator block because 'IAsyncEnumerator<int>' is not an iterator interface type
-                //     public static async System.Collections.Generic.IAsyncEnumerator<int> M()
-                Diagnostic(ErrorCode.ERR_BadIteratorReturn, "M").WithArguments("C.M()", "System.Collections.Generic.IAsyncEnumerator<int>").WithLocation(4, 74)
-                );
         }
 
         [Fact]
@@ -601,13 +640,15 @@ public class C
         [Fact]
         public void MissingTypeAndMembers_IAsyncEnumerable()
         {
-            VerifyMissingMember(WellKnownMember.System_Collections_Generic_IAsyncEnumerable_T__GetAsyncEnumerator,
+            VerifyMissingMember(_enumerable, WellKnownMember.System_Collections_Generic_IAsyncEnumerable_T__GetAsyncEnumerator,
                 // (5,64): error CS0656: Missing compiler required member 'System.Collections.Generic.IAsyncEnumerable`1.GetAsyncEnumerator'
                 //     async System.Collections.Generic.IAsyncEnumerable<int> M() { await Task.CompletedTask; yield return 3; }
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "{ await Task.CompletedTask; yield return 3; }").WithArguments("System.Collections.Generic.IAsyncEnumerable`1", "GetAsyncEnumerator").WithLocation(5, 64)
                 );
 
-            VerifyMissingType(WellKnownType.System_Collections_Generic_IAsyncEnumerable_T,
+            VerifyMissingMember(_enumerator, WellKnownMember.System_Collections_Generic_IAsyncEnumerable_T__GetAsyncEnumerator);
+
+            VerifyMissingType(_enumerable, WellKnownType.System_Collections_Generic_IAsyncEnumerable_T,
                 // (5,60): error CS1983: The return type of an async method must be void, Task, Task<T>, a task-like type, or IAsyncEnumerable<T>
                 //     async System.Collections.Generic.IAsyncEnumerable<int> M() { await Task.CompletedTask; yield return 3; }
                 Diagnostic(ErrorCode.ERR_BadAsyncReturn, "M").WithLocation(5, 60),
@@ -615,6 +656,8 @@ public class C
                 //     async System.Collections.Generic.IAsyncEnumerable<int> M() { await Task.CompletedTask; yield return 3; }
                 Diagnostic(ErrorCode.ERR_BadIteratorReturn, "M").WithArguments("C.M()", "System.Collections.Generic.IAsyncEnumerable<int>").WithLocation(5, 60)
                 );
+
+            VerifyMissingType(_enumerator, WellKnownType.System_Collections_Generic_IAsyncEnumerable_T);
         }
 
         [Fact]
@@ -702,7 +745,16 @@ namespace System
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "{ await Task.CompletedTask; yield return 3; }").WithArguments("System.Collections.Generic.IAsyncEnumerator`1", "get_Current").WithLocation(5, 64)
                 );
 
-            VerifyMissingType(WellKnownType.System_Collections_Generic_IAsyncEnumerator_T,
+            VerifyMissingType(_enumerator, WellKnownType.System_Collections_Generic_IAsyncEnumerator_T,
+                // (5,60): error CS1983: The return type of an async method must be void, Task, Task<T>, a task-like type, or IAsyncEnumerable<T>
+                //     async System.Collections.Generic.IAsyncEnumerator<int> M() { await Task.CompletedTask; yield return 3; }
+                Diagnostic(ErrorCode.ERR_BadAsyncReturn, "M").WithLocation(5, 60),
+                // (5,60): error CS1624: The body of 'C.M()' cannot be an iterator block because 'IAsyncEnumerator<int>' is not an iterator interface type
+                //     async System.Collections.Generic.IAsyncEnumerator<int> M() { await Task.CompletedTask; yield return 3; }
+                Diagnostic(ErrorCode.ERR_BadIteratorReturn, "M").WithArguments("C.M()", "System.Collections.Generic.IAsyncEnumerator<int>").WithLocation(5, 60)
+                );
+
+            VerifyMissingType(_enumerable, WellKnownType.System_Collections_Generic_IAsyncEnumerator_T,
                 // (5,64): error CS0656: Missing compiler required member 'System.Collections.Generic.IAsyncEnumerable`1.GetAsyncEnumerator'
                 //     async System.Collections.Generic.IAsyncEnumerable<int> M() { await Task.CompletedTask; yield return 3; }
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "{ await Task.CompletedTask; yield return 3; }").WithArguments("System.Collections.Generic.IAsyncEnumerable`1", "GetAsyncEnumerator").WithLocation(5, 64),
@@ -933,6 +985,248 @@ class C
         }
 
         [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [WorkItem(31057, "https://github.com/dotnet/roslyn/issues/31057")]
+        public void AsyncIteratorReturningEnumerator()
+        {
+            string source = @"
+using static System.Console;
+class C
+{
+    static async System.Collections.Generic.IAsyncEnumerator<int> M(int value)
+    {
+        yield return value;
+        value = 5;
+        Write(""1 "");
+        await System.Threading.Tasks.Task.CompletedTask;
+        Write(""2 "");
+        yield return 3;
+        Write(""4 "");
+        yield return value;
+    }
+    static async System.Threading.Tasks.Task Main()
+    {
+        await using (var enumerator = M(0))
+        {
+            if (!await enumerator.MoveNextAsync()) throw null;
+            Write($""Value:{enumerator.Current} "");
+            if (!await enumerator.MoveNextAsync()) throw null;
+            Write($""Value:{enumerator.Current} "");
+            if (!await enumerator.MoveNextAsync()) throw null;
+            Write($""Value:{enumerator.Current} "");
+            if (await enumerator.MoveNextAsync()) throw null;
+            if (await enumerator.MoveNextAsync()) throw null;
+
+            Write(""Done"");
+        }
+    }
+}";
+            var comp = CreateCompilationWithAsyncIterator(source, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "Value:0 1 2 Value:3 4 Value:5 Done");
+
+            var comp2 = CreateCompilationWithTasksExtensions("", references: new[] { comp.EmitToImageReference() });
+            var type = (NamedTypeSymbol)comp2.GetMember("C.<M>d__0");
+            AssertEx.SetEqual(new[] {
+                "System.Threading.Tasks.ManualResetValueTaskSourceLogic<System.Boolean> C.<M>d__0.System.Runtime.CompilerServices.IStrongBox<System.Threading.Tasks.ManualResetValueTaskSourceLogic<System.Boolean>>.Value { get; }",
+                "System.Runtime.CompilerServices.AsyncVoidMethodBuilder C.<M>d__0.<>t__builder",
+                "System.Threading.Tasks.ManualResetValueTaskSourceLogic<System.Boolean> C.<M>d__0.<>v__promiseOfValueOrEnd",
+                "System.Int32 C.<M>d__0.value",
+                "C.<M>d__0..ctor(System.Int32 <>1__state)",
+                "void C.<M>d__0.MoveNext()",
+                "void C.<M>d__0.SetStateMachine(System.Runtime.CompilerServices.IAsyncStateMachine stateMachine)",
+                "System.Threading.Tasks.ValueTask<System.Boolean> C.<M>d__0.System.Collections.Generic.IAsyncEnumerator<System.Int32>.MoveNextAsync()",
+                "System.Int32 C.<M>d__0.System.Collections.Generic.IAsyncEnumerator<System.Int32>.Current.get",
+                "System.Boolean C.<M>d__0.System.Threading.Tasks.Sources.IValueTaskSource<System.Boolean>.GetResult(System.Int16 token)",
+                "System.Threading.Tasks.Sources.ValueTaskSourceStatus C.<M>d__0.System.Threading.Tasks.Sources.IValueTaskSource<System.Boolean>.GetStatus(System.Int16 token)",
+                "void C.<M>d__0.System.Threading.Tasks.Sources.IValueTaskSource<System.Boolean>.OnCompleted(System.Action<System.Object> continuation, System.Object state, System.Int16 token, System.Threading.Tasks.Sources.ValueTaskSourceOnCompletedFlags flags)",
+                "ref System.Threading.Tasks.ManualResetValueTaskSourceLogic<System.Boolean> C.<M>d__0.System.Runtime.CompilerServices.IStrongBox<System.Threading.Tasks.ManualResetValueTaskSourceLogic<System.Boolean>>.get_Value()",
+                "System.Threading.Tasks.ValueTask C.<M>d__0.System.IAsyncDisposable.DisposeAsync()",
+                "System.Int32 C.<M>d__0.System.Collections.Generic.IAsyncEnumerator<System.Int32>.Current { get; }",
+                "System.Int32 C.<M>d__0.<>1__state" },
+                type.GetMembersUnordered().Select(m => m.ToTestDisplayString()));
+
+            AssertEx.SetEqual(new[] {
+                "System.Runtime.CompilerServices.IStrongBox<System.Threading.Tasks.ManualResetValueTaskSourceLogic<System.Boolean>>",
+                "System.Runtime.CompilerServices.IAsyncStateMachine",
+                "System.IAsyncDisposable",
+                "System.Threading.Tasks.Sources.IValueTaskSource<System.Boolean>",
+                "System.Collections.Generic.IAsyncEnumerator<System.Int32>" },
+                type.InterfacesAndTheirBaseInterfacesNoUseSiteDiagnostics.Select(m => m.ToTestDisplayString()));
+        }
+
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [WorkItem(31057, "https://github.com/dotnet/roslyn/issues/31057")]
+        public void AsyncIteratorReturningEnumerator_CSharp73()
+        {
+            string source = @"
+class C
+{
+    async System.Collections.Generic.IAsyncEnumerator<int> M()
+    {
+        yield return 1;
+        await System.Threading.Tasks.Task.CompletedTask;
+    }
+}";
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, AsyncStreamsTypes }, parseOptions: TestOptions.Regular7_3);
+            comp.VerifyDiagnostics(
+                // (4,60): error CS8370: Feature 'async streams' is not available in C# 7.3. Please use language version 8.0 or greater.
+                //     async System.Collections.Generic.IAsyncEnumerator<int> M()
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "M").WithArguments("async streams", "8.0").WithLocation(4, 60),
+                // (23,2): error CS8370: Feature 'nullable reference types' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // #nullable disable
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "nullable").WithArguments("nullable reference types", "8.0").WithLocation(23, 2)
+                );
+        }
+
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [WorkItem(31057, "https://github.com/dotnet/roslyn/issues/31057")]
+        public void AsyncIteratorReturningEnumerator_WithReturnOnly()
+        {
+            string source = @"
+class C
+{
+    async System.Collections.Generic.IAsyncEnumerator<int> M()
+    {
+        return null;
+    }
+}";
+            var comp = CreateCompilationWithAsyncIterator(source);
+            comp.VerifyDiagnostics(
+                // (4,60): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                //     async System.Collections.Generic.IAsyncEnumerator<int> M()
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M").WithLocation(4, 60),
+                // (6,9): error CS1622: Cannot return a value from an iterator. Use the yield return statement to return a value, or yield break to end the iteration.
+                //         return null;
+                Diagnostic(ErrorCode.ERR_ReturnInIterator, "return").WithLocation(6, 9)
+                );
+        }
+
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [WorkItem(31057, "https://github.com/dotnet/roslyn/issues/31057")]
+        public void ReturningIAsyncEnumerator_WithReturn()
+        {
+            string source = @"
+class C
+{
+    System.Collections.Generic.IAsyncEnumerator<int> M()
+    {
+        return null;
+    }
+}";
+            var comp = CreateCompilationWithAsyncIterator(source);
+            comp.VerifyDiagnostics();
+        }
+
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [WorkItem(31057, "https://github.com/dotnet/roslyn/issues/31057")]
+        public void AsyncIteratorReturningEnumerator_WithReturnAndAwait()
+        {
+            string source = @"
+class C
+{
+    static async System.Collections.Generic.IAsyncEnumerator<int> M(int value)
+    {
+        return value;
+        await System.Threading.Tasks.Task.CompletedTask;
+    }
+}";
+            var comp = CreateCompilationWithAsyncIterator(source);
+            comp.VerifyDiagnostics(
+                // (6,9): error CS1622: Cannot return a value from an iterator. Use the yield return statement to return a value, or yield break to end the iteration.
+                //         return value;
+                Diagnostic(ErrorCode.ERR_ReturnInIterator, "return").WithLocation(6, 9),
+                // (7,9): warning CS0162: Unreachable code detected
+                //         await System.Threading.Tasks.Task.CompletedTask;
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "await").WithLocation(7, 9)
+                );
+        }
+
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [WorkItem(31057, "https://github.com/dotnet/roslyn/issues/31057")]
+        [WorkItem(31113, "https://github.com/dotnet/roslyn/issues/31113")]
+        public void AsyncIteratorReturningEnumerator_WithoutAsync()
+        {
+            string source = @"
+class C
+{
+    static System.Collections.Generic.IAsyncEnumerator<int> M(int value)
+    {
+        yield return value;
+        await System.Threading.Tasks.Task.CompletedTask;
+    }
+}";
+            var comp = CreateCompilationWithAsyncIterator(source);
+            comp.VerifyDiagnostics(
+                // (7,9): error CS4032: The 'await' operator can only be used within an async method. Consider marking this method with the 'async' modifier and changing its return type to 'Task<IAsyncEnumerator<int>>'.
+                //         await System.Threading.Tasks.Task.CompletedTask;
+                Diagnostic(ErrorCode.ERR_BadAwaitWithoutAsyncMethod, "await System.Threading.Tasks.Task.CompletedTask").WithArguments("System.Collections.Generic.IAsyncEnumerator<int>").WithLocation(7, 9)
+                );
+
+            // This error message is rather poor. Tracked by https://github.com/dotnet/roslyn/issues/31113
+        }
+
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [WorkItem(31057, "https://github.com/dotnet/roslyn/issues/31057")]
+        public void AsyncIteratorReturningEnumerator_WithReturnAfterAwait()
+        {
+            string source = @"
+class C
+{
+    static async System.Collections.Generic.IAsyncEnumerator<int> M(int value)
+    {
+        await System.Threading.Tasks.Task.CompletedTask;
+        return value;
+    }
+}";
+            var comp = CreateCompilationWithAsyncIterator(source);
+            comp.VerifyDiagnostics(
+                // (7,9): error CS1622: Cannot return a value from an iterator. Use the yield return statement to return a value, or yield break to end the iteration.
+                //         return value;
+                Diagnostic(ErrorCode.ERR_ReturnInIterator, "return").WithLocation(7, 9)
+                );
+        }
+
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [WorkItem(31057, "https://github.com/dotnet/roslyn/issues/31057")]
+        public void AsyncIteratorReturningEnumerator_WithoutAwait()
+        {
+            string source = @"
+class C
+{
+    static async System.Collections.Generic.IAsyncEnumerator<int> M(int value)
+    {
+        yield return value;
+    }
+}";
+            var comp = CreateCompilationWithAsyncIterator(source);
+            comp.VerifyDiagnostics(
+                // (4,67): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                //     static async System.Collections.Generic.IAsyncEnumerator<int> M(int value)
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M").WithLocation(4, 67)
+                );
+        }
+
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [WorkItem(31057, "https://github.com/dotnet/roslyn/issues/31057")]
+        public void AsyncIteratorReturningEnumerator_WithoutYield()
+        {
+            string source = @"
+class C
+{
+    static async System.Collections.Generic.IAsyncEnumerator<int> M(int value)
+    {
+        await System.Threading.Tasks.Task.CompletedTask;
+    }
+}";
+            var comp = CreateCompilationWithAsyncIterator(source);
+            comp.VerifyDiagnostics(
+                // (4,67): error CS0161: 'C.M(int)': not all code paths return a value
+                //     static async System.Collections.Generic.IAsyncEnumerator<int> M(int value)
+                Diagnostic(ErrorCode.ERR_ReturnExpected, "M").WithArguments("C.M(int)").WithLocation(4, 67)
+                );
+        }
+
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
         public void CallingMoveNextAsyncTwice()
         {
             string source = @"
@@ -1008,6 +1302,37 @@ class C
             var comp = CreateCompilationWithTasksExtensions(new[] { source, AsyncStreamsTypes }, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "1 2 Stream1:3 1 2 Stream2:3 4 2 4 2 Done");
+
+            var comp2 = CreateCompilationWithTasksExtensions("", references: new[] { comp.EmitToImageReference() });
+            var type = (NamedTypeSymbol)comp2.GetMember("C.<M>d__0");
+            AssertEx.SetEqual(new[] {
+                "System.Threading.Tasks.ManualResetValueTaskSourceLogic<System.Boolean> C.<M>d__0.System.Runtime.CompilerServices.IStrongBox<System.Threading.Tasks.ManualResetValueTaskSourceLogic<System.Boolean>>.Value { get; }",
+                "System.Runtime.CompilerServices.AsyncVoidMethodBuilder C.<M>d__0.<>t__builder",
+                "System.Threading.Tasks.ManualResetValueTaskSourceLogic<System.Boolean> C.<M>d__0.<>v__promiseOfValueOrEnd",
+                "System.Int32 C.<M>d__0.<>3__value",
+                "C.<M>d__0..ctor(System.Int32 <>1__state)",
+                "void C.<M>d__0.MoveNext()",
+                "void C.<M>d__0.SetStateMachine(System.Runtime.CompilerServices.IAsyncStateMachine stateMachine)",
+                "System.Collections.Generic.IAsyncEnumerator<System.Int32> C.<M>d__0.System.Collections.Generic.IAsyncEnumerable<System.Int32>.GetAsyncEnumerator()",
+                "System.Threading.Tasks.ValueTask<System.Boolean> C.<M>d__0.System.Collections.Generic.IAsyncEnumerator<System.Int32>.MoveNextAsync()",
+                "System.Int32 C.<M>d__0.System.Collections.Generic.IAsyncEnumerator<System.Int32>.Current.get",
+                "System.Boolean C.<M>d__0.System.Threading.Tasks.Sources.IValueTaskSource<System.Boolean>.GetResult(System.Int16 token)",
+                "System.Threading.Tasks.Sources.ValueTaskSourceStatus C.<M>d__0.System.Threading.Tasks.Sources.IValueTaskSource<System.Boolean>.GetStatus(System.Int16 token)",
+                "void C.<M>d__0.System.Threading.Tasks.Sources.IValueTaskSource<System.Boolean>.OnCompleted(System.Action<System.Object> continuation, System.Object state, System.Int16 token, System.Threading.Tasks.Sources.ValueTaskSourceOnCompletedFlags flags)",
+                "ref System.Threading.Tasks.ManualResetValueTaskSourceLogic<System.Boolean> C.<M>d__0.System.Runtime.CompilerServices.IStrongBox<System.Threading.Tasks.ManualResetValueTaskSourceLogic<System.Boolean>>.get_Value()",
+                "System.Threading.Tasks.ValueTask C.<M>d__0.System.IAsyncDisposable.DisposeAsync()",
+                "System.Int32 C.<M>d__0.System.Collections.Generic.IAsyncEnumerator<System.Int32>.Current { get; }",
+                "System.Int32 C.<M>d__0.<>1__state" },
+                type.GetMembersUnordered().Select(m => m.ToTestDisplayString()));
+
+            AssertEx.SetEqual(new[] {
+                "System.Runtime.CompilerServices.IStrongBox<System.Threading.Tasks.ManualResetValueTaskSourceLogic<System.Boolean>>",
+                "System.Runtime.CompilerServices.IAsyncStateMachine",
+                "System.IAsyncDisposable",
+                "System.Threading.Tasks.Sources.IValueTaskSource<System.Boolean>",
+                "System.Collections.Generic.IAsyncEnumerable<System.Int32>",
+                "System.Collections.Generic.IAsyncEnumerator<System.Int32>" },
+                type.InterfacesAndTheirBaseInterfacesNoUseSiteDiagnostics.Select(m => m.ToTestDisplayString()));
         }
 
         [ConditionalFact(typeof(WindowsDesktopOnly))]

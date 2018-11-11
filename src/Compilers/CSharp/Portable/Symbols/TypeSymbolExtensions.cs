@@ -1450,6 +1450,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return (object)namedType.ConstructedFrom == compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_IAsyncEnumerable_T);
         }
 
+        internal static bool IsIAsyncEnumeratorType(this TypeSymbol type, CSharpCompilation compilation)
+        {
+            var namedType = type as NamedTypeSymbol;
+            if ((object)namedType == null || namedType.Arity != 1)
+            {
+                return false;
+            }
+
+            return (object)namedType.ConstructedFrom == compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_IAsyncEnumerator_T);
+        }
+
         /// <summary>
         /// Returns true if the type is generic or non-generic custom task-like type due to the
         /// [AsyncMethodBuilder(typeof(B))] attribute. It returns the "B".
@@ -1697,7 +1708,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return returnType.SpecialType != SpecialType.System_Void &&
                 !returnType.IsNonGenericTaskType(declaringCompilation) &&
                 !returnType.IsGenericTaskType(declaringCompilation) &&
-                !returnType.IsIAsyncEnumerableType(declaringCompilation);
+                !returnType.IsIAsyncEnumerableType(declaringCompilation) &&
+                !returnType.IsIAsyncEnumeratorType(declaringCompilation);
         }
     }
 }
