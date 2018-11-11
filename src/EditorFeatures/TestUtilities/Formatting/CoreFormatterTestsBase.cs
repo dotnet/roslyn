@@ -28,7 +28,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Formatting
             ITextUndoHistoryRegistry registry, IEditorOperationsFactoryService operations);
 
         protected void TestIndentation(
-            TestWorkspace workspace, int point, int? expectedIndentation,
+            TestWorkspace workspace, int point,
+            int? expectedIndentation, int? expectedBlankLineIndentation,
             ITextView textView, TestHostDocument subjectDocument)
         {
             var textUndoHistory = new Mock<ITextUndoHistoryRegistry>();
@@ -57,12 +58,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Formatting
             Assert.Equal(expectedIndentation, actualIndentation.Value);
 
             TestBlankLineIndentationService(
-                workspace, textView, indentationLineFromBuffer.LineNumber, expectedIndentation);
+                workspace, textView, indentationLineFromBuffer.LineNumber,
+                expectedBlankLineIndentation ?? expectedIndentation.Value);
         }
 
         protected void TestBlankLineIndentationService(
             TestWorkspace workspace, ITextView textView,
-            int indentationLine, int? expectedIndentation)
+            int indentationLine, int expectedIndentation)
         {
             var snapshot = workspace.Documents.First().TextBuffer.CurrentSnapshot;
             var indentationLineFromBuffer = snapshot.GetLineFromLineNumber(indentationLine);
@@ -74,21 +76,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Formatting
                 document, indentationLine, indentStyle, CancellationToken.None);
 
             var blankLineIndentation = blankLineIndentResult.GetIndentation(textView, indentationLineFromBuffer);
-            if (expectedIndentation == null)
-            {
-                if (indentStyle == FormattingOptions.IndentStyle.None)
-                {
-                    Assert.Equal(0, blankLineIndentation);
-                }
-            }
-            else
-            {
-                Assert.Equal(expectedIndentation, blankLineIndentation);
-            }
+            Assert.Equal(expectedIndentation, blankLineIndentation);
         }
 
         protected void TestIndentation(
-            TestWorkspace workspace, int indentationLine, int? expectedIndentation)
+            TestWorkspace workspace, int indentationLine,
+            int? expectedIndentation, int? expectedBlankLineIndentation)
         {
             var snapshot = workspace.Documents.First().TextBuffer.CurrentSnapshot;
             var bufferGraph = new Mock<IBufferGraph>(MockBehavior.Strict);
@@ -125,7 +118,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Formatting
             Assert.Equal(expectedIndentation, actualIndentation);
 
             TestBlankLineIndentationService(
-                workspace, textView.Object, indentationLine, expectedIndentation);
+                workspace, textView.Object, indentationLine,
+                expectedBlankLineIndentation ?? expectedIndentation.Value);
         }
     }
 }

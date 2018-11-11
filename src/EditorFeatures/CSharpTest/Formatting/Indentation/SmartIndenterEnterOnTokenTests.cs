@@ -1378,6 +1378,7 @@ class C
             string code,
             int indentationLine,
             int? expectedIndentation,
+            int? expectedBlankLineIndentation = null,
             IndentStyle indentStyle = IndentStyle.Smart)
         {
             // create tree service
@@ -1398,7 +1399,9 @@ class C
                         Formatter.GetDefaultFormattingRules(workspace, root.Language),
                         root, line.AsTextLine(), await document.GetOptionsAsync(), CancellationToken.None));
 
-                TestIndentation(workspace, indentationLine, expectedIndentation);
+                TestIndentation(
+                    workspace, indentationLine,
+                    expectedIndentation, expectedBlankLineIndentation);
             }
         }
     }

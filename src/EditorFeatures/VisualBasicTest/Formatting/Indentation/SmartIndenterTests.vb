@@ -2493,6 +2493,7 @@ End Namespace
                 code,
                 indentationLine:=3,
                 expectedIndentation:=Nothing,
+                expectedBlankLineIndentation:=0,
                 indentStyle:=FormattingOptions.IndentStyle.None)
         End Sub
 
@@ -2880,8 +2881,10 @@ End Class
                 expectedIndentation:=12)
         End Sub
 
-        Private Sub AssertSmartIndentIndentationInProjection(markup As String,
-                                                                    expectedIndentation As Integer)
+        Private Sub AssertSmartIndentIndentationInProjection(
+                markup As String,
+                expectedIndentation As Integer,
+                Optional expectedBlankLineIndentation As Integer? = Nothing)
             Using workspace = TestWorkspace.CreateVisualBasic(markup)
                 Dim subjectDocument = workspace.Documents.Single()
                 Dim projectedDocument = workspace.CreateProjectionBufferDocument(s_htmlMarkup, workspace.Documents, LanguageNames.CSharp)
@@ -2896,16 +2899,25 @@ End Class
                 Dim indentationLine = projectedDocument.TextBuffer.CurrentSnapshot.GetLineFromPosition(projectedDocument.CursorPosition.Value)
                 Dim point = projectedDocument.GetTextView().BufferGraph.MapDownToBuffer(indentationLine.Start, PointTrackingMode.Negative, subjectDocument.TextBuffer, PositionAffinity.Predecessor)
 
-                TestIndentation(workspace, point.Value, expectedIndentation, projectedDocument.GetTextView(), subjectDocument)
+                TestIndentation(
+                    workspace, point.Value,
+                    expectedIndentation, expectedBlankLineIndentation,
+                    projectedDocument.GetTextView(), subjectDocument)
             End Using
         End Sub
 
         ''' <param name="indentationLine">0-based. The line number in code to get indentation for.</param>
-        Private Sub AssertSmartIndent(code As String, indentationLine As Integer, expectedIndentation As Integer?, Optional indentStyle As FormattingOptions.IndentStyle = FormattingOptions.IndentStyle.Smart)
+        Private Sub AssertSmartIndent(
+                code As String, indentationLine As Integer,
+                expectedIndentation As Integer?,
+                Optional expectedBlankLineIndentation As Integer? = Nothing,
+                Optional indentStyle As FormattingOptions.IndentStyle = FormattingOptions.IndentStyle.Smart)
             Using workspace = TestWorkspace.CreateVisualBasic(code)
                 workspace.Options = workspace.Options.WithChangedOption(FormattingOptions.SmartIndent, LanguageNames.VisualBasic, indentStyle)
 
-                TestIndentation(workspace, indentationLine, expectedIndentation)
+                TestIndentation(
+                    workspace, indentationLine,
+                    expectedIndentation, expectedBlankLineIndentation)
             End Using
         End Sub
     End Class

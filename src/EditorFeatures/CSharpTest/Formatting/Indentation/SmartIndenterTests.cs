@@ -116,6 +116,7 @@ class Class
                 code,
                 indentationLine: 6,
                 expectedIndentation: null,
+                expectedBlankLineIndentation: 0,
                 indentStyle: IndentStyle.None);
         }
 
@@ -412,7 +413,8 @@ namespace NS
             AssertSmartIndent(
                 code,
                 indentationLine: 7,
-                expectedIndentation: null);
+                expectedIndentation: null,
+                expectedBlankLineIndentation: 0);
         }
 
         [WpfFact]
@@ -2706,6 +2708,7 @@ class C
 
         private void AssertSmartIndentInProjection(
             string markup, int expectedIndentation,
+            int? expectedBlankLineIndentation = null,
             CSharpParseOptions options = null,
             IndentStyle indentStyle = IndentStyle.Smart)
         {
@@ -2733,7 +2736,8 @@ class C
                     var point = projectedDocument.GetTextView().BufferGraph.MapDownToBuffer(indentationLine.Start, PointTrackingMode.Negative, subjectDocument.TextBuffer, PositionAffinity.Predecessor);
 
                     TestIndentation(
-                        workspace, point.Value, expectedIndentation,
+                        workspace, point.Value,
+                        expectedIndentation, expectedBlankLineIndentation,
                         projectedDocument.GetTextView(), subjectDocument);
                 }
             }
@@ -2743,6 +2747,7 @@ class C
             string code,
             int indentationLine,
             int? expectedIndentation,
+            int? expectedBlankLineIndentation = null,
             CSharpParseOptions options = null,
             IndentStyle indentStyle = IndentStyle.Smart)
         {
@@ -2755,7 +2760,9 @@ class C
                 using (var workspace = TestWorkspace.CreateCSharp(code, parseOptions: option))
                 {
                     workspace.Options = workspace.Options.WithChangedOption(SmartIndent, LanguageNames.CSharp, indentStyle);
-                    TestIndentation(workspace, indentationLine, expectedIndentation);
+                    TestIndentation(
+                        workspace, indentationLine, 
+                        expectedIndentation, expectedBlankLineIndentation);
                 }
             }
         }
@@ -2763,6 +2770,7 @@ class C
         private void AssertSmartIndent(
             string code,
             int? expectedIndentation,
+            int? expectedBlankLineIndentation = null,
             CSharpParseOptions options = null,
             IndentStyle indentStyle = IndentStyle.Smart)
         {
@@ -2777,7 +2785,9 @@ class C
                     workspace.Options = workspace.Options.WithChangedOption(SmartIndent, LanguageNames.CSharp, indentStyle);
                     var wpfTextView = workspace.Documents.First().GetTextView();
                     var line = wpfTextView.TextBuffer.CurrentSnapshot.GetLineFromPosition(wpfTextView.Caret.Position.BufferPosition).LineNumber;
-                    TestIndentation(workspace, line, expectedIndentation);
+                    TestIndentation(
+                        workspace, line,
+                        expectedIndentation, expectedBlankLineIndentation);
                 }
             }
         }
