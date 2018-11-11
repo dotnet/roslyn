@@ -63,8 +63,8 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.SeparatedSyntaxList
                 bool indentFirst, ArrayBuilder<Edit> result)
             {
                 result.Add(indentFirst
-                    ? UpdateBetween(_listSyntax.GetFirstToken(), NewLineTrivia, _listItems[0], _singleIndentationTrivia)
-                    : DeleteBetween(_listSyntax.GetFirstToken(), _listItems[0]));
+                    ? Edit.UpdateBetween(_listSyntax.GetFirstToken(), NewLineTrivia, _singleIndentationTrivia, _listItems[0])
+                    : Edit.DeleteBetween(_listSyntax.GetFirstToken(), _listItems[0]));
             }
 
             private string GetAfterOpenTokenIdentation(CancellationToken cancellationToken)
@@ -179,11 +179,11 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.SeparatedSyntaxList
 
                 foreach (var comma in _listItems.GetSeparators())
                 {
-                    result.Add(DeleteBetween(comma.GetPreviousToken(), comma));
-                    result.Add(DeleteBetween(comma, comma.GetNextToken()));
+                    result.Add(Edit.DeleteBetween(comma.GetPreviousToken(), comma));
+                    result.Add(Edit.DeleteBetween(comma, comma.GetNextToken()));
                 }
 
-                result.Add(DeleteBetween(_listItems.Last(), _listSyntax.GetLastToken()));
+                result.Add(Edit.DeleteBetween(_listItems.Last(), _listSyntax.GetLastToken()));
                 return result.ToImmutableAndFree();
             }
 
@@ -271,14 +271,14 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.SeparatedSyntaxList
                             // this item would not make us go pass our preferred wrapping column. So
                             // keep it on this line, making sure there's a space between the previous
                             // comma and us.
-                            result.Add(UpdateBetween(itemsAndSeparators[i - 1], SingleWhitespaceTrivia, item, NoTrivia));
+                            result.Add(Edit.UpdateBetween(itemsAndSeparators[i - 1], SingleWhitespaceTrivia, NoTrivia, item));
                             currentOffset += " ".Length;
                         }
                         else
                         {
                             // not the first item on the line and this item makes us go past the wrapping
                             // limit.  We want to wrap before this item.
-                            result.Add(UpdateBetween(itemsAndSeparators[i - 1], NewLineTrivia, item, indentationTrivia));
+                            result.Add(Edit.UpdateBetween(itemsAndSeparators[i - 1], NewLineTrivia, indentationTrivia, item));
                             currentOffset = indentationTrivia.FullWidth() + item.Span.Length;
                         }
                     }
@@ -287,7 +287,7 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.SeparatedSyntaxList
                     // comma or close token).
                     var nextToken = item.GetLastToken().GetNextToken();
 
-                    result.Add(DeleteBetween(item, nextToken));
+                    result.Add(Edit.DeleteBetween(item, nextToken));
                     currentOffset += nextToken.Span.Length;
                 }
 
@@ -371,16 +371,16 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.SeparatedSyntaxList
                     {
                         // intermediary item
                         var comma = itemsAndSeparators[i + 1].AsToken();
-                        result.Add(DeleteBetween(item, comma));
+                        result.Add(Edit.DeleteBetween(item, comma));
 
                         // Always wrap between this comma and the next item.
-                        result.Add(UpdateBetween(
-                            comma, NewLineTrivia, itemsAndSeparators[i + 2], indentationTrivia));
+                        result.Add(Edit.UpdateBetween(
+                            comma, NewLineTrivia, indentationTrivia, itemsAndSeparators[i + 2]));
                     }
                 }
 
                 // last item.  Delete whatever is between it and the close token of the list.
-                result.Add(DeleteBetween(_listItems.Last(), _listSyntax.GetLastToken()));
+                result.Add(Edit.DeleteBetween(_listItems.Last(), _listSyntax.GetLastToken()));
 
                 return result.ToImmutableAndFree();
             }

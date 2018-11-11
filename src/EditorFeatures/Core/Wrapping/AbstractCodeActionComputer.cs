@@ -81,25 +81,6 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping
 
             protected abstract Task<ImmutableArray<WrappingGroup>> ComputeWrappingGroupsAsync(CancellationToken cancellationToken);
 
-            protected static Edit DeleteBetween(SyntaxNodeOrToken left, SyntaxNodeOrToken right)
-                => UpdateBetween(left, default, right, default(SyntaxTriviaList));
-
-            protected static Edit UpdateBetween(
-                SyntaxNodeOrToken left, SyntaxTriviaList leftTrailingTrivia,
-                SyntaxNodeOrToken right, SyntaxTrivia rightLeadingTrivia)
-            {
-                return UpdateBetween(left, leftTrailingTrivia, right, new SyntaxTriviaList(rightLeadingTrivia));
-            }
-
-            protected static Edit UpdateBetween(
-                SyntaxNodeOrToken left, SyntaxTriviaList leftTrailingTrivia,
-                SyntaxNodeOrToken right, SyntaxTriviaList rightLeadingTrivia)
-            {
-                var leftLastToken = left.IsToken ? left.AsToken() : left.AsNode().GetLastToken();
-                var rightFirstToken = right.IsToken ? right.AsToken() : right.AsNode().GetFirstToken();
-                return new Edit(leftLastToken, leftTrailingTrivia, rightFirstToken, rightLeadingTrivia);
-            }
-
             /// <summary>
             /// Try to create a CodeAction representing these edits.  Can return <see langword="null"/> in several 
             /// cases, including:
