@@ -258,7 +258,8 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping
 
                     // Otherwise, sort items and add to the resultant list
                     var sorted = WrapItemsAction.SortActionsByMostRecentlyUsed(ImmutableArray<CodeAction>.CastUp(wrappingActions));
-                    result.Add(new CodeActionWithNestedActions(group.Title, sorted, group.IsInlinable));
+                    result.Add(new CodeActionWithNestedActions(
+                        wrappingActions[0].ParentTitle, sorted, group.IsInlinable));
                 }
 
                 // Finally, sort the topmost list we're building and return that.  This ensures that

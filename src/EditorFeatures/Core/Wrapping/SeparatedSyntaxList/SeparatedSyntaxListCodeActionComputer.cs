@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.SeparatedSyntaxList
 
                 // The 'unwrap' title strings are unique and do not collide with any other code
                 // actions we're computing.  So they can be inlined if possible.
-                return new WrappingGroup(parentTitle, isInlinable: true, unwrapActions.ToImmutableAndFree());
+                return new WrappingGroup(isInlinable: true, unwrapActions.ToImmutableAndFree());
             }
 
             private async Task<WrapItemsAction> GetUnwrapAllCodeActionAsync(string parentTitle, WrappingStyle wrappingStyle)
@@ -217,7 +217,7 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.SeparatedSyntaxList
                 // We can't in-line these nested actions because the parent title is necessary to
                 // determine which situation each child action applies to.
 
-                return new WrappingGroup(parentTitle, isInlinable: false, codeActions.ToImmutableAndFree());
+                return new WrappingGroup(isInlinable: false, codeActions.ToImmutableAndFree());
             }
 
             private async Task<WrapItemsAction> GetWrapLongLineCodeActionAsync(
@@ -313,8 +313,8 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.SeparatedSyntaxList
                     parentTitle, WrappingStyle.UnwrapFirst_IndentRest).ConfigureAwait(false));
 
                 // See comment in GetWrapLongTopLevelCodeActionAsync for explanation of why we're
-                // not inlineable.
-                return new WrappingGroup(parentTitle, isInlinable: false, codeActions.ToImmutableAndFree());
+                // not inlinable.
+                return new WrappingGroup(isInlinable: false, codeActions.ToImmutableAndFree());
             }
 
             private async Task<WrapItemsAction> GetWrapEveryNestedCodeActionAsync(

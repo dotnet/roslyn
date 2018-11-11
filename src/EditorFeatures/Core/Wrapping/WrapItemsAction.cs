@@ -25,14 +25,14 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping
         // choose to be prioritized accordingly.
         private static ImmutableArray<string> s_mruTitles = ImmutableArray<string>.Empty;
 
-        private readonly string _parentTitle;
+        public string ParentTitle { get; }
 
         public string SortTitle { get; }
 
         public WrapItemsAction(string title, string parentTitle, Func<CancellationToken, Task<Document>> createChangedDocument)
             : base(title, createChangedDocument)
         {
-            _parentTitle = parentTitle;
+            ParentTitle = parentTitle;
             SortTitle = parentTitle + "_" + title;
         }
 
@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping
             var operations = await base.ComputeOperationsAsync(cancellationToken).ConfigureAwait(false);
             var operationsList = operations.ToList();
 
-            operationsList.Add(new RecordCodeActionOperation(this.SortTitle, _parentTitle));
+            operationsList.Add(new RecordCodeActionOperation(this.SortTitle, this.ParentTitle));
             return operationsList;
         }
 

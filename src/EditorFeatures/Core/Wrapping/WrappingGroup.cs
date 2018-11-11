@@ -17,11 +17,6 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping
     internal readonly struct WrappingGroup
     {
         /// <summary>
-        /// The title to place in the light-bulb code action for this group.
-        /// </summary>
-        public readonly string Title;
-
-        /// <summary>
         /// Whether or not the items in this group can be inlined in the topmost lightbulb.
         /// </summary>
         public readonly bool IsInlinable;
@@ -31,9 +26,8 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping
         /// </summary>
         public readonly ImmutableArray<WrapItemsAction> WrappingActions;
 
-        public WrappingGroup(string title, bool isInlinable, ImmutableArray<WrapItemsAction> wrappingActions)
+        public WrappingGroup(bool isInlinable, ImmutableArray<WrapItemsAction> wrappingActions)
         {
-            Title = title;
             IsInlinable = isInlinable;
             WrappingActions = wrappingActions;
         }
