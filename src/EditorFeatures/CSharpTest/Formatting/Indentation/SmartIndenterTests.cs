@@ -410,11 +410,16 @@ namespace NS
                 code,
                 indentationLine: 6,
                 expectedIndentation: 12);
+
+            // This is the line after the method call. ISynchronousIndentationService will bail in
+            // this case as it thinks this is a case for "smart formatting".  However,
+            // IBlankLineIndentationService appropriately picks 8 columns as the location to indent
+            // to.
             AssertSmartIndent(
                 code,
                 indentationLine: 7,
                 expectedIndentation: null,
-                expectedBlankLineIndentation: 0);
+                expectedBlankLineIndentation: 8);
         }
 
         [WpfFact]
