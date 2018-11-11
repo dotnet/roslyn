@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using static Microsoft.CodeAnalysis.CodeActions.CodeAction;
 
 namespace Microsoft.CodeAnalysis.Editor.Wrapping
 {
@@ -79,7 +80,7 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping
                 SingleWhitespaceTrivia = new SyntaxTriviaList(generator.Whitespace(" "));
             }
 
-            protected abstract Task AddTopLevelCodeActionsAsync(ArrayBuilder<CodeAction> codeActions, CancellationToken cancellationToken);
+            protected abstract Task<ImmutableArray<WrappingGroup>> ComputeWrappingGroupsAsync(CancellationToken cancellationToken);
 
             protected static Edit DeleteBetween(SyntaxNodeOrToken left, SyntaxNodeOrToken right)
                 => UpdateBetween(left, default, right, default(SyntaxTriviaList));
@@ -108,7 +109,7 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping
             ///     2. Edits would change more than whitespace.
             ///     3. A previous code action was created that already had the same effect.
             /// </summary>
-            protected async Task<CodeAction> TryCreateCodeActionAsync(
+            protected async Task<WrapItemsAction> TryCreateCodeActionAsync(
                 ImmutableArray<Edit> edits,
                 string parentTitle,
                 string title,
@@ -255,11 +256,35 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping
 
             public async Task<ImmutableArray<CodeAction>> GetTopLevelCodeActionsAsync(CancellationToken cancellationToken)
             {
-                var codeActions = ArrayBuilder<CodeAction>.GetInstance();
+                // Ask subclass to produce whole nested list of wrapping code actions
+                var wrappingGroups = await ComputeWrappingGroupsAsync(cancellationToken).ConfigureAwait(false);
 
-                await AddTopLevelCodeActionsAsync(codeActions, cancellationToken);
+                var result = ArrayBuilder<CodeAction>.GetInstance();
+                foreach (var group in wrappingGroups)
+                {
+                    // if a group is empty just ignore it.
+                    var wrappingActions = group.WrappingActions;
+                    if (wrappingActions.Length == 0)
+                    {
+                        continue;
+                    }
 
-                return SortActionsByMostRecentlyUsed(codeActions.ToImmutableAndFree());
+                    // If a group only has one item, and subclass says the item is inlinable,
+                    // then just directly return that nested item as a top level item.
+                    if (wrappingActions.Length == 1 && group.IsInlinable)
+                    {
+                        result.Add(wrappingActions[0]);
+                        continue;
+                    }
+
+                    // Otherwise, sort items and add to the resultant list
+                    var sorted = SortActionsByMostRecentlyUsed(ImmutableArray<CodeAction>.CastUp(wrappingActions));
+                    result.Add(new CodeActionWithNestedActions(group.Title, sorted, group.IsInlinable));
+                }
+
+                // Finally, sort the topmost list we're building and return that.  This ensures that
+                // both the top level items and the nested items are ordered appropriate.
+                return SortActionsByMostRecentlyUsed(result.ToImmutableAndFree());
             }
         }
     }
