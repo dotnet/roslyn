@@ -4,20 +4,38 @@ using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.Editor.Wrapping
 {
-    internal abstract partial class AbstractWrapper
+    /// <summary>
+    /// A group of wrapping actions placed under a common title.  For example:
+    ///     Unwrap group:
+    ///         unwrap option 1
+    ///         unwrap option 2
+    ///     Wrap all group:
+    ///         wrap all option 1
+    ///         wrap all optoin 2
+    ///         ...
+    /// </summary>
+    internal readonly struct WrappingGroup
     {
-        protected readonly struct WrappingGroup
-        {
-            public readonly string Title;
-            public readonly bool IsInlinable;
-            public readonly ImmutableArray<WrapItemsAction> WrappingActions;
+        /// <summary>
+        /// The title to place in the light-bulb code action for this group.
+        /// </summary>
+        public readonly string Title;
 
-            public WrappingGroup(string title, bool isInlinable, ImmutableArray<WrapItemsAction> wrappingActions)
-            {
-                Title = title;
-                IsInlinable = isInlinable;
-                WrappingActions = wrappingActions;
-            }
+        /// <summary>
+        /// Whether or not the items in this group can be inlined in the topmost lightbulb.
+        /// </summary>
+        public readonly bool IsInlinable;
+
+        /// <summary>
+        /// The actual wrapping code actions for this group to present to the user.
+        /// </summary>
+        public readonly ImmutableArray<WrapItemsAction> WrappingActions;
+
+        public WrappingGroup(string title, bool isInlinable, ImmutableArray<WrapItemsAction> wrappingActions)
+        {
+            Title = title;
+            IsInlinable = isInlinable;
+            WrappingActions = wrappingActions;
         }
     }
 }
