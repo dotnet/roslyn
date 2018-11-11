@@ -618,6 +618,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             return result;
         }
 
+        /// <summary>
+        /// Tests all the code actions for the given <paramref name="input"/> string.  Each code
+        /// action must produce the corresponding output in the <paramref name="outputs"/> array.
+        /// </summary>
         protected Task TestAllInRegularAndScriptAsync(
             string input,
             params string[] outputs)
