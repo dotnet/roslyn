@@ -1,17 +1,14 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using static Microsoft.CodeAnalysis.CodeActions.CodeAction;
 
 namespace Microsoft.CodeAnalysis.Editor.Wrapping.SeparatedSyntaxList
 {
@@ -20,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.SeparatedSyntaxList
         /// <summary>
         /// Class responsible for actually computing the entire set of code actions to offer the user.
         /// </summary>
-        private class CodeActionComputer : AbstractCodeActionComputer<AbstractSeparatedSyntaxListWrapper<TListSyntax, TListItemSyntax>>
+        private class SeparatedSyntaxListCodeActionComputer : AbstractCodeActionComputer<AbstractSeparatedSyntaxListWrapper<TListSyntax, TListItemSyntax>>
         {
             private readonly TListSyntax _listSyntax;
             private readonly SeparatedSyntaxList<TListItemSyntax> _listItems;
@@ -50,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.SeparatedSyntaxList
             /// </summary>
             private SyntaxTrivia _singleIndentationTrivia;
 
-            public CodeActionComputer(
+            public SeparatedSyntaxListCodeActionComputer(
                 AbstractSeparatedSyntaxListWrapper<TListSyntax, TListItemSyntax> service,
                 Document document, SourceText sourceText, DocumentOptionSet options,
                 TListSyntax listSyntax, SeparatedSyntaxList<TListItemSyntax> listItems)
