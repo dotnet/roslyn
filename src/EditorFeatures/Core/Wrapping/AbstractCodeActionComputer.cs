@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.CodeActions.CodeAction;
 
 namespace Microsoft.CodeAnalysis.Editor.Wrapping
@@ -241,7 +242,7 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping
                 foreach (var group in wrappingGroups)
                 {
                     // if a group is empty just ignore it.
-                    var wrappingActions = group.WrappingActions;
+                    var wrappingActions = group.WrappingActions.WhereNotNull().ToImmutableArray();
                     if (wrappingActions.Length == 0)
                     {
                         continue;
