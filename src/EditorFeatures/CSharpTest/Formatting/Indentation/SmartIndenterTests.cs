@@ -2704,7 +2704,7 @@ class C
                 expectedIndentation: 16);
         }
 
-        private static void AssertSmartIndentInProjection(
+        private void AssertSmartIndentInProjection(
             string markup, int expectedIndentation,
             CSharpParseOptions options = null,
             IndentStyle indentStyle = IndentStyle.Smart)

@@ -20,6 +20,8 @@ Imports Moq
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Formatting.Indentation
     <[UseExportProvider]>
     Public Class SmartIndenterTests
+        Inherits VisualBasicFormatterTestBase
+
         Private Shared s_htmlMarkup As String = <text>
 &lt;html&gt;
     &lt;body&gt;
@@ -2878,7 +2880,7 @@ End Class
                 expectedIndentation:=12)
         End Sub
 
-        Private Shared Sub AssertSmartIndentIndentationInProjection(markup As String,
+        Private Sub AssertSmartIndentIndentationInProjection(markup As String,
                                                                     expectedIndentation As Integer)
             Using workspace = TestWorkspace.CreateVisualBasic(markup)
                 Dim subjectDocument = workspace.Documents.Single()
@@ -2894,37 +2896,8 @@ End Class
                 Dim indentationLine = projectedDocument.TextBuffer.CurrentSnapshot.GetLineFromPosition(projectedDocument.CursorPosition.Value)
                 Dim point = projectedDocument.GetTextView().BufferGraph.MapDownToBuffer(indentationLine.Start, PointTrackingMode.Negative, subjectDocument.TextBuffer, PositionAffinity.Predecessor)
 
-                TestIndentation(point.Value, expectedIndentation, projectedDocument.GetTextView(), subjectDocument)
+                TestIndentation(workspace, point.Value, expectedIndentation, projectedDocument.GetTextView(), subjectDocument)
             End Using
-        End Sub
-
-        Friend Shared Sub TestIndentation(point As Integer, expectedIndentation As Integer?, textView As ITextView, subjectDocument As TestHostDocument)
-            Dim snapshot = subjectDocument.TextBuffer.CurrentSnapshot
-            Dim indentationLineFromBuffer = snapshot.GetLineFromPosition(point)
-            Dim lineNumber = indentationLineFromBuffer.LineNumber
-
-            Dim textUndoHistory = New Mock(Of ITextUndoHistoryRegistry)
-            Dim editorOperationsFactory = New Mock(Of IEditorOperationsFactoryService)
-            Dim editorOperations = New Mock(Of IEditorOperations)
-            editorOperationsFactory.Setup(Function(x) x.GetEditorOperations(textView)).Returns(editorOperations.Object)
-
-            Dim commandHandler = New SmartTokenFormatterCommandHandler(textUndoHistory.Object, editorOperationsFactory.Object)
-            commandHandler.ExecuteCommandWorker(New ReturnKeyCommandArgs(textView, subjectDocument.TextBuffer), CancellationToken.None)
-            Dim newSnapshot = subjectDocument.TextBuffer.CurrentSnapshot
-
-            Dim actualIndentation As Integer?
-            If newSnapshot.Version.VersionNumber > snapshot.Version.VersionNumber Then
-                actualIndentation = newSnapshot.GetLineFromLineNumber(lineNumber).GetFirstNonWhitespaceOffset()
-            Else
-                Dim provider = New SmartIndent(textView)
-                actualIndentation = provider.GetDesiredIndentation(indentationLineFromBuffer)
-            End If
-
-            If actualIndentation Is Nothing Then
-                Dim x = 0
-            End If
-
-            Assert.Equal(Of Integer)(expectedIndentation.Value, actualIndentation.Value)
         End Sub
 
         ''' <param name="indentationLine">0-based. The line number in code to get indentation for.</param>

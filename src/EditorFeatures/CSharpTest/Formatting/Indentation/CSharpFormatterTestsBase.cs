@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editor.CSharp.Formatting.Indentation;
+using Microsoft.CodeAnalysis.Editor.Implementation.Formatting.Indentation;
 using Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Formatting;
@@ -38,6 +39,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
     </body>
 </html>";
         protected const int BaseIndentationOfNugget = 8;
+
+        internal override AbstractSmartTokenFormatterCommandHandler CreateSmartTokenFormatterCommandHandler(ITextUndoHistoryRegistry registry, IEditorOperationsFactoryService operations)
+            => new SmartTokenFormatterCommandHandler(registry, operations);
 
         protected static async Task<int> GetSmartTokenFormatterIndentationWorkerAsync(
             TestWorkspace workspace,
@@ -121,39 +125,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
                 var buffer = workspace.Documents.First().GetTextBuffer();
                 return await GetSmartTokenFormatterIndentationWorkerAsync(workspace, buffer, indentationLine, ch);
             }
-        }
-
-        internal static void TestIndentation(
-            TestWorkspace workspace, int point, int? expectedIndentation, 
-            ITextView textView, TestHostDocument subjectDocument)
-        {
-            var textUndoHistory = new Mock<ITextUndoHistoryRegistry>();
-            var editorOperationsFactory = new Mock<IEditorOperationsFactoryService>();
-            var editorOperations = new Mock<IEditorOperations>();
-            editorOperationsFactory.Setup(x => x.GetEditorOperations(textView)).Returns(editorOperations.Object);
-
-            var snapshot = subjectDocument.TextBuffer.CurrentSnapshot;
-            var indentationLineFromBuffer = snapshot.GetLineFromPosition(point);
-
-            var commandHandler = new SmartTokenFormatterCommandHandler(textUndoHistory.Object, editorOperationsFactory.Object);
-            commandHandler.ExecuteCommand(new ReturnKeyCommandArgs(textView, subjectDocument.TextBuffer), () => { }, TestCommandExecutionContext.Create());
-            var newSnapshot = subjectDocument.TextBuffer.CurrentSnapshot;
-
-            int? actualIndentation;
-            if (newSnapshot.Version.VersionNumber > snapshot.Version.VersionNumber)
-            {
-                actualIndentation = newSnapshot.GetLineFromLineNumber(indentationLineFromBuffer.LineNumber).GetFirstNonWhitespaceOffset();
-            }
-            else
-            {
-                var provider = new SmartIndent(textView);
-                actualIndentation = provider.GetDesiredIndentation(indentationLineFromBuffer);
-            }
-
-            Assert.Equal(expectedIndentation, actualIndentation.Value);
-
-            TestBlankLineIndentationService(
-                workspace, textView, indentationLineFromBuffer.LineNumber, expectedIndentation);
         }
 
         public static void TestIndentation(
