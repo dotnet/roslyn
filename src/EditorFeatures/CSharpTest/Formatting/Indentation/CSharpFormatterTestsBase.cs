@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
             Assert.Equal(expectedIndentation, actualIndentation.Value);
 
             TestBlankLineIndentationService(
-                workspace, indentationLineFromBuffer.LineNumber, expectedIndentation, textView);
+                workspace, textView, indentationLineFromBuffer.LineNumber, expectedIndentation);
         }
 
         public static void TestIndentation(
@@ -194,33 +194,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
             Assert.Equal(expectedIndentation, actualIndentation);
 
             TestBlankLineIndentationService(
-                workspace, indentationLine, expectedIndentation, textView.Object);
-        }
-
-        private static void TestBlankLineIndentationService(
-            TestWorkspace workspace, int indentationLine, int? expectedIndentation, ITextView textView)
-        {
-            var snapshot = workspace.Documents.First().TextBuffer.CurrentSnapshot;
-            var indentationLineFromBuffer = snapshot.GetLineFromLineNumber(indentationLine);
-
-            var document = workspace.CurrentSolution.Projects.Single().Documents.Single();
-            var blankLineIndenter = (IBlankLineIndentationService)document.GetLanguageService<ISynchronousIndentationService>();
-            var indentStyle = workspace.Options.GetOption(FormattingOptions.SmartIndent, LanguageNames.CSharp);
-            var blankLineIndentResult = blankLineIndenter.GetBlankLineIndentation(
-                document, indentationLine, indentStyle, CancellationToken.None);
-
-            var blankLineIndentation = blankLineIndentResult.GetIndentation(textView, indentationLineFromBuffer);
-            if (expectedIndentation == null)
-            {
-                if (indentStyle == IndentStyle.None)
-                {
-                    Assert.Equal(0, blankLineIndentation);
-                }
-            }
-            else
-            {
-                Assert.Equal(expectedIndentation, blankLineIndentation);
-            }
+                workspace, textView.Object, indentationLine, expectedIndentation);
         }
     }
 }
