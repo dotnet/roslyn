@@ -4,6 +4,8 @@ using System;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Experimentation;
@@ -70,9 +72,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
         /// If false, ReSharper is either not installed, or has been disabled in the extension manager.
         /// If true, the ReSharper extension is enabled. ReSharper's internal status could be either suspended or enabled.
         /// </summary>
-        private bool _resharperExtensionEnabled = false;
-
+        private bool _resharperExtensionInstalled = false;
         private bool _infoBarOpen = false;
+        /// <summary>
+        /// True, when ReSharper is installed and running
+        /// False, when ReSharper is not installed, or when installed and suspended
+        /// </summary>
+        private bool _resharperRunning = false;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -113,9 +119,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
                 return;
             }
 
-            _resharperExtensionEnabled = extensionEnabled != 0;
+            _resharperExtensionInstalled = extensionEnabled != 0;
 
-            if (_resharperExtensionEnabled)
+            if (_resharperExtensionInstalled)
             {
                 // We need to monitor for suspend/resume commands, so create and install the command target and the modal callback.
                 var priorityCommandTargetRegistrar = _serviceProvider.GetService<IVsRegisterPriorityCommandTarget, SVsRegisterPriorityCommandTarget>();
@@ -140,9 +146,42 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
 
         private void UpdateStateMachine()
         {
+            if (!TryUpdateStateMachine())
+            {
+                Task.Factory.SafeStartNew(LoopOnBackgroundAsync, CancellationToken.None, TaskScheduler.Default);
+            }
+        }
+
+        private async Task LoopOnBackgroundAsync()
+        {
+            for (var i = 0; i < 10; i++)
+            {
+                await Task.Delay(TimeSpan.FromSeconds(2));
+
+                // periodically look for the Resume button
+                await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
+                if (TryUpdateStateMachine())
+                {
+                    return;
+                }
+            }
+
+            // No resume button so ReSharper must be running
+            _resharperRunning = true;
+            TryUpdateStateMachine();
+        }
+
+        private bool TryUpdateStateMachine()
+        {
             AssertIsForeground();
 
-            var currentStatus = IsReSharperEnabled();
+            var currentStatus = IsReSharperRunning();
+
+            if (currentStatus == ReSharperStatus.Undetermined)
+            {
+                return false;
+            }
+
             var options = _workspace.Options;
             ReSharperStatus lastStatus = options.GetOption(KeybindingResetOptions.ReSharperStatus);
 
@@ -156,6 +195,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
                     {
                         // N->E or S->E. If ReSharper was just installed and is enabled, reset NeedsReset.
                         options = options.WithChangedOption(KeybindingResetOptions.NeedsReset, false);
+                        _resharperRunning = false;
                     }
                     // Else is N->N, N->S, S->N, S->S. N->S can occur if the user suspends ReSharper, then disables
                     // the extension, then reenables the extension. We will show the gold bar after the switch
@@ -167,6 +207,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
                     {
                         // E->N or E->S. Set NeedsReset. Pop the gold bar to the user.
                         options = options.WithChangedOption(KeybindingResetOptions.NeedsReset, true);
+                        _resharperRunning = true;
                     }
 
                     // Else is E->E. No actions to take
@@ -179,6 +220,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
             {
                 ShowGoldBar();
             }
+
+            return true;
         }
 
         private void ShowGoldBar()
@@ -217,14 +260,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
                               action: InfoBarClose));
         }
 
-        private ReSharperStatus IsReSharperEnabled()
+        private ReSharperStatus IsReSharperRunning()
         {
             AssertIsForeground();
 
             // Quick exit if resharper is either uninstalled or not enabled
-            if (!_resharperExtensionEnabled)
+            if (!_resharperExtensionInstalled)
             {
                 return ReSharperStatus.NotInstalledOrDisabled;
+            }
+
+            if (_resharperRunning)
+            {
+                return ReSharperStatus.Enabled;
             }
 
             if (_oleCommandTarget == null)
@@ -233,9 +281,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
             }
 
             var cmds = new OLECMD[1];
-            cmds[0].cmdID = SuspendId;
+            cmds[0].cmdID = ResumeId;
             cmds[0].cmdf = 0;
-
+           
             var hr = _oleCommandTarget.QueryStatus(ReSharperCommandGroup, (uint)cmds.Length, cmds, IntPtr.Zero);
             if (ErrorHandler.Failed(hr))
             {
@@ -246,8 +294,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
                 return ReSharperStatus.NotInstalledOrDisabled;
             }
 
-            // When ReSharper is enabled, the ReSharper_Suspend command has the Enabled | Supported flags. When disabled, it has Invisible | Supported.
-            return ((OLECMDF)cmds[0].cmdf).HasFlag(OLECMDF.OLECMDF_ENABLED) ? ReSharperStatus.Enabled : ReSharperStatus.Suspended;
+            // When ReSharper is suspended, the ReSharper_Resume command has the Enabled | Supported flags. 
+            return ((OLECMDF)cmds[0].cmdf).HasFlag(OLECMDF.OLECMDF_ENABLED) ? ReSharperStatus.Suspended : ReSharperStatus.Undetermined;
+
         }
 
         private void RestoreVsKeybindings()
