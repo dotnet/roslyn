@@ -12,29 +12,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
     [CompilerTrait(CompilerFeature.AsyncStreams)]
     public class CodeGenAwaitForeachTests : EmitMetadataTestBase
     {
-        private static readonly string s_interfaces = @"
-namespace System.Collections.Generic
-{
-    public interface IAsyncEnumerable<out T>
-    {
-        IAsyncEnumerator<T> GetAsyncEnumerator();
-    }
-
-    public interface IAsyncEnumerator<out T> : System.IAsyncDisposable
-    {
-        System.Threading.Tasks.ValueTask<bool> MoveNextAsync();
-        T Current { get; }
-    }
-}
-namespace System
-{
-    public interface IAsyncDisposable
-    {
-        System.Threading.Tasks.ValueTask DisposeAsync();
-    }
-}
-";
-
         [Fact]
         public void TestWithCSharp7_3()
         {
@@ -51,7 +28,7 @@ class C : IAsyncEnumerable<int>
     IAsyncEnumerator<int> IAsyncEnumerable<int>.GetAsyncEnumerator()
         => throw null;
 }";
-            var comp = CreateCompilationWithTasksExtensions(new[] { source, s_interfaces }, parseOptions: TestOptions.Regular7_3);
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, s_IAsyncEnumerable }, parseOptions: TestOptions.Regular7_3);
             comp.VerifyDiagnostics(
                 // (7,9): error CS8370: Feature 'async streams' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //         await foreach (int i in new C())
@@ -70,7 +47,7 @@ public class C : IAsyncEnumerable<int>
         => throw null;
 }";
 
-            var lib = CreateCompilationWithTasksExtensions(new[] { lib_cs, s_interfaces });
+            var lib = CreateCompilationWithTasksExtensions(new[] { lib_cs, s_IAsyncEnumerable });
             lib.VerifyDiagnostics();
 
             string source = @"
@@ -88,6 +65,28 @@ class D
                 // (6,9): error CS0518: Predefined type 'System.Threading.Tasks.ValueTask' is not defined or imported
                 //         await foreach (int i in new C()) { }
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "await foreach (int i in new C()) { }").WithArguments("System.Threading.Tasks.ValueTask").WithLocation(6, 9)
+                );
+        }
+
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        public void TestWithIAsyncEnumerator()
+        {
+            string source = @"
+using System.Collections.Generic;
+using System.Threading.Tasks;
+public class C
+{
+    async Task M(IAsyncEnumerator<int> enumerator)
+    {
+        await foreach (int i in enumerator) { }
+    }
+}
+";
+            var comp_checked = CreateCompilationWithTasksExtensions(new[] { source, s_IAsyncEnumerable });
+            comp_checked.VerifyDiagnostics(
+                // (8,33): error CS8411: Async foreach statement cannot operate on variables of type 'IAsyncEnumerator<int>' because 'IAsyncEnumerator<int>' does not contain a public instance definition for 'GetAsyncEnumerator'
+                //         await foreach (int i in enumerator) { }
+                Diagnostic(ErrorCode.ERR_AwaitForEachMissingMember, "enumerator").WithArguments("System.Collections.Generic.IAsyncEnumerator<int>", "GetAsyncEnumerator").WithLocation(8, 33)
                 );
         }
 
@@ -134,11 +133,11 @@ public class C : IAsyncEnumerable<uint>
     }
 }
 ";
-            var comp_checked = CreateCompilationWithTasksExtensions(new[] { source.Replace("REPLACE", "checked"), s_interfaces }, options: TestOptions.DebugExe);
+            var comp_checked = CreateCompilationWithTasksExtensions(new[] { source.Replace("REPLACE", "checked"), s_IAsyncEnumerable }, options: TestOptions.DebugExe);
             comp_checked.VerifyDiagnostics();
             CompileAndVerify(comp_checked, expectedOutput: "overflow");
 
-            var comp_unchecked = CreateCompilationWithTasksExtensions(new[] { source.Replace("REPLACE", "unchecked"), s_interfaces }, options: TestOptions.DebugExe);
+            var comp_unchecked = CreateCompilationWithTasksExtensions(new[] { source.Replace("REPLACE", "unchecked"), s_IAsyncEnumerable }, options: TestOptions.DebugExe);
             comp_unchecked.VerifyDiagnostics();
             CompileAndVerify(comp_unchecked, expectedOutput: "0xFFFFFFFF");
         }
@@ -161,7 +160,7 @@ class C : IAsyncEnumerable<int>, IAsyncEnumerable<string>
     IAsyncEnumerator<string> IAsyncEnumerable<string>.GetAsyncEnumerator()
         => throw null;
 }";
-            var comp = CreateCompilationWithTasksExtensions(new[] { source, s_interfaces });
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, s_IAsyncEnumerable });
             comp.VerifyDiagnostics(
                 // (7,33): error CS8413: Async foreach statement cannot operate on variables of type 'C' because it implements multiple instantiations of 'IAsyncEnumerable<T>'; try casting to a specific interface instantiation
                 //         await foreach (int i in new C())
@@ -671,7 +670,7 @@ class C
         }
     }
 }";
-            var comp = CreateCompilationWithTasksExtensions(source + s_interfaces);
+            var comp = CreateCompilationWithTasksExtensions(source + s_IAsyncEnumerable);
             comp.VerifyDiagnostics(
                 // (6,15): error CS0030: Cannot convert type 'int' to 'string'
                 //         await foreach (string i in new C())
@@ -781,7 +780,7 @@ class Element
     private Element(int value) { i = value; }
     public override string ToString() => i.ToString();
 }";
-            var comp = CreateCompilationWithTasksExtensions(new[] { source, s_interfaces }, options: TestOptions.DebugExe);
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, s_IAsyncEnumerable }, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics( );
 
             CompileAndVerify(comp,
@@ -826,7 +825,7 @@ public class C
         }
     }
 }";
-            var comp = CreateCompilationWithTasksExtensions(new[] { source, s_interfaces }, options: TestOptions.DebugExe);
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, s_IAsyncEnumerable }, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "Got(1) Got(2) Captured(1)", verify: Verification.Skipped);
         }
@@ -883,7 +882,7 @@ class C<T> where T : IntContainer, new()
         }
     }
 }";
-            var comp = CreateCompilationWithTasksExtensions(new[] { source, s_interfaces }, options: TestOptions.DebugExe);
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, s_IAsyncEnumerable }, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "NextAsync(1) Current(1) Got(1) NextAsync(2) Current(2) Got(2) NextAsync(3) Current(3) Got(3) NextAsync(4) Dispose(4)",
                 verify: Verification.Skipped);
@@ -924,7 +923,7 @@ public class C
             => throw null;
     }
 }";
-            var comp = CreateCompilationWithTasksExtensions(new[] { source, s_interfaces }, options: TestOptions.DebugExe);
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, s_IAsyncEnumerable }, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "exception", verify: Verification.Skipped);
         }
@@ -967,7 +966,7 @@ public class C
         }
     }
 }";
-            var comp = CreateCompilationWithTasksExtensions(new[] { source, s_interfaces }, options: TestOptions.DebugExe);
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, s_IAsyncEnumerable }, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "dispose exception", verify: Verification.Skipped);
         }
@@ -1014,7 +1013,7 @@ public class C
         }
     }
 }";
-            var comp = CreateCompilationWithTasksExtensions(new[] { source, s_interfaces }, options: TestOptions.DebugExe);
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, s_IAsyncEnumerable }, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "wait dispose exception", verify: Verification.Skipped);
         }
@@ -1057,7 +1056,7 @@ public class C
             => throw new System.ArgumentException(""exception"");
     }
 }";
-            var comp = CreateCompilationWithTasksExtensions(new[] { source, s_interfaces }, options: TestOptions.DebugExe);
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, s_IAsyncEnumerable }, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "wait exception", verify: Verification.Skipped);
         }
@@ -1075,7 +1074,7 @@ class C
         }
     }
 }";
-            var comp = CreateCompilationWithTasksExtensions(new[] { source, s_interfaces });
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, s_IAsyncEnumerable });
             comp.VerifyDiagnostics(
                 // (6,33): error CS8416: Cannot use a collection of dynamic type in an asynchronous foreach
                 //         await foreach (var i in (dynamic)new C())
@@ -1374,7 +1373,7 @@ class C
 }";
             var comp = CreateCompilationWithMscorlib46(source);
             comp.VerifyDiagnostics(
-                // (6,27): error CS8414: foreach statement cannot operate on variables of type 'C' because 'C' does not contain a public instance definition for 'GetEnumerator'. Did you mean 'await foreach'?
+                // (6,27): error CS8414: foreach statement cannot operate on variables of type 'C' because 'C' does not contain a public instance definition for 'GetEnumerator'. Did you mean 'await foreach' rather than 'foreach'?
                 //         foreach (var i in new C())
                 Diagnostic(ErrorCode.ERR_ForEachMissingMemberWrongAsync, "new C()").WithArguments("C", "GetEnumerator").WithLocation(6, 27)
                 );
@@ -1394,7 +1393,7 @@ class C
         }
     }
 }";
-            var comp = CreateCompilationWithTasksExtensions(source + s_interfaces);
+            var comp = CreateCompilationWithTasksExtensions(source + s_IAsyncEnumerable);
             comp.VerifyDiagnostics(
                 // (7,27): error CS8414: foreach statement cannot operate on variables of type 'IAsyncEnumerable<int>' because 'IAsyncEnumerable<int>' does not contain a public instance definition for 'GetEnumerator'. Did you mean 'await foreach'?
                 //         foreach (var i in collection)
@@ -1416,7 +1415,7 @@ class C
         }
     }
 }";
-            var comp = CreateCompilationWithTasksExtensions(source + s_interfaces);
+            var comp = CreateCompilationWithTasksExtensions(source + s_IAsyncEnumerable);
             comp.VerifyDiagnostics(
                 // (7,33): error CS8415: Async foreach statement cannot operate on variables of type 'IEnumerable<int>' because 'IEnumerable<int>' does not contain a public instance definition for 'GetAsyncEnumerator'. Did you mean 'foreach' rather than 'await foreach'?
                 //         await foreach (var i in collection)
@@ -1448,7 +1447,7 @@ class C
         public int Current { get => throw null; }
     }
 }";
-            var comp = CreateCompilationWithTasksExtensions(source + s_interfaces);
+            var comp = CreateCompilationWithTasksExtensions(source + s_IAsyncEnumerable);
             comp.VerifyDiagnostics(
                 // (6,27): error CS8414: foreach statement cannot operate on variables of type 'C' because 'C' does not contain a public instance definition for 'GetEnumerator'. Did you mean 'await foreach'?
                 //         foreach (var i in new C())
@@ -1477,7 +1476,7 @@ class C
             => throw null;
     }
 }";
-            var comp = CreateCompilationWithTasksExtensions(source + s_interfaces);
+            var comp = CreateCompilationWithTasksExtensions(source + s_IAsyncEnumerable);
             comp.VerifyDiagnostics(
                 // (6,33): error CS8415: Async foreach statement cannot operate on variables of type 'C' because 'C' does not contain a public instance definition for 'GetAsyncEnumerator'. Did you mean 'foreach' rather than 'await foreach'?
                 //         await foreach (var i in new C())
@@ -1513,7 +1512,7 @@ class C
         }
     }
 }";
-            var comp = CreateCompilationWithTasksExtensions(source + s_interfaces);
+            var comp = CreateCompilationWithTasksExtensions(source + s_IAsyncEnumerable);
             comp.VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees.Single();
@@ -1556,7 +1555,7 @@ class C
         public int Current { get => throw null; }
     }
 }";
-            var comp = CreateCompilationWithTasksExtensions(source + s_interfaces);
+            var comp = CreateCompilationWithTasksExtensions(source + s_IAsyncEnumerable);
             comp.VerifyDiagnostics(
                 // (6,32): error CS8177: Async methods cannot have by-reference locals
                 //         await foreach (ref var i in new C())
@@ -1587,7 +1586,7 @@ unsafe class C
         public int* Current { get => throw null; }
     }
 }";
-            var comp = CreateCompilationWithTasksExtensions(source + s_interfaces, options: TestOptions.UnsafeDebugDll);
+            var comp = CreateCompilationWithTasksExtensions(source + s_IAsyncEnumerable, options: TestOptions.UnsafeDebugDll);
             comp.VerifyDiagnostics(
                 // (6,9): error CS4004: Cannot await in an unsafe context
                 //         await foreach (var i in new C())
@@ -1623,7 +1622,7 @@ class D
         public int Current { get => throw null; }
     }
 }";
-            var comp = CreateCompilationWithTasksExtensions(source + s_interfaces);
+            var comp = CreateCompilationWithTasksExtensions(source + s_IAsyncEnumerable);
             comp.VerifyDiagnostics(
                 // (6,33): error CS8411: Async foreach statement cannot operate on variables of type 'D' because 'D' does not contain a public definition for 'GetAsyncEnumerator'
                 //         await foreach (var i in new D())
@@ -1660,7 +1659,7 @@ class D
         public int Current { get => throw null; }
     }
 }";
-            var comp = CreateCompilationWithTasksExtensions(source + s_interfaces);
+            var comp = CreateCompilationWithTasksExtensions(source + s_IAsyncEnumerable);
             comp.VerifyDiagnostics(
                 // (6,33): error CS0122: 'D.Enumerator.MoveNextAsync()' is inaccessible due to its protection level
                 //         await foreach (var i in new D())
@@ -1697,7 +1696,7 @@ class D
         private int Current { get => throw null; }
     }
 }";
-            var comp = CreateCompilationWithTasksExtensions(source + s_interfaces);
+            var comp = CreateCompilationWithTasksExtensions(source + s_IAsyncEnumerable);
             comp.VerifyDiagnostics(
                 // (6,33): error CS0122: 'D.Enumerator.Current' is inaccessible due to its protection level
                 //         await foreach (var i in new D()) { }
@@ -1734,7 +1733,7 @@ class D
         public int Current { private get => throw null; set => throw null; }
     }
 }";
-            var comp = CreateCompilationWithTasksExtensions(source + s_interfaces);
+            var comp = CreateCompilationWithTasksExtensions(source + s_IAsyncEnumerable);
             comp.VerifyDiagnostics(
                 // (6,33): error CS8412: Async foreach requires that the return type 'D.Enumerator' of 'D.GetAsyncEnumerator()' must have a suitable public MoveNextAsync method and public Current property
                 //         await foreach (var i in new D()) { }
@@ -1789,7 +1788,7 @@ public ref struct S
     public override string ToString() => i.ToString();
 }
 ";
-            var comp = CreateCompilationWithTasksExtensions(source + s_interfaces, options: TestOptions.DebugExe);
+            var comp = CreateCompilationWithTasksExtensions(source + s_IAsyncEnumerable, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "1 2 Done");
         }
@@ -1841,7 +1840,7 @@ public struct S
         => i.ToString();
 }
 ";
-            var comp = CreateCompilationWithTasksExtensions(new[] { source, s_interfaces }, options: TestOptions.DebugExe);
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, s_IAsyncEnumerable }, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "1 2 3 Done", verify: Verification.Fails);
         }
@@ -1868,7 +1867,7 @@ class C
         public int Current { get => throw null; }
     }
 }";
-            var comp = CreateCompilationWithTasksExtensions(new[] { source, s_interfaces });
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, s_IAsyncEnumerable });
             comp.VerifyDiagnostics(
                 // (8,13): error CS1656: Cannot assign to 'i' because it is a 'foreach iteration variable'
                 //             i = 1;
@@ -1923,7 +1922,7 @@ class C
         }
     }
 }";
-            var comp = CreateCompilationWithTasksExtensions(source + s_interfaces, options: TestOptions.DebugExe);
+            var comp = CreateCompilationWithTasksExtensions(source + s_IAsyncEnumerable, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp,
                 expectedOutput: "NextAsync(0) Current(0) Got(1) NextAsync(1) Current(1) Got(2) NextAsync(2) Current(2) Got(3) NextAsync(3) Current(3) Got(4) NextAsync(4) Done",
@@ -1975,7 +1974,7 @@ class C
         }
     }
 }";
-            var comp = CreateCompilationWithTasksExtensions(source + s_interfaces, options: TestOptions.DebugExe);
+            var comp = CreateCompilationWithTasksExtensions(source + s_IAsyncEnumerable, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "NextAsync(0) Current(1) Got(1) NextAsync(1) Current(2) Got(2) NextAsync(2) Current(3) Got(3) NextAsync(3) Done", verify: Verification.Skipped);
 
@@ -2037,7 +2036,7 @@ public class C
         }
     }
 }";
-            var comp = CreateCompilationWithTasksExtensions(source + s_interfaces, options: TestOptions.DebugExe);
+            var comp = CreateCompilationWithTasksExtensions(source + s_IAsyncEnumerable, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees.Single();
@@ -2101,7 +2100,7 @@ public class C
         }
     }
 }";
-            var comp = CreateCompilationWithTasksExtensions(source + s_interfaces, options: TestOptions.DebugExe);
+            var comp = CreateCompilationWithTasksExtensions(source + s_IAsyncEnumerable, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees.Single();
@@ -2352,7 +2351,7 @@ public class C
   IL_01d4:  nop
   IL_01d5:  ret
 }
-", sequencePoints: "C+<Main>d__0.MoveNext", source: source + s_interfaces);
+", sequencePoints: "C+<Main>d__0.MoveNext", source: source + s_IAsyncEnumerable);
         }
 
         [ConditionalFact(typeof(WindowsDesktopOnly))]
@@ -2399,7 +2398,7 @@ class C
         }
     }
 }";
-            var comp = CreateCompilationWithTasksExtensions(source + s_interfaces, options: TestOptions.DebugExe);
+            var comp = CreateCompilationWithTasksExtensions(source + s_IAsyncEnumerable, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees.Single();
@@ -2443,7 +2442,7 @@ class Client
         }
     }
 }";
-            var lib = CreateCompilationWithTasksExtensions(enumerator + s_interfaces);
+            var lib = CreateCompilationWithTasksExtensions(enumerator + s_IAsyncEnumerable);
             lib.VerifyDiagnostics();
 
             var comp = CreateCompilationWithTasksExtensions(source, references: new[] { lib.EmitToImageReference() });
@@ -2482,7 +2481,7 @@ class C : IAsyncEnumerable<int>, IAsyncEnumerable<string>
         throw null;
     }
 }";
-            var comp = CreateCompilationWithTasksExtensions(source + s_interfaces);
+            var comp = CreateCompilationWithTasksExtensions(source + s_IAsyncEnumerable);
             comp.VerifyDiagnostics(
                 // (7,33): error CS8413: Async foreach statement cannot operate on variables of type 'C' because it implements multiple instantiations of 'IAsyncEnumerable<T>'; try casting to a specific interface instantiation
                 //         await foreach (var i in new C())
@@ -2512,7 +2511,7 @@ class C : Base, IAsyncEnumerable<int>
     IAsyncEnumerator<int> IAsyncEnumerable<int>.GetAsyncEnumerator()
         => throw null;
 }";
-            var comp = CreateCompilationWithTasksExtensions(source + s_interfaces);
+            var comp = CreateCompilationWithTasksExtensions(source + s_IAsyncEnumerable);
             comp.VerifyDiagnostics(
                 // (13,33): error CS8413: Async foreach statement cannot operate on variables of type 'C' because it implements multiple instantiations of 'IAsyncEnumerable<T>'; try casting to a specific interface instantiation
                 //         await foreach (var i in new C())
@@ -2565,7 +2564,7 @@ class C : IAsyncEnumerable<int>
         }
     }
 }";
-            var comp = CreateCompilationWithTasksExtensions(source + s_interfaces, options: TestOptions.DebugExe);
+            var comp = CreateCompilationWithTasksExtensions(source + s_IAsyncEnumerable, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
 
             CompileAndVerify(comp, expectedOutput: "NextAsync(0) Current(1) Got(1) NextAsync(1) Current(2) Got(2) NextAsync(2) Current(3) Got(3) NextAsync(3) Dispose(4)", verify: Verification.Skipped);
@@ -2638,7 +2637,7 @@ class C : IAsyncEnumerable<int>
         }
     }
 }";
-            var comp = CreateCompilationWithTasksExtensions(source + s_interfaces, options: TestOptions.DebugExe);
+            var comp = CreateCompilationWithTasksExtensions(source + s_IAsyncEnumerable, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
 
             CompileAndVerify(comp, expectedOutput: "NextAsync(2) Current(3) Got(3) NextAsync(3) Dispose(4) Done", verify: Verification.Skipped);
@@ -2692,7 +2691,7 @@ class C : IAsyncEnumerable<int>
         }
     }
 }";
-            var comp = CreateCompilationWithTasksExtensions(source + s_interfaces, options: TestOptions.DebugExe);
+            var comp = CreateCompilationWithTasksExtensions(source + s_IAsyncEnumerable, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
 
             CompileAndVerify(comp,
@@ -2749,7 +2748,7 @@ class C : IAsyncEnumerable<int>
         }
     }
 }";
-            var comp = CreateCompilationWithTasksExtensions(source + s_interfaces, options: TestOptions.DebugExe);
+            var comp = CreateCompilationWithTasksExtensions(source + s_IAsyncEnumerable, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
 
             CompileAndVerify(comp,
@@ -2805,7 +2804,7 @@ class C : IAsyncEnumerable<int>
         }
     }
 }";
-            var comp = CreateCompilationWithTasksExtensions(source + s_interfaces, options: TestOptions.DebugExe);
+            var comp = CreateCompilationWithTasksExtensions(source + s_IAsyncEnumerable, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
 
             CompileAndVerify(comp,
@@ -2824,7 +2823,7 @@ class C
         await foreach (var item in collection) { }
     }
 }";
-            var comp = CreateCompilationWithTasksExtensions(source + s_interfaces);
+            var comp = CreateCompilationWithTasksExtensions(source + s_IAsyncEnumerable);
             comp.VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees.Single();
@@ -2854,7 +2853,7 @@ class C : IAsyncEnumerable<int>
         throw null;
     }
 }";
-            var comp = CreateCompilationWithTasksExtensions(source + s_interfaces);
+            var comp = CreateCompilationWithTasksExtensions(source + s_IAsyncEnumerable);
             comp.VerifyDiagnostics(
                 // (8,33): error CS0186: Use of null is not valid in this context
                 //         await foreach (var i in null)
@@ -2897,7 +2896,7 @@ class C : IAsyncEnumerable<int>
         public ValueTask DisposeAsync() => throw new System.Exception();
     }
 }";
-            var comp = CreateCompilationWithTasksExtensions(source + s_interfaces, options: TestOptions.DebugExe);
+            var comp = CreateCompilationWithTasksExtensions(source + s_IAsyncEnumerable, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "Success", verify: Verification.Skipped);
         }
@@ -2957,7 +2956,7 @@ class C : IAsyncEnumerable<int>
         }
     }
 }";
-            var comp = CreateCompilationWithTasksExtensions(source + s_interfaces, options: TestOptions.DebugExe);
+            var comp = CreateCompilationWithTasksExtensions(source + s_IAsyncEnumerable, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "Try NextAsync(0) Current(1) Got(1) NextAsync(1) Current(2) Got(2) NextAsync(2) Current(3) Got(3) NextAsync(3) Dispose(4) Done", verify: Verification.Skipped);
         }
@@ -2987,7 +2986,7 @@ class C : IAsyncEnumerable<int>
         throw null;
     }
 }";
-            var comp = CreateCompilationWithTasksExtensions(source + s_interfaces);
+            var comp = CreateCompilationWithTasksExtensions(source + s_IAsyncEnumerable);
             comp.VerifyDiagnostics(
                 // (13,13): error CS0157: Control cannot leave the body of a finally clause
                 //             await foreach (var i in new C())
@@ -3049,7 +3048,7 @@ class Element
     private Element(int value) { i = value; }
     public override string ToString() => i.ToString();
 }";
-            var comp = CreateCompilationWithTasksExtensions(source + s_interfaces, options: TestOptions.DebugExe);
+            var comp = CreateCompilationWithTasksExtensions(source + s_IAsyncEnumerable, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "NextAsync(0) Current(1) Convert(1) Got(1) NextAsync(1) Current(2) Convert(2) Got(2) NextAsync(2) Dispose(3) Done", verify: Verification.Skipped);
 
@@ -3122,7 +3121,7 @@ struct C : IAsyncEnumerable<int>
         }
     }
 }";
-            var comp = CreateCompilationWithTasksExtensions(source + s_interfaces, options: TestOptions.DebugExe);
+            var comp = CreateCompilationWithTasksExtensions(source + s_IAsyncEnumerable, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
 
             CompileAndVerify(comp, expectedOutput: "NextAsync(0) Current(1) Got(1) NextAsync(1) Current(2) Got(2) NextAsync(2) Dispose(3)", verify: Verification.Skipped);
@@ -3178,7 +3177,7 @@ struct C : IAsyncEnumerable<int>
         throw new System.Exception();
     }
 }";
-            var comp = CreateCompilationWithTasksExtensions(source + s_interfaces, options: TestOptions.DebugExe);
+            var comp = CreateCompilationWithTasksExtensions(source + s_IAsyncEnumerable, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "Success", verify: Verification.Skipped);
         }
@@ -3232,7 +3231,7 @@ public static class Extensions
 {
     public static void Deconstruct(this int i, out string x1, out int x2) { Write($""Deconstruct({i}) ""); x1 = i.ToString(); x2 = -i; }
 }";
-            var comp = CreateCompilationWithTasksExtensions(source + s_interfaces, options: TestOptions.DebugExe);
+            var comp = CreateCompilationWithTasksExtensions(source + s_IAsyncEnumerable, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
 
             CompileAndVerify(comp, expectedOutput: "NextAsync(0) Current(1) Deconstruct(1) Got(1,-1) NextAsync(1) Current(2) Deconstruct(2) Got(2,-2) NextAsync(2) Dispose(3) Done", verify: Verification.Skipped);
@@ -3279,7 +3278,7 @@ public static class Extensions
 {
     public static void Deconstruct(this int i, out int x1, out int x2) { x1 = i; x2 = -i; }
 }";
-            var comp = CreateCompilationWithTasksExtensions(source + s_interfaces);
+            var comp = CreateCompilationWithTasksExtensions(source + s_IAsyncEnumerable);
             comp.VerifyDiagnostics(
                 // (7,9): error CS4033: The 'await' operator can only be used within an async method. Consider marking this method with the 'async' modifier and changing its return type to 'Task'.
                 //         await foreach (var (i, j) in new C())
@@ -3332,7 +3331,7 @@ class C : IAsyncEnumerable<(string, int)>
         }
     }
 }";
-            var comp = CreateCompilationWithTasksExtensions(source + s_interfaces, options: TestOptions.DebugExe);
+            var comp = CreateCompilationWithTasksExtensions(source + s_IAsyncEnumerable, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "NextAsync(0) Current(1) Got(1,-1) NextAsync(1) Current(2) Got(2,-2) NextAsync(2) Dispose(3) Done", verify: Verification.Skipped);
 
@@ -3411,7 +3410,7 @@ public static class Extensions
 {
     public static void Deconstruct(this int i, out int x1, out int x2) { x1 = i; x2 = -i; }
 }";
-            var comp = CreateCompilationWithTasksExtensions(source + s_interfaces, options: TestOptions.DebugExe);
+            var comp = CreateCompilationWithTasksExtensions(source + s_IAsyncEnumerable, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
 
             CompileAndVerify(comp, expectedOutput: "NextAsync(0) Current(1) Got(1,-1) NextAsync(1) Current(2) Got(2,-2) NextAsync(2) Dispose(3) Done", verify: Verification.Skipped);
@@ -3446,7 +3445,7 @@ class C
         public ValueTask DisposeAsync() => throw null;
     }
 }";
-            var comp = CreateCompilationWithTasksExtensions(source + s_interfaces, options: TestOptions.DebugExe);
+            var comp = CreateCompilationWithTasksExtensions(source + s_IAsyncEnumerable, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
                 // (7,15): warning CS0612: 'C.GetAsyncEnumerator()' is obsolete
                 //         await foreach (var i in new C())
@@ -3477,7 +3476,7 @@ class C
     }
     public IAsyncEnumerator<int> GetAsyncEnumerator() => throw null;
 }";
-            var comp = CreateCompilationWithTasksExtensions(source + s_interfaces);
+            var comp = CreateCompilationWithTasksExtensions(source + s_IAsyncEnumerable);
             comp.VerifyDiagnostics(
                 // (8,33): error CS0165: Use of unassigned local variable 'c'
                 //         await foreach (var i in c)
@@ -3503,7 +3502,7 @@ class C
         throw null;
     }
 }";
-            var comp = CreateCompilationWithTasksExtensions(source + s_interfaces);
+            var comp = CreateCompilationWithTasksExtensions(source + s_IAsyncEnumerable);
             comp.VerifyDiagnostics(
                 // (7,27): error CS8414: foreach statement cannot operate on variables of type 'C' because 'C' does not contain a public instance definition for 'GetEnumerator'. Did you mean 'await foreach'?
                 //         foreach (var i in new C())
@@ -3558,7 +3557,7 @@ class C
         }
     }
 }";
-            var comp = CreateCompilationWithTasksExtensions(source + s_interfaces, options: TestOptions.DebugExe);
+            var comp = CreateCompilationWithTasksExtensions(source + s_IAsyncEnumerable, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
 
             CompileAndVerify(comp, expectedOutput: "NextAsync(0) Current(1) Got NextAsync(1) Current(2) Got NextAsync(2) Current(3) Got NextAsync(3) Dispose(4)", verify: Verification.Skipped);
@@ -3639,7 +3638,7 @@ class C
         }
     }
 }";
-            var comp = CreateCompilationWithTasksExtensions(source + s_interfaces, options: TestOptions.DebugExe);
+            var comp = CreateCompilationWithTasksExtensions(source + s_IAsyncEnumerable, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
 
             var verifier = CompileAndVerify(comp, expectedOutput: "NextAsync(0) Current(1) Got NextAsync(1) Current(2) Got NextAsync(2) Current(3) Got NextAsync(3)", verify: Verification.Skipped);

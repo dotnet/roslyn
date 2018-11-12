@@ -406,6 +406,29 @@ public class C
         }
 
         [Fact]
+        public void ReturnIAsyncEnumerator()
+        {
+            string source = @"
+public class C
+{
+    public static async System.Collections.Generic.IAsyncEnumerator<int> M()
+    {
+        await System.Threading.Tasks.Task.CompletedTask;
+        yield return 4;
+    }
+}";
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, s_common });
+            comp.VerifyDiagnostics(
+                // (4,74): error CS1983: The return type of an async method must be void, Task, Task<T>, a task-like type, or IAsyncEnumerable<T>
+                //     public static async System.Collections.Generic.IAsyncEnumerator<int> M()
+                Diagnostic(ErrorCode.ERR_BadAsyncReturn, "M").WithLocation(4, 74),
+                // (4,74): error CS1624: The body of 'C.M()' cannot be an iterator block because 'IAsyncEnumerator<int>' is not an iterator interface type
+                //     public static async System.Collections.Generic.IAsyncEnumerator<int> M()
+                Diagnostic(ErrorCode.ERR_BadIteratorReturn, "M").WithArguments("C.M()", "System.Collections.Generic.IAsyncEnumerator<int>").WithLocation(4, 74)
+                );
+        }
+
+        [Fact]
         public void MissingTypeAndMembers_ManualResetValueTaskSourceLogic()
         {
             VerifyMissingMember(WellKnownMember.System_Threading_Tasks_ManualResetValueTaskSourceLogic_T__ctor,
