@@ -61,13 +61,30 @@ namespace Microsoft.CodeAnalysis.Editor.QuickInfo
             };
 
             // Create a preview workspace for this text buffer and open it's corresponding 
-            // document.  That way we'll get nice things like classification as well as the
-            // reference highlight span.
+            // document. 
+            // 
+            // our underlying preview tagger and mechanism to attach tagger to associated buffer of
+            // opened document will light up automatically
             var document = baseDocument.WithText(textBuffer.AsTextContainer().CurrentText);
             var workspace = new PreviewWorkspace(document.Project.Solution);
             workspace.OpenDocument(document.Id);
 
             return new DisposableToolTip(toolTip, workspace);
+        }
+
+        public DisposableToolTip CreateDisposableToolTip(ITextBuffer textBuffer, object backgroundResourceKey)
+        {
+            var control = CreateViewHostingControl(textBuffer, textBuffer.CurrentSnapshot.GetFullSpan().Span);
+
+            // Create the actual tooltip around the region of that text buffer we want to show.
+            var toolTip = new ToolTip
+            {
+                Content = control,
+                Background = (Brush)Application.Current.Resources[backgroundResourceKey]
+            };
+
+            // we have stand alone view that is not associated with roslyn solution
+            return new DisposableToolTip(toolTip, workspaceOpt: null);
         }
 
         public ViewHostingControl CreateViewHostingControl(ITextBuffer textBuffer, Span contentSpan)

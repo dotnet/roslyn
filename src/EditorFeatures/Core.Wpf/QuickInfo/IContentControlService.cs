@@ -30,6 +30,14 @@ namespace Microsoft.CodeAnalysis.Editor.QuickInfo
         DisposableToolTip CreateDisposableToolTip(Document baseDocument, ITextBuffer textBuffer, Span contentSpan, object backgroundResourceKey);
 
         /// <summary>
+        /// get <see cref="DisposableToolTip"/> /> from the given <paramref name="textBuffer"/>
+        /// 
+        /// tooltip will show embeded textview with whole content from the buffer. if the buffer has associated tags
+        /// in its property bag, it will be picked up by taggers associated with the tooltip
+        /// </summary>
+        DisposableToolTip CreateDisposableToolTip(ITextBuffer textBuffer, object backgroundResourceKey);
+
+        /// <summary>
         /// attach <see cref="DisposableToolTip"/> to the given <paramref name="element"/>
         /// 
         /// this will lazily create the tooltip and dispose it properly when it goes away

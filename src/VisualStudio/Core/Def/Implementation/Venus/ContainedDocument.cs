@@ -33,7 +33,7 @@ using IVsTextBufferCoordinator = Microsoft.VisualStudio.TextManager.Interop.IVsT
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 {
 #pragma warning disable CS0618 // Type or member is obsolete
-    internal sealed class ContainedDocument : ForegroundThreadAffinitizedObject, IVisualStudioHostDocument
+    internal sealed partial class ContainedDocument : ForegroundThreadAffinitizedObject, IVisualStudioHostDocument
 #pragma warning restore CS0618 // Type or member is obsolete
     {
         private const string ReturnReplacementString = @"{|r|}";

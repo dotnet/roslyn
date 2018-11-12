@@ -82,6 +82,9 @@ namespace Microsoft.CodeAnalysis.Editor.QuickInfo
             // Zoom out a bit to shrink the text.
             view.ZoomLevel *= 0.75;
 
+            // turn off highlight current line
+            view.Options.SetOptionValue(DefaultWpfViewOptions.EnableHighlightCurrentLineId, false);
+
             return view;
         }
 

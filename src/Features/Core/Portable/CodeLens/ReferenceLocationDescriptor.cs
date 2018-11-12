@@ -14,6 +14,21 @@ namespace Microsoft.CodeAnalysis.CodeLens
         public Guid DocumentGuid { get; }
 
         /// <summary>
+        /// Document's file path
+        /// </summary>
+        public string FilePath { get; }
+
+        /// <summary>
+        /// Reference's span start based on the document content
+        /// </summary>
+        public int SpanStart { get; }
+
+        /// <summary>
+        /// Reference's span length based on the document content
+        /// </summary>
+        public int SpanLength { get; }
+
+        /// <summary>
         /// Reference's line based on the document content
         /// </summary>
         public int LineNumber { get; }
@@ -77,10 +92,13 @@ namespace Microsoft.CodeAnalysis.CodeLens
             string longDescription,
             string language,
             Glyph? glyph,
+            int spanStart,
+            int spanLength,
             int lineNumber,
             int columnNumber,
             Guid projectGuid,
             Guid documentGuid,
+            string filePath,
             string referenceLineText,
             int referenceStart,
             int referenceLength,
@@ -92,11 +110,14 @@ namespace Microsoft.CodeAnalysis.CodeLens
             LongDescription = longDescription;
             Language = language;
             Glyph = glyph;
+            SpanStart = spanStart;
+            SpanLength = spanLength;
             LineNumber = lineNumber;
             ColumnNumber = columnNumber;
             // We want to keep track of the location's document if it comes from a file in your solution.
             ProjectGuid = projectGuid;
             DocumentGuid = documentGuid;
+            FilePath = filePath;
             ReferenceLineText = referenceLineText;
             ReferenceStart = referenceStart;
             ReferenceLength = referenceLength;

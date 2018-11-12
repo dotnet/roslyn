@@ -153,7 +153,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                 }
             }
 
-            var documentId = this.Project.AddSourceTextContainer(SubjectBuffer.AsTextContainer(), filePath);
+            var documentId = this.Project.AddSourceTextContainer(
+                SubjectBuffer.AsTextContainer(), filePath,
+                sourceCodeKind: SourceCodeKind.Regular, folders: default, 
+                documentServiceProvider: new ContainedDocument.DocumentServiceProvider(DataBuffer));
 
             this.ContainedDocument = new ContainedDocument(
                 componentModel.GetService<IThreadingContext>(),

@@ -199,6 +199,13 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
 
         public DiagnosticAnalysisResult DropExceptSyntax()
         {
+            // quick bail out
+            if (_syntaxLocals?.Count == 0)
+            {
+                return CreateEmpty(ProjectId, Version);
+            }
+
+            // keep only syntax errors
             return new DiagnosticAnalysisResult(
                ProjectId,
                Version,
@@ -222,6 +229,13 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
 
         private ImmutableHashSet<DocumentId> CreateDocumentIds()
         {
+            // quick bail out
+            var allEmpty = _syntaxLocals ?? _semanticLocals ?? _nonLocals;
+            if (allEmpty == null)
+            {
+                return ImmutableHashSet<DocumentId>.Empty;
+            }
+
             var documents = SpecializedCollections.EmptyEnumerable<DocumentId>();
             if (_syntaxLocals != null)
             {

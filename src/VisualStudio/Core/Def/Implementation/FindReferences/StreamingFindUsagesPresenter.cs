@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.Composition.Hosting;
 using System.Composition;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Host;
@@ -11,7 +12,6 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.VisualStudio.Shell.FindAllReferences;
 using Microsoft.VisualStudio.Shell.TableControl;
-using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Classification;
 
 namespace Microsoft.VisualStudio.LanguageServices.FindUsages
@@ -28,7 +28,6 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 
         private readonly IServiceProvider _serviceProvider;
 
-        public readonly ITextBufferFactoryService TextBufferFactoryService;
         public readonly ClassificationTypeMap TypeMap;
         public readonly IEditorFormatMapService FormatMapService;
         public readonly IClassificationFormatMap ClassificationFormatMap;
@@ -45,7 +44,30 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             IThreadingContext threadingContext,
             VisualStudioWorkspace workspace,
             Shell.SVsServiceProvider serviceProvider,
-            ITextBufferFactoryService textBufferFactoryService,
+            ClassificationTypeMap typeMap,
+            IEditorFormatMapService formatMapService,
+            IClassificationFormatMapService classificationFormatMapService)
+            : this(workspace, threadingContext, serviceProvider, typeMap, formatMapService, classificationFormatMapService)
+        {
+        }
+
+        // Test only
+        public StreamingFindUsagesPresenter(
+            Workspace workspace,
+            ExportProvider exportProvider)
+            : this(workspace,
+                  exportProvider.GetExportedValue<IThreadingContext>(),
+                  exportProvider.GetExportedValue<Shell.SVsServiceProvider>(),
+                  exportProvider.GetExportedValue<ClassificationTypeMap>(),
+                  exportProvider.GetExportedValue<IEditorFormatMapService>(),
+                  exportProvider.GetExportedValue<IClassificationFormatMapService>())
+        {
+        }
+
+        private StreamingFindUsagesPresenter(
+            Workspace workspace,
+            IThreadingContext threadingContext,
+            Shell.SVsServiceProvider serviceProvider,
             ClassificationTypeMap typeMap,
             IEditorFormatMapService formatMapService,
             IClassificationFormatMapService classificationFormatMapService)
@@ -53,7 +75,6 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
         {
             _workspace = workspace;
             _serviceProvider = serviceProvider;
-            TextBufferFactoryService = textBufferFactoryService;
             TypeMap = typeMap;
             FormatMapService = formatMapService;
             ClassificationFormatMap = classificationFormatMapService.GetClassificationFormatMap("tooltip");
