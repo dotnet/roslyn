@@ -27,6 +27,11 @@
         <target state="new">Found Problems:</target>
         <note />
       </trans-unit>
+      <trans-unit id="Global_name_space">
+        <source>Gobal namespace</source>
+        <target state="new">Gobal namespace</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Highlight_related_components_under_cursor">
         <source>Highlight related components under cursor</source>
         <target state="new">Highlight related components under cursor</target>
@@ -50,6 +55,11 @@
       <trans-unit id="Members">
         <source>Members</source>
         <target state="new">Members</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Namespace">
+        <source>Namespace:</source>
+        <target state="new">Namespace:</target>
         <note />
       </trans-unit>
       <trans-unit id="Never_if_unnecessary">

@@ -9,7 +9,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.PullMemberUp
 {
-    public class CSharpPullMemberUpViaQuickActionTests : CSharpPullMemberUpCodeActionTest
+    public class CSharpPullMemberUpTests : CSharpPullMemberUpCodeActionTest
     {
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
             => new CSharpPullMemberUpCodeRefactoringProvider(parameters.fixProviderData as IPullMemberUpOptionsService);
@@ -285,8 +285,9 @@ namespace PushUpTest
 
     public class TestClass : IInterface
     {
-        private static event EventHandler Event1, Event3;
+        private static event EventHandler Event1;
         public event EventHandler Event2;
+        private static event EventHandler Event3;
     }
 }";
             await TestWithPullMemberDialogAsync(testText, expected, new (string, bool)[] { ("Event2", false) });
@@ -328,7 +329,7 @@ namespace PushUpTest
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
-        public async Task PullNonPublicEventsWithAccessorsToInterfaceViaDialog()
+        public async Task PullNonPublicEventWithAccessorsToInterfaceViaDialog()
         {
             var testText = @"
 using System;
@@ -381,6 +382,61 @@ namespace PushUpTest
             await TestWithPullMemberDialogAsync(testText, expected);
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        public async Task PullPublicEventWithAccessorsToInterfaceViaDialog()
+        {
+            var testText = @"
+using System;
+namespace PushUpTest
+{
+    interface IInterface
+    {
+    }
+
+    public class TestClass : IInterface
+    {
+        public event EventHandler Eve[||]nt2
+        {
+            add
+            {
+                System.Console.Writeln(""This is add in event1"");
+            }
+            remove
+            {
+                System.Console.Writeln(""This is remove in event2"");
+            }
+        }
+    }
+}";
+
+            var expected = @"
+using System;
+namespace PushUpTest
+{
+    interface IInterface
+    {
+        event EventHandler Event2;
+    }
+
+    public class TestClass : IInterface
+    {
+        public event EventHandler Event2
+        {
+            add
+            {
+                System.Console.Writeln(""This is add in event1"");
+            }
+            remove
+            {
+                System.Console.Writeln(""This is remove in event2"");
+            }
+        }
+    }
+}";
+            await TestInRegularAndScriptAsync(testText, expected);
+            await TestWithPullMemberDialogAsync(testText, expected, index: 1);
+        }
+        
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
         public async Task PullMultipleNonPublicEventsToInterface()
         {
@@ -606,7 +662,8 @@ namespace PushUpTest
     {
     }
 }";
-            var expected = @"
+
+    var expected = @"
 using System;
 namespace PushUpTest
 {
@@ -632,13 +689,13 @@ namespace PushUpTest
         public void BarBar()
         {}
 
+        public event EventHandler event1;
+        public event EventHandler event2;
+
         public int Foo
         {
             get; set;
         }
-
-        public event EventHandler event1;
-        public event EventHandler event2;
     }
 
     partial interface IInterface
@@ -1074,6 +1131,61 @@ namespace PushUpTest
     public class Base2
     {
         private static event EventHandler Event3;
+    }
+
+    public class TestClass2 : Base2
+    {
+    }
+}";
+            await TestInRegularAndScriptAsync(testText, expected);
+            await TestWithPullMemberDialogAsync(testText, expected, index : 1);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        public async Task PullEventWithBodyToClass()
+        {
+            var testText = @"
+using System;
+
+namespace PushUpTest
+{
+    public class Base2
+    {
+    }
+
+    public class TestClass2 : Base2
+    {
+        private static event EventHandler Eve[||]nt3
+        {
+            add
+            {
+                System.Console.Writeln(""Hello"");
+            }
+            remove
+            {
+                System.Console.Writeln(""World"");
+            }
+        };
+    }
+}";
+            var expected = @"
+using System;
+
+namespace PushUpTest
+{
+    public class Base2
+    {
+        private static event EventHandler Event3
+        {
+            add
+            {
+                System.Console.Writeln(""Hello"");
+            }
+            remove
+            {
+                System.Console.Writeln(""World"");
+            }
+        };
     }
 
     public class TestClass2 : Base2

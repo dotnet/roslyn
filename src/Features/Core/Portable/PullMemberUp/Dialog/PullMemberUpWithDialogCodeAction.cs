@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -21,9 +22,9 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
 
             private Document ContextDocument { get; }
 
-            private Dictionary<ISymbol, Lazy<List<ISymbol>>> LazyDependentsMap { get; }
+            private Dictionary<ISymbol, Lazy<ImmutableList<ISymbol>>> LazyDependentsMap { get; }
 
-            public override string Title => "...";
+            public override string Title => FeaturesResources.DotDotDot;
 
             private readonly IPullMemberUpOptionsService _service;
 
@@ -58,16 +59,16 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
                 // This map contains the content used by select dependents button
                 LazyDependentsMap = Members.ToDictionary(
                     memberSymbol => memberSymbol,
-                    memberSymbol => new Lazy<List<ISymbol>>(
+                    memberSymbol => new Lazy<ImmutableList<ISymbol>>(
                        () =>
                        {
-                           if (memberSymbol.Kind == SymbolKind.Field || memberSymbol.Kind == SymbolKind.Event)
+                           if (memberSymbol.Kind == SymbolKind.Field)
                            {
-                               return new List<ISymbol>();
+                               return ImmutableList<ISymbol>.Empty;
                            }
                            else
                            {
-                               return SymbolDependentsBuilder.Build(semanticModel, memberSymbol, membersSet, context.Document, context.CancellationToken);
+                               return SymbolDependentsBuilder.Build(memberSymbol, membersSet, context.Document, context.CancellationToken);
                            }
 
                        }, false));
@@ -87,7 +88,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
             {
                 if (options is PullMemberDialogResult result && !result.IsCanceled)
                 {
-                    var generator = ContextDocument.Project.LanguageServices.GetService<IPullMemberUpActionAndSolutionGenerator>();
+                    var generator = new CodeActionAndSolutionGenerator();
                     var changedSolution = await generator.GetSolutionAsync(result.PullMembersAnalysisResult, ContextDocument, cancellationToken).ConfigureAwait(false);
                     var operation = new ApplyChangesOperation(changedSolution);
                     return new CodeActionOperation[] { operation };

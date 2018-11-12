@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
         private bool IsSymbolValid(Solution solution, INamedTypeSymbol symbol, CancellationToken cancellationToken)
         {
             return symbol.Locations.Any(location => location.IsInSource &&
-                   !solution.GetDocument(location.SourceTree).IsGeneratedCode(cancellationToken));
+                !solution.GetDocument(location.SourceTree).IsGeneratedCode(cancellationToken));
         }
 
         protected void PullMemberUpViaQuickAction(

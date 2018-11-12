@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.  
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.FindSymbols;
@@ -9,23 +10,20 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp.Dialog
 {
     internal class SymbolDependentsBuilder : SyntaxWalker
     {
-        internal List<ISymbol> SymbolDependentsList { get; }
+        private ImmutableList<ISymbol>.Builder SymbolDependentsListBuilder { get; }
 
-        private SemanticModel SemanticModel { get; set; }
+        private IImmutableSet<ISymbol> _symbolSet;
 
-        private HashSet<ISymbol> SymbolSet { get; set; }
+        private Document _contextDocument;
 
-        private Document ContextDocument { get; set; }
-
-        private CancellationToken CancellationToken { get; set; }
+        private CancellationToken _cancellationToken;
 
         private SymbolDependentsBuilder()
         {
-            SymbolDependentsList = new List<ISymbol>();
+            SymbolDependentsListBuilder = ImmutableList.CreateBuilder<ISymbol>();
         }
 
-        internal static List<ISymbol> Build(
-            SemanticModel semanticModel,
+        internal static ImmutableList<ISymbol> Build(
             ISymbol userSelectedNodeSymbol,
             HashSet<ISymbol> members,
             Document contextDocument,
@@ -33,10 +31,9 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp.Dialog
         {
             var builder = new SymbolDependentsBuilder()
             {
-                SymbolSet = new HashSet<ISymbol>(members),
-                SemanticModel = semanticModel,
-                ContextDocument = contextDocument,
-                CancellationToken = cancellationToken
+                _symbolSet = members.ToImmutableHashSet(),
+                _contextDocument = contextDocument,
+                _cancellationToken = cancellationToken
             };
 
             var selectedSyntax = userSelectedNodeSymbol.DeclaringSyntaxReferences.FirstOrDefault()?.GetSyntax();
@@ -45,19 +42,19 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp.Dialog
                 builder.Visit(selectedSyntax);
             }
 
-            return builder.SymbolDependentsList;
+            return builder.SymbolDependentsListBuilder.ToImmutableList();
         }
 
         public override void Visit(SyntaxNode node)
         {
-            var symbol = SymbolFinder.FindSymbolAtPositionAsync(ContextDocument, node.SpanStart, CancellationToken).Result;
+            var symbol = SymbolFinder.FindSymbolAtPositionAsync(_contextDocument, node.SpanStart, _cancellationToken).Result;
             if (symbol != null &&
                 (symbol.Kind == SymbolKind.Field || symbol.Kind == SymbolKind.Method ||
                 symbol.Kind == SymbolKind.Property || symbol.Kind == SymbolKind.Event))
             {
-                if (SymbolSet.Contains(symbol))
+                if (_symbolSet.Contains(symbol))
                 {
-                    SymbolDependentsList.Add(symbol);
+                    SymbolDependentsListBuilder.Add(symbol);
                 }
             }
 

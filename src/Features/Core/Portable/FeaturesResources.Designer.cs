@@ -1127,6 +1127,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to ....
+        /// </summary>
+        internal static string DotDotDot {
+            get {
+                return ResourceManager.GetString("DotDotDot", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Edit And Continue.
         /// </summary>
         internal static string Edit_And_Continue {

@@ -72,6 +72,11 @@
         <target state="new">Convert to tuple</target>
         <note />
       </trans-unit>
+      <trans-unit id="DotDotDot">
+        <source>...</source>
+        <target state="new">...</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Fix_typo_0">
         <source>Fix typo '{0}'</source>
         <target state="translated">'{0}' yazım hatasını düzeltin</target>

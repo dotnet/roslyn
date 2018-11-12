@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using System.Linq;
 using Microsoft.CodeAnalysis;
@@ -17,7 +18,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp
 
         public ObservableCollection<MemberSymbolViewModelGraphNode> TargetMembersContainer { get; set; }
 
-        public Dictionary<ISymbol, Lazy<List<ISymbol>>> LazyDependentsMap { get; }
+        public Dictionary<ISymbol, Lazy<ImmutableList<ISymbol>>> LazyDependentsMap { get; }
         
         public Dictionary<ISymbol, PullUpMemberSymbolView> SymbolToMemberView { get; }
 
@@ -42,7 +43,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp
             ObservableCollection<MemberSymbolViewModelGraphNode> targetMembersContainer,
             ISymbol userSelectNodeSymbol,
             IGlyphService glyphService,
-            Dictionary<ISymbol, Lazy<List<ISymbol>>> lazyDependentsMap,
+            Dictionary<ISymbol, Lazy<ImmutableList<ISymbol>>> lazyDependentsMap,
             VisualStudioPullMemberUpService service)
         {
             SelectedMembersContainer = allMembers.
@@ -52,7 +53,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp
                     IsAbstract = false,
                     IsAbstractSelectable = member.Kind != SymbolKind.Field && !member.IsAbstract,
                     IsSelectable = true
-                }).ToList();
+                }).OrderByDescending(memberSymbolView => memberSymbolView.MemberSymbol.DeclaredAccessibility).ToList();
 
             SymbolToMemberView = SelectedMembersContainer.
                 ToDictionary(symbolView => symbolView.MemberSymbol);
@@ -76,6 +77,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp
 
         public bool IsSelectable { get => _isSelectable; set => SetProperty(ref _isSelectable, value); }
 
+        public string Accessibility => MemberSymbol.DeclaredAccessibility.ToString();
+
         public PullUpMemberSymbolView(ISymbol symbol, IGlyphService glyphService) : base(symbol, glyphService)
         {
         }
@@ -90,6 +93,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp
         public bool IsExpanded { get; set; }
 
         public bool IsSelected { get => MemberSymbolViewModel.IsChecked; set => MemberSymbolViewModel.IsChecked = value; }
+
+        public string Namespace => ServicesVSResources.Namespace + MemberSymbolViewModel.MemberSymbol.ContainingNamespace?.Name ??
+            ServicesVSResources.Namespace + ServicesVSResources.Global_name_space;
 
         private MemberSymbolViewModelGraphNode(MemberSymbolViewModel node, ObservableCollection<MemberSymbolViewModelGraphNode> descendants = null)
         {
@@ -127,38 +133,42 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp
                 {
                     baseClass = null;
                 }
-                AddBasesAndInterfaceToQueue(interfaces, baseClass, currentNode);
+
+                AddBasesAndInterfaceToQueue(glyphService, queue, interfaces, baseClass, currentNode);
             }
             return rootNode;
 
-            // A helper function to Add all baseTypes to queue and create a TreeNode for each of them
-            void AddBasesAndInterfaceToQueue(
-                IEnumerable<INamedTypeSymbol> interfaces,
-                INamedTypeSymbol @class,
-                MemberSymbolViewModelGraphNode parentNode)
-            {
-                if (interfaces != null)
-                {
-                    foreach (var @interface in interfaces)
-                    {
-                        var correspondingGraphNode = new MemberSymbolViewModelGraphNode(new MemberSymbolViewModel(@interface, glyphService))
-                        {
-                            IsExpanded = false, 
-                        };
-                        parentNode.Neighbours.Add(correspondingGraphNode);
-                        queue.Enqueue(correspondingGraphNode);
-                    }
-                }
+        }
 
-                if (@class != null)
+        private static void AddBasesAndInterfaceToQueue(
+            IGlyphService glyphService,
+            Queue<MemberSymbolViewModelGraphNode> queue,
+            IEnumerable<INamedTypeSymbol> interfaces,
+            INamedTypeSymbol @class,
+            MemberSymbolViewModelGraphNode parentNode)
+        {
+            // A helper function to Add all baseTypes to queue and create a TreeNode for each of them
+            if (interfaces != null)
+            {
+                foreach (var @interface in interfaces)
                 {
-                    var correspondingGraphNode = new MemberSymbolViewModelGraphNode(new MemberSymbolViewModel(@class, glyphService))
+                    var correspondingGraphNode = new MemberSymbolViewModelGraphNode(new MemberSymbolViewModel(@interface, glyphService))
                     {
                         IsExpanded = false, 
                     };
                     parentNode.Neighbours.Add(correspondingGraphNode);
                     queue.Enqueue(correspondingGraphNode);
                 }
+            }
+
+            if (@class != null)
+            {
+                var correspondingGraphNode = new MemberSymbolViewModelGraphNode(new MemberSymbolViewModel(@class, glyphService))
+                {
+                    IsExpanded = false, 
+                };
+                parentNode.Neighbours.Add(correspondingGraphNode);
+                queue.Enqueue(correspondingGraphNode);
             }
         }
     }

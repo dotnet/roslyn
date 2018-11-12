@@ -53,8 +53,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp
             InitializeComponent();
             MemberSelection.SizeChanged += (s, e) =>
             {
-                ((GridView)MemberSelection.View).Columns[0].Width = e.NewSize.Width * 0.6;
-                ((GridView)MemberSelection.View).Columns[1].Width = e.NewSize.Width * 0.3;
+                var memberSelectionView = ((GridView)MemberSelection.View);
+                memberSelectionView.Columns[0].Width = e.NewSize.Width - memberSelectionView.Columns[1].Width - 50;
             };
         }
 

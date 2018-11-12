@@ -1135,6 +1135,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Gobal namespace.
+        /// </summary>
+        internal static string Global_name_space {
+            get {
+                return ResourceManager.GetString("Global_name_space", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Highlight related components under cursor.
         /// </summary>
         internal static string Highlight_related_components_under_cursor {
@@ -1502,6 +1511,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string Name_colon2 {
             get {
                 return ResourceManager.GetString("Name_colon2", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Namespace:.
+        /// </summary>
+        internal static string Namespace {
+            get {
+                return ResourceManager.GetString("Namespace", resourceCulture);
             }
         }
         

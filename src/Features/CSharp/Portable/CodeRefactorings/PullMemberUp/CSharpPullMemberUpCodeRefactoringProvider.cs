@@ -26,8 +26,15 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.PullMemberUp
         protected override bool IsSelectionValid(TextSpan span, SyntaxNode userSelectedSyntax)
         {
             var identifier = GetIdentifier(userSelectedSyntax);
-            return identifier == default ? false : (identifier.FullSpan.Contains(span) && span.Contains(identifier.Span)) ||
+            if (identifier == default)
+            {
+                return false;
+            }
+            else
+            {
+                return (identifier.FullSpan.Contains(span) && span.Contains(identifier.Span)) ||  
                     (identifier.Span.Contains(span) && span.Length == 0);
+            }
         }
 
         private SyntaxToken GetIdentifier(SyntaxNode userSelectedSyntax)
@@ -43,9 +50,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.PullMemberUp
                     return propertySyntax.Identifier;
                 case IndexerDeclarationSyntax indexerSyntax:
                     return indexerSyntax.ThisKeyword;
-                case EventDeclarationSyntax eventDeclartionSyntax:
-                    // It handles the case taht event has add and remove body
-                    return eventDeclartionSyntax.Identifier;
+                case EventDeclarationSyntax eventDeclarationSyntax:
+                    // It handles the case when event has add and remove body
+                    return eventDeclarationSyntax.Identifier;
                 default:
                     return default;
             }

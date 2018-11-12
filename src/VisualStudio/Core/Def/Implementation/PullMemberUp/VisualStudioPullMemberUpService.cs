@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
 using Microsoft.CodeAnalysis;
@@ -30,7 +31,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp
         public PullMemberDialogResult GetPullTargetAndMembers(
             ISymbol selectedOwnerSymbol,
             IEnumerable<ISymbol> members,
-            Dictionary<ISymbol, Lazy<List<ISymbol>>> lazyDependentsMap)
+            Dictionary<ISymbol, Lazy<ImmutableList<ISymbol>>> lazyDependentsMap)
         {
             var baseTypeTree = MemberSymbolViewModelGraphNode.CreateInheritanceGraph(selectedOwnerSymbol.ContainingType, _glyphService);
             ViewModel = new PullMemberUpViewModel(members.ToList(), baseTypeTree.Neighbours, selectedOwnerSymbol, _glyphService, lazyDependentsMap, this);

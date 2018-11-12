@@ -93,7 +93,10 @@
                                     Text="{Binding MemberSymbolViewModel.MemberName}"
                                     AutomationProperties.Name="{Binding MemberSymbolViewModel.MemberAutomationText}"
                                     AutomationProperties.AutomationId="{Binding MemberSymbolModel.MemberName}"/>
-                            </StackPanel>
+                                <StackPanel.ToolTip>
+                                    <ToolTip Content="{Binding Namespace}"/>
+                                </StackPanel.ToolTip>
+                        </StackPanel>
                         </HierarchicalDataTemplate>
                     </TreeView.ItemTemplate>
                 </TreeView>
@@ -158,6 +161,9 @@
                                                Source="{Binding Glyph}"/>
                                             <TextBlock x:Uid="MemberName"
                                                        Text="{Binding MemberName}"/>
+                                            <StackPanel.ToolTip>
+                                                <ToolTip Content="{Binding Accessibility}"/>
+                                            </StackPanel.ToolTip>
                                         </StackPanel>
                                     </DataTemplate>
                                 </GridViewColumn.CellTemplate>

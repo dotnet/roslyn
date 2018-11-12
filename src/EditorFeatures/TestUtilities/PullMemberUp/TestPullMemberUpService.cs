@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp;
 using Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp.Dialog;
@@ -18,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.PullMemberUp
             TargetBaseTypeName = targetBaseTypeName;
         }
 
-        public PullMemberDialogResult GetPullTargetAndMembers(ISymbol selectedNodeSymbol, IEnumerable<ISymbol> members, Dictionary<ISymbol, Lazy<List<ISymbol>>> lazyDependentsMap)
+        public PullMemberDialogResult GetPullTargetAndMembers(ISymbol selectedNodeSymbol, IEnumerable<ISymbol> members, Dictionary<ISymbol, Lazy<ImmutableList<ISymbol>>> lazyDependentsMap)
         {
             IEnumerable<(ISymbol member, bool makeAbstract)> selectedMember = default;
 

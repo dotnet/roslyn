@@ -7,21 +7,6 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
 {
     internal class PullMembersUpAnalysisBuilder
     {
-        private static bool IsAbstractModifiersMatch(INamedTypeSymbol targetSymbol, ISymbol selectedMember)
-        {
-            return !selectedMember.IsAbstract || targetSymbol.IsAbstract;
-        }
-
-        private static bool IsAccessiblityModifiersMatch(INamedTypeSymbol targetSymbol, ISymbol selectedMember)
-        {
-            return selectedMember.DeclaredAccessibility == Accessibility.Public;
-        }
-
-        private static bool IsStaticModifiersMatch(INamedTypeSymbol targetSymbol, ISymbol selectedMember)
-        {
-            return !selectedMember.IsStatic;
-        }
-
         internal static AnalysisResult BuildAnalysisResult(
             INamedTypeSymbol targetSymbol,
             IEnumerable<(ISymbol member, bool makeAbstract)> selectedMembersAndOption)
@@ -30,7 +15,10 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
             {
                 if (targetSymbol.TypeKind == TypeKind.Interface)
                 {
-                    return new MemberAnalysisResult(selection.member, !IsAccessiblityModifiersMatch(targetSymbol, selection.member), !IsStaticModifiersMatch(targetSymbol, selection.member));
+                    return new MemberAnalysisResult(
+                        selection.member,
+                        selection.member.DeclaredAccessibility != Accessibility.Public,
+                        selection.member.IsStatic);
                 }
                 else
                 {

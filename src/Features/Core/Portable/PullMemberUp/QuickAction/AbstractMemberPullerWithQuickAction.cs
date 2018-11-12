@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.PullMemberUp.QuickAction
                 return default;
             }
 
-            var generator = document.Project.LanguageServices.GetService<IPullMemberUpActionAndSolutionGenerator>();
+            var generator = new CodeActionAndSolutionGenerator(); 
             return generator.GetCodeActionAsync(result, document, title);
         }
 

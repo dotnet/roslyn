@@ -1108,4 +1108,10 @@ I agree to all of the foregoing:</value>
   <data name="_0_will_be_changed_to_abstract" xml:space="preserve">
     <value>{0} will be changed to abstract.</value>
   </data>
+  <data name="Global_name_space" xml:space="preserve">
+    <value>Gobal namespace</value>
+  </data>
+  <data name="Namespace" xml:space="preserve">
+    <value>Namespace:</value>
+  </data>
 </root>
