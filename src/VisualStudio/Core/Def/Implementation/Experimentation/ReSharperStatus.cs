@@ -15,6 +15,11 @@ namespace Microsoft.CodeAnalysis.Experimentation
         /// <summary>
         /// ReSharper is running.
         /// </summary>
-        Enabled
+        Enabled,
+        /// <summary>
+        /// Need to wait longer for ReSharper to report status
+        /// </summary>
+        Undetermined
+
     }
 }
