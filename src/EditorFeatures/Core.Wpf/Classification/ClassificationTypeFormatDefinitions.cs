@@ -89,6 +89,22 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         }
 
         #endregion
+        #region Keyword - Control
+        [Export(typeof(EditorFormatDefinition))]
+        [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.ControlKeyword)]
+        [Name(ClassificationTypeNames.ControlKeyword)]
+        [Order(After = ClassificationTypeNames.Keyword)]
+        [UserVisible(true)]
+        [ExcludeFromCodeCoverage]
+        private class ControlKeywordFormatDefinition : ClassificationFormatDefinition
+        {
+            private ControlKeywordFormatDefinition()
+            {
+                this.DisplayName = "Keyword - Control";
+            }
+        }
+        #endregion
+
 
         #region User Types - Classes
         [Export(typeof(EditorFormatDefinition))]

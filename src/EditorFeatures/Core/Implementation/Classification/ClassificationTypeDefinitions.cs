@@ -33,6 +33,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [BaseDefinition(PredefinedClassificationTypeNames.FormalLanguage)]
         internal readonly ClassificationTypeDefinition StringEscapeCharacterTypeDefinition;
         #endregion
+        #region Keyword - Control
+        [Export]
+        [Name(ClassificationTypeNames.ControlKeyword)]
+        [BaseDefinition(PredefinedClassificationTypeNames.Keyword)]
+        internal ClassificationTypeDefinition ControlKeywordTypeDefinition;
+        #endregion
+
 
         #region User Types - Classes
         [Export]

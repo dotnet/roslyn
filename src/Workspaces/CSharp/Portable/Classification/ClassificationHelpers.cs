@@ -29,7 +29,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
             {
                 return ClassificationTypeNames.Identifier;
             }
-            if (SyntaxFacts.IsKeywordKind(token.Kind()))
+            if (SyntaxFacts.IsControlKeywordKind(token.Kind()))
+            {
+                return ClassificationTypeNames.ControlKeyword;
+            }
+            else if (SyntaxFacts.IsKeywordKind(token.Kind()))
             {
                 return ClassificationTypeNames.Keyword;
             }

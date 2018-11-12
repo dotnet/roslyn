@@ -8,6 +8,7 @@ namespace Microsoft.CodeAnalysis.Classification
         public const string ExcludedCode = "excluded code";
         public const string Identifier = "identifier";
         public const string Keyword = "keyword";
+        public const string ControlKeyword = "keyword - control";
         public const string NumericLiteral = "number";
         public const string Operator = "operator";
         public const string PreprocessorKeyword = "preprocessor keyword";
