@@ -10251,7 +10251,10 @@ class C
             c.VerifyDiagnostics(
                 // (6,16): error CS0103: The name 'bad' does not exist in the current context
                 //         return bad;
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "bad").WithArguments("bad").WithLocation(6, 16)
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "bad").WithArguments("bad").WithLocation(6, 16),
+                // (6,16): warning CS8619: Nullability of reference types in value of type '?' doesn't match target type 'string'.
+                //         return bad;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "bad").WithArguments("?", "string").WithLocation(6, 16)
                 );
         }
 
@@ -28354,15 +28357,15 @@ class C
     }
 }";
             CreateCompilation(new[] { source }, options: WithNonNullTypesTrue()).VerifyDiagnostics(
-                // (6,22): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                // (6,22): warning CS8603: Possible null reference return.
                 //         yield return default; // 1
-                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default").WithLocation(6, 22),
+                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "default").WithLocation(6, 22),
                 // (10,22): warning CS8603: Possible null reference return.
                 //         yield return default; // 2
                 Diagnostic(ErrorCode.WRN_NullReferenceReturn, "default").WithLocation(10, 22),
-                // (14,22): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                // (14,22): warning CS8603: Possible null reference return.
                 //         yield return default; // 3
-                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default").WithLocation(14, 22)
+                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "default").WithLocation(14, 22)
                 );
         }
 
@@ -28380,7 +28383,44 @@ class C
             CreateCompilation(new[] { source }, options: WithNonNullTypesTrue()).VerifyDiagnostics(
                 // (6,22): error CS0103: The name 'bad' does not exist in the current context
                 //         yield return bad;
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "bad").WithArguments("bad").WithLocation(6, 22)
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "bad").WithArguments("bad").WithLocation(6, 22),
+                // (6,22): warning CS8619: Nullability of reference types in value of type '?' doesn't match target type 'string'.
+                //         yield return bad;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "bad").WithArguments("?", "string").WithLocation(6, 22)
+                );
+        }
+
+        [Fact]
+        public void Yield_IEnumerableT_ErrorValue2()
+        {
+            var source = @"
+static class C
+{
+    static System.Collections.Generic.IEnumerable<object> M(object? x)
+    {
+        yield return (C)x;
+    }
+    static System.Collections.Generic.IEnumerable<object?> M(object? y)
+    {
+        yield return (C?)y;
+    }
+}";
+            CreateCompilation(new[] { source }, options: WithNonNullTypesTrue()).VerifyDiagnostics(
+                // (6,22): error CS0716: Cannot convert to static type 'C'
+                //         yield return (C)x;
+                Diagnostic(ErrorCode.ERR_ConvertToStaticClass, "(C)x").WithArguments("C").WithLocation(6, 22),
+                // (6,22): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         yield return (C)x;
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(C)x").WithLocation(6, 22),
+                // (6,22): warning CS8603: Possible null reference return.
+                //         yield return (C)x;
+                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "(C)x").WithLocation(6, 22),
+                // (8,60): error CS0111: Type 'C' already defines a member called 'M' with the same parameter types
+                //     static System.Collections.Generic.IEnumerable<object?> M(object? y)
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "M").WithArguments("M", "C").WithLocation(8, 60),
+                // (10,22): error CS0716: Cannot convert to static type 'C'
+                //         yield return (C?)y;
+                Diagnostic(ErrorCode.ERR_ConvertToStaticClass, "(C?)y").WithArguments("C").WithLocation(10, 22)
                 );
         }
 
@@ -28396,6 +28436,9 @@ class C
     }
 }";
             CreateCompilation(new[] { source }, options: WithNonNullTypesTrue()).VerifyDiagnostics(
+                // (6,9): warning CS8619: Nullability of reference types in value of type '?' doesn't match target type 'string'.
+                //         yield return;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "yield return;").WithArguments("?", "string").WithLocation(6, 9),
                 // (6,15): error CS1627: Expression expected after yield return
                 //         yield return;
                 Diagnostic(ErrorCode.ERR_EmptyYield, "return").WithLocation(6, 15)

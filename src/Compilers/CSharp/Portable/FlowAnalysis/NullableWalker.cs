@@ -4622,8 +4622,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return ((NamedTypeSymbol)returnType).TypeArgumentsNoUseSiteDiagnostics[0];
                 }
 
-                Debug.Assert(false);
-                return default;
+                throw ExceptionUtilities.Unreachable;
             }
         }
 
