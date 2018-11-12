@@ -612,7 +612,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Reports top-level nullability problem in assignment.
         /// </summary>
-        private bool ReportNullableAssignmentIfNecessary(BoundExpression value, TypeSymbolWithAnnotations targetType, TypeSymbolWithAnnotations valueType, bool useLegacyWarnings, AssignmentKind assignmentKind = AssignmentKind.Assignment, Symbol target = null)
+        private bool ReportNullableAssignmentIfNecessary(BoundExpression value, TypeSymbolWithAnnotations valueType, TypeSymbolWithAnnotations targetType, bool useLegacyWarnings, AssignmentKind assignmentKind = AssignmentKind.Assignment, Symbol target = null)
         {
             Debug.Assert((object)target != null || assignmentKind != AssignmentKind.Argument);
 
@@ -730,7 +730,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 // Report top-level nullability issues
-                ReportNullableAssignmentIfNecessary(value, targetType, valueType, useLegacyWarnings, assignmentKind: AssignmentKind.Assignment);
+                ReportNullableAssignmentIfNecessary(value, valueType, targetType, useLegacyWarnings, assignmentKind: AssignmentKind.Assignment);
 
                 // Report nested nullability issues
                 var sourceType = valueType.TypeSymbol;
@@ -750,7 +750,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Update tracked value on assignment.
         /// </summary>
-        private void TrackNullableStateForAssignment(BoundExpression value, TypeSymbolWithAnnotations targetType, int targetSlot, TypeSymbolWithAnnotations valueType, int valueSlot = -1)
+        private void TrackNullableStateForAssignment(BoundExpression value, TypeSymbolWithAnnotations valueType, TypeSymbolWithAnnotations targetType, int targetSlot, int valueSlot = -1)
         {
             Debug.Assert(value != null);
             Debug.Assert(!IsConditionalState);
@@ -1059,7 +1059,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if ((object)variable != null)
                         {
                             _variableTypes[variable] = expressionResultType;
-                            TrackNullableStateForAssignment(expression, expressionResultType, GetOrCreateSlot(variable), expressionResultType);
+                            TrackNullableStateForAssignment(expression, expressionResultType, expressionResultType, GetOrCreateSlot(variable));
                         }
 
                         whenFalse = NullableAnnotation.NotNullable; // whenFalse is unreachable
@@ -1194,7 +1194,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 type = valueType;
             }
 
-            TrackNullableStateForAssignment(initializer, type, slot, valueType, MakeSlot(initializer));
+            TrackNullableStateForAssignment(initializer, valueType, type, slot, MakeSlot(initializer));
             return null;
         }
 
@@ -1343,7 +1343,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         var type = containingSymbol.GetTypeOrReturnType();
                         ReportAssignmentWarnings(node, type, resultType, useLegacyWarnings: false);
-                        TrackNullableStateForAssignment(node, type, containingSlot, resultType, MakeSlot(node));
+                        TrackNullableStateForAssignment(node, resultType, type, containingSlot, MakeSlot(node));
                     }
                     break;
             }
@@ -1439,7 +1439,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 TypeSymbolWithAnnotations propertyType = property.Type;
                 ReportAssignmentWarnings(argument, propertyType, argumentType, useLegacyWarnings: false);
-                TrackNullableStateForAssignment(argument, propertyType, GetOrCreateSlot(property, receiverSlot), argumentType, MakeSlot(argument));
+                TrackNullableStateForAssignment(argument, argumentType, propertyType, GetOrCreateSlot(property, receiverSlot), MakeSlot(argument));
             }
 
             // https://github.com/dotnet/roslyn/issues/24018 _result may need to be a new anonymous
@@ -1944,7 +1944,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var leftState = this.State.Clone();
 
             TypeSymbolWithAnnotations rightResult = VisitOptionalImplicitConversion(rightOperand, targetType, UseLegacyWarnings(leftOperand), AssignmentKind.Assignment);
-            TrackNullableStateForAssignment(rightOperand, targetType, leftSlot, rightResult, MakeSlot(rightOperand));
+            TrackNullableStateForAssignment(rightOperand, rightResult, targetType, leftSlot, MakeSlot(rightOperand));
             Join(ref this.State, ref leftState);
 
             TypeSymbolWithAnnotations resultType = GetNullCoalescingResultType(leftOperand, currentLeftType, rightOperand, rightResult, targetType.TypeSymbol);
@@ -2666,7 +2666,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _disableDiagnostics = true;
                 if (!node.HasErrors && !parameters.IsDefault)
                 {
-                    VisitArgumentConversions(arguments, conversions, refKindsOpt, parameters, argsToParamsOpt, expanded, invokedAsExtensionMethod, results); // recompute out vars after state was reset
+                    // recompute out vars after state was reset
+                    VisitArgumentConversions(arguments, conversions, refKindsOpt, parameters, argsToParamsOpt, expanded, invokedAsExtensionMethod, results);
                 }
                 VisitArgumentsEvaluateHonoringAnnotations(arguments, refKindsOpt, annotations);
 
@@ -2871,7 +2872,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbolWithAnnotations resultType,
             bool extensionMethodThisArgument)
         {
-            var argumentType = resultType.TypeSymbol;
             switch (refKind)
             {
                 case RefKind.None:
@@ -2891,75 +2891,59 @@ namespace Microsoft.CodeAnalysis.CSharp
                             extensionMethodThisArgument: extensionMethodThisArgument);
                     }
                     break;
+                case RefKind.Ref:
+                    {
+                        if (!argument.IsSuppressed)
+                        {
+                            if (!ReportNullableAssignmentIfNecessary(argument, resultType, parameterType,
+                                useLegacyWarnings: false, assignmentKind: AssignmentKind.Argument, target: parameter))
+                            {
+                                HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+                                if (!_conversions.HasIdentityOrImplicitReferenceConversion(resultType.TypeSymbol, parameterType.TypeSymbol, ref useSiteDiagnostics))
+                                {
+                                    ReportNullabilityMismatchInArgument(argument, resultType.TypeSymbol, parameter, parameterType.TypeSymbol, forOutput: false);
+                                }
+                            }
+                        }
+                    }
+                    goto case RefKind.Out;
                 case RefKind.Out:
                     {
                         if (argument is BoundLocal local && local.DeclarationKind == BoundLocalDeclarationKind.WithInferredType)
                         {
                             _variableTypes[local.LocalSymbol] = parameterType;
-                            resultType = parameterType;
                         }
 
-                        TypeSymbolWithAnnotations adjustedParameterType = adjustNullableAnnotationForNullabilityCheck(parameterType, resultType);
+                        // TODO2 we shouldn't be visiting the argument again
+                        VisitLvalue(argument);
+                        var lResultType = _resultType;
+                        var parameterValue = new BoundParameter(argument.Syntax, parameter);
 
-                        if (!ReportNullableAssignmentIfNecessary(argument, resultType, adjustedParameterType, useLegacyWarnings: UseLegacyWarnings(argument)))
-                        {
-                            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                            if (!_conversions.HasIdentityOrImplicitReferenceConversion(parameterType.TypeSymbol, argumentType, ref useSiteDiagnostics))
-                            {
-                                ReportNullabilityMismatchInArgument(argument, argumentType, parameter, parameterType.TypeSymbol);
-                            }
-                        }
-                        // Set nullable state of argument to parameter type.
-                        TrackNullableStateForAssignment(argument, resultType, MakeSlot(argument), parameterType);
-                        break;
-                    }
-                case RefKind.Ref:
-                    {
-                        bool reportedWarning = false;
                         if (!argument.IsSuppressed)
                         {
-                            // Effect of this call is likely not observable due to https://github.com/dotnet/roslyn/issues/30946.
-                            // See unit test NullabilityOfTypeParameters_080 for an attempt to see the effect.
-                            TypeSymbolWithAnnotations adjustedResultType = adjustNullableAnnotationForNullabilityCheck(resultType, parameterType);
+                            ReportNullableAssignmentIfNecessary(parameterValue, parameterType, lResultType, useLegacyWarnings: UseLegacyWarnings(argument));
 
-                            reportedWarning = ReportNullableAssignmentIfNecessary(argument, parameterType, adjustedResultType, useLegacyWarnings: false, assignmentKind: AssignmentKind.Argument, target: parameter);
-
-                            if (!reportedWarning)
+                            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+                            if (!_conversions.HasIdentityOrImplicitReferenceConversion(parameterType.TypeSymbol, lResultType.TypeSymbol, ref useSiteDiagnostics))
                             {
-                                TypeSymbolWithAnnotations adjustedParameterType = adjustNullableAnnotationForNullabilityCheck(parameterType, resultType);
-
-                                reportedWarning = ReportNullableAssignmentIfNecessary(argument, resultType, adjustedParameterType, useLegacyWarnings: UseLegacyWarnings(argument));
+                                ReportNullabilityMismatchInArgument(argument, lResultType.TypeSymbol, parameter, parameterType.TypeSymbol, forOutput: true);
                             }
                         }
-
-                        if (!reportedWarning)
+                        else
                         {
-                            if ((object)argumentType != null &&
-                                IsNullabilityMismatch(argumentType, parameterType.TypeSymbol))
-                            {
-                                ReportNullabilityMismatchInArgument(argument, argumentType, parameter, parameterType.TypeSymbol);
-                            }
+                            parameterType = parameterType.WithTopLevelNonNullability();
                         }
+
                         // Set nullable state of argument to parameter type.
-                        TrackNullableStateForAssignment(argument, resultType, MakeSlot(argument), parameterType);
-                        break;
+                        TrackNullableStateForAssignment(parameterValue, parameterType, lResultType, MakeSlot(argument));
                     }
+                    break;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(refKind);
             }
-
-            TypeSymbolWithAnnotations adjustNullableAnnotationForNullabilityCheck(TypeSymbolWithAnnotations sourceType, TypeSymbolWithAnnotations destinationType)
-            {
-                if (sourceType.IsPossiblyNullableReferenceTypeTypeParameter() && !destinationType.IsPossiblyNullableReferenceTypeTypeParameter())
-                {
-                    return TypeSymbolWithAnnotations.Create(sourceType.TypeSymbol, NullableAnnotation.Nullable);
-                }
-
-                return sourceType;
-            }
         }
 
-        private static (ImmutableArray<BoundExpression> Arguments, ImmutableArray<Conversion> Conversions) RemoveArgumentConversions(
+        private static (ImmutableArray<BoundExpression> arguments, ImmutableArray<Conversion> conversions) RemoveArgumentConversions(
             ImmutableArray<BoundExpression> arguments,
             ImmutableArray<RefKind> refKindsOpt)
         {
@@ -3561,7 +3545,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             void trackState(BoundExpression value, FieldSymbol field, TypeSymbolWithAnnotations valueType) =>
-                TrackNullableStateForAssignment(value, field.Type, GetOrCreateSlot(field, slot), valueType, MakeSlot(value));
+                TrackNullableStateForAssignment(value, valueType, field.Type, GetOrCreateSlot(field, slot), MakeSlot(value));
         }
 
         private void TrackNullableStateOfNullableValue(int containingSlot, TypeSymbol containingType, BoundExpression value, TypeSymbolWithAnnotations valueType, int valueSlot)
@@ -3574,7 +3558,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(targetSlot > 0);
             if (targetSlot > 0)
             {
-                TrackNullableStateForAssignment(value, symbol.GetTypeOrReturnType(), targetSlot, valueType, valueSlot);
+                TrackNullableStateForAssignment(value, valueType, symbol.GetTypeOrReturnType(), targetSlot, valueSlot);
             }
         }
 
@@ -4053,13 +4037,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Need to report all warnings that apply since the warnings can be suppressed individually.
                 if (reportTopLevelWarnings)
                 {
-                    ReportNullableAssignmentIfNecessary(node, targetTypeWithNullability, resultType, useLegacyWarnings: useLegacyWarnings, assignmentKind, target);
+                    ReportNullableAssignmentIfNecessary(node, resultType, targetTypeWithNullability, useLegacyWarnings: useLegacyWarnings, assignmentKind: assignmentKind, target: target);
                 }
                 if (reportRemainingWarnings && !canConvertNestedNullability)
                 {
                     if (assignmentKind == AssignmentKind.Argument)
                     {
-                        ReportNullabilityMismatchInArgument(node, operandType.TypeSymbol, target, targetType);
+                        ReportNullabilityMismatchInArgument(node, operandType.TypeSymbol, target, targetType, forOutput: false);
                     }
                     else
                     {
@@ -4086,7 +4070,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (assignmentKind == AssignmentKind.Argument)
                 {
-                    ReportNullabilityMismatchInArgument(node, operandType.TypeSymbol, target, targetType.TypeSymbol);
+                    ReportNullabilityMismatchInArgument(node, operandType.TypeSymbol, target, targetType.TypeSymbol, forOutput: false);
                 }
                 else
                 {
@@ -4223,7 +4207,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 TypeSymbolWithAnnotations rightType = VisitOptionalImplicitConversion(right, leftType, UseLegacyWarnings(left), AssignmentKind.Assignment);
-                TrackNullableStateForAssignment(right, leftType, MakeSlot(left), rightType, MakeSlot(right));
+                TrackNullableStateForAssignment(right, rightType, leftType, MakeSlot(left), MakeSlot(right));
                 // https://github.com/dotnet/roslyn/issues/30066 Check node.Type.IsErrorType() instead?
                 _resultType = node.HasErrors ? TypeSymbolWithAnnotations.Create(node.Type) : rightType;
             }
@@ -4552,7 +4536,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     _resultType = (op == UnaryOperatorKind.PrefixIncrement || op == UnaryOperatorKind.PrefixDecrement) ? resultOfIncrementType : operandType;
                     setResult = true;
 
-                    TrackNullableStateForAssignment(node, operandType, MakeSlot(node.Operand), valueType: resultOfIncrementType);
+                    TrackNullableStateForAssignment(node, valueType: resultOfIncrementType, targetType: operandType, targetSlot: MakeSlot(node.Operand));
                 }
             }
 
@@ -4626,7 +4610,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     resultType = TypeSymbolWithAnnotations.Create(node.Type);
                 }
 
-                TrackNullableStateForAssignment(node, leftType, MakeSlot(node.Left), resultType);
+                TrackNullableStateForAssignment(node, resultType, leftType, MakeSlot(node.Left));
                 _resultType = resultType;
             }
             //else
@@ -4661,11 +4645,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void ReportArgumentWarnings(BoundExpression argument, TypeSymbolWithAnnotations argumentType, ParameterSymbol parameter)
         {
             var paramType = parameter.Type;
-            ReportNullableAssignmentIfNecessary(argument, paramType, argumentType, useLegacyWarnings: false, assignmentKind: AssignmentKind.Argument, target: parameter);
+            ReportNullableAssignmentIfNecessary(argument, argumentType, paramType, useLegacyWarnings: false, assignmentKind: AssignmentKind.Argument, target: parameter);
 
             if (!argumentType.IsNull && IsNullabilityMismatch(paramType.TypeSymbol, argumentType.TypeSymbol))
             {
-                ReportNullabilityMismatchInArgument(argument, argumentType.TypeSymbol, parameter, paramType.TypeSymbol);
+                ReportNullabilityMismatchInArgument(argument, argumentType.TypeSymbol, parameter, paramType.TypeSymbol, forOutput: false);
             }
         }
 
@@ -4673,9 +4657,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Report warning passing argument where nested nullability does not match
         /// parameter (e.g.: calling `void F(object[] o)` with `F(new[] { maybeNull })`).
         /// </summary>
-        private void ReportNullabilityMismatchInArgument(BoundExpression argument, TypeSymbol argumentType, ParameterSymbol parameter, TypeSymbol parameterType)
+        private void ReportNullabilityMismatchInArgument(BoundExpression argument, TypeSymbol argumentType, ParameterSymbol parameter, TypeSymbol parameterType, bool forOutput)
         {
-            ReportSafetyDiagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, argument.Syntax, argumentType, parameterType,
+            ReportSafetyDiagnostic(forOutput ? ErrorCode.WRN_NullabilityMismatchInArgumentForOutput : ErrorCode.WRN_NullabilityMismatchInArgument,
+                argument.Syntax, argumentType, parameterType,
                 new FormattedSymbol(parameter, SymbolDisplayFormat.ShortFormat),
                 new FormattedSymbol(parameter.ContainingSymbol, SymbolDisplayFormat.MinimallyQualifiedFormat));
         }
