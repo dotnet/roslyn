@@ -105,6 +105,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return token.IsKeyword()
         End Function
 
+        Public Function IsReservedKeyword(text As String) As Boolean Implements ISyntaxFactsService.IsReservedKeyword
+            Return GetKeywordKind(text) <> SyntaxKind.None
+        End Function
+
         Public Function IsPreprocessorKeyword(token As SyntaxToken) As Boolean Implements ISyntaxFactsService.IsPreprocessorKeyword
             Return token.IsPreprocessorKeyword()
         End Function

@@ -724,11 +724,29 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Change namespace to &apos;{0}&apos;.
+        /// </summary>
+        internal static string Change_namespace_to_0 {
+            get {
+                return ResourceManager.GetString("Change_namespace_to_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Change signature....
         /// </summary>
         internal static string Change_signature {
             get {
                 return ResourceManager.GetString("Change_signature", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Change to global namespace.
+        /// </summary>
+        internal static string Change_to_global_namespace {
+            get {
+                return ResourceManager.GetString("Change_to_global_namespace", resourceCulture);
             }
         }
         
@@ -2455,6 +2473,24 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Move file to &apos;{0}&apos; folder.
+        /// </summary>
+        internal static string Move_file_to_0_folder {
+            get {
+                return ResourceManager.GetString("Move_file_to_0_folder", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Move file to project root folder.
+        /// </summary>
+        internal static string Move_file_to_project_root_folder {
+            get {
+                return ResourceManager.GetString("Move_file_to_project_root_folder", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Move type to {0}.
         /// </summary>
         internal static string Move_type_to_0 {
@@ -4102,6 +4138,16 @@ namespace Microsoft.CodeAnalysis {
         internal static string Variadic_SignatureHelpItem_must_have_at_least_one_parameter {
             get {
                 return ResourceManager.GetString("Variadic_SignatureHelpItem_must_have_at_least_one_parameter", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Warning: Changing namespace may produce invalid code and change code meaning..
+        /// </summary>
+        internal static string Warning_colon_changing_namespace_may_produce_invalid_code_and_change_code_meaning {
+            get {
+                return ResourceManager.GetString("Warning_colon_changing_namespace_may_produce_invalid_code_and_change_code_meaning" +
+                        "", resourceCulture);
             }
         }
         

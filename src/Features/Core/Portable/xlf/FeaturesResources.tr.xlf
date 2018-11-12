@@ -32,6 +32,16 @@
         <target state="new">Adding a method with an explicit interface specifier will prevent the debug session from continuing.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Change_namespace_to_0">
+        <source>Change namespace to '{0}'</source>
+        <target state="new">Change namespace to '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Change_to_global_namespace">
+        <source>Change to global namespace</source>
+        <target state="new">Change to global namespace</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Code_Quality">
         <source>Code Quality</source>
         <target state="new">Code Quality</target>
@@ -85,6 +95,16 @@
       <trans-unit id="Formatting_document">
         <source>Formatting document</source>
         <target state="translated">Belge biçimlendiriliyor</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Move_file_to_0_folder">
+        <source>Move file to '{0}' folder</source>
+        <target state="new">Move file to '{0}' folder</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Move_file_to_project_root_folder">
+        <source>Move file to project root folder</source>
+        <target state="new">Move file to project root folder</target>
         <note />
       </trans-unit>
       <trans-unit id="Indexing_can_be_simplified">
@@ -180,6 +200,11 @@
       <trans-unit id="Use_interpolated_verbatim_string">
         <source>Use interpolated verbatim string</source>
         <target state="new">Use interpolated verbatim string</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Warning_colon_changing_namespace_may_produce_invalid_code_and_change_code_meaning">
+        <source>Warning: Changing namespace may produce invalid code and change code meaning.</source>
+        <target state="new">Warning: Changing namespace may produce invalid code and change code meaning.</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_range_operator">
