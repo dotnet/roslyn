@@ -2005,7 +2005,8 @@ namespace Microsoft.CodeAnalysis.Operations
             ITypeSymbol type = null;
             Optional<object> constantValue = default(Optional<object>);
             bool isImplicit = boundPatternSwitchStatement.WasCompilerGenerated;
-            return new LazySwitchStatement(locals, value, cases, exitLabel, _semanticModel, syntax, type, constantValue, isImplicit);
+            bool wasPatternSwitch = boundPatternSwitchStatement.Expression.Type?.IsValidV6SwitchGoverningType() == false;
+            return new LazySwitchStatement(locals, value, cases, exitLabel, wasPatternSwitch, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private ICaseClauseOperation CreateBoundPatternSwitchLabelOperation(BoundPatternSwitchLabel boundPatternSwitchLabel)

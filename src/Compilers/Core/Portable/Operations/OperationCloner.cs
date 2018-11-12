@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
         public override IOperation VisitSwitch(ISwitchOperation operation, object argument)
         {
-            return new SwitchStatement(operation.Locals, Visit(operation.Value), VisitArray(operation.Cases), operation.ExitLabel, ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+            return new SwitchStatement(operation.Locals, Visit(operation.Value), VisitArray(operation.Cases), operation.ExitLabel, ((BaseSwitchStatement)operation).PatternMatchingOnly, ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
         public override IOperation VisitSwitchCase(ISwitchCaseOperation operation, object argument)

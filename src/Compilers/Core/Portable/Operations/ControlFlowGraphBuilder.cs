@@ -4881,6 +4881,7 @@ oneMoreTime:
 
             INamedTypeSymbol booleanType = _compilation.GetSpecialType(SpecialType.System_Boolean);
             IOperation switchValue = VisitAndCapture(operation.Value);
+            bool patternMatchingOnly = ((BaseSwitchStatement)operation).PatternMatchingOnly;
 
             ImmutableArray<ILocalSymbol> locals = getLocals();
             var switchRegion = new RegionBuilder(ControlFlowRegionKind.LocalLifetime, locals: locals);
@@ -4961,48 +4962,58 @@ oneMoreTime:
                 switch (caseClause.CaseKind)
                 {
                     case CaseKind.SingleValue:
-                        handleEqualityCheck(((ISingleValueCaseClauseOperation)caseClause).Value);
+                            handleEqualityCheck(((ISingleValueCaseClauseOperation)caseClause).Value);
                         break;
 
                         void handleEqualityCheck(IOperation compareWith)
                         {
-                            bool leftIsNullable = ITypeSymbolHelpers.IsNullableType(operation.Value.Type);
-                            bool rightIsNullable = ITypeSymbolHelpers.IsNullableType(compareWith.Type);
-                            bool isLifted = leftIsNullable || rightIsNullable;
-
                             EvalStackFrame frame = PushStackFrame();
                             PushOperand(OperationCloner.CloneOperation(switchValue));
                             IOperation rightOperand = Visit(compareWith);
                             IOperation leftOperand = PopOperand();
 
-                            if (isLifted)
+                            if (patternMatchingOnly)
                             {
-                                if (!leftIsNullable)
+                                var pattern = (IPatternOperation)new ConstantPattern(rightOperand, semanticModel: null,
+                                    compareWith.Syntax, compareWith.Type, compareWith.ConstantValue, isImplicit: true);
+                                condition = new IsPatternExpression(leftOperand, pattern, semanticModel: null,
+                                                                    compareWith.Syntax, booleanType, constantValue: default, isImplicit: true);
+                            }
+                            else
+                            {
+                                bool leftIsNullable = ITypeSymbolHelpers.IsNullableType(operation.Value.Type);
+                                bool rightIsNullable = ITypeSymbolHelpers.IsNullableType(compareWith.Type);
+                                bool isLifted = leftIsNullable || rightIsNullable;
+
+                                if (isLifted)
                                 {
-                                    if (leftOperand.Type != null)
+                                    if (!leftIsNullable)
                                     {
-                                        leftOperand = MakeNullable(leftOperand, compareWith.Type);
+                                        if (leftOperand.Type != null)
+                                        {
+                                            leftOperand = MakeNullable(leftOperand, compareWith.Type);
+                                        }
+                                    }
+                                    else if (!rightIsNullable && rightOperand.Type != null)
+                                    {
+                                        rightOperand = MakeNullable(rightOperand, operation.Value.Type);
                                     }
                                 }
-                                else if (!rightIsNullable && rightOperand.Type != null)
-                                {
-                                    rightOperand = MakeNullable(rightOperand, operation.Value.Type);
-                                }
-                            }
 
-                            condition = new BinaryOperatorExpression(BinaryOperatorKind.Equals,
-                                                                     leftOperand,
-                                                                     rightOperand,
-                                                                     isLifted,
-                                                                     isChecked: false,
-                                                                     isCompareText: false,
-                                                                     operatorMethod: null,
-                                                                     unaryOperatorMethod: null,
-                                                                     semanticModel: null,
-                                                                     compareWith.Syntax,
-                                                                     booleanType,
-                                                                     constantValue: default,
-                                                                     isImplicit: true);
+                                condition = new BinaryOperatorExpression(BinaryOperatorKind.Equals,
+                                                                         leftOperand,
+                                                                         rightOperand,
+                                                                         isLifted,
+                                                                         isChecked: false,
+                                                                         isCompareText: false,
+                                                                         operatorMethod: null,
+                                                                         unaryOperatorMethod: null,
+                                                                         semanticModel: null,
+                                                                         compareWith.Syntax,
+                                                                         booleanType,
+                                                                         constantValue: default,
+                                                                         isImplicit: true);
+                            }
 
                             condition = Operation.SetParentOperation(condition, null);
                             LinkBlocks(CurrentBasicBlock, condition, jumpIfTrue: false, RegularBranch(nextCase));
