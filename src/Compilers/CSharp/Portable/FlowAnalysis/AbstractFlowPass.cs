@@ -66,13 +66,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             // use this state to resolve all the branches introduced and internal to try/catch
             var pendingBeforeTry = SavePending(); 
 
-            VisitTryBlock0(node.TryBlock, node, ref initialState);
+            VisitTryBlockWithUnassignments(node.TryBlock, node, ref initialState);
             var finallyState = initialState.Clone();
             var endState = this.State;
             foreach (var catchBlock in node.CatchBlocks)
             {
                 SetState(initialState.Clone());
-                VisitCatchBlock0(catchBlock, ref finallyState);
+                VisitCatchBlockWithUnassignments(catchBlock, ref finallyState);
                 IntersectWith(ref endState, ref this.State);
             }
 
@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // we will need pending branches as they were before finally later
                 var tryAndCatchPending = SavePending();
                 var unsetInFinally = AllBitsSet();
-                VisitFinallyBlock0(node.FinallyBlockOpt, ref unsetInFinally);
+                VisitFinallyBlockWithUnassignments(node.FinallyBlockOpt, ref unsetInFinally);
                 foreach (var pend in tryAndCatchPending.PendingBranches)
                 {
                     if (pend.Branch == null) continue; // a tracked exception
@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected Optional<TLocalState> _tryState;
 
-        private void VisitTryBlock0(BoundStatement tryBlock, BoundTryStatement node, ref TLocalState tryState)
+        private void VisitTryBlockWithUnassignments(BoundStatement tryBlock, BoundTryStatement node, ref TLocalState tryState)
         {
             if (trackUnassignments)
             {
@@ -145,7 +145,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private void VisitCatchBlock0(BoundCatchBlock catchBlock, ref TLocalState finallyState)
+        private void VisitCatchBlockWithUnassignments(BoundCatchBlock catchBlock, ref TLocalState finallyState)
         {
             if (trackUnassignments)
             {
@@ -169,7 +169,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private void VisitFinallyBlock0(BoundStatement finallyBlock, ref TLocalState unsetInFinally)
+        private void VisitFinallyBlockWithUnassignments(BoundStatement finallyBlock, ref TLocalState unsetInFinally)
         {
             if (trackUnassignments)
             {

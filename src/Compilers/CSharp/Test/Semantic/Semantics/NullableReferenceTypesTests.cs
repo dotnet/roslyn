@@ -56032,6 +56032,38 @@ class Program
         }
 
         [Fact, WorkItem(30561, "https://github.com/dotnet/roslyn/issues/30561")]
+        public void SetNullableStateInFinally_02b()
+        {
+            var source =
+@"public static class Program
+{
+    public static int Main()
+    {
+        string? s = string.Empty;
+        try
+        {
+            // s = null;
+            MayThrow();
+            s = string.Empty;
+        }
+        catch (System.Exception)
+        {
+        }
+
+        return s.Length; // ok
+    }
+    static void MayThrow()
+    {
+        throw null;
+    }
+}
+";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                );
+        }
+
+        [Fact, WorkItem(30561, "https://github.com/dotnet/roslyn/issues/30561")]
         public void SetNullableStateInFinally_03()
         {
             var source =
