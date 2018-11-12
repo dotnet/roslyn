@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.BuildTasks;
 using Xunit;
 using Moq;
 using System.IO;
+using Roslyn.Test.Utilities;
 
 namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
 {
@@ -348,6 +349,14 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             csc.Sources = MSBuildUtil.CreateTaskItems("test.cs");
             csc.NullableReferenceTypes = false;
             Assert.Equal("/nullable- /out:test.exe test.cs", csc.GenerateResponseFileContents());
+        }
+        
+        [Fact, WorkItem(29252, "https://github.com/dotnet/roslyn/issues/29252")]
+        public void DisableSdkPath()
+        {
+            var csc = new Csc();
+            csc.DisableSdkPath = true;
+            Assert.Equal(@"/nosdkpath", csc.GenerateResponseFileContents());
         }
 
         [Fact]
