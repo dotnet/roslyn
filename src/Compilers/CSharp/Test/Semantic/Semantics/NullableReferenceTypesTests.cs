@@ -56032,38 +56032,6 @@ class Program
         }
 
         [Fact, WorkItem(30561, "https://github.com/dotnet/roslyn/issues/30561")]
-        public void SetNullableStateInFinally_02b()
-        {
-            var source =
-@"public static class Program
-{
-    public static int Main()
-    {
-        string? s = string.Empty;
-        try
-        {
-            // s = null;
-            MayThrow();
-            s = string.Empty;
-        }
-        catch (System.Exception)
-        {
-        }
-
-        return s.Length; // ok
-    }
-    static void MayThrow()
-    {
-        throw null;
-    }
-}
-";
-            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
-            comp.VerifyDiagnostics(
-                );
-        }
-
-        [Fact, WorkItem(30561, "https://github.com/dotnet/roslyn/issues/30561")]
         public void SetNullableStateInFinally_03()
         {
             var source =
@@ -56113,6 +56081,49 @@ class Program
             s = null;
             MayThrow();
             s = string.Empty;
+        }
+        catch (System.Exception)
+        {
+            _ = s.Length; // warning 1
+        }
+        finally
+        {
+            _ = s.Length; // warning 2
+        }
+
+        return s.Length; // ok (previously dereferenced)
+    }
+    static void MayThrow()
+    {
+        throw null;
+    }
+}
+";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (14,17): warning CS8602: Possible dereference of a null reference.
+                //             _ = s.Length; // warning 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(14, 17),
+                // (18,17): warning CS8602: Possible dereference of a null reference.
+                //             _ = s.Length; // warning 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(18, 17)
+                );
+        }
+
+        [Fact, WorkItem(30561, "https://github.com/dotnet/roslyn/issues/30561")]
+        public void SetNullableStateInFinally_04b()
+        {
+            var source =
+@"public static class Program
+{
+    public static int Main()
+    {
+        string? s = null;
+        try
+        {
+            MayThrow();
+            s = string.Empty;
+            _ = s.Length; // ok
         }
         catch (System.Exception)
         {
