@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
                 return SyntaxFactory.BinaryExpression(
                     SyntaxKind.AddExpression,
                     leftExpression,
-                    GetPlusToken(),
+                    PlusNewLineToken,
                     rightExpression.WithAdditionalAnnotations(RightNodeAnnotation));
             }
 

@@ -16,6 +16,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
         {
             protected static readonly SyntaxAnnotation RightNodeAnnotation = new SyntaxAnnotation();
 
+            protected static readonly SyntaxToken PlusNewLineToken = SyntaxFactory.Token(
+                leading: default,
+                SyntaxKind.PlusToken,
+                SyntaxFactory.TriviaList(SyntaxFactory.ElasticCarriageReturnLineFeed));
+
             protected readonly Document Document;
             protected readonly int CursorPosition;
             protected readonly SourceText SourceText;
@@ -123,14 +128,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
                 workspace.TryApplyChanges(newDocument.Project.Solution);
 
                 return finalCaretPosition;
-            }
-
-            protected static SyntaxToken GetPlusToken()
-            {
-                return SyntaxFactory.Token(
-                    default(SyntaxTriviaList),
-                    SyntaxKind.PlusToken,
-                    SyntaxFactory.TriviaList(SyntaxFactory.ElasticCarriageReturnLineFeed));
             }
 
             private (Document document, int caretPosition) SplitString()
