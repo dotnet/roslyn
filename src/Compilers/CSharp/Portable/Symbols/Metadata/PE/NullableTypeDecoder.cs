@@ -16,21 +16,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         internal static TypeSymbolWithAnnotations TransformType(
             TypeSymbolWithAnnotations metadataType,
             EntityHandle targetSymbolToken,
-            PEModuleSymbol containingModule)
+            PEModuleSymbol containingModule,
+            INonNullTypesContext nonNullTypesContext)
         {
             Debug.Assert(!metadataType.IsNull);
 
             ImmutableArray<bool> nullableTransformFlags;
             containingModule.Module.HasNullableAttribute(targetSymbolToken, out nullableTransformFlags);
 
-            return TransformType(metadataType, nullableTransformFlags);
+            return TransformType(metadataType, nullableTransformFlags, nonNullTypesContext);
         }
 
-        internal static TypeSymbolWithAnnotations TransformType(TypeSymbolWithAnnotations metadataType, ImmutableArray<bool> nullableTransformFlags)
+        internal static TypeSymbolWithAnnotations TransformType(TypeSymbolWithAnnotations metadataType, ImmutableArray<bool> nullableTransformFlags, INonNullTypesContext nonNullTypesContext)
         {
             int position = 0;
             TypeSymbolWithAnnotations result;
-            if (metadataType.ApplyNullableTransforms(nullableTransformFlags, metadataType.NonNullTypesContext, ref position, out result) &&
+            if (metadataType.ApplyNullableTransforms(nullableTransformFlags, nonNullTypesContext, ref position, out result) &&
                 (nullableTransformFlags.IsDefault || position == nullableTransformFlags.Length))
             {
                 return result;
@@ -45,15 +46,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             TypeSymbolWithAnnotations metadataType,
             EntityHandle targetSymbolToken,
             PEModuleSymbol containingModule,
+            INonNullTypesContext nonNullTypesContext,
             ImmutableArray<bool> extraAnnotations)
         {
             if (extraAnnotations.IsDefault)
             {
-                return NullableTypeDecoder.TransformType(metadataType, targetSymbolToken, containingModule);
+                return NullableTypeDecoder.TransformType(metadataType, targetSymbolToken, containingModule, nonNullTypesContext);
             }
             else
             {
-                return NullableTypeDecoder.TransformType(metadataType, extraAnnotations).WithNonNullTypesContext(NonNullTypesTrueContext.Instance);
+                return NullableTypeDecoder.TransformType(metadataType, extraAnnotations, NonNullTypesTrueContext.Instance);
             }
         }
     }

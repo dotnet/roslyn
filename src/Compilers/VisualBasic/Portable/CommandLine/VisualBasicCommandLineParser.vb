@@ -578,6 +578,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             sdkPaths.AddRange(ParseSeparatedPaths(value))
                             Continue For
 
+                        Case "nosdkpath"
+                            sdkDirectory = Nothing
+                            sdkPaths.Clear()
+                            Continue For
+
                         Case "instrument"
                             value = RemoveQuotesAndSlashes(value)
                             If String.IsNullOrEmpty(value) Then
