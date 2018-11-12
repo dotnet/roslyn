@@ -124,7 +124,7 @@
       </trans-unit>
       <trans-unit id="Modifying_source_file_will_prevent_the_debug_session_from_continuing_due_to_internal_error">
         <source>Modifying source file {0} will prevent the debug session from continuing due to internal error: {1}.</source>
-        <target state="new">Modifying source file {0} will prevent the debug session from continuing due to internal error: {1}.</target>
+        <target state="translated">ソース ファイル {0} を変更すると、次の内部エラーが原因でデバッグ セッションを続行できなくなります: {1}。</target>
         <note />
       </trans-unit>
       <trans-unit id="Invert_conditional">

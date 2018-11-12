@@ -2780,7 +2780,7 @@ System.Console.WriteLine(true)";
         public void ParseElseWithoutPrecedingIfStatement()
         {
             UsingStatement("else {}",
-                // (1,1): error CS8640: 'else' cannot start a statement.
+                // (1,1): error CS8641: 'else' cannot start a statement.
                 // else {}
                 Diagnostic(ErrorCode.ERR_ElseCannotStartStatement, "else").WithLocation(1, 1),
                 // (1,1): error CS1003: Syntax error, '(' expected
@@ -2834,7 +2834,7 @@ System.Console.WriteLine(true)";
         public void ParseElseAndElseWithoutPrecedingIfStatement()
         {
             UsingStatement("{ else {} else {} }",
-                // (1,3): error CS8640: 'else' cannot start a statement.
+                // (1,3): error CS8641: 'else' cannot start a statement.
                 // { else {} else {} }
                 Diagnostic(ErrorCode.ERR_ElseCannotStartStatement, "else").WithLocation(1, 3),
                 // (1,3): error CS1003: Syntax error, '(' expected
@@ -2852,7 +2852,7 @@ System.Console.WriteLine(true)";
                 // (1,3): error CS1002: ; expected
                 // { else {} else {} }
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "else").WithLocation(1, 3),
-                // (1,11): error CS8640: 'else' cannot start a statement.
+                // (1,11): error CS8641: 'else' cannot start a statement.
                 // { else {} else {} }
                 Diagnostic(ErrorCode.ERR_ElseCannotStartStatement, "else").WithLocation(1, 11),
                 // (1,11): error CS1003: Syntax error, '(' expected
@@ -2938,7 +2938,7 @@ System.Console.WriteLine(true)";
         public void ParseSubsequentElseWithoutPrecedingIfStatement()
         {
             UsingStatement("{ if (a) { } else { } else { } }",
-                // (1,23): error CS8640: 'else' cannot start a statement.
+                // (1,23): error CS8641: 'else' cannot start a statement.
                 // { if (a) { } else { } else { } }
                 Diagnostic(ErrorCode.ERR_ElseCannotStartStatement, "else").WithLocation(1, 23),
                 // (1,23): error CS1003: Syntax error, '(' expected
@@ -3021,7 +3021,7 @@ System.Console.WriteLine(true)";
         public void ParseElseKeywordPlacedAsIfEmbeddedStatement()
         {
             UsingStatement("if (a) else {}",
-                // (1,8): error CS8640: 'else' cannot start a statement.
+                // (1,8): error CS8641: 'else' cannot start a statement.
                 // if (a) else {}
                 Diagnostic(ErrorCode.ERR_ElseCannotStartStatement, "else").WithLocation(1, 8),
                 // (1,8): error CS1003: Syntax error, '(' expected

@@ -58,6 +58,10 @@ async IAsyncEnumerable<int> GetValuesFromServer()
 
 **open issue**: Design async LINQ
 
+### Detailed design for `await using` statement
+
+An asynchronous `using` is lowered just like a regular `using`, except that `Dispose()` is replaced with `await DisposeAsync()`.
+
 ### Detailed design for `await foreach` statement
 
 An `await foreach` is lowered just like a regular `foreach`, except that:

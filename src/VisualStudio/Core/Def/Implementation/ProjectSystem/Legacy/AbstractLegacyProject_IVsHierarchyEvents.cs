@@ -67,9 +67,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
                  propid == (int)__VSHPROPID.VSHPROPID_Name) &&
                 itemid == (uint)VSConstants.VSITEMID.Root)
             {
-                var filePath = Hierarchy.GetProjectFilePath();
+                var filePath = Hierarchy.TryGetProjectFilePath();
 
-                if (File.Exists(filePath))
+                if (filePath != null && File.Exists(filePath))
                 {
                     VisualStudioProject.FilePath = filePath;
                 }

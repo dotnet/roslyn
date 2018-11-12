@@ -922,7 +922,7 @@ IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: '/*<bind>
                   OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
-                // file.cs(7,6): error CS8640: 'else' cannot start a statement.
+                // file.cs(7,6): error CS8641: 'else' cannot start a statement.
                 //     {
                 Diagnostic(ErrorCode.ERR_ElseCannotStartStatement, "").WithLocation(7, 6),
                 // file.cs(7,6): error CS1003: Syntax error, '(' expected
@@ -1027,7 +1027,7 @@ IBlockOperation (2 statements) (OperationKind.Block, Type: null, IsInvalid) (Syn
                     OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
-                // file.cs(20,14): error CS8640: 'else' cannot start a statement.
+                // file.cs(20,14): error CS8641: 'else' cannot start a statement.
                 //             }
                 Diagnostic(ErrorCode.ERR_ElseCannotStartStatement, "").WithLocation(20, 14),
                 // file.cs(20,14): error CS1003: Syntax error, '(' expected
@@ -1099,7 +1099,7 @@ IConditionalOperation (OperationKind.Conditional, Type: null, IsInvalid) (Syntax
     null
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
-                // file.cs(12,28): error CS8640: 'else' cannot start a statement.
+                // file.cs(12,28): error CS8641: 'else' cannot start a statement.
                 //         /*<bind>*/if (flag)
                 Diagnostic(ErrorCode.ERR_ElseCannotStartStatement, "").WithLocation(12, 28),
                 // file.cs(12,28): error CS1003: Syntax error, '(' expected
@@ -1181,7 +1181,7 @@ IBlockOperation (2 statements) (OperationKind.Block, Type: null, IsInvalid) (Syn
               Arguments(0)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
-                // file.cs(12,20): error CS8640: 'else' cannot start a statement.
+                // file.cs(12,20): error CS8641: 'else' cannot start a statement.
                 //         /*<bind>*/{
                 Diagnostic(ErrorCode.ERR_ElseCannotStartStatement, "").WithLocation(12, 20),
                 // file.cs(12,20): error CS1003: Syntax error, '(' expected
@@ -1199,7 +1199,7 @@ IBlockOperation (2 statements) (OperationKind.Block, Type: null, IsInvalid) (Syn
                 // file.cs(12,20): error CS1002: ; expected
                 //         /*<bind>*/{
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(12, 20),
-                // file.cs(15,14): error CS8640: 'else' cannot start a statement.
+                // file.cs(15,14): error CS8641: 'else' cannot start a statement.
                 //             }
                 Diagnostic(ErrorCode.ERR_ElseCannotStartStatement, "").WithLocation(15, 14),
                 // file.cs(15,14): error CS1003: Syntax error, '(' expected
@@ -1386,7 +1386,7 @@ IConditionalOperation (OperationKind.Conditional, Type: null, IsInvalid) (Syntax
     null
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
-                // file.cs(10,30): error CS8640: 'else' cannot start a statement.
+                // file.cs(10,30): error CS8641: 'else' cannot start a statement.
                 //         /*<bind>*/if (a == 1)
                 Diagnostic(ErrorCode.ERR_ElseCannotStartStatement, "").WithLocation(10, 30),
                 // file.cs(10,30): error CS1003: Syntax error, '(' expected

@@ -124,7 +124,7 @@
       </trans-unit>
       <trans-unit id="Modifying_source_file_will_prevent_the_debug_session_from_continuing_due_to_internal_error">
         <source>Modifying source file {0} will prevent the debug session from continuing due to internal error: {1}.</source>
-        <target state="new">Modifying source file {0} will prevent the debug session from continuing due to internal error: {1}.</target>
+        <target state="translated">A modificação do arquivo de origem {0} impedirá que a sessão de depuração continue, devido a um erro interno: {1}.</target>
         <note />
       </trans-unit>
       <trans-unit id="Invert_conditional">
@@ -1180,7 +1180,7 @@ Deseja continuar?</target>
       </trans-unit>
       <trans-unit id="Note_colon_Tab_twice_to_insert_the_0_snippet">
         <source>Note: Tab twice to insert the '{0}' snippet.</source>
-        <target state="translated">Observação: pressione Tab duas vezes para inserir o trecho '{0}'.</target>
+        <target state="translated">Observação: pressione Tab duas vezes para inserir o snippet '{0}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="Implement_interface_explicitly_with_Dispose_pattern">
@@ -1767,7 +1767,7 @@ Essa versão é usada no: {2}</target>
       </trans-unit>
       <trans-unit id="Snippets">
         <source>Snippets</source>
-        <target state="translated">Trechos</target>
+        <target state="translated">Snippets</target>
         <note />
       </trans-unit>
       <trans-unit id="All_lowercase">
