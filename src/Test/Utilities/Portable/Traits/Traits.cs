@@ -91,6 +91,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string CodeActionsInsertBraces = "CodeActions.InsertBraces";
             public const string CodeActionsInsertMissingCast = "CodeActions.InsertMissingCast";
             public const string CodeActionsInsertMissingTokens = "CodeActions.InsertMissingTokens";
+            public const string CodeActionsIntroduceUsingStatement = "CodeActions.IntroduceUsingStatement";
             public const string CodeActionsIntroduceVariable = "CodeActions.IntroduceVariable";
             public const string CodeActionsInvertConditional = "CodeActions.InvertConditional";
             public const string CodeActionsInvertIf = "CodeActions.InvertIf";
@@ -106,6 +107,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string CodeActionsOrderModifiers = "CodeActions.OrderModifiers";
             public const string CodeActionsPopulateSwitch = "CodeActions.PopulateSwitch";
             public const string CodeActionsQualifyMemberAccess = "CodeActions.QualifyMemberAccess";
+            public const string CodeActionsReplaceDefaultLiteral = "CodeActions.ReplaceDefaultLiteral";
             public const string CodeActionsReplaceDocCommentTextWithTag = "CodeActions.ReplaceDocCommentTextWithTag";
             public const string CodeActionsReplaceMethodWithProperty = "CodeActions.ReplaceMethodWithProperty";
             public const string CodeActionsReplacePropertyWithMethods = "CodeActions.ReplacePropertyWithMethods";

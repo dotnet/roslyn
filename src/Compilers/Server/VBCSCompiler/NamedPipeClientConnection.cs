@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         {
             CompilerServerLogger.Log("Constructing pipe '{0}'.", pipeName);
 
-#if NET46
+#if NET472
             PipeSecurity security;
             PipeOptions pipeOptions = PipeOptions.Asynchronous | PipeOptions.WriteThrough;
 

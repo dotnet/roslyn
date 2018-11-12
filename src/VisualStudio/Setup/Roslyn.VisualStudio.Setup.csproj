@@ -6,7 +6,7 @@
     <PlatformTarget>AnyCPU</PlatformTarget>
     <OutputType>Library</OutputType>
     <RootNamespace>Roslyn.VisualStudio.Setup</RootNamespace>
-    <TargetFramework>net46</TargetFramework>
+    <TargetFramework>net472</TargetFramework>
     <RoslynProjectType>Vsix</RoslynProjectType>
 
     <!-- VSIX -->
@@ -90,7 +90,7 @@
       <Name>Workspaces.MSBuild</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup</IncludeOutputGroupsInVSIX>
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
-      <AdditionalProperties>TargetFramework=net46</AdditionalProperties>
+      <AdditionalProperties>TargetFramework=net472</AdditionalProperties>
     </ProjectReference>
     <ProjectReference Include="..\..\Workspaces\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.Workspaces.csproj">
       <Name>CSharpWorkspace</Name>
@@ -167,7 +167,6 @@
     <NuGetPackageToIncludeInVsix Include="System.Composition.TypedParts" />
     <NuGetPackageToIncludeInVsix Include="System.Composition.Convention" />
     <NuGetPackageToIncludeInVsix Include="System.Composition.Hosting" />
-    <NuGetPackageToIncludeInVsix Include="System.Threading.Tasks.Extensions" />
     <NuGetPackageToIncludeInVsix Include="ICSharpCode.Decompiler" />
   </ItemGroup>
   <ItemGroup>

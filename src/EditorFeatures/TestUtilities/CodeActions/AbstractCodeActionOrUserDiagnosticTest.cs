@@ -429,7 +429,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 
             // To help when a user just writes a test (and supplied no 'expectedText') just print
             // out the entire 'actualText' (without any trimming).  in the case that we have both,
-            // call the normal Assert helper which will print out a good trimmed diff. 
+            // call the normal Assert helper which will print out a good trimmed diff.
             if (expectedText == "")
             {
                 Assert.Equal((object)expectedText, actualText);
@@ -517,7 +517,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
         internal static Task<ImmutableArray<CodeActionOperation>> VerifyActionAndGetOperationsAsync(
             CodeAction action, TestParameters parameters)
         {
-            Assert.NotNull(action);
+            Assert.False(action is null, "No action was offered when one was expected.");
+
             if (parameters.priority != null)
             {
                 Assert.Equal(parameters.priority.Value, action.Priority);

@@ -9,6 +9,8 @@ abstract Microsoft.CodeAnalysis.Diagnostics.SymbolStartAnalysisContext.RegisterO
 abstract Microsoft.CodeAnalysis.Diagnostics.SymbolStartAnalysisContext.RegisterOperationBlockStartAction(System.Action<Microsoft.CodeAnalysis.Diagnostics.OperationBlockStartAnalysisContext> action) -> void
 abstract Microsoft.CodeAnalysis.Diagnostics.SymbolStartAnalysisContext.RegisterSymbolEndAction(System.Action<Microsoft.CodeAnalysis.Diagnostics.SymbolAnalysisContext> action) -> void
 abstract Microsoft.CodeAnalysis.Diagnostics.SymbolStartAnalysisContext.RegisterSyntaxNodeAction<TLanguageKindEnum>(System.Action<Microsoft.CodeAnalysis.Diagnostics.SyntaxNodeAnalysisContext> action, System.Collections.Immutable.ImmutableArray<TLanguageKindEnum> syntaxKinds) -> void
+const Microsoft.CodeAnalysis.WellKnownMemberNames.GetAsyncEnumeratorMethodName = "GetAsyncEnumerator" -> string
+const Microsoft.CodeAnalysis.WellKnownMemberNames.MoveNextAsyncMethodName = "MoveNextAsync" -> string
 Microsoft.CodeAnalysis.Compilation.HasImplicitConversion(Microsoft.CodeAnalysis.ITypeSymbol fromType, Microsoft.CodeAnalysis.ITypeSymbol toType) -> bool
 Microsoft.CodeAnalysis.Compilation.IsSymbolAccessibleWithin(Microsoft.CodeAnalysis.ISymbol symbol, Microsoft.CodeAnalysis.ISymbol within, Microsoft.CodeAnalysis.ITypeSymbol throughType = null) -> bool
 Microsoft.CodeAnalysis.Diagnostics.OperationAnalysisContext.GetControlFlowGraph() -> Microsoft.CodeAnalysis.FlowAnalysis.ControlFlowGraph
@@ -107,16 +109,9 @@ Microsoft.CodeAnalysis.FlowAnalysis.IFlowCaptureReferenceOperation
 Microsoft.CodeAnalysis.FlowAnalysis.IFlowCaptureReferenceOperation.Id.get -> Microsoft.CodeAnalysis.FlowAnalysis.CaptureId
 Microsoft.CodeAnalysis.FlowAnalysis.IIsNullOperation
 Microsoft.CodeAnalysis.FlowAnalysis.IIsNullOperation.Operand.get -> Microsoft.CodeAnalysis.IOperation
-Microsoft.CodeAnalysis.OperationKind.ReDim = 101 -> Microsoft.CodeAnalysis.OperationKind
-Microsoft.CodeAnalysis.OperationKind.ReDimClause = 102 -> Microsoft.CodeAnalysis.OperationKind
-Microsoft.CodeAnalysis.Operations.IReDimClauseOperation
-Microsoft.CodeAnalysis.Operations.IReDimClauseOperation.DimensionSizes.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.IOperation>
-Microsoft.CodeAnalysis.Operations.IReDimClauseOperation.Operand.get -> Microsoft.CodeAnalysis.IOperation
-Microsoft.CodeAnalysis.Operations.IReDimOperation
-Microsoft.CodeAnalysis.Operations.IReDimOperation.Clauses.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Operations.IReDimClauseOperation>
-Microsoft.CodeAnalysis.Operations.IReDimOperation.Preserve.get -> bool
 Microsoft.CodeAnalysis.FlowAnalysis.IStaticLocalInitializationSemaphoreOperation
 Microsoft.CodeAnalysis.FlowAnalysis.IStaticLocalInitializationSemaphoreOperation.Local.get -> Microsoft.CodeAnalysis.ILocalSymbol
+Microsoft.CodeAnalysis.IFieldSymbol.IsFixedSizeBuffer.get -> bool
 Microsoft.CodeAnalysis.ILocalSymbol.IsFixed.get -> bool
 Microsoft.CodeAnalysis.IOperation.SemanticModel.get -> Microsoft.CodeAnalysis.SemanticModel
 Microsoft.CodeAnalysis.OperationKind.CaughtException = 94 -> Microsoft.CodeAnalysis.OperationKind
@@ -127,6 +122,8 @@ Microsoft.CodeAnalysis.OperationKind.FlowCaptureReference = 92 -> Microsoft.Code
 Microsoft.CodeAnalysis.OperationKind.FromEndIndex = 100 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.OperationKind.IsNull = 93 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.OperationKind.Range = 99 -> Microsoft.CodeAnalysis.OperationKind
+Microsoft.CodeAnalysis.OperationKind.ReDim = 101 -> Microsoft.CodeAnalysis.OperationKind
+Microsoft.CodeAnalysis.OperationKind.ReDimClause = 102 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.OperationKind.StaticLocalInitializationSemaphore = 95 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.OperationKind.SuppressNullableWarning = 98 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.Operations.CommonConversion.IsImplicit.get -> bool
@@ -151,6 +148,12 @@ Microsoft.CodeAnalysis.Operations.IRangeOperation.IsLifted.get -> bool
 Microsoft.CodeAnalysis.Operations.IRangeOperation.LeftOperand.get -> Microsoft.CodeAnalysis.IOperation
 Microsoft.CodeAnalysis.Operations.IRangeOperation.Method.get -> Microsoft.CodeAnalysis.IMethodSymbol
 Microsoft.CodeAnalysis.Operations.IRangeOperation.RightOperand.get -> Microsoft.CodeAnalysis.IOperation
+Microsoft.CodeAnalysis.Operations.IReDimClauseOperation
+Microsoft.CodeAnalysis.Operations.IReDimClauseOperation.DimensionSizes.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.IOperation>
+Microsoft.CodeAnalysis.Operations.IReDimClauseOperation.Operand.get -> Microsoft.CodeAnalysis.IOperation
+Microsoft.CodeAnalysis.Operations.IReDimOperation
+Microsoft.CodeAnalysis.Operations.IReDimOperation.Clauses.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Operations.IReDimClauseOperation>
+Microsoft.CodeAnalysis.Operations.IReDimOperation.Preserve.get -> bool
 Microsoft.CodeAnalysis.Operations.ISuppressNullableWarningOperation
 Microsoft.CodeAnalysis.Operations.ISuppressNullableWarningOperation.Expression.get -> Microsoft.CodeAnalysis.IOperation
 Microsoft.CodeAnalysis.Operations.ISwitchCaseOperation.Locals.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ILocalSymbol>
@@ -159,8 +162,6 @@ Microsoft.CodeAnalysis.Operations.ISwitchOperation.Locals.get -> System.Collecti
 Microsoft.CodeAnalysis.Operations.ITryOperation.ExitLabel.get -> Microsoft.CodeAnalysis.ILabelSymbol
 Microsoft.CodeAnalysis.Operations.IUsingOperation.Locals.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ILocalSymbol>
 Microsoft.CodeAnalysis.SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier = 64 -> Microsoft.CodeAnalysis.SymbolDisplayMiscellaneousOptions
-const Microsoft.CodeAnalysis.WellKnownMemberNames.GetAsyncEnumeratorMethodName = "GetAsyncEnumerator" -> string
-const Microsoft.CodeAnalysis.WellKnownMemberNames.MoveNextAsyncMethodName = "MoveNextAsync" -> string
 override Microsoft.CodeAnalysis.FlowAnalysis.CaptureId.Equals(object obj) -> bool
 override Microsoft.CodeAnalysis.FlowAnalysis.CaptureId.GetHashCode() -> int
 static Microsoft.CodeAnalysis.FlowAnalysis.ControlFlowGraph.Create(Microsoft.CodeAnalysis.Operations.IBlockOperation body, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> Microsoft.CodeAnalysis.FlowAnalysis.ControlFlowGraph

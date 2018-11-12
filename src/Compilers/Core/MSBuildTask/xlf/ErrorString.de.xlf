@@ -126,7 +126,7 @@
       </trans-unit>
       <trans-unit id="MapSourceRoots.PathMustEndWithSlashOrBackslash">
         <source>{0} paths are required to end with a slash or backslash: '{1}'</source>
-        <target state="translated">{0}-Pfade müssen mit einem Schrägstrich oder einem umgekehrten Schrägstrich enden: '{1}'</target>
+        <target state="translated">{0}-Pfade müssen mit einem Schrägstrich oder einem umgekehrten Schrägstrich enden: "{1}"</target>
         <note />
       </trans-unit>
       <trans-unit id="MapSourceRoots.NoTopLevelSourceRoot">

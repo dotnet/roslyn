@@ -39,6 +39,9 @@ namespace Microsoft.CodeAnalysis.MSBuild
         /// The default namespace of the project ("" if not defined, which means global namespace),
         /// or null if it is unknown or not applicable. 
         /// </summary>
+        /// <remarks>
+        /// This only has meaning in C# and is explicitly set to null in VB.
+        /// </remarks>>
         public string DefaultNamespace { get; }
 
         /// <summary>

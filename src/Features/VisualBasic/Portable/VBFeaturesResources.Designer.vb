@@ -1392,6 +1392,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Introduce &apos;Using&apos; statement.
+        '''</summary>
+        Friend ReadOnly Property Introduce_Using_statement() As String
+            Get
+                Return ResourceManager.GetString("Introduce_Using_statement", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Introduces a clause that identifies the external file (DLL or code resource) containing an external procedure..
         '''</summary>
         Friend ReadOnly Property Introduces_a_clause_that_identifies_the_external_file_DLL_or_code_resource_containing_an_external_procedure() As String

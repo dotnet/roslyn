@@ -1010,7 +1010,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         internal static bool IsFixedBufferAssignmentToRefLocal(BoundExpression left, BoundExpression right, bool isRef)
             => isRef &&
                right is BoundFieldAccess fieldAccess &&
-               fieldAccess.FieldSymbol.IsFixed &&
+               fieldAccess.FieldSymbol.IsFixedSizeBuffer &&
                left.Type.Equals(((PointerTypeSymbol)right.Type).PointedAtType.TypeSymbol, TypeCompareKind.AllIgnoreOptions);
 
         // indirect assignment is assignment to a value referenced indirectly
