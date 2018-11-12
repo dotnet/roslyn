@@ -27,7 +27,6 @@
 
   <!-- Version overrides -->
   <Import Project="$(DotNetPackageVersionPropsPath)" Condition="'$(DotNetPackageVersionPropsPath)' != ''" />
-  <Import Project="$(FixedVersionsPropsPath)" Condition="'$(FixedVersionsPropsPath)' != ''"/>
 
   <!-- RestoreSources overrides - defines DotNetRestoreSources variable if available -->
   <Import Project="$(DotNetRestoreSourcePropsPath)" Condition="'$(DotNetRestoreSourcePropsPath)' != ''"/>
