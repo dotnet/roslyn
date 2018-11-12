@@ -643,6 +643,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                     diagnostics.HasAnyErrors(),
                                                     node,
                                                     node.Declaration,
+                                                    hasAwait: false,
                                                     out iDisposableConversion,
                                                     out disposeMethod);
                 return new BoundUsingLocalDeclarations(node, disposeMethod, iDisposableConversion, declarations);
@@ -674,6 +675,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                                              bool hasErrors,
                                                                              SyntaxNode node,
                                                                              VariableDeclarationSyntax declarationSyntax,
+                                                                             bool hasAwait,
                                                                              out Conversion iDisposableConversion,
                                                                              out MethodSymbol disposeMethod)
         {
@@ -694,7 +696,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                TypeSymbol iDisposable = this.Compilation.GetSpecialType(SpecialType.System_IDisposable);
+                TypeSymbol iDisposable = hasAwait
+                    ? this.Compilation.GetWellKnownType(WellKnownType.System_IAsyncDisposable)
+                    : this.Compilation.GetSpecialType(SpecialType.System_IDisposable);
+
                 iDisposableConversion = originalBinder.Conversions.ClassifyImplicitConversionFromType(declType, iDisposable, ref useSiteDiagnostics);
                 diagnostics.Add(declarationSyntax, useSiteDiagnostics);
 
@@ -707,7 +712,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         if (!declType.IsErrorType())
                         {
-                            Error(diagnostics, ErrorCode.ERR_NoConvToIDisp, declarationSyntax, declType);
+                            Error(diagnostics, hasAwait ? ErrorCode.ERR_NoConvToIAsyncDisp : ErrorCode.ERR_NoConvToIDisp, declarationSyntax, declType);
                         }
                         hasErrors = true;
                     }

@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                var declarations = BindUsingVariableDeclaration(originalBinder, diagnostics, hasErrors, declarationSyntax, declarationSyntax, out iDisposableConversion, out disposeMethod);
+                var declarations = BindUsingVariableDeclaration(originalBinder, diagnostics, hasErrors, declarationSyntax, declarationSyntax, hasAwait, out iDisposableConversion, out disposeMethod);
                 declarationsOpt = new BoundMultipleLocalDeclarations(declarationSyntax, declarations, hasErrors);
             }
 

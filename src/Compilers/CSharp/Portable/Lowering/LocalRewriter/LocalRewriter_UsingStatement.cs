@@ -307,10 +307,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             BoundExpression disposeCall;
-            
-            //PROTOTYPE: async dispose pattern doesn't work properly yet, and we don't have tests to cover it
-            if ((!(methodOpt is null)) || Binder.TryGetSpecialTypeMember(_compilation, SpecialMember.System_IDisposable__Dispose, syntax, _diagnostics, out methodOpt))
+
+            // PROTOTYPE: would this be better to do during binding? Then we just emit whatever bound method we found?
+            // if we have an explicit method reference, use that
+            // next, look to see if this is an async (need to confirm order here)
+            // try and get a non-async dipose next
+            // finally, fail
+
+            if (!(methodOpt is null))
             {
+                // PROTOTYPE: pattern methods can't yet be async
                 disposeCall = methodOpt.IsExtensionMethod
                     ? BoundCall.Synthesized(syntax, receiverOpt: null, methodOpt, local)
                     : BoundCall.Synthesized(syntax, disposedExpression, methodOpt);
@@ -326,6 +332,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 TypeSymbol awaitExpressionType = awaitOpt.GetResult?.ReturnType.TypeSymbol ?? _compilation.DynamicType;
                 BoundAwaitExpression awaitExpr = new BoundAwaitExpression(syntax, callExpr, awaitOpt, awaitExpressionType) { WasCompilerGenerated = true };
                 disposeCall = (BoundExpression)VisitAwaitExpression(awaitExpr);
+            }
+            else if (Binder.TryGetSpecialTypeMember(_compilation, SpecialMember.System_IDisposable__Dispose, syntax, _diagnostics, out methodOpt))
+            {
+                disposeCall = BoundCall.Synthesized(syntax, disposedExpression, methodOpt);
             }
             else
             {
