@@ -10,8 +10,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return IsReservedKeyword(kind)
                 || IsContextualKeyword(kind)
-                || kind == SyntaxKind.DiscardDesignation
-                || kind == SyntaxKind.UnderscoreToken;
+                || kind == SyntaxKind.DiscardDesignation;
         }
 
         public static IEnumerable<SyntaxKind> GetReservedKeywordKinds()
