@@ -5628,4 +5628,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_NullableDirectiveQualifierExpected" xml:space="preserve">
     <value>Expected enable or disable</value>
   </data>
+  <data name="ERR_ElseCannotStartStatement" xml:space="preserve">
+    <value>'else' cannot start a statement.</value>
+  </data>
 </root>
