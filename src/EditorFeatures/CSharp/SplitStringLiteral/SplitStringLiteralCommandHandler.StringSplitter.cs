@@ -112,19 +112,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
                     return null;
                 }
 
-                return TrySplitWorker();
+                return SplitWorker();
             }
 
-            private int? TrySplitWorker()
+            private int SplitWorker()
             {
-                var newDocumentAndCaretPosition = SplitString();
-                if (newDocumentAndCaretPosition == null)
-                {
-                    return null;
-                }
-
-                var newDocument = newDocumentAndCaretPosition.Item1;
-                var finalCaretPosition = newDocumentAndCaretPosition.Item2;
+                var (newDocument, finalCaretPosition) = SplitString();
 
                 var workspace = Document.Project.Solution.Workspace;
                 workspace.TryApplyChanges(newDocument.Project.Solution);
@@ -140,7 +133,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
                     SyntaxFactory.TriviaList(SyntaxFactory.ElasticCarriageReturnLineFeed));
             }
 
-            private Tuple<Document, int> SplitString()
+            private (Document document, int caretPosition) SplitString()
             {
                 var splitString = CreateSplitString();
 
@@ -149,16 +142,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
                 var rightExpression = newRoot.GetAnnotatedNodes(RightNodeAnnotation).Single();
 
                 var indentString = GetIndentString(newRoot);
-                if (indentString == null)
-                {
-                    return null;
-                }
-
                 var newRightExpression = rightExpression.WithLeadingTrivia(SyntaxFactory.ElasticWhitespace(indentString));
                 var newRoot2 = newRoot.ReplaceNode(rightExpression, newRightExpression);
                 var newDocument2 = Document.WithSyntaxRoot(newRoot2);
 
-                return Tuple.Create(newDocument2, rightExpression.Span.Start + indentString.Length + StringOpenQuoteLength());
+                return (newDocument2, rightExpression.Span.Start + indentString.Length + StringOpenQuoteLength());
             }
 
             private string GetIndentString(SyntaxNode newRoot)
