@@ -57,7 +57,7 @@ class C
         }
 
         private CSharpCompilation CreateCompilationWithAsyncIterator(string source, CSharpCompilationOptions options = null)
-            => CreateCompilationWithAsyncIterator(source, options: options);
+            => CreateCompilationWithTasksExtensions(new[] { source, AsyncStreamsTypes }, options: options);
 
         [Fact]
         [WorkItem(30566, "https://github.com/dotnet/roslyn/issues/30566")]

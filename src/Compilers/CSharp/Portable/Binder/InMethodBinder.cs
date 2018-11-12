@@ -177,10 +177,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private TypeSymbol GetIteratorElementTypeFromReturnType(RefKind refKind, TypeSymbol returnType, CSharpSyntaxNode errorLocationNode, DiagnosticBag diagnostics)
         {
-            return GetIteratorElementTypeFromReturnType(Compilation, binder: this, refKind, returnType, errorLocationNode, diagnostics).TypeSymbol;
+            return GetIteratorElementTypeFromReturnType(Compilation, refKind, returnType, errorLocationNode, diagnostics).TypeSymbol;
         }
 
-        internal static TypeSymbolWithAnnotations GetIteratorElementTypeFromReturnType(CSharpCompilation compilation, Binder binder, RefKind refKind, TypeSymbol returnType, CSharpSyntaxNode errorLocationNode, DiagnosticBag diagnostics)
+        internal static TypeSymbolWithAnnotations GetIteratorElementTypeFromReturnType(CSharpCompilation compilation, RefKind refKind, TypeSymbol returnType, CSharpSyntaxNode errorLocationNode, DiagnosticBag diagnostics)
         {
             if (refKind == RefKind.None && returnType.Kind == SymbolKind.NamedType)
             {
@@ -188,7 +188,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     case SpecialType.System_Collections_IEnumerable:
                     case SpecialType.System_Collections_IEnumerator:
-                        var objectType = diagnostics is null ? compilation.GetSpecialType(SpecialType.System_Object) : binder.GetSpecialType(SpecialType.System_Object, diagnostics, errorLocationNode);
+                        var objectType = compilation.GetSpecialType(SpecialType.System_Object);
+                        if (diagnostics != null)
+                        {
+                            ReportUseSiteDiagnostics(objectType, diagnostics, errorLocationNode);
+                        }
                         return TypeSymbolWithAnnotations.Create(objectType);
 
                     case SpecialType.System_Collections_Generic_IEnumerable_T:
