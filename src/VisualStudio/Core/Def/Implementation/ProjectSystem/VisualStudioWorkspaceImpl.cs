@@ -362,7 +362,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             project = null;
 
             return
-                this.TryGetHierarchy(projectId, out hierarchy) && 
+                this.TryGetHierarchy(projectId, out hierarchy) &&
                 hierarchy.TryGetProject(out project);
         }
 
@@ -1452,7 +1452,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     if (string.Equals(convertedReference.path, outputPath, StringComparison.OrdinalIgnoreCase) &&
                         convertedReference.projectReference.ProjectId == projectId)
                     {
-                        var metadataReference = 
+                        var metadataReference =
                             CreateMetadataReference(
                                 convertedReference.path,
                                 new MetadataReferenceProperties(
