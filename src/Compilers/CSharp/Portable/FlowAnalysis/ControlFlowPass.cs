@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
         }
 
-        internal struct LocalState : AbstractLocalState
+        internal struct LocalState : ILocalState
         {
             internal bool Alive;
             internal bool Reported; // reported unreachable statement

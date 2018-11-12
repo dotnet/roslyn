@@ -13,14 +13,14 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    internal abstract partial class PreciseAbstractFlowPass<LocalState>
+    internal abstract partial class PreciseAbstractFlowPass<TLocalState>
     {
         #region implementation for the old-style (no-patterns) variation of the switch statement.
 
         public override BoundNode VisitSwitchStatement(BoundSwitchStatement node)
         {
             // visit switch header
-            LocalState breakState = VisitSwitchHeader(node);
+            TLocalState breakState = VisitSwitchHeader(node);
             SetUnreachable();
 
             // visit switch block
@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        private LocalState VisitSwitchHeader(BoundSwitchStatement node)
+        private TLocalState VisitSwitchHeader(BoundSwitchStatement node)
         {
             // Initial value for the Break state for a switch statement is established as follows:
             //  Break state = UnreachableState if either of the following is true:
@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // visit switch expression
             VisitRvalue(node.Expression);
-            LocalState breakState = this.State;
+            TLocalState breakState = this.State;
 
             // For a switch statement, we simulate a possible jump to the switch labels to ensure that
             // the label is not treated as an unused label and a pending branch to the label is noted.
@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitPatternSwitchStatement(BoundPatternSwitchStatement node)
         {
             // visit switch header
-            LocalState breakState = VisitPatternSwitchHeader(node);
+            TLocalState breakState = VisitPatternSwitchHeader(node);
 
             // visit switch block
             VisitPatternSwitchBlock(node);
@@ -202,7 +202,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Visit the switch expression, and return the initial break state.
         /// </summary>
-        private LocalState VisitPatternSwitchHeader(BoundPatternSwitchStatement node)
+        private TLocalState VisitPatternSwitchHeader(BoundPatternSwitchStatement node)
         {
             // visit switch expression
             VisitRvalue(node.Expression);

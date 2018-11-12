@@ -14,8 +14,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    internal abstract partial class PreciseAbstractFlowPass<LocalState> : BoundTreeVisitor
-        where LocalState : AbstractFlowPass<LocalState>.AbstractLocalState
+    internal abstract partial class PreciseAbstractFlowPass<TLocalState> : BoundTreeVisitor
+        where TLocalState : AbstractFlowPass<TLocalState>.ILocalState
     {
         protected int _recursionDepth;
 
@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// performance in unlikely but possible code such as this: "int x; if (cond) goto l1; x =
         /// 3; l5: print x; l4: goto l5; l3: goto l4; l2: goto l3; l1: goto l2;"
         /// </summary>
-        private readonly PooledDictionary<LabelSymbol, LocalState> _labels;
+        private readonly PooledDictionary<LabelSymbol, TLocalState> _labels;
 
         /// <summary>
         /// Set to true after an analysis scan if the analysis was incomplete due to state changing
@@ -95,22 +95,22 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// The definite assignment and/or reachability state at the point currently being analyzed.
         /// </summary>
-        protected LocalState State;
-        protected LocalState StateWhenTrue;
-        protected LocalState StateWhenFalse;
+        protected TLocalState State;
+        protected TLocalState StateWhenTrue;
+        protected TLocalState StateWhenFalse;
         protected bool IsConditionalState;
 
-        protected void SetConditionalState(LocalState whenTrue, LocalState whenFalse)
+        protected void SetConditionalState(TLocalState whenTrue, TLocalState whenFalse)
         {
             IsConditionalState = true;
-            State = default(LocalState);
+            State = default(TLocalState);
             StateWhenTrue = whenTrue;
             StateWhenFalse = whenFalse;
         }
 
-        protected void SetState(LocalState newState)
+        protected void SetState(TLocalState newState)
         {
-            StateWhenTrue = StateWhenFalse = default(LocalState);
+            StateWhenTrue = StateWhenFalse = default(TLocalState);
             IsConditionalState = false;
             State = newState;
         }
@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// A cache of the state at the backward branch point of each loop.  This is not needed
         /// during normal flow analysis, but is needed for DataFlowsOut region analysis.
         /// </summary>
-        private readonly Dictionary<BoundLoopStatement, LocalState> _loopHeadState;
+        private readonly Dictionary<BoundLoopStatement, TLocalState> _loopHeadState;
         #endregion Region
 
         protected PreciseAbstractFlowPass(
@@ -182,19 +182,19 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             _pendingBranches = ArrayBuilder<PendingBranch>.GetInstance();
             _labelsSeen = PooledHashSet<BoundStatement>.GetInstance();
-            _labels = PooledDictionary<LabelSymbol, LocalState>.GetInstance();
+            _labels = PooledDictionary<LabelSymbol, TLocalState>.GetInstance();
             this.Diagnostics = DiagnosticBag.GetInstance();
             this.compilation = compilation;
             _member = member;
             this.methodMainNode = node;
             this.firstInRegion = firstInRegion;
             this.lastInRegion = lastInRegion;
-            _loopHeadState = new Dictionary<BoundLoopStatement, LocalState>(ReferenceEqualityComparer.Instance);
+            _loopHeadState = new Dictionary<BoundLoopStatement, TLocalState>(ReferenceEqualityComparer.Instance);
             _trackRegions = trackRegions;
             _trackExceptions = trackExceptions;
         }
 
-        protected abstract string Dump(LocalState state);
+        protected abstract string Dump(TLocalState state);
 
         protected string Dump()
         {
@@ -326,7 +326,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal class PendingBranch
         {
             public readonly BoundNode Branch;
-            public LocalState State;
+            public TLocalState State;
             public LabelSymbol Label
             {
                 get
@@ -344,15 +344,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            public PendingBranch(BoundNode branch, LocalState state)
+            public PendingBranch(BoundNode branch, TLocalState state)
             {
                 this.Branch = branch;
                 this.State = state.Clone();
             }
         }
 
-        abstract protected LocalState ReachableState();
-        abstract protected LocalState UnreachableState();
+        abstract protected TLocalState ReachableState();
+        abstract protected TLocalState UnreachableState();
 
         /// <summary>
         /// Perform a single pass of flow analysis.  Note that after this pass,
@@ -449,9 +449,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         /// <param name="label"></param>
         /// <returns></returns>
-        protected virtual LocalState LabelState(LabelSymbol label)
+        protected virtual TLocalState LabelState(LabelSymbol label)
         {
-            LocalState result;
+            TLocalState result;
             if (_labels.TryGetValue(label, out result))
             {
                 return result;
@@ -645,7 +645,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private void LoopHead(BoundLoopStatement node)
         {
-            LocalState previousState;
+            TLocalState previousState;
             if (_loopHeadState.TryGetValue(node, out previousState))
             {
                 IntersectWith(ref this.State, ref previousState);
@@ -671,7 +671,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Used to resolve break statements in each statement form that has a break statement
         /// (loops, switch).
         /// </summary>
-        private void ResolveBreaks(LocalState breakState, LabelSymbol label)
+        private void ResolveBreaks(TLocalState breakState, LabelSymbol label)
         {
             var pendingBranches = _pendingBranches;
             var count = pendingBranches.Count;
@@ -1201,7 +1201,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // whose condition is not true, then the call has no effect and it is ignored for the purposes of
             // definite assignment analysis.
             bool callsAreOmitted = node.Method.CallsAreOmitted(node.SyntaxTree);
-            LocalState savedState = default(LocalState);
+            TLocalState savedState = default(TLocalState);
 
             if (callsAreOmitted)
             {
@@ -1477,8 +1477,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // 5.3.3.5 If statements
             VisitCondition(node.Condition);
-            LocalState trueState = StateWhenTrue;
-            LocalState falseState = StateWhenFalse;
+            TLocalState trueState = StateWhenTrue;
+            TLocalState falseState = StateWhenFalse;
             SetState(trueState);
             VisitStatement(node.Consequence);
             trueState = this.State;
@@ -1859,8 +1859,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // while (node.Condition) { node.Body; node.ContinueLabel: } node.BreakLabel:
             LoopHead(node);
             VisitCondition(node.Condition);
-            LocalState bodyState = StateWhenTrue;
-            LocalState breakState = StateWhenFalse;
+            TLocalState bodyState = StateWhenTrue;
+            TLocalState breakState = StateWhenFalse;
             SetState(bodyState);
             VisitStatement(node.Body);
             ResolveContinues(node.ContinueLabel);
@@ -1990,13 +1990,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             stack.Free();
         }
 
-        protected virtual void AfterLeftChildOfBinaryLogicalOperatorHasBeenVisited(BoundExpression binary, BoundExpression right, bool isAnd, bool isBool, ref LocalState leftTrue, ref LocalState leftFalse)
+        protected virtual void AfterLeftChildOfBinaryLogicalOperatorHasBeenVisited(BoundExpression binary, BoundExpression right, bool isAnd, bool isBool, ref TLocalState leftTrue, ref TLocalState leftFalse)
         {
             Visit(right); // First part of VisitCondition
             AfterRightChildOfBinaryLogicalOperatorHasBeenVisited(binary, right, isAnd, isBool, ref leftTrue, ref leftFalse);
         }
 
-        protected void AfterRightChildOfBinaryLogicalOperatorHasBeenVisited(BoundExpression binary, BoundExpression right, bool isAnd, bool isBool, ref LocalState leftTrue, ref LocalState leftFalse)
+        protected void AfterRightChildOfBinaryLogicalOperatorHasBeenVisited(BoundExpression binary, BoundExpression right, bool isAnd, bool isBool, ref TLocalState leftTrue, ref TLocalState leftFalse)
         {
             AdjustConditionalState(right); // Second part of VisitCondition
 
@@ -2192,7 +2192,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 VisitStatement(node.Initializer);
             }
             LoopHead(node);
-            LocalState bodyState, breakState;
+            TLocalState bodyState, breakState;
             if (node.Condition != null)
             {
                 VisitCondition(node.Condition);
@@ -2468,7 +2468,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        private void VisitConditionalOperand(LocalState state, BoundExpression operand, bool isByRef)
+        private void VisitConditionalOperand(TLocalState state, BoundExpression operand, bool isByRef)
         {
             SetState(state);
             if (isByRef)
@@ -2496,7 +2496,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             VisitStatement(node.Body);
             ResolveContinues(node.ContinueLabel);
             VisitCondition(node.Condition);
-            LocalState breakState = this.StateWhenFalse;
+            TLocalState breakState = this.StateWhenFalse;
             SetState(this.StateWhenTrue);
             LoopTail(node);
             ResolveBreaks(breakState, node.BreakLabel);
@@ -2796,7 +2796,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // whose condition is not true, then the call has no effect and it is ignored for the purposes of
                 // definite assignment analysis.
 
-                LocalState savedState = savedState = this.State.Clone();
+                TLocalState savedState = savedState = this.State.Clone();
                 SetUnreachable();
 
                 VisitArguments(node.Arguments, default(ImmutableArray<RefKind>), node.AddMethod);
@@ -2883,7 +2883,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitNullCoalescingAssignmentOperator(BoundNullCoalescingAssignmentOperator node)
         {
-            LocalState savedState;
+            TLocalState savedState;
             if (RegularPropertyAccess(node.LeftOperand))
             {
                 var left = (BoundPropertyAccess)node.LeftOperand;
@@ -2948,9 +2948,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             // we should consider that parameter is not definitely assigned.
             // Note, that today this code is not executed for regular definite assignment analysis. It is 
             // only executed for region analysis.
-            LocalState initialState = this.State.Clone();
+            TLocalState initialState = this.State.Clone();
             Visit(blockBody);
-            LocalState afterBlock = this.State;
+            TLocalState afterBlock = this.State;
             SetState(initialState);
             Visit(expressionBody);
 

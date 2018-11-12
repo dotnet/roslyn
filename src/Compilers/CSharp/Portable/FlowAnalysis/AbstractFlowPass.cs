@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// the analysis sound.
     /// </summary>
     internal abstract partial class AbstractFlowPass<TLocalState> : PreciseAbstractFlowPass<TLocalState>
-        where TLocalState : PreciseAbstractFlowPass<TLocalState>.AbstractLocalState
+        where TLocalState : PreciseAbstractFlowPass<TLocalState>.ILocalState
     {
         private readonly bool _trackUnassignments; // for the data flows out walker, we track unassignments as well as assignments
 
