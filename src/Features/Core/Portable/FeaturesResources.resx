@@ -1445,8 +1445,8 @@ This version used in: {2}</value>
   <data name="Change_namespace_to_0" xml:space="preserve">
     <value>Change namespace to '{0}'</value>
   </data>
-  <data name="Move_file_to_0_folder" xml:space="preserve">
-    <value>Move file to '{0}' folder</value>
+  <data name="Move_file_to_0" xml:space="preserve">
+    <value>Move file to '{0}'</value>
   </data>
   <data name="Move_file_to_project_root_folder" xml:space="preserve">
     <value>Move file to project root folder</value>

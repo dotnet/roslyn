@@ -2473,11 +2473,11 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Move file to &apos;{0}&apos; folder.
+        ///   Looks up a localized string similar to Move file to &apos;{0}&apos;.
         /// </summary>
-        internal static string Move_file_to_0_folder {
+        internal static string Move_file_to_0 {
             get {
-                return ResourceManager.GetString("Move_file_to_0_folder", resourceCulture);
+                return ResourceManager.GetString("Move_file_to_0", resourceCulture);
             }
         }
         
