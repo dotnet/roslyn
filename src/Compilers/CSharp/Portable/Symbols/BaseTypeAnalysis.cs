@@ -238,11 +238,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     break; // Proceed with additional checks.
             }
 
-            if (type.AllTypeArgumentCount() > 0)
-            {
-                return ThreeState.True;
-            }
-
             switch (type.TypeKind)
             {
                 case TypeKind.Enum:
