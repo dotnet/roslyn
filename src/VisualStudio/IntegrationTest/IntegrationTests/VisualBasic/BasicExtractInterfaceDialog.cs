@@ -77,7 +77,7 @@ End Class");
             ExtractInterfaceDialog.ClickCancel();
         }
 
-        [WpfFact(Skip = "Work in progress"), Trait(Traits.Feature, Traits.Features.CodeActionsExtractInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractInterface)]
         public void CheckSameFile()
         {
             SetUpEditor(@"Class C$$
@@ -109,7 +109,7 @@ End Class");
 
         }
 
-        [WpfFact(Skip = "Work in progress"), Trait(Traits.Feature, Traits.Features.CodeActionsExtractInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractInterface)]
         public void CheckSameFileOnlySelectedItems()
         {
             SetUpEditor(@"Class C$$
@@ -142,10 +142,10 @@ Class C
 End Class");
         }
 
-        [WpfFact(Skip = "Work in progress"), Trait(Traits.Feature, Traits.Features.CodeActionsExtractInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractInterface)]
         public void CheckSameFileNamespace()
         {
-            SetUpEditor(@"Namespace A 
+            SetUpEditor(@"Namespace A
     Class C$$
         Public Sub M()
         End Sub
@@ -175,8 +175,7 @@ End Namespace");
         Public Sub M() Implements IC.M
         End Sub
     End Class
-End Namespace
-");
+End Namespace");
         }
     }
 }
