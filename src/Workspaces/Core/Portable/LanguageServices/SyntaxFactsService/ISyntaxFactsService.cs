@@ -37,6 +37,13 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         /// identifier that is always treated as being a special keyword, regardless of where it is
         /// found in the token stream.  Examples of this are tokens like <see langword="class"/> and
         /// <see langword="Class"/> in C# and VB respectively.
+        /// 
+        /// Importantly, this does *not* include contextual keywords.  If contextual keywords are
+        /// important for your scenario, use <see cref="IsContextualKeyword"/> or <see
+        /// cref="ISyntaxFactsServiceExtensions.IsReservedOrContextualKeyword"/>.  Also, consider using
+        /// <see cref="ISyntaxFactsServiceExtensions.IsWord"/> if all you need is the ability to know 
+        /// if this is effectively any identifier in the language, regardless of whether the language
+        /// is treating it as a keyword or not.
         /// </summary>
         bool IsReservedKeyword(SyntaxToken token);
 
