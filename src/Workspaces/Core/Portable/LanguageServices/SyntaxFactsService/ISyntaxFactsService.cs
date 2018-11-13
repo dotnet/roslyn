@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsPredefinedType(SyntaxToken token, PredefinedType type);
         bool IsPredefinedOperator(SyntaxToken token);
         bool IsPredefinedOperator(SyntaxToken token, PredefinedOperator op);
-        bool IsKeyword(SyntaxToken token);
+        bool IsReservedKeyword(SyntaxToken token);
         bool IsContextualKeyword(SyntaxToken token);
         bool IsPreprocessorKeyword(SyntaxToken token);
         bool IsHashToken(SyntaxToken token);
