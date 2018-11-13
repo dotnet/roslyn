@@ -3931,6 +3931,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to &apos;else&apos; cannot start a statement..
+        /// </summary>
+        internal static string ERR_ElseCannotStartStatement {
+            get {
+                return ResourceManager.GetString("ERR_ElseCannotStartStatement", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Empty character literal.
         /// </summary>
         internal static string ERR_EmptyCharConst {
