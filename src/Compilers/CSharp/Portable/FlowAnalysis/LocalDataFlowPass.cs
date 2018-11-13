@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         protected int VariableSlot(Symbol symbol, int containingSlot = 0)
         {
-            containingSlot = DescendThroughTupleRestFields(ref symbol, containingSlot, forceContainingSlotsToExist: false);
+            containingSlot = DescendThroughTupleRestFields(ref symbol, containingSlot, createIfMissing: false);
 
             int slot;
             return (_variableSlot.TryGetValue(new VariableIdentifier(symbol, containingSlot), out slot)) ? slot : -1;
@@ -91,11 +91,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Force a variable to have a slot.  Returns -1 if the variable has an empty struct type.
         /// </summary>
-        protected int GetOrCreateSlot(Symbol symbol, int containingSlot = 0)
+        protected int GetOrCreateSlot(Symbol symbol, int containingSlot = 0, bool createIfMissing = true)
         {
             if (symbol.Kind == SymbolKind.RangeVariable) return -1;
 
-            containingSlot = DescendThroughTupleRestFields(ref symbol, containingSlot, forceContainingSlotsToExist: true);
+            containingSlot = DescendThroughTupleRestFields(ref symbol, containingSlot, createIfMissing);
 
             VariableIdentifier identifier = new VariableIdentifier(symbol, containingSlot);
             int slot;
@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// a) Rest field does not exist, which could happen in rare error scenarios involving broken ValueTuple types
         /// b) Rest is not tracked already and forceSlotsToExist is false (otherwise we create slots on demand)
         /// </summary>
-        private int DescendThroughTupleRestFields(ref Symbol symbol, int containingSlot, bool forceContainingSlotsToExist)
+        private int DescendThroughTupleRestFields(ref Symbol symbol, int containingSlot, bool createIfMissing)
         {
             var fieldSymbol = symbol as TupleFieldSymbol;
             if ((object)fieldSymbol != null)
@@ -162,16 +162,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return -1;
                     }
 
-                    if (forceContainingSlotsToExist)
+                    containingSlot = GetOrCreateSlot(restField, containingSlot, createIfMissing);
+                    if (containingSlot < 0)
                     {
-                        containingSlot = GetOrCreateSlot(restField, containingSlot);
-                    }
-                    else
-                    {
-                        if (!_variableSlot.TryGetValue(new VariableIdentifier(restField, containingSlot), out containingSlot))
-                        {
-                            return -1;
-                        }
+                        return -1;
                     }
 
                     containingType = restField.Type.TypeSymbol.TupleUnderlyingTypeOrSelf();

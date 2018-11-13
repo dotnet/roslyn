@@ -391,14 +391,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         // https://github.com/dotnet/roslyn/issues/29619 Temporary, until we're using
         // properties on structs directly.
-        private new int GetOrCreateSlot(Symbol symbol, int containingSlot = 0)
+        private new int GetOrCreateSlot(Symbol symbol, int containingSlot = 0, bool createIfMissing = true)
         {
             symbol = GetBackingFieldIfStructProperty(symbol);
             if ((object)symbol == null)
             {
                 return -1;
             }
-            return base.GetOrCreateSlot(symbol, containingSlot);
+            return base.GetOrCreateSlot(symbol, containingSlot, createIfMissing);
         }
 
         protected override int MakeSlot(BoundExpression node)
@@ -709,9 +709,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
                 else if (EmptyStructTypeCache.IsTrackableStructType(targetType.TypeSymbol) &&
-                        targetType.TypeSymbol.Equals(valueType.TypeSymbol, TypeCompareKind.IgnoreNullableModifiersForReferenceTypes))
+                    targetType.TypeSymbol.Equals(valueType.TypeSymbol, TypeCompareKind.IgnoreNullableModifiersForReferenceTypes))
                 {
-                    InheritNullableStateOfTrackableStruct(targetType.TypeSymbol, targetSlot, valueSlot, IsByRefTarget(targetSlot), slotWatermark: GetSlotWatermark());
+                    InheritNullableStateOfTrackableStruct(targetType.TypeSymbol, targetSlot, valueSlot, isDefaultValue: isDefaultValue(value), isByRefTarget: IsByRefTarget(targetSlot), slotWatermark: GetSlotWatermark());
+                }
+            }
+
+            bool isDefaultValue(BoundExpression expr)
+            {
+                switch (expr.Kind)
+                {
+                    case BoundKind.Conversion:
+                        {
+                            var conversion = (BoundConversion)expr;
+                            return conversion.Conversion.Kind == ConversionKind.DefaultOrNullLiteral &&
+                                isDefaultValue(conversion.Operand);
+                        }
+                    case BoundKind.DefaultExpression:
+                        return true;
+                    default:
+                        return false;
                 }
             }
         }
@@ -771,7 +788,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private void InheritNullableStateOfTrackableStruct(TypeSymbol targetType, int targetSlot, int valueSlot, bool isByRefTarget, int slotWatermark)
+        private void InheritNullableStateOfTrackableStruct(TypeSymbol targetType, int targetSlot, int valueSlot, bool isDefaultValue, bool isByRefTarget, int slotWatermark)
         {
             Debug.Assert(targetSlot > 0);
             Debug.Assert(EmptyStructTypeCache.IsTrackableStructType(targetType));
@@ -780,14 +797,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             // See ModifyMembers_StructPropertyNoBackingField and PropertyCycle_Struct tests.
             foreach (var field in _emptyStructTypeCache.GetStructInstanceFields(targetType))
             {
-                InheritNullableStateOfMember(targetSlot, valueSlot, field, isByRefTarget, slotWatermark);
+                InheritNullableStateOfMember(targetSlot, valueSlot, field, isDefaultValue: isDefaultValue, isByRefTarget: isByRefTarget, slotWatermark);
             }
         }
 
         // 'slotWatermark' is used to avoid inheriting members from inherited members.
-        private void InheritNullableStateOfMember(int targetContainerSlot, int valueContainerSlot, Symbol member, bool isByRefTarget, int slotWatermark)
+        private void InheritNullableStateOfMember(int targetContainerSlot, int valueContainerSlot, Symbol member, bool isDefaultValue, bool isByRefTarget, int slotWatermark)
         {
+            Debug.Assert(targetContainerSlot > 0);
             Debug.Assert(valueContainerSlot <= slotWatermark);
+            Debug.Assert(TypeSymbol.Equals(GetSlotType(targetContainerSlot), (TypeSymbol)member.ContainingSymbol, TypeCompareKind.AllIgnoreOptions));
 
             TypeSymbolWithAnnotations fieldOrPropertyType = member.GetTypeOrReturnType();
 
@@ -797,7 +816,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (fieldOrPropertyType.IsReferenceType || fieldOrPropertyType.IsNullableType())
             {
                 int targetMemberSlot = GetOrCreateSlot(member, targetContainerSlot);
-                NullableAnnotation value = fieldOrPropertyType.NullableAnnotation;
+                NullableAnnotation value = (isDefaultValue && fieldOrPropertyType.IsReferenceType) ?
+                    NullableAnnotation.Nullable :
+                    fieldOrPropertyType.NullableAnnotation;
                 // https://github.com/dotnet/roslyn/issues/29968 Remove isByRefTarget check?
                 if (isByRefTarget)
                 {
@@ -832,13 +853,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     int valueMemberSlot = -1;
                     if (valueContainerSlot > 0)
                     {
-                        int slot = GetOrCreateSlot(member, valueContainerSlot);
+                        int slot = GetOrCreateSlot(member, valueContainerSlot, createIfMissing: false);
                         if (slot < slotWatermark)
                         {
                             valueMemberSlot = slot;
                         }
                     }
-                    InheritNullableStateOfTrackableStruct(fieldOrPropertyType.TypeSymbol, targetMemberSlot, valueMemberSlot, isByRefTarget, slotWatermark);
+                    InheritNullableStateOfTrackableStruct(fieldOrPropertyType.TypeSymbol, targetMemberSlot, valueMemberSlot, isDefaultValue: isDefaultValue, isByRefTarget: isByRefTarget, slotWatermark);
                 }
             }
         }
@@ -875,7 +896,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 var member = variable.Symbol;
                 Debug.Assert(member.Kind == SymbolKind.Field || member.Kind == SymbolKind.Property || member.Kind == SymbolKind.Event);
-                InheritNullableStateOfMember(targetSlot, valueSlot, member, isByRefTarget, slotWatermark);
+                InheritNullableStateOfMember(targetSlot, valueSlot, member, isDefaultValue: false, isByRefTarget, slotWatermark);
             }
         }
 
@@ -928,12 +949,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (EmptyStructTypeCache.IsTrackableStructType(parameterType.TypeSymbol))
                 {
-                    InheritNullableStateOfTrackableStruct(parameterType.TypeSymbol, slot, valueSlot: -1, isByRefTarget: parameter.RefKind != RefKind.None, slotWatermark: GetSlotWatermark());
+                    InheritNullableStateOfTrackableStruct(parameterType.TypeSymbol, slot, valueSlot: -1, isDefaultValue: false, isByRefTarget: parameter.RefKind != RefKind.None, slotWatermark: GetSlotWatermark());
                 }
             }
         }
-
-        #region Visitors
 
         public override BoundNode VisitIsPatternExpression(BoundIsPatternExpression node)
         {
@@ -1090,7 +1109,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitLocal(BoundLocal node)
         {
             var local = node.LocalSymbol;
-            int slot = GetOrCreateSlot(local);
+            int slot = GetOrCreateSlot(local, createIfMissing: false);
             var type = GetDeclaredLocalResult(local);
             _resultType = GetAdjustedResult(type, slot);
             return null;
@@ -1195,7 +1214,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (slot > 0 && isTrackableStructType)
                     {
                         this.State[slot] = NullableAnnotation.NotNullable;
-                        InheritNullableStateOfTrackableStruct(type, slot, valueSlot: -1, isByRefTarget: false, slotWatermark: GetSlotWatermark());
+                        InheritNullableStateOfTrackableStruct(
+                            type,
+                            slot,
+                            valueSlot: -1,
+                            isDefaultValue: (node as BoundObjectCreationExpression)?.Constructor.IsImplicitConstructor == true,
+                            isByRefTarget: false,
+                            slotWatermark: GetSlotWatermark());
                     }
                 }
             }
@@ -3558,7 +3583,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         // conversion "from" type -> method parameter type
                         NullableAnnotation operandAnnotation = operandType.NullableAnnotation;
-                        operandType = ClassifyAndApplyConversion(operandOpt ?? node, parameterType, isLiftedConversion ? underlyingOperandType : operandType,
+                        _ = ClassifyAndApplyConversion(operandOpt ?? node, parameterType, isLiftedConversion ? underlyingOperandType : operandType,
                             useLegacyWarnings, AssignmentKind.Argument, target: parameter, reportWarnings: reportRemainingWarnings);
 
                         // method parameter type -> method return type
@@ -3940,7 +3965,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitParameter(BoundParameter node)
         {
             var parameter = node.ParameterSymbol;
-            int slot = GetOrCreateSlot(parameter);
+            int slot = GetOrCreateSlot(parameter, createIfMissing: false);
             var type = GetDeclaredParameterResult(parameter);
             _resultType = GetAdjustedResult(type, slot);
             return null;
@@ -4301,7 +4326,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (!resultType.IsValueType || resultType.IsNullableType())
                     {
                         int containingSlot = getReceiverSlot();
-                        int slot = (containingSlot < 0) ? -1 : GetOrCreateSlot(member, containingSlot);
+                        int slot = (containingSlot < 0) ? -1 : GetOrCreateSlot(member, containingSlot, createIfMissing: false);
                         if (slot > 0 && slot < this.State.Capacity)
                         {
                             var annotation = this.State[slot];
@@ -5124,7 +5149,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitDiscardExpression(BoundDiscardExpression node)
         {
-            SetResult(node);
+            // Should initial binding have set the top-level and nested nullability to unknown?
+            _resultType = TypeSymbolWithAnnotations.Create(node.Type.SetUnknownNullabilityForReferenceTypes());
             return null;
         }
 
@@ -5147,8 +5173,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             VisitOptionalImplicitConversion(expr, elementType, useLegacyWarnings: false, AssignmentKind.Return);
             return null;
         }
-
-        #endregion Visitors
 
         protected override string Dump(LocalState state)
         {
