@@ -4855,12 +4855,11 @@ namespace Microsoft.CodeAnalysis.Operations
     /// </summary>
     internal abstract partial class BaseSwitchStatement : Operation, ISwitchOperation
     {
-        protected BaseSwitchStatement(ImmutableArray<ILocalSymbol> locals, ILabelSymbol exitLabel, bool patternMatchingOnly, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+        protected BaseSwitchStatement(ImmutableArray<ILocalSymbol> locals, ILabelSymbol exitLabel, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(OperationKind.Switch, semanticModel, syntax, type, constantValue, isImplicit)
         {
             Locals = locals;
             ExitLabel = exitLabel;
-            PatternMatchingOnly = patternMatchingOnly;
         }
 
         public ImmutableArray<ILocalSymbol> Locals { get; }
@@ -4891,11 +4890,6 @@ namespace Microsoft.CodeAnalysis.Operations
         /// Cases of the switch.
         /// </summary>
         public abstract ImmutableArray<ISwitchCaseOperation> Cases { get; }
-        /// <summary>
-        /// True if the switch expression in C# is not valid as a C# 6 switch expression, implying that the switch
-        /// statement must be considered a pattern-matching (C# 7 and later) switch statement.
-        /// </summary>
-        public bool PatternMatchingOnly { get; }
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitSwitch(this);
@@ -4911,8 +4905,8 @@ namespace Microsoft.CodeAnalysis.Operations
     /// </summary>
     internal sealed partial class SwitchStatement : BaseSwitchStatement, ISwitchOperation
     {
-        public SwitchStatement(ImmutableArray<ILocalSymbol> locals, IOperation value, ImmutableArray<ISwitchCaseOperation> cases, ILabelSymbol exitLabel, bool patternMatchingOnly, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(locals, exitLabel, patternMatchingOnly, semanticModel, syntax, type, constantValue, isImplicit)
+        public SwitchStatement(ImmutableArray<ILocalSymbol> locals, IOperation value, ImmutableArray<ISwitchCaseOperation> cases, ILabelSymbol exitLabel, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(locals, exitLabel, semanticModel, syntax, type, constantValue, isImplicit)
         {
             Value = SetParentOperation(value, this);
             Cases = SetParentOperation(cases, this);
@@ -4930,8 +4924,8 @@ namespace Microsoft.CodeAnalysis.Operations
         private readonly Lazy<IOperation> _lazyValue;
         private readonly Lazy<ImmutableArray<ISwitchCaseOperation>> _lazyCases;
 
-        public LazySwitchStatement(ImmutableArray<ILocalSymbol> locals, Lazy<IOperation> value, Lazy<ImmutableArray<ISwitchCaseOperation>> cases, ILabelSymbol exitLabel, bool patternMatchingOnly, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(locals, exitLabel, patternMatchingOnly, semanticModel, syntax, type, constantValue, isImplicit)
+        public LazySwitchStatement(ImmutableArray<ILocalSymbol> locals, Lazy<IOperation> value, Lazy<ImmutableArray<ISwitchCaseOperation>> cases, ILabelSymbol exitLabel, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(locals, exitLabel, semanticModel, syntax, type, constantValue, isImplicit)
         {
             _lazyValue = value ?? throw new System.ArgumentNullException(nameof(value));
             _lazyCases = cases;
@@ -6128,8 +6122,8 @@ namespace Microsoft.CodeAnalysis.Operations
     /// </summary>
     internal abstract partial class BaseConstantPattern : Operation, IConstantPatternOperation
     {
-        protected BaseConstantPattern(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(OperationKind.ConstantPattern, semanticModel, syntax, type, constantValue, isImplicit)
+        protected BaseConstantPattern(SemanticModel semanticModel, SyntaxNode syntax, bool isImplicit) :
+            base(OperationKind.ConstantPattern, semanticModel, syntax, type: null, constantValue: default, isImplicit)
         {
         }
 
@@ -6162,8 +6156,8 @@ namespace Microsoft.CodeAnalysis.Operations
     /// </summary>
     internal sealed partial class ConstantPattern : BaseConstantPattern, IConstantPatternOperation
     {
-        public ConstantPattern(IOperation value, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(semanticModel, syntax, type, constantValue, isImplicit)
+        public ConstantPattern(IOperation value, SemanticModel semanticModel, SyntaxNode syntax, bool isImplicit) :
+            base(semanticModel, syntax, isImplicit)
         {
             Value = SetParentOperation(value, this);
         }
@@ -6178,8 +6172,8 @@ namespace Microsoft.CodeAnalysis.Operations
     {
         private readonly Lazy<IOperation> _lazyValue;
 
-        public LazyConstantPattern(Lazy<IOperation> value, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(semanticModel, syntax, type, constantValue, isImplicit)
+        public LazyConstantPattern(Lazy<IOperation> value, SemanticModel semanticModel, SyntaxNode syntax, bool isImplicit) :
+            base(semanticModel, syntax, isImplicit)
         {
             _lazyValue = value ?? throw new System.ArgumentNullException(nameof(value));
         }

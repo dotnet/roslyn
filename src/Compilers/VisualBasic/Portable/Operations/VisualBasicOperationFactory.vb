@@ -1057,7 +1057,7 @@ Namespace Microsoft.CodeAnalysis.Operations
             Dim type As ITypeSymbol = Nothing
             Dim constantValue As [Optional](Of Object) = New [Optional](Of Object)()
             Dim isImplicit As Boolean = boundSelectStatement.WasCompilerGenerated
-            Return New LazySwitchStatement(ImmutableArray(Of ILocalSymbol).Empty, value, cases, exitLabel, patternMatchingOnly:=False, _semanticModel, syntax, type, constantValue, isImplicit)
+            Return New LazySwitchStatement(ImmutableArray(Of ILocalSymbol).Empty, value, cases, exitLabel, _semanticModel, syntax, type, constantValue, isImplicit)
         End Function
 
         Private Function CreateBoundCaseBlockOperation(boundCaseBlock As BoundCaseBlock) As ISwitchCaseOperation

@@ -1964,10 +1964,8 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             Lazy<IOperation> value = new Lazy<IOperation>(() => Create(boundConstantPattern.Value));
             SyntaxNode syntax = boundConstantPattern.Syntax;
-            ITypeSymbol type = null;
-            Optional<object> constantValue = default(Optional<object>);
             bool isImplicit = boundConstantPattern.WasCompilerGenerated;
-            return new LazyConstantPattern(value, _semanticModel, syntax, type, constantValue, isImplicit);
+            return new LazyConstantPattern(value, _semanticModel, syntax, isImplicit);
         }
 
         private IDeclarationPatternOperation CreateBoundDeclarationPatternOperation(BoundDeclarationPattern boundDeclarationPattern)
@@ -2005,8 +2003,7 @@ namespace Microsoft.CodeAnalysis.Operations
             ITypeSymbol type = null;
             Optional<object> constantValue = default(Optional<object>);
             bool isImplicit = boundPatternSwitchStatement.WasCompilerGenerated;
-            bool wasPatternSwitch = boundPatternSwitchStatement.Expression.Type?.IsValidV6SwitchGoverningType() == false;
-            return new LazySwitchStatement(locals, value, cases, exitLabel, wasPatternSwitch, _semanticModel, syntax, type, constantValue, isImplicit);
+            return new LazySwitchStatement(locals, value, cases, exitLabel, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private ICaseClauseOperation CreateBoundPatternSwitchLabelOperation(BoundPatternSwitchLabel boundPatternSwitchLabel)
@@ -2025,7 +2022,7 @@ namespace Microsoft.CodeAnalysis.Operations
             else if (boundPatternSwitchLabel.WhenClause == null &&
                      boundPatternSwitchLabel.Pattern.Kind == BoundKind.ConstantPattern &&
                      boundPatternSwitchLabel.Pattern is BoundConstantPattern cp &&
-                     cp.Value.Type.IsValidV6SwitchGoverningType())
+                     cp.InputType.IsValidV6SwitchGoverningType())
             {
                 Lazy<IOperation> value = new Lazy<IOperation>(() => Create(cp.Value));
                 return new LazySingleValueCaseClause(label, value, _semanticModel, syntax, type, constantValue, isImplicit);

@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
         public override IOperation VisitSwitch(ISwitchOperation operation, object argument)
         {
-            return new SwitchStatement(operation.Locals, Visit(operation.Value), VisitArray(operation.Cases), operation.ExitLabel, ((BaseSwitchStatement)operation).PatternMatchingOnly, ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+            return new SwitchStatement(operation.Locals, Visit(operation.Value), VisitArray(operation.Cases), operation.ExitLabel, ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
         public override IOperation VisitSwitchCase(ISwitchCaseOperation operation, object argument)
@@ -519,7 +519,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
         public override IOperation VisitConstantPattern(IConstantPatternOperation operation, object argument)
         {
-            return new ConstantPattern(Visit(operation.Value), ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+            return new ConstantPattern(Visit(operation.Value), ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.IsImplicit);
         }
 
         public override IOperation VisitDeclarationPattern(IDeclarationPatternOperation operation, object argument)
