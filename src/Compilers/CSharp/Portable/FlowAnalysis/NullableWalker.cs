@@ -4592,6 +4592,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
+        public override BoundNode VisitYieldReturnStatement(BoundYieldReturnStatement node)
+        {
+            BoundExpression expr = node.Expression;
+            if (expr == null)
+            {
+                return null;
+            }
+            var method = (MethodSymbol)_member;
+            TypeSymbolWithAnnotations elementType = InMethodBinder.GetIteratorElementTypeFromReturnType(compilation, RefKind.None, method.ReturnType.TypeSymbol, errorLocationNode: null, diagnostics: null);
+            VisitOptionalImplicitConversion(expr, elementType, useLegacyWarnings: false, AssignmentKind.Return);
+            return null;
+        }
+
 #endregion Visitors
 
         protected override string Dump(LocalState state)
