@@ -2994,15 +2994,9 @@ public class Test
 }";
 
             CreateCompilation(code).VerifyDiagnostics(
-                // (27,9): error CS8377: The type 'Wrapper<int>.S' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'Test.IsUnmanaged<T>()'
-                //         IsUnmanaged<Wrapper<int>.S>();          // Invalid
-                Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "IsUnmanaged<Wrapper<int>.S>").WithArguments("Test.IsUnmanaged<T>()", "T", "Wrapper<int>.S").WithLocation(27, 9),
                 // (28,9): error CS0315: The type 'Wrapper<int>.S' cannot be used as type parameter 'T' in the generic type or method 'Test.IsEnum<T>()'. There is no boxing conversion from 'Wrapper<int>.S' to 'System.Enum'.
                 //         IsEnum<Wrapper<int>.S>();               // Invalid
                 Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedValType, "IsEnum<Wrapper<int>.S>").WithArguments("Test.IsEnum<T>()", "System.Enum", "T", "Wrapper<int>.S").WithLocation(28, 9),
-                // (37,9): error CS8377: The type 'Wrapper<string>.S' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'Test.IsUnmanaged<T>()'
-                //         IsUnmanaged<Wrapper<string>.S>();          // Invalid
-                Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "IsUnmanaged<Wrapper<string>.S>").WithArguments("Test.IsUnmanaged<T>()", "T", "Wrapper<string>.S").WithLocation(37, 9),
                 // (38,9): error CS0315: The type 'Wrapper<string>.S' cannot be used as type parameter 'T' in the generic type or method 'Test.IsEnum<T>()'. There is no boxing conversion from 'Wrapper<string>.S' to 'System.Enum'.
                 //         IsEnum<Wrapper<string>.S>();               // Invalid
                 Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedValType, "IsEnum<Wrapper<string>.S>").WithArguments("Test.IsEnum<T>()", "System.Enum", "T", "Wrapper<string>.S").WithLocation(38, 9));
@@ -3269,6 +3263,157 @@ unsafe class C
                 // (20,9): error CS0315: The type 'int' cannot be used as type parameter 'T' in the generic type or method 'C.UnmanagedWithInterface<T>(T*)'. There is no boxing conversion from 'int' to 'System.IDisposable'.
                 //         UnmanagedWithInterface(&a);         // fail (does not match interface)
                 Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedValType, "UnmanagedWithInterface").WithArguments("C.UnmanagedWithInterface<T>(T*)", "System.IDisposable", "T", "int").WithLocation(20, 9));
+        }
+
+        [Fact]
+        public void UnmanagedGenericStructPointer()
+        {
+            var code = @"
+public struct MyStruct<T>
+{
+    public T field;
+}
+
+public class C
+{
+    public unsafe void M()
+    {
+        MyStruct<int> myStruct;
+        M2(&myStruct);
+    }
+
+    public unsafe void M2(MyStruct<int> *ms) { }
+}
+";
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll)
+                .VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ManagedGenericStructPointer()
+        {
+            var code = @"
+public struct MyStruct<T>
+{
+    public T field;
+}
+
+public class C
+{
+    public unsafe void M()
+    {
+        MyStruct<string> myStruct;
+        M2(&myStruct);
+    }
+
+    public unsafe void M2<T>(MyStruct<T> *ms) where T : unmanaged { }
+}
+";
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll)
+                .VerifyDiagnostics(
+                    // (12,12): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('MyStruct<string>')
+                    //         M2(&myStruct);
+                    Diagnostic(ErrorCode.ERR_ManagedAddr, "&myStruct").WithArguments("MyStruct<string>").WithLocation(12, 12));
+        }
+
+        [Fact]
+        public void UnmanagedGenericConstraintStructPointer()
+        {
+            var code = @"
+public struct MyStruct<T> where T : unmanaged
+{
+    public T field;
+}
+
+public class C
+{
+    public unsafe void M()
+    {
+        MyStruct<int> myStruct;
+        M2(&myStruct);
+    }
+
+    public unsafe void M2(MyStruct<int> *ms) { }
+}
+";
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll)
+                .VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void UnmanagedRecursiveGenericStruct()
+        {
+            var code = @"
+public unsafe struct MyStruct<T> where T : unmanaged
+{
+    YourStruct<T> *field;
+}
+
+public unsafe struct YourStruct<T> where T : unmanaged
+{
+    MyStruct<T> *field;
+}
+
+public class C
+{
+    public unsafe void M()
+    {
+        MyStruct<int> myStruct;
+        M2(&myStruct);
+    }
+
+    public unsafe void M2(MyStruct<int> *ms) { }
+}
+";
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll)
+                .VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void UnmanagedRecursiveStruct()
+        {
+            var code = @"
+public unsafe struct MyStruct
+{
+    YourStruct *field;
+}
+
+public unsafe struct YourStruct
+{
+    MyStruct *field;
+}
+
+public class C
+{
+    public unsafe void M()
+    {
+        MyStruct myStruct;
+        M2(&myStruct);
+    }
+
+    public unsafe void M2(MyStruct *ms) { }
+}
+";
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll)
+                .VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ManagedRecursiveStruct()
+        {
+            var code = @"
+public struct MyStruct
+{
+    YourStruct field;
+}
+
+public struct YourStruct
+{
+    MyStruct field;
+}
+";
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll)
+                .VerifyDiagnostics();
         }
     }
 }
