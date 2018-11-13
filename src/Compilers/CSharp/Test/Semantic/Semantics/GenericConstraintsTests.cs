@@ -3375,23 +3375,12 @@ public class C
             var code = @"
 public unsafe struct MyStruct
 {
-    YourStruct *field;
+    public YourStruct *field;
 }
 
 public unsafe struct YourStruct
 {
-    MyStruct *field;
-}
-
-public class C
-{
-    public unsafe void M()
-    {
-        MyStruct myStruct;
-        M2(&myStruct);
-    }
-
-    public unsafe void M2(MyStruct *ms) { }
+    public MyStruct *field;
 }
 ";
             CreateCompilation(code, options: TestOptions.UnsafeReleaseDll)
