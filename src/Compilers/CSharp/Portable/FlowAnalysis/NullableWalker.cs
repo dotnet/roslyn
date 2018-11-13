@@ -2021,20 +2021,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // https://github.com/dotnet/roslyn/issues/29605 Can we handle some error cases?
             // (Compare with CSharpOperationFactory.CreateBoundCallOperation.)
-            if (!node.HasErrors)
+            ImmutableArray<RefKind> refKindsOpt = node.ArgumentRefKindsOpt;
+            (ImmutableArray<BoundExpression> arguments, ImmutableArray<Conversion> conversions) = RemoveArgumentConversions(node.Arguments, refKindsOpt);
+            if (!receiverType.IsNull)
             {
-                if (!receiverType.IsNull)
-                {
-                    // Update method based on inferred receiver type.
-                    method = (MethodSymbol)AsMemberOfResultType(receiverType, method);
-                }
-
-                ImmutableArray<RefKind> refKindsOpt = node.ArgumentRefKindsOpt;
-                (ImmutableArray<BoundExpression> arguments, ImmutableArray<Conversion> conversions) = RemoveArgumentConversions(node.Arguments, refKindsOpt);
-                ImmutableArray<int> argsToParamsOpt = node.ArgsToParamsOpt;
-
-                method = VisitArguments(node, arguments, refKindsOpt, method.Parameters, argsToParamsOpt, node.Expanded, node.InvokedAsExtensionMethod, conversions, method);
+                // Update method based on inferred receiver type.
+                method = (MethodSymbol)AsMemberOfResultType(receiverType, method);
             }
+
+            method = VisitArguments(node, arguments, refKindsOpt, method.Parameters, node.ArgsToParamsOpt,
+                node.Expanded, node.InvokedAsExtensionMethod, conversions, method);
 
             UpdateStateForCall(node);
 
