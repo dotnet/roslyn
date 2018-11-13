@@ -98,11 +98,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes.NamingStyles
             private readonly string _equivalenceKey;
 
             public FixNameCodeAction(
-                Solution startingSolution, 
-                ISymbol symbol, 
-                string newName, 
-                string title, 
-                Func<CancellationToken, Task<Solution>> createChangedSolutionAsync, 
+                Solution startingSolution,
+                ISymbol symbol,
+                string newName,
+                string title,
+                Func<CancellationToken, Task<Solution>> createChangedSolutionAsync,
                 string equivalenceKey)
             {
                 _startingSolution = startingSolution;

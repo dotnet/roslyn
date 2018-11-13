@@ -23,8 +23,8 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
         where TMemberDeclarationSyntax : SyntaxNode
     {
         internal sealed class State
-        {                                                                        
-            private static readonly SymbolDisplayFormat s_qualifiedNameOnlyFormat = 
+        {
+            private static readonly SymbolDisplayFormat s_qualifiedNameOnlyFormat =
                 new SymbolDisplayFormat(globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Omitted,
                                         typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces);
 
@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
             /// This is the name of the namespace declaration that trigger the refactoring.
             /// </summary>
             public string DeclaredNamespace { get; }
-                                                                                                       
+
             /// <summary>
             /// This is the new name we want to change the namespace to.
             /// Empty string means global namespace, whereas null means change namespace action is not available.
@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
                 ImmutableArray<DocumentId> documentIds,
                 string rootNamespce,
                 string targetNamespace,
-                string declaredNamespace,                           
+                string declaredNamespace,
                 string relativeDeclaredNamespace)
             {
                 Solution = solution;
@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
                 // then it's an actual linked file (i.e. not a multi-targeting project). We don't support that, because 
                 // we don't know which default namespace and folder path we should use to construct target
                 // namespace.
-                if (linkedDocumentids.Any(id => 
+                if (linkedDocumentids.Any(id =>
                         !PathUtilities.PathsEqual(solution.GetDocument(id).Project.FilePath, document.Project.FilePath)))
                 {
                     allDocumentIds = default;
@@ -209,9 +209,9 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
             }
 
             public static async Task<State> CreateAsync(
-                AbstractSyncNamespaceCodeRefactoringProvider<TNamespaceDeclarationSyntax, TCompilationUnitSyntax, TMemberDeclarationSyntax> provider, 
-                Document document, 
-                TextSpan textSpan, 
+                AbstractSyncNamespaceCodeRefactoringProvider<TNamespaceDeclarationSyntax, TCompilationUnitSyntax, TMemberDeclarationSyntax> provider,
+                Document document,
+                TextSpan textSpan,
                 CancellationToken cancellationToken)
             {
                 if (document.Project.FilePath == null
@@ -237,7 +237,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
                     return null;
                 }
 
-                var (shouldTrigger, declaredNamespace) = 
+                var (shouldTrigger, declaredNamespace) =
                     await TryGetNamespaceDeclarationAsync(textSpan, documents, provider, cancellationToken).ConfigureAwait(false);
 
                 if (!shouldTrigger)
@@ -248,9 +248,9 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
                 // Namespace can't be changed if we can't construct a valid qualified identifier from folder names.
                 // In this case, we might still be able to provide refactoring to move file to new location.
                 var namespaceFromFolders = TryBuildNamespaceFromFolders(provider, document.Folders, syntaxFacts);
-                var targetNamespace = namespaceFromFolders == null 
-                    ? null 
-                    : ConcatNamespace(defaultNamespace, namespaceFromFolders);      
+                var targetNamespace = namespaceFromFolders == null
+                    ? null
+                    : ConcatNamespace(defaultNamespace, namespaceFromFolders);
 
                 // No action required if namespace already matches folders.
                 if (syntaxFacts.StringComparer.Equals(targetNamespace, declaredNamespace))
@@ -262,15 +262,15 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
                 // For example, if the default namespace is `Microsoft.CodeAnalysis`, and declared
                 // namespace is `System.Diagnostics`, it's very likely this document is an outlier  
                 // in the project and user probably has some special rule for it.
-                var relativeNamespace = GetRelativeNamespace(defaultNamespace, declaredNamespace, syntaxFacts);                                                                           
-                                                                                                                          
+                var relativeNamespace = GetRelativeNamespace(defaultNamespace, declaredNamespace, syntaxFacts);
+
                 return new State(
-                    solution, 
-                    document.Id, 
-                    documentIds, 
-                    defaultNamespace, 
-                    targetNamespace, 
-                    declaredNamespace, 
+                    solution,
+                    document.Id,
+                    documentIds,
+                    defaultNamespace,
+                    targetNamespace,
+                    declaredNamespace,
                     relativeNamespace);
             }
 
@@ -278,13 +278,13 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
             /// Create a qualified identifier as the suffix of namespace based on a list of folder names.
             /// </summary>
             private static string TryBuildNamespaceFromFolders(
-                AbstractSyncNamespaceCodeRefactoringProvider<TNamespaceDeclarationSyntax, TCompilationUnitSyntax, TMemberDeclarationSyntax> service, 
-                IEnumerable<string> folders, 
+                AbstractSyncNamespaceCodeRefactoringProvider<TNamespaceDeclarationSyntax, TCompilationUnitSyntax, TMemberDeclarationSyntax> service,
+                IEnumerable<string> folders,
                 ISyntaxFactsService syntaxFacts)
             {
                 var parts = folders.SelectMany(folder => folder.Split(new[] { '.' }).SelectAsArray(service.EscapeIdentifier));
                 return parts.All(syntaxFacts.IsValidIdentifier) ? string.Join(".", parts) : null;
-            } 
+            }
 
             private static string ConcatNamespace(string rootNamespace, string namespaceSuffix)
             {

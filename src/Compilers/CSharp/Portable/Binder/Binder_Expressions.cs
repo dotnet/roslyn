@@ -250,7 +250,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Binder initializerBinder = this.GetBinder(initializerOpt);
             Debug.Assert(initializerBinder != null);
 
-            BoundExpression result = initializerBinder.BindVariableOrAutoPropInitializerValue(initializerOpt, RefKind.None, 
+            BoundExpression result = initializerBinder.BindVariableOrAutoPropInitializerValue(initializerOpt, RefKind.None,
                                                            field.GetFieldType(initializerBinder.FieldsBeingBound).TypeSymbol, diagnostics);
 
             return new BoundFieldEqualsValue(initializerOpt, field, initializerBinder.GetDeclaredLocalsForScope(initializerOpt), result);
@@ -2631,8 +2631,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private BoundExpression BindArgumentExpression(DiagnosticBag diagnostics, ExpressionSyntax argumentExpression, RefKind refKind, bool allowArglist)
         {
-            BindValueKind valueKind = 
-                refKind == RefKind.None ? 
+            BindValueKind valueKind =
+                refKind == RefKind.None ?
                         BindValueKind.RValue :
                         refKind == RefKind.In ?
                             BindValueKind.ReadonlyRef:
@@ -3703,7 +3703,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var typeWithAnnotations = BindType(node.Type, diagnostics);
             var type = typeWithAnnotations.TypeSymbol;
-            var originalType = type; 
+            var originalType = type;
 
             if (typeWithAnnotations.NullableAnnotation == NullableAnnotation.Annotated && !type.IsNullableType())
             {
@@ -6857,7 +6857,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (result is null && allowIndexAndRange)
             {
-                result = 
+                result =
                     TryImplicitConversionToArrayIndex(index, WellKnownType.System_Index, node, diagnostics) ??
                     TryImplicitConversionToArrayIndex(index, WellKnownType.System_Range, node, diagnostics);
             }
@@ -6968,7 +6968,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     Error(diagnostics, ErrorCode.ERR_PtrIndexSingle, node);
                 }
-                return new BoundPointerElementAccess(node, expr, BadExpression(node, BuildArgumentsForErrorRecovery(analyzedArguments)).MakeCompilerGenerated(), 
+                return new BoundPointerElementAccess(node, expr, BadExpression(node, BuildArgumentsForErrorRecovery(analyzedArguments)).MakeCompilerGenerated(),
                     CheckOverflowAtRuntime, pointedAtType, hasErrors: true);
             }
 

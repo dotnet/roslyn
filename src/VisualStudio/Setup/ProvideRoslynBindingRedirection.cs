@@ -27,10 +27,10 @@ namespace Roslyn.VisualStudio.Setup
             };
         }
 
-        public override void Register(RegistrationContext context) => 
+        public override void Register(RegistrationContext context) =>
             _redirectionAttribute.Register(context);
 
-        public override void Unregister(RegistrationContext context) => 
+        public override void Unregister(RegistrationContext context) =>
             _redirectionAttribute.Unregister(context);
     }
 }

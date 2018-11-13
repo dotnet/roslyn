@@ -32,12 +32,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly bool _isImplicitlyDeclared;
 
         public TupleErrorFieldSymbol(
-            NamedTypeSymbol container, 
-            string name, 
-            int tupleElementIndex, 
-            Location location, 
-            TypeSymbolWithAnnotations type, 
-            DiagnosticInfo useSiteDiagnosticInfo, 
+            NamedTypeSymbol container,
+            string name,
+            int tupleElementIndex,
+            Location location,
+            TypeSymbolWithAnnotations type,
+            DiagnosticInfo useSiteDiagnosticInfo,
             bool isImplicitlyDeclared,
             TupleErrorFieldSymbol correspondingDefaultFieldOpt)
 

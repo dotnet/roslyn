@@ -1722,7 +1722,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 resultNullableAnnotation = getNullableAnnotation(rightOperand, rightResult);
             }
-            
+
             _resultType = TypeSymbolWithAnnotations.Create(resultType, resultNullableAnnotation);
             return null;
 

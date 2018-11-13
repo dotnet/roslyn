@@ -434,7 +434,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return false;
             }
 
-            if (member1.GetParameterCount() > 0 && !HaveSameParameterTypes(member1.GetParameters(), typeMap1, member2.GetParameters(), typeMap2, 
+            if (member1.GetParameterCount() > 0 && !HaveSameParameterTypes(member1.GetParameters(), typeMap1, member2.GetParameters(), typeMap2,
                                                                            _considerRefKindDifferences, _typeComparison))
             {
                 return false;
@@ -511,7 +511,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     // CONSIDER: could use interface type, but that might be quite expensive
                 }
 
-                if (_considerReturnType && member.GetMemberArity() == 0 && 
+                if (_considerReturnType && member.GetMemberArity() == 0 &&
                     (_typeComparison & TypeCompareKind.AllIgnoreOptions) == 0) // If it is generic, then type argument might be in return type.
                 {
                     hash = Hash.Combine(member.GetTypeOrReturnType().GetHashCode(), hash);
@@ -560,7 +560,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (isVoid1)
             {
-                if ((typeComparison & TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds) != 0 || 
+                if ((typeComparison & TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds) != 0 ||
                     (unsubstitutedReturnType1.CustomModifiers.IsEmpty && unsubstitutedReturnType2.CustomModifiers.IsEmpty))
                 {
                     return true;
@@ -674,7 +674,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 bool? isNotNullableIfReferenceType1 = typeParameter1.IsNotNullableIfReferenceType;
                 bool? isNotNullableIfReferenceType2 = typeParameter2.IsNotNullableIfReferenceType;
-                if (isNotNullableIfReferenceType1.HasValue && isNotNullableIfReferenceType2.HasValue && 
+                if (isNotNullableIfReferenceType1.HasValue && isNotNullableIfReferenceType2.HasValue &&
                     isNotNullableIfReferenceType1.GetValueOrDefault() != isNotNullableIfReferenceType2.GetValueOrDefault())
                 {
                     return false;

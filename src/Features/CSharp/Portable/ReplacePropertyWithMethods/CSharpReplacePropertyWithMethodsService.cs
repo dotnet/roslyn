@@ -20,7 +20,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
 {
     [ExportLanguageService(typeof(IReplacePropertyWithMethodsService), LanguageNames.CSharp), Shared]
-    internal partial class CSharpReplacePropertyWithMethodsService : 
+    internal partial class CSharpReplacePropertyWithMethodsService :
         AbstractReplacePropertyWithMethodsService<IdentifierNameSyntax, ExpressionSyntax, NameMemberCrefSyntax, StatementSyntax>
     {
         public override SyntaxNode GetPropertyDeclaration(SyntaxToken token)
@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
         private List<SyntaxNode> ConvertPropertyToMembers(
             DocumentOptionSet documentOptions,
             ParseOptions parseOptions,
-            SyntaxGenerator generator, 
+            SyntaxGenerator generator,
             IPropertySymbol property,
             PropertyDeclarationSyntax propertyDeclaration,
             IFieldSymbol propertyBackingField,
@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
             if (getMethod != null)
             {
                 result.Add(GetGetMethod(
-                    documentOptions, parseOptions, 
+                    documentOptions, parseOptions,
                     generator, propertyDeclaration, propertyBackingField,
                     getMethod, desiredGetMethodName,
                     cancellationToken: cancellationToken));
@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
             {
                 result.Add(GetSetMethod(
                     documentOptions, parseOptions,
-                    generator, propertyDeclaration, propertyBackingField, 
+                    generator, propertyDeclaration, propertyBackingField,
                     setMethod, desiredSetMethodName,
                     cancellationToken: cancellationToken));
             }
@@ -138,8 +138,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
         }
 
         private static MethodDeclarationSyntax GetSetMethodWorker(
-            SyntaxGenerator generator, 
-            PropertyDeclarationSyntax propertyDeclaration, 
+            SyntaxGenerator generator,
+            PropertyDeclarationSyntax propertyDeclaration,
             IFieldSymbol propertyBackingField,
             IMethodSymbol setMethod,
             string desiredSetMethodName,

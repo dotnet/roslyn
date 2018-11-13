@@ -10454,7 +10454,7 @@ class Program
     }
 }";
 
-            CompileAndVerify(code, expectedOutput: 
+            CompileAndVerify(code, expectedOutput:
 @"params: 0
 in: 1
 params: 2

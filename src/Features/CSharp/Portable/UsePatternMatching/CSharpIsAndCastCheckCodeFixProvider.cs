@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
         }
 
         protected override Task FixAllAsync(
-            Document document, ImmutableArray<Diagnostic> diagnostics, 
+            Document document, ImmutableArray<Diagnostic> diagnostics,
             SyntaxEditor editor, CancellationToken cancellationToken)
         {
             foreach (var diagnostic in diagnostics)
@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                                          .Where(t => t.IsSingleOrMultiLineComment())
                                          .SelectMany(t => ImmutableArray.Create(SyntaxFactory.Space, t, SyntaxFactory.ElasticCarriageReturnLineFeed))
                                          .ToImmutableArray();
-            
+
             editor.RemoveNode(localDeclaration);
             editor.ReplaceNode(ifStatement,
                 (i, g) =>

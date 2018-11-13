@@ -286,7 +286,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
                     {
                         // Merge two text tokens token if there is no intermediary trivia.
                         var merged = new RegexTextNode(CreateToken(
-                            RegexKind.TextToken, lastTextToken.LeadingTrivia, 
+                            RegexKind.TextToken, lastTextToken.LeadingTrivia,
                             lastTextToken.VirtualChars.Concat(nextTextToken.VirtualChars)));
 
                         list.RemoveLast();
@@ -1693,7 +1693,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             if (bestPosition != -1)
             {
                 var numberToken = CreateToken(
-                    RegexKind.NumberToken, ImmutableArray<RegexTrivia>.Empty, 
+                    RegexKind.NumberToken, ImmutableArray<RegexTrivia>.Empty,
                     _lexer.GetSubPattern(start, bestPosition)).With(value: capVal);
                 ResetToPositionAndConsumeCurrentToken(bestPosition, allowTrivia: allowTriviaAfterEnd);
                 return new RegexBackreferenceEscapeNode(backslashToken, numberToken);

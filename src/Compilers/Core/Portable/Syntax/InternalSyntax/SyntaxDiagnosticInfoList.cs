@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
 
             public DiagnosticInfo Current { get; private set; }
 
-            internal Enumerator(GreenNode node) 
+            internal Enumerator(GreenNode node)
             {
                 Current = null;
                 _stack = null;

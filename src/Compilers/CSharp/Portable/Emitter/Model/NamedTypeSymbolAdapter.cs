@@ -949,8 +949,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private Cci.INamedTypeReference GenericTypeImpl(EmitContext context)
         {
             PEModuleBuilder moduleBeingBuilt = (PEModuleBuilder)context.Module;
-            return moduleBeingBuilt.Translate(this.OriginalDefinition, syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt, 
-                                              diagnostics: context.Diagnostics, needDeclaration:true); 
+            return moduleBeingBuilt.Translate(this.OriginalDefinition, syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt,
+                                              diagnostics: context.Diagnostics, needDeclaration:true);
         }
 
         Cci.INestedTypeReference Cci.ISpecializedNestedTypeReference.GetUnspecializedVersion(EmitContext context)

@@ -1233,7 +1233,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
         }
- 
+
         private CSDiagnosticInfo MakeCallMethodsDirectlyDiagnostic(Symbol symbol)
         {
             Debug.Assert(symbol.MustCallMethodsDirectly());

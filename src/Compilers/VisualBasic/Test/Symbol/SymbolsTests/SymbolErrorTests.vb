@@ -23819,7 +23819,7 @@ Friend MustOverride ReadOnly Property P
 }"
             Dim ilReference = CompileIL(forwardingIL, prependDefaultHeader:= False)
 
-            Dim code = 
+            Dim code =
     <compilation>
         <file name="a.vb"><![CDATA[
 Imports TestSpace
@@ -23838,11 +23838,11 @@ End Namespace
                 references:= { ilReference },
                 expectedOutput:= "TEST VALUE")
         End Sub
-        
+
         <Fact>
         <WorkItem(16484, "https://github.com/dotnet/roslyn/issues/16484")>
         Public Sub MultipleForwardsOfFullyQualifiedTypeToDifferentAssembliesWhileReferencingItShouldErrorOut()
-            Dim userCode = 
+            Dim userCode =
     <compilation>
         <file name="a.vb"><![CDATA[
 Namespace ForwardingNamespace
@@ -23888,12 +23888,12 @@ BC37208: Module 'ForwarderModule.dll' in assembly 'Forwarder, Version=1.0.0.0, C
                           ~~~~~~~~~~~~~~~~~~~~~
  ]]></errors>)
         End Sub
-        
+
         <Fact>
         <WorkItem(16484, "https://github.com/dotnet/roslyn/issues/16484")>
         Public Sub MultipleForwardsToManyAssembliesShouldJustReportTheFirstTwo()
-            
-            Dim userCode = 
+
+            Dim userCode =
     <compilation>
         <file name="a.vb"><![CDATA[
 Namespace ForwardingNamespace
@@ -23956,7 +23956,7 @@ BC37208: Module 'ForwarderModule.dll' in assembly 'Forwarder, Version=0.0.0.0, C
                           ~~~~~~~~~~~~~~~~~~~~~
  ]]></errors>)
         End Sub
-        
+
         <Fact>
         <WorkItem(16484, "https://github.com/dotnet/roslyn/issues/16484")>
         Public Sub RequiredExternalTypesForAMethodSignatureWillReportErrorsIfForwardedToMultipleAssemblies()
@@ -24012,7 +24012,7 @@ End Namespace"
                 assemblyName:= "A")
 
             compilation.VerifyDiagnostics() ' No Errors
-            
+
             Dim codeC2 = "
 .assembly C { }
 .module CModule.dll

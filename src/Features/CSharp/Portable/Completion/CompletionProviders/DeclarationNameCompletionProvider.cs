@@ -177,7 +177,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             if (type is INamedTypeSymbol namedType && namedType.OriginalDefinition != null)
             {
                 var originalDefinition = namedType.OriginalDefinition;
-                
+
                 var ienumerableOfT = namedType.GetAllInterfacesIncludingThis().FirstOrDefault(
                     t => t.OriginalDefinition.SpecialType == SpecialType.System_Collections_Generic_IEnumerable_T);
 
@@ -251,11 +251,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         CompletionItem CreateCompletionItem(string name, Glyph glyph, string sortText)
         {
             return CommonCompletionItem.Create(
-                name, 
+                name,
                 displayTextSuffix: "",
-                CompletionItemRules.Default, 
-                glyph: glyph, 
-                sortText: sortText, 
+                CompletionItemRules.Default,
+                glyph: glyph,
+                sortText: sortText,
                 description: CSharpFeaturesResources.Suggested_name.ToSymbolDisplayParts());
         }
     }

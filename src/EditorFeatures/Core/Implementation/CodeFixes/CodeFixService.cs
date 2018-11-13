@@ -339,7 +339,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             }
 
             await AppendFixesOrSuppressionsAsync(
-                document, span, diagnostics, fixAllForInSpan: false, result, lazySuppressionProvider.Value, 
+                document, span, diagnostics, fixAllForInSpan: false, result, lazySuppressionProvider.Value,
                 hasFix: d => lazySuppressionProvider.Value.CanBeSuppressedOrUnsuppressed(d),
                 getFixes: dxs => lazySuppressionProvider.Value.GetSuppressionsAsync(
                     document, span, dxs, cancellationToken),
@@ -411,7 +411,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 supportedScopes, diagnostics.First());
             result.Add(codeFix);
         }
-  
+
         public CodeFixProvider GetSuppressionFixer(string language, IEnumerable<string> diagnosticIds)
         {
             if (!_suppressionProvidersMap.TryGetValue(language, out var lazySuppressionProvider) || lazySuppressionProvider.Value == null)

@@ -441,7 +441,7 @@ namespace Microsoft.CodeAnalysis
                             {
                                 goto default;
                             }
-                             
+
                             Advance();
                             if (Current != ']')
                             {
@@ -923,7 +923,7 @@ namespace Microsoft.CodeAnalysis
             if (errorArgumentResourceId != null)
             {
                 diagnostics.Add(
-                    messageProvider.CreateDiagnostic(code, Location.None, 
+                    messageProvider.CreateDiagnostic(code, Location.None,
                         new CodeAnalysisResourcesLocalizableErrorArgument(errorArgumentResourceId)));
             }
         }

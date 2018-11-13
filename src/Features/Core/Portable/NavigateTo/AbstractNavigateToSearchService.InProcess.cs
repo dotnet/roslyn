@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
         }
 
         private static async Task<ImmutableArray<INavigateToSearchResult>> FindSearchResultsAsync(
-            Project project, ImmutableArray<Document> priorityDocuments, Document searchDocument, 
+            Project project, ImmutableArray<Document> priorityDocuments, Document searchDocument,
             string pattern, IImmutableSet<string> kinds, CancellationToken cancellationToken)
         {
             // If the user created a dotted pattern then we'll grab the last part of the name
@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
         }
 
         private static async Task<ImmutableArray<SearchResult>> ComputeSearchResultsAsync(
-            Project project, ImmutableArray<Document> priorityDocuments, Document searchDocument, 
+            Project project, ImmutableArray<Document> priorityDocuments, Document searchDocument,
             PatternMatcher nameMatcher, PatternMatcher containerMatcherOpt,
             DeclaredSymbolInfoKindSet kinds,
             ArrayBuilder<PatternMatch> nameMatches, ArrayBuilder<PatternMatch> containerMatches,
@@ -193,7 +193,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                         document, declaredSymbolInfo,
                         nameMatcher, containerMatcherOpt,
                         kinds,
-                        nameMatches, containerMatches, 
+                        nameMatches, containerMatches,
                         result, cancellationToken);
                 }
             }
@@ -205,7 +205,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             Document document, DeclaredSymbolInfo declaredSymbolInfo,
             PatternMatcher nameMatcher, PatternMatcher containerMatcherOpt,
             DeclaredSymbolInfoKindSet kinds,
-            ArrayBuilder<PatternMatch> nameMatches, ArrayBuilder<PatternMatch> containerMatches, 
+            ArrayBuilder<PatternMatch> nameMatches, ArrayBuilder<PatternMatch> containerMatches,
             ArrayBuilder<SearchResult> result, CancellationToken cancellationToken)
         {
             nameMatches.Clear();

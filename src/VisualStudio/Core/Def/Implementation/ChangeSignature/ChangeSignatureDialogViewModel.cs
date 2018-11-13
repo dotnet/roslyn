@@ -512,7 +512,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
                         case LanguageNames.VisualBasic:
                             return NullText("Nothing");
                     }
-                    return string.Empty; 
+                    return string.Empty;
 
                     string NullText(string @null)
                     {

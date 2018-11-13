@@ -454,7 +454,7 @@ class C
 ";
             await VerifyItemExistsAsync(markup, "Program");
 		}
-		
+
         [WorkItem(14084, "https://github.com/dotnet/roslyn/issues/14084")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task InMethodCallBeforeAssignment1()

@@ -172,28 +172,28 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             switch (kind)
             {
-                case ConversionKind.NoConversion: 
-                case ConversionKind.Identity: 
-                case ConversionKind.ImplicitConstant: 
-                case ConversionKind.ImplicitNumeric: 
-                case ConversionKind.ImplicitReference: 
+                case ConversionKind.NoConversion:
+                case ConversionKind.Identity:
+                case ConversionKind.ImplicitConstant:
+                case ConversionKind.ImplicitNumeric:
+                case ConversionKind.ImplicitReference:
                 case ConversionKind.ImplicitEnumeration:
                 case ConversionKind.ImplicitThrow:
-                case ConversionKind.AnonymousFunction: 
-                case ConversionKind.Boxing: 
-                case ConversionKind.DefaultOrNullLiteral: 
-                case ConversionKind.NullToPointer: 
-                case ConversionKind.PointerToVoid: 
-                case ConversionKind.PointerToPointer: 
-                case ConversionKind.PointerToInteger: 
-                case ConversionKind.IntegerToPointer: 
-                case ConversionKind.Unboxing: 
-                case ConversionKind.ExplicitReference: 
-                case ConversionKind.IntPtr: 
-                case ConversionKind.ExplicitEnumeration: 
-                case ConversionKind.ExplicitNumeric: 
-                case ConversionKind.ImplicitDynamic: 
-                case ConversionKind.ExplicitDynamic: 
+                case ConversionKind.AnonymousFunction:
+                case ConversionKind.Boxing:
+                case ConversionKind.DefaultOrNullLiteral:
+                case ConversionKind.NullToPointer:
+                case ConversionKind.PointerToVoid:
+                case ConversionKind.PointerToPointer:
+                case ConversionKind.PointerToInteger:
+                case ConversionKind.IntegerToPointer:
+                case ConversionKind.Unboxing:
+                case ConversionKind.ExplicitReference:
+                case ConversionKind.IntPtr:
+                case ConversionKind.ExplicitEnumeration:
+                case ConversionKind.ExplicitNumeric:
+                case ConversionKind.ImplicitDynamic:
+                case ConversionKind.ExplicitDynamic:
                 case ConversionKind.InterpolatedString:
                     isTrivial = true;
                     break;

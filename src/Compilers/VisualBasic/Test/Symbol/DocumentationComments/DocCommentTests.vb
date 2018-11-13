@@ -36,8 +36,8 @@ End Class
 ]]>
     </file>
 </compilation>
-            Using(new EnsureEnglishUICulture()) 
-            
+            Using(new EnsureEnglishUICulture())
+
                 Dim comp = CreateCompilationWithMscorlib40(sources)
                 Dim diags = New DiagnosticBag()
                 Dim badStream = New BrokenStream()

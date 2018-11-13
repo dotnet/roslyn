@@ -152,7 +152,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
                             if (split != 0)
                             {
                                 // found another discontinuity, so cannot be split
-                                return -1; 
+                                return -1;
                             }
 
                             split = idx;

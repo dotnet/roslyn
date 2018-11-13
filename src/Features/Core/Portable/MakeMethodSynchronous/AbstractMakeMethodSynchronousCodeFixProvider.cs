@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis.MakeMethodSynchronous
         }
 
         private void RemoveAwaitFromCallerIfPresent(
-            SyntaxEditor editor, ISyntaxFactsService syntaxFacts, 
+            SyntaxEditor editor, ISyntaxFactsService syntaxFacts,
             SyntaxNode root, ReferenceLocation referenceLocation,
             CancellationToken cancellationToken)
         {

@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Operations
     /// change it in the future.
     /// </remarks>
     public interface IRaiseEventOperation: IOperation
-    {     
+    {
         /// <summary>
         /// Reference to the event to be raised.
         /// </summary>

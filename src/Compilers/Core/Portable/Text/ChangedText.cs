@@ -127,12 +127,12 @@ namespace Microsoft.CodeAnalysis.Text
             // compute changes against newText to avoid capturing strong references to this ChangedText instance.
             // _newText will only ever be one of CompositeText, SubText, StringText or LargeText, so calling WithChanges on it 
             // will either produce a ChangeText instance or the original instance in case of a empty change.
-            var changed = _newText.WithChanges(changes) as ChangedText;  
+            var changed = _newText.WithChanges(changes) as ChangedText;
             if (changed != null)
             {
                 return new ChangedText(this, changed._newText, changed._info.ChangeRanges);
             }
-            else 
+            else
             {
                 // change was empty, so just return this same instance
                 return this;

@@ -119,7 +119,7 @@ unsafe class Test
                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_3),
                 options: TestOptions.UnsafeReleaseExe,
                 expectedOutput: "424242424242424242",
-                verify: Verification.Fails).VerifyIL("Test.M<T>(T)", 
+                verify: Verification.Fails).VerifyIL("Test.M<T>(T)",
 @"{
   // Code size      163 (0xa3)
   .maxstack  4

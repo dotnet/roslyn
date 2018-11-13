@@ -574,8 +574,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Either the methodOrIndexer is a property, in which case the method used
             // for optional parameters is an accessor of that property (or an overridden
             // property), or the methodOrIndexer is used for optional parameters directly.
-            Debug.Assert(((methodOrIndexer.Kind == SymbolKind.Property) && 
-                (optionalParametersMethod.IsAccessor() || 
+            Debug.Assert(((methodOrIndexer.Kind == SymbolKind.Property) &&
+                (optionalParametersMethod.IsAccessor() ||
                  ((PropertySymbol)methodOrIndexer).MustCallMethodsDirectly)) || // This condition is a temporary workaround for https://github.com/dotnet/roslyn/issues/23852
                 (object)methodOrIndexer == optionalParametersMethod);
 
@@ -1393,7 +1393,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     defaultValue = new BoundDefaultExpression(syntax, parameterType) { WasCompilerGenerated = true };
                 }
             }
-            else if (defaultConstantValue.IsNull && 
+            else if (defaultConstantValue.IsNull &&
                 (parameterType.IsValueType || (parameterType.IsNullableType() && parameterType.IsErrorType())))
             {
                 // We have something like M(int? x = null) or M(S x = default(S)),

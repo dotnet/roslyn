@@ -1053,7 +1053,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return true;
             }
 
-            return ignoreSpanLikeTypes? 
+            return ignoreSpanLikeTypes?
                         false:
                         type.IsByRefLikeType;
         }

@@ -106,7 +106,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 return OnEntryFoundAsync(
                     reference.Definition,
                     bucket => TryCreateDocumentSpanEntryAsync(
-                        bucket, reference.SourceSpan, 
+                        bucket, reference.SourceSpan,
                         reference.IsWrittenTo ? HighlightSpanKind.WrittenReference : HighlightSpanKind.Reference,
                         reference.ReferenceInfo),
                     addToEntriesWhenGroupingByDefinition: true,

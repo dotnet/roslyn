@@ -3809,7 +3809,7 @@ public class TestClass
     IL_0011:  ret
 }");
 
-            
+
             // RELEASE
             compilation = CreateCompilation(source, options: TestOptions.ReleaseDll);
             compilation.VerifyDiagnostics();
@@ -3828,7 +3828,7 @@ public class TestClass
     IL_000f:  pop
     IL_0010:  ret
 }");
-    
+
         }
 
         [Fact]
@@ -6049,7 +6049,7 @@ public class C {
         [Fact, WorkItem(19038, "https://github.com/dotnet/roslyn/issues/19038")]
         public void MatchRestrictedTypes_Fail()
         {
-            
+
             var program =
 @"using System;
 unsafe public class C {

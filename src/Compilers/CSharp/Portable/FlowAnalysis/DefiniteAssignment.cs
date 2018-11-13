@@ -1781,7 +1781,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitIncrementOperator(BoundIncrementOperator node)
         {
             base.VisitIncrementOperator(node);
-            Assign(node.Operand, value: node); 
+            Assign(node.Operand, value: node);
             return null;
         }
 
@@ -1790,7 +1790,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             VisitCompoundAssignmentTarget(node);
             VisitRvalue(node.Right);
             AfterRightHasBeenVisited(node);
-            Assign(node.Left, value: node); 
+            Assign(node.Left, value: node);
             return null;
         }
 
@@ -1851,7 +1851,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 CheckAssigned(arg, arg.Syntax);
             }
 
-            Assign(arg, value: null); 
+            Assign(arg, value: null);
 
             // Imitate Dev10 behavior: if the argument is passed by ref/out to an external method, then
             // we assume that external method may write and/or read all of its fields (recursively).

@@ -88,11 +88,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.UnitTests
             pdbStream.Position = 0;
 
             PdbValidation.ValidateDebugDirectory(
-                peStream, 
-                portablePdbStreamOpt: (format == DebugInformationFormat.PortablePdb) ? pdbStream : null, 
-                pdbPath: compilation.AssemblyName + ".pdb", 
-                hashAlgorithm: default, 
-                hasEmbeddedPdb: false, 
+                peStream,
+                portablePdbStreamOpt: (format == DebugInformationFormat.PortablePdb) ? pdbStream : null,
+                pdbPath: compilation.AssemblyName + ".pdb",
+                hashAlgorithm: default,
+                hasEmbeddedPdb: false,
                 isDeterministic: false);
         }
 

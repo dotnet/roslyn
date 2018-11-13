@@ -248,8 +248,8 @@ namespace A.B {
             Assert.Throws<ArgumentException>("pdbStream", () => comp.Emit(peStream: new MemoryStream(), pdbStream: new MemoryStream(), options: EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.Embedded)));
 
             Assert.Throws<ArgumentException>("sourceLinkStream", () => comp.Emit(
-                peStream: new MemoryStream(), 
-                pdbStream: new MemoryStream(), 
+                peStream: new MemoryStream(),
+                pdbStream: new MemoryStream(),
                 options: EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.PortablePdb),
                 sourceLinkStream: new TestStream(canRead: false, canWrite: true, canSeek: true)));
 
@@ -275,8 +275,8 @@ namespace A.B {
 
             // we don't report an error when we can't write to the XML doc stream:
             Assert.True(comp.Emit(
-                peStream: new MemoryStream(), 
-                pdbStream: new MemoryStream(), 
+                peStream: new MemoryStream(),
+                pdbStream: new MemoryStream(),
                 xmlDocumentationStream: new TestStream(canRead: true, canWrite: false, canSeek: true)).Success);
         }
 
@@ -2295,7 +2295,7 @@ public class C { public static FrameworkName Goo() { return null; }}";
             Assert.True(type.IsAnonymousType);
             Assert.Equal(1, type.GetMembers().OfType<IPropertySymbol>().Count());
             Assert.Equal("<anonymous type: int m1>", type.ToDisplayString());
-            Assert.All(type.GetMembers().OfType<IPropertySymbol>().Select(p => p.Locations.FirstOrDefault()), 
+            Assert.All(type.GetMembers().OfType<IPropertySymbol>().Select(p => p.Locations.FirstOrDefault()),
                 loc => Assert.Equal(loc, Location.None));
         }
 

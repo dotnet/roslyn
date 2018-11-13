@@ -350,7 +350,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
                     var leftBody = GetBody(left);
                     var rightBody = GetBody(right);
-                    
+
                     if (!SyntaxFactory.AreEquivalent(leftBody, rightBody, null))
                     {
                         return false;

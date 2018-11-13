@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     var call = (BoundCall)expression;
                     var methodRefKind = call.Method.RefKind;
 
-                    if (methodRefKind == RefKind.Ref || 
+                    if (methodRefKind == RefKind.Ref ||
                         (IsAnyReadOnly(addressKind) && methodRefKind == RefKind.RefReadOnly))
                     {
                         EmitCallExpression(call, UseKind.UsedAsAddress);

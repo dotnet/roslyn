@@ -2637,7 +2637,7 @@ class E : Exception
         [Fact]
         [WorkItem(13206, "https://github.com/dotnet/roslyn/issues/13206")]
         public void Lambda_01()
-        { 
+        {
             var source =
 @"public delegate ref T D<T>();
 public class A<T>

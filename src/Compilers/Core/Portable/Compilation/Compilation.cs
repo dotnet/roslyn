@@ -2656,7 +2656,7 @@ namespace Microsoft.CodeAnalysis
                     return ret;
                 };
 
-                Func<Stream> getRefPeStream = 
+                Func<Stream> getRefPeStream =
                     metadataPEStreamProvider == null
                     ? null
                     : (Func<Stream>) (() => ConditionalGetOrCreateStream(metadataPEStreamProvider, metadataDiagnostics));

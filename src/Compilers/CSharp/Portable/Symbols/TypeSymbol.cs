@@ -1152,16 +1152,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 TypeSymbolWithAnnotations implementingMemberType = implementingMember.GetTypeOrReturnType();
                 TypeSymbolWithAnnotations implementedMemberType = implementedMember.GetTypeOrReturnType();
 
-                if (!implementingMemberType.Equals(implementedMemberType, 
+                if (!implementingMemberType.Equals(implementedMemberType,
                                                    TypeCompareKind.AllIgnoreOptions & ~(TypeCompareKind.IgnoreNullableModifiersForReferenceTypes | TypeCompareKind.IgnoreInsignificantNullableModifiersDifference)) &&
                     implementingMemberType.Equals(implementedMemberType, TypeCompareKind.AllIgnoreOptions))
                 {
                     diagnostics.Add(implementingMember.Kind == SymbolKind.Method ?
-                                        (isExplicit ? 
-                                            ErrorCode.WRN_NullabilityMismatchInReturnTypeOnExplicitImplementation : 
+                                        (isExplicit ?
+                                            ErrorCode.WRN_NullabilityMismatchInReturnTypeOnExplicitImplementation :
                                             ErrorCode.WRN_NullabilityMismatchInReturnTypeOnImplicitImplementation) :
-                                        (isExplicit ? 
-                                            ErrorCode.WRN_NullabilityMismatchInTypeOnExplicitImplementation : 
+                                        (isExplicit ?
+                                            ErrorCode.WRN_NullabilityMismatchInTypeOnExplicitImplementation :
                                             ErrorCode.WRN_NullabilityMismatchInTypeOnImplicitImplementation),
                                     implementingMember.Locations[0], new FormattedSymbol(interfaceMember, SymbolDisplayFormat.MinimallyQualifiedFormat));
                 }
@@ -1179,7 +1179,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         diagnostics.Add(isExplicit ?
                                             ErrorCode.WRN_NullabilityMismatchInParameterTypeOnExplicitImplementation :
-                                            ErrorCode.WRN_NullabilityMismatchInParameterTypeOnImplicitImplementation, 
+                                            ErrorCode.WRN_NullabilityMismatchInParameterTypeOnImplicitImplementation,
                                         implementingMember.Locations[0],
                                         new FormattedSymbol(implementingParameters[i], SymbolDisplayFormat.ShortFormat),
                                         new FormattedSymbol(interfaceMember, SymbolDisplayFormat.MinimallyQualifiedFormat));

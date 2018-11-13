@@ -141,7 +141,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         return rewrittenOperand;
                     }
-                    
+
                     // 4.1.6 C# spec: To force a value of a floating point type to the exact precision of its type, an explicit cast can be used.
                     // If this is not an identity conversion of a float with unknown precision, strip away the identity conversion.
                     if (!IsFloatingPointExpressionOfUnknownPrecision(rewrittenOperand))
@@ -454,15 +454,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return conversion;
-        } 
+        }
 
         private static BoundExpression MakeConversionForIOperation(
-            BoundExpression operand, 
-            TypeSymbol type, 
-            SyntaxNode syntax, 
-            CSharpCompilation compilation, 
-            DiagnosticBag diagnostics, 
-            bool @checked, 
+            BoundExpression operand,
+            TypeSymbol type,
+            SyntaxNode syntax,
+            CSharpCompilation compilation,
+            DiagnosticBag diagnostics,
+            bool @checked,
             bool acceptFailingConversion = false)
         {
             Conversion conversion = MakeConversion(operand, type, compilation, diagnostics, acceptFailingConversion);
@@ -477,7 +477,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundConversion(
                             syntax,
                             operand,
-                            conversion,             
+                            conversion,
                             @checked: @checked,
                             explicitCastInCode: false,
                             conversionGroupOpt: null,
@@ -764,7 +764,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     MethodSymbol get_Value = UnsafeGetNullableMethod(syntax, rewrittenOperandType, SpecialMember.System_Nullable_T_get_Value);
                     value = BoundCall.Synthesized(syntax, rewrittenOperand, get_Value);
                 }
-                
+
                 return MakeConversionNode(syntax, value, conversion.UnderlyingConversions[0], rewrittenType, @checked);
             }
         }
@@ -843,7 +843,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundAssignmentOperator tempAssignment;
             var boundTemp = _factory.StoreToTemp(operand, out tempAssignment);
             MethodSymbol getValueOrDefault;
-                
+
             if (!TryGetNullableMethod(syntax, boundTemp.Type, SpecialMember.System_Nullable_T_GetValueOrDefault, out getValueOrDefault))
             {
                 return BadExpression(syntax, type, operand);

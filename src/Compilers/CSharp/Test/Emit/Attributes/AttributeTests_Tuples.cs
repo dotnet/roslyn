@@ -229,7 +229,7 @@ class C
             ModuleSymbol peModule = null;
             CompileAndVerifyWithMscorlib40(s_tuplesTestSource,
                 options: TestOptions.UnsafeReleaseDll,
-                references: s_attributeRefs, 
+                references: s_attributeRefs,
                 verify: Verification.Passes,
                 sourceSymbolValidator: m => sourceModule = m,
                 symbolValidator: m => peModule = m);
@@ -468,7 +468,7 @@ class C
                     {
                         false, false, false, true,
                         false, true, false, false,
-                        true, true 
+                        true, true
                     });
 
                 // public static Base1<(int, ValueTuple<int, ValueTuple>)> Field6;

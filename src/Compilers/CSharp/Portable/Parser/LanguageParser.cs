@@ -1166,7 +1166,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     return DeclarationModifiers.None;
             }
         }
-        
+
         private void ParseModifiers(SyntaxListBuilder tokens, bool forAccessors)
         {
             while (true)
@@ -7959,7 +7959,7 @@ tryAgain:
             var closeParen = this.EatToken(SyntaxKind.CloseParenToken);
             var statement = firstTokenIsElse ? this.ParseExpressionStatement() : this.ParseEmbeddedStatement();
             var elseClause = this.ParseElseClauseOpt();
-            
+
             return _syntaxFactory.IfStatement(@if, openParen, condition, closeParen, statement, elseClause);
         }
 

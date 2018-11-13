@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                 bool exact, CancellationToken cancellationToken)
             {
                 var searchScope = new MetadataSymbolsSearchScope(
-                    _owner, _document.Project.Solution, assembly, assemblyProjectId, 
+                    _owner, _document.Project.Solution, assembly, assemblyProjectId,
                     metadataReference, exact, cancellationToken);
                 return DoAsync(searchScope);
             }
@@ -192,8 +192,8 @@ namespace Microsoft.CodeAnalysis.AddImport
                 }
 
                 CalculateContext(
-                    nameNode, _syntaxFacts, 
-                    out var name, out var arity, out var inAttributeContext, 
+                    nameNode, _syntaxFacts,
+                    out var name, out var arity, out var inAttributeContext,
                     out var hasIncompleteParentMember, out var looksGeneric);
 
                 if (ExpressionBinds(nameNode, checkForExtensionMethods: false, cancellationToken: searchScope.CancellationToken))
@@ -218,7 +218,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                 // Only keep symbols which are accessible from the current location.
                 var accessibleTypeSymbols = typeSymbols.WhereAsArray(
                     s => ArityAccessibilityAndAttributeContextAreCorrect(
-                        s.Symbol, arity, inAttributeContext, 
+                        s.Symbol, arity, inAttributeContext,
                         hasIncompleteParentMember, looksGeneric));
 
                 // These types may be contained within namespaces, or they may be nested 
@@ -479,7 +479,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                     if (type != null)
                     {
                         return await GetReferencesForExtensionMethodAsync(searchScope, WellKnownMemberNames.GetAwaiter, type,
-                            m => m.IsValidGetAwaiter()).ConfigureAwait(false); 
+                            m => m.IsValidGetAwaiter()).ConfigureAwait(false);
                     }
                 }
 

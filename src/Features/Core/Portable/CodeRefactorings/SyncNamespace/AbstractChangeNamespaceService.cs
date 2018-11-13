@@ -72,13 +72,13 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
         /// root directory, and no namespace declaration in the document, respectively.
         /// </summary>
         public override async Task<Solution> ChangeNamespaceAsync(
-            Solution solution, 
-            ImmutableArray<DocumentId> documentIds, 
-            string declaredNamespace, 
-            string targetNamespace, 
+            Solution solution,
+            ImmutableArray<DocumentId> documentIds,
+            string declaredNamespace,
+            string targetNamespace,
             CancellationToken cancellationToken)
         {
-            Debug.Assert(targetNamespace != null);            
+            Debug.Assert(targetNamespace != null);
 
             // Here's the entire process for changing namespace:
             // 1. Change the namespace declaration, fix references and add imports that might be necessary.
@@ -203,10 +203,10 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
         /// the types declared in the changed namespace (not include the document contains the declaration itself).
         /// </summary>
         private async Task<(Solution, ImmutableArray<DocumentId>)> ChangeNamespaceToMatchFoldersAsync(
-            Solution solution, 
-            DocumentId id, 
-            string oldNamespace, 
-            string newNamespace, 
+            Solution solution,
+            DocumentId id,
+            string oldNamespace,
+            string newNamespace,
             CancellationToken cancellationToken)
         {
             var document = solution.GetDocument(id);

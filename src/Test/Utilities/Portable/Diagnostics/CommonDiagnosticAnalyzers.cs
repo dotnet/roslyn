@@ -987,7 +987,7 @@ namespace Microsoft.CodeAnalysis
                             blockContext.RegisterOperationAction(operationContext =>
                             {
                                 ReportDiagnostic(operationContext.ReportDiagnostic, operationContext.Operation.Syntax.GetLocation());
-                                VerifyControlFlowGraph(operationContext, inBlockAnalysisContext: true);                                
+                                VerifyControlFlowGraph(operationContext, inBlockAnalysisContext: true);
                             }, OperationKind.Literal);
                         });
                         break;

@@ -569,7 +569,7 @@ class C
         }
     }
 }";
-            var compilation0 = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll, 
+            var compilation0 = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll,
                 references: new[] { SystemRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929, CSharpRef });
             WithRuntimeInstance(compilation0, runtime =>
             {
@@ -1561,7 +1561,7 @@ class C
 }");
                 VerifyLocal(testData, typeName, locals[2], "<>m2", "x3");
                 VerifyLocal(testData, typeName, locals[3], "<>m3", "x4");
-                
+
                 Assert.Equal(locals.Count, 4);
 
                 locals.Free();
@@ -3768,7 +3768,7 @@ class C
         [WorkItem(955, "https://github.com/aspnet/Home/issues/955")]
         [Fact]
         public void ConstantWithErrorType()
-        { 
+        {
             const string source = @"
 class Program
 {
@@ -3935,7 +3935,7 @@ class C
                 locals.Free();
             });
         }
-        
+
         [Fact]
         public void LocalsInFieldInitializer_02()
         {

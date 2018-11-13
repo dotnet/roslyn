@@ -145,11 +145,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly bool _isImplicitlyDeclared;
 
         public TupleElementFieldSymbol(
-            TupleTypeSymbol container, 
-            FieldSymbol underlyingField, 
-            int tupleElementIndex, 
-            Location location, 
-            bool isImplicitlyDeclared, 
+            TupleTypeSymbol container,
+            FieldSymbol underlyingField,
+            int tupleElementIndex,
+            Location location,
+            bool isImplicitlyDeclared,
             TupleElementFieldSymbol correspondingDefaultFieldOpt)
 
             : base(container, underlyingField, (object)correspondingDefaultFieldOpt == null ? tupleElementIndex << 1 : (tupleElementIndex << 1) + 1)
@@ -175,8 +175,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return _isImplicitlyDeclared ? 
-                    ImmutableArray<SyntaxReference>.Empty : 
+                return _isImplicitlyDeclared ?
+                    ImmutableArray<SyntaxReference>.Empty :
                     GetDeclaringSyntaxReferenceHelper<CSharpSyntaxNode>(_locations);
             }
         }
@@ -245,13 +245,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly bool _cannotUse; // With LanguageVersion 7, we will produce named elements that should not be used
 
         public TupleVirtualElementFieldSymbol(
-            TupleTypeSymbol container, 
-            FieldSymbol underlyingField, 
+            TupleTypeSymbol container,
+            FieldSymbol underlyingField,
             string name,
-            int tupleElementIndex, 
-            Location location, 
+            int tupleElementIndex,
+            Location location,
             bool cannotUse,
-            bool isImplicitlyDeclared, 
+            bool isImplicitlyDeclared,
             TupleElementFieldSymbol correspondingDefaultFieldOpt)
 
             : base(container, underlyingField, tupleElementIndex, location, isImplicitlyDeclared, correspondingDefaultFieldOpt)

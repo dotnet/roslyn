@@ -427,7 +427,7 @@ namespace Microsoft.CodeAnalysis.Interactive
 
         #region Operations
 
-        public InteractiveHostOptions OptionsOpt 
+        public InteractiveHostOptions OptionsOpt
             => _lazyRemoteService?.Options;
 
         /// <summary>

@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    VisitTypeSymbolWithAnnotations(eventSymbol.Type); 
+                    VisitTypeSymbolWithAnnotations(eventSymbol.Type);
                 }
 
                 AddSpace();
@@ -290,7 +290,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
 
                             AddSpace();
-                            AddCustomModifiersIfRequired(symbol.ReturnTypeCustomModifiers); 
+                            AddCustomModifiersIfRequired(symbol.ReturnTypeCustomModifiers);
                             break;
                     }
                 }

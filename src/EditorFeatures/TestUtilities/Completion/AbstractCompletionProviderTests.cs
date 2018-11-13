@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
         protected async Task CheckResultsAsync(
             Document document, int position, string expectedItemOrNull,
             string expectedDescriptionOrNull, bool usePreviousCharAsTrigger,
-            bool checkForAbsence, int? glyph, int? matchPriority, 
+            bool checkForAbsence, int? glyph, int? matchPriority,
             bool? hasSuggestionModeItem, string displayTextSuffix)
         {
             var code = (await document.GetTextAsync()).ToString();
@@ -207,7 +207,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             {
                 await VerifyAsync(markup, expectedItem, expectedDescriptionOrNull,
                     sourceCodeKind.Value, usePreviousCharAsTrigger, checkForAbsence: false,
-                    glyph: glyph, matchPriority: matchPriority, 
+                    glyph: glyph, matchPriority: matchPriority,
                     hasSuggestionModeItem: hasSuggestionModeItem, displayTextSuffix: displayTextSuffix);
             }
             else
@@ -234,7 +234,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
         }
 
         protected async Task VerifyAnyItemExistsAsync(
-            string markup, SourceCodeKind? sourceCodeKind = null, bool usePreviousCharAsTrigger = false, 
+            string markup, SourceCodeKind? sourceCodeKind = null, bool usePreviousCharAsTrigger = false,
             bool? hasSuggestionModeItem = null, string displayTextSuffix = null)
         {
             if (sourceCodeKind.HasValue)
@@ -249,7 +249,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
         }
 
         protected async Task VerifyNoItemsExistAsync(
-            string markup, SourceCodeKind? sourceCodeKind = null, 
+            string markup, SourceCodeKind? sourceCodeKind = null,
             bool usePreviousCharAsTrigger = false, bool? hasSuggestionModeItem = null,
             string displayTextSuffix = null)
         {
@@ -284,9 +284,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
         {
             var document1 = WorkspaceFixture.UpdateDocument(code, sourceCodeKind);
             await CheckResultsAsync(
-                document1, position, expectedItemOrNull, 
-                expectedDescriptionOrNull, usePreviousCharAsTrigger, 
-                checkForAbsence, glyph, matchPriority, 
+                document1, position, expectedItemOrNull,
+                expectedDescriptionOrNull, usePreviousCharAsTrigger,
+                checkForAbsence, glyph, matchPriority,
                 hasSuggestionModeItem, displayTextSuffix);
 
             if (await CanUseSpeculativeSemanticModelAsync(document1, position))
@@ -354,7 +354,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
         {
             MarkupTestFile.GetPosition(expectedCodeAfterCommit, out var actualExpectedCode, out int expectedCaretPosition);
 
-            if (commitChar.HasValue && 
+            if (commitChar.HasValue &&
                 !Controller.IsCommitCharacter(service.GetRules(), completionItem, commitChar.Value, commitChar.Value.ToString()))
             {
                 Assert.Equal(codeBeforeCommit, actualExpectedCode);
@@ -426,7 +426,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
                 await VerifyProviderCommitCheckResultsAsync(document2, position, itemToCommit, expectedCodeAfterCommit, commitChar, textTypedSoFar);
             }
         }
-        
+
         private async Task VerifyProviderCommitCheckResultsAsync(
             Document document, int position, string itemToCommit, string expectedCodeAfterCommit, char? commitCharOpt, string textTypedSoFar)
         {
@@ -701,7 +701,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
         protected async Task VerifyAtEndOfFileAsync(
             string code, int position, string insertText, bool usePreviousCharAsTrigger,
             string expectedItemOrNull, string expectedDescriptionOrNull,
-            SourceCodeKind sourceCodeKind, bool checkForAbsence, int? glyph, 
+            SourceCodeKind sourceCodeKind, bool checkForAbsence, int? glyph,
             int? matchPriority, bool? hasSuggestionItem, string displayTextSuffix)
         {
             // only do this if the placeholder was at the end of the text.
@@ -715,14 +715,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
 
             await BaseVerifyWorkerAsync(
                 code, position, expectedItemOrNull, expectedDescriptionOrNull,
-                sourceCodeKind, usePreviousCharAsTrigger, checkForAbsence, glyph, 
+                sourceCodeKind, usePreviousCharAsTrigger, checkForAbsence, glyph,
                 matchPriority, hasSuggestionItem, displayTextSuffix);
         }
 
         protected Task VerifyAtPosition_ItemPartiallyWrittenAsync(
             string code, int position, bool usePreviousCharAsTrigger,
             string expectedItemOrNull, string expectedDescriptionOrNull,
-            SourceCodeKind sourceCodeKind, bool checkForAbsence, int? glyph, 
+            SourceCodeKind sourceCodeKind, bool checkForAbsence, int? glyph,
             int? matchPriority, bool? hasSuggestionItem, string displayTextSuffix)
         {
             return VerifyAtPositionAsync(
@@ -734,7 +734,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
         protected Task VerifyAtEndOfFileAsync(
             string code, int position, bool usePreviousCharAsTrigger,
             string expectedItemOrNull, string expectedDescriptionOrNull,
-            SourceCodeKind sourceCodeKind, bool checkForAbsence, int? glyph, 
+            SourceCodeKind sourceCodeKind, bool checkForAbsence, int? glyph,
             int? matchPriority, bool? hasSuggestionItem, string displayTextSuffix)
         {
             return VerifyAtEndOfFileAsync(code, position, string.Empty, usePreviousCharAsTrigger,
@@ -745,7 +745,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
         protected Task VerifyAtEndOfFile_ItemPartiallyWrittenAsync(
             string code, int position, bool usePreviousCharAsTrigger,
             string expectedItemOrNull, string expectedDescriptionOrNull,
-            SourceCodeKind sourceCodeKind, bool checkForAbsence, int? glyph, 
+            SourceCodeKind sourceCodeKind, bool checkForAbsence, int? glyph,
             int? matchPriority, bool? hasSuggestionItem, string displayTextSuffix)
         {
             return VerifyAtEndOfFileAsync(

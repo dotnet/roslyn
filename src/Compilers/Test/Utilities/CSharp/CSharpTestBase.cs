@@ -444,7 +444,7 @@ namespace System.Runtime.CompilerServices
             CSharpCompilationOptions options = null,
             CSharpParseOptions parseOptions = null,
             EmitOptions emitOptions = null,
-            Verification verify = Verification.Passes) => 
+            Verification verify = Verification.Passes) =>
             CompileAndVerify(
                 source,
                 references,
@@ -478,7 +478,7 @@ namespace System.Runtime.CompilerServices
             CSharpCompilationOptions options = null,
             CSharpParseOptions parseOptions = null,
             EmitOptions emitOptions = null,
-            Verification verify = Verification.Passes) => 
+            Verification verify = Verification.Passes) =>
             CompileAndVerify(
                 source,
                 references,
@@ -552,7 +552,7 @@ namespace System.Runtime.CompilerServices
             CSharpCompilationOptions options = null,
             CSharpParseOptions parseOptions = null,
             EmitOptions emitOptions = null,
-            Verification verify = Verification.Passes) => 
+            Verification verify = Verification.Passes) =>
             CompileAndVerify(
                 source,
                 references,
@@ -586,7 +586,7 @@ namespace System.Runtime.CompilerServices
             CSharpCompilationOptions options = null,
             CSharpParseOptions parseOptions = null,
             EmitOptions emitOptions = null,
-            Verification verify = Verification.Passes) => 
+            Verification verify = Verification.Passes) =>
             CompileAndVerify(
                 source,
                 references,

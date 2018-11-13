@@ -2829,7 +2829,7 @@ class Program
 </symbols>"
 );
         }
-        
+
         [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void ForEachStatement_Deconstruction()
         {
@@ -6504,7 +6504,7 @@ class C
 </symbols>",
             // When converting from Portable to Windows the PDB writer doesn't create an entry for the Main method 
             // and thus there is no entry point record either.
-            options: PdbValidationOptions.SkipConversionValidation); 
+            options: PdbValidationOptions.SkipConversionValidation);
         }
 
         [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
@@ -6538,7 +6538,7 @@ class C
     }
 }";
             var c = CreateCompilationWithMscorlib40AndSystemCore(src, references: new[] { CSharpRef, ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.DebugDll);
-            
+
             // We don't really need the debug info for kickoff method when the entire iterator method is hidden, 
             // but it doesn't hurt and removing it would need extra effort that's unnecessary.
             c.VerifyPdb(@"
@@ -8224,7 +8224,7 @@ class C
         [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void HeadingHiddenSequencePointsPickUpDocumentFromVisibleSequencePoint()
         {
-            var source = 
+            var source =
 @"#line 1 ""C:\Async.cs""
 #pragma checksum ""C:\Async.cs"" ""{ff1816ec-aa5e-4d10-87f7-6f4963833460}"" ""DBEB2A067B2F0E0D678A002C587A2806056C3DCE""
 
@@ -8237,7 +8237,7 @@ public class C
     }
 }
 ";
-            
+
             var tree = SyntaxFactory.ParseSyntaxTree(source, encoding: Encoding.UTF8, path: "HIDDEN.cs");
             var c = CSharpCompilation.Create("Compilation", new[] { tree }, new[] { MscorlibRef_v46 }, options: TestOptions.DebugDll.WithDebugPlusMode(true));
 

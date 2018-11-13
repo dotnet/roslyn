@@ -220,7 +220,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 return InitializeFixedStatementRegularLocal(localDecl, localSymbol, fixedCollectionInitializer, factory, out pinnedTemp);
-            } 
+            }
         }
 
         /// <summary>
@@ -258,12 +258,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(declarator != null);
 
             pinnedTemp = factory.SynthesizedLocal(
-                initializerType, 
-                syntax: declarator, 
+                initializerType,
+                syntax: declarator,
                 isPinned: true,
                 //NOTE: different from the array and string cases
                 //      RefReadOnly to allow referring to readonly variables. (technically we only "read" through the temp anyways)
-                refKind: RefKind.RefReadOnly,  
+                refKind: RefKind.RefReadOnly,
                 kind: SynthesizedLocalKind.FixedReference);
 
             // NOTE: we pin the reference, not the pointer.
@@ -354,7 +354,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // temp =ref .GetPinnable()
             var tempAssignment = factory.AssignmentExpression(
-                factory.Local(pinnedTemp),                                                   
+                factory.Local(pinnedTemp),
                 getPinnableCall,
                 isRef: true);
 
@@ -372,8 +372,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // {pinnedTemp =ref .GetPinnable(), (int*)&pinnedTemp}
             BoundExpression pinAndGetPtr = factory.Sequence(
-                locals: ImmutableArray<LocalSymbol>.Empty, 
-                sideEffects: ImmutableArray.Create<BoundExpression>(tempAssignment), 
+                locals: ImmutableArray<LocalSymbol>.Empty,
+                sideEffects: ImmutableArray.Create<BoundExpression>(tempAssignment),
                 result: pointerValue);
 
             if (needNullCheck)
@@ -419,9 +419,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(declarator != null);
 
             pinnedTemp = factory.SynthesizedLocal(
-                initializerType, 
-                syntax: declarator, 
-                isPinned: true, 
+                initializerType,
+                syntax: declarator,
+                isPinned: true,
                 kind: SynthesizedLocalKind.FixedReference);
 
             // NOTE: we pin the string, not the pointer.

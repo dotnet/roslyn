@@ -3519,7 +3519,7 @@ namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : 
             var libB = @"public class B { }";
             var cB = CreateCompilationWithMscorlib45(libB);
             var rB = cB.EmitToImageReference();
-                
+
             // Tasklike
             var libT = @"
 using System.Runtime.CompilerServices;
@@ -4847,7 +4847,7 @@ namespace System.Runtime.CompilerServices
                 Diagnostic(ErrorCode.ERR_BadAsyncReturn, "{ await Task.Delay(1000); return string.Empty; }").WithLocation(8, 53)
                 );
         }
-        
+
         [Fact, WorkItem(16493, "https://github.com/dotnet/roslyn/issues/16493")]
         public void AsyncMethodBuilderReturnsDifferentTypeThanTasklikeType()
         {
@@ -5094,7 +5094,7 @@ public class C {
 
             compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
             base.CompileAndVerify(compilation, expectedOutput: expectedOutput);
-        }            
+        }
 
         [Fact, WorkItem(13759, "https://github.com/dotnet/roslyn/issues/13759")]
         public void Unnecessary_Lifted_01()

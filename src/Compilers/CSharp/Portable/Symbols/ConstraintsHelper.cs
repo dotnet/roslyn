@@ -1044,7 +1044,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // "... A boxing conversion (6.1.7), provided that type A is a non-nullable value type. ..."
             // NOTE: we extend this to allow, for example, a conversion from Nullable<T> to object.
             if (typeArgument.IsValueType &&
-                conversions.HasBoxingConversion(typeArgument.TypeSymbol.IsNullableType() ? ((NamedTypeSymbol)typeArgument.TypeSymbol).ConstructedFrom : typeArgument.TypeSymbol, 
+                conversions.HasBoxingConversion(typeArgument.TypeSymbol.IsNullableType() ? ((NamedTypeSymbol)typeArgument.TypeSymbol).ConstructedFrom : typeArgument.TypeSymbol,
                                                 constraintType.TypeSymbol, ref useSiteDiagnostics))
             {
                 return true;

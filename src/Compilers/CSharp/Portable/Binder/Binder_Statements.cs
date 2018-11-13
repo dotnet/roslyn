@@ -947,7 +947,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             Debug.Assert(!declTypeOpt.IsNull);
-            
+
             if (kind == LocalDeclarationKind.FixedVariable)
             {
                 // NOTE: this is an error, but it won't prevent further binding.
@@ -1204,13 +1204,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var analyzedArguments = AnalyzedArguments.GetInstance();
                 BoundExpression patternMethodCall = BindMethodGroupInvocation(
-                    initializer.Syntax, 
-                    initializer.Syntax, 
-                    methodName, 
-                    (BoundMethodGroup)boundAccess, 
-                    analyzedArguments, 
-                    bindingDiagnostics, 
-                    queryClause: null, 
+                    initializer.Syntax,
+                    initializer.Syntax,
+                    methodName,
+                    (BoundMethodGroup)boundAccess,
+                    analyzedArguments,
+                    bindingDiagnostics,
+                    queryClause: null,
                     allowUnexpandedForm: false);
 
                 analyzedArguments.Free();
@@ -1263,11 +1263,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// information it needs (e.g. conversions, helper methods).
         /// </summary>
         private BoundExpression GetFixedLocalCollectionInitializer(
-            BoundExpression initializer, 
-            TypeSymbol elementType, 
-            TypeSymbol declType, 
+            BoundExpression initializer,
+            TypeSymbol elementType,
+            TypeSymbol declType,
             MethodSymbol patternMethodOpt,
-            bool hasErrors, 
+            bool hasErrors,
             DiagnosticBag diagnostics)
         {
             Debug.Assert(initializer != null);
@@ -1374,7 +1374,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression op2,
             bool isRef,
             DiagnosticBag diagnostics)
-        {                      
+        {
             Debug.Assert(op1 != null);
             Debug.Assert(op2 != null);
 
@@ -1420,7 +1420,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // Event assignment is a call to void WindowsRuntimeMarshal.AddEventHandler<T>().
                 type = this.GetSpecialType(SpecialType.System_Void, diagnostics, node);
-            } 
+            }
             else
             {
                 type = op1.Type;
@@ -2880,7 +2880,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         : ErrorCode.WRN_FilterIsConstantFalse;
 
                 // Since the expression is a constant, the name can be retrieved from the first token
-                Error(diagnostics, errorCode, filter.FilterExpression);                
+                Error(diagnostics, errorCode, filter.FilterExpression);
             }
 
             return boundFilter;
@@ -3108,8 +3108,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                   bodyBinder.GetDeclaredLocalsForScope(constructor),
                                                   constructor.Initializer == null ? null : bodyBinder.BindConstructorInitializer(constructor.Initializer, diagnostics),
                                                   constructor.Body == null ? null : (BoundBlock)bodyBinder.BindStatement(constructor.Body, diagnostics),
-                                                  constructor.ExpressionBody == null ? 
-                                                      null : 
+                                                  constructor.ExpressionBody == null ?
+                                                      null :
                                                       bodyBinder.BindExpressionBodyAsBlock(constructor.ExpressionBody,
                                                                                            constructor.Body == null ? diagnostics : new DiagnosticBag()));
         }
@@ -3134,9 +3134,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Using BindStatement to bind block to make sure we are reusing results of partial binding in SemanticModel
             return new BoundNonConstructorMethodBody(declaration,
                                                      blockBody == null ? null : (BoundBlock)BindStatement(blockBody, diagnostics),
-                                                     expressionBody == null ? 
-                                                         null : 
-                                                         BindExpressionBodyAsBlock(expressionBody, 
+                                                     expressionBody == null ?
+                                                         null :
+                                                         BindExpressionBodyAsBlock(expressionBody,
                                                                                    blockBody == null ? diagnostics : new DiagnosticBag()));
         }
 

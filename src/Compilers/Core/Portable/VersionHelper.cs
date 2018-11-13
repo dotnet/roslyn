@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis
                         break;
                     }
 
-                    
+
                     if(values[i] > maxValue)
                     {
                         //The only way this can happen is if the value was 65536

@@ -359,8 +359,8 @@ namespace RunTests
             }
 
             var typeRef = reader.GetTypeReference((TypeReferenceHandle)type.BaseType);
-            return 
-                reader.GetString(typeRef.Namespace) == "System" && 
+            return
+                reader.GetString(typeRef.Namespace) == "System" &&
                 reader.GetString(typeRef.Name) == "Object";
         }
 
@@ -375,7 +375,7 @@ namespace RunTests
                 var declaringTypeFullName = GetFullName(reader, declaringType);
                 return $"{declaringTypeFullName}+{typeName}";
             }
-            
+
             var namespaceName = reader.GetString(type.Namespace);
             if (string.IsNullOrEmpty(namespaceName))
             {

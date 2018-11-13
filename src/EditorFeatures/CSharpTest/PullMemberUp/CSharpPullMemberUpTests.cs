@@ -369,7 +369,7 @@ namespace PushUpTest
 }";
             await TestInRegularAndScriptAsync(testText, expected);
         }
-        
+
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
         public async Task TestPullPropertyWithPrivateSetterToInterface()
         {
@@ -437,7 +437,7 @@ namespace PushUpTest
 }";
             await TestInRegularAndScriptAsync(testText, expected);
         }
-        
+
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
         public async Task TestPullIndexerWithOnlySetterToInterface()
         {
@@ -478,7 +478,7 @@ namespace PushUpTest
 }";
             await TestInRegularAndScriptAsync(testText, expected);
         }
-    
+
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
         public async Task TestPullIndexerWithOnlyGetterToInterface()
         {
@@ -831,7 +831,7 @@ namespace PushUpTest
 }";
             await TestInRegularAndScriptAsync(testText, expected);
         }
-            
+
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
         public async Task TestPullEventToClass()
         {
@@ -1186,7 +1186,7 @@ public class TestClass : VBInterface
 </Workspace>";
             await TestMissingAsync(input);
         }
-        
+
         #endregion cross language
     }
 }

@@ -212,7 +212,7 @@ namespace Microsoft.CodeAnalysis.AddImport
 
         private async Task FindResultsInUnreferencedProjectSourceSymbolsAsync(
             ConcurrentDictionary<Project, AsyncLazy<IAssemblySymbol>> projectToAssembly,
-            Project project, ArrayBuilder<Reference> allSymbolReferences, int maxResults, 
+            Project project, ArrayBuilder<Reference> allSymbolReferences, int maxResults,
             SymbolReferenceFinder finder, bool exact, CancellationToken cancellationToken)
         {
             // If we didn't find enough hits searching just in the project, then check 
@@ -475,7 +475,7 @@ namespace Microsoft.CodeAnalysis.AddImport
 
         public async Task<ImmutableArray<(Diagnostic Diagnostic, ImmutableArray<AddImportFixData> Fixes)>> GetFixesForDiagnosticsAsync(
             Document document, TextSpan span, ImmutableArray<Diagnostic> diagnostics, int maxResultsPerDiagnostic,
-            ISymbolSearchService symbolSearchService, bool searchReferenceAssemblies, 
+            ISymbolSearchService symbolSearchService, bool searchReferenceAssemblies,
             ImmutableArray<PackageSource> packageSources, CancellationToken cancellationToken)
         {
             // We might have multiple different diagnostics covering the same span.  Have to
@@ -489,7 +489,7 @@ namespace Microsoft.CodeAnalysis.AddImport
             foreach (var diagnostic in diagnostics)
             {
                 var fixes = await GetFixesAsync(
-                    document, span, diagnostic.Id, maxResultsPerDiagnostic, 
+                    document, span, diagnostic.Id, maxResultsPerDiagnostic,
                     placeSystemNamespaceFirst, symbolSearchService, searchReferenceAssemblies,
                     packageSources, cancellationToken).ConfigureAwait(false);
 
@@ -500,7 +500,7 @@ namespace Microsoft.CodeAnalysis.AddImport
         }
 
         public ImmutableArray<CodeAction> GetCodeActionsForFixes(
-            Document document, ImmutableArray<AddImportFixData> fixes, 
+            Document document, ImmutableArray<AddImportFixData> fixes,
             IPackageInstallerService installerService, int maxResults)
         {
             var codeActionsBuilder = ArrayBuilder<CodeAction>.GetInstance();

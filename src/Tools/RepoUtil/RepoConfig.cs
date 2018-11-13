@@ -45,8 +45,8 @@ namespace RepoUtil
         internal GenerateData? MSBuildGenerateData { get; }
 
         internal RepoConfig(
-            IEnumerable<NuGetPackage> fixedPackages, 
-            IEnumerable<string> toolsetPackages, 
+            IEnumerable<NuGetPackage> fixedPackages,
+            IEnumerable<string> toolsetPackages,
             IEnumerable<Regex> nuspecExcludes,
             IEnumerable<Regex> projectJsonExcludes,
             GenerateData? msbuildGenerateData)

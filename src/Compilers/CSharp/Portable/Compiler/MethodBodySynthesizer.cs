@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 explicitCastInCode: true,
                                 conversionGroupOpt: null,
                                 ConstantValue.NotAvailable,
-                                hostObjectField.Type.TypeSymbol 
+                                hostObjectField.Type.TypeSymbol
                             ),
                             hostObjectField.Type.TypeSymbol)
                         { WasCompilerGenerated = true })

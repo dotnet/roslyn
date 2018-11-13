@@ -103,7 +103,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             => ExecuteOnActiveView(view =>
             {
                 var textSnapshot = view.TextSnapshot;
-                SelectText(oldText);                
+                SelectText(oldText);
                 var replacementSpan = new SnapshotSpan(textSnapshot, view.Selection.Start.Position, view.Selection.End.Position - view.Selection.Start.Position);
                 view.TextBuffer.Replace(replacementSpan, newText);
             });
@@ -665,7 +665,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                     iEndLine = line,
                     iEndIndex = column
                 };
-                
+
                 Marshal.ThrowExceptionForHR(languageContextProvider.UpdateLanguageContext(0, textLines, new[] { span }, emptyUserContext));
                 Marshal.ThrowExceptionForHR(emptyUserContext.CountAttributes("keyword", VSConstants.S_FALSE, out var count));
                 for (int i = 0; i < count; i++)

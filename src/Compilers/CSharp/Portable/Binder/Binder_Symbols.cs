@@ -2073,7 +2073,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(qualifierOpt.IsNamespace);
 
                     forwardedToAssembly = GetForwardedToAssembly(simpleName, arity, ref qualifierOpt, diagnostics, location);
-                    
+
                     if (ReferenceEquals(qualifierOpt, Compilation.GlobalNamespace))
                     {
                         Debug.Assert(aliasOpt == null || aliasOpt == SyntaxFacts.GetText(SyntaxKind.GlobalKeyword));

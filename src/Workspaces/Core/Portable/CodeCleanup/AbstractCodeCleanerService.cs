@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
 
                 // Run the actual cleanup.
                 return await IterateAllCodeCleanupProvidersAsync(
-                    root, annotatedRoot, 
+                    root, annotatedRoot,
                     r => GetTextSpansFromAnnotation(r, newNodeAndAnnotations.annotations, cancellationToken),
                     workspace, codeCleaners, cancellationToken).ConfigureAwait(false);
             }
@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
 
                 var previousTokens = node.GetAnnotatedNodesAndTokens(previousMarkerAnnotation).Where(n => n.IsToken).Select(n => n.AsToken());
                 var nextTokens = node.GetAnnotatedNodesAndTokens(nextMarkerAnnotation).Where(n => n.IsToken).Select(n => n.AsToken());
-                
+
                 // Check whether we can use the tokens we got back from the node.
                 if (TryGetTextSpanFromAnnotation(previousTokenMarker, nextTokenMarker, node, previousTokens, nextTokens,
                         out var span))
@@ -283,7 +283,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                GetTokensAroundSpan(root, span, 
+                GetTokensAroundSpan(root, span,
                     out var previousToken, out var startToken, out var endToken, out var nextToken);
 
                 // Create marker to insert

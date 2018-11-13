@@ -927,7 +927,7 @@ class C
 }",
                 options: options.LocalFunctionNamesAreCamelCase);
         }
- 
+
         [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
         public async Task TestCamelCaseLocalFunctions_MethodIsIgnored()
         {
@@ -1208,7 +1208,7 @@ namespace Microsoft.CodeAnalysis.Host
 [|}|]
 ", new TestParameters(options: options.InterfaceNamesStartWithI));
         }
-        
+
         [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
         [WorkItem(16562, "https://github.com/dotnet/roslyn/issues/16562")]
         public async Task TestRefactorNotify()

@@ -218,7 +218,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
 
         public void NavigateToSendKeys(string keys)
             => _editorInProc.SendKeysToNavigateTo(keys);
-            
+
         public ClassifiedToken[] GetLightbulbPreviewClassification(string menuText) =>
             _editorInProc.GetLightbulbPreviewClassifications(menuText);
 
@@ -229,7 +229,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             => _editorInProc.GetErrorTags();
 
         public List<string> GetF1Keyword()
-            => _editorInProc.GetF1Keywords();        
+            => _editorInProc.GetF1Keywords();
 
         public void ExpandProjectNavBar()
         {

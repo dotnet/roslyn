@@ -78,7 +78,7 @@ namespace RepoUtil
 
             repoData = RepoData.Create(_repoConfig, _sourcesPath, out var conflicts);
             if (conflicts?.Count > 0)
-            { 
+            {
                 foreach (var conflict in conflicts)
                 {
                     writer.WriteLine($"Error! Package {conflict.PackageName} has different versions:");

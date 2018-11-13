@@ -2307,7 +2307,7 @@ class C
 
             var comp = CompileAndVerify(source, expectedOutput: "1 hello world", parseOptions: TestOptions.Regular.WithRefsFeature());
             comp.VerifyDiagnostics();
-        
+
             var tree = comp.Compilation.SyntaxTrees.First();
             var model = comp.Compilation.GetSemanticModel(tree);
             var deconstruction = (AssignmentExpressionSyntax)tree.FindNodeOrTokenByKind(SyntaxKind.SimpleAssignmentExpression).AsNode();

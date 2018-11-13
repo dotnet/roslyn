@@ -7109,7 +7109,7 @@ public class C
         {
             var sdkDirectory = SdkDirectory;
             MockCSharpCompiler csc = new MockCSharpCompiler(
-                GetDefaultResponseFilePath(), 
+                GetDefaultResponseFilePath(),
                 RuntimeUtilities.CreateBuildPaths(WorkingDirectory, sdkDirectory),
                 new string[0]);
             AssertEx.Equal(csc.Arguments.MetadataReferences.Select(r => r.Reference), new string[]

@@ -288,7 +288,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
             private void AnalyzeInvocationOperation(OperationAnalysisContext operationContext)
             {
                 var targetMethod = ((IInvocationOperation)operationContext.Operation).TargetMethod.OriginalDefinition;
-                
+
                 // A method invocation is considered as a read reference to the symbol
                 // to ensure that we consider the method as "used".
                 OnSymbolUsage(targetMethod, ValueUsageInfo.Read);
@@ -297,7 +297,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
             private void AnalyzeObjectCreationOperation(OperationAnalysisContext operationContext)
             {
                 var constructor = ((IObjectCreationOperation)operationContext.Operation).Constructor.OriginalDefinition;
-                
+
                 // An object creation is considered as a read reference to the constructor
                 // to ensure that we consider the constructor as "used".
                 OnSymbolUsage(constructor, ValueUsageInfo.Read);

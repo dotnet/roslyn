@@ -450,7 +450,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     //"this" is readonly in members of readonly structs, unless we are in a constructor.
                     if (!thisref.Type.IsValueType ||
                             (RequiresAssignableVariable(valueKind) &&
-                             thisref.Type.IsReadOnly && 
+                             thisref.Type.IsReadOnly &&
                              (this.ContainingMemberOrLambda as MethodSymbol)?.MethodKind != MethodKind.Constructor))
                     {
                         // CONSIDER: the Dev10 name has angle brackets (i.e. "<this>")
@@ -1405,10 +1405,10 @@ moreArguments:
         /// There are cases like params/vararg, when a corresponding parameter may not exist, then val cannot become 'in'.
         /// </summary>
         private static RefKind GetEffectiveRefKindAndMarkMatchedInParameter(
-            int argIndex, 
-            ImmutableArray<RefKind> argRefKindsOpt, 
-            ImmutableArray<ParameterSymbol> parameters, 
-            ImmutableArray<int> argsToParamsOpt, 
+            int argIndex,
+            ImmutableArray<RefKind> argRefKindsOpt,
+            ImmutableArray<ParameterSymbol> parameters,
+            ImmutableArray<int> argsToParamsOpt,
             ref ArrayBuilder<bool> inParametersMatchedWithArgs)
         {
             var effectiveRefKind = argRefKindsOpt.IsDefault ? RefKind.None : argRefKindsOpt[argIndex];
@@ -2212,7 +2212,7 @@ moreArguments:
                         // the other one is the same or we will be reporting errors anyways.
                         return consEscape;
                     }
-                    
+
                     // val conditional gets narrowest of its operands
                     return Math.Max(consEscape,
                                     GetValEscape(conditional.Alternative, scopeOfTheContainingExpression));
@@ -2349,7 +2349,7 @@ moreArguments:
                 case BoundKind.CollectionElementInitializer:
                     var colElement = (BoundCollectionElementInitializer)expr;
                     return GetValEscape(colElement.Arguments, scopeOfTheContainingExpression);
-                                
+
                 case BoundKind.ObjectInitializerMember:
                     // this node generally makes no sense outside of the context of containing initializer
                     // however binder uses it as a placeholder when binding assignments inside an object initializer
@@ -2618,13 +2618,13 @@ moreArguments:
                     var initializerExpr = objectCreation.InitializerExpressionOpt;
                     if (initializerExpr != null)
                     {
-                        escape = escape && 
+                        escape = escape &&
                             CheckValEscape(
-                                initializerExpr.Syntax, 
-                                initializerExpr, 
-                                escapeFrom, 
-                                escapeTo, 
-                                checkingReceiver:false, 
+                                initializerExpr.Syntax,
+                                initializerExpr,
+                                escapeFrom,
+                                escapeTo,
+                                checkingReceiver:false,
                                 diagnostics:diagnostics);
                     }
 
@@ -2669,7 +2669,7 @@ moreArguments:
                     var clauseValue = ((BoundQueryClause)expr).Value;
                     return CheckValEscape(clauseValue.Syntax, clauseValue, escapeFrom, escapeTo, checkingReceiver: false, diagnostics: diagnostics);
 
-                case BoundKind.RangeVariable:  
+                case BoundKind.RangeVariable:
                     var variableValue = ((BoundRangeVariable)expr).Value;
                     return CheckValEscape(variableValue.Syntax, variableValue, escapeFrom, escapeTo, checkingReceiver: false, diagnostics: diagnostics);
 
@@ -2971,7 +2971,7 @@ moreArguments:
                     // locals have home unless they are byval stack locals or ref-readonly
                     // locals in a mutating call
                     var local = ((BoundLocal)expression).LocalSymbol;
-                    return !((CodeGenerator.IsStackLocal(local, stackLocalsOpt) && local.RefKind == RefKind.None) || 
+                    return !((CodeGenerator.IsStackLocal(local, stackLocalsOpt) && local.RefKind == RefKind.None) ||
                         (!IsAnyReadOnly(addressKind) && local.RefKind == RefKind.RefReadOnly));
 
                 case BoundKind.Call:
@@ -3023,13 +3023,13 @@ moreArguments:
 
                 case BoundKind.ConditionalOperator:
                     var ternary = (BoundConditionalOperator)expression;
-                    
+
                     // only ref ternary may be referenced as a variable
                     if (!ternary.IsRef)
                     {
                         return false;
                     }
- 
+
                     // branch that has no home will need a temporary
                     // if both have no home, just say whole expression has no home 
                     // so we could just use one temp for the whole thing

@@ -21,7 +21,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
     {
         // internal for testing
         internal static void GroupActiveStatementsByInstructionId(
-            Dictionary<ActiveInstructionId, (DkmInstructionSymbol Symbol, ArrayBuilder<Guid> Threads, int Index, ActiveStatementFlags Flags)> instructionMap, 
+            Dictionary<ActiveInstructionId, (DkmInstructionSymbol Symbol, ArrayBuilder<Guid> Threads, int Index, ActiveStatementFlags Flags)> instructionMap,
             IEnumerable<DkmActiveStatement> dkmStatements)
         {
             foreach (var dkmStatement in dkmStatements)
@@ -34,10 +34,10 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
 
                 // MidStatement is set differently for leaf frames and non-leaf frames.
                 // We aggregate it so that if any frame has MidStatement the ActiveStatement is considered partially executed.
-                var frameFlags = 
+                var frameFlags =
                     (isLeaf ? ActiveStatementFlags.IsLeafFrame : ActiveStatementFlags.IsNonLeafFrame) |
                     (ActiveStatementFlags)(dkmStatement.Flags & DkmActiveStatementFlags.MidStatement);
-                
+
                 var instruction = dkmStatement.InstructionAddress;
 
                 var instructionId = new ActiveInstructionId(

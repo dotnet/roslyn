@@ -857,7 +857,7 @@ class Program
     }
 }";
             await TestChangeSignatureViaCommandAsync(
-                LanguageNames.CSharp, markup, updatedSignature: permutation, 
+                LanguageNames.CSharp, markup, updatedSignature: permutation,
                 expectedUpdatedInvocationDocumentCode: updatedCode);
         }
 

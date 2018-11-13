@@ -327,7 +327,7 @@ class C
                 Diagnostic(ErrorCode.ERR_EscapeLocal, "ternary").WithArguments("ternary").WithLocation(39, 19)
             );
         }
-        
+
         [Fact()]
         public void RefLikeReturnEscapeInParam()
         {

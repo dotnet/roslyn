@@ -336,7 +336,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 var trackingService = baseSolution.Workspace.Services.GetService<IActiveStatementTrackingService>();
 
                 cancellationToken.ThrowIfCancellationRequested();
-                
+
                 // TODO: newTree.HasErrors?
                 var syntaxDiagnostics = newRoot.GetDiagnostics();
                 var syntaxErrorCount = syntaxDiagnostics.Count(d => d.Severity == DiagnosticSeverity.Error);
@@ -2220,7 +2220,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                             // Validate that the type declarations are correct. If not we can't reason about their members.
                             // Declaration diagnostics are cached on compilation, so we don't need to cache them here.
-                            firstDeclarationErrorOpt = 
+                            firstDeclarationErrorOpt =
                                 GetFirstDeclarationError(oldModel, oldType, cancellationToken) ??
                                 GetFirstDeclarationError(newModel, newType, cancellationToken);
 

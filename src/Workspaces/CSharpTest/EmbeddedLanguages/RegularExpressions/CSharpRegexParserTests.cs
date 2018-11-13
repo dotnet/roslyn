@@ -30,11 +30,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
             var parsedStatement = SyntaxFactory.ParseStatement(statement);
             var token = parsedStatement.DescendantTokens().ToArray()[3];
             Assert.True(token.Kind() == SyntaxKind.StringLiteralToken);
-            
+
             return token;
         }
 
-        private void Test(string stringText, string expected, RegexOptions options, 
+        private void Test(string stringText, string expected, RegexOptions options,
             bool runSubTreeTests = true, [CallerMemberName]string name = "",
             bool allowIndexOutOfRange = false,
             bool allowNullReference = false,
@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     allowNullReference,
                     allowOutOfMemory);
             }
-            
+
             for (int start = stringText[0] == '@' ? 2 : 1; start < stringText.Length - 1; start++)
             {
                 TryParseTree(

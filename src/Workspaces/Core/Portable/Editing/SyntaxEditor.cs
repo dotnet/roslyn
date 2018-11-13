@@ -236,7 +236,7 @@ namespace Microsoft.CodeAnalysis.Editing
                 // when attempting to compute changed root.
                 return;
             }
-            
+
             if(_lazyTrackedNewNodesOpt?.Contains(node) == true)
             {
                 // Node is one of the new nodes, which is already tracked and supported.
