@@ -9,6 +9,7 @@ Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
+Imports Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractInterface
@@ -201,8 +202,43 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractInterface
             Return typeDeclaration.GetModifiers().Any(Function(m) SyntaxFacts.IsAccessibilityModifier(m.Kind()))
         End Function
 
-        Friend Overrides Function GetSolutionWithSameFileUpdated(solution As Solution, extractedInterfaceSymbol As INamedTypeSymbol, typeNodeAnnotation As SyntaxAnnotation, documentId As DocumentId, cancellationToken As CancellationToken) As Solution
-            Throw New NotImplementedException()
+        Friend Overrides Function GetSolutionWithSameFileUpdated(
+            solution As Solution,
+            extractedInterfaceSymbol As INamedTypeSymbol,
+            includedMembers As IEnumerable(Of ISymbol),
+            symbolToDeclarationAnnotationMap As Dictionary(Of ISymbol, SyntaxAnnotation),
+            documentIds As List(Of DocumentId),
+            typeNodeAnnotation As SyntaxAnnotation,
+            documentIdWithTypeNode As DocumentId,
+            cancellationToken As CancellationToken) As Solution
+
+            Dim updatedSolution = GetSolutionWithUpdatedOriginalType(solution,
+                                               extractedInterfaceSymbol,
+                                               includedMembers,
+                                               symbolToDeclarationAnnotationMap,
+                                               documentIds,
+                                               typeNodeAnnotation,
+                                               documentIdWithTypeNode,
+                                               cancellationToken)
+
+            Dim document = updatedSolution.GetDocument(documentIdWithTypeNode)
+            Dim originalRoot = document.GetSyntaxRootSynchronously(cancellationToken)
+            Dim typeDeclaration = originalRoot.GetAnnotatedNodes(typeNodeAnnotation).Single()
+
+            document = document.WithSyntaxRoot(originalRoot.TrackNodes(typeDeclaration))
+
+            Dim currentRoot = document.GetSyntaxRootSynchronously(cancellationToken)
+            Dim editor = New SyntaxEditor(currentRoot, VisualBasicSyntaxGenerator.Instance)
+
+            typeDeclaration = currentRoot.GetCurrentNode(typeDeclaration)
+
+            Dim codeGenService = updatedSolution.Workspace.Services.GetLanguageServices(LanguageNames.VisualBasic).GetService(Of ICodeGenerationService)
+            Dim interfaceNode = codeGenService.CreateNamedTypeDeclaration(extractedInterfaceSymbol)
+
+            editor.InsertBefore(typeDeclaration, interfaceNode)
+
+            Dim newRoot = Formatter.Format(editor.GetChangedRoot(), updatedSolution.Workspace)
+            Return updatedSolution.WithDocumentSyntaxRoot(documentIdWithTypeNode, newRoot, PreservationMode.PreserveIdentity)
         End Function
     End Class
 End Namespace

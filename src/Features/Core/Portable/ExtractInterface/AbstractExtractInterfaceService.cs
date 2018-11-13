@@ -43,8 +43,11 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
         internal abstract Solution GetSolutionWithSameFileUpdated(
             Solution solution,
             INamedTypeSymbol extractedInterfaceSymbol,
+            IEnumerable<ISymbol> includedMembers,
+            Dictionary<ISymbol, SyntaxAnnotation> symbolToDeclarationAnnotationMap,
+            List<DocumentId> documentIds,
             SyntaxAnnotation typeNodeAnnotation,
-            DocumentId documentId,
+            DocumentId documentIdWithTypeNode,
             CancellationToken cancellationToken);
 
         internal abstract string GetGeneratedNameTypeParameterSuffix(IList<ITypeParameterSymbol> typeParameters, Workspace workspace);
@@ -180,9 +183,8 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
 
         private ExtractInterfaceResult ExtractInterfaceToNewFile(
             Solution solution, string containingNamespaceDisplay, INamedTypeSymbol extractedInterfaceSymbol, 
-            SyntaxNode typeNode, 
-            ProjectId projectId, IReadOnlyList<string> documentFolders, DocumentId documentId, INamedTypeSymbol typeToExtractFrom, 
-            string fileName, IEnumerable<ISymbol> includedMembers, CancellationToken cancellationToken)
+            SyntaxNode typeNode, ProjectId projectId, IReadOnlyList<string> documentFolders, DocumentId documentId, 
+            INamedTypeSymbol typeToExtractFrom, string fileName, IEnumerable<ISymbol> includedMembers, CancellationToken cancellationToken)
         {
             var symbolToDeclarationAnnotationMap = CreateSymbolToDeclarationAnnotationMap(
                 includedMembers,
@@ -223,9 +225,8 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
         }
 
         private ExtractInterfaceResult ExtractInterfaceToSameFile(
-            Solution solution, INamedTypeSymbol extractedInterfaceSymbol, 
-            SyntaxNode typeNode, 
-            ProjectId projectId, DocumentId documentId, INamedTypeSymbol typeToExtractFrom, IEnumerable<ISymbol> includedMembers, CancellationToken cancellationToken)
+            Solution solution, INamedTypeSymbol extractedInterfaceSymbol, SyntaxNode typeNode, ProjectId projectId, 
+            DocumentId documentId, INamedTypeSymbol typeToExtractFrom, IEnumerable<ISymbol> includedMembers, CancellationToken cancellationToken)
         {
             var symbolToDeclarationAnnotationMap = CreateSymbolToDeclarationAnnotationMap(
                 includedMembers,
@@ -238,8 +239,11 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
             var completedSolution = GetSolutionWithSameFileUpdated(
                 solution: solution,
                 extractedInterfaceSymbol: extractedInterfaceSymbol,
+                includedMembers: includedMembers,
+                symbolToDeclarationAnnotationMap: symbolToDeclarationAnnotationMap,
+                documentIds: documentIds,
                 typeNodeAnnotation: typeNodeSyntaxAnnotation,
-                documentId: documentId,
+                documentIdWithTypeNode: documentId,
                 cancellationToken: cancellationToken);
 
             return new ExtractInterfaceResult(

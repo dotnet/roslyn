@@ -135,13 +135,16 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractInterface
         }
 
         internal override Solution GetSolutionWithSameFileUpdated(
-            Solution solution, 
-            INamedTypeSymbol extractedInterfaceSymbol, 
+            Solution solution,
+            INamedTypeSymbol extractedInterfaceSymbol,
+            IEnumerable<ISymbol> includedMembers,
+            Dictionary<ISymbol, SyntaxAnnotation> symbolToDeclarationAnnotationMap,
+            List<DocumentId> documentIds,
             SyntaxAnnotation typeNodeAnnotation,
-            DocumentId documentId, 
+            DocumentId documentIdWithTypeNode,
             CancellationToken cancellationToken)
         {
-            var document = solution.GetDocument(documentId);
+            var document = solution.GetDocument(documentIdWithTypeNode);
             var originalRoot = document.GetSyntaxRootSynchronously(cancellationToken);
             var typeDeclaration = originalRoot.GetAnnotatedNodes<TypeDeclarationSyntax>(typeNodeAnnotation).Single();
 
@@ -165,7 +168,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractInterface
 
 
             var newRoot = Formatter.Format(editor.GetChangedRoot(), solution.Workspace);
-            return solution.WithDocumentSyntaxRoot(documentId, newRoot, PreservationMode.PreserveIdentity);
+            return solution.WithDocumentSyntaxRoot(documentIdWithTypeNode, newRoot, PreservationMode.PreserveIdentity);
         }
     }
 }
