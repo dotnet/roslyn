@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal abstract partial class AbstractFlowPass<TLocalState> : PreciseAbstractFlowPass<TLocalState>
         where TLocalState : PreciseAbstractFlowPass<TLocalState>.AbstractLocalState
     {
-        protected readonly bool trackUnassignments; // for the data flows out walker, we track unassignments as well as assignments
+        private readonly bool _trackUnassignments; // for the data flows out walker, we track unassignments as well as assignments
 
         protected AbstractFlowPass(
             CSharpCompilation compilation,
@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool trackUnassignments = false)
             : base(compilation, member, node)
         {
-            this.trackUnassignments = trackUnassignments;
+            this._trackUnassignments = trackUnassignments;
         }
 
         protected AbstractFlowPass(
@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool trackUnassignments = false)
             : base(compilation, member, node, firstInRegion, lastInRegion, trackRegions)
         {
-            this.trackUnassignments = trackUnassignments;
+            this._trackUnassignments = trackUnassignments;
         }
 
         protected abstract void UnionWith(ref TLocalState self, ref TLocalState other);
@@ -105,13 +105,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (pend.Branch.Kind != BoundKind.YieldReturnStatement)
                     {
                         UnionWith(ref pend.State, ref this.State);
-                        if (trackUnassignments) IntersectWith(ref pend.State, ref unsetInFinally);
+                        if (_trackUnassignments) IntersectWith(ref pend.State, ref unsetInFinally);
                     }
                 }
 
                 RestorePending(tryAndCatchPending);
                 UnionWith(ref endState, ref this.State);
-                if (trackUnassignments) IntersectWith(ref endState, ref unsetInFinally);
+                if (_trackUnassignments) IntersectWith(ref endState, ref unsetInFinally);
             }
 
             SetState(endState);
@@ -123,18 +123,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void VisitTryBlockWithUnassignments(BoundStatement tryBlock, BoundTryStatement node, ref TLocalState tryState)
         {
-            if (trackUnassignments)
+            if (_trackUnassignments)
             {
                 Optional<TLocalState> oldTryState = _tryState;
                 _tryState = AllBitsSet();
                 VisitTryBlock(tryBlock, node, ref tryState);
-                var tts = _tryState.Value;
-                IntersectWith(ref tryState, ref tts);
+                var tempTryStateValue = _tryState.Value;
+                IntersectWith(ref tryState, ref tempTryStateValue);
                 if (oldTryState.HasValue)
                 {
-                    var ots = oldTryState.Value;
-                    IntersectWith(ref ots, ref tts);
-                    oldTryState = ots;
+                    var oldTryStateValue = oldTryState.Value;
+                    IntersectWith(ref oldTryStateValue, ref tempTryStateValue);
+                    oldTryState = oldTryStateValue;
                 }
 
                 _tryState = oldTryState;
@@ -147,18 +147,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void VisitCatchBlockWithUnassignments(BoundCatchBlock catchBlock, ref TLocalState finallyState)
         {
-            if (trackUnassignments)
+            if (_trackUnassignments)
             {
                 Optional<TLocalState> oldTryState = _tryState;
                 _tryState = AllBitsSet();
                 VisitCatchBlock(catchBlock, ref finallyState);
-                var tts = _tryState.Value;
-                IntersectWith(ref finallyState, ref tts);
+                var tempTryStateValue = _tryState.Value;
+                IntersectWith(ref finallyState, ref tempTryStateValue);
                 if (oldTryState.HasValue)
                 {
-                    var ots = oldTryState.Value;
-                    IntersectWith(ref ots, ref tts);
-                    oldTryState = ots;
+                    var oldTryStateValue = oldTryState.Value;
+                    IntersectWith(ref oldTryStateValue, ref tempTryStateValue);
+                    oldTryState = oldTryStateValue;
                 }
 
                 _tryState = oldTryState;
@@ -171,18 +171,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void VisitFinallyBlockWithUnassignments(BoundStatement finallyBlock, ref TLocalState unsetInFinally)
         {
-            if (trackUnassignments)
+            if (_trackUnassignments)
             {
                 Optional<TLocalState> oldTryState = _tryState;
                 _tryState = AllBitsSet();
                 VisitFinallyBlock(finallyBlock, ref unsetInFinally);
-                var tts = _tryState.Value;
-                IntersectWith(ref unsetInFinally, ref tts);
+                var tempTryStateValue = _tryState.Value;
+                IntersectWith(ref unsetInFinally, ref tempTryStateValue);
                 if (oldTryState.HasValue)
                 {
-                    var ots = oldTryState.Value;
-                    IntersectWith(ref ots, ref tts);
-                    oldTryState = ots;
+                    var oldTryStateValue = oldTryState.Value;
+                    IntersectWith(ref oldTryStateValue, ref tempTryStateValue);
+                    oldTryState = oldTryStateValue;
                 }
 
                 _tryState = oldTryState;
