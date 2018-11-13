@@ -467,7 +467,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal static bool? IsNotNullableIfReferenceTypeFromConstraintType(TypeSymbolWithAnnotations constraintType)
         {
-            if (constraintType.IsAnnotated)
+            if (constraintType.NullableAnnotation.IsAnyNullable())
             {
                 return false;
             }
@@ -486,12 +486,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            if (constraintType.NonNullTypesContext.NonNullTypes == true)
+            if (constraintType.NullableAnnotation == NullableAnnotation.Unknown)
             {
-                return true;
+                return null;
             }
 
-            return null;
+            return true;
         }
 
         internal bool IsValueTypeFromConstraintTypes(ImmutableArray<TypeSymbolWithAnnotations> constraintTypes, ConsList<TypeParameterSymbol> inProgress)
@@ -684,7 +684,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override TypeSymbol MergeNullability(TypeSymbol other, VarianceKind variance, out bool hadNullabilityMismatch)
         {
-            Debug.Assert(this.Equals(other, TypeCompareKind.IgnoreDynamicAndTupleNames));
+            Debug.Assert(this.Equals(other, TypeCompareKind.IgnoreDynamicAndTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes));
             hadNullabilityMismatch = false;
             return this;
         }

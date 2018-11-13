@@ -2,14 +2,14 @@
 
 Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
-Imports Microsoft.CodeAnalysis.VisualBasic.MoveDeclarationNearReference
+Imports Microsoft.CodeAnalysis.MoveDeclarationNearReference
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.MoveDeclarationNearReference
     Public Class MoveDeclarationNearReferenceTests
         Inherits AbstractVisualBasicCodeActionTest
 
         Protected Overrides Function CreateCodeRefactoringProvider(workspace As Workspace, parameters As TestParameters) As CodeRefactoringProvider
-            Return New VisualBasicMoveDeclarationNearReferenceCodeRefactoringProvider()
+            Return New MoveDeclarationNearReferenceCodeRefactoringProvider()
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)>

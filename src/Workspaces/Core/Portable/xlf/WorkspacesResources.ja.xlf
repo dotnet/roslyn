@@ -359,7 +359,7 @@
       </trans-unit>
       <trans-unit id="Arrays_with_more_than_one_dimension_cannot_be_serialized">
         <source>Arrays with more than one dimension cannot be serialized.</source>
-        <target state="translated">複数の次元を持つ配列はシリアル化できません。</target>
+        <target state="translated">複数のディメンションを持つ配列はシリアル化できません。</target>
         <note />
       </trans-unit>
       <trans-unit id="Value_too_large_to_be_represented_as_a_30_bit_unsigned_integer">

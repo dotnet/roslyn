@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly ImmutableArray<TypeSymbolWithAnnotations> _formalParameterTypes;
         private readonly ImmutableArray<RefKind> _formalParameterRefKinds;
         private readonly ImmutableArray<BoundExpression> _arguments;
-        private readonly Func<BoundExpression, bool?> _getIsNullableOpt;
+        private readonly Func<BoundExpression, NullableAnnotation> _getNullableAnnotationOpt;
 
         private readonly TypeSymbolWithAnnotations[] _fixedResults;
         private readonly HashSet<TypeSymbolWithAnnotations>[] _exactBounds;
@@ -216,7 +216,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                       // no arguments per se we cons up some fake arguments.
             out bool hadNullabilityMismatch,
             ref HashSet<DiagnosticInfo> useSiteDiagnostics,
-            Func<BoundExpression, bool?> getIsNullableOpt = null)
+            Func<BoundExpression, NullableAnnotation> getNullableAnnotationOpt = null)
         {
             Debug.Assert(!methodTypeParameters.IsDefault);
             Debug.Assert(methodTypeParameters.Length > 0);
@@ -242,7 +242,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 formalParameterTypes,
                 formalParameterRefKinds,
                 arguments,
-                getIsNullableOpt);
+                getNullableAnnotationOpt);
             return inferrer.InferTypeArgs(binder, out hadNullabilityMismatch, ref useSiteDiagnostics);
         }
 
@@ -262,7 +262,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<TypeSymbolWithAnnotations> formalParameterTypes,
             ImmutableArray<RefKind> formalParameterRefKinds,
             ImmutableArray<BoundExpression> arguments,
-            Func<BoundExpression, bool?> getIsNullableOpt)
+            Func<BoundExpression, NullableAnnotation> getNullableAnnotationOpt)
         {
             _conversions = conversions;
             _methodTypeParameters = methodTypeParameters;
@@ -270,7 +270,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _formalParameterTypes = formalParameterTypes;
             _formalParameterRefKinds = formalParameterRefKinds;
             _arguments = arguments;
-            _getIsNullableOpt = getIsNullableOpt;
+            _getNullableAnnotationOpt = getNullableAnnotationOpt;
             _fixedResults = new TypeSymbolWithAnnotations[methodTypeParameters.Length];
             _exactBounds = new HashSet<TypeSymbolWithAnnotations>[methodTypeParameters.Length];
             _upperBounds = new HashSet<TypeSymbolWithAnnotations>[methodTypeParameters.Length];
@@ -553,8 +553,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Either the argument is not a tuple literal, or we were unable to do the inference from its elements, let's try to infer from argument type
                 if (IsReallyAType(source))
                 {
-                    var isNullable = IsNullable(argument);
-                    ExactOrBoundsInference(kind, TypeSymbolWithAnnotations.Create(source, isNullable), target, ref useSiteDiagnostics);
+                    var annotation = GetNullableAnnotation(argument);
+                    ExactOrBoundsInference(kind, TypeSymbolWithAnnotations.Create(source, annotation), target, ref useSiteDiagnostics);
                 }
             }
         }
@@ -1197,7 +1197,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             // SPEC: * Otherwise, if E is an expression with type U then a lower-bound
             // SPEC:   inference is made from U to T.
-            var sourceType = TypeSymbolWithAnnotations.Create(expression.Type, IsNullable(expression));
+            var sourceType = TypeSymbolWithAnnotations.Create(expression.Type, GetNullableAnnotation(expression));
             if (!sourceType.IsNull)
             {
                 LowerBoundInference(sourceType, target, ref useSiteDiagnostics);
@@ -1286,7 +1286,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            bool? returnIsNullable = null; // https://github.com/dotnet/roslyn/issues/27961 Review this
+            NullableAnnotation returnIsNullable = NullableAnnotation.Unknown; // https://github.com/dotnet/roslyn/issues/27961 Review this
             LowerBoundInference(TypeSymbolWithAnnotations.Create(returnType, returnIsNullable), delegateReturnType, ref useSiteDiagnostics);
 
             return true;
@@ -2337,7 +2337,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var withoutNullability = Fix(exact, lower, upper, ref ignoredDiagnostics, _conversions.WithNullability(false), ref ignoredHadMismatch);
                 // https://github.com/dotnet/roslyn/issues/27961 Results may differ by tuple names or dynamic.
                 // See NullableReferenceTypesTests.TypeInference_TupleNameDifferences_01 for example.
-                Debug.Assert(best.TypeSymbol.Equals(withoutNullability.TypeSymbol, TypeCompareKind.IgnoreDynamicAndTupleNames));
+                Debug.Assert(best.TypeSymbol.Equals(withoutNullability.TypeSymbol, TypeCompareKind.IgnoreDynamicAndTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes));
             }
 #endif
 
@@ -2366,7 +2366,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Optimization: if we have two or more exact bounds, fixing is impossible.
 
-            var candidates = new Dictionary<TypeSymbolWithAnnotations, TypeSymbolWithAnnotations>(EqualsIgnoringDynamicAndTupleNamesComparer.Instance);
+            var candidates = new Dictionary<TypeSymbolWithAnnotations, TypeSymbolWithAnnotations>(EqualsIgnoringDynamicTupleNamesAndNullabilityComparer.Instance);
 
             // Optimization: if we have one exact bound then we need not add any
             // inexact bounds; we're just going to remove them anyway.
@@ -2430,7 +2430,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 foreach (var candidate2 in initialCandidates)
                 {
-                    if (!candidate.Equals(candidate2, TypeCompareKind.CompareNullableModifiersForReferenceTypes) &&
+                    if (!candidate.Equals(candidate2, TypeCompareKind.ConsiderEverything) &&
                         !ImplicitConversionExists(candidate2, candidate, ref useSiteDiagnostics, conversions.WithNullability(false)))
                     {
                         goto OuterBreak;
@@ -2443,7 +2443,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    Debug.Assert(!best.Equals(candidate, TypeCompareKind.IgnoreDynamicAndTupleNames));
+                    Debug.Assert(!best.Equals(candidate, TypeCompareKind.IgnoreDynamicAndTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes));
                     // best candidate is not unique
                     best = default;
                     break;
@@ -2458,13 +2458,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             return best;
         }
 
-        private bool? IsNullable(BoundExpression expr)
+        private NullableAnnotation GetNullableAnnotation(BoundExpression expr)
         {
             if (!_conversions.IncludeNullability)
             {
-                return null;
+                return NullableAnnotation.Unknown;
             }
-            return _getIsNullableOpt?.Invoke(expr);
+            return _getNullableAnnotationOpt?.Invoke(expr) ?? NullableAnnotation.Unknown;
         }
 
         internal static TypeSymbolWithAnnotations Merge(TypeSymbolWithAnnotations first, TypeSymbolWithAnnotations second, VarianceKind variance, ConversionsBase conversions, out bool hadNullabilityMismatch)
@@ -2630,7 +2630,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 for (int p = 0; p < anonymousFunction.ParameterCount; ++p)
                 {
-                    if (!anonymousFunction.ParameterType(p).TypeSymbol.Equals(fixedDelegateParameters[p].Type.TypeSymbol, TypeCompareKind.IgnoreDynamicAndTupleNames))
+                    if (!anonymousFunction.ParameterType(p).TypeSymbol.Equals(fixedDelegateParameters[p].Type.TypeSymbol, TypeCompareKind.IgnoreDynamicAndTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes))
                     {
                         return default;
                     }
@@ -2727,7 +2727,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 constructedFromMethod.GetParameterTypes(),
                 constructedFromMethod.ParameterRefKinds,
                 arguments,
-                getIsNullableOpt: null);
+                getNullableAnnotationOpt: null);
 
             if (!inferrer.InferTypeArgumentsFromFirstArgument(ref useSiteDiagnostics))
             {
@@ -2753,8 +2753,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return false;
             }
-            var isNullable = IsNullable(argument);
-            LowerBoundInference(TypeSymbolWithAnnotations.Create(source, isNullable), dest, ref useSiteDiagnostics);
+            var annotation = GetNullableAnnotation(argument);
+            LowerBoundInference(TypeSymbolWithAnnotations.Create(source, annotation), dest, ref useSiteDiagnostics);
             // Now check to see that every type parameter used by the first
             // formal parameter type was successfully inferred.
             for (int iParam = 0; iParam < _methodTypeParameters.Length; ++iParam)
@@ -2823,7 +2823,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ref bool hadNullabilityMismatch)
         {
             Debug.Assert(conversions.IncludeNullability ||
-                newCandidate.SetUnknownNullabilityForReferenceTypes().Equals(newCandidate, TypeCompareKind.CompareNullableModifiersForReferenceTypes));
+                newCandidate.SetUnknownNullabilityForReferenceTypes().Equals(newCandidate, TypeCompareKind.ConsiderEverything));
 
             if (candidates.TryGetValue(newCandidate, out TypeSymbolWithAnnotations oldCandidate))
             {
@@ -2852,7 +2852,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(variance == VarianceKind.In || variance == VarianceKind.Out);
             // SPEC:   For each lower (upper) bound U of Xi all types to which there is not an
             // SPEC:   implicit conversion from (to) U are removed from the candidate set.
-            var comparison = conversions.IncludeNullability ? TypeCompareKind.CompareNullableModifiersForReferenceTypes : TypeCompareKind.ConsiderEverything;
+            var comparison = conversions.IncludeNullability ? TypeCompareKind.ConsiderEverything : TypeCompareKind.IgnoreNullableModifiersForReferenceTypes;
             foreach (var bound in bounds)
             {
                 foreach (var candidate in initialCandidates)
@@ -2877,7 +2877,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         candidates.Remove(candidate);
                     }
-                    else if (bound.Equals(candidate, TypeCompareKind.IgnoreDynamicAndTupleNames))
+                    else if (bound.Equals(candidate, TypeCompareKind.IgnoreDynamicAndTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes))
                     {
                         // SPEC: 4.7 The Dynamic Type
                         //       Type inference (7.5.2) will prefer dynamic over object if both are candidates.
@@ -2928,9 +2928,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// This is a comparer that ignores differences in dynamic-ness and tuple names.
         /// But it has a special case for top-level object vs. dynamic for purpose of method type inference.
         /// </summary>
-        private sealed class EqualsIgnoringDynamicAndTupleNamesComparer : EqualityComparer<TypeSymbolWithAnnotations>
+        private sealed class EqualsIgnoringDynamicTupleNamesAndNullabilityComparer : EqualityComparer<TypeSymbolWithAnnotations>
         {
-            internal static readonly EqualsIgnoringDynamicAndTupleNamesComparer Instance = new EqualsIgnoringDynamicAndTupleNamesComparer();
+            internal static readonly EqualsIgnoringDynamicTupleNamesAndNullabilityComparer Instance = new EqualsIgnoringDynamicTupleNamesAndNullabilityComparer();
 
             public override int GetHashCode(TypeSymbolWithAnnotations obj)
             {
@@ -2943,7 +2943,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // but dynamic and object are not considered equal for backwards compatibility.
                 if (x.IsDynamic() ^ y.IsDynamic()) { return false; }
 
-                return x.Equals(y, TypeCompareKind.IgnoreDynamicAndTupleNames);
+                return x.Equals(y, TypeCompareKind.IgnoreDynamicAndTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes);
             }
         }
     }

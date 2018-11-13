@@ -44,6 +44,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         // https://github.com/dotnet/roslyn/issues/30056: Should probably rename this method to have more specific name.
         //                                    At the moment it is used only for Nullable Reference Types feature and
         //                                    its implementation is specialized for this feature.
+        //    T => true
+        //    T where T : struct => false
+        //    T where T : class => false
+        //    T where T : class? => true
+        //    T where T : IComparable => true
+        //    T where T : IComparable? => true
         public static bool IsUnconstrainedTypeParameter(this TypeSymbol type)
         {
             if (type.TypeKind != TypeKind.TypeParameter)
@@ -56,6 +62,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return !typeParameter.IsValueType && !(typeParameter.IsReferenceType && typeParameter.IsNotNullableIfReferenceType == true);
         }
 
+        //    T => true
+        //    T where T : struct => false
+        //    T where T : class => false
+        //    T where T : class? => true
+        //    T where T : IComparable => false
+        //    T where T : IComparable? => true
         public static bool IsPossiblyNullableReferenceTypeTypeParameter(this TypeSymbol type)
         {
             if (type.TypeKind != TypeKind.TypeParameter)
@@ -331,10 +343,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         public static bool IsExpressionTree(this TypeSymbol _type)
         {
-            // TODO: there must be a better way!
-            var type = _type.OriginalDefinition as NamedTypeSymbol;
-            return
-                (object)type != null &&
+            return _type.OriginalDefinition is NamedTypeSymbol type &&
                 type.Arity == 1 &&
                 type.MangleName &&
                 type.Name == "Expression" &&

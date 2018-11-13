@@ -171,7 +171,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             // Decode nullable before tuple types to avoid converting between
             // NamedTypeSymbol and TupleTypeSymbol unnecessarily.
-            propertyType = NullableTypeDecoder.TransformType(propertyType, handle, moduleSymbol);
+            propertyType = NullableTypeDecoder.TransformType(propertyType, handle, moduleSymbol, nonNullTypesContext: this);
             propertyType = TupleTypeDecoder.DecodeTupleTypesIfApplicable(propertyType, handle, moduleSymbol);
 
             _propertyType = propertyType;

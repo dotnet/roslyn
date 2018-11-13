@@ -48,10 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         internal bool IsDefinitionOrDistinct()
         {
-            return this.IsDefinition || 
-                   !(this is NamedTypeSymbol namedTypeSymbol ?
-                        namedTypeSymbol.Equals(namedTypeSymbol.OriginalDefinition, TypeCompareKind.CompareNullableModifiersForReferenceTypes) :
-                        this.Equals(this.OriginalDefinition));
+            return this.IsDefinition || !this.Equals(this.OriginalDefinition);
         }
 
         IEnumerable<Cci.ICustomAttribute> Cci.IReference.GetAttributes(EmitContext context)

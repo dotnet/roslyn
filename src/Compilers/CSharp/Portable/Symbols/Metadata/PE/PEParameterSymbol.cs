@@ -220,7 +220,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 if (!extraAnnotations.IsDefault)
                 {
                     // https://github.com/dotnet/roslyn/issues/29821 any external annotation is taken to imply a `[NonNullTypes(true)]` context
-                    type =  NullableTypeDecoder.TransformType(type, extraAnnotations).WithNonNullTypesContext(NonNullTypesTrueContext.Instance);
+                    type =  NullableTypeDecoder.TransformType(type, extraAnnotations, nonNullTypesContext: NonNullTypesTrueContext.Instance);
                 }
 
                 _lazyCustomAttributes = ImmutableArray<CSharpAttributeData>.Empty;
@@ -262,7 +262,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 type = type.WithTypeAndModifiers(typeSymbol, type.CustomModifiers);
                 // Decode nullable before tuple types to avoid converting between
                 // NamedTypeSymbol and TupleTypeSymbol unnecessarily.
-                type = NullableTypeDecoder.TransformType(type, handle, moduleSymbol, extraAnnotations);
+                type = NullableTypeDecoder.TransformType(type, handle, moduleSymbol, nonNullTypesContext: this, extraAnnotations);
                 type = TupleTypeDecoder.DecodeTupleTypesIfApplicable(type, handle, moduleSymbol);
             }
 

@@ -689,7 +689,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // some implemented interfaces are related
             // will have to instantiate interfaces and check
             hasRelatedInterfaces:
-            return type.InterfacesNoUseSiteDiagnostics(basesBeingResolved).HasDuplicates(TypeSymbol.EqualsIgnoringDynamicAndTupleNamesComparer);
+            return type.InterfacesNoUseSiteDiagnostics(basesBeingResolved).HasDuplicates(TypeSymbol.EqualsIgnoringDynamicTupleNamesAndNullabilityComparer);
         }
 
         public static bool CheckConstraints(
@@ -898,7 +898,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (conversions.IncludeNullability && warningsBuilderOpt != null &&
                     typeParameter.ReferenceTypeConstraintIsNullable == false &&
-                    typeArgument.IsNullable == true)
+                    (typeArgument.IsNullable == true || typeArgument.IsPossiblyNullableReferenceTypeTypeParameter()))
                 {
                     var diagnostic = new CSDiagnosticInfo(ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint, containingSymbol.ConstructedFrom(), typeParameter, typeArgument);
                     warningsBuilderOpt.Add(new TypeParameterDiagnosticInfo(typeParameter, diagnostic));
@@ -938,7 +938,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     if (conversions.IncludeNullability && warningsBuilderOpt != null)
                     {
                         if (!SatisfiesConstraintType(conversions, typeArgument, constraintType, ref useSiteDiagnostics) ||
-                            (typeArgument.IsNullable == true && !typeArgument.IsValueType &&
+                            (((typeArgument.IsNullable == true && !typeArgument.IsValueType) || typeArgument.IsPossiblyNullableReferenceTypeTypeParameter()) &&
                              TypeParameterSymbol.IsNotNullableIfReferenceTypeFromConstraintType(constraintType) == true))
                         {
                             var diagnostic = new CSDiagnosticInfo(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, containingSymbol.ConstructedFrom(), constraintType, typeParameter, typeArgument);
@@ -1198,7 +1198,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return false;
             }
 
-            Debug.Assert(!type.ConstructedFrom.Equals(type, TypeCompareKind.CompareNullableModifiersForReferenceTypes));
+            Debug.Assert(!type.ConstructedFrom.Equals(type, TypeCompareKind.ConsiderEverything));
             return true;
         }
 

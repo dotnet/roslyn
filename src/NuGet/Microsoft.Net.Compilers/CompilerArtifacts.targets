@@ -17,6 +17,10 @@
 
     Ngen* attributes indicate how VS should NGEN the assemblies that are distributed by VS Setup.
     NgenApplication is relative to the Roslyn install directory within MSBuild (i.e. MSBuild\15.0\Bin\Roslyn).
+
+    Set OverwriteOptimizationData to true to replace optimization data already embedded in the assembly with data retrieved from VS training scenarios.
+    We only need to specify this for assemblies built outside or Roslyn repo since the projects in Roslyn repo are responsible for embedding 
+    VS training data to the assemblies they produce.
   -->
 
   <Target Name="InitializeCompilerArtifacts">
@@ -29,44 +33,31 @@
       <CompilerArtifact Include="$(_Dlls)Microsoft.CodeAnalysis.Scripting\Microsoft.CodeAnalysis.Scripting.dll" NgenArchitecture="all" NgenApplication="csi.exe"/>
       <CompilerArtifact Include="$(_Dlls)Microsoft.CodeAnalysis.CSharp.Scripting\Microsoft.CodeAnalysis.CSharp.Scripting.dll" NgenArchitecture="all" NgenApplication="csi.exe"/>
       <CompilerArtifact Include="$(_Dlls)Microsoft.CodeAnalysis.VisualBasic\Microsoft.CodeAnalysis.VisualBasic.dll" NgenArchitecture="all" NgenApplication="VBCSCompiler.exe"/>
-      <CompilerArtifact Include="$(_Exes)csc\net46\csc.exe" NgenArchitecture="all" NgenApplication="csc.exe" NgenPriority="1"/>
-      <CompilerArtifact Include="$(_Exes)csc\net46\csc.exe.config"/>
-      <CompilerArtifact Include="$(_Exes)csc\net46\csc.rsp"/>
-      <CompilerArtifact Include="$(_Exes)csi\net46\csi.exe" NgenArchitecture="all" NgenApplication="csi.exe" NgenPriority="1"/>
-      <CompilerArtifact Include="$(_Exes)csi\net46\csi.exe.config"/>
-      <CompilerArtifact Include="$(_Exes)csi\net46\csi.rsp"/>
-      <CompilerArtifact Include="$(_Exes)vbc\net46\vbc.exe" NgenArchitecture="all" NgenApplication="vbc.exe" NgenPriority="1"/>
-      <CompilerArtifact Include="$(_Exes)vbc\net46\vbc.exe.config"/>
-      <CompilerArtifact Include="$(_Exes)vbc\net46\vbc.rsp"/>
-      <CompilerArtifact Include="$(_Exes)VBCSCompiler\net46\VBCSCompiler.exe" NgenArchitecture="all" NgenApplication="VBCSCompiler.exe" NgenPriority="1"/>
-      <CompilerArtifact Include="$(_Exes)VBCSCompiler\net46\VBCSCompiler.exe.config"/>
-      <CompilerArtifact Include="$(_Dlls)Microsoft.Build.Tasks.CodeAnalysis\net46\Microsoft.Build.Tasks.CodeAnalysis.dll" NgenArchitecture="all" />
-      <CompilerArtifact Include="$(_Dlls)Microsoft.Build.Tasks.CodeAnalysis\net46\Microsoft.Managed.Core.targets"/>
-      <CompilerArtifact Include="$(_Dlls)Microsoft.Build.Tasks.CodeAnalysis\net46\Microsoft.CSharp.Core.targets"/>
-      <CompilerArtifact Include="$(_Dlls)Microsoft.Build.Tasks.CodeAnalysis\net46\Microsoft.VisualBasic.Core.targets"/>
+      <CompilerArtifact Include="$(_Exes)csc\net472\csc.exe" NgenArchitecture="all" NgenApplication="csc.exe" NgenPriority="1"/>
+      <CompilerArtifact Include="$(_Exes)csc\net472\csc.exe.config"/>
+      <CompilerArtifact Include="$(_Exes)csc\net472\csc.rsp"/>
+      <CompilerArtifact Include="$(_Exes)csi\net472\csi.exe" NgenArchitecture="all" NgenApplication="csi.exe" NgenPriority="1"/>
+      <CompilerArtifact Include="$(_Exes)csi\net472\csi.exe.config"/>
+      <CompilerArtifact Include="$(_Exes)csi\net472\csi.rsp"/>
+      <CompilerArtifact Include="$(_Exes)vbc\net472\vbc.exe" NgenArchitecture="all" NgenApplication="vbc.exe" NgenPriority="1"/>
+      <CompilerArtifact Include="$(_Exes)vbc\net472\vbc.exe.config"/>
+      <CompilerArtifact Include="$(_Exes)vbc\net472\vbc.rsp"/>
+      <CompilerArtifact Include="$(_Exes)VBCSCompiler\net472\VBCSCompiler.exe" NgenArchitecture="all" NgenApplication="VBCSCompiler.exe" NgenPriority="1"/>
+      <CompilerArtifact Include="$(_Exes)VBCSCompiler\net472\VBCSCompiler.exe.config"/>
+      <CompilerArtifact Include="$(_Dlls)Microsoft.Build.Tasks.CodeAnalysis\net472\Microsoft.Build.Tasks.CodeAnalysis.dll" NgenArchitecture="all" />
+      <CompilerArtifact Include="$(_Dlls)Microsoft.Build.Tasks.CodeAnalysis\net472\Microsoft.Managed.Core.targets"/>
+      <CompilerArtifact Include="$(_Dlls)Microsoft.Build.Tasks.CodeAnalysis\net472\Microsoft.CSharp.Core.targets"/>
+      <CompilerArtifact Include="$(_Dlls)Microsoft.Build.Tasks.CodeAnalysis\net472\Microsoft.VisualBasic.Core.targets"/>
+
       <!--
-        The assemblies are not signed by us and any deployed copy can be used.
-        The Exes\Toolset directory specifically has all of the assemblies we need.
-
-        N.B. This list of facades must be kept in-sync with the
-        other facades used by the compiler. Facades are listed in
-        the src/Setup/DevDivInsertionFiles/BuildDevDivInsertionFiles.vb file, the
-        src/Setup/DevDivVsix/CompilersPackage/Microsoft.CodeAnalysis.Compilers.swr file,
-        and src/Compilers/Extension/CompilerExtension.csproj file. 
+        Do not overwrite optimization data of System.Threading.Tasks.Extensions.dll
+        This assembly is signed by Open key in CoreFX and MicroBuild does not support this key.
+        Arcade SignTool doesn't support signing directly at this point either.
+        https://github.com/dotnet/arcade/issues/1204
       -->
-      <CompilerArtifact Include="$(_Exes)csi\net46\System.*.dll" NgenArchitecture="all" NgenApplication="VBCSCompiler.exe"/>
-      <CompilerArtifact Include="$(_Exes)csi\net46\Microsoft.Win32.Primitives.dll" NgenArchitecture="all" NgenApplication="VBCSCompiler.exe"/>
+      <CompilerArtifact Include="$(_Exes)csi\net472\System.*.dll" Exclude="$(_Exes)csi\net472\System.Threading.Tasks.Extensions.dll" NgenArchitecture="all"  NgenApplication="VBCSCompiler.exe" OverwriteOptimizationData="true"/>
 
-      <!-- 
-        We never load these binaries, and it does not generate the correct binding redirects, so do not NGEN them
-        https://github.com/dotnet/roslyn/pull/27537 
-
-        BTW, can't use Update due to bug https://github.com/Microsoft/msbuild/issues/3825.
-      -->
-      <CompilerArtifact Remove="$(_Exes)csi\net46\System.Net.Http.dll"/>
-      <CompilerArtifact Remove="$(_Exes)csi\net46\System.Diagnostics.DiagnosticSource.dll"/>
-      <CompilerArtifact Include="$(_Exes)csi\net46\System.Net.Http.dll" NgenArchitecture="" NgenApplication=""/>
-      <CompilerArtifact Include="$(_Exes)csi\net46\System.Diagnostics.DiagnosticSource.dll" NgenArchitecture="" NgenApplication=""/>
+      <CompilerArtifact Include="$(_Exes)csi\net472\System.Threading.Tasks.Extensions.dll" NgenArchitecture="all" NgenApplication="VBCSCompiler.exe" OverwriteOptimizationData="false"/>
     </ItemGroup>
   </Target>
 </Project>
