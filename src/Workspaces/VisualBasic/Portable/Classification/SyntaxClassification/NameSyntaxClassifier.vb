@@ -48,105 +48,131 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification.Classifiers
                 result As ArrayBuilder(Of ClassifiedSpan),
                 cancellationToken As CancellationToken)
 
+            Dim classifiedSpan As ClassifiedSpan
+
             Dim symbolInfo = semanticModel.GetSymbolInfo(node, cancellationToken)
-            Dim symbol = symbolInfo.Symbol
+            Dim symbol = TryGetSymbol(node, symbolInfo, semanticModel)
 
-            If symbol Is Nothing AndAlso symbolInfo.CandidateSymbols.Length > 0 Then
-                Dim firstSymbol = symbolInfo.CandidateSymbols(0)
-                Select Case symbolInfo.CandidateReason
-                    Case CandidateReason.NotCreatable
-                        ' Not creatable types are still classified as types.
-                        If firstSymbol.IsConstructor() OrElse TypeOf firstSymbol Is ITypeSymbol Then
-                            symbol = firstSymbol
-                        End If
-
-                    Case CandidateReason.OverloadResolutionFailure
-                        ' If we couldn't bind to a constructor, still classify the type.
-                        If firstSymbol.IsConstructor() Then
-                            symbol = firstSymbol
-                        End If
-
-                    Case CandidateReason.Inaccessible
-                        ' If we couldn't bind to a constructor, still classify the type if its accessible
-                        If firstSymbol.IsConstructor() AndAlso semanticModel.IsAccessible(node.SpanStart, firstSymbol.ContainingType) Then
-                            symbol = firstSymbol
-                        End If
-                End Select
+            If symbol Is Nothing Then
+                If TryClassifyIdentifier(node, symbol, semanticModel, cancellationToken, classifiedSpan) Then
+                    result.Add(classifiedSpan)
+                End If
+                Return
             End If
 
-            ' Classify a reference to an attribute constructor in an attribute location
-            ' as if we were classifying the attribute type itself.
-            If symbol.IsConstructor() AndAlso node.IsParentKind(SyntaxKind.Attribute) Then
-                symbol = symbol.ContainingType
+            If TryClassifySymbol(node, symbol, semanticModel, cancellationToken, classifiedSpan) Then
+                TryClassifyStaticSymbol(symbol, classifiedSpan.TextSpan, result)
+                result.Add(classifiedSpan)
+            ElseIf TryClassifyMyNamespace(node, symbol, semanticModel, cancellationToken, classifiedSpan) Then
+                result.Add(classifiedSpan)
             End If
+        End Sub
 
-            If symbol IsNot Nothing Then
-                Select Case symbol.Kind
-                    Case SymbolKind.Method
-                        Dim classification = GetClassificationForMethod(node, DirectCast(symbol, IMethodSymbol))
-                        If classification IsNot Nothing Then
-                            result.Add(New ClassifiedSpan(GetNameToken(node).Span, classification))
-                            Return
-                        End If
-                    Case SymbolKind.Event
-                        result.Add(New ClassifiedSpan(GetNameToken(node).Span, ClassificationTypeNames.EventName))
-                        Return
-                    Case SymbolKind.Property
-                        result.Add(New ClassifiedSpan(GetNameToken(node).Span, ClassificationTypeNames.PropertyName))
-                        Return
-                    Case SymbolKind.Field
-                        Dim classification = GetClassificationForField(DirectCast(symbol, IFieldSymbol))
-                        If classification IsNot Nothing Then
-                            result.Add(New ClassifiedSpan(GetNameToken(node).Span, classification))
-                            Return
-                        End If
-                    Case SymbolKind.Parameter
-                        result.Add(New ClassifiedSpan(GetNameToken(node).Span, ClassificationTypeNames.ParameterName))
-                        Return
-                    Case SymbolKind.Local
-                        Dim classification = GetClassificationForLocal(DirectCast(symbol, ILocalSymbol))
-                        If classification IsNot Nothing Then
-                            result.Add(New ClassifiedSpan(GetNameToken(node).Span, classification))
-                            Return
-                        End If
-                End Select
+        Private Function TryClassifySymbol(
+            node As NameSyntax,
+            symbol As ISymbol,
+            semanticModel As SemanticModel,
+            cancellationToken As CancellationToken,
+            ByRef classifiedSpan As ClassifiedSpan) As Boolean
 
-                Dim type = TryCast(symbol, ITypeSymbol)
-                If type IsNot Nothing Then
-                    Dim classification = GetClassificationForType(type)
+            Select Case symbol.Kind
+                Case SymbolKind.Method
+                    Dim classification = GetClassificationForMethod(node, DirectCast(symbol, IMethodSymbol))
                     If classification IsNot Nothing Then
-                        Dim token = GetNameToken(node)
-                        result.Add(New ClassifiedSpan(token.Span, classification))
-                        Return
+                        classifiedSpan = New ClassifiedSpan(GetNameToken(node).Span, classification)
+                        Return True
+                    End If
+                Case SymbolKind.Event
+                    classifiedSpan = New ClassifiedSpan(GetNameToken(node).Span, ClassificationTypeNames.EventName)
+                    Return True
+                Case SymbolKind.Property
+                    classifiedSpan = New ClassifiedSpan(GetNameToken(node).Span, ClassificationTypeNames.PropertyName)
+                    Return True
+                Case SymbolKind.Field
+                    Dim classification = GetClassificationForField(DirectCast(symbol, IFieldSymbol))
+                    If classification IsNot Nothing Then
+                        classifiedSpan = New ClassifiedSpan(GetNameToken(node).Span, classification)
+                        Return True
+                    End If
+                Case SymbolKind.Parameter
+                    classifiedSpan = New ClassifiedSpan(GetNameToken(node).Span, ClassificationTypeNames.ParameterName)
+                    Return True
+                Case SymbolKind.Local
+                    Dim classification = GetClassificationForLocal(DirectCast(symbol, ILocalSymbol))
+                    If classification IsNot Nothing Then
+                        classifiedSpan = New ClassifiedSpan(GetNameToken(node).Span, classification)
+                        Return True
+                    End If
+            End Select
+
+            Dim type = TryCast(symbol, ITypeSymbol)
+            If type IsNot Nothing Then
+                Dim classification = GetClassificationForType(type)
+                If classification IsNot Nothing Then
+                    Dim token = GetNameToken(node)
+                    classifiedSpan = New ClassifiedSpan(token.Span, classification)
+                    Return True
+                End If
+            End If
+
+            Return False
+        End Function
+
+        Private Function TryClassifyMyNamespace(
+            node As NameSyntax,
+            symbol As ISymbol,
+            semanticModel As SemanticModel,
+            cancellationToken As CancellationToken,
+            ByRef classifiedSpan As ClassifiedSpan) As Boolean
+
+            If symbol.IsMyNamespace(semanticModel.Compilation) Then
+                classifiedSpan = New ClassifiedSpan(GetNameToken(node).Span, ClassificationTypeNames.Keyword)
+                Return True
+            End If
+
+            Return False
+        End Function
+
+        Private Function TryClassifyIdentifier(
+            node As NameSyntax,
+            symbol As ISymbol,
+            semanticModel As SemanticModel,
+            cancellationToken As CancellationToken,
+            ByRef classifiedSpan As ClassifiedSpan) As Boolean
+
+            ' Okay, it doesn't bind to anything.
+            Dim identifierName = TryCast(node, IdentifierNameSyntax)
+            If identifierName IsNot Nothing Then
+                Dim token = identifierName.Identifier
+
+                If token.HasMatchingText(SyntaxKind.FromKeyword) AndAlso
+                                   semanticModel.SyntaxTree.IsExpressionContext(token.SpanStart, cancellationToken, semanticModel) Then
+
+                    ' Optimistically classify "From" as a keyword in expression contexts
+                    classifiedSpan = New ClassifiedSpan(token.Span, ClassificationTypeNames.Keyword)
+                    Return True
+                ElseIf token.HasMatchingText(SyntaxKind.AsyncKeyword) OrElse
+                                       token.HasMatchingText(SyntaxKind.IteratorKeyword) Then
+
+                    ' Optimistically classify "Async" or "Iterator" as a keyword in expression contexts
+                    If semanticModel.SyntaxTree.IsExpressionContext(token.SpanStart, cancellationToken, semanticModel) Then
+                        classifiedSpan = New ClassifiedSpan(token.Span, ClassificationTypeNames.Keyword)
+                        Return True
                     End If
                 End If
+            End If
 
-                If symbol.IsMyNamespace(semanticModel.Compilation) Then
-                    result.Add(New ClassifiedSpan(GetNameToken(node).Span, ClassificationTypeNames.Keyword))
-                    Return
-                End If
-            Else
-                ' Okay, it doesn't bind to anything.
-                Dim identifierName = TryCast(node, IdentifierNameSyntax)
-                If identifierName IsNot Nothing Then
-                    Dim token = identifierName.Identifier
+            Return False
+        End Function
 
-                    If token.HasMatchingText(SyntaxKind.FromKeyword) AndAlso
-                       semanticModel.SyntaxTree.IsExpressionContext(token.SpanStart, cancellationToken, semanticModel) Then
-
-                        ' Optimistically classify "From" as a keyword in expression contexts
-                        result.Add(New ClassifiedSpan(token.Span, ClassificationTypeNames.Keyword))
-                        Return
-                    ElseIf token.HasMatchingText(SyntaxKind.AsyncKeyword) OrElse
-                           token.HasMatchingText(SyntaxKind.IteratorKeyword) Then
-
-                        ' Optimistically classify "Async" or "Iterator" as a keyword in expression contexts
-                        If semanticModel.SyntaxTree.IsExpressionContext(token.SpanStart, cancellationToken, semanticModel) Then
-                            result.Add(New ClassifiedSpan(token.Span, ClassificationTypeNames.Keyword))
-                            Return
-                        End If
-                    End If
-                End If
+        Private Sub TryClassifyStaticSymbol(
+            symbol As ISymbol,
+            span As Text.TextSpan,
+            result As ArrayBuilder(Of ClassifiedSpan))
+            If (symbol?.IsStatic = True _
+                AndAlso Not symbol.IsKind(SymbolKind.Namespace)) Then ' TODO: Since Namespace are always static Is it useful to classify them as static?
+                ' AndAlso (!symbol.IsKind(SymbolKind.Field) OrElse symbol.ContainingType?.IsEnumType() == false) _ ' TODO: Since Enum members are always Static Is it useful To classify them As Static? 
+                result.Add(New ClassifiedSpan(span, ClassificationTypeNames.StaticSymbol))
             End If
         End Sub
 
@@ -187,6 +213,45 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification.Classifiers
             Return If(methodSymbol.IsReducedExtension(),
                       ClassificationTypeNames.ExtensionMethodName,
                       ClassificationTypeNames.MethodName)
+        End Function
+
+        Private Function TryGetSymbol(
+            node As NameSyntax,
+            symbolInfo As SymbolInfo,
+            semanticModel As SemanticModel) As ISymbol
+
+            Dim symbol = symbolInfo.Symbol
+
+            If symbol Is Nothing AndAlso symbolInfo.CandidateSymbols.Length > 0 Then
+                Dim firstSymbol = symbolInfo.CandidateSymbols(0)
+                Select Case symbolInfo.CandidateReason
+                    Case CandidateReason.NotCreatable
+                        ' Not creatable types are still classified as types.
+                        If firstSymbol.IsConstructor() OrElse TypeOf firstSymbol Is ITypeSymbol Then
+                            symbol = firstSymbol
+                        End If
+
+                    Case CandidateReason.OverloadResolutionFailure
+                        ' If we couldn't bind to a constructor, still classify the type.
+                        If firstSymbol.IsConstructor() Then
+                            symbol = firstSymbol
+                        End If
+
+                    Case CandidateReason.Inaccessible
+                        ' If we couldn't bind to a constructor, still classify the type if its accessible
+                        If firstSymbol.IsConstructor() AndAlso semanticModel.IsAccessible(node.SpanStart, firstSymbol.ContainingType) Then
+                            symbol = firstSymbol
+                        End If
+                End Select
+            End If
+
+            ' Classify a reference to an attribute constructor in an attribute location
+            ' as if we were classifying the attribute type itself.
+            If symbol.IsConstructor() AndAlso node.IsParentKind(SyntaxKind.Attribute) Then
+                symbol = symbol.ContainingType
+            End If
+
+            Return symbol
         End Function
 
         Private Sub ClassifyModifiedIdentifier(

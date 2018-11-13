@@ -709,18 +709,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         }
         #endregion
 
-        #region Static Symbol 
+        #region Symbol - Static
         [Export(typeof(EditorFormatDefinition))]
         [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.StaticSymbol)]
         [Name(ClassificationTypeNames.StaticSymbol)]
         [Order(After = PredefinedClassificationTypeNames.Identifier)]
         [UserVisible(true)]
         [ExcludeFromCodeCoverage]
-        private class StaticSymbolFormatDefinition : ClassificationFormatDefinition
+        private class SymbolStaticFormatDefinition : ClassificationFormatDefinition
         {
-            private StaticSymbolFormatDefinition()
+            private SymbolStaticFormatDefinition()
             {
-                this.DisplayName = "Static Symbol";
+                this.DisplayName = EditorFeaturesResources.Symbol_Static;
                 this.IsBold = true;
             }
         }
