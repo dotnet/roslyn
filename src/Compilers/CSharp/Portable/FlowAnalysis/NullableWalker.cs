@@ -3297,7 +3297,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         var operandConversion = (BoundConversion)operandOpt;
                         var explicitType = operandConversion.ConversionGroupOpt.ExplicitType;
-                        if (!explicitType.IsNull && explicitType.Equals(targetTypeWithNullability, TypeCompareKind.ConsiderEverything))
+                        if (!explicitType.IsNull && explicitType.Equals(targetTypeWithNullability, TypeCompareKind.IgnoreInsignificantNullableModifiersDifference))
                         {
                             return operandType;
                         }

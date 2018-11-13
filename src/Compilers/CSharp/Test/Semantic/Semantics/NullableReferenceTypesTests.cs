@@ -55999,5 +55999,27 @@ class Program
                 //         c2.F().ToString();
                 Diagnostic(ErrorCode.ERR_ObjectProhibited, "c2.F").WithArguments("C<object>.F()").WithLocation(14, 9));
         }
+
+        [WorkItem(30938, "https://github.com/dotnet/roslyn/issues/30938")]
+        [Fact]
+        public void ExplicitCastAndInferredTargetType()
+        {
+            var source =
+@"class Program
+{
+    static void F(object? x)
+    {
+        if (x == null) return;
+        var y = x;
+        x = null;
+        y = (object)x;
+    }
+}";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (8,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         y = (object)x;
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(object)x").WithLocation(8, 13));
+        }
     }
 }
