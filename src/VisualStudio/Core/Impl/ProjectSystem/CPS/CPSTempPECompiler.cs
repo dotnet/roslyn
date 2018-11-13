@@ -15,9 +15,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
     {
         public async Task<bool> CompileAsync(IWorkspaceProjectContext context, string outputFileName, string[] filesToInclude, CancellationToken cancellationToken)
         {
-            Requires.NotNull(filesToInclude, nameof(filesToInclude));
-            Requires.Argument(filesToInclude.Length > 0, nameof(filesToInclude), "Must specify some files to compile.");
-            Requires.NotNullOrWhiteSpace(outputFileName, nameof(outputFileName));
+			if (filesToInclude == null || filesToInclude.Length == 0)
+			{
+				throw new ArgumentException(nameof(filesToInclude), "Must specify some files to compile.");
+			}
+			if (string.IsNullOrWhiteSpace(outputFileName))
+			{
+				throw new ArgumentException(nameof(outputFileName), "Must specify a filename to output to.");
+			}
 
             var snapshot = ((CPSProject)context).GetProjectSnapshot();
             // Allow for faster checking because projects could be very large
