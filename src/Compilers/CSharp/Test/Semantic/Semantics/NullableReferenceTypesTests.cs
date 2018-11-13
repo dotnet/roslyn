@@ -14,6 +14,7 @@ using static Microsoft.CodeAnalysis.CSharp.Symbols.FlowAnalysisAnnotations;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
 {
+    [CompilerTrait(CompilerFeature.NullableReferenceTypes)]
     public class NullableReferenceTypesTests : CSharpTestBase
     {
         [Fact]
@@ -454,6 +455,72 @@ class Program
                 // (14,26): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
                 //     static void F2(object? w)
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(14, 26));
+        }
+
+        [Fact]
+        public void NullableAndConditionalOperators()
+        {
+            var source =
+@"class Program
+{
+    static void F1(object x)
+    {
+        _ = x is string? 1 : 2;
+        _ = x is string? ? 1 : 2;
+        _ = x is string ? ? 1 : 2;
+        _ = x as string?? x;
+        _ = x as string ? ?? x;
+    }
+    static void F2(object y)
+    {
+        _ = y is object[]? 1 : 2;
+        _ = y is object[]? ? 1 : 2;
+        _ = y is object[] ? ? 1 : 2;
+        _ = y as object[]?? y;
+        _ = y as object[] ? ?? y;
+    }
+    static void F3<T>(object z)
+    {
+        _ = z is T[][]? 1 : 2;
+        _ = z is T[]?[] ? 1 : 2;
+        _ = z is T[] ? [] ? 1 : 2;
+        _ = z as T[][]?? z;
+        _ = z as T[] ? [] ?? z;
+    }
+}";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7);
+            comp.VerifyDiagnostics(
+                // (6,24): error CS8107: Feature 'nullable reference types' is not available in C# 7.0. Please use language version 8.0 or greater.
+                //         _ = x is string? ? 1 : 2;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "?").WithArguments("nullable reference types", "8.0").WithLocation(6, 24),
+                // (7,25): error CS8107: Feature 'nullable reference types' is not available in C# 7.0. Please use language version 8.0 or greater.
+                //         _ = x is string ? ? 1 : 2;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "?").WithArguments("nullable reference types", "8.0").WithLocation(7, 25),
+                // (9,25): error CS8107: Feature 'nullable reference types' is not available in C# 7.0. Please use language version 8.0 or greater.
+                //         _ = x as string ? ?? x;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "?").WithArguments("nullable reference types", "8.0").WithLocation(9, 25),
+                // (14,26): error CS8107: Feature 'nullable reference types' is not available in C# 7.0. Please use language version 8.0 or greater.
+                //         _ = y is object[]? ? 1 : 2;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "?").WithArguments("nullable reference types", "8.0").WithLocation(14, 26),
+                // (15,27): error CS8107: Feature 'nullable reference types' is not available in C# 7.0. Please use language version 8.0 or greater.
+                //         _ = y is object[] ? ? 1 : 2;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "?").WithArguments("nullable reference types", "8.0").WithLocation(15, 27),
+                // (17,27): error CS8107: Feature 'nullable reference types' is not available in C# 7.0. Please use language version 8.0 or greater.
+                //         _ = y as object[] ? ?? y;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "?").WithArguments("nullable reference types", "8.0").WithLocation(17, 27),
+                // (22,21): error CS8107: Feature 'nullable reference types' is not available in C# 7.0. Please use language version 8.0 or greater.
+                //         _ = z is T[]?[] ? 1 : 2;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "?").WithArguments("nullable reference types", "8.0").WithLocation(22, 21),
+                // (23,22): error CS8107: Feature 'nullable reference types' is not available in C# 7.0. Please use language version 8.0 or greater.
+                //         _ = z is T[] ? [] ? 1 : 2;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "?").WithArguments("nullable reference types", "8.0").WithLocation(23, 22),
+                // (25,22): error CS8107: Feature 'nullable reference types' is not available in C# 7.0. Please use language version 8.0 or greater.
+                //         _ = z as T[] ? [] ?? z;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "?").WithArguments("nullable reference types", "8.0").WithLocation(25, 22));
+
+            comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics();
         }
 
         [Fact, WorkItem(29318, "https://github.com/dotnet/roslyn/issues/29318")]
@@ -10231,6 +10298,29 @@ class CL1<T>
                 // (15,16): warning CS8619: Nullability of reference types in value of type 'CL1<string?>' doesn't match target type 'CL1<string>'.
                 //         return x2;
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x2").WithArguments("CL1<string?>", "CL1<string>").WithLocation(15, 16)
+                );
+        }
+
+        [Fact]
+        public void ReturningValues_BadValue()
+        {
+            CSharpCompilation c = CreateCompilation(new[] { @"
+class C
+{
+    string M()
+    {
+        return bad;
+    }
+}
+" }, options: WithNonNullTypesTrue());
+
+            c.VerifyDiagnostics(
+                // (6,16): error CS0103: The name 'bad' does not exist in the current context
+                //         return bad;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "bad").WithArguments("bad").WithLocation(6, 16),
+                // (6,16): warning CS8619: Nullability of reference types in value of type '?' doesn't match target type 'string'.
+                //         return bad;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "bad").WithArguments("?", "string").WithLocation(6, 16)
                 );
         }
 
@@ -22568,6 +22658,8 @@ static class E
     static void F(object? x)
     {
         var z = y => y ?? x.ToString();
+        System.Func<object?, object> z2 = y => y ?? x.ToString();
+        System.Func<object?, object> z3 = y => null;
     }
 }";
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
@@ -22577,7 +22669,13 @@ static class E
                 Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "z = y => y ?? x.ToString()").WithArguments("lambda expression").WithLocation(5, 13),
                 // (5,27): warning CS8602: Possible dereference of a null reference.
                 //         var z = y => y ?? x.ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(5, 27));
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(5, 27),
+                // (6,53): warning CS8602: Possible dereference of a null reference.
+                //         System.Func<object?, object> z2 = y => y ?? x.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(6, 53),
+                // (7,48): warning CS8603: Possible null reference return.
+                //         System.Func<object?, object> z3 = y => null;
+                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "null").WithLocation(7, 48));
         }
 
         /// <summary>
@@ -28180,6 +28278,421 @@ class CL1 {}
                  // (40,18): warning CS8600: Converting null literal or possible null value to non-nullable type.
                  //         CL1 y7 = x7 as CL1;
                  Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "x7 as CL1").WithLocation(40, 18)
+                );
+        }
+
+        [Fact]
+        public void ReturningValues_IEnumerableT()
+        {
+            var source = @"
+public class C
+{
+    System.Collections.Generic.IEnumerable<string> M()
+    {
+        return null; // 1
+    }
+    public System.Collections.Generic.IEnumerable<string>? M2()
+    {
+        return null;
+    }
+    System.Collections.Generic.IEnumerable<string> M3() => null; // 2
+    System.Collections.Generic.IEnumerable<string>? M4() => null;
+}";
+
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (6,16): warning CS8603: Possible null reference return.
+                //         return null; // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "null").WithLocation(6, 16),
+                // (12,60): warning CS8603: Possible null reference return.
+                //     System.Collections.Generic.IEnumerable<string> M3() => null; // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "null").WithLocation(12, 60)
+                );
+
+            var source2 = @"
+class D
+{
+    void M(C c)
+    {
+        c.M2() /*T:System.Collections.Generic.IEnumerable<string!>?*/ ;
+    }
+}
+";
+            var comp2 = CreateCompilation(source2, references: new[] { comp.EmitToImageReference() });
+            comp2.VerifyTypes();
+        }
+
+        [Fact]
+        public void Yield_IEnumerableT()
+        {
+            var source = @"
+public class C
+{
+    public System.Collections.Generic.IEnumerable<string> M()
+    {
+        yield return null; // 1
+        yield return """";
+        yield return null; // 2
+        yield break;
+    }
+    public System.Collections.Generic.IEnumerable<string?> M2()
+    {
+        yield return null;
+    }
+}";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (6,22): warning CS8603: Possible null reference return.
+                //         yield return null; // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "null").WithLocation(6, 22),
+                // (8,22): warning CS8603: Possible null reference return.
+                //         yield return null; // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "null").WithLocation(8, 22)
+                );
+
+            var source2 = @"
+class D
+{
+    void M(C c)
+    {
+        c.M() /*T:System.Collections.Generic.IEnumerable<string>!*/ ;
+        c.M2() /*T:System.Collections.Generic.IEnumerable<string?>!*/ ;
+    }
+}
+";
+            var comp2 = CreateCompilation(source2, references: new[] { comp.EmitToImageReference() });
+            comp2.VerifyTypes();
+        }
+
+        [Fact]
+        public void Yield_IEnumerableT_LocalFunction()
+        {
+            var source = @"
+class C
+{
+    void Method()
+    {
+        _ = M();
+        _ = M2();
+
+        System.Collections.Generic.IEnumerable<string> M()
+        {
+            yield return null; // 1
+            yield return """";
+            yield return null; // 2
+            yield break;
+        }
+        System.Collections.Generic.IEnumerable<string?> M2()
+        {
+            yield return null;
+        }
+    }
+}";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (11,26): warning CS8603: Possible null reference return.
+                //             yield return null; // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "null").WithLocation(11, 26),
+                // (13,26): warning CS8603: Possible null reference return.
+                //             yield return null; // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "null").WithLocation(13, 26)
+                );
+        }
+
+        [Fact]
+        public void Yield_IEnumerableT_GenericT()
+        {
+            var source = @"
+class C
+{
+    System.Collections.Generic.IEnumerable<T> M<T>()
+    {
+        yield return default; // 1
+    }
+    System.Collections.Generic.IEnumerable<T> M1<T>() where T : class
+    {
+        yield return default; // 2
+    }
+    System.Collections.Generic.IEnumerable<T> M2<T>() where T : class?
+    {
+        yield return default; // 3
+    }
+    System.Collections.Generic.IEnumerable<T?> M3<T>() where T : class
+    {
+        yield return default;
+    }
+}";
+            CreateCompilation(new[] { source }, options: WithNonNullTypesTrue()).VerifyDiagnostics(
+                // (6,22): warning CS8603: Possible null reference return.
+                //         yield return default; // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "default").WithLocation(6, 22),
+                // (10,22): warning CS8603: Possible null reference return.
+                //         yield return default; // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "default").WithLocation(10, 22),
+                // (14,22): warning CS8603: Possible null reference return.
+                //         yield return default; // 3
+                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "default").WithLocation(14, 22)
+                );
+        }
+
+        [Fact]
+        public void Yield_IEnumerableT_ErrorValue()
+        {
+            var source = @"
+class C
+{
+    System.Collections.Generic.IEnumerable<string> M()
+    {
+        yield return bad;
+    }
+}";
+            CreateCompilation(new[] { source }, options: WithNonNullTypesTrue()).VerifyDiagnostics(
+                // (6,22): error CS0103: The name 'bad' does not exist in the current context
+                //         yield return bad;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "bad").WithArguments("bad").WithLocation(6, 22),
+                // (6,22): warning CS8619: Nullability of reference types in value of type '?' doesn't match target type 'string'.
+                //         yield return bad;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "bad").WithArguments("?", "string").WithLocation(6, 22)
+                );
+        }
+
+        [Fact]
+        public void Yield_IEnumerableT_ErrorValue2()
+        {
+            var source = @"
+static class C
+{
+    static System.Collections.Generic.IEnumerable<object> M(object? x)
+    {
+        yield return (C)x;
+    }
+    static System.Collections.Generic.IEnumerable<object?> M(object? y)
+    {
+        yield return (C?)y;
+    }
+}";
+            CreateCompilation(new[] { source }, options: WithNonNullTypesTrue()).VerifyDiagnostics(
+                // (6,22): error CS0716: Cannot convert to static type 'C'
+                //         yield return (C)x;
+                Diagnostic(ErrorCode.ERR_ConvertToStaticClass, "(C)x").WithArguments("C").WithLocation(6, 22),
+                // (6,22): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         yield return (C)x;
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(C)x").WithLocation(6, 22),
+                // (6,22): warning CS8603: Possible null reference return.
+                //         yield return (C)x;
+                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "(C)x").WithLocation(6, 22),
+                // (8,60): error CS0111: Type 'C' already defines a member called 'M' with the same parameter types
+                //     static System.Collections.Generic.IEnumerable<object?> M(object? y)
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "M").WithArguments("M", "C").WithLocation(8, 60),
+                // (10,22): error CS0716: Cannot convert to static type 'C'
+                //         yield return (C?)y;
+                Diagnostic(ErrorCode.ERR_ConvertToStaticClass, "(C?)y").WithArguments("C").WithLocation(10, 22)
+                );
+        }
+
+        [Fact]
+        public void Yield_IEnumerableT_NoValue()
+        {
+            var source = @"
+class C
+{
+    System.Collections.Generic.IEnumerable<string> M()
+    {
+        yield return;
+    }
+}";
+            CreateCompilation(new[] { source }, options: WithNonNullTypesTrue()).VerifyDiagnostics(
+                // (6,9): warning CS8619: Nullability of reference types in value of type '?' doesn't match target type 'string'.
+                //         yield return;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "yield return;").WithArguments("?", "string").WithLocation(6, 9),
+                // (6,15): error CS1627: Expression expected after yield return
+                //         yield return;
+                Diagnostic(ErrorCode.ERR_EmptyYield, "return").WithLocation(6, 15)
+                );
+        }
+
+        [Fact]
+        public void Yield_IEnumeratorT()
+        {
+            var source = @"
+class C
+{
+    System.Collections.Generic.IEnumerator<string> M()
+    {
+        yield return null; // 1
+        yield return """";
+    }
+    System.Collections.Generic.IEnumerator<string?> M2()
+    {
+        yield return null;
+    }
+}";
+            CreateCompilation(new[] { source }, options: WithNonNullTypesTrue()).VerifyDiagnostics(
+                // (6,22): warning CS8603: Possible null reference return.
+                //         yield return null; // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "null").WithLocation(6, 22)
+                );
+        }
+
+        [Fact]
+        public void Yield_IEnumeratorT_LocalFunction()
+        {
+            var source = @"
+class C
+{
+    void Method()
+    {
+        _ = M();
+        _ = M2();
+
+        System.Collections.Generic.IEnumerator<string> M()
+        {
+            yield return null; // 1
+            yield return """";
+        }
+        System.Collections.Generic.IEnumerator<string?> M2()
+        {
+            yield return null;
+        }
+    }
+}";
+            CreateCompilation(new[] { source }, options: WithNonNullTypesTrue()).VerifyDiagnostics(
+                // (11,26): warning CS8603: Possible null reference return.
+                //             yield return null; // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "null").WithLocation(11, 26)
+                );
+        }
+
+        [Fact]
+        public void Yield_IEnumerable()
+        {
+            var source = @"
+class C
+{
+    System.Collections.IEnumerable M()
+    {
+        yield return null;
+    }
+}";
+            CreateCompilation(new[] { source }, options: WithNonNullTypesTrue()).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Yield_IEnumerator()
+        {
+            var source = @"
+class C
+{
+    System.Collections.IEnumerator M()
+    {
+        yield return null;
+        yield return null;
+    }
+}";
+            CreateCompilation(new[] { source }, options: WithNonNullTypesTrue()).VerifyDiagnostics();
+        }
+
+        [Fact, CompilerTrait(CompilerFeature.AsyncStreams)]
+        public void Yield_IAsyncEnumerable()
+        {
+            var source = @"
+using System.Collections.Generic;
+using System.Threading.Tasks;
+class C
+{
+    public static async IAsyncEnumerable<string> M()
+    {
+        yield return null; // 1
+        yield return null; // 2
+        await Task.Delay(1);
+        yield break;
+    }
+    public static async IAsyncEnumerable<string?> M2()
+    {
+        yield return null;
+        yield return null;
+        await Task.Delay(1);
+    }
+    void Method()
+    {
+        _ = local();
+        _ = local2();
+
+        async IAsyncEnumerable<string> local()
+        {
+            yield return null; // 3
+            await Task.Delay(1);
+            yield break;
+        }
+        async IAsyncEnumerable<string?> local2()
+        {
+            yield return null;
+            await Task.Delay(1);
+        }
+    }
+}";
+            CreateCompilationWithTasksExtensions(new[] { source, AsyncStreamsTypes }, options: WithNonNullTypesTrue()).VerifyDiagnostics(
+                // (8,22): warning CS8603: Possible null reference return.
+                //         yield return null; // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "null").WithLocation(8, 22),
+                // (9,22): warning CS8603: Possible null reference return.
+                //         yield return null; // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "null").WithLocation(9, 22),
+                // (26,26): warning CS8603: Possible null reference return.
+                //             yield return null; // 3
+                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "null").WithLocation(26, 26)
+                );
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/31057"), CompilerTrait(CompilerFeature.AsyncStreams)]
+        public void Yield_IAsyncEnumerator()
+        {
+            var source = @"
+using System.Collections.Generic;
+using System.Threading.Tasks;
+class C
+{
+    async IAsyncEnumerator<string> M()
+    {
+        yield return null; // 1
+        yield return null; // 2
+        await Task.Delay(1);
+        yield break;
+    }
+    async IAsyncEnumerator<string?> M2()
+    {
+        yield return null;
+        yield return null;
+        await Task.Delay(1);
+    }
+    void Method()
+    {
+        _ = local();
+        _ = local2();
+
+        async IAsyncEnumerator<string> local()
+        {
+            yield return null; // 3
+            await Task.Delay(1);
+        }
+        async IAsyncEnumerator<string?> local2()
+        {
+            yield return null;
+            await Task.Delay(1);
+            yield break;
+        }
+    }
+}";
+            CreateCompilationWithTasksExtensions(new[] { source, AsyncStreamsTypes }, options: WithNonNullTypesTrue()).VerifyDiagnostics(
+                // (8,22): warning CS8603: Possible null reference return.
+                //         yield return null; // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "null").WithLocation(8, 22),
+                // (9,22): warning CS8603: Possible null reference return.
+                //         yield return null; // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "null").WithLocation(9, 22),
+                // (26,26): warning CS8603: Possible null reference return.
+                //             yield return null; // 3
+                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "null").WithLocation(26, 26)
                 );
         }
 
@@ -55965,6 +56478,670 @@ class Program
                 // (14,9): error CS0176: Member 'C<object>.F()' cannot be accessed with an instance reference; qualify it with a type name instead
                 //         c2.F().ToString();
                 Diagnostic(ErrorCode.ERR_ObjectProhibited, "c2.F").WithArguments("C<object>.F()").WithLocation(14, 9));
+        }
+
+        [Fact, WorkItem(30561, "https://github.com/dotnet/roslyn/issues/30561")]
+        public void SetNullableStateInFinally_01()
+        {
+            var source =
+@"public static class Program
+{
+    public static void Main()
+    {
+        string? s = string.Empty;
+        try
+        {
+        }
+        finally
+        {
+            s = null;
+        }
+
+        _ = s.Length; // warning
+    }
+}
+";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (14,13): warning CS8602: Possible dereference of a null reference.
+                //         _ = s.Length; // warning
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(14, 13)
+                );
+        }
+
+        [Fact, WorkItem(30561, "https://github.com/dotnet/roslyn/issues/30561")]
+        public void SetNullableStateInTry_02()
+        {
+            var source =
+@"public static class Program
+{
+    public static int Main()
+    {
+        string? s = string.Empty;
+        try
+        {
+            s = null;
+            MayThrow();
+            s = string.Empty;
+        }
+        catch (System.Exception)
+        {
+        }
+
+        return s.Length; // warning: possibly null
+    }
+    static void MayThrow()
+    {
+        throw null;
+    }
+}
+";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (16,16): warning CS8602: Possible dereference of a null reference.
+                //         return s.Length; // warning: possibly null
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(16, 16)
+                );
+        }
+
+        [Fact, WorkItem(30561, "https://github.com/dotnet/roslyn/issues/30561")]
+        public void SetNullableStateInTry_03()
+        {
+            var source =
+@"public static class Program
+{
+    public static int Main()
+    {
+        string? s = string.Empty;
+        try
+        {
+            s = null;
+            MayThrow();
+            s = string.Empty;
+        }
+        catch (System.Exception)
+        {
+            return s.Length; // warning: possibly null
+        }
+
+        return s.Length;
+    }
+    static void MayThrow()
+    {
+        throw null;
+    }
+}
+";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (14,20): warning CS8602: Possible dereference of a null reference.
+                //             return s.Length; // warning: possibly null
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(14, 20)
+                );
+        }
+
+        [Fact, WorkItem(30561, "https://github.com/dotnet/roslyn/issues/30561")]
+        public void SetNullableStateInTry_04()
+        {
+            var source =
+@"public static class Program
+{
+    public static int Main()
+    {
+        string? s = string.Empty;
+        try
+        {
+            s = null;
+            MayThrow();
+            s = string.Empty;
+        }
+        catch (System.Exception)
+        {
+            _ = s.Length; // warning 1
+        }
+        finally
+        {
+            _ = s.Length; // warning 2
+        }
+
+        return s.Length; // ok (previously dereferenced)
+    }
+    static void MayThrow()
+    {
+        throw null;
+    }
+}
+";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (14,17): warning CS8602: Possible dereference of a null reference.
+                //             _ = s.Length; // warning 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(14, 17),
+                // (18,17): warning CS8602: Possible dereference of a null reference.
+                //             _ = s.Length; // warning 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(18, 17)
+                );
+        }
+
+        [Fact, WorkItem(30561, "https://github.com/dotnet/roslyn/issues/30561")]
+        public void SetNullableStateInTry_05()
+        {
+            var source =
+@"public static class Program
+{
+    public static int Main()
+    {
+        string? s = null;
+        try
+        {
+            MayThrow();
+            s = string.Empty;
+            _ = s.Length; // ok
+        }
+        catch (System.Exception)
+        {
+            _ = s.Length; // warning 1
+        }
+        finally
+        {
+            _ = s.Length; // warning 2
+        }
+
+        return s.Length; // ok (previously dereferenced)
+    }
+    static void MayThrow()
+    {
+        throw null;
+    }
+}
+";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (14,17): warning CS8602: Possible dereference of a null reference.
+                //             _ = s.Length; // warning 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(14, 17),
+                // (18,17): warning CS8602: Possible dereference of a null reference.
+                //             _ = s.Length; // warning 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(18, 17)
+                );
+        }
+
+        [Fact, WorkItem(30561, "https://github.com/dotnet/roslyn/issues/30561")]
+        public void SetNullableStateInTry_06()
+        {
+            var source =
+@"public static class Program
+{
+    public static int Main()
+    {
+        string? s = null;
+        try
+        {
+            MayThrow();
+            s = string.Empty;
+            _ = s.Length; // ok
+        }
+        catch (System.NullReferenceException)
+        {
+            _ = s.Length; // warning 1
+        }
+        catch (System.Exception)
+        {
+            _ = s.Length; // warning 2
+        }
+        finally
+        {
+            _ = s.Length; // warning 3
+        }
+
+        return s.Length; // ok (previously dereferenced)
+    }
+    static void MayThrow()
+    {
+        throw null;
+    }
+}
+";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (14,17): warning CS8602: Possible dereference of a null reference.
+                //             _ = s.Length; // warning 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(14, 17),
+                // (18,17): warning CS8602: Possible dereference of a null reference.
+                //             _ = s.Length; // warning 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(18, 17),
+                // (22,17): warning CS8602: Possible dereference of a null reference.
+                //             _ = s.Length; // warning 3
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(22, 17)
+                );
+        }
+
+        [Fact, WorkItem(30561, "https://github.com/dotnet/roslyn/issues/30561")]
+        public void SetNullableStateInTry_07()
+        {
+            var source =
+@"public static class Program
+{
+    public static int Main()
+    {
+        string? s = null;
+        try
+        {
+            MayThrow();
+            s = string.Empty;
+            _ = s.Length; // ok
+        }
+        catch (System.NullReferenceException)
+        {
+            _ = s.Length; // warning 1
+        }
+        catch (System.Exception)
+        {
+            _ = s.Length; // warning 2
+        }
+
+        return s.Length; // ok
+    }
+    static void MayThrow()
+    {
+        throw null;
+    }
+}
+";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (14,17): warning CS8602: Possible dereference of a null reference.
+                //             _ = s.Length; // warning 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(14, 17),
+                // (18,17): warning CS8602: Possible dereference of a null reference.
+                //             _ = s.Length; // warning 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(18, 17)
+                );
+        }
+
+        [Fact, WorkItem(30561, "https://github.com/dotnet/roslyn/issues/30561")]
+        public void SetNullableStateBeforeTry_08()
+        {
+            var source =
+@"public static class Program
+{
+    public static int Main()
+    {
+        string? s = null;
+        try
+        {
+            MayThrow();
+            _ = s.Length; // warning 1
+        }
+        catch (System.NullReferenceException)
+        {
+            _ = s.Length; // warning 2
+        }
+        catch (System.Exception)
+        {
+            _ = s.Length; // warning 3
+        }
+
+        return s.Length; // ok (previously dereferenced)
+    }
+    static void MayThrow()
+    {
+        throw null;
+    }
+}
+";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (9,17): warning CS8602: Possible dereference of a null reference.
+                //             _ = s.Length; // warning 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(9, 17),
+                // (13,17): warning CS8602: Possible dereference of a null reference.
+                //             _ = s.Length; // warning 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(13, 17),
+                // (17,17): warning CS8602: Possible dereference of a null reference.
+                //             _ = s.Length; // warning 3
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(17, 17)
+                );
+        }
+
+        [Fact, WorkItem(30561, "https://github.com/dotnet/roslyn/issues/30561")]
+        public void SetNullableStateInTry_09()
+        {
+            var source =
+@"public static class Program
+{
+    public static int Main()
+    {
+        string? s = string.Empty;
+        try
+        {
+            s = null;
+            MayThrow();
+            s = string.Empty;
+        }
+        finally
+        {
+            _ = s.Length; // warning
+        }
+
+        return s.Length; // ok
+    }
+    static void MayThrow()
+    {
+        throw null;
+    }
+}
+";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (14,17): warning CS8602: Possible dereference of a null reference.
+                //             _ = s.Length; // warning
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(14, 17)
+                );
+        }
+
+        [Fact, WorkItem(30561, "https://github.com/dotnet/roslyn/issues/30561")]
+        public void SetNullableStateInCatch_10()
+        {
+            var source =
+@"public static class Program
+{
+    public static int Main()
+    {
+        string? s = string.Empty;
+        try
+        {
+            MayThrow();
+        }
+        catch (System.Exception)
+        {
+            s = null;
+            MayThrow();
+            s = string.Empty;
+        }
+        finally
+        {
+            _ = s.Length; // warning
+        }
+
+        return s.Length; // ok
+    }
+    static void MayThrow()
+    {
+        throw null;
+    }
+}
+";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (18,17): warning CS8602: Possible dereference of a null reference.
+                //             _ = s.Length; // warning
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(18, 17)
+                );
+        }
+
+        [Fact, WorkItem(30561, "https://github.com/dotnet/roslyn/issues/30561")]
+        public void SetNullableStateInNestedTry_01()
+        {
+            var source =
+@"public static class Program
+{
+    public static void Main()
+    {
+        {
+            string? s = string.Empty;
+            try
+            {
+                try
+                {
+                    s = null;
+                }
+                catch (System.Exception)
+                {
+                }
+                finally
+                {
+                }
+            }
+            catch (System.Exception)
+            {
+            }
+            finally
+            {
+            }
+
+            _ = s.Length; // warning 1a
+        }
+
+        {
+            string? s = string.Empty;
+            try
+            {
+                try
+                {
+                }
+                catch (System.Exception)
+                {
+                    s = null;
+                }
+                finally
+                {
+                }
+            }
+            catch (System.Exception)
+            {
+            }
+            finally
+            {
+            }
+
+            _ = s.Length; // warning 1b
+        }
+
+        {
+            string? s = string.Empty;
+            try
+            {
+                try
+                {
+                }
+                catch (System.Exception)
+                {
+                }
+                finally
+                {
+                    s = null;
+                }
+            }
+            catch (System.Exception)
+            {
+            }
+            finally
+            {
+            }
+
+            _ = s.Length; // warning 1c
+        }
+
+        {
+            string? s = string.Empty;
+            try
+            {
+            }
+            catch (System.Exception)
+            {
+                try
+                {
+                    s = null;
+                }
+                catch (System.Exception)
+                {
+                }
+                finally
+                {
+                }
+            }
+            finally
+            {
+                _ = s.Length; // warning 2a
+            }
+        }
+
+        {
+            string? s = string.Empty;
+            try
+            {
+            }
+            catch (System.Exception)
+            {
+                try
+                {
+                }
+                catch (System.Exception)
+                {
+                    s = null;
+                }
+                finally
+                {
+                }
+            }
+            finally
+            {
+                _ = s.Length; // warning 2b
+            }
+        }
+
+        {
+            string? s = string.Empty;
+            try
+            {
+            }
+            catch (System.Exception)
+            {
+                try
+                {
+                }
+                catch (System.Exception)
+                {
+                }
+                finally
+                {
+                    s = null;
+                }
+            }
+            finally
+            {
+                _ = s.Length; // warning 2c
+            }
+        }
+
+        {
+            string? s = string.Empty;
+            try
+            {
+            }
+            catch (System.Exception)
+            {
+            }
+            finally
+            {
+                try
+                {
+                    s = null;
+                }
+                catch (System.Exception)
+                {
+                }
+                finally
+                {
+                }
+            }
+
+            _ = s.Length; // warning 3a
+        }
+
+        {
+            string? s = string.Empty;
+            try
+            {
+            }
+            catch (System.Exception)
+            {
+            }
+            finally
+            {
+                try
+                {
+                }
+                catch (System.Exception)
+                {
+                    s = null;
+                }
+                finally
+                {
+                }
+            }
+
+            _ = s.Length; // warning 3b
+        }
+
+        {
+            string? s = string.Empty;
+            try
+            {
+            }
+            catch (System.Exception)
+            {
+            }
+            finally
+            {
+                try
+                {
+                }
+                catch (System.Exception)
+                {
+                }
+                finally
+                {
+                    s = null;
+                }
+            }
+
+            _ = s.Length; // warning 3c
+        }
+    }
+}
+";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (27,17): warning CS8602: Possible dereference of a null reference.
+                //             _ = s.Length; // warning 1a
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(27, 17),
+                // (52,17): warning CS8602: Possible dereference of a null reference.
+                //             _ = s.Length; // warning 1b
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(52, 17),
+                // (77,17): warning CS8602: Possible dereference of a null reference.
+                //             _ = s.Length; // warning 1c
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(77, 17),
+                // (100,21): warning CS8602: Possible dereference of a null reference.
+                //                 _ = s.Length; // warning 2a
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(100, 21),
+                // (124,21): warning CS8602: Possible dereference of a null reference.
+                //                 _ = s.Length; // warning 2b
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(124, 21),
+                // (148,21): warning CS8602: Possible dereference of a null reference.
+                //                 _ = s.Length; // warning 2c
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(148, 21),
+                // (174,17): warning CS8602: Possible dereference of a null reference.
+                //             _ = s.Length; // warning 3a
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(174, 17),
+                // (199,17): warning CS8602: Possible dereference of a null reference.
+                //             _ = s.Length; // warning 3b
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(199, 17),
+                // (224,17): warning CS8602: Possible dereference of a null reference.
+                //             _ = s.Length; // warning 3c
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(224, 17)
+                );
         }
     }
 }
