@@ -108,6 +108,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
             }
         }
 
+        internal Project GetProjectSnapshot()
+        {
+            return _visualStudioWorkspace.CurrentSolution.GetProject(_visualStudioProject.Id);
+        }
+
         internal string GetIntermediateOutputFilePath()
         {
             return _visualStudioProject.IntermediateOutputFilePath;
