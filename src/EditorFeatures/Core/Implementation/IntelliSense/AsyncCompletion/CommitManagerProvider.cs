@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
 
         IAsyncCompletionCommitManager IAsyncCompletionCommitManagerProvider.GetOrCreate(ITextView textView)
         {
-            if (!textView.TextBuffer.Properties.TryGetProperty<ImmutableArray<char>>(CompletionSource.PotentialCommitCharacters, out var potentialCommitCharacters))
+            if (!textView.TextBuffer.Properties.TryGetProperty(CompletionSource.PotentialCommitCharacters, out ImmutableArray<char> potentialCommitCharacters))
             {
                 // If we were not initialized with CompletionService or are called for a wrong textView, we should not make a commit.
                 potentialCommitCharacters = ImmutableArray<char>.Empty;

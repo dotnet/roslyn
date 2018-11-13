@@ -22,8 +22,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.EndConstructGeneration
     <ContentType(ContentTypeNames.VisualBasicContentType)>
     <Name(PredefinedCommandHandlerNames.EndConstruct)>
     <Order(After:=PredefinedCommandHandlerNames.Completion)>
-    <Order(After:=PredefinedCommandHandlerNames.AutomaticLineEnder)>
     <Order(After:=PredefinedCompletionNames.CompletionCommandHandler)>
+    <Order(After:=PredefinedCommandHandlerNames.AutomaticLineEnder)>
     Friend Class EndConstructCommandHandler
         Implements IChainedCommandHandler(Of ReturnKeyCommandArgs)
         Implements IChainedCommandHandler(Of TypeCharCommandArgs)

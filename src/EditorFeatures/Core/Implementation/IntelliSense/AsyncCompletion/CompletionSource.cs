@@ -124,12 +124,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
             CompletionService completionService, Document document, SourceText text, int caretPoint)
         {
             var rules = completionService.GetRules();
+            // Do not invoke snippet if the corresponding rule is not set in options.
             if (rules.SnippetsRule != SnippetsRule.IncludeAfterTypingIdentifierQuestionTab)
             {
                 return false;
             }
 
             var syntaxFactsOpt = document.GetLanguageService<ISyntaxFactsService>();
+            // Snippets are included if the user types: id?&lt;tab&gt;   
+            // If at least one condition for snippets do not hold, bail out.
             if (syntaxFactsOpt == null ||
                 caretPoint < 3 ||
                 text[caretPoint - 2] != '?' ||
@@ -153,8 +156,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
             SnapshotSpan applicableToSpan,
             CancellationToken cancellationToken)
         {
-            AssertIsBackground();
-
             var document = triggerLocation.Snapshot.GetOpenDocumentInCurrentContextWithChanges();
             if (document == null)
             {
@@ -177,15 +178,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
 
             var filterCache = new Dictionary<string, AsyncCompletionData.CompletionFilter>();
 
-            var itemsBuilder = new ArrayBuilder<VSCompletionItem>();
+            var itemsBuilder = new ArrayBuilder<VSCompletionItem>(completionList.Items.Length);
             foreach (var roslynItem in completionList.Items)
             {
                 cancellationToken.ThrowIfCancellationRequested();
                 var item = Convert(document, roslynItem, completionService, filterCache);
-
-                // Have to store the snapshot to reuse it in some projections related scenarios
-                // where data and session in further calls are able to provide other snapshots.
-                item.Properties.AddProperty(TriggerSnapshot, triggerLocation.Snapshot);
                 itemsBuilder.Add(item);
             }
 
@@ -198,6 +195,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
                             ? description
                             : string.Empty)
                     : null;
+
+            // Have to store the snapshot to reuse it in some projections related scenarios
+            // where data and session in further calls are able to provide other snapshots.
+            session.Properties.AddProperty(TriggerSnapshot, triggerLocation.Snapshot);
 
             // This is a code supporting original completion scenarios: 
             // Controller.Session_ComputeModel: if completionList.SuggestionModeItem != null, then suggestionMode = true
@@ -222,7 +223,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
         public async Task<object> GetDescriptionAsync(IAsyncCompletionSession session, VSCompletionItem item, CancellationToken cancellationToken)
         {
             if (!item.Properties.TryGetProperty(RoslynItem, out RoslynCompletionItem roslynItem) ||
-                !item.Properties.TryGetProperty(TriggerSnapshot, out ITextSnapshot triggerSnapshot))
+                !session.Properties.TryGetProperty(TriggerSnapshot, out ITextSnapshot triggerSnapshot))
             {
                 return null;
             }

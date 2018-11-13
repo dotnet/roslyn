@@ -41,8 +41,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
             AsyncCompletionData.AsyncCompletionSessionInitialDataSnapshot data,
             CancellationToken cancellationToken)
         {
-            AssertIsBackground();
-
             SubscribeEvents(session);
             return Task.FromResult(data.InitialList.OrderBy(i => i.SortText).ToImmutableArray());
         }
@@ -58,8 +56,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
             AsyncCompletionData.AsyncCompletionSessionDataSnapshot data,
             CancellationToken cancellationToken)
         {
-            AssertIsBackground();
-
             SubscribeEvents(session);
             if (!session.Properties.TryGetProperty(CompletionSource.HasSuggestionItemOptions, out bool hasSuggestedItemOptions))
             {
@@ -149,10 +145,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
 
             // If the session was created/maintained out of Roslyn, e.g. in debugger; no properties are set and we should use data.Snapshot.
             // However, we prefer using the original snapshot in some projection scenarios.
-            var snapshotForDocument = data.InitialSortedList
-                                          .FirstOrDefault(i => i.Properties.ContainsProperty(CompletionSource.TriggerSnapshot))?
-                                          .Properties.GetProperty<ITextSnapshot>(CompletionSource.TriggerSnapshot)
-                                          ?? data.Snapshot;
+            if (!session.Properties.TryGetProperty(CompletionSource.TriggerSnapshot, out ITextSnapshot snapshotForDocument))
+            {
+                snapshotForDocument = data.Snapshot;
+            }
 
             var document = snapshotForDocument.GetOpenDocumentInCurrentContextWithChanges();
             var completionService = document?.GetLanguageService<CompletionService>();
@@ -168,10 +164,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
 
             if (initialListOfItemsToBeIncluded.Count == 0)
             {
-                return HandleAllItemsFilteredOut(reason, data.SelectedFilters, selectedFilters.Any(), completionRules);
+                return HandleAllItemsFilteredOut(reason, data.SelectedFilters, completionRules);
             }
 
-            var options = document?.Project?.Solution?.Options;
+            var options = document?.Project.Solution.Options;
             var highlightMatchingPortions = options?.GetOption(CompletionOptions.HighlightMatchingPortionsOfCompletionListItems, document.Project.Language) ?? true;
             var showCompletionItemFilters = options?.GetOption(CompletionOptions.ShowCompletionItemFilters, document.Project.Language) ?? true;
 
@@ -271,12 +267,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
                 return null;
             }
 
-            var updateSelectionHint = Session.IsHardSelection(
+            bool isHardSelection = Session.IsHardSelection(
                         filterText, initialRoslynTriggerKind, bestOrFirstCompletionItem,
-                        _completionHelper, filterReason, recentItems, hasSuggestedItemOptions)
-                        ? AsyncCompletionData.UpdateSelectionHint.Selected
-                        : AsyncCompletionData.UpdateSelectionHint.SoftSelected;
+                        _completionHelper, filterReason, recentItems, hasSuggestedItemOptions);
 
+            var updateSelectionHint = isHardSelection
+                ? AsyncCompletionData.UpdateSelectionHint.Selected
+                : AsyncCompletionData.UpdateSelectionHint.SoftSelected;
+
+            // If no items found above, select the first item.
             if (selectedItemIndex == -1)
             {
                 selectedItemIndex = 0;
@@ -294,7 +293,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
             ImmutableArray<AsyncCompletionData.CompletionItemWithHighlight> highlightedList)
         {
             ExtendedFilterResult? bestFilterResult = null;
-            int matchCount = 0;
             foreach (var currentFilterResult in filterResults.Where(r => r.FilterResult.MatchedFilterText))
             {
                 if (bestFilterResult == null ||
@@ -302,7 +300,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
                 {
                     // We had no best result yet, so this is now our best result.
                     bestFilterResult = currentFilterResult;
-                    matchCount++;
                 }
             }
 
@@ -339,10 +336,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
         private AsyncCompletionData.FilteredCompletionModel HandleAllItemsFilteredOut(
             AsyncCompletionData.CompletionTriggerReason triggerReason,
             ImmutableArray<AsyncCompletionData.CompletionFilterWithState> filters,
-            bool hasActiveFilters,
             CompletionRules completionRules)
         {
-            AsyncCompletionData.UpdateSelectionHint selection;
+            
             if (triggerReason == AsyncCompletionData.CompletionTriggerReason.Insertion)
             {
                 // If the user was just typing, and the list went to empty *and* this is a 
@@ -352,20 +348,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
                 {
                     return null;
                 }
-
-                selection = AsyncCompletionData.UpdateSelectionHint.NoChange;
             }
-            else
-            {
-                // If the user has turned on some filtering states, and we filtered down to
-                // nothing, then we do want the UI to show that to them.  That way the user
-                // can turn off filters they don't want and get the right set of items.
 
-                // If we are going to filter everything out, then just preserve the existing
-                // model (and all the previously filtered items), but switch over to soft
-                // selection.
-                selection = hasActiveFilters ? AsyncCompletionData.UpdateSelectionHint.NoChange : AsyncCompletionData.UpdateSelectionHint.SoftSelected;
-            }
+            // If the user has turned on some filtering states, and we filtered down to
+            // nothing, then we do want the UI to show that to them.  That way the user
+            // can turn off filters they don't want and get the right set of items.
+
+            // If we are going to filter everything out, then just preserve the existing
+            // model (and all the previously filtered items), but switch over to soft
+            // selection.
+            var selection = AsyncCompletionData.UpdateSelectionHint.SoftSelected;
 
             return new AsyncCompletionData.FilteredCompletionModel(
                 ImmutableArray<AsyncCompletionData.CompletionItemWithHighlight>.Empty, selectedItemIndex: 0,
@@ -381,8 +373,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
             foreach (var item in filterResults)
             {
                 var highlightedSpans = highlightMatchingPortions
-                                        ? _completionHelper.GetHighlightedSpans(item.VSCompletionItem.DisplayText, filterText, CultureInfo.CurrentCulture)
-                                        : ImmutableArray<TextSpan>.Empty;
+                    ? _completionHelper.GetHighlightedSpans(item.VSCompletionItem.DisplayText, filterText, CultureInfo.CurrentCulture)
+                    : ImmutableArray<TextSpan>.Empty;
                 highlightedList.Add(new AsyncCompletionData.CompletionItemWithHighlight(item.VSCompletionItem, highlightedSpans.Select(s => s.ToSpan()).ToImmutableArray()));
             }
 
@@ -394,7 +386,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
             ImmutableArray<AsyncCompletionData.CompletionFilterWithState> filters)
         {
             // See which filters might be enabled based on the typed code
-            var textFilteredFilters = filteredList.SelectMany(n => n.VSCompletionItem.Filters).Distinct();
+            var textFilteredFilters = filteredList.SelectMany(n => n.VSCompletionItem.Filters).ToImmutableHashSet();
 
             // When no items are available for a given filter, it becomes unavailable
             return ImmutableArray.CreateRange(filters.Select(n => n.WithAvailability(textFilteredFilters.Contains(n.Filter))));

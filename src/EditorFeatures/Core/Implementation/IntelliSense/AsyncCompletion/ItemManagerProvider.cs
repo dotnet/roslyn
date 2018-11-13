@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public ItemManagerProvider(IAsyncCompletionBroker broker, IThreadingContext threadingContext)
+        public ItemManagerProvider(IThreadingContext threadingContext)
         {
             _instance = new ItemManager(threadingContext);
         }

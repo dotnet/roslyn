@@ -9,9 +9,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
 {
     internal static class Helpers
     {
-        internal static ClassifiedTextElement BuildClassifiedTextElement(ImmutableArray<TaggedText>? taggedTexts)
+        internal static ClassifiedTextElement BuildClassifiedTextElement(ImmutableArray<TaggedText> taggedTexts)
         {
-            return new ClassifiedTextElement(taggedTexts?.Select(
+            return new ClassifiedTextElement(taggedTexts.Select(
                     part => new ClassifiedTextRun(part.Tag.ToClassificationTypeName(), part.Text)) ?? Enumerable.Empty<ClassifiedTextRun>());
         }
     }

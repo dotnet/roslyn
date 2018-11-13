@@ -484,6 +484,7 @@ End Class
                 ' allow the provider to continue
                 e.Set()
 
+                ' TODO re-consider if the behavior change is valid: https://github.com/dotnet/roslyn/issues/31131
                 If completionImplementation = CompletionImplementation.Legacy Then
                     ' We should not have a session since we tear things down if we see a caret move
                     ' before the providers have returned.
