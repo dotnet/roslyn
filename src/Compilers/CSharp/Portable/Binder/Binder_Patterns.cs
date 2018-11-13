@@ -482,7 +482,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return type.IsStructType() && type.Name == "ValueTuple" && type.GetArity() == 0 && type.ContainingSymbol is var declContainer &&
                 declContainer.Kind == SymbolKind.Namespace && declContainer.Name == "System" && declContainer.ContainingSymbol?.Kind == SymbolKind.Namespace &&
-                declContainer.ContainingSymbol.ContainingSymbol?.Kind == SymbolKind.NetModule;
+                (declContainer.ContainingSymbol as NamespaceSymbol)?.IsGlobalNamespace == true;
         }
 
         private BoundPattern BindRecursivePattern(RecursivePatternSyntax node, TypeSymbol inputType, uint inputValEscape, bool hasErrors, DiagnosticBag diagnostics)
@@ -504,12 +504,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Work around https://github.com/dotnet/roslyn/issues/20648: The compiler's internal APIs such as `declType.IsTupleType`
                     // do not correctly treat the non-generic struct `System.ValueTuple` as a tuple type.  We explicitly perform the tests
                     // required to identify it.  When that bug is fixed we should be able to remove this if statement.
-                    BindZeroElementValueTupleSubpatterns(deconstructClause, declType, patterns, inputValEscape, ref hasErrors, diagnostics);
+                    BindValueTupleSubpatterns(deconstructClause, declType, ImmutableArray<TypeSymbolWithAnnotations>.Empty, inputValEscape, ref hasErrors, patterns, diagnostics);
                 }
                 else if (declType.IsTupleType)
                 {
                     // It is a tuple type. Work according to its elements
-                    BindValueTupleSubpatterns(deconstructClause, declType, inputValEscape, ref hasErrors, patterns, diagnostics);
+                    BindValueTupleSubpatterns(deconstructClause, declType, declType.TupleElementTypes, inputValEscape, ref hasErrors, patterns, diagnostics);
                 }
                 else
                 {
@@ -650,12 +650,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void BindValueTupleSubpatterns(
             DeconstructionPatternClauseSyntax node,
             TypeSymbol declType,
+            ImmutableArray<TypeSymbolWithAnnotations> elementTypes,
             uint inputValEscape,
             ref bool hasErrors,
             ArrayBuilder<BoundSubpattern> patterns,
             DiagnosticBag diagnostics)
         {
-            ImmutableArray<TypeSymbolWithAnnotations> elementTypes = declType.TupleElementTypes;
             if (elementTypes.Length != node.Subpatterns.Count && !hasErrors)
             {
                 diagnostics.Add(ErrorCode.ERR_WrongNumberOfSubpatterns, node.Location, declType, elementTypes.Length, node.Subpatterns.Count);
@@ -668,47 +668,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 bool isError = i >= elementTypes.Length;
                 TypeSymbol elementType = isError ? CreateErrorType() : elementTypes[i].TypeSymbol;
                 FieldSymbol foundField = null;
-                if (subpatternSyntax.NameColon != null)
+                if (subpatternSyntax.NameColon != null && !isError)
                 {
                     string name = subpatternSyntax.NameColon.Name.Identifier.ValueText;
                     foundField = CheckIsTupleElement(subpatternSyntax.NameColon.Name, (NamedTypeSymbol)declType, name, i, diagnostics);
-                }
-
-                BoundSubpattern boundSubpattern = new BoundSubpattern(
-                    subpatternSyntax,
-                    foundField,
-                    BindPattern(subpatternSyntax.Pattern, elementType, GetValEscape(elementType, inputValEscape), isError, diagnostics));
-                patterns.Add(boundSubpattern);
-            }
-        }
-
-        /// <summary>
-        /// Special case for zero-element ValueTuple to work around https://github.com/dotnet/roslyn/issues/20648.
-        /// </summary>
-        private void BindZeroElementValueTupleSubpatterns(
-            DeconstructionPatternClauseSyntax node,
-            TypeSymbol declType,
-            ArrayBuilder<BoundSubpattern> patterns,
-            uint inputValEscape,
-            ref bool hasErrors,
-            DiagnosticBag diagnostics)
-        {
-            if (0 != node.Subpatterns.Count && !hasErrors)
-            {
-                diagnostics.Add(ErrorCode.ERR_WrongNumberOfSubpatterns, node.Location, declType, 0, node.Subpatterns.Count);
-                hasErrors = true;
-            }
-
-            for (int i = 0; i < node.Subpatterns.Count; i++)
-            {
-                var subpatternSyntax = node.Subpatterns[i];
-                bool isError = true;
-                TypeSymbol elementType = CreateErrorType();
-                FieldSymbol foundField = null;
-                if (subpatternSyntax.NameColon != null)
-                {
-                    string name = subpatternSyntax.NameColon.Name.Identifier.ValueText;
-                    diagnostics.Add(ErrorCode.ERR_TupleElementNameMismatch, subpatternSyntax.NameColon.Name.Location, name, $"Item{i + 1}");
                 }
 
                 BoundSubpattern boundSubpattern = new BoundSubpattern(
@@ -880,29 +843,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         MethodSymbol deconstructMethod = null;
                         var strippedInputType = inputType.StrippedType();
 
-                        if (IsZeroElementTupleType(strippedInputType))
+                        void addSubpatternsForTuple(ImmutableArray<TypeSymbolWithAnnotations> elementTypes)
                         {
-                            // Work around https://github.com/dotnet/roslyn/issues/20648: The compiler's internal APIs such as `declType.IsTupleType`
-                            // do not correctly treat the non-generic struct `System.ValueTuple` as a tuple type.  We explicitly perform the tests
-                            // required to identify it.  When that bug is fixed we should be able to remove this if statement.
-                            if (0 != tupleDesignation.Variables.Count && !hasErrors)
-                            {
-                                diagnostics.Add(ErrorCode.ERR_WrongNumberOfSubpatterns, tupleDesignation.Location, strippedInputType.TupleElementTypes, 0, tupleDesignation.Variables.Count);
-                                hasErrors = true;
-                            }
-                            for (int i = 0; i < tupleDesignation.Variables.Count; i++)
-                            {
-                                var variable = tupleDesignation.Variables[i];
-                                bool isError = true;
-                                TypeSymbol elementType = CreateErrorType();
-                                BoundPattern pattern = BindVarDesignation(variable, elementType, GetValEscape(elementType, inputValEscape), isError, diagnostics);
-                                subPatterns.Add(new BoundSubpattern(variable, symbol: null, pattern));
-                            }
-                        }
-                        else if (strippedInputType.IsTupleType)
-                        {
-                            // It is a tuple type. Work according to its elements
-                            ImmutableArray<TypeSymbolWithAnnotations> elementTypes = strippedInputType.TupleElementTypes;
                             if (elementTypes.Length != tupleDesignation.Variables.Count && !hasErrors)
                             {
                                 diagnostics.Add(ErrorCode.ERR_WrongNumberOfSubpatterns, tupleDesignation.Location, strippedInputType.TupleElementTypes, elementTypes.Length, tupleDesignation.Variables.Count);
@@ -917,6 +859,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 subPatterns.Add(new BoundSubpattern(variable, symbol: null, pattern));
                             }
                         }
+
+                        if (IsZeroElementTupleType(strippedInputType))
+                        {
+                            // Work around https://github.com/dotnet/roslyn/issues/20648: The compiler's internal APIs such as `declType.IsTupleType`
+                            // do not correctly treat the non-generic struct `System.ValueTuple` as a tuple type.  We explicitly perform the tests
+                            // required to identify it.  When that bug is fixed we should be able to remove this if statement.
+                            addSubpatternsForTuple(ImmutableArray<TypeSymbolWithAnnotations>.Empty);
+                        }
+                        else if (strippedInputType.IsTupleType)
+                        {
+                            // It is a tuple type. Work according to its elements
+                            addSubpatternsForTuple(strippedInputType.TupleElementTypes);
+                        }
                         else
                         {
                             // It is not a tuple type. Seek an appropriate Deconstruct method.
@@ -927,7 +882,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 out bool anyDeconstructCandidates);
                             if (!anyDeconstructCandidates && ShouldUseITuple(node, strippedInputType, diagnostics, out var iTupleType, out var iTupleGetLength, out var iTupleGetItem))
                             {
-                                // There was no Deconstruct, but the constraints for the use of ITuple are satisfied.
+                                // There was no applicable candidate Deconstruct, and the constraints for the use of ITuple are satisfied.
                                 // Use that and forget any errors from trying to bind Deconstruct.
                                 deconstructDiagnostics.Free();
                                 BindITupleSubpatterns(tupleDesignation, subPatterns, diagnostics);

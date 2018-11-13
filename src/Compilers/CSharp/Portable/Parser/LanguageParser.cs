@@ -8375,34 +8375,26 @@ tryAgain:
             // the two forms of designation are
             // (1) identifier
             // (2) ( designation ... )
-            // for pattern-matching, we permite the designation list to be empty
+            // for pattern-matching, we permit the designation list to be empty
             VariableDesignationSyntax result;
             if (this.CurrentToken.Kind == SyntaxKind.OpenParenToken)
             {
                 var openParen = this.EatToken(SyntaxKind.OpenParenToken);
                 var listOfDesignations = _pool.AllocateSeparated<VariableDesignationSyntax>();
 
+                bool done = false;
                 if (forPattern)
                 {
-                    // for pattern-matching, we permit a designation list that contains zero or one element
-                    while (this.CurrentToken.Kind != SyntaxKind.CloseParenToken)
-                    {
-                        listOfDesignations.Add(ParseDesignation(forPattern));
-                        if (this.CurrentToken.Kind == SyntaxKind.CommaToken)
-                        {
-                            listOfDesignations.AddSeparator(this.EatToken(SyntaxKind.CommaToken));
-                        }
-                        else
-                        {
-                            break;
-                        }
-                    }
+                    done = (this.CurrentToken.Kind == SyntaxKind.CloseParenToken);
                 }
                 else
                 {
                     listOfDesignations.Add(ParseDesignation(forPattern));
-                    listOfDesignations.AddSeparator(this.EatToken(SyntaxKind.CommaToken));
+                    listOfDesignations.AddSeparator(EatToken(SyntaxKind.CommaToken));
+                }
 
+                if (!done)
+                {
                     while (true)
                     {
                         listOfDesignations.Add(ParseDesignation(forPattern));

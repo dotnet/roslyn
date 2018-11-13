@@ -649,6 +649,42 @@ False";
         }
 
         [Fact]
+        public void ITuple_09b()
+        {
+            // - An extension Deconstruct hides ITuple
+            var source =
+@"using System;
+using System.Runtime.CompilerServices;
+public class C : ITuple
+{
+    int ITuple.Length => 4;
+    object ITuple.this[int i] => i + 3;
+    public static void Main()
+    {
+        var t = new C();
+        Console.WriteLine(t is (7, 8)); // true (Extensions.Deconstruct)
+        Console.WriteLine(t is (3, 4, 5)); // false (ITuple hidden by extension method)
+        Console.WriteLine(t is (1, 2, 3)); // true via extension Deconstruct
+        Console.WriteLine(t is (3, 4, 5, 6)); // true (via ITuple)
+    }
+}
+static class Extensions
+{
+    public static void Deconstruct(this C c, out int X, out int Y) => (X, Y) = (7, 8);
+    public static void Deconstruct(this ITuple c, out int X, out int Y, out int Z) => (X, Y, Z) = (1, 2, 3);
+}
+";
+            var compilation = CreatePatternCompilation(source);
+            compilation.VerifyDiagnostics();
+            var expectedOutput =
+@"True
+False
+True
+True";
+            var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
+
+        [Fact]
         public void ITupleLacksLength()
         {
             // - should give an error when ITuple is missing required member (Length)
@@ -1072,7 +1108,7 @@ class C
     }
 }
 
-// Provide a ValueTuple that DOES NOT implements ITuple
+// Provide a ValueTuple that DOES NOT implements ITuple or have a Deconstruct method
 namespace System
 {
     public struct ValueTuple<T1, T2>
@@ -1597,8 +1633,8 @@ class _
         {
             // From LDM 2018-11-05:
             // 1. If the type is a tuple type (any arity >= 0; see below), then use the tuple semantics
-            // 2. If "binding" a Deconstruct invocation would finds one or more applicable methods, use Deconstruct.
-            // 3. If the satisfies the ITuple deconstruct constraints, use ITuple semantics
+            // 2. If "binding" a Deconstruct invocation would find one or more applicable methods, use Deconstruct.
+            // 3. If the type satisfies the ITuple deconstruct constraints, use ITuple semantics
             // Here we test the relative priority of steps 2 and 3.
             // - Found one applicable Deconstruct method (even though the type implements ITuple): use it
             var source = @"using System;
@@ -1608,7 +1644,8 @@ class Program
     static void Main()
     {
         IA a = new A();
-        if (a is (var x, var y)) Console.Write($""{x} {y}"");
+        if (a is (var x, var y))  // tuple pattern containing var patterns
+            Console.Write($""{x} {y}"");
     }
 }
 interface IA : ITuple
@@ -1633,8 +1670,8 @@ class A: IA, ITuple
         {
             // From LDM 2018-11-05:
             // 1. If the type is a tuple type (any arity >= 0; see below), then use the tuple semantics
-            // 2. If "binding" a Deconstruct invocation would finds one or more applicable methods, use Deconstruct.
-            // 3. If the satisfies the ITuple deconstruct constraints, use ITuple semantics
+            // 2. If "binding" a Deconstruct invocation would find one or more applicable methods, use Deconstruct.
+            // 3. If the type satisfies the ITuple deconstruct constraints, use ITuple semantics
             // Here we test the relative priority of steps 2 and 3.
             // - Found one applicable Deconstruct method (even though the type implements ITuple): use it
             var source = @"using System;
@@ -1644,7 +1681,8 @@ class Program
     static void Main()
     {
         IA a = new A();
-        if (a is var (x, y)) Console.Write($""{x} {y}"");
+        if (a is var (x, y))  // var pattern containing tuple designator
+            Console.Write($""{x} {y}"");
     }
 }
 interface IA : ITuple
@@ -1669,10 +1707,12 @@ class A: IA, ITuple
         {
             // From LDM 2018-11-05:
             // 1. If the type is a tuple type (any arity >= 0; see below), then use the tuple semantics
-            // 2. If "binding" a Deconstruct invocation would finds one or more applicable methods, use Deconstruct.
-            // 3. If the satisfies the ITuple deconstruct constraints, use ITuple semantics
+            // 2. If "binding" a Deconstruct invocation would find one or more applicable methods, use Deconstruct.
+            // 3. If the type satisfies the ITuple deconstruct constraints, use ITuple semantics
             // Here we test the relative priority of steps 2 and 3.
             // - Found more than one applicable Deconstruct method (even though the type implements ITuple): error
+
+            // case 1: var pattern with tuple designator
             var source = @"using System;
 using System.Runtime.CompilerServices;
 class Program
@@ -1713,10 +1753,12 @@ class A: IA, I1, I2, ITuple
         {
             // From LDM 2018-11-05:
             // 1. If the type is a tuple type (any arity >= 0; see below), then use the tuple semantics
-            // 2. If "binding" a Deconstruct invocation would finds one or more applicable methods, use Deconstruct.
-            // 3. If the satisfies the ITuple deconstruct constraints, use ITuple semantics
+            // 2. If "binding" a Deconstruct invocation would find one or more applicable methods, use Deconstruct.
+            // 3. If the type satisfies the ITuple deconstruct constraints, use ITuple semantics
             // Here we test the relative priority of steps 2 and 3.
             // - Found more than one applicable Deconstruct method (even though the type implements ITuple): error
+
+            // case 1: tuple pattern with var subpatterns
             var source = @"using System;
 using System.Runtime.CompilerServices;
 class Program
@@ -1757,8 +1799,8 @@ class A: IA, I1, I2, ITuple
         {
             // From LDM 2018-11-05:
             // 1. If the type is a tuple type (any arity >= 0; see below), then use the tuple semantics
-            // 2. If "binding" a Deconstruct invocation would finds one or more applicable methods, use Deconstruct.
-            // 3. If the satisfies the ITuple deconstruct constraints, use ITuple semantics
+            // 2. If "binding" a Deconstruct invocation would find one or more applicable methods, use Deconstruct.
+            // 3. If the type satisfies the ITuple deconstruct constraints, use ITuple semantics
             // Here we test the relative priority of steps 2 and 3.
             // - Found inapplicable Deconstruct method; use ITuple
             var source = @"using System;
@@ -1793,8 +1835,8 @@ class A: IA, ITuple
         {
             // From LDM 2018-11-05:
             // 1. If the type is a tuple type (any arity >= 0; see below), then use the tuple semantics
-            // 2. If "binding" a Deconstruct invocation would finds one or more applicable methods, use Deconstruct.
-            // 3. If the satisfies the ITuple deconstruct constraints, use ITuple semantics
+            // 2. If "binding" a Deconstruct invocation would find one or more applicable methods, use Deconstruct.
+            // 3. If the type satisfies the ITuple deconstruct constraints, use ITuple semantics
             // Here we test the relative priority of steps 2 and 3.
             // - Found inapplicable Deconstruct method; use ITuple
             var source = @"using System;
@@ -1868,7 +1910,7 @@ namespace System
         [Fact]
         public void ShortTuplePattern_02()
         {
-            // test 0-element tuple pattern via ITuple
+            // test 1-element tuple pattern via ITuple
             var source = @"using System;
 using System.Runtime.CompilerServices;
 
@@ -1939,6 +1981,39 @@ public class C
         }
 
         [Fact]
+        public void ShortTuplePattern_03b()
+        {
+            // test 0-element tuple pattern via extension Deconstruct
+            var source = @"using System;
+
+class Program
+{
+    static void Main()
+    {
+        var data = new C[] { null, new C() };
+        for (int i = 0; i < data.Length; i++)
+        {
+            var datum = data[i];
+            if (datum is ()) Console.Write(i);
+        }
+    }
+}
+
+public class C
+{
+}
+public static class Extension
+{
+    public static void Deconstruct(this C self) {}
+}
+";
+            var compilation = CreatePatternCompilation(source);
+            compilation.VerifyDiagnostics(
+                );
+            CompileAndVerify(compilation, expectedOutput: "1");
+        }
+
+        [Fact]
         public void ShortTuplePattern_04()
         {
             // test 1-element tuple pattern via Deconstruct
@@ -1960,6 +2035,39 @@ class Program
 public class C
 {
     public void Deconstruct(out char a) => a = 'a';
+}
+";
+            var compilation = CreatePatternCompilation(source);
+            compilation.VerifyDiagnostics(
+                );
+            CompileAndVerify(compilation, expectedOutput: "1 a");
+        }
+
+        [Fact]
+        public void ShortTuplePattern_04b()
+        {
+            // test 1-element tuple pattern via extension Deconstruct
+            var source = @"using System;
+
+class Program
+{
+    static void Main()
+    {
+        var data = new C[] { null, new C() };
+        for (int i = 0; i < data.Length; i++)
+        {
+            var datum = data[i];
+            if (datum is (var x) _) Console.Write($""{i} {x} "");
+        }
+    }
+}
+
+public class C
+{
+}
+public static class Extension
+{
+    public static void Deconstruct(this C self, out char a) => a = 'a';
 }
 ";
             var compilation = CreatePatternCompilation(source);
