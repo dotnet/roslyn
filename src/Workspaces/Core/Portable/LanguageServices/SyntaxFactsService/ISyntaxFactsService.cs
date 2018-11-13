@@ -48,16 +48,20 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsReservedKeyword(SyntaxToken token);
 
         /// <summary>
-        /// Returns 'true' if this a 'contextual' keyword for the language.  A 'contextual' keyword
-        /// is a identifier that is only treated as being a special keyword in certain *syntactic*
-        /// contexts.  Examples of this is 'yield' in C#.  This is only a keyword if used as 'yield
-        /// return' or 'yield break'.  Importantly, identifiers like <see langword="var"/>, <see
-        /// langword="dynamic"/> and <see langword="nameof"/> are *not* 'contextual' keywords.  This
-        /// is because they are not treated as keywords depending on the syntactic context around
-        /// them.  Instead, the language always treats them identifiers that have special *semantic*
-        /// meaning if they end up not binding to an existing symbol.
+        /// Returns <see langword="true"/> if this a 'contextual' keyword for the language.  A
+        /// 'contextual' keyword is a identifier that is only treated as being a special keyword in
+        /// certain *syntactic* contexts.  Examples of this is 'yield' in C#.  This is only a
+        /// keyword if used as 'yield return' or 'yield break'.  Importantly, identifiers like <see
+        /// langword="var"/>, <see langword="dynamic"/> and <see langword="nameof"/> are *not*
+        /// 'contextual' keywords.  This is because they are not treated as keywords depending on
+        /// the syntactic context around them.  Instead, the language always treats them identifiers
+        /// that have special *semantic* meaning if they end up not binding to an existing symbol.
         /// 
-        /// Or, in other words, the parser must be able to identify these cases in order to be a 
+        /// Importantly, if <paramref name="token"/> is not in the syntactic construct where the
+        /// language thinks an identifier should be contextually treated as a keyword, then this
+        /// will return <see langword="false"/>.
+        /// 
+        /// Or, in other words, the parser must be able to identify these cases in order to be a
         /// contextual keyword.  If identification happens afterwards, it's not contextual.
         /// </summary>
         bool IsContextualKeyword(SyntaxToken token);
