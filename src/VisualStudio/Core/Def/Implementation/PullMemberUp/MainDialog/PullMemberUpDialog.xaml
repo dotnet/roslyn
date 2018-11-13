@@ -43,7 +43,7 @@
         </Style>
         <Style x:Key="GridViewLeftAlignContainerStyle"
                TargetType="{x:Type GridViewColumnHeader}">
-            <Setter Property="HorizontalContentAlignment" Value="Left"/>
+            <Setter Property="HorizontalContentAlignment" Value="Left" />
         </Style>
         <Style x:Key="GridViewLeftAlignGridStyle"
                TargetType="{x:Type DataGridCell}">
@@ -134,14 +134,16 @@
                                 x:Name="membersColumn"
                                 HeaderContainerStyle="{StaticResource GridViewLeftAlignContainerStyle}">
                                 <GridViewColumn.Header>
-                                    <CheckBox
-                                        x:Name="SelectAllAndDeselectCheckBox"
-                                        Margin="4, 0, 0, 0"
-                                        Checked="SelectAllAndDeselectedAllCheckBox_Checked"
-                                        Unchecked="SelectAllAndDeselectCheckBox_Unchecked"
-                                        IsChecked="{Binding SelectAllAndDeselectAllChecked, UpdateSourceTrigger=PropertyChanged}">
+                                    <StackPanel Orientation="Horizontal">
+                                        <CheckBox
+                                            x:Name="SelectAllAndDeselectCheckBox"
+                                            Margin="4, 0, 4, 0"
+                                            Checked="SelectAllAndDeselectedAllCheckBox_Checked"
+                                            Unchecked="SelectAllAndDeselectCheckBox_Unchecked"
+                                            IsChecked="{Binding SelectAllAndDeselectAllChecked, UpdateSourceTrigger=PropertyChanged}">
+                                        </CheckBox>
                                         <TextBlock Text="{Binding ElementName=dialog, Path=Members}"/>
-                                    </CheckBox>
+                                    </StackPanel>
                                 </GridViewColumn.Header>
                                 <GridViewColumn.CellTemplate>
                                     <DataTemplate>

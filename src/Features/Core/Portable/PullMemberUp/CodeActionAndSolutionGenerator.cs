@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -18,10 +17,6 @@ namespace Microsoft.CodeAnalysis.PullMemberUp
 {
     internal class CodeActionAndSolutionGenerator
     {
-        /// <summary>
-        /// Generate the changed solution base on the <param name="result"></param>.
-        /// It will provide fix if the modifier of target and members mismatch.
-        /// </summary>
         internal async Task<Solution> GetSolutionAsync(
             AnalysisResult result,
             Document contextDocument,
@@ -54,10 +49,6 @@ namespace Microsoft.CodeAnalysis.PullMemberUp
             }
         }
 
-        /// <summary>
-        /// Generate the CodeAction base on <param name="result"></param>.
-        /// It won't provide fix if the modifier of target and members mismatch.
-        /// </summary>
         internal CodeAction GetCodeActionAsync(
             AnalysisResult result,
             Document contextDocument,
@@ -80,7 +71,7 @@ namespace Microsoft.CodeAnalysis.PullMemberUp
             }
             else
             {
-                throw new ArgumentException($"{nameof(result.Target)} should be interface or class");
+                throw ExceptionUtilities.UnexpectedValue(result.Target);
             }
         }
 

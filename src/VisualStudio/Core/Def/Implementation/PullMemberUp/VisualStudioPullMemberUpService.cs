@@ -1,8 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.  
 
-using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
 using Microsoft.CodeAnalysis;
@@ -29,12 +27,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp
         }
 
         public PullMemberDialogResult GetPullTargetAndMembers(
+            SemanticModel semanticModel,
             ISymbol selectedOwnerSymbol,
-            IEnumerable<ISymbol> members,
-            Dictionary<ISymbol, Lazy<ImmutableList<ISymbol>>> lazyDependentsMap)
+            IEnumerable<ISymbol> members)
         {
             var baseTypeTree = MemberSymbolViewModelGraphNode.CreateInheritanceGraph(selectedOwnerSymbol.ContainingType, _glyphService);
-            ViewModel = new PullMemberUpViewModel(members.ToList(), baseTypeTree.Neighbours, selectedOwnerSymbol, _glyphService, lazyDependentsMap, this);
+            ViewModel = new PullMemberUpViewModel(semanticModel, members.ToList(), baseTypeTree.Neighbours, selectedOwnerSymbol, _glyphService, this);
             var dialog = new PullMemberUpDialog(ViewModel);
             if (dialog.ShowModal().GetValueOrDefault())
             {

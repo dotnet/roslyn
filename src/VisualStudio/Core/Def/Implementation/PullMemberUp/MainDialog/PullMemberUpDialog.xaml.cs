@@ -1,12 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.  
 
-using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp;
 using Microsoft.VisualStudio.PlatformUI;
@@ -63,7 +60,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp
             if (TargetMembersContainer.SelectedItem is MemberSymbolViewModelGraphNode memberGraphNode)
             {
                 ViewModel.SelectedTarget = memberGraphNode;
-                if (memberGraphNode.MemberSymbolViewModel.MemberSymbol is INamedTypeSymbol interfaceSymbol && interfaceSymbol.TypeKind == TypeKind.Interface)
+                if (memberGraphNode.MemberSymbolViewModel.MemberSymbol is INamedTypeSymbol interfaceSymbol &&
+                    interfaceSymbol.TypeKind == TypeKind.Interface)
                 {
                     DisableFieldCheckBox();
                     DisableAbstractBox();
@@ -128,7 +126,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp
             if (ViewModel.SelectedTarget != null && selectedMembers.Count() != 0)
             {
                 var result = ViewModel.Service.CreateAnaysisResult(ViewModel);
-                if (result.IsValid)
+                if (result.IsPullUpOperationCauseError)
                 {
                     DialogResult = true;
                 }
@@ -159,7 +157,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp
             
             foreach (var member in checkedMembers)
             {
-                var dependents = ViewModel.LazyDependentsMap[member.MemberSymbol].Value;
+                var dependents = ViewModel.FindDependents(member.MemberSymbol);
 
                 foreach (var symbol in dependents)
                 {

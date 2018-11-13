@@ -17,8 +17,8 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
                 {
                     return new MemberAnalysisResult(
                         selection.member,
-                        selection.member.DeclaredAccessibility != Accessibility.Public,
-                        selection.member.IsStatic);
+                        changeOriginToPublic: selection.member.DeclaredAccessibility != Accessibility.Public,
+                        changeOriginToNonStatic: selection.member.IsStatic);
                 }
                 else
                 {
@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
 
         public IEnumerable<MemberAnalysisResult> MembersAnalysisResults { get; }
 
-        public bool IsValid { get; }
+        public bool IsPullUpOperationCauseError { get; }
 
         internal AnalysisResult(
             bool changeTargetAbstract,
@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
             ChangeTargetAbstract = changeTargetAbstract;
             Target = target;
             MembersAnalysisResults = membersAnalysisResults;
-            IsValid = !MembersAnalysisResults.Aggregate(
+            IsPullUpOperationCauseError = !MembersAnalysisResults.Aggregate(
                 ChangeTargetAbstract,
                 (acc, result) => acc || result.ChangeOriginToPublic || result.ChangeOriginToNonStatic || result.MakeAbstract);
         }

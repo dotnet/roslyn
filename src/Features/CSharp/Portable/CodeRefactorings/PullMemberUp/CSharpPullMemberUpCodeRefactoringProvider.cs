@@ -4,6 +4,7 @@ using System.Composition;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp;
 using Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp.Dialog;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 
@@ -39,22 +40,18 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.PullMemberUp
 
         private SyntaxToken GetIdentifier(SyntaxNode userSelectedSyntax)
         {
-            switch (userSelectedSyntax)
+            if (userSelectedSyntax is MemberDeclarationSyntax memberDeclarationSyntax)
             {
-                case VariableDeclaratorSyntax variableSyntax:
-                    // It handles multiple fields or events declared in one line
-                    return variableSyntax.Identifier;
-                case MethodDeclarationSyntax methodSyntax:
-                    return methodSyntax.Identifier;
-                case PropertyDeclarationSyntax propertySyntax:
-                    return propertySyntax.Identifier;
-                case IndexerDeclarationSyntax indexerSyntax:
-                    return indexerSyntax.ThisKeyword;
-                case EventDeclarationSyntax eventDeclarationSyntax:
-                    // It handles the case when event has add and remove body
-                    return eventDeclarationSyntax.Identifier;
-                default:
-                    return default;
+                return memberDeclarationSyntax.GetNameToken();
+            }
+            else if (userSelectedSyntax is VariableDeclaratorSyntax variableDeclaratorSyntax)
+            {
+            // It handles multiple fields or events declared in one line
+                return variableDeclaratorSyntax.Identifier;
+            }
+            else
+            {
+                return default;
             }
         }
     }

@@ -18,8 +18,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp
 
         public ObservableCollection<MemberSymbolViewModelGraphNode> TargetMembersContainer { get; set; }
 
-        public Dictionary<ISymbol, Lazy<ImmutableList<ISymbol>>> LazyDependentsMap { get; }
-        
         public Dictionary<ISymbol, PullUpMemberSymbolView> SymbolToMemberView { get; }
 
         public MemberSymbolViewModelGraphNode SelectedTarget { get; set; }
@@ -27,6 +25,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp
         public VisualStudioPullMemberUpService Service { get; }
 
         private bool _selectAllAndDeselectAllChecked;
+
+        private readonly SemanticModel _semanticModel;
+
+        private readonly Dictionary<ISymbol, IEnumerable<ISymbol>> _dependentsMap;
 
         public bool SelectAllAndDeselectAllChecked
         {
@@ -39,11 +41,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp
         }
 
         internal PullMemberUpViewModel(
+            SemanticModel semanticModel,
             List<ISymbol> allMembers,
             ObservableCollection<MemberSymbolViewModelGraphNode> targetMembersContainer,
             ISymbol userSelectNodeSymbol,
             IGlyphService glyphService,
-            Dictionary<ISymbol, Lazy<ImmutableList<ISymbol>>> lazyDependentsMap,
             VisualStudioPullMemberUpService service)
         {
             SelectedMembersContainer = allMembers.
@@ -54,14 +56,30 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp
                     IsAbstractSelectable = member.Kind != SymbolKind.Field && !member.IsAbstract,
                     IsSelectable = true
                 }).OrderByDescending(memberSymbolView => memberSymbolView.MemberSymbol.DeclaredAccessibility).ToList();
-
             SymbolToMemberView = SelectedMembersContainer.
                 ToDictionary(symbolView => symbolView.MemberSymbol);
 
+            _semanticModel = semanticModel;
             TargetMembersContainer = targetMembersContainer;
-            LazyDependentsMap = lazyDependentsMap;
             Service = service;
             SelectAllAndDeselectAllChecked = true;
+            _dependentsMap = new Dictionary<ISymbol, IEnumerable<ISymbol>>();
+        }
+
+        public IEnumerable<ISymbol> FindDependents(ISymbol member)
+        {
+            if (_dependentsMap.TryGetValue(member, out var dependents))
+            {
+                return dependents;
+            }
+            else
+            {
+                dependents = DependentsBuilder.Build(
+                    _semanticModel, member,
+                    SelectedMembersContainer.Select(memberView => memberView.MemberSymbol).ToImmutableHashSet());
+                _dependentsMap.Add(member, dependents);
+                return dependents;
+            }
         }
     }
 

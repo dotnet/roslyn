@@ -7,15 +7,17 @@ namespace Microsoft.CodeAnalysis.PullMemberUp.QuickAction
 {
     internal abstract class AbstractMemberPullerWithQuickAction
     {
+        protected abstract bool IsDeclarationAlreadyInTarget(INamedTypeSymbol target, ISymbol symbol);
+
         internal CodeAction ComputeRefactoring(
-            INamedTypeSymbol targetTypeSymbol,
             Document document,
-            ISymbol userSelectNodeSymbol)
+            ISymbol userSelectNodeSymbol,
+            INamedTypeSymbol targetTypeSymbol)
         {
             var title = FeaturesResources.Add_to + " " + targetTypeSymbol.Name;
             var result = PullMembersUpAnalysisBuilder.BuildAnalysisResult(targetTypeSymbol, new (ISymbol, bool)[] { (userSelectNodeSymbol, false)});
             if (IsDeclarationAlreadyInTarget(targetTypeSymbol, userSelectNodeSymbol) ||
-                !result.IsValid)
+                !result.IsPullUpOperationCauseError)
             {
                 return default;
             }
@@ -23,7 +25,5 @@ namespace Microsoft.CodeAnalysis.PullMemberUp.QuickAction
             var generator = new CodeActionAndSolutionGenerator(); 
             return generator.GetCodeActionAsync(result, document, title);
         }
-
-        protected abstract bool IsDeclarationAlreadyInTarget(INamedTypeSymbol target, ISymbol symbol);
     }
 }

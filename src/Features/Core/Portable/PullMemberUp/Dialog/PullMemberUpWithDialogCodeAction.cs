@@ -1,8 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.  
 
-using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -16,25 +14,25 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
     {
         private class PullMemberUpWithDialogCodeAction : CodeActionWithOptions
         {
-            private IEnumerable<ISymbol> Members { get; }
+            private readonly IEnumerable<ISymbol> _members;
 
-            private ISymbol SelectedNodeSymbol { get; }
+            private readonly ISymbol _selectedNodeSymbol;
 
-            private Document ContextDocument { get; }
-
-            private Dictionary<ISymbol, Lazy<ImmutableList<ISymbol>>> LazyDependentsMap { get; }
-
-            public override string Title => FeaturesResources.DotDotDot;
+            private readonly Document _contextDocument;
 
             private readonly IPullMemberUpOptionsService _service;
 
+            private readonly SemanticModel _semanticModel;
+
+            public override string Title => FeaturesResources.DotDotDot;
+
             internal PullMemberUpWithDialogCodeAction(
+                Document document,
                 SemanticModel semanticModel,
-                CodeRefactoringContext context,
                 ISymbol selectedNodeSymbol,
                 AbstractPullMemberUpRefactoringProvider provider)
             {
-                Members = selectedNodeSymbol.ContainingType.GetMembers().Where(
+                _members = selectedNodeSymbol.ContainingType.GetMembers().Where(
                     member => {
                         if (member is IMethodSymbol methodSymbol)
                         {
@@ -44,44 +42,22 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
                         {
                             return !member.IsImplicitlyDeclared;
                         }
-                        else if (member.Kind == SymbolKind.Property || member.Kind == SymbolKind.Event)
-                        {
-                            return true;
-                        }
                         else
                         {
-                            return false;
+                            return member.Kind == SymbolKind.Property || member.Kind == SymbolKind.Event;
                         }
                     });
 
-                var membersSet = new HashSet<ISymbol>(Members);
-
-                // This map contains the content used by select dependents button
-                LazyDependentsMap = Members.ToDictionary(
-                    memberSymbol => memberSymbol,
-                    memberSymbol => new Lazy<ImmutableList<ISymbol>>(
-                       () =>
-                       {
-                           if (memberSymbol.Kind == SymbolKind.Field)
-                           {
-                               return ImmutableList<ISymbol>.Empty;
-                           }
-                           else
-                           {
-                               return SymbolDependentsBuilder.Build(memberSymbol, membersSet, context.Document, context.CancellationToken);
-                           }
-
-                       }, false));
-
-                SelectedNodeSymbol = selectedNodeSymbol;
-                ContextDocument = context.Document;
+                _selectedNodeSymbol = selectedNodeSymbol;
+                _contextDocument = document;
                 _service = provider._pullMemberUpOptionsService;
+                _semanticModel = semanticModel;
             }
 
             public override object GetOptions(CancellationToken cancellationToken)
             {
-                var pullMemberUpService = _service ?? ContextDocument.Project.Solution.Workspace.Services.GetService<IPullMemberUpOptionsService>();
-                return pullMemberUpService.GetPullTargetAndMembers(SelectedNodeSymbol, Members, LazyDependentsMap);
+                var pullMemberUpService = _service ?? _contextDocument.Project.Solution.Workspace.Services.GetService<IPullMemberUpOptionsService>();
+                return pullMemberUpService.GetPullTargetAndMembers(_semanticModel, _selectedNodeSymbol, _members);
             }
             
             protected async override Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(object options, CancellationToken cancellationToken)
@@ -89,7 +65,9 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
                 if (options is PullMemberDialogResult result && !result.IsCanceled)
                 {
                     var generator = new CodeActionAndSolutionGenerator();
-                    var changedSolution = await generator.GetSolutionAsync(result.PullMembersAnalysisResult, ContextDocument, cancellationToken).ConfigureAwait(false);
+                    var changedSolution = await generator.GetSolutionAsync(
+                        result.PullMembersAnalysisResult,
+                        _contextDocument, cancellationToken).ConfigureAwait(false);
                     var operation = new ApplyChangesOperation(changedSolution);
                     return new CodeActionOperation[] { operation };
                 }

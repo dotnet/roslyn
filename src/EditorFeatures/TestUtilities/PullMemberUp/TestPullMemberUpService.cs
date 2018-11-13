@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.PullMemberUp
             TargetBaseTypeName = targetBaseTypeName;
         }
 
-        public PullMemberDialogResult GetPullTargetAndMembers(ISymbol selectedNodeSymbol, IEnumerable<ISymbol> members, Dictionary<ISymbol, Lazy<ImmutableList<ISymbol>>> lazyDependentsMap)
+        public PullMemberDialogResult GetPullTargetAndMembers(SemanticModel semanticModel, ISymbol selectedNodeSymbol, IEnumerable<ISymbol> members)
         {
             IEnumerable<(ISymbol member, bool makeAbstract)> selectedMember = default;
 

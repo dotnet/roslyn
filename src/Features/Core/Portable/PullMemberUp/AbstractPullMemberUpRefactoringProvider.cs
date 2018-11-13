@@ -20,6 +20,8 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
             _pullMemberUpOptionsService = pullMemberUpService;
         }
 
+        protected abstract bool IsSelectionValid(TextSpan span, SyntaxNode userSelectedSyntax);
+
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
             // Currently support to pull field, method, event, property and indexer up,
@@ -28,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
             var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
             var userSelectedNode = root.FindNode(context.Span);
 
-            if(!IsSelectionValid(context.Span, userSelectedNode))
+            if (!IsSelectionValid(context.Span, userSelectedNode))
             {
                 return;
             }
@@ -39,10 +41,9 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
                 return;
             }
 
-            var allTargetClasses = FindAllTargetBaseClasses(userSelectNodeSymbol.ContainingType, context.Document.Project.Solution, context.CancellationToken);
-            var allTargetInterfaces = FindAllTargetInterfaces(userSelectNodeSymbol.ContainingType, context.Document.Project.Solution, context.CancellationToken);
+            var allTargets = FindAllValidTargets(userSelectNodeSymbol.ContainingType, context.Document.Project.Solution, context.CancellationToken);
 
-            if (allTargetInterfaces.Count() == 0 && allTargetClasses.Count() == 0)
+            if (allTargets.Count() == 0)
             {
                 return;
             }
@@ -52,32 +53,30 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
                 userSelectNodeSymbol.Kind == SymbolKind.Event ||
                 userSelectNodeSymbol.Kind == SymbolKind.Field)
             {
-                PullMemberUpViaQuickAction(allTargetClasses.Concat(allTargetInterfaces), userSelectNodeSymbol, context);
-                AddPullUpMemberRefactoringViaDialogBox(userSelectNodeSymbol, context, semanticModel);
+                PullMemberUpViaQuickAction(context, userSelectNodeSymbol, allTargets);
+                AddPullUpMemberRefactoringViaDialogBox(context, semanticModel, userSelectNodeSymbol);
             }
         }
 
-        private IEnumerable<INamedTypeSymbol> FindAllTargetInterfaces(INamedTypeSymbol selectedNodeOwnerSymbol, Solution solution, CancellationToken cancellationToken)
+        private IEnumerable<INamedTypeSymbol> FindAllValidTargets(
+            INamedTypeSymbol selectedNodeOwnerSymbol,
+            Solution solution,
+            CancellationToken cancellationToken)
         {
-            return selectedNodeOwnerSymbol.AllInterfaces.
-                Where(@interface => @interface.DeclaringSyntaxReferences.Length > 0 && IsSymbolValid(solution, @interface, cancellationToken));
+            return selectedNodeOwnerSymbol.AllInterfaces.Concat(selectedNodeOwnerSymbol.GetBaseTypes()).
+                Where(baseType => baseType.DeclaringSyntaxReferences.Length > 0 && IsSymbolValid(baseType, solution, cancellationToken));
         }
 
-        private IEnumerable<INamedTypeSymbol> FindAllTargetBaseClasses(INamedTypeSymbol selectedNodeOwnerSymbol, Solution solution, CancellationToken cancellationToken)
-        {
-            return selectedNodeOwnerSymbol.GetBaseTypes().Where(@class => @class.DeclaringSyntaxReferences.Length > 0 && IsSymbolValid(solution, @class, cancellationToken));
-        }
-
-        private bool IsSymbolValid(Solution solution, INamedTypeSymbol symbol, CancellationToken cancellationToken)
+        private bool IsSymbolValid(INamedTypeSymbol symbol, Solution solution, CancellationToken cancellationToken)
         {
             return symbol.Locations.Any(location => location.IsInSource &&
                 !solution.GetDocument(location.SourceTree).IsGeneratedCode(cancellationToken));
         }
 
-        protected void PullMemberUpViaQuickAction(
-            IEnumerable<INamedTypeSymbol> targets,
+        private void PullMemberUpViaQuickAction(
+            CodeRefactoringContext context,
             ISymbol userSelectNodeSymbol,
-            CodeRefactoringContext context)
+            IEnumerable<INamedTypeSymbol> targets)
         {
             foreach (var target in targets)
             {
@@ -92,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
                     puller = new ClassPullerWithQuickAction();
                 }
 
-                var action = puller.ComputeRefactoring(target, context.Document, userSelectNodeSymbol);
+                var action = puller.ComputeRefactoring(context.Document, userSelectNodeSymbol, target);
                 if (action != null)
                 {
                     context.RegisterRefactoring(action);
@@ -100,15 +99,13 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
             }
         }
 
-        protected void AddPullUpMemberRefactoringViaDialogBox(
-            ISymbol userSelectedNodeSymbol,
+        private void AddPullUpMemberRefactoringViaDialogBox(
             CodeRefactoringContext context,
-            SemanticModel semanticModel)
+            SemanticModel semanticModel,
+            ISymbol userSelectedNodeSymbol)
         {
-            var dialogAction = new PullMemberUpWithDialogCodeAction(semanticModel, context, userSelectedNodeSymbol, this);
+            var dialogAction = new PullMemberUpWithDialogCodeAction(context.Document, semanticModel, userSelectedNodeSymbol, this);
             context.RegisterRefactoring(dialogAction);
         }
-
-        protected abstract bool IsSelectionValid(TextSpan span, SyntaxNode userSelectedSyntax);
     }
 }
