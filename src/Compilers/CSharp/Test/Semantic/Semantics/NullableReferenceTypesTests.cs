@@ -51145,6 +51145,31 @@ class A
 
         [WorkItem(23270, "https://github.com/dotnet/roslyn/issues/23270")]
         [Fact]
+        public void NotNullAfterDereference_00()
+        {
+            var source =
+@"class Program
+{
+    static void M(object? obj)
+    {
+        obj.F();
+        obj.ToString(); // 1
+        obj.ToString();
+    }
+}
+static class E
+{
+    internal static void F(this object? obj) { }
+}";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (6,9): warning CS8602: Possible dereference of a null reference.
+                //         obj.ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "obj").WithLocation(6, 9));
+        }
+
+        [WorkItem(23270, "https://github.com/dotnet/roslyn/issues/23270")]
+        [Fact]
         public void NotNullAfterDereference_01()
         {
             var source =

@@ -406,7 +406,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return base.GetOrCreateSlot(symbol, containingSlot);
         }
 
-        // https://github.com/dotnet/roslyn/issues/29952 Remove use of MakeSlot.
         protected override int MakeSlot(BoundExpression node)
         {
             switch (node.Kind)
