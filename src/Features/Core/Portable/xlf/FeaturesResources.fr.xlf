@@ -97,9 +97,9 @@
         <target state="translated">Mise en forme du document</target>
         <note />
       </trans-unit>
-      <trans-unit id="Move_file_to_0_folder">
-        <source>Move file to '{0}' folder</source>
-        <target state="new">Move file to '{0}' folder</target>
+      <trans-unit id="Move_file_to_0">
+        <source>Move file to '{0}'</source>
+        <target state="new">Move file to '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Move_file_to_project_root_folder">
