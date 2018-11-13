@@ -3388,6 +3388,24 @@ public unsafe struct YourStruct
         }
 
         [Fact]
+        public void UnmanagedRecursiveTypeArgument()
+        {
+            var code = @"
+public struct MyStruct<T>
+{
+    public YourStruct<MyStruct<MyStruct<T>>> field;
+}
+
+public struct YourStruct<T> where T : unmanaged
+{
+    public T field;
+}
+";
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll)
+                .VerifyDiagnostics();
+        }
+
+        [Fact]
         public void ManagedRecursiveStruct()
         {
             var code = @"
