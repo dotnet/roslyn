@@ -31,10 +31,37 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsPredefinedType(SyntaxToken token, PredefinedType type);
         bool IsPredefinedOperator(SyntaxToken token);
         bool IsPredefinedOperator(SyntaxToken token, PredefinedOperator op);
+
+        /// <summary>
+        /// Returns 'true' if this a 'reserved' keyword for the language.  A 'reserved' keyword is a
+        /// identifier that is always treated as being a special keyword, regardless of where it is
+        /// found in the token stream.  Examples of this are tokens like <see langword="class"/> and
+        /// <see langword="Class"/> in C# and VB respectively.
+        /// </summary>
         bool IsReservedKeyword(SyntaxToken token);
+
+        /// <summary>
+        /// Returns 'true' if this a 'contextual' keyword for the language.  A 'contextual' keyword
+        /// is a identifier that is only treated as being a special keyword in certain *syntactic*
+        /// contexts.  Examples of this is 'yield' in C#.  This is only a keyword if used as 'yield
+        /// return' or 'yield break'.  Importantly, identifiers like <see langword="var"/>, <see
+        /// langword="dynamic"/> and <see langword="nameof"/> are *not* 'contextual' keywords.  This
+        /// is because they are not treated as keywords depending on the syntactic context around
+        /// them.  Instead, the language always treats them identifiers that have special *semantic*
+        /// meaning if they end up not binding to an existing symbol.
+        /// 
+        /// Or, in other words, the parser must be able to identify these cases in order to be a 
+        /// contextual keyword.  If identification happens afterwards, it's not contextual.
+        /// </summary>
         bool IsContextualKeyword(SyntaxToken token);
+
+        /// <summary>
+        /// The set of identifiers that have special meaning directly after the `#` token in a
+        /// preprocessor directive.  For example `if` or `pragma`.
+        /// </summary>
         bool IsPreprocessorKeyword(SyntaxToken token);
         bool IsHashToken(SyntaxToken token);
+
         bool IsLiteral(SyntaxToken token);
         bool IsStringLiteralOrInterpolatedStringLiteral(SyntaxToken token);
 
