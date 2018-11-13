@@ -56479,5 +56479,669 @@ class Program
                 //         c2.F().ToString();
                 Diagnostic(ErrorCode.ERR_ObjectProhibited, "c2.F").WithArguments("C<object>.F()").WithLocation(14, 9));
         }
+
+        [Fact, WorkItem(30561, "https://github.com/dotnet/roslyn/issues/30561")]
+        public void SetNullableStateInFinally_01()
+        {
+            var source =
+@"public static class Program
+{
+    public static void Main()
+    {
+        string? s = string.Empty;
+        try
+        {
+        }
+        finally
+        {
+            s = null;
+        }
+
+        _ = s.Length; // warning
+    }
+}
+";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (14,13): warning CS8602: Possible dereference of a null reference.
+                //         _ = s.Length; // warning
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(14, 13)
+                );
+        }
+
+        [Fact, WorkItem(30561, "https://github.com/dotnet/roslyn/issues/30561")]
+        public void SetNullableStateInTry_02()
+        {
+            var source =
+@"public static class Program
+{
+    public static int Main()
+    {
+        string? s = string.Empty;
+        try
+        {
+            s = null;
+            MayThrow();
+            s = string.Empty;
+        }
+        catch (System.Exception)
+        {
+        }
+
+        return s.Length; // warning: possibly null
+    }
+    static void MayThrow()
+    {
+        throw null;
+    }
+}
+";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (16,16): warning CS8602: Possible dereference of a null reference.
+                //         return s.Length; // warning: possibly null
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(16, 16)
+                );
+        }
+
+        [Fact, WorkItem(30561, "https://github.com/dotnet/roslyn/issues/30561")]
+        public void SetNullableStateInTry_03()
+        {
+            var source =
+@"public static class Program
+{
+    public static int Main()
+    {
+        string? s = string.Empty;
+        try
+        {
+            s = null;
+            MayThrow();
+            s = string.Empty;
+        }
+        catch (System.Exception)
+        {
+            return s.Length; // warning: possibly null
+        }
+
+        return s.Length;
+    }
+    static void MayThrow()
+    {
+        throw null;
+    }
+}
+";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (14,20): warning CS8602: Possible dereference of a null reference.
+                //             return s.Length; // warning: possibly null
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(14, 20)
+                );
+        }
+
+        [Fact, WorkItem(30561, "https://github.com/dotnet/roslyn/issues/30561")]
+        public void SetNullableStateInTry_04()
+        {
+            var source =
+@"public static class Program
+{
+    public static int Main()
+    {
+        string? s = string.Empty;
+        try
+        {
+            s = null;
+            MayThrow();
+            s = string.Empty;
+        }
+        catch (System.Exception)
+        {
+            _ = s.Length; // warning 1
+        }
+        finally
+        {
+            _ = s.Length; // warning 2
+        }
+
+        return s.Length; // ok (previously dereferenced)
+    }
+    static void MayThrow()
+    {
+        throw null;
+    }
+}
+";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (14,17): warning CS8602: Possible dereference of a null reference.
+                //             _ = s.Length; // warning 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(14, 17),
+                // (18,17): warning CS8602: Possible dereference of a null reference.
+                //             _ = s.Length; // warning 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(18, 17)
+                );
+        }
+
+        [Fact, WorkItem(30561, "https://github.com/dotnet/roslyn/issues/30561")]
+        public void SetNullableStateInTry_05()
+        {
+            var source =
+@"public static class Program
+{
+    public static int Main()
+    {
+        string? s = null;
+        try
+        {
+            MayThrow();
+            s = string.Empty;
+            _ = s.Length; // ok
+        }
+        catch (System.Exception)
+        {
+            _ = s.Length; // warning 1
+        }
+        finally
+        {
+            _ = s.Length; // warning 2
+        }
+
+        return s.Length; // ok (previously dereferenced)
+    }
+    static void MayThrow()
+    {
+        throw null;
+    }
+}
+";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (14,17): warning CS8602: Possible dereference of a null reference.
+                //             _ = s.Length; // warning 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(14, 17),
+                // (18,17): warning CS8602: Possible dereference of a null reference.
+                //             _ = s.Length; // warning 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(18, 17)
+                );
+        }
+
+        [Fact, WorkItem(30561, "https://github.com/dotnet/roslyn/issues/30561")]
+        public void SetNullableStateInTry_06()
+        {
+            var source =
+@"public static class Program
+{
+    public static int Main()
+    {
+        string? s = null;
+        try
+        {
+            MayThrow();
+            s = string.Empty;
+            _ = s.Length; // ok
+        }
+        catch (System.NullReferenceException)
+        {
+            _ = s.Length; // warning 1
+        }
+        catch (System.Exception)
+        {
+            _ = s.Length; // warning 2
+        }
+        finally
+        {
+            _ = s.Length; // warning 3
+        }
+
+        return s.Length; // ok (previously dereferenced)
+    }
+    static void MayThrow()
+    {
+        throw null;
+    }
+}
+";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (14,17): warning CS8602: Possible dereference of a null reference.
+                //             _ = s.Length; // warning 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(14, 17),
+                // (18,17): warning CS8602: Possible dereference of a null reference.
+                //             _ = s.Length; // warning 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(18, 17),
+                // (22,17): warning CS8602: Possible dereference of a null reference.
+                //             _ = s.Length; // warning 3
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(22, 17)
+                );
+        }
+
+        [Fact, WorkItem(30561, "https://github.com/dotnet/roslyn/issues/30561")]
+        public void SetNullableStateInTry_07()
+        {
+            var source =
+@"public static class Program
+{
+    public static int Main()
+    {
+        string? s = null;
+        try
+        {
+            MayThrow();
+            s = string.Empty;
+            _ = s.Length; // ok
+        }
+        catch (System.NullReferenceException)
+        {
+            _ = s.Length; // warning 1
+        }
+        catch (System.Exception)
+        {
+            _ = s.Length; // warning 2
+        }
+
+        return s.Length; // ok
+    }
+    static void MayThrow()
+    {
+        throw null;
+    }
+}
+";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (14,17): warning CS8602: Possible dereference of a null reference.
+                //             _ = s.Length; // warning 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(14, 17),
+                // (18,17): warning CS8602: Possible dereference of a null reference.
+                //             _ = s.Length; // warning 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(18, 17)
+                );
+        }
+
+        [Fact, WorkItem(30561, "https://github.com/dotnet/roslyn/issues/30561")]
+        public void SetNullableStateBeforeTry_08()
+        {
+            var source =
+@"public static class Program
+{
+    public static int Main()
+    {
+        string? s = null;
+        try
+        {
+            MayThrow();
+            _ = s.Length; // warning 1
+        }
+        catch (System.NullReferenceException)
+        {
+            _ = s.Length; // warning 2
+        }
+        catch (System.Exception)
+        {
+            _ = s.Length; // warning 3
+        }
+
+        return s.Length; // ok (previously dereferenced)
+    }
+    static void MayThrow()
+    {
+        throw null;
+    }
+}
+";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (9,17): warning CS8602: Possible dereference of a null reference.
+                //             _ = s.Length; // warning 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(9, 17),
+                // (13,17): warning CS8602: Possible dereference of a null reference.
+                //             _ = s.Length; // warning 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(13, 17),
+                // (17,17): warning CS8602: Possible dereference of a null reference.
+                //             _ = s.Length; // warning 3
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(17, 17)
+                );
+        }
+
+        [Fact, WorkItem(30561, "https://github.com/dotnet/roslyn/issues/30561")]
+        public void SetNullableStateInTry_09()
+        {
+            var source =
+@"public static class Program
+{
+    public static int Main()
+    {
+        string? s = string.Empty;
+        try
+        {
+            s = null;
+            MayThrow();
+            s = string.Empty;
+        }
+        finally
+        {
+            _ = s.Length; // warning
+        }
+
+        return s.Length; // ok
+    }
+    static void MayThrow()
+    {
+        throw null;
+    }
+}
+";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (14,17): warning CS8602: Possible dereference of a null reference.
+                //             _ = s.Length; // warning
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(14, 17)
+                );
+        }
+
+        [Fact, WorkItem(30561, "https://github.com/dotnet/roslyn/issues/30561")]
+        public void SetNullableStateInCatch_10()
+        {
+            var source =
+@"public static class Program
+{
+    public static int Main()
+    {
+        string? s = string.Empty;
+        try
+        {
+            MayThrow();
+        }
+        catch (System.Exception)
+        {
+            s = null;
+            MayThrow();
+            s = string.Empty;
+        }
+        finally
+        {
+            _ = s.Length; // warning
+        }
+
+        return s.Length; // ok
+    }
+    static void MayThrow()
+    {
+        throw null;
+    }
+}
+";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (18,17): warning CS8602: Possible dereference of a null reference.
+                //             _ = s.Length; // warning
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(18, 17)
+                );
+        }
+
+        [Fact, WorkItem(30561, "https://github.com/dotnet/roslyn/issues/30561")]
+        public void SetNullableStateInNestedTry_01()
+        {
+            var source =
+@"public static class Program
+{
+    public static void Main()
+    {
+        {
+            string? s = string.Empty;
+            try
+            {
+                try
+                {
+                    s = null;
+                }
+                catch (System.Exception)
+                {
+                }
+                finally
+                {
+                }
+            }
+            catch (System.Exception)
+            {
+            }
+            finally
+            {
+            }
+
+            _ = s.Length; // warning 1a
+        }
+
+        {
+            string? s = string.Empty;
+            try
+            {
+                try
+                {
+                }
+                catch (System.Exception)
+                {
+                    s = null;
+                }
+                finally
+                {
+                }
+            }
+            catch (System.Exception)
+            {
+            }
+            finally
+            {
+            }
+
+            _ = s.Length; // warning 1b
+        }
+
+        {
+            string? s = string.Empty;
+            try
+            {
+                try
+                {
+                }
+                catch (System.Exception)
+                {
+                }
+                finally
+                {
+                    s = null;
+                }
+            }
+            catch (System.Exception)
+            {
+            }
+            finally
+            {
+            }
+
+            _ = s.Length; // warning 1c
+        }
+
+        {
+            string? s = string.Empty;
+            try
+            {
+            }
+            catch (System.Exception)
+            {
+                try
+                {
+                    s = null;
+                }
+                catch (System.Exception)
+                {
+                }
+                finally
+                {
+                }
+            }
+            finally
+            {
+                _ = s.Length; // warning 2a
+            }
+        }
+
+        {
+            string? s = string.Empty;
+            try
+            {
+            }
+            catch (System.Exception)
+            {
+                try
+                {
+                }
+                catch (System.Exception)
+                {
+                    s = null;
+                }
+                finally
+                {
+                }
+            }
+            finally
+            {
+                _ = s.Length; // warning 2b
+            }
+        }
+
+        {
+            string? s = string.Empty;
+            try
+            {
+            }
+            catch (System.Exception)
+            {
+                try
+                {
+                }
+                catch (System.Exception)
+                {
+                }
+                finally
+                {
+                    s = null;
+                }
+            }
+            finally
+            {
+                _ = s.Length; // warning 2c
+            }
+        }
+
+        {
+            string? s = string.Empty;
+            try
+            {
+            }
+            catch (System.Exception)
+            {
+            }
+            finally
+            {
+                try
+                {
+                    s = null;
+                }
+                catch (System.Exception)
+                {
+                }
+                finally
+                {
+                }
+            }
+
+            _ = s.Length; // warning 3a
+        }
+
+        {
+            string? s = string.Empty;
+            try
+            {
+            }
+            catch (System.Exception)
+            {
+            }
+            finally
+            {
+                try
+                {
+                }
+                catch (System.Exception)
+                {
+                    s = null;
+                }
+                finally
+                {
+                }
+            }
+
+            _ = s.Length; // warning 3b
+        }
+
+        {
+            string? s = string.Empty;
+            try
+            {
+            }
+            catch (System.Exception)
+            {
+            }
+            finally
+            {
+                try
+                {
+                }
+                catch (System.Exception)
+                {
+                }
+                finally
+                {
+                    s = null;
+                }
+            }
+
+            _ = s.Length; // warning 3c
+        }
+    }
+}
+";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (27,17): warning CS8602: Possible dereference of a null reference.
+                //             _ = s.Length; // warning 1a
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(27, 17),
+                // (52,17): warning CS8602: Possible dereference of a null reference.
+                //             _ = s.Length; // warning 1b
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(52, 17),
+                // (77,17): warning CS8602: Possible dereference of a null reference.
+                //             _ = s.Length; // warning 1c
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(77, 17),
+                // (100,21): warning CS8602: Possible dereference of a null reference.
+                //                 _ = s.Length; // warning 2a
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(100, 21),
+                // (124,21): warning CS8602: Possible dereference of a null reference.
+                //                 _ = s.Length; // warning 2b
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(124, 21),
+                // (148,21): warning CS8602: Possible dereference of a null reference.
+                //                 _ = s.Length; // warning 2c
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(148, 21),
+                // (174,17): warning CS8602: Possible dereference of a null reference.
+                //             _ = s.Length; // warning 3a
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(174, 17),
+                // (199,17): warning CS8602: Possible dereference of a null reference.
+                //             _ = s.Length; // warning 3b
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(199, 17),
+                // (224,17): warning CS8602: Possible dereference of a null reference.
+                //             _ = s.Length; // warning 3c
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(224, 17)
+                );
+        }
     }
 }
