@@ -84,24 +84,7 @@ prefer auto properties;</source>
 Automatically format statement on semicolon ;
 Automatically format block on end brace;
 Automatically format on return;
-Automatically format on paste;
-Format Document Settings;
-Apply all C# formatting rules indentation, wrapping, spacing;
-Perform additional code cleanup during formatting;
-Remove unnecessary usings;
-Sort usings;
-Add remove braces for single-line control statements;
-Add accessibility modifiers;
-Sort accessibility modifiers;
-Apply expression block/body preferences;
-Apply implicit/explicit type preferences;
-Apply inline out variables preferences;
-Apply language/framework type preferences;
-Apply object/collection initialization preferences;
-Apply this qualification preferences;
-Make private fields readonly when possible;
-Remove unnecessary casts;
-Remove unused variables;</source>
+Automatically format on paste;</source>
         <target state="needs-review-translation">Formatta automaticamente istruzione dopo l'immissione del punto e virgola;Formatta automaticamente blocco dopo l'immissione della parentesi graffa;Formatta automaticamente dopo operazione Incolla;Pulizia codice</target>
         <note>C# Formatting &gt; General options page keywords</note>
       </trans-unit>

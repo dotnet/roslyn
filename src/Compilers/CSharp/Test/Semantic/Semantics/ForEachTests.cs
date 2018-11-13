@@ -3374,5 +3374,30 @@ class C
                 //         foreach (ref readonly int x in new E())
                 Diagnostic(ErrorCode.ERR_BadIteratorLocalType, "x").WithLocation(18, 35));
         }
+
+
+        [Fact]
+        [WorkItem(30016, "https://github.com/dotnet/roslyn/issues/30016")]
+        public void ForEachIteratorWithCurrentRefKind_DontPassFieldByValue()
+        {
+            var source = @"
+using System;
+struct S1
+{
+    public int A;
+}
+class C
+{
+    public static void Main()
+    {
+        Span<S1> items = new Span<S1>(new S1[1]);
+        foreach (ref var t in items) t.A++; 
+        Console.WriteLine(items[0].A);
+    }
+}";
+            var comp = CreateCompilationWithMscorlibAndSpan(source, options: TestOptions.ReleaseDebugExe).VerifyDiagnostics();
+
+            CompileAndVerify(comp, expectedOutput: "1");
+        }
     }
 }

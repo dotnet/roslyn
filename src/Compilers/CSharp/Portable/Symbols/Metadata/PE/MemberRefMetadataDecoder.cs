@@ -223,7 +223,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             // IndexedTypeParameterSymbol is not going to be exposed anywhere,
             // so we'll cheat and use it here for comparison purposes.
             TypeMap candidateMethodTypeMap = new TypeMap(
-                nonNullTypesContext: NonNullTypesFalseContext.Instance, // The NonNullType context doesn't really matter here, because nullability of reference types is not considered for the purpose of the method.
                 candidateMethod.TypeParameters,
                 IndexedTypeParameterSymbol.Take(candidateMethod.Arity), true);
 
