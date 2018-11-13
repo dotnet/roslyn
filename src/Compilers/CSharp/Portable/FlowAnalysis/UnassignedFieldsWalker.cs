@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     // https://github.com/dotnet/roslyn/issues/30067 Should UnassignedFieldsWalker
     // inherit from DataFlowPassBase<LocalState> directly since it has simpler
     // requirements than DataFlowPass?
-    internal sealed class UnassignedFieldsWalker : DataFlowPass
+    internal sealed class UnassignedFieldsWalker : DefiniteAssignmentPass
     {
         private readonly DiagnosticBag _diagnostics;
 

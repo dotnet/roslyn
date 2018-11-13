@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -10,7 +9,11 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    internal abstract partial class DataFlowPassBase<TLocalState> : AbstractFlowPass<TLocalState>
+    /// <summary>
+    /// Does a data flow analysis for state attached to local variables and fields of struct locals.
+    /// </summary>
+    /// <typeparam name="TLocalState"></typeparam>
+    internal abstract partial class LocalDataFlowPass<TLocalState> : AbstractFlowPass<TLocalState>
         where TLocalState : AbstractFlowPass<TLocalState>.ILocalState
     {
         /// <summary>
@@ -36,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         protected readonly EmptyStructTypeCache _emptyStructTypeCache;
 
-        protected DataFlowPassBase(
+        protected LocalDataFlowPass(
             CSharpCompilation compilation,
             Symbol member,
             BoundNode node,
@@ -47,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _emptyStructTypeCache = emptyStructs;
         }
 
-        protected DataFlowPassBase(
+        protected LocalDataFlowPass(
             CSharpCompilation compilation,
             Symbol member,
             BoundNode node,

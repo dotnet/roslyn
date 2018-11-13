@@ -8,7 +8,7 @@ using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    internal partial class DataFlowPass
+    internal partial class DefiniteAssignmentPass
     {
         private readonly SmallDictionary<LocalFunctionSymbol, LocalFuncUsages> _localFuncVarUsages =
             new SmallDictionary<LocalFunctionSymbol, LocalFuncUsages>();
@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         /// <remarks>
         /// Specifying the slot manually may be necessary if the symbol is a field,
-        /// in which case <see cref="DataFlowPassBase{TLocalState}.VariableSlot(Symbol, int)"/>
+        /// in which case <see cref="LocalDataFlowPass{TLocalState}.VariableSlot(Symbol, int)"/>
         /// will not know which containing slot to look for.
         /// </remarks>
         private void CheckIfAssignedDuringLocalFunctionReplay(Symbol symbol, SyntaxNode node, int slot)

@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     // Note: this code has a copy-and-paste sibling in AbstractRegionDataFlowPass.
     // Any fix to one should be applied to the other.
-    internal class AbstractRegionDataFlowPass : DataFlowPass
+    internal class AbstractRegionDataFlowPass : DefiniteAssignmentPass
     {
         internal AbstractRegionDataFlowPass(
             CSharpCompilation compilation,

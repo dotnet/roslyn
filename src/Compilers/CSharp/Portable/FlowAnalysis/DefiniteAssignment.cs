@@ -29,9 +29,9 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp
 {
     /// <summary>
-    /// Implement C# data flow analysis (definite assignment).
+    /// Implement C# definite assignment.
     /// </summary>
-    internal partial class DataFlowPass : DataFlowPassBase<DataFlowPass.LocalState>
+    internal partial class DefiniteAssignmentPass : LocalDataFlowPass<DefiniteAssignmentPass.LocalState>
     {
         /// <summary>
         /// Some variables that should be considered initially assigned.  Used for region analysis.
@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             base.Free();
         }
 
-        internal DataFlowPass(
+        internal DefiniteAssignmentPass(
             CSharpCompilation compilation,
             Symbol member,
             BoundNode node,
@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.topLevelMethod = member as MethodSymbol;
         }
 
-        internal DataFlowPass(
+        internal DefiniteAssignmentPass(
             CSharpCompilation compilation,
             Symbol member,
             BoundNode node,
@@ -162,7 +162,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Constructor to be used for region analysis, for which a struct type should never be considered empty.
         /// </summary>
-        internal DataFlowPass(
+        internal DefiniteAssignmentPass(
             CSharpCompilation compilation,
             Symbol member,
             BoundNode node,
@@ -347,7 +347,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(diagnostics != null);
 
-            var walker = new DataFlowPass(
+            var walker = new DefiniteAssignmentPass(
                 compilation,
                 member,
                 node,
