@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
         /// <returns>The correct syntactic classification for the token.</returns>
         public static string GetClassification(SyntaxToken token)
         {
-            if (SyntaxFacts.IsKeywordKind(token.Kind()))
+            if (SyntaxFacts.IsKeywordKind(token.Kind()) || token.IsKind(SyntaxKind.DiscardDesignation))
             {
                 return ClassificationTypeNames.Keyword;
             }
