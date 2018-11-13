@@ -4991,18 +4991,18 @@ oneMoreTime:
                             }
 
                             condition = new BinaryOperatorExpression(BinaryOperatorKind.Equals,
-                                                                    leftOperand,
-                                                                    rightOperand,
-                                                                    isLifted,
-                                                                    isChecked: false,
-                                                                    isCompareText: false,
-                                                                    operatorMethod: null,
-                                                                    unaryOperatorMethod: null,
-                                                                    semanticModel: null,
-                                                                    compareWith.Syntax,
-                                                                    booleanType,
-                                                                    constantValue: default,
-                                                                    isImplicit: true);
+                                                                     leftOperand,
+                                                                     rightOperand,
+                                                                     isLifted,
+                                                                     isChecked: false,
+                                                                     isCompareText: false,
+                                                                     operatorMethod: null,
+                                                                     unaryOperatorMethod: null,
+                                                                     semanticModel: null,
+                                                                     compareWith.Syntax,
+                                                                     booleanType,
+                                                                     constantValue: default,
+                                                                     isImplicit: true);
 
                             condition = Operation.SetParentOperation(condition, null);
                             LinkBlocks(CurrentBasicBlock, condition, jumpIfTrue: false, RegularBranch(nextCase));
@@ -6547,7 +6547,7 @@ oneMoreTime:
         public override IOperation VisitConstantPattern(IConstantPatternOperation operation, int? captureIdForResult)
         {
             return new ConstantPattern(Visit(operation.Value), semanticModel: null,
-                syntax: operation.Syntax, isImplicit: IsImplicit(operation));
+                operation.Syntax, IsImplicit(operation));
         }
 
         public override IOperation VisitDeclarationPattern(IDeclarationPatternOperation operation, int? captureIdForResult)
