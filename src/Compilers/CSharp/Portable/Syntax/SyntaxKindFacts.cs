@@ -8,8 +8,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         public static bool IsKeywordKind(SyntaxKind kind)
         {
-            return IsReservedKeyword(kind)
-                || IsContextualKeyword(kind);
+            return IsReservedKeyword(kind) || IsContextualKeyword(kind);
         }
 
         public static IEnumerable<SyntaxKind> GetReservedKeywordKinds()
