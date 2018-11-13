@@ -14,7 +14,17 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    internal abstract partial class PreciseAbstractFlowPass<TLocalState> : BoundTreeVisitor
+    /// <summary>
+    /// An abstract flow pass that takes some shortcuts in analyzing finally blocks, in order to enable
+    /// the analysis to take place without tracking exceptions or repeating the analysis of a finally block
+    /// for each exit from a try statement.  The shortcut results in a slightly less precise
+    /// (but still conservative) analysis, but that less precise analysis is all that is required for
+    /// the language specification.  The most significant shortcut is that we do not track the state
+    /// where exceptions can arise.  That does not affect the soundness for most analyses, but for those
+    /// analyses whose soundness would be affected (e.g. "data flows out"), we track "unassignments" to keep
+    /// the analysis sound.
+    /// </summary>
+    internal abstract partial class AbstractFlowPass<TLocalState> : BoundTreeVisitor
         where TLocalState : AbstractFlowPass<TLocalState>.ILocalState
     {
         protected int _recursionDepth;
@@ -61,11 +71,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected bool stateChangedAfterUse;
 
         /// <summary>
-        /// See property PendingBranches
-        /// </summary>
-        private ArrayBuilder<PendingBranch> _pendingBranches;
-
-        /// <summary>
         /// All of the labels seen so far in this forward scan of the body
         /// </summary>
         private PooledHashSet<BoundStatement> _labelsSeen;
@@ -84,13 +89,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// contents of the pendingBranches buffer to take into account the behavior of
         /// "intervening" finally clauses.
         /// </summary>
-        protected ArrayBuilder<PendingBranch> PendingBranches
-        {
-            get
-            {
-                return _pendingBranches;
-            }
-        }
+        protected ArrayBuilder<PendingBranch> PendingBranches { get; private set; }
 
         /// <summary>
         /// The definite assignment and/or reachability state at the point currently being analyzed.
@@ -99,6 +98,22 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected TLocalState StateWhenTrue;
         protected TLocalState StateWhenFalse;
         protected bool IsConditionalState;
+
+        private readonly bool _trackUnassignments; // for the data flows out walker, we track unassignments as well as assignments
+
+        protected abstract void UnionWith(ref TLocalState self, ref TLocalState other);
+
+        /// <summary>
+        /// Nontrivial implementation is required for DataFlowsOutWalker or any flow analysis pass that "tracks
+        /// unassignments" like the nullable walker. The result should be a state, for each variable, that is
+        /// the strongest result possible (i.e. definitely assigned for the data flow passes, or not null for
+        /// the nullable analysis).  Slightly more formally, this should be a reachable state that won't affect
+        /// another reachable state when this is intersected with the other state.
+        /// </summary>
+        protected virtual TLocalState AllBitsSet()
+        {
+            return default(TLocalState);
+        }
 
         protected void SetConditionalState(TLocalState whenTrue, TLocalState whenFalse)
         {
@@ -117,7 +132,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected void Split()
         {
-            Debug.Assert(!_trackExceptions || _pendingBranches[0].Branch == null);
+            Debug.Assert(!_trackExceptions || PendingBranches[0].Branch == null);
             if (!IsConditionalState)
             {
                 SetConditionalState(State, State.Clone());
@@ -126,7 +141,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected void Unsplit()
         {
-            Debug.Assert(!_trackExceptions || _pendingBranches[0].Branch == null);
+            Debug.Assert(!_trackExceptions || PendingBranches[0].Branch == null);
             if (IsConditionalState)
             {
                 IntersectWith(ref StateWhenTrue, ref StateWhenFalse);
@@ -153,14 +168,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly Dictionary<BoundLoopStatement, TLocalState> _loopHeadState;
         #endregion Region
 
-        protected PreciseAbstractFlowPass(
+        protected AbstractFlowPass(
             CSharpCompilation compilation,
             Symbol member,
             BoundNode node,
             BoundNode firstInRegion = null,
             BoundNode lastInRegion = null,
             bool trackRegions = false,
-            bool trackExceptions = false)
+            bool trackExceptions = false,
+            bool trackUnassignments = false)
         {
             Debug.Assert(node != null);
 
@@ -180,7 +196,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 this.RegionSpan = new TextSpan(startLocation, length);
             }
 
-            _pendingBranches = ArrayBuilder<PendingBranch>.GetInstance();
+            PendingBranches = ArrayBuilder<PendingBranch>.GetInstance();
             _labelsSeen = PooledHashSet<BoundStatement>.GetInstance();
             _labels = PooledDictionary<LabelSymbol, TLocalState>.GetInstance();
             this.Diagnostics = DiagnosticBag.GetInstance();
@@ -192,6 +208,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _loopHeadState = new Dictionary<BoundLoopStatement, TLocalState>(ReferenceEqualityComparer.Instance);
             _trackRegions = trackRegions;
             _trackExceptions = trackExceptions;
+            _trackUnassignments = trackUnassignments;
         }
 
         protected abstract string Dump(TLocalState state);
@@ -377,8 +394,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // the entry point of a method is assumed reachable
                 regionPlace = RegionPlace.Before;
                 this.State = ReachableState();
-                _pendingBranches.Clear();
-                if (_trackExceptions) _pendingBranches.Add(new PendingBranch(null, ReachableState()));
+                PendingBranches.Clear();
+                if (_trackExceptions) PendingBranches.Add(new PendingBranch(null, ReachableState()));
                 this.stateChangedAfterUse = false;
                 this.Diagnostics.Clear();
                 returns = this.Scan(ref badRegion);
@@ -391,7 +408,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected virtual void Free()
         {
             this.Diagnostics.Free();
-            _pendingBranches.Free();
+            PendingBranches.Free();
             _labelsSeen.Free();
             _labels.Free();
         }
@@ -473,19 +490,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // when we are tracking exceptions, we use pendingBranches[0] to
                 // track exception states.
-                result = _pendingBranches
+                result = PendingBranches
                         .Where(b => b.Branch != null)
                         .AsImmutableOrNull();
 
-                var oldExceptions = _pendingBranches[0];
+                var oldExceptions = PendingBranches[0];
                 Debug.Assert(oldExceptions.Branch == null);
-                _pendingBranches.Clear();
-                _pendingBranches.Add(oldExceptions);
+                PendingBranches.Clear();
+                PendingBranches.Add(oldExceptions);
             }
             else
             {
-                result = _pendingBranches.ToImmutable();
-                _pendingBranches.Clear();
+                result = PendingBranches.ToImmutable();
+                PendingBranches.Clear();
             }
 
             // The caller should have handled and cleared labelsSeen.
@@ -673,7 +690,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private void ResolveBreaks(TLocalState breakState, LabelSymbol label)
         {
-            var pendingBranches = _pendingBranches;
+            var pendingBranches = PendingBranches;
             var count = pendingBranches.Count;
 
             if (count != 0)
@@ -707,7 +724,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private void ResolveContinues(LabelSymbol continueLabel)
         {
-            var pendingBranches = _pendingBranches;
+            var pendingBranches = PendingBranches;
             var count = pendingBranches.Count;
 
             if (count != 0)
@@ -755,7 +772,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(_trackExceptions);
             Debug.Assert(!IsConditionalState);
-            IntersectWith(ref _pendingBranches[0].State, ref this.State);
+            IntersectWith(ref PendingBranches[0].State, ref this.State);
         }
 
         /// <summary>
@@ -769,7 +786,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             target?.AssertIsLabeledStatementWithLabel(label);
 
             bool labelStateChanged = false;
-            var pendingBranches = _pendingBranches;
+            var pendingBranches = PendingBranches;
             var count = pendingBranches.Count;
 
             if (count != 0)
@@ -830,14 +847,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected SavedPending SavePending()
         {
             Debug.Assert(!this.IsConditionalState);
-            var result = new SavedPending(_pendingBranches, _labelsSeen);
+            var result = new SavedPending(PendingBranches, _labelsSeen);
 
-            _pendingBranches = ArrayBuilder<PendingBranch>.GetInstance();
+            PendingBranches = ArrayBuilder<PendingBranch>.GetInstance();
             _labelsSeen = PooledHashSet<BoundStatement>.GetInstance();
 
             if (_trackExceptions)
             {
-                _pendingBranches.Add(new PendingBranch(null, this.State));
+                PendingBranches.Add(new PendingBranch(null, this.State));
             }
 
             return result;
@@ -908,8 +925,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 oldPending.PendingBranches.AddRange(this.PendingBranches);
             }
 
-            _pendingBranches.Free();
-            _pendingBranches = oldPending.PendingBranches;
+            PendingBranches.Free();
+            PendingBranches = oldPending.PendingBranches;
 
             // We only use SavePending/RestorePending when there could be no branch into the region between them.
             // So there is no need to save the labels seen between the calls.  If there were such a need, we would
@@ -1492,84 +1509,166 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
+
         public override BoundNode VisitTryStatement(BoundTryStatement node)
         {
             var oldPending = SavePending(); // we do not allow branches into a try statement
-
             var initialState = this.State.Clone();
-            VisitStatement(node.TryBlock);
+
+            // use this state to resolve all the branches introduced and internal to try/catch
+            var pendingBeforeTry = SavePending(); 
+
+            VisitTryBlockWithUnassignments(node.TryBlock, node, ref initialState);
+            var finallyState = initialState.Clone();
             var endState = this.State;
-
-            var tryPending = SavePending();
-
-            if (!node.CatchBlocks.IsEmpty)
+            foreach (var catchBlock in node.CatchBlocks)
             {
-                var catchState = initialState.Clone();
-                foreach (var pend in tryPending.PendingBranches)
-                {
-                    IntersectWith(ref catchState, ref pend.State);
-                }
-
-                foreach (var catchBlock in node.CatchBlocks)
-                {
-                    SetState(catchState.Clone());
-
-                    if (catchBlock.ExceptionSourceOpt != null)
-                    {
-                        VisitLvalue(catchBlock.ExceptionSourceOpt);
-                    }
-
-                    if (catchBlock.ExceptionFilterOpt != null)
-                    {
-                        VisitCondition(catchBlock.ExceptionFilterOpt);
-                        SetState(StateWhenTrue);
-                    }
-
-                    VisitStatement(catchBlock.Body);
-                    IntersectWith(ref endState, ref this.State);
-                }
+                SetState(initialState.Clone());
+                VisitCatchBlockWithUnassignments(catchBlock, ref finallyState);
+                IntersectWith(ref endState, ref this.State);
             }
+
+            // Give a chance to branches internal to try/catch to resolve.
+            // Carry forward unresolved branches.
+            RestorePending(pendingBeforeTry);
+
+            // NOTE: At this point all branches that are internal to try or catch blocks have been resolved.
+            //       However we have not yet restored the oldPending branches. Therefore all the branches 
+            //       that are currently pending must have been introduced in try/catch and do not terminate inside those blocks.
+            //
+            //       With exception of YieldReturn, these branches logically go through finally, if such present,
+            //       so we must Union/Intersect finally state as appropriate
 
             if (node.FinallyBlockOpt != null)
             {
                 // branches from the finally block, while illegal, should still not be considered
                 // to execute the finally block before occurring.  Also, we do not handle branches
                 // *into* the finally block.
-                SetState(endState);
-                var catchPending = SavePending();
-                VisitStatement(node.FinallyBlockOpt);
-                endState = this.State;
+                SetState(finallyState);
 
-                foreach (var pend in tryPending.PendingBranches)
+                // capture tryAndCatchPending before going into finally
+                // we will need pending branches as they were before finally later
+                var tryAndCatchPending = SavePending();
+                var unsetInFinally = AllBitsSet();
+                VisitFinallyBlockWithUnassignments(node.FinallyBlockOpt, ref unsetInFinally);                
+                foreach (var pend in tryAndCatchPending.PendingBranches)
                 {
-                    if (pend.Branch != null && pend.Branch.Kind != BoundKind.YieldReturnStatement)
+                    if (pend.Branch == null) continue; // a tracked exception
+                    if (pend.Branch.Kind != BoundKind.YieldReturnStatement)
                     {
-                        SetState(pend.State);
-                        VisitStatement(node.FinallyBlockOpt);
-                        pend.State = this.State;
-                    }
-                }
-                foreach (var pend in catchPending.PendingBranches)
-                {
-                    if (pend.Branch != null && pend.Branch.Kind != BoundKind.YieldReturnStatement)
-                    {
-                        SetState(pend.State);
-                        VisitStatement(node.FinallyBlockOpt);
-                        pend.State = this.State;
+                        UnionWith(ref pend.State, ref this.State);
+                        if (_trackUnassignments) IntersectWith(ref pend.State, ref unsetInFinally);
                     }
                 }
 
-                SetState(endState);
-                RestorePending(catchPending);
+                RestorePending(tryAndCatchPending);
+                UnionWith(ref endState, ref this.State);
+                if (_trackUnassignments) IntersectWith(ref endState, ref unsetInFinally);
+            }
+
+            SetState(endState);
+            RestorePending(oldPending);
+            return null;
+        }
+
+        protected Optional<TLocalState> _tryState;
+
+        private void VisitTryBlockWithUnassignments(BoundStatement tryBlock, BoundTryStatement node, ref TLocalState tryState)
+        {
+            if (_trackUnassignments)
+            {
+                Optional<TLocalState> oldTryState = _tryState;
+                _tryState = AllBitsSet();
+                VisitTryBlock(tryBlock, node, ref tryState);
+                var tempTryStateValue = _tryState.Value;
+                IntersectWith(ref tryState, ref tempTryStateValue);
+                if (oldTryState.HasValue)
+                {
+                    var oldTryStateValue = oldTryState.Value;
+                    IntersectWith(ref oldTryStateValue, ref tempTryStateValue);
+                    oldTryState = oldTryStateValue;
+                }
+
+                _tryState = oldTryState;
             }
             else
             {
-                SetState(endState);
+                VisitTryBlock(tryBlock, node, ref tryState);
+            }
+        }
+
+        protected virtual void VisitTryBlock(BoundStatement tryBlock, BoundTryStatement node, ref TLocalState tryState)
+        {
+            VisitStatement(tryBlock);
+        }
+
+        private void VisitCatchBlockWithUnassignments(BoundCatchBlock catchBlock, ref TLocalState finallyState)
+        {
+            if (_trackUnassignments)
+            {
+                Optional<TLocalState> oldTryState = _tryState;
+                _tryState = AllBitsSet();
+                VisitCatchBlock(catchBlock, ref finallyState);
+                var tempTryStateValue = _tryState.Value;
+                IntersectWith(ref finallyState, ref tempTryStateValue);
+                if (oldTryState.HasValue)
+                {
+                    var oldTryStateValue = oldTryState.Value;
+                    IntersectWith(ref oldTryStateValue, ref tempTryStateValue);
+                    oldTryState = oldTryStateValue;
+                }
+
+                _tryState = oldTryState;
+            }
+            else
+            {
+                VisitCatchBlock(catchBlock, ref finallyState);
+            }
+        }
+
+        protected virtual void VisitCatchBlock(BoundCatchBlock catchBlock, ref TLocalState finallyState)
+        {
+            if (catchBlock.ExceptionSourceOpt != null)
+            {
+                VisitLvalue(catchBlock.ExceptionSourceOpt);
             }
 
-            RestorePending(tryPending);
-            RestorePending(oldPending);
-            return null;
+            if (catchBlock.ExceptionFilterOpt != null)
+            {
+                VisitCondition(catchBlock.ExceptionFilterOpt);
+                SetState(StateWhenTrue);
+            }
+
+            VisitStatement(catchBlock.Body);
+        }
+
+        private void VisitFinallyBlockWithUnassignments(BoundStatement finallyBlock, ref TLocalState unsetInFinally)
+        {
+            if (_trackUnassignments)
+            {
+                Optional<TLocalState> oldTryState = _tryState;
+                _tryState = AllBitsSet();
+                VisitFinallyBlock(finallyBlock, ref unsetInFinally);
+                var tempTryStateValue = _tryState.Value;
+                IntersectWith(ref unsetInFinally, ref tempTryStateValue);
+                if (oldTryState.HasValue)
+                {
+                    var oldTryStateValue = oldTryState.Value;
+                    IntersectWith(ref oldTryStateValue, ref tempTryStateValue);
+                    oldTryState = oldTryStateValue;
+                }
+
+                _tryState = oldTryState;
+            }
+            else
+            {
+                VisitFinallyBlock(finallyBlock, ref unsetInFinally);
+            }
+        }
+
+        protected virtual void VisitFinallyBlock(BoundStatement finallyBlock, ref TLocalState unsetInFinally)
+        {
+            VisitStatement(finallyBlock); // this should generate no pending branches
         }
 
         public sealed override BoundNode VisitReturnStatement(BoundReturnStatement node)
@@ -1594,7 +1693,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void AdjustStateAfterReturnStatement(BoundReturnStatement node)
         {
-            _pendingBranches.Add(new PendingBranch(node, this.State));
+            PendingBranches.Add(new PendingBranch(node, this.State));
             SetUnreachable();
         }
 
@@ -2123,7 +2222,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitAwaitExpression(BoundAwaitExpression node)
         {
             VisitRvalue(node.Expression);
-            _pendingBranches.Add(new PendingBranch(node, this.State));
+            PendingBranches.Add(new PendingBranch(node, this.State));
             if (_trackExceptions) NotePossibleException(node);
             return null;
         }
@@ -2232,7 +2331,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (((CommonForEachStatementSyntax)node.Syntax).AwaitKeyword != default)
             {
-                _pendingBranches.Add(new PendingBranch(node, this.State));
+                PendingBranches.Add(new PendingBranch(node, this.State));
             }
 
             return null;
@@ -2420,7 +2519,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitBreakStatement(BoundBreakStatement node)
         {
             Debug.Assert(!this.IsConditionalState);
-            _pendingBranches.Add(new PendingBranch(node, this.State));
+            PendingBranches.Add(new PendingBranch(node, this.State));
             SetUnreachable();
             return null;
         }
@@ -2430,7 +2529,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // While continue statements do no affect definite assignment, subclasses
             // such as region flow analysis depend on their presence as pending branches.
             Debug.Assert(!this.IsConditionalState);
-            _pendingBranches.Add(new PendingBranch(node, this.State));
+            PendingBranches.Add(new PendingBranch(node, this.State));
             SetUnreachable();
             return null;
         }
@@ -2506,7 +2605,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitGotoStatement(BoundGotoStatement node)
         {
             Debug.Assert(!this.IsConditionalState);
-            _pendingBranches.Add(new PendingBranch(node, this.State));
+            PendingBranches.Add(new PendingBranch(node, this.State));
             SetUnreachable();
             return null;
         }
@@ -2574,7 +2673,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (AwaitUsingAddsPendingBranch && node.AwaitOpt != null)
             {
-                _pendingBranches.Add(new PendingBranch(node, this.State));
+                PendingBranches.Add(new PendingBranch(node, this.State));
             }
             return null;
         }
@@ -2606,7 +2705,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitYieldBreakStatement(BoundYieldBreakStatement node)
         {
             Debug.Assert(!this.IsConditionalState);
-            _pendingBranches.Add(new PendingBranch(node, this.State));
+            PendingBranches.Add(new PendingBranch(node, this.State));
             SetUnreachable();
             return null;
         }
@@ -2614,7 +2713,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitYieldReturnStatement(BoundYieldReturnStatement node)
         {
             VisitRvalue(node.Expression);
-            _pendingBranches.Add(new PendingBranch(node, this.State));
+            PendingBranches.Add(new PendingBranch(node, this.State));
             return null;
         }
 
@@ -2731,12 +2830,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(this.IsConditionalState);
             if (node.JumpIfTrue)
             {
-                _pendingBranches.Add(new PendingBranch(node, this.StateWhenTrue));
+                PendingBranches.Add(new PendingBranch(node, this.StateWhenTrue));
                 this.SetState(this.StateWhenFalse);
             }
             else
             {
-                _pendingBranches.Add(new PendingBranch(node, this.StateWhenFalse));
+                PendingBranches.Add(new PendingBranch(node, this.StateWhenFalse));
                 this.SetState(this.StateWhenTrue);
             }
 

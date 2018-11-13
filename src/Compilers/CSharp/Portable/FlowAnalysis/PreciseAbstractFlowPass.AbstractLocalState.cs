@@ -2,7 +2,7 @@
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    internal partial class PreciseAbstractFlowPass<TLocalState>
+    internal partial class AbstractFlowPass<TLocalState>
     {
         protected abstract bool IntersectWith(ref TLocalState self, ref TLocalState other);
 

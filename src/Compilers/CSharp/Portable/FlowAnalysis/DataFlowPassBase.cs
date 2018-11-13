@@ -11,7 +11,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp
 {
     internal abstract partial class DataFlowPassBase<TLocalState> : AbstractFlowPass<TLocalState>
-        where TLocalState : PreciseAbstractFlowPass<TLocalState>.ILocalState
+        where TLocalState : AbstractFlowPass<TLocalState>.ILocalState
     {
         /// <summary>
         /// A mapping from local variables to the index of their slot in a flow analysis local state.
