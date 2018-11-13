@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         {
             private OperatorOverloadFormatDefinition()
             {
-                this.DisplayName = "Operator - Overload";
+                this.DisplayName = EditorFeaturesResources.Operator_Overload;
                 this.IsBold = true;
             }
         }

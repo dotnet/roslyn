@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "15.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class EditorFeaturesResources {
@@ -1292,6 +1292,15 @@ namespace Microsoft.CodeAnalysis.Editor {
         internal static string Not_a_source_error_line_column_unavailable {
             get {
                 return ResourceManager.GetString("Not_a_source_error_line_column_unavailable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Operator - Overload.
+        /// </summary>
+        internal static string Operator_Overload {
+            get {
+                return ResourceManager.GetString("Operator_Overload", resourceCulture);
             }
         }
         
