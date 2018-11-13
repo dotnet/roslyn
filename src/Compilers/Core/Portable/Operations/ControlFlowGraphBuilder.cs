@@ -4881,6 +4881,7 @@ oneMoreTime:
 
             INamedTypeSymbol booleanType = _compilation.GetSpecialType(SpecialType.System_Boolean);
             IOperation switchValue = VisitAndCapture(operation.Value);
+
             ImmutableArray<ILocalSymbol> locals = getLocals();
             var switchRegion = new RegionBuilder(ControlFlowRegionKind.LocalLifetime, locals: locals);
             EnterRegion(switchRegion);
@@ -4990,18 +4991,18 @@ oneMoreTime:
                             }
 
                             condition = new BinaryOperatorExpression(BinaryOperatorKind.Equals,
-                                                                        leftOperand,
-                                                                        rightOperand,
-                                                                        isLifted,
-                                                                        isChecked: false,
-                                                                        isCompareText: false,
-                                                                        operatorMethod: null,
-                                                                        unaryOperatorMethod: null,
-                                                                        semanticModel: null,
-                                                                        compareWith.Syntax,
-                                                                        booleanType,
-                                                                        constantValue: default,
-                                                                        isImplicit: true);
+                                                                    leftOperand,
+                                                                    rightOperand,
+                                                                    isLifted,
+                                                                    isChecked: false,
+                                                                    isCompareText: false,
+                                                                    operatorMethod: null,
+                                                                    unaryOperatorMethod: null,
+                                                                    semanticModel: null,
+                                                                    compareWith.Syntax,
+                                                                    booleanType,
+                                                                    constantValue: default,
+                                                                    isImplicit: true);
 
                             condition = Operation.SetParentOperation(condition, null);
                             LinkBlocks(CurrentBasicBlock, condition, jumpIfTrue: false, RegularBranch(nextCase));
