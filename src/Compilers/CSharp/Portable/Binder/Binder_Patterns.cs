@@ -480,8 +480,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         // required to identify it.  When that bug is fixed we should be able to remove this code and its callers.
         internal static bool IsZeroElementTupleType(TypeSymbol type)
         {
-            return type.IsStructType() && type.Name == "ValueTuple" && type.GetArity() == 0 && type.ContainingSymbol is var declContainer &&
-                declContainer.Kind == SymbolKind.Namespace && declContainer.Name == "System" && declContainer.ContainingSymbol?.Kind == SymbolKind.Namespace &&
+            return type.IsStructType() && type.Name == "ValueTuple" && type.GetArity() == 0 &&
+                type.ContainingSymbol is var declContainer && declContainer.Kind == SymbolKind.Namespace && declContainer.Name == "System" &&
                 (declContainer.ContainingSymbol as NamespaceSymbol)?.IsGlobalNamespace == true;
         }
 
