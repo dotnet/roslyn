@@ -68,7 +68,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
         }
 
         private readonly IComponentModel _componentModel;
-        private readonly VisualStudioWorkspace _workspace;
+        private readonly Workspace _workspace;
         private readonly ITextDifferencingSelectorService _differenceSelectorService;
         private readonly HostType _hostType;
         private readonly ReiteratedVersionSnapshotTracker _snapshotTracker;
@@ -89,7 +89,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             ITextBuffer subjectBuffer,
             ITextBuffer dataBuffer,
             IVsTextBufferCoordinator bufferCoordinator,
-            VisualStudioWorkspace workspace,
+            Workspace workspace,
             VisualStudioProject project,
             IVsHierarchy hierarchy,
             uint itemId,
@@ -179,7 +179,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 
         public DocumentId FindProjectDocumentIdWithItemId(uint itemidInsertionPoint)
         {
-            var hierarchy = _workspace.GetHierarchy(_project.Id);
+            // We cast to VisualStudioWorkspace because the expectation is this isn't being used in Live Share workspaces
+            var hierarchy = ((VisualStudioWorkspace)_workspace).GetHierarchy(_project.Id);
 
             foreach (var document in _workspace.CurrentSolution.GetProject(_project.Id).Documents)
             {
@@ -194,7 +195,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 
         public uint FindItemIdOfDocument(Document document)
         {
-            var hierarchy = _workspace.GetHierarchy(_project.Id);
+            // We cast to VisualStudioWorkspace because the expectation is this isn't being used in Live Share workspaces
+            var hierarchy = ((VisualStudioWorkspace)_workspace).GetHierarchy(_project.Id);
             return hierarchy.TryGetItemId(_workspace.CurrentSolution.GetDocument(document.Id).FilePath);
         }
 

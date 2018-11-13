@@ -179,9 +179,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // https://github.com/dotnet/roslyn/issues/30480: Should return `bestType` even if
                     // there was a nullability mismatch, and `hadNullabilityMismatch` should be available
                     // to the caller, and up through MethodTypeInferrer.Infer.
-                    bestResultType = hadNullabilityMismatch ?
+                    bestResultType = bestType is null || hadNullabilityMismatch ?
                         default :
-                        TypeSymbolWithAnnotations.Create(bestType, isNullableIfReferenceType: BestTypeInferrer.GetIsNullable(resultTypes));
+                        TypeSymbolWithAnnotations.Create(bestType, BestTypeInferrer.GetNullableAnnotation(bestType, resultTypes));
                     typesOnly.Free();
                     break;
             }
