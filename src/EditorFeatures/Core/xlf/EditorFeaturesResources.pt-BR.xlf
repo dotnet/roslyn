@@ -42,6 +42,16 @@
         <target state="translated">A formatação de documento realizou uma limpeza adicional</target>
         <note />
       </trans-unit>
+      <trans-unit id="Invalid_assembly_name">
+        <source>Invalid assembly name</source>
+        <target state="new">Invalid assembly name</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Invalid_characters_in_assembly_name">
+        <source>Invalid characters in assembly name</source>
+        <target state="new">Invalid characters in assembly name</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Paste_Tracking">
         <source>Paste Tracking</source>
         <target state="new">Paste Tracking</target>
@@ -60,6 +70,56 @@
       <trans-unit id="String_Escape_Character">
         <source>String - Escape Character</source>
         <target state="new">String - Escape Character</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Symbols_Constant_Name">
+        <source>User Symbols - Constant Name</source>
+        <target state="new">User Symbols - Constant Name</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Symbols_Enum_Member_Name">
+        <source>User Symbols - Enum Member Name</source>
+        <target state="new">User Symbols - Enum Member Name</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Symbols_Event_Name">
+        <source>User Symbols - Event Name</source>
+        <target state="new">User Symbols - Event Name</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Symbols_Extension_Method_Name">
+        <source>User Symbols - Extension Method Name</source>
+        <target state="new">User Symbols - Extension Method Name</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Symbols_Field_Name">
+        <source>User Symbols - Field Name</source>
+        <target state="new">User Symbols - Field Name</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Symbols_Local_Name">
+        <source>User Symbols - Local Name</source>
+        <target state="new">User Symbols - Local Name</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Symbols_Method_Name">
+        <source>User Symbols - Method Name</source>
+        <target state="new">User Symbols - Method Name</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Symbols_Namespace_Name">
+        <source>User Symbols - Namespace Name</source>
+        <target state="new">User Symbols - Namespace Name</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Symbols_Parameter_Name">
+        <source>User Symbols - Parameter Name</source>
+        <target state="new">User Symbols - Parameter Name</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Symbols_Property_Name">
+        <source>User Symbols - Property Name</source>
+        <target state="new">User Symbols - Property Name</target>
         <note />
       </trans-unit>
       <trans-unit id="User_Types_Classes">

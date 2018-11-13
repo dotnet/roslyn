@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "15.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class EditorFeaturesResources {
@@ -1896,6 +1896,96 @@ namespace Microsoft.CodeAnalysis.Editor {
         internal static string Updating_files {
             get {
                 return ResourceManager.GetString("Updating_files", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to User Symbols - Constant Name.
+        /// </summary>
+        internal static string User_Symbols_Constant_Name {
+            get {
+                return ResourceManager.GetString("User_Symbols_Constant_Name", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to User Symbols - Enum Member Name.
+        /// </summary>
+        internal static string User_Symbols_Enum_Member_Name {
+            get {
+                return ResourceManager.GetString("User_Symbols_Enum_Member_Name", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to User Symbols - Event Name.
+        /// </summary>
+        internal static string User_Symbols_Event_Name {
+            get {
+                return ResourceManager.GetString("User_Symbols_Event_Name", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to User Symbols - Extension Method Name.
+        /// </summary>
+        internal static string User_Symbols_Extension_Method_Name {
+            get {
+                return ResourceManager.GetString("User_Symbols_Extension_Method_Name", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to User Symbols - Field Name.
+        /// </summary>
+        internal static string User_Symbols_Field_Name {
+            get {
+                return ResourceManager.GetString("User_Symbols_Field_Name", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to User Symbols - Local Name.
+        /// </summary>
+        internal static string User_Symbols_Local_Name {
+            get {
+                return ResourceManager.GetString("User_Symbols_Local_Name", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to User Symbols - Method Name.
+        /// </summary>
+        internal static string User_Symbols_Method_Name {
+            get {
+                return ResourceManager.GetString("User_Symbols_Method_Name", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to User Symbols - Namespace Name.
+        /// </summary>
+        internal static string User_Symbols_Namespace_Name {
+            get {
+                return ResourceManager.GetString("User_Symbols_Namespace_Name", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to User Symbols - Parameter Name.
+        /// </summary>
+        internal static string User_Symbols_Parameter_Name {
+            get {
+                return ResourceManager.GetString("User_Symbols_Parameter_Name", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to User Symbols - Property Name.
+        /// </summary>
+        internal static string User_Symbols_Property_Name {
+            get {
+                return ResourceManager.GetString("User_Symbols_Property_Name", resourceCulture);
             }
         }
         

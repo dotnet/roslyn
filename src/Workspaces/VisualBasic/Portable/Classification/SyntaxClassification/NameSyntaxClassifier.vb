@@ -82,6 +82,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification.Classifiers
 
             If symbol IsNot Nothing Then
                 Select Case symbol.Kind
+                    Case SymbolKind.Namespace
+                        result.Add(New ClassifiedSpan(GetNameToken(node).Span, ClassificationTypeNames.NamespaceName))
+                        Return
                     Case SymbolKind.Method
                         Dim classification = GetClassificationForMethod(node, DirectCast(symbol, IMethodSymbol))
                         If classification IsNot Nothing Then

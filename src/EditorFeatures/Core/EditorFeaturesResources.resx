@@ -830,4 +830,40 @@ Do you want to proceed?</value>
   <data name="Paste_Tracking" xml:space="preserve">
     <value>Paste Tracking</value>
   </data>
+  <data name="Invalid_assembly_name" xml:space="preserve">
+    <value>Invalid assembly name</value>
+  </data>
+  <data name="Invalid_characters_in_assembly_name" xml:space="preserve">
+    <value>Invalid characters in assembly name</value>
+  </data>
+  <data name="User_Symbols_Constant_Name" xml:space="preserve">
+    <value>User Symbols - Constant Name</value>
+  </data>
+  <data name="User_Symbols_Enum_Member_Name" xml:space="preserve">
+    <value>User Symbols - Enum Member Name</value>
+  </data>
+  <data name="User_Symbols_Event_Name" xml:space="preserve">
+    <value>User Symbols - Event Name</value>
+  </data>
+  <data name="User_Symbols_Extension_Method_Name" xml:space="preserve">
+    <value>User Symbols - Extension Method Name</value>
+  </data>
+  <data name="User_Symbols_Field_Name" xml:space="preserve">
+    <value>User Symbols - Field Name</value>
+  </data>
+  <data name="User_Symbols_Local_Name" xml:space="preserve">
+    <value>User Symbols - Local Name</value>
+  </data>
+  <data name="User_Symbols_Method_Name" xml:space="preserve">
+    <value>User Symbols - Method Name</value>
+  </data>
+  <data name="User_Symbols_Namespace_Name" xml:space="preserve">
+    <value>User Symbols - Namespace Name</value>
+  </data>
+  <data name="User_Symbols_Parameter_Name" xml:space="preserve">
+    <value>User Symbols - Parameter Name</value>
+  </data>
+  <data name="User_Symbols_Property_Name" xml:space="preserve">
+    <value>User Symbols - Property Name</value>
+  </data>
 </root>
