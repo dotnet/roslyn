@@ -27,10 +27,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ExtractInterfac
         public string ExtractInterfaceDialogTitle { get { return ServicesVSResources.Extract_Interface; } }
         public string NewInterfaceName { get { return ServicesVSResources.New_interface_name_colon; } }
         public string GeneratedName { get { return ServicesVSResources.Generated_name_colon; } }
-        public string NewFileName { get { return ServicesVSResources.New_file_name_colon; } }
-        public string SelectDestinationFile { get { return "Select destination (to be replaced)"; } }// return ServicesVSResources.Select_public_members_to_form_interface; } }
-        public string SelectCurrentFileAsDestination { get { return "Extract to current file (to be replaced)"; } }
-        public string SelectNewFileAsDestination { get { return "Extract to new file (to be replaced)"; } }
+        public string SelectDestinationFile { get { return ServicesVSResources.Location_colon; } }
+        public string SelectCurrentFileAsDestination { get { return ServicesVSResources.Add_to_existing_file; } }
+        public string SelectNewFileAsDestination { get { return ServicesVSResources.New_file_name_colon; } }
         public string SelectPublicMembersToFormInterface { get { return ServicesVSResources.Select_public_members_to_form_interface; } }
         public string SelectAll { get { return ServicesVSResources.Select_All; } }
         public string DeselectAll { get { return ServicesVSResources.Deselect_All; } }

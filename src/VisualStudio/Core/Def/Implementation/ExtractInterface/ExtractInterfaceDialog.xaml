@@ -29,6 +29,7 @@
         <Thickness x:Key="okCancelButtonPadding">9,2,9,2</Thickness>
         <Thickness x:Key="selectDeselectButtonPadding">9,2,9,2</Thickness>
         <Thickness x:Key="textboxPadding">2</Thickness>
+        <Thickness x:Key="radioButtonPadding">2, 0, 2, 0</Thickness>
     </Window.Resources>
     <Grid Margin="11,6,11,11">
         <Grid.RowDefinitions>
@@ -59,11 +60,6 @@
                      Background="{DynamicResource {x:Static SystemColors.ControlBrush}}"
                      Padding="{StaticResource ResourceKey=textboxPadding}"
                      GotFocus="SelectAllInTextBox"/>
-            <Label x:Uid="FileNameLabel" 
-                   x:Name="FileNameLabel"
-                   Content="{Binding ElementName=dialog, Path=NewFileName}" 
-                   Padding="{StaticResource ResourceKey=labelPadding}"
-                   Target="{Binding ElementName=fileNameTextBox}"/>
 
             <GroupBox x:Uid="DestinationSelectionGroupBox"
                       Margin="0, 9, 0, 0"
@@ -84,7 +80,9 @@
                                  Grid.Row="0"
                                  Grid.ColumnSpan="2" 
                                  Content="{Binding ElementName=dialog, Path=SelectCurrentFileAsDestination}"
+                                 Padding="{StaticResource ResourceKey=radioButtonPadding}"
                                  Checked="DestinationFile_Checked"
+                                 VerticalAlignment="Center"
                                  />
 
                     <RadioButton x:Uid="DestinationNewFileSelectionRadioButton"
@@ -95,10 +93,12 @@
                                  Content="{Binding ElementName=dialog, Path=SelectNewFileAsDestination}"
                                  IsChecked="True"
                                  Checked="DestinationFile_Checked"
+                                 Padding="{StaticResource ResourceKey=radioButtonPadding}"
+                                 VerticalAlignment="Center"
                                  />
 
                     <TextBox x:Uid="FileNameTextBox" 
-                             AutomationProperties.LabeledBy="{Binding ElementName=FileNameLabel}"
+                             AutomationProperties.LabeledBy="{Binding ElementName=DestinationNewFileSelectionRadioButton}"
                              Text="{Binding FileName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
                              Padding="{StaticResource ResourceKey=textboxPadding}"
                              Name="fileNameTextBox"
