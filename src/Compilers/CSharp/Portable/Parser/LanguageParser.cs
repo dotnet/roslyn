@@ -6695,7 +6695,7 @@ tryAgain:
                     }
                     break;
                 case SyntaxKind.UsingKeyword:
-                    return PeekToken(1).Kind == SyntaxKind.OpenParenToken ? this.ParseUsingStatement(awaitTokenOpt: default) : this.ParseLocalDeclarationStatement();
+                    return PeekToken(1).Kind == SyntaxKind.OpenParenToken || (PeekToken(1).ContextualKind == SyntaxKind.AwaitKeyword && PeekToken(2).Kind == SyntaxKind.OpenParenToken) ? this.ParseUsingStatement(awaitTokenOpt: default) : this.ParseLocalDeclarationStatement();
                 case SyntaxKind.WhileKeyword:
                     return this.ParseWhileStatement();
                 case SyntaxKind.OpenBraceToken:
