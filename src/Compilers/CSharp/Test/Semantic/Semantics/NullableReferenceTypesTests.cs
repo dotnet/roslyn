@@ -10317,10 +10317,7 @@ class C
             c.VerifyDiagnostics(
                 // (6,16): error CS0103: The name 'bad' does not exist in the current context
                 //         return bad;
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "bad").WithArguments("bad").WithLocation(6, 16),
-                // (6,16): warning CS8619: Nullability of reference types in value of type '?' doesn't match target type 'string'.
-                //         return bad;
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "bad").WithArguments("?", "string").WithLocation(6, 16)
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "bad").WithArguments("bad").WithLocation(6, 16)
                 );
         }
 
@@ -28449,10 +28446,7 @@ class C
             CreateCompilation(new[] { source }, options: WithNonNullTypesTrue()).VerifyDiagnostics(
                 // (6,22): error CS0103: The name 'bad' does not exist in the current context
                 //         yield return bad;
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "bad").WithArguments("bad").WithLocation(6, 22),
-                // (6,22): warning CS8619: Nullability of reference types in value of type '?' doesn't match target type 'string'.
-                //         yield return bad;
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "bad").WithArguments("?", "string").WithLocation(6, 22)
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "bad").WithArguments("bad").WithLocation(6, 22)
                 );
         }
 
@@ -28504,10 +28498,7 @@ class C
             CreateCompilation(new[] { source }, options: WithNonNullTypesTrue()).VerifyDiagnostics(
                 // (6,9): warning CS8619: Nullability of reference types in value of type '?' doesn't match target type 'string'.
                 //         yield return;
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "yield return;").WithArguments("?", "string").WithLocation(6, 9),
-                // (6,15): error CS1627: Expression expected after yield return
-                //         yield return;
-                Diagnostic(ErrorCode.ERR_EmptyYield, "return").WithLocation(6, 15)
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "yield return;").WithArguments("?", "string").WithLocation(6, 9)
                 );
         }
 
@@ -35067,13 +35058,7 @@ class C<T>
             comp.VerifyDiagnostics(
                 // (6,17): error CS0023: Operator '?' cannot be applied to operand of type 'T'
                 //         return f?.Invoke();
-                Diagnostic(ErrorCode.ERR_BadUnaryOp, "?").WithArguments("?", "T").WithLocation(6, 17),
-                // (6,16): warning CS8603: Possible null reference return.
-                //         return f?.Invoke();
-                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "f?.Invoke()").WithLocation(6, 16),
-                // (6,16): warning CS8619: Nullability of reference types in value of type '?' doesn't match target type 'T'.
-                //         return f?.Invoke();
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "f?.Invoke()").WithArguments("?", "T").WithLocation(6, 16)
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "?").WithArguments("?", "T").WithLocation(6, 17)
                 );
         }
 
