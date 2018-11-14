@@ -81,7 +81,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
         private static NewLineOption? ConvertToNewLineOption(string value)
         {
-            if (s_newLineOptionsEditorConfigMap.TryGetValue(value, out var option)) {
+            if (s_newLineOptionsEditorConfigMap.TryGetValue(value, out var option))
+            {
                 return option;
             }
             if (s_legacyNewLineOptionsEditorConfigMap.TryGetValue(value, out var legacyOption))

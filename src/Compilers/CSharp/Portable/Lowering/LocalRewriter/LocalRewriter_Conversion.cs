@@ -483,7 +483,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             conversionGroupOpt: null,
                             constantValueOpt: default(ConstantValue),
                             type: type,
-                            hasErrors: !conversion.IsValid) { WasCompilerGenerated = true };
+                            hasErrors: !conversion.IsValid)
+            { WasCompilerGenerated = true };
         }
 
         /// <summary>

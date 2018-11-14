@@ -952,7 +952,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 syntax,
                 ImmutableArray.Create(arraySize),
                 new BoundArrayInitialization(syntax, arrayArgs) { WasCompilerGenerated = true },
-                paramArrayType) { WasCompilerGenerated = true };
+                paramArrayType)
+            { WasCompilerGenerated = true };
         }
 
         /// <summary>
@@ -1298,7 +1299,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         syntax,
                         UnsafeGetNullableMethod(syntax, parameterType, SpecialMember.System_Nullable_T__ctor, compilation, diagnostics),
                         null,
-                        defaultValue) { WasCompilerGenerated = true };
+                        defaultValue)
+                    { WasCompilerGenerated = true };
                 }
                 else
                 {
@@ -1418,7 +1420,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     syntax,
                     UnsafeGetNullableMethod(syntax, parameterType, SpecialMember.System_Nullable_T__ctor, compilation, diagnostics),
                     null,
-                    defaultValue) { WasCompilerGenerated = true };
+                    defaultValue)
+                { WasCompilerGenerated = true };
             }
             else if (defaultConstantValue.IsNull || defaultConstantValue.IsBad)
             {

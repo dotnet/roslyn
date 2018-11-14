@@ -1472,10 +1472,14 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
                 var nextChar = _currentToken.VirtualChars[0].Char;
                 switch (nextChar)
                 {
-                    case 'D': case 'd':
-                    case 'S': case 's':
-                    case 'W': case 'w':
-                    case 'p': case 'P':
+                    case 'D':
+                    case 'd':
+                    case 'S':
+                    case 's':
+                    case 'W':
+                    case 'w':
+                    case 'p':
+                    case 'P':
                         if (afterRangeMinus)
                         {
                             backslashToken = backslashToken.AddDiagnosticIfNone(new EmbeddedDiagnostic(
@@ -1595,15 +1599,26 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             Debug.Assert(_currentToken.VirtualChars.Length == 1);
             switch (_currentToken.VirtualChars[0].Char)
             {
-                case 'b': case 'B': case 'A': case 'G': case 'Z': case 'z':
+                case 'b':
+                case 'B':
+                case 'A':
+                case 'G':
+                case 'Z':
+                case 'z':
                     return new RegexAnchorEscapeNode(
                         backslashToken, ConsumeCurrentToken(allowTrivia: allowTriviaAfterEnd));
 
-                case 'w': case 'W': case 's': case 'S': case 'd': case 'D':
+                case 'w':
+                case 'W':
+                case 's':
+                case 'S':
+                case 'd':
+                case 'D':
                     return new RegexCharacterClassEscapeNode(
                         backslashToken, ConsumeCurrentToken(allowTrivia: allowTriviaAfterEnd));
 
-                case 'p': case 'P':
+                case 'p':
+                case 'P':
                     return ParseCategoryEscape(backslashToken, allowTriviaAfterEnd);
             }
 
@@ -1829,8 +1844,14 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
 
             switch (ch)
             {
-                case 'a': case 'b': case 'e': case 'f':
-                case 'n': case 'r': case 't': case 'v':
+                case 'a':
+                case 'b':
+                case 'e':
+                case 'f':
+                case 'n':
+                case 'r':
+                case 't':
+                case 'v':
                     return new RegexSimpleEscapeNode(
                         backslashToken, ConsumeCurrentToken(allowTrivia: allowTriviaAfterEnd));
                 case 'x':

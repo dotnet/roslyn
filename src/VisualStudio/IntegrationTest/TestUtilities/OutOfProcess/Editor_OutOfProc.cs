@@ -187,7 +187,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         public void DialogSendKeys(string dialogAutomationName, string keys)
             => _editorInProc.DialogSendKeys(dialogAutomationName, keys);
 
-        public void FormatDocument() {
+        public void FormatDocument()
+        {
             VisualStudioInstance.Workspace.WaitForAsyncOperations(FeatureAttribute.Workspace);
             SendKeys(new KeyPress(VirtualKey.K, ShiftState.Ctrl), new KeyPress(VirtualKey.D, ShiftState.Ctrl));
         }
@@ -198,7 +199,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             VisualStudioInstance.Dte.ExecuteCommand(WellKnownCommandNames.Edit_FormatDocument);
         }
 
-        public void FormatSelection() {
+        public void FormatSelection()
+        {
             VisualStudioInstance.Workspace.WaitForAsyncOperations(FeatureAttribute.Workspace);
             SendKeys(new KeyPress(VirtualKey.K, ShiftState.Ctrl), new KeyPress(VirtualKey.F, ShiftState.Ctrl));
         }
