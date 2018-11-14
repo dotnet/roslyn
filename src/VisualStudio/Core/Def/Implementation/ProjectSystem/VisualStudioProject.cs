@@ -379,7 +379,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                             }
                             else
                             {
-                                metadataReferencesCreated.Add(_workspace.CreateMetadataReference(metadataReferenceAddedInBatch.path, metadataReferenceAddedInBatch.properties));
+                                var metadataReference = _workspace.CreatePortableExecutableReference(metadataReferenceAddedInBatch.path, metadataReferenceAddedInBatch.properties);
+                                metadataReferencesCreated.Add(metadataReference);
                             }
                         }
 
@@ -693,7 +694,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                         }
                         else
                         {
-                            w.OnMetadataReferenceAdded(Id, _workspace.CreateMetadataReference(fullPath, properties));
+                            var metadataReference = _workspace.CreatePortableExecutableReference(fullPath, properties);
+                            w.OnMetadataReferenceAdded(Id, metadataReference);
                         }
                     });
                 }
