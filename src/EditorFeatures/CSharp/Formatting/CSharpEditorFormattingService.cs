@@ -234,8 +234,34 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
                 return null;
             }
 
-            // don't attempt to format on open/close brace if autoformat on close brace feature is off,
-            // instead just smart indent
+            // Do not attempt to format on open/close brace if autoformat on close brace feature is
+            // off, instead just smart indent.
+            //
+            // We want this behavior because it's totally reasonable for a user to want to not have
+            // on automatic formatting because they feel it is too aggressive.  However, by default,
+            // if you have smart-indentation on and are just hitting enter, you'll common have the
+            // caret placed one indent higher than your current construct.  For example, if you have:
+            //
+            //      if (true)
+            //          $ <-- smart indent will have placed the caret here here.
+            //
+            // This is acceptable given that the user may want to just write a simple statement there.
+            // However, if they start writing `{`, then things should snap over to be:
+            //
+            //      if (true)
+            //      {
+            //
+            // Importantly, this is just an indentation change, no actual 'formatting' is done.  We do
+            // the same with close brace.  If you have:
+            //
+            //      if (...)
+            //      {
+            //          bad . ly ( for (mmated+code) )  ;
+            //          $ <-- smart indent will have placed the care here.
+            //
+            // If the user hits `}` then we will properly smart indent the `}` to match the `{`.
+            // However, we won't touch any of the other code in that block, unlike if we were
+            // formatting.
             var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
 
             var onlySmartIndent =
