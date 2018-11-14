@@ -56,9 +56,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
             // on typing" is off, if "smart indent" is on, we'll still format this.  (However, we
             // won't touch anything else in the block this close curly belongs to.).
             //
-            // TODO(cyrusn): Should we expose an option for this?  Personally, i don't think so.
-            // If a user doesn't want this behavior, they can turn off 'smart indent' and control
-            // everything themselves.  
+            // See extended comment in GetFormattingChangesAsync for more details on this.
             if (smartIndentOn)
             {
                 if (ch == '{' || ch == '}')
