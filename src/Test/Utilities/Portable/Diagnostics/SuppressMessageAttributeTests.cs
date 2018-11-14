@@ -117,7 +117,7 @@ namespace N4
 using System.Diagnostics.CodeAnalysis;
 
 [assembly: SuppressMessage(""Test"", ""Declaration"", Scope=""NamespaceAndChildren"", Target=""N.N1"")]
-[module: SuppressMessage(""Test"", ""Declaration"", Scope=""NamespaceAndChildren"", Target=""N4"")]
+[module: SuppressMessage(""Test"", ""Declaration"", Scope=""namespaceandchildren"", Target=""N4"")]
 
 namespace N
 {

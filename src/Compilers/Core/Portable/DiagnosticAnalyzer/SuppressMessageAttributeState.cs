@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -12,9 +13,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 {
     internal partial class SuppressMessageAttributeState
     {
-        private static readonly SmallDictionary<string, TargetScope> s_suppressMessageScopeTypes = new SmallDictionary<string, TargetScope>()
+        private static readonly SmallDictionary<string, TargetScope> s_suppressMessageScopeTypes = new SmallDictionary<string, TargetScope>(StringComparer.OrdinalIgnoreCase)
             {
-                { null, TargetScope.None },
+                { string.Empty, TargetScope.None },
                 { "module", TargetScope.Module },
                 { "namespace", TargetScope.Namespace },
                 { "resource", TargetScope.Resource },
@@ -24,10 +25,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             };
 
         private static bool TryGetTargetScope(SuppressMessageInfo info, out TargetScope scope)
-        {
-            string scopeString = info.Scope != null ? info.Scope.ToLowerInvariant() : null;
-            return s_suppressMessageScopeTypes.TryGetValue(scopeString, out scope);
-        }
+            => s_suppressMessageScopeTypes.TryGetValue(info.Scope ?? string.Empty, out scope);
 
         private readonly Compilation _compilation;
         private GlobalSuppressions _lazyGlobalSuppressions;
@@ -170,7 +168,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         {
                             return true;
                         }
+                    }
 
+                    if (!declaredSymbols.IsEmpty)
+                    {
                         inImmediatelyContainingSymbol = false;
                     }
                 }
