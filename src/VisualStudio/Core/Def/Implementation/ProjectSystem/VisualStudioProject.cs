@@ -77,6 +77,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private readonly FileChangeWatcher.IContext _fileReferenceChangeContext;
 
         /// <summary>
+        /// File watching tokens from <see cref="_fileReferenceChangeContext"/> that are watching metadata references. These are only created once we are actually applying a batch because
+        /// we don't determine until the batch is applied if the file reference will actually be a file reference or it'll be a converted project reference.
+        /// </summary>
+        private readonly Dictionary<PortableExecutableReference, FileChangeWatcher.IFileWatchingToken> _metadataReferenceFileWatchingTokens = new Dictionary<PortableExecutableReference, FileChangeWatcher.IFileWatchingToken>();
+
+        /// <summary>
         /// track whether we have been subscribed to <see cref="IDynamicFileInfoProvider.Updated"/> event
         /// </summary>
         private readonly HashSet<IDynamicFileInfoProvider> _eventSubscriptionTracker = new HashSet<IDynamicFileInfoProvider>();
@@ -132,11 +138,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             // TODO: set this to watch the NuGet directory or the reference assemblies directory; since those change rarely and most references
             // will come from them, we can avoid creating a bunch of explicit file watchers.
             _fileReferenceChangeContext = workspace.FileChangeWatcher.CreateContext();
+            _fileReferenceChangeContext.FileChanged += FileReferenceChangeContext_FileChanged;
 
             _sourceFiles = new BatchingDocumentCollection(this, (s, d) => s.ContainsDocument(d), (w, d) => w.OnDocumentAdded(d), (w, documentId) => w.OnDocumentRemoved(documentId));
             _additionalFiles = new BatchingDocumentCollection(this, (s, d) => s.ContainsAdditionalDocument(d), (w, d) => w.OnAdditionalDocumentAdded(d), (w, documentId) => w.OnAdditionalDocumentRemoved(documentId));
         }
-
 
         private void ChangeProjectProperty<T>(ref T field, T newValue, Func<Solution, Solution> withNewValue, Action<Workspace> changeValue)
         {
@@ -381,6 +387,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                             {
                                 var metadataReference = _workspace.CreatePortableExecutableReference(metadataReferenceAddedInBatch.path, metadataReferenceAddedInBatch.properties);
                                 metadataReferencesCreated.Add(metadataReference);
+                                _metadataReferenceFileWatchingTokens.Add(metadataReference, _fileReferenceChangeContext.EnqueueWatchingFile(metadataReference.FilePath));
                             }
                         }
 
@@ -404,6 +411,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                             // TODO: find a cleaner way to fetch this
                             var metadataReference = _workspace.CurrentSolution.GetProject(Id).MetadataReferences.Cast<PortableExecutableReference>()
                                                                                     .Single(m => m.FilePath == metadataReferenceRemovedInBatch.path && m.Properties == metadataReferenceRemovedInBatch.properties);
+
+                            _fileReferenceChangeContext.StopWatchingFile(_metadataReferenceFileWatchingTokens[metadataReference]);
+                            _metadataReferenceFileWatchingTokens.Remove(metadataReference);
 
                             solution = solution.RemoveMetadataReference(Id, metadataReference);
                         }
@@ -657,6 +667,37 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             _additionalFiles.ProcessFileChange(fullFilePath);
         }
 
+        private void FileReferenceChangeContext_FileChanged(object sender, string fullFilePath)
+        {
+            lock (_gate)
+            {
+                // Since all adds/removals of references for this project happen under our lock, it's safe to do this
+                // check without taking the main workspace lock.
+                var project = _workspace.CurrentSolution.GetProject(Id);
+
+                foreach (var portableExecutableReference in project.MetadataReferences.OfType<PortableExecutableReference>())
+                {
+                    if (portableExecutableReference.FilePath == fullFilePath)
+                    {
+                        var newPortableExecutableReference = _workspace.CreatePortableExecutableReference(portableExecutableReference.FilePath, portableExecutableReference.Properties);
+
+                        // We need to swap this out. Time to take the full lock now.
+                        _workspace.ApplyBatchChangeToProject(Id, s =>
+                        {
+                            return s.RemoveMetadataReference(Id, portableExecutableReference)
+                                    .AddMetadataReference(Id, newPortableExecutableReference);
+                        });
+
+                        // Transfer the ownership of the file watching token
+                        var fileWatchingToken = _metadataReferenceFileWatchingTokens[portableExecutableReference];
+                        _metadataReferenceFileWatchingTokens.Remove(portableExecutableReference);
+                        _metadataReferenceFileWatchingTokens.Add(newPortableExecutableReference, fileWatchingToken);
+                    }
+                }
+            }
+        }
+
+
         #region Metadata Reference Addition/Removal
 
         public void AddMetadataReference(string fullPath, MetadataReferenceProperties properties)
@@ -696,10 +737,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                         {
                             var metadataReference = _workspace.CreatePortableExecutableReference(fullPath, properties);
                             w.OnMetadataReferenceAdded(Id, metadataReference);
+                            _metadataReferenceFileWatchingTokens.Add(metadataReference, _fileReferenceChangeContext.EnqueueWatchingFile(metadataReference.FilePath));
                         }
                     });
                 }
-
             }
         }
 
@@ -767,6 +808,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                                                                                     .Single(m => m.FilePath == fullPath && m.Properties == properties);
 
                             w.OnMetadataReferenceRemoved(Id, metadataReference);
+
+                            _fileReferenceChangeContext.StopWatchingFile(_metadataReferenceFileWatchingTokens[metadataReference]);
+                            _metadataReferenceFileWatchingTokens.Remove(metadataReference);
                         }
                     });
                 }
