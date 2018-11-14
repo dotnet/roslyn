@@ -127,7 +127,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 _documentFileChangeContext = workspace.FileChangeWatcher.CreateContext();
             }
 
-            _documentFileChangeContext.FileChanged += FileChangeContext_FileChanged;
+            _documentFileChangeContext.FileChanged += DocumentFileChangeContext_FileChanged;
 
             // TODO: set this to watch the NuGet directory or the reference assemblies directory; since those change rarely and most references
             // will come from them, we can avoid creating a bunch of explicit file watchers.
@@ -651,7 +651,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         #endregion
 
-        private void FileChangeContext_FileChanged(object sender, string fullFilePath)
+        private void DocumentFileChangeContext_FileChanged(object sender, string fullFilePath)
         {
             _sourceFiles.ProcessFileChange(fullFilePath);
             _additionalFiles.ProcessFileChange(fullFilePath);
