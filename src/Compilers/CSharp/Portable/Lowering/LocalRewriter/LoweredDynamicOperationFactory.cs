@@ -187,7 +187,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal LoweredDynamicOperation MakeDynamicMemberInvocation(
             string name,
             BoundExpression loweredReceiver,
-            ImmutableArray<TypeSymbol> typeArguments,
+            ImmutableArray<TypeSymbolWithAnnotations> typeArguments,
             ImmutableArray<BoundExpression> loweredArguments,
             ImmutableArray<string> argumentNames,
             ImmutableArray<RefKind> refKinds,
@@ -650,13 +650,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             var callSiteFieldAccess = _factory.Field(null, callSiteField);
             var callSiteArguments = GetCallSiteArguments(callSiteFieldAccess, loweredReceiver, loweredArguments, loweredRight);
 
-            var nullCallSite = _factory.Null(callSiteField.Type);
+            var nullCallSite = _factory.Null(callSiteField.Type.TypeSymbol);
 
             var siteInitialization = _factory.Conditional(
                 _factory.ObjectEqual(callSiteFieldAccess, nullCallSite),
                 _factory.AssignmentExpression(callSiteFieldAccess, _factory.Call(null, callSiteFactoryMethod, binderConstruction)),
                 nullCallSite,
-                callSiteField.Type);
+                callSiteField.Type.TypeSymbol);
 
             var siteInvocation = _factory.Call(
                 _factory.Field(callSiteFieldAccess, callSiteTargetField),

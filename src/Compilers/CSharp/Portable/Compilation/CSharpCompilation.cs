@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Symbols;
 using Microsoft.CodeAnalysis.Text;
@@ -163,12 +164,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal bool FeatureStrictEnabled => Feature("strict") != null;
 
         /// <summary>
-        /// True when "peverify-compat" is set
+        /// True when the "peverify-compat" feature flag is set or the language version is below C# 7.2.
         /// With this flag we will avoid certain patterns known not be compatible with PEVerify.
         /// The code may be less efficient and may deviate from spec in corner cases.
         /// The flag is only to be used if PEVerify pass is extremely important.
         /// </summary>
-        internal bool FeaturePEVerifyCompatEnabled => Feature("peverify-compat") != null;
+        internal bool IsPeVerifyCompatEnabled => LanguageVersion < LanguageVersion.CSharp7_2 || Feature("peverify-compat") != null; 
 
         /// <summary>
         /// The language version that was used to parse the syntax trees of this compilation.
@@ -1262,7 +1263,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 throw new ArgumentOutOfRangeException(nameof(specialType), $"Unexpected SpecialType: '{(int)specialType}'.");
             }
 
-            var result = Assembly.GetSpecialType(specialType);
+            NamedTypeSymbol result;
+            if (IsTypeMissing(specialType))
+            {
+                MetadataTypeName emittedName = MetadataTypeName.FromFullName(specialType.GetMetadataName(), useCLSCompliantNameArityEncoding: true);
+                result = new MissingMetadataTypeSymbol.TopLevel(Assembly.CorLibrary.Modules[0], ref emittedName, specialType);
+            }
+            else
+            {
+                result = Assembly.GetSpecialType(specialType);
+            }
+
             Debug.Assert(result.SpecialType == specialType);
             return result;
         }
@@ -1273,6 +1284,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal Symbol GetSpecialTypeMember(SpecialMember specialMember)
         {
             return Assembly.GetSpecialTypeMember(specialMember);
+        }
+
+        internal override ISymbol CommonGetSpecialTypeMember(SpecialMember specialMember)
+        {
+            return GetSpecialTypeMember(specialMember);
         }
 
         internal TypeSymbol GetTypeByReflectionType(Type type, DiagnosticBag diagnostics)
@@ -1618,7 +1634,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            if (!(method.ReturnType is NamedTypeSymbol namedType))
+            if (!(method.ReturnType.TypeSymbol is NamedTypeSymbol namedType))
             {
                 return false;
             }
@@ -1631,7 +1647,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var syntax = method.ExtractReturnTypeSyntax();
-            var dumbInstance = new BoundLiteral(syntax, ConstantValue.Null, method.ReturnType);
+            var dumbInstance = new BoundLiteral(syntax, ConstantValue.Null, namedType);
             var binder = GetBinder(syntax);
             BoundExpression result;
             var success = binder.GetAwaitableExpressionInfo(dumbInstance, out _, out _, out _, out result, syntax, diagnostics);
@@ -1654,7 +1670,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return (false, false);
             }
 
-            TypeSymbol returnType = method.ReturnType;
+            TypeSymbol returnType = method.ReturnType.TypeSymbol;
             bool returnsTaskOrTaskOfInt = false;
             if (returnType.SpecialType != SpecialType.System_Int32 && returnType.SpecialType != SpecialType.System_Void)
             {
@@ -1692,7 +1708,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return (false, returnsTaskOrTaskOfInt);
             }
 
-            var array = (ArrayTypeSymbol)firstType;
+            var array = (ArrayTypeSymbol)firstType.TypeSymbol;
             return (array.IsSZArray && array.ElementType.SpecialType == SpecialType.System_String, returnsTaskOrTaskOfInt);
         }
 
@@ -1746,6 +1762,51 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
+        /// Classifies a conversion from <paramref name="source"/> to <paramref name="destination"/> according
+        /// to this compilation's programming language.
+        /// </summary>
+        /// <param name="source">Source type of value to be converted</param>
+        /// <param name="destination">Destination type of value to be converted</param>
+        /// <returns>A <see cref="CommonConversion"/> that classifies the conversion from the
+        /// <paramref name="source"/> type to the <paramref name="destination"/> type.</returns>
+        public override CommonConversion ClassifyCommonConversion(ITypeSymbol source, ITypeSymbol destination)
+        {
+            return ClassifyConversion(source, destination).ToCommonConversion();
+        }
+
+        internal override IConvertibleConversion ClassifyConvertibleConversion(IOperation source, ITypeSymbol destination, out Optional<object> constantValue)
+        {
+            constantValue = default;
+
+            if (destination is null)
+            {
+                return Conversion.NoConversion;
+            }
+
+            ITypeSymbol sourceType = source.Type;
+
+            if (sourceType is null)
+            {
+                if (source.ConstantValue.HasValue && source.ConstantValue.Value is null && destination.IsReferenceType)
+                {
+                    constantValue = source.ConstantValue;
+                    return Conversion.DefaultOrNullLiteral;
+                }
+
+                return Conversion.NoConversion;
+            }
+
+            Conversion result = ClassifyConversion(sourceType, destination);
+
+            if (result.IsReference && source.ConstantValue.HasValue && source.ConstantValue.Value is null)
+            {
+                constantValue = source.ConstantValue;
+            }
+
+            return result;
+        }
+
+        /// <summary>
         /// Returns a new ArrayTypeSymbol representing an array type tied to the base types of the
         /// COR Library in this Compilation.
         /// </summary>
@@ -1756,7 +1817,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 throw new ArgumentNullException(nameof(elementType));
             }
 
-            return ArrayTypeSymbol.CreateCSharpArray(this.Assembly, elementType, ImmutableArray<CustomModifier>.Empty, rank);
+            return ArrayTypeSymbol.CreateCSharpArray(this.Assembly, TypeSymbolWithAnnotations.Create(elementType), rank);
         }
 
         /// <summary>
@@ -1769,7 +1830,31 @@ namespace Microsoft.CodeAnalysis.CSharp
                 throw new ArgumentNullException(nameof(elementType));
             }
 
-            return new PointerTypeSymbol(elementType);
+            return new PointerTypeSymbol(TypeSymbolWithAnnotations.Create(elementType));
+        }
+
+        private protected override bool IsSymbolAccessibleWithinCore(
+            ISymbol symbol,
+            ISymbol within,
+            ITypeSymbol throughType)
+        {
+            var symbol0 = symbol.EnsureCSharpSymbolOrNull<ISymbol, Symbol>(nameof(symbol));
+            var within0 = within.EnsureCSharpSymbolOrNull<ISymbol, Symbol>(nameof(within));
+            var throughType0 = throughType.EnsureCSharpSymbolOrNull<ITypeSymbol, TypeSymbol>(nameof(throughType));
+            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+            return
+                within0.Kind == SymbolKind.Assembly ?
+                AccessCheck.IsSymbolAccessible(symbol0, (AssemblySymbol)within0, ref useSiteDiagnostics) :
+                AccessCheck.IsSymbolAccessible(symbol0, (NamedTypeSymbol)within0, ref useSiteDiagnostics, throughType0);
+        }
+
+        [Obsolete("Compilation.IsSymbolAccessibleWithin is not designed for use within the compilers", true)]
+        internal new bool IsSymbolAccessibleWithin(
+            ISymbol symbol,
+            ISymbol within,
+            ITypeSymbol throughType = null)
+        {
+            throw new NotImplementedException();
         }
 
         #endregion
@@ -2133,6 +2218,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 CheckAssemblyName(builder);
                 builder.AddRange(Options.Errors);
+
+                if (Options.Nullable.HasValue && LanguageVersion < MessageID.IDS_FeatureNullableReferenceTypes.RequiredVersion() &&
+                    _syntaxAndDeclarations.ExternalSyntaxTrees.Any())
+                {
+                    builder.Add(new CSDiagnostic(new CSDiagnosticInfo(ErrorCode.ERR_NullableOptionNotAvailable,
+                                                 nameof(Options.Nullable), Options.Nullable, LanguageVersion.ToDisplayString(),
+                                                 new CSharpRequiredLanguageVersion(MessageID.IDS_FeatureNullableReferenceTypes.RequiredVersion())), Location.None));
+                }
 
                 cancellationToken.ThrowIfCancellationRequested();
 
@@ -2906,10 +2999,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<string> elementNames,
             ImmutableArray<Location> elementLocations)
         {
-            var typesBuilder = ArrayBuilder<TypeSymbol>.GetInstance(elementTypes.Length);
+            var typesBuilder = ArrayBuilder<TypeSymbolWithAnnotations>.GetInstance(elementTypes.Length);
             for (int i = 0; i < elementTypes.Length; i++)
             {
-                typesBuilder.Add(elementTypes[i].EnsureCSharpSymbolOrNull<ITypeSymbol, TypeSymbol>($"{nameof(elementTypes)}[{i}]"));
+                var elementType = elementTypes[i].EnsureCSharpSymbolOrNull<ITypeSymbol, TypeSymbol>($"{nameof(elementTypes)}[{i}]");
+                typesBuilder.Add(TypeSymbolWithAnnotations.Create(elementType));
             }
 
             return TupleTypeSymbol.Create(
@@ -2965,7 +3059,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var type = memberTypes[i];
                 var name = memberNames[i];
                 var location = memberLocations.IsDefault ? Location.None : memberLocations[i];
-                fields.Add(new AnonymousTypeField(name, location, (TypeSymbol)type));
+                fields.Add(new AnonymousTypeField(name, location, TypeSymbolWithAnnotations.Create((TypeSymbol)type)));
             }
 
             var descriptor = new AnonymousTypeDescriptor(fields.ToImmutableAndFree(), Location.None);
@@ -3049,12 +3143,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new PredicateSymbolSearcher(this, filter, predicate, cancellationToken).GetSymbolsWithName();
         }
 
+#pragma warning disable RS0026 // Do not add multiple public overloads with optional parameters
         /// <summary>
         /// Return true if there is a source declaration symbol name that matches the provided name.
         /// This will be faster than <see cref="ContainsSymbolsWithName(Func{string, bool}, SymbolFilter, CancellationToken)"/>
         /// when predicate is just a simple string check.
         /// </summary>
-        internal override bool ContainsSymbolsWithName(string name, SymbolFilter filter = SymbolFilter.TypeAndMember, CancellationToken cancellationToken = default(CancellationToken))
+        public override bool ContainsSymbolsWithName(string name, SymbolFilter filter = SymbolFilter.TypeAndMember, CancellationToken cancellationToken = default(CancellationToken))
         {
             if (name == null)
             {
@@ -3071,10 +3166,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>
         /// Return source declaration symbols whose name matches the provided name.  This will be
-        /// faster than <see cref="GetSymbolsWithName(Func{string, bool}, SymbolFilter, CancellationToken)"/>
-        /// when predicate is just a simple string check.
+        /// faster than <see cref="GetSymbolsWithName(Func{string, bool}, SymbolFilter,
+        /// CancellationToken)"/> when predicate is just a simple string check.  <paramref
+        /// name="name"/> is case sensitive.
         /// </summary>
-        internal override IEnumerable<ISymbol> GetSymbolsWithName(string name, SymbolFilter filter = SymbolFilter.TypeAndMember, CancellationToken cancellationToken = default(CancellationToken))
+        public override IEnumerable<ISymbol> GetSymbolsWithName(string name, SymbolFilter filter = SymbolFilter.TypeAndMember, CancellationToken cancellationToken = default(CancellationToken))
         {
             if (name == null)
             {
@@ -3088,6 +3184,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return new NameSymbolSearcher(this, filter, name, cancellationToken).GetSymbolsWithName();
         }
+#pragma warning restore RS0026 // Do not add multiple public overloads with optional parameters
 
         #endregion
 

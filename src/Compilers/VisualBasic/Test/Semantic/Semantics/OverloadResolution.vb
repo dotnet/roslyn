@@ -84,7 +84,7 @@ End Class
             Dim optionStrictOffTree = VisualBasicSyntaxTree.ParseText(optionStrictOff.Value)
 
             Dim c1 = VisualBasicCompilation.Create("Test1",
-                syntaxTrees:={VisualBasicSyntaxTree.ParseText(My.Resources.Resource.OverloadResolutionTestSource),
+                syntaxTrees:={VisualBasicSyntaxTree.ParseText(SemanticResourceUtil.OverloadResolutionTestSource),
                               optionStrictOnTree,
                               optionStrictOffTree},
                 references:={MscorlibRef, SystemCoreRef})
@@ -3061,7 +3061,7 @@ End Class
             Dim optionStrictOffTree = VisualBasicSyntaxTree.ParseText(optionStrictOff.Value)
 
             Dim c1 = VisualBasicCompilation.Create("Test1",
-                syntaxTrees:={Parse(My.Resources.Resource.OverloadResolutionTestSource), optionStrictOffTree},
+                syntaxTrees:={Parse(SemanticResourceUtil.OverloadResolutionTestSource), optionStrictOffTree},
                 references:={TestReferences.NetFx.v4_0_21006.mscorlib},
                 options:=TestOptions.ReleaseExe.WithOverflowChecks(False))
 
@@ -4958,7 +4958,7 @@ End Class
                     </file>
                 </compilation>
 
-            Dim comp = CreateCompilationWithMscorlib40(source, TestOptions.ReleaseDll)
+            Dim comp = CreateCompilationWithMscorlib40(source, options:=TestOptions.ReleaseDll)
 
             Dim comp2 = CreateCompilationWithMscorlib40(source2, references:={comp.EmitToImageReference()})
             CompilationUtils.AssertTheseDiagnostics(comp2,

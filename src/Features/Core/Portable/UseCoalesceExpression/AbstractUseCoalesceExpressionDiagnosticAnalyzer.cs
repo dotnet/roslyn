@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.UseCoalesceExpression
         TSyntaxKind,
         TExpressionSyntax,
         TConditionalExpressionSyntax,
-        TBinaryExpressionSyntax> : AbstractCodeStyleDiagnosticAnalyzer
+        TBinaryExpressionSyntax> : AbstractBuiltInCodeStyleDiagnosticAnalyzer
         where TSyntaxKind : struct
         where TExpressionSyntax : SyntaxNode
         where TConditionalExpressionSyntax : TExpressionSyntax
@@ -129,10 +129,12 @@ namespace Microsoft.CodeAnalysis.UseCoalesceExpression
                 conditionPartToCheck.GetLocation(),
                 whenPartToCheck.GetLocation());
 
-            context.ReportDiagnostic(Diagnostic.Create(
-                this.GetDescriptorWithSeverity(option.Notification.Value),
+            context.ReportDiagnostic(DiagnosticHelper.Create(
+                Descriptor,
                 conditionalExpression.GetLocation(),
-                locations));
+                option.Notification.Severity,
+                locations,
+                properties: null));
         }
     }
 }

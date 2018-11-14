@@ -377,7 +377,7 @@ End Namespace
 Namespace Global.N4
 End Namespace
 </file>
-    </compilation>, New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary).WithRootNamespace("N1"))
+    </compilation>, options:=New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary).WithRootNamespace("N1"))
 
             Dim tree = comp.SyntaxTrees(0)
             Dim globalNS = comp.GlobalNamespace

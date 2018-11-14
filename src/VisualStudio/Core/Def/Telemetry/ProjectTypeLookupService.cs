@@ -13,12 +13,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Telemetry
     {
         public string GetProjectType(Workspace workspace, ProjectId projectId)
         {
-            if (workspace == null || projectId == null)
+            if (!(workspace is VisualStudioWorkspace vsWorkspace) || projectId == null)
             {
                 return string.Empty;
             }
-
-            var vsWorkspace = workspace as VisualStudioWorkspace;
 
             var aggregatableProject = vsWorkspace.GetHierarchy(projectId) as IVsAggregatableProject;
             if (aggregatableProject == null)

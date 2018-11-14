@@ -192,6 +192,12 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             SendKeys(new KeyPress(VirtualKey.K, ShiftState.Ctrl), new KeyPress(VirtualKey.D, ShiftState.Ctrl));
         }
 
+        public void FormatDocumentViaCommand()
+        {
+            VisualStudioInstance.Workspace.WaitForAsyncOperations(FeatureAttribute.Workspace);
+            VisualStudioInstance.Dte.ExecuteCommand(WellKnownCommandNames.Edit_FormatDocument);
+        }
+
         public void FormatSelection() {
             VisualStudioInstance.Workspace.WaitForAsyncOperations(FeatureAttribute.Workspace);
             SendKeys(new KeyPress(VirtualKey.K, ShiftState.Ctrl), new KeyPress(VirtualKey.F, ShiftState.Ctrl));

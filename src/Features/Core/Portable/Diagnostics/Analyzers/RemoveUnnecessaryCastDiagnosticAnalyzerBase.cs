@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.RemoveUnnecessaryCast
 {
     internal abstract class RemoveUnnecessaryCastDiagnosticAnalyzerBase<
         TLanguageKindEnum,
-        TCastExpression> : AbstractCodeStyleDiagnosticAnalyzer
+        TCastExpression> : AbstractBuiltInCodeStyleDiagnosticAnalyzer
         where TLanguageKindEnum : struct
         where TCastExpression : SyntaxNode
     {

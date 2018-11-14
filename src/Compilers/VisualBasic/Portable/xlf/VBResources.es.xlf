@@ -2,6 +2,11 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="es" original="../VBResources.resx">
     <body>
+      <trans-unit id="FEATURE_UnconstrainedTypeParameterInConditional">
+        <source>unconstrained type parameters in binary conditional expressions</source>
+        <target state="new">unconstrained type parameters in binary conditional expressions</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Trees0">
         <source>trees({0})</source>
         <target state="translated">árboles({0})</target>
@@ -4853,8 +4858,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_IllegalCondTypeInIIF">
-        <source>First operand in a binary 'If' expression must be nullable or a reference type.</source>
-        <target state="translated">El primer operando de una expresión 'If' binaria debe ser un tipo que acepte valores NULL o un tipo de referencia.</target>
+        <source>First operand in a binary 'If' expression must be a nullable value type, a reference type, or an unconstrained generic type.</source>
+        <target state="needs-review-translation">El primer operando de una expresión 'If' binaria debe ser un tipo que acepte valores NULL o un tipo de referencia.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CantCallIIF">
@@ -8390,7 +8395,7 @@
 -vbruntime:&lt;file&gt;                 Compile with the alternate Visual Basic
                                   runtime in &lt;file&gt;.
 </source>
-        <target state="needs-review-translation">                  Opciones del compilador de Visual Basic
+        <target state="translated">                  Opciones del compilador de Visual Basic
 
                                   - ARCHIVO DE SALIDA -
 /out:&lt;archivo&gt;                       Especificar nombre del archivo de salida.
@@ -8534,7 +8539,7 @@
                                   Especificar una asignación para los nombres de ruta de acceso de origen
                                   producidos por el compilador.
 /platform:&lt;cadena&gt;                Limitar en qué plataformas se puede ejecutar este código. 
-                                  Debe ser x86, x64, Itanium, arm,
+                                  Debe ser x86, x64, Itanium, arm, arm64,
                                   AnyCPU32BitPreferred o anycpu (valor predeterminado).
 /preferreduilang                  Especificar el nombre del lenguaje de salida preferido.
 /sdkpath:&lt;ruta de acceso&gt;                   Ubicación del directorio de .NET Framework SDK 
@@ -9083,7 +9088,7 @@
       </trans-unit>
       <trans-unit id="FTL_InvalidInputFileName">
         <source>File name '{0}' is empty, contains invalid characters, has a drive specification without an absolute path, or is too long</source>
-        <target state="new">File name '{0}' is empty, contains invalid characters, has a drive specification without an absolute path, or is too long</target>
+        <target state="translated">El nombre de archivo '{0}' está vacío, contiene caracteres no válidos, tiene una especificación de unidad sin ruta de acceso absoluta o es demasiado largo</target>
         <note />
       </trans-unit>
     </body>

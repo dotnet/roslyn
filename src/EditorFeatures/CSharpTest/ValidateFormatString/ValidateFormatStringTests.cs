@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.ValidateFormatString;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ValidateFormatString
@@ -963,6 +964,20 @@ class Program
                 diagnosticId: IDEDiagnosticIds.ValidateFormatStringDiagnosticID,
                 diagnosticSeverity: DiagnosticSeverity.Warning,
                 diagnosticMessage: FeaturesResources.Format_string_contains_invalid_placeholder);
+        }
+
+        [WorkItem(29398, "https://github.com/dotnet/roslyn/issues/29398")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ValidateFormatString)]
+        public async Task LocalFunctionNamedFormat()
+        {
+            await TestDiagnosticMissingAsync(@"public class C
+{
+    public void M()
+    {
+        Forma[||]t();
+        void Format() { }
+    }
+}");
         }
     }
 }

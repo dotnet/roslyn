@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -30,6 +30,38 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     [CompilerTrait(CompilerFeature.LocalFunctions)]
     public class LocalFunctionTests : LocalFunctionsTestBase
     {
+        [Fact, WorkItem(29656, "https://github.com/dotnet/roslyn/issues/29656")]
+        public void RefReturningAsyncLocalFunction()
+        {
+            var source = @"
+public class C
+{
+    async ref System.Threading.Tasks.Task M() { }
+
+    public void M2()
+    {
+        _ = local();
+
+        async ref System.Threading.Tasks.Task local() { }
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (4,11): error CS1073: Unexpected token 'ref'
+                //     async ref System.Threading.Tasks.Task M() { }
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "ref").WithArguments("ref").WithLocation(4, 11),
+                // (4,43): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                //     async ref System.Threading.Tasks.Task M() { }
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M").WithLocation(4, 43),
+                // (10,15): error CS1073: Unexpected token 'ref'
+                //         async ref System.Threading.Tasks.Task local() { }
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "ref").WithArguments("ref").WithLocation(10, 15),
+                // (10,47): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                //         async ref System.Threading.Tasks.Task local() { }
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "local").WithLocation(10, 47)
+                );
+        }
+
         [ConditionalFact(typeof(DesktopOnly))]
         public void LocalFunctionResetsLockScopeFlag()
         {
@@ -558,12 +590,13 @@ class C
             var comp = CreateCompilation(@"
 class C
 {
-    public void M<T>(T value) where T : object { }
+    public void M<T>(T value) where T : class, object { }
 }");
             comp.VerifyDiagnostics(
-                // (4,41): error CS0702: Constraint cannot be special class 'object'
-                //     public void M<T>(T value) where T : object { }
-                Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "object").WithArguments("object").WithLocation(4, 41));
+                // (4,48): error CS0450: 'object': cannot specify both a constraint class and the 'class' or 'struct' constraint
+                //     public void M<T>(T value) where T : class, object { }
+                Diagnostic(ErrorCode.ERR_RefValBoundWithClass, "object").WithArguments("object").WithLocation(4, 48)
+                );
         }
 
         [Fact]
@@ -2658,7 +2691,7 @@ class Program
     // (10,17): error CS0127: Since 'Program.Main(string[])' returns void, a return keyword must not be followed by an object expression
     //                 return 2;
     Diagnostic(ErrorCode.ERR_RetNoObjectRequired, "return").WithArguments("Program.Main(string[])").WithLocation(10, 17),
-    // (13,20): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+    // (13,20): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
     //         int Bar => 2;
     Diagnostic(ErrorCode.ERR_IllegalStatement, "2").WithLocation(13, 20),
     // (13,9): warning CS0162: Unreachable code detected
@@ -3751,7 +3784,7 @@ class C<T>
             public int SomeGlobal => 42;
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/28001")]
         public void CanAccessScriptGlobalsFromInsideMethod()
         {
             var source = @"
@@ -3767,7 +3800,7 @@ void Method()
                 .VerifyEmitDiagnostics();
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/28001")]
         public void CanAccessScriptGlobalsFromInsideLambda()
         {
             var source = @"

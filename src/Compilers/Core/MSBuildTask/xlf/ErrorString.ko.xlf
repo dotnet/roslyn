@@ -121,22 +121,22 @@
       </trans-unit>
       <trans-unit id="MapSourceRoots.ContainsDuplicate">
         <source>{0} contains duplicate items '{1}' with conflicting metadata '{2}': '{3}' and '{4}'</source>
-        <target state="new">{0} contains duplicate items '{1}' with conflicting metadata '{2}': '{3}' and '{4}'</target>
+        <target state="translated">충돌 메타데이터 '{2}'이(가) 있는 중복 항목 '{1}'이(가) {0}에 포함되어 있습니다. '{3}' 및 '{4}'</target>
         <note />
       </trans-unit>
       <trans-unit id="MapSourceRoots.PathMustEndWithSlashOrBackslash">
         <source>{0} paths are required to end with a slash or backslash: '{1}'</source>
-        <target state="new">{0} paths are required to end with a slash or backslash: '{1}'</target>
+        <target state="translated">{0} 경로는 슬래시 또는 백슬래시로 끝나야 합니다. '{1}'</target>
         <note />
       </trans-unit>
       <trans-unit id="MapSourceRoots.NoTopLevelSourceRoot">
         <source>{0} items must include at least one top-level (not nested) item when {1} is true</source>
-        <target state="new">{0} items must include at least one top-level (not nested) item when {1} is true</target>
+        <target state="translated">{0} 항목은 {1}이(가) true인 경우 최상위(중첩되지 않은) 항목을 하나 이상 포함해야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="MapSourceRoots.NoSuchTopLevelSourceRoot">
         <source>The value of {0} not found in {1} items, or the corresponding item is not a top-level source root: '{2}'</source>
-        <target state="new">The value of {0} not found in {1} items, or the corresponding item is not a top-level source root: '{2}'</target>
+        <target state="translated">{1} 항목에서 {0}의 값을 찾을 수 없거나 해당 항목이 최상위 소스 루트가 아닙니다. '{2}'</target>
         <note />
       </trans-unit>
     </body>

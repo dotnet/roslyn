@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
+<Project DefaultTargets="Execute">
+
+  <!--
+    Implements subset of logic provided by the actual RepoToolset Build.proj.
+    TODO: move more logic from build.ps1 here.
+  -->
+  
+  <!--
+  
+  Required parameters:
+    RepoRoot                        Repository root.
+                                    
+  Optional parameters:              
+    Configuration                   Build configuration: "Debug", "Release", etc.
+
+    DotNetPackageVersionPropsPath   Package version overrides.
+
+    Restore                         "true" to restore toolset and solution
+  -->
+
+  <!-- HACK: We need the version of RoslynTools.BuildTasks, since the toolset is not imported as an SDK -->
+  <Import Project="..\Packages.props"/>
+
+  <Import Project="RepoLayout.props"/>
+  <Import Project="BuildTasks.props"/>
+
+  <!--
+    Orchestrated build environment overrides:
+    
+    PB_PackageVersionPropsUrl      {''|URL}                       URL of package version overrides props file.
+  -->
+  
+  <PropertyGroup>
+    <_PackageVersionOverridesPath Condition="'$(PB_PackageVersionPropsUrl)' != ''">$(ArtifactsToolsetDir)PackageVersionOverrides.props</_PackageVersionOverridesPath>
+    <DotNetPackageVersionPropsPath Condition="'$(DotNetPackageVersionPropsPath)' == ''">$(_PackageVersionOverridesPath)</DotNetPackageVersionPropsPath>
+  </PropertyGroup>
+
+  <UsingTask TaskName="RoslynTools.DownloadFile" AssemblyFile="$(RoslynToolsBuildTasksAssembly)" />
+  <UsingTask TaskName="RoslynTools.RewriteOrchestratedBuildPackageVersions" AssemblyFile="$(RoslynToolsBuildTasksAssembly)" />
+
+  <Target Name="Execute">
+    <PropertyGroup>
+      <_DownloadVersionOverrides>false</_DownloadVersionOverrides>
+      <_DownloadVersionOverrides Condition="'$(Restore)' == 'true' and '$(PB_PackageVersionPropsUrl)' != ''">true</_DownloadVersionOverrides>
+    </PropertyGroup>
+    
+    <MakeDir Directories="$([System.IO.Path]::GetDirectoryName('$(_PackageVersionOverridesPath)'))"
+             Condition="$(_DownloadVersionOverrides)"/>
+    
+    <!-- Download version overrides. -->
+    <DownloadFile Uri="$(PB_PackageVersionPropsUrl)"
+                  DestinationPath="$(_PackageVersionOverridesPath)"
+                  Condition="$(_DownloadVersionOverrides)"
+                  Overwrite="true"
+                  Retries="3" />
+
+    <!-- Replace -PackageVersion with -Version -->
+    <RewriteOrchestratedBuildPackageVersions File="$(_PackageVersionOverridesPath)"
+                                             Condition="$(_DownloadVersionOverrides)" />
+    
+  </Target>
+
+</Project>

@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting.Indentation
             _root = root;
         }
 
-        public IList<TextChange> FormatRange(
+        public Task<IList<TextChange>> FormatRangeAsync(
             Workspace workspace, SyntaxToken startToken, SyntaxToken endToken, CancellationToken cancellationToken)
         {
             Contract.ThrowIfTrue(startToken.Kind() == SyntaxKind.None || startToken.Kind() == SyntaxKind.EndOfFileToken);
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting.Indentation
                 smartTokenformattingRules = (new NoLineChangeFormattingRule()).Concat(_formattingRules);
             }
 
-            return Formatter.GetFormattedTextChanges(_root, new TextSpan[] { TextSpan.FromBounds(startToken.SpanStart, endToken.Span.End) }, workspace, _optionSet, smartTokenformattingRules, cancellationToken);
+            return Formatter.GetFormattedTextChangesAsync(_root, new TextSpan[] { TextSpan.FromBounds(startToken.SpanStart, endToken.Span.End) }, workspace, _optionSet, smartTokenformattingRules, cancellationToken);
         }
 
         private bool CloseBraceOfTryOrDoBlock(SyntaxToken endToken)
@@ -141,7 +141,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting.Indentation
 
         private class SmartTokenFormattingRule : NoLineChangeFormattingRule
         {
-            public override void AddSuppressOperations(List<SuppressOperation> list, SyntaxNode node, SyntaxToken lastToken, OptionSet optionSet, NextAction<SuppressOperation> nextOperation)
+            public override void AddSuppressOperations(List<SuppressOperation> list, SyntaxNode node, OptionSet optionSet, NextAction<SuppressOperation> nextOperation)
             {
                 // don't suppress anything
             }

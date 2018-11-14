@@ -66,6 +66,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal override uint LocalScopeDepth => Binder.TopLevelScope;
 
+        protected override bool InExecutableBinder => true;
+
         internal override Symbol ContainingMemberOrLambda
         {
             get
@@ -125,7 +127,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal override TypeSymbol GetIteratorElementType(YieldStatementSyntax node, DiagnosticBag diagnostics)
         {
             RefKind refKind = _methodSymbol.RefKind;
-            TypeSymbol returnType = _methodSymbol.ReturnType;
+            TypeSymbol returnType = _methodSymbol.ReturnType.TypeSymbol;
 
             if (!this.IsDirectlyInIterator)
             {
@@ -151,9 +153,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         Error(elementTypeDiagnostics, ErrorCode.ERR_BadIteratorReturnRef, _methodSymbol.Locations[0], _methodSymbol);
                     }
-                    else
+                    else if (!returnType.IsErrorType())
                     {
-                        Error(elementTypeDiagnostics, ErrorCode.ERR_BadIteratorReturn, _methodSymbol.Locations[0], _methodSymbol, returnType);
+                    Error(elementTypeDiagnostics, ErrorCode.ERR_BadIteratorReturn, _methodSymbol.Locations[0], _methodSymbol, returnType);
                     }
                     elementType = CreateErrorType();
                 }
@@ -185,7 +187,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     case SpecialType.System_Collections_Generic_IEnumerable_T:
                     case SpecialType.System_Collections_Generic_IEnumerator_T:
-                        return ((NamedTypeSymbol)returnType).TypeArgumentsNoUseSiteDiagnostics[0];
+                        return ((NamedTypeSymbol)returnType).TypeArgumentsNoUseSiteDiagnostics[0].TypeSymbol;
+                }
+
+                if (returnType.OriginalDefinition == Compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_IAsyncEnumerable_T))
+                {
+                    return ((NamedTypeSymbol)returnType).TypeArgumentsNoUseSiteDiagnostics[0].TypeSymbol;
                 }
             }
 

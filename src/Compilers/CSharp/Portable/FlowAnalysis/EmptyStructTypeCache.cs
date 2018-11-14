@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if ((object)field != null)
                 {
-                    var actualFieldType = field.Type;
+                    var actualFieldType = field.Type.TypeSymbol;
                     if (!IsEmptyStructType(actualFieldType, typesWithMembersOfThisType))
                     {
                         return false;
@@ -167,7 +167,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     case SymbolKind.Field:
                         var field = (FieldSymbol)member;
-
                         // Do not report virtual tuple fields.
                         // They are additional aliases to the fields of the underlying struct or nested extensions.
                         // and as such are already accounted for via the nonvirtual fields.
@@ -176,11 +175,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                             return null;
                         }
 
-                        return (field.IsFixed || ShouldIgnoreStructField(field, field.Type)) ? null : field.AsMember(type);
+                        return (field.IsFixedSizeBuffer || ShouldIgnoreStructField(field, field.Type.TypeSymbol)) ? null : field.AsMember(type);
 
                     case SymbolKind.Event:
                         EventSymbol eventSymbol = (EventSymbol)member;
-                        return (!eventSymbol.HasAssociatedField || ShouldIgnoreStructField(eventSymbol, eventSymbol.Type)) ? null : eventSymbol.AssociatedField.AsMember(type);
+                        return (!eventSymbol.HasAssociatedField || ShouldIgnoreStructField(eventSymbol, eventSymbol.Type.TypeSymbol)) ? null : eventSymbol.AssociatedField.AsMember(type);
                 }
             }
             return null;

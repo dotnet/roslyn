@@ -207,6 +207,20 @@ $$"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestInAwaitForEach()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+@"await foreach ($$"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotInAwaitForEach()
+        {
+            await VerifyAbsenceAsync(AddInsideMethod(
+@"await foreach (var $$"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestInUsing()
         {
             await VerifyKeywordAsync(AddInsideMethod(
@@ -218,6 +232,20 @@ $$"));
         {
             await VerifyAbsenceAsync(AddInsideMethod(
 @"using (var $$"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestInAwaitUsing()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+@"await using ($$"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotInAwaitUsing()
+        {
+            await VerifyAbsenceAsync(AddInsideMethod(
+@"await using (var $$"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]

@@ -1,12 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
-using System.Collections.Generic;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -60,16 +61,22 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             ExpressionSyntax expressionSyntax = TargetExpressionSyntax;
             VariableDeclarationSyntax declarationSyntax = _syntax.Declaration;
+            bool hasAwait = _syntax.AwaitKeyword.Kind() != default;
 
             Debug.Assert((expressionSyntax == null) ^ (declarationSyntax == null)); // Can't have both or neither.
 
-            bool hasErrors = false;
+            TypeSymbol iDisposable = hasAwait
+                ? this.Compilation.GetWellKnownType(WellKnownType.System_IAsyncDisposable)
+                : this.Compilation.GetSpecialType(SpecialType.System_IDisposable);
+
+            Debug.Assert((object)iDisposable != null);
+            bool hasErrors = ReportUseSiteDiagnostics(iDisposable, diagnostics, hasAwait ? _syntax.AwaitKeyword : _syntax.UsingKeyword);
+
+            Conversion iDisposableConversion = Conversion.NoConversion;
             BoundMultipleLocalDeclarations declarationsOpt = null;
             BoundExpression expressionOpt = null;
             MethodSymbol disposeMethod = null;
-            Conversion iDisposableConversion = Conversion.NoConversion;
-            TypeSymbol iDisposable = this.Compilation.GetSpecialType(SpecialType.System_IDisposable); // no need for diagnostics, so use the Compilation version
-            Debug.Assert((object)iDisposable != null);
+            AwaitableInfo awaitOpt = null;
 
             if (expressionSyntax != null)
             {
@@ -80,7 +87,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 diagnostics.Add(expressionSyntax, useSiteDiagnostics);
 
                 TypeSymbol expressionType = expressionOpt.Type;
-               
+
                 if (!iDisposableConversion.IsImplicit)
                 {
                     if (!(expressionType is null))
@@ -91,16 +98,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         if (expressionType is null || !expressionType.IsErrorType())
                         {
-                            Error(diagnostics, ErrorCode.ERR_NoConvToIDisp, expressionSyntax, expressionOpt.Display);
-                        } 
+                            Error(diagnostics, hasAwait ? ErrorCode.ERR_NoConvToIAsyncDisp : ErrorCode.ERR_NoConvToIDisp, expressionSyntax, expressionOpt.Display);
+                        }
                         hasErrors = true;
-                    }       
+                    }
                 }
             }
             else
             {
-                var declarations = BindUsingVariableDeclaration(originalBinder, diagnostics, hasErrors, declarationSyntax, declarationSyntax, out iDisposableConversion, out disposeMethod);
+                var declarations = BindUsingVariableDeclaration(originalBinder, diagnostics, hasErrors, declarationSyntax, declarationSyntax, hasAwait, out iDisposableConversion, out disposeMethod);
                 declarationsOpt = new BoundMultipleLocalDeclarations(declarationSyntax, declarations, hasErrors);
+            }
+
+            if (hasAwait)
+            {
+                TypeSymbol taskType = this.Compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_ValueTask);
+                hasErrors |= ReportUseSiteDiagnostics(taskType, diagnostics, _syntax.AwaitKeyword);
+
+                var resource = (SyntaxNode)expressionSyntax ?? declarationSyntax;
+                BoundExpression placeholder = new BoundAwaitableValuePlaceholder(resource, taskType).MakeCompilerGenerated();
+                awaitOpt = BindAwaitInfo(placeholder, resource, _syntax.AwaitKeyword.GetLocation(), diagnostics, ref hasErrors);
             }
 
             BoundStatement boundBody = originalBinder.BindPossibleEmbeddedStatement(_syntax.Statement, diagnostics);
@@ -113,6 +130,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 expressionOpt,
                 iDisposableConversion,
                 boundBody,
+                awaitOpt,
                 disposeMethod,
                 hasErrors);
         }        

@@ -132,19 +132,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             get { return this.LocalSymbol; }
         }
 
-        public BoundLocal(SyntaxNode syntax, LocalSymbol localSymbol, ConstantValue constantValueOpt, TypeSymbol type, bool hasErrors)
-            : this(syntax, localSymbol, false, constantValueOpt, type, hasErrors)
-        {
-        }
-
-        public BoundLocal(SyntaxNode syntax, LocalSymbol localSymbol, ConstantValue constantValueOpt, TypeSymbol type)
-            : this(syntax, localSymbol, false, constantValueOpt, type)
+        public BoundLocal(SyntaxNode syntax, LocalSymbol localSymbol, ConstantValue constantValueOpt, TypeSymbol type, bool hasErrors = false)
+            : this(syntax, localSymbol, BoundLocalDeclarationKind.None, constantValueOpt, false, type, hasErrors)
         {
         }
 
         public BoundLocal Update(LocalSymbol localSymbol, ConstantValue constantValueOpt, TypeSymbol type)
         {
-            return this.Update(localSymbol, this.IsDeclaration, constantValueOpt, type);
+            return this.Update(localSymbol, this.DeclarationKind, constantValueOpt, this.IsNullableUnknown, type);
         }
     }
 
@@ -361,6 +356,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         public ImmutableArray<MethodSymbol> OriginalUserDefinedOperatorsOpt { get; }
     }
 
+    internal partial class BoundSuppressNullableWarningExpression
+    {
+        public override ConstantValue ConstantValue
+        {
+            get { return this.Expression.ConstantValue; }
+        }
+    }
+
     internal partial class BoundLiteral
     {
         public override ConstantValue ConstantValue
@@ -461,7 +464,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal BoundObjectCreationExpression UpdateArgumentsAndInitializer(
             ImmutableArray<BoundExpression> newArguments,
             ImmutableArray<RefKind> newRefKinds,
-            BoundExpression newInitializerExpression,
+            BoundObjectInitializerExpressionBase newInitializerExpression,
             TypeSymbol changeTypeOpt = null)
         {
             return Update(
@@ -580,14 +583,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return this.MemberSymbol;
             }
-        }
-    }
-
-    internal partial class BoundAwaitExpression : BoundExpression
-    {
-        internal bool IsDynamic
-        {
-            get { return (object)this.GetResult == null; }
         }
     }
 

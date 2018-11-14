@@ -28,6 +28,8 @@ Imports Microsoft.VisualStudio.Text.Editor.Commanding
 Imports Microsoft.VisualStudio.Text.Editor.Commanding.Commands
 Imports Microsoft.VisualStudio.Text.Operations
 Imports Microsoft.VisualStudio.TextManager
+Imports CompletionItem = Microsoft.CodeAnalysis.Completion.CompletionItem
+Imports IAsyncCompletionService = Microsoft.CodeAnalysis.Editor.IAsyncCompletionService
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
 

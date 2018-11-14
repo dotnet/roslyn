@@ -98,6 +98,26 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddRequiredParentheses
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
+        public async Task TestRelationalPrecedence()
+        {
+            await TestAsync(
+@"class C
+{
+    void M()
+    {
+        int x = a $$> b == c;
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        int x = (a > b) == c;
+    }
+}", RequireAllParenthesesForClarity);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
         public async Task TestLogicalPrecedence()
         {
             await TestAsync(

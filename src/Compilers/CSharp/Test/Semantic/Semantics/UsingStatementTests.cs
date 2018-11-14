@@ -1595,7 +1595,7 @@ class C
             Assert.Equal("System.IO.StreamWriter a", declaredSymbol.ToTestDisplayString());
 
             var typeInfo = model.GetSymbolInfo(usingStatement.Declaration.Type);
-            Assert.Equal(((LocalSymbol)declaredSymbol).Type, typeInfo.Symbol);
+            Assert.Equal(((LocalSymbol)declaredSymbol).Type.TypeSymbol, typeInfo.Symbol);
         }
 
         [Fact]
@@ -1631,7 +1631,7 @@ class C
 
             var typeInfo = model.GetSymbolInfo(usingStatement.Declaration.Type);
             // lowest/last bound node with associated syntax is being picked up. Fine for now.
-            Assert.Equal(((LocalSymbol)model.GetDeclaredSymbol(usingStatement.Declaration.Variables.Last())).Type, typeInfo.Symbol);
+            Assert.Equal(((LocalSymbol)model.GetDeclaredSymbol(usingStatement.Declaration.Variables.Last())).Type.TypeSymbol, typeInfo.Symbol);
         }
 
         [Fact]
@@ -1767,7 +1767,7 @@ class Program
             var symbols = VerifyDeclaredSymbolForUsingStatements(compilation, 1, "mnObj1", "mnObj2");
             foreach (var x in symbols)
             {
-                VerifySymbolInfoForUsingStatements(compilation, ((LocalSymbol)x).Type);
+                VerifySymbolInfoForUsingStatements(compilation, ((LocalSymbol)x).Type.TypeSymbol);
             }
         }
 
@@ -1798,7 +1798,7 @@ class Program
             {
                 var localSymbol = (LocalSymbol)x;
                 VerifyLookUpSymbolForUsingStatements(compilation, localSymbol, 2);
-                VerifySymbolInfoForUsingStatements(compilation, ((LocalSymbol)x).Type, 2);
+                VerifySymbolInfoForUsingStatements(compilation, ((LocalSymbol)x).Type.TypeSymbol, 2);
             }
         }
 
@@ -1827,7 +1827,7 @@ class MyManagedTypeDerived : MyManagedType
             {
                 var localSymbol = (LocalSymbol)x;
                 VerifyLookUpSymbolForUsingStatements(compilation, localSymbol, 1);
-                VerifySymbolInfoForUsingStatements(compilation, ((LocalSymbol)x).Type, 1);
+                VerifySymbolInfoForUsingStatements(compilation, ((LocalSymbol)x).Type.TypeSymbol, 1);
             }
         }
 
@@ -1855,7 +1855,7 @@ class Program
             {
                 var localSymbol = (LocalSymbol)x;
                 VerifyLookUpSymbolForUsingStatements(compilation, localSymbol, 1);
-                VerifySymbolInfoForUsingStatements(compilation, ((LocalSymbol)x).Type, 1);
+                VerifySymbolInfoForUsingStatements(compilation, ((LocalSymbol)x).Type.TypeSymbol, 1);
             }
         }
 
@@ -1884,7 +1884,7 @@ class Program
             {
                 var localSymbol = (LocalSymbol)x;
                 VerifyLookUpSymbolForUsingStatements(compilation, localSymbol, 1);
-                VerifySymbolInfoForUsingStatements(compilation, ((LocalSymbol)x).Type, 1);
+                VerifySymbolInfoForUsingStatements(compilation, ((LocalSymbol)x).Type.TypeSymbol, 1);
             }
         }
 
@@ -1912,7 +1912,7 @@ class Test<T>
             {
                 var localSymbol = (LocalSymbol)x;
                 VerifyLookUpSymbolForUsingStatements(compilation, localSymbol, 1);
-                VerifySymbolInfoForUsingStatements(compilation, ((LocalSymbol)x).Type, 1);
+                VerifySymbolInfoForUsingStatements(compilation, ((LocalSymbol)x).Type.TypeSymbol, 1);
             }
         }
 
@@ -2017,6 +2017,9 @@ class C
 }";
 
             CreateEmptyCompilation(source).VerifyDiagnostics(
+                // (11,9): error CS0518: Predefined type 'System.IDisposable' is not defined or imported
+                //         using (var v = null) ;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "using").WithArguments("System.IDisposable").WithLocation(11, 9),
                 // (11,20): error CS0815: Cannot assign <null> to an implicitly-typed variable
                 //         using (var v = null) ;
                 Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "v = null").WithArguments("<null>").WithLocation(11, 20),

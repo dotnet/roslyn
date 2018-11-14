@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
             var compilation = CreateCompilationWithILAndMscorlib40(source, ilSource, appendDefaultHeader: false);
 
             var refType = compilation.Assembly.GlobalNamespace.GetMember<NamedTypeSymbol>("A");
-            var type = (NamedTypeSymbol)refType.GetMember<FieldSymbol>("F").Type;
+            var type = (NamedTypeSymbol)refType.GetMember<FieldSymbol>("F").Type.TypeSymbol;
 
             // Static method no args.
             var method = type.GetMember<MethodSymbol>("M1");
@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
             Assert.False(method.IsStatic);
             Assert.False(method.IsExtensionMethod);
 
-            type = (NamedTypeSymbol)refType.GetMember<FieldSymbol>("G").Type;
+            type = (NamedTypeSymbol)refType.GetMember<FieldSymbol>("G").Type.TypeSymbol;
 
             // Static method no args.
             method = type.GetMember<MethodSymbol>("M1");
@@ -2438,7 +2438,7 @@ B");
                 var type = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
 
                 // mscorlib.dll
-                var mscorlib = type.GetMember<FieldSymbol>("F").Type.ContainingAssembly;
+                var mscorlib = type.GetMember<FieldSymbol>("F").Type.TypeSymbol.ContainingAssembly;
                 Assert.Equal(RuntimeCorLibName.Name, mscorlib.Name);
                 // We assume every PE assembly may contain extension methods.
                 Assert.True(mscorlib.MightContainExtensionMethods);
@@ -2447,7 +2447,7 @@ B");
                 if (isFromSource)
                 {
                     // System.Core.dll
-                    var systemCore = type.GetMember<FieldSymbol>("G").Type.ContainingAssembly;
+                    var systemCore = type.GetMember<FieldSymbol>("G").Type.TypeSymbol.ContainingAssembly;
                     Assert.True(systemCore.MightContainExtensionMethods);
                 }
 
@@ -2512,12 +2512,12 @@ static class S
                 var type = module.GlobalNamespace.GetMember<NamedTypeSymbol>("S");
                 var intType = compilation.GetSpecialType(SpecialType.System_Int32);
                 var stringType = compilation.GetSpecialType(SpecialType.System_String);
-                var arrayType = ArrayTypeSymbol.CreateCSharpArray(compilation.Assembly, stringType, ImmutableArray.Create<CustomModifier>(), 1);
+                var arrayType = ArrayTypeSymbol.CreateCSharpArray(compilation.Assembly, TypeSymbolWithAnnotations.Create(stringType), 1);
 
                 // Non-generic method.
                 var method = type.GetMember<MethodSymbol>("M1");
                 CheckExtensionMethod(method,
-                    ImmutableArray.Create<TypeSymbol>(),
+                    ImmutableArray.Create<TypeSymbolWithAnnotations>(),
                     "void object.M1()",
                     "void S.M1(object o)",
                     "void object.M1()",
@@ -2526,7 +2526,7 @@ static class S
                 // Generic method, one type argument.
                 method = type.GetMember<MethodSymbol>("M2");
                 CheckExtensionMethod(method,
-                    ImmutableArray.Create<TypeSymbol>(intType),
+                    ImmutableArray.Create(TypeSymbolWithAnnotations.Create(intType)),
                     "void IEnumerable<int>.M2<int>()",
                     "void S.M2<T>(IEnumerable<T> t)",
                     "void IEnumerable<T>.M2<T>()",
@@ -2535,7 +2535,7 @@ static class S
                 // Generic method, multiple type arguments.
                 method = type.GetMember<MethodSymbol>("M3");
                 CheckExtensionMethod(method,
-                    ImmutableArray.Create<TypeSymbol>(intType, arrayType),
+                    ImmutableArray.Create(TypeSymbolWithAnnotations.Create(intType), TypeSymbolWithAnnotations.Create(arrayType)),
                     "void string[].M3<int, string[]>(IEnumerable<int> t)",
                     "void S.M3<T, U>(U u, IEnumerable<T> t)",
                     "void U.M3<T, U>(IEnumerable<T> t)",
@@ -2547,7 +2547,7 @@ static class S
 
         private void CheckExtensionMethod(
             MethodSymbol method,
-            ImmutableArray<TypeSymbol> typeArgs,
+            ImmutableArray<TypeSymbolWithAnnotations> typeArgs,
             string reducedMethodDescription,
             string reducedFromDescription,
             string constructedFromDescription,

@@ -183,7 +183,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 // If the target Project is VB then we have to check if the RootNamespace of the VB project is the parent most namespace of the type being generated
                 // True, Remove the RootNamespace
                 // False, Add Global to the Namespace
-                Contract.Assert(targetProject.Language == LanguageNames.VisualBasic);
+                Debug.Assert(targetProject.Language == LanguageNames.VisualBasic);
                 IGenerateTypeService targetLanguageService = null;
                 if (_semanticDocument.Project.Language == LanguageNames.VisualBasic)
                 {
@@ -530,7 +530,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                         }
                     }
 
-                    Contract.Assert(includeUsingsOrImports != null);
+                    Debug.Assert(includeUsingsOrImports != null);
                 }
 
                 return (containers, includeUsingsOrImports);

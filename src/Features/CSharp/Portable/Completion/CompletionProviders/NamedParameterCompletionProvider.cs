@@ -103,7 +103,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     var escapedName = parameter.Name.ToIdentifierToken().ToString();
 
                     context.AddItem(SymbolCompletionItem.CreateWithSymbolId(
-                        displayText: escapedName + ColonString,
+                        displayText: escapedName,
+                        displayTextSuffix: ColonString,
                         symbols: ImmutableArray.Create(parameter),
                         rules: s_rules.WithMatchPriority(SymbolMatchPriority.PreferNamedArgument),
                         contextPosition: token.SpanStart,
@@ -255,7 +256,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         {
             return Task.FromResult<TextChange?>(new TextChange(
                 selectedItem.Span,
-                selectedItem.DisplayText.Substring(0, selectedItem.DisplayText.Length - ColonString.Length)));
+                selectedItem.DisplayText));
         }
     }
 }

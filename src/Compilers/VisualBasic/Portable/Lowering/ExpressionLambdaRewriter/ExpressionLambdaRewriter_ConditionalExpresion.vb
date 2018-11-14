@@ -222,6 +222,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Nothing,
                 ImmutableArray.Create(Of BoundExpression)(parameter),
                 Nothing,
+                Nothing,
                 isLValue:=False,
                 suppressObjectClone:=True,
                 type:=callType)

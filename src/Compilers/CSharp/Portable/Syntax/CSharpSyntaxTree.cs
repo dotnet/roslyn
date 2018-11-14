@@ -593,9 +593,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             return _lazyPragmaWarningStateMap.GetWarningState(id, position);
         }
 
-        private CSharpLineDirectiveMap _lazyLineDirectiveMap;
+        /// <summary>
+        /// Returns true if the `#nullable` directive preceding the position is
+        /// `enable`, false if `disable`, and null if no preceding directive.
+        /// </summary>
+        internal bool? GetNullableDirectiveState(int position)
+        {
+            if (_lazyNullableDirectiveMap == null)
+            {
+                // Create the #nullable directive map on demand.
+                Interlocked.CompareExchange(ref _lazyNullableDirectiveMap, NullableDirectiveMap.Create(this), null);
+            }
 
+            return _lazyNullableDirectiveMap.GetDirectiveState(position);
+        }
+
+        private CSharpLineDirectiveMap _lazyLineDirectiveMap;
         private CSharpPragmaWarningStateMap _lazyPragmaWarningStateMap;
+        private NullableDirectiveMap _lazyNullableDirectiveMap;
 
         private LinePosition GetLinePosition(int position)
         {

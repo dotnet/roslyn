@@ -1,21 +1,30 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.ComponentModel.Composition
+Imports System.ComponentModel.Composition.Hosting
 Imports System.IO
 Imports System.Runtime.InteropServices
+Imports System.Threading
+Imports EnvDTE
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Diagnostics
+Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
+Imports Microsoft.CodeAnalysis.FindSymbols
 Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
-Imports Microsoft.CodeAnalysis.Text
+Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.VisualStudio.ComponentModelHost
 Imports Microsoft.VisualStudio.Composition
 Imports Microsoft.VisualStudio.LanguageServices.Implementation
+Imports Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
+Imports Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectBrowser.Lists
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
+Imports Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.CPS
+Imports Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.Legacy
+Imports Microsoft.VisualStudio.Shell
 Imports Microsoft.VisualStudio.Shell.Interop
-Imports Microsoft.VisualStudio.Text
 Imports Moq
+Imports Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Framework
 
@@ -26,64 +35,89 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
     Friend Class TestEnvironment
         Implements IDisposable
 
-        Private ReadOnly _monitorSelectionMock As MockShellMonitorSelection
-        Private ReadOnly _workspace As TestWorkspace
-        Private ReadOnly _serviceProvider As MockServiceProvider
-        Private ReadOnly _projectTracker As VisualStudioProjectTracker
+        Private Shared ReadOnly s_exportProviderFactory As Lazy(Of IExportProviderFactory) = New Lazy(Of IExportProviderFactory)(
+            Function()
+                Dim catalog = TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic
+                catalog = catalog.WithParts(GetType(FileChangeWatcherProvider),
+                                            GetType(MockVisualStudioWorkspace),
+                                            GetType(VisualStudioProjectFactory),
+                                            GetType(MockServiceProvider),
+                                            GetType(SolutionEventsBatchScopeCreator),
+                                            GetType(ProjectCodeModelFactory),
+                                            GetType(CPSProjectFactory),
+                                            GetType(VisualStudioRuleSetManagerFactory),
+                                            GetType(VsMetadataServiceFactory),
+                                            GetType(VisualStudioMetadataReferenceManagerFactory))
+                Return ExportProviderCache.GetOrCreateExportProviderFactory(catalog)
+            End Function)
+
+        Private ReadOnly _workspace As VisualStudioWorkspaceImpl
         Private ReadOnly _projectFilePaths As New List(Of String)
 
         Public Sub New(Optional solutionIsFullyLoaded As Boolean = True)
-            ' As a policy, if anything goes wrong don't use exception filters, just throw exceptions for the
-            ' test harness to catch normally. Otherwise debugging things can be annoying when your test process
-            ' goes away
-            AbstractProject.CrashOnException = False
+            ExportProvider = s_exportProviderFactory.Value.CreateExportProvider()
+            _workspace = ExportProvider.GetExportedValue(Of VisualStudioWorkspaceImpl)
+            ThreadingContext = ExportProvider.GetExportedValue(Of IThreadingContext)()
 
-            _monitorSelectionMock = New MockShellMonitorSelection(solutionIsFullyLoaded)
-            _workspace = New TestWorkspace()
-            _serviceProvider = New MockServiceProvider(_monitorSelectionMock, _workspace)
-            _projectTracker = New VisualStudioProjectTracker(_serviceProvider, _workspace)
+            Dim mockServiceProvider As MockServiceProvider = ExportProvider.GetExportedValue(Of MockServiceProvider)()
+            mockServiceProvider.MockMonitorSelection = New MockShellMonitorSelection(solutionIsFullyLoaded)
+            ServiceProvider = mockServiceProvider
 
-            Dim metadataReferenceProvider = New VisualStudioMetadataReferenceManager(_serviceProvider, _workspace.Services.GetService(Of ITemporaryStorageService)())
             Dim ruleSetFileProvider = New VisualStudioRuleSetManager(
-                DirectCast(_serviceProvider.GetService(GetType(SVsFileChangeEx)), IVsFileChangeEx),
+                New FileChangeWatcher(System.Threading.Tasks.Task.FromResult(DirectCast(ServiceProvider.GetService(GetType(SVsFileChangeEx)), IVsFileChangeEx))),
                 New TestForegroundNotificationService(),
                 AsynchronousOperationListenerProvider.NullListener)
 
-            Dim documentTrackingService = New VisualStudioDocumentTrackingService(_serviceProvider)
-            Dim documentProvider = New DocumentProvider(_projectTracker, _serviceProvider, documentTrackingService)
-
-            _projectTracker.InitializeProviders(documentProvider, metadataReferenceProvider, ruleSetFileProvider)
+            Dim documentTrackingService = New VisualStudioDocumentTrackingService(ServiceProvider)
         End Sub
 
-        Public Sub NotifySolutionAsFullyLoaded()
-            _monitorSelectionMock.SolutionIsFullyLoaded = True
-            _projectTracker.OnAfterBackgroundSolutionLoadComplete()
-        End Sub
+        <PartNotDiscoverable>
+        <Export(GetType(VisualStudioWorkspace))>
+        <Export(GetType(VisualStudioWorkspaceImpl))>
+        Private Class MockVisualStudioWorkspace
+            Inherits VisualStudioWorkspaceImpl
 
-        Public ReadOnly Property ProjectTracker As VisualStudioProjectTracker
-            Get
-                Return _projectTracker
-            End Get
-        End Property
+            <ImportingConstructor>
+            Public Sub New(exportProvider As Composition.ExportProvider)
+                MyBase.New(exportProvider, exportProvider.GetExportedValue(Of MockServiceProvider))
+            End Sub
 
-        Public ReadOnly Property ServiceProvider As MockServiceProvider
-            Get
-                Return _serviceProvider
-            End Get
-        End Property
+            Public Overrides Sub DisplayReferencedSymbols(solution As Microsoft.CodeAnalysis.Solution, referencedSymbols As IEnumerable(Of ReferencedSymbol))
+                Throw New NotImplementedException()
+            End Sub
 
-        Public ReadOnly Property Workspace As Microsoft.CodeAnalysis.Workspace
+            Public Overrides Function GetFileCodeModel(documentId As DocumentId) As EnvDTE.FileCodeModel
+                Throw New NotImplementedException()
+            End Function
+
+            Public Overrides Function TryGoToDefinition(symbol As ISymbol, project As Microsoft.CodeAnalysis.Project, cancellationToken As CancellationToken) As Boolean
+                Throw New NotImplementedException()
+            End Function
+
+            Public Overrides Function TryFindAllReferences(symbol As ISymbol, project As Microsoft.CodeAnalysis.Project, cancellationToken As CancellationToken) As Boolean
+                Throw New NotImplementedException()
+            End Function
+
+            Friend Overrides Function OpenInvisibleEditor(documentId As DocumentId) As IInvisibleEditor
+                Throw New NotImplementedException()
+            End Function
+
+            Friend Overrides Function GetBrowseObject(symbolListItem As SymbolListItem) As Object
+                Throw New NotImplementedException()
+            End Function
+        End Class
+
+        Public ReadOnly Property ThreadingContext As IThreadingContext
+        Public ReadOnly Property ServiceProvider As IServiceProvider
+        Public ReadOnly Property ExportProvider As Composition.ExportProvider
+
+        Public ReadOnly Property Workspace As VisualStudioWorkspace
             Get
                 Return _workspace
             End Get
         End Property
 
         Public Sub Dispose() Implements IDisposable.Dispose
-            For Each project In _projectTracker.ImmutableProjects.ToArray()
-                project.Disconnect()
-            Next
-
-            _projectTracker.OnAfterCloseSolution()
             _workspace.Dispose()
 
             For Each filePath In _projectFilePaths
@@ -109,15 +143,21 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
             Return Workspace.CurrentSolution.Projects.Single().CompilationOptions
         End Function
 
-        Friend Class MockServiceProvider
+        <PartNotDiscoverable>
+        <Export>
+        <Export(GetType(SVsServiceProvider))>
+        Private Class MockServiceProvider
             Implements System.IServiceProvider
+            Implements SVsServiceProvider ' The shell service provider actually implements this too for people using that type directly
+            Implements Shell.IAsyncServiceProvider
 
-            Private ReadOnly _mockMonitorSelection As IVsMonitorSelection
-            Private ReadOnly _workspace As TestWorkspace
+            Private ReadOnly _exportProvider As Composition.ExportProvider
 
-            Public Sub New(mockMonitorSelection As IVsMonitorSelection, workspace As TestWorkspace)
-                _mockMonitorSelection = mockMonitorSelection
-                _workspace = workspace
+            Public MockMonitorSelection As IVsMonitorSelection
+
+            <ImportingConstructor>
+            Public Sub New(exportProvider As Composition.ExportProvider)
+                _exportProvider = exportProvider
             End Sub
 
             Public Function GetService(serviceType As Type) As Object Implements System.IServiceProvider.GetService
@@ -131,7 +171,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
                         Return GetComponentModelMock()
 
                     Case GetType(SVsShellMonitorSelection)
-                        Return _mockMonitorSelection
+                        Return MockMonitorSelection
 
                     Case GetType(SVsXMLMemberIndexService)
                         Return New MockXmlMemberIndexService
@@ -147,10 +187,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
                 End Select
             End Function
 
+            Public Function GetServiceAsync(serviceType As Type) As Task(Of Object) Implements Shell.IAsyncServiceProvider.GetServiceAsync
+                Return System.Threading.Tasks.Task.FromResult(GetService(serviceType))
+            End Function
+
             Friend Function GetComponentModelMock() As IComponentModel
-                Dim componentModel As New Mock(Of IComponentModel)(MockBehavior.Loose)
-                componentModel.SetupGet(Function(cm) cm.DefaultExportProvider).Returns(_workspace.ExportProvider.AsExportProvider())
-                Return componentModel.Object
+                Return New MockComponentModel(_exportProvider)
             End Function
         End Class
 

@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -95,7 +96,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                     if (!await TryDeserializeDocumentAsync(serializer, document, builder, cancellationToken).ConfigureAwait(false))
                     {
-                        Contract.Requires(lastResult.Version == VersionStamp.Default);
+                        Debug.Assert(lastResult.Version == VersionStamp.Default);
 
                         // this can happen if we merged back active file diagnostics back to project state but
                         // project state didn't have diagnostics for the file yet. (since project state was staled)
@@ -144,7 +145,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 if (!await TryDeserializeDocumentAsync(serializer, document, builder, cancellationToken).ConfigureAwait(false))
                 {
-                    Contract.Requires(lastResult.Version == VersionStamp.Default);
+                    Debug.Assert(lastResult.Version == VersionStamp.Default);
 
                     // this can happen if we merged back active file diagnostics back to project state but
                     // project state didn't have diagnostics for the file yet. (since project state was staled)
@@ -249,7 +250,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 var project = document.Project;
 
                 // if project didn't successfully loaded, then it is same as FSA off
-                var fullAnalysis = ServiceFeatureOnOffOptions.IsClosedFileDiagnosticsEnabled(project) && 
+                var fullAnalysis = ServiceFeatureOnOffOptions.IsClosedFileDiagnosticsEnabled(project) &&
                                    await project.HasSuccessfullyLoadedAsync(CancellationToken.None).ConfigureAwait(false);
 
                 // keep from build flag if full analysis is off

@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// Creates a speculative SemanticModel for a TypeSyntax node at a position within an existing MemberSemanticModel.
             /// </summary>
             public SpeculativeMemberSemanticModel(SyntaxTreeSemanticModel parentSemanticModel, Symbol owner, TypeSyntax root, Binder rootBinder, int position)
-                : base(parentSemanticModel.Compilation, root, owner, rootBinder, parentSemanticModel, position)
+                : base(root, owner, rootBinder, containingSemanticModelOpt: null, parentSemanticModelOpt: parentSemanticModel, speculatedPosition: position)
             {
             }
 

@@ -1,6 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-#if NET46
+#if NET472
 
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -94,7 +94,9 @@ public class Base
     public int this[string x] { private protected set { } get { return 5; } }
     private protected Base() { Event1?.Invoke(); }
 }";
-            var baseCompilation = CreateCompilation(source1, parseOptions: TestOptions.Regular7_2, options: TestOptions.ReleaseDll.WithStrongNameProvider(s_defaultPortableProvider));
+            var baseCompilation = CreateCompilation(source1, parseOptions: TestOptions.Regular7_2,
+                options: TestOptions.ReleaseDll.WithStrongNameProvider(s_defaultPortableProvider),
+                assemblyName: "Paul");
             var bb = (INamedTypeSymbol)baseCompilation.GlobalNamespace.GetMember("Base");
             foreach (var member in bb.GetMembers())
             {

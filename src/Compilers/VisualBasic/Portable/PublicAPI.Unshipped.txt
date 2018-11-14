@@ -1,3 +1,4 @@
+Microsoft.CodeAnalysis.VisualBasic.LanguageVersion.VisualBasic16 = 1600 -> Microsoft.CodeAnalysis.VisualBasic.LanguageVersion
 Microsoft.CodeAnalysis.VisualBasic.Syntax.AsClauseSyntax.WithAsKeyword(asKeyword As Microsoft.CodeAnalysis.SyntaxToken) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.AsClauseSyntax
 Microsoft.CodeAnalysis.VisualBasic.Syntax.CastExpressionSyntax.WithCloseParenToken(closeParenToken As Microsoft.CodeAnalysis.SyntaxToken) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.CastExpressionSyntax
 Microsoft.CodeAnalysis.VisualBasic.Syntax.CastExpressionSyntax.WithCommaToken(commaToken As Microsoft.CodeAnalysis.SyntaxToken) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.CastExpressionSyntax
@@ -48,3 +49,6 @@ Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeStatementSyntax.WithAttributeLists
 Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeStatementSyntax.WithIdentifier(identifier As Microsoft.CodeAnalysis.SyntaxToken) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeStatementSyntax
 Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeStatementSyntax.WithModifiers(modifiers As Microsoft.CodeAnalysis.SyntaxTokenList) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeStatementSyntax
 Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeStatementSyntax.WithTypeParameterList(typeParameterList As Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeParameterListSyntax) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeStatementSyntax
+Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilation.ClassifyCommonConversion(source As Microsoft.CodeAnalysis.ITypeSymbol, destination As Microsoft.CodeAnalysis.ITypeSymbol) -> Microsoft.CodeAnalysis.Operations.CommonConversion
+Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilation.ContainsSymbolsWithName(name As String, filter As Microsoft.CodeAnalysis.SymbolFilter = Microsoft.CodeAnalysis.SymbolFilter.TypeAndMember, cancellationToken As System.Threading.CancellationToken = Nothing) -> Boolean
+Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilation.GetSymbolsWithName(name As String, filter As Microsoft.CodeAnalysis.SymbolFilter = Microsoft.CodeAnalysis.SymbolFilter.TypeAndMember, cancellationToken As System.Threading.CancellationToken = Nothing) -> System.Collections.Generic.IEnumerable(Of Microsoft.CodeAnalysis.ISymbol)

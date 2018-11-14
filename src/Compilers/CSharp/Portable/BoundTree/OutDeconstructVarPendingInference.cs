@@ -9,18 +9,18 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         public BoundDeconstructValuePlaceholder Placeholder;
 
-        public BoundDeconstructValuePlaceholder SetInferredType(TypeSymbol type, Binder binder, bool success)
+        public BoundDeconstructValuePlaceholder SetInferredType(TypeSymbolWithAnnotations type, Binder binder, bool success)
         {
             Debug.Assert(Placeholder is null);
 
             // The val escape scope for this placeholder won't be used, so defaulting to narrowest scope
-            Placeholder = new BoundDeconstructValuePlaceholder(this.Syntax, binder.LocalScopeDepth, type, hasErrors: this.HasErrors || !success);
+            Placeholder = new BoundDeconstructValuePlaceholder(this.Syntax, binder.LocalScopeDepth, type.TypeSymbol, hasErrors: this.HasErrors || !success);
             return Placeholder;
         }
 
         public BoundDeconstructValuePlaceholder FailInference(Binder binder)
         {
-            return SetInferredType(binder.CreateErrorType(), binder, success: false);
+            return SetInferredType(TypeSymbolWithAnnotations.Create(binder.NonNullTypesContext, binder.CreateErrorType()), binder, success: false);
         }
     }
 }

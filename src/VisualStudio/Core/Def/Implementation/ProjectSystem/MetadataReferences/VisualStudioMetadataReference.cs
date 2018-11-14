@@ -55,8 +55,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     UpdateSnapshot();
                 }
 
-                // make sure we have file notification subscribed
-                _fileChangeTracker.EnsureSubscription();
                 return _currentSnapshot;
             }
         }
@@ -74,7 +72,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         public void UpdateSnapshot()
         {
-            _currentSnapshot = new Snapshot(_provider, Properties, this.FilePath);
+            _currentSnapshot = new Snapshot(_provider, Properties, this.FilePath, _fileChangeTracker);
         }
 
         private string GetDebuggerDisplay()

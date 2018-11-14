@@ -50,9 +50,9 @@ namespace Roslyn.Collections.Immutable
         private ImmutableHashMap(Bucket root, IEqualityComparer<TKey> comparer, IEqualityComparer<TValue> valueComparer)
             : this(comparer, valueComparer)
         {
-            Contract.Requires(root != null);
-            Contract.Requires(comparer != null);
-            Contract.Requires(valueComparer != null);
+            Debug.Assert(root != null);
+            Debug.Assert(comparer != null);
+            Debug.Assert(valueComparer != null);
 
             _root = root;
         }
@@ -539,7 +539,7 @@ namespace Roslyn.Collections.Immutable
         [Pure]
         private ImmutableHashMap<TKey, TValue> AddRange(IEnumerable<KeyValuePair<TKey, TValue>> pairs, bool overwriteOnCollision, bool avoidToHashMap)
         {
-            Contract.Requires(pairs != null);
+            Debug.Assert(pairs != null);
             Contract.Ensures(Contract.Result<ImmutableHashMap<TKey, TValue>>() != null);
 
             // Some optimizations may apply if we're an empty list.
@@ -713,8 +713,8 @@ namespace Roslyn.Collections.Immutable
             internal ListBucket(ValueBucket[] buckets)
                 : base(buckets[0].Hash)
             {
-                Contract.Requires(buckets != null);
-                Contract.Requires(buckets.Length >= 2);
+                Debug.Assert(buckets != null);
+                Debug.Assert(buckets.Length >= 2);
                 _buckets = buckets;
             }
 
@@ -829,8 +829,8 @@ namespace Roslyn.Collections.Immutable
             /// <param name="count">The count.</param>
             private HashBucket(int hashRoll, uint used, Bucket[] buckets, int count)
             {
-                Contract.Requires(buckets != null);
-                Contract.Requires(buckets.Length == CountBits(used));
+                Debug.Assert(buckets != null);
+                Debug.Assert(buckets.Length == CountBits(used));
 
                 _hashRoll = hashRoll & 31;
                 _used = used;
@@ -846,9 +846,9 @@ namespace Roslyn.Collections.Immutable
             /// <param name="bucket2">The bucket2.</param>
             internal HashBucket(int suggestedHashRoll, ValueOrListBucket bucket1, ValueOrListBucket bucket2)
             {
-                Contract.Requires(bucket1 != null);
-                Contract.Requires(bucket2 != null);
-                Contract.Requires(bucket1.Hash != bucket2.Hash);
+                Debug.Assert(bucket1 != null);
+                Debug.Assert(bucket2 != null);
+                Debug.Assert(bucket1.Hash != bucket2.Hash);
 
                 // find next hashRoll that causes these two to be slotted in different buckets
                 var h1 = bucket1.Hash;
@@ -971,7 +971,7 @@ namespace Roslyn.Collections.Immutable
             [Pure]
             private static uint RotateRight(uint v, int n)
             {
-                Contract.Requires(n >= 0 && n < 32);
+                Debug.Assert(n >= 0 && n < 32);
                 if (n == 0)
                 {
                     return v;
@@ -982,7 +982,7 @@ namespace Roslyn.Collections.Immutable
 
             private int ComputePhysicalSlot(int logicalSlot)
             {
-                Contract.Requires(logicalSlot >= 0 && logicalSlot < 32);
+                Debug.Assert(logicalSlot >= 0 && logicalSlot < 32);
                 Contract.Ensures(Contract.Result<int>() >= 0);
                 if (_buckets.Length == 32)
                 {
@@ -1012,14 +1012,14 @@ namespace Roslyn.Collections.Immutable
             [Pure]
             private static uint InsertBit(int position, uint bits)
             {
-                Contract.Requires(0 == (bits & (1u << position)));
+                Debug.Assert(0 == (bits & (1u << position)));
                 return bits | (1u << position);
             }
 
             [Pure]
             private static uint RemoveBit(int position, uint bits)
             {
-                Contract.Requires(0 != (bits & (1u << position)));
+                Debug.Assert(0 != (bits & (1u << position)));
                 return bits & ~(1u << position);
             }
         }

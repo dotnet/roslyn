@@ -21,11 +21,6 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
 
         private static readonly FieldInfo s_ipcServerChannelListenerThread = typeof(IpcServerChannel).GetField("_listenerThread", BindingFlags.NonPublic | BindingFlags.Instance);
 
-        internal static string GetInteractiveHostPath()
-        {
-            return typeof(InteractiveHostEntryPoint).Assembly.Location;
-        }
-
         internal static void DisposeInteractiveHostProcess(InteractiveHost process)
         {
             IpcServerChannel serverChannel = process._ServerChannel;

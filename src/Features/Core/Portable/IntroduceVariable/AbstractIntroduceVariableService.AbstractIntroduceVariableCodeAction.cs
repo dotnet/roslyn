@@ -76,20 +76,11 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                 var singleLineExpression = _semanticDocument.Document.GetLanguageService<ISyntaxFactsService>().ConvertToSingleLine(expression);
                 var nodeString = singleLineExpression.ToString();
 
-                // prevent the display string from being too long
-                const int MaxLength = 40;
-                if (nodeString.Length > MaxLength)
-                {
-                    nodeString = nodeString.Substring(0, MaxLength) + "...";
-                }
-
                 return CreateDisplayText(nodeString);
             }
 
-            private string CreateDisplayText(string nodeString)
-            {
-                // Indexed by: allOccurrences, isConstant, isLocal
-                var formatStrings = new string[2, 2, 2]
+            // Indexed by: allOccurrences, isConstant, isLocal
+            private static string[,,] formatStrings = new string[2, 2, 2]
                 {
                   {
                     { FeaturesResources.Introduce_field_for_0, FeaturesResources.Introduce_local_for_0 },
@@ -101,6 +92,8 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                   }
                 };
 
+            private string CreateDisplayText(string nodeString)
+            {
                 var formatString = _isQueryLocal
                     ? _allOccurrences
                         ? FeaturesResources.Introduce_query_variable_for_all_occurrences_of_0

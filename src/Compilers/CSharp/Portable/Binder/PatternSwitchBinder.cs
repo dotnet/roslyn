@@ -260,7 +260,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         var matchLabelSyntax = (CasePatternSwitchLabelSyntax)node;
                         var pattern = sectionBinder.BindPattern(
-                            matchLabelSyntax.Pattern, SwitchGoverningType, node.HasErrors, diagnostics);
+                            SwitchGoverningExpression, matchLabelSyntax.Pattern, SwitchGoverningType, node.HasErrors, diagnostics);
                         return new BoundPatternSwitchLabel(node, label, pattern,
                             matchLabelSyntax.WhenClause != null ? sectionBinder.BindBooleanExpression(matchLabelSyntax.WhenClause.Condition, diagnostics) : null,
                             true, node.HasErrors);

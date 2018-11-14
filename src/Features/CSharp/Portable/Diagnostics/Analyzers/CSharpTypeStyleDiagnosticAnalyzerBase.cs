@@ -1,20 +1,16 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Diagnostics;
-using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
 {
     internal abstract partial class CSharpTypeStyleDiagnosticAnalyzerBase :
-        AbstractCodeStyleDiagnosticAnalyzer
+        AbstractBuiltInCodeStyleDiagnosticAnalyzer
     {
         protected abstract CSharpTypeStyleHelper Helper { get; }
 
@@ -62,19 +58,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
 
             var typeStyle = Helper.AnalyzeTypeName(
                 declaredType, semanticModel, optionSet, cancellationToken);
-            if (!typeStyle.IsStylePreferred ||
-                typeStyle.Severity == DiagnosticSeverity.Hidden ||
-                !typeStyle.CanConvert())
+            if (!typeStyle.IsStylePreferred || !typeStyle.CanConvert())
             {
                 return;
             }
 
             // The severity preference is not Hidden, as indicated by IsStylePreferred.
-            var descriptor = GetDescriptorWithSeverity(typeStyle.Severity);
-            context.ReportDiagnostic(CreateDiagnostic(descriptor, declarationStatement, declaredType.Span));
+            var descriptor = Descriptor;
+            context.ReportDiagnostic(CreateDiagnostic(descriptor, declarationStatement, declaredType.StripRefIfNeeded().Span, typeStyle.Severity));
         }
 
-        private Diagnostic CreateDiagnostic(DiagnosticDescriptor descriptor, SyntaxNode declaration, TextSpan diagnosticSpan) 
-            => Diagnostic.Create(descriptor, declaration.SyntaxTree.GetLocation(diagnosticSpan));
+        private Diagnostic CreateDiagnostic(DiagnosticDescriptor descriptor, SyntaxNode declaration, TextSpan diagnosticSpan, ReportDiagnostic severity) 
+            => DiagnosticHelper.Create(descriptor, declaration.SyntaxTree.GetLocation(diagnosticSpan), severity, additionalLocations: null, properties: null);
     }
 }

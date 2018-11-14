@@ -67,6 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         declarationsOpt: localDeclaration,
                         expressionOpt: null,
                         iDisposableConversion: localDeclaration.IDisposableConversion,
+                        awaitOpt: null,
                         disposeMethodOpt: localDeclaration.DisposeMethodOpt,
                         body: innerBlock
                         );

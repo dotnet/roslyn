@@ -32,11 +32,14 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
         public static IUIAutomationElement FindDialogByAutomationId(IntPtr visualStudioHWnd, string dialogAutomationId, bool isOpen, bool wait = true)
         {
-            return Retry(
-                _ => FindDialogWorker(visualStudioHWnd, dialogAutomationId),
-                stoppingCondition: (automationElement, _) => !wait || (isOpen ? automationElement != null : automationElement == null),
-                delay: TimeSpan.FromMilliseconds(250),
-                CancellationToken.None);
+            using (var cancellationTokenSource = new CancellationTokenSource(Helper.HangMitigatingTimeout))
+            {
+                return Retry(
+                    _ => FindDialogWorker(visualStudioHWnd, dialogAutomationId),
+                    stoppingCondition: (automationElement, _) => !wait || (isOpen ? automationElement != null : automationElement == null),
+                    delay: TimeSpan.FromMilliseconds(250),
+                    cancellationTokenSource.Token);
+            }
         }
 
         /// <summary>
@@ -124,7 +127,11 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         /// </summary>
         public static void PressButtonWithNameFromDialogWithName(IntPtr visualStudioHWnd, string dialogName, string buttonName)
         {
-            var dialogAutomationElement = FindDialogByName(visualStudioHWnd, dialogName, isOpen: true, CancellationToken.None);
+            IUIAutomationElement dialogAutomationElement;
+            using (var cancellationTokenSource = new CancellationTokenSource(Helper.HangMitigatingTimeout))
+            {
+                dialogAutomationElement = FindDialogByName(visualStudioHWnd, dialogName, isOpen: true, cancellationTokenSource.Token);
+            }
 
             var buttonAutomationElement = dialogAutomationElement.FindDescendantByName(buttonName);
             buttonAutomationElement.Invoke();

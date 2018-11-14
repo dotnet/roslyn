@@ -966,6 +966,7 @@ public class Cls
             Assert.Equal(decl.Identifier().ValueText, symbol.Name);
             Assert.Equal(variableDeclaratorSyntax, symbol.DeclaringSyntaxReferences.Single().GetSyntax());
             Assert.Equal(expectedLocalKind, ((LocalSymbol)symbol).DeclarationKind);
+            Assert.False(((ILocalSymbol)symbol).IsFixed);
             Assert.Same(symbol, model.GetDeclaredSymbol((SyntaxNode)variableDeclaratorSyntax));
 
             var other = model.LookupSymbols(decl.SpanStart, name: decl.Identifier().ValueText).Single();
@@ -982,14 +983,14 @@ public class Cls
 
             var local = (SourceLocalSymbol)symbol;
 
-            AssertInfoForDeclarationExpressionSyntax(model, decl, expectedSymbol: local, expectedType: local.Type);
+            AssertInfoForDeclarationExpressionSyntax(model, decl, expectedSymbol: local, expectedType: local.Type.TypeSymbol);
 
             foreach (var reference in references)
             {
                 Assert.Same(symbol, model.GetSymbolInfo(reference).Symbol);
                 Assert.Same(symbol, model.LookupSymbols(reference.SpanStart, name: decl.Identifier().ValueText).Single());
                 Assert.True(model.LookupNames(reference.SpanStart).Contains(decl.Identifier().ValueText));
-                Assert.Equal(local.Type, model.GetTypeInfo(reference).Type);
+                Assert.Equal(local.Type.TypeSymbol, model.GetTypeInfo(reference).Type);
             }
 
             if (verifyDataFlow)
@@ -1036,7 +1037,7 @@ public class Cls
             Assert.True(SyntaxFacts.IsInNamespaceOrTypeContext(typeSyntax));
             Assert.True(SyntaxFacts.IsInTypeOnlyContext(typeSyntax));
 
-            TypeSymbol expected = expectedSymbol?.GetTypeOrReturnType();
+            TypeSymbol expected = expectedSymbol?.GetTypeOrReturnType().TypeSymbol;
 
             if (expected?.IsErrorType() != false)
             {
@@ -1141,7 +1142,7 @@ public class Cls
 
             var local = (SourceLocalSymbol)symbol;
 
-            AssertInfoForDeclarationExpressionSyntax(model, decl, local, local.Type);
+            AssertInfoForDeclarationExpressionSyntax(model, decl, local, local.Type.TypeSymbol);
         }
 
         private static void VerifyNotInScope(SemanticModel model, IdentifierNameSyntax reference)
@@ -1699,7 +1700,7 @@ public class Cls
     }
 }";
             var compilation = CreateCompilation(text,
-                                                            references: new MetadataReference[] { CSharpRef, SystemCoreRef },
+                                                            references: new MetadataReference[] { CSharpRef },
                                                             options: TestOptions.ReleaseExe,
                                                             parseOptions: TestOptions.Regular);
 
@@ -5530,7 +5531,7 @@ True");
 @"
 IFieldInitializerOperation (Field: System.Boolean X.Test1) (OperationKind.FieldInitializer, Type: null) (Syntax: '= TakeOutPa ... & Dummy(x1)')
   Locals: Local_1: System.Int32 x1
-  IBinaryOperation (BinaryOperatorKind.And) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'TakeOutPara ... & Dummy(x1)')
+  IBinaryOperation (BinaryOperatorKind.ConditionalAnd) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'TakeOutPara ... & Dummy(x1)')
     Left: 
       IInvocationOperation (System.Boolean X.TakeOutParam(System.Int32 y, out System.Int32 x)) (OperationKind.Invocation, Type: System.Boolean) (Syntax: 'TakeOutPara ... out int x1)')
         Instance Receiver: 
@@ -8053,6 +8054,117 @@ public class X
         }
 
         [Fact]
+        public void For_06()
+        {
+            var source =
+@"
+public class X
+{
+    public static void Main()
+    {
+        var l = new System.Collections.Generic.List<System.Action>();
+
+        for (int x0 = 1; x0 < 3; Dummy(TakeOutParam(x0*10, out var x1), x1, l, () => System.Console.WriteLine(""{0}"", x1)))
+        {
+            x0++;
+        }
+
+        System.Console.WriteLine(""--"");
+
+        foreach (var d in l)
+        {
+            d();
+        }
+    }
+
+    static void Dummy(object y, object z, System.Collections.Generic.List<System.Action> l, System.Action d) 
+    {
+        l.Add(d);
+        System.Console.WriteLine(z);
+    }
+
+    static bool TakeOutParam<T>(T y, out T x) 
+    {
+        x = y;
+        return true;
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CompileAndVerify(compilation, expectedOutput:
+@"20
+30
+--
+20
+30
+");
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = GetOutVarDeclarations(tree, "x1").ToArray();
+            var x1Ref = GetReferences(tree, "x1").ToArray();
+            Assert.Equal(1, x1Decl.Length);
+            Assert.Equal(2, x1Ref.Length);
+            VerifyModelForOutVar(model, x1Decl[0], x1Ref);
+        }
+
+        [Fact]
+        public void For_07()
+        {
+            var source =
+@"
+public class X
+{
+    public static void Main()
+    {
+        var l = new System.Collections.Generic.List<System.Action>();
+
+        for (int x0 = 1; x0 < 3; Dummy(TakeOutParam(x0*10, out var x1), x1, l, () => System.Console.WriteLine(""{0}"", x1)), x0++)
+        {
+        }
+
+        System.Console.WriteLine(""--"");
+
+        foreach (var d in l)
+        {
+            d();
+        }
+    }
+
+    static void Dummy(object y, object z, System.Collections.Generic.List<System.Action> l, System.Action d) 
+    {
+        l.Add(d);
+        System.Console.WriteLine(z);
+    }
+
+    static bool TakeOutParam<T>(T y, out T x) 
+    {
+        x = y;
+        return true;
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CompileAndVerify(compilation, expectedOutput:
+@"10
+20
+--
+10
+20
+");
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = GetOutVarDeclarations(tree, "x1").ToArray();
+            var x1Ref = GetReferences(tree, "x1").ToArray();
+            Assert.Equal(1, x1Decl.Length);
+            Assert.Equal(2, x1Ref.Length);
+            VerifyModelForOutVar(model, x1Decl[0], x1Ref);
+        }
+
+        [Fact]
         public void Scope_Foreach_01()
         {
             var source =
@@ -8877,7 +8989,7 @@ public class X
                 // (12,23): error CS0103: The name 'let' does not exist in the current context
                 //         return (o) => let x1 = o;
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "let").WithArguments("let").WithLocation(12, 23),
-                // (12,23): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+                // (12,23): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
                 //         return (o) => let x1 = o;
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "let").WithLocation(12, 23),
                 // (12,27): error CS0103: The name 'x1' does not exist in the current context
@@ -8892,7 +9004,7 @@ public class X
                 // (17,23): error CS0103: The name 'let' does not exist in the current context
                 //         return (o) => let var x2 = o;
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "let").WithArguments("let").WithLocation(17, 23),
-                // (17,23): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+                // (17,23): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
                 //         return (o) => let var x2 = o;
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "let").WithLocation(17, 23),
                 // (17,36): error CS0103: The name 'o' does not exist in the current context
@@ -10864,7 +10976,7 @@ public class X
 @"
 IParameterInitializerOperation (Parameter: [System.Boolean p = default(System.Boolean)]) (OperationKind.ParameterInitializer, Type: null, IsInvalid) (Syntax: '= TakeOutPa ... ) && x3 > 0')
   Locals: Local_1: System.Int32 x3
-  IBinaryOperation (BinaryOperatorKind.And) (OperationKind.BinaryOperator, Type: System.Boolean, IsInvalid) (Syntax: 'TakeOutPara ... ) && x3 > 0')
+  IBinaryOperation (BinaryOperatorKind.ConditionalAnd) (OperationKind.BinaryOperator, Type: System.Boolean, IsInvalid) (Syntax: 'TakeOutPara ... ) && x3 > 0')
     Left: 
       IInvocationOperation (System.Boolean X.TakeOutParam(System.Int32 y, out System.Int32 x)) (OperationKind.Invocation, Type: System.Boolean, IsInvalid) (Syntax: 'TakeOutPara ... out int x3)')
         Instance Receiver: 
@@ -11122,7 +11234,7 @@ True");
 @"
 IPropertyInitializerOperation (Property: System.Boolean X.Test1 { get; }) (OperationKind.PropertyInitializer, Type: null) (Syntax: '= TakeOutPa ... & Dummy(x1)')
   Locals: Local_1: System.Int32 x1
-  IBinaryOperation (BinaryOperatorKind.And) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'TakeOutPara ... & Dummy(x1)')
+  IBinaryOperation (BinaryOperatorKind.ConditionalAnd) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'TakeOutPara ... & Dummy(x1)')
     Left: 
       IInvocationOperation (System.Boolean X.TakeOutParam(System.Int32 y, out System.Int32 x)) (OperationKind.Invocation, Type: System.Boolean) (Syntax: 'TakeOutPara ... out int x1)')
         Instance Receiver: 
@@ -11257,7 +11369,7 @@ public class X
             VerifyModelForOutVar(model, x1Decl, x1Ref);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/28026")]
         public void Scope_Query_01()
         {
             var source =
@@ -12555,7 +12667,7 @@ public class X
             VerifyModelForOutVarWithoutDataFlow(model, y4Decl, y4Ref);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/28026")]
         public void Query_01()
         {
             var source =
@@ -19041,7 +19153,7 @@ public class Cls
     }
 }";
             var compilation = CreateCompilation(text,
-                                                            references: new MetadataReference[] { CSharpRef, SystemCoreRef },
+                                                            references: new MetadataReference[] { CSharpRef },
                                                             options: TestOptions.ReleaseExe,
                                                             parseOptions: TestOptions.Regular);
 
@@ -19235,7 +19347,7 @@ public class Cls
             VerifyModelForOutVar(model, x1Decl);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly), Reason = ConditionalSkipReason.RestrictedTypesNeedDesktop)]
         public void RestrictedTypes_01()
         {
             var text = @"
@@ -19274,7 +19386,7 @@ public class Cls
             VerifyModelForOutVar(model, x1Decl, x1Ref);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly), Reason = ConditionalSkipReason.RestrictedTypesNeedDesktop)]
         public void RestrictedTypes_02()
         {
             var text = @"
@@ -19313,7 +19425,7 @@ public class Cls
             VerifyModelForOutVar(model, x1Decl, x1Ref);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly), Reason = ConditionalSkipReason.RestrictedTypesNeedDesktop)]
         public void RestrictedTypes_03()
         {
             var text = @"
@@ -19385,8 +19497,9 @@ public class Cls
     }
 }";
             var compilation = CreateCompilation(text,
-                                                            options: TestOptions.ReleaseExe,
-                                                            parseOptions: TestOptions.Regular);
+                                                targetFramework: TargetFramework.Mscorlib45,
+                                                options: TestOptions.ReleaseExe,
+                                                parseOptions: TestOptions.Regular);
 
             compilation.VerifyDiagnostics(
                 // (12,25): error CS1601: Cannot make reference to variable of type 'ArgIterator'
@@ -19817,7 +19930,7 @@ public class Cls
     }
 }";
             // the C# dynamic binder does not support ref or out indexers, so we don't run this
-            CompileAndVerify(text, references: new[] { SystemCoreRef, CSharpRef }).VerifyIL("Cls.Main()",
+            CompileAndVerify(text, references: new[] { CSharpRef }).VerifyIL("Cls.Main()",
 @"{
   // Code size       87 (0x57)
   .maxstack  7
@@ -19871,7 +19984,7 @@ public class Cls
     }
 }";
             // the C# dynamic binder does not support ref or out indexers, so we don't run this
-            CompileAndVerify(text, references: new[] { SystemCoreRef, CSharpRef }).VerifyIL("Cls.Main()",
+            CompileAndVerify(text, references: new[] { CSharpRef }).VerifyIL("Cls.Main()",
 @"
 {
   // Code size       87 (0x57)
@@ -19927,7 +20040,7 @@ public class Cls
     }
 }";
             // the C# dynamic binder does not support ref or out indexers, so we don't run this
-            var comp = CreateCompilation(text, options: TestOptions.DebugDll, references: new[] { SystemCoreRef, CSharpRef });
+            var comp = CreateCompilation(text, options: TestOptions.DebugDll, references: new[] { CSharpRef });
             comp.VerifyDiagnostics(
                 // (7,23): error CS8183: Cannot infer the type of implicitly-typed discard.
                 //         var x = d[out var _];
@@ -19973,7 +20086,7 @@ public class Cls
             var x1Decl = GetOutVarDeclaration(tree, "x1");
             var x1Ref = GetReference(tree, "x1");
             var x1 = (LocalSymbol)model.GetDeclaredSymbol(GetVariableDesignation(x1Decl));
-            Assert.True(x1.Type.IsErrorType());
+            Assert.True(x1.Type.TypeSymbol.IsErrorType());
             VerifyModelForOutVar(compilation.GetSemanticModel(tree), x1Decl, x1Ref);
 
             compilation.VerifyDiagnostics(
@@ -20378,10 +20491,7 @@ public class Cls
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "_").WithArguments("_").WithLocation(14, 30),
                 // (18,58): error CS1615: Argument 1 may not be passed with the 'out' keyword
                 //             var list2 = new Dictionary<int, long> { [out _] = 6 };
-                Diagnostic(ErrorCode.ERR_BadArgExtraRef, "_").WithArguments("1", "out").WithLocation(18, 58),
-                // (9,18): error CS0165: Use of unassigned local variable 'x1'
-                //             [out var x1] = 3,
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "var x1").WithArguments("x1").WithLocation(9, 18)
+                Diagnostic(ErrorCode.ERR_BadArgExtraRef, "_").WithArguments("1", "out").WithLocation(18, 58)
                 );
         }
 
@@ -21053,7 +21163,7 @@ var y, y1(Dummy(TakeOutParam(true, out var x1), x1));
 
             var y1 = model.LookupSymbols(x1Ref[0].SpanStart, name: "y1").Single();
             Assert.Equal("var y1", y1.ToTestDisplayString());
-            Assert.True(((LocalSymbol)y1).Type.IsErrorType());
+            Assert.True(((LocalSymbol)y1).Type.TypeSymbol.IsErrorType());
         }
 
         [Fact]
@@ -21113,7 +21223,7 @@ public class X
             var e = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Where(id => id.Identifier.ValueText == "e").Single();
             var symbol = (LocalSymbol)model.GetDeclaredSymbol(e);
             Assert.Equal("var e", symbol.ToTestDisplayString());
-            Assert.True(symbol.Type.IsErrorType());
+            Assert.True(symbol.Type.TypeSymbol.IsErrorType());
         }
 
         [Fact]
@@ -30865,7 +30975,7 @@ class H
             VerifyModelForOutField(model, x1Decl, x1Ref);
             var x1 = (FieldSymbol)model.GetDeclaredSymbol(x1Decl.VariableDesignation());
             Assert.Equal("var", x1.Type.ToTestDisplayString());
-            Assert.True(x1.Type.IsErrorType());
+            Assert.True(x1.Type.TypeSymbol.IsErrorType());
         }
 
         [Fact]
@@ -30886,13 +30996,15 @@ class H
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+            // `skipUsesIsNullable: true` is necessary to avoid visiting symbols eagerly in CreateCompilation,
+            // which would result in `ERR_RecursivelyTypedVariable` reported on the other local (field).
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script, skipUsesIsNullable: true);
 
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
             var b = (FieldSymbol)model.GetDeclaredSymbol(tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Where(d => d.Identifier.ValueText == "b").Single());
-            Assert.True(b.Type.IsErrorType());
+            Assert.True(b.Type.TypeSymbol.IsErrorType());
 
             compilation.VerifyDiagnostics(
                 // (4,5): error CS7019: Type of 'b' cannot be inferred since its initializer directly or indirectly refers to the definition.
@@ -30924,13 +31036,15 @@ class H
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+            // `skipUsesIsNullable: true` is necessary to avoid visiting symbols eagerly in CreateCompilation,
+            // which would result in `ERR_RecursivelyTypedVariable` reported on the other local (field).
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script, skipUsesIsNullable: true);
 
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
             var b = (FieldSymbol)model.GetDeclaredSymbol(tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Where(d => d.Identifier.ValueText == "b").Single());
-            Assert.True(b.Type.IsErrorType());
+            Assert.True(b.Type.TypeSymbol.IsErrorType());
 
             compilation.VerifyDiagnostics(
                 // (4,5): error CS7019: Type of 'b' cannot be inferred since its initializer directly or indirectly refers to the definition.
@@ -30962,13 +31076,15 @@ class H
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+            // `skipUsesIsNullable: true` is necessary to avoid visiting symbols eagerly in CreateCompilation,
+            // which would result in `ERR_RecursivelyTypedVariable` reported on the other local (field).
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script, skipUsesIsNullable: true);
 
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
             var a = (FieldSymbol)model.GetDeclaredSymbol(tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Where(d => d.Identifier.ValueText == "a").Single());
-            Assert.True(a.Type.IsErrorType());
+            Assert.True(a.Type.TypeSymbol.IsErrorType());
 
             compilation.VerifyDiagnostics(
                 // (3,5): error CS7019: Type of 'a' cannot be inferred since its initializer directly or indirectly refers to the definition.
@@ -30981,14 +31097,14 @@ class H
             var x1 = (FieldSymbol)model.GetDeclaredSymbol(x1Decl.VariableDesignation());
             Assert.Equal("System.Int32", x1.Type.ToTestDisplayString());
 
-            compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+            compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script, skipUsesIsNullable: true);
             tree = compilation.SyntaxTrees.Single();
             model = compilation.GetSemanticModel(tree);
             x1Decl = GetOutVarDeclarations(tree, "x1").Single();
 
             x1 = (FieldSymbol)model.GetDeclaredSymbol(x1Decl.VariableDesignation());
             Assert.Equal("var", x1.Type.ToTestDisplayString());
-            Assert.True(x1.Type.IsErrorType());
+            Assert.True(x1.Type.TypeSymbol.IsErrorType());
 
             compilation.VerifyDiagnostics(
                 // (4,32): error CS7019: Type of 'x1' cannot be inferred since its initializer directly or indirectly refers to the definition.
@@ -31015,7 +31131,9 @@ class H
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+            // `skipUsesIsNullable: true` is necessary to avoid visiting symbols eagerly in CreateCompilation,
+            // which would result in `ERR_RecursivelyTypedVariable` reported on the other local (field).
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script, skipUsesIsNullable: true);
 
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
@@ -31024,7 +31142,7 @@ class H
             VerifyModelForOutField(model, x1Decl);
             var x1 = (FieldSymbol)model.GetDeclaredSymbol(x1Decl.VariableDesignation());
             Assert.Equal("var", x1.Type.ToTestDisplayString());
-            Assert.True(x1.Type.IsErrorType());
+            Assert.True(x1.Type.TypeSymbol.IsErrorType());
 
             compilation.VerifyDiagnostics(
                 // (3,32): error CS7019: Type of 'x1' cannot be inferred since its initializer directly or indirectly refers to the definition.
@@ -31032,7 +31150,7 @@ class H
                 Diagnostic(ErrorCode.ERR_RecursivelyTypedVariable, "x1").WithArguments("x1").WithLocation(3, 32)
                 );
 
-            compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+            compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script, skipUsesIsNullable: true);
             tree = compilation.SyntaxTrees.Single();
             model = compilation.GetSemanticModel(tree);
 
@@ -31040,11 +31158,11 @@ class H
 
             var bDecl = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Where(d => d.Identifier.ValueText == "b").Single();
             var b = (FieldSymbol)model.GetDeclaredSymbol(bDecl);
-            Assert.True(b.Type.IsErrorType());
+            Assert.True(b.Type.TypeSymbol.IsErrorType());
 
             x1 = (FieldSymbol)model.GetDeclaredSymbol(x1Decl.VariableDesignation());
             Assert.Equal("System.Int32", x1.Type.ToTestDisplayString());
-            Assert.False(x1.Type.IsErrorType());
+            Assert.False(x1.Type.TypeSymbol.IsErrorType());
 
             compilation.VerifyDiagnostics(
                 // (4,5): error CS7019: Type of 'b' cannot be inferred since its initializer directly or indirectly refers to the definition.
@@ -31093,7 +31211,7 @@ class H
             VerifyModelForOutField(model, x1Decl);
             var x1 = (FieldSymbol)model.GetDeclaredSymbol(x1Decl.VariableDesignation());
             Assert.Equal("var", x1.Type.ToTestDisplayString());
-            Assert.True(x1.Type.IsErrorType());
+            Assert.True(x1.Type.TypeSymbol.IsErrorType());
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/17377")]
@@ -31143,7 +31261,7 @@ class H
             VerifyModelForOutField(model, x1Decl, x1Ref);
             var x1 = (FieldSymbol)model.GetDeclaredSymbol(x1Decl.VariableDesignation());
             Assert.Equal("var", x1.Type.ToTestDisplayString());
-            Assert.True(x1.Type.IsErrorType());
+            Assert.True(x1.Type.TypeSymbol.IsErrorType());
         }
 
         [Fact, WorkItem(17321, "https://github.com/dotnet/roslyn/issues/17321")]
@@ -31423,8 +31541,8 @@ class Program
                                            (declarator.ArgumentList?.Contains(decl)).GetValueOrDefault();
 
             // We're not able to get type information at such location (out var argument in global code) at this point
-            // Seee https://github.com/dotnet/roslyn/issues/13569
-            AssertInfoForDeclarationExpressionSyntax(model, decl, expectedSymbol: local, expectedType: inFieldDeclaratorArgumentlist ? null : local.Type);
+            // See https://github.com/dotnet/roslyn/issues/13569
+            AssertInfoForDeclarationExpressionSyntax(model, decl, expectedSymbol: local, expectedType: inFieldDeclaratorArgumentlist ? null : local.Type.TypeSymbol);
 
             foreach (var reference in references)
             {
@@ -31442,7 +31560,7 @@ class Program
                 {
                     Assert.Same(symbol, referenceInfo.Symbol);
                     Assert.Same(symbol, symbols.Single());
-                    Assert.Equal(local.Type, model.GetTypeInfo(reference).Type);
+                    Assert.Equal(local.Type.TypeSymbol, model.GetTypeInfo(reference).Type);
                 }
 
                 Assert.True(model.LookupNames(reference.SpanStart).Contains(decl.Identifier().ValueText));
@@ -32165,7 +32283,7 @@ public class C
         // Note that the embedded statement is parsed as a missing identifier, followed by && with many spaces attached as leading trivia
     }
 }";
-            var comp = CreateCompilation(source, options: TestOptions.DebugDll, references: new[] { SystemCoreRef });
+            var comp = CreateCompilation(source, options: TestOptions.DebugDll);
 
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
@@ -33827,8 +33945,8 @@ public class C
                 info.GetEnumeratorMethod.ToTestDisplayString());
         }
 
-        [Fact]
         [WorkItem(19382, "https://github.com/dotnet/roslyn/issues/19382")]
+        [ConditionalFact(typeof(DesktopOnly), Reason = ConditionalSkipReason.RestrictedTypesNeedDesktop)]
         public void DiscardAndArgList()
         {
             var text = @"
@@ -34037,7 +34155,7 @@ IInvalidOperation (OperationKind.Invalid, Type: T, IsInvalid) (Syntax: 'new T(ou
               Left: 
                 IFieldReferenceOperation: System.Int32 C.F1 (OperationKind.FieldReference, Type: System.Int32, IsInvalid) (Syntax: 'F1')
                   Instance Receiver: 
-                    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: T, IsInvalid, IsImplicit) (Syntax: 'F1')
+                    IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: T, IsInvalid, IsImplicit) (Syntax: 'F1')
               Right: 
                 ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
 ");
@@ -34113,7 +34231,7 @@ public class C
 @"
 IInvocationOperation ( C..ctor(out System.Int32 x)) (OperationKind.Invocation, Type: System.Void, IsInvalid) (Syntax: ': this(out var x)')
   Instance Receiver: 
-    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsInvalid, IsImplicit) (Syntax: ': this(out var x)')
+    IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsInvalid, IsImplicit) (Syntax: ': this(out var x)')
   Arguments(1):
       IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, Type: null, IsInvalid) (Syntax: 'out var x')
         IDeclarationExpressionOperation (OperationKind.DeclarationExpression, Type: System.Int32, IsInvalid) (Syntax: 'var x')
@@ -34136,7 +34254,7 @@ IBlockOperation (1 statements, 1 locals) (OperationKind.Block, Type: null, IsInv
     Expression: 
       IInvocationOperation ( void C.M(out System.Int32 x)) (OperationKind.Invocation, Type: System.Void, IsInvalid) (Syntax: 'M(out var y)')
         Instance Receiver: 
-          IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'M')
+          IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'M')
         Arguments(1):
             IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, Type: null, IsInvalid) (Syntax: 'out var y')
               IDeclarationExpressionOperation (OperationKind.DeclarationExpression, Type: System.Int32, IsInvalid) (Syntax: 'var y')
@@ -34161,7 +34279,7 @@ IBlockOperation (1 statements, 1 locals) (OperationKind.Block, Type: null, IsInv
     Expression: 
       IInvocationOperation ( void C.M(out System.Int32 x)) (OperationKind.Invocation, Type: System.Void, IsInvalid) (Syntax: 'M(out var z)')
         Instance Receiver: 
-          IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'M')
+          IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'M')
         Arguments(1):
             IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, Type: null, IsInvalid) (Syntax: 'out var z')
               IDeclarationExpressionOperation (OperationKind.DeclarationExpression, Type: System.Int32, IsInvalid) (Syntax: 'var z')
@@ -34185,7 +34303,7 @@ IConstructorBodyOperation (OperationKind.ConstructorBodyOperation, Type: null, I
       Expression: 
         IInvocationOperation ( C..ctor(out System.Int32 x)) (OperationKind.Invocation, Type: System.Void, IsInvalid) (Syntax: ': this(out var x)')
           Instance Receiver: 
-            IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsInvalid, IsImplicit) (Syntax: ': this(out var x)')
+            IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsInvalid, IsImplicit) (Syntax: ': this(out var x)')
           Arguments(1):
               IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, Type: null, IsInvalid) (Syntax: 'out var x')
                 IDeclarationExpressionOperation (OperationKind.DeclarationExpression, Type: System.Int32, IsInvalid) (Syntax: 'var x')
@@ -34199,7 +34317,7 @@ IConstructorBodyOperation (OperationKind.ConstructorBodyOperation, Type: null, I
         Expression: 
           IInvocationOperation ( void C.M(out System.Int32 x)) (OperationKind.Invocation, Type: System.Void, IsInvalid) (Syntax: 'M(out var y)')
             Instance Receiver: 
-              IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'M')
+              IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'M')
             Arguments(1):
                 IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, Type: null, IsInvalid) (Syntax: 'out var y')
                   IDeclarationExpressionOperation (OperationKind.DeclarationExpression, Type: System.Int32, IsInvalid) (Syntax: 'var y')
@@ -34213,7 +34331,7 @@ IConstructorBodyOperation (OperationKind.ConstructorBodyOperation, Type: null, I
         Expression: 
           IInvocationOperation ( void C.M(out System.Int32 x)) (OperationKind.Invocation, Type: System.Void, IsInvalid) (Syntax: 'M(out var z)')
             Instance Receiver: 
-              IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'M')
+              IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'M')
             Arguments(1):
                 IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, Type: null, IsInvalid) (Syntax: 'out var z')
                   IDeclarationExpressionOperation (OperationKind.DeclarationExpression, Type: System.Int32, IsInvalid) (Syntax: 'var z')
@@ -34257,7 +34375,7 @@ IBlockOperation (1 statements, 1 locals) (OperationKind.Block, Type: null, IsInv
     ReturnedValue: 
       IInvocationOperation ( System.Int32 C.M(out System.Int32 x)) (OperationKind.Invocation, Type: System.Int32, IsInvalid) (Syntax: 'M(out var y)')
         Instance Receiver: 
-          IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'M')
+          IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'M')
         Arguments(1):
             IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, Type: null, IsInvalid) (Syntax: 'out var y')
               IDeclarationExpressionOperation (OperationKind.DeclarationExpression, Type: System.Int32, IsInvalid) (Syntax: 'var y')
@@ -34281,7 +34399,7 @@ IBlockOperation (1 statements, 1 locals) (OperationKind.Block, Type: null, IsInv
     ReturnedValue: 
       IInvocationOperation ( System.Int32 C.M(out System.Int32 x)) (OperationKind.Invocation, Type: System.Int32, IsInvalid) (Syntax: 'M(out var x)')
         Instance Receiver: 
-          IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'M')
+          IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'M')
         Arguments(1):
             IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, Type: null, IsInvalid) (Syntax: 'out var x')
               IDeclarationExpressionOperation (OperationKind.DeclarationExpression, Type: System.Int32, IsInvalid) (Syntax: 'var x')
@@ -34310,7 +34428,7 @@ IMethodBodyOperation (OperationKind.MethodBodyOperation, Type: null, IsInvalid) 
         ReturnedValue: 
           IInvocationOperation ( System.Int32 C.M(out System.Int32 x)) (OperationKind.Invocation, Type: System.Int32, IsInvalid) (Syntax: 'M(out var x)')
             Instance Receiver: 
-              IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'M')
+              IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'M')
             Arguments(1):
                 IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, Type: null, IsInvalid) (Syntax: 'out var x')
                   IDeclarationExpressionOperation (OperationKind.DeclarationExpression, Type: System.Int32, IsInvalid) (Syntax: 'var x')
@@ -34324,7 +34442,7 @@ IMethodBodyOperation (OperationKind.MethodBodyOperation, Type: null, IsInvalid) 
         ReturnedValue: 
           IInvocationOperation ( System.Int32 C.M(out System.Int32 x)) (OperationKind.Invocation, Type: System.Int32, IsInvalid) (Syntax: 'M(out var y)')
             Instance Receiver: 
-              IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'M')
+              IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'M')
             Arguments(1):
                 IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, Type: null, IsInvalid) (Syntax: 'out var y')
                   IDeclarationExpressionOperation (OperationKind.DeclarationExpression, Type: System.Int32, IsInvalid) (Syntax: 'var y')
@@ -34365,7 +34483,7 @@ IBlockOperation (1 statements, 1 locals) (OperationKind.Block, Type: null) (Synt
     ReturnedValue: 
       IInvocationOperation ( System.Int32 C.M(out System.Int32 x)) (OperationKind.Invocation, Type: System.Int32) (Syntax: 'M(out var z)')
         Instance Receiver: 
-          IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'M')
+          IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'M')
         Arguments(1):
             IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, Type: null) (Syntax: 'out var z')
               IDeclarationExpressionOperation (OperationKind.DeclarationExpression, Type: System.Int32) (Syntax: 'var z')
@@ -34375,6 +34493,53 @@ IBlockOperation (1 statements, 1 locals) (OperationKind.Block, Type: null) (Synt
 ");
             Assert.Null(model.GetOperation(node3).Parent);
         }
+
+        [Fact]
+        public void OutVarInConstructorUsedInObjectInitializer()
+        {
+            var source =
+@"
+public class C
+{
+    public int Number { get; set; }
+    
+    public C(out int n)
+    {
+        n = 1;
+    }
+
+    public static void Main()
+    {
+        C c = new C(out var i) { Number = i };
+        System.Console.WriteLine(c.Number);
+    }
+}
+";
+            CompileAndVerify(source, expectedOutput: @"1");
+        }
+
+        [Fact]
+        public void OutVarInConstructorUsedInCollectionInitializer()
+        {
+            var source =
+@"
+public class C : System.Collections.Generic.List<int>
+{
+    public C(out int n)
+    {
+        n = 1;
+    }
+
+    public static void Main()
+    {
+        C c = new C(out var i) { i, i, i };
+        System.Console.WriteLine(c[0]);
+    }
+}
+";
+            CompileAndVerify(source, expectedOutput: @"1");
+        }
+
     }
 
     internal static class OutVarTestsExtensions

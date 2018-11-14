@@ -36,7 +36,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Utilities
                 return null;
             }
 
-            var text = document.GetTextAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+            var text = document.GetTextSynchronously(cancellationToken);
             var textSnapshot = text.FindCorrespondingEditorTextSnapshot();
             var textBuffer = textSnapshot?.TextBuffer;
             return editorAdaptersFactoryService.TryGetUndoManager(textBuffer);

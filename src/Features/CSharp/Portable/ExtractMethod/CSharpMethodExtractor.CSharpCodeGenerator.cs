@@ -654,14 +654,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     return methodDefinition.ReplaceToken(
                             methodDefinition.Body.OpenBraceToken,
                             methodDefinition.Body.OpenBraceToken.WithAppendedTrailingTrivia(
-                                SpecializedCollections.SingletonEnumerable(SyntaxFactory.CarriageReturnLineFeed)));
+                                SpecializedCollections.SingletonEnumerable(SyntaxFactory.ElasticCarriageReturnLineFeed)));
                 }
                 else if (methodDefinition.ExpressionBody != null)
                 {
                     return methodDefinition.ReplaceToken(
                             methodDefinition.ExpressionBody.ArrowToken,
                             methodDefinition.ExpressionBody.ArrowToken.WithPrependedLeadingTrivia(
-                                SpecializedCollections.SingletonEnumerable(SyntaxFactory.CarriageReturnLineFeed)));
+                                SpecializedCollections.SingletonEnumerable(SyntaxFactory.ElasticCarriageReturnLineFeed)));
                 }
                 else
                 {
