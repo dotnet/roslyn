@@ -56,6 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 new DynamicKeywordRecommender(),
                 new ElifKeywordRecommender(),
                 new ElseKeywordRecommender(),
+                new EnableKeywordRecommender(),
                 new EndIfKeywordRecommender(),
                 new EndRegionKeywordRecommender(),
                 new EnumKeywordRecommender(),
