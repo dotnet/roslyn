@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var substituted1 = SubstituteAllTypeParameters(substitution, TypeSymbolWithAnnotations.Create(t1));
                 var substituted2 = SubstituteAllTypeParameters(substitution, TypeSymbolWithAnnotations.Create(t2));
 
-                Debug.Assert(substituted1.TypeSymbol.Equals(substituted2.TypeSymbol, TypeCompareKind.IgnoreTupleNames));
+                Debug.Assert(substituted1.TypeSymbol.Equals(substituted2.TypeSymbol, TypeCompareKind.IgnoreTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes));
                 Debug.Assert(substituted1.CustomModifiers.SequenceEqual(substituted2.CustomModifiers));
             }
 #endif

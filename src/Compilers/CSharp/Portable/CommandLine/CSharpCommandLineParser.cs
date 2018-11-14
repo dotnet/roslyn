@@ -407,6 +407,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                             continue;
 
+                        case "nosdkpath":
+                            sdkDirectory = null;
+
+                            continue;
+
                         case "out":
                             if (string.IsNullOrWhiteSpace(value))
                             {

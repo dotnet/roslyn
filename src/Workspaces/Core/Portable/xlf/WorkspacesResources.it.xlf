@@ -359,7 +359,7 @@
       </trans-unit>
       <trans-unit id="Arrays_with_more_than_one_dimension_cannot_be_serialized">
         <source>Arrays with more than one dimension cannot be serialized.</source>
-        <target state="translated">Non è possibile serializzare le matrice con più di una dimensione.</target>
+        <target state="translated">Non è possibile serializzare le matrici con più di una dimensione.</target>
         <note />
       </trans-unit>
       <trans-unit id="Value_too_large_to_be_represented_as_a_30_bit_unsigned_integer">

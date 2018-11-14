@@ -319,7 +319,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 var expectedTypes = annotations.SelectAsArray(annotation => annotation.Text);
                 var actualTypes = annotations.SelectAsArray(annotation => toDisplayString(annotation.Expression));
                 // Consider reporting the correct source with annotations on mismatch.
-                AssertEx.Equal(expectedTypes, actualTypes);
+                AssertEx.Equal(expectedTypes, actualTypes, message: method.ToTestDisplayString());
 
                 string toDisplayString(SyntaxNode syntaxOpt)
                 {

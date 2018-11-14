@@ -129,7 +129,7 @@
       </trans-unit>
       <trans-unit id="Duplicate_source_file_0_in_project_1">
         <source>Duplicate source file '{0}' in project '{1}'</source>
-        <target state="translated">Archivo de código fuente '{0}' duplicado en el proyecto '{1}'</target>
+        <target state="translated">Archivo de código fuente "{0}" duplicado en el proyecto "{1}"</target>
         <note />
       </trans-unit>
       <trans-unit id="Removing_projects_is_not_supported">
@@ -174,27 +174,27 @@
       </trans-unit>
       <trans-unit id="_0_is_not_part_of_the_workspace">
         <source>'{0}' is not part of the workspace.</source>
-        <target state="translated">'{0}' no es parte del área de trabajo.</target>
+        <target state="translated">"{0}" no es parte del área de trabajo.</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_is_already_part_of_the_workspace">
         <source>'{0}' is already part of the workspace.</source>
-        <target state="translated">'{0}' ya es parte del área de trabajo.</target>
+        <target state="translated">"{0}" ya es parte del área de trabajo.</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_is_not_referenced">
         <source>'{0}' is not referenced.</source>
-        <target state="translated">'No hay referencia a '{0}'.</target>
+        <target state="translated">"No hay referencia a "{0}".</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_is_already_referenced">
         <source>'{0}' is already referenced.</source>
-        <target state="translated">'Ya hay una referencia a '{0}'.</target>
+        <target state="translated">"Ya hay una referencia a "{0}".</target>
         <note />
       </trans-unit>
       <trans-unit id="Adding_project_reference_from_0_to_1_will_cause_a_circular_reference">
         <source>Adding project reference from '{0}' to '{1}' will cause a circular reference.</source>
-        <target state="translated">La adición de una referencia de proyecto de '{0}' a '{1}' originará una referencia circular.</target>
+        <target state="translated">La adición de una referencia de proyecto de "{0}" a "{1}" originará una referencia circular.</target>
         <note />
       </trans-unit>
       <trans-unit id="Metadata_is_not_referenced">
@@ -224,7 +224,7 @@
       </trans-unit>
       <trans-unit id="The_language_0_is_not_supported">
         <source>The language '{0}' is not supported.</source>
-        <target state="translated">El lenguaje '{0}' no es compatible.</target>
+        <target state="translated">El lenguaje "{0}" no es compatible.</target>
         <note />
       </trans-unit>
       <trans-unit id="The_solution_already_contains_the_specified_project">
@@ -264,7 +264,7 @@
       </trans-unit>
       <trans-unit id="_0_is_not_open">
         <source>'{0}' is not open.</source>
-        <target state="translated">'{0}' no está abierto.</target>
+        <target state="translated">"{0}" no está abierto.</target>
         <note />
       </trans-unit>
       <trans-unit id="A_language_name_cannot_be_specified_for_this_option">
@@ -289,12 +289,12 @@
       </trans-unit>
       <trans-unit id="Can_t_resolve_metadata_reference_colon_0">
         <source>Can't resolve metadata reference: '{0}'.</source>
-        <target state="translated">No se puede resolver la referencia de metadatos: '{0}'.</target>
+        <target state="translated">No se puede resolver la referencia de metadatos: "{0}".</target>
         <note />
       </trans-unit>
       <trans-unit id="Can_t_resolve_analyzer_reference_colon_0">
         <source>Can't resolve analyzer reference: '{0}'.</source>
-        <target state="translated">No se puede resolver la referencia del analizador: '{0}'.</target>
+        <target state="translated">No se puede resolver la referencia del analizador: "{0}".</target>
         <note />
       </trans-unit>
       <trans-unit id="Invalid_project_block_expected_after_Project">
@@ -364,7 +364,7 @@
       </trans-unit>
       <trans-unit id="Value_too_large_to_be_represented_as_a_30_bit_unsigned_integer">
         <source>Value too large to be represented as a 30 bit unsigned integer.</source>
-        <target state="translated">Valor demasiado largo para representarse como entero sin signo de 30 bits.</target>
+        <target state="translated">Valor demasiado grande para representarse como entero sin signo de 30 bits.</target>
         <note />
       </trans-unit>
       <trans-unit id="Specified_path_must_be_absolute">
@@ -389,7 +389,7 @@
       </trans-unit>
       <trans-unit id="Cannot_generate_code_for_unsupported_operator_0">
         <source>Cannot generate code for unsupported operator '{0}'</source>
-        <target state="translated">No se puede generar código para el operador no compatible '{0}'</target>
+        <target state="translated">No se puede generar código para el operador no compatible "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="Invalid_number_of_parameters_for_binary_operator">
@@ -409,37 +409,37 @@
       </trans-unit>
       <trans-unit id="Cannot_open_project_0_because_the_file_extension_1_is_not_associated_with_a_language">
         <source>Cannot open project '{0}' because the file extension '{1}' is not associated with a language.</source>
-        <target state="translated">No se puede abrir el proyecto '{0}' porque la extensión de archivo '{1}' no está asociada a un lenguaje.</target>
+        <target state="translated">No se puede abrir el proyecto "{0}" porque la extensión de archivo "{1}" no está asociada a un lenguaje.</target>
         <note />
       </trans-unit>
       <trans-unit id="Cannot_open_project_0_because_the_language_1_is_not_supported">
         <source>Cannot open project '{0}' because the language '{1}' is not supported.</source>
-        <target state="translated">No se puede abrir el proyecto '{0}' porque el lenguaje '{1}' no es compatible.</target>
+        <target state="translated">No se puede abrir el proyecto "{0}" porque el lenguaje "{1}" no es compatible.</target>
         <note />
       </trans-unit>
       <trans-unit id="Invalid_project_file_path_colon_0">
         <source>Invalid project file path: '{0}'</source>
-        <target state="translated">Ruta de acceso del archivo de proyecto no válida: '{0}'</target>
+        <target state="translated">Ruta de acceso del archivo de proyecto no válida: "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="Invalid_solution_file_path_colon_0">
         <source>Invalid solution file path: '{0}'</source>
-        <target state="translated">Ruta de acceso del archivo de solución no válida: '{0}'</target>
+        <target state="translated">Ruta de acceso del archivo de solución no válida: "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="Project_file_not_found_colon_0">
         <source>Project file not found: '{0}'</source>
-        <target state="translated">Archivo de proyecto no encontrado: '{0}'</target>
+        <target state="translated">Archivo de proyecto no encontrado: "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="Solution_file_not_found_colon_0">
         <source>Solution file not found: '{0}'</source>
-        <target state="translated">Archivo de solución no encontrado: '{0}'</target>
+        <target state="translated">Archivo de solución no encontrado: "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="Unmerged_change_from_project_0">
         <source>Unmerged change from project '{0}'</source>
-        <target state="translated">Cambio no fusionado mediante combinación del proyecto '{0}'</target>
+        <target state="translated">Cambio no fusionado mediante combinación del proyecto "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="Added_colon">
@@ -449,17 +449,17 @@
       </trans-unit>
       <trans-unit id="Fix_all_0">
         <source>Fix all '{0}'</source>
-        <target state="translated">Corregir todo '{0}'</target>
+        <target state="translated">Corregir todo "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="Fix_all_0_in_1">
         <source>Fix all '{0}' in '{1}'</source>
-        <target state="translated">Corregir todo '{0}' en '{1}'</target>
+        <target state="translated">Corregir todo "{0}" en "{1}"</target>
         <note />
       </trans-unit>
       <trans-unit id="Fix_all_0_in_Solution">
         <source>Fix all '{0}' in Solution</source>
-        <target state="translated">Corregir todo '{0}' en solución</target>
+        <target state="translated">Corregir todo "{0}" en solución</target>
         <note />
       </trans-unit>
       <trans-unit id="After_colon">
@@ -549,7 +549,7 @@
       </trans-unit>
       <trans-unit id="Service_of_type_0_is_required_to_accomplish_the_task_but_is_not_available_from_the_workspace">
         <source>Service of type '{0}' is required to accomplish the task but is not available from the workspace.</source>
-        <target state="translated">El servicio de tipo '{0}' es necesario para realizar la tarea, pero no está disponibles desde el área de trabajo.</target>
+        <target state="translated">El servicio de tipo "{0}" es necesario para realizar la tarea, pero no está disponibles desde el área de trabajo.</target>
         <note />
       </trans-unit>
       <trans-unit id="Supplied_diagnostic_cannot_be_null">
@@ -564,7 +564,7 @@
       </trans-unit>
       <trans-unit id="Diagnostic_must_have_span_0">
         <source>Diagnostic must have span '{0}'</source>
-        <target state="translated">El diagnóstico debe tener el intervalo '{0}'</target>
+        <target state="translated">El diagnóstico debe tener el intervalo "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="Cannot_deserialize_type_0">
@@ -584,12 +584,12 @@
       </trans-unit>
       <trans-unit id="Label_for_node_0_is_invalid_it_must_be_within_bracket_0_1">
         <source>Label for node '{0}' is invalid, it must be within [0, {1}).</source>
-        <target state="translated">La etiqueta para el nodo '{0}' no es válida; debe estar entre [0, {1}).</target>
+        <target state="translated">La etiqueta para el nodo "{0}" no es válida; debe estar entre [0, {1}).</target>
         <note />
       </trans-unit>
       <trans-unit id="Matching_nodes_0_and_1_must_have_the_same_label">
         <source>Matching nodes '{0}' and '{1}' must have the same label.</source>
-        <target state="translated">Los nodos coincidentes '{0}' y '{1}' deben tener la misma etiqueta.</target>
+        <target state="translated">Los nodos coincidentes "{0}" y "{1}" deben tener la misma etiqueta.</target>
         <note />
       </trans-unit>
       <trans-unit id="Node_0_must_be_contained_in_the_new_tree">
@@ -604,7 +604,7 @@
       </trans-unit>
       <trans-unit id="The_member_0_is_not_declared_within_the_declaration_of_the_symbol">
         <source>The member '{0}' is not declared within the declaration of the symbol.</source>
-        <target state="translated">No se ha declarado el miembro '{0}' dentro de la declaración del símbolo.</target>
+        <target state="translated">No se ha declarado el miembro "{0}" dentro de la declaración del símbolo.</target>
         <note />
       </trans-unit>
       <trans-unit id="The_position_is_not_within_the_symbol_s_declaration">
@@ -614,7 +614,7 @@
       </trans-unit>
       <trans-unit id="The_symbol_0_cannot_be_located_within_the_current_solution">
         <source>The symbol '{0}' cannot be located within the current solution.</source>
-        <target state="translated">El símbolo '{0}' no puede estar dentro de la solución actual.</target>
+        <target state="translated">El símbolo "{0}" no puede estar dentro de la solución actual.</target>
         <note />
       </trans-unit>
       <trans-unit id="Changing_compilation_options_is_not_supported">
@@ -649,7 +649,7 @@
       </trans-unit>
       <trans-unit id="_0_returned_an_uninitialized_ImmutableArray">
         <source>'{0}' returned an uninitialized ImmutableArray</source>
-        <target state="translated">'{0}' devolvió una ImmutableArray sin inicializar</target>
+        <target state="translated">"{0}" devolvió una ImmutableArray sin inicializar</target>
         <note />
       </trans-unit>
       <trans-unit id="Failure">
@@ -674,7 +674,7 @@
       </trans-unit>
       <trans-unit id="Add_braces_to_0_statement">
         <source>Add braces to '{0}' statement.</source>
-        <target state="translated">Agregar llaves a la instrucción '{0}'.</target>
+        <target state="translated">Agregar llaves a la instrucción "{0}".</target>
         <note />
       </trans-unit>
       <trans-unit id="Options_did_not_come_from_Workspace">
@@ -694,7 +694,7 @@
       </trans-unit>
       <trans-unit id="_0_encountered_an_error_and_has_been_disabled">
         <source>'{0}' encountered an error and has been disabled.</source>
-        <target state="translated">'{0}' detectó un error y se ha deshabilitado.</target>
+        <target state="translated">"{0}" detectó un error y se ha deshabilitado.</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_Stack_Trace">
@@ -814,7 +814,7 @@
       </trans-unit>
       <trans-unit id="Missing_prefix_colon_0">
         <source>Missing prefix: '{0}'</source>
-        <target state="translated">Falta el prefijo: '{0}'</target>
+        <target state="translated">Falta el prefijo: "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="Error">
@@ -829,7 +829,7 @@
       </trans-unit>
       <trans-unit id="Missing_suffix_colon_0">
         <source>Missing suffix: '{0}'</source>
-        <target state="translated">Falta el sufijo: '{0}'</target>
+        <target state="translated">Falta el sufijo: "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="These_non_leading_words_must_begin_with_an_upper_case_letter_colon_0">
@@ -864,12 +864,12 @@
       </trans-unit>
       <trans-unit id="The_first_word_0_must_begin_with_an_upper_case_character">
         <source>The first word, '{0}', must begin with an upper case character</source>
-        <target state="translated">La primera palabra, '{0}', debe comenzar con un carácter en mayúscula</target>
+        <target state="translated">La primera palabra, "{0}", debe comenzar con un carácter en mayúscula</target>
         <note />
       </trans-unit>
       <trans-unit id="The_first_word_0_must_begin_with_a_lower_case_character">
         <source>The first word, '{0}', must begin with a lower case character</source>
-        <target state="translated">La primera palabra, '{0}', debe comenzar con un carácter en minúscula</target>
+        <target state="translated">La primera palabra, "{0}", debe comenzar con un carácter en minúscula</target>
         <note />
       </trans-unit>
       <trans-unit id="File_0_size_of_1_exceeds_maximum_allowed_size_of_2">

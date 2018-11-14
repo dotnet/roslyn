@@ -71,6 +71,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to {0} can be simplified.
+        /// </summary>
+        internal static string _0_can_be_simplified {
+            get {
+                return ResourceManager.GetString("_0_can_be_simplified", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to {0} Keyword.
         /// </summary>
         internal static string _0_Keyword {
@@ -1852,6 +1861,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string indexer_ {
             get {
                 return ResourceManager.GetString("indexer_", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Indexing can be simplified.
+        /// </summary>
+        internal static string Indexing_can_be_simplified {
+            get {
+                return ResourceManager.GetString("Indexing_can_be_simplified", resourceCulture);
             }
         }
         
@@ -3934,6 +3952,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Use index operator.
+        /// </summary>
+        internal static string Use_index_operator {
+            get {
+                return ResourceManager.GetString("Use_index_operator", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Use inferred member name.
         /// </summary>
         internal static string Use_inferred_member_name {
@@ -3994,6 +4021,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Use_pattern_matching {
             get {
                 return ResourceManager.GetString("Use_pattern_matching", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use range operator.
+        /// </summary>
+        internal static string Use_range_operator {
+            get {
+                return ResourceManager.GetString("Use_range_operator", resourceCulture);
             }
         }
         

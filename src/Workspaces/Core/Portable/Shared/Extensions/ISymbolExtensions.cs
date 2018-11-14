@@ -166,9 +166,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         public static bool IsErrorType(this ISymbol symbol)
-        {
-            return (symbol as ITypeSymbol)?.IsErrorType() == true;
-        }
+            => (symbol as ITypeSymbol)?.TypeKind == TypeKind.Error;
 
         public static bool IsModuleType(this ISymbol symbol)
         {
@@ -914,6 +912,10 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             var getAwaiters = potentialGetAwaiters.OfType<IMethodSymbol>().Where(x => !x.Parameters.Any());
             return getAwaiters.Any(VerifyGetAwaiter);
         }
+
+        public static bool IsValidGetAwaiter(this IMethodSymbol symbol)
+            => symbol.Name == WellKnownMemberNames.GetAwaiter &&
+            VerifyGetAwaiter(symbol);
 
         private static bool VerifyGetAwaiter(IMethodSymbol getAwaiter)
         {
