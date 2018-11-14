@@ -16,6 +16,17 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
             await VerifyKeywordAsync(@"#nullable $$");
         }
 
+        [Fact]
+        [WorkItem(31130, "https://github.com/dotnet/roslyn/issues/31130")]
+        public async Task TestNotAfterNullableAndNewline()
+        {
+            await VerifyAbsenceAsync(@"
+#nullable 
+$$
+");
+        }
+
+
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotAtRoot_Interactive()
         {

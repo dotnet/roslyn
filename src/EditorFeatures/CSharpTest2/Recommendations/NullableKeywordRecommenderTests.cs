@@ -67,5 +67,12 @@ $$");
             await VerifyKeywordAsync(
 @"# $$");
         }
+
+        [Fact]
+        public async Task TestNotAfterHashAndNullable()
+        {
+            await VerifyAbsenceAsync(
+@"#nullable $$");
+        }
     }
 }
