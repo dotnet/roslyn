@@ -155,7 +155,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractInterface
 
             typeDeclaration = currentRoot.GetCurrentNode(typeDeclaration);
 
-
             var interfaceTypeSyntax = GetTypeSyntaxFromNamedSymbol(extractedInterfaceSymbol);
 
             var codeGenService = solution.Workspace.Services.GetLanguageServices(LanguageNames.CSharp).GetService<ICodeGenerationService>();
@@ -165,7 +164,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractInterface
 
             var updatedDeclaration = UpdateTypeWithInterface(extractedInterfaceSymbol, typeNodeAnnotation, typeDeclaration);
             editor.ReplaceNode(typeDeclaration, updatedDeclaration);
-
 
             var newRoot = Formatter.Format(editor.GetChangedRoot(), solution.Workspace);
             return solution.WithDocumentSyntaxRoot(documentIdWithTypeNode, newRoot, PreservationMode.PreserveIdentity);

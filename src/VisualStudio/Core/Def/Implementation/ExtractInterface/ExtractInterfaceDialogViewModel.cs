@@ -17,14 +17,14 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ExtractInterface
 {
+    internal enum InterfaceDestination
+    {
+        CurrentFile,
+        NewFile
+    };
+
     internal class ExtractInterfaceDialogViewModel : AbstractNotifyPropertyChanged
     {
-        public enum InterfaceDestination
-        {
-            CurrentFile,
-            NewFile
-        };
-
         private readonly ISyntaxFactsService _syntaxFactsService;
         private readonly INotificationService _notificationService;
         private readonly List<string> _conflictingTypeNames;
@@ -158,7 +158,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ExtractInterfac
             set { SetProperty(ref _fileName, value); }
         }
 
-        private InterfaceDestination _destination;
+        private InterfaceDestination _destination = InterfaceDestination.NewFile;
         public InterfaceDestination Destination
         {
             get { return _destination; }

@@ -67,12 +67,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ExtractInterfac
             }
         }
 
-        private static ExtractInterfaceOptionsResult.ExtractLocation GetLocation(ExtractInterface.ExtractInterfaceDialogViewModel.InterfaceDestination destination)
+        private static ExtractInterfaceOptionsResult.ExtractLocation GetLocation(InterfaceDestination destination)
         {
             switch (destination)
             {
-                case ExtractInterfaceDialogViewModel.InterfaceDestination.CurrentFile: return ExtractInterfaceOptionsResult.ExtractLocation.SameFile;
-                case ExtractInterfaceDialogViewModel.InterfaceDestination.NewFile: return ExtractInterfaceOptionsResult.ExtractLocation.NewFile;
+                case InterfaceDestination.CurrentFile: return ExtractInterfaceOptionsResult.ExtractLocation.SameFile;
+                case InterfaceDestination.NewFile: return ExtractInterfaceOptionsResult.ExtractLocation.NewFile;
                 default: throw new InvalidOperationException();
             }
         }

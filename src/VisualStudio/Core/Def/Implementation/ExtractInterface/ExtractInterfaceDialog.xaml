@@ -9,6 +9,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:s="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.15.0"
              xmlns:u="clr-namespace:Microsoft.VisualStudio.LanguageServices.Implementation.Utilities"
+             xmlns:dest="clr-namespace:Microsoft.VisualStudio.LanguageServices.Implementation.ExtractInterface"
              mc:Ignorable="d" 
              d:DesignHeight="380" d:DesignWidth="460"
              Height="380" Width="460"
@@ -30,6 +31,7 @@
         <Thickness x:Key="selectDeselectButtonPadding">9,2,9,2</Thickness>
         <Thickness x:Key="textboxPadding">2</Thickness>
         <Thickness x:Key="radioButtonPadding">2, 0, 2, 0</Thickness>
+        <u:EnumBoolConverter x:Key="enumBoolConverter" />
     </Window.Resources>
     <Grid Margin="11,6,11,11">
         <Grid.RowDefinitions>
@@ -76,23 +78,22 @@
 
                     <RadioButton x:Uid="DestinationCurrentFileSelectionRadioButton"
                                  GroupName="FileDestination"
-                                 Tag="CurrentFileDestinationTag"
+                                 Tag="{Binding ElementName=dialog, Path=CurrentFileDestinationTag}"
                                  Grid.Row="0"
                                  Grid.ColumnSpan="2" 
                                  Content="{Binding ElementName=dialog, Path=SelectCurrentFileAsDestination}"
                                  Padding="{StaticResource ResourceKey=radioButtonPadding}"
-                                 Checked="DestinationFile_Checked"
+                                 IsChecked="{Binding Destination, Converter={StaticResource enumBoolConverter}, ConverterParameter={x:Static dest:InterfaceDestination.CurrentFile}}"
                                  VerticalAlignment="Center"
                                  />
 
                     <RadioButton x:Uid="DestinationNewFileSelectionRadioButton"
                                  GroupName="FileDestination"
-                                 Tag="NewFileDestinationTag"
+                                 Tag="{Binding ElementName=dialog, Path=NewFileDestinationTag}"
                                  Grid.Row="1"
                                  Grid.Column="0"
                                  Content="{Binding ElementName=dialog, Path=SelectNewFileAsDestination}"
-                                 IsChecked="True"
-                                 Checked="DestinationFile_Checked"
+                                 IsChecked="{Binding Destination, Converter={StaticResource enumBoolConverter}, ConverterParameter={x:Static dest:InterfaceDestination.NewFile}}"
                                  Padding="{StaticResource ResourceKey=radioButtonPadding}"
                                  VerticalAlignment="Center"
                                  />

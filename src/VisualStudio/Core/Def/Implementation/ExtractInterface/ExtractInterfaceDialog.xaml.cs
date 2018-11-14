@@ -146,22 +146,5 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ExtractInterfac
                 item.IsChecked = !allChecked;
             }
         }
-
-        private void DestinationFile_Checked(object sender, RoutedEventArgs e)
-        {
-            if (sender is RadioButton radioButton)
-            {
-                switch(radioButton.Tag.ToString())
-                {
-                    case _newFileDestinationTag:
-                        _viewModel.Destination = ExtractInterfaceDialogViewModel.InterfaceDestination.NewFile;
-                        break;
-
-                    case _currentFileDestinationTag:
-                        _viewModel.Destination = ExtractInterfaceDialogViewModel.InterfaceDestination.CurrentFile;
-                        break;
-                }
-            }
-        }
     }
 }
