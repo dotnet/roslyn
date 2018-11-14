@@ -123,10 +123,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
                         ' at 14000 lines. We expect Windows Forms designer formatting operations to run in under ~15
                         ' seconds on average current hardware when nearing the threshold.
                         Dim startLineNumber = 0
-                        Dim startColumnIndex = 0
+                        Dim startCharIndex = 0
                         Dim endLineNumber = 0
-                        Dim endColumnIndex = 0
-                        info.SpanToFormat.GetLinesAndColumns(startLineNumber, startColumnIndex, endLineNumber, endColumnIndex)
+                        Dim endCharIndex = 0
+                        info.SpanToFormat.GetLinesAndCharacters(startLineNumber, startCharIndex, endLineNumber, endCharIndex)
                         If endLineNumber - startLineNumber > 7000 Then
                             useSemantics = false
                         End If
