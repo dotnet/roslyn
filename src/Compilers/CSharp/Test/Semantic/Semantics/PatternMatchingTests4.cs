@@ -1487,5 +1487,45 @@ class _
                 Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "(null, true)").WithLocation(13, 13)
                 );
         }
+
+        [Fact]
+        public void NonExhaustiveBoolSwitchExpression()
+        {
+            var source = @"using System;
+class Program
+{
+    static void Main()
+    {
+        new Program().Start();
+    }
+    void Start()
+    {
+        Console.Write(M(true));
+        try
+        {
+            Console.Write(M(false));
+        }
+        catch (Exception)
+        {
+            Console.Write("" throw"");
+        }
+    }
+    public int M(bool b) 
+    {
+        return b switch
+        {
+           true => 1
+        }; 
+    }
+}
+";
+            var compilation = CreatePatternCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (22,18): warning CS8509: The switch expression does not handle all possible inputs (it is not exhaustive).
+                //         return b switch
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithLocation(22, 18)
+                );
+            CompileAndVerify(compilation, expectedOutput: "1 throw");
+        }
     }
 }

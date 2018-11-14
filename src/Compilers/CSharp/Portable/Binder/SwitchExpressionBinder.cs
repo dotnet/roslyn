@@ -53,7 +53,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="switchArms"></param>
         /// <param name="decisionDag"></param>
         /// <param name="diagnostics"></param>
-        /// <returns>true if the switch expression is not exhaustive</returns>
         private bool CheckSwitchExpressionExhaustive(
             SwitchExpressionSyntax node,
             BoundExpression boundInputExpression,
