@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.LanguageServices.ProjectSystem;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.CPS
 {
@@ -20,13 +21,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
             {
                 throw new ArgumentException(nameof(filesToInclude), "Must specify some files to compile.");
             }
-            if (string.IsNullOrWhiteSpace(outputFileName))
+            if (outputFileName == null)
             {
-                throw new ArgumentException(nameof(outputFileName), "Must specify a filename to output to.");
+                throw new ArgumentException(nameof(outputFileName), "Must specify an output file name.");
             }
 
             var project = ((CPSProject)context).GetProjectSnapshot();
-            
+
             // Allow for faster checking because projects could be very large
             var files = new HashSet<string>(filesToInclude, StringComparer.OrdinalIgnoreCase);
 
@@ -49,13 +50,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
 
             cancellationToken.ThrowIfCancellationRequested();
 
-            var outputPath = Path.GetDirectoryName(outputFileName);
-            if (!Directory.Exists(outputPath))
-            {
-                Directory.CreateDirectory(outputPath);
-            }
 
-            using (var file = File.OpenWrite(outputFileName))
+            var outputPath = Path.GetDirectoryName(outputFileName);
+
+            Directory.CreateDirectory(outputPath);
+
+            using (var file = FileUtilities.CreateFileStreamChecked(File.Create, outputFileName, nameof(outputFileName)))
             {
                 return compilation.Emit(file, cancellationToken: cancellationToken).Success;
             }

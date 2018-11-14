@@ -16,11 +16,12 @@ namespace Microsoft.VisualStudio.LanguageServices.ProjectSystem
         /// <summary>
         /// Compiles specific files into the TempPE DLL to provide designer support
         /// </summary>
-        /// <param name="context">The project context.</param>
-        /// <param name="outputFileName">The binary output path.</param>
-        /// <param name="filesToInclude">Array of file paths from the project that should be included in the output.</param>
+        /// <param name="context">The project context</param>
+        /// <param name="outputFileName">The binary output path</param>
+        /// <param name="filesToInclude">Array of file paths from the project that should be included in the output</param>
         /// <param name="cancellationToken">The cancellation token</param>
         /// <returns><see langword="true" /> if the compilation was successful</returns>
+        /// <exception cref="System.IO.IOException">If the <paramref name="outputFileName"/> could not be written</exception>
         Task<bool> CompileAsync(IWorkspaceProjectContext context, string outputFileName, string[] filesToInclude, CancellationToken cancellationToken);
     }
 }
