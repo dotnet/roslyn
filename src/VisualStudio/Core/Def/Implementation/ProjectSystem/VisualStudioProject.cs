@@ -336,7 +336,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                         (s, documents) => solution.AddDocuments(documents),
                         (s, id) =>
                         {
-                            // Clear any document-specific data now (like open file trackers, etc.)
+                            // Clear any document-specific data now (like open file trackers, etc.). If we called OnRemoveDocument directly this is
+                            // called, but since we're doing this in one large batch we need to do it now.
                             _workspace.ClearDocumentData(id);
                             return s.RemoveDocument(id);
                         });
@@ -356,7 +357,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                         },
                         (s, id) =>
                         {
-                            // Clear any document-specific data now (like open file trackers, etc.)
+                            // Clear any document-specific data now (like open file trackers, etc.). If we called OnRemoveDocument directly this is
+                            // called, but since we're doing this in one large batch we need to do it now.
                             _workspace.ClearDocumentData(id);
                             return s.RemoveAdditionalDocument(id);
                         });
