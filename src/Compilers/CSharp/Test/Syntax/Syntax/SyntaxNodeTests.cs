@@ -2658,7 +2658,7 @@ class C
 
             var text = cu2.ToFullString();
 
-            Assert.Equal("class A { } \r\n", text);
+            Assert.Equal("class A { } ", text);
         }
 
         [Fact]
