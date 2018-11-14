@@ -200,6 +200,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
                     token = name.GetNameToken();
                     classifiedSpan = new ClassifiedSpan(token.Span, GetClassificationForLocal(localSymbol));
                     return true;
+                case ILabelSymbol labelSymbol:
+                    token = name.GetNameToken();
+                    classifiedSpan = new ClassifiedSpan(token.Span, ClassificationTypeNames.LabelName);
+                    return true;
             }
 
             classifiedSpan = default;

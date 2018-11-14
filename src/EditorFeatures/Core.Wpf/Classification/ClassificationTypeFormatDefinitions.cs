@@ -369,6 +369,22 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             }
         }
         #endregion
+        #region User Symbols - Label Name 
+        [Export(typeof(EditorFormatDefinition))]
+        [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.LabelName)]
+        [Name(ClassificationTypeNames.LabelName)]
+        [Order(After = PredefinedClassificationTypeNames.Identifier)]
+        [Order(After = PredefinedClassificationTypeNames.Keyword)]
+        [UserVisible(true)]
+        [ExcludeFromCodeCoverage]
+        private class UserSymbolsLabelNameFormatDefinition : ClassificationFormatDefinition
+        {
+            private UserSymbolsLabelNameFormatDefinition()
+            {
+                this.DisplayName = EditorFeaturesResources.User_Symbols_Label_Name;
+            }
+        }
+        #endregion
 
         #region XML Doc Comments - Attribute Name 
         [Export(typeof(EditorFormatDefinition))]

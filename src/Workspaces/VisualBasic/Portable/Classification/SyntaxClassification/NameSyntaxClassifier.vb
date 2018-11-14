@@ -14,7 +14,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification.Classifiers
         Public Overrides ReadOnly Property SyntaxNodeTypes As ImmutableArray(Of Type) = ImmutableArray.Create(
             GetType(NameSyntax),
             GetType(ModifiedIdentifierSyntax),
-            GetType(MethodStatementSyntax))
+            GetType(MethodStatementSyntax),
+            GetType(LabelSyntax))
 
         Public Overrides Sub AddClassifications(
                 workspace As Workspace,
@@ -38,6 +39,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification.Classifiers
             Dim methodStatement = TryCast(syntax, MethodStatementSyntax)
             If methodStatement IsNot Nothing Then
                 ClassifyMethodStatement(methodStatement, semanticModel, result, cancellationToken)
+                Return
+            End If
+
+            Dim labelSyntax = TryCast(syntax, LabelSyntax)
+            If labelSyntax IsNot Nothing Then
+                ClassifyLabelSyntax(labelSyntax, semanticModel, result, cancellationToken)
                 Return
             End If
         End Sub
@@ -245,6 +252,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification.Classifiers
             If methodSymbol IsNot Nothing AndAlso methodSymbol.IsExtensionMethod Then
                 result.Add(New ClassifiedSpan(methodStatement.Identifier.Span, ClassificationTypeNames.ExtensionMethodName))
             End If
+        End Sub
+
+        Private Sub ClassifyLabelSyntax(
+            node As LabelSyntax,
+            semanticModel As SemanticModel,
+            result As ArrayBuilder(Of ClassifiedSpan),
+            cancellationToken As CancellationToken)
+
+            result.Add(New ClassifiedSpan(node.LabelToken.Span, ClassificationTypeNames.LabelName))
         End Sub
 
     End Class

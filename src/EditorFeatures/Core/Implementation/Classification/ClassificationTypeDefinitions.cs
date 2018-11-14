@@ -137,6 +137,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [BaseDefinition(PredefinedClassificationTypeNames.Identifier)]
         internal readonly ClassificationTypeDefinition NamespaceNameTypeDefinition;
         #endregion
+        #region Event Name
+        [Export]
+        [Name(ClassificationTypeNames.LabelName)]
+        [BaseDefinition(PredefinedClassificationTypeNames.Identifier)]
+        internal readonly ClassificationTypeDefinition LabelNameTypeDefinition;
+        #endregion
 
         #region XML Doc Comments - Attribute Name 
         [Export]

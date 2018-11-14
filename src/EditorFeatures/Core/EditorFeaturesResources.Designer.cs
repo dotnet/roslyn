@@ -1945,6 +1945,15 @@ namespace Microsoft.CodeAnalysis.Editor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to User Symbols - Label Name.
+        /// </summary>
+        internal static string User_Symbols_Label_Name {
+            get {
+                return ResourceManager.GetString("User_Symbols_Label_Name", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to User Symbols - Local Name.
         /// </summary>
         internal static string User_Symbols_Local_Name {

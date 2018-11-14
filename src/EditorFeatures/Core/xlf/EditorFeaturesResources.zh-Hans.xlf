@@ -97,6 +97,11 @@
         <target state="new">User Symbols - Field Name</target>
         <note />
       </trans-unit>
+      <trans-unit id="User_Symbols_Label_Name">
+        <source>User Symbols - Label Name</source>
+        <target state="new">User Symbols - Label Name</target>
+        <note />
+      </trans-unit>
       <trans-unit id="User_Symbols_Local_Name">
         <source>User Symbols - Local Name</source>
         <target state="new">User Symbols - Local Name</target>

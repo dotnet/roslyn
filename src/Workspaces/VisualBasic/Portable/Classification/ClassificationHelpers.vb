@@ -92,6 +92,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
                 Return ClassificationTypeNames.EventName
             ElseIf TypeOf parent Is EnumMemberDeclarationSyntax AndAlso DirectCast(parent, EnumMemberDeclarationSyntax).Identifier = identifier Then
                 Return ClassificationTypeNames.EnumMemberName
+            ElseIf TypeOf parent Is LabelStatementSyntax AndAlso DirectCast(parent, LabelStatementSyntax).LabelToken = identifier Then
+                Return ClassificationTypeNames.LabelName
             ElseIf TryClassifyModifiedIdentifer(parent, identifier, classification) Then
                 Return classification
             ElseIf (identifier.ToString() = "IsTrue" OrElse identifier.ToString() = "IsFalse") AndAlso

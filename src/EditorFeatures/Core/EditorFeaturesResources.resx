@@ -866,4 +866,7 @@ Do you want to proceed?</value>
   <data name="User_Symbols_Property_Name" xml:space="preserve">
     <value>User Symbols - Property Name</value>
   </data>
+  <data name="User_Symbols_Label_Name" xml:space="preserve">
+    <value>User Symbols - Label Name</value>
+  </data>
 </root>

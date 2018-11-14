@@ -162,6 +162,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
             {
                 return ClassificationTypeNames.Keyword;
             }
+            else if (token.Parent is LabeledStatementSyntax labledStatementSyntax && labledStatementSyntax.Identifier == token)
+            {
+                return ClassificationTypeNames.LabelName;
+            }
             else
             {
                 return ClassificationTypeNames.Identifier;
