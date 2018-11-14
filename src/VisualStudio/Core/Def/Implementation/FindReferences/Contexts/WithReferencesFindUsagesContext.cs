@@ -7,7 +7,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.DocumentHighlighting;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -63,12 +62,9 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 var declarations = ArrayBuilder<Entry>.GetInstance();
                 foreach (var declarationLocation in definition.SourceSpans)
                 {
-                    var definitionEntry = await CreateDocumentSpanEntryAsync(
+                    var definitionEntry = await TryCreateDocumentSpanEntryAsync(
                         definitionBucket, declarationLocation, HighlightSpanKind.Definition).ConfigureAwait(false);
-                    if (definitionEntry != null)
-                    {
-                        declarations.Add(definitionEntry);
-                    }
+                    declarations.AddIfNotNull(definitionEntry);
                 }
 
                 var changed = false;
@@ -108,8 +104,8 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 // Normal references go into both sets of entries.
                 return OnEntryFoundAsync(
                     reference.Definition,
-                    bucket => CreateDocumentSpanEntryAsync(
-                        bucket, reference.SourceSpan, 
+                    bucket => TryCreateDocumentSpanEntryAsync(
+                        bucket, reference.SourceSpan,
                         reference.IsWrittenTo ? HighlightSpanKind.WrittenReference : HighlightSpanKind.Reference),
                     addToEntriesWhenGroupingByDefinition: true,
                     addToEntriesWhenNotGroupingByDefinition: true);
@@ -134,6 +130,10 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 // First find the bucket corresponding to our definition.
                 var definitionBucket = GetOrCreateDefinitionBucket(definition);
                 var entry = await createEntryAsync(definitionBucket).ConfigureAwait(false);
+                if (entry == null)
+                {
+                    return;
+                }
 
                 lock (Gate)
                 {

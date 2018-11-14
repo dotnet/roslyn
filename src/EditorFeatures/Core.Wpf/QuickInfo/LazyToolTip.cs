@@ -6,9 +6,9 @@ using System.Windows;
 using System.Windows.Controls;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 
-namespace Microsoft.VisualStudio.LanguageServices.FindUsages
+namespace Microsoft.CodeAnalysis.Editor.QuickInfo
 {
-    internal partial class StreamingFindUsagesPresenter
+    internal partial class ContentControlService
     {
         /// <summary>
         /// Class which allows us to provide a delay-created tooltip for our reference entries.
