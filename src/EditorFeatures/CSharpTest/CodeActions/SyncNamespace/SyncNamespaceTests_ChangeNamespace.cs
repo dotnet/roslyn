@@ -160,9 +160,12 @@ namespace [||]{declaredNamespace}
     /// &lt;summary&gt;
     /// See &lt;see cref=""Class1""/&gt;
     /// See &lt;see cref=""{declaredNamespace}.Class1""/&gt;
+    /// See &lt;see cref=""global::{declaredNamespace}.Class1""/&gt;
+    /// See &lt;see cref=""global::{declaredNamespace}.Class1.M1""/&gt;
     /// &lt;/summary&gt;
     public class Class1
     {{
+        public void M1() {{ }}
     }}
 }}</Document>
 <Document Folders=""{documentPath2.folder}"" FilePath=""{documentPath2.filePath}""> 
@@ -173,6 +176,8 @@ namespace Foo
     /// &lt;summary&gt;
     /// See &lt;see cref=""Class1""/&gt;
     /// See &lt;see cref=""{declaredNamespace}.Class1""/&gt;
+    /// See &lt;see cref=""global::{declaredNamespace}.Class1""/&gt;
+    /// See &lt;see cref=""global::{declaredNamespace}.Class1.M1""/&gt;
     /// &lt;/summary&gt;
     class RefClass
     {{
@@ -187,9 +192,12 @@ namespace Foo
     /// <summary>
     /// See <see cref=""Class1""/>
     /// See <see cref=""Class1""/>
+    /// See <see cref=""global::A.B.C.Class1""/>
+    /// See <see cref=""global::A.B.C.Class1.M1""/>
     /// </summary>
     public class Class1
     {
+        public void M1() { }
     }
 }";
             var expectedSourceReference =
@@ -201,6 +209,8 @@ namespace Foo
     /// <summary>
     /// See <see cref=""Class1""/>
     /// See <see cref=""A.B.C.Class1""/>
+    /// See <see cref=""global::A.B.C.Class1""/>
+    /// See <see cref=""global::A.B.C.Class1.M1""/>
     /// </summary>
     class RefClass
     {

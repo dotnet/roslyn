@@ -81,8 +81,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.SyncNamespace
                 old = nameRef.Parent;
                 var aliasQualifier = GetAliasQualifierOpt(old);
 
-                // TODO: handle cref when changing namespace from global to non-global.
-
                 if (IsGlobalNamespace(newNamespaceParts))
                 {
                     // If new namespace is "", then name will be declared in global namespace.
@@ -103,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.SyncNamespace
 
             if (nameRef.Parent is NameMemberCrefSyntax crefName && crefName.Parent is QualifiedCrefSyntax qualifiedCref)
             {
-                // This is the case where the reference is a qualified name in `cref`.
+                // This is the case where the reference is the right most part of a qualified name in `cref`.
                 // for example, `<see cref="Foo.Baz.Bar"/>` and `<see cref="SomeAlias::Foo.Baz.Bar"/>`. 
                 // This is the form of `cref` we need to handle as a spacial case when changing namespace name or
                 // changing namespace from non-global to global, other cases in these 2 scenarios can be handled in the 
