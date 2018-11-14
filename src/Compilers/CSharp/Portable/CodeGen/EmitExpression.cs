@@ -610,7 +610,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 default:
                     // NOTE: passing "ReadOnlyStrict" here. 
                     //       we should not get an address of a copy if at all possible
-                    var unexpectedTemp = EmitAddress(argument, refKind == RefKindExtensions.StrictIn? AddressKind.ReadOnlyStrict: AddressKind.Writeable);
+                    var unexpectedTemp = EmitAddress(argument, refKind == RefKindExtensions.StrictIn ? AddressKind.ReadOnlyStrict : AddressKind.Writeable);
                     if (unexpectedTemp != null)
                     {
                         // interestingly enough "ref dynamic" sometimes is passed via a clone

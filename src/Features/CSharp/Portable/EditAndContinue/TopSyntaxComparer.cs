@@ -207,11 +207,11 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
                 case SyntaxKind.VariableDeclaration:
                     isLeaf = false;
-                    return  Label.FieldVariableDeclaration;
+                    return Label.FieldVariableDeclaration;
 
                 case SyntaxKind.VariableDeclarator:
                     isLeaf = true;
-                    return  Label.FieldVariableDeclarator;
+                    return Label.FieldVariableDeclarator;
 
                 case SyntaxKind.MethodDeclaration:
                     isLeaf = false;

@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ValidateFormatString
         private IDictionary<OptionKey, object> CSharpOptionOffVBOptionOn()
         {
             var optionsSet = new Dictionary<OptionKey, object>();
-            optionsSet.Add(new OptionKey(ValidateFormatStringOption.ReportInvalidPlaceholdersInStringDotFormatCalls, LanguageNames.CSharp) , false);
+            optionsSet.Add(new OptionKey(ValidateFormatStringOption.ReportInvalidPlaceholdersInStringDotFormatCalls, LanguageNames.CSharp), false);
             optionsSet.Add(new OptionKey(ValidateFormatStringOption.ReportInvalidPlaceholdersInStringDotFormatCalls, LanguageNames.VisualBasic), true);
             return optionsSet;
         }

@@ -1090,7 +1090,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         // CS0629: Conditional member '{0}' cannot implement interface member '{1}' in type '{2}'
                         diagnostics.Add(ErrorCode.ERR_InterfaceImplementedByConditional, GetImplicitImplementationDiagnosticLocation(interfaceMember, implementingType, implicitImpl), implicitImpl, interfaceMethod, implementingType);
                     }
-                    else if(ReportAnyMismatchedConstraints(interfaceMethod, implementingType, implicitImplMethod, diagnostics))
+                    else if (ReportAnyMismatchedConstraints(interfaceMethod, implementingType, implicitImplMethod, diagnostics))
                     {
                         reportedAnError = true;
                     }

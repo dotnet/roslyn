@@ -316,7 +316,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         {
             DefineAndRecordLocals(sequence);
             EmitSideEffects(sequence);
-            var result =  EmitAddress(sequence.Value, addressKind);
+            var result = EmitAddress(sequence.Value, addressKind);
             CloseScopeAndKeepLocals(sequence);
 
             return result;

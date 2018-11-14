@@ -51,13 +51,13 @@ namespace Roslyn.Utilities
         // local cache
         // simple fast and not threadsafe cache 
         // with limited size and "last add wins" expiration policy
-        private readonly (string Text, int HashCode, T Item)[] _localTable = new(string Text, int HashCode, T Item)[LocalSize];
+        private readonly (string Text, int HashCode, T Item)[] _localTable = new (string Text, int HashCode, T Item)[LocalSize];
 
         // shared threadsafe cache
         // slightly slower than local cache
         // we read this cache when having a miss in local cache
         // writes to local cache will update shared cache as well.
-        private static readonly (int HashCode, SharedEntryValue Entry)[] s_sharedTable = new(int HashCode, SharedEntryValue Entry)[SharedSize];
+        private static readonly (int HashCode, SharedEntryValue Entry)[] s_sharedTable = new (int HashCode, SharedEntryValue Entry)[SharedSize];
 
         // store a reference to shared cache locally
         // accessing a static field of a generic type could be nontrivial

@@ -961,7 +961,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (!self.DeconstructionInfo.IsDefault)
                 {
                     sub.Add(new TreeDumperNode("deconstructionInfo", null,
-                        new[] { BoundTreeDumperNodeProducer.MakeTree(self.DeconstructionInfo.Invocation)}));
+                        new[] { BoundTreeDumperNodeProducer.MakeTree(self.DeconstructionInfo.Invocation) }));
                 }
 
                 var underlyingConversions = self.UnderlyingConversions;

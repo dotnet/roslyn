@@ -459,14 +459,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
                     switch (ParameterSymbol.Language)
                     {
                         case LanguageNames.CSharp:
-                            return ModifierText("out","ref","in","params","this");
+                            return ModifierText("out", "ref", "in", "params", "this");
                         case LanguageNames.VisualBasic:
                             return ModifierText(@ref: "ByRef", @params: "ParamArray", @this: "Me");
                         default:
                             return string.Empty;
                     }
 
-                    string ModifierText(string @out = default, string @ref = default, string @in  = default, string @params = default, string @this = default)
+                    string ModifierText(string @out = default, string @ref = default, string @in = default, string @params = default, string @this = default)
                     {
                         switch (ParameterSymbol.RefKind)
                         {

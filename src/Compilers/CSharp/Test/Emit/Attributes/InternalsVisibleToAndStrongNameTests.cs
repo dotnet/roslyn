@@ -314,7 +314,7 @@ public class Test
         }
 
         [WorkItem(5662, "https://github.com/dotnet/roslyn/issues/5662")]
-        [ConditionalFact(typeof(IsEnglishLocal),typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
+        [ConditionalFact(typeof(IsEnglishLocal), typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
         public void PubKeyContainerBogusOptions()
         {
             string s = "public class C {}";

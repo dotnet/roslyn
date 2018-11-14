@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
         /// </summary>
         protected static void AdjustAndAddAppropriateDeclaratorsToRemove(SyntaxNode parentDeclaration, IEnumerable<SyntaxNode> childDeclarators, HashSet<SyntaxNode> declarators)
         {
-            if(declarators.Contains(parentDeclaration))
+            if (declarators.Contains(parentDeclaration))
             {
                 Debug.Assert(childDeclarators.All(c => !declarators.Contains(c)));
                 return;

@@ -813,7 +813,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
 
             var parameter = parameters[0];
-            switch(parameter.RefKind)
+            switch (parameter.RefKind)
             {
                 case RefKind.None:
                 case RefKind.Ref:

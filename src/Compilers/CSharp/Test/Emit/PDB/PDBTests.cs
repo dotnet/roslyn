@@ -4909,7 +4909,7 @@ class Test
 </symbols>");
         }
 
-        [ WorkItem(2911, "https://github.com/dotnet/roslyn/issues/2911")]
+        [WorkItem(2911, "https://github.com/dotnet/roslyn/issues/2911")]
         [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void ExceptionHandling_Filter_Debug3()
         {

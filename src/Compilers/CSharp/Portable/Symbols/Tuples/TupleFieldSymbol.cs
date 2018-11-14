@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 // not negative and even
-                return (_tupleElementIndex & ((1<<31) | 1)) == 0 ;
+                return (_tupleElementIndex & ((1 << 31) | 1)) == 0;
             }
         }
 

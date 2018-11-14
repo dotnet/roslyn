@@ -8162,7 +8162,7 @@ class C
         public void TestDeconstructOnErrorTypeFromImageReference()
         {
             var missing_cs = "public class Missing { }";
-            var missing  = CreateCompilationWithMscorlib45(missing_cs, options: TestOptions.DebugDll, assemblyName: "missing");
+            var missing = CreateCompilationWithMscorlib45(missing_cs, options: TestOptions.DebugDll, assemblyName: "missing");
 
             var lib_cs = "public class C { public Missing M() { throw null; } }";
             var lib = CreateCompilationWithMscorlib45(lib_cs, references: new[] { missing.EmitToImageReference() }, options: TestOptions.DebugDll);

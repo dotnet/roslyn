@@ -342,7 +342,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAnonymousTypeToClass
             // use this to update reference to the old anonymous-type properties to the new
             // names.
             var builder = ImmutableDictionary.CreateBuilder<IPropertySymbol, string>();
-            for (var i = 0; i< originalProperties.Length; i++)
+            for (var i = 0; i < originalProperties.Length; i++)
             {
                 var originalProperty = originalProperties[i];
                 var newProperty = newProperties[i];

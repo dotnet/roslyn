@@ -2699,7 +2699,7 @@ public class X
 }
 ";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
-            CompileAndVerify(compilation, expectedOutput:@"return");
+            CompileAndVerify(compilation, expectedOutput: @"return");
 
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);

@@ -982,7 +982,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (storesToTemps.Count > 0)
             {
-                int tempsNeeded = MergeArgumentsAndSideEffects(arguments,storesToTemps);
+                int tempsNeeded = MergeArgumentsAndSideEffects(arguments, storesToTemps);
                 if (tempsNeeded > 0)
                 {
                     foreach (BoundAssignmentOperator s in storesToTemps)

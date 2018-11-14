@@ -827,7 +827,7 @@ i", options);
             catch (CompilationErrorException ex)
             {
                 //  CS8055: Cannot emit debug information for a source text without encoding.
-                ex.Diagnostics.Verify(Diagnostic(ErrorCode.ERR_EncodinglessSyntaxTree, code).WithLocation(1,1));
+                ex.Diagnostics.Verify(Diagnostic(ErrorCode.ERR_EncodinglessSyntaxTree, code).WithLocation(1, 1));
             }
         }
 

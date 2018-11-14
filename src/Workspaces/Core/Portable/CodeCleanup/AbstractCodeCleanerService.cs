@@ -483,7 +483,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
                         // Document was changed by the previous code cleaner, compute new spans.
                         var root = await currentDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
                         previousDocument = currentDocument;
-                        spans = GetSpans(root, spanGetter);;
+                        spans = GetSpans(root, spanGetter); ;
                     }
 
                     // If we are at the end and there were no changes to the document, use the original document for the cleanup.

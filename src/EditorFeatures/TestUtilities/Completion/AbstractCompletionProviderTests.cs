@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
                         && CompareItems(c.DisplayTextSuffix, displayTextSuffix ?? "")
                         && (expectedDescriptionOrNull != null ? completionService.GetDescriptionAsync(document, c).Result.Text == expectedDescriptionOrNull : true)
                         && (glyph.HasValue ? c.Tags.SequenceEqual(GlyphTags.GetTags((Glyph)glyph.Value)) : true)
-                        && (matchPriority.HasValue ? (int)c.Rules.MatchPriority == matchPriority.Value : true ));
+                        && (matchPriority.HasValue ? (int)c.Rules.MatchPriority == matchPriority.Value : true));
                 }
             }
         }

@@ -2253,7 +2253,7 @@ class CL3 : CL2
 Overridden");
         }
 
-        [ConditionalFact(typeof(ClrOnly),typeof(DesktopOnly))]
+        [ConditionalFact(typeof(ClrOnly), typeof(DesktopOnly))]
         [WorkItem(14453, "https://github.com/dotnet/roslyn/issues/14453")]
         [WorkItem(18411, "https://github.com/dotnet/roslyn/issues/18411")]
         public void ModifiersWithConstructedType_04()

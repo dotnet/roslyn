@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             }
         }
 
-        private ImmutableArray<ImmutableArray<string>> GetBaseNames(SemanticModel semanticModel,  NameDeclarationInfo nameInfo)
+        private ImmutableArray<ImmutableArray<string>> GetBaseNames(SemanticModel semanticModel, NameDeclarationInfo nameInfo)
         {
             if (nameInfo.Alias != null)
             {

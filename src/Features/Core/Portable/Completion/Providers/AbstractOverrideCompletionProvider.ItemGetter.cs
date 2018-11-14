@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
                 var displayString = symbolDisplayService.ToMinimalDisplayString(semanticModel, position, symbol, _overrideNameFormat);
 
-                return  MemberInsertionCompletionItem.Create(
+                return MemberInsertionCompletionItem.Create(
                     displayString,
                     displayTextSuffix: "",
                     modifiers,

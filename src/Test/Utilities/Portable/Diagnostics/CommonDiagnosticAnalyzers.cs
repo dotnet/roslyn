@@ -1569,7 +1569,7 @@ namespace Microsoft.CodeAnalysis
                     }
 
                     Assert.False(symbolEndContext.Symbol.IsImplicitlyDeclared);
-                    var rule = _topLevelAction ? SymbolStartTopLevelRule  : SymbolStartCompilationLevelRule;
+                    var rule = _topLevelAction ? SymbolStartTopLevelRule : SymbolStartCompilationLevelRule;
                     symbolEndContext.ReportDiagnostic(Diagnostic.Create(rule, Location.None, symbolStartContext.Symbol.Name, _analyzerId));
                 }
 

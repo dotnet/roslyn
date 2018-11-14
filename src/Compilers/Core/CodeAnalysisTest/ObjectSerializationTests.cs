@@ -241,7 +241,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 }
                 else
                 {
-                    return  _member1.GetHashCode();
+                    return _member1.GetHashCode();
                 }
             }
 

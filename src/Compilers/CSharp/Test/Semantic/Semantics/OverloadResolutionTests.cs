@@ -10587,7 +10587,7 @@ class Program
         M((byte)2);
     }
 }",
-                expectedOutput:@"
+                expectedOutput: @"
 val: 0
 val: 1
 in: 1
@@ -10981,7 +10981,7 @@ public static class Extensions
                 Diagnostic(ErrorCode.ERR_RefLvalueExpected, "1").WithLocation(14, 10)
                 );
 
-            CreateCompilation(code, references: new[] {libComp.ToMetadataReference() }).VerifyDiagnostics(
+            CreateCompilation(code, references: new[] { libComp.ToMetadataReference() }).VerifyDiagnostics(
                 // (13,10): error CS8329: Cannot use variable 'in int' as a ref or out value because it is a readonly variable
                 //          y.R_extension(); // error 1
                 Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "y").WithArguments("variable", "in int").WithLocation(13, 10),

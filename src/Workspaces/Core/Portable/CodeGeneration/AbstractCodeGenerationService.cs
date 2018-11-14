@@ -274,7 +274,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             IList<bool> availableIndices,
             CodeGenerationOptions options,
             CancellationToken cancellationToken)
-            where TDeclarationSyntax  : SyntaxNode
+            where TDeclarationSyntax : SyntaxNode
         {
             var currentDestination = destination;
 

@@ -209,7 +209,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return InitializeFixedStatementGetPinnable(localDecl, localSymbol, fixedCollectionInitializer, factory, out pinnedTemp);
             }
-            else if(fixedCollectionInitializer.Expression.Type.SpecialType == SpecialType.System_String)
+            else if (fixedCollectionInitializer.Expression.Type.SpecialType == SpecialType.System_String)
             {
                 return InitializeFixedStatementStringLocal(localDecl, localSymbol, fixedCollectionInitializer, factory, out pinnedTemp);
             }
@@ -348,8 +348,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // .GetPinnable()
-            var getPinnableCall = getPinnableMethod.IsStatic?
-                factory.Call(null, getPinnableMethod, callReceiver):
+            var getPinnableCall = getPinnableMethod.IsStatic ?
+                factory.Call(null, getPinnableMethod, callReceiver) :
                 factory.Call(callReceiver, getPinnableMethod);
 
             // temp =ref .GetPinnable()
@@ -544,7 +544,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             //(((temp = array) != null && temp.Length != 0) ? loc = &temp[0] : loc = null)
             BoundStatement localInit = factory.ExpressionStatement(
-                new BoundConditionalOperator(factory.Syntax,false, condition, consequenceAssignment, alternativeAssignment, ConstantValue.NotAvailable, localType));
+                new BoundConditionalOperator(factory.Syntax, false, condition, consequenceAssignment, alternativeAssignment, ConstantValue.NotAvailable, localType));
 
             return InstrumentLocalDeclarationIfNecessary(localDecl, localSymbol, localInit);
         }

@@ -254,7 +254,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         break;
 
                     case SyntaxKind.InKeyword:
-                        if(seenIn)
+                        if (seenIn)
                         {
                             diagnostics.Add(ErrorCode.ERR_DupParamMod, modifier.GetLocation(), SyntaxFacts.GetText(SyntaxKind.InKeyword));
                         }
@@ -262,7 +262,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         {
                             diagnostics.Add(ErrorCode.ERR_BadParameterModifiers, modifier.GetLocation(), SyntaxFacts.GetText(SyntaxKind.InKeyword), SyntaxFacts.GetText(SyntaxKind.OutKeyword));
                         }
-                        else if(seenRef)
+                        else if (seenRef)
                         {
                             diagnostics.Add(ErrorCode.ERR_BadParameterModifiers, modifier.GetLocation(), SyntaxFacts.GetText(SyntaxKind.InKeyword), SyntaxFacts.GetText(SyntaxKind.RefKeyword));
                         }

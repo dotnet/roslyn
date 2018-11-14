@@ -101,7 +101,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Utilities
             if (radioButtonItem != null)
             {
                 var toggleButton = ((RadioButton)radioButtonItem.Owner);
-                toggleButton.Checked +=   RadioButton_CheckChanged;
+                toggleButton.Checked += RadioButton_CheckChanged;
                 toggleButton.Unchecked += RadioButton_CheckChanged;
                 return;
             }

@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                        CSharpSyntaxNode syntax, BoundNode boundNode = null)
         {
             Debug.Assert(containingSemanticModel != null);
-            var result =  new MethodBodySemanticModel(owner, executableCodeBinder, syntax, containingSemanticModel);
+            var result = new MethodBodySemanticModel(owner, executableCodeBinder, syntax, containingSemanticModel);
 
             if (boundNode != null)
             {

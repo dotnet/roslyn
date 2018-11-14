@@ -9,7 +9,7 @@ namespace RepoUtil
         internal string GenerateNameOpt { get; }
 
         internal NuGetPackage(string name, string version)
-            :this(name, version, generateName: null) { }
+            : this(name, version, generateName: null) { }
 
         internal NuGetPackage(string name, string version, string generateName)
         {

@@ -149,7 +149,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var expected = new Version(0, 0, 0, 0);
             Version version;
             Assert.False(VersionHelper.TryParse("", out version));
-            Assert.Equal(expected,version);
+            Assert.Equal(expected, version);
             Assert.False(VersionHelper.TryParse(null, out version));
             Assert.Equal(expected, version);
             Assert.False(VersionHelper.TryParse("a", out version));

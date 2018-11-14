@@ -413,7 +413,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 ArrayBuilder<TypeParameterSymbol> builder = ArrayBuilder<TypeParameterSymbol>.GetInstance(arity);
                 var typeParameters2 = member2.GetMemberTypeParameters();
 
-                for (int i = arity -1; i >= 0; i--)
+                for (int i = arity - 1; i >= 0; i--)
                 {
                     builder.Add(IndexedTypeParameterSymbolForOverriding.GetTypeParameter(i, typeParameters2[i].IsValueType));
                 }

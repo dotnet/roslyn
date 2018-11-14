@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.MakeMethodSynchronous
             }
 
             return await RemoveAwaitFromCallersAsync(
-                newDocument, annotation, cancellationToken).ConfigureAwait(false) ;
+                newDocument, annotation, cancellationToken).ConfigureAwait(false);
         }
 
         private async Task<Solution> RemoveAwaitFromCallersAsync(

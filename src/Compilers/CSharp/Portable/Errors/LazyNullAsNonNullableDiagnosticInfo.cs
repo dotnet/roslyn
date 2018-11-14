@@ -8,7 +8,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         private readonly TypeSymbolWithAnnotations _possiblyNullableType;
 
-        internal LazyNullAsNonNullableDiagnosticInfo (TypeSymbolWithAnnotations possiblyNullableType)
+        internal LazyNullAsNonNullableDiagnosticInfo(TypeSymbolWithAnnotations possiblyNullableType)
         {
             _possiblyNullableType = possiblyNullableType;
         }

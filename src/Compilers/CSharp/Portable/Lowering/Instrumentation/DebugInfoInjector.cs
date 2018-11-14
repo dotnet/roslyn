@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static readonly DebugInfoInjector Singleton = new DebugInfoInjector(Instrumenter.NoOp);
 
         public DebugInfoInjector(Instrumenter previous)
-            : base (previous)
+            : base(previous)
         {
         }
 

@@ -437,7 +437,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 case SyntaxKind.AnonymousMethodExpression:
                     AnonymousMethodExpressionSyntax anon = (AnonymousMethodExpressionSyntax)lambdaExpressionOrQueryNode;
                     body = anon.Block;
-                    firstIncluded = body.GetFirstToken(includeZeroWidth:true);
+                    firstIncluded = body.GetFirstToken(includeZeroWidth: true);
                     break;
 
                 default:

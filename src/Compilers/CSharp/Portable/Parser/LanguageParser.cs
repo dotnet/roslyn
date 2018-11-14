@@ -1191,7 +1191,7 @@ tryAgain:
                             modTok = CheckFeatureAvailability(modTok,
                                 isPartialType ? MessageID.IDS_FeaturePartialTypes : MessageID.IDS_FeaturePartialMethod);
                         }
-                        else if(nextToken.Kind == SyntaxKind.NamespaceKeyword)
+                        else if (nextToken.Kind == SyntaxKind.NamespaceKeyword)
                         {
                             // Error reported in binding
                             modTok = ConvertToKeyword(this.EatToken());

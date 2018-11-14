@@ -4512,7 +4512,7 @@ class B
                 activeStatements: ActiveStatementsDescription.Empty,
                 additionalOldSources: new[] { srcB1 },
                 additionalNewSources: new[] { srcB2 },
-                expectedSemanticEdits:null,
+                expectedSemanticEdits: null,
                 expectedDiagnostics: new[] { Diagnostic(RudeEditKind.ChangingConstructorVisibility, "internal C()") },
                 expectedDeclarationError: null);
         }

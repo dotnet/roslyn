@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                var result =  this._syntaxTree ?? ComputeSyntaxTree(this);
+                var result = this._syntaxTree ?? ComputeSyntaxTree(this);
                 Debug.Assert(result != null);
                 return result;
             }
@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 foreach (var n in nodes)
                 {
-                    var existingTree =  n._syntaxTree;
+                    var existingTree = n._syntaxTree;
                     if (existingTree != null)
                     {
                         Debug.Assert(existingTree == tree, "how could this node belong to a different tree?");

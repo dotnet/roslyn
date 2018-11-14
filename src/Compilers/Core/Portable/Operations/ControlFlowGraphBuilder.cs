@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
 
             builder.EnterRegion(new RegionBuilder(ControlFlowRegionKind.LocalLifetime));
 
-            switch(body.Kind)
+            switch (body.Kind)
             {
                 case OperationKind.LocalFunction:
                     Debug.Assert(captureIdDispenser != null);
@@ -4053,7 +4053,7 @@ oneMoreTime:
                     // This must be an error case
                     AddStatement(MakeInvalidOperation(type: null, Visit(operation.Collection)));
                     result = new InvalidOperation(ImmutableArray<IOperation>.Empty, semanticModel: null, operation.Collection.Syntax,
-                                                  type: null,constantValue: default, isImplicit: true);
+                                                  type: null, constantValue: default, isImplicit: true);
                 }
 
                 PopStackFrameAndLeaveRegion(getEnumeratorFrame);

@@ -180,7 +180,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
 
                 // The display name for each element. 
                 // Empty strings for elements not explicitly declared
-                var elementName = element.IsImplicitlyDeclared? string.Empty: element.Name;
+                var elementName = element.IsImplicitlyDeclared ? string.Empty : element.Name;
 
                 var typeParts = type.ToMinimalDisplayParts(semanticModel, position).ToList();
                 if (!string.IsNullOrEmpty(elementName))

@@ -909,7 +909,7 @@ public interface I3<T>
             {
                 foreach (var t in m.GlobalNamespace.GetTypeMembers())
                 {
-                    switch(t.Name)
+                    switch (t.Name)
                     {
                         case "I1":
                         case "<Module>":

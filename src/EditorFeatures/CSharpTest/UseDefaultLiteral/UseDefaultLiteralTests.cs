@@ -204,7 +204,7 @@ class C
     {
         var s = [||]default(string);
     }
-}",  parameters: s_testParameters);
+}", parameters: s_testParameters);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDefaultLiteral)]

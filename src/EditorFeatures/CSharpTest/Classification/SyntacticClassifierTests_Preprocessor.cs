@@ -997,7 +997,7 @@ aeu";
         [Fact]
         public async Task UnderscoreInAssignment()
         {
-            await TestInMethodAsync(code: @"int _; _ = 1;" ,
+            await TestInMethodAsync(code: @"int _; _ = 1;",
                 expected: Classifications(Keyword("int"), Local("_"), Punctuation.Semicolon, Identifier("_"), Operators.Equals,
                     Number("1"), Punctuation.Semicolon));
         }

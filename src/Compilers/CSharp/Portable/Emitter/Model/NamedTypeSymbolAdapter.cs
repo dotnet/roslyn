@@ -950,7 +950,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             PEModuleBuilder moduleBeingBuilt = (PEModuleBuilder)context.Module;
             return moduleBeingBuilt.Translate(this.OriginalDefinition, syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt,
-                                              diagnostics: context.Diagnostics, needDeclaration:true);
+                                              diagnostics: context.Diagnostics, needDeclaration: true);
         }
 
         Cci.INestedTypeReference Cci.ISpecializedNestedTypeReference.GetUnspecializedVersion(EmitContext context)

@@ -721,7 +721,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 return this; // substitution had no effect on the type or modifiers
             }
-            else if(Is((TypeParameterSymbol)typeSymbol))
+            else if (Is((TypeParameterSymbol)typeSymbol))
             {
                 return newTypeWithModifiers;
             }

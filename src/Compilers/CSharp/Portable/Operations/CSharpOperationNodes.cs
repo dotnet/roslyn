@@ -189,7 +189,7 @@ namespace Microsoft.CodeAnalysis.Operations
         private readonly CSharpOperationFactory _operationFactory;
         private readonly BoundDeconstructionAssignmentOperator _deconstructionAssignment;
 
-        internal CSharpLazyDeconstructionAssignmentOperation(CSharpOperationFactory operationFactory, BoundDeconstructionAssignmentOperator deconstructionAssignment,SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+        internal CSharpLazyDeconstructionAssignmentOperation(CSharpOperationFactory operationFactory, BoundDeconstructionAssignmentOperator deconstructionAssignment, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(semanticModel, syntax, type, constantValue, isImplicit)
         {
             _operationFactory = operationFactory;
@@ -1025,7 +1025,7 @@ namespace Microsoft.CodeAnalysis.Operations
             ImmutableArray<BoundExpression> arguments;
             ImmutableArray<BoundAnonymousPropertyDeclaration> declarations;
 
-            switch(_anonymousObjectCreation)
+            switch (_anonymousObjectCreation)
             {
                 case BoundAnonymousObjectCreationExpression anonymousObjectCreationExpression:
                     arguments = anonymousObjectCreationExpression.Arguments;

@@ -23817,7 +23817,7 @@ Friend MustOverride ReadOnly Property P
             IL_0007:  ret
         }
 }"
-            Dim ilReference = CompileIL(forwardingIL, prependDefaultHeader:= False)
+            Dim ilReference = CompileIL(forwardingIL, prependDefaultHeader:=False)
 
             Dim code =
     <compilation>
@@ -23834,9 +23834,9 @@ End Namespace
     </compilation>
 
             CompileAndVerify(
-                source:= code,
-                references:= { ilReference },
-                expectedOutput:= "TEST VALUE")
+                source:=code,
+                references:={ilReference},
+                expectedOutput:="TEST VALUE")
         End Sub
 
         <Fact>
@@ -23877,7 +23877,7 @@ End Namespace
 {
 	.assembly extern Destination2
 }"
-            Dim compilation = CreateCompilationWithCustomILSource(userCode, forwardingIL, appendDefaultHeader:= False)
+            Dim compilation = CreateCompilationWithCustomILSource(userCode, forwardingIL, appendDefaultHeader:=False)
 
             CompilationUtils.AssertTheseDiagnostics(compilation, <errors><![CDATA[
 BC30002: Type 'Destination.TestClass' is not defined.
@@ -23945,7 +23945,7 @@ End Namespace
 	.assembly extern Destination2
 }"
 
-            Dim compilation = CreateCompilationWithCustomILSource(userCode, forwardingIL, appendDefaultHeader:= False)
+            Dim compilation = CreateCompilationWithCustomILSource(userCode, forwardingIL, appendDefaultHeader:=False)
 
             CompilationUtils.AssertTheseDiagnostics(compilation, <errors><![CDATA[
 BC30002: Type 'Destination.TestClass' is not defined.
@@ -23971,9 +23971,9 @@ Namespace C
 End Namespace"
 
             Dim referenceC = CreateCompilationWithMscorlib40(
-                source:= codeC,
-                options:= New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary),
-                assemblyName:= "C") .EmitToImageReference()
+                source:=codeC,
+                options:=New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary),
+                assemblyName:="C").EmitToImageReference()
 
             Dim codeB = "
 Imports C
@@ -23987,10 +23987,10 @@ Namespace B
 End Namespace"
 
             Dim compilationB = CreateCompilationWithMscorlib40(
-                source:= codeB,
-                references:= { referenceC },
-                options:= New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary),
-                assemblyName:= "B")
+                source:=codeB,
+                references:={referenceC},
+                options:=New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary),
+                assemblyName:="B")
 
             Dim referenceB = compilationB.EmitToImageReference()
 
@@ -24006,10 +24006,10 @@ Namespace A
 End Namespace"
 
             Dim compilation = CreateCompilationWithMscorlib40(
-                source:= codeA,
-                references:= { referenceB, referenceC },
-                options:= New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary),
-                assemblyName:= "A")
+                source:=codeA,
+                references:={referenceB, referenceC},
+                options:=New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary),
+                assemblyName:="A")
 
             compilation.VerifyDiagnostics() ' No Errors
 
@@ -24027,13 +24027,13 @@ End Namespace"
 	.assembly extern D2
 }"
 
-            Dim referenceC2 = CompileIL(codeC2, prependDefaultHeader:= False)
+            Dim referenceC2 = CompileIL(codeC2, prependDefaultHeader:=False)
 
             compilation = CreateCompilationWithMscorlib40(
-                source:= codeA,
-                references:= { referenceB, referenceC2 },
-                options:= New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary),
-                assemblyName:= "A")
+                source:=codeA,
+                references:={referenceB, referenceC2},
+                options:=New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary),
+                assemblyName:="A")
 
             CompilationUtils.AssertTheseDiagnostics(compilation, <errors><![CDATA[
 BC37208: Module 'CModule.dll' in assembly 'C, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' is forwarding the type 'C.ClassC' to multiple assemblies: 'D1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' and 'D2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.

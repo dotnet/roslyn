@@ -1432,7 +1432,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private bool IsBadLocalOrParameterCapture(Symbol symbol, TypeSymbol type, RefKind refKind)
         {
-            if (refKind != RefKind.None || type.IsByRefLikeType )
+            if (refKind != RefKind.None || type.IsByRefLikeType)
             {
                 var containingMethod = this.ContainingMemberOrLambda as MethodSymbol;
                 if ((object)containingMethod != null && (object)symbol.ContainingSymbol != (object)containingMethod)
@@ -2635,7 +2635,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 refKind == RefKind.None ?
                         BindValueKind.RValue :
                         refKind == RefKind.In ?
-                            BindValueKind.ReadonlyRef:
+                            BindValueKind.ReadonlyRef :
                             BindValueKind.RefOrOut;
 
             BoundExpression argument;

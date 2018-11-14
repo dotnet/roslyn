@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
             /// of the original document that triggered the refactoring plus every such linked 
             /// documents.
             /// </summary>
-            public ImmutableArray<DocumentId> DocumentIds { get;  }
+            public ImmutableArray<DocumentId> DocumentIds { get; }
 
             /// <summary>
             /// This is the default namespace defined in the project file.

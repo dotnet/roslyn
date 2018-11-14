@@ -316,7 +316,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public bool HasSignature { get { return Data.HasSignature; } }
         public bool HasExplicitlyTypedParameterList { get { return Data.HasExplicitlyTypedParameterList; } }
         public int ParameterCount { get { return Data.ParameterCount; } }
-        public TypeSymbolWithAnnotations InferReturnType(ConversionsBase conversions, NamedTypeSymbol delegateType, ref HashSet<DiagnosticInfo> useSiteDiagnostics) { return BindForReturnTypeInference(delegateType).GetInferredReturnType(conversions, _nullableState, ref useSiteDiagnostics);  }
+        public TypeSymbolWithAnnotations InferReturnType(ConversionsBase conversions, NamedTypeSymbol delegateType, ref HashSet<DiagnosticInfo> useSiteDiagnostics) { return BindForReturnTypeInference(delegateType).GetInferredReturnType(conversions, _nullableState, ref useSiteDiagnostics); }
         public RefKind RefKind(int index) { return Data.RefKind(index); }
         public void GenerateAnonymousFunctionConversionError(DiagnosticBag diagnostics, TypeSymbol targetType) { Data.GenerateAnonymousFunctionConversionError(diagnostics, targetType); }
         public bool GenerateSummaryErrors(DiagnosticBag diagnostics) { return Data.GenerateSummaryErrors(diagnostics); }

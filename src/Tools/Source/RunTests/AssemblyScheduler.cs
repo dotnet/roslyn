@@ -286,7 +286,7 @@ namespace RunTests
                 TypeAttributes.Public == (type.Attributes & TypeAttributes.Public) ||
                 TypeAttributes.NestedPublic == (type.Attributes & TypeAttributes.NestedPublic);
             if (!isPublic ||
-                TypeAttributes.Abstract == (type.Attributes & TypeAttributes.Abstract)  ||
+                TypeAttributes.Abstract == (type.Attributes & TypeAttributes.Abstract) ||
                 TypeAttributes.Class != (type.Attributes & TypeAttributes.Class))
             {
                 return false;
@@ -337,7 +337,7 @@ namespace RunTests
         private static bool IsValidIdentifier(MetadataReader reader, StringHandle handle)
         {
             var name = reader.GetString(handle);
-            for (int i=  0; i < name.Length; i++)
+            for (int i = 0; i < name.Length; i++)
             {
                 switch (name[i])
                 {

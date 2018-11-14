@@ -60,9 +60,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
 
         private void TryParseSubTrees(
             string stringText, RegexOptions options,
-            bool allowIndexOutOfRange ,
-            bool allowNullReference ,
-            bool allowOutOfMemory )
+            bool allowIndexOutOfRange,
+            bool allowNullReference,
+            bool allowOutOfMemory)
         {
             // Trim the input from the right and make sure tree invariants hold
             var current = stringText;

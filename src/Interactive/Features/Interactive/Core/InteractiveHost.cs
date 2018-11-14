@@ -274,7 +274,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                 throw new ArgumentNullException(nameof(value));
             }
 
-            lock(_outputGuard)
+            lock (_outputGuard)
             {
                 _output.Flush();
                 _output = value;
@@ -288,7 +288,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                 throw new ArgumentNullException(nameof(value));
             }
 
-            lock(_errorOutputGuard)
+            lock (_errorOutputGuard)
             {
                 _errorOutput.Flush();
                 _errorOutput = value;

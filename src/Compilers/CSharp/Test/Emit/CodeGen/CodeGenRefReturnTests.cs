@@ -3631,7 +3631,7 @@ Program+RefFunc1`2[Derived1,Base]", verify: Verification.Passes);
     }
 ";
 
-            CompileAndVerifyRef(text, expectedOutput:"37", verify: Verification.Fails).VerifyIL("Program.Main()", @"
+            CompileAndVerifyRef(text, expectedOutput: "37", verify: Verification.Fails).VerifyIL("Program.Main()", @"
 {
   // Code size       75 (0x4b)
   .maxstack  3

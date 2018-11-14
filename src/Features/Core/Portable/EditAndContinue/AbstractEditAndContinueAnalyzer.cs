@@ -578,7 +578,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             {
                 var edit = script.Edits[i];
 
-                AnalyzeUpdatedActiveMethodBodies(script, i, editMap, oldText, newText, documentId, trackingService, oldActiveStatements,newActiveStatements, newExceptionRegions, updatedMethods, updatedTrackingSpans, diagnostics);
+                AnalyzeUpdatedActiveMethodBodies(script, i, editMap, oldText, newText, documentId, trackingService, oldActiveStatements, newActiveStatements, newExceptionRegions, updatedMethods, updatedTrackingSpans, diagnostics);
                 ReportSyntacticRudeEdits(diagnostics, script.Match, edit, editMap);
             }
 

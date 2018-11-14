@@ -620,7 +620,7 @@ static unsafe class C
             CompileAndVerify(text,
                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_3),
                 options: TestOptions.UnsafeReleaseExe,
-                verify: Verification.Fails ,expectedOutput: @"123").VerifyIL("C.Main",
+                verify: Verification.Fails, expectedOutput: @"123").VerifyIL("C.Main",
 @"{
   // Code size       70 (0x46)
   .maxstack  4

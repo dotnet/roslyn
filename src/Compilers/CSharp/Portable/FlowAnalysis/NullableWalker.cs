@@ -4374,7 +4374,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             if (operandType?.IsValueType == true)
                             {
                                 // https://github.com/dotnet/roslyn/issues/29959 We currently don't worry about a pathological case of boxing nullable value known to be not null
-                                nullableAnnotation = operandType.IsNullableType() ?  NullableAnnotation.Nullable : NullableAnnotation.NotNullable;
+                                nullableAnnotation = operandType.IsNullableType() ? NullableAnnotation.Nullable : NullableAnnotation.NotNullable;
                             }
                             else
                             {

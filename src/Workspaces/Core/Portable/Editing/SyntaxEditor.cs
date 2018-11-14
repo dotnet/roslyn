@@ -237,7 +237,7 @@ namespace Microsoft.CodeAnalysis.Editing
                 return;
             }
 
-            if(_lazyTrackedNewNodesOpt?.Contains(node) == true)
+            if (_lazyTrackedNewNodesOpt?.Contains(node) == true)
             {
                 // Node is one of the new nodes, which is already tracked and supported.
                 return;

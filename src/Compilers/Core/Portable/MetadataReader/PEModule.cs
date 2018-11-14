@@ -2975,7 +2975,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             matchedName = null;
-            return (FirstIndex: -1, SecondIndex: - 1);
+            return (FirstIndex: -1, SecondIndex: -1);
         }
 
         internal IEnumerable<KeyValuePair<string, (int FirstIndex, int SecondIndex)>> GetForwardedTypes()

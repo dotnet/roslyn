@@ -484,7 +484,7 @@ public class C : Base
 
                 VerifyMethods(output, "C", new[] { "void C.Property.set", "C..ctor()", "System.Int32 C.Property.get", "System.Int32 C.Property { internal get; set; }" });
                 // A getter is synthesized on C.Property so that it can be marked as sealed. It is emitted despite being internal because it is virtual.
-                VerifyMethods(metadataOutput, "C", new[] {  "void C.Property.set", "C..ctor()", "System.Int32 C.Property.get", "System.Int32 C.Property { internal get; set; }" });
+                VerifyMethods(metadataOutput, "C", new[] { "void C.Property.set", "C..ctor()", "System.Int32 C.Property.get", "System.Int32 C.Property { internal get; set; }" });
             }
         }
 

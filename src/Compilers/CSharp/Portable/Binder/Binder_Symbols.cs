@@ -539,7 +539,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var argumentType = BindType(argumentSyntax.Type, diagnostics);
                 types.Add(argumentType);
 
-                string name =  null;
+                string name = null;
                 SyntaxToken nameToken = argumentSyntax.Identifier;
 
                 if (nameToken.Kind() == SyntaxKind.IdentifierToken)

@@ -171,7 +171,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     model = (constructor.HasAnyBody() || constructor.Initializer != null) ? GetOrAddModel(node) : null;
                     break;
                 case BaseMethodDeclarationSyntax method:
-                    model = method.HasAnyBody() ? GetOrAddModel(node) :  null;
+                    model = method.HasAnyBody() ? GetOrAddModel(node) : null;
                     break;
                 case AccessorDeclarationSyntax accessor:
                     model = (accessor.Body != null || accessor.ExpressionBody != null) ? GetOrAddModel(node) : null;
@@ -880,7 +880,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return ImmutableInterlocked.GetOrAdd(ref _memberModels, attribute,
-                                                 (node, binder) => CreateModelForAttribute(binder, (AttributeSyntax) node),
+                                                 (node, binder) => CreateModelForAttribute(binder, (AttributeSyntax)node),
                                                  containing.GetEnclosingBinder(attribute.SpanStart));
         }
 

@@ -60628,7 +60628,7 @@ partial class Program
             }
         }
 
-        [Fact(Skip ="Two different implementations of NullableAnnotation Join do not agree")]
+        [Fact(Skip = "Two different implementations of NullableAnnotation Join do not agree")]
         public void TestJoinsAgree()
         {
             Func<bool, bool> identity = x => x;

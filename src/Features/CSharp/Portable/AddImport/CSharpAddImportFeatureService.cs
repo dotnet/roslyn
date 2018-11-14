@@ -298,7 +298,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
                 document, namespaceOrTypeSymbol, semanticModel, root, contextNode);
 
             var externAliasString = externAlias != null ? $"extern alias {externAlias.Identifier.ValueText};" : null;
-            var usingDirectiveString = usingDirective != null ? GetUsingDirectiveString(namespaceOrTypeSymbol) :null;
+            var usingDirectiveString = usingDirective != null ? GetUsingDirectiveString(namespaceOrTypeSymbol) : null;
 
             if (externAlias == null && usingDirective == null)
             {

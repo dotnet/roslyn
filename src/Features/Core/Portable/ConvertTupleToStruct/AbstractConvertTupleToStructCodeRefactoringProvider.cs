@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
         where TLiteralExpressionSyntax : TExpressionSyntax
         where TObjectCreationExpressionSyntax : TExpressionSyntax
         where TTupleExpressionSyntax : TExpressionSyntax
-        where TArgumentSyntax: SyntaxNode
+        where TArgumentSyntax : SyntaxNode
         where TTupleTypeSyntax : SyntaxNode
         where TTypeBlockSyntax : SyntaxNode
         where TNamespaceDeclarationSyntax : SyntaxNode

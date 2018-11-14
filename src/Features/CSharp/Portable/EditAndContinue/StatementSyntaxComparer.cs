@@ -1073,7 +1073,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
                 case SyntaxKind.TupleExpression:
                     var tupleExpression = (TupleExpressionSyntax)expression;
-                    foreach(var argument in tupleExpression.Arguments)
+                    foreach (var argument in tupleExpression.Arguments)
                     {
                         GetLocalNames(argument.Expression, ref result);
                     }
@@ -1095,7 +1095,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
                 case SyntaxKind.ParenthesizedVariableDesignation:
                     var parenthesizedVariableDesignation = (ParenthesizedVariableDesignationSyntax)designation;
-                    foreach(var variableDesignation in parenthesizedVariableDesignation.Variables)
+                    foreach (var variableDesignation in parenthesizedVariableDesignation.Variables)
                     {
                         GetLocalNames(variableDesignation, ref result);
                     }

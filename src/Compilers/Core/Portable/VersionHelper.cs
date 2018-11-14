@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis
                     }
 
 
-                    if(values[i] > maxValue)
+                    if (values[i] > maxValue)
                     {
                         //The only way this can happen is if the value was 65536
                         //The old compiler would continue parsing from here

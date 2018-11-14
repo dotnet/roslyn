@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             foreach (var spanAndDiagnostic in aggregatedDiagnostics)
             {
                 await AppendFixesAsync(
-                    document, spanAndDiagnostic.Key, spanAndDiagnostic.Value, fixAllForInSpan:false,
+                    document, spanAndDiagnostic.Key, spanAndDiagnostic.Value, fixAllForInSpan: false,
                     result, cancellationToken).ConfigureAwait(false);
             }
 
@@ -224,7 +224,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             }
 
             var result = ArrayBuilder<CodeFixCollection>.GetInstance();
-            await AppendFixesAsync(document, range, diagnostics, fixAllForInSpan:true, result, cancellationToken).ConfigureAwait(false);
+            await AppendFixesAsync(document, range, diagnostics, fixAllForInSpan: true, result, cancellationToken).ConfigureAwait(false);
 
             // TODO: Just get the first fix for now until we have a way to config user's preferred fix
             // https://github.com/dotnet/roslyn/issues/27066
