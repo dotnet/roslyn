@@ -8,15 +8,19 @@ namespace Microsoft.VisualStudio.LanguageServices.ProjectSystem
     /// <summary>
     /// Provides TempPE compiler access
     /// </summary>
+    /// <remarks>
+    /// This is used by the project system to enable designer support in Visual Studio
+    /// </remarks>
     internal interface ITempPECompiler
     {
         /// <summary>
         /// Compiles specific files into the TempPE DLL to provide designer support
         /// </summary>
         /// <param name="context">The project context.</param>
-        /// <param name="outputFileName">Initial project binary output path.</param>
+        /// <param name="outputFileName">The binary output path.</param>
         /// <param name="filesToInclude">Array of file paths from the project that should be included in the output.</param>
         /// <param name="cancellationToken">The cancellation token</param>
+        /// <returns><see langword="true" /> if the compilation was successful</returns>
         Task<bool> CompileAsync(IWorkspaceProjectContext context, string outputFileName, string[] filesToInclude, CancellationToken cancellationToken);
     }
 }

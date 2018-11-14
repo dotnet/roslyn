@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.IO;
@@ -15,39 +16,36 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
     {
         public async Task<bool> CompileAsync(IWorkspaceProjectContext context, string outputFileName, string[] filesToInclude, CancellationToken cancellationToken)
         {
-			if (filesToInclude == null || filesToInclude.Length == 0)
-			{
-				throw new ArgumentException(nameof(filesToInclude), "Must specify some files to compile.");
-			}
-			if (string.IsNullOrWhiteSpace(outputFileName))
-			{
-				throw new ArgumentException(nameof(outputFileName), "Must specify a filename to output to.");
-			}
+            if (filesToInclude == null || filesToInclude.Length == 0)
+            {
+                throw new ArgumentException(nameof(filesToInclude), "Must specify some files to compile.");
+            }
+            if (string.IsNullOrWhiteSpace(outputFileName))
+            {
+                throw new ArgumentException(nameof(outputFileName), "Must specify a filename to output to.");
+            }
 
-            var snapshot = ((CPSProject)context).GetProjectSnapshot();
+            var project = ((CPSProject)context).GetProjectSnapshot();
+            
             // Allow for faster checking because projects could be very large
-            var files = new HashSet<string>(filesToInclude);
+            var files = new HashSet<string>(filesToInclude, StringComparer.OrdinalIgnoreCase);
 
             // Remove all files except the ones we care about
-            var documents = snapshot.Documents;
+            var documents = project.Documents;
             foreach (var document in documents)
             {
                 if (!files.Contains(document.FilePath))
                 {
-                    snapshot = snapshot.RemoveDocument(document.Id);
+                    project = project.RemoveDocument(document.Id);
                 }
+
+                cancellationToken.ThrowIfCancellationRequested();
             }
 
             // We want to produce a DLL regardless of project type
-            snapshot = snapshot.WithCompilationOptions(snapshot.CompilationOptions.WithOutputKind(OutputKind.DynamicallyLinkedLibrary));
+            project = project.WithCompilationOptions(project.CompilationOptions.WithOutputKind(OutputKind.DynamicallyLinkedLibrary));
 
-            cancellationToken.ThrowIfCancellationRequested();
-
-            var compilation = await snapshot.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-            if (compilation.GetDiagnostics(cancellationToken).HasAnyErrors())
-            {
-                return false;
-            }
+            var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
 
             cancellationToken.ThrowIfCancellationRequested();
 
