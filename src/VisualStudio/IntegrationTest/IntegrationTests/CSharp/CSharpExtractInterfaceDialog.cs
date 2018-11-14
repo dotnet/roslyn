@@ -250,5 +250,38 @@ class C : IC
 }
 ");
         }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractInterface)]
+        public void CheckSameWithTypes()
+        {
+            SetUpEditor(@"class C$$
+{
+    public bool M() => false;
+}
+");
+            VisualStudio.Editor.InvokeCodeActionList();
+            VisualStudio.Editor.Verify.CodeAction("Extract Interface...",
+                applyFix: true,
+                blockUntilComplete: false);
+
+            ExtractInterfaceDialog.VerifyOpen();
+
+            ExtractInterfaceDialog.SelectSameFile();
+
+            ExtractInterfaceDialog.ClickOK();
+            ExtractInterfaceDialog.VerifyClosed();
+
+            var project = new ProjectUtils.Project(ProjectName);
+            VisualStudio.Editor.Verify.TextContains(@"interface IC
+{
+    bool M();
+}
+
+class C : IC
+{
+    public bool M() => false;
+}
+");
+        }
     }
 }

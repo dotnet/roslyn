@@ -15,7 +15,9 @@ using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.ExtractInterface;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -157,16 +159,21 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractInterface
 
             var interfaceTypeSyntax = GetTypeSyntaxFromNamedSymbol(extractedInterfaceSymbol);
 
-            var codeGenService = solution.Workspace.Services.GetLanguageServices(LanguageNames.CSharp).GetService<ICodeGenerationService>();
-            var interfaceNode = codeGenService.CreateNamedTypeDeclaration(extractedInterfaceSymbol);
+            var languageService = solution.Workspace.Services.GetLanguageServices(LanguageNames.CSharp);
+            var codeGenService = languageService.GetService<ICodeGenerationService>();
+            var interfaceNode = codeGenService.CreateNamedTypeDeclaration(extractedInterfaceSymbol).WithAdditionalAnnotations(SimplificationHelpers.SimplifyModuleNameAnnotation);
 
             editor.InsertBefore(typeDeclaration, interfaceNode);
 
             var updatedDeclaration = UpdateTypeWithInterface(extractedInterfaceSymbol, typeNodeAnnotation, typeDeclaration);
             editor.ReplaceNode(typeDeclaration, updatedDeclaration);
 
-            var newRoot = Formatter.Format(editor.GetChangedRoot(), solution.Workspace);
-            return solution.WithDocumentSyntaxRoot(documentIdWithTypeNode, newRoot, PreservationMode.PreserveIdentity);
+            var newRoot = Formatter.Format(editor.GetChangedRoot(), solution.Workspace, cancellationToken: cancellationToken);
+            var simplificationService = languageService.GetService<ISimplificationService>();
+            var newDocument = document.WithSyntaxRoot(newRoot);
+            newDocument = simplificationService.ReduceAsync(newDocument, ArrayBuilder<TextSpan>.GetInstance(1, interfaceNode.Span).AsImmutable()).WaitAndGetResult_CanCallOnBackground(cancellationToken);
+
+            return solution.WithDocumentSyntaxRoot(documentIdWithTypeNode, newDocument.GetSyntaxRootSynchronously(cancellationToken), PreservationMode.PreserveIdentity);
         }
     }
 }
