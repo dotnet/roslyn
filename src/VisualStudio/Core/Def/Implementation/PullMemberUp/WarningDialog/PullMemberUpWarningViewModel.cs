@@ -1,12 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.  
 
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp
@@ -27,19 +23,23 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp
             {
                 if (result.ChangeOriginToPublic)
                 {
+                    Logger.Log(FunctionId.PullMembersUpWarning_ChangeOriginToPublic);
                     warningMessagesBuilder.Add(string.Format(ServicesVSResources._0_will_be_changed_to_public_since_1_is_an_interface, result.Member.Name, analysisResult.Target));
                 }
 
                 if (result.ChangeOriginToNonStatic)
                 {
+                    Logger.Log(FunctionId.PullMembersUpWarning_ChangeOriginToNonStatic);
                     warningMessagesBuilder.Add(string.Format(ServicesVSResources._0_will_be_changed_to_non_static_since_1_is_an_interface, result.Member.Name, analysisResult.Target));
                 }
             }
 
             if (analysisResult.ChangeTargetAbstract)
             {
+                Logger.Log(FunctionId.PullMembersUpWarning_ChangeTargetToAbstract);
                 warningMessagesBuilder.Add(string.Format(ServicesVSResources._0_will_be_changed_to_abstract, analysisResult.Target.Name));
             }
+
             return warningMessagesBuilder.ToImmutableArray();
         }
     }

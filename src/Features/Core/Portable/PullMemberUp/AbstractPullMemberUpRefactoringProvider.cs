@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
             }
 
             var userSelectNodeSymbol = semanticModel.GetDeclaredSymbol(userSelectedNode);
-            if (userSelectNodeSymbol == null)
+            if (userSelectNodeSymbol == null || userSelectNodeSymbol.ContainingType == null)
             {
                 return;
             }
@@ -64,10 +64,12 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
             CancellationToken cancellationToken)
         {
             return selectedNodeOwnerSymbol.AllInterfaces.Concat(selectedNodeOwnerSymbol.GetBaseTypes()).
-                Where(baseType => baseType.DeclaringSyntaxReferences.Length > 0 && IsSymbolValid(baseType, solution, cancellationToken));
+                Where(baseType => baseType != null &&
+                    baseType.DeclaringSyntaxReferences.Length > 0 &&
+                    IsLocationValid(baseType, solution, cancellationToken));
         }
 
-        private bool IsSymbolValid(INamedTypeSymbol symbol, Solution solution, CancellationToken cancellationToken)
+        private bool IsLocationValid(INamedTypeSymbol symbol, Solution solution, CancellationToken cancellationToken)
         {
             return symbol.Locations.Any(location => location.IsInSource &&
                 !solution.GetDocument(location.SourceTree).IsGeneratedCode(cancellationToken));

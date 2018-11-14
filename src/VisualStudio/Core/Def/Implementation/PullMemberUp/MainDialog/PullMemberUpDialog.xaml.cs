@@ -1,9 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.  
 
+using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Data;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp;
 using Microsoft.VisualStudio.PlatformUI;
@@ -39,6 +42,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp
 
         public string MakeAbstract => ServicesVSResources.Make_abstract;
 
+        public string InterfaceCantHaveField => ServicesVSResources.Interface_cant_have_field;
+            
+        public string InterfaceCantHaveAbstractMember => ServicesVSResources.Interface_cant_have_abstract_member;
+
         private PullMemberUpViewModel ViewModel { get; }
 
         private bool ProceedToSelectAll { get; set; } = false;
@@ -60,59 +67,56 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp
             if (TargetMembersContainer.SelectedItem is MemberSymbolViewModelGraphNode memberGraphNode)
             {
                 ViewModel.SelectedTarget = memberGraphNode;
-                if (memberGraphNode.MemberSymbolViewModel.MemberSymbol is INamedTypeSymbol interfaceSymbol &&
+                if (memberGraphNode.MemberSymbol is INamedTypeSymbol interfaceSymbol &&
                     interfaceSymbol.TypeKind == TypeKind.Interface)
                 {
-                    DisableFieldCheckBox();
-                    DisableAbstractBox();
+                    DisableAllFieldCheckBox();
+                    DisableAllMakeAbstractBox();
                 }
                 else
                 {
-                    EnableFieldChekcBox();
-                    EnableAbstractBox();
+                    EnableAllFieldCheckBox();
+                    EnableAllMakeAbstractBox();
                 }
             }
         }
 
-        private void DisableAbstractBox()
+        private void DisableAllMakeAbstractBox()
         {
             foreach (var member in ViewModel.SelectedMembersContainer)
             {
-                member.IsAbstractSelectable = false;
-                member.IsAbstract = false;
+                member.IsMakeAbstractSelectable = false;
             }
         }
 
-        private void EnableAbstractBox()
+        private void EnableAllMakeAbstractBox()
         {
             foreach (var member in ViewModel.SelectedMembersContainer)
             {
                 if (member.MemberSymbol.Kind != SymbolKind.Field && !member.MemberSymbol.IsAbstract)
                 {
-                    member.IsAbstractSelectable = true;
+                    member.IsMakeAbstractSelectable = true;
                 }
             }
         }
 
-        private void DisableFieldCheckBox()
+        private void DisableAllFieldCheckBox()
         {
             foreach (var member in ViewModel.SelectedMembersContainer)
             {
                 if (member.MemberSymbol.Kind == SymbolKind.Field)
                 {
-                    member.IsChecked = false;
                     member.IsSelectable = false;
                 }
             }
         }
 
-        private void EnableFieldChekcBox()
+        private void EnableAllFieldCheckBox()
         {
            foreach (var member in ViewModel.SelectedMembersContainer)
             {
                 if (member.MemberSymbol.Kind == SymbolKind.Field)
                 {
-                    member.IsChecked = false;
                     member.IsSelectable = true;
                 }
             }
@@ -121,11 +125,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp
         private void OK_Button_Click(object sender, RoutedEventArgs e)
         {
             var selectedMembers = ViewModel.SelectedMembersContainer.
-                Where(memberSymbolView => memberSymbolView.IsChecked).
+                Where(memberSymbolView => memberSymbolView.IsChecked && memberSymbolView.IsSelectable).
                 Select(memberSymbolView => memberSymbolView.MemberSymbol);
             if (ViewModel.SelectedTarget != null && selectedMembers.Count() != 0)
             {
-                var result = ViewModel.Service.CreateAnaysisResult(ViewModel);
+                var result = ViewModel.CreateAnaysisResult();
                 if (result.IsPullUpOperationCauseError)
                 {
                     DialogResult = true;
@@ -144,6 +148,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp
         {
             var warningViewModel = new PullMemberUpWarningViewModel(result);
             var warningDialog = new PullMemberUpDialogWarning(warningViewModel);
+
             return warningDialog.ShowModal().GetValueOrDefault();
         }
 
@@ -161,21 +166,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp
 
                 foreach (var symbol in dependents)
                 {
-                    var memberView = ViewModel.SymbolToMemberView[symbol];
+                    var memberView = ViewModel.SymbolToMemberViewMap[symbol];
                     if (memberView.IsSelectable)
                     {
                         memberView.IsChecked = true;
                     }
                 }
-            }
-        }
-
-        private void SelectSymbols(IEnumerable<ISymbol> members)
-        {
-            foreach (var member in members)
-            {
-                var index = ViewModel.SelectedMembersContainer.Select(symbolView => symbolView.MemberSymbol).ToList().IndexOf(member);
-                ViewModel.SelectedMembersContainer[index].IsChecked = true;
             }
         }
 
@@ -205,7 +201,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp
         {
             foreach (var member in ViewModel.SelectedMembersContainer)
             {
-                member.IsChecked = false;
+                if (member.IsSelectable)
+                {
+                    member.IsChecked = false;
+                }
             }
         }
 
@@ -229,6 +228,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp
         {
             ProceedToSelectAll = false;
             ViewModel.SelectAllAndDeselectAllChecked = true;
+        }
+    }
+
+    internal class BooleanReverseConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            return !(bool)value;
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            return !(bool)value;
         }
     }
 }

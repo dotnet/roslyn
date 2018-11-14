@@ -36,7 +36,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp
             _dependents = new HashSet<ISymbol>();
         }
 
-
         public override void Visit(IOperation operation)
         {
             if (operation is IMemberReferenceOperation memberReferenceOp &&

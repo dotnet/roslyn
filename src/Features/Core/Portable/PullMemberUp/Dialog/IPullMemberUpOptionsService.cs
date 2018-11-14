@@ -7,6 +7,6 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp.Dialog
 {
     internal interface IPullMemberUpOptionsService : IWorkspaceService
     {
-        PullMemberDialogResult GetPullTargetAndMembers(SemanticModel semanticModel, ISymbol selectedNodeSymbol, IEnumerable<ISymbol> members);
+        PullMemberDialogResult GetPullTargetAndMembers(SemanticModel semanticModel, ISymbol selectedNodeSymbol);
     }
 }

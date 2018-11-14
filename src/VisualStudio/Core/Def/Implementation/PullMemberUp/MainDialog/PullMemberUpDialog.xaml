@@ -56,6 +56,7 @@
             <Setter Property="HorizontalContentAlignment" Value="Center"/>
             <Setter Property="VerticalContentAlignment" Value="Center"/>
         </Style>
+        <self:BooleanReverseConverter x:Key="BooleanReverseConverter"/>
     </Window.Resources>
     <Grid Margin="12">
         <Grid.RowDefinitions>
@@ -85,17 +86,15 @@
                           SelectedItemChanged="TargetMembersContainer_SelectedItemChanged">
                     <TreeView.ItemTemplate>
                         <HierarchicalDataTemplate
-                            ItemsSource="{Binding Neighbours}"
+                            ItemsSource="{Binding BaseTypeGraphNodes}"
                             DataType="{x:Type self:MemberSymbolViewModelGraphNode}">
                             <StackPanel Orientation="Horizontal">
-                                <Image Source="{Binding MemberSymbolViewModel.Glyph}"/>
+                                <Image Source="{Binding Glyph}"/>
                                 <TextBlock
-                                    Text="{Binding MemberSymbolViewModel.MemberName}"
-                                    AutomationProperties.Name="{Binding MemberSymbolViewModel.MemberAutomationText}"
-                                    AutomationProperties.AutomationId="{Binding MemberSymbolModel.MemberName}"/>
-                                <StackPanel.ToolTip>
-                                    <ToolTip Content="{Binding Namespace}"/>
-                                </StackPanel.ToolTip>
+                                    Text="{Binding MemberName}"
+                                    AutomationProperties.Name="{Binding MemberAutomationText}"
+                                    AutomationProperties.AutomationId="{Binding MemberName}"
+                                    ToolTip="{Binding Namespace}"/>
                         </StackPanel>
                         </HierarchicalDataTemplate>
                     </TreeView.ItemTemplate>
@@ -156,16 +155,17 @@
                                                 Checked="MemberSelectionCheckBox_Checked"
                                                 Width="Auto"
                                                 IsEnabled="{Binding IsSelectable, UpdateSourceTrigger=PropertyChanged}"
-                                                Focusable="False"/>
+                                                Focusable="True"
+                                                ToolTipService.ShowOnDisabled="True"
+                                                ToolTipService.IsEnabled="{Binding IsSelectable, Converter={StaticResource BooleanReverseConverter}, UpdateSourceTrigger=PropertyChanged}"
+                                                ToolTipService.ToolTip="{Binding ElementName=dialog, Path=InterfaceCantHaveField}"/>
                                             <Image 
                                                x:Name="GlyphOfMember"
                                                Margin="8,0,0,0"
                                                Source="{Binding Glyph}"/>
                                             <TextBlock x:Uid="MemberName"
-                                                       Text="{Binding MemberName}"/>
-                                            <StackPanel.ToolTip>
-                                                <ToolTip Content="{Binding Accessibility}"/>
-                                            </StackPanel.ToolTip>
+                                                       Text="{Binding MemberName}"
+                                                       ToolTip="{Binding Accessibility}"/>
                                         </StackPanel>
                                     </DataTemplate>
                                 </GridViewColumn.CellTemplate>
@@ -176,12 +176,15 @@
                                 x:Name="makeAbstractColumn">
                                 <GridViewColumn.CellTemplate>
                                     <DataTemplate>
-                                        <DockPanel HorizontalAlignment="Center">
-                                            <CheckBox x:Name="MakeAbstract"
-                                                  Style="{StaticResource CenterCheckbox}"
-                                                  IsEnabled="{Binding IsAbstractSelectable, UpdateSourceTrigger=PropertyChanged}"
-                                                  IsChecked="{Binding IsAbstract, UpdateSourceTrigger=PropertyChanged}"/>
-                                        </DockPanel>
+                                        <CheckBox x:Name="MakeAbstract"
+                                              Style="{StaticResource CenterCheckbox}"
+                                              Visibility="{Binding MakeAbstractVisibility}"
+                                              IsEnabled="{Binding IsMakeAbstractSelectable, UpdateSourceTrigger=PropertyChanged}"
+                                              IsChecked="{Binding MakeAbstract, UpdateSourceTrigger=PropertyChanged}"
+                                              Focusable="True"
+                                              ToolTipService.IsEnabled="{Binding IsMakeAbstractSelectable, Converter={StaticResource BooleanReverseConverter}, UpdateSourceTrigger=PropertyChanged}"
+                                              ToolTipService.ShowOnDisabled="True"
+                                              ToolTipService.ToolTip="{Binding ElementName=dialog, Path=InterfaceCantHaveAbstractMember}"/>
                                     </DataTemplate>
                                 </GridViewColumn.CellTemplate>
                             </GridViewColumn>

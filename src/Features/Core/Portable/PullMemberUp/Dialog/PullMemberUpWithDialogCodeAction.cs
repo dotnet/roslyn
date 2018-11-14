@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.  
 
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -14,8 +13,6 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
     {
         private class PullMemberUpWithDialogCodeAction : CodeActionWithOptions
         {
-            private readonly IEnumerable<ISymbol> _members;
-
             private readonly ISymbol _selectedNodeSymbol;
 
             private readonly Document _contextDocument;
@@ -32,32 +29,16 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
                 ISymbol selectedNodeSymbol,
                 AbstractPullMemberUpRefactoringProvider provider)
             {
-                _members = selectedNodeSymbol.ContainingType.GetMembers().Where(
-                    member => {
-                        if (member is IMethodSymbol methodSymbol)
-                        {
-                            return methodSymbol.MethodKind == MethodKind.Ordinary;
-                        }
-                        else if (member is IFieldSymbol fieldSymbol)
-                        {
-                            return !member.IsImplicitlyDeclared;
-                        }
-                        else
-                        {
-                            return member.Kind == SymbolKind.Property || member.Kind == SymbolKind.Event;
-                        }
-                    });
-
-                _selectedNodeSymbol = selectedNodeSymbol;
                 _contextDocument = document;
-                _service = provider._pullMemberUpOptionsService;
                 _semanticModel = semanticModel;
+                _selectedNodeSymbol = selectedNodeSymbol;
+                _service = provider._pullMemberUpOptionsService;
             }
 
             public override object GetOptions(CancellationToken cancellationToken)
             {
                 var pullMemberUpService = _service ?? _contextDocument.Project.Solution.Workspace.Services.GetService<IPullMemberUpOptionsService>();
-                return pullMemberUpService.GetPullTargetAndMembers(_semanticModel, _selectedNodeSymbol, _members);
+                return pullMemberUpService.GetPullTargetAndMembers(_semanticModel, _selectedNodeSymbol);
             }
             
             protected async override Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(object options, CancellationToken cancellationToken)

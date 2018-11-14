@@ -1076,7 +1076,7 @@ I agree to all of the foregoing:</value>
     <value>Select destination and members to pull up.</value>
   </data>
   <data name="Pull_Up_Members" xml:space="preserve">
-    <value>Pull Up Members</value>
+    <value>Pull Members Up</value>
   </data>
   <data name="Review_Problems" xml:space="preserve">
     <value>Review problems below. Click Finish to proceed pull up.</value>
@@ -1113,5 +1113,17 @@ I agree to all of the foregoing:</value>
   </data>
   <data name="Namespace" xml:space="preserve">
     <value>Namespace:</value>
+  </data>
+  <data name="Back" xml:space="preserve">
+    <value>Back</value>
+  </data>
+  <data name="Finish" xml:space="preserve">
+    <value>Finish</value>
+  </data>
+  <data name="Interface_cant_have_abstract_member" xml:space="preserve">
+    <value>Interface can't have abstract member.</value>
+  </data>
+  <data name="Interface_cant_have_field" xml:space="preserve">
+    <value>Interface can't have field.</value>
   </data>
 </root>

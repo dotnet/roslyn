@@ -59,29 +59,29 @@
             </u:AutomationDelegatingListView>
         </GroupBox>
         </StackPanel>
-        <StackPanel
-               Grid.Row="1"
-               Orientation="Horizontal"
-               HorizontalAlignment="Right"
-               Margin="0,18,0,0">
-                <vs:DialogButton x:Uid="BackButton"
-                    Grid.Column="1"
-                    IsCancel="True"
-                    Padding= "{StaticResource ResourceKey=okAndCancelButtonPadding}"
-                    Content="{Binding Cancel, ElementName=dialog}"
-                    Click="BackButton_Click"
-                    Margin="0, 0, 3, 0"
-                    Width= "{StaticResource ResourceKey=ButtonWidth}"
-                    Height="{StaticResource ResourceKey=ButtonHeight}"/>
-                <vs:DialogButton x:Uid="FinishButton"
-                    Click="FinishButton_Click"
-                    Grid.Column="2"
-                    IsDefault="True"
-                    Margin="3, 0, 0, 0"
-                    Padding= "{StaticResource ResourceKey=okAndCancelButtonPadding}"
-                    Content="{Binding OK, ElementName=dialog}"
-                    Width= "{StaticResource ResourceKey=ButtonWidth}"
-                    Height="{StaticResource ResourceKey=ButtonHeight}"/>
-        </StackPanel>
+            <StackPanel
+                   Grid.Row="1"
+                   Orientation="Horizontal"
+                   HorizontalAlignment="Right"
+                   Margin="0,18,0,0">
+                    <vs:DialogButton x:Uid="BackButton"
+                        Grid.Column="1"
+                        IsCancel="True"
+                        Padding= "{StaticResource ResourceKey=okAndCancelButtonPadding}"
+                        Click="BackButton_Click"
+                        Margin="0, 0, 3, 0"
+                        Width= "{StaticResource ResourceKey=ButtonWidth}"
+                        Content="{Binding ElementName=dialog, Path=Back}"
+                        Height="{StaticResource ResourceKey=ButtonHeight}"/>
+                    <vs:DialogButton x:Uid="FinishButton"
+                        Click="FinishButton_Click"
+                        Grid.Column="2"
+                        IsDefault="True"
+                        Margin="3, 0, 0, 0"
+                        Padding= "{StaticResource ResourceKey=okAndCancelButtonPadding}"
+                        Content="{Binding ElementName=dialog, Path=Finish}"
+                        Width= "{StaticResource ResourceKey=ButtonWidth}"
+                        Height="{StaticResource ResourceKey=ButtonHeight}"/>
+            </StackPanel>
         </Grid>
 </vs:DialogWindow>

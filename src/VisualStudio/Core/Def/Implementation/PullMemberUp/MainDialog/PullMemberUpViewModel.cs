@@ -1,11 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Windows;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 using static Microsoft.VisualStudio.LanguageServices.Implementation.ExtractInterface.ExtractInterfaceDialogViewModel;
@@ -18,11 +19,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp
 
         public ObservableCollection<MemberSymbolViewModelGraphNode> TargetMembersContainer { get; set; }
 
-        public Dictionary<ISymbol, PullUpMemberSymbolView> SymbolToMemberView { get; }
+        public ImmutableDictionary<ISymbol, PullUpMemberSymbolView> SymbolToMemberViewMap { get; }
 
-        public MemberSymbolViewModelGraphNode SelectedTarget { get; set; }
+        public MemberSymbolViewModelGraphNode SelectedTarget { get => _selectedTarget; set => SetProperty(ref _selectedTarget, value, nameof(SelectedTarget)); }
 
-        public VisualStudioPullMemberUpService Service { get; }
+        private MemberSymbolViewModelGraphNode _selectedTarget;
 
         private bool _selectAllAndDeselectAllChecked;
 
@@ -42,26 +43,41 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp
 
         internal PullMemberUpViewModel(
             SemanticModel semanticModel,
-            List<ISymbol> allMembers,
-            ObservableCollection<MemberSymbolViewModelGraphNode> targetMembersContainer,
-            ISymbol userSelectNodeSymbol,
-            IGlyphService glyphService,
-            VisualStudioPullMemberUpService service)
+            ISymbol selectedNodeSymbol,
+            IGlyphService glyphService)
         {
+            var allMembers = selectedNodeSymbol.ContainingType.GetMembers().Where(
+                    member => {
+                        if (member is IMethodSymbol methodSymbol)
+                        {
+                            return methodSymbol.MethodKind == MethodKind.Ordinary;
+                        }
+                        else if (member is IFieldSymbol fieldSymbol)
+                        {
+                            return !member.IsImplicitlyDeclared;
+                        }
+                        else
+                        {
+                            return member.Kind == SymbolKind.Property || member.Kind == SymbolKind.Event;
+                        }
+                    });
+
             SelectedMembersContainer = allMembers.
                 Select(member => new PullUpMemberSymbolView(member, glyphService)
                 {
-                    IsChecked = member.Equals(userSelectNodeSymbol),
-                    IsAbstract = false,
-                    IsAbstractSelectable = member.Kind != SymbolKind.Field && !member.IsAbstract,
+                    IsChecked = member.Equals(selectedNodeSymbol),
+                    MakeAbstract = false,
+                    IsMakeAbstractSelectable = member.Kind != SymbolKind.Field && !member.IsAbstract,
                     IsSelectable = true
                 }).OrderByDescending(memberSymbolView => memberSymbolView.MemberSymbol.DeclaredAccessibility).ToList();
-            SymbolToMemberView = SelectedMembersContainer.
-                ToDictionary(symbolView => symbolView.MemberSymbol);
+
+            SymbolToMemberViewMap = SelectedMembersContainer.
+                ToImmutableDictionary(symbolView => symbolView.MemberSymbol);
+
+            var baseTypeTree = MemberSymbolViewModelGraphNode.CreateInheritanceGraph(selectedNodeSymbol.ContainingType, glyphService);
 
             _semanticModel = semanticModel;
-            TargetMembersContainer = targetMembersContainer;
-            Service = service;
+            TargetMembersContainer = baseTypeTree.BaseTypeGraphNodes;
             SelectAllAndDeselectAllChecked = true;
             _dependentsMap = new Dictionary<ISymbol, IEnumerable<ISymbol>>();
         }
@@ -81,19 +97,50 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp
                 return dependents;
             }
         }
+
+        internal AnalysisResult CreateAnaysisResult()
+        {
+            // Check box won't be cleared when it is disabled. It is made to prevent user
+            // loses their choice when moves around the target type
+            var membersInfo = SelectedMembersContainer.
+                Where(memberSymbolView => memberSymbolView.IsChecked && memberSymbolView.IsSelectable).
+                Select(memberSymbolView =>
+                    (memberSymbolView.MemberSymbol,
+                    memberSymbolView.MakeAbstract &&
+                    memberSymbolView.IsMakeAbstractSelectable));
+            var result = PullMembersUpAnalysisBuilder.BuildAnalysisResult(
+                SelectedTarget.MemberSymbol as INamedTypeSymbol,
+                membersInfo);
+            return result;
+        }
     }
 
     internal class PullUpMemberSymbolView : MemberSymbolViewModel
     {
-        public bool IsAbstract { get; set; }
-
-        private bool _isAbstractSelectable;
-        
-        public bool IsAbstractSelectable { get => _isAbstractSelectable; set => SetProperty(ref _isAbstractSelectable, value); }
+        private bool _isMakeAbstractSelectable;
 
         private bool _isSelectable;
 
-        public bool IsSelectable { get => _isSelectable; set => SetProperty(ref _isSelectable, value); }
+        public Visibility MakeAbstractVisibility
+        {
+            get
+            {
+                if (MemberSymbol.Kind == SymbolKind.Field || MemberSymbol.IsAbstract)
+                {
+                    return Visibility.Hidden;
+                }
+                else
+                {
+                    return Visibility.Visible;
+                }
+            }
+        }
+        
+        public bool IsMakeAbstractSelectable { get => _isMakeAbstractSelectable; set => SetProperty(ref _isMakeAbstractSelectable, value); }
+
+        public bool MakeAbstract { get; set; }
+
+        public bool IsSelectable { get => _isSelectable; set => SetProperty(ref _isSelectable, value, nameof(IsSelectable)); }
 
         public string Accessibility => MemberSymbol.DeclaredAccessibility.ToString();
 
@@ -102,90 +149,59 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp
         }
     }
 
-    internal class MemberSymbolViewModelGraphNode : AbstractNotifyPropertyChanged
+    internal class MemberSymbolViewModelGraphNode : MemberSymbolViewModel 
     {
-        public MemberSymbolViewModel MemberSymbolViewModel { get; private set; }
-
-        public ObservableCollection<MemberSymbolViewModelGraphNode> Neighbours { get; private set; }
+        public ObservableCollection<MemberSymbolViewModelGraphNode> BaseTypeGraphNodes { get; private set; }
 
         public bool IsExpanded { get; set; }
 
-        public bool IsSelected { get => MemberSymbolViewModel.IsChecked; set => MemberSymbolViewModel.IsChecked = value; }
-
-        public string Namespace => ServicesVSResources.Namespace + MemberSymbolViewModel.MemberSymbol.ContainingNamespace?.Name ??
+        public string Namespace => ServicesVSResources.Namespace + MemberSymbol.ContainingNamespace?.Name ??
             ServicesVSResources.Namespace + ServicesVSResources.Global_name_space;
 
-        private MemberSymbolViewModelGraphNode(MemberSymbolViewModel node, ObservableCollection<MemberSymbolViewModelGraphNode> descendants = null)
+        private MemberSymbolViewModelGraphNode(ISymbol node, IGlyphService glyphService) : base(node, glyphService)
         {
-            MemberSymbolViewModel = node;
-            if (descendants == null)
-            {
-                Neighbours = new ObservableCollection<MemberSymbolViewModelGraphNode>();
-            }
-            else
-            {
-                Neighbours = descendants;
-            }
+            BaseTypeGraphNodes = new ObservableCollection<MemberSymbolViewModelGraphNode>();
         }
 
         /// <summary>
         /// Use breadth first search to create the inheritance graph. If several types share one same base type 
         /// then this base type will be put into the descendants of each types. This method assume there is no loop in the
-        /// graph
+        /// graph.
         /// </summary>
         internal static MemberSymbolViewModelGraphNode CreateInheritanceGraph(INamedTypeSymbol root, IGlyphService glyphService)
         {
-            var rootNode = new MemberSymbolViewModelGraphNode(new MemberSymbolViewModel(root, glyphService) { IsChecked = false});
-
+            var rootNode = new MemberSymbolViewModelGraphNode(root, glyphService) { IsChecked = false, IsExpanded = true};
             var queue = new Queue<MemberSymbolViewModelGraphNode>();
             queue.Enqueue(rootNode);
-
             while (queue.Any())
             {
                 var currentNode = queue.Dequeue();
-                var currentSymbol = currentNode.MemberSymbolViewModel.MemberSymbol as INamedTypeSymbol;
-
-                var interfaces = currentSymbol.Interfaces.Where(@interface => @interface.DeclaringSyntaxReferences.Length > 0);
-                var baseClass = currentSymbol.BaseType;
-                if (baseClass != null && baseClass.DeclaringSyntaxReferences.Length == 0)
-                {
-                    baseClass = null;
-                }
-
-                AddBasesAndInterfaceToQueue(glyphService, queue, interfaces, baseClass, currentNode);
+                var currentSymbol = currentNode.MemberSymbol as INamedTypeSymbol;
+                var allDirectBaseTypes = currentSymbol.Interfaces.Concat(currentSymbol.BaseType).Where(baseType => baseType != null);
+                AddBasesAndInterfaceToQueue(glyphService, queue,  currentNode, allDirectBaseTypes);
             }
-            return rootNode;
 
+            return rootNode;
         }
 
         private static void AddBasesAndInterfaceToQueue(
             IGlyphService glyphService,
             Queue<MemberSymbolViewModelGraphNode> queue,
-            IEnumerable<INamedTypeSymbol> interfaces,
-            INamedTypeSymbol @class,
-            MemberSymbolViewModelGraphNode parentNode)
+            MemberSymbolViewModelGraphNode parentNode,
+            IEnumerable<INamedTypeSymbol> allDirectBaseTypes)
         {
-            // A helper function to Add all baseTypes to queue and create a TreeNode for each of them
-            if (interfaces != null)
+            var validBaseTypes = allDirectBaseTypes.
+                Where(baseType => baseType.DeclaringSyntaxReferences.Length > 0 &&
+                    baseType.Locations.Any(location => location.IsInSource));
+            foreach (var baseType in validBaseTypes)
             {
-                foreach (var @interface in interfaces)
+                var correspondingGraphNode = new MemberSymbolViewModelGraphNode(baseType, glyphService)
                 {
-                    var correspondingGraphNode = new MemberSymbolViewModelGraphNode(new MemberSymbolViewModel(@interface, glyphService))
-                    {
-                        IsExpanded = false, 
-                    };
-                    parentNode.Neighbours.Add(correspondingGraphNode);
-                    queue.Enqueue(correspondingGraphNode);
-                }
-            }
-
-            if (@class != null)
-            {
-                var correspondingGraphNode = new MemberSymbolViewModelGraphNode(new MemberSymbolViewModel(@class, glyphService))
-                {
-                    IsExpanded = false, 
+                    IsChecked = false,
+                    IsExpanded = true, 
                 };
-                parentNode.Neighbours.Add(correspondingGraphNode);
+
+                parentNode.BaseTypeGraphNodes.Add(correspondingGraphNode);
                 queue.Enqueue(correspondingGraphNode);
             }
         }

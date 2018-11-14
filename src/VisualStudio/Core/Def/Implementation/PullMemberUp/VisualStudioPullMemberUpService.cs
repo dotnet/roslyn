@@ -1,8 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.  
 
-using System.Collections.Generic;
 using System.Composition;
-using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp;
 using Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp.Dialog;
@@ -28,31 +26,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp
 
         public PullMemberDialogResult GetPullTargetAndMembers(
             SemanticModel semanticModel,
-            ISymbol selectedOwnerSymbol,
-            IEnumerable<ISymbol> members)
+            ISymbol selectedNodeSymbol)
         {
-            var baseTypeTree = MemberSymbolViewModelGraphNode.CreateInheritanceGraph(selectedOwnerSymbol.ContainingType, _glyphService);
-            ViewModel = new PullMemberUpViewModel(semanticModel, members.ToList(), baseTypeTree.Neighbours, selectedOwnerSymbol, _glyphService, this);
+            ViewModel = new PullMemberUpViewModel(semanticModel, selectedNodeSymbol, _glyphService);
             var dialog = new PullMemberUpDialog(ViewModel);
             if (dialog.ShowModal().GetValueOrDefault())
             {
-                return new PullMemberDialogResult(MembersInfo);
+                var analysisResult = ViewModel.CreateAnaysisResult();
+                return new PullMemberDialogResult(analysisResult);
             }
             else
             {
                 return PullMemberDialogResult.CanceledResult;
             }
-        }
-
-        internal AnalysisResult CreateAnaysisResult(PullMemberUpViewModel viewModel)
-        {
-            var membersInfo = viewModel.SelectedMembersContainer.
-                Where(memberSymbolView => memberSymbolView.IsChecked).
-                Select(memberSymbolView => (memberSymbolView.MemberSymbol, memberSymbolView.IsAbstract));
-            MembersInfo = PullMembersUpAnalysisBuilder.BuildAnalysisResult(
-                viewModel.SelectedTarget.MemberSymbolViewModel.MemberSymbol as INamedTypeSymbol,
-                membersInfo);
-            return MembersInfo;
         }
     }
 }

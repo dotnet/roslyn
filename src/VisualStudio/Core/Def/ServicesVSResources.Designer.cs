@@ -353,6 +353,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Back.
+        /// </summary>
+        internal static string Back {
+            get {
+                return ResourceManager.GetString("Back", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Base Types.
         /// </summary>
         internal static string Base_Types {
@@ -1034,6 +1043,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Finish.
+        /// </summary>
+        internal static string Finish {
+            get {
+                return ResourceManager.GetString("Finish", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to First word upper.
         /// </summary>
         internal static string First_word_upper {
@@ -1277,6 +1295,24 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string IntelliSense {
             get {
                 return ResourceManager.GetString("IntelliSense", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Interface can&apos;t have abstract member..
+        /// </summary>
+        internal static string Interface_cant_have_abstract_member {
+            get {
+                return ResourceManager.GetString("Interface_cant_have_abstract_member", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Interface can&apos;t have field..
+        /// </summary>
+        internal static string Interface_cant_have_field {
+            get {
+                return ResourceManager.GetString("Interface_cant_have_field", resourceCulture);
             }
         }
         
@@ -2134,7 +2170,7 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Pull Up Members.
+        ///   Looks up a localized string similar to Pull Members Up.
         /// </summary>
         internal static string Pull_Up_Members {
             get {

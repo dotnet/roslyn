@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.  
 
 using System.Windows;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.VisualStudio.PlatformUI;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp
@@ -10,9 +11,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp
     /// </summary>
     internal partial class PullMemberUpDialogWarning : DialogWindow
     {
-        public string Cancel => ServicesVSResources.Cancel;
+        public string Back => ServicesVSResources.Back;
 
-        public string OK => ServicesVSResources.OK;
+        public string Finish => ServicesVSResources.Finish;
 
         public string PullMembersUpTitle => ServicesVSResources.Pull_Up_Members;
 
@@ -26,8 +27,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp
             InitializeComponent();
         }
 
-        private void FinishButton_Click(object sender, RoutedEventArgs e) => DialogResult = true;
+        private void FinishButton_Click(object sender, RoutedEventArgs e)
+        {
+            Logger.Log(FunctionId.PullMembersUpWarning_UserProceedToFinish);
+            DialogResult = true;
+        }
 
-        private void BackButton_Click(object sender, RoutedEventArgs e) => DialogResult = false;
+        private void BackButton_Click(object sender, RoutedEventArgs e)
+        {
+            Logger.Log(FunctionId.PullMembersUpWarning_UserGoBack);
+            DialogResult = false;
+        }
     }
 }

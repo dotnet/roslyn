@@ -19,10 +19,24 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.PullMemberUp
             TargetBaseTypeName = targetBaseTypeName;
         }
 
-        public PullMemberDialogResult GetPullTargetAndMembers(SemanticModel semanticModel, ISymbol selectedNodeSymbol, IEnumerable<ISymbol> members)
+        public PullMemberDialogResult GetPullTargetAndMembers(SemanticModel semanticModel, ISymbol selectedNodeSymbol)
         {
             IEnumerable<(ISymbol member, bool makeAbstract)> selectedMember = default;
-
+            var members = selectedNodeSymbol.ContainingType.GetMembers().Where(
+                    member => {
+                        if (member is IMethodSymbol methodSymbol)
+                        {
+                            return methodSymbol.MethodKind == MethodKind.Ordinary;
+                        }
+                        else if (member is IFieldSymbol fieldSymbol)
+                        {
+                            return !member.IsImplicitlyDeclared;
+                        }
+                        else
+                        {
+                            return member.Kind == SymbolKind.Property || member.Kind == SymbolKind.Event;
+                        }
+                    });
             if (SelectedMembers == null)
             {
                 selectedMember = members.Select(member => (member, false));
