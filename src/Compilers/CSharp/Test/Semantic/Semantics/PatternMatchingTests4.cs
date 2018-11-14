@@ -1384,5 +1384,108 @@ class _
                 );
             CompileAndVerify(compilation, expectedOutput: "8");
         }
+
+        [Fact]
+        public void IgnoreNullInExhaustiveness_01()
+        {
+            var source =
+@"class Program
+{
+    static void Main() {}
+    static int M1(bool? b1, bool? b2)
+    {
+        return (b1, b2) switch {
+            (false, false) => 1,
+            (false, true) => 2,
+            // (true, false) => 3,
+            (true, true) => 4
+            };
+    }
+}
+";
+            var compilation = CreatePatternCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (6,25): warning CS8509: The switch expression does not handle all possible inputs (it is not exhaustive).
+                //         return (b1, b2) switch {
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithLocation(6, 25)
+                );
+        }
+
+        [Fact]
+        public void IgnoreNullInExhaustiveness_02()
+        {
+            var source =
+@"class Program
+{
+    static void Main() {}
+    static int M1(bool? b1, bool? b2)
+    {
+        return (b1, b2) switch {
+            (false, false) => 1,
+            (false, true) => 2,
+            (true, false) => 3,
+            (true, true) => 4
+            };
+    }
+}
+";
+            var compilation = CreatePatternCompilation(source);
+            compilation.VerifyDiagnostics(
+                );
+        }
+
+        [Fact]
+        public void IgnoreNullInExhaustiveness_03()
+        {
+            var source =
+@"class Program
+{
+    static void Main() {}
+    static int M1(bool? b1, bool? b2)
+    {
+        (bool? b1, bool? b2)? cond = (b1, b2);
+        return cond switch {
+            (false, false) => 1,
+            (false, true) => 2,
+            (true, false) => 3,
+            (true, true) => 4,
+            (null, true) => 5
+            };
+    }
+}
+";
+            var compilation = CreatePatternCompilation(source);
+            compilation.VerifyDiagnostics(
+                );
+        }
+
+        [Fact]
+        public void IgnoreNullInExhaustiveness_04()
+        {
+            var source =
+@"class Program
+{
+    static void Main() {}
+    static int M1(bool? b1, bool? b2)
+    {
+        (bool? b1, bool? b2)? cond = (b1, b2);
+        return cond switch {
+            (false, false) => 1,
+            (false, true) => 2,
+            (true, false) => 3,
+            (true, true) => 4,
+            _ => 5,
+            (null, true) => 6
+            };
+    }
+}
+";
+            var compilation = CreatePatternCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (13,13): error CS8510: The pattern has already been handled by a previous arm of the switch expression.
+                //             (null, true) => 6
+                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "(null, true)").WithLocation(13, 13)
+                );
+        }
     }
 }

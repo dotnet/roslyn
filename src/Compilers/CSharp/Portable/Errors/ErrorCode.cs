@@ -1662,7 +1662,5 @@ namespace Microsoft.CodeAnalysis.CSharp
         #endregion diagnostics introduced for C# 8.0
 
         // Note: you will need to re-generate compiler code after adding warnings (build\scripts\generate-compiler-code.cmd)
-
-        // Note: you will need to re-generate compiler code after adding warnings (build\scripts\generate-compiler-code.cmd)
     }
 }
