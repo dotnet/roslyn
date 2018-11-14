@@ -1650,6 +1650,106 @@ class C
             await AssertFormatOnArbitraryNodeAsync(node, expected);
         }
 
+        [WorkItem(30787, "https://github.com/dotnet/roslyn/issues/30787")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public void DoSmartIndentOpenBraceEvenWithFormatWhileTypingOff1()
+        {
+            var code = 
+@"class Program
+{
+    void M()
+    {
+        if (true)
+            {$$
+    }
+}";
+
+            var expected =
+@"class Program
+{
+    void M()
+    {
+        if (true)
+        {
+    }
+}";
+            var optionSet = new Dictionary<OptionKey, object>
+            {
+                { new OptionKey(FormattingOptions.SmartIndent, LanguageNames.CSharp), FormattingOptions.IndentStyle.Smart },
+                { new OptionKey(FeatureOnOffOptions.AutoFormattingOnTyping, LanguageNames.CSharp),  false },
+                { new OptionKey(FeatureOnOffOptions.AutoFormattingOnCloseBrace, LanguageNames.CSharp),  false },
+            };
+
+            AssertFormatAfterTypeChar(code, expected, optionSet);
+        }
+
+        [WorkItem(30787, "https://github.com/dotnet/roslyn/issues/30787")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public void DoSmartIndentOpenBraceEvenWithFormatWhileTypingOff2()
+        {
+            // We only smart indent the { if it's on it's own line.
+            var code =
+@"class Program
+{
+    void M()
+    {
+        if (true){$$
+    }
+}";
+
+            var expected =
+@"class Program
+{
+    void M()
+    {
+        if (true){
+    }
+}";
+            var optionSet = new Dictionary<OptionKey, object>
+            {
+                { new OptionKey(FormattingOptions.SmartIndent, LanguageNames.CSharp), FormattingOptions.IndentStyle.Smart },
+                { new OptionKey(FeatureOnOffOptions.AutoFormattingOnTyping, LanguageNames.CSharp),  false },
+                { new OptionKey(FeatureOnOffOptions.AutoFormattingOnCloseBrace, LanguageNames.CSharp),  false },
+            };
+
+            AssertFormatAfterTypeChar(code, expected, optionSet);
+        }
+
+        [WorkItem(30787, "https://github.com/dotnet/roslyn/issues/30787")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public void DoSmartIndentCloseBraceEvenWithFormatWhileTypingOff1()
+        {
+            var code =
+@"class Program
+{
+    void M()
+    {
+        if (true)
+        {
+            }$$
+    }
+}";
+
+            var expected =
+@"class Program
+{
+    void M()
+    {
+        if (true)
+        {
+        }
+    }
+}";
+            var optionSet = new Dictionary<OptionKey, object>
+            {
+                { new OptionKey(FormattingOptions.SmartIndent, LanguageNames.CSharp), FormattingOptions.IndentStyle.Smart },
+                { new OptionKey(FeatureOnOffOptions.AutoFormattingOnTyping, LanguageNames.CSharp),  false },
+                { new OptionKey(FeatureOnOffOptions.AutoFormattingOnCloseBrace, LanguageNames.CSharp),  false },
+            };
+
+            AssertFormatAfterTypeChar(code, expected, optionSet);
+        }
+
         private void AssertFormatAfterTypeChar(string code, string expected, Dictionary<OptionKey, object> changedOptionSet = null)
         {
             using (var workspace = TestWorkspace.CreateCSharp(code))
