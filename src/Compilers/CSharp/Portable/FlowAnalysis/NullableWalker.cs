@@ -406,7 +406,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return base.GetOrCreateSlot(symbol, containingSlot);
         }
 
-        // https://github.com/dotnet/roslyn/issues/29952 Remove use of MakeSlot.
         protected override int MakeSlot(BoundExpression node)
         {
             switch (node.Kind)
@@ -3300,6 +3299,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                     goto case ConversionKind.Identity;
 
                 case ConversionKind.Identity:
+                    // If the operand is an explicit conversion, and this identity conversion
+                    // is converting to the same type including nullability, skip the conversion
+                    // to avoid reporting redundant warnings. Also check useLegacyWarnings
+                    // since that value was used when reporting warnings for the explicit cast.
+                    if (useLegacyWarnings && operandOpt?.Kind == BoundKind.Conversion)
+                    {
+                        var operandConversion = (BoundConversion)operandOpt;
+                        var explicitType = operandConversion.ConversionGroupOpt.ExplicitType;
+                        if (!explicitType.IsNull && explicitType.Equals(targetTypeWithNullability, TypeCompareKind.IgnoreInsignificantNullableModifiersDifference))
+                        {
+                            return operandType;
+                        }
+                    }
+                    goto case ConversionKind.ImplicitReference;
+
                 case ConversionKind.ImplicitReference:
                 case ConversionKind.ExplicitReference:
                     if (operandType.IsNull && operandOpt.IsLiteralNullOrDefault())
