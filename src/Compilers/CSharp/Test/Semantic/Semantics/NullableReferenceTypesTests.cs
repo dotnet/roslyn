@@ -26157,9 +26157,6 @@ class CL4 : CL3 {}
                 // (70,19): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         CL4 u12 = (CL4)x12;
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(CL4)x12").WithLocation(70, 19),
-                // (70,19): warning CS8600: Converting null literal or possible null value to non-nullable type.
-                //         CL4 u12 = (CL4)x12;
-                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(CL4)x12").WithLocation(70, 19),
                 // (76,22): hidden CS8607: Expression is probably never null.
                 //         object v13 = u13 ?? new object();
                 Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "u13").WithLocation(76, 22),
@@ -36034,9 +36031,6 @@ class C
                 // (17,9): warning CS8602: Possible dereference of a null reference.
                 //         b1.F();
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b1").WithLocation(17, 9),
-                // (18,16): warning CS8600: Converting null literal or possible null value to non-nullable type.
-                //         B b2 = (B)s;
-                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(B)s").WithLocation(18, 16),
                 // (18,16): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         B b2 = (B)s;
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(B)s").WithLocation(18, 16),
@@ -47740,9 +47734,6 @@ class A
                 // (29,16): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         T3 t = (T3)NullableObject(); // warn: T3 may be non-null
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(T3)NullableObject()").WithLocation(29, 16),
-                // (29,16): warning CS8600: Converting null literal or possible null value to non-nullable type.
-                //         T3 t = (T3)NullableObject(); // warn: T3 may be non-null
-                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(T3)NullableObject()").WithLocation(29, 16),
                 // (35,23): warning CS8603: Possible null reference return.
                 //     static T4 F1() => default; // warn: return type T4 may be non-null
                 Diagnostic(ErrorCode.WRN_NullReferenceReturn, "default").WithLocation(35, 23),
@@ -47755,9 +47746,6 @@ class A
                 // (4,23): warning CS8603: Possible null reference return.
                 //     static T1 F1() => default; // warn: return type T1 may be non-null
                 Diagnostic(ErrorCode.WRN_NullReferenceReturn, "default").WithLocation(4, 23),
-                // (39,17): warning CS8600: Converting null literal or possible null value to non-nullable type.
-                //         T4 t4 = (T4)NullableObject(); // warn: T4 may be non-null
-                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(T4)NullableObject()").WithLocation(39, 17),
                 // (39,17): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         T4 t4 = (T4)NullableObject(); // warn: T4 may be non-null
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(T4)NullableObject()").WithLocation(39, 17),
@@ -47779,18 +47767,9 @@ class A
                 // (49,17): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         T5 t5 = (T5)NullableObject(); // warn: T5 may be non-null
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(T5)NullableObject()").WithLocation(49, 17),
-                // (49,17): warning CS8600: Converting null literal or possible null value to non-nullable type.
-                //         T5 t5 = (T5)NullableObject(); // warn: T5 may be non-null
-                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(T5)NullableObject()").WithLocation(49, 17),
                 // (8,17): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         T1 t1 = (T1)NullableObject(); // warn: T1 may be non-null
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(T1)NullableObject()").WithLocation(8, 17),
-                // (8,17): warning CS8600: Converting null literal or possible null value to non-nullable type.
-                //         T1 t1 = (T1)NullableObject(); // warn: T1 may be non-null
-                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(T1)NullableObject()").WithLocation(8, 17),
-                // (18,17): warning CS8600: Converting null literal or possible null value to non-nullable type.
-                //         T2 t2 = (T2)NullableObject(); // warn: T2 may be non-null
-                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(T2)NullableObject()").WithLocation(18, 17),
                 // (18,17): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         T2 t2 = (T2)NullableObject(); // warn: T2 may be non-null
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(T2)NullableObject()").WithLocation(18, 17)
@@ -51613,6 +51592,31 @@ class A
 
         [WorkItem(23270, "https://github.com/dotnet/roslyn/issues/23270")]
         [Fact]
+        public void NotNullAfterDereference_00()
+        {
+            var source =
+@"class Program
+{
+    static void M(object? obj)
+    {
+        obj.F();
+        obj.ToString(); // 1
+        obj.ToString();
+    }
+}
+static class E
+{
+    internal static void F(this object? obj) { }
+}";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (6,9): warning CS8602: Possible dereference of a null reference.
+                //         obj.ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "obj").WithLocation(6, 9));
+        }
+
+        [WorkItem(23270, "https://github.com/dotnet/roslyn/issues/23270")]
+        [Fact]
         public void NotNullAfterDereference_01()
         {
             var source =
@@ -52907,7 +52911,6 @@ class Outer
     }
 }
 ";
-            // https://github.com/dotnet/roslyn/issues/30938 - duplicate warnings
             CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics(
                 // (7,13): error CS0266: Cannot implicitly convert type 'object' to 'T'. An explicit conversion exists (are you missing a cast?)
                 //         z = x;
@@ -52918,9 +52921,6 @@ class Outer
                 // (8,13): error CS0266: Cannot implicitly convert type 'object' to 'T'. An explicit conversion exists (are you missing a cast?)
                 //         z = y;
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "y").WithArguments("object", "T").WithLocation(8, 13),
-                // (9,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
-                //         z = (T)x;
-                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(T)x").WithLocation(9, 13),
                 // (9,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         z = (T)x;
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(T)x").WithLocation(9, 13)
@@ -52949,9 +52949,6 @@ class Outer
                 // (7,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         z = x;
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "x").WithLocation(7, 13),
-                // (9,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
-                //         z = (T)x;
-                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(T)x").WithLocation(9, 13),
                 // (9,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         z = (T)x;
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(T)x").WithLocation(9, 13)
@@ -52989,9 +52986,6 @@ interface I1{}
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "y").WithArguments("object", "T").WithLocation(8, 13),
                 // (9,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         z = (T)x;
-                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(T)x").WithLocation(9, 13),
-                // (9,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
-                //         z = (T)x;
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(T)x").WithLocation(9, 13)
                 );
         }
@@ -53019,9 +53013,6 @@ interface I1{}
                 // (7,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         z = x;
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "x").WithLocation(7, 13),
-                // (9,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
-                //         z = (T)x;
-                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(T)x").WithLocation(9, 13),
                 // (9,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         z = (T)x;
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(T)x").WithLocation(9, 13)
@@ -53059,9 +53050,6 @@ interface I1{}
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "y").WithArguments("object", "T").WithLocation(8, 13),
                 // (9,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         z = (T)x;
-                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(T)x").WithLocation(9, 13),
-                // (9,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
-                //         z = (T)x;
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(T)x").WithLocation(9, 13)
                 );
         }
@@ -53091,9 +53079,6 @@ interface I1{}
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "x").WithLocation(7, 13),
                 // (9,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         z = (T)x;
-                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(T)x").WithLocation(9, 13),
-                // (9,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
-                //         z = (T)x;
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(T)x").WithLocation(9, 13)
                 );
         }
@@ -53120,9 +53105,6 @@ class Outer
                 // (7,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         y = x;
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "x").WithLocation(7, 13),
-                // (8,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
-                //         y = (U)x;
-                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(U)x").WithLocation(8, 13),
                 // (8,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         y = (U)x;
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(U)x").WithLocation(8, 13)
@@ -53155,9 +53137,6 @@ interface I1 {}
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "x").WithLocation(7, 13),
                 // (8,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         y = (U)x;
-                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(U)x").WithLocation(8, 13),
-                // (8,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
-                //         y = (U)x;
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(U)x").WithLocation(8, 13)
                 );
         }
@@ -53186,9 +53165,6 @@ interface I1 {}
                 // (7,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         y = x;
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "x").WithLocation(7, 13),
-                // (8,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
-                //         y = (U)x;
-                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(U)x").WithLocation(8, 13),
                 // (8,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         y = (U)x;
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(U)x").WithLocation(8, 13)
@@ -53265,9 +53241,6 @@ class Outer
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "x").WithLocation(8, 13),
                 // (9,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         y = (T)x;
-                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(T)x").WithLocation(9, 13),
-                // (9,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
-                //         y = (T)x;
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(T)x").WithLocation(9, 13)
                 );
         }
@@ -53310,9 +53283,6 @@ class Outer
                 // (8,13): warning CS8619: Nullability of reference types in value of type 'Outer' doesn't match target type 'T'.
                 //         z = y;
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "y").WithArguments("Outer", "T").WithLocation(8, 13),
-                // (9,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
-                //         z = (T)x;
-                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(T)x").WithLocation(9, 13),
                 // (9,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         z = (T)x;
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(T)x").WithLocation(9, 13)
@@ -53385,9 +53355,6 @@ class Outer
                 // (8,13): warning CS8619: Nullability of reference types in value of type 'Outer' doesn't match target type 'T'.
                 //         z = y;
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "y").WithArguments("Outer", "T").WithLocation(8, 13),
-                // (9,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
-                //         z = (T)x;
-                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(T)x").WithLocation(9, 13),
                 // (9,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         z = (T)x;
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(T)x").WithLocation(9, 13)
@@ -57142,6 +57109,28 @@ class Program
                 //             _ = s.Length; // warning 3c
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(224, 17)
                 );
+        }
+
+        [WorkItem(30938, "https://github.com/dotnet/roslyn/issues/30938")]
+        [Fact]
+        public void ExplicitCastAndInferredTargetType()
+        {
+            var source =
+@"class Program
+{
+    static void F(object? x)
+    {
+        if (x == null) return;
+        var y = x;
+        x = null;
+        y = (object)x;
+    }
+}";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (8,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         y = (object)x;
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(object)x").WithLocation(8, 13));
         }
     }
 }
