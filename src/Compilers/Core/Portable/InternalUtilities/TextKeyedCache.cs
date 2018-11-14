@@ -215,7 +215,7 @@ namespace Roslyn.Utilities
             var i1 = NextRandom() & SharedBucketSizeMask;
             idx = (idx + ((i1 * i1 + i1) / 2)) & SharedSizeMask;
 
-        foundIdx:
+foundIdx:
             arr[idx].HashCode = hashCode;
             Volatile.Write(ref arr[idx].Entry, e);
         }

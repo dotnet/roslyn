@@ -94,7 +94,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddAccessibilityModifiers
             ' Top level items in a namespace or file
             If member.IsParentKind(SyntaxKind.CompilationUnit) OrElse
                member.IsParentKind(SyntaxKind.NamespaceBlock) Then
-               ' default is Friend
+                ' default is Friend
                 Return accessibility = Accessibility.Friend
             End If
 

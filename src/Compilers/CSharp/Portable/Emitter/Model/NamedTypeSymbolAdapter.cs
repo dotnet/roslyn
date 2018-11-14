@@ -868,7 +868,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 Debug.Assert(((Cci.ITypeReference)this).AsNamespaceTypeReference != null);
 
                 return this.ContainingNamespace.QualifiedName;
-           }
+            }
         }
 
         bool Cci.INamespaceTypeDefinition.IsPublic

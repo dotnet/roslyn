@@ -699,7 +699,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
                 return ParseConditionalExpressionGrouping(openParenToken, questionToken, innerOpenParenToken);
             }
 
-        var capture = captureToken.Value;
+            var capture = captureToken.Value;
 
             RegexToken innerCloseParenToken;
             if (capture.Kind == RegexKind.NumberToken)

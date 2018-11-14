@@ -227,7 +227,7 @@ d.Do()"
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(2, 32));
             }
 
-             Assert.True(exceptionThrown);
+            Assert.True(exceptionThrown);
         }
 
         [WorkItem(6676, "https://github.com/dotnet/roslyn/issues/6676")]

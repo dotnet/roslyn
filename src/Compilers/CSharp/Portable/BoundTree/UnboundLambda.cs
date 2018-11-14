@@ -514,7 +514,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ((ExecutableCodeBinder)lambdaBodyBinder).ValidateIteratorMethods(diagnostics);
             ValidateUnsafeParameters(diagnostics, cacheKey.ParameterTypes);
 
-        haveLambdaBodyAndBinders:
+haveLambdaBodyAndBinders:
 
             bool reachableEndpoint = ControlFlowPass.Analyze(binder.Compilation, lambdaSymbol, block, diagnostics);
             if (reachableEndpoint)

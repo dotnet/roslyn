@@ -300,10 +300,10 @@ namespace Microsoft.CodeAnalysis.AddImport
                 if (_owner.CanAddImportForMethod(_diagnosticId, _syntaxFacts, _node, out var nameNode) &&
                     nameNode != null)
                 {
-                        // We have code like "Color.Black".  "Color" bound to a 'Color Color' property, and
-                        // 'Black' did not bind.  We want to find a type called 'Color' that will actually
-                        // allow 'Black' to bind.
-                        var syntaxFacts = this._document.GetLanguageService<ISyntaxFactsService>();
+                    // We have code like "Color.Black".  "Color" bound to a 'Color Color' property, and
+                    // 'Black' did not bind.  We want to find a type called 'Color' that will actually
+                    // allow 'Black' to bind.
+                    var syntaxFacts = this._document.GetLanguageService<ISyntaxFactsService>();
                     if (syntaxFacts.IsNameOfMemberAccessExpression(nameNode))
                     {
                         var expression =

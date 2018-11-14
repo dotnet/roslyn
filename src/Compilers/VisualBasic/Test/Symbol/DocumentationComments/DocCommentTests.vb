@@ -51,7 +51,7 @@ End Class
                     cancellationToken:=Nothing)
 
                 AssertTheseDiagnostics(diags.ToReadOnlyAndFree(),
-									   <errors><![CDATA[
+                                       <errors><![CDATA[
 BC37258: Error writing to XML documentation file: I/O error occurred.
                                    ]]></errors>)
             End Using

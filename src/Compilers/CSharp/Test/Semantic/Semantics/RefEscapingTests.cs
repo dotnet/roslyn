@@ -1122,7 +1122,7 @@ class Program
     }
 ";
             CreateCompilationWithMscorlibAndSpan(text).VerifyDiagnostics(
-                // no diagnostics expected
+            // no diagnostics expected
             );
         }
 
@@ -1367,7 +1367,7 @@ class Program
 }
 ";
             CreateCompilationWithMscorlibAndSpan(text).VerifyDiagnostics(
-                // no diagnostics
+            // no diagnostics
             );
         }
 

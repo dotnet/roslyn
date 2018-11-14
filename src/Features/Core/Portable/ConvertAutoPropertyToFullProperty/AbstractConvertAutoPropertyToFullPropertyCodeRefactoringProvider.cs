@@ -122,5 +122,5 @@ namespace Microsoft.CodeAnalysis.ConvertAutoPropertyToFullProperty
             {
             }
         }
-}
+    }
 }

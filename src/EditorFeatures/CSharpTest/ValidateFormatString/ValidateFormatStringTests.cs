@@ -824,7 +824,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.ValidateFormatString)]
         public async Task Net45TestOutOfBounds()
         {
-             var input = @" 
+            var input = @" 
             < Workspace >
                 < Project Language = ""C#"" AssemblyName=""Assembly1"" CommonReferencesNet45=""true""> 
  <Document FilePath=""CurrentDocument.cs""><![CDATA[

@@ -339,60 +339,60 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                 {
                     switch (navigateToItemKind)
                     {
-                    case NavigateToItemKind.Class:
-                        lookupTable[(int)DeclaredSymbolInfoKind.Class] = true;
-                        break;
+                        case NavigateToItemKind.Class:
+                            lookupTable[(int)DeclaredSymbolInfoKind.Class] = true;
+                            break;
 
-                    case NavigateToItemKind.Constant:
-                        lookupTable[(int)DeclaredSymbolInfoKind.Constant] = true;
-                        break;
+                        case NavigateToItemKind.Constant:
+                            lookupTable[(int)DeclaredSymbolInfoKind.Constant] = true;
+                            break;
 
-                    case NavigateToItemKind.Delegate:
-                        lookupTable[(int)DeclaredSymbolInfoKind.Delegate] = true;
-                        break;
+                        case NavigateToItemKind.Delegate:
+                            lookupTable[(int)DeclaredSymbolInfoKind.Delegate] = true;
+                            break;
 
-                    case NavigateToItemKind.Enum:
-                        lookupTable[(int)DeclaredSymbolInfoKind.Enum] = true;
-                        break;
+                        case NavigateToItemKind.Enum:
+                            lookupTable[(int)DeclaredSymbolInfoKind.Enum] = true;
+                            break;
 
-                    case NavigateToItemKind.EnumItem:
-                        lookupTable[(int)DeclaredSymbolInfoKind.EnumMember] = true;
-                        break;
+                        case NavigateToItemKind.EnumItem:
+                            lookupTable[(int)DeclaredSymbolInfoKind.EnumMember] = true;
+                            break;
 
-                    case NavigateToItemKind.Event:
-                        lookupTable[(int)DeclaredSymbolInfoKind.Event] = true;
-                        break;
+                        case NavigateToItemKind.Event:
+                            lookupTable[(int)DeclaredSymbolInfoKind.Event] = true;
+                            break;
 
-                    case NavigateToItemKind.Field:
-                        lookupTable[(int)DeclaredSymbolInfoKind.Field] = true;
-                        break;
+                        case NavigateToItemKind.Field:
+                            lookupTable[(int)DeclaredSymbolInfoKind.Field] = true;
+                            break;
 
-                    case NavigateToItemKind.Interface:
-                        lookupTable[(int)DeclaredSymbolInfoKind.Interface] = true;
-                        break;
+                        case NavigateToItemKind.Interface:
+                            lookupTable[(int)DeclaredSymbolInfoKind.Interface] = true;
+                            break;
 
-                    case NavigateToItemKind.Method:
-                        lookupTable[(int)DeclaredSymbolInfoKind.Constructor] = true;
-                        lookupTable[(int)DeclaredSymbolInfoKind.ExtensionMethod] = true;
-                        lookupTable[(int)DeclaredSymbolInfoKind.Method] = true;
-                        break;
+                        case NavigateToItemKind.Method:
+                            lookupTable[(int)DeclaredSymbolInfoKind.Constructor] = true;
+                            lookupTable[(int)DeclaredSymbolInfoKind.ExtensionMethod] = true;
+                            lookupTable[(int)DeclaredSymbolInfoKind.Method] = true;
+                            break;
 
-                    case NavigateToItemKind.Module:
-                        lookupTable[(int)DeclaredSymbolInfoKind.Module] = true;
-                        break;
+                        case NavigateToItemKind.Module:
+                            lookupTable[(int)DeclaredSymbolInfoKind.Module] = true;
+                            break;
 
-                    case NavigateToItemKind.Property:
-                        lookupTable[(int)DeclaredSymbolInfoKind.Indexer] = true;
-                        lookupTable[(int)DeclaredSymbolInfoKind.Property] = true;
-                        break;
+                        case NavigateToItemKind.Property:
+                            lookupTable[(int)DeclaredSymbolInfoKind.Indexer] = true;
+                            lookupTable[(int)DeclaredSymbolInfoKind.Property] = true;
+                            break;
 
-                    case NavigateToItemKind.Structure:
-                        lookupTable[(int)DeclaredSymbolInfoKind.Struct] = true;
-                        break;
+                        case NavigateToItemKind.Structure:
+                            lookupTable[(int)DeclaredSymbolInfoKind.Struct] = true;
+                            break;
 
-                    default:
-                        // Not a recognized symbol info kind
-                        break;
+                        default:
+                            // Not a recognized symbol info kind
+                            break;
                     }
                 }
 

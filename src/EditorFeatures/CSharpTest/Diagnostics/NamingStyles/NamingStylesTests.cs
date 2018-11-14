@@ -335,7 +335,7 @@ $@"class C
     }
 }",
                 options: options.ParameterNamesAreCamelCase);
-		}
+        }
 
         [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
         public async Task TestCamelCaseLocals_LocalDeclaration1()

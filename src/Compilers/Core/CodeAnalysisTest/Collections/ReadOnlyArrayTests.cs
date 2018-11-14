@@ -395,7 +395,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             var quin2 = ImmutableArray.Create(10, 11, 12, 13, 14);
             var quin3 = ImmutableArray.Create(11, 13, 15, 17, 19);
             Assert.True(quin3.SequenceEqual(quin1.ZipAsArray(quin2, (item1, item2) => item1 + item2)));
-         }
+        }
 
         [Fact]
         public void WhereAsArray()

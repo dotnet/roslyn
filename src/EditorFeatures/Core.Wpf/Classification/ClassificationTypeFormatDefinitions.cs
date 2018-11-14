@@ -540,9 +540,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 this.ForegroundColor = s_regexOtherEscapeColor;
             }
         }
-#endregion
+        #endregion
 
-#region VB XML Literals - Attribute Name 
+        #region VB XML Literals - Attribute Name 
         [Export(typeof(EditorFormatDefinition))]
         [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.XmlLiteralAttributeName)]
         [Name(ClassificationTypeNames.XmlLiteralAttributeName)]

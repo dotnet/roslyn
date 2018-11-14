@@ -4604,7 +4604,7 @@ $@"class C
     bool M2(out int x) {{ x = 0; return true; }}
     int M3() => 0;
 }}");
-            }
+        }
 
         [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         [InlineData(nameof(PreferDiscard))]

@@ -456,8 +456,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return result;
             }
 
-                return result;
-            }
+            return result;
+        }
 
         internal override bool GetUnificationUseSiteDiagnosticRecursive(ref DiagnosticInfo result, Symbol owner, ref HashSet<TypeSymbol> checkedTypes)
         {

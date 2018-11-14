@@ -262,7 +262,7 @@ namespace Microsoft.CodeAnalysis
                     }
                 }
 
-            ExitDecodeTypeName:
+ExitDecodeTypeName:
                 HandleDecodedTypeName(typeNameBuilder.ToString(), decodingTopLevelType, ref topLevelType, ref nestedTypesBuilder);
                 pooledStrBuilder.Free();
 
@@ -823,8 +823,8 @@ namespace Microsoft.CodeAnalysis
                                 lastChildNamespaceName, typesInLastChildNamespace));
                     }
 
-                DoneWithSequence:
-                    /*empty statement*/
+DoneWithSequence:
+/*empty statement*/
                     ;
                 }
             } // using

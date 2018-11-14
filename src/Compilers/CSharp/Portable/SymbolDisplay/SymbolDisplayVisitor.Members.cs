@@ -169,7 +169,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if ((object)eventSymbol == null)
                 {
-                symbol.Type.Accept(this.NotFirstVisitor);
+                    symbol.Type.Accept(this.NotFirstVisitor);
                 }
                 else
                 {

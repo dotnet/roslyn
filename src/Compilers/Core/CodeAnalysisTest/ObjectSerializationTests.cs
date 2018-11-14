@@ -1302,7 +1302,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             }
         }
 
-// keep these around for analyzing perf issues
+        // keep these around for analyzing perf issues
 #if false
         [Fact]
         public void TestReaderPerf()

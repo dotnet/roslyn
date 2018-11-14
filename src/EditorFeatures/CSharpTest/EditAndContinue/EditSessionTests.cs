@@ -306,7 +306,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
                 "4: (26,20)-(26,25) flags=[MethodUpToDate, IsNonLeafFrame] pdid=test2.cs docs=[test2.cs]"
             }, baseActiveStatements.DocumentMap[docs[1]].Select(InspectActiveStatement));
 
-           // Exception Regions
+            // Exception Regions
 
             AssertEx.Equal(new[]
             {

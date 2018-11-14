@@ -2434,7 +2434,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
                 }
 
-                OuterBreak:
+OuterBreak:
                 ;
             }
 

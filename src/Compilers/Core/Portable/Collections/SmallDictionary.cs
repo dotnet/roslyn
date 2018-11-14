@@ -215,7 +215,7 @@ namespace Microsoft.CodeAnalysis
             value = default(V);
             return false;
 
-            hasBucket:
+hasBucket:
             if (CompareKeys(b.Key, key))
             {
                 value = b.Value;

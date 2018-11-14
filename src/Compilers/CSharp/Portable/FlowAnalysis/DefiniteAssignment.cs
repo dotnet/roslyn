@@ -483,7 +483,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected IEnumerable<Symbol> GetCaptured() => _capturedVariables.ToArray();
         protected IEnumerable<Symbol> GetUnsafeAddressTaken() => _unsafeAddressTakenVariables.Keys.ToArray();
 
-#region Tracking reads/writes of variables for warnings
+        #region Tracking reads/writes of variables for warnings
 
         protected virtual void NoteRead(
             Symbol variable,

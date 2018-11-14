@@ -687,7 +687,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return new BoundBlock(statement.Syntax, locals, ImmutableArray.Create(statement))
-                { WasCompilerGenerated = true };
+            { WasCompilerGenerated = true };
         }
 
         /// <summary>

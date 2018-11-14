@@ -1446,7 +1446,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 var field = (FieldSymbol)member;
                 var fieldName = field.Name;
 
-            REPARSE:
+REPARSE:
 
                 DisplayClassVariableKind variableKind;
                 string variableName;

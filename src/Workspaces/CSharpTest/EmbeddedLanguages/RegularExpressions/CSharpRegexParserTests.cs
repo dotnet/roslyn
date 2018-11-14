@@ -293,12 +293,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         {
             switch (trivia.Kind)
             {
-            case RegexKind.CommentTrivia:
-            case RegexKind.WhitespaceTrivia:
-                break;
-            default:
-                Assert.False(true, "Incorrect trivia kind");
-                return;
+                case RegexKind.CommentTrivia:
+                case RegexKind.WhitespaceTrivia:
+                    break;
+                default:
+                    Assert.False(true, "Incorrect trivia kind");
+                    return;
             }
 
             CheckCharacters(trivia.VirtualChars, ref position, allChars);

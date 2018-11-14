@@ -2521,7 +2521,7 @@ public class A<T>
             var comp = CreateCompilation(text, options: TestOptions.ReleaseDll);
 
             comp.VerifyDiagnostics(
-                 // no diagnostics expected
+                // no diagnostics expected
                 );
         }
 

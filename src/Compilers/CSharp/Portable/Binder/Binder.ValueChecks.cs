@@ -1344,7 +1344,7 @@ moreArguments:
 
             if (!argsOpt.IsDefault)
             {
- moreArguments:
+moreArguments:
                 for (var argIndex = 0; argIndex < argsOpt.Length; argIndex++)
                 {
                     // check val escape of all arguments
@@ -2711,131 +2711,131 @@ moreArguments:
                     Debug.Assert(false, $"{expr.Kind} expression of {expr.Type} type");
                     return false;
 
-                #region "cannot produce ref-like values"
-//                case BoundKind.ThrowExpression:
-//                case BoundKind.ArgListOperator:
-//                case BoundKind.ArgList:
-//                case BoundKind.RefTypeOperator:
-//                case BoundKind.AddressOfOperator:
-//                case BoundKind.TypeOfOperator:
-//                case BoundKind.IsOperator:
-//                case BoundKind.SizeOfOperator:
-//                case BoundKind.DynamicMemberAccess:
-//                case BoundKind.DynamicInvocation:
-//                case BoundKind.NewT:
-//                case BoundKind.DelegateCreationExpression:
-//                case BoundKind.ArrayCreation:
-//                case BoundKind.AnonymousObjectCreationExpression:
-//                case BoundKind.NameOfOperator:
-//                case BoundKind.InterpolatedString:
-//                case BoundKind.StringInsert:
-//                case BoundKind.DynamicIndexerAccess:
-//                case BoundKind.Lambda:
-//                case BoundKind.DynamicObjectCreationExpression:
-//                case BoundKind.NoPiaObjectCreationExpression:
-//                case BoundKind.BaseReference:
-//                case BoundKind.Literal:
-//                case BoundKind.IsPatternExpression:
-//                case BoundKind.DeconstructionAssignmentOperator:
-//                case BoundKind.EventAccess:
+                    #region "cannot produce ref-like values"
+                    //                case BoundKind.ThrowExpression:
+                    //                case BoundKind.ArgListOperator:
+                    //                case BoundKind.ArgList:
+                    //                case BoundKind.RefTypeOperator:
+                    //                case BoundKind.AddressOfOperator:
+                    //                case BoundKind.TypeOfOperator:
+                    //                case BoundKind.IsOperator:
+                    //                case BoundKind.SizeOfOperator:
+                    //                case BoundKind.DynamicMemberAccess:
+                    //                case BoundKind.DynamicInvocation:
+                    //                case BoundKind.NewT:
+                    //                case BoundKind.DelegateCreationExpression:
+                    //                case BoundKind.ArrayCreation:
+                    //                case BoundKind.AnonymousObjectCreationExpression:
+                    //                case BoundKind.NameOfOperator:
+                    //                case BoundKind.InterpolatedString:
+                    //                case BoundKind.StringInsert:
+                    //                case BoundKind.DynamicIndexerAccess:
+                    //                case BoundKind.Lambda:
+                    //                case BoundKind.DynamicObjectCreationExpression:
+                    //                case BoundKind.NoPiaObjectCreationExpression:
+                    //                case BoundKind.BaseReference:
+                    //                case BoundKind.Literal:
+                    //                case BoundKind.IsPatternExpression:
+                    //                case BoundKind.DeconstructionAssignmentOperator:
+                    //                case BoundKind.EventAccess:
 
-                #endregion
+                    #endregion
 
-                #region "not expression that can produce a value"
-//                case BoundKind.FieldEqualsValue:
-//                case BoundKind.PropertyEqualsValue:
-//                case BoundKind.ParameterEqualsValue:
-//                case BoundKind.NamespaceExpression:
-//                case BoundKind.TypeExpression:
-//                case BoundKind.BadStatement:
-//                case BoundKind.MethodDefIndex:
-//                case BoundKind.SourceDocumentIndex:
-//                case BoundKind.ArgList:
-//                case BoundKind.ArgListOperator:
-//                case BoundKind.Block:
-//                case BoundKind.Scope:
-//                case BoundKind.NoOpStatement:
-//                case BoundKind.ReturnStatement:
-//                case BoundKind.YieldReturnStatement:
-//                case BoundKind.YieldBreakStatement:
-//                case BoundKind.ThrowStatement:
-//                case BoundKind.ExpressionStatement:
-//                case BoundKind.SwitchStatement:
-//                case BoundKind.SwitchSection:
-//                case BoundKind.SwitchLabel:
-//                case BoundKind.BreakStatement:
-//                case BoundKind.LocalFunctionStatement:
-//                case BoundKind.ContinueStatement:
-//                case BoundKind.PatternSwitchStatement:
-//                case BoundKind.PatternSwitchSection:
-//                case BoundKind.PatternSwitchLabel:
-//                case BoundKind.IfStatement:
-//                case BoundKind.DoStatement:
-//                case BoundKind.WhileStatement:
-//                case BoundKind.ForStatement:
-//                case BoundKind.ForEachStatement:
-//                case BoundKind.ForEachDeconstructStep:
-//                case BoundKind.UsingStatement:
-//                case BoundKind.FixedStatement:
-//                case BoundKind.LockStatement:
-//                case BoundKind.TryStatement:
-//                case BoundKind.CatchBlock:
-//                case BoundKind.LabelStatement:
-//                case BoundKind.GotoStatement:
-//                case BoundKind.LabeledStatement:
-//                case BoundKind.Label:
-//                case BoundKind.StatementList:
-//                case BoundKind.ConditionalGoto:
-//                case BoundKind.LocalDeclaration:
-//                case BoundKind.MultipleLocalDeclarations:
-//                case BoundKind.ArrayInitialization:
-//                case BoundKind.AnonymousPropertyDeclaration:
-//                case BoundKind.MethodGroup:
-//                case BoundKind.PropertyGroup:
-//                case BoundKind.EventAssignmentOperator:
-//                case BoundKind.Attribute:
-//                case BoundKind.FixedLocalCollectionInitializer:
-//                case BoundKind.DynamicObjectInitializerMember:
-//                case BoundKind.DynamicCollectionElementInitializer:
-//                case BoundKind.ImplicitReceiver:
-//                case BoundKind.FieldInitializer:
-//                case BoundKind.GlobalStatementInitializer:
-//                case BoundKind.TypeOrInstanceInitializers:
-//                case BoundKind.DeclarationPattern:
-//                case BoundKind.ConstantPattern:
-//                case BoundKind.WildcardPattern:
+                    #region "not expression that can produce a value"
+                    //                case BoundKind.FieldEqualsValue:
+                    //                case BoundKind.PropertyEqualsValue:
+                    //                case BoundKind.ParameterEqualsValue:
+                    //                case BoundKind.NamespaceExpression:
+                    //                case BoundKind.TypeExpression:
+                    //                case BoundKind.BadStatement:
+                    //                case BoundKind.MethodDefIndex:
+                    //                case BoundKind.SourceDocumentIndex:
+                    //                case BoundKind.ArgList:
+                    //                case BoundKind.ArgListOperator:
+                    //                case BoundKind.Block:
+                    //                case BoundKind.Scope:
+                    //                case BoundKind.NoOpStatement:
+                    //                case BoundKind.ReturnStatement:
+                    //                case BoundKind.YieldReturnStatement:
+                    //                case BoundKind.YieldBreakStatement:
+                    //                case BoundKind.ThrowStatement:
+                    //                case BoundKind.ExpressionStatement:
+                    //                case BoundKind.SwitchStatement:
+                    //                case BoundKind.SwitchSection:
+                    //                case BoundKind.SwitchLabel:
+                    //                case BoundKind.BreakStatement:
+                    //                case BoundKind.LocalFunctionStatement:
+                    //                case BoundKind.ContinueStatement:
+                    //                case BoundKind.PatternSwitchStatement:
+                    //                case BoundKind.PatternSwitchSection:
+                    //                case BoundKind.PatternSwitchLabel:
+                    //                case BoundKind.IfStatement:
+                    //                case BoundKind.DoStatement:
+                    //                case BoundKind.WhileStatement:
+                    //                case BoundKind.ForStatement:
+                    //                case BoundKind.ForEachStatement:
+                    //                case BoundKind.ForEachDeconstructStep:
+                    //                case BoundKind.UsingStatement:
+                    //                case BoundKind.FixedStatement:
+                    //                case BoundKind.LockStatement:
+                    //                case BoundKind.TryStatement:
+                    //                case BoundKind.CatchBlock:
+                    //                case BoundKind.LabelStatement:
+                    //                case BoundKind.GotoStatement:
+                    //                case BoundKind.LabeledStatement:
+                    //                case BoundKind.Label:
+                    //                case BoundKind.StatementList:
+                    //                case BoundKind.ConditionalGoto:
+                    //                case BoundKind.LocalDeclaration:
+                    //                case BoundKind.MultipleLocalDeclarations:
+                    //                case BoundKind.ArrayInitialization:
+                    //                case BoundKind.AnonymousPropertyDeclaration:
+                    //                case BoundKind.MethodGroup:
+                    //                case BoundKind.PropertyGroup:
+                    //                case BoundKind.EventAssignmentOperator:
+                    //                case BoundKind.Attribute:
+                    //                case BoundKind.FixedLocalCollectionInitializer:
+                    //                case BoundKind.DynamicObjectInitializerMember:
+                    //                case BoundKind.DynamicCollectionElementInitializer:
+                    //                case BoundKind.ImplicitReceiver:
+                    //                case BoundKind.FieldInitializer:
+                    //                case BoundKind.GlobalStatementInitializer:
+                    //                case BoundKind.TypeOrInstanceInitializers:
+                    //                case BoundKind.DeclarationPattern:
+                    //                case BoundKind.ConstantPattern:
+                    //                case BoundKind.WildcardPattern:
 
-                #endregion
+                    #endregion
 
-                #region "not found as an operand in no-error unlowered bound tree"
-//                case BoundKind.MaximumMethodDefIndex:
-//                case BoundKind.InstrumentationPayloadRoot:
-//                case BoundKind.ModuleVersionId:
-//                case BoundKind.ModuleVersionIdString:
-//                case BoundKind.Dup:
-//                case BoundKind.TypeOrValueExpression:
-//                case BoundKind.BadExpression:
-//                case BoundKind.ArrayLength:
-//                case BoundKind.MethodInfo:
-//                case BoundKind.FieldInfo:
-//                case BoundKind.SequencePoint:
-//                case BoundKind.SequencePointExpression:
-//                case BoundKind.SequencePointWithSpan:
-//                case BoundKind.StateMachineScope:
-//                case BoundKind.ConditionalReceiver:
-//                case BoundKind.ComplexConditionalReceiver:
-//                case BoundKind.PreviousSubmissionReference:
-//                case BoundKind.HostObjectMemberReference:
-//                case BoundKind.UnboundLambda:
-//                case BoundKind.LoweredConditionalAccess:
-//                case BoundKind.Sequence:
-//                case BoundKind.HoistedFieldAccess:
-//                case BoundKind.OutVariablePendingInference:
-//                case BoundKind.DeconstructionVariablePendingInference:
-//                case BoundKind.OutDeconstructVarPendingInference:
-//                case BoundKind.PseudoVariable:
+                    #region "not found as an operand in no-error unlowered bound tree"
+                    //                case BoundKind.MaximumMethodDefIndex:
+                    //                case BoundKind.InstrumentationPayloadRoot:
+                    //                case BoundKind.ModuleVersionId:
+                    //                case BoundKind.ModuleVersionIdString:
+                    //                case BoundKind.Dup:
+                    //                case BoundKind.TypeOrValueExpression:
+                    //                case BoundKind.BadExpression:
+                    //                case BoundKind.ArrayLength:
+                    //                case BoundKind.MethodInfo:
+                    //                case BoundKind.FieldInfo:
+                    //                case BoundKind.SequencePoint:
+                    //                case BoundKind.SequencePointExpression:
+                    //                case BoundKind.SequencePointWithSpan:
+                    //                case BoundKind.StateMachineScope:
+                    //                case BoundKind.ConditionalReceiver:
+                    //                case BoundKind.ComplexConditionalReceiver:
+                    //                case BoundKind.PreviousSubmissionReference:
+                    //                case BoundKind.HostObjectMemberReference:
+                    //                case BoundKind.UnboundLambda:
+                    //                case BoundKind.LoweredConditionalAccess:
+                    //                case BoundKind.Sequence:
+                    //                case BoundKind.HoistedFieldAccess:
+                    //                case BoundKind.OutVariablePendingInference:
+                    //                case BoundKind.DeconstructionVariablePendingInference:
+                    //                case BoundKind.OutDeconstructVarPendingInference:
+                    //                case BoundKind.PseudoVariable:
 
-                #endregion
+                    #endregion
             }
         }
 

@@ -279,7 +279,7 @@ namespace PushUpTest
         }
     }
 }";
-          await TestInRegularAndScriptAsync(testText, expected);
+            await TestInRegularAndScriptAsync(testText, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]

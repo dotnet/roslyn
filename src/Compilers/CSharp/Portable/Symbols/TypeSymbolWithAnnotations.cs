@@ -70,8 +70,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert((a == NullableAnnotation.NotAnnotated && b == NullableAnnotation.NotNullable) ||
                 (b == NullableAnnotation.NotAnnotated && a == NullableAnnotation.NotNullable));
             return NullableAnnotation.NotAnnotated; // It is reasonable to settle on this value because the difference in annotations is either
-                                                   // not significant for the type, or candidate corresponding to this value is possibly a 
-                                                   // nullable reference type type parameter and nullable should win. 
+                                                    // not significant for the type, or candidate corresponding to this value is possibly a 
+                                                    // nullable reference type type parameter and nullable should win. 
         }
 
         /// <summary>

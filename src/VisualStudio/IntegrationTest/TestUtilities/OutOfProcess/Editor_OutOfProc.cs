@@ -288,7 +288,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         public void SelectProjectNavbarItem(string item)
         {
             _instance.Workspace.WaitForAsyncOperations(FeatureAttribute.NavigationBar);
-             _editorInProc.SelectNavBarItem(0, item);
+            _editorInProc.SelectNavBarItem(0, item);
         }
 
         public void SelectTypeNavBarItem(string item)

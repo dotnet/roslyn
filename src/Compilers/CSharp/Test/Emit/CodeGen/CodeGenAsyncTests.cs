@@ -3216,9 +3216,9 @@ public {(isStruct ? "struct" : "class")} {builderTypeName}{ofT}
     public void Start<TStateMachine>(ref TStateMachine stateMachine) where TStateMachine : IAsyncStateMachine {{ }}
 }}
 ";
-    }
+        }
 
-    [Fact]
+        [Fact]
         public void PresentAsyncTasklikeBuilderMethod()
         {
             var source = @"

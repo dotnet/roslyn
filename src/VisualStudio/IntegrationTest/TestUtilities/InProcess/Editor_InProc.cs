@@ -684,7 +684,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         public void GoToImplementation()
             => GetDTE().ExecuteCommand("Edit.GoToImplementation");
 
-		/// <summary>
+        /// <summary>
         /// Gets the spans where a particular tag appears in the active text view.
         /// </summary>
         /// <returns>

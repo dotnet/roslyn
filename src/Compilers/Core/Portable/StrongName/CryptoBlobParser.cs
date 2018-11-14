@@ -324,7 +324,7 @@ namespace Microsoft.CodeAnalysis
                     (byte)(exponent)
                 };
             }
-}
+        }
 
 
         /// <summary>
@@ -336,6 +336,6 @@ namespace Microsoft.CodeAnalysis
             byte[] data = br.ReadBytes(count);
             Array.Reverse(data);
             return data;
-}
+        }
     }
 }
