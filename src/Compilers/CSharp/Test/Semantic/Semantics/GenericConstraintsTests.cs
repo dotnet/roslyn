@@ -3402,7 +3402,10 @@ public struct YourStruct<T> where T : unmanaged
 }
 ";
             CreateCompilation(code, options: TestOptions.UnsafeReleaseDll)
-                .VerifyDiagnostics();
+                .VerifyDiagnostics(
+                    // (4,46): error CS0523: Struct member 'MyStruct<T>.field' of type 'YourStruct<MyStruct<MyStruct<T>>>' causes a cycle in the struct layout
+                    //     public YourStruct<MyStruct<MyStruct<T>>> field;
+                    Diagnostic(ErrorCode.ERR_StructLayoutCycle, "field").WithArguments("MyStruct<T>.field", "YourStruct<MyStruct<MyStruct<T>>>").WithLocation(4, 46));
         }
 
         [Fact]
