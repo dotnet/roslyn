@@ -71,12 +71,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             return Create(workspaceElement, completed, openDocuments, exportProvider, workspaceKind);
         }
 
-        public static TestWorkspace Create(
+        internal static TestWorkspace Create(
             XElement workspaceElement,
             bool completed = true,
             bool openDocuments = true,
             ExportProvider exportProvider = null,
-            string workspaceKind = null)
+            string workspaceKind = null,
+            IDocumentServiceProvider documentServiceProvider = null)
         {
             if (workspaceElement.Name != WorkspaceElementName)
             {
@@ -103,6 +104,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                     workspace,
                     documentElementToFilePath,
                     filePathToTextBufferMap,
+                    documentServiceProvider,
                     ref projectIdentifier,
                     ref documentIdentifier);
                 Assert.False(projectNameToTestHostProject.ContainsKey(project.Name), $"The workspace XML already contains a project with name {project.Name}");
@@ -255,6 +257,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             TestWorkspace workspace,
             Dictionary<XElement, string> documentElementToFilePath,
             Dictionary<string, ITextBuffer> filePathToTextBufferMap,
+            IDocumentServiceProvider documentServiceProvider,
             ref int projectId,
             ref int documentId)
         {
@@ -303,6 +306,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                     exportProvider,
                     languageServices,
                     filePathToTextBufferMap,
+                    documentServiceProvider,
                     ref documentId);
 
                 documents.Add(document);
@@ -584,6 +588,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             ExportProvider exportProvider,
             HostLanguageServices languageServiceProvider,
             Dictionary<string, ITextBuffer> filePathToTextBufferMap,
+            IDocumentServiceProvider documentServiceProvider,
             ref int documentId)
         {
             string markupCode;
@@ -674,7 +679,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 filePathToTextBufferMap.Add(filePath, textBuffer);
             }
 
-            return new TestHostDocument(exportProvider, languageServiceProvider, textBuffer, filePath, cursorPosition, spans, codeKind, folders, isLinkFile);
+            return new TestHostDocument(
+                exportProvider, languageServiceProvider, textBuffer, filePath, cursorPosition, spans, codeKind, folders, isLinkFile, documentServiceProvider);
         }
 
         private static string GetFilePath(
