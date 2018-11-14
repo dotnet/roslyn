@@ -63,7 +63,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// The file watching tokens for the documents in this project. We get the tokens even when we're in a batch, so the files here
         /// may not be in the actual workspace yet.
         /// </summary>
-        private readonly Dictionary<DocumentId, FileChangeWatcher.IFileWatchingToken> _fileWatchingTokens = new Dictionary<DocumentId, FileChangeWatcher.IFileWatchingToken>();
+        private readonly Dictionary<DocumentId, FileChangeWatcher.IFileWatchingToken> _documentFileWatchingTokens = new Dictionary<DocumentId, FileChangeWatcher.IFileWatchingToken>();
 
         /// <summary>
         /// A file change context used to watch source files and additional files for this project. It's automatically set to watch the user's project
@@ -1017,7 +1017,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     }
 
                     _documentPathsToDocumentIds.Add(fullPath, documentId);
-                    _project._fileWatchingTokens.Add(documentId, _project._documentFileChangeContext.EnqueueWatchingFile(fullPath));
+                    _project._documentFileWatchingTokens.Add(documentId, _project._documentFileChangeContext.EnqueueWatchingFile(fullPath));
 
                     if (_project._activeBatchScopes > 0)
                     {
@@ -1161,8 +1161,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                         throw new ArgumentException($"'{fullPath}' is not a source file of this project.");
                     }
 
-                    _project._documentFileChangeContext.StopWatchingFile(_project._fileWatchingTokens[documentId]);
-                    _project._fileWatchingTokens.Remove(documentId);
+                    _project._documentFileChangeContext.StopWatchingFile(_project._documentFileWatchingTokens[documentId]);
+                    _project._documentFileWatchingTokens.Remove(documentId);
 
                     RemoveFileInternal(documentId, fullPath);
                 }
