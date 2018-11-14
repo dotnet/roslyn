@@ -23,6 +23,43 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         ''' <summary>
+        ''' Determine if the kind represents a control keyword
+        ''' </summary>
+        Public Shared Function IsControlKeyword(kind As SyntaxKind) As Boolean
+            Select Case kind
+                Case _
+                SyntaxKind.CaseKeyword,
+                SyntaxKind.CatchKeyword,
+                SyntaxKind.ContinueKeyword,
+                SyntaxKind.DoKeyword,
+                SyntaxKind.EachKeyword,
+                SyntaxKind.ElseKeyword,
+                SyntaxKind.ElseIfKeyword,
+                SyntaxKind.ExitKeyword,
+                SyntaxKind.FinallyKeyword,
+                SyntaxKind.ForKeyword,
+                SyntaxKind.GoToKeyword,
+                SyntaxKind.IfKeyword,
+                SyntaxKind.LoopKeyword,
+                SyntaxKind.NextKeyword,
+                SyntaxKind.ResumeKeyword,
+                SyntaxKind.ReturnKeyword,
+                SyntaxKind.SelectKeyword,
+                SyntaxKind.ThenKeyword,
+                SyntaxKind.TryKeyword,
+                SyntaxKind.WhileKeyword,
+                SyntaxKind.WendKeyword,
+                SyntaxKind.UntilKeyword,
+                SyntaxKind.EndIfKeyword,
+                SyntaxKind.GosubKeyword,
+                SyntaxKind.YieldKeyword
+                    Return True
+            End Select
+
+            Return False
+        End Function
+
+        ''' <summary>
         ''' Determine if the token instance represents 'Me', 'MyBase' or 'MyClass' keywords
         ''' </summary>
         Public Shared Function IsInstanceExpression(kind As SyntaxKind) As Boolean

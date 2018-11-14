@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         {
             private ControlKeywordFormatDefinition()
             {
-                this.DisplayName = "Keyword - Control";
+                this.DisplayName = EditorFeaturesResources.Keyword_Control;
             }
         }
         #endregion

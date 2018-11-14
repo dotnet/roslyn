@@ -16,7 +16,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
         ''' <returns>The classification type for the token</returns>
         ''' <remarks></remarks>
         Public Function GetClassification(token As SyntaxToken) As String
-            If SyntaxFacts.IsKeywordKind(token.Kind) Then
+            If SyntaxFacts.IsControlKeyword(token.Kind) Then
+                Return ClassificationTypeNames.ControlKeyword
+            ElseIf SyntaxFacts.IsKeywordKind(token.Kind) Then
                 Return ClassificationTypeNames.Keyword
             ElseIf IsStringToken(token) Then
                 Return ClassificationTypeNames.StringLiteral
