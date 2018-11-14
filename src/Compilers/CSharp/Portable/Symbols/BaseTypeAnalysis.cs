@@ -93,8 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// IsManagedType is simple for most named types:
         ///     enums are not managed;
         ///     non-enum, non-struct named types are managed;
-        ///     generic types and their nested types are managed;
-        ///     type parameters are managed;
+        ///     type parameters are managed unless an 'unmanaged' constraint is present;
         ///     all special types have spec'd values (basically, (non-string) primitives) are not managed;
         /// 
         /// Only structs are complicated, because the definition is recursive.  A struct type is managed
