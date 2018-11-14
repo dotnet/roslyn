@@ -9174,6 +9174,46 @@ class C
         }
 
         [Fact]
+        [WorkItem(29916, "https://github.com/dotnet/roslyn/issues/29916")]
+        public void PassingParameters_UnknownMethod_AffectingConditionalState2()
+        {
+            CSharpCompilation c = CreateCompilation(new[] { @"
+class C
+{
+    void F(object x)
+    {
+        if (Missing(x) && Missing(x = null))
+        {
+            x.ToString(); // 1
+        }
+        else
+        {
+            x.ToString(); // 2
+        }
+    }
+}
+" }, options: WithNonNullTypesTrue());
+
+            c.VerifyDiagnostics(
+                // (6,13): error CS0103: The name 'Missing' does not exist in the current context
+                //         if (Missing(x) && Missing(x = null))
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "Missing").WithArguments("Missing").WithLocation(6, 13),
+                // (6,27): error CS0103: The name 'Missing' does not exist in the current context
+                //         if (Missing(x) && Missing(x = null))
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "Missing").WithArguments("Missing").WithLocation(6, 27),
+                // (6,39): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         if (Missing(x) && Missing(x = null))
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(6, 39),
+                // (8,13): warning CS8602: Possible dereference of a null reference.
+                //             x.ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(8, 13),
+                // (12,13): warning CS8602: Possible dereference of a null reference.
+                //             x.ToString(); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(12, 13)
+                );
+        }
+
+        [Fact]
         public void DuplicateArguments()
         {
             var source =
