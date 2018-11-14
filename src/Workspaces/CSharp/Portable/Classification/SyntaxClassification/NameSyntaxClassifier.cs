@@ -111,8 +111,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
             CancellationToken cancellationToken,
             out ClassifiedSpan classifiedSpan)
         {
-            if (symbol.IsNamespace())
+            if (symbol is INamespaceSymbol namespaceSymbol
+                && name is IdentifierNameSyntax identifierNameSyntax)
             {
+                // Continue to classify the global:: namespace as a keyword
+                var isGlobalNamespace = namespaceSymbol.IsGlobalNamespace 
+                    && identifierNameSyntax.Identifier.IsKind(SyntaxKind.GlobalKeyword);
+                if (isGlobalNamespace)
+                {
+                    classifiedSpan = default;
+                    return false;
+                }
+
                 classifiedSpan = new ClassifiedSpan(name.Span, ClassificationTypeNames.NamespaceName);
                 return true;
             }
@@ -307,7 +317,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
             SymbolInfo symbolInfo,
             ArrayBuilder<ClassifiedSpan> result)
         {
-            if (symbolInfo.Symbol != null
+            if (name is IdentifierNameSyntax
+                && symbolInfo.Symbol == null
                 && IsNamespaceName(name))
             {
                 result.Add(new ClassifiedSpan(name.Span, ClassificationTypeNames.NamespaceName));
@@ -324,9 +335,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
                 name = (NameSyntax)name.Parent;
             }
 
+            // Because this check runs after the TryClassifySymbol we can assume
+            // non-classified names are namespace names.
             return name.IsParentKind(SyntaxKind.NamespaceDeclaration)
-                || name.IsParentKind(SyntaxKind.UsingDirective)
-                || name.IsParentKind(SyntaxKind.SimpleMemberAccessExpression);
+                || name.IsParentKind(SyntaxKind.UsingDirective);
         }
 
         private bool TryClassifyFromIdentifier(

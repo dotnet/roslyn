@@ -1883,10 +1883,10 @@ public class Program
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public async Task Label()
+        public async Task TestLabel()
         {
             await TestInMethodAsync("goo:",
-                Identifier("goo"),
+                Label("goo"),
                 Punctuation.Colon);
         }
 
@@ -2886,7 +2886,7 @@ namespace MyNamespace
                 Punctuation.OpenParen,
                 Punctuation.CloseParen,
                 Punctuation.Semicolon,
-                Identifier("Output"),
+                Label("Output"),
                 Punctuation.Colon,
                 Identifier("Console"),
                 Operators.Dot,
@@ -3432,7 +3432,7 @@ public class Goo<T>
                 Punctuation.OpenCurly,
                 Keyword("set"),
                 Punctuation.OpenCurly,
-                Identifier("value"),
+                Label("value"),
                 Punctuation.Colon,
                 Punctuation.Semicolon,
                 Punctuation.CloseCurly,
@@ -4390,6 +4390,29 @@ class X
                 Punctuation.OpenCurly,
                 Punctuation.CloseCurly,
                 Punctuation.CloseCurly,
+                Punctuation.CloseCurly);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task SingleVariableDesignation()
+        {
+            await TestInMethodAsync(@"
+object foo;
+
+if (foo is Action action)
+{
+}",
+                Keyword("object"),
+                Local("foo"),
+                Punctuation.Semicolon,
+                Keyword("if"),
+                Punctuation.OpenParen,
+                Identifier("foo"),
+                Keyword("is"),
+                Identifier("Action"),
+                Local("action"),
+                Punctuation.CloseParen,
+                Punctuation.OpenCurly,
                 Punctuation.CloseCurly);
         }
     }

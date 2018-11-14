@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 Keyword("using"),
                 Class("dynamic"),
                 Operators.Equals,
-                Identifier("System"),
+                Namespace("System"),
                 Operators.Dot,
                 Class("EventArgs"),
                 Punctuation.Semicolon);
@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 Keyword("using"),
                 Delegate("dynamic"),
                 Operators.Equals,
-                Identifier("System"),
+                Namespace("System"),
                 Operators.Dot,
                 Delegate("Action"),
                 Punctuation.Semicolon);
@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 Keyword("using"),
                 Struct("dynamic"),
                 Operators.Equals,
-                Identifier("System"),
+                Namespace("System"),
                 Operators.Dot,
                 Struct("DateTime"),
                 Punctuation.Semicolon);
@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 Keyword("using"),
                 Enum("dynamic"),
                 Operators.Equals,
-                Identifier("System"),
+                Namespace("System"),
                 Operators.Dot,
                 Enum("DayOfWeek"),
                 Punctuation.Semicolon);
@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 Keyword("using"),
                 Interface("dynamic"),
                 Operators.Equals,
-                Identifier("System"),
+                Namespace("System"),
                 Operators.Dot,
                 Interface("IDisposable"),
                 Punctuation.Semicolon);
@@ -145,12 +145,12 @@ class C
 }",
                 Keyword("extern"),
                 Keyword("alias"),
-                Identifier("dynamic"),
+                Namespace("dynamic"),
                 Punctuation.Semicolon,
                 Keyword("class"),
                 Class("C"),
                 Punctuation.OpenCurly,
-                Identifier("dynamic"),
+                Namespace("dynamic"),
                 Operators.ColonColon,
                 Identifier("Goo"),
                 Field("a"),
@@ -675,7 +675,7 @@ partial void F(dynamic d)
 {
 }",
                 Keyword("namespace"),
-                Identifier("dynamic"),
+                Namespace("dynamic"),
                 Punctuation.OpenCurly,
                 Punctuation.CloseCurly);
         }
@@ -732,7 +732,7 @@ partial void F(dynamic d)
             await TestInMethodAsync(
 @"dynamic: int i = 0;
         goto dynamic;",
-                Identifier("dynamic"),
+                Label("dynamic"),
                 Punctuation.Colon,
                 Keyword("int"),
                 Local("i"),
@@ -740,7 +740,7 @@ partial void F(dynamic d)
                 Number("0"),
                 Punctuation.Semicolon,
                 Keyword("goto"),
-                Identifier("dynamic"),
+                Label("dynamic"),
                 Punctuation.Semicolon);
         }
 

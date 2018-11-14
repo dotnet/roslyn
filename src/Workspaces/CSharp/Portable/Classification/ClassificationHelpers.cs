@@ -146,6 +146,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
                 }
                 return ClassificationTypeNames.LocalName;
             }
+            else if (token.Parent is SingleVariableDesignationSyntax singleVariableDesignation && singleVariableDesignation.Identifier == token)
+            {
+                return ClassificationTypeNames.LocalName;
+            }
             else if (token.Parent is ParameterSyntax parameterSyntax && parameterSyntax.Identifier == token)
             {
                 return ClassificationTypeNames.ParameterName;
@@ -161,6 +165,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
             else if (IsActualContextualKeyword(token))
             {
                 return ClassificationTypeNames.Keyword;
+            }
+            else if (token.Parent is ExternAliasDirectiveSyntax externAliasDirectiveSyntax && externAliasDirectiveSyntax.Identifier == token)
+            {
+                return ClassificationTypeNames.NamespaceName;
             }
             else if (token.Parent is LabeledStatementSyntax labledStatementSyntax && labledStatementSyntax.Identifier == token)
             {

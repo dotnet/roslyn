@@ -32,9 +32,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
             await TestAsync(
 @"using var = System;",
                 Keyword("using"),
-                Identifier("var"),
+                Namespace("var"),
                 Operators.Equals,
-                Identifier("System"),
+                Namespace("System"),
                 Punctuation.Semicolon);
         }
 
@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 Keyword("using"),
                 Class("var"),
                 Operators.Equals,
-                Identifier("System"),
+                Namespace("System"),
                 Operators.Dot,
                 Class("Math"),
                 Punctuation.Semicolon);
@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 Keyword("using"),
                 Delegate("var"),
                 Operators.Equals,
-                Identifier("System"),
+                Namespace("System"),
                 Operators.Dot,
                 Delegate("Action"),
                 Punctuation.Semicolon);
@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 Keyword("using"),
                 Struct("var"),
                 Operators.Equals,
-                Identifier("System"),
+                Namespace("System"),
                 Operators.Dot,
                 Struct("DateTime"),
                 Punctuation.Semicolon);
@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 Keyword("using"),
                 Enum("var"),
                 Operators.Equals,
-                Identifier("System"),
+                Namespace("System"),
                 Operators.Dot,
                 Enum("DayOfWeek"),
                 Punctuation.Semicolon);
@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 Keyword("using"),
                 Interface("var"),
                 Operators.Equals,
-                Identifier("System"),
+                Namespace("System"),
                 Operators.Dot,
                 Interface("IDisposable"),
                 Punctuation.Semicolon);
@@ -161,13 +161,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
             await TestAsync(
 @"using IO = global::System.IO;",
                 Keyword("using"),
-                Identifier("IO"),
+                Namespace("IO"),
                 Operators.Equals,
                 Keyword("global"),
                 Operators.ColonColon,
-                Identifier("System"),
+                Namespace("System"),
                 Operators.Dot,
-                Identifier("IO"),
+                Namespace("IO"),
                 Punctuation.Semicolon);
         }
 
@@ -390,7 +390,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 Local("o"),
                 Operators.Equals,
                 Keyword("new"),
-                Identifier("System"),
+                Namespace("System"),
                 Operators.Dot,
                 Interface("IDisposable"),
                 Punctuation.OpenParen,
@@ -469,7 +469,7 @@ class var : Attribute
 {
 }",
                 Keyword("using"),
-                Identifier("System"),
+                Namespace("System"),
                 Punctuation.Semicolon,
                 Punctuation.OpenBracket,
                 Class("var"),
@@ -494,7 +494,7 @@ class varAttribute : Attribute
 {
 }",
                 Keyword("using"),
-                Identifier("System"),
+                Namespace("System"),
                 Punctuation.Semicolon,
                 Punctuation.OpenBracket,
                 Class("var"),
@@ -522,7 +522,7 @@ class C
     }
 }",
                 Keyword("using"),
-                Identifier("System"),
+                Namespace("System"),
                 Punctuation.Semicolon,
                 Keyword("class"),
                 Class("C"),
@@ -558,7 +558,7 @@ namespace C
                 Punctuation.OpenCurly,
                 Punctuation.CloseCurly,
                 Keyword("namespace"),
-                Identifier("C"),
+                Namespace("C"),
                 Punctuation.OpenCurly,
                 Punctuation.CloseCurly);
         }
@@ -661,11 +661,11 @@ namespace N
                 XmlDoc.AttributeName("cref"),
                 XmlDoc.Delimiter("="),
                 XmlDoc.AttributeQuotes("\""),
-                Identifier("N"),
+                Namespace("N"),
                 XmlDoc.AttributeQuotes("\""),
                 XmlDoc.Delimiter("/>"),
                 Keyword("namespace"),
-                Identifier("N"),
+                Namespace("N"),
                 Punctuation.OpenCurly,
                 Keyword("class"),
                 Class("Program"),
@@ -772,11 +772,11 @@ class Program : IReadOnlyCollection
 {
 }",
                 Keyword("using"),
-                Identifier("System"),
+                Namespace("System"),
                 Operators.Dot,
-                Identifier("Collections"),
+                Namespace("Collections"),
                 Operators.Dot,
-                Identifier("Generic"),
+                Namespace("Generic"),
                 Punctuation.Semicolon,
                 Keyword("class"),
                 Class("Program"),
@@ -797,11 +797,11 @@ class Program : IReadOnlyCollection<int,string>
 {
 }",
                 Keyword("using"),
-                Identifier("System"),
+                Namespace("System"),
                 Operators.Dot,
-                Identifier("Collections"),
+                Namespace("Collections"),
                 Operators.Dot,
-                Identifier("Generic"),
+                Namespace("Generic"),
                 Punctuation.Semicolon,
                 Keyword("class"),
                 Class("Program"),
@@ -999,7 +999,7 @@ namespace OtherScope
 }
 class X<T> where T : unmanaged { }",
                 Keyword("namespace"),
-                Identifier("OtherScope"),
+                Namespace("OtherScope"),
                 Punctuation.OpenCurly,
                 Keyword("interface"),
                 Interface("unmanaged"),
@@ -1091,7 +1091,7 @@ class X
     void M<T>() where T : unmanaged { }
 }",
                 Keyword("namespace"),
-                Identifier("OtherScope"),
+                Namespace("OtherScope"),
                 Punctuation.OpenCurly,
                 Keyword("interface"),
                 Interface("unmanaged"),
@@ -1172,7 +1172,7 @@ namespace OtherScope
 }
 delegate void D<T>() where T : unmanaged;",
                 Keyword("namespace"),
-                Identifier("OtherScope"),
+                Namespace("OtherScope"),
                 Punctuation.OpenCurly,
                 Keyword("interface"),
                 Interface("unmanaged"),
@@ -1285,7 +1285,7 @@ class X
     }
 }",
                 Keyword("namespace"),
-                Identifier("OtherScope"),
+                Namespace("OtherScope"),
                 Punctuation.OpenCurly,
                 Keyword("interface"),
                 Interface("unmanaged"),

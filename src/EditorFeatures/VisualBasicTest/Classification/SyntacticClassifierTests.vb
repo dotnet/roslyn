@@ -4196,5 +4196,24 @@ End Operator"
                 Keyword("Operator"))
         End Function
 
+        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        Public Async Function TestLabelName() As Task
+            Dim code =
+"Sub Main
+E:
+    GoTo E
+End Sub"
+
+            Await TestAsync(code,
+                Keyword("Sub"),
+                Method("Main"),
+                Label("E"),
+                Punctuation.Colon,
+                Keyword("GoTo"),
+                Identifier("E"),
+                Keyword("End"),
+                Keyword("Sub"))
+        End Function
+
     End Class
 End Namespace

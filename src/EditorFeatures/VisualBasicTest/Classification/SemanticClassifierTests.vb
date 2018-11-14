@@ -30,6 +30,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestImportsType() As Task
             Await TestAsync("Imports System.Console",
+            [Namespace]("System"),
             [Class]("Console"))
         End Function
 
@@ -37,6 +38,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
         Public Async Function TestImportsAlias() As Task
             Await TestAsync("Imports M = System.Math",
                 [Class]("M"),
+                [Namespace]("System"),
                 [Class]("Math"))
         End Function
 
@@ -51,6 +53,7 @@ Module Program
 End Module"
 
             Await TestAsync(code,
+                [Namespace]("System"),
                 [Class]("Console"),
                 Method("WriteLine"))
         End Function
@@ -110,6 +113,7 @@ End Class"
 
             Await TestAsync(code,
                 [Class]("S"),
+                [Namespace]("System"),
                 [Class]("String"),
                 [Class]("S"))
         End Function
@@ -125,6 +129,7 @@ End Class"
 
             Await TestAsync(code,
                 [Interface]("D"),
+                [Namespace]("System"),
                 [Interface]("IDisposable"),
                 [Interface]("D"))
         End Function
@@ -211,6 +216,7 @@ End Class"
 
             Await TestAsync(code,
                 [Class]("E"),
+                [Namespace]("System"),
                 [Class]("Exception"),
                 [Class]("E"))
         End Function
@@ -278,14 +284,17 @@ q = From"
         <Fact, WorkItem(10507, "DevDiv_Projects/Roslyn"), Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestArraysInGetType() As Task
             Await TestInMethodAsync("GetType(System.Exception()",
+                [Namespace]("System"),
                 [Class]("Exception"))
             Await TestInMethodAsync("GetType(System.Exception(,)",
+                [Namespace]("System"),
                 [Class]("Exception"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestNewOfInterface() As Task
             Await TestInMethodAsync("Dim a = New System.IDisposable()",
+                [Namespace]("System"),
                 [Interface]("IDisposable"))
         End Function
 
@@ -528,7 +537,7 @@ Class Program
 End Class"
 
             Await TestAsync(code,
-                [Class]("AttributeUsage"))
+                [Namespace]("System"), [Class]("AttributeUsage"))
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
@@ -543,6 +552,9 @@ class Program
         var r = ""$(\b\G\z)|(?<name>sub){0,5}?^""
     end sub
 end class",
+[Namespace]("System"),
+[Namespace]("Text"),
+[Namespace]("RegularExpressions"),
 Regex.Anchor("$"),
 Regex.Grouping("("),
 Regex.Anchor("\"),
@@ -641,6 +653,9 @@ Class C
 End Class"
 
             Await TestAsync(code,
+                [Namespace]("System"),
+                [Namespace]("Runtime"),
+                [Namespace]("CompilerServices"),
                 [Class]("Extension"),
                 ExtensionMethod("Square"),
                 Parameter("x"),
@@ -728,6 +743,18 @@ End Operator"
             Await TestInMethodAsync("dim goo = $""goo{{1:0000}}bar""",
                 Escape("{{"),
                 Escape("}}"))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        Public Async Function TestLabelName() As Task
+            Dim code = "
+Sub M()
+E:
+    GoTo E
+End Sub"
+
+            Await TestInClassAsync(code,
+                [Label]("E"))
         End Function
     End Class
 End Namespace

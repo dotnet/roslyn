@@ -90,7 +90,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification.Classifiers
             If symbol IsNot Nothing Then
                 Select Case symbol.Kind
                     Case SymbolKind.Namespace
-                        result.Add(New ClassifiedSpan(GetNameToken(node).Span, ClassificationTypeNames.NamespaceName))
+                        ' The My namespace is special and is classified differently than other namespaces
+                        If symbol.IsMyNamespace(semanticModel.Compilation) Then
+                            result.Add(New ClassifiedSpan(GetNameToken(node).Span, ClassificationTypeNames.Keyword))
+                        Else
+                            result.Add(New ClassifiedSpan(GetNameToken(node).Span, ClassificationTypeNames.NamespaceName))
+                        End If
+
                         Return
                     Case SymbolKind.Method
                         Dim classification = GetClassificationForMethod(node, DirectCast(symbol, IMethodSymbol))
@@ -131,10 +137,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification.Classifiers
                     End If
                 End If
 
-                If symbol.IsMyNamespace(semanticModel.Compilation) Then
-                    result.Add(New ClassifiedSpan(GetNameToken(node).Span, ClassificationTypeNames.Keyword))
-                    Return
-                End If
             Else
                 ' Okay, it doesn't bind to anything.
                 Dim identifierName = TryCast(node, IdentifierNameSyntax)
