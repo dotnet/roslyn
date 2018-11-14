@@ -1768,6 +1768,81 @@ class C
 
         [WorkItem(30787, "https://github.com/dotnet/roslyn/issues/30787")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public void DoSmartIndentOpenBraceEvenWithFormatWhileTypingOff5()
+        {
+            // Typing the { should not affect the formating of the preceding tokens.
+            var code =
+@"class Program
+{
+    void M()
+    {
+        if ( true )
+            {$$
+    }
+}";
+
+            var expected =
+@"class Program
+{
+    void M()
+    {
+        if ( true )
+        {
+    }
+}";
+
+            AssertFormatAfterTypeChar(code, expected, SmartIndentButDoNotFormatWhileTyping());
+        }
+
+        [WorkItem(30787, "https://github.com/dotnet/roslyn/issues/30787")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public void DoSmartIndentOpenBraceEvenWithFormatWhileTypingOff6()
+        {
+            // Typing the { should not affect the formating of the preceding tokens.
+            var code =
+@"class Program
+{
+    void M()
+    {
+        if ( true ){$$
+    }
+}";
+
+            var expected =
+@"class Program
+{
+    void M()
+    {
+        if ( true ){
+    }
+}";
+
+            AssertFormatAfterTypeChar(code, expected, SmartIndentButDoNotFormatWhileTyping());
+        }
+
+        [WorkItem(30787, "https://github.com/dotnet/roslyn/issues/30787")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public void DoSmartIndentOpenBraceEvenWithFormatWhileTypingOff7()
+        {
+            var code =
+@"class Program
+{
+    void M()
+        {$$
+}";
+
+            var expected =
+@"class Program
+{
+    void M()
+    {
+}";
+
+            AssertFormatAfterTypeChar(code, expected, SmartIndentButDoNotFormatWhileTyping());
+        }
+
+        [WorkItem(30787, "https://github.com/dotnet/roslyn/issues/30787")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public void DoSmartIndentCloseBraceEvenWithFormatWhileTypingOff1()
         {
             var code =
@@ -1817,6 +1892,51 @@ class C
     {
         if (true) {
         }
+    }
+}";
+
+            AssertFormatAfterTypeChar(code, expected, SmartIndentButDoNotFormatWhileTyping());
+        }
+
+        [WorkItem(30787, "https://github.com/dotnet/roslyn/issues/30787")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public void DoSmartIndentCloseBraceEvenWithFormatWhileTypingOff3()
+        {
+            var code =
+@"class Program
+{
+    void M()
+    {
+        }$$
+}";
+
+            var expected =
+@"class Program
+{
+    void M()
+    {
+    }
+}";
+
+            AssertFormatAfterTypeChar(code, expected, SmartIndentButDoNotFormatWhileTyping());
+        }
+
+        [WorkItem(30787, "https://github.com/dotnet/roslyn/issues/30787")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public void DoSmartIndentCloseBraceEvenWithFormatWhileTypingOff4()
+        {
+            // Should not affect formatting of open brace
+            var code =
+@"class Program
+{
+    void M() {
+        }$$
+}";
+
+            var expected =
+@"class Program
+{
+    void M() {
     }
 }";
 
