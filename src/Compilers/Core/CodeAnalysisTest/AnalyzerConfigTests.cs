@@ -1,10 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Test.Utilities;
 using Xunit;
+using static Microsoft.CodeAnalysis.AnalyzerConfig;
 using static Microsoft.CodeAnalysis.CommonCompiler;
 using static Roslyn.Test.Utilities.TestHelpers;
 using KeyValuePair = Roslyn.Utilities.KeyValuePairUtil;
@@ -13,12 +15,12 @@ namespace Microsoft.CodeAnalysis.UnitTests
 {
     public class EditorConfigTests
     {
-        private static EditorConfig ParseConfigFile(string text) => EditorConfig.Parse(text, "/.editorconfig");
+        private static AnalyzerConfig ParseConfigFile(string text) => Parse(text, "/.editorconfig");
 
         [Fact]
         public void SimpleCase()
         {
-            var config = EditorConfig.Parse(@"
+            var config = Parse(@"
 root = true
 
 # Comment1
@@ -53,7 +55,7 @@ my_prop = my_val
         public void WindowsPath()
         {
             const string path = "Z:\\bogus\\.editorconfig";
-            var config = EditorConfig.Parse("", path);
+            var config = Parse("", path);
             
             Assert.Equal("Z:/bogus", config.NormalizedDirectory);
             Assert.Equal(path, config.PathToFile);
@@ -101,9 +103,9 @@ my_PROP = my_VAL");
         public void NonReservedKeyPreservedCaseVal()
         {
             var config = ParseConfigFile(string.Join(Environment.NewLine,
-                EditorConfig.ReservedKeys.Select(k => "MY_" + k + " = MY_VAL")));
+                AnalyzerConfig.ReservedKeys.Select(k => "MY_" + k + " = MY_VAL")));
             AssertEx.SetEqual(
-                EditorConfig.ReservedKeys.Select(k => KeyValuePair.Create("my_" + k, "MY_VAL")).ToList(),
+                AnalyzerConfig.ReservedKeys.Select(k => KeyValuePair.Create("my_" + k, "MY_VAL")).ToList(),
                 config.GlobalSection.Properties);
         }
 
@@ -250,10 +252,10 @@ RoOt = TruE");
         {
             int index = 0;
             var config = ParseConfigFile(string.Join(Environment.NewLine,
-                EditorConfig.ReservedValues.Select(v => "MY_KEY" + (index++) + " = " + v.ToUpperInvariant())));
+                AnalyzerConfig.ReservedValues.Select(v => "MY_KEY" + (index++) + " = " + v.ToUpperInvariant())));
             index = 0;
             AssertEx.SetEqual(
-                EditorConfig.ReservedValues.Select(v => KeyValuePair.Create("my_key" + (index++), v)).ToList(),
+                AnalyzerConfig.ReservedValues.Select(v => KeyValuePair.Create("my_key" + (index++), v)).ToList(),
                 config.GlobalSection.Properties);
         }
 
@@ -261,16 +263,16 @@ RoOt = TruE");
         public void ReservedKeys()
         {
             var config = ParseConfigFile(string.Join(Environment.NewLine,
-                EditorConfig.ReservedKeys.Select(k => k + " = MY_VAL")));
+                AnalyzerConfig.ReservedKeys.Select(k => k + " = MY_VAL")));
             AssertEx.SetEqual(
-                EditorConfig.ReservedKeys.Select(k => KeyValuePair.Create(k, "my_val")).ToList(),
+                AnalyzerConfig.ReservedKeys.Select(k => KeyValuePair.Create(k, "my_val")).ToList(),
                 config.GlobalSection.Properties);
         }
 
         [Fact]
         public void SimpleNameMatch()
         {
-            string regex = EditorConfig.TryCompileSectionNameToRegEx("abc");
+            string regex = TryCompileSectionNameToRegEx("abc");
             Assert.Equal("^.*/abc$", regex);
 
             Assert.Matches(regex, "/abc");
@@ -282,7 +284,7 @@ RoOt = TruE");
         [Fact]
         public void StarOnlyMatch()
         {
-            string regex = EditorConfig.TryCompileSectionNameToRegEx("*");
+            string regex = TryCompileSectionNameToRegEx("*");
             Assert.Equal("^.*/[^/]*$", regex);
 
             Assert.Matches(regex, "/abc");
@@ -293,7 +295,7 @@ RoOt = TruE");
         [Fact]
         public void StarNameMatch()
         {
-            string regex = EditorConfig.TryCompileSectionNameToRegEx("*.cs");
+            string regex = TryCompileSectionNameToRegEx("*.cs");
             Assert.Equal("^.*/[^/]*\\.cs$", regex);
 
             Assert.Matches(regex, "/abc.cs");
@@ -310,7 +312,7 @@ RoOt = TruE");
         [Fact]
         public void StarStarNameMatch()
         {
-            string regex = EditorConfig.TryCompileSectionNameToRegEx("**.cs");
+            string regex = TryCompileSectionNameToRegEx("**.cs");
             Assert.Equal("^.*/.*\\.cs$", regex);
 
             Assert.Matches(regex, "/abc.cs");
@@ -320,7 +322,7 @@ RoOt = TruE");
         [Fact]
         public void EscapeDot()
         {
-            string regex = EditorConfig.TryCompileSectionNameToRegEx("...");
+            string regex = TryCompileSectionNameToRegEx("...");
             Assert.Equal("^.*/\\.\\.\\.$", regex);
 
             Assert.Matches(regex, "/...");
@@ -333,21 +335,21 @@ RoOt = TruE");
         [Fact]
         public void BadEscapeMatch()
         {
-            string regex = EditorConfig.TryCompileSectionNameToRegEx("abc\\d.cs");
+            string regex = TryCompileSectionNameToRegEx("abc\\d.cs");
             Assert.Null(regex);
         }
 
         [Fact]
         public void EndBackslashMatch()
         {
-            string regex = EditorConfig.TryCompileSectionNameToRegEx("abc\\");
+            string regex = TryCompileSectionNameToRegEx("abc\\");
             Assert.Null(regex);
         }
 
         [Fact]
         public void QuestionMatch()
         {
-            string regex = EditorConfig.TryCompileSectionNameToRegEx("ab?def");
+            string regex = TryCompileSectionNameToRegEx("ab?def");
             Assert.Equal("^.*/ab.def$", regex);
 
             Assert.Matches(regex, "/abcdef");
@@ -360,7 +362,7 @@ RoOt = TruE");
         [Fact]
         public void LiteralBackslash()
         {
-            string regex = EditorConfig.TryCompileSectionNameToRegEx("ab\\\\c");
+            string regex = TryCompileSectionNameToRegEx("ab\\\\c");
             Assert.Equal("^.*/ab\\\\c$", regex);
 
             Assert.Matches(regex, "/ab\\c");
@@ -371,7 +373,7 @@ RoOt = TruE");
         [Fact]
         public void LiteralStars()
         {
-            string regex = EditorConfig.TryCompileSectionNameToRegEx("\\***\\*\\**");
+            string regex = TryCompileSectionNameToRegEx("\\***\\*\\**");
             Assert.Equal("^.*/\\*.*\\*\\*[^/]*$", regex);
 
             Assert.Matches(regex, "/*ab/cd**efg*");
@@ -383,7 +385,7 @@ RoOt = TruE");
         [Fact]
         public void LiteralQuestions()
         {
-            string regex = EditorConfig.TryCompileSectionNameToRegEx("\\??\\?*\\??");
+            string regex = TryCompileSectionNameToRegEx("\\??\\?*\\??");
             Assert.Equal("^.*/\\?.\\?[^/]*\\?.$", regex);
 
             Assert.Matches(regex, "/?a?cde?f");
@@ -397,7 +399,7 @@ RoOt = TruE");
         [Fact]
         public void LiteralBraces()
         {
-            string regex = EditorConfig.TryCompileSectionNameToRegEx("abc\\{\\}def");
+            string regex = TryCompileSectionNameToRegEx("abc\\{\\}def");
             Assert.Equal("^.*/abc\\{\\}def$", regex);
 
             Assert.Matches(regex, "/abc{}def");
@@ -409,7 +411,7 @@ RoOt = TruE");
         [Fact]
         public void LiteralComma()
         {
-            string regex = EditorConfig.TryCompileSectionNameToRegEx("abc\\,def");
+            string regex = TryCompileSectionNameToRegEx("abc\\,def");
             Assert.Equal("^.*/abc,def$", regex);
 
             Assert.Matches(regex, "/abc,def");
@@ -422,7 +424,7 @@ RoOt = TruE");
         [Fact]
         public void SimpleChoice()
         {
-            string regex = EditorConfig.TryCompileSectionNameToRegEx("*.{cs,vb,fs}");
+            string regex = TryCompileSectionNameToRegEx("*.{cs,vb,fs}");
             Assert.Equal("^.*/[^/]*\\.(?:cs|vb|fs)$", regex);
 
             Assert.Matches(regex, "/abc.cs");
@@ -443,7 +445,7 @@ RoOt = TruE");
         [Fact]
         public void OneChoiceHasSlashes()
         {
-            string regex = EditorConfig.TryCompileSectionNameToRegEx("{*.cs,subdir/test.vb}");
+            string regex = TryCompileSectionNameToRegEx("{*.cs,subdir/test.vb}");
             // This is an interesting case that may be counterintuitive.  A reasonable understanding
             // of the section matching could interpret the choice as generating multiple identical
             // sections, so [{a, b, c}] would be equivalent to [a] ... [b] ... [c] with all of the
@@ -466,7 +468,7 @@ RoOt = TruE");
         [Fact]
         public void EmptyChoice()
         {
-            string regex = EditorConfig.TryCompileSectionNameToRegEx("{}");
+            string regex = TryCompileSectionNameToRegEx("{}");
             Assert.Equal("^.*/(?:)$", regex);
 
             Assert.Matches(regex, "/");
@@ -478,7 +480,7 @@ RoOt = TruE");
         [Fact]
         public void SingleChoice()
         {
-            string regex = EditorConfig.TryCompileSectionNameToRegEx("{*.cs}");
+            string regex = TryCompileSectionNameToRegEx("{*.cs}");
             Assert.Equal("^.*/(?:[^/]*\\.cs)$", regex);
 
             Assert.Matches(regex, "/test.cs");
@@ -490,21 +492,21 @@ RoOt = TruE");
         [Fact]
         public void UnmatchedBraces()
         {
-            string regex = EditorConfig.TryCompileSectionNameToRegEx("{{{{}}");
+            string regex = TryCompileSectionNameToRegEx("{{{{}}");
             Assert.Null(regex);
         }
 
         [Fact]
         public void CommaOutsideBraces()
         {
-            string regex = EditorConfig.TryCompileSectionNameToRegEx("abc,def");
+            string regex = TryCompileSectionNameToRegEx("abc,def");
             Assert.Null(regex);
         }
 
         [Fact]
         public void RecursiveChoice()
         {
-            string regex = EditorConfig.TryCompileSectionNameToRegEx("{test{.cs,.vb},other.{a{bb,cc}}}");
+            string regex = TryCompileSectionNameToRegEx("{test{.cs,.vb},other.{a{bb,cc}}}");
             Assert.Equal("^.*/(?:test(?:\\.cs|\\.vb)|other\\.(?:a(?:bb|cc)))$", regex);
 
             Assert.Matches(regex, "/test.cs");
@@ -524,7 +526,7 @@ RoOt = TruE");
         [Fact]
         public void DashChoice()
         {
-            string regex = EditorConfig.TryCompileSectionNameToRegEx("ab{-}cd{-,}ef");
+            string regex = TryCompileSectionNameToRegEx("ab{-}cd{-,}ef");
             Assert.Equal("^.*/ab(?:-)cd(?:-|)ef$", regex);
 
             Assert.Matches(regex, "/ab-cd-ef");
@@ -538,7 +540,7 @@ RoOt = TruE");
         [Fact]
         public void MiddleMatch()
         {
-            string regex = EditorConfig.TryCompileSectionNameToRegEx("ab{cs,vb,fs}cd");
+            string regex = TryCompileSectionNameToRegEx("ab{cs,vb,fs}cd");
             Assert.Equal("^.*/ab(?:cs|vb|fs)cd$", regex);
 
             Assert.Matches(regex, "/abcscd");
@@ -553,19 +555,17 @@ RoOt = TruE");
         [Fact]
         public void EditorConfigToDiagnostics()
         {
-            var configs = ArrayBuilder<EditorConfig>.GetInstance();
-            configs.Add(EditorConfig.Parse(@"
+            var configs = ArrayBuilder<AnalyzerConfig>.GetInstance();
+            configs.Add(Parse(@"
 [*.cs]
 dotnet_diagnostic.cs000.severity = suppress
 
 [*.vb]
 dotnet_diagnostic.cs000.severity = error", "/.editorconfig"));
 
-            var options = CommonCompiler.GetAnalyzerConfigOptions(
+            var options = GetAnalyzerConfigOptions(
                 new[] { "/test.cs", "/test.vb", "/test" },
-                configs,
-                messageProvider: null,
-                diagnostics: null);
+                configs);
             configs.Free();
 
             Assert.Equal(new[] {
@@ -578,19 +578,17 @@ dotnet_diagnostic.cs000.severity = error", "/.editorconfig"));
         [Fact]
         public void LaterSectionOverrides()
         {
-            var configs = ArrayBuilder<EditorConfig>.GetInstance();
-            configs.Add(EditorConfig.Parse(@"
+            var configs = ArrayBuilder<AnalyzerConfig>.GetInstance();
+            configs.Add(Parse(@"
 [*.cs]
 dotnet_diagnostic.cs000.severity = suppress
 
 [test.*]
 dotnet_diagnostic.cs000.severity = error", "/.editorconfig"));
 
-            var options = CommonCompiler.GetAnalyzerConfigOptions(
+            var options = GetAnalyzerConfigOptions(
                 new[] { "/test.cs", "/test.vb", "/test" },
-                configs,
-                messageProvider: null,
-                diagnostics: null);
+                configs);
             configs.Free();
 
             Assert.Equal(new[] {
@@ -603,17 +601,15 @@ dotnet_diagnostic.cs000.severity = error", "/.editorconfig"));
         [Fact]
         public void TwoSettingsSameSection()
         {
-            var configs = ArrayBuilder<EditorConfig>.GetInstance();
-            configs.Add(EditorConfig.Parse(@"
+            var configs = ArrayBuilder<AnalyzerConfig>.GetInstance();
+            configs.Add(Parse(@"
 [*.cs]
 dotnet_diagnostic.cs000.severity = suppress
 dotnet_diagnostic.cs001.severity = info", "/.editorconfig"));
 
-            var options = CommonCompiler.GetAnalyzerConfigOptions(
+            var options = GetAnalyzerConfigOptions(
                 new[] { "/test.cs" },
-                configs,
-                messageProvider: null,
-                diagnostics: null);
+                configs);
             configs.Free();
 
             Assert.Equal(new[]
@@ -627,19 +623,17 @@ dotnet_diagnostic.cs001.severity = info", "/.editorconfig"));
         [Fact]
         public void TwoSettingsDifferentSections()
         {
-            var configs = ArrayBuilder<EditorConfig>.GetInstance();
-            configs.Add(EditorConfig.Parse(@"
+            var configs = ArrayBuilder<AnalyzerConfig>.GetInstance();
+            configs.Add(Parse(@"
 [*.cs]
 dotnet_diagnostic.cs000.severity = suppress
 
 [test.*]
 dotnet_diagnostic.cs001.severity = info", "/.editorconfig"));
 
-            var options = CommonCompiler.GetAnalyzerConfigOptions(
+            var options = GetAnalyzerConfigOptions(
                 new[] { "/test.cs" },
-                configs,
-                messageProvider: null,
-                diagnostics: null);
+                configs);
             configs.Free();
 
             Assert.Equal(new[]
@@ -653,25 +647,23 @@ dotnet_diagnostic.cs001.severity = info", "/.editorconfig"));
         [Fact]
         public void MultipleEditorConfigs()
         {
-            var configs = ArrayBuilder<EditorConfig>.GetInstance();
-            configs.Add(EditorConfig.Parse(@"
+            var configs = ArrayBuilder<AnalyzerConfig>.GetInstance();
+            configs.Add(Parse(@"
 [**/*]
 dotnet_diagnostic.cs000.severity = suppress
 
 [**test.*]
 dotnet_diagnostic.cs001.severity = info", "/.editorconfig"));
-            configs.Add(EditorConfig.Parse(@"
+            configs.Add(Parse(@"
 [**]
 dotnet_diagnostic.cs000.severity = warn
 
 [test.cs]
 dotnet_diagnostic.cs001.severity = error", "/subdir/.editorconfig"));
 
-            var options = CommonCompiler.GetAnalyzerConfigOptions(
+            var options = GetAnalyzerConfigOptions(
                 new[] { "/subdir/test.cs", "/subdir/test.vb" },
-                configs,
-                messageProvider: null,
-                diagnostics: null);
+                configs);
             configs.Free();
 
             Assert.Equal(new[]
@@ -688,22 +680,20 @@ dotnet_diagnostic.cs001.severity = error", "/subdir/.editorconfig"));
         [Fact]
         public void InheritOuterConfig()
         {
-            var configs = ArrayBuilder<EditorConfig>.GetInstance();
-            configs.Add(EditorConfig.Parse(@"
+            var configs = ArrayBuilder<AnalyzerConfig>.GetInstance();
+            configs.Add(Parse(@"
 [**/*]
 dotnet_diagnostic.cs000.severity = suppress
 
 [**test.cs]
 dotnet_diagnostic.cs001.severity = info", "/.editorconfig"));
-            configs.Add(EditorConfig.Parse(@"
+            configs.Add(Parse(@"
 [test.cs]
 dotnet_diagnostic.cs001.severity = error", "/subdir/.editorconfig"));
 
-            var options = CommonCompiler.GetAnalyzerConfigOptions(
+            var options = GetAnalyzerConfigOptions(
                 new[] { "/test.cs", "/subdir/test.cs", "/subdir/test.vb" },
-                configs,
-                messageProvider: null,
-                diagnostics: null);
+                configs);
             configs.Free();
 
             Assert.Equal(new[]
@@ -721,16 +711,14 @@ dotnet_diagnostic.cs001.severity = error", "/subdir/.editorconfig"));
         [ConditionalFact(typeof(WindowsOnly))]
         public void WindowsRootConfig()
         {
-            var configs = ArrayBuilder<EditorConfig>.GetInstance();
-            configs.Add(EditorConfig.Parse(@"
+            var configs = ArrayBuilder<AnalyzerConfig>.GetInstance();
+            configs.Add(Parse(@"
 [*.cs]
 dotnet_diagnostic.cs000.severity = suppress", "Z:\\.editorconfig"));
 
-            var options = CommonCompiler.GetAnalyzerConfigOptions(
+            var options = GetAnalyzerConfigOptions(
                 new[] { "Z:\\test.cs" },
-                configs,
-                messageProvider: null,
-                diagnostics: null);
+                configs);
             configs.Free();
 
             Assert.Equal(new[]
@@ -765,16 +753,14 @@ dotnet_diagnostic.cs000.severity = suppress", "Z:\\.editorconfig"));
         [Fact]
         public void SimpleAnalyzerOptions()
         {
-            var configs = ArrayBuilder<EditorConfig>.GetInstance();
-            configs.Add(EditorConfig.Parse(@"
+            var configs = ArrayBuilder<AnalyzerConfig>.GetInstance();
+            configs.Add(Parse(@"
 [*.cs]
 dotnet_diagnostic.cs000.some_key = some_val", "/.editorconfig"));
 
-            var options = CommonCompiler.GetAnalyzerConfigOptions(
+            var options = GetAnalyzerConfigOptions(
                 new[] { "/test.cs", "/test.vb" },
-                configs,
-                messageProvider: null,
-                diagnostics: null);
+                configs);
             configs.Free();
 
             VerifyAnalyzerOptions(
@@ -788,8 +774,8 @@ dotnet_diagnostic.cs000.some_key = some_val", "/.editorconfig"));
         [Fact]
         public void FromMultipleSectionsAnalyzerOptions()
         {
-            var configs = ArrayBuilder<EditorConfig>.GetInstance();
-            configs.Add(EditorConfig.Parse(@"
+            var configs = ArrayBuilder<AnalyzerConfig>.GetInstance();
+            configs.Add(Parse(@"
 [*.cs]
 dotnet_diagnostic.cs000.some_key = some_val
 
@@ -797,11 +783,9 @@ dotnet_diagnostic.cs000.some_key = some_val
 dotnet_diagnostic.cs001.some_key2 = some_val2
 ", "/.editorconfig"));
 
-            var options = CommonCompiler.GetAnalyzerConfigOptions(
+            var options = GetAnalyzerConfigOptions(
                 new[] { "/test.cs", "/test.vb" },
-                configs,
-                messageProvider: null,
-                diagnostics: null);
+                configs);
             configs.Free();
 
             VerifyAnalyzerOptions(
@@ -822,19 +806,17 @@ dotnet_diagnostic.cs001.some_key2 = some_val2
         [Fact]
         public void AnalyzerOptionsOverride()
         {
-            var configs = ArrayBuilder<EditorConfig>.GetInstance();
-            configs.Add(EditorConfig.Parse(@"
+            var configs = ArrayBuilder<AnalyzerConfig>.GetInstance();
+            configs.Add(Parse(@"
 [**.cs]
 dotnet_diagnostic.cs000.some_key = some_val", "/.editorconfig"));
-            configs.Add(EditorConfig.Parse(@"
+            configs.Add(Parse(@"
 [*.cs]
 dotnet_diagnostic.cs000.some_key = some_other_val", "/subdir/.editorconfig"));
 
-            var options = CommonCompiler.GetAnalyzerConfigOptions(
+            var options = GetAnalyzerConfigOptions(
                 new[] { "/test.cs", "/subdir/test.cs" },
-                configs,
-                messageProvider: null,
-                diagnostics: null);
+                configs);
             configs.Free();
 
             VerifyAnalyzerOptions(
@@ -855,17 +837,77 @@ dotnet_diagnostic.cs000.some_key = some_other_val", "/subdir/.editorconfig"));
         [Fact]
         public void BadFilePaths()
         {
-            Assert.Throws<ArgumentException>(() => EditorConfig.Parse("", "relativeDir/file"));
-            Assert.Throws<ArgumentException>(() => EditorConfig.Parse("", "/"));
-            Assert.Throws<ArgumentException>(() => EditorConfig.Parse("", "/subdir/"));
+            Assert.Throws<ArgumentException>(() => Parse("", "relativeDir/file"));
+            Assert.Throws<ArgumentException>(() => Parse("", "/"));
+            Assert.Throws<ArgumentException>(() => Parse("", "/subdir/"));
         }
 
         [ConditionalFact(typeof(WindowsOnly))]
         public void BadWindowsFilePaths()
         {
-            Assert.Throws<ArgumentException>(() => EditorConfig.Parse("", "Z:"));
-            Assert.Throws<ArgumentException>(() => EditorConfig.Parse("", "Z:\\"));
-            Assert.Throws<ArgumentException>(() => EditorConfig.Parse("", ":\\.editorconfig"));
+            Assert.Throws<ArgumentException>(() => Parse("", "Z:"));
+            Assert.Throws<ArgumentException>(() => Parse("", "Z:\\"));
+            Assert.Throws<ArgumentException>(() => Parse("", ":\\.editorconfig"));
+        }
+
+        [Fact]
+        public void EmptyDiagnosticId()
+        {
+            var configs = ArrayBuilder<AnalyzerConfig>.GetInstance();
+            configs.Add(Parse(@"
+[*.cs]
+dotnet_diagnostic..severity = warn
+dotnet_diagnostic..some_key = some_val", "/.editorconfig"));
+
+            var options = GetAnalyzerConfigOptions(
+                new[] { "/test.cs", },
+                configs);
+            configs.Free();
+
+            Assert.Equal(new[] {
+                CreateImmutableDictionary(("", ReportDiagnostic.Warn)),
+            }, options.TreeOptions);
+
+            VerifyAnalyzerOptions(
+                new[]
+                {
+                    new[]
+                    {
+                        ("dotnet_diagnostic..some_key", "some_val")
+                    }
+                },
+                options);
+        }
+
+        [Fact]
+        public void NoDiagnosticId()
+        {
+            var configs = ArrayBuilder<AnalyzerConfig>.GetInstance();
+            configs.Add(Parse(@"
+[*.cs]
+dotnet_diagnostic.severity = warn
+dotnet_diagnostic.some_key = some_val", "/.editorconfig"));
+
+            var options = GetAnalyzerConfigOptions(
+                new[] { "/test.cs", },
+                configs);
+            configs.Free();
+
+            Assert.Equal(new ImmutableDictionary<string, ReportDiagnostic>[]
+            {
+                null
+            }, options.TreeOptions);
+
+            VerifyAnalyzerOptions(
+                new[]
+                {
+                    new[]
+                    {
+                        ("dotnet_diagnostic.severity", "warn"),
+                        ("dotnet_diagnostic.some_key", "some_val")
+                    }
+                },
+                options);
         }
     }
 }

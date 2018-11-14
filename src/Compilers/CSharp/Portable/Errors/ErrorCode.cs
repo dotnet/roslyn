@@ -1634,8 +1634,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_CantInferNullabilityOfMethodTypeArgs = 8638,
         WRN_NoBestNullabilityArrayElements = 8639,
 
-        WRN_InvalidSeverityInAnalyzerConfig = 8700,
-        ERR_MultipleAnalyzerConfigsInSameDir = 8701,
+        ERR_MultipleAnalyzerConfigsInSameDir = 8700,
 
         #endregion diagnostics introduced for C# 8.0
 

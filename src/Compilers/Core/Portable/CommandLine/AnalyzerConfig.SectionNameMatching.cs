@@ -1,13 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Diagnostics;
 using System.Text;
 using System.Text.RegularExpressions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
-    internal sealed partial class EditorConfig
+    public sealed partial class AnalyzerConfig
     {
         /// <summary>
         /// Takes a <see cref="Section.Name"/> and compiles the file glob

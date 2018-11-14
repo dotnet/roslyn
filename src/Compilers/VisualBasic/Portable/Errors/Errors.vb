@@ -1964,8 +1964,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         WRN_AttributeIgnoredWhenPublicSigning = 42379
         WRN_Experimental = 42380
 
-        WRN_InvalidSeverityInAnalyzerConfig = 42500
-        ERR_MultipleAnalyzerConfigsInSameDir = 42501
+        ERR_MultipleAnalyzerConfigsInSameDir = 42500
 
         ' // AVAILABLE                             42600 - 49998
         ERRWRN_NextAvailable = 42600

@@ -140,7 +140,6 @@ namespace Microsoft.CodeAnalysis
         // Common error messages 
 
         public abstract int ERR_FailedToCreateTempFile { get; }
-        public abstract int WRN_InvalidSeverityInAnalyzerConfig { get; }
         public abstract int ERR_MultipleAnalyzerConfigsInSameDir { get; }
 
         // command line:

@@ -173,7 +173,7 @@ dotnet_diagnostic.BC42024.severity = garbage")
             Dim exitCode = cmd.Run(outWriter)
             Assert.Equal(0, exitCode)
             Assert.Equal(
-$"vbc : warning BC42500: The diagnostic 'bc42024' was given an invalid severity 'garbage' in the analyzer config file at '{analyzerConfig.Path}'.
+$"vbc : warning InvalidSeverityInAnalyzerConfig: The diagnostic 'bc42024' was given an invalid severity 'garbage' in the analyzer config file at '{analyzerConfig.Path}'.
 {src.Path}(4) : warning BC42024: Unused local variable: 'x'.
 
         Dim x As Integer
@@ -210,7 +210,7 @@ dotnet_diagnostic.cs0169.severity = suppress"
             Dim exitCode = cmd.Run(outWriter)
             Assert.Equal(1, exitCode)
             Assert.Equal(
-                $"vbc : error BC42501: Multiple analyzer config files cannot be in the same directory ('{dir.Path}').",
+                $"vbc : error BC42500: Multiple analyzer config files cannot be in the same directory ('{dir.Path}').",
                 outWriter.ToString().TrimEnd())
         End Sub
 
