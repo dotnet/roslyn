@@ -183,7 +183,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             case ThreeState.False:
                                 continue;
                             case ThreeState.Unknown:
-                                if (DependsOnDefinitelyManagedType(fieldNamedType, partialClosure))
+                                if (!fieldNamedType.OriginalDefinition.KnownCircularStruct &&
+                                    DependsOnDefinitelyManagedType(fieldNamedType, partialClosure))
                                 {
                                     return true;
                                 }
