@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.PullMemberUp
 {
     internal class CodeActionAndSolutionGenerator
     {
-        internal async Task<Solution> GetSolutionAsync(
+        private async Task<Solution> GetSolutionAsync(
             AnalysisResult result,
             Document contextDocument,
             CancellationToken cancellationToken)
@@ -30,18 +30,9 @@ namespace Microsoft.CodeAnalysis.PullMemberUp
             {
                 var solutionEditor = new SolutionEditor(solution);
                 var (editorMap, syntaxMap) = await InitializeEditorMapsAndSyntaxMap(result, targetNodeSyntax, solutionEditor, solution, cancellationToken).ConfigureAwait(false);
-                if (result.Target.TypeKind == TypeKind.Interface)
-                {
-                    return GenerateTargetingInterfaceSolution(
-                        result, codeGenerationService, targetNodeSyntax,
-                        solutionEditor, solution, editorMap, syntaxMap);
-                }
-                else
-                {
-                    return GenerateTargetingClassSolution(
-                        result, codeGenerationService, targetNodeSyntax,
-                        solutionEditor, solution, editorMap, syntaxMap);
-                }
+                return GenerateTargetingClassSolution(
+                    result, codeGenerationService, targetNodeSyntax,
+                    solutionEditor, solution, editorMap, syntaxMap);
             }
             else
             {
@@ -49,7 +40,7 @@ namespace Microsoft.CodeAnalysis.PullMemberUp
             }
         }
 
-        internal CodeAction GetCodeActionAsync(
+        internal CodeAction GetCodeAction(
             AnalysisResult result,
             Document contextDocument,
             string title)
@@ -125,16 +116,7 @@ namespace Microsoft.CodeAnalysis.PullMemberUp
             ImmutableDictionary<DocumentId, DocumentEditor> editorMap,
             ImmutableDictionary<ISymbol, IEnumerable<SyntaxNode>> syntaxMap)
         {
-            if (result.ChangeTargetAbstract)
-            {
-                var abstractTarget = GetAbstractTargetNode(targetNodeSyntax, result.Target, solution);
-                AddMembersToClass(result, codeGenerationService, abstractTarget, targetNodeSyntax, solution, editorMap);
-            }
-            else
-            {
-                AddMembersToClass(result, codeGenerationService, targetNodeSyntax, targetNodeSyntax, solution, editorMap);
-            }
-
+            AddMembersToClass(result, codeGenerationService, targetNodeSyntax, solution, editorMap);
             RemoveOriginalMembers(result, solution, editorMap, syntaxMap);
             return solutionEditor.GetChangedSolution();
         }
@@ -142,19 +124,15 @@ namespace Microsoft.CodeAnalysis.PullMemberUp
         private void AddMembersToClass(
             AnalysisResult result,
             ICodeGenerationService codeGenerationService,
-            SyntaxNode nodeToReplaceTarget,
             SyntaxNode targetNodeSyntax,
             Solution solution,
             ImmutableDictionary<DocumentId, DocumentEditor> editorMap)
         {
-            var abstractMembersSymbol = result.MembersAnalysisResults.Where(analysis => analysis.MakeAbstract).
-                Select(analysis => GetAbstractMemberSymbol(analysis.Member));
-
             var pullUpMembersSymbols = result.MembersAnalysisResults.Where(analysis => !analysis.MakeAbstract).
-                Select(selection => selection.Member).Concat(abstractMembersSymbol);
+                Select(selection => selection.Member);
 
             var options = new CodeGenerationOptions(reuseSyntax: true, generateMethodBodies: false);
-            var membersAddedNode = codeGenerationService.AddMembers(nodeToReplaceTarget, pullUpMembersSymbols, options: options);
+            var membersAddedNode = codeGenerationService.AddMembers(targetNodeSyntax, pullUpMembersSymbols, options: options);
 
             var editor = editorMap[solution.GetDocumentId(targetNodeSyntax.SyntaxTree)];
             editor.ReplaceNode(targetNodeSyntax, membersAddedNode);
@@ -235,175 +213,9 @@ namespace Microsoft.CodeAnalysis.PullMemberUp
             }
         }
 
-        private ISymbol GetAbstractMemberSymbol(ISymbol symbol)
-        {
-            if (symbol.IsAbstract)
-            {
-                return symbol;
-            }
-
-            var modifier = DeclarationModifiers.From(symbol).WithIsAbstract(true);
-            if (symbol is IMethodSymbol methodSymbol)
-            {
-                return CodeGenerationSymbolFactory.CreateMethodSymbol(methodSymbol, modifiers: modifier);
-            }
-            else if (symbol is IPropertySymbol propertySymbol)
-            {
-                return CodeGenerationSymbolFactory.CreatePropertySymbol(propertySymbol, modifiers: modifier);
-            }
-            else if (symbol is IEventSymbol eventSymbol)
-            {
-                return CodeGenerationSymbolFactory.CreateEventSymbol(eventSymbol, modifiers: modifier);
-            }
-            else
-            {
-                throw ExceptionUtilities.UnexpectedValue(symbol);
-            }
-        }
-
-        private Solution GenerateTargetingInterfaceSolution(
-            AnalysisResult result,
-            ICodeGenerationService codeGenerationService,
-            SyntaxNode targetNodeSyntax,
-            SolutionEditor solutionEditor,
-            Solution solution,
-            ImmutableDictionary<DocumentId, DocumentEditor> editorMap,
-            ImmutableDictionary<ISymbol, IEnumerable<SyntaxNode>> syntaxMap)
-        {
-            AddMembersToInterface(result, codeGenerationService, editorMap[solution.GetDocumentId(targetNodeSyntax.SyntaxTree)], targetNodeSyntax);
-            ChangedOriginalMembers(result, codeGenerationService, solution, editorMap, syntaxMap);
-            return solutionEditor.GetChangedSolution();
-        }
-
-        private void ChangedOriginalMembers(
-            AnalysisResult result,
-            ICodeGenerationService codeGenerationService,
-            Solution solution,
-            ImmutableDictionary<DocumentId, DocumentEditor> editorMap,
-            ImmutableDictionary<ISymbol, IEnumerable<SyntaxNode>> syntaxMap)
-        {
-            var membersNeedToChange = result.MembersAnalysisResults.
-                Where(member => member.ChangeOriginToNonStatic || member.ChangeOriginToPublic).
-                Select(analysisResult => analysisResult.Member);
-            foreach (var symbol in membersNeedToChange)
-            {
-                foreach (var syntax in syntaxMap[symbol])
-                {
-                    ChangeMemberToPublicAndNonStatic(
-                        editorMap[solution.GetDocumentId(syntax.SyntaxTree)],
-                        codeGenerationService, symbol, syntax);
-                }
-            }
-        }
-
-        private void AddMembersToInterface(
-            AnalysisResult result,
-            ICodeGenerationService codeGenerationService,
-            DocumentEditor editor,
-            SyntaxNode targetNodeSyntax)
-        {
-            var symbolsToPullUp = result.MembersAnalysisResults.
-                Select(analysisResult =>
-                {
-                    if (analysisResult.Member is IPropertySymbol propertySymbol)
-                    {
-                        return CodeGenerationSymbolFactory.CreatePropertySymbol(
-                                propertySymbol,
-                                accessibility: Accessibility.Public,
-                                getMethod: CreatePublicGetterAndSetter(propertySymbol.GetMethod, propertySymbol),
-                                setMethod: CreatePublicGetterAndSetter(propertySymbol.SetMethod, propertySymbol));
-                    }
-                    else
-                    {
-                        return analysisResult.Member;
-                    }
-                });
-
-            var options = new CodeGenerationOptions(generateMethodBodies: false);
-            var targetWithMembersAdded = codeGenerationService.AddMembers(targetNodeSyntax, symbolsToPullUp, options: options);
-            editor.ReplaceNode(targetNodeSyntax, targetWithMembersAdded);
-        }
-
-        private IMethodSymbol CreatePublicGetterAndSetter(IMethodSymbol setterOrGetter, IPropertySymbol containingProperty)
-        {
-            if (setterOrGetter == null || setterOrGetter.DeclaredAccessibility == Accessibility.Public)
-            {
-                return setterOrGetter;
-            }
-
-            if (containingProperty.DeclaredAccessibility == Accessibility.Public)
-            {
-                return setterOrGetter.DeclaredAccessibility == Accessibility.Public ? setterOrGetter : null;
-            }
-
-            return CodeGenerationSymbolFactory.CreateMethodSymbol(setterOrGetter, accessibility: Accessibility.Public);
-        }
-        
         private void RemoveNode(DocumentEditor editor, SyntaxNode node)
         {
             editor.RemoveNode(editor.Generator.GetDeclaration(node));
-        }
-
-        private void ChangeMemberToPublicAndNonStatic(
-            DocumentEditor editor,
-            ICodeGenerationService codeGenerationService,
-            ISymbol symbol,
-            SyntaxNode memberSyntax)
-        {
-            var modifiers = DeclarationModifiers.From(symbol).WithIsStatic(false);
-            if (symbol is IEventSymbol eventSymbol)
-            {
-                ChangeEventToPublicAndNonStatic(
-                    editor,
-                    codeGenerationService,
-                    eventSymbol,
-                    memberSyntax,
-                    modifiers);
-            }
-            else
-            {
-                editor.SetAccessibility(memberSyntax, Accessibility.Public);
-                editor.SetModifiers(memberSyntax, modifiers);
-            }
-        }
-
-        private void ChangeEventToPublicAndNonStatic(
-            DocumentEditor editor,
-            ICodeGenerationService codeGenerationService,
-            IEventSymbol eventSymbol,
-            SyntaxNode memberSyntax,
-            DeclarationModifiers modifiers)
-        {
-            var declaration = editor.Generator.GetDeclaration(memberSyntax);
-            if (declaration.Equals(memberSyntax))
-            {
-                if ((eventSymbol.AddMethod != null && !eventSymbol.AddMethod.IsImplicitlyDeclared) ||
-                    (eventSymbol.RemoveMethod != null && !eventSymbol.RemoveMethod.IsImplicitlyDeclared))
-                {
-                    // One events with add or remove method
-                    editor.SetAccessibility(declaration, Accessibility.Public);
-                    editor.SetModifiers(declaration, modifiers);
-                    return;
-                }
-                else
-                {
-                    // Several events are declared same line
-                    var publicAndNonStaticSymbol = CodeGenerationSymbolFactory.CreateEventSymbol(
-                        eventSymbol,
-                        accessibility: Accessibility.Public,
-                        modifiers: modifiers);
-                    var options = new CodeGenerationOptions(generateMethodBodies: true);
-                    var publicAndNonStaticSyntax = codeGenerationService.CreateEventDeclaration(publicAndNonStaticSymbol, destination: CodeGenerationDestination.ClassType, options: options);
-                    // Insert a new declaration and remove the orginal declaration
-                    editor.InsertAfter(declaration, publicAndNonStaticSyntax);
-                    editor.RemoveNode(memberSyntax);
-                }
-            }
-            else
-            {
-                editor.SetAccessibility(declaration, Accessibility.Public);
-                editor.SetModifiers(declaration, modifiers);
-            }
         }
     }
 }

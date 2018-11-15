@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp.Dialog;
 using Microsoft.CodeAnalysis.PullMemberUp.QuickAction;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -13,13 +12,6 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
 {
     internal abstract partial class AbstractPullMemberUpRefactoringProvider : CodeRefactoringProvider
     {
-        protected readonly IPullMemberUpOptionsService _pullMemberUpOptionsService;
-
-        protected AbstractPullMemberUpRefactoringProvider(IPullMemberUpOptionsService pullMemberUpService)
-        {
-            _pullMemberUpOptionsService = pullMemberUpService;
-        }
-
         protected abstract bool IsSelectionValid(TextSpan span, SyntaxNode userSelectedSyntax);
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
@@ -54,7 +46,6 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
                 userSelectNodeSymbol.Kind == SymbolKind.Field)
             {
                 PullMemberUpViaQuickAction(context, userSelectNodeSymbol, allTargets);
-                AddPullUpMemberRefactoringViaDialogBox(context, semanticModel, userSelectNodeSymbol);
             }
         }
 
@@ -99,15 +90,6 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
                     context.RegisterRefactoring(action);
                 }
             }
-        }
-
-        private void AddPullUpMemberRefactoringViaDialogBox(
-            CodeRefactoringContext context,
-            SemanticModel semanticModel,
-            ISymbol userSelectedNodeSymbol)
-        {
-            var dialogAction = new PullMemberUpWithDialogCodeAction(context.Document, semanticModel, userSelectedNodeSymbol, this);
-            context.RegisterRefactoring(dialogAction);
         }
     }
 }

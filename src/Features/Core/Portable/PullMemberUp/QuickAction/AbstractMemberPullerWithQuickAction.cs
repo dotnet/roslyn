@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.PullMemberUp.QuickAction
             }
 
             var generator = new CodeActionAndSolutionGenerator(); 
-            return generator.GetCodeActionAsync(result, document, title);
+            return generator.GetCodeAction(result, document, title);
         }
     }
 }
