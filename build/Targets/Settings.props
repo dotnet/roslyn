@@ -18,6 +18,7 @@
   <Import Project="RepoToolset\ProjectLayout.props" />
   <Import Project="RepoToolset\DefaultVersions.props"/>
   <Import Project="RepoToolset\ProjectDefaults.props" />
+  <Import Project="RepoToolset\BuildTasks.props" />
   <Import Project="RepoToolset\StrongName.props" />
   <Import Project="RepoToolset\VisualStudio.props"/>
   <Import Project="Tools.props" />
@@ -27,7 +28,7 @@
     <DisableImplicitNuGetFallbackFolder>true</DisableImplicitNuGetFallbackFolder>
     <ToolsetPackagesDir>$(RepoRoot)build\ToolsetPackages\</ToolsetPackagesDir>
 
-    <RoslynPortableTargetFrameworks>net46;netcoreapp2.1</RoslynPortableTargetFrameworks>
+    <RoslynPortableTargetFrameworks>net472;netcoreapp2.1</RoslynPortableTargetFrameworks>
     <RoslynPortableRuntimeIdentifiers>win;win-x64;linux-x64;osx-x64</RoslynPortableRuntimeIdentifiers>
     <RoslynDesktopRuntimeIdentifier>win</RoslynDesktopRuntimeIdentifier>
     <RoslynDesktopRuntimeIdentifierX86>win-x86</RoslynDesktopRuntimeIdentifierX86>
@@ -46,6 +47,7 @@
     <VisualStudioReferenceMajorVersion Condition="'$(VisualStudioReferenceMajorVersion)' == ''">$(VisualStudioVersion.Substring($([System.Convert]::ToInt32(0)), $(VisualStudioVersion.IndexOf('.'))))</VisualStudioReferenceMajorVersion>
     <VisualStudioReferenceAssemblyVersion Condition="'$(VisualStudioReferenceAssemblyVersion)' == ''">$(VisualStudioReferenceMajorVersion).0.0.0</VisualStudioReferenceAssemblyVersion>
     <MinimumVisualStudioVersion>$(VisualStudioVersion)</MinimumVisualStudioVersion>
+    <MinimumMSBuildVersion>15.7.0</MinimumMSBuildVersion>
 
     <!-- Disable AppX packaging for the Roslyn source. Not setting this to false has the side effect
          that any builds of portable projects end up in a sub folder of $(OutputPath). Search for this flag in
@@ -137,12 +139,6 @@
   <UsingTask TaskName="Microsoft.CodeAnalysis.BuildTasks.ValidateBootstrap"
              AssemblyFile="$(RoslynToolsetDirectory)tools\Microsoft.Build.Tasks.CodeAnalysis.dll"
              Condition="'$(BootstrapBuildPath)' != ''" />
-  <UsingTask TaskName="Roslyn.MSBuild.Util.FindNuGetAssetsForVsix"
-             AssemblyFile="$(NuGetPackageRoot)Roslyn.Build.Util\$(RoslynBuildUtilVersion)\lib\net46\Roslyn.MSBuild.Util.dll"
-             Condition="'$(OS)' == 'Windows_NT'" />
-  <UsingTask TaskName="Roslyn.MSBuild.Util.ValidateBuildEnvironment"
-             AssemblyFile="$(NuGetPackageRoot)Roslyn.Build.Util\$(RoslynBuildUtilVersion)\lib\net46\Roslyn.MSBuild.Util.dll"
-             Condition="'$(OS)' == 'Windows_NT'" />
 
   <ItemGroup>
     <PackageReference Include="Microsoft.CodeQuality.Analyzers" Version="$(MicrosoftCodeQualityAnalyzersVersion)" PrivateAssets="all" />

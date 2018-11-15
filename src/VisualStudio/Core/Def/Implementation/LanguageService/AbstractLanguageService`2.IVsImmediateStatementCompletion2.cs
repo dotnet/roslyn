@@ -40,12 +40,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             if (install != 0)
             {
                 DebuggerIntelliSenseFilter<TPackage, TLanguageService> filter;
-                if (this.filters.ContainsKey(textView))
-                {
-                    // We already have a filter in this textview. Return.
-                    return VSConstants.S_OK;
-                }
-                else
+                if (!this.filters.ContainsKey(textView))
                 {
                     filter = new DebuggerIntelliSenseFilter<TPackage, TLanguageService>(this,
                         this.EditorAdaptersFactoryService.GetWpfTextView(textView),
@@ -55,10 +50,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                     Marshal.ThrowExceptionForHR(textView.AddCommandFilter(filter, out var nextFilter));
                     filter.SetNextFilter(nextFilter);
                 }
+
+                this.filters[textView].SetContentType(install: true);
             }
             else
             {
                 Marshal.ThrowExceptionForHR(textView.RemoveCommandFilter(this.filters[textView]));
+                this.filters[textView].SetContentType(install: false);
                 this.filters[textView].Dispose();
                 this.filters.Remove(textView);
             }

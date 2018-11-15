@@ -36,18 +36,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<BoundSwitchExpressionArm> switchArms = BindSwitchExpressionArms(node, originalBinder, diagnostics);
             TypeSymbol resultType = InferResultType(switchArms, diagnostics);
             switchArms = AddConversionsToArms(switchArms, resultType, diagnostics);
-            bool hasErrors = CheckSwitchExpressionExhaustive(node, boundInputExpression, switchArms, out BoundDecisionDag decisionDag, out LabelSymbol defaultLabel, diagnostics);
+            bool reportedNonexhaustive = CheckSwitchExpressionExhaustive(node, boundInputExpression, switchArms, out BoundDecisionDag decisionDag, out LabelSymbol defaultLabel, diagnostics);
 
             // When the input is constant, we use that to reshape the decision dag that is returned
             // so that flow analysis will see that some of the cases may be unreachable.
             decisionDag = decisionDag.SimplifyDecisionDagIfConstantInput(boundInputExpression);
-
-            return new BoundSwitchExpression(node, boundInputExpression, switchArms, decisionDag, defaultLabel, resultType, hasErrors);
+            return new BoundSwitchExpression(node, boundInputExpression, switchArms, decisionDag, defaultLabel, reportedNonexhaustive, resultType);
         }
 
         /// <summary>
         /// Build the decision dag, giving an error if some cases are subsumed and an error if the switch expression is not exhaustive.
-        /// Returns true if there were errors.
+        /// Returns true if there was a non-exhaustive warning reported.
         /// </summary>
         /// <param name="node"></param>
         /// <param name="boundInputExpression"></param>
@@ -74,19 +73,45 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            bool exhaustive = !reachableLabels.Contains(defaultLabel);
-            if (exhaustive)
+            if (!reachableLabels.Contains(defaultLabel))
             {
                 // switch expression is exhaustive; no default label needed.
                 defaultLabel = null;
-            }
-            else
-            {
-                // warning: switch expression is not exhaustive
-                diagnostics.Add(ErrorCode.WRN_SwitchExpressionNotExhaustive, node.SwitchKeyword.GetLocation());
+                return false;
             }
 
-            return !exhaustive;
+            // We only report exhaustive warnings when the default label is reachable through some series of
+            // tests that do not include a test in which the value is know to be null.  Handling paths with
+            // nulls is the job of the nullable walker.
+            foreach (var n in TopologicalSort.IterativeSort<BoundDecisionDagNode>(new[] { decisionDag.RootNode }, nonNullSuccessors))
+            {
+                if (n is BoundLeafDecisionDagNode leaf && leaf.Label == defaultLabel)
+                {
+                    diagnostics.Add(ErrorCode.WRN_SwitchExpressionNotExhaustive, node.SwitchKeyword.GetLocation());
+                    return true;
+                }
+            }
+
+            return false;
+
+            ImmutableArray<BoundDecisionDagNode> nonNullSuccessors(BoundDecisionDagNode n)
+            {
+                switch (n)
+                {
+                    case BoundTestDecisionDagNode p:
+                        switch (p.Test)
+                        {
+                            case BoundDagNonNullTest t: // checks that the input is not null
+                                return ImmutableArray.Create(p.WhenTrue);
+                            case BoundDagNullTest t: // checks that the input is null
+                                return ImmutableArray.Create(p.WhenFalse);
+                            default:
+                                return BoundDecisionDag.Successors(n);
+                        }
+                    default:
+                        return BoundDecisionDag.Successors(n);
+                }
+            }
         }
 
         /// <summary>

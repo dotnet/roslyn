@@ -540,7 +540,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     SetGlobalErrorIfTrue(constantValue == null || constantValue.IsBad);
                                 }
 
-                                if (fieldSymbol.IsFixed && compilationState.Emitting)
+                                if (fieldSymbol.IsFixedSizeBuffer && compilationState.Emitting)
                                 {
                                     // force the generation of implementation types for fixed-size buffers
                                     TypeSymbol discarded = fieldSymbol.FixedImplementationType(compilationState.ModuleBuilderOpt);

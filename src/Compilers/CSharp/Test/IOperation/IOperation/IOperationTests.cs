@@ -493,6 +493,39 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
 ");
         }
 
+        [Fact, WorkItem(26649, "https://github.com/dotnet/roslyn/issues/26649")]
+        public void IncrementalBindingReusesBlock()
+        {
+            var source = @"
+class C
+{
+    void M()
+    {
+        try
+        {
+        }
+        catch (Exception e)
+        {
+            throw new Exception();
+        }
+    }
+}";
+
+            var compilation = CreateCompilation(source);
+            var syntaxTree = compilation.SyntaxTrees[0];
+            var semanticModel = compilation.GetSemanticModel(syntaxTree);
+
+            // We want to get the IOperation for the { throw new Exception(); } first, and then for the containing catch block, to
+            // force the semantic model to bind the inner first. It should reuse that inner block when binding the outer catch.
+
+            var catchBlock = syntaxTree.GetRoot().DescendantNodes().OfType<CatchClauseSyntax>().Single();
+            var exceptionBlock = catchBlock.Block;
+
+            var blockOperation = semanticModel.GetOperation(exceptionBlock);
+            var catchOperation = (ICatchClauseOperation)semanticModel.GetOperation(catchBlock);
+            Assert.Same(blockOperation, catchOperation.Handler);
+        }
+
         private static void VerifyRootAndModelForOperationAncestors(
             IOperation operation,
             SemanticModel model,

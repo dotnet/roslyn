@@ -1105,7 +1105,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundKind.FieldAccess:
                     var fa = (BoundFieldAccess)initializerOpt;
-                    if (fa.FieldSymbol.IsFixed)
+                    if (fa.FieldSymbol.IsFixedSizeBuffer)
                     {
                         elementType = ((PointerTypeSymbol)fa.Type).PointedAtType.TypeSymbol;
                         break;
@@ -1518,6 +1518,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static bool AccessingAutoPropertyFromConstructor(BoundExpression receiver, PropertySymbol propertySymbol, Symbol fromMember)
         {
+            if (!propertySymbol.IsDefinition && propertySymbol.ContainingType.Equals(propertySymbol.ContainingType.OriginalDefinition, TypeCompareKind.IgnoreNullableModifiersForReferenceTypes))
+            {
+                propertySymbol = propertySymbol.OriginalDefinition;
+            }
+
             var sourceProperty = propertySymbol as SourcePropertySymbol;
             var propertyIsStatic = propertySymbol.IsStatic;
 
@@ -1600,7 +1605,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         internal virtual uint LocalScopeDepth => Next.LocalScopeDepth;
 
-        internal BoundBlock BindEmbeddedBlock(BlockSyntax node, DiagnosticBag diagnostics)
+        internal virtual BoundBlock BindEmbeddedBlock(BlockSyntax node, DiagnosticBag diagnostics)
         {
             return BindBlock(node, diagnostics);
         }

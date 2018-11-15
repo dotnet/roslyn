@@ -334,7 +334,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         [PerformanceSensitive(
             "https://github.com/dotnet/roslyn/issues/23582",
             Constraint = "Avoid " + nameof(ConcurrentDictionary<NamedTypeSymbol, BoundLambda>) + " which has a large default size, but this cache is normally small.")]
-        private ImmutableDictionary<NamedTypeSymbol, BoundLambda> _bindingCache = ImmutableDictionary<NamedTypeSymbol, BoundLambda>.Empty.WithComparers(TypeSymbol.EqualsIncludingNullableComparer);
+        private ImmutableDictionary<NamedTypeSymbol, BoundLambda> _bindingCache = ImmutableDictionary<NamedTypeSymbol, BoundLambda>.Empty.WithComparers(TypeSymbol.EqualsConsiderEverything);
 
         [PerformanceSensitive(
             "https://github.com/dotnet/roslyn/issues/23582",
@@ -468,7 +468,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 lambdaSymbol = returnInferenceLambda.Symbol;
                 var lambdaReturnType = lambdaSymbol.ReturnType;
                 if ((object)LambdaSymbol.InferenceFailureReturnType != lambdaReturnType.TypeSymbol &&
-                    lambdaReturnType.Equals(returnType, TypeCompareKind.CompareNullableModifiersForReferenceTypes) && lambdaSymbol.RefKind == refKind)
+                    lambdaReturnType.Equals(returnType, TypeCompareKind.ConsiderEverything) && lambdaSymbol.RefKind == refKind)
                 {
                     lambdaBodyBinder = returnInferenceLambda.Binder;
                     block = returnInferenceLambda.Body;
@@ -604,7 +604,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var returnType = inferredReturnType.Type;
             if (returnType.IsNull)
             {
-                returnType = TypeSymbolWithAnnotations.Create(NonNullTypesFalseContext.Instance, LambdaSymbol.InferenceFailureReturnType);
+                returnType = TypeSymbolWithAnnotations.Create(NonNullTypesNullContext.Instance, LambdaSymbol.InferenceFailureReturnType);
             }
             lambdaSymbol.SetInferredReturnType(inferredReturnType.RefKind, returnType);
 
@@ -663,7 +663,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 for (int i = 0; i < this.ParameterTypes.Length; i++)
                 {
-                    if (!other.ParameterTypes[i].Equals(this.ParameterTypes[i], TypeCompareKind.CompareNullableModifiersForReferenceTypes) ||
+                    if (!other.ParameterTypes[i].Equals(this.ParameterTypes[i], TypeCompareKind.ConsiderEverything) ||
                         other.ParameterRefKinds[i] != this.ParameterRefKinds[i])
                     {
                         return false;

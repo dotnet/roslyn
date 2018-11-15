@@ -4102,7 +4102,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundSwitchExpression : BoundExpression
     {
-        public BoundSwitchExpression(SyntaxNode syntax, BoundExpression expression, ImmutableArray<BoundSwitchExpressionArm> switchArms, BoundDecisionDag decisionDag, LabelSymbol defaultLabel, TypeSymbol type, bool hasErrors = false)
+        public BoundSwitchExpression(SyntaxNode syntax, BoundExpression expression, ImmutableArray<BoundSwitchExpressionArm> switchArms, BoundDecisionDag decisionDag, LabelSymbol defaultLabel, bool reportedNotExhaustive, TypeSymbol type, bool hasErrors = false)
             : base(BoundKind.SwitchExpression, syntax, type, hasErrors || expression.HasErrors() || switchArms.HasErrors() || decisionDag.HasErrors())
         {
 
@@ -4114,6 +4114,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.SwitchArms = switchArms;
             this.DecisionDag = decisionDag;
             this.DefaultLabel = defaultLabel;
+            this.ReportedNotExhaustive = reportedNotExhaustive;
         }
 
 
@@ -4125,16 +4126,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public LabelSymbol DefaultLabel { get; }
 
+        public bool ReportedNotExhaustive { get; }
+
         public override BoundNode Accept(BoundTreeVisitor visitor)
         {
             return visitor.VisitSwitchExpression(this);
         }
 
-        public BoundSwitchExpression Update(BoundExpression expression, ImmutableArray<BoundSwitchExpressionArm> switchArms, BoundDecisionDag decisionDag, LabelSymbol defaultLabel, TypeSymbol type)
+        public BoundSwitchExpression Update(BoundExpression expression, ImmutableArray<BoundSwitchExpressionArm> switchArms, BoundDecisionDag decisionDag, LabelSymbol defaultLabel, bool reportedNotExhaustive, TypeSymbol type)
         {
-            if (expression != this.Expression || switchArms != this.SwitchArms || decisionDag != this.DecisionDag || defaultLabel != this.DefaultLabel || type != this.Type)
+            if (expression != this.Expression || switchArms != this.SwitchArms || decisionDag != this.DecisionDag || defaultLabel != this.DefaultLabel || reportedNotExhaustive != this.ReportedNotExhaustive || type != this.Type)
             {
-                var result = new BoundSwitchExpression(this.Syntax, expression, switchArms, decisionDag, defaultLabel, type, this.HasErrors);
+                var result = new BoundSwitchExpression(this.Syntax, expression, switchArms, decisionDag, defaultLabel, reportedNotExhaustive, type, this.HasErrors);
                 result.WasCompilerGenerated = this.WasCompilerGenerated;
                 return result;
             }
@@ -10684,7 +10687,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<BoundSwitchExpressionArm> switchArms = (ImmutableArray<BoundSwitchExpressionArm>)this.VisitList(node.SwitchArms);
             BoundDecisionDag decisionDag = node.DecisionDag;
             TypeSymbol type = this.VisitType(node.Type);
-            return node.Update(expression, switchArms, decisionDag, node.DefaultLabel, type);
+            return node.Update(expression, switchArms, decisionDag, node.DefaultLabel, node.ReportedNotExhaustive, type);
         }
         public override BoundNode VisitSwitchExpressionArm(BoundSwitchExpressionArm node)
         {
@@ -12186,6 +12189,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 new TreeDumperNode("switchArms", null, from x in node.SwitchArms select Visit(x, null)),
                 new TreeDumperNode("decisionDag", null, new TreeDumperNode[] { Visit(node.DecisionDag, null) }),
                 new TreeDumperNode("defaultLabel", node.DefaultLabel, null),
+                new TreeDumperNode("reportedNotExhaustive", node.ReportedNotExhaustive, null),
                 new TreeDumperNode("type", node.Type, null)
             }
             );
