@@ -95,7 +95,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 if (requiresNewLine)
                 {
-                    this.AddEndOfLine(GetEndOfLine(trivia) ?? SyntaxFactory.CarriageReturnLineFeed);
+                    var eol = GetEndOfLine(trivia);
+                    if (eol.HasValue)
+                    {
+                        this.AddEndOfLine(eol.Value);
+                    }
                 }
 
                 _residualTrivia.Add(trivia);

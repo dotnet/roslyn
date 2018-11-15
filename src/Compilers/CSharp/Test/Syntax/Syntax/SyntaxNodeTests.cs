@@ -2662,6 +2662,38 @@ class C
         }
 
         [Fact]
+        public void TestRemoveBadDirectiveWithoutEOL_KeepEndOfLine_KeepDirectives()
+        {
+            TestRemoveBadDirectiveWithoutEOL_KeepEndOfLine_KeepDirectives(false);
+        }
+
+        [Fact]
+        [WorkItem(22924, "https://github.com/dotnet/roslyn/issues/22924")]
+        public void TestRemoveBadDirectiveWithoutEOL_KeepEndOfLine_KeepDirectives_UseOriginalEndOfLine()
+        {
+            TestRemoveBadDirectiveWithoutEOL_KeepEndOfLine_KeepDirectives(true);
+        }
+
+        private void TestRemoveBadDirectiveWithoutEOL_KeepEndOfLine_KeepDirectives(bool useOriginalEol)
+        {
+            var cu = SyntaxFactory.ParseCompilationUnit(@"class A { } class B { } #endregion");
+
+            var m = cu.DescendantNodes().OfType<TypeDeclarationSyntax>().LastOrDefault();
+            Assert.NotNull(m);
+
+            var removeOptions = SyntaxRemoveOptions.KeepEndOfLine | SyntaxRemoveOptions.KeepDirectives;
+            if (useOriginalEol)
+            {
+                removeOptions |= SyntaxRemoveOptions.UseOriginalEndOfLine;
+            }
+            var cu2 = cu.RemoveNode(m, removeOptions);
+
+            var text = cu2.ToFullString();
+
+            Assert.Equal("class A { } #endregion", text);
+        }
+
+        [Fact]
         public void TestRemoveDocument_KeepEndOfLine()
         {
             TestRemoveDocument_KeepEndOfLine(false);
