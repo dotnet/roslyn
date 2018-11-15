@@ -2485,13 +2485,15 @@ class C
     object f1;
     string f2;
     System.Collections.IEnumerable f3;
-    int? f4;
 }
 ";
             var compilation = CreateCompilation(text);
             var type = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
 
-            Assert.True(type.GetMembers().OfType<FieldSymbol>().All(field => field.Type.IsManagedType));
+            foreach (var field in type.GetMembers().OfType<FieldSymbol>())
+            {
+                Assert.True(field.Type.IsManagedType, field.ToString());
+            }
         }
 
         [Fact]
@@ -2514,7 +2516,8 @@ class C
     float f12;
     double f13;
     System.IntPtr f14;
-    System.UIntPtr f14;
+    System.UIntPtr f15;
+    int? f16;
 }
 ";
             var compilation = CreateCompilation(text);
@@ -2605,11 +2608,11 @@ struct R<T>
             var compilation = CreateCompilation(text);
             var globalNamespace = compilation.GlobalNamespace;
             Assert.False(globalNamespace.GetMember<NamedTypeSymbol>("S").IsManagedType);
-            Assert.True(globalNamespace.GetMember<NamedTypeSymbol>("P").IsManagedType);
+            Assert.False(globalNamespace.GetMember<NamedTypeSymbol>("P").IsManagedType);
             Assert.False(globalNamespace.GetMember<NamedTypeSymbol>("C").GetMember<NamedTypeSymbol>("S").IsManagedType);
-            Assert.True(globalNamespace.GetMember<NamedTypeSymbol>("D").GetMember<NamedTypeSymbol>("S").IsManagedType);
+            Assert.False(globalNamespace.GetMember<NamedTypeSymbol>("D").GetMember<NamedTypeSymbol>("S").IsManagedType);
             Assert.False(globalNamespace.GetMember<NamedTypeSymbol>("Q").GetMember<NamedTypeSymbol>("S").IsManagedType);
-            Assert.True(globalNamespace.GetMember<NamedTypeSymbol>("R").GetMember<NamedTypeSymbol>("S").IsManagedType);
+            Assert.False(globalNamespace.GetMember<NamedTypeSymbol>("R").GetMember<NamedTypeSymbol>("S").IsManagedType);
         }
 
         [Fact]
@@ -2632,7 +2635,10 @@ struct S<T>
             var compilation = CreateCompilation(text);
             var type = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
 
-            Assert.True(type.GetMembers().OfType<FieldSymbol>().All(field => field.Type.IsManagedType));
+            foreach (var field in type.GetMembers().OfType<FieldSymbol>())
+            {
+                Assert.True(!field.Type.IsManagedType, field.ToString());
+            }
         }
 
         [Fact]
@@ -7851,10 +7857,7 @@ class C
   unsafe void NMethodCecilNameHelper_Parameter_AllTogether<U>(ref Goo3.Struct1<int>**[][,,] ppi) { }
 }
 ";
-            CreateCompilation(text, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics(
-                // (8,67): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('C.Goo3.Struct1<int>')
-                //   unsafe void NMethodCecilNameHelper_Parameter_AllTogether<U>(ref Goo3.Struct1<int>**[][,,] ppi) { }
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "Goo3.Struct1<int>*").WithArguments("C.Goo3.Struct1<int>").WithLocation(8, 67));
+            CreateCompilation(text, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics();
         }
 
 
