@@ -8,7 +8,6 @@ Imports Microsoft.VisualStudio.Text.Editor
 Imports Microsoft.VisualStudio.Text.Editor.Commanding.Commands
 Imports Roslyn.Utilities
 Imports VSCommanding = Microsoft.VisualStudio.Commanding
-Imports Microsoft.CodeAnalysis.CSharp
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
@@ -23,67 +22,17 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             End Get
         End Property
 
-        Private Sub New(workspaceElement As XElement,
-                        extraCompletionProviders As IEnumerable(Of Lazy(Of CompletionProvider, OrderableLanguageAndRoleMetadata)),
-                        Optional excludedTypes As List(Of Type) = Nothing,
-                        Optional extraExportedTypes As List(Of Type) = Nothing,
-                        Optional includeFormatCommandHandler As Boolean = False,
-                        Optional workspaceKind As String = Nothing)
+        ' Do not call directly. Use TestStateFactory
+        Friend Sub New(workspaceElement As XElement,
+                       extraCompletionProviders As CompletionProvider(),
+                       excludedTypes As List(Of Type),
+                       extraExportedTypes As List(Of Type),
+                       includeFormatCommandHandler As Boolean,
+                       workspaceKind As String)
             MyBase.New(workspaceElement, extraCompletionProviders, excludedTypes, extraExportedTypes, includeFormatCommandHandler, workspaceKind)
 
             Me.CompletionCommandHandler = GetExportedValue(Of CompletionCommandHandler)()
         End Sub
-
-        Friend Shared Function CreateVisualBasicTestState(
-                documentElement As XElement,
-                Optional extraCompletionProviders As CompletionProvider() = Nothing,
-                Optional extraExportedTypes As List(Of Type) = Nothing) As TestState
-            Return New TestState(
-                <Workspace>
-                    <Project Language="Visual Basic" CommonReferences="true">
-                        <Document>
-                            <%= documentElement.Value %>
-                        </Document>
-                    </Project>
-                </Workspace>,
-                CreateLazyProviders(extraCompletionProviders, LanguageNames.VisualBasic, roles:=Nothing),
-                excludedTypes:=Nothing,
-                extraExportedTypes)
-        End Function
-
-        Friend Shared Function CreateCSharpTestState(
-                documentElement As XElement,
-                Optional extraCompletionProviders As CompletionProvider() = Nothing,
-                Optional excludedTypes As List(Of Type) = Nothing,
-                Optional extraExportedTypes As List(Of Type) = Nothing,
-                Optional includeFormatCommandHandler As Boolean = False,
-                Optional languageVersion As LanguageVersion = LanguageVersion.Default) As TestState
-            Return New TestState(
-                <Workspace>
-                    <Project Language="C#" CommonReferences="true" LanguageVersion=<%= DirectCast(languageVersion, Int32) %>>
-                        <Document>
-                            <%= documentElement.Value %>
-                        </Document>
-                    </Project>
-                </Workspace>,
-                CreateLazyProviders(extraCompletionProviders, LanguageNames.CSharp, roles:=Nothing),
-                excludedTypes,
-                extraExportedTypes,
-                includeFormatCommandHandler)
-        End Function
-
-        Friend Shared Function CreateTestStateFromWorkspace(
-                workspaceElement As XElement,
-                Optional extraCompletionProviders As CompletionProvider() = Nothing,
-                Optional extraExportedTypes As List(Of Type) = Nothing,
-                Optional workspaceKind As String = Nothing) As TestState
-            Return New TestState(
-                workspaceElement,
-                CreateLazyProviders(extraCompletionProviders, LanguageNames.VisualBasic, roles:=Nothing),
-                excludedTypes:=Nothing,
-                extraExportedTypes,
-                workspaceKind:=workspaceKind)
-        End Function
 
 #Region "Editor Related Operations"
 
@@ -195,6 +144,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Assert.Null(Me.CurrentCompletionPresenterSession)
         End Function
 
+        Public Overrides Async Function AssertCompletionSessionAfterTypingHash() As Task
+            ' The legacy completion implementation was not updated to treat # as an IntelliSense trigger
+            Await AssertNoCompletionSession()
+        End Function
+
         Public Overrides Async Function AssertCompletionSession(Optional projectionsView As ITextView = Nothing) As Task
             ' projectionsView is not used in this implementation
             Await WaitForAsynchronousOperationsAsync()
@@ -211,6 +165,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             AssertNoAsynchronousOperationsRunning()
             Return displayText.Any(Function(v) CurrentCompletionPresenterSession.CompletionItems.Any(
                                        Function(i) i.DisplayText = v))
+        End Function
+
+        Public Overrides Function CompletionItemsContainsAny(displayText As String, displayTextSuffix As String) As Boolean
+            AssertNoAsynchronousOperationsRunning()
+            Return CurrentCompletionPresenterSession.CompletionItems.Any(Function(i) i.DisplayText = displayText AndAlso i.DisplayTextSuffix = displayTextSuffix)
         End Function
 
         Public Overrides Sub AssertItemsInOrder(expectedOrder As String())

@@ -19,68 +19,25 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         Friend Const RoslynItem = "RoslynItem"
         Friend ReadOnly EditorCompletionCommandHandler As VSCommanding.ICommandHandler
 
-        Private Sub New(workspaceElement As XElement,
-                        extraCompletionProviders As IEnumerable(Of Lazy(Of CompletionProvider, OrderableLanguageAndRoleMetadata)),
-                        Optional excludedTypes As List(Of Type) = Nothing,
-                        Optional extraExportedTypes As List(Of Type) = Nothing,
-                        Optional includeFormatCommandHandler As Boolean = False,
-                        Optional workspaceKind As String = Nothing)
+        ' Do not call directly. Use TestStateFactory
+        Friend Sub New(workspaceElement As XElement,
+                        extraCompletionProviders As CompletionProvider(),
+                        excludedTypes As List(Of Type),
+                        extraExportedTypes As List(Of Type),
+                        includeFormatCommandHandler As Boolean,
+                        workspaceKind As String)
 
-            MyBase.New(workspaceElement, extraCompletionProviders, excludedTypes, extraExportedTypes, includeFormatCommandHandler, workspaceKind)
+            MyBase.New(
+                workspaceElement,
+                extraCompletionProviders,
+                excludedTypes:=Nothing,
+                extraExportedTypes,
+                includeFormatCommandHandler,
+                workspaceKind:=workspaceKind)
 
             EditorCompletionCommandHandler = GetExportedValues(Of VSCommanding.ICommandHandler)().
                 Single(Function(e As VSCommanding.ICommandHandler) e.GetType().FullName = "Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Implementation.CompletionCommandHandler")
         End Sub
-
-        Public Shared Function CreateVisualBasicTestState(
-                documentElement As XElement,
-                Optional extraCompletionProviders As CompletionProvider() = Nothing,
-                Optional extraExportedTypes As List(Of Type) = Nothing) As ModernCompletionTestState
-            Return New ModernCompletionTestState(
-                <Workspace>
-                    <Project Language="Visual Basic" CommonReferences="true">
-                        <Document>
-                            <%= documentElement.Value %>
-                        </Document>
-                    </Project>
-                </Workspace>,
-                CreateLazyProviders(extraCompletionProviders, LanguageNames.VisualBasic, roles:=Nothing),
-                excludedTypes:=Nothing,
-                extraExportedTypes)
-        End Function
-
-        Public Shared Function CreateCSharpTestState(
-                documentElement As XElement,
-                Optional extraCompletionProviders As CompletionProvider() = Nothing,
-                Optional excludedTypes As List(Of Type) = Nothing,
-                Optional extraExportedTypes As List(Of Type) = Nothing,
-                Optional includeFormatCommandHandler As Boolean = False) As ModernCompletionTestState
-            Return New ModernCompletionTestState(
-                <Workspace>
-                    <Project Language="C#" CommonReferences="true">
-                        <Document>
-                            <%= documentElement.Value %>
-                        </Document>
-                    </Project>
-                </Workspace>,
-                CreateLazyProviders(extraCompletionProviders, LanguageNames.CSharp, roles:=Nothing), ' Add in the Editor Completion mef components; Get the completion iolecommandtarget to send commands to and do normal assertions based on the old (/current) CompletionBroker
-                excludedTypes,
-                extraExportedTypes,
-                includeFormatCommandHandler)
-        End Function
-
-        Public Shared Function CreateTestStateFromWorkspace(
-                workspaceElement As XElement,
-                Optional extraCompletionProviders As CompletionProvider() = Nothing,
-                Optional extraExportedTypes As List(Of Type) = Nothing,
-                Optional workspaceKind As String = Nothing) As ModernCompletionTestState
-            Return New ModernCompletionTestState(
-                workspaceElement,
-                CreateLazyProviders(extraCompletionProviders, LanguageNames.VisualBasic, roles:=Nothing),
-                excludedTypes:=Nothing,
-                extraExportedTypes,
-                workspaceKind:=workspaceKind)
-        End Function
 
 #Region "Editor Related Operations"
 
@@ -210,6 +167,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Assert.NotNull(session)
         End Function
 
+        Public Overrides Async Function AssertCompletionSessionAfterTypingHash() As Task
+            ' starting with the modern completion implementation, # is treated as an IntelliSense trigger
+            Await AssertCompletionSession()
+        End Function
+
         Public Overrides Function CompletionItemsContainsAll(displayText As String()) As Boolean
             AssertNoAsynchronousOperationsRunning()
             Dim session = GetExportedValue(Of IAsyncCompletionBroker)().GetSession(TextView)
@@ -226,6 +188,15 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
             Return displayText.Any(Function(v) items.Items.Any(
                                        Function(i) i.DisplayText = v))
+        End Function
+
+        Public Overrides Function CompletionItemsContainsAny(displayText As String, displayTextSuffix As String) As Boolean
+            AssertNoAsynchronousOperationsRunning()
+            Dim session = GetExportedValue(Of IAsyncCompletionBroker)().GetSession(TextView)
+            Assert.NotNull(session)
+            Dim items = session.GetComputedItems(CancellationToken.None)
+
+            Return items.Items.Any(Function(i) i.DisplayText = displayText AndAlso i.Suffix = displayTextSuffix)
         End Function
 
         Public Overrides Sub AssertItemsInOrder(expectedOrder As String())

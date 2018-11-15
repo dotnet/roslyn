@@ -5,7 +5,7 @@ using Microsoft.VisualStudio.Text;
 using AsyncCompletionData = Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data;
 using RoslynTrigger = Microsoft.CodeAnalysis.Completion.CompletionTrigger;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.AsyncCompletion
+namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncCompletion
 {
     internal static class Helpers
     {

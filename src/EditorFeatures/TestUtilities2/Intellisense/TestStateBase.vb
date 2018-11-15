@@ -31,20 +31,21 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         End Property
 
         Public Sub New(workspaceElement As XElement,
-                        extraCompletionProviders As IEnumerable(Of Lazy(Of CompletionProvider, OrderableLanguageAndRoleMetadata)),
-                        Optional excludedTypes As List(Of Type) = Nothing,
-                        Optional extraExportedTypes As List(Of Type) = Nothing,
-                        Optional includeFormatCommandHandler As Boolean = False,
-                        Optional workspaceKind As String = Nothing)
+                       extraCompletionProviders As CompletionProvider(),
+                       excludedTypes As List(Of Type),
+                       extraExportedTypes As List(Of Type),
+                       includeFormatCommandHandler As Boolean,
+                       workspaceKind As String)
             MyBase.New(workspaceElement, CombineExcludedTypes(excludedTypes, includeFormatCommandHandler), ExportProviderCache.CreateTypeCatalog(CombineExtraTypes(If(extraExportedTypes, New List(Of Type)))), workspaceKind:=workspaceKind)
 
             Dim languageServices = Me.Workspace.CurrentSolution.Projects.First().LanguageServices
             Dim language = languageServices.Language
 
-            If extraCompletionProviders IsNot Nothing Then
+            Dim lazyExtraCompletionProviders = CreateLazyProviders(extraCompletionProviders, language, roles:=Nothing)
+            If lazyExtraCompletionProviders IsNot Nothing Then
                 Dim completionService = DirectCast(languageServices.GetService(Of CompletionService), CompletionServiceWithProviders)
                 If completionService IsNot Nothing Then
-                    completionService.SetTestProviders(extraCompletionProviders.Select(Function(lz) lz.Value).ToList())
+                    completionService.SetTestProviders(lazyExtraCompletionProviders.Select(Function(lz) lz.Value).ToList())
                 End If
             End If
 
@@ -159,11 +160,15 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
         Public MustOverride Function AssertNoCompletionSession(Optional block As Boolean = True) As Task
 
+        Public MustOverride Function AssertCompletionSessionAfterTypingHash() As Task
+
         Public MustOverride Overloads Function AssertCompletionSession(Optional projectionsView As ITextView = Nothing) As Task
 
         Public MustOverride Overloads Function CompletionItemsContainsAll(displayText As String()) As Boolean
 
         Public MustOverride Overloads Function CompletionItemsContainsAny(displayText As String()) As Boolean
+
+        Public MustOverride Overloads Function CompletionItemsContainsAny(displayText As String, displayTextSuffix As String) As Boolean
 
         Public MustOverride Overloads Sub AssertItemsInOrder(expectedOrder As String())
 

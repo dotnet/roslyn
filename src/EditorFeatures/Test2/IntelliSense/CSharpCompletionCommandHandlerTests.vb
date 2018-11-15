@@ -1531,9 +1531,10 @@ class C
         End Function
 
         <WorkItem(544293, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544293")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function NoKeywordsOrSymbolsAfterNamedParameterWithCSharp7() As Task
-            Using state = TestState.CreateTestStateFromWorkspace(
+        <MemberData(NameOf(AllCompletionImplementations))>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function NoKeywordsOrSymbolsAfterNamedParameterWithCSharp7(completionImplementation As CompletionImplementation) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
                         <Workspace>
                             <Project Language="C#" CommonReferences="true" LanguageVersion="7">
                                 <Document>
@@ -1561,9 +1562,10 @@ class Goo
             End Using
         End Function
 
-        <WpfFact(Skip:="https://github.com/dotnet/roslyn/pull/29820"), Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function KeywordsOrSymbolsAfterNamedParameter() As Task
-            Using state = TestState.CreateCSharpTestState(
+        <MemberData(NameOf(AllCompletionImplementations))>
+        <WpfTheory(Skip:="https://github.com/dotnet/roslyn/pull/29820"), Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function KeywordsOrSymbolsAfterNamedParameter(completionImplementation As CompletionImplementation) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
                                 <Document>
 class Goo
 {
@@ -1581,9 +1583,9 @@ class Goo
 
                 state.SendTypeChars("a")
                 Await state.AssertCompletionSession()
-                Assert.True(state.CurrentCompletionPresenterSession.CompletionItems.Any(Function(i) i.DisplayText = "num" AndAlso i.DisplayTextSuffix = ":"))
-                Assert.True(state.CurrentCompletionPresenterSession.CompletionItems.Any(Function(i) i.DisplayText = "System"))
-                Assert.True(state.CurrentCompletionPresenterSession.CompletionItems.Any(Function(c) c.DisplayText = "int"))
+                Assert.True(state.CompletionItemsContainsAny(displayText:="num", displayTextSuffix:=":"))
+                Assert.True(state.CompletionItemsContainsAny({"System"}))
+                Assert.True(state.CompletionItemsContainsAny({"int"}))
             End Using
         End Function
 
@@ -1926,9 +1928,10 @@ public class Goo
         End Function
 
         <WorkItem(545590, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545590")>
+        <MemberData(NameOf(AllCompletionImplementations))>
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function TestOverrideDefaultParameter_CSharp7() As Task
-            Using state = TestState.CreateCSharpTestState(
+        Public Async Function TestOverrideDefaultParameter_CSharp7(completionImplementation As CompletionImplementation) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
                 <Document><![CDATA[
 class C
 {
@@ -3971,11 +3974,7 @@ class C
                 Await state.WaitForAsynchronousOperationsAsync()
 
                 Assert.Equal("#", state.GetLineFromCurrentCaretPosition().GetText())
-                If completionImplementation = CompletionImplementation.Legacy Then
-                    Await state.AssertNoCompletionSession()
-                Else
-                    Await state.AssertCompletionSession() ' Agreed on changing the behavior
-                End If
+                Await state.AssertCompletionSessionAfterTypingHash()
 
                 state.SendTypeChars("reg")
                 Await state.AssertSelectedCompletionItem(displayText:="region")
@@ -3990,11 +3989,7 @@ class C
                 Await state.WaitForAsynchronousOperationsAsync()
 
                 Assert.Equal("#", state.GetLineFromCurrentCaretPosition().GetText())
-                If completionImplementation = CompletionImplementation.Legacy Then
-                    Await state.AssertNoCompletionSession()
-                Else
-                    Await state.AssertCompletionSession() ' Agreed on changing the behavior
-                End If
+                Await state.AssertCompletionSessionAfterTypingHash()
 
                 state.SendTypeChars("endr")
                 Await state.AssertSelectedCompletionItem(displayText:="endregion")

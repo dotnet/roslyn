@@ -37,6 +37,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
             IsImmediateWindow = isImmediateWindow;
 
             // The editor requires the current top buffer.
+            // TODO it seems to be a hack. It should be removed.
+            // Here is an issue to track: https://github.com/dotnet/roslyn/issues/31189
             _innerTextView.Properties.AddProperty(CompletionRoot, bufferGraph.TopBuffer);
         }
 

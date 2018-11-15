@@ -2011,6 +2011,7 @@ End Class</Document>)
             End Using
         End Function
 
+        <WorkItem(883295, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/883295")>
         <MemberData(NameOf(AllCompletionImplementations))>
         <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function InsertOfOnSpace(completionImplementation As CompletionImplementation) As Task

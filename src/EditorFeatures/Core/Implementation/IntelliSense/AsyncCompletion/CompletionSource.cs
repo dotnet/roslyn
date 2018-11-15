@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
+using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.LanguageServices;
@@ -22,7 +23,7 @@ using AsyncCompletionData = Microsoft.VisualStudio.Language.Intellisense.AsyncCo
 using RoslynCompletionItem = Microsoft.CodeAnalysis.Completion.CompletionItem;
 using VSCompletionItem = Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data.CompletionItem;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.AsyncCompletion
+namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncCompletion
 {
     internal class CompletionSource : ForegroundThreadAffinitizedObject, IAsyncCompletionSource
     {
@@ -53,6 +54,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
             SnapshotPoint triggerLocation,
             CancellationToken cancellationToken)
         {
+            // We take sourceText from document to get a snapshot span.
+            // We would like to be sure that nobody changes buffers at the same time.
             AssertIsForeground();
 
             var document = triggerLocation.Snapshot.GetOpenDocumentInCurrentContextWithChanges();

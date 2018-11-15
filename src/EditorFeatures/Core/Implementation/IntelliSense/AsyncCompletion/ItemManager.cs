@@ -7,13 +7,13 @@ using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Completion;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
+using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data;
 using Microsoft.VisualStudio.Text;
 using Roslyn.Utilities;
 using AsyncCompletionData = Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data;
@@ -22,41 +22,42 @@ using RoslynCompletionItem = Microsoft.CodeAnalysis.Completion.CompletionItem;
 using Session = Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.Controller.Session;
 using VSCompletionItem = Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data.CompletionItem;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.AsyncCompletion
+namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncCompletion
 {
-    internal class ItemManager : ForegroundThreadAffinitizedObject, IAsyncCompletionItemManager
+    internal class ItemManager : IAsyncCompletionItemManager
     {
         private readonly CompletionHelper _completionHelper;
 
         private const int MaxMRUSize = 10;
         private ImmutableArray<string> _recentItems = ImmutableArray<string>.Empty;
+        private object _mruUpdateLock = new object();
 
-        internal ItemManager(IThreadingContext threadingContext) : base(threadingContext)
+        internal ItemManager(IAsyncCompletionBroker broker)
         {
+            // Session is created later and this is supported with CompletionTriggered.
+            // Handle it to subscribe for session events.
+            broker.CompletionTriggered += CompletionTriggered;
+
             _completionHelper = new CompletionHelper(isCaseSensitive: true);
         }
 
         public Task<ImmutableArray<VSCompletionItem>> SortCompletionListAsync(
             IAsyncCompletionSession session,
-            AsyncCompletionData.AsyncCompletionSessionInitialDataSnapshot data,
+            AsyncCompletionSessionInitialDataSnapshot data,
             CancellationToken cancellationToken)
-        {
-            SubscribeEvents(session);
-            return Task.FromResult(data.InitialList.OrderBy(i => i.SortText).ToImmutableArray());
-        }
+            => Task.FromResult(data.InitialList.OrderBy(i => i.SortText).ToImmutableArray());
 
-        public Task<AsyncCompletionData.FilteredCompletionModel> UpdateCompletionListAsync(
+        public Task<FilteredCompletionModel> UpdateCompletionListAsync(
             IAsyncCompletionSession session,
-            AsyncCompletionData.AsyncCompletionSessionDataSnapshot data,
+            AsyncCompletionSessionDataSnapshot data,
             CancellationToken cancellationToken)
             => Task.FromResult(UpdateCompletionList(session, data, cancellationToken));
 
-        private AsyncCompletionData.FilteredCompletionModel UpdateCompletionList(
+        private FilteredCompletionModel UpdateCompletionList(
             IAsyncCompletionSession session,
-            AsyncCompletionData.AsyncCompletionSessionDataSnapshot data,
+            AsyncCompletionSessionDataSnapshot data,
             CancellationToken cancellationToken)
         {
-            SubscribeEvents(session);
             if (!session.Properties.TryGetProperty(CompletionSource.HasSuggestionItemOptions, out bool hasSuggestedItemOptions))
             {
                 // This is the scenario when the session is created out of Roslyn, in some other provider, e.g. in Debugger.
@@ -154,7 +155,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
             var completionService = document?.GetLanguageService<CompletionService>();
             var completionRules = completionService?.GetRules() ?? CompletionRules.Default;
 
-            if (data.Trigger.Reason == AsyncCompletionData.CompletionTriggerReason.Backspace &&
+            if (data.Trigger.Reason == CompletionTriggerReason.Backspace &&
                 completionRules.DismissIfLastCharacterDeleted &&
                 session.ApplicableToSpan.GetText(data.Snapshot).Length == 0)
             {
@@ -173,7 +174,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
 
             var updatedFilters = showCompletionItemFilters
                 ? GetUpdatedFilters(initialListOfItemsToBeIncluded, data.SelectedFilters)
-                : ImmutableArray<AsyncCompletionData.CompletionFilterWithState>.Empty;
+                : ImmutableArray<CompletionFilterWithState>.Empty;
 
             var highlightedList = GetHighlightedList(initialListOfItemsToBeIncluded, filterText, highlightMatchingPortions).ToImmutableArray();
 
@@ -211,15 +212,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
             return position > 0 && snapshot[position - 1] == '.';
         }
 
-        private AsyncCompletionData.FilteredCompletionModel HandleNormalFiltering(
+        private FilteredCompletionModel HandleNormalFiltering(
             Func<ImmutableArray<RoslynCompletionItem>, string, ImmutableArray<RoslynCompletionItem>> filterMethod,
             string filterText,
-            ImmutableArray<AsyncCompletionData.CompletionFilterWithState> filters,
+            ImmutableArray<CompletionFilterWithState> filters,
             CompletionTriggerKind initialRoslynTriggerKind,
             CompletionFilterReason filterReason,
             char typeChar,
             List<ExtendedFilterResult> itemsInList,
-            ImmutableArray<AsyncCompletionData.CompletionItemWithHighlight> highlightedList,
+            ImmutableArray<CompletionItemWithHighlight> highlightedList,
             bool hasSuggestedItemOptions)
         {
             // Not deletion.  Defer to the language to decide which item it thinks best
@@ -268,12 +269,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
             }
 
             bool isHardSelection = Session.IsHardSelection(
-                        filterText, initialRoslynTriggerKind, bestOrFirstCompletionItem,
-                        _completionHelper, filterReason, recentItems, hasSuggestedItemOptions);
+                filterText, initialRoslynTriggerKind, bestOrFirstCompletionItem,
+                _completionHelper, filterReason, recentItems, hasSuggestedItemOptions);
 
-            var updateSelectionHint = isHardSelection
-                ? AsyncCompletionData.UpdateSelectionHint.Selected
-                : AsyncCompletionData.UpdateSelectionHint.SoftSelected;
+            var updateSelectionHint = isHardSelection ? UpdateSelectionHint.Selected : UpdateSelectionHint.SoftSelected;
 
             // If no items found above, select the first item.
             if (selectedItemIndex == -1)
@@ -281,18 +280,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
                 selectedItemIndex = 0;
             }
 
-            return new AsyncCompletionData.FilteredCompletionModel(
+            return new FilteredCompletionModel(
                 highlightedList, selectedItemIndex, filters,
                 updateSelectionHint, centerSelection: true, uniqueItem);
         }
 
-        private AsyncCompletionData.FilteredCompletionModel HandleDeletionTrigger(
+        private FilteredCompletionModel HandleDeletionTrigger(
             List<ExtendedFilterResult> filterResults,
             string filterText,
-            ImmutableArray<AsyncCompletionData.CompletionFilterWithState> filters,
-            ImmutableArray<AsyncCompletionData.CompletionItemWithHighlight> highlightedList)
+            ImmutableArray<CompletionFilterWithState> filters,
+            ImmutableArray<CompletionItemWithHighlight> highlightedList)
         {
             ExtendedFilterResult? bestFilterResult = null;
+            int matchCount = 1;
             foreach (var currentFilterResult in filterResults.Where(r => r.FilterResult.MatchedFilterText))
             {
                 if (bestFilterResult == null ||
@@ -300,6 +300,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
                 {
                     // We had no best result yet, so this is now our best result.
                     bestFilterResult = currentFilterResult;
+                    matchCount++;
                 }
             }
 
@@ -327,19 +328,20 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
                 hardSelect = false;
             }
 
-            return new AsyncCompletionData.FilteredCompletionModel(
+            return new FilteredCompletionModel(
                 highlightedList, index, filters,
-                hardSelect ? AsyncCompletionData.UpdateSelectionHint.Selected : AsyncCompletionData.UpdateSelectionHint.SoftSelected,
-                centerSelection: true, uniqueItem: null);
+                hardSelect ? UpdateSelectionHint.Selected : UpdateSelectionHint.SoftSelected,
+                centerSelection: true, 
+                uniqueItem: matchCount == 1 ? bestFilterResult.Value.VSCompletionItem : default);
         }
 
-        private AsyncCompletionData.FilteredCompletionModel HandleAllItemsFilteredOut(
-            AsyncCompletionData.CompletionTriggerReason triggerReason,
-            ImmutableArray<AsyncCompletionData.CompletionFilterWithState> filters,
+        private FilteredCompletionModel HandleAllItemsFilteredOut(
+            CompletionTriggerReason triggerReason,
+            ImmutableArray<CompletionFilterWithState> filters,
             CompletionRules completionRules)
         {
             
-            if (triggerReason == AsyncCompletionData.CompletionTriggerReason.Insertion)
+            if (triggerReason == CompletionTriggerReason.Insertion)
             {
                 // If the user was just typing, and the list went to empty *and* this is a 
                 // language that wants to dismiss on empty, then just return a null model
@@ -357,33 +359,33 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
             // If we are going to filter everything out, then just preserve the existing
             // model (and all the previously filtered items), but switch over to soft
             // selection.
-            var selection = AsyncCompletionData.UpdateSelectionHint.SoftSelected;
+            var selection = UpdateSelectionHint.SoftSelected;
 
-            return new AsyncCompletionData.FilteredCompletionModel(
-                ImmutableArray<AsyncCompletionData.CompletionItemWithHighlight>.Empty, selectedItemIndex: 0,
+            return new FilteredCompletionModel(
+                ImmutableArray<CompletionItemWithHighlight>.Empty, selectedItemIndex: 0,
                 filters, selection, centerSelection: true, uniqueItem: default);
         }
 
-        private IEnumerable<AsyncCompletionData.CompletionItemWithHighlight> GetHighlightedList(
+        private IEnumerable<CompletionItemWithHighlight> GetHighlightedList(
             IEnumerable<ExtendedFilterResult> filterResults,
             string filterText,
             bool highlightMatchingPortions)
         {
-            var highlightedList = new List<AsyncCompletionData.CompletionItemWithHighlight>();
+            var highlightedList = new List<CompletionItemWithHighlight>();
             foreach (var item in filterResults)
             {
                 var highlightedSpans = highlightMatchingPortions
                     ? _completionHelper.GetHighlightedSpans(item.VSCompletionItem.DisplayText, filterText, CultureInfo.CurrentCulture)
                     : ImmutableArray<TextSpan>.Empty;
-                highlightedList.Add(new AsyncCompletionData.CompletionItemWithHighlight(item.VSCompletionItem, highlightedSpans.Select(s => s.ToSpan()).ToImmutableArray()));
+                highlightedList.Add(new CompletionItemWithHighlight(item.VSCompletionItem, highlightedSpans.Select(s => s.ToSpan()).ToImmutableArray()));
             }
 
             return highlightedList;
         }
 
-        private static ImmutableArray<AsyncCompletionData.CompletionFilterWithState> GetUpdatedFilters(
+        private static ImmutableArray<CompletionFilterWithState> GetUpdatedFilters(
             List<ExtendedFilterResult> filteredList,
-            ImmutableArray<AsyncCompletionData.CompletionFilterWithState> filters)
+            ImmutableArray<CompletionFilterWithState> filters)
         {
             // See which filters might be enabled based on the typed code
             var textFilteredFilters = filteredList.SelectMany(n => n.VSCompletionItem.Filters).ToImmutableHashSet();
@@ -394,25 +396,22 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
 
         private void MakeMostRecentItem(string item)
         {
-            var updated = false;
-
-            while (!updated)
+            lock(_mruUpdateLock)
             {
-                var oldItems = _recentItems;
-                var newItems = oldItems.Remove(item);
+                var items = _recentItems;
+                items = items.Remove(item);
 
-                if (newItems.Length == MaxMRUSize)
+                if (items.Length == MaxMRUSize)
                 {
                     // Remove the least recent item.
-                    newItems = newItems.RemoveAt(0);
+                    items = items.RemoveAt(0);
                 }
 
-                newItems = newItems.Add(item);
-                updated = ImmutableInterlocked.InterlockedCompareExchange(ref _recentItems, newItems, oldItems) == oldItems;
+                _recentItems = items.Add(item);
             }
         }
 
-        private static bool ShouldBeFilteredOutOfCompletionList(VSCompletionItem item, ImmutableArray<AsyncCompletionData.CompletionFilter> activeFilters)
+        private static bool ShouldBeFilteredOutOfCompletionList(VSCompletionItem item, ImmutableArray<CompletionFilter> activeFilters)
         {
             foreach (var itemFilter in item.Filters)
             {
@@ -434,25 +433,21 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
         {
             if (sender is IAsyncCompletionSession session)
             {
-                UnsubscribeEvents(session);
+                session.ItemCommitted -= ItemCommitted;
+                session.Dismissed -= SessionDismissed;
             }
         }
 
         private void SubscribeEvents(IAsyncCompletionSession session)
         {
-            UnsubscribeEvents(session);
             session.ItemCommitted += ItemCommitted;
 
-            // We can be called multiple times for Update and for Sort during the lifecycle of the session.
-            // Then, the session can be dismissed out of our code. We should be sure, we do not keep references to dismissed sessions.
-            session.Dismissed += SessionDismissed;
+            // Clean up other subscriptions when session becomes dismissed
+            session.Dismissed += SessionDismissed; 
         }
 
-        private void UnsubscribeEvents(IAsyncCompletionSession session)
-        {
-            session.ItemCommitted -= ItemCommitted;
-            session.Dismissed -= SessionDismissed;
-        }
+        private void CompletionTriggered(object sender, CompletionTriggeredEventArgs e)
+            => SubscribeEvents(e.CompletionSession);
 
         private readonly struct ExtendedFilterResult
         {
