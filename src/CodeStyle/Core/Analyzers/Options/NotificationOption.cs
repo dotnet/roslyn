@@ -1,0 +1,47 @@
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
+using Microsoft.CodeAnalysis.Diagnostics;
+
+namespace Microsoft.CodeAnalysis.CodeStyle
+{
+    /// <summary>
+    /// Offers different notification styles for enforcing
+    /// a code style. Under the hood, it simply maps to <see cref="DiagnosticSeverity"/>
+    /// </summary>
+    /// <remarks>
+    /// This also supports various properties for databinding.
+    /// </remarks>
+    /// <completionlist cref="NotificationOption"/>
+    internal class NotificationOption
+    {
+        public string Name { get; set; }
+
+        public ReportDiagnostic Severity
+        {
+            get;
+            set;
+        }
+
+        [Obsolete("Use " + nameof(Severity) + " instead.")]
+        public DiagnosticSeverity Value
+        {
+            get => Severity.ToDiagnosticSeverity() ?? DiagnosticSeverity.Hidden;
+            set => Severity = value.ToReportDiagnostic();
+        }
+
+        public static readonly NotificationOption None = new NotificationOption(CodeStyleResources.None, ReportDiagnostic.Suppress);
+        public static readonly NotificationOption Silent = new NotificationOption(CodeStyleResources.Refactoring_Only, ReportDiagnostic.Hidden);
+        public static readonly NotificationOption Suggestion = new NotificationOption(CodeStyleResources.Suggestion, ReportDiagnostic.Info);
+        public static readonly NotificationOption Warning = new NotificationOption(CodeStyleResources.Warning, ReportDiagnostic.Warn);
+        public static readonly NotificationOption Error = new NotificationOption(CodeStyleResources.Error, ReportDiagnostic.Error);
+
+        private NotificationOption(string name, ReportDiagnostic severity)
+        {
+            Name = name;
+            Severity = severity;
+        }
+
+        public override string ToString() => Name;
+    }
+}

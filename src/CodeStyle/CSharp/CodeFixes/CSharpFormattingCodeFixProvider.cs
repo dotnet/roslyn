@@ -2,7 +2,9 @@
 
 using System.Composition;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.CSharp.Formatting;
+using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.VisualStudio.CodingConventions;
 
 namespace Microsoft.CodeAnalysis.CodeStyle
@@ -13,9 +15,13 @@ namespace Microsoft.CodeAnalysis.CodeStyle
     {
         private readonly EditorConfigOptionsApplier _editorConfigOptionsApplier = new EditorConfigOptionsApplier();
 
-        protected override OptionSet ApplyFormattingOptions(OptionSet optionSet, ICodingConventionContext codingConventionContext)
+        protected override IFormattingService FormattingService => CSharpFormattingService.Instance;
+
+        protected override ISyntaxFormattingService SyntaxFormattingService => new CSharpSyntaxFormattingService();
+
+        protected override AnalyzerConfigOptions ApplyFormattingOptions(AnalyzerConfigOptions optionSet, ICodingConventionContext codingConventionContext)
         {
-            return _editorConfigOptionsApplier.ApplyConventions(optionSet, codingConventionContext.CurrentConventions, LanguageNames.CSharp);
+            return _editorConfigOptionsApplier.ApplyConventions(optionSet, codingConventionContext.CurrentConventions);
         }
     }
 }

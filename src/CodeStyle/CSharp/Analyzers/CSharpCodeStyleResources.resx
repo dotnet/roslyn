@@ -117,8 +117,19 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="EmptyResource" xml:space="preserve">
-    <value>Remove this value when another is added.</value>
-    <comment>https://github.com/Microsoft/msbuild/issues/1661</comment>
+  <data name="Expected_string_or_char_literal" xml:space="preserve">
+    <value />
+  </data>
+  <data name="Indentation_preferences" xml:space="preserve">
+    <value />
+  </data>
+  <data name="New_line_preferences" xml:space="preserve">
+    <value />
+  </data>
+  <data name="Space_preferences" xml:space="preserve">
+    <value />
+  </data>
+  <data name="Wrapping_preferences" xml:space="preserve">
+    <value />
   </data>
 </root>
