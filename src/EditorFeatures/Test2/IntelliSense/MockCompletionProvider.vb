@@ -23,20 +23,20 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
         Public Overrides Function ProvideCompletionsAsync(context As CompletionContext) As Task
             If _getItems Is Nothing Then
-                Return SpecializedTasks.EmptyTask
+                Return Task.CompletedTask
             End If
 
             Dim items = _getItems(context.Document, context.Position, context.CancellationToken)
 
             If items Is Nothing Then
-                Return SpecializedTasks.EmptyTask
+                Return Task.CompletedTask
             End If
 
             For Each item In items
                 context.AddItem(item)
             Next
 
-            Return SpecializedTasks.EmptyTask
+            Return Task.CompletedTask
         End Function
 
         Friend Overrides Function IsInsertionTrigger(text As SourceText, characterPosition As Integer, options As OptionSet) As Boolean

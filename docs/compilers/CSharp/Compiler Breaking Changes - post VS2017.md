@@ -97,6 +97,7 @@ Example: `Func<int> f = default(TypedReference).GetHashCode; // new error CS0123
     This is changed in 15.6 to now produce an error that the variable is not definitely assigned.
 
 - Visual Studio 2017 version 15.7: https://github.com/dotnet/roslyn/issues/19792 C# compiler will now reject [IsReadOnly] symbols that should have an [InAttribute] modreq, but don't.
+
 - Visual Studio 2017 version 15.7: https://github.com/dotnet/roslyn/pull/25131 C# compiler will now check `stackalloc T [count]` expressions to see if T matches constraints of `Span<T>`.
 
 - https://github.com/dotnet/roslyn/issues/24806 In C# 7.2 and previous versions, it could be possible to observe cases when an RValue expression is reduced to a variable that can be passed by reference in the process of compiling.
@@ -126,5 +127,15 @@ Example:
     `error CS8313: A default literal 'default' is not valid as a case constant. Use another literal (e.g. '0' or 'null') as appropriate. If you intended to write the default label, use 'default:' without 'case'.`
 - Visual Studio 2017 version 15.7: https://github.com/dotnet/roslyn/issues/25399 C# compiler will now produce errors if partial methods parameters have different ref-kinds in implementation vs definition.
 - Visual Studio 2017 version 15.7: https://github.com/dotnet/roslyn/issues/23525 C# compiler will now produce errors if there was an invalid pdbpath supplied to an embedded pdb, instead of just writing it to the binary.
+- Visutal Studio 2017 version 15.7: https://github.com/dotnet/csharplang/blob/master/proposals/csharp-7.3/tuple-equality.md#compatibility The "tuple equality" features (in C# 7.3) introduces built-in operators `==` and `!=` on tuple types. Those built-in operators take precedence over user-defined comparison operators on a custom `ValueTuple` type.
 
 - Visual Studio 2017 version 15.8: https://github.com/dotnet/roslyn/issues/22455 C# compiler will now produce errors if there was an "in" or an "out" argument to an "__arglist" call. "out" was always allowed, and "in" was introduced in 15.5.
+- Visual Studio 2017 version 15.8: https://github.com/dotnet/roslyn/pull/27882 C# compiler will now produce errors on ref assigning a local to a parameter with a wider escape scope if it was a ref-like type.
+- Visual Studio 2017 version 15.8: https://github.com/dotnet/roslyn/issues/26418 C# compiler will now produce errors on out variable declarations that have "ref" or "ref readonly" ref kinds. Example: M(out ref int x);
+- Visual Studio 2017 version 15.8: https://github.com/dotnet/roslyn/issues/27047 The C# compiler will now produce diagnostics for operators marked as obsolete when they are used as part of a tuple comparison.
+- Visual Studio 2017 version 15.8: https://github.com/dotnet/roslyn/pull/27461 The method `LanguageVersionFacts.TryParse` is no longer an extension method.
+- Visual Studio 2017 version 15.8: https://github.com/dotnet/roslyn/pull/27803 pattern matching now will produce errors when trying to return a stack bound value to an invalid escape scope.
+- Visual Studio 2017 version 15.8: https://github.com/dotnet/roslyn/issues/26743 C# will now reject expressions such as `public int* M => &this.Bar[0];` if `Bar` is a fixed field of the containing type.
+- Visual Studio 2017 version 15.8: https://github.com/dotnet/roslyn/issues/27772 invocation receivers will be checked for escape scope errors now in nested scope expressions.
+- Visual Studio 2017 version 15.8: https://github.com/dotnet/roslyn/issues/28117 C# will now reject ref assignments to byval parameters.
+- Visual Studio 2017 version 15.8: https://github.com/dotnet/roslyn/issues/27049 C# will now reject base.Method() calls inside restricted types, because that requires boxing.

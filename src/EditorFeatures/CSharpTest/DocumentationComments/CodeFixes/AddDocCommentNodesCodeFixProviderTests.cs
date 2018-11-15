@@ -150,8 +150,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.DocumentationComments.C
     /// <summary>
     /// 
     /// </summary>
-    /// <param name=""i"">Parameter `i` does something</param>
-    /// <param name=""k"">Parameter `k` does something else</param>
+    /// <param name=""i"">Parameter <paramref name=""i""/> does something</param>
+    /// <param name=""k"">Parameter <paramref name=""k""/> does something else</param>
     public void Fizz(int i, int [|j|], int k) {}
 }
 ";
@@ -162,9 +162,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.DocumentationComments.C
     /// <summary>
     /// 
     /// </summary>
-    /// <param name=""i"">Parameter `i` does something</param>
+    /// <param name=""i"">Parameter <paramref name=""i""/> does something</param>
     /// <param name=""j""></param>
-    /// <param name=""k"">Parameter `k` does something else</param>
+    /// <param name=""k"">Parameter <paramref name=""k""/> does something else</param>
     public void Fizz(int i, int j, int k) {}
 }
 ";

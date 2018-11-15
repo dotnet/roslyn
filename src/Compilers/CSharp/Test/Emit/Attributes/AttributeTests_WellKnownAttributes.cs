@@ -1878,7 +1878,7 @@ public class MyClass
 No DecimalConstantAttribute");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/dotnet/roslyn/issues/23760")]
         public void DecimalConstant_Indexers()
         {
             string source = @"
@@ -1913,7 +1913,7 @@ public class C
             });
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/dotnet/roslyn/issues/23760")]
         public void DecimalConstant_Delegates()
         {
             string source = @"
@@ -4809,7 +4809,7 @@ public class Unbound : Constructed<> { }
             Assert.IsType<SubstitutedNestedTypeSymbol>(substitutedNestedS);
             Assert.True(((INamedTypeSymbol)substitutedNestedS).IsSerializable);
 
-            var valueTupleS = comp.GetTypeByMetadataName("ValueTupleS").GetMember("M").GetTypeOrReturnType();
+            var valueTupleS = comp.GetTypeByMetadataName("ValueTupleS").GetMember("M").GetTypeOrReturnType().TypeSymbol;
             Assert.IsType<TupleTypeSymbol>(valueTupleS);
             Assert.True(((INamedTypeSymbol)valueTupleS).IsSerializable);
 
@@ -4841,7 +4841,7 @@ public class Unbound : Constructed<> { }
             Assert.IsType<SubstitutedNestedErrorTypeSymbol>(nestedSubstitutedError);
             Assert.False(((INamedTypeSymbol)nestedSubstitutedError).IsSerializable);
 
-            var unbound = comp2.GetTypeByMetadataName("Unbound").BaseType().TypeArgumentsNoUseSiteDiagnostics[0];
+            var unbound = comp2.GetTypeByMetadataName("Unbound").BaseType().TypeArgumentsNoUseSiteDiagnostics[0].TypeSymbol;
             Assert.IsType<UnboundArgumentErrorTypeSymbol>(unbound);
             Assert.False(((INamedTypeSymbol)unbound).IsSerializable);
 
@@ -6891,7 +6891,7 @@ namespace N
                 Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "X").WithArguments("N.A", "Do not use").WithLocation(15, 16));
         }
 
-        [Fact]
+        [ConditionalFact(typeof(IsEnglishLocal), Reason = "https://github.com/dotnet/roslyn/issues/28328")]
         [WorkItem(580832, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/580832")]
         public void ObsoleteOnVirtual_OnBase()
         {
@@ -8877,6 +8877,98 @@ class Test
                 // (5,14): warning CS0612: 'BothObsoleteParent.BothObsoleteChild' is obsolete
                 // using static BothObsoleteParent.BothObsoleteChild;
                 Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "BothObsoleteParent.BothObsoleteChild").WithArguments("BothObsoleteParent.BothObsoleteChild").WithLocation(5, 14));
+        }
+
+        [Fact, WorkItem(19394, "https://github.com/dotnet/roslyn/issues/19394")]
+        public void WellKnownTypeAsStruct_DefaultConstructor_DynamicAttribute()
+        {
+            var code = @"
+namespace System.Runtime.CompilerServices
+{
+    public struct DynamicAttribute
+    {
+        public DynamicAttribute(bool[] transformFlags)
+        {
+        }
+    }
+}
+class T
+{
+    void M(dynamic x) {}
+}";
+
+            CreateCompilation(code).VerifyDiagnostics().VerifyEmitDiagnostics(
+                // error CS0616: 'System.Runtime.CompilerServices.DynamicAttribute' is not an attribute class
+                Diagnostic(ErrorCode.ERR_NotAnAttributeClass).WithArguments("System.Runtime.CompilerServices.DynamicAttribute").WithLocation(1, 1));
+        }
+
+        [Fact, WorkItem(19394, "https://github.com/dotnet/roslyn/issues/19394")]
+        public void WellKnownTypeAsStruct_NonDefaultConstructor_DynamicAttribute_Array()
+        {
+            var compilation = CreateCompilationWithCSharp(@"
+using System;
+namespace System.Runtime.CompilerServices
+{
+    public struct DynamicAttribute
+    {
+        public DynamicAttribute(bool[] transformFlags)
+        {
+        }
+    }
+}
+public class Program
+{
+    public static void Test(dynamic[] x)
+    {
+        Console.WriteLine(x.Length);
+        foreach (var y in x)
+        {
+            Console.WriteLine(y);
+        }
+    }
+    public static void Main()
+    {
+        Test(new dynamic[] { ""first"", ""second"" });
+    }
+}", options: TestOptions.ReleaseExe);
+
+            CompileAndVerify(
+                compilation,
+                expectedOutput: @"
+2
+first
+second",
+                symbolValidator: module =>
+                {
+                    var attribute = module.ContainingAssembly.GetTypeByMetadataName("Program").GetMethod("Test").Parameters.Single().GetAttributes().Single();
+
+                    Assert.Equal("System.Runtime.CompilerServices.DynamicAttribute", attribute.AttributeClass.ToTestDisplayString());
+                    Assert.True(attribute.AttributeClass.IsStructType());
+                    Assert.Equal(module.ContainingAssembly, attribute.AttributeClass.ContainingAssembly);
+                    Assert.Equal("transformFlags", attribute.AttributeConstructor.Parameters.Single().Name);
+                });
+        }
+
+        [Fact, WorkItem(19394, "https://github.com/dotnet/roslyn/issues/19394")]
+        public void WellKnownTypeAsStruct_DefaultConstructor_IsReadOnlyAttribute()
+        {
+            var code = @"
+namespace System.Runtime.CompilerServices
+{
+    public struct IsReadOnlyAttribute
+    {
+    }
+}
+class Test
+{
+    void M(in int x)
+    {
+    }
+}";
+
+            CreateCompilation(code).VerifyDiagnostics().VerifyEmitDiagnostics(
+                // error CS0616: 'IsReadOnlyAttribute' is not an attribute class
+                Diagnostic(ErrorCode.ERR_NotAnAttributeClass).WithArguments("System.Runtime.CompilerServices.IsReadOnlyAttribute").WithLocation(1, 1));
         }
     }
 }

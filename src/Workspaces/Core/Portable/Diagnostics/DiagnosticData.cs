@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Threading;
@@ -331,7 +332,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public static DiagnosticData Create(Workspace workspace, Diagnostic diagnostic)
         {
-            Contract.Requires(diagnostic.Location == null || !diagnostic.Location.IsInSource);
+            Debug.Assert(diagnostic.Location == null || !diagnostic.Location.IsInSource);
 
             return new DiagnosticData(
                 diagnostic.Id,
@@ -354,7 +355,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public static DiagnosticData Create(Project project, Diagnostic diagnostic)
         {
-            Contract.Requires(diagnostic.Location == null || !diagnostic.Location.IsInSource);
+            Debug.Assert(diagnostic.Location == null || !diagnostic.Location.IsInSource);
 
             return new DiagnosticData(
                 diagnostic.Id,

@@ -200,7 +200,7 @@ namespace Microsoft.CodeAnalysis.Differencing
         }
 
         /// <summary>
-        /// Calculates a list of "V arrays" using Eugene W. Myers O(ND) Difference Algoritm
+        /// Calculates a list of "V arrays" using Eugene W. Myers O(ND) Difference Algorithm
         /// </summary>
         /// <remarks>
         /// 

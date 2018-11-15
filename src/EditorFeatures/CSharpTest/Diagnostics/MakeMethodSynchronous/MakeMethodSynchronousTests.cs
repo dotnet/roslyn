@@ -338,7 +338,7 @@ public class Class1
     {
         Goo();
     }
-}", fixAllActionEquivalenceKey: AbstractMakeMethodSynchronousCodeFixProvider.EquivalenceKey);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
@@ -645,6 +645,123 @@ class C
         throw new NotImplementedException();
     }}
 }}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
+        public async Task MethodWithUsingAwait()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    async System.Threading.Tasks.Task [|MAsync|]()
+    {
+        await using (var x = new object())
+        {
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
+        public async Task MethodWithUsingNoAwait()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    async System.Threading.Tasks.Task [|MAsync|]()
+    {
+        using (var x = new object())
+        {
+        }
+    }
+}",
+@"class C
+{
+    void [|M|]()
+    {
+        using (var x = new object())
+        {
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
+        public async Task MethodWithAwaitForEach()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    async System.Threading.Tasks.Task [|MAsync|]()
+    {
+        await foreach (var n in new int[] { })
+        {
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
+        public async Task MethodWithForEachNoAwait()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    async System.Threading.Tasks.Task [|MAsync|]()
+    {
+        foreach (var n in new int[] { })
+        {
+        }
+    }
+}",
+@"class C
+{
+    void [|M|]()
+    {
+        foreach (var n in new int[] { })
+        {
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
+        public async Task MethodWithForEachVariableAwait()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    async System.Threading.Tasks.Task [|MAsync|]()
+    {
+        await foreach (var (a, b) in new(int, int)[] { })
+        {
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
+        public async Task MethodWithForEachVariableNoAwait()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    async System.Threading.Tasks.Task [|MAsync|]()
+    {
+        foreach (var (a, b) in new(int, int)[] { })
+        {
+        }
+    }
+}",
+@"class C
+{
+    void [|M|]()
+    {
+        foreach (var (a, b) in new (int, int)[] { })
+        {
+        }
+    }
+}");
         }
     }
 }

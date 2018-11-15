@@ -2,6 +2,51 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="ja" original="../EditorFeaturesResources.resx">
     <body>
+      <trans-unit id="Applying_changes">
+        <source>Applying changes</source>
+        <target state="translated">変更の適用</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Change_configuration">
+        <source>Change configuration</source>
+        <target state="translated">構成の変更</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Code_cleanup_is_not_configured">
+        <source>Code cleanup is not configured</source>
+        <target state="translated">コードのクリーンアップは構成されていません</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Configure_it_now">
+        <source>Configure it now</source>
+        <target state="translated">今すぐ構成する</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Do_not_show_this_message_again">
+        <source>Do not show this message again</source>
+        <target state="translated">今後このメッセージを表示しない</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Do_you_still_want_to_proceed_This_may_produce_broken_code">
+        <source>Do you still want to proceed? This may produce broken code.</source>
+        <target state="new">Do you still want to proceed? This may produce broken code.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Extract_method_encountered_the_following_issues">
+        <source>Extract method encountered the following issues:</source>
+        <target state="new">Extract method encountered the following issues:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Format_document_performed_additional_cleanup">
+        <source>Format Document performed additional cleanup</source>
+        <target state="translated">ドキュメントのフォーマットで追加のクリーンアップが実行されました</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Paste_Tracking">
+        <source>Paste Tracking</source>
+        <target state="new">Paste Tracking</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Preprocessor_Text">
         <source>Preprocessor Text</source>
         <target state="translated">プリプロセッサ テキスト</target>
@@ -10,6 +55,11 @@
       <trans-unit id="Punctuation">
         <source>Punctuation</source>
         <target state="translated">句読点</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="String_Escape_Character">
+        <source>String - Escape Character</source>
+        <target state="new">String - Escape Character</target>
         <note />
       </trans-unit>
       <trans-unit id="User_Types_Classes">
@@ -847,18 +897,8 @@
         <target state="translated">自動書式</target>
         <note />
       </trans-unit>
-      <trans-unit id="Extract_method_failed_with_following_reasons_colon">
-        <source>Extract method failed with following reasons :</source>
-        <target state="translated">抽出メソッドは、次の理由で失敗しました:</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Do_you_still_want_to_proceed_it_will_generate_broken_code">
-        <source>Do you still want to proceed? it will generate broken code.</source>
-        <target state="translated">続行してもよろしいですか? 壊れたコードが生成されます。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="We_can_fix_the_error_by_not_making_struct_out_ref_parameter_s_Do_you_want_to_proceed">
-        <source>We can fix the error by not making struct "out/ref" parameter(s). 
+        <source>We can fix the error by not making struct "out/ref" parameter(s).
 Do you want to proceed?</source>
         <target state="translated">構造体の "out/ref" パラメーターを作成しないことによって、エラーを解決できます。
 続行しますか?</target>
@@ -1084,139 +1124,69 @@ Do you want to proceed?</source>
         <target state="translated">インラインの名前変更フィールドのテキスト</target>
         <note />
       </trans-unit>
-      <trans-unit id="View_Call_Hierarchy_Command_Handler">
-        <source>View Call Hierarchy Command Handler</source>
-        <target state="new">View Call Hierarchy Command Handler</target>
+      <trans-unit id="Block_Comment_Editing">
+        <source>Block Comment Editing</source>
+        <target state="translated">コメント編集のブロック</target>
         <note />
       </trans-unit>
-      <trans-unit id="Automatic_Line_Ender_Command_Handler">
-        <source>Automatic Line Ender Command Handler</source>
-        <target state="new">Automatic Line Ender Command Handler</target>
+      <trans-unit id="Comment_Uncomment_Selection">
+        <source>Comment/Uncomment Selection</source>
+        <target state="translated">選択範囲のコメント/コメント解除</target>
         <note />
       </trans-unit>
-      <trans-unit id="Block_Comment_Editing_Command_Handler">
-        <source>Block Comment Editing Command Handler</source>
-        <target state="new">Block Comment Editing Command Handler</target>
+      <trans-unit id="Code_Completion">
+        <source>Code Completion</source>
+        <target state="translated">コード補完</target>
         <note />
       </trans-unit>
-      <trans-unit id="Change_Signature_Command_Handler">
-        <source>Change Signature Command Handler</source>
-        <target state="new">Change Signature Command Handler</target>
+      <trans-unit id="Execute_In_Interactive">
+        <source>Execute In Interactive</source>
+        <target state="translated">対話形式で実行</target>
         <note />
       </trans-unit>
-      <trans-unit id="Comment_Uncomment_Selection_Command_Handler">
-        <source>Comment/Uncomment Selection Command Handler</source>
-        <target state="new">Comment/Uncomment Selection Command Handler</target>
+      <trans-unit id="Extract_Interface">
+        <source>Extract Interface</source>
+        <target state="translated">インターフェイスの抽出</target>
         <note />
       </trans-unit>
-      <trans-unit id="Completion_Command_Handler">
-        <source>Code Completion Command Handler</source>
-        <target state="new">Code Completion Command Handler</target>
+      <trans-unit id="Go_To_Adjacent_Member">
+        <source>Go To Adjacent Member</source>
+        <target state="translated">隣接するメンバーに移動</target>
         <note />
       </trans-unit>
-      <trans-unit id="Documentation_Comment_Command_Handler">
-        <source>Documentation Comment Command Handler</source>
-        <target state="new">Documentation Comment Command Handler</target>
+      <trans-unit id="Interactive">
+        <source>Interactive</source>
+        <target state="translated">対話型</target>
         <note />
       </trans-unit>
-      <trans-unit id="Encapsulate_Field_Command_Handler">
-        <source>Encapsulate Field Command Handler</source>
-        <target state="new">Encapsulate Field Command Handler</target>
+      <trans-unit id="Paste_in_Interactive">
+        <source>Paste in Interactive</source>
+        <target state="translated">対話形式で貼り付け</target>
         <note />
       </trans-unit>
-      <trans-unit id="Execute_In_Interactive_Command_Handler">
-        <source>Execute In Interactive Command Handler</source>
-        <target state="new">Execute In Interactive Command Handler</target>
+      <trans-unit id="Navigate_To_Highlight_Reference">
+        <source>Navigate To Highlighted Reference</source>
+        <target state="translated">強調表示された参照へ移動</target>
         <note />
       </trans-unit>
-      <trans-unit id="Extract_Interface_Command_Handler">
-        <source>Extract Interface Command Handler</source>
-        <target state="new">Extract Interface Command Handler</target>
+      <trans-unit id="Outlining">
+        <source>Outlining</source>
+        <target state="translated">アウトライン</target>
         <note />
       </trans-unit>
-      <trans-unit id="Extract_Method_Command_Handler">
-        <source>Extract Method Command Handler</source>
-        <target state="new">Extract Method Command Handler</target>
+      <trans-unit id="Rename_Tracking_Cancellation">
+        <source>Rename Tracking Cancellation</source>
+        <target state="translated">名前変更の追跡取り消し</target>
         <note />
       </trans-unit>
-      <trans-unit id="Find_References_Command_Handler">
-        <source>Find References Command Handler</source>
-        <target state="new">Find References Command Handler</target>
+      <trans-unit id="Signature_Help">
+        <source>Signature Help</source>
+        <target state="translated">シグネチャ ヘルプ</target>
         <note />
       </trans-unit>
-      <trans-unit id="Format_Command_Handler">
-        <source>Format Command Handler</source>
-        <target state="new">Format Command Handler</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Go_To_Adjacent_Member_Command_Handler">
-        <source>Go To Adjacent Member Command Handler</source>
-        <target state="new">Go To Adjacent Member Command Handler</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Go_To_Definition_Command_Handler">
-        <source>Go To Definition Command Handler</source>
-        <target state="new">Go To Definition Command Handler</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Go_To_Implementation_Command_Handler">
-        <source>Go To Implementation Command Handler</source>
-        <target state="new">Go To Implementation Command Handler</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="IntelliSense_Command_Handler">
-        <source>IntelliSense Command Handler</source>
-        <target state="new">IntelliSense Command Handler</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Interactive_Command_Handler">
-        <source>Interactive Command Handler</source>
-        <target state="new">Interactive Command Handler</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Interactive_Paste_Command_Handler">
-        <source>Interactive Paste Command Handler</source>
-        <target state="new">Interactive Paste Command Handler</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Navigate_To_Highlight_Reference_Command_Handler">
-        <source>Navigate To Highlighted Reference Command Handler</source>
-        <target state="new">Navigate To Highlighted Reference Command Handler</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Organize_Document_Command_Handler">
-        <source>Organize Document Command Handler</source>
-        <target state="new">Organize Document Command Handler</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Outlining_Command_Handler">
-        <source>Outlining Command Handler</source>
-        <target state="new">Outlining Command Handler</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Rename_Command_Handler">
-        <source>Rename Command Handler</source>
-        <target state="new">Rename Command Handler</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Rename_Tracking_Cancellation_Command_Handler">
-        <source>Rename Tracking Cancellation Command Handler</source>
-        <target state="new">Rename Tracking Cancellation Command Handler</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Signature_Help_Command_Handler">
-        <source>Signature Help Command Handler</source>
-        <target state="new">Signature Help Command Handler</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Smart_Token_Formatter_Command_Handler">
-        <source>Smart Token Formatter Command Handler</source>
-        <target state="new">Smart Token Formatter Command Handler</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Xml_Tag_Completion_Command_Handler">
-        <source>XML Tag Completion Command Handler</source>
-        <target state="new">XML Tag Completion Command Handler</target>
+      <trans-unit id="Smart_Token_Formatter">
+        <source>Smart Token Formatter</source>
+        <target state="translated">スマート トークン フォーマッタ</target>
         <note />
       </trans-unit>
     </body>

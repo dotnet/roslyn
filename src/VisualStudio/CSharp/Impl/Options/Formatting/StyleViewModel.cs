@@ -354,6 +354,53 @@ class C
 }}
 ";
 
+        private static readonly string s_preferConditionalExpressionOverIfWithAssignments = $@"
+class C
+{{
+    void M()
+    {{
+//[
+        // {ServicesVSResources.Prefer_colon}
+        string s = expr ? ""hello"" : ""world"";
+
+        // {ServicesVSResources.Over_colon}
+        string s;
+        if (expr)
+        {{
+            s = ""hello"";
+        }}
+        else
+        {{
+            s = ""world"";
+        }}
+//]
+    }}
+}}
+";
+
+        private static readonly string s_preferConditionalExpressionOverIfWithReturns = $@"
+class C
+{{
+    void M()
+    {{
+//[
+        // {ServicesVSResources.Prefer_colon}
+        return expr ? ""hello"" : ""world"";
+
+        // {ServicesVSResources.Over_colon}
+        if (expr)
+        {{
+            return ""hello"";
+        }}
+        else
+        {{
+            return ""world"";
+        }}
+//]
+    }}
+}}
+";
+
         private static readonly string s_preferPatternMatchingOverIsWithCastCheck = $@"
 class C
 {{
@@ -667,7 +714,28 @@ class Customer
 }}
 ";
 
-        private static readonly string s_preferIsNullOverReferenceEquals = $@"
+        private static readonly string s_preferCompoundAssignments = $@"
+using System;
+class Customer
+{{
+    void M1(int value)
+    {{
+//[
+        // {ServicesVSResources.Prefer_colon}
+        value += 10;
+//]
+    }}
+    void M2(int value)
+    {{
+//[
+        // {ServicesVSResources.Over_colon}
+        value = value + 10
+//]
+    }}
+}}
+";
+
+        private static readonly string s_preferIndexOperator = $@"
 using System;
 
 class Customer
@@ -676,20 +744,73 @@ class Customer
     {{
 //[
         // {ServicesVSResources.Prefer_colon}
-        if (value is null)
-            return;
+        var ch = value[^1];
 //]
     }}
     void M2(string value)
     {{
 //[
         // {ServicesVSResources.Over_colon}
-        if (object.ReferenceEquals(value, null))
+        var ch = value[value.Length - 1];
+//]
+    }}
+}}
+";
+
+        private static readonly string s_preferRangeOperator = $@"
+using System;
+
+class Customer
+{{
+    void M1(string value)
+    {{
+//[
+        // {ServicesVSResources.Prefer_colon}
+        var sub = value[1..^1];
+//]
+    }}
+    void M2(string value)
+    {{
+//[
+        // {ServicesVSResources.Over_colon}
+        var sub = value.Substring(1, value.Length - 2);
+>>>>>>> UI options.  Also support arrays.
+//]
+    }}
+}}
+";
+
+        private static readonly string s_preferIsNullOverReferenceEquals = $@"
+using System;
+
+class Customer
+{{
+    void M1(string value1, string value2)
+    {{
+//[
+        // {ServicesVSResources.Prefer_colon}
+        if (value1 is null)
+            return;
+
+        if (value2 is null)
+            return;
+//]
+    }}
+    void M2(string value1, string value2)
+    {{
+//[
+        // {ServicesVSResources.Over_colon}
+        if (object.ReferenceEquals(value1, null))
+            return;
+
+        if ((object)value2 == null)
             return;
 //]
     }}
 }}
 ";
+
+        #region expression and block bodies
 
         private const string s_preferExpressionBodyForMethods = @"
 using System;
@@ -855,6 +976,38 @@ class List<T>
 //]
 ";
 
+        private const string s_preferExpressionBodyForLambdas = @"
+
+using System;
+
+class Customer
+{
+    void Method()
+    {
+//[
+        Func<int, string> f = a => a.ToString();
+//]
+    }
+}
+";
+
+        private const string s_preferBlockBodyForLambdas = @"
+using System;
+
+class Customer
+{
+    void Method()
+    {
+//[
+        Func<int, string> f = a =>
+        {
+            return a.ToString();
+        };
+//]
+    }
+}
+";
+
         private static readonly string s_preferReadonly = $@"
 class Customer1
 {{
@@ -873,6 +1026,149 @@ class Customer2
 //]
 }}
 ";
+
+        #endregion
+
+        #region arithmetic binary parentheses
+
+        private readonly string s_arithmeticBinaryAlwaysForClarity = $@"
+class C
+{{
+    void M()
+    {{
+//[
+        // {ServicesVSResources.Prefer_colon}
+        var v = a + (b * c);
+
+        // {ServicesVSResources.Over_colon}
+        var v = a + b * c;
+//]
+    }}
+}}
+";
+
+        private readonly string s_arithmeticBinaryNeverIfUnnecessary = $@"
+class C
+{{
+    void M()
+    {{
+//[
+        // {ServicesVSResources.Prefer_colon}
+        var v = a + b * c;
+
+        // {ServicesVSResources.Over_colon}
+        var v = a + (b * c);
+//]
+    }}
+}}
+";
+
+        #endregion
+
+        #region relational binary parentheses
+
+        private readonly string s_relationalBinaryAlwaysForClarity = $@"
+class C
+{{
+    void M()
+    {{
+//[
+        // {ServicesVSResources.Prefer_colon}
+        var v = (a < b) == (c > d);
+
+        // {ServicesVSResources.Over_colon}
+        var v = a < b == c > d;
+//]
+    }}
+}}
+";
+
+        private readonly string s_relationalBinaryNeverIfUnnecessary = $@"
+class C
+{{
+    void M()
+    {{
+//[
+        // {ServicesVSResources.Prefer_colon}
+        var v = a < b == c > d;
+
+        // {ServicesVSResources.Over_colon}
+        var v = (a < b) == (c > d);
+//]
+    }}
+}}
+";
+
+        #endregion
+
+        #region other binary parentheses
+
+        private readonly string s_otherBinaryAlwaysForClarity = $@"
+class C
+{{
+    void M()
+    {{
+//[
+        // {ServicesVSResources.Prefer_colon}
+        var v = a || (b && c);
+
+        // {ServicesVSResources.Over_colon}
+        var v = a || b && c;
+//]
+    }}
+}}
+";
+
+        private readonly string s_otherBinaryNeverIfUnnecessary = $@"
+class C
+{{
+    void M()
+    {{
+//[
+        // {ServicesVSResources.Prefer_colon}
+        var v = a || b && c;
+
+        // {ServicesVSResources.Over_colon}
+        var v = a || (b && c);
+//]
+    }}
+}}
+";
+
+        #endregion
+
+        #region other parentheses
+
+        private readonly string s_otherParenthesesAlwaysForClarity = $@"
+class C
+{{
+    void M()
+    {{
+//[
+        // {ServicesVSResources.Keep_all_parentheses_in_colon}
+        var v = (a.b).Length;
+//]
+    }}
+}}
+";
+
+        private readonly string s_otherParenthesesNeverIfUnnecessary = $@"
+class C
+{{
+    void M()
+    {{
+//[
+        // {ServicesVSResources.Prefer_colon}
+        var v = a.b.Length;
+
+        // {ServicesVSResources.Over_colon}
+        var v = (a.b).Length;
+//]
+    }}
+}}
+";
+
+        #endregion
 
         #endregion
 
@@ -925,16 +1221,24 @@ class Customer2
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CSharpCodeStyleOptions.PreferBraces, ServicesVSResources.Prefer_braces, s_preferBraces, s_preferBraces, this, optionSet, codeBlockPreferencesGroupTitle));
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CodeStyleOptions.PreferAutoProperties, ServicesVSResources.analyzer_Prefer_auto_properties, s_preferAutoProperties, s_preferAutoProperties, this, optionSet, codeBlockPreferencesGroupTitle));
 
+            AddParenthesesOptions(Options);
+
             // Expression preferences
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CodeStyleOptions.PreferObjectInitializer, ServicesVSResources.Prefer_object_initializer, s_preferObjectInitializer, s_preferObjectInitializer, this, optionSet, expressionPreferencesGroupTitle));
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CodeStyleOptions.PreferCollectionInitializer, ServicesVSResources.Prefer_collection_initializer, s_preferCollectionInitializer, s_preferCollectionInitializer, this, optionSet, expressionPreferencesGroupTitle));
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CSharpCodeStyleOptions.PreferPatternMatchingOverIsWithCastCheck, CSharpVSResources.Prefer_pattern_matching_over_is_with_cast_check, s_preferPatternMatchingOverIsWithCastCheck, s_preferPatternMatchingOverIsWithCastCheck, this, optionSet, expressionPreferencesGroupTitle));
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CSharpCodeStyleOptions.PreferPatternMatchingOverAsWithNullCheck, CSharpVSResources.Prefer_pattern_matching_over_as_with_null_check, s_preferPatternMatchingOverAsWithNullCheck, s_preferPatternMatchingOverAsWithNullCheck, this, optionSet, expressionPreferencesGroupTitle));
+            CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CodeStyleOptions.PreferConditionalExpressionOverAssignment, ServicesVSResources.Prefer_conditional_expression_over_if_with_assignments, s_preferConditionalExpressionOverIfWithAssignments, s_preferConditionalExpressionOverIfWithAssignments, this, optionSet, expressionPreferencesGroupTitle));
+            CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CodeStyleOptions.PreferConditionalExpressionOverReturn, ServicesVSResources.Prefer_conditional_expression_over_if_with_returns, s_preferConditionalExpressionOverIfWithReturns, s_preferConditionalExpressionOverIfWithReturns, this, optionSet, expressionPreferencesGroupTitle));
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CodeStyleOptions.PreferExplicitTupleNames, ServicesVSResources.Prefer_explicit_tuple_name, s_preferExplicitTupleName, s_preferExplicitTupleName, this, optionSet, expressionPreferencesGroupTitle));
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CSharpCodeStyleOptions.PreferSimpleDefaultExpression, ServicesVSResources.Prefer_simple_default_expression, s_preferSimpleDefaultExpression, s_preferSimpleDefaultExpression, this, optionSet, expressionPreferencesGroupTitle));
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CodeStyleOptions.PreferInferredTupleNames, ServicesVSResources.Prefer_inferred_tuple_names, s_preferInferredTupleName, s_preferInferredTupleName, this, optionSet, expressionPreferencesGroupTitle));
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CodeStyleOptions.PreferInferredAnonymousTypeMemberNames, ServicesVSResources.Prefer_inferred_anonymous_type_member_names, s_preferInferredAnonymousTypeMemberName, s_preferInferredAnonymousTypeMemberName, this, optionSet, expressionPreferencesGroupTitle));
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CSharpCodeStyleOptions.PreferLocalOverAnonymousFunction, ServicesVSResources.Prefer_local_function_over_anonymous_function, s_preferLocalFunctionOverAnonymousFunction, s_preferLocalFunctionOverAnonymousFunction, this, optionSet, expressionPreferencesGroupTitle));
+            CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CodeStyleOptions.PreferCompoundAssignment, ServicesVSResources.Prefer_compound_assignments, s_preferCompoundAssignments, s_preferCompoundAssignments, this, optionSet, expressionPreferencesGroupTitle));
+
+            CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CSharpCodeStyleOptions.PreferIndexOperator, ServicesVSResources.Prefer_index_operator, s_preferIndexOperator, s_preferIndexOperator, this, optionSet, expressionPreferencesGroupTitle));
+            CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CSharpCodeStyleOptions.PreferRangeOperator, ServicesVSResources.Prefer_range_operator, s_preferRangeOperator, s_preferRangeOperator, this, optionSet, expressionPreferencesGroupTitle));
 
             AddExpressionBodyOptions(optionSet, expressionPreferencesGroupTitle);
 
@@ -947,10 +1251,37 @@ class Customer2
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CSharpCodeStyleOptions.PreferConditionalDelegateCall, CSharpVSResources.Prefer_conditional_delegate_call, s_preferConditionalDelegateCall, s_preferConditionalDelegateCall, this, optionSet, nullCheckingGroupTitle));
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CodeStyleOptions.PreferCoalesceExpression, ServicesVSResources.Prefer_coalesce_expression, s_preferCoalesceExpression, s_preferCoalesceExpression, this, optionSet, nullCheckingGroupTitle));
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CodeStyleOptions.PreferNullPropagation, ServicesVSResources.Prefer_null_propagation, s_preferNullPropagation, s_preferNullPropagation, this, optionSet, nullCheckingGroupTitle));
-            CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CodeStyleOptions.PreferIsNullCheckOverReferenceEqualityMethod, CSharpVSResources.Prefer_is_null_over_ReferenceEquals, s_preferIsNullOverReferenceEquals, s_preferIsNullOverReferenceEquals, this, optionSet, nullCheckingGroupTitle));
+            CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CodeStyleOptions.PreferIsNullCheckOverReferenceEqualityMethod, CSharpVSResources.Prefer_is_null_for_reference_equality_checks, s_preferIsNullOverReferenceEquals, s_preferIsNullOverReferenceEquals, this, optionSet, nullCheckingGroupTitle));
 
             // Field preferences.
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CodeStyleOptions.PreferReadonly, ServicesVSResources.Prefer_readonly, s_preferReadonly, s_preferReadonly, this, optionSet, fieldGroupTitle));
+        }
+
+        private void AddParenthesesOptions(OptionSet optionSet)
+        {
+            AddParenthesesOption(
+                LanguageNames.CSharp, optionSet, CodeStyleOptions.ArithmeticBinaryParentheses,
+                CSharpVSResources.In_arithmetic_binary_operators,
+                new[] { s_arithmeticBinaryAlwaysForClarity, s_arithmeticBinaryNeverIfUnnecessary },
+                defaultAddForClarity: true);
+
+            AddParenthesesOption(
+                LanguageNames.CSharp, optionSet, CodeStyleOptions.OtherBinaryParentheses,
+                CSharpVSResources.In_other_binary_operators,
+                new[] { s_otherBinaryAlwaysForClarity, s_otherBinaryNeverIfUnnecessary },
+                defaultAddForClarity: true);
+
+            AddParenthesesOption(
+                LanguageNames.CSharp, optionSet, CodeStyleOptions.RelationalBinaryParentheses,
+                CSharpVSResources.In_relational_binary_operators,
+                new[] { s_relationalBinaryAlwaysForClarity, s_relationalBinaryNeverIfUnnecessary },
+                defaultAddForClarity: true);
+
+            AddParenthesesOption(
+                LanguageNames.CSharp, optionSet, CodeStyleOptions.OtherParentheses,
+                ServicesVSResources.In_other_operators,
+                new[] { s_otherParenthesesAlwaysForClarity, s_otherParenthesesNeverIfUnnecessary },
+                defaultAddForClarity: false);
         }
 
         private void AddExpressionBodyOptions(OptionSet optionSet, string expressionPreferencesGroupTitle)
@@ -1004,6 +1335,13 @@ class Customer2
                 ServicesVSResources.Use_expression_body_for_accessors,
                 enumValues,
                 new[] { s_preferBlockBodyForAccessors, s_preferExpressionBodyForAccessors, s_preferExpressionBodyForAccessors },
+                this, optionSet, expressionPreferencesGroupTitle, expressionBodyPreferences));
+
+            CodeStyleItems.Add(new EnumCodeStyleOptionViewModel<ExpressionBodyPreference>(
+                CSharpCodeStyleOptions.PreferExpressionBodiedLambdas,
+                ServicesVSResources.Use_expression_body_for_lambdas,
+                enumValues,
+                new[] { s_preferBlockBodyForLambdas, s_preferExpressionBodyForLambdas, s_preferExpressionBodyForLambdas },
                 this, optionSet, expressionPreferencesGroupTitle, expressionBodyPreferences));
         }
     }

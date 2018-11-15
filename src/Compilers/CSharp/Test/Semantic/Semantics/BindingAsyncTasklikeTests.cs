@@ -2,6 +2,7 @@
 
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
@@ -186,7 +187,7 @@ namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : 
             }
             else
             {
-                CompileAndVerify(source, references: new[] { MscorlibRef_v4_0_30316_17626 }, expectedOutput: "better");
+                CompileAndVerify(source, targetFramework: TargetFramework.Empty, references: new[] { MscorlibRef_v4_0_30316_17626 }, expectedOutput: "better");
             }
             return true;
         }
@@ -508,7 +509,7 @@ class MyTaskBuilder<T>
 
 namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(System.Type t) { } } }
 ";
-            CompileAndVerify(source, references: new[] { MscorlibRef_v4_0_30316_17626 }, expectedOutput: "1");
+            CompileAndVerify(source, targetFramework: TargetFramework.Empty, references: new[] { MscorlibRef_v4_0_30316_17626 }, expectedOutput: "1");
         }
 
         [Fact]
@@ -559,7 +560,7 @@ public class ValueTaskBuilder<T>
 
 namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(System.Type t) { } } }
 ";
-            CompileAndVerify(source, references: new[] { MscorlibRef_v4_0_30316_17626 }, expectedOutput: "bbbb");
+            CompileAndVerify(source, targetFramework: TargetFramework.Empty, references: new[] { MscorlibRef_v4_0_30316_17626 }, expectedOutput: "bbbb");
         }
     }
 }

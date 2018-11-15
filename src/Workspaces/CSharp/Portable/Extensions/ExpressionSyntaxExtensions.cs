@@ -45,25 +45,41 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             return expression;
         }
 
-        public static ExpressionSyntax Parenthesize(this ExpressionSyntax expression, bool includeElasticTrivia = true)
+        public static ExpressionSyntax Parenthesize(
+            this ExpressionSyntax expression, bool includeElasticTrivia = true, bool addSimplifierAnnotation = true)
         {
-            if (includeElasticTrivia)
+            // a 'ref' expression should never be parenthesized.  It fundamentally breaks the code.
+            // This is because, from the language's perspective there is no such thing as a ref
+            // expression.  instead, there are constructs like ```return ref expr``` or 
+            // ```x ? ref expr1 : ref expr2```, or ```ref int a = ref expr``` in these cases, the 
+            // ref's do not belong to the exprs, but instead belong to the parent construct. i.e.
+            // ```return ref``` or ``` ? ref  ... : ref ... ``` or ``` ... = ref ...```.  For 
+            // parsing convenience, and to prevent having to update all these constructs, we settled
+            // on a ref-expression node.  But this node isn't a true expression that be operated
+            // on like with everything else.
+            if (expression.IsKind(SyntaxKind.RefExpression))
             {
-                return SyntaxFactory.ParenthesizedExpression(expression.WithoutTrivia())
-                                    .WithTriviaFrom(expression)
-                                    .WithAdditionalAnnotations(Simplifier.Annotation);
+                return expression;
             }
-            else
-            {
-                return SyntaxFactory.ParenthesizedExpression
-                (
+
+            var result = ParenthesizeWorker(expression, includeElasticTrivia);
+            return addSimplifierAnnotation
+                ? result.WithAdditionalAnnotations(Simplifier.Annotation)
+                : result;
+        }
+
+        private static ExpressionSyntax ParenthesizeWorker(
+            this ExpressionSyntax expression, bool includeElasticTrivia)
+        {
+            var withoutTrivia = expression.WithoutTrivia();
+            var parenthesized = includeElasticTrivia
+                ? SyntaxFactory.ParenthesizedExpression(withoutTrivia)
+                : SyntaxFactory.ParenthesizedExpression(
                     SyntaxFactory.Token(SyntaxTriviaList.Empty, SyntaxKind.OpenParenToken, SyntaxTriviaList.Empty),
-                    expression.WithoutTrivia(),
-                    SyntaxFactory.Token(SyntaxTriviaList.Empty, SyntaxKind.CloseParenToken, SyntaxTriviaList.Empty)
-                )
-                .WithTriviaFrom(expression)
-                .WithAdditionalAnnotations(Simplifier.Annotation);
-            }
+                    withoutTrivia,
+                    SyntaxFactory.Token(SyntaxTriviaList.Empty, SyntaxKind.CloseParenToken, SyntaxTriviaList.Empty));
+
+            return parenthesized.WithTriviaFrom(expression);
         }
 
         public static CastExpressionSyntax Cast(
@@ -312,7 +328,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
         public static bool IsInOutContext(this ExpressionSyntax expression)
         {
-            var argument = expression.Parent as ArgumentSyntax;
+            var argument = expression?.Parent as ArgumentSyntax;
             return
                 argument != null &&
                 argument.Expression == expression &&
@@ -480,8 +496,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             return expression is IdentifierNameSyntax && expression.Parent is NameColonSyntax;
         }
 
-        public static bool IsInsideNameOf(this ExpressionSyntax expression)
-            => expression.SyntaxTree.IsNameOfContext(expression.SpanStart);
+        public static bool IsInsideNameOfExpression(
+            this ExpressionSyntax expression, SemanticModel semanticModel, CancellationToken cancellationToken)
+        {
+            var invocation = expression?.GetAncestor<InvocationExpressionSyntax>();
+            if (invocation?.Expression is IdentifierNameSyntax name &&
+                name.Identifier.Text == SyntaxFacts.GetText(SyntaxKind.NameOfKeyword))
+            {
+                return semanticModel.GetMemberGroup(name, cancellationToken).IsDefaultOrEmpty;
+            }
+
+            return false;
+        }
 
         private static bool CanReplace(ISymbol symbol)
         {
@@ -630,6 +656,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 case SyntaxKind.ComplexElementInitializerExpression:
                 case SyntaxKind.Interpolation:
                 case SyntaxKind.RefExpression:
+                case SyntaxKind.LockStatement:
+                case SyntaxKind.ElementAccessExpression:
                     // Direct parent kind checks.
                     return true;
             }
@@ -895,9 +923,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 }
             }
 
-            replacementNode = memberAccess.Name
-                .WithLeadingTrivia(memberAccess.GetLeadingTriviaForSimplifiedMemberAccess())
-                .WithTrailingTrivia(memberAccess.GetTrailingTrivia());
+            replacementNode = memberAccess.GetNameWithTriviaMoved();
             issueSpan = memberAccess.Expression.Span;
 
             if (replacementNode == null)
@@ -907,6 +933,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
             return memberAccess.CanReplaceWithReducedName(replacementNode, semanticModel, cancellationToken);
         }
+
+        public static SimpleNameSyntax GetNameWithTriviaMoved(this MemberAccessExpressionSyntax memberAccess)
+            => memberAccess.Name
+                .WithLeadingTrivia(memberAccess.GetLeadingTriviaForSimplifiedMemberAccess())
+                .WithTrailingTrivia(memberAccess.GetTrailingTrivia());
 
         private static bool TryGetReplacementCandidates(
             SemanticModel semanticModel,
@@ -2621,6 +2652,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 case SyntaxKind.CheckedExpression:
                 case SyntaxKind.UncheckedExpression:
                 case SyntaxKind.AnonymousMethodExpression:
+                // unsafe code
+                case SyntaxKind.SizeOfExpression:
+                case SyntaxKind.PointerMemberAccessExpression:
                     // From C# spec, 7.3.1:
                     // Primary: x.y  x?.y  x?[y]  f(x)  a[x]  x++  x--  new  typeof  default  checked  unchecked  delegate
 
@@ -2634,6 +2668,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 case SyntaxKind.PreDecrementExpression:
                 case SyntaxKind.CastExpression:
                 case SyntaxKind.AwaitExpression:
+                // unsafe code.
+                case SyntaxKind.PointerIndirectionExpression:
+                case SyntaxKind.AddressOfExpression:
+
                     // From C# spec, 7.3.1:
                     // Unary: +  -  !  ~  ++x  --x  (T)x  await Task
 
@@ -2742,6 +2780,56 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
                 default:
                     return OperatorPrecedence.None;
+            }
+        }
+
+        public static bool TryConvertToStatement(
+            this ExpressionSyntax expression,
+            SyntaxToken? semicolonTokenOpt,
+            bool createReturnStatementForExpression,
+            out StatementSyntax statement)
+        {
+            // It's tricky to convert an arrow expression with directives over to a block.
+            // We'd need to find and remove the directives *after* the arrow expression and
+            // move them accordingly.  So, for now, we just disallow this.
+            if (expression.GetLeadingTrivia().Any(t => t.IsDirective))
+            {
+                statement = null;
+                return false;
+            }
+
+            var semicolonToken = semicolonTokenOpt ?? SyntaxFactory.Token(SyntaxKind.SemicolonToken);
+
+            statement = ConvertToStatement(expression, semicolonToken, createReturnStatementForExpression);
+            return true;
+        }
+
+        private static StatementSyntax ConvertToStatement(ExpressionSyntax expression, SyntaxToken semicolonToken, bool createReturnStatementForExpression)
+        {
+            if (expression.IsKind(SyntaxKind.ThrowExpression))
+            {
+                var throwExpression = (ThrowExpressionSyntax)expression;
+                return SyntaxFactory.ThrowStatement(throwExpression.ThrowKeyword, throwExpression.Expression, semicolonToken);
+            }
+            else if (createReturnStatementForExpression)
+            {
+                if (expression.GetLeadingTrivia().Any(t => t.IsSingleOrMultiLineComment()))
+                {
+                    return SyntaxFactory.ReturnStatement(expression.WithLeadingTrivia(SyntaxFactory.ElasticSpace))
+                                        .WithSemicolonToken(semicolonToken)
+                                        .WithLeadingTrivia(expression.GetLeadingTrivia())
+                                        .WithPrependedLeadingTrivia(SyntaxFactory.ElasticMarker);
+                }
+                else
+                {
+                    return SyntaxFactory.ReturnStatement(expression)
+                                        .WithSemicolonToken(semicolonToken);
+                }
+            }
+            else
+            {
+                return SyntaxFactory.ExpressionStatement(expression)
+                                    .WithSemicolonToken(semicolonToken);
             }
         }
     }

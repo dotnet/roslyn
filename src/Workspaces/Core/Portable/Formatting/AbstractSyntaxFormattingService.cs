@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Formatting
 
         protected abstract Task<AbstractFormattingResult> FormatAsync(SyntaxNode node, OptionSet options, IEnumerable<IFormattingRule> rules, SyntaxToken token1, SyntaxToken token2, CancellationToken cancellationToken);
 
-        public async Task<IFormattingResult> FormatAsync(SyntaxNode node, IEnumerable<TextSpan> spans, OptionSet options, IEnumerable<IFormattingRule> rules, CancellationToken cancellationToken)
+        public Task<IFormattingResult> FormatAsync(SyntaxNode node, IEnumerable<TextSpan> spans, OptionSet options, IEnumerable<IFormattingRule> rules, CancellationToken cancellationToken)
         {
             CheckArguments(node, spans, options, rules);
 
@@ -38,16 +38,16 @@ namespace Microsoft.CodeAnalysis.Formatting
             var spansToFormat = new NormalizedTextSpanCollection(spans.Where(s_notEmpty));
             if (spansToFormat.Count == 0)
             {
-                return CreateAggregatedFormattingResult(node, SpecializedCollections.EmptyList<AbstractFormattingResult>());
+                return Task.FromResult(CreateAggregatedFormattingResult(node, SpecializedCollections.EmptyList<AbstractFormattingResult>()));
             }
 
             // check what kind of formatting strategy to use
             if (AllowDisjointSpanMerging(spansToFormat, options.GetOption(FormattingOptions.AllowDisjointSpanMerging)))
             {
-                return await FormatMergedSpanAsync(node, options, rules, spansToFormat, cancellationToken).ConfigureAwait(false);
+                return FormatMergedSpanAsync(node, options, rules, spansToFormat, cancellationToken);
             }
 
-            return await FormatIndividuallyAsync(node, options, rules, spansToFormat, cancellationToken).ConfigureAwait(false);
+            return FormatIndividuallyAsync(node, options, rules, spansToFormat, cancellationToken);
         }
 
         private async Task<IFormattingResult> FormatMergedSpanAsync(

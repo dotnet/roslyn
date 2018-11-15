@@ -3348,8 +3348,8 @@ End Class"
                 {
                     {methodToken, debugInfo}
                 }.ToImmutableDictionary())
-            Dim context = EvaluationContext.CreateMethodContext(
-                Nothing,
+            Dim context = CreateMethodContext(
+                New AppDomain(),
                 blocks,
                 MakeDummyLazyAssemblyReaders(),
                 symReader,
@@ -3357,7 +3357,8 @@ End Class"
                 methodToken,
                 methodVersion:=1,
                 ilOffset:=0,
-                localSignatureToken:=localSignatureToken)
+                localSignatureToken:=localSignatureToken,
+                kind:=MakeAssemblyReferencesKind.AllAssemblies)
 
             Dim assembly = context.CompileGetLocals(locals, argumentsOnly:=False, typeName:=Nothing, testData:=Nothing)
 

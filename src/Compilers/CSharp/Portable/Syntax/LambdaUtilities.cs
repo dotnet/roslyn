@@ -421,9 +421,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                 default:
                     // With the introduction of pattern-matching, many nodes now contain top-level
                     // expressions that may introduce pattern variables.
-                    if (node.Parent.IsKind(SyntaxKind.EqualsValueClause))
+                    if (node.Parent != null)
                     {
-                        return true;
+                        switch(node.Parent.Kind())
+                        {
+                            case SyntaxKind.EqualsValueClause:
+                                return true;
+
+                            case SyntaxKind.ForStatement:
+                                SeparatedSyntaxList<ExpressionSyntax> incrementors = ((ForStatementSyntax)node.Parent).Incrementors;
+                                if (incrementors.FirstOrDefault() == node)
+                                {
+                                    return true;
+                                }
+                                break;
+                        }
                     }
 
                     break;

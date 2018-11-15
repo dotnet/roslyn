@@ -49,11 +49,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static bool IsNullable(this ITypeSymbol symbol)
             => symbol?.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T;
 
-        public static bool IsErrorType(this ITypeSymbol symbol)
-        {
-            return symbol?.TypeKind == TypeKind.Error;
-        }
-
         public static bool IsModuleType(this ITypeSymbol symbol)
         {
             return symbol?.TypeKind == TypeKind.Module;
@@ -853,6 +848,37 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static bool IsEnumType(this ITypeSymbol type)
         {
             return type.IsValueType && type.TypeKind == TypeKind.Enum;
+        }
+
+        public static bool? IsMutableValueType(this ITypeSymbol type)
+        {
+            if (type.IsNullable())
+            {
+                // Nullable<T> can only be mutable if T is mutable. This case ensures types like 'int?' are treated as
+                // immutable.
+                type = type.GetTypeArguments()[0];
+            }
+
+            if (type.IsErrorType())
+            {
+                return null;
+            }
+
+            if (type.TypeKind != TypeKind.Struct)
+            {
+                return false;
+            }
+
+            foreach (var member in type.GetMembers())
+            {
+                if (member is IFieldSymbol fieldSymbol &&
+                    !(fieldSymbol.IsConst || fieldSymbol.IsReadOnly || fieldSymbol.IsStatic))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
     }
 }

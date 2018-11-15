@@ -132,6 +132,10 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
         protected override bool CanAddImportForDeconstruct(string diagnosticId, SyntaxNode node)
             => diagnosticId == CS8129;
 
+        protected override bool CanAddImportForGetAwaiter(string diagnosticId, ISyntaxFactsService syntaxFactsService, SyntaxNode node)
+            => diagnosticId == CS1061 &&
+            AncestorOrSelfIsAwaitExpression(syntaxFactsService, node);
+
         protected override bool CanAddImportForNamespace(string diagnosticId, SyntaxNode node, out SimpleNameSyntax nameNode)
         {
             nameNode = null;
@@ -164,6 +168,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
                 case CS1580:
                 case CS1581:
                 case CS1955:
+                case CS0281:
                     break;
 
                 case CS1574:

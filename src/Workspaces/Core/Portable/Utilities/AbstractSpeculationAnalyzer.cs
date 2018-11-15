@@ -471,12 +471,12 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             Debug.Assert(previousOriginalNode == null || previousOriginalNode.Parent == currentOriginalNode);
             Debug.Assert(previousReplacedNode == null || previousReplacedNode.Parent == currentReplacedNode);
 
-            if (IsInvocableExpression(currentOriginalNode))
+            if (ExpressionMightReferenceMember(currentOriginalNode))
             {
                 // If replacing the node will result in a change in overload resolution, we won't remove it.
                 var originalExpression = (TExpressionSyntax)currentOriginalNode;
                 var newExpression = (TExpressionSyntax)currentReplacedNode;
-                if (ReplacementBreaksInvocableExpression(originalExpression, newExpression))
+                if (ReplacementBreaksExpression(originalExpression, newExpression))
                 {
                     return true;
                 }
@@ -643,7 +643,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             return symbol != null && !SymbolsAreCompatible(symbol, newSymbol);
         }
 
-        protected abstract bool IsInvocableExpression(SyntaxNode node);
+        protected abstract bool ExpressionMightReferenceMember(SyntaxNode node);
 
         private static bool IsDelegateInvoke(ISymbol symbol)
         {
@@ -658,7 +658,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 symbol.ContainingType.IsAnonymousType();
         }
 
-        private bool ReplacementBreaksInvocableExpression(TExpressionSyntax expression, TExpressionSyntax newExpression)
+        private bool ReplacementBreaksExpression(TExpressionSyntax expression, TExpressionSyntax newExpression)
         {
             var originalSymbolInfo = _semanticModel.GetSymbolInfo(expression);
             if (_failOnOverloadResolutionFailuresInOriginalCode && originalSymbolInfo.CandidateReason == CandidateReason.OverloadResolutionFailure)
@@ -754,8 +754,8 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         private bool IsCompatibleInterfaceMemberImplementation(
             ISymbol symbol,
             ISymbol newSymbol,
-            TExpressionSyntax originalInvocationExpression,
-            TExpressionSyntax newInvocationExpression,
+            TExpressionSyntax originalExpression,
+            TExpressionSyntax newExpression,
             SemanticModel speculativeSemanticModel)
         {
             // If this is an interface member, we have to be careful. In general,
@@ -783,7 +783,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 return false;
             }
 
-            var newReceiver = GetReceiver(newInvocationExpression);
+            var newReceiver = GetReceiver(newExpression);
             ITypeSymbol newReceiverType = newReceiver != null ?
                 speculativeSemanticModel.GetTypeInfo(newReceiver).ConvertedType :
                 newSymbolContainingType;
@@ -823,7 +823,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 return false;
             }
 
-            return SymbolsHaveCompatibleParameterLists(symbol, implementationMember, originalInvocationExpression);
+            return SymbolsHaveCompatibleParameterLists(symbol, implementationMember, originalExpression);
         }
 
         private static bool IsEffectivelySealedClass(ITypeSymbol type)
@@ -901,7 +901,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             if (originalSymbol.IsKind(SymbolKind.Method) || originalSymbol.IsIndexer())
             {
                 var specifiedArguments = GetArguments(originalInvocation);
-                if (specifiedArguments != null)
+                if (!specifiedArguments.IsDefault)
                 {
                     var symbolParameters = originalSymbol.GetParameters();
                     var newSymbolParameters = newSymbol.GetParameters();

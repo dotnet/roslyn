@@ -8,6 +8,7 @@ using Word = System.UInt32;
 
 namespace Microsoft.CodeAnalysis
 {
+    [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
     internal struct BitVector : IEquatable<BitVector>
     {
         private const Word ZeroWord = 0;
@@ -18,7 +19,7 @@ namespace Microsoft.CodeAnalysis
         // Cannot expose the following two field publicly because this structure is mutable
         // and might become not null/empty, unless we restrict access to it.
         private static readonly Word[] s_emptyArray = Array.Empty<Word>();
-        private static readonly BitVector s_nullValue = new BitVector(0, null, 0);
+        private static readonly BitVector s_nullValue = default;
         private static readonly BitVector s_emptyValue = new BitVector(0, s_emptyArray, 0);
 
         private Word _bits0;
@@ -46,6 +47,16 @@ namespace Microsoft.CodeAnalysis
         public override bool Equals(object obj)
         {
             return obj is BitVector && Equals((BitVector)obj);
+        }
+
+        public static bool operator ==(BitVector left, BitVector right)
+        {
+            return left.Equals(right);
+        }
+
+        public static bool operator !=(BitVector left, BitVector right)
+        {
+            return !left.Equals(right);
         }
 
         public override int GetHashCode()
@@ -348,6 +359,16 @@ namespace Microsoft.CodeAnalysis
         {
             if (capacity <= 0) return 0;
             return WordsForCapacity(capacity) + 1;
+        }
+
+        internal string GetDebuggerDisplay()
+        {
+            var value = new char[_capacity];
+            for (int i = 0; i < _capacity; i++)
+            {
+                value[_capacity - i - 1] = this[i] ? '1' : '0';
+            }
+            return new string(value);
         }
     }
 }

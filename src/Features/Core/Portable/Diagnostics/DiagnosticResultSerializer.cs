@@ -158,6 +158,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             writer.WriteInt32(telemetryInfo.SyntaxTreeActionsCount);
             writer.WriteInt32(telemetryInfo.SemanticModelActionsCount);
             writer.WriteInt32(telemetryInfo.SymbolActionsCount);
+            writer.WriteInt32(telemetryInfo.SymbolStartActionsCount);
+            writer.WriteInt32(telemetryInfo.SymbolEndActionsCount);
             writer.WriteInt32(telemetryInfo.SyntaxNodeActionsCount);
             writer.WriteInt32(telemetryInfo.CodeBlockStartActionsCount);
             writer.WriteInt32(telemetryInfo.CodeBlockEndActionsCount);
@@ -167,6 +169,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             writer.WriteInt32(telemetryInfo.OperationBlockStartActionsCount);
             writer.WriteInt32(telemetryInfo.OperationBlockEndActionsCount);
             writer.WriteInt64(telemetryInfo.ExecutionTime.Ticks);
+            writer.WriteBoolean(telemetryInfo.Concurrent);
         }
 
         private static AnalyzerTelemetryInfo Deserialize(ObjectReader reader, CancellationToken cancellationToken)
@@ -179,6 +182,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             var syntaxTreeActionsCount = reader.ReadInt32();
             var semanticModelActionsCount = reader.ReadInt32();
             var symbolActionsCount = reader.ReadInt32();
+            var symbolStartActionsCount = reader.ReadInt32();
+            var symbolEndActionsCount = reader.ReadInt32();
             var syntaxNodeActionsCount = reader.ReadInt32();
             var codeBlockStartActionsCount = reader.ReadInt32();
             var codeBlockEndActionsCount = reader.ReadInt32();
@@ -188,6 +193,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             var operationBlockStartActionsCount = reader.ReadInt32();
             var operationBlockEndActionsCount = reader.ReadInt32();
             var executionTime = new TimeSpan(reader.ReadInt64());
+            var concurrent = reader.ReadBoolean();
 
             return new AnalyzerTelemetryInfo()
             {
@@ -198,6 +204,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 SyntaxTreeActionsCount = syntaxTreeActionsCount,
                 SemanticModelActionsCount = semanticModelActionsCount,
                 SymbolActionsCount = symbolActionsCount,
+                SymbolStartActionsCount = symbolStartActionsCount,
+                SymbolEndActionsCount = symbolEndActionsCount,
                 SyntaxNodeActionsCount = syntaxNodeActionsCount,
 
                 CodeBlockStartActionsCount = codeBlockStartActionsCount,
@@ -209,7 +217,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 OperationBlockEndActionsCount = operationBlockEndActionsCount,
                 OperationBlockActionsCount = operationBlockActionsCount,
 
-                ExecutionTime = executionTime
+                ExecutionTime = executionTime,
+
+                Concurrent = concurrent
             };
         }
 

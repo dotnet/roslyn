@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
 
         public void ExecuteCommand(ReturnKeyCommandArgs args, Action nextHandler, CommandExecutionContext context)
         {
-            ExecuteReturnOrTypeCommand(args, nextHandler, CancellationToken.None);
+            ExecuteReturnOrTypeCommand(args, nextHandler, context.OperationContext.UserCancellationToken);
         }
     }
 }

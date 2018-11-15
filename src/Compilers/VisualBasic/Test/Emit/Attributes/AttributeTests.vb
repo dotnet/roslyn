@@ -4211,7 +4211,7 @@ End Class
     ]]></file>
 </compilation>
 
-            Dim comp = CreateCompilationWithMscorlib40(source, TestOptions.ReleaseDll)
+            Dim comp = CreateCompilationWithMscorlib40(source, options:=TestOptions.ReleaseDll)
             Dim type = comp.GlobalNamespace.GetMember(Of NamedTypeSymbol)("Target")
 
             Dim typeInAttribute = DirectCast(type.GetAttributes()(0).ConstructorArguments(0).Value, NamedTypeSymbol)
@@ -4618,5 +4618,39 @@ End Class
             Assert.NotNull(compilation2.GetTypeByMetadataName("TestReference2"))
         End Sub
 
+        <Fact>
+        Public Sub AttributeWithTaskDelegateParameter()
+            Dim code = "
+Imports System
+Imports System.Threading.Tasks
+
+Namespace a
+    Public Class Class1
+        <AttributeUsage(AttributeTargets.Class, AllowMultiple:=True)>
+        Public Class CommandAttribute
+            Inherits Attribute
+
+            Public Delegate Function FxCommand() As Task
+
+            Public Sub New(Fx As FxCommand)
+                Me.Fx = Fx
+            End Sub
+
+            Public Property Fx As FxCommand
+        End Class
+
+        <Command(AddressOf UserInfo)>
+        Public Shared Async Function UserInfo() As Task
+            Await New Task(
+                Sub()
+                End Sub)
+        End Function
+    End Class
+End Namespace
+"
+            CreateCompilationWithMscorlib45(code).VerifyDiagnostics(
+                Diagnostic(ERRID.ERR_BadAttributeConstructor1, "Command").WithArguments("a.Class1.CommandAttribute.FxCommand").WithLocation(20, 10),
+                Diagnostic(ERRID.ERR_RequiredConstExpr, "AddressOf UserInfo").WithLocation(20, 18))
+        End Sub
     End Class
 End Namespace

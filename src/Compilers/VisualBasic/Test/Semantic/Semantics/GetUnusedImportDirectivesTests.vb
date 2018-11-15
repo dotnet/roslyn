@@ -281,19 +281,17 @@ Imports System
 ''' <see cref='Console'/>
 Class A
 End Class
-    ]]></file>
+]]></file>
 </compilation>
 
             ' Without doc comments.
-            CreateCompilationWithMscorlib40(source, parseOptions:=New VisualBasicParseOptions(documentationMode:=DocumentationMode.None)).AssertTheseDiagnostics(
-                <errors>
-BC50001: Unused import statement.
-Imports System
-~~~~~~~~~~~~~~
-                </errors>, suppressInfos:=False)
+            CreateCompilationWithMscorlib40(source, parseOptions:=New VisualBasicParseOptions(documentationMode:=DocumentationMode.None)).AssertNoDiagnostics(suppressInfos:=False)
 
-            ' With doc comments.
-            CreateCompilationWithMscorlib40(source, parseOptions:=New VisualBasicParseOptions(documentationMode:=DocumentationMode.Diagnose)).AssertTheseDiagnostics(<errors></errors>, suppressInfos:=False)
+            ' With doc comments parsed.
+            CreateCompilationWithMscorlib40(source, parseOptions:=New VisualBasicParseOptions(documentationMode:=DocumentationMode.Parse)).AssertNoDiagnostics(suppressInfos:=False)
+
+            ' With doc comments diagnosed.
+            CreateCompilationWithMscorlib40(source, parseOptions:=New VisualBasicParseOptions(documentationMode:=DocumentationMode.Diagnose)).AssertNoDiagnostics(suppressInfos:=False)
         End Sub
 
         <Fact>
@@ -365,6 +363,37 @@ End Class
             Dim model = comp.GetSemanticModel(tree)
             Dim diagnostics = model.GetDiagnostics()
             AssertTheseDiagnostics(diagnostics, <errors></errors>)
+        End Sub
+
+        <Fact, WorkItem(2773, "https://github.com/dotnet/roslyn/issues/2773")>
+        Public Sub UsageInDocComment()
+            Dim source =
+<compilation>
+    <file name="a.vb"><![CDATA[
+Imports X
+
+''' <summary/>
+Public Class Program
+
+    ''' <summary>
+    ''' <see cref="Q"/>
+    ''' </summary>
+    Public Sub Main()
+    End Sub
+
+End Class
+
+Namespace Global.X
+    ''' <summary/>
+    Public Class Q
+    End Class
+End Namespace
+]]></file>
+</compilation>
+            For Each documentationMode As DocumentationMode In [Enum].GetValues(GetType(DocumentationMode))
+                Dim compilation = CreateCompilationWithMscorlib40(source, parseOptions:=TestOptions.Regular.WithDocumentationMode(documentationMode))
+                compilation.AssertNoDiagnostics(suppressInfos:=False)
+            Next
         End Sub
     End Class
 End Namespace

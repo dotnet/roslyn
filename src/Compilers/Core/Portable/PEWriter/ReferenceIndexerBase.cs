@@ -29,6 +29,7 @@ namespace Microsoft.Cci
         }
 
         protected abstract void RecordAssemblyReference(IAssemblyReference assemblyReference);
+        protected abstract bool ProcessReferencesInCurrentModule { get; }
 
         public override void Visit(ICustomModifier customModifier)
         {
@@ -51,7 +52,7 @@ namespace Microsoft.Cci
             }
 
             IUnitReference definingUnit = MetadataWriter.GetDefiningUnitReference(fieldReference.GetContainingType(Context), Context);
-            if (definingUnit != null && ReferenceEquals(definingUnit, Context.Module))
+            if (!ProcessReferencesInCurrentModule && definingUnit != null && ReferenceEquals(definingUnit, Context.Module))
             {
                 return;
             }
@@ -135,7 +136,7 @@ namespace Microsoft.Cci
             // an ordinary method def token. We consistently choose to emit a method ref regardless.)
 
             IUnitReference definingUnit = MetadataWriter.GetDefiningUnitReference(methodReference.GetContainingType(Context), Context);
-            if (definingUnit != null && ReferenceEquals(definingUnit, Context.Module) && !methodReference.AcceptsExtraArguments)
+            if (!ProcessReferencesInCurrentModule && definingUnit != null && ReferenceEquals(definingUnit, Context.Module) && !methodReference.AcceptsExtraArguments)
             {
                 return;
             }

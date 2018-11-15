@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Completion
         /// The matching algorithm will tend to prefer this item unless
         /// a dramatically better text-based match is available.
         /// 
-        /// With no filter text, this item (or the first item alphabeitcally 
+        /// With no filter text, this item (or the first item alphabetically 
         /// with this priority) should always be selected.
         /// test
         /// This is used for specific IDE scenarios like "Object creation preselection"

@@ -8,6 +8,8 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Current usage:
     ///  (1) C# this or base expression.
     ///  (2) VB Me, MyClass, or MyBase expression.
+    ///  (3) C# object or collection initializers.
+    ///  (4) VB With statements, object or collection initializers.
     /// </para>
     /// </summary>
     /// <remarks>
@@ -16,6 +18,10 @@ namespace Microsoft.CodeAnalysis.Operations
     /// </remarks>
     public interface IInstanceReferenceOperation : IOperation
     {
+        /// <summary>
+        /// The kind of reference that is being made.
+        /// </summary>
+        InstanceReferenceKind ReferenceKind { get; }
     }
 }
 

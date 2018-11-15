@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -458,6 +459,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 // quick optimization to reduce allocations.
                 if (analyzerDriverOpt == null || !_owner.SupportAnalysisKind(analyzer, document.Project.Language, kind))
                 {
+                    LogSyntaxInfo(analyzerDriverOpt, document, analyzer, kind);
                     return ImmutableArray<Diagnostic>.Empty;
                 }
 
@@ -474,14 +476,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     case AnalysisKind.Syntax:
                         var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
                         var diagnostics = await analyzerDriverOpt.GetAnalyzerSyntaxDiagnosticsAsync(tree, oneAnalyzers, cancellationToken).ConfigureAwait(false);
+                        LogSyntaxInfo(document, analyzer, diagnostics, tree);
 
-                        Contract.Requires(diagnostics.Count() == CompilationWithAnalyzers.GetEffectiveDiagnostics(diagnostics, analyzerDriverOpt.Compilation).Count());
+                        Debug.Assert(diagnostics.Count() == CompilationWithAnalyzers.GetEffectiveDiagnostics(diagnostics, analyzerDriverOpt.Compilation).Count());
                         return diagnostics.ToImmutableArrayOrEmpty();
                     case AnalysisKind.Semantic:
                         var model = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                         diagnostics = await analyzerDriverOpt.GetAnalyzerSemanticDiagnosticsAsync(model, spanOpt, oneAnalyzers, cancellationToken).ConfigureAwait(false);
 
-                        Contract.Requires(diagnostics.Count() == CompilationWithAnalyzers.GetEffectiveDiagnostics(diagnostics, analyzerDriverOpt.Compilation).Count());
+                        Debug.Assert(diagnostics.Count() == CompilationWithAnalyzers.GetEffectiveDiagnostics(diagnostics, analyzerDriverOpt.Compilation).Count());
                         return diagnostics.ToImmutableArrayOrEmpty();
                     default:
                         return Contract.FailWithReturn<ImmutableArray<Diagnostic>>("shouldn't reach here");
@@ -498,7 +501,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 var enabled = await document.Project.HasSuccessfullyLoadedAsync(cancellationToken).ConfigureAwait(false);
 
-                Logger.Log(FunctionId.Diagnostics_SemanticDiagnostic, (a, d, e) => $"{a.ToString()}, ({d.FilePath ?? d.Name}), Enabled:{e}", analyzer, document, enabled);
+                Logger.Log(FunctionId.Diagnostics_SemanticDiagnostic, (a, d, e) => $"{a.ToString()}, ({d.Id}, {d.Project.Id}), Enabled:{e}", analyzer, document, enabled);
 
                 return enabled;
             }
@@ -599,7 +602,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                         continue;
                     }
 
-                    if (span.HasValue && !span.Value.Contains(diagnostic.Location.SourceSpan))
+                    if (span.HasValue && !span.Value.IntersectsWith(diagnostic.Location.SourceSpan))
                     {
                         continue;
                     }
@@ -706,6 +709,28 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                         Contract.Fail("shouldn't reach here");
                         break;
                 }
+            }
+
+            private static void LogSyntaxInfo(Document document, DiagnosticAnalyzer analyzer, ImmutableArray<Diagnostic> diagnostics, SyntaxTree tree)
+            {
+                if (!diagnostics.IsDefaultOrEmpty)
+                {
+                    return;
+                }
+
+                Logger.Log(FunctionId.Diagnostics_SyntaxDiagnostic,
+                    (d, a, t) => $"{d.Id}, {d.Project.Id}, {a.ToString()}, {t.Length}", document, analyzer, tree);
+            }
+
+            private static void LogSyntaxInfo(CompilationWithAnalyzers analyzerDriverOpt, Document document, DiagnosticAnalyzer analyzer, AnalysisKind kind)
+            {
+                if (kind != AnalysisKind.Syntax)
+                {
+                    return;
+                }
+
+                Logger.Log(FunctionId.Diagnostics_SyntaxDiagnostic,
+                    (r, d, a, k) => $"Driver: {r != null}, {d.Id}, {d.Project.Id}, {a.ToString()}, {k}", analyzerDriverOpt, document, analyzer, kind);
             }
         }
     }

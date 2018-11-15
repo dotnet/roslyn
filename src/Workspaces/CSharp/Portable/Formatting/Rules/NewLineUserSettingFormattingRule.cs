@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Diagnostics;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting.Rules;
@@ -11,12 +12,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
     {
         private bool IsControlBlock(SyntaxNode node)
         {
+            Debug.Assert(node != null);
+
             if (node.Kind() == SyntaxKind.SwitchStatement)
             {
                 return true;
             }
 
-            var parentKind = node?.Parent.Kind();
+            var parentKind = node.Parent?.Kind();
+
             switch (parentKind.GetValueOrDefault())
             {
                 case SyntaxKind.IfStatement:

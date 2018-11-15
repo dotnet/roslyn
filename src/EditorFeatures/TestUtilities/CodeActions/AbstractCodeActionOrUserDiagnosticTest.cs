@@ -31,30 +31,39 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
         public struct TestParameters
         {
             internal readonly IDictionary<OptionKey, object> options;
-            internal readonly string fixAllActionEquivalenceKey;
             internal readonly object fixProviderData;
             internal readonly ParseOptions parseOptions;
             internal readonly CompilationOptions compilationOptions;
+            internal readonly int index;
+            internal readonly CodeActionPriority? priority;
+            internal readonly bool retainNonFixableDiagnostics;
 
-            public TestParameters(
+            internal TestParameters(
                 ParseOptions parseOptions = null,
                 CompilationOptions compilationOptions = null,
                 IDictionary<OptionKey, object> options = null,
-                string fixAllActionEquivalenceKey = null,
-                object fixProviderData = null)
+                object fixProviderData = null,
+                int index = 0,
+                CodeActionPriority? priority = null,
+                bool retainNonFixableDiagnostics = false)
             {
                 this.parseOptions = parseOptions;
                 this.compilationOptions = compilationOptions;
                 this.options = options;
-                this.fixAllActionEquivalenceKey = fixAllActionEquivalenceKey;
                 this.fixProviderData = fixProviderData;
+                this.index = index;
+                this.priority = priority;
+                this.retainNonFixableDiagnostics = retainNonFixableDiagnostics;
             }
 
             public TestParameters WithParseOptions(ParseOptions parseOptions)
-                => new TestParameters(parseOptions, compilationOptions, options, fixAllActionEquivalenceKey, fixProviderData);
+                => new TestParameters(parseOptions, compilationOptions, options, fixProviderData, index, priority);
 
             public TestParameters WithFixProviderData(object fixProviderData)
-                => new TestParameters(parseOptions, compilationOptions, options, fixAllActionEquivalenceKey, fixProviderData);
+                => new TestParameters(parseOptions, compilationOptions, options, fixProviderData, index, priority);
+
+            public TestParameters WithIndex(int index)
+                => new TestParameters(parseOptions, compilationOptions, options, fixProviderData, index, priority);
         }
 
         protected abstract string GetLanguage();
@@ -82,7 +91,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 
         protected async Task TestMissingInRegularAndScriptAsync(
             string initialMarkup,
-            TestParameters parameters = default(TestParameters))
+            TestParameters parameters = default)
         {
             await TestMissingAsync(initialMarkup, WithRegularOptions(parameters));
             await TestMissingAsync(initialMarkup, WithScriptOptions(parameters));
@@ -90,18 +99,17 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 
         protected async Task TestMissingAsync(
             string initialMarkup,
-            TestParameters parameters = default(TestParameters))
+            TestParameters parameters = default)
         {
             using (var workspace = CreateWorkspaceFromOptions(initialMarkup, parameters))
             {
-                var actions = await GetCodeActionsAsync(workspace, parameters);
+                var (actions, _) = await GetCodeActionsAsync(workspace, parameters);
                 Assert.True(actions.Length == 0, "An action was offered when none was expected");
             }
         }
 
         protected async Task TestDiagnosticMissingAsync(
-            string initialMarkup,
-            TestParameters parameters = default(TestParameters))
+            string initialMarkup, TestParameters parameters = default)
         {
             using (var workspace = CreateWorkspaceFromOptions(initialMarkup, parameters))
             {
@@ -110,40 +118,50 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             }
         }
 
-        protected async Task<ImmutableArray<CodeAction>> GetCodeActionsAsync(
-            TestWorkspace workspace, TestParameters parameters)
-        {
-            return MassageActions(await GetCodeActionsWorkerAsync(workspace, parameters));
-        }
-
-        protected abstract Task<ImmutableArray<CodeAction>> GetCodeActionsWorkerAsync(
+        protected abstract Task<(ImmutableArray<CodeAction>, CodeAction actionToInvoke)> GetCodeActionsAsync(
             TestWorkspace workspace, TestParameters parameters);
-
 
         protected abstract Task<ImmutableArray<Diagnostic>> GetDiagnosticsWorkerAsync(
             TestWorkspace workspace, TestParameters parameters);
 
+        protected Task TestSmartTagTextAsync(string initialMarkup, string displayText, int index)
+            => TestSmartTagTextAsync(initialMarkup, displayText, new TestParameters(index: index));
+
+        protected Task TestSmartTagGlyphTagsAsync(string initialMarkup, ImmutableArray<string> glyphTags, int index)
+            => TestSmartTagGlyphTagsAsync(initialMarkup, glyphTags, new TestParameters(index: index));
+
         protected async Task TestSmartTagTextAsync(
             string initialMarkup,
             string displayText,
-            int index = 0,
-            TestParameters parameters = default(TestParameters))
+            TestParameters parameters = default)
         {
             using (var workspace = CreateWorkspaceFromOptions(initialMarkup, parameters))
             {
-                var actions = await GetCodeActionsAsync(workspace, parameters);
-                Assert.Equal(displayText, actions.ElementAt(index).Title);
+                var (_, action) = await GetCodeActionsAsync(workspace, parameters);
+                Assert.Equal(displayText, action.Title);
+            }
+        }
+
+        protected async Task TestSmartTagGlyphTagsAsync(
+            string initialMarkup,
+            ImmutableArray<string> glyph,
+            TestParameters parameters = default)
+        {
+            using (var workspace = CreateWorkspaceFromOptions(initialMarkup, parameters))
+            {
+                var (_, action) = await GetCodeActionsAsync(workspace, parameters);
+                Assert.Equal(glyph, action.Tags);
             }
         }
 
         protected async Task TestExactActionSetOfferedAsync(
             string initialMarkup,
             IEnumerable<string> expectedActionSet,
-            TestParameters parameters = default(TestParameters))
+            TestParameters parameters = default)
         {
             using (var workspace = CreateWorkspaceFromOptions(initialMarkup, parameters))
             {
-                var actions = await GetCodeActionsAsync(workspace, parameters);
+                var (actions, _) = await GetCodeActionsAsync(workspace, parameters);
 
                 var actualActionSet = actions.Select(a => a.Title);
                 Assert.True(actualActionSet.SequenceEqual(expectedActionSet),
@@ -155,13 +173,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
         protected async Task TestActionCountAsync(
             string initialMarkup,
             int count,
-            TestParameters parameters = default(TestParameters))
+            TestParameters parameters = default)
         {
             using (var workspace = CreateWorkspaceFromOptions(initialMarkup, parameters))
             {
-                var actions = await GetCodeActionsAsync(workspace, parameters);
+                var (actions, _) = await GetCodeActionsAsync(workspace, parameters);
 
-                Assert.Equal(count, actions.Count());
+                Assert.Equal(count, actions.Length);
             }
         }
 
@@ -169,31 +187,29 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             string initialMarkup, string expectedMarkup,
             ImmutableArray<string> expectedContainers,
             string expectedDocumentName,
-            int index = 0,
-            TestParameters parameters = default(TestParameters))
+            TestParameters parameters = default)
         {
             await TestAddDocument(
                 initialMarkup, expectedMarkup,
                 expectedContainers, expectedDocumentName,
-                index, WithRegularOptions(parameters));
+                WithRegularOptions(parameters));
             await TestAddDocument(
                 initialMarkup, expectedMarkup,
                 expectedContainers, expectedDocumentName,
-                index, WithScriptOptions(parameters));
+                WithScriptOptions(parameters));
         }
 
         protected async Task<Tuple<Solution, Solution>> TestAddDocumentAsync(
             TestParameters parameters,
             TestWorkspace workspace,
             string expectedMarkup,
-            int index,
             string expectedDocumentName,
             ImmutableArray<string> expectedContainers)
         {
-            var codeActions = await GetCodeActionsAsync(workspace, parameters);
+            var (_, action) = await GetCodeActionsAsync(workspace, parameters);
             return await TestAddDocument(
-                workspace, expectedMarkup, index, expectedContainers,
-                expectedDocumentName, codeActions);
+                workspace, expectedMarkup, expectedContainers,
+                expectedDocumentName, action);
         }
 
         protected async Task TestAddDocument(
@@ -201,27 +217,25 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             string expectedMarkup,
             ImmutableArray<string> expectedContainers,
             string expectedDocumentName,
-            int index = 0,
             TestParameters parameters = default)
         {
             using (var workspace = CreateWorkspaceFromOptions(initialMarkup, parameters))
             {
-                var codeActions = await GetCodeActionsAsync(workspace, parameters);
+                var (_, action) = await GetCodeActionsAsync(workspace, parameters);
                 await TestAddDocument(
-                    workspace, expectedMarkup, index, expectedContainers, 
-                    expectedDocumentName, codeActions);
+                    workspace, expectedMarkup, expectedContainers,
+                    expectedDocumentName, action);
             }
         }
 
         private async Task<Tuple<Solution, Solution>> TestAddDocument(
             TestWorkspace workspace,
             string expectedMarkup,
-            int index,
             ImmutableArray<string> expectedFolders,
             string expectedDocumentName,
-            ImmutableArray<CodeAction> actions)
+            CodeAction action)
         {
-            var operations = await VerifyInputsAndGetOperationsAsync(index, actions);
+            var operations = await VerifyActionAndGetOperationsAsync(action, default);
             return await TestAddDocument(
                 workspace,
                 expectedMarkup,
@@ -308,12 +322,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             CodeActionPriority? priority = null,
             CompilationOptions compilationOptions = null,
             IDictionary<OptionKey, object> options = null,
-            string fixAllActionEquivalenceKey = null,
-            object fixProviderData = null)
+            object fixProviderData = null,
+            ParseOptions parseOptions = null)
         {
             return TestInRegularAndScript1Async(
                 initialMarkup, expectedMarkup, index, priority,
-                new TestParameters(null, compilationOptions, options, fixAllActionEquivalenceKey, fixProviderData));
+                new TestParameters(parseOptions, compilationOptions, options, fixProviderData, index));
         }
 
         internal async Task TestInRegularAndScript1Async(
@@ -321,10 +335,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             string expectedMarkup,
             int index = 0,
             CodeActionPriority? priority = null,
-            TestParameters parameters = default(TestParameters))
+            TestParameters parameters = default)
         {
-            await TestAsync(initialMarkup, expectedMarkup, index, priority, WithRegularOptions(parameters));
-            await TestAsync(initialMarkup, expectedMarkup, index, priority, WithScriptOptions(parameters));
+            parameters = parameters.WithIndex(index);
+            await TestAsync(initialMarkup, expectedMarkup, priority, WithRegularOptions(parameters));
+            await TestAsync(initialMarkup, expectedMarkup, priority, WithScriptOptions(parameters));
         }
 
         internal Task TestAsync(
@@ -332,27 +347,24 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             ParseOptions parseOptions,
             CompilationOptions compilationOptions = null,
             int index = 0, IDictionary<OptionKey, object> options = null,
-            string fixAllActionEquivalenceKey = null,
             object fixProviderData = null,
             CodeActionPriority? priority = null)
         {
             return TestAsync(
                 initialMarkup,
-                expectedMarkup, index, priority,
+                expectedMarkup, priority,
                 new TestParameters(
-                    parseOptions, compilationOptions,
-                    options, fixAllActionEquivalenceKey, fixProviderData));
+                    parseOptions, compilationOptions, options, fixProviderData, index));
         }
 
         private async Task TestAsync(
             string initialMarkup,
             string expectedMarkup,
-            int index,
             CodeActionPriority? priority,
             TestParameters parameters)
         {
             MarkupTestFile.GetSpans(
-                expectedMarkup.NormalizeLineEndings(), 
+                expectedMarkup.NormalizeLineEndings(),
                 out var expected, out IDictionary<string, ImmutableArray<TextSpan>> spanMap);
 
             var conflictSpans = spanMap.GetOrAdd("Conflict", _ => ImmutableArray<TextSpan>.Empty);
@@ -366,30 +378,27 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                 workspace.Options = workspace.Options.WithChangedOption(
                     RemoteFeatureOptions.DiagnosticsEnabled, false);
 
-                var actions = await GetCodeActionsAsync(workspace, parameters);
-                await TestActionsAsync(
-                    workspace, expected, index,
-                    actions,
+                var (_, action) = await GetCodeActionsAsync(workspace, parameters);
+                await TestActionAsync(
+                    workspace, expected, action,
                     conflictSpans, renameSpans, warningSpans, navigationSpans,
-                    parseOptions: parameters.parseOptions,
-                    priority: priority);
+                    parameters);
             }
         }
 
-        internal async Task<Tuple<Solution, Solution>> TestActionsAsync(
+        internal async Task<Tuple<Solution, Solution>> TestActionAsync(
             TestWorkspace workspace, string expected,
-            int index, ImmutableArray<CodeAction> actions,
+            CodeAction action,
             ImmutableArray<TextSpan> conflictSpans,
             ImmutableArray<TextSpan> renameSpans,
             ImmutableArray<TextSpan> warningSpans,
             ImmutableArray<TextSpan> navigationSpans,
-            ParseOptions parseOptions = null,
-            CodeActionPriority? priority = null)
+            TestParameters parameters)
         {
-            var operations = await VerifyInputsAndGetOperationsAsync(index, actions, priority);
+            var operations = await VerifyActionAndGetOperationsAsync(action, parameters);
             return await TestOperationsAsync(
                 workspace, expected, operations, conflictSpans, renameSpans,
-                warningSpans, navigationSpans, expectedChangedDocumentId: null, parseOptions: parseOptions);
+                warningSpans, navigationSpans, expectedChangedDocumentId: null, parseOptions: parameters.parseOptions);
         }
 
         protected async Task<Tuple<Solution, Solution>> TestOperationsAsync(
@@ -418,7 +427,17 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             var fixedRoot = await document.GetSyntaxRootAsync();
             var actualText = fixedRoot.ToFullString();
 
-            Assert.Equal(expectedText, actualText);
+            // To help when a user just writes a test (and supplied no 'expectedText') just print
+            // out the entire 'actualText' (without any trimming).  in the case that we have both,
+            // call the normal Assert helper which will print out a good trimmed diff.
+            if (expectedText == "")
+            {
+                Assert.Equal((object)expectedText, actualText);
+            }
+            else
+            {
+                Assert.Equal(expectedText, actualText);
+            }
 
             TestAnnotations(conflictSpans, ConflictAnnotation.Kind);
             TestAnnotations(renameSpans, RenameAnnotation.Kind);
@@ -450,6 +469,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             if (expectedChangedDocumentId == null)
             {
                 var projectDifferences = SolutionUtilities.GetSingleChangedProjectChanges(oldSolution, newSolution);
+
                 var documentId = projectDifferences.GetChangedDocuments().FirstOrDefault() ?? projectDifferences.GetAddedDocuments().FirstOrDefault();
                 Assert.NotNull(documentId);
                 document = newSolution.GetDocument(documentId);
@@ -479,34 +499,32 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                         var root = await doc.GetSyntaxRootAsync();
                         var expectedDocument = expectedProject.Documents.Single(d => d.Name == doc.Name);
                         var expectedRoot = await expectedDocument.GetSyntaxRootAsync();
-                        Assert.Equal(expectedRoot.ToFullString(), root.ToFullString());
+
+                        var expected = expectedRoot.ToFullString();
+                        if (expected == "")
+                        {
+                            Assert.Equal((object)expected, root.ToFullString());
+                        }
+                        else
+                        {
+                            Assert.Equal(expected, root.ToFullString());
+                        }
                     }
                 }
             }
         }
 
-        internal static async Task<ImmutableArray<CodeActionOperation>> VerifyInputsAndGetOperationsAsync(
-            int index, ImmutableArray<CodeAction> actions, CodeActionPriority? priority = null)
+        internal static Task<ImmutableArray<CodeActionOperation>> VerifyActionAndGetOperationsAsync(
+            CodeAction action, TestParameters parameters)
         {
-            Assert.NotNull(actions);
-            Assert.NotEmpty(actions);
-            if (actions.Length == 1)
+            Assert.False(action is null, "No action was offered when one was expected.");
+
+            if (parameters.priority != null)
             {
-                if (actions.Single() is TopLevelSuppressionCodeAction suppressionAction)
-                {
-                    actions = suppressionAction.NestedCodeActions;
-                }
+                Assert.Equal(parameters.priority.Value, action.Priority);
             }
 
-            Assert.True(actions.Length > 0, "No action produced");
-            Assert.InRange(index, 0, actions.Length - 1);
-
-            var action = actions[index];
-            if (priority != null)
-            {
-                Assert.Equal(priority.Value, action.Priority);
-            }
-            return await action.GetOperationsAsync(CancellationToken.None);
+            return action.GetOperationsAsync(CancellationToken.None);
         }
 
         protected Tuple<Solution, Solution> ApplyOperationsAndGetSolution(
@@ -548,6 +566,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                 ? a.NestedCodeActions
                 : ImmutableArray.Create(a)).ToImmutableArray();
         }
+
+        protected static ImmutableArray<CodeAction> GetNestedActions(ImmutableArray<CodeAction> codeActions)
+            => codeActions.SelectMany(a => a.NestedCodeActions).ToImmutableArray();
 
         protected (OptionKey, object) SingleOption<T>(Option<T> option, T enabled)
             => (new OptionKey(option), enabled);

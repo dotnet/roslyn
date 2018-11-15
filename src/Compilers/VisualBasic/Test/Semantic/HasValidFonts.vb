@@ -3,7 +3,6 @@
 Imports System.Drawing
 Imports Roslyn.Test.Utilities
 
-
 Friend Class HasValidFonts
     Inherits ExecutionCondition
 

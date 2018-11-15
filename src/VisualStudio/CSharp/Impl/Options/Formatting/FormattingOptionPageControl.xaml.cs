@@ -1,8 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Windows;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CodeCleanup;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Options;
 
@@ -28,29 +29,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             BindToOption(FormatOnSemicolonCheckBox, FeatureOnOffOptions.AutoFormattingOnSemicolon, LanguageNames.CSharp);
             BindToOption(FormatOnReturnCheckBox, FeatureOnOffOptions.AutoFormattingOnReturn, LanguageNames.CSharp);
             BindToOption(FormatOnPasteCheckBox, FeatureOnOffOptions.FormatOnPaste, LanguageNames.CSharp);
-            SetNestedCheckboxesEnabled();
-        }
-
-        private void FormatWhenTypingCheckBox_Checked(object sender, RoutedEventArgs e)
-        {
-            FormatOnCloseBraceCheckBox.IsChecked = true;
-            FormatOnSemicolonCheckBox.IsChecked = true;
-
-            SetNestedCheckboxesEnabled();
-        }
-
-        private void FormatWhenTypingCheckBox_Unchecked(object sender, RoutedEventArgs e)
-        {
-            FormatOnCloseBraceCheckBox.IsChecked = false;
-            FormatOnSemicolonCheckBox.IsChecked = false;
-
-            SetNestedCheckboxesEnabled();
-        }
-
-        private void SetNestedCheckboxesEnabled()
-        {
-            FormatOnCloseBraceCheckBox.IsEnabled = FormatWhenTypingCheckBox.IsChecked == true;
-            FormatOnSemicolonCheckBox.IsEnabled = FormatWhenTypingCheckBox.IsChecked == true;
         }
     }
 }

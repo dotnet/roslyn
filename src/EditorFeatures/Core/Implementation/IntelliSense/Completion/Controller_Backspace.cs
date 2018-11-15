@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
             // We haven't finished computing the model, but we may need to dismiss.
             // Get the context span and see if we're outside it.
-            var text = document.GetTextAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None);
+            var text = document.GetTextSynchronously(CancellationToken.None);
             var contextSpan = completionService.GetDefaultCompletionListSpan(text, caretPoint);
             var newCaretPoint = GetCaretPointInViewBuffer();
             return !contextSpan.IntersectsWith(new TextSpan(newCaretPoint, 0));

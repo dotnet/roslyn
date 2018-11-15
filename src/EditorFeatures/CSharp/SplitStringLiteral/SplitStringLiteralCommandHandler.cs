@@ -1,4 +1,6 @@
-﻿using System.ComponentModel.Composition;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System.ComponentModel.Composition;
 using System.Threading;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -33,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
             _editorOperationsFactoryService = editorOperationsFactoryService;
         }
 
-        public string DisplayName => CSharpEditorResources.Split_String_Literal_Command_Handler;
+        public string DisplayName => CSharpEditorResources.Split_string;
 
         public VSCommanding.CommandState GetCommandState(ReturnKeyCommandArgs args)
         {

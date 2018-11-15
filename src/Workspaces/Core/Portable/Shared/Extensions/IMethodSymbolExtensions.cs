@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
@@ -51,6 +52,27 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
 
             return true;
+        }
+
+        /// <summary>
+        /// Returns the methodSymbol and any partial parts.
+        /// </summary>
+        public static ImmutableArray<IMethodSymbol> GetAllMethodSymbolsOfPartialParts(this IMethodSymbol method)
+        {
+            if (method.PartialDefinitionPart != null)
+            {
+                Debug.Assert(method.PartialImplementationPart == null && method.PartialDefinitionPart != method);
+                return ImmutableArray.Create(method, method.PartialDefinitionPart);
+            }
+            else if (method.PartialImplementationPart != null)
+            {
+                Debug.Assert(method.PartialImplementationPart != method);
+                return ImmutableArray.Create(method.PartialImplementationPart, method);
+            }
+            else
+            {
+                return ImmutableArray.Create(method);
+            }
         }
 
         public static IMethodSymbol RenameTypeParameters(this IMethodSymbol method, IList<string> newNames)
@@ -335,5 +357,16 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     return PredefinedOperator.None;
             }
         }
+
+        /// <summary>
+        /// Returns true for void returning methods with two parameters, where
+        /// the first parameter is of <see cref="object"/> type and the second
+        /// parameter inherits from or equals <see cref="EventArgs"/> type.
+        /// </summary>
+        public static bool HasEventHandlerSignature(this IMethodSymbol method, INamedTypeSymbol eventArgsType)
+            => eventArgsType != null &&
+               method.Parameters.Length == 2 &&
+               method.Parameters[0].Type.SpecialType == SpecialType.System_Object &&
+               method.Parameters[1].Type.InheritsFromOrEquals(eventArgsType);
     }
 }

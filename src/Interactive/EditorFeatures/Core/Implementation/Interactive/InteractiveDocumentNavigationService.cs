@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
             var textView = interactiveWorkspace.Window.TextView;
             var document = interactiveWorkspace.CurrentSolution.GetDocument(documentId);
 
-            var textSnapshot = document.GetTextAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None).FindCorrespondingEditorTextSnapshot();
+            var textSnapshot = document.GetTextSynchronously(CancellationToken.None).FindCorrespondingEditorTextSnapshot();
             if (textSnapshot == null)
             {
                 return false;

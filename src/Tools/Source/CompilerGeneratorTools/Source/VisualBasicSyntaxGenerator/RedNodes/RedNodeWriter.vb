@@ -118,10 +118,9 @@ Friend Class RedNodeWriter
         _writer.WriteLine()
     End Sub
 
-
     Private Sub GenerateEnumTypes()
-        For Each enumeration In _parseTree.Enumerations.Values
-            GenerateEnumerationType(enumeration)
+        For Each enumerationType In _parseTree.Enumerations.Values
+            GenerateEnumerationType(enumerationType)
         Next
     End Sub
 
@@ -258,7 +257,8 @@ Friend Class RedNodeWriter
         GenerateNodeStructureConstructor(nodeStructure)
 
         ' Create the IsTerminal property
-        If nodeStructure.ParentStructure IsNot Nothing AndAlso nodeStructure.IsTerminal <> nodeStructure.ParentStructure.IsTerminal Then
+        Dim parentStructure = nodeStructure.ParentStructure
+        If parentStructure IsNot Nothing AndAlso nodeStructure.IsTerminal <> parentStructure.IsTerminal Then
             GenerateIsTerminal(nodeStructure)
         End If
 
@@ -312,13 +312,32 @@ Friend Class RedNodeWriter
     End Sub
 
     Private Sub GenerateChildListAccessor(nodeStructure As ParseNodeStructure, child As ParseNodeChild)
-        If Not _parseTree.IsAbstract(nodeStructure) Then
-            Dim kindType = KindTypeStructure(child.ChildKind)
-            Dim itemType = If(kindType.IsToken, "SyntaxToken", kindType.Name)
+        Dim kindType = KindTypeStructure(child.ChildKind)
+        Dim itemType = If(kindType.IsToken, "SyntaxToken", kindType.Name)
+
+        If _parseTree.IsAbstract(nodeStructure) Then
+
+            If nodeStructure.Children.Contains(child) Then
+                _writer.WriteLine("        Public Shadows Function Add{0}(ParamArray items As {1}()) As {2}", child.Name, itemType, nodeStructure.Name)
+                _writer.WriteLine("            Return Add{0}Core(items)", child.Name)
+                _writer.WriteLine("        End Function")
+                _writer.WriteLine("        Friend MustOverride Function Add{0}Core(ParamArray items As {1}()) As {2}", child.Name, itemType, nodeStructure.Name)
+            End If
+
+        Else
             _writer.WriteLine("        Public Shadows Function Add{0}(ParamArray items As {1}()) As {2}", child.Name, itemType, nodeStructure.Name)
             _writer.WriteLine("            Return Me.With{0}(Me.{0}.AddRange(items))", child.Name)
             _writer.WriteLine("        End Function")
             _writer.WriteLine()
+
+            If Not nodeStructure.Children.Contains(child) AndAlso
+                   nodeStructure.ParentStructure.Children.Contains(child) Then
+
+                _writer.WriteLine("        Friend Overrides Function Add{0}Core(ParamArray items As {1}()) As {2}", child.Name, itemType, nodeStructure.ParentStructure.Name)
+                _writer.WriteLine("            Return Add{0}(items)", child.Name)
+                _writer.WriteLine("        End Function")
+                _writer.WriteLine()
+            End If
         End If
     End Sub
 
@@ -350,17 +369,37 @@ Friend Class RedNodeWriter
     End Function
 
     Private Sub GeneratedNestedChildListAccessor(nodeStructure As ParseNodeStructure, child As ParseNodeChild)
-        If Not _parseTree.IsAbstract(nodeStructure) Then
-            Dim childStructure = KindTypeStructure(child.ChildKind)
-            If Not _parseTree.IsAbstract(childStructure) Then
+        Dim childStructure = KindTypeStructure(child.ChildKind)
+        If _parseTree.IsAbstract(childStructure) Then
+            Return
+        End If
 
-                Dim nestedList = GetNestedList(nodeStructure, child)
-                Dim nestedListStructure = KindTypeStructure(nestedList.ChildKind)
-                Dim itemType = If(nestedListStructure.IsToken, "SyntaxToken", nestedListStructure.Name)
+        Dim nestedList = GetNestedList(nodeStructure, child)
+        Dim nestedListStructure = KindTypeStructure(nestedList.ChildKind)
+        Dim itemType = If(nestedListStructure.IsToken, "SyntaxToken", nestedListStructure.Name)
+
+        If _parseTree.IsAbstract(nodeStructure) Then
+            If nodeStructure.Children.Contains(child) Then
 
                 _writer.WriteLine("        Public Shadows Function Add{0}{1}(ParamArray items As {2}()) As {3}", child.Name, nestedList.Name, itemType, nodeStructure.Name)
-                _writer.WriteLine("            Dim _child = If (Me.{0} IsNot Nothing, Me.{0}, SyntaxFactory.{1}())", child.Name, FactoryName(childStructure))
-                _writer.WriteLine("            Return Me.With{0}(_child.Add{1}(items))", child.Name, nestedList.Name)
+                _writer.WriteLine("            Return Add{0}{1}Core(items)", child.Name, nestedList.Name)
+                _writer.WriteLine("        End Function")
+                _writer.WriteLine("        Friend MustOverride Function Add{0}{1}Core(ParamArray items As {2}()) As {3}", child.Name, nestedList.Name, itemType, nodeStructure.Name)
+                _writer.WriteLine()
+            End If
+        Else
+
+            _writer.WriteLine("        Public Shadows Function Add{0}{1}(ParamArray items As {2}()) As {3}", child.Name, nestedList.Name, itemType, nodeStructure.Name)
+            _writer.WriteLine("            Dim _child = If (Me.{0} IsNot Nothing, Me.{0}, SyntaxFactory.{1}())", child.Name, FactoryName(childStructure))
+            _writer.WriteLine("            Return Me.With{0}(_child.Add{1}(items))", child.Name, nestedList.Name)
+            _writer.WriteLine("        End Function")
+            _writer.WriteLine()
+
+            If Not nodeStructure.Children.Contains(child) AndAlso
+                   nodeStructure.ParentStructure.Children.Contains(child) Then
+
+                _writer.WriteLine("        Friend Overrides Function Add{0}{1}Core(ParamArray items As {2}()) As {3}", child.Name, nestedList.Name, itemType, nodeStructure.ParentStructure.Name)
+                _writer.WriteLine("            Return Add{0}{1}(items)", child.Name, nestedList.Name)
                 _writer.WriteLine("        End Function")
                 _writer.WriteLine()
             End If
@@ -660,7 +699,28 @@ Friend Class RedNodeWriter
 
             Dim isAbstract As Boolean = _parseTree.IsAbstract(nodeStructure)
 
-            If Not isAbstract Then
+            If isAbstract Then
+                If nodeStructure.Children.Contains(withChild) Then
+                    ' +WriteLine($"    public {node.Name} With{field.Name}({fieldType} {CamelCase(field.Name)}) => With{field.Name}Core({CamelCase(field.Name)});");
+                    '+ WriteLine($"    internal abstract {node.Name} With{field.Name}Core({fieldType} {CamelCase(field.Name)});");
+                    GenerateWithXmlComment(_writer, withChild, 8)
+
+                    _writer.WriteLine($"        Public Function {ChildWithFunctionName(withChild)}({ChildParamName(withChild)} As {ChildPropertyTypeRef(nodeStructure, withChild)}) As {StructureTypeName(nodeStructure)}")
+                    _writer.WriteLine($"            Return {ChildWithFunctionName(withChild)}Core({ChildParamName(withChild)})")
+                    _writer.WriteLine($"        End Function")
+
+                    _writer.WriteLine($"        Friend MustOverride Function {ChildWithFunctionName(withChild)}Core({ChildParamName(withChild)} As {ChildPropertyTypeRef(nodeStructure, withChild)}) As {StructureTypeName(nodeStructure)}")
+                End If
+            Else
+                If Not nodeStructure.Children.Contains(withChild) AndAlso
+                       nodeStructure.ParentStructure.Children.Contains(withChild) Then
+
+                    _writer.WriteLine($"        Friend Overrides Function {ChildWithFunctionName(withChild)}Core({ChildParamName(withChild)} As {ChildPropertyTypeRef(nodeStructure, withChild)}) As {StructureTypeName(nodeStructure.ParentStructure)}")
+                    _writer.WriteLine($"            Return {ChildWithFunctionName(withChild)}({ChildParamName(withChild)})")
+                    _writer.WriteLine($"        End Function")
+                    _writer.WriteLine()
+                End If
+
                 ' XML comment
                 GenerateWithXmlComment(_writer, withChild, 8)
                 _writer.WriteLine("        Public Shadows Function {0}({1} as {2}) As {3}", ChildWithFunctionName(withChild), ChildParamName(withChild), ChildPropertyTypeRef(nodeStructure, withChild), StructureTypeName(nodeStructure))

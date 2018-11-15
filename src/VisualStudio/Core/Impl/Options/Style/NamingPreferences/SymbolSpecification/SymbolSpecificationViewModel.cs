@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
+using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles.SymbolSpecification;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.NamingPreferences
@@ -43,16 +44,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.N
             {
                 SymbolKindList = new List<SymbolKindViewModel>
                 {
+                    new SymbolKindViewModel(SymbolKind.Namespace, "namespace", specification),
                     new SymbolKindViewModel(TypeKind.Class, "class", specification),
                     new SymbolKindViewModel(TypeKind.Struct, "struct", specification),
                     new SymbolKindViewModel(TypeKind.Interface, "interface", specification),
                     new SymbolKindViewModel(TypeKind.Enum, "enum", specification),
                     new SymbolKindViewModel(SymbolKind.Property, "property", specification),
-                    new SymbolKindViewModel(SymbolKind.Method, "method", specification),
+                    new SymbolKindViewModel(MethodKind.Ordinary, "method", specification),
+                    new SymbolKindViewModel(MethodKind.LocalFunction, "local function", specification),
                     new SymbolKindViewModel(SymbolKind.Field, "field", specification),
                     new SymbolKindViewModel(SymbolKind.Event, "event", specification),
                     new SymbolKindViewModel(TypeKind.Delegate, "delegate", specification),
-                    new SymbolKindViewModel(SymbolKind.Parameter, "parameter", specification)
+                    new SymbolKindViewModel(SymbolKind.Parameter, "parameter", specification),
+                    new SymbolKindViewModel(SymbolKind.TypeParameter, "type parameter", specification),
+                    new SymbolKindViewModel(SymbolKind.Local, "local", specification)
                 };
 
                 AccessibilityList = new List<AccessibilityViewModel>
@@ -62,6 +67,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.N
                     new AccessibilityViewModel(Accessibility.Private, "private", specification),
                     new AccessibilityViewModel(Accessibility.Protected, "protected", specification),
                     new AccessibilityViewModel(Accessibility.ProtectedOrInternal, "protected internal", specification),
+                    new AccessibilityViewModel(Accessibility.ProtectedAndInternal, "private protected", specification),
+                    new AccessibilityViewModel(Accessibility.NotApplicable, "local", specification),
                 };
 
                 ModifierList = new List<ModifierViewModel>
@@ -77,6 +84,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.N
             {
                 SymbolKindList = new List<SymbolKindViewModel>
                 {
+                    new SymbolKindViewModel(SymbolKind.Namespace, "Namespace", specification),
                     new SymbolKindViewModel(TypeKind.Class, "Class", specification),
                     new SymbolKindViewModel(TypeKind.Struct, "Structure", specification),
                     new SymbolKindViewModel(TypeKind.Interface, "Interface", specification),
@@ -87,7 +95,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.N
                     new SymbolKindViewModel(SymbolKind.Field, "Field", specification),
                     new SymbolKindViewModel(SymbolKind.Event, "Event", specification),
                     new SymbolKindViewModel(TypeKind.Delegate, "Delegate", specification),
-                    new SymbolKindViewModel(SymbolKind.Parameter, "Parameter", specification)
+                    new SymbolKindViewModel(SymbolKind.Parameter, "Parameter", specification),
+                    new SymbolKindViewModel(SymbolKind.TypeParameter, "Type Parameter", specification),
+                    new SymbolKindViewModel(SymbolKind.Local, "Local", specification)
                 };
 
                 AccessibilityList = new List<AccessibilityViewModel>
@@ -97,6 +107,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.N
                     new AccessibilityViewModel(Accessibility.Private, "Private", specification),
                     new AccessibilityViewModel(Accessibility.Protected , "Protected", specification),
                     new AccessibilityViewModel(Accessibility.ProtectedOrInternal, "Protected Friend", specification),
+                    new AccessibilityViewModel(Accessibility.ProtectedAndInternal, "Private Protected", specification),
+                    new AccessibilityViewModel(Accessibility.NotApplicable, "Local", specification),
                 };
 
                 ModifierList = new List<ModifierViewModel>
@@ -125,7 +137,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.N
             return new SymbolSpecification(
                 ID,
                 ItemName,
-                SymbolKindList.Where(s => s.IsChecked).Select(s => s.CreateSymbolKindOrTypeKind()).ToImmutableArray(),
+                SymbolKindList.Where(s => s.IsChecked).Select(s => s.CreateSymbolOrTypeOrMethodKind()).ToImmutableArray(),
                 AccessibilityList.Where(a => a.IsChecked).Select(a => a._accessibility).ToImmutableArray(),
                 ModifierList.Where(m => m.IsChecked).Select(m => new ModifierKind(m._modifier)).ToImmutableArray());
         }
@@ -163,6 +175,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.N
 
             private readonly SymbolKind? _symbolKind;
             private readonly TypeKind? _typeKind;
+            private readonly MethodKind? _methodKind;
 
             private bool _isChecked;
 
@@ -180,16 +193,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.N
                 IsChecked = specification.ApplicableSymbolKindList.Any(k => k.TypeKind == typeKind);
             }
 
-            internal SymbolKindOrTypeKind CreateSymbolKindOrTypeKind()
+            public SymbolKindViewModel(MethodKind methodKind, string name, SymbolSpecification specification)
             {
-                if (_symbolKind.HasValue)
-                {
-                    return new SymbolKindOrTypeKind(_symbolKind.Value);
-                }
-                else
-                {
-                    return new SymbolKindOrTypeKind(_typeKind.Value);
-                }
+                _methodKind = methodKind;
+                Name = name;
+                IsChecked = specification.ApplicableSymbolKindList.Any(k => k.MethodKind == methodKind);
+            }
+
+            internal SymbolKindOrTypeKind CreateSymbolOrTypeOrMethodKind()
+            {
+                return
+                    _symbolKind.HasValue ? new SymbolKindOrTypeKind(_symbolKind.Value) :
+                    _typeKind.HasValue ? new SymbolKindOrTypeKind(_typeKind.Value) :
+                    _methodKind.HasValue ? new SymbolKindOrTypeKind(_methodKind.Value) :
+                    throw ExceptionUtilities.Unreachable;
             }
         }
 

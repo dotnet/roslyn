@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Editor.GoToImplementation
             return (document, document?.GetLanguageService<IFindUsagesService>());
         }
 
-        public string DisplayName => EditorFeaturesResources.Go_To_Implementation_Command_Handler;
+        public string DisplayName => EditorFeaturesResources.Go_To_Implementation;
 
         public VSCommanding.CommandState GetCommandState(GoToImplementationCommandArgs args)
         {
@@ -79,9 +79,9 @@ namespace Microsoft.CodeAnalysis.Editor.GoToImplementation
                 // We have all the cheap stuff, so let's do expensive stuff now
                 string messageToShow = null;
 
-                using (context.WaitContext.AddScope(allowCancellation: true, EditorFeaturesResources.Locating_implementations))
+                using (context.OperationContext.AddScope(allowCancellation: true, EditorFeaturesResources.Locating_implementations))
                 {
-                    var userCancellationToken = context.WaitContext.UserCancellationToken;
+                    var userCancellationToken = context.OperationContext.UserCancellationToken;
                     StreamingGoToImplementation(
                         document, caretPosition,
                         streamingService, streamingPresenter,
@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.Editor.GoToImplementation
                     // We are about to show a modal UI dialog so we should take over the command execution
                     // wait context. That means the command system won't attempt to show its own wait dialog 
                     // and also will take it into consideration when measuring command handling duration.
-                    context.WaitContext.TakeOwnership();
+                    context.OperationContext.TakeOwnership();
                     var notificationService = document.Project.Solution.Workspace.Services.GetService<INotificationService>();
                     notificationService.SendNotification(messageToShow,
                         title: EditorFeaturesResources.Go_To_Implementation,

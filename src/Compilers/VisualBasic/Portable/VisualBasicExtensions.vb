@@ -558,7 +558,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         <Extension>
         Public Function HandledEvents(methodSymbol As IMethodSymbol) As ImmutableArray(Of HandledEvent)
             Dim vbmethod = TryCast(methodSymbol, MethodSymbol)
-            Return vbmethod.HandledEvents
+            If vbmethod IsNot Nothing Then
+                Return vbmethod.HandledEvents
+            Else
+                Return ImmutableArray(Of HandledEvent).Empty
+            End If
         End Function
 
         <Extension>
@@ -1369,9 +1373,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <exception cref="InvalidCastException">If the <see cref="IConversionOperation"/> was not created from Visual Basic code.</exception>
         <Extension>
         Public Function GetConversion(conversionExpression As IConversionOperation) As Conversion
-            Dim basicConversionExpression = TryCast(conversionExpression, BaseVisualBasicConversionExpression)
-            If basicConversionExpression IsNot Nothing Then
-                Return basicConversionExpression.ConversionInternal
+            If conversionExpression.Language = LanguageNames.VisualBasic Then
+                Return DirectCast(DirectCast(conversionExpression, BaseConversionExpression).ConvertibleConversion, Conversion)
             Else
                 Throw New ArgumentException(String.Format(VBResources.IConversionExpressionIsNotVisualBasicConversion,
                                                           NameOf(IConversionOperation)),
@@ -1387,9 +1390,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <exception cref="ArgumentException">If the <see cref="IArgumentOperation"/> was not created from Visual Basic code.</exception>
         <Extension>
         Public Function GetInConversion(argument As IArgumentOperation) As Conversion
-            Dim basicArgument = TryCast(argument, BaseVisualBasicArgument)
-            If basicArgument IsNot Nothing Then
-                Return basicArgument.InConversionInternal
+            If argument.Language = LanguageNames.VisualBasic Then
+                Dim inConversionConvertible As IConvertibleConversion = DirectCast(argument, BaseArgument).InConversionConvertibleOpt
+                Return If(inConversionConvertible IsNot Nothing, DirectCast(inConversionConvertible, Conversion), New Conversion(Conversions.Identity))
             Else
                 Throw New ArgumentException(String.Format(VBResources.IArgumentIsNotVisualBasicArgument,
                                                           NameOf(IArgumentOperation)),
@@ -1405,9 +1408,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <exception cref="ArgumentException">If the <see cref="IArgumentOperation"/> was not created from Visual Basic code.</exception>
         <Extension>
         Public Function GetOutConversion(argument As IArgumentOperation) As Conversion
-            Dim basicArgument = TryCast(argument, BaseVisualBasicArgument)
-            If basicArgument IsNot Nothing Then
-                Return basicArgument.OutConversionInternal
+            If argument.Language = LanguageNames.VisualBasic Then
+                Dim outConversionConvertible As IConvertibleConversion = DirectCast(argument, BaseArgument).OutConversionConvertibleOpt
+                Return If(outConversionConvertible IsNot Nothing, DirectCast(outConversionConvertible, Conversion), New Conversion(Conversions.Identity))
             Else
                 Throw New ArgumentException(String.Format(VBResources.IArgumentIsNotVisualBasicArgument,
                                                           NameOf(IArgumentOperation)),
@@ -1428,9 +1431,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Throw New ArgumentNullException(NameOf(compoundAssignment))
             End If
 
-            Dim basicCompoundOperation = TryCast(compoundAssignment, BaseVisualBasicCompoundAssignmentOperation)
-            If basicCompoundOperation IsNot Nothing Then
-                Return basicCompoundOperation.InConversionInternal
+            If compoundAssignment.Language = LanguageNames.VisualBasic Then
+                Return DirectCast(DirectCast(compoundAssignment, BaseCompoundAssignmentExpression).InConversionConvertible, Conversion)
             Else
                 Throw New ArgumentException(String.Format(VBResources.ICompoundAssignmentOperationIsNotVisualBasicCompoundAssignment,
                                                           NameOf(compoundAssignment)),
@@ -1451,9 +1453,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Throw New ArgumentNullException(NameOf(compoundAssignment))
             End If
 
-            Dim basicCompoundOperation = TryCast(compoundAssignment, BaseVisualBasicCompoundAssignmentOperation)
-            If basicCompoundOperation IsNot Nothing Then
-                Return basicCompoundOperation.OutConversionInternal
+            If compoundAssignment.Language = LanguageNames.VisualBasic Then
+                Return DirectCast(DirectCast(compoundAssignment, BaseCompoundAssignmentExpression).OutConversionConvertible, Conversion)
             Else
                 Throw New ArgumentException(String.Format(VBResources.ICompoundAssignmentOperationIsNotVisualBasicCompoundAssignment,
                                                           NameOf(compoundAssignment)),

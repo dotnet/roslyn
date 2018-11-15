@@ -30,6 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             return
                 context.IsGlobalStatementContext ||
                 IsRefReadOnlyContext(context) ||
+                IsValidContextForType(context, cancellationToken) ||
                 context.SyntaxTree.IsGlobalMemberDeclarationContext(context.Position, SyntaxKindSet.AllGlobalMemberModifiers, cancellationToken) ||
                 context.IsMemberDeclarationContext(
                     validModifiers: s_validMemberModifiers,
@@ -41,5 +42,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
         private static bool IsRefReadOnlyContext(CSharpSyntaxContext context)
             => context.TargetToken.IsKind(SyntaxKind.RefKeyword) &&
                context.TargetToken.Parent.IsKind(SyntaxKind.RefType);
+
+        private static bool IsValidContextForType(CSharpSyntaxContext context, CancellationToken cancellationToken)
+        {
+            return context.IsTypeDeclarationContext(validModifiers: SyntaxKindSet.AllTypeModifiers,
+                validTypeDeclarations: SyntaxKindSet.ClassStructTypeDeclarations, canBePartial: true, cancellationToken);
+        }
     }
 }

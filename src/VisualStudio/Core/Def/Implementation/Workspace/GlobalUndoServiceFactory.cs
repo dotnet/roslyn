@@ -2,7 +2,7 @@
 
 using System;
 using System.Composition;
-using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Undo;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -23,12 +23,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         private readonly GlobalUndoService _singleton;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public GlobalUndoServiceFactory(
+            IThreadingContext threadingContext,
             ITextUndoHistoryRegistry undoHistoryRegistry,
             SVsServiceProvider serviceProvider,
             Lazy<VisualStudioWorkspace> workspace)
         {
-            _singleton = new GlobalUndoService(undoHistoryRegistry, serviceProvider, workspace);
+            _singleton = new GlobalUndoService(threadingContext, undoHistoryRegistry, serviceProvider, workspace);
         }
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
@@ -38,13 +40,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
         private class GlobalUndoService : IGlobalUndoService
         {
+            private readonly IThreadingContext _threadingContext;
             private readonly ITextUndoHistoryRegistry _undoHistoryRegistry;
             private readonly IVsLinkedUndoTransactionManager _undoManager;
             private readonly Lazy<VisualStudioWorkspace> _lazyVSWorkspace;
             internal int ActiveTransactions;
 
-            public GlobalUndoService(ITextUndoHistoryRegistry undoHistoryRegistry, SVsServiceProvider serviceProvider, Lazy<VisualStudioWorkspace> lazyVSWorkspace)
+            public GlobalUndoService(IThreadingContext threadingContext, ITextUndoHistoryRegistry undoHistoryRegistry, SVsServiceProvider serviceProvider, Lazy<VisualStudioWorkspace> lazyVSWorkspace)
             {
+                _threadingContext = threadingContext;
                 _undoHistoryRegistry = undoHistoryRegistry;
                 _undoManager = (IVsLinkedUndoTransactionManager)serviceProvider.GetService(typeof(SVsLinkedUndoTransactionManager));
                 _lazyVSWorkspace = lazyVSWorkspace;
@@ -63,7 +67,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                     throw new ArgumentException(ServicesVSResources.given_workspace_doesn_t_support_undo);
                 }
 
-                var transaction = new WorkspaceUndoTransaction(_undoHistoryRegistry, _undoManager, workspace, description, this);
+                var transaction = new WorkspaceUndoTransaction(_threadingContext, _undoHistoryRegistry, _undoManager, workspace, description, this);
                 ActiveTransactions++;
                 return transaction;
             }

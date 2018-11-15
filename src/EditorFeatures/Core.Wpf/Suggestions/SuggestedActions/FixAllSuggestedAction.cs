@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.VisualStudio.Language.Intellisense;
@@ -31,13 +32,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         private readonly FixAllState _fixAllState;
 
         internal FixAllSuggestedAction(
+            IThreadingContext threadingContext,
             SuggestedActionsSourceProvider sourceProvider,
             Workspace workspace,
             ITextBuffer subjectBuffer,
             FixAllState fixAllState,
             Diagnostic originalFixedDiagnostic,
             CodeAction originalCodeAction)
-            : base(sourceProvider, workspace, subjectBuffer,
+            : base(threadingContext, sourceProvider, workspace, subjectBuffer,
                    fixAllState.FixAllProvider, new FixAllCodeAction(fixAllState))
         {
             _fixedDiagnostic = originalFixedDiagnostic;

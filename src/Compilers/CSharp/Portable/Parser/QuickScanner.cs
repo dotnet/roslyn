@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         // From what I see in our own codebase, tokens longer then 40-50 chars are 
         // not very common. 
         // So it seems reasonable to limit the sizes to some round number like 42.
-        private const int MaxCachedTokenSize = 42;
+        internal const int MaxCachedTokenSize = 42;
 
         private enum QuickScanState : byte
         {
@@ -152,7 +152,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 (byte)QuickScanState.Done,                // Letter
                 (byte)QuickScanState.Number,              // Digit
                 (byte)QuickScanState.Done,                // Punct
-                (byte)QuickScanState.Done,                // Dot
+                (byte)QuickScanState.Bad,                 // Dot (DotDot range token, exit so that we handle it in subsequent scanning code)
                 (byte)QuickScanState.Done,                // Compound
                 (byte)QuickScanState.Bad,                 // Slash
                 (byte)QuickScanState.Bad,                 // Complex

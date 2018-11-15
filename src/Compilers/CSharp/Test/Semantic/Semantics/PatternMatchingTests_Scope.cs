@@ -1394,7 +1394,7 @@ public class X
     // (12,23): error CS0103: The name 'let' does not exist in the current context
     //         return (o) => let x1 = o;
     Diagnostic(ErrorCode.ERR_NameNotInContext, "let").WithArguments("let").WithLocation(12, 23),
-    // (12,23): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+    // (12,23): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
     //         return (o) => let x1 = o;
     Diagnostic(ErrorCode.ERR_IllegalStatement, "let").WithLocation(12, 23),
     // (12,27): error CS0103: The name 'x1' does not exist in the current context
@@ -1409,7 +1409,7 @@ public class X
     // (17,23): error CS0103: The name 'let' does not exist in the current context
     //         return (o) => let var x2 = o;
     Diagnostic(ErrorCode.ERR_NameNotInContext, "let").WithArguments("let").WithLocation(17, 23),
-    // (17,23): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+    // (17,23): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
     //         return (o) => let var x2 = o;
     Diagnostic(ErrorCode.ERR_IllegalStatement, "let").WithLocation(17, 23),
     // (17,36): error CS0103: The name 'o' does not exist in the current context
@@ -2817,7 +2817,7 @@ public class X
     // (12,29): error CS0103: The name 'let' does not exist in the current context
     //         void f(object o) => let x1 = o;
     Diagnostic(ErrorCode.ERR_NameNotInContext, "let").WithArguments("let").WithLocation(12, 29),
-    // (12,29): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+    // (12,29): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
     //         void f(object o) => let x1 = o;
     Diagnostic(ErrorCode.ERR_IllegalStatement, "let").WithLocation(12, 29),
     // (12,33): error CS0103: The name 'x1' does not exist in the current context
@@ -2829,7 +2829,7 @@ public class X
     // (18,29): error CS0103: The name 'let' does not exist in the current context
     //         void f(object o) => let var x2 = o;
     Diagnostic(ErrorCode.ERR_NameNotInContext, "let").WithArguments("let").WithLocation(18, 29),
-    // (18,29): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+    // (18,29): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
     //         void f(object o) => let var x2 = o;
     Diagnostic(ErrorCode.ERR_IllegalStatement, "let").WithLocation(18, 29),
     // (18,42): error CS0103: The name 'o' does not exist in the current context
@@ -3001,13 +3001,13 @@ public class X
     // (9,29): error CS0103: The name 'let' does not exist in the current context
     //     void Test1(object o) => let x1 = o;
     Diagnostic(ErrorCode.ERR_NameNotInContext, "let").WithArguments("let").WithLocation(9, 29),
-    // (9,29): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+    // (9,29): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
     //     void Test1(object o) => let x1 = o;
     Diagnostic(ErrorCode.ERR_IllegalStatement, "let").WithLocation(9, 29),
     // (11,29): error CS0103: The name 'let' does not exist in the current context
     //     void Test2(object o) => let var x2 = o;
     Diagnostic(ErrorCode.ERR_NameNotInContext, "let").WithArguments("let").WithLocation(11, 29),
-    // (11,29): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+    // (11,29): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
     //     void Test2(object o) => let var x2 = o;
     Diagnostic(ErrorCode.ERR_IllegalStatement, "let").WithLocation(11, 29),
     // (15,29): error CS0841: Cannot use local variable 'x4' before it is declared
@@ -12056,7 +12056,7 @@ var y, y1(Dummy(3 is var x1, x1));
 
             var y1 = model.LookupSymbols(x1Ref[0].SpanStart, name: "y1").Single();
             Assert.Equal("var y1", y1.ToTestDisplayString());
-            Assert.True(((LocalSymbol)y1).Type.IsErrorType());
+            Assert.True(((LocalSymbol)y1).Type.TypeSymbol.IsErrorType());
         }
 
         [Fact]
@@ -12110,7 +12110,7 @@ public class X
             var e = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Where(id => id.Identifier.ValueText == "e").Single();
             var symbol = (LocalSymbol)model.GetDeclaredSymbol(e);
             Assert.Equal("var e", symbol.ToTestDisplayString());
-            Assert.True(symbol.Type.IsErrorType());
+            Assert.True(symbol.Type.TypeSymbol.IsErrorType());
         }
 
         [Fact]

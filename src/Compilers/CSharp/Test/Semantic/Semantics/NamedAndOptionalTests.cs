@@ -956,7 +956,7 @@ class Test{
     }
 }
 ";
-            CreateCompilation(source, new[] { SystemRef }).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (9,21): error CS1745: Cannot specify default parameter value in conjunction with DefaultParameterAttribute or OptionalAttribute
                 //     public int Bar([DefaultParameterValue(1)]int i = 2) {
                 Diagnostic(ErrorCode.ERR_DefaultValueUsedWithAttributes, "DefaultParameterValue").WithLocation(9, 21),
@@ -1004,7 +1004,7 @@ public class Parent
      }
 }
 ";
-            var comp = CreateCompilation(source, new[] { SystemRef });
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
  // (8,10): error CS7036: There is no argument given that corresponds to the required formal parameter 'x' of 'Parent.Goo(ref int)'
  //          Goo();
@@ -1023,7 +1023,7 @@ public interface IOptionalRef
     MyEnum MethodRef([In, Out, Optional, DefaultParameterValue(MyEnum.three)] ref MyEnum v);
 }
 ";
-            CompileAndVerify(source, new[] { SystemRef }).VerifyDiagnostics();
+            CompileAndVerify(source).VerifyDiagnostics();
         }
 
         [Fact]
@@ -1115,7 +1115,7 @@ public static class ErrorCases
 }
 ";
             // NOTE: anywhere dev10 reported CS1909, roslyn reports CS1910.
-            CreateCompilation(source, new[] { SystemRef }).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (27,20): error CS1908: The type of the argument to the DefaultParameterValue attribute must match the parameter type
                 //         [Optional][DefaultParameterValue(0)]         bool b1,
                 Diagnostic(ErrorCode.ERR_DefaultValueTypeMustMatch, "DefaultParameterValue"),
@@ -1208,7 +1208,7 @@ public static class ErrorCases
         }
 
         [WorkItem(544440, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544440")]
-        [ClrOnlyFact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void TestBug12768()
         {
             string sourceDefinitions = @"
@@ -1337,12 +1337,12 @@ System.Runtime.InteropServices.UnknownWrapper
 17
 18";
             // definitions in source:
-            var verifier = CompileAndVerify(new[] { sourceDefinitions, sourceCalls }, new[] { SystemRef }, expectedOutput: expected);
+            var verifier = CompileAndVerify(new[] { sourceDefinitions, sourceCalls }, expectedOutput: expected);
 
             // definitions in metadata:
             using (var assembly = AssemblyMetadata.CreateFromImage(verifier.EmittedAssemblyData))
             {
-                CompileAndVerify(new[] { sourceCalls }, new[] { SystemRef, assembly.GetReference() }, expectedOutput: expected);
+                CompileAndVerify(new[] { sourceCalls }, new[] { assembly.GetReference() }, expectedOutput: expected);
             }
         }
 
@@ -2055,7 +2055,7 @@ public class C
                 Assert.Equal(isFromSource ? 2 : 0, parameters[7].GetAttributes().Length);
             };
 
-            CompileAndVerify(source, new[] { SystemRef }, sourceSymbolValidator: validator(true), symbolValidator: validator(false));
+            CompileAndVerify(source, sourceSymbolValidator: validator(true), symbolValidator: validator(false));
         }
 
         [Fact]
@@ -2106,7 +2106,7 @@ public struct S
             };
 
             // TODO: RefEmit doesn't emit the default value of M1's parameter.
-            CompileAndVerify(source, new[] { SystemRef }, sourceSymbolValidator: validator(true), symbolValidator: validator(false));
+            CompileAndVerify(source, sourceSymbolValidator: validator(true), symbolValidator: validator(false));
         }
 
         [Fact]
@@ -2188,7 +2188,7 @@ public class C
                 Assert.Equal(isFromSource ? 2 : 0, parameters[7].GetAttributes().Length);
             };
 
-            CompileAndVerify(source, new[] { SystemRef }, sourceSymbolValidator: validator(true), symbolValidator: validator(false));
+            CompileAndVerify(source, sourceSymbolValidator: validator(true), symbolValidator: validator(false));
         }
 
         [Fact]
@@ -2271,7 +2271,7 @@ public class C
                 Assert.Equal(isFromSource ? 2 : 0, parameters[7].GetAttributes().Length); // Optional+DecimalConstantAttribute / DecimalConstantAttribute
             };
 
-            CompileAndVerify(source, new[] { SystemRef }, sourceSymbolValidator: validator(true), symbolValidator: validator(false));
+            CompileAndVerify(source, sourceSymbolValidator: validator(true), symbolValidator: validator(false));
         }
 
         [Fact]
@@ -2348,7 +2348,7 @@ public class C
             };
 
             // TODO: Guess - RefEmit doesn't like DateTime constants.
-            CompileAndVerify(source, new[] { SystemRef }, sourceSymbolValidator: validator(true), symbolValidator: validator(false));
+            CompileAndVerify(source, sourceSymbolValidator: validator(true), symbolValidator: validator(false));
         }
     }
 }

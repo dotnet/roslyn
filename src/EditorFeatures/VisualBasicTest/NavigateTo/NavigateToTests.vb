@@ -6,6 +6,7 @@ Imports Microsoft.VisualStudio.Composition
 Imports Microsoft.VisualStudio.Language.NavigateTo.Interfaces
 Imports Microsoft.VisualStudio.Text.PatternMatching
 
+#Disable Warning BC40000 ' MatchKind is obsolete
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.NavigateTo
     Public Class NavigateToTests
         Inherits AbstractNavigateToTests
@@ -738,7 +739,7 @@ Public Class Goo
 End Class
                         </Document>
                     </Project>
-                </Workspace>)
+                </Workspace>, exportProvider:=Nothing, createTrackingService:=Nothing)
 
                 Dim item As NavigateToItem = (Await _aggregator.GetItemsAsync("G")).Single()
                 Dim itemDisplay As INavigateToItemDisplay = item.DisplayFactory.CreateItemDisplay(item)
@@ -758,3 +759,4 @@ End Class
         End Function
     End Class
 End Namespace
+#Enable Warning BC40000 ' MatchKind is obsolete

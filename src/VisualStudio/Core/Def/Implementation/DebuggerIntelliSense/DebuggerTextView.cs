@@ -12,26 +12,32 @@ using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Formatting;
 using Microsoft.VisualStudio.Text.Outlining;
 using Microsoft.VisualStudio.Text.Projection;
+using Microsoft.VisualStudio.TextManager.Interop;
 using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelliSense
 {
-    internal partial class DebuggerTextView : IWpfTextView, IDebuggerTextView
+    internal partial class DebuggerTextView : IWpfTextView, IDebuggerTextView, ITextView2
     {
         /// <summary>
         /// The actual debugger view of the watch or immediate window that we're wrapping
         /// </summary>
         private readonly IWpfTextView _innerTextView;
+        private readonly IVsTextLines _debuggerTextLinesOpt;
+
+        private IMultiSelectionBroker _multiSelectionBroker;
 
         public DebuggerTextView(
             IWpfTextView innerTextView,
             IBufferGraph bufferGraph,
+            IVsTextLines debuggerTextLinesOpt,
             bool isImmediateWindow)
         {
             _innerTextView = innerTextView;
-            this.BufferGraph = bufferGraph;
-            this.IsImmediateWindow = isImmediateWindow;
+            _debuggerTextLinesOpt = debuggerTextLinesOpt;
+            BufferGraph = bufferGraph;
+            IsImmediateWindow = isImmediateWindow;
         }
 
         /// <summary>
@@ -58,6 +64,25 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
         public bool IsImmediateWindow
         {
             get;
+        }
+
+        public uint StartBufferUpdate()
+        {
+            // null in unit tests
+            if (_debuggerTextLinesOpt == null)
+            {
+                return 0;
+            }
+
+            _debuggerTextLinesOpt.GetStateFlags(out var bufferFlags);
+            _debuggerTextLinesOpt.SetStateFlags((uint)((BUFFERSTATEFLAGS)bufferFlags & ~BUFFERSTATEFLAGS.BSF_USER_READONLY));
+            return bufferFlags;
+        }
+
+        public void EndBufferUpdate(uint cookie)
+        {
+            // null in unit tests
+            _debuggerTextLinesOpt?.SetStateFlags(cookie);
         }
 
         public ITextCaret Caret
@@ -268,6 +293,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
             }
         }
 
+        public bool InOuterLayout => throw new NotImplementedException();
+
+        public IMultiSelectionBroker MultiSelectionBroker
+        {
+            get
+            {
+                if (_multiSelectionBroker == null)
+                {
+                    _multiSelectionBroker = _innerTextView.GetMultiSelectionBroker();
+                }
+
+                return _multiSelectionBroker;
+            }
+        }
+
         public void Close()
         {
             throw new NotSupportedException();
@@ -325,6 +365,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
         }
 
         private event EventHandler ClosedInternal;
+
+#pragma warning disable 67
+        public event EventHandler MaxTextRightCoordinateChanged;
+#pragma warning restore 67
 
         public event EventHandler Closed
         {

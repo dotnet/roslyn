@@ -68,12 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// The type of the property. 
         /// </summary>
-        public abstract TypeSymbol Type { get; }
-
-        /// <summary>
-        /// The list of custom modifiers, if any, associated with the type of the property. 
-        /// </summary>
-        public abstract ImmutableArray<CustomModifier> TypeCustomModifiers { get; }
+        public abstract TypeSymbolWithAnnotations Type { get; }
 
         /// <summary>
         /// Custom modifiers associated with the ref modifier, or an empty array if there are none.
@@ -99,7 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal ImmutableArray<TypeSymbol> ParameterTypes
+        internal ImmutableArray<TypeSymbolWithAnnotations> ParameterTypes
         {
             get
             {
@@ -173,6 +168,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// True if this symbol has a special name (metadata flag SpecialName is set).
         /// </summary>
         internal abstract bool HasSpecialName { get; }
+
+        public override bool? NonNullTypes
+        {
+            get
+            {
+                Debug.Assert(IsDefinition);
+                return ContainingType?.NonNullTypes;
+            }
+        }
 
         /// <summary>
         /// The 'get' accessor of the property, or null if the property is write-only.
@@ -324,11 +328,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return visitor.VisitProperty(this);
         }
 
-        internal virtual PropertySymbol AsMember(NamedTypeSymbol newOwner)
+        internal PropertySymbol AsMember(NamedTypeSymbol newOwner)
         {
             Debug.Assert(this.IsDefinition);
             Debug.Assert(ReferenceEquals(newOwner.OriginalDefinition, this.ContainingSymbol.OriginalDefinition));
-            return (newOwner == this.ContainingSymbol) ? this : new SubstitutedPropertySymbol(newOwner as SubstitutedNamedTypeSymbol, this);
+            return newOwner.IsDefinition ? this : new SubstitutedPropertySymbol(newOwner as SubstitutedNamedTypeSymbol, this);
         }
 
         #region Use-Site Diagnostics
@@ -350,7 +354,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // Check return type, custom modifiers and parameters:
             if (DeriveUseSiteDiagnosticFromType(ref result, this.Type) ||
                 DeriveUseSiteDiagnosticFromCustomModifiers(ref result, this.RefCustomModifiers) ||
-                DeriveUseSiteDiagnosticFromCustomModifiers(ref result, this.TypeCustomModifiers) ||
                 DeriveUseSiteDiagnosticFromParameters(ref result, this.Parameters))
             {
                 return true;
@@ -363,7 +366,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 HashSet<TypeSymbol> unificationCheckedTypes = null;
                 if (this.Type.GetUnificationUseSiteDiagnosticRecursive(ref result, this, ref unificationCheckedTypes) ||
                     GetUnificationUseSiteDiagnosticRecursive(ref result, this.RefCustomModifiers, this, ref unificationCheckedTypes) ||
-                    GetUnificationUseSiteDiagnosticRecursive(ref result, this.TypeCustomModifiers, this, ref unificationCheckedTypes) ||
                     GetUnificationUseSiteDiagnosticRecursive(ref result, this.Parameters, this, ref unificationCheckedTypes))
                 {
                     return true;
@@ -427,7 +429,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         ITypeSymbol IPropertySymbol.Type
         {
-            get { return this.Type; }
+            get { return this.Type.TypeSymbol; }
         }
 
         ImmutableArray<IParameterSymbol> IPropertySymbol.Parameters
@@ -477,7 +479,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         ImmutableArray<CustomModifier> IPropertySymbol.TypeCustomModifiers
         {
-            get { return this.TypeCustomModifiers; }
+            get { return this.Type.CustomModifiers; }
         }
 
         ImmutableArray<CustomModifier> IPropertySymbol.RefCustomModifiers

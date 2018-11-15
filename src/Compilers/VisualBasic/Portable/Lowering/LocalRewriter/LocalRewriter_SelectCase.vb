@@ -365,10 +365,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             Dim relationalCaseClause = DirectCast(caseClause, BoundRelationalCaseClause)
 
                             Debug.Assert(relationalCaseClause.OperatorKind = BinaryOperatorKind.Equals)
-                            Debug.Assert(relationalCaseClause.OperandOpt IsNot Nothing)
+                            Debug.Assert(relationalCaseClause.ValueOpt IsNot Nothing)
                             Debug.Assert(relationalCaseClause.ConditionOpt Is Nothing)
 
-                            constant = relationalCaseClause.OperandOpt.ConstantValueOpt
+                            constant = relationalCaseClause.ValueOpt.ConstantValueOpt
 
                         Case Else
                             Throw ExceptionUtilities.UnexpectedValue(caseClause.Kind)

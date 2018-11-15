@@ -12,6 +12,7 @@ Imports Microsoft.CodeAnalysis.CodeGen
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.InternalUtilities
+Imports Microsoft.CodeAnalysis.Operations
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Symbols
 Imports Microsoft.CodeAnalysis.Text
@@ -1578,14 +1579,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         Friend Overrides Sub ReportUnusedImports(filterTree As SyntaxTree, diagnostics As DiagnosticBag, cancellationToken As CancellationToken)
-            If _lazyImportInfos IsNot Nothing Then
+            If _lazyImportInfos IsNot Nothing AndAlso (filterTree Is Nothing OrElse filterTree.Options.DocumentationMode <> DocumentationMode.None) Then
                 Dim unusedBuilder As ArrayBuilder(Of TextSpan) = Nothing
 
                 For Each info As ImportInfo In _lazyImportInfos
                     cancellationToken.ThrowIfCancellationRequested()
 
                     Dim infoTree As SyntaxTree = info.Tree
-                    If filterTree Is Nothing OrElse filterTree Is infoTree Then
+                    If (filterTree Is Nothing OrElse filterTree Is infoTree) AndAlso infoTree.Options.DocumentationMode <> DocumentationMode.None Then
                         Dim clauseSpans = info.ClauseSpans
                         Dim numClauseSpans = clauseSpans.Length
 
@@ -1671,18 +1672,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         Friend Function ShouldAddEvent(symbol As Symbol) As Boolean
-            If EventQueue Is Nothing Then
-                Return False
-            End If
-
-            For Each location As Location In symbol.Locations
-                If location.SourceTree IsNot Nothing Then
-                    Debug.Assert(AllSyntaxTrees.Contains(location.SourceTree))
-                    Return True
-                End If
-            Next
-
-            Return False
+            Return EventQueue IsNot Nothing AndAlso symbol.IsInSource()
         End Function
 
         Friend Sub SymbolDeclaredEvent(symbol As Symbol)
@@ -1759,6 +1749,37 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return New Conversion(Conversions.ClassifyConversion(vbsource, vbdest, Nothing))
         End Function
 
+        Public Overrides Function ClassifyCommonConversion(source As ITypeSymbol, destination As ITypeSymbol) As CommonConversion
+            Return ClassifyConversion(source, destination).ToCommonConversion()
+        End Function
+
+        Friend Overrides Function ClassifyConvertibleConversion(source As IOperation, destination As ITypeSymbol, ByRef constantValue As [Optional](Of Object)) As IConvertibleConversion
+            constantValue = Nothing
+
+            If destination Is Nothing Then
+                Return New Conversion(Nothing) ' No conversion
+            End If
+
+            Dim sourceType As ITypeSymbol = source.Type
+
+            If sourceType Is Nothing Then
+                If source.ConstantValue.HasValue AndAlso source.ConstantValue.Value Is Nothing AndAlso destination.IsReferenceType Then
+                    constantValue = source.ConstantValue
+                    Return New Conversion(New KeyValuePair(Of ConversionKind, MethodSymbol)(ConversionKind.WideningNothingLiteral, Nothing))
+                End If
+
+                Return New Conversion(Nothing) ' No conversion
+            End If
+
+            Dim result As Conversion = ClassifyConversion(sourceType, destination)
+
+            If result.IsReference AndAlso source.ConstantValue.HasValue AndAlso source.ConstantValue.Value Is Nothing Then
+                constantValue = source.ConstantValue
+            End If
+
+            Return result
+        End Function
+
         ''' <summary>
         ''' A symbol representing the implicit Script class. This is null if the class is not
         ''' defined in the compilation.
@@ -1800,6 +1821,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Friend Shadows Function GetSpecialTypeMember(memberId As SpecialMember) As Symbol
             Return Assembly.GetSpecialTypeMember(memberId)
+        End Function
+
+        Friend Overrides Function CommonGetSpecialTypeMember(specialMember As SpecialMember) As ISymbol
+            Return GetSpecialTypeMember(specialMember)
         End Function
 
         Friend Function GetTypeByReflectionType(type As Type, diagnostics As DiagnosticBag) As TypeSymbol
@@ -1844,6 +1869,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim typeSymbol = GetSpecialType(type)
             Dim diagnostic = typeSymbol.GetUseSiteErrorInfo
             Return diagnostic Is Nothing OrElse diagnostic.Severity <> DiagnosticSeverity.Error
+        End Function
+
+        Private Protected Overrides Function IsSymbolAccessibleWithinCore(symbol As ISymbol, within As ISymbol, throughType As ITypeSymbol) As Boolean
+            Dim symbol0 = symbol.EnsureVbSymbolOrNothing(Of Symbol)(NameOf(symbol))
+            Dim within0 = within.EnsureVbSymbolOrNothing(Of Symbol)(NameOf(within))
+            Dim throughType0 = throughType.EnsureVbSymbolOrNothing(Of TypeSymbol)(NameOf(throughType))
+            Return If(within0.Kind = SymbolKind.Assembly,
+                AccessCheck.IsSymbolAccessible(symbol0, DirectCast(within0, AssemblySymbol), useSiteDiagnostics:=Nothing),
+                AccessCheck.IsSymbolAccessible(symbol0, DirectCast(within0, NamedTypeSymbol), throughType0, useSiteDiagnostics:=Nothing))
+        End Function
+
+        <Obsolete("Compilation.IsSymbolAccessibleWithin is not designed for use within the compilers", True)>
+        Friend Shadows Function IsSymbolAccessibleWithin(symbol As ISymbol, within As ISymbol, Optional throughType As ITypeSymbol = Nothing) As Boolean
+            Throw New NotImplementedException
         End Function
 
 #End Region
@@ -2731,12 +2770,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return New PredicateSymbolSearcher(Me, filter, predicate, cancellationToken).GetSymbolsWithName()
         End Function
 
+#Disable Warning RS0026 ' Do not add multiple public overloads with optional parameters
         ''' <summary>
         ''' Return true if there is a source declaration symbol name that matches the provided name.
-        ''' This may be faster than <see cref="ContainsSymbolsWithName(Func(Of String, Boolean), SymbolFilter, CancellationToken)"/>
-        ''' when predicate is just a simple string check.
+        ''' This may be faster than <see cref="ContainsSymbolsWithName(Func(Of String, Boolean),
+        ''' SymbolFilter, CancellationToken)"/> when predicate is just a simple string check.
+        ''' <paramref name="name"/> is case insensitive.
         ''' </summary>
-        Friend Overrides Function ContainsSymbolsWithName(name As String, Optional filter As SymbolFilter = SymbolFilter.TypeAndMember, Optional cancellationToken As CancellationToken = Nothing) As Boolean
+        Public Overrides Function ContainsSymbolsWithName(name As String, Optional filter As SymbolFilter = SymbolFilter.TypeAndMember, Optional cancellationToken As CancellationToken = Nothing) As Boolean
             If name Is Nothing Then
                 Throw New ArgumentNullException(NameOf(name))
             End If
@@ -2748,7 +2789,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return DeclarationTable.ContainsName(MergedRootDeclaration, name, filter, cancellationToken)
         End Function
 
-        Friend Overrides Function GetSymbolsWithName(name As String, Optional filter As SymbolFilter = SymbolFilter.TypeAndMember, Optional cancellationToken As CancellationToken = Nothing) As IEnumerable(Of ISymbol)
+        Public Overrides Function GetSymbolsWithName(name As String, Optional filter As SymbolFilter = SymbolFilter.TypeAndMember, Optional cancellationToken As CancellationToken = Nothing) As IEnumerable(Of ISymbol)
             If name Is Nothing Then
                 Throw New ArgumentNullException(NameOf(name))
             End If
@@ -2759,6 +2800,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Return New NameSymbolSearcher(Me, filter, name, cancellationToken).GetSymbolsWithName()
         End Function
+#Enable Warning RS0026 ' Do not add multiple public overloads with optional parameters
 
         Friend Overrides Function IsUnreferencedAssemblyIdentityDiagnosticCode(code As Integer) As Boolean
             Select Case code
@@ -2970,11 +3012,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Protected Overrides Function ShouldCheckTypeForMembers(current As MergedTypeDeclaration) As Boolean
                 For Each typeDecl In current.Declarations
-                    For Each name In typeDecl.MemberNames
-                        If IdentifierComparison.Equals(name, _name) Then
-                            Return True
-                        End If
-                    Next
+                    If typeDecl.MemberNames.Contains(_name) Then
+                        Return True
+                    End If
                 Next
 
                 Return False

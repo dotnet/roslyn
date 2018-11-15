@@ -72,21 +72,39 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         {
             CompilerServerLogger.Log("Constructing pipe '{0}'.", pipeName);
 
-#if NET46
-            SecurityIdentifier identifier = WindowsIdentity.GetCurrent().Owner;
-            PipeSecurity security = new PipeSecurity();
+#if NET472
+            PipeSecurity security;
+            PipeOptions pipeOptions = PipeOptions.Asynchronous | PipeOptions.WriteThrough;
 
-            // Restrict access to just this account.  
-            PipeAccessRule rule = new PipeAccessRule(identifier, PipeAccessRights.ReadWrite | PipeAccessRights.CreateNewInstance, AccessControlType.Allow);
-            security.AddAccessRule(rule);
-            security.SetOwner(identifier);
+            if (!PlatformInformation.IsRunningOnMono) 
+            {
+                security = new PipeSecurity();
+                SecurityIdentifier identifier = WindowsIdentity.GetCurrent().Owner;
+
+                // Restrict access to just this account.  
+                PipeAccessRule rule = new PipeAccessRule(identifier, PipeAccessRights.ReadWrite | PipeAccessRights.CreateNewInstance, AccessControlType.Allow);
+                security.AddAccessRule(rule);
+                security.SetOwner(identifier);
+            } 
+            else 
+            {
+                // Pipe security and additional access rights constructor arguments
+                //  are not supported by Mono 
+                // https://github.com/dotnet/roslyn/pull/30810
+                // https://github.com/mono/mono/issues/11406
+                security = null;
+                // This enum value is implemented by Mono to restrict pipe access to
+                //  the current user
+                const int CurrentUserOnly = unchecked((int)0x20000000);
+                pipeOptions |= (PipeOptions)CurrentUserOnly;
+            }
 
             NamedPipeServerStream pipeStream = new NamedPipeServerStream(
                 pipeName,
                 PipeDirection.InOut,
                 NamedPipeServerStream.MaxAllowedServerInstances, // Maximum connections.
                 PipeTransmissionMode.Byte,
-                PipeOptions.Asynchronous | PipeOptions.WriteThrough,
+                pipeOptions,
                 PipeBufferSize, // Default input buffer
                 PipeBufferSize, // Default output buffer
                 security,

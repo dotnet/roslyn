@@ -83,7 +83,8 @@ That said, even if determinism isn't set, compilation of ref assemblies is [larg
 
 ## MSBuild
 
-* `ProduceReferenceAssembly` (boolean) controls whether to create the item passed to the compiler task (and thus pass `/refout:`). It requires opt-in. It is recommended that `Deterministic` also be set for best result (see details above).
+* `ProduceReferenceAssembly` (boolean) controls whether to create the item passed to the compiler task (and thus pass `/refout:`). It requires opt-in. It is recommended that `Deterministic` also be set for best result (see details above).  Cannot be used in conjunction with `ProduceOnlyReferenceAssembly`
+* `ProduceOnlyReferenceAssembly` (boolean) controls whether to pass `/refonly` to the compiler. It requires opt-in. Cannot be used in conjunction with `ProduceReferenceAssembly`
 * If you encounter a problem using reference assemblies, you can set the boolean property `CompileUsingReferenceAssemblies` to `false` to avoid using ref assemblies even if the projects you reference produce them. This is unset by default and only ever checked against `false`. It is only there to provide an emergency escape hatch; a customer who hits a bug can set it to `false` and avoid the new codepaths.
 
 ## Future

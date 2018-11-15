@@ -1431,6 +1431,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Nothing,
                         receiver,
                         node.Arguments,
+                        node.DefaultArguments,
                         Nothing,
                         isLValue:=False,
                         suppressObjectClone:=node.SuppressObjectClone,
