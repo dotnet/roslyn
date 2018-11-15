@@ -62,8 +62,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
             Dim mockServiceProvider As MockServiceProvider = ExportProvider.GetExportedValue(Of MockServiceProvider)()
             mockServiceProvider.MockMonitorSelection = New MockShellMonitorSelection(solutionIsFullyLoaded)
             ServiceProvider = mockServiceProvider
-
-            Dim documentTrackingService = New VisualStudioDocumentTrackingService(ServiceProvider)
         End Sub
 
         <PartNotDiscoverable>
