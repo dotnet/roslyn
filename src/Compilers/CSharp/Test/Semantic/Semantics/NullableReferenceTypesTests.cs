@@ -57132,5 +57132,237 @@ class Program
                 //         y = (object)x;
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(object)x").WithLocation(8, 13));
         }
+
+        [Fact]
+        public void TestJoinForFixingLowerBoundsIsAssociative()
+        {
+            var allAnnotations = (NullableAnnotation[])Enum.GetValues(typeof(NullableAnnotation));
+            foreach (var a in allAnnotations)
+            {
+                foreach (var b in allAnnotations)
+                {
+                    foreach (var c in allAnnotations)
+                    {
+                        var leftFirst = a.JoinForFixingLowerBounds(b).JoinForFixingLowerBounds(c);
+                        var rightFirst = a.JoinForFixingLowerBounds(b.JoinForFixingLowerBounds(c));
+                        Assert.Equal(leftFirst, rightFirst);
+                    }
+                }
+            }
+        }
+
+        [Fact]
+        public void TestJoinForFlowAnalysisBranchesIsAssociative()
+        {
+            var allAnnotations = (NullableAnnotation[])Enum.GetValues(typeof(NullableAnnotation));
+            Func<bool, bool> identity = x => x;
+            foreach (var a in allAnnotations)
+            {
+                foreach (var b in allAnnotations)
+                {
+                    foreach (var c in allAnnotations)
+                    {
+                        foreach (bool isPossiblyNullableReferenceTypeTypeParameter in new[] { true, false })
+                        {
+                            var leftFirst = a.JoinForFlowAnalysisBranches(b, isPossiblyNullableReferenceTypeTypeParameter, identity).JoinForFlowAnalysisBranches(c, isPossiblyNullableReferenceTypeTypeParameter, identity);
+                            var rightFirst = a.JoinForFlowAnalysisBranches(b.JoinForFlowAnalysisBranches(c, isPossiblyNullableReferenceTypeTypeParameter, identity), isPossiblyNullableReferenceTypeTypeParameter, identity);
+                            Assert.Equal(leftFirst, rightFirst);
+                        }
+                    }
+                }
+            }
+        }
+
+        [Fact]
+        public void TestMeetForFixingUpperBoundsIsAssociative()
+        {
+            var allAnnotations = (NullableAnnotation[])Enum.GetValues(typeof(NullableAnnotation));
+            Func<bool, bool> identity = x => x;
+            foreach (var a in allAnnotations)
+            {
+                foreach (var b in allAnnotations)
+                {
+                    foreach (var c in allAnnotations)
+                    {
+                        foreach (bool isPossiblyNullableReferenceTypeTypeParameter in new[] { true, false })
+                        {
+                            var leftFirst = a.MeetForFixingUpperBounds(b, isPossiblyNullableReferenceTypeTypeParameter, identity).MeetForFixingUpperBounds(c, isPossiblyNullableReferenceTypeTypeParameter, identity);
+                            var rightFirst = a.MeetForFixingUpperBounds(b.MeetForFixingUpperBounds(c, isPossiblyNullableReferenceTypeTypeParameter, identity), isPossiblyNullableReferenceTypeTypeParameter, identity);
+                            Assert.Equal(leftFirst, rightFirst);
+                        }
+                    }
+                }
+            }
+        }
+
+        [Fact]
+        public void TestMeetForFlowAnalysisFinallyIsAssociative()
+        {
+            var allAnnotations = (NullableAnnotation[])Enum.GetValues(typeof(NullableAnnotation));
+            foreach (var a in allAnnotations)
+            {
+                foreach (var b in allAnnotations)
+                {
+                    foreach (var c in allAnnotations)
+                    {
+                        var leftFirst = a.MeetForFlowAnalysisFinally(b).MeetForFlowAnalysisFinally(c);
+                        var rightFirst = a.MeetForFlowAnalysisFinally(b.MeetForFlowAnalysisFinally(c));
+                        Assert.Equal(leftFirst, rightFirst);
+                    }
+                }
+            }
+        }
+
+        [Fact]
+        public void TestEnsureCompatibleIsAssociative()
+        {
+            var allAnnotations = (NullableAnnotation[])Enum.GetValues(typeof(NullableAnnotation));
+            Func<bool, bool> identity = x => x;
+            foreach (var a in allAnnotations)
+            {
+                foreach (var b in allAnnotations)
+                {
+                    foreach (var c in allAnnotations)
+                    {
+                        foreach (bool isPossiblyNullableReferenceTypeTypeParameter in new[] { true, false })
+                        {
+                            var leftFirst = a.EnsureCompatible(b, isPossiblyNullableReferenceTypeTypeParameter, identity, out var w1a).EnsureCompatible(c, isPossiblyNullableReferenceTypeTypeParameter, identity, out var w1b);
+                            var rightFirst = a.EnsureCompatible(b.EnsureCompatible(c, isPossiblyNullableReferenceTypeTypeParameter, identity, out var w2a), isPossiblyNullableReferenceTypeTypeParameter, identity, out var w2b);
+                            Assert.Equal(leftFirst, rightFirst);
+                            Assert.Equal(w1a | w1b, w2a | w2b);
+                        }
+                    }
+                }
+            }
+        }
+
+        [Fact]
+        public void TestJoinForFixingLowerBoundsIsCommutative()
+        {
+            var allAnnotations = (NullableAnnotation[])Enum.GetValues(typeof(NullableAnnotation));
+            foreach (var a in allAnnotations)
+            {
+                foreach (var b in allAnnotations)
+                {
+                    var leftFirst = a.JoinForFixingLowerBounds(b);
+                    var rightFirst = b.JoinForFixingLowerBounds(a);
+                    Assert.Equal(leftFirst, rightFirst);
+                }
+            }
+        }
+
+        [Fact]
+        public void TestJoinForFlowAnalysisBranchesIsCommutative()
+        {
+            var allAnnotations = (NullableAnnotation[])Enum.GetValues(typeof(NullableAnnotation));
+            Func<bool, bool> identity = x => x;
+            foreach (var a in allAnnotations)
+            {
+                foreach (var b in allAnnotations)
+                {
+                    foreach (bool isPossiblyNullableReferenceTypeTypeParameter in new[] { true, false })
+                    {
+                        var leftFirst = a.JoinForFlowAnalysisBranches(b, isPossiblyNullableReferenceTypeTypeParameter, identity);
+                        var rightFirst = b.JoinForFlowAnalysisBranches(a, isPossiblyNullableReferenceTypeTypeParameter, identity);
+                        Assert.Equal(leftFirst, rightFirst);
+                    }
+                }
+            }
+        }
+
+        [Fact]
+        public void TestMeetForFixingUpperBoundsIsCommutative()
+        {
+            var allAnnotations = (NullableAnnotation[])Enum.GetValues(typeof(NullableAnnotation));
+            Func<bool, bool> identity = x => x;
+            foreach (var a in allAnnotations)
+            {
+                foreach (var b in allAnnotations)
+                {
+                    foreach (bool isPossiblyNullableReferenceTypeTypeParameter in new[] { true, false })
+                    {
+                        var leftFirst = a.MeetForFixingUpperBounds(b, isPossiblyNullableReferenceTypeTypeParameter, identity);
+                        var rightFirst = b.MeetForFixingUpperBounds(a, isPossiblyNullableReferenceTypeTypeParameter, identity);
+                        Assert.Equal(leftFirst, rightFirst);
+                    }
+                }
+            }
+        }
+
+        [Fact]
+        public void TestMeetForFlowAnalysisFinallyIsCommutative()
+        {
+            var allAnnotations = (NullableAnnotation[])Enum.GetValues(typeof(NullableAnnotation));
+            foreach (var a in allAnnotations)
+            {
+                foreach (var b in allAnnotations)
+                {
+                    foreach (var c in allAnnotations)
+                    {
+                        var leftFirst = a.MeetForFlowAnalysisFinally(b);
+                        var rightFirst = b.MeetForFlowAnalysisFinally(a);
+                        Assert.Equal(leftFirst, rightFirst);
+                    }
+                }
+            }
+        }
+
+        [Fact]
+        public void TestEnsureCompatibleIsCommutative()
+        {
+            var allAnnotations = (NullableAnnotation[])Enum.GetValues(typeof(NullableAnnotation));
+            Func<bool, bool> identity = x => x;
+            foreach (var a in allAnnotations)
+            {
+                foreach (var b in allAnnotations)
+                {
+                    foreach (bool isPossiblyNullableReferenceTypeTypeParameter in new[] { true, false })
+                    {
+                        var leftFirst = a.EnsureCompatible(b, isPossiblyNullableReferenceTypeTypeParameter, identity, out var w1);
+                        var rightFirst = b.EnsureCompatible(a, isPossiblyNullableReferenceTypeTypeParameter, identity, out var w2);
+                        Assert.Equal(leftFirst, rightFirst);
+                        Assert.Equal(w1, w2);
+                    }
+                }
+            }
+        }
+
+        [Fact(Skip ="Two different implementations of NullableAnnotation Join do not agree")]
+        public void TestJoinsAgree()
+        {
+            var allAnnotations = (NullableAnnotation[])Enum.GetValues(typeof(NullableAnnotation));
+            Func<bool, bool> identity = x => x;
+            foreach (var a in allAnnotations)
+            {
+                foreach (var b in allAnnotations)
+                {
+                    foreach (bool isPossiblyNullableReferenceTypeTypeParameter in new[] { true, false })
+                    {
+                        var result1 = a.JoinForFixingLowerBounds(b);
+                        var result2 = a.JoinForFlowAnalysisBranches(b, isPossiblyNullableReferenceTypeTypeParameter, identity);
+                        Assert.Equal(result1, result2);
+                    }
+                }
+            }
+        }
+
+        [Fact(Skip = "Two different implementations of NullableAnnotation Meet do not agree")]
+        public void TestMeetsAgree()
+        {
+            var allAnnotations = (NullableAnnotation[])Enum.GetValues(typeof(NullableAnnotation));
+            Func<bool, bool> identity = x => x;
+            foreach (var a in allAnnotations)
+            {
+                foreach (var b in allAnnotations)
+                {
+                    foreach (bool isPossiblyNullableReferenceTypeTypeParameter in new[] { true, false })
+                    {
+                        var result1 = a.MeetForFixingUpperBounds(b, isPossiblyNullableReferenceTypeTypeParameter, identity);
+                        var result2 = a.MeetForFlowAnalysisFinally(b);
+                        Assert.Equal(result1, result2);
+                    }
+                }
+            }
+        }
     }
 }
