@@ -169,17 +169,17 @@
       </trans-unit>
       <trans-unit id="Workspace_is_not_empty">
         <source>Workspace is not empty.</source>
-        <target state="translated">Espaço de trabalho não está vazio.</target>
+        <target state="translated">Workspace não está vazio.</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_is_not_part_of_the_workspace">
         <source>'{0}' is not part of the workspace.</source>
-        <target state="translated">'"{0}" não é parte do espaço de trabalho.</target>
+        <target state="translated">'"{0}" não é parte do workspace.</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_is_already_part_of_the_workspace">
         <source>'{0}' is already part of the workspace.</source>
-        <target state="translated">'"{0}" já é parte do espaço de trabalho.</target>
+        <target state="translated">'"{0}" já é parte do workspace.</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_is_not_referenced">
@@ -549,7 +549,7 @@
       </trans-unit>
       <trans-unit id="Service_of_type_0_is_required_to_accomplish_the_task_but_is_not_available_from_the_workspace">
         <source>Service of type '{0}' is required to accomplish the task but is not available from the workspace.</source>
-        <target state="translated">O serviço do tipo '{0}' é necessário para realizar a tarefa, mas não está disponível no espaço de trabalho.</target>
+        <target state="translated">O serviço do tipo '{0}' é necessário para realizar a tarefa, mas não está disponível no workspace.</target>
         <note />
       </trans-unit>
       <trans-unit id="Supplied_diagnostic_cannot_be_null">
@@ -634,7 +634,7 @@
       </trans-unit>
       <trans-unit id="This_workspace_does_not_support_opening_and_closing_documents">
         <source>This workspace does not support opening and closing documents.</source>
-        <target state="translated">Este espaço de trabalho não dá suporte para abrir e fechar documentos.</target>
+        <target state="translated">Este workspace não dá suporte para abrir e fechar documentos.</target>
         <note />
       </trans-unit>
       <trans-unit id="Usage_colon">
@@ -679,7 +679,7 @@
       </trans-unit>
       <trans-unit id="Options_did_not_come_from_Workspace">
         <source>Options did not come from Workspace</source>
-        <target state="translated">As opções não vieram do Espaço de Trabalho</target>
+        <target state="translated">As opções não vieram do Workspace</target>
         <note />
       </trans-unit>
       <trans-unit id="Enable">

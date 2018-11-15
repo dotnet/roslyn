@@ -84,7 +84,7 @@
       </trans-unit>
       <trans-unit id="Generate_XML_documentation_comments_for">
         <source>_Generate XML documentation comments for '''</source>
-        <target state="translated">_XML-Dokumentationskommentare generieren für '''</target>
+        <target state="translated">_XML-Dokumentationskommentare generieren für "'"</target>
         <note />
       </trans-unit>
       <trans-unit id="Highlighting">
@@ -129,7 +129,7 @@
       </trans-unit>
       <trans-unit id="Go_to_Definition">
         <source>Go to Definition</source>
-        <target state="translated">Gehe zu Definition</target>
+        <target state="translated">Zur Definition wechseln</target>
         <note />
       </trans-unit>
       <trans-unit id="Import_Directives">
@@ -184,7 +184,7 @@
       </trans-unit>
       <trans-unit id="Me_preferences_colon">
         <source>'Me.' preferences:</source>
-        <target state="translated">'me.-Einstellungen:</target>
+        <target state="translated">me.-Einstellungen:</target>
         <note />
       </trans-unit>
       <trans-unit id="Predefined_type_preferences_colon">
@@ -264,7 +264,7 @@
       </trans-unit>
       <trans-unit id="nothing_checking_colon">
         <source>'nothing' checking:</source>
-        <target state="translated">'Überprüfung auf "nothing":</target>
+        <target state="translated">Überprüfung auf "nothing":</target>
         <note />
       </trans-unit>
       <trans-unit id="Fade_out_unused_imports">

@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             BoundExpression expression = BindValue(patternExpression, diagnostics, BindValueKind.RValue);
             ConstantValue constantValueOpt = null;
-            BoundExpression convertedExpression = ConvertPatternExpression(inputType, patternExpression, expression, out constantValueOpt, diagnostics);
+            BoundExpression convertedExpression = ConvertPatternExpression(inputType, patternExpression, expression, out constantValueOpt, hasErrors, diagnostics);
             wasExpression = expression.Type?.IsErrorType() != true;
             if (!convertedExpression.HasErrors && constantValueOpt == null)
             {
@@ -162,7 +162,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundConstantPattern(node, convertedExpression, constantValueOpt ?? ConstantValue.Bad, inputType, hasErrors);
         }
 
-        internal BoundExpression ConvertPatternExpression(TypeSymbol inputType, CSharpSyntaxNode node, BoundExpression expression, out ConstantValue constantValue, DiagnosticBag diagnostics)
+        internal BoundExpression ConvertPatternExpression(
+            TypeSymbol inputType,
+            CSharpSyntaxNode node,
+            BoundExpression expression,
+            out ConstantValue constantValue,
+            bool hasErrors,
+            DiagnosticBag diagnostics)
         {
             BoundExpression convertedExpression;
 
@@ -173,17 +179,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 convertedExpression = expression;
                 HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                if (expression.ConstantValue == ConstantValue.Null)
+                if (!hasErrors)
                 {
-                    if (inputType.IsNonNullableValueType())
+                    if (expression.ConstantValue == ConstantValue.Null)
                     {
-                        // We do not permit matching null against a struct type.
-                        diagnostics.Add(ErrorCode.ERR_ValueCantBeNull, expression.Syntax.Location, inputType);
+                        if (inputType.IsNonNullableValueType())
+                        {
+                            // We do not permit matching null against a struct type.
+                            diagnostics.Add(ErrorCode.ERR_ValueCantBeNull, expression.Syntax.Location, inputType);
+                        }
                     }
-                }
-                else if (ExpressionOfTypeMatchesPatternType(Conversions, inputType, expression.Type, ref useSiteDiagnostics, out _, operandConstantValue: null) == false)
-                {
-                    diagnostics.Add(ErrorCode.ERR_PatternWrongType, expression.Syntax.Location, inputType, expression.Display);
+                    else if (ExpressionOfTypeMatchesPatternType(Conversions, inputType, expression.Type, ref useSiteDiagnostics, out _, operandConstantValue: null) == false)
+                    {
+                        diagnostics.Add(ErrorCode.ERR_PatternWrongType, expression.Syntax.Location, inputType, expression.Display);
+                    }
                 }
 
                 diagnostics.Add(node, useSiteDiagnostics);
