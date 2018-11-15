@@ -3717,7 +3717,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var type = typeWithAnnotations.TypeSymbol;
             var originalType = type; 
 
-            if (typeWithAnnotations.IsAnnotated && !type.IsNullableType())
+            if (typeWithAnnotations.NullableAnnotation == NullableAnnotation.Nullable && !type.IsNullableType())
             {
                 diagnostics.Add(ErrorCode.ERR_AnnotationDisallowedInObjectCreation, node.Location, type);
             }

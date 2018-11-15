@@ -229,6 +229,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected BoundExpression ConvertCaseExpression(CSharpSyntaxNode node, BoundExpression caseExpression, Binder sectionBinder, out ConstantValue constantValueOpt, DiagnosticBag diagnostics, bool isGotoCaseExpr = false)
         {
+            bool hasErrors = false;
             if (isGotoCaseExpr)
             {
                 // SPEC VIOLATION for Dev10 COMPATIBILITY:
@@ -248,16 +249,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (!conversion.IsValid)
                 {
                     GenerateImplicitConversionError(diagnostics, node, conversion, caseExpression, SwitchGoverningType);
+                    hasErrors = true;
                 }
                 else if (!conversion.IsImplicit)
                 {
                     diagnostics.Add(ErrorCode.WRN_GotoCaseShouldConvert, node.Location, SwitchGoverningType);
+                    hasErrors = true;
                 }
 
                 caseExpression = CreateConversion(caseExpression, conversion, SwitchGoverningType, diagnostics);
             }
 
-            return ConvertPatternExpression(SwitchGoverningType, node, caseExpression, out constantValueOpt, diagnostics);
+            return ConvertPatternExpression(SwitchGoverningType, node, caseExpression, out constantValueOpt, hasErrors, diagnostics);
         }
 
         private static readonly object s_nullKey = new object();
