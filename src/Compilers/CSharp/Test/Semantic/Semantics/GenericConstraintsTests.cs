@@ -3306,7 +3306,7 @@ public class C
         M2(&myStruct);
     }
 
-    public unsafe void M2<T>(MyStruct<T> *ms) where T : unmanaged { }
+    public unsafe void M2<T>(MyStruct<T>* ms) where T : unmanaged { }
 }
 ";
             CreateCompilation(code, options: TestOptions.UnsafeReleaseDll)
@@ -3333,7 +3333,7 @@ public class C
         M2(&myStruct);
     }
 
-    public unsafe void M2(MyStruct<int> *ms) { }
+    public unsafe void M2(MyStruct<int>* ms) { }
 }
 ";
             CreateCompilation(code, options: TestOptions.UnsafeReleaseDll)
@@ -3346,23 +3346,12 @@ public class C
             var code = @"
 public unsafe struct MyStruct<T> where T : unmanaged
 {
-    YourStruct<T> *field;
+    public YourStruct<T>* field;
 }
 
 public unsafe struct YourStruct<T> where T : unmanaged
 {
-    MyStruct<T> *field;
-}
-
-public class C
-{
-    public unsafe void M()
-    {
-        MyStruct<int> myStruct;
-        M2(&myStruct);
-    }
-
-    public unsafe void M2(MyStruct<int> *ms) { }
+    public MyStruct<T>* field;
 }
 ";
             CreateCompilation(code, options: TestOptions.UnsafeReleaseDll)
@@ -3375,12 +3364,12 @@ public class C
             var code = @"
 public unsafe struct MyStruct
 {
-    public YourStruct *field;
+    public YourStruct* field;
 }
 
 public unsafe struct YourStruct
 {
-    public MyStruct *field;
+    public MyStruct* field;
 }
 ";
             CreateCompilation(code, options: TestOptions.UnsafeReleaseDll)
@@ -3409,21 +3398,53 @@ public struct YourStruct<T> where T : unmanaged
         }
 
         [Fact]
-        public void ManagedRecursiveStruct()
+        public void UnmanagedRecursiveTypeArgumentConstraintViolation()
         {
             var code = @"
-public struct MyStruct
+public struct MyStruct<T>
 {
-    YourStruct field;
+    public YourStruct<MyStruct<MyStruct<T>>> field;
+    public string s;
 }
 
-public struct YourStruct
+public struct YourStruct<T> where T : unmanaged
 {
-    MyStruct field;
+    public T field;
 }
 ";
             CreateCompilation(code, options: TestOptions.UnsafeReleaseDll)
-                .VerifyDiagnostics();
+                .VerifyDiagnostics(
+                    // (4,46): error CS0523: Struct member 'MyStruct<T>.field' of type 'YourStruct<MyStruct<MyStruct<T>>>' causes a cycle in the struct layout
+                    //     public YourStruct<MyStruct<MyStruct<T>>> field;
+                    Diagnostic(ErrorCode.ERR_StructLayoutCycle, "field").WithArguments("MyStruct<T>.field", "YourStruct<MyStruct<MyStruct<T>>>").WithLocation(4, 46),
+                    // (4,46): error CS8377: The type 'MyStruct<MyStruct<T>>' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'YourStruct<T>'
+                    //     public YourStruct<MyStruct<MyStruct<T>>> field;
+                    Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "field").WithArguments("YourStruct<T>", "T", "MyStruct<MyStruct<T>>").WithLocation(4, 46));
+        }
+
+        [Fact]
+        public void UnmanagedRecursiveTypeArgumentConstraintViolation_02()
+        {
+            var code = @"
+public struct MyStruct<T>
+{
+    public YourStruct<MyStruct<MyStruct<T>>> field;
+}
+
+public struct YourStruct<T> where T : unmanaged
+{
+    public T field;
+    public string s;
+}
+";
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll)
+                .VerifyDiagnostics(
+                    // (4,46): error CS0523: Struct member 'MyStruct<T>.field' of type 'YourStruct<MyStruct<MyStruct<T>>>' causes a cycle in the struct layout
+                    //     public YourStruct<MyStruct<MyStruct<T>>> field;
+                    Diagnostic(ErrorCode.ERR_StructLayoutCycle, "field").WithArguments("MyStruct<T>.field", "YourStruct<MyStruct<MyStruct<T>>>").WithLocation(4, 46),
+                    // (4,46): error CS8377: The type 'MyStruct<MyStruct<T>>' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'YourStruct<T>'
+                    //     public YourStruct<MyStruct<MyStruct<T>>> field;
+                    Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "field").WithArguments("YourStruct<T>", "T", "MyStruct<MyStruct<T>>").WithLocation(4, 46));
         }
     }
 }
