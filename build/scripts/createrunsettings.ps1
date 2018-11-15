@@ -19,7 +19,7 @@ try {
     $optProfToolExe = Join-Path $optProfToolDir "tools\roslyn.optprof.runsettings.generator.exe"
     $configFile = Join-Path $repoDir "build\config\optprof.json"
     $outputFolder = Join-Path $configDir "Insertion\RunSettings"
-    $optProfArgs = "--configFile $configFile --outputFolder $outputFolder --buildNumber 28302.01 "
+    $optProfArgs = "--configFile $configFile --outputFolder $outputFolder --buildNumber 28315.3001 "
     
     Exec-Console $optProfToolExe $optProfArgs
     exit 0
