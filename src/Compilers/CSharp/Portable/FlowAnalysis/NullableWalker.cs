@@ -136,7 +136,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ArrayBuilder<(RefKind, TypeSymbolWithAnnotations)> returnTypes,
             VariableState initialState,
             Action<BoundExpression, TypeSymbolWithAnnotations> callbackOpt)
-            : base(compilation, method, node, new EmptyStructTypeCache(compilation, dev12CompilerCompatibility: false), trackUnassignments: false)
+            : base(compilation, method, node, new EmptyStructTypeCache(compilation, dev12CompilerCompatibility: false), trackUnassignments: true)
         {
             _sourceAssembly = (method is null) ? null : (SourceAssemblySymbol)method.ContainingAssembly;
             _callbackOpt = callbackOpt;
@@ -406,7 +406,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return base.GetOrCreateSlot(symbol, containingSlot);
         }
 
-        // https://github.com/dotnet/roslyn/issues/29952 Remove use of MakeSlot.
         protected override int MakeSlot(BoundExpression node)
         {
             switch (node.Kind)
@@ -629,11 +628,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (targetSlot >= this.State.Capacity) Normalize(ref this.State);
 
                 // https://github.com/dotnet/roslyn/issues/29968 Remove isByRefTarget check?
-                this.State[targetSlot] = isByRefTarget ?
+                var newState = isByRefTarget ?
                     // Since reference can point to the heap, we cannot assume the value is not null after this assignment,
                     // regardless of what value is being assigned.
                     (targetType.IsNullable == true) ? targetType.NullableAnnotation : NullableAnnotation.Unknown :
                     valueType.NullableAnnotation;
+                this.State[targetSlot] = newState;
+                if (newState.IsAnyNullable() && _tryState.HasValue)
+                {
+                    var state = _tryState.Value;
+                    state[targetSlot] = NullableAnnotation.NullableBasedOnAnalysis;
+                    _tryState = state;
+                }
 
                 // https://github.com/dotnet/roslyn/issues/29968 Might this clear state that
                 // should be copied in InheritNullableStateOfTrackableType?
@@ -826,7 +832,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override LocalState AllBitsSet()
         {
-            return new LocalState(reachable: true, new ArrayBuilder<NullableAnnotation>(nextVariableSlot));
+            // Create a reachable state in which all variables are known to be non-null.
+            var builder = new ArrayBuilder<NullableAnnotation>(nextVariableSlot);
+            builder.AddMany(NullableAnnotation.NotNullableBasedOnAnalysis, nextVariableSlot);
+            return new LocalState(reachable: true, builder);
         }
 
         private void EnterParameters()
@@ -3290,6 +3299,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                     goto case ConversionKind.Identity;
 
                 case ConversionKind.Identity:
+                    // If the operand is an explicit conversion, and this identity conversion
+                    // is converting to the same type including nullability, skip the conversion
+                    // to avoid reporting redundant warnings. Also check useLegacyWarnings
+                    // since that value was used when reporting warnings for the explicit cast.
+                    if (useLegacyWarnings && operandOpt?.Kind == BoundKind.Conversion)
+                    {
+                        var operandConversion = (BoundConversion)operandOpt;
+                        var explicitType = operandConversion.ConversionGroupOpt.ExplicitType;
+                        if (!explicitType.IsNull && explicitType.Equals(targetTypeWithNullability, TypeCompareKind.IgnoreInsignificantNullableModifiersDifference))
+                        {
+                            return operandType;
+                        }
+                    }
+                    goto case ConversionKind.ImplicitReference;
+
                 case ConversionKind.ImplicitReference:
                 case ConversionKind.ExplicitReference:
                     if (operandType.IsNull && operandOpt.IsLiteralNullOrDefault())
@@ -4590,6 +4614,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             var result = base.VisitThrowExpression(node);
             SetUnknownResultNullability();
             return result;
+        }
+
+        public override BoundNode VisitYieldReturnStatement(BoundYieldReturnStatement node)
+        {
+            BoundExpression expr = node.Expression;
+            if (expr == null)
+            {
+                return null;
+            }
+            var method = (MethodSymbol)_member;
+            TypeSymbolWithAnnotations elementType = InMethodBinder.GetIteratorElementTypeFromReturnType(compilation, RefKind.None, method.ReturnType.TypeSymbol, errorLocationNode: null, diagnostics: null);
+            VisitOptionalImplicitConversion(expr, elementType, useLegacyWarnings: false, AssignmentKind.Return);
+            return null;
         }
 
 #endregion Visitors
