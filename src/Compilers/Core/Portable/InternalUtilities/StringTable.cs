@@ -716,7 +716,7 @@ namespace Roslyn.Utilities
 #if DEBUG
             for (var i = 0; i < ascii.Length; i++)
             {
-                Debug.Assert((ascii[i] & 0x80) == 0, "The byte* input to this method must be valid ASCII.");
+                Debug.Assert((ascii[i] & 0x80) == 0, $"The {nameof(ascii)} input to this method must be valid ASCII.");
             }
 #endif
 
