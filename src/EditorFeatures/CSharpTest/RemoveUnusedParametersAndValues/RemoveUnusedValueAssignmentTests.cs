@@ -2615,6 +2615,102 @@ class C
         [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         [InlineData(nameof(PreferDiscard))]
         [InlineData(nameof(PreferUnusedLocal))]
+        public async Task WrittenInLambda_DelegatePassedAsArgument(string optionName)
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    void M(object p, object p2)
+    {
+        Action local = () =>
+        {
+            p = p2;
+        };
+
+        [|p|] = null;
+        M2(local);
+
+        var x = p;
+    }
+
+    void M2(Action a) => a();
+}", optionName);
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        [InlineData(nameof(PreferDiscard))]
+        [InlineData(nameof(PreferUnusedLocal))]
+        public async Task WrittenInLocalFunction_DelegatePassedAsArgument(string optionName)
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    void M(object p, object p2)
+    {
+        Action local = LocalFunction;
+        [|p|] = null;
+        M2(local);
+        var x = p;
+
+        void LocalFunction()
+        {
+            p = p2;
+        }
+    }
+
+    void M2(Action a) => a();
+}", optionName);
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        [InlineData(nameof(PreferDiscard))]
+        [InlineData(nameof(PreferUnusedLocal))]
+        public async Task WrittenInLambdaAndLocalFunctionTargets_DelegatePassedAsArgument(string optionName)
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    void M(object p, object p2)
+    {
+        Action lambda = () =>
+        {
+            p = p2;
+        };
+
+        Action myDelegate;
+        if (p2 != null)
+        {
+            myDelegate = lambda;
+        }
+        else
+        {
+            myDelegate = LocalFunction;
+        }
+
+        [|p|] = null;
+        M2(myDelegate);
+
+        var x = p;
+
+        void LocalFunction()
+        {
+            p = p2;
+        }
+    }
+
+    void M2(Action a) => a();
+}", optionName);
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        [InlineData(nameof(PreferDiscard))]
+        [InlineData(nameof(PreferUnusedLocal))]
         public async Task UseInLambda_ReturnedDelegateCreation(string optionName)
         {
             await TestMissingInRegularAndScriptAsync(

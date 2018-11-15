@@ -6,7 +6,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
 {
-    internal sealed class SymbolUsageResult
+    internal readonly struct SymbolUsageResult
     {
         public SymbolUsageResult(
             ImmutableDictionary<(ISymbol symbol, IOperation write), bool> symbolWritesMap,

@@ -254,7 +254,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
                     case MethodKind.DelegateInvoke:
                         if (operation.Instance != null)
                         {
-                            AnalyzePossibleDelegateInvocation(operation.Instance);
+                            AnalyzePossibleDelegateInvocation(operation.Instance, isInvocation: true);
                         }
                         else
                         {
@@ -288,7 +288,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
 
                 if (operation.Value.Type.IsDelegateType())
                 {
-                    AnalyzePossibleDelegateInvocation(operation.Value);
+                    AnalyzePossibleDelegateInvocation(operation.Value, isInvocation: false);
                 }
             }
             
@@ -416,7 +416,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
                 }
             }
 
-            private void AnalyzePossibleDelegateInvocation(IOperation operation)
+            private void AnalyzePossibleDelegateInvocation(IOperation operation, bool isInvocation)
             {
                 Debug.Assert(operation.Type.IsDelegateType());
 
@@ -440,12 +440,25 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
                         break;
 
                     case 1:
-                        // Single target, just analyze it explicitly.
-                        AnalyzeDelegateInvocation(targets.Single());
+                        // Single target.
+                        // If we know it is an explicit invocation that will certainly be invoked,
+                        // analyze it explicitly and overwrite current state.
+                        // Otherise, this represents a potential invocation, so we need to merge the current
+                        // state with the state on the control flow path where invocation did happen.
+                        if (isInvocation)
+                        {
+                            AnalyzeDelegateInvocation(targets.Single());
+                        }
+                        else
+                        {
+                            // We have this logic in the default case.
+                            goto default;
+                        }
+                        
                         break;
 
                     default:
-                        // Multiple potential lambda/local function targets.
+                        // Multiple potential lambda/local function targets OR we need to merge with current state.
                         // Analyze each one and then merge the outputs from all.
                         var savedCurrentAnalysisData = _currentAnalysisData.CreateBlockAnalysisData();
                         savedCurrentAnalysisData.SetAnalysisDataFrom(_currentAnalysisData.CurrentBlockAnalysisData);
@@ -458,6 +471,15 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
                             mergedAnalysisData = BasicBlockAnalysisData.Merge(mergedAnalysisData,
                                 _currentAnalysisData.CurrentBlockAnalysisData, _currentAnalysisData.CreateBlockAnalysisData);
                         }
+
+                        if (!isInvocation)
+                        {
+                            // This represents a potential invocation, so we need to merge the current
+                            // state with the state on the control flow path where invocation did happen.
+                            mergedAnalysisData = BasicBlockAnalysisData.Merge(mergedAnalysisData,
+                                savedCurrentAnalysisData, _currentAnalysisData.CreateBlockAnalysisData);
+                        }
+
                         _currentAnalysisData.SetCurrentBlockAnalysisDataFrom(mergedAnalysisData);
                         break;
                 }
