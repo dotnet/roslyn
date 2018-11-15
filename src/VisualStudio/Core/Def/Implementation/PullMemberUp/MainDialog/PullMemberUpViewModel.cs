@@ -15,7 +15,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp
 {
     internal class PullMemberUpViewModel : AbstractNotifyPropertyChanged
     {
-        public List<PullUpMemberSymbolView> SelectedMembersContainer { get; set; }
+        public ObservableCollection<PullUpMemberSymbolView> SelectedMembersContainer { get; set; }
 
         public ObservableCollection<MemberSymbolViewModelGraphNode> TargetMembersContainer { get; set; }
 
@@ -62,15 +62,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp
                         }
                     });
 
-            SelectedMembersContainer = allMembers.
+            var memberinitalStates = allMembers.
                 Select(member => new PullUpMemberSymbolView(member, glyphService)
                 {
                     IsChecked = member.Equals(selectedNodeSymbol),
                     MakeAbstract = false,
                     IsMakeAbstractSelectable = member.Kind != SymbolKind.Field && !member.IsAbstract,
                     IsSelectable = true
-                }).OrderByDescending(memberSymbolView => memberSymbolView.MemberSymbol.DeclaredAccessibility).ToList();
-
+                }).OrderByDescending(memberSymbolView => memberSymbolView.MemberSymbol.DeclaredAccessibility);
+            SelectedMembersContainer = new ObservableCollection<PullUpMemberSymbolView>(memberinitalStates);
             SymbolToMemberViewMap = SelectedMembersContainer.
                 ToImmutableDictionary(symbolView => symbolView.MemberSymbol);
 
