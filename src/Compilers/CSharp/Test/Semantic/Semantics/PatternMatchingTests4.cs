@@ -4,6 +4,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
@@ -1488,7 +1489,7 @@ class _
                 );
         }
 
-        [Fact]
+        [Fact, WorkItem(31167, "https://github.com/dotnet/roslyn/issues/31167")]
         public void NonExhaustiveBoolSwitchExpression()
         {
             var source = @"using System;
