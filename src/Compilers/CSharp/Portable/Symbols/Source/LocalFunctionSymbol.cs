@@ -235,7 +235,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 DeclaringCompilation.EnsureIsReadOnlyAttributeExists(diagnostics, location, modifyCompilation: false);
             }
 
-            if (returnType.ContainsNullableReferenceTypes())
+            if (returnType.NeedsNullableAttribute())
             {
                 DeclaringCompilation.EnsureNullableAttributeExists(diagnostics, location, modifyCompilation: false);
                 // Note: we don't need to warn on annotations used without NonNullTypes context for local functions, as this is handled in binding already

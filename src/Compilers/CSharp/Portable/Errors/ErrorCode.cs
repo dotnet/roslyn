@@ -1631,7 +1631,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_NullabilityMismatchInConstraintsOnImplicitImplementation = 8633,
         WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint = 8634,
         ERR_TripleDotNotAllowed = 8635,
-        ERR_ExplicitNonNullTypesAttribute = 8636,
+        // Available -> 8636,
         ERR_NullableDirectiveQualifierExpected = 8637,
         WRN_CantInferNullabilityOfMethodTypeArgs = 8638,
         WRN_NoBestNullabilityArrayElements = 8639,

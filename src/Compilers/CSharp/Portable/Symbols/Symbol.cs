@@ -631,16 +631,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
         }
 
-        protected void AddSynthesizedNonNullTypesAttributeForMember(ref ArrayBuilder<SynthesizedAttributeData> attributes)
-        {
-            bool? nonNullTypes = NonNullTypes;
-            if (nonNullTypes.HasValue && nonNullTypes != ContainingType.NonNullTypes)
-            {
-                AddSynthesizedAttribute(ref attributes,
-                                        DeclaringCompilation.TrySynthesizeNonNullTypesAttribute(nonNullTypes.GetValueOrDefault()));
-            }
-        }
-
         /// <summary>
         /// Convenience helper called by subclasses to add a synthesized attribute to a collection of attributes.
         /// </summary>

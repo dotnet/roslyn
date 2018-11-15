@@ -1216,182 +1216,7 @@ class C4 { }";
         }
 
         [Fact]
-        public void EmbeddedAttribute_Injected()
-        {
-            var source = @"
-" + NonNullTypesOn() + @"
-[module: Microsoft.CodeAnalysis.Embedded]
-
-[Microsoft.CodeAnalysis.Embedded]
-public class C
-{
-    [Microsoft.CodeAnalysis.Embedded]
-    public int field = 0;
-    [Microsoft.CodeAnalysis.Embedded]
-    void M() { }
-}
-[Microsoft.CodeAnalysis.Embedded]
-interface I { }
-";
-            var comp = CreateCompilation(source);
-            comp.VerifyEmitDiagnostics();
-
-            var type = (NamedTypeSymbol)comp.GlobalNamespace.GetMember("Microsoft.CodeAnalysis.EmbeddedAttribute");
-            Assert.NotNull(type);
-            Assert.Equal(0, type.Arity);
-            Assert.Equal("System.Attribute", type.BaseTypeNoUseSiteDiagnostics.ToTestDisplayString());
-            Assert.True(type.CanBeReferencedByName);
-            Assert.Equal("Microsoft.CodeAnalysis.EmbeddedAttribute..ctor()", type.Constructors.Single().ToTestDisplayString());
-            Assert.Null(type.ContainingType);
-            Assert.Empty(type.DeclaringSyntaxReferences);
-            Assert.True(type.HasCodeAnalysisEmbeddedAttribute);
-            Assert.False(type.HasDeclarativeSecurity);
-            Assert.False(type.HasSpecialName);
-            Assert.False(type.HasUnsupportedMetadata);
-            Assert.Empty(type.Indexers);
-            Assert.Equal("Microsoft.CodeAnalysis.EmbeddedAttribute..ctor()", type.InstanceConstructors.Single().ToTestDisplayString());
-            Assert.False(type.IsAbstract);
-            Assert.False(type.IsAnonymousType);
-            Assert.False(type.IsByRefLikeType);
-            Assert.False(type.IsComImport);
-            Assert.False(type.IsConditional);
-            Assert.True(type.IsDefinition);
-            Assert.False(type.IsExtern);
-            Assert.False(type.IsGenericType);
-            Assert.True(type.IsImplicitlyDeclared);
-            Assert.False(type.IsInterface);
-            Assert.False(type.IsManagedType);
-            Assert.False(type.IsNamespace);
-            Assert.True(type.IsReferenceType);
-            Assert.True(type.IsSealed);
-            Assert.False(type.IsSerializable);
-            Assert.False(type.IsStatic);
-            Assert.False(type.IsTupleType);
-            Assert.True(type.IsType);
-            Assert.Equal(SymbolKind.NamedType, type.Kind);
-            Assert.Equal("C#", type.Language);
-            Assert.Empty(type.Locations);
-            Assert.Equal(new[] { ".ctor" }, type.MemberNames);
-            Assert.False(type.MightContainExtensionMethods);
-            Assert.Equal("EmbeddedAttribute", type.Name);
-            Assert.Null(type.NonNullTypes);
-            Assert.Equal(SpecialType.None, type.SpecialType);
-            Assert.Empty(type.StaticConstructors);
-            Assert.Equal(TypeKind.Class, type.TypeKind);
-
-            var codeAnalysis = type.ContainingNamespace;
-            verifyEmptyNamespace(codeAnalysis, "CodeAnalysis");
-
-            var microsoft = codeAnalysis.ContainingNamespace;
-            verifyEmptyNamespace(microsoft, "Microsoft");
-
-            Assert.True(microsoft.ContainingNamespace.IsGlobalNamespace);
-
-            var type2 = comp.GetWellKnownType(WellKnownType.Microsoft_CodeAnalysis_EmbeddedAttribute);
-            Assert.True(type.Equals(type2));
-            Assert.Equal(Accessibility.Internal, type.DeclaredAccessibility);
-
-            void verifyEmptyNamespace(INamespaceSymbol symbol, string expectedName)
-            {
-                Assert.Equal(expectedName, symbol.Name);
-                Assert.Empty(symbol.DeclaringSyntaxReferences);
-                Assert.Empty(symbol.Locations);
-                Assert.True(symbol.IsImplicitlyDeclared);
-                Assert.Equal(NamespaceKind.Module, symbol.NamespaceKind);
-            }
-        }
-
-        [Fact]
-        public void NonNullTypesAttribute_Injected_InCSharp7()
-        {
-            var comp = CreateCompilation("", options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular7);
-            comp.VerifyDiagnostics(
-                // error CS8630: Invalid 'Nullable' value: 'True' for C# 7.0. Please use language version 8.0 or greater.
-                Diagnostic(ErrorCode.ERR_NullableOptionNotAvailable).WithArguments("Nullable", "True", "7.0", "8.0").WithLocation(1, 1)
-                );
-
-            Assert.True(comp.SourceModule.NonNullTypes);
-            Assert.Empty(comp.SourceModule.GetAttributes());
-
-            var type = (NamedTypeSymbol)comp.GlobalNamespace.GetMember("System.Runtime.CompilerServices.NonNullTypesAttribute");
-            Assert.NotNull(type);
-            Assert.Equal(0, type.Arity);
-            Assert.Equal("System.Attribute", type.BaseTypeNoUseSiteDiagnostics.ToTestDisplayString());
-            Assert.True(type.CanBeReferencedByName);
-            Assert.Equal("System.Runtime.CompilerServices.NonNullTypesAttribute..ctor([System.Boolean flag = true])", type.Constructors.Single().ToTestDisplayString());
-            Assert.Null(type.ContainingType);
-            Assert.Empty(type.DeclaringSyntaxReferences);
-            Assert.True(type.HasCodeAnalysisEmbeddedAttribute);
-            Assert.False(type.HasDeclarativeSecurity);
-            Assert.False(type.HasSpecialName);
-            Assert.False(type.HasUnsupportedMetadata);
-            Assert.Empty(type.Indexers);
-            Assert.Equal("System.Runtime.CompilerServices.NonNullTypesAttribute..ctor([System.Boolean flag = true])", type.InstanceConstructors.Single().ToTestDisplayString());
-            Assert.False(type.IsAbstract);
-            Assert.False(type.IsAnonymousType);
-            Assert.False(type.IsByRefLikeType);
-            Assert.False(type.IsComImport);
-            Assert.False(type.IsConditional);
-            Assert.True(type.IsDefinition);
-            Assert.False(type.IsExtern);
-            Assert.False(type.IsGenericType);
-            Assert.True(type.IsImplicitlyDeclared);
-            Assert.False(type.IsInterface);
-            Assert.False(type.IsManagedType);
-            Assert.False(type.IsNamespace);
-            Assert.True(type.IsReferenceType);
-            Assert.True(type.IsSealed);
-            Assert.False(type.IsSerializable);
-            Assert.False(type.IsStatic);
-            Assert.False(type.IsTupleType);
-            Assert.True(type.IsType);
-            Assert.Equal(SymbolKind.NamedType, type.Kind);
-            Assert.Equal("C#", type.Language);
-            Assert.Empty(type.Locations);
-            Assert.Equal(new[] { ".ctor" }, type.MemberNames);
-            Assert.False(type.MightContainExtensionMethods);
-            Assert.Equal("NonNullTypesAttribute", type.Name);
-            Assert.True(type.NonNullTypes);
-            Assert.Equal(SpecialType.None, type.SpecialType);
-            Assert.Empty(type.StaticConstructors);
-            Assert.Equal(TypeKind.Class, type.TypeKind);
-
-            var compilerServices = type.ContainingNamespace;
-            verifyEmptyNamespace(compilerServices, "CompilerServices");
-
-            var runtime = compilerServices.ContainingNamespace;
-            verifyEmptyNamespace(runtime, "Runtime");
-
-            var system = runtime.ContainingNamespace;
-            verifyEmptyNamespace(system, "System");
-
-            Assert.True(system.ContainingNamespace.IsGlobalNamespace);
-
-            var type2 = comp.GetWellKnownType(WellKnownType.System_Runtime_CompilerServices_NonNullTypesAttribute);
-            Assert.True(type.Equals(type2));
-            Assert.Equal(Accessibility.Internal, type.DeclaredAccessibility);
-
-            // https://github.com/dotnet/roslyn/issues/29683 CSharpCompilation.AbstractSymbolSearcher needs to inject namespaces and types too
-            //Assert.True(comp.ContainsSymbolsWithName("NonNullTypesAttribute", SymbolFilter.Type));
-            //Assert.Equal("System.Runtime.CompilerServices.NonNullTypesAttribute", comp.GetSymbolsWithName("NonNullTypesAttribute", SymbolFilter.Type).Single().ToTestDisplayString());
-            //Assert.Equal("System.Runtime.CompilerServices.NonNullTypesAttribute", comp.GetSymbolsWithName(n => n == "NonNullTypesAttribute", SymbolFilter.Type).Single().ToTestDisplayString());
-
-            //Assert.True(comp.ContainsSymbolsWithName("EmbeddedAttribute", SymbolFilter.Type));
-            //Assert.Equal("Microsoft.CodeAnalysis.EmbeddedAttribute", comp.GetSymbolsWithName("EmbeddedAttribute", SymbolFilter.Type).Single().ToTestDisplayString());
-            //Assert.Equal("Microsoft.CodeAnalysis.EmbeddedAttribute", comp.GetSymbolsWithName(n => n == "EmbeddedAttribute", SymbolFilter.Type).Single().ToTestDisplayString());
-
-            void verifyEmptyNamespace(INamespaceSymbol symbol, string expectedName)
-            {
-                Assert.Equal(expectedName, symbol.Name);
-                Assert.Empty(symbol.DeclaringSyntaxReferences);
-                Assert.Empty(symbol.Locations);
-                Assert.True(symbol.IsImplicitlyDeclared);
-                Assert.Equal(NamespaceKind.Module, symbol.NamespaceKind);
-            }
-        }
-
-        [Fact]
-        public void NonNullTypesAttribute_False_Injected_InCSharp7()
+        public void Nullable_False_InCSharp7()
         {
             var comp = CreateCompilation("", options: WithNonNullTypesFalse(), parseOptions: TestOptions.Regular7);
             comp.VerifyDiagnostics(
@@ -1400,9 +1225,6 @@ interface I { }
                 );
 
             Assert.False(comp.SourceModule.NonNullTypes);
-
-            var type = (NamedTypeSymbol)comp.GlobalNamespace.GetMember("System.Runtime.CompilerServices.NonNullTypesAttribute");
-            Assert.False(type.NonNullTypes);
         }
 
         [Fact]
@@ -1422,518 +1244,6 @@ interface I { }
 
             comp = CreateCompilation(new string[] { }, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics();
-        }
-
-        [Fact]
-        public void NonNullTypesAttributeInMergedNamespaceSymbol()
-        {
-            var reference_cs = @"
-namespace System.Runtime.CompilerServices
-{
-    public sealed class NonNullTypesAttribute : Attribute
-    {
-        public NonNullTypesAttribute(bool enabled = true) { }
-    }
-}";
-            var reference = CreateCompilation(new[] { reference_cs });
-            reference.VerifyDiagnostics();
-
-            var comp_cs = @"
-namespace System.Runtime.CompilerServices.NonNullTypesAttribute
-{
-    class C { }
-}";
-            var comp = CreateCompilation(new[] { comp_cs }, options: WithNonNullTypesTrue(), references: new[] { reference.ToMetadataReference() });
-            // https://github.com/dotnet/roslyn/issues/30583: Report an error if we are unable to synthesize NonNullTypesAttribute application
-            comp.VerifyEmitDiagnostics(
-                //// (1,42): error CS0616: 'System.Runtime.CompilerServices.NonNullTypesAttribute' is not an attribute class
-                //// [module: System.Runtime.CompilerServices.NonNullTypes(true)]
-                //Diagnostic(ErrorCode.ERR_NotAnAttributeClass, "NonNullTypes").WithArguments("System.Runtime.CompilerServices.NonNullTypesAttribute").WithLocation(1, 42)
-                );
-
-            var type = comp.GetWellKnownType(WellKnownType.System_Runtime_CompilerServices_NonNullTypesAttribute);
-            Assert.True(type.IsErrorType());
-
-            // https://github.com/dotnet/roslyn/issues/29683 CSharpCompilation.AbstractSymbolSearcher needs to inject namespaces and types too
-            //Assert.False(comp.ContainsSymbolsWithName("NonNullTypesAttribute", SymbolFilter.Type));
-            //Assert.Empty(comp.GetSymbolsWithName("NonNullTypesAttribute", SymbolFilter.Type));
-            //Assert.Empty(comp.GetSymbolsWithName(n => n == "NonNullTypesAttribute", SymbolFilter.Type));
-
-            //Assert.True(comp.ContainsSymbolsWithName("EmbeddedAttribute", SymbolFilter.Type));
-            //Assert.Equal("Microsoft.CodeAnalysis.EmbeddedAttribute", comp.GetSymbolsWithName("EmbeddedAttribute", SymbolFilter.Type).Single().ToTestDisplayString());
-            //Assert.Equal("Microsoft.CodeAnalysis.EmbeddedAttribute", comp.GetSymbolsWithName(n => n == "EmbeddedAttribute", SymbolFilter.Type).Single().ToTestDisplayString());
-        }
-
-        [Fact]
-        public void NonNullTypesAttribute_NotInjectedIntoWrongNamespace()
-        {
-            var source = @"
-namespace NotRoot.System { }
-namespace NotSystem.Runtime { }
-namespace NotRuntime.CompilerServices { }
-";
-            var comp = CreateCompilation(source);
-            Assert.Empty(((NamespaceSymbol)comp.SourceModule.GlobalNamespace.GetMember("NotRoot.System")).GetMembers());
-            Assert.Empty(((NamespaceSymbol)comp.SourceModule.GlobalNamespace.GetMember("NotSystem.Runtime")).GetMembers());
-            Assert.Empty(((NamespaceSymbol)comp.SourceModule.GlobalNamespace.GetMember("NotRuntime.CompilerServices")).GetMembers());
-            Assert.Equal("System.Runtime.CompilerServices.NonNullTypesAttribute",
-                ((NamespaceSymbol)comp.SourceModule.GlobalNamespace.GetMember("System.Runtime.CompilerServices")).GetMembers().Single().ToTestDisplayString());
-        }
-
-        [Fact]
-        public void EmbeddedAttribute_NotInjectedIntoWrongNamespace()
-        {
-            var source = @"
-namespace NotRoot.Microsoft { }
-namespace NotMicrosoft.CodeAnalysis { }
-";
-            var comp = CreateCompilation(source);
-            Assert.Empty(((NamespaceSymbol)comp.SourceModule.GlobalNamespace.GetMember("NotRoot.Microsoft")).GetMembers());
-            Assert.Empty(((NamespaceSymbol)comp.SourceModule.GlobalNamespace.GetMember("NotMicrosoft.CodeAnalysis")).GetMembers());
-            Assert.Equal("Microsoft.CodeAnalysis.EmbeddedAttribute",
-                ((NamespaceSymbol)comp.SourceModule.GlobalNamespace.GetMember("Microsoft.CodeAnalysis")).GetMembers().Single().ToTestDisplayString());
-        }
-
-        // https://github.com/dotnet/roslyn/issues/30144:
-        // Test emitting netmodule (we won't inject NNT)
-        // Test script
-
-        [Fact]
-        public void NonNullTypesAttribute_Injected()
-        {
-            NonNullTypesAttribute_Injected("", WithNonNullTypesTrue());
-            NonNullTypesAttribute_Injected("", WithNonNullTypesFalse());
-            NonNullTypesAttribute_Injected(
-NonNullTypesOn() + @"
-class C { }");
-            NonNullTypesAttribute_Injected(
-@"class C { 
-" + NonNullTypesOn() + @"
-public string s = null!; }");
-            NonNullTypesAttribute_Injected(
-@"class C {
-" + NonNullTypesOn() + @"
-public event System.Action e; void M() { e(); } }");
-            NonNullTypesAttribute_Injected(
-@"class C {
-" + NonNullTypesOn() + @"
-void M() { } }");
-            NonNullTypesAttribute_Injected(
-@"class C {
-" + NonNullTypesOn() + @"
-string P { get; set; } }");
-            NonNullTypesAttribute_Injected("using System.Runtime.CompilerServices; class C { NonNullTypesAttribute M() => throw null; }");
-            NonNullTypesAttribute_Injected("using System.Runtime.CompilerServices; class C { void M(NonNullTypesAttribute x) => throw null; }");
-            NonNullTypesAttribute_Injected("using System.Runtime.CompilerServices; namespace System { class C { void M(NonNullTypesAttribute x) => throw null; } }");
-            NonNullTypesAttribute_Injected("using System.Runtime.CompilerServices; namespace System.Runtime { class C { void M(NonNullTypesAttribute x) => throw null; } }");
-            NonNullTypesAttribute_Injected("namespace System.Runtime.CompilerServices { class C { void M(NonNullTypesAttribute x) => throw null; } }");
-            NonNullTypesAttribute_Injected("using System.Runtime.CompilerServices; class C { NonNullTypesAttribute field = null; void M() { if (field != null) field = null; } }");
-            NonNullTypesAttribute_Injected("using System.Runtime.CompilerServices; class C { void M() { _ = new NonNullTypesAttribute(); } }");
-            NonNullTypesAttribute_Injected("using System.Runtime.CompilerServices; class C { void M() { local(); void local() { _ = new NonNullTypesAttribute(); } } }");
-        }
-
-        private void NonNullTypesAttribute_Injected(string source, CSharpCompilationOptions options = null)
-        {
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8, options: options);
-            comp.VerifyDiagnostics();
-
-            Action<ModuleSymbol> validator = module =>
-            {
-                var nonNullTypesAttribute = (NamedTypeSymbol)module.GlobalNamespace.GetMember("System.Runtime.CompilerServices.NonNullTypesAttribute");
-                Assert.NotNull(nonNullTypesAttribute);
-                Assert.Equal(Accessibility.Internal, nonNullTypesAttribute.DeclaredAccessibility);
-                Assert.True(nonNullTypesAttribute.IsSealed);
-                Assert.Equal(SymbolKind.NamedType, nonNullTypesAttribute.Kind);
-
-                var embeddedAttribute = module.GlobalNamespace.GetMember("Microsoft.CodeAnalysis.EmbeddedAttribute");
-                Assert.NotNull(embeddedAttribute);
-
-                var actualNonNullTypes = nonNullTypesAttribute.GetAttributes().Select(a => a.ToString()).ToArray();
-                var actualEmbedded = embeddedAttribute.GetAttributes().Select(a => a.ToString()).ToArray();
-
-                // https://github.com/dotnet/roslyn/issues/29672 AttributeData.ToString() prints out a different order on CoreCLR
-                if (ExecutionConditionUtil.IsDesktop)
-                {
-                    if (module is PEModuleSymbol)
-                    {
-                        Assert.Equal(new[] {
-                        "System.Runtime.CompilerServices.CompilerGeneratedAttribute",
-                        "Microsoft.CodeAnalysis.EmbeddedAttribute",
-                        "System.AttributeUsageAttribute(System.AttributeTargets.Module | System.AttributeTargets.Class | System.AttributeTargets.Struct | System.AttributeTargets.Enum | System.AttributeTargets.Constructor | System.AttributeTargets.Method | System.AttributeTargets.Property | System.AttributeTargets.Field | System.AttributeTargets.Event | System.AttributeTargets.Interface | System.AttributeTargets.Delegate)" },
-                            actualNonNullTypes);
-                        Assert.Equal(new[] {
-                        "System.Runtime.CompilerServices.CompilerGeneratedAttribute",
-                        "Microsoft.CodeAnalysis.EmbeddedAttribute" },
-                            actualEmbedded);
-                    }
-                    else
-                    {
-                        Assert.Equal(new[] {
-                        "System.AttributeUsageAttribute(System.AttributeTargets.Module | System.AttributeTargets.Class | System.AttributeTargets.Struct | System.AttributeTargets.Enum | System.AttributeTargets.Constructor | System.AttributeTargets.Method | System.AttributeTargets.Property | System.AttributeTargets.Field | System.AttributeTargets.Event | System.AttributeTargets.Interface | System.AttributeTargets.Delegate)" },
-                            actualNonNullTypes);
-                        Assert.Empty(actualEmbedded);
-                    }
-                }
-            };
-
-            CompileAndVerify(comp, sourceSymbolValidator: validator, symbolValidator: validator);
-        }
-
-        [Fact]
-        public void NonNullTypesAttribute_Injected_WithAmbiguousUserDefinedType()
-        {
-            var source = @"
-using System.Runtime.CompilerServices;
-using N1;
-
-[module: NonNullTypesAttribute(true)]
-namespace N1
-{
-    public class NonNullTypesAttribute : System.Attribute
-    {
-        public NonNullTypesAttribute(bool flag) => throw null;
-    }
-}
-";
-            var comp = CreateCompilation(source);
-            comp.VerifyDiagnostics(
-                // (5,10): error CS0104: 'NonNullTypesAttribute' is an ambiguous reference between 'N1.NonNullTypesAttribute' and 'System.Runtime.CompilerServices.NonNullTypesAttribute'
-                // [module: NonNullTypesAttribute(true)]
-                Diagnostic(ErrorCode.ERR_AmbigContext, "NonNullTypesAttribute").WithArguments("NonNullTypesAttribute", "N1.NonNullTypesAttribute", "System.Runtime.CompilerServices.NonNullTypesAttribute").WithLocation(5, 10)
-                );
-        }
-
-        [Fact]
-        public void NonNullTypesAttribute_Injected_WithNonAmbiguousUserDefinedType()
-        {
-            var source = @"
-using N1;
-[module: NonNullTypesAttribute(true)]
-namespace N1
-{
-    public class NonNullTypesAttribute : System.Attribute
-    {
-        public NonNullTypesAttribute(bool flag) => throw null;
-    }
-}
-";
-            var comp = CreateCompilation(source);
-            comp.VerifyDiagnostics();
-        }
-
-        [Fact]
-        public void NonNullTypesAttribute_WithoutUsage()
-        {
-            var comp = CreateCompilation("class C { }", parseOptions: TestOptions.Regular8);
-            comp.VerifyDiagnostics();
-
-            Action<ModuleSymbol> sourceValidator = module =>
-            {
-                var nonNullTypes = (NamedTypeSymbol)module.GlobalNamespace.GetMember("System.Runtime.CompilerServices.NonNullTypesAttribute");
-                Assert.NotNull(nonNullTypes);
-                var embedded = (NamedTypeSymbol)module.GlobalNamespace.GetMember("Microsoft.CodeAnalysis.EmbeddedAttribute");
-                Assert.NotNull(embedded);
-
-                var system = (INamespaceSymbol)module.GlobalNamespace.GetMember("System");
-                Assert.Equal(NamespaceKind.Module, system.NamespaceKind);
-            };
-
-            Action<ModuleSymbol> peValidator = module =>
-            {
-                var nonNullTypes = (NamedTypeSymbol)module.GlobalNamespace.GetMember("System.Runtime.CompilerServices.NonNullTypesAttribute");
-                Assert.Null(nonNullTypes);
-                var embedded = (NamedTypeSymbol)module.GlobalNamespace.GetMember("Microsoft.CodeAnalysis.EmbeddedAttribute");
-                Assert.Null(embedded);
-
-                var system = (INamespaceSymbol)module.GlobalNamespace.GetMember("System");
-                Assert.Null(system);
-            };
-            CompileAndVerify(comp, sourceSymbolValidator: sourceValidator, symbolValidator: peValidator, verify: Verification.Skipped);
-        }
-
-        [Fact]
-        public void NonNullTypesAttribute_WithoutAttribute()
-        {
-            var source = @"
-namespace System
-{
-    public class Object { }
-    public struct Void { }
-    // missing Attribute
-    public class ValueType { }
-    public struct Boolean { }
-    public class String { }
-}
-";
-            var comp = CreateEmptyCompilation(new[] { source }, options: WithNonNullTypesTrue());
-            comp.VerifyDiagnostics();
-            comp.VerifyEmitDiagnostics(CodeAnalysis.Emit.EmitOptions.Default.WithRuntimeMetadataVersion("v4.0.30319"),
-                // error CS0518: Predefined type 'System.Attribute' is not defined or imported
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound).WithArguments("System.Attribute").WithLocation(1, 1),
-                // error CS0656: Missing compiler required member 'System.AttributeUsageAttribute..ctor'
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember).WithArguments("System.AttributeUsageAttribute", ".ctor").WithLocation(1, 1),
-                // error CS0518: Predefined type 'System.Attribute' is not defined or imported
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound).WithArguments("System.Attribute").WithLocation(1, 1),
-                // error CS0518: Predefined type 'System.Attribute' is not defined or imported
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound).WithArguments("System.Attribute").WithLocation(1, 1)
-                );
-        }
-
-        [Fact]
-        public void NonNullTypesAttribute_WithoutAttributeUsage()
-        {
-            var source = @"
-namespace System
-{
-    public class Object { }
-    public struct Void { }
-    public class Attribute { }
-    public class ValueType { }
-    public struct Boolean { }
-    public class String { }
-    // missing AttributeUsageAttribute
-}
-";
-            var comp = CreateEmptyCompilation(new[] { source }, options: WithNonNullTypesTrue());
-            comp.VerifyEmitDiagnostics(CodeAnalysis.Emit.EmitOptions.Default.WithRuntimeMetadataVersion("v4.0.30319"),
-                // error CS0656: Missing compiler required member 'System.AttributeUsageAttribute..ctor'
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember).WithArguments("System.AttributeUsageAttribute", ".ctor").WithLocation(1, 1)
-                );
-        }
-
-        [Fact]
-        public void EmbeddedAttribute_WithoutAttribute()
-        {
-            var source = @"
-namespace System
-{
-    public class Object { }
-    public struct Void { }
-    // missing Attribute
-    public class ValueType { }
-    public struct Boolean { }
-    public class String { }
-    public struct Int32 { }
-    public class Enum { }
-}
-namespace System.Runtime.InteropServices
-{
-    public enum UnmanagedType { }
-}
-class C<T> where T : unmanaged
-{
-}
-";
-            var comp = CreateEmptyCompilation(source);
-            comp.VerifyEmitDiagnostics(CodeAnalysis.Emit.EmitOptions.Default.WithRuntimeMetadataVersion("v4.0.30319"),
-                // error CS0518: Predefined type 'System.Attribute' is not defined or imported
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound).WithArguments("System.Attribute").WithLocation(1, 1)
-                );
-        }
-
-        [Fact]
-        public void EmbeddedAttribute_WithoutAttributeUsage()
-        {
-            var source = @"
-namespace System
-{
-    public class Object { }
-    public struct Void { }
-    public class Attribute { }
-    public class ValueType { }
-    public struct Boolean { }
-    public class String { }
-    public struct Int32 { }
-    public class Enum { }
-    // missing AttributeUsage
-}
-namespace System.Runtime.InteropServices
-{
-    public enum UnmanagedType { }
-}
-class C<T> where T : unmanaged
-{
-}
-";
-            var comp = CreateEmptyCompilation(source);
-            comp.VerifyEmitDiagnostics(CodeAnalysis.Emit.EmitOptions.Default.WithRuntimeMetadataVersion("v4.0.30319"));
-        }
-
-        [Fact]
-        public void NonNullTypesAttribute_WithoutAttributeUsageConstructor()
-        {
-            var source = @"
-namespace System
-{
-    public class Object { }
-    public struct Void { }
-    public class Attribute { }
-    public class ValueType { }
-    public struct Boolean { }
-    public class String { }
-    public class AttributeUsageAttribute : Attribute { /* missing ctor */ }
-}
-";
-            var comp = CreateEmptyCompilation(new[] { source }, options: WithNonNullTypesTrue());
-            comp.VerifyEmitDiagnostics(CodeAnalysis.Emit.EmitOptions.Default.WithRuntimeMetadataVersion("v4.0.30319"),
-                // error CS0656: Missing compiler required member 'System.AttributeUsageAttribute..ctor'
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember).WithArguments("System.AttributeUsageAttribute", ".ctor").WithLocation(1, 1)
-                );
-        }
-
-        [Fact]
-        public void NonNullTypesAttribute_WithObsoleteAttributeUsageConstructor()
-        {
-            var source = @"
-namespace System
-{
-    public class Object { }
-    public struct Void { }
-    public class Attribute { }
-    public class ValueType { }
-    public struct Boolean { }
-    public class String { }
-    public class Enum { }
-    public struct Int32 { }
-    public class AttributeUsageAttribute : Attribute
-    {
-        [System.Obsolete(""obsolete"")]
-        public AttributeUsageAttribute(AttributeTargets validOn) => throw null;
-        public bool AllowMultiple { get; set; }
-    }
-    public enum AttributeTargets { Assembly = 1, Module = 2, Class = 4, Struct = 8,
-        Enum = 16, Constructor = 32, Method = 64, Property = 128, Field = 256,
-        Event = 512, Interface = 1024, Parameter = 2048, Delegate = 4096, ReturnValue = 8192,
-        GenericParameter = 16384, All = 32767 }
-    public class ObsoleteAttribute : Attribute
-    {
-        public ObsoleteAttribute(string message) => throw null;
-    }
-}
-";
-            var comp = CreateEmptyCompilation(new[] { source }, options: WithNonNullTypesTrue());
-            comp.VerifyEmitDiagnostics(CodeAnalysis.Emit.EmitOptions.Default.WithRuntimeMetadataVersion("v4.0.30319"));
-        }
-
-        [Fact]
-        public void NonNullTypesAttribute_WithBadAttributeConstructor()
-        {
-            var source = @"
-namespace System
-{
-    public class Object { }
-    public struct Void { }
-    public class Attribute { public Attribute(bool ignored) { } }
-    public class ValueType { }
-    public struct Boolean { }
-    public class String { }
-    public class Enum { }
-    public struct Int32 { }
-    public class AttributeUsageAttribute : Attribute
-    {
-        public AttributeUsageAttribute(AttributeTargets validOn) : base(true) => throw null;
-        public bool AllowMultiple { get; set; }
-    }
-    public enum AttributeTargets { Assembly = 1, Module = 2, Class = 4, Struct = 8,
-        Enum = 16, Constructor = 32, Method = 64, Property = 128, Field = 256,
-        Event = 512, Interface = 1024, Parameter = 2048, Delegate = 4096, ReturnValue = 8192,
-        GenericParameter = 16384, All = 32767 }
-}
-";
-            var comp = CreateEmptyCompilation(new[] { source }, options: WithNonNullTypesTrue());
-            comp.VerifyEmitDiagnostics(CodeAnalysis.Emit.EmitOptions.Default.WithRuntimeMetadataVersion("v4.0.30319"),
-                // error CS1729: 'Attribute' does not contain a constructor that takes 0 arguments
-                Diagnostic(ErrorCode.ERR_BadCtorArgCount).WithArguments("System.Attribute", "0").WithLocation(1, 1),
-                // error CS1729: 'Attribute' does not contain a constructor that takes 0 arguments
-                Diagnostic(ErrorCode.ERR_BadCtorArgCount).WithArguments("System.Attribute", "0").WithLocation(1, 1));
-
-            // https://github.com/dotnet/roslyn/issues/29732 We should not accumulate diagnostics with every attempt to emit
-            comp.VerifyEmitDiagnostics(CodeAnalysis.Emit.EmitOptions.Default.WithRuntimeMetadataVersion("v4.0.30319"),
-                // error CS1729: 'Attribute' does not contain a constructor that takes 0 arguments
-                Diagnostic(ErrorCode.ERR_BadCtorArgCount).WithArguments("System.Attribute", "0").WithLocation(1, 1),
-                // error CS1729: 'Attribute' does not contain a constructor that takes 0 arguments
-                Diagnostic(ErrorCode.ERR_BadCtorArgCount).WithArguments("System.Attribute", "0").WithLocation(1, 1),
-                // error CS1729: 'Attribute' does not contain a constructor that takes 0 arguments
-                Diagnostic(ErrorCode.ERR_BadCtorArgCount).WithArguments("System.Attribute", "0").WithLocation(1, 1),
-                // error CS1729: 'Attribute' does not contain a constructor that takes 0 arguments
-                Diagnostic(ErrorCode.ERR_BadCtorArgCount).WithArguments("System.Attribute", "0").WithLocation(1, 1));
-        }
-
-        [Fact]
-        public void NonNullTypesAttribute_WithAttributeUsage()
-        {
-            var source = @"
-namespace System
-{
-    public class Object { }
-    public struct Void { }
-    public class Attribute { }
-    public class ValueType { }
-    public struct Boolean { }
-    public class String { }
-    public class Enum { }
-    public struct Int32 { }
-    public class AttributeUsageAttribute : Attribute
-    {
-        public AttributeUsageAttribute(AttributeTargets validOn) => throw null;
-        public bool AllowMultiple { get; set; }
-    }
-    public enum AttributeTargets { Assembly = 1, Module = 2, Class = 4, Struct = 8,
-        Enum = 16, Constructor = 32, Method = 64, Property = 128, Field = 256,
-        Event = 512, Interface = 1024, Parameter = 2048, Delegate = 4096, ReturnValue = 8192,
-        GenericParameter = 16384, All = 32767 }
-}
-";
-            var comp = CreateEmptyCompilation(source);
-            comp.VerifyDiagnostics();
-        }
-
-        [Fact]
-        public void NonNullTypesAttribute_WithoutBool()
-        {
-            var source = @"
-namespace System
-{
-    public class Object { }
-    public struct Void { }
-    public class Attribute { }
-    public class ValueType { }
-    public class String { }
-}
-";
-            var comp = CreateEmptyCompilation(new[] { source }, options: WithNonNullTypesTrue());
-            comp.VerifyEmitDiagnostics(CodeAnalysis.Emit.EmitOptions.Default.WithRuntimeMetadataVersion("v4.0.30319"),
-                // error CS0518: Predefined type 'System.Boolean' is not defined or imported
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound).WithArguments("System.Boolean").WithLocation(1, 1),
-                // error CS0518: Predefined type 'System.Boolean' is not defined or imported
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound).WithArguments("System.Boolean").WithLocation(1, 1),
-                // error CS0656: Missing compiler required member 'System.AttributeUsageAttribute..ctor'
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember).WithArguments("System.AttributeUsageAttribute", ".ctor").WithLocation(1, 1)
-                );
-        }
-
-        [Fact]
-        public void NonNullTypesAttribute_AlreadyDefined()
-        {
-            var corlib_cs = @"
-namespace System
-{
-    public struct Boolean { }
-    public struct Void { }
-    public abstract class ValueType { }
-    public class Object { }
-    public class Attribute { }
-}
-namespace System.Runtime.CompilerServices
-{
-    public sealed class NonNullTypesAttribute : Attribute
-    {
-        public NonNullTypesAttribute(bool flag = true) { }
-    }
-}
-";
-            var corlib = CreateEmptyCompilation(corlib_cs, parseOptions: TestOptions.Regular8);
-            corlib.VerifyDiagnostics();
         }
 
         [Fact]
@@ -2136,6 +1446,7 @@ namespace System
         public String? Concat(String a, String b) => throw null;
     }
     public class Enum { }
+    public struct Byte { }
     public struct Int32 { }
     public class AttributeUsageAttribute : Attribute
     {
@@ -2807,67 +2118,6 @@ public sealed class B : A<object>
         }
 
         [Fact]
-        public void NonNullTypes_False_Circular()
-        {
-            string source = @"
-namespace System.Runtime.CompilerServices
-{
-    [AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
-" + NonNullTypesOff() + @"
-    class NonNullTypesAttribute : Attribute
-    {
-        public NonNullTypesAttribute(bool flag = true) { }
-    }
-}
-";
-            var comp = CreateCompilation(new[] { source });
-            comp.VerifyDiagnostics();
-
-            VerifyNonNullTypes(comp.GetMember("System.Runtime.CompilerServices.NonNullTypesAttribute"), false);
-        }
-
-        [Fact]
-        public void NonNullTypes_True_Circular()
-        {
-            string source = @"
-namespace System.Runtime.CompilerServices
-{
-    [AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
-" + NonNullTypesOn() + @"
-    class NonNullTypesAttribute : System.Attribute
-    {
-        public NonNullTypesAttribute(bool flag = true) { }
-    }
-}
-";
-            var comp = CreateCompilation(new[] { source });
-            comp.VerifyEmitDiagnostics();
-
-            VerifyNonNullTypes(comp.GetMember("System.Runtime.CompilerServices.NonNullTypesAttribute"), true);
-        }
-
-        [Fact]
-        public void NonNullTypes_WithObsolete()
-        {
-            string source = @"
-namespace System.Runtime.CompilerServices
-{
-    [AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
-" + NonNullTypesOn() + @"
-    [System.Obsolete(""obsolete"")]
-    class NonNullTypesAttribute : System.Attribute
-    {
-        public NonNullTypesAttribute(bool flag = true) { }
-    }
-}
-";
-            // We don't check whether well-known types are obsolete
-            var comp = CreateCompilation(new[] { source });
-            comp.VerifyEmitDiagnostics();
-            Assert.False(comp.GetMember("System.Runtime.CompilerServices.NonNullTypesAttribute").IsImplicitlyDeclared);
-        }
-
-        [Fact]
         public void Embedded_WithObsolete()
         {
             string source = @"
@@ -2968,65 +2218,6 @@ class AttributeWithProperty : System.ComponentModel.DisplayNameAttribute
 }
 ";
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
-            comp.VerifyDiagnostics();
-        }
-
-        [Fact]
-        public void NonNullTypes_OnSystemBoolean()
-        {
-            string source = @"
-namespace System
-{
-" + NonNullTypesOn() + @"
-    public struct Boolean { }
-" + NonNullTypesOff() + @"
-    public class Attribute { }
-    public class Object { }
-    public struct Void { }
-    public class ValueType { }
-    public class Enum { }
-    public struct Int32 { }
-    public class AttributeUsageAttribute : Attribute
-    {
-        public AttributeUsageAttribute(AttributeTargets validOn) => throw null;
-        public bool AllowMultiple { get; set; }
-    }
-    public enum AttributeTargets { Assembly = 1, Module = 2, Class = 4, Struct = 8,
-        Enum = 16, Constructor = 32, Method = 64, Property = 128, Field = 256,
-        Event = 512, Interface = 1024, Parameter = 2048, Delegate = 4096, ReturnValue = 8192,
-        GenericParameter = 16384, All = 32767 }
-}
-namespace System.Runtime.CompilerServices
-{
-    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct, AllowMultiple = false)]
-    class NonNullTypesAttribute : Attribute
-    {
-        public NonNullTypesAttribute(bool flag = true) { }
-    }
-}
-";
-            var comp = CreateEmptyCompilation(source);
-            comp.VerifyDiagnostics();
-        }
-
-        [WorkItem(29594, "https://github.com/dotnet/roslyn/issues/29594")]
-        [Fact(Skip = "Stack overflow")]
-        public void NonNullTypes_DoNotWarnInsideAttributes()
-        {
-            string source = @"
-using System.Runtime.CompilerServices;
-[NonNullTypes(true)]
-class C
-{
-    [System.Obsolete(D.M1(D.M2()))]
-    class D
-    {
-        static void M1(string x) => throw null;
-        static string? M2() => throw null;
-    }
-}
-";
-            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
         }
 
@@ -3170,8 +2361,6 @@ class E
                 //         OuterD.D.s /*T:string!*/ = null; // warn 5
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(73, 36)
                 );
-
-            verifyExternal(compilation);
 
             var outerA = (NamedTypeSymbol)compilation.GetMember("OuterA");
             Assert.False(outerA.NonNullTypes);
@@ -3681,8 +2870,6 @@ class E
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(57, 36)
                 );
 
-            verifyOblivious(compilation);
-
             var outerA = (NamedTypeSymbol)compilation.GetMember("OuterA");
             Assert.False(outerA.NonNullTypes);
 
@@ -3704,11 +2891,6 @@ class E
             Assert.True(oblivious2.NonNullTypes);
             VerifyNonNullTypes(oblivious2.GetMember("s"), false);
             VerifyNonNullTypes(oblivious2.GetMember("ns"), false);
-
-            void verifyOblivious(Compilation comp)
-            {
-                VerifyNonNullTypes(comp.GetMember("Oblivious"), null);
-            }
         }
 
         /// <summary>
@@ -3756,7 +2938,14 @@ class E
 
             if (method.ReturnType.NullableAnnotation != NullableAnnotation.Nullable)
             {
-                Assert.Equal(expectNonNullTypes == true, method.ReturnType.NullableAnnotation != NullableAnnotation.Unknown);
+                if (method is SynthesizedInstanceConstructor)
+                {
+                    Assert.Equal(NullableAnnotation.Unknown, method.ReturnType.NullableAnnotation);
+                }
+                else
+                {
+                    Assert.Equal(expectNonNullTypes == true, method.ReturnType.NullableAnnotation != NullableAnnotation.Unknown);
+                }
             }
 
             foreach (var parameter in method.Parameters)
@@ -3877,9 +3066,6 @@ class E
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(56, 25)
                 );
 
-            verifyOblivious(compilation);
-            verifyExternal(compilation);
-
             var outerA = (NamedTypeSymbol)compilation.GetMember("OuterA");
             Assert.False(outerA.NonNullTypes);
 
@@ -3899,11 +3085,6 @@ class E
 
             var oblivious2 = (NamedTypeSymbol)compilation.GetMember("Oblivious2");
             VerifyNonNullTypes(oblivious2, false);
-
-            void verifyOblivious(Compilation comp)
-            {
-                VerifyNonNullTypes((NamedTypeSymbol)comp.GetMember("Oblivious"), null);
-            }
 
             void verifyExternal(Compilation comp)
             {
@@ -3926,77 +3107,6 @@ public class Oblivious { }
             var compilation = CreateCompilation("", options: TestOptions.ReleaseDll,
                 parseOptions: TestOptions.Regular8, references: new[] { obliviousComp.EmitToImageReference() });
             compilation.VerifyDiagnostics();
-            VerifyNonNullTypes(compilation.GetMember("Oblivious"), false);
-        }
-
-        [Fact]
-        public void NonNullTypes_OnModule_WithExtraConstructor()
-        {
-            var obliviousLib = @"
-public class Oblivious { }
-
-namespace System.Runtime.CompilerServices
-{
-    [AttributeUsage(AttributeTargets.All)]
-    public sealed class NonNullTypesAttribute : Attribute
-    {
-        public NonNullTypesAttribute(bool flag = true) { }
-        public NonNullTypesAttribute(string x) { }
-    }
-}
-";
-
-            var obliviousComp = CreateCompilation(obliviousLib, options: WithNonNullTypesFalse());
-            obliviousComp.VerifyDiagnostics();
-            VerifyNonNullTypes(obliviousComp.GetMember("Oblivious"), expectNonNullTypes: false);
-
-            var compilation = CreateCompilation("", options: TestOptions.ReleaseDll,
-                parseOptions: TestOptions.Regular8, references: new[] { obliviousComp.EmitToImageReference() });
-            compilation.VerifyDiagnostics();
-            VerifyNonNullTypes(compilation.GetMember("Oblivious"), expectNonNullTypes: false);
-        }
-
-        [Fact]
-        public void NonNullTypes_OnModule_WithAlias()
-        {
-            var obliviousLib = @"
-using NonNullTypesAlias = System.Runtime.CompilerServices.NonNullTypesAttribute;
-
-" + NonNullTypesOff() + @"
-public class Oblivious { }
-";
-
-            var obliviousComp = CreateCompilation(new[] { obliviousLib });
-            obliviousComp.VerifyDiagnostics(
-                // (2,1): hidden CS8019: Unnecessary using directive.
-                // using NonNullTypesAlias = System.Runtime.CompilerServices.NonNullTypesAttribute;
-                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using NonNullTypesAlias = System.Runtime.CompilerServices.NonNullTypesAttribute;").WithLocation(2, 1)
-                );
-            VerifyNonNullTypes(obliviousComp.GetMember("Oblivious"), expectNonNullTypes: false);
-
-            var compilation = CreateCompilation("", options: TestOptions.ReleaseDll,
-                parseOptions: TestOptions.Regular8, references: new[] { obliviousComp.EmitToImageReference() });
-            compilation.VerifyDiagnostics();
-            VerifyNonNullTypes(compilation.GetMember("Oblivious"), expectNonNullTypes: false);
-        }
-
-        [Fact]
-        public void NonNullTypes_OnAssembly()
-        {
-            var obliviousLib = @"
-using System.Runtime.CompilerServices;
-
-[assembly: NonNullTypes(false)]
-public class Oblivious { }
-";
-
-            var obliviousComp = CreateCompilation(new[] { obliviousLib }, options: WithNonNullTypesTrue());
-            obliviousComp.VerifyDiagnostics(
-                // (4,12): error CS0592: Attribute 'NonNullTypes' is not valid on this declaration type. It is only valid on 'module, class, struct, enum, constructor, method, property, indexer, field, event, interface, delegate' declarations.
-                // [assembly: NonNullTypes(false)]
-                Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "NonNullTypes").WithArguments("NonNullTypes", "module, class, struct, enum, constructor, method, property, indexer, field, event, interface, delegate").WithLocation(4, 12)
-                );
-            VerifyNonNullTypes(obliviousComp.GetMember("Oblivious"), true); // The attribute is on assembly 
         }
 
         [Fact]
@@ -6031,14 +5141,14 @@ class B2 : A
         public void Overriding_Methods()
         {
             var source = @"
-using System.Runtime.CompilerServices;
+
 public abstract class A
 {
 " + NonNullTypesOff() + @"
     public abstract System.Action<string> Oblivious1(System.Action<string> x);
 " + NonNullTypesOn() + @"
-    [return: NonNullTypes(false)]
-    public abstract System.Action<string> Oblivious2([NonNullTypes(false)] System.Action<string> x);
+    
+    public abstract System.Action<string> Oblivious2(System.Action<string> x);
     public abstract System.Action<string> M3(System.Action<string> x);
     public abstract System.Action<string> M4(System.Action<string> x);
     public abstract System.Action<string>? M5(System.Action<string>? x);
@@ -6055,14 +5165,14 @@ public class B1 : A
 
 public class B2 : A
 {
-    [return: NonNullTypes(false)]
-    public override System.Action<string> Oblivious1([NonNullTypes(false)] System.Action<string> x) => throw null;
+    
+    public override System.Action<string> Oblivious1(System.Action<string> x) => throw null;
     public override System.Action<string> Oblivious2(System.Action<string> x) => throw null;
 " + NonNullTypesOff() + @"
     public override System.Action<string> M3(System.Action<string> x) => throw null;
 " + NonNullTypesOn() + @"
-    [return: NonNullTypes(false)]
-    public override System.Action<string> M4([NonNullTypes(false)] System.Action<string> x) => throw null;
+    
+    public override System.Action<string> M4(System.Action<string> x) => throw null;
 " + NonNullTypesOff() + @"
     public override System.Action<string> M5(System.Action<string> x) => throw null;
 }
@@ -6070,12 +5180,6 @@ public class B2 : A
             var compilation = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
 
             compilation.VerifyDiagnostics(
-                // (8,14): error CS0592: Attribute 'NonNullTypes' is not valid on this declaration type. It is only valid on 'module, class, struct, enum, constructor, method, property, indexer, field, event, interface, delegate' declarations.
-                //     [return: NonNullTypes(false)]
-                Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "NonNullTypes").WithArguments("NonNullTypes", "module, class, struct, enum, constructor, method, property, indexer, field, event, interface, delegate").WithLocation(8, 14),
-                // (9,55): error CS0592: Attribute 'NonNullTypes' is not valid on this declaration type. It is only valid on 'module, class, struct, enum, constructor, method, property, indexer, field, event, interface, delegate' declarations.
-                //     public abstract System.Action<string> Oblivious2([NonNullTypes(false)] System.Action<string> x);
-                Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "NonNullTypes").WithArguments("NonNullTypes", "module, class, struct, enum, constructor, method, property, indexer, field, event, interface, delegate").WithLocation(9, 55),
                 // (18,44): warning CS8609: Nullability of reference types in return type doesn't match overridden member.
                 //     public override System.Action<string?> Oblivious2(System.Action<string?> x) => throw null; // warn 3 and 4 // https://github.com/dotnet/roslyn/issues/29851: Should not warn
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverride, "Oblivious2").WithLocation(18, 44),
@@ -6099,19 +5203,7 @@ public class B2 : A
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverride, "M5").WithLocation(21, 44),
                 // (21,44): warning CS8610: Nullability of reference types in type of parameter 'x' doesn't match overridden member.
                 //     public override System.Action<string?> M5(System.Action<string?> x) => throw null; // warn 9 and 10
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride, "M5").WithArguments("x").WithLocation(21, 44),
-                // (32,14): error CS0592: Attribute 'NonNullTypes' is not valid on this declaration type. It is only valid on 'module, class, struct, enum, constructor, method, property, indexer, field, event, interface, delegate' declarations.
-                //     [return: NonNullTypes(false)]
-                Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "NonNullTypes").WithArguments("NonNullTypes", "module, class, struct, enum, constructor, method, property, indexer, field, event, interface, delegate").WithLocation(32, 14),
-                // (33,47): error CS0592: Attribute 'NonNullTypes' is not valid on this declaration type. It is only valid on 'module, class, struct, enum, constructor, method, property, indexer, field, event, interface, delegate' declarations.
-                //     public override System.Action<string> M4([NonNullTypes(false)] System.Action<string> x) => throw null;
-                Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "NonNullTypes").WithArguments("NonNullTypes", "module, class, struct, enum, constructor, method, property, indexer, field, event, interface, delegate").WithLocation(33, 47),
-                // (26,14): error CS0592: Attribute 'NonNullTypes' is not valid on this declaration type. It is only valid on 'module, class, struct, enum, constructor, method, property, indexer, field, event, interface, delegate' declarations.
-                //     [return: NonNullTypes(false)]
-                Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "NonNullTypes").WithArguments("NonNullTypes", "module, class, struct, enum, constructor, method, property, indexer, field, event, interface, delegate").WithLocation(26, 14),
-                // (27,55): error CS0592: Attribute 'NonNullTypes' is not valid on this declaration type. It is only valid on 'module, class, struct, enum, constructor, method, property, indexer, field, event, interface, delegate' declarations.
-                //     public override System.Action<string> Oblivious1([NonNullTypes(false)] System.Action<string> x) => throw null;
-                Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "NonNullTypes").WithArguments("NonNullTypes", "module, class, struct, enum, constructor, method, property, indexer, field, event, interface, delegate").WithLocation(27, 55)
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride, "M5").WithArguments("x").WithLocation(21, 44)
                 );
 
             var b1 = compilation.GetTypeByMetadataName("B1");
@@ -6216,7 +5308,6 @@ public class Class<T> : Base<T> where T : struct
         public void Overriding_Indexer()
         {
             var source = @"
-using System.Runtime.CompilerServices;
 public class List<T> { }
 public class Base
 {
@@ -6229,17 +5320,11 @@ public class Class : Base
 }
 public class Class2 : Base {
 " + NonNullTypesOn() + @"
-    public override List<string[]> this[[NonNullTypes(false)] List<string[]> x] { [return: NonNullTypes(false)] get => throw null; set => throw null; }
+    public override List<string[]> this[List<string[]> x] { get => throw null; set => throw null; }
 }
 ";
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
-            comp.VerifyDiagnostics(
-                // (15,92): error CS0592: Attribute 'NonNullTypes' is not valid on this declaration type. It is only valid on 'module, class, struct, enum, constructor, method, property, indexer, field, event, interface, delegate' declarations.
-                //     public override List<string[]> this[[NonNullTypes(false)] List<string[]> x] { [return: NonNullTypes(false)] get => throw null; set => throw null; }
-                Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "NonNullTypes").WithArguments("NonNullTypes", "module, class, struct, enum, constructor, method, property, indexer, field, event, interface, delegate").WithLocation(15, 92),
-                // (15,42): error CS0592: Attribute 'NonNullTypes' is not valid on this declaration type. It is only valid on 'module, class, struct, enum, constructor, method, property, indexer, field, event, interface, delegate' declarations.
-                //     public override List<string[]> this[[NonNullTypes(false)] List<string[]> x] { [return: NonNullTypes(false)] get => throw null; set => throw null; }
-                Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "NonNullTypes").WithArguments("NonNullTypes", "module, class, struct, enum, constructor, method, property, indexer, field, event, interface, delegate").WithLocation(15, 42));
+            comp.VerifyDiagnostics();
         }
 
         [Fact]
@@ -7368,7 +6453,6 @@ class B : A
 }
 
 .module '<<GeneratedFileName>>.dll'
-.custom instance void System.Runtime.CompilerServices.NullableAttribute::.ctor() = ( 01 00 00 00 ) 
 
 .class public auto ansi beforefieldinit C`2<T,S>
        extends [mscorlib]System.Object
@@ -7394,7 +6478,7 @@ class B : A
           M1() cil managed
   {
     .param [0]
-    .custom instance void System.Runtime.CompilerServices.NullableAttribute::.ctor(bool[]) = ( 01 00 03 00 00 00 00 01 00 00 00 ) 
+    .custom instance void System.Runtime.CompilerServices.NullableAttribute::.ctor(uint8[]) = ( 01 00 03 00 00 00 01 02 01 00 00 ) 
   } // end of method A::M1
 
   .method family hidebysig specialname rtspecialname 
@@ -7416,7 +6500,7 @@ class B : A
   .custom instance void [mscorlib]System.AttributeUsageAttribute::.ctor(valuetype [mscorlib]System.AttributeTargets) = ( 01 00 86 6B 00 00 01 00 54 02 0D 41 6C 6C 6F 77   // ...k....T..Allow
                                                                                                                          4D 75 6C 74 69 70 6C 65 00 )              // Multiple.
   .method public hidebysig specialname rtspecialname 
-          instance void  .ctor() cil managed
+          instance void  .ctor(uint8 transformFlag) cil managed
   {
     // Code size       9 (0x9)
     .maxstack  8
@@ -7428,7 +6512,7 @@ class B : A
   } // end of method NullableAttribute::.ctor
 
   .method public hidebysig specialname rtspecialname 
-          instance void  .ctor(bool[] transformFlags) cil managed
+          instance void  .ctor(uint8[] transformFlags) cil managed
   {
     // Code size       9 (0x9)
     .maxstack  8
@@ -28531,44 +27615,44 @@ using System.Runtime.CompilerServices;
 
 public abstract class B
 {
-    [Nullable] public string F1; 
-    [Nullable] public event System.Action E1;
-    [Nullable] public string[][,] P2 {get; set;}
-    [return:Nullable] public System.Action<string?> M1(string? x) 
+    [Nullable(0)] public string F1; 
+    [Nullable(1)] public event System.Action E1;
+    [Nullable(2)] public string[][,] P2 {get; set;}
+    [return:Nullable(0)] public System.Action<string?> M1(string? x) 
     {throw new System.NotImplementedException();}
-    public string[][,] M2([Nullable] string[][,] x) 
+    public string[][,] M2([Nullable(new byte[] {0})] string[][,] x) 
     {throw new System.NotImplementedException();}
 }
 
 public class C<T> {}
 
-[Nullable] public class F : C<F>
+[Nullable(2)] public class F : C<F>
 {}
 ";
             var compilation = CreateCompilation(new[] { source, NullableAttributeDefinition }, options: WithNonNullTypesTrue());
 
             compilation.VerifyDiagnostics(
                 // (7,6): error CS8623: Explicit application of 'System.Runtime.CompilerServices.NullableAttribute' is not allowed.
-                //     [Nullable] public event System.Action E1;
-                Diagnostic(ErrorCode.ERR_ExplicitNullableAttribute, "Nullable"),
+                //     [Nullable(1)] public event System.Action E1;
+                Diagnostic(ErrorCode.ERR_ExplicitNullableAttribute, "Nullable(1)").WithLocation(7, 6),
                 // (8,6): error CS8623: Explicit application of 'System.Runtime.CompilerServices.NullableAttribute' is not allowed.
-                //     [Nullable] public string[][,] P2 {get; set;}
-                Diagnostic(ErrorCode.ERR_ExplicitNullableAttribute, "Nullable"),
+                //     [Nullable(2)] public string[][,] P2 {get; set;}
+                Diagnostic(ErrorCode.ERR_ExplicitNullableAttribute, "Nullable(2)").WithLocation(8, 6),
                 // (9,13): error CS8623: Explicit application of 'System.Runtime.CompilerServices.NullableAttribute' is not allowed.
-                //     [return:Nullable] public System.Action<string?> M1(string? x) 
-                Diagnostic(ErrorCode.ERR_ExplicitNullableAttribute, "Nullable"),
+                //     [return:Nullable(0)] public System.Action<string?> M1(string? x) 
+                Diagnostic(ErrorCode.ERR_ExplicitNullableAttribute, "Nullable(0)").WithLocation(9, 13),
                 // (11,28): error CS8623: Explicit application of 'System.Runtime.CompilerServices.NullableAttribute' is not allowed.
-                //     public string[][,] M2([Nullable] string[][,] x) 
-                Diagnostic(ErrorCode.ERR_ExplicitNullableAttribute, "Nullable"),
+                //     public string[][,] M2([Nullable(new byte[] {0})] string[][,] x) 
+                Diagnostic(ErrorCode.ERR_ExplicitNullableAttribute, "Nullable(new byte[] {0})").WithLocation(11, 28),
                 // (6,6): error CS8623: Explicit application of 'System.Runtime.CompilerServices.NullableAttribute' is not allowed.
-                //     [Nullable] public string F1; 
-                Diagnostic(ErrorCode.ERR_ExplicitNullableAttribute, "Nullable"),
+                //     [Nullable(0)] public string F1; 
+                Diagnostic(ErrorCode.ERR_ExplicitNullableAttribute, "Nullable(0)").WithLocation(6, 6),
                 // (17,2): error CS8623: Explicit application of 'System.Runtime.CompilerServices.NullableAttribute' is not allowed.
-                // [Nullable] public class F : C<F>
-                Diagnostic(ErrorCode.ERR_ExplicitNullableAttribute, "Nullable"),
-                // (7,43): warning CS0067: The event 'B.E1' is never used
-                //     [Nullable] public event System.Action E1;
-                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E1").WithArguments("B.E1").WithLocation(7, 43)
+                // [Nullable(2)] public class F : C<F>
+                Diagnostic(ErrorCode.ERR_ExplicitNullableAttribute, "Nullable(2)").WithLocation(17, 2),
+                // (7,46): warning CS0067: The event 'B.E1' is never used
+                //     [Nullable(1)] public event System.Action E1;
+                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E1").WithArguments("B.E1").WithLocation(7, 46)
                 );
         }
 
@@ -34278,47 +33362,6 @@ class P
                 // error CS8630: Invalid 'Nullable' value: 'True' for C# 7.3. Please use language version 8.0 or greater.
                 Diagnostic(ErrorCode.ERR_NullableOptionNotAvailable).WithArguments("Nullable", "True", "7.3", "8.0").WithLocation(1, 1)
                 );
-        }
-
-        [Fact]
-        public void PoisonNonNullTypes_InMetadata()
-        {
-            var il = @"
-.class public auto ansi sealed beforefieldinit System.Runtime.CompilerServices.NonNullTypesAttribute
-    extends [mscorlib]System.Attribute
-{
-    .custom instance void [mscorlib]System.AttributeUsageAttribute::.ctor(valuetype [mscorlib]System.AttributeTargets) = (
-        01 00 ff 7f 00 00 01 00 54 02 0d 41 6c 6c 6f 77
-        4d 75 6c 74 69 70 6c 65 00
-    )
-    .custom instance void [mscorlib]System.ObsoleteAttribute::.ctor(string) =
-        {string('The NonNullTypes attribute is not supported in this version of your compiler. Please use a C# 8.0 compiler (or above).')}
-
-    .method public hidebysig specialname rtspecialname instance void .ctor ( [opt] bool flag ) cil managed
-    {
-        .param [1] = bool(true)
-
-        IL_0000: ldarg.0
-        IL_0001: call instance void [mscorlib]System.Attribute::.ctor()
-        IL_0006: nop
-        IL_0007: nop
-        IL_0008: ret
-    }
-}
-";
-            var comp = CreateCompilationWithIL("[module: System.Runtime.CompilerServices.NonNullTypes(true)]", il);
-            comp.VerifyDiagnostics(
-                // (1,10): error CS8636: Explicit application of 'System.Runtime.CompilerServices.NonNullTypesAttribute' is not allowed.
-                // [module: System.Runtime.CompilerServices.NonNullTypes(true)]
-                Diagnostic(ErrorCode.ERR_ExplicitNonNullTypesAttribute, "System.Runtime.CompilerServices.NonNullTypes(true)").WithLocation(1, 10)
-                );
-
-            // Injected NNT type silently wins
-            var tree = comp.SyntaxTrees.Single();
-            var attribute = tree.GetRoot().DescendantNodes().OfType<AttributeSyntax>().Single();
-            var model = comp.GetSemanticModel(tree);
-            var type = model.GetTypeInfo(attribute.Name).Type;
-            Assert.IsType<InjectedNonNullTypesAttributeSymbol>(type);
         }
 
         [Fact]
@@ -41724,7 +40767,14 @@ class B
                 Assert.Equal("void B.F1<T1>(T1? t1) where T1 : class", f1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
                 TypeParameterSymbol t1 = f1.TypeParameters[0];
                 Assert.False(t1.ReferenceTypeConstraintIsNullable);
-                Assert.Empty(t1.GetAttributes());
+                if (isSource)
+                {
+                    Assert.Empty(t1.GetAttributes());
+                }
+                else
+                {
+                    Assert.Equal("System.Runtime.CompilerServices.NullableAttribute(1)", t1.GetAttributes().Single().ToString());
+                }
 
                 var f2 = (MethodSymbol)m.GlobalNamespace.GetMember("B.F2");
                 Assert.Equal("void B.F2<T2>(T2 t2) where T2 : class?", f2.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
@@ -41739,7 +40789,7 @@ class B
                 }
                 else
                 {
-                    Assert.Equal("System.Runtime.CompilerServices.NullableAttribute", t2.GetAttributes().Single().ToString());
+                    Assert.Equal("System.Runtime.CompilerServices.NullableAttribute(2)", t2.GetAttributes().Single().ToString());
                 }
             }
         }
@@ -41774,7 +40824,14 @@ class B<T2> where T2 : class?
                 Assert.Equal("A<T1> where T1 : class", a.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
                 TypeParameterSymbol t1 = a.TypeParameters[0];
                 Assert.False(t1.ReferenceTypeConstraintIsNullable);
-                Assert.Empty(t1.GetAttributes());
+                if (isSource)
+                {
+                    Assert.Empty(t1.GetAttributes());
+                }
+                else
+                {
+                    Assert.Equal("System.Runtime.CompilerServices.NullableAttribute(1)", t1.GetAttributes().Single().ToString());
+                }
 
                 var b = (NamedTypeSymbol)m.GlobalNamespace.GetMember("B");
                 Assert.Equal("B<T2> where T2 : class?", b.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
@@ -41786,7 +40843,7 @@ class B<T2> where T2 : class?
                 }
                 else
                 {
-                    Assert.Equal("System.Runtime.CompilerServices.NullableAttribute", t2.GetAttributes().Single().ToString());
+                    Assert.Equal("System.Runtime.CompilerServices.NullableAttribute(2)", t2.GetAttributes().Single().ToString());
                 }
             }
         }
@@ -41880,7 +40937,7 @@ class B<T1> where T1 : class?
                 }
                 else
                 {
-                    Assert.Equal("System.Runtime.CompilerServices.NullableAttribute", t1.GetAttributes().Single().ToString());
+                    Assert.Equal("System.Runtime.CompilerServices.NullableAttribute(2)", t1.GetAttributes().Single().ToString());
                 }
 
                 var f2 = (MethodSymbol)b.GetMember("F2");
@@ -41893,7 +40950,7 @@ class B<T1> where T1 : class?
                 }
                 else
                 {
-                    Assert.Equal("System.Runtime.CompilerServices.NullableAttribute", t2.GetAttributes().Single().ToString());
+                    Assert.Equal("System.Runtime.CompilerServices.NullableAttribute(2)", t2.GetAttributes().Single().ToString());
                 }
             }
 
@@ -42289,11 +41346,11 @@ interface INode
 @"
 #pragma warning disable CS8321
 
-class B<[System.Runtime.CompilerServices.Nullable] T1>
+class B<[System.Runtime.CompilerServices.Nullable(0)] T1>
 {
-    public static void F2<[System.Runtime.CompilerServices.Nullable] T2>(T2 t2)
+    public static void F2<[System.Runtime.CompilerServices.Nullable(1)] T2>(T2 t2)
     {
-        void F3<[System.Runtime.CompilerServices.Nullable] T3>(T3 t3)
+        void F3<[System.Runtime.CompilerServices.Nullable(2)] T3>(T3 t3)
         {
         }
     }
@@ -42301,17 +41358,17 @@ class B<[System.Runtime.CompilerServices.Nullable] T1>
             var comp = CreateCompilation(new[] { source, NullableAttributeDefinition });
             comp.VerifyDiagnostics(
                 // (4,10): error CS8623: Explicit application of 'System.Runtime.CompilerServices.NullableAttribute' is not allowed.
-                // class B<[System.Runtime.CompilerServices.Nullable] T1>
-                Diagnostic(ErrorCode.ERR_ExplicitNullableAttribute, "System.Runtime.CompilerServices.Nullable").WithLocation(4, 10),
+                // class B<[System.Runtime.CompilerServices.Nullable(0)] T1>
+                Diagnostic(ErrorCode.ERR_ExplicitNullableAttribute, "System.Runtime.CompilerServices.Nullable(0)").WithLocation(4, 10),
                 // (6,28): error CS8623: Explicit application of 'System.Runtime.CompilerServices.NullableAttribute' is not allowed.
-                //     public static void F2<[System.Runtime.CompilerServices.Nullable] T2>(T2 t2)
-                Diagnostic(ErrorCode.ERR_ExplicitNullableAttribute, "System.Runtime.CompilerServices.Nullable").WithLocation(6, 28),
+                //     public static void F2<[System.Runtime.CompilerServices.Nullable(1)] T2>(T2 t2)
+                Diagnostic(ErrorCode.ERR_ExplicitNullableAttribute, "System.Runtime.CompilerServices.Nullable(1)").WithLocation(6, 28),
                 // (8,17): error CS8205: Attributes are not allowed on local function parameters or type parameters
-                //         void F3<[System.Runtime.CompilerServices.Nullable] T3>(T3 t3)
-                Diagnostic(ErrorCode.ERR_AttributesInLocalFuncDecl, "[System.Runtime.CompilerServices.Nullable]").WithLocation(8, 17),
+                //         void F3<[System.Runtime.CompilerServices.Nullable(2)] T3>(T3 t3)
+                Diagnostic(ErrorCode.ERR_AttributesInLocalFuncDecl, "[System.Runtime.CompilerServices.Nullable(2)]").WithLocation(8, 17),
                 // (8,18): error CS8623: Explicit application of 'System.Runtime.CompilerServices.NullableAttribute' is not allowed.
-                //         void F3<[System.Runtime.CompilerServices.Nullable] T3>(T3 t3)
-                Diagnostic(ErrorCode.ERR_ExplicitNullableAttribute, "System.Runtime.CompilerServices.Nullable").WithLocation(8, 18)
+                //         void F3<[System.Runtime.CompilerServices.Nullable(2)] T3>(T3 t3)
+                Diagnostic(ErrorCode.ERR_ExplicitNullableAttribute, "System.Runtime.CompilerServices.Nullable(2)").WithLocation(8, 18)
             );
         }
 
@@ -42355,13 +41412,27 @@ class B : A<int>
                 Assert.Equal("void B.F1<T11>(T11? t1) where T11 : class", bf1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
                 TypeParameterSymbol t11 = bf1.TypeParameters[0];
                 Assert.False(t11.ReferenceTypeConstraintIsNullable);
-                Assert.Empty(t11.GetAttributes());
+                if (isSource)
+                {
+                    Assert.Empty(t11.GetAttributes());
+                }
+                else
+                {
+                    Assert.Equal("System.Runtime.CompilerServices.NullableAttribute(1)", t11.GetAttributes().Single().ToString());
+                }
 
                 var af1 = bf1.OverriddenMethod;
                 Assert.Equal("void A<System.Int32>.F1<T1>(T1? t1) where T1 : class", af1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
                 TypeParameterSymbol t1 = af1.TypeParameters[0];
                 Assert.False(t1.ReferenceTypeConstraintIsNullable);
-                Assert.Empty(t1.GetAttributes());
+                if (isSource)
+                {
+                    Assert.Empty(t1.GetAttributes());
+                }
+                else
+                {
+                    Assert.Equal("System.Runtime.CompilerServices.NullableAttribute(1)", t1.GetAttributes().Single().ToString());
+                }
 
                 var bf2 = (MethodSymbol)m.GlobalNamespace.GetMember("B.F2");
                 Assert.Equal("void B.F2<T22>(T22 t2) where T22 : class?", bf2.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
@@ -42374,7 +41445,7 @@ class B : A<int>
                 }
                 else
                 {
-                    Assert.Equal("System.Runtime.CompilerServices.NullableAttribute", t22.GetAttributes().Single().ToString());
+                    Assert.Equal("System.Runtime.CompilerServices.NullableAttribute(2)", t22.GetAttributes().Single().ToString());
                 }
 
                 var af2 = bf2.OverriddenMethod;
@@ -42388,7 +41459,7 @@ class B : A<int>
                 }
                 else
                 {
-                    Assert.Equal("System.Runtime.CompilerServices.NullableAttribute", t2.GetAttributes().Single().ToString());
+                    Assert.Equal("System.Runtime.CompilerServices.NullableAttribute(2)", t2.GetAttributes().Single().ToString());
                 }
             }
         }
@@ -42436,7 +41507,14 @@ class B : A<int>
                 Assert.Equal("void B.F1<T11>(T11? t1) where T11 : class", bf1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
                 TypeParameterSymbol t11 = bf1.TypeParameters[0];
                 Assert.False(t11.ReferenceTypeConstraintIsNullable);
-                Assert.Empty(t11.GetAttributes());
+                if (isSource)
+                {
+                    Assert.Empty(t11.GetAttributes());
+                }
+                else
+                {
+                    Assert.Equal("System.Runtime.CompilerServices.NullableAttribute(1)", t11.GetAttributes().Single().ToString());
+                }
 
                 var bf2 = (MethodSymbol)m.GlobalNamespace.GetMember("B.F2");
                 Assert.Equal("void B.F2<T22>(T22 t2) where T22 : class?", bf2.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
@@ -42450,7 +41528,7 @@ class B : A<int>
                 else
                 {
                     CSharpAttributeData nullableAttribute = t22.GetAttributes().Single();
-                    Assert.Equal("System.Runtime.CompilerServices.NullableAttribute", nullableAttribute.ToString());
+                    Assert.Equal("System.Runtime.CompilerServices.NullableAttribute(2)", nullableAttribute.ToString());
                     Assert.Same(m, nullableAttribute.AttributeClass.ContainingModule);
                     Assert.Equal(Accessibility.Internal, nullableAttribute.AttributeClass.DeclaredAccessibility);
                 }
@@ -42504,7 +41582,14 @@ class B : A<int>
                 Assert.Equal("void B.F1<T11>(T11? t1) where T11 : class", bf1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
                 TypeParameterSymbol t11 = bf1.TypeParameters[0];
                 Assert.False(t11.ReferenceTypeConstraintIsNullable);
-                Assert.Empty(t11.GetAttributes());
+                if (isSource)
+                {
+                    Assert.Empty(t11.GetAttributes());
+                }
+                else
+                {
+                    Assert.Equal("System.Runtime.CompilerServices.NullableAttribute(1)", t11.GetAttributes().Single().ToString());
+                }
 
                 var bf2 = (MethodSymbol)m.GlobalNamespace.GetMember("B.F2");
                 Assert.Equal("void B.F2<T22>(T22 t2) where T22 : class?", bf2.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
@@ -42518,7 +41603,7 @@ class B : A<int>
                 else
                 {
                     CSharpAttributeData nullableAttribute = t22.GetAttributes().Single();
-                    Assert.Equal("System.Runtime.CompilerServices.NullableAttribute", nullableAttribute.ToString());
+                    Assert.Equal("System.Runtime.CompilerServices.NullableAttribute(2)", nullableAttribute.ToString());
                     Assert.NotEqual(m, nullableAttribute.AttributeClass.ContainingModule);
                 }
             }
@@ -42568,20 +41653,15 @@ class B : A<int>
                 var bf1 = (MethodSymbol)m.GlobalNamespace.GetMember("B.F1");
                 Assert.Equal("void B.F1<T11>() where T11 : class", bf1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
                 TypeParameterSymbol t11 = bf1.TypeParameters[0];
-
-                // https://github.com/dotnet/roslyn/issues/29979: It is probably wrong to have this difference between source symbol
-                //                                    and emitted-then-imported symbol. What are the rules for inheriting constraints
-                //                                    across different non-null contexts?
+                Assert.False(t11.ReferenceTypeConstraintIsNullable);
                 if (isSource)
                 {
-                    Assert.False(t11.ReferenceTypeConstraintIsNullable);
+                    Assert.Empty(t11.GetAttributes());
                 }
                 else
                 {
-                    Assert.Null(t11.ReferenceTypeConstraintIsNullable);
+                    Assert.Equal("System.Runtime.CompilerServices.NullableAttribute(1)", t11.GetAttributes().Single().ToString());
                 }
-
-                Assert.Empty(t11.GetAttributes());
 
                 var bf2 = (MethodSymbol)m.GlobalNamespace.GetMember("B.F2");
                 Assert.Equal("void B.F2<T22>() where T22 : class?", bf2.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
@@ -42594,7 +41674,7 @@ class B : A<int>
                 }
                 else
                 {
-                    Assert.Equal("System.Runtime.CompilerServices.NullableAttribute", t22.GetAttributes().Single().ToString());
+                    Assert.Equal("System.Runtime.CompilerServices.NullableAttribute(2)", t22.GetAttributes().Single().ToString());
                 }
             }
         }
@@ -42767,7 +41847,14 @@ class D : IA
                 Assert.Equal("void B.F1<T11>() where T11 : class", bf1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
                 TypeParameterSymbol t11 = bf1.TypeParameters[0];
                 Assert.False(t11.ReferenceTypeConstraintIsNullable);
-                Assert.Empty(t11.GetAttributes());
+                if (isSource)
+                {
+                    Assert.Empty(t11.GetAttributes());
+                }
+                else
+                {
+                    Assert.Equal("System.Runtime.CompilerServices.NullableAttribute(1)", t11.GetAttributes().Single().ToString());
+                }
 
                 var bf2 = (MethodSymbol)m.GlobalNamespace.GetMember("B.F2");
                 Assert.Equal("void B.F2<T22>() where T22 : class?", bf2.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
@@ -42780,7 +41867,7 @@ class D : IA
                 }
                 else
                 {
-                    Assert.Equal("System.Runtime.CompilerServices.NullableAttribute", t22.GetAttributes().Single().ToString());
+                    Assert.Equal("System.Runtime.CompilerServices.NullableAttribute(2)", t22.GetAttributes().Single().ToString());
                 }
 
                 var bf3 = (MethodSymbol)m.GlobalNamespace.GetMember("B.F3");
@@ -42865,7 +41952,14 @@ class B : IA
                 Assert.Equal("void B.IA.F1<T11>() where T11 : class", bf1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
                 TypeParameterSymbol t11 = bf1.TypeParameters[0];
                 Assert.False(t11.ReferenceTypeConstraintIsNullable);
-                Assert.Empty(t11.GetAttributes());
+                if (isSource)
+                {
+                    Assert.Empty(t11.GetAttributes());
+                }
+                else
+                {
+                    Assert.Equal("System.Runtime.CompilerServices.NullableAttribute(1)", t11.GetAttributes().Single().ToString());
+                }
 
                 var bf2 = (MethodSymbol)m.GlobalNamespace.GetMember("B.IA.F2");
                 Assert.Equal("void B.IA.F2<T22>() where T22 : class?", bf2.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
@@ -42878,7 +41972,7 @@ class B : IA
                 }
                 else
                 {
-                    Assert.Equal("System.Runtime.CompilerServices.NullableAttribute", t22.GetAttributes().Single().ToString());
+                    Assert.Equal("System.Runtime.CompilerServices.NullableAttribute(2)", t22.GetAttributes().Single().ToString());
                 }
             }
         }
@@ -42922,7 +42016,14 @@ class B : IA
                 Assert.Equal("void B.IA.F1<T11>() where T11 : class", bf1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
                 TypeParameterSymbol t11 = bf1.TypeParameters[0];
                 Assert.False(t11.ReferenceTypeConstraintIsNullable);
-                Assert.Empty(t11.GetAttributes());
+                if (isSource)
+                {
+                    Assert.Empty(t11.GetAttributes());
+                }
+                else
+                {
+                    Assert.Equal("System.Runtime.CompilerServices.NullableAttribute(1)", t11.GetAttributes().Single().ToString());
+                }
 
                 var bf2 = (MethodSymbol)m.GlobalNamespace.GetMember("B.IA.F2");
                 Assert.Equal("void B.IA.F2<T22>() where T22 : class?", bf2.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
@@ -42936,7 +42037,7 @@ class B : IA
                 else
                 {
                     CSharpAttributeData nullableAttribute = t22.GetAttributes().Single();
-                    Assert.Equal("System.Runtime.CompilerServices.NullableAttribute", nullableAttribute.ToString());
+                    Assert.Equal("System.Runtime.CompilerServices.NullableAttribute(2)", nullableAttribute.ToString());
                     Assert.Same(m, nullableAttribute.AttributeClass.ContainingModule);
                     Assert.Equal(Accessibility.Internal, nullableAttribute.AttributeClass.DeclaredAccessibility);
                 }
@@ -42986,7 +42087,14 @@ class B : IA
                 Assert.Equal("void B.IA.F1<T11>() where T11 : class", bf1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
                 TypeParameterSymbol t11 = bf1.TypeParameters[0];
                 Assert.False(t11.ReferenceTypeConstraintIsNullable);
-                Assert.Empty(t11.GetAttributes());
+                if (isSource)
+                {
+                    Assert.Empty(t11.GetAttributes());
+                }
+                else
+                {
+                    Assert.Equal("System.Runtime.CompilerServices.NullableAttribute(1)", t11.GetAttributes().Single().ToString());
+                }
 
                 var bf2 = (MethodSymbol)m.GlobalNamespace.GetMember("B.IA.F2");
                 Assert.Equal("void B.IA.F2<T22>() where T22 : class?", bf2.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
@@ -43000,7 +42108,7 @@ class B : IA
                 else
                 {
                     CSharpAttributeData nullableAttribute = t22.GetAttributes().Single();
-                    Assert.Equal("System.Runtime.CompilerServices.NullableAttribute", nullableAttribute.ToString());
+                    Assert.Equal("System.Runtime.CompilerServices.NullableAttribute(2)", nullableAttribute.ToString());
                     Assert.NotEqual(m, nullableAttribute.AttributeClass.ContainingModule);
                 }
             }
@@ -43045,20 +42153,15 @@ class B : IA
                 var bf1 = (MethodSymbol)m.GlobalNamespace.GetMember("B.IA.F1");
                 Assert.Equal("void B.IA.F1<T11>() where T11 : class", bf1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
                 TypeParameterSymbol t11 = bf1.TypeParameters[0];
-
-                // https://github.com/dotnet/roslyn/issues/29979: It is probably wrong to have this difference between source symbol
-                //                                    and emitted-then-imported symbol. What are the rules for inheriting constraints
-                //                                    across different non-null contexts?
+                Assert.False(t11.ReferenceTypeConstraintIsNullable);
                 if (isSource)
                 {
-                    Assert.False(t11.ReferenceTypeConstraintIsNullable);
+                    Assert.Empty(t11.GetAttributes());
                 }
                 else
                 {
-                    Assert.Null(t11.ReferenceTypeConstraintIsNullable);
+                    Assert.Equal("System.Runtime.CompilerServices.NullableAttribute(1)", t11.GetAttributes().Single().ToString());
                 }
-
-                Assert.Empty(t11.GetAttributes());
 
                 var bf2 = (MethodSymbol)m.GlobalNamespace.GetMember("B.IA.F2");
                 Assert.Equal("void B.IA.F2<T22>() where T22 : class?", bf2.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
@@ -43071,7 +42174,7 @@ class B : IA
                 }
                 else
                 {
-                    Assert.Equal("System.Runtime.CompilerServices.NullableAttribute", t22.GetAttributes().Single().ToString());
+                    Assert.Equal("System.Runtime.CompilerServices.NullableAttribute(2)", t22.GetAttributes().Single().ToString());
                 }
             }
         }
@@ -43149,7 +42252,7 @@ class B
                 }
                 else
                 {
-                    Assert.Equal("System.Runtime.CompilerServices.NullableAttribute", t2.GetAttributes().Single().ToString());
+                    Assert.Equal("System.Runtime.CompilerServices.NullableAttribute(2)", t2.GetAttributes().Single().ToString());
                 }
             }
         }
@@ -43181,7 +42284,7 @@ class B<T2> where T2 : class?
                 }
                 else
                 {
-                    Assert.Equal("System.Runtime.CompilerServices.NullableAttribute", t2.GetAttributes().Single().ToString());
+                    Assert.Equal("System.Runtime.CompilerServices.NullableAttribute(2)", t2.GetAttributes().Single().ToString());
                 }
             }
         }
@@ -43426,7 +42529,14 @@ class D : IA<string>
                 Assert.Equal("void B.F1<T11>() where T11 : class", bf1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
                 TypeParameterSymbol t11 = bf1.TypeParameters[0];
                 Assert.False(t11.ReferenceTypeConstraintIsNullable);
-                Assert.Empty(t11.GetAttributes());
+                if (isSource)
+                {
+                    Assert.Empty(t11.GetAttributes());
+                }
+                else
+                {
+                    Assert.Equal("System.Runtime.CompilerServices.NullableAttribute(1)", t11.GetAttributes().Single().ToString());
+                }
 
                 var bf2 = (MethodSymbol)m.GlobalNamespace.GetMember("B.F2");
                 Assert.Equal("void B.F2<T22>() where T22 : class?", bf2.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
@@ -43439,7 +42549,7 @@ class D : IA<string>
                 }
                 else
                 {
-                    Assert.Equal("System.Runtime.CompilerServices.NullableAttribute", t22.GetAttributes().Single().ToString());
+                    Assert.Equal("System.Runtime.CompilerServices.NullableAttribute(2)", t22.GetAttributes().Single().ToString());
                 }
 
                 var bf3 = (MethodSymbol)m.GlobalNamespace.GetMember("B.F3");
@@ -50266,116 +49376,6 @@ class C
             comp.VerifyDiagnostics();
         }
 
-        [WorkItem(29186, "https://github.com/dotnet/roslyn/issues/29186")]
-        [Fact]
-        public void AttributeArgumentCycle_NonNullTypes_01()
-        {
-            var source =
-@"using System.Runtime.CompilerServices;
-class A { }
-class B<T> where T : A { }
-[NonNullTypes(typeof(B<A>))]
-class C
-{
-}";
-            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesFalse());
-            comp.VerifyDiagnostics(
-                // (4,15): error CS1503: Argument 1: cannot convert from 'System.Type' to 'bool'
-                // [NonNullTypes(typeof(B<A>))]
-                Diagnostic(ErrorCode.ERR_BadArgType, "typeof(B<A>)").WithArguments("1", "System.Type", "bool").WithLocation(4, 15));
-        }
-
-        [WorkItem(29186, "https://github.com/dotnet/roslyn/issues/29186")]
-        [Fact]
-        public void AttributeArgumentCycle_NonNullTypes_02()
-        {
-            var source =
-@"using System.Runtime.CompilerServices;
-class A { }
-class B<T> where T : A
-{
-    internal const bool True = true;
-}
-[NonNullTypes(B<A>.True)]
-class C
-{
-}
-[NonNullTypes(B<A?>.True)]
-class D
-{
-}";
-            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular7_3, skipUsesIsNullable: true);
-            comp.VerifyDiagnostics(
-                // error CS8630: Invalid 'Nullable' value: 'True' for C# 7.3. Please use language version 8.0 or greater.
-                Diagnostic(ErrorCode.ERR_NullableOptionNotAvailable).WithArguments("Nullable", "True", "7.3", "8.0").WithLocation(1, 1),
-                // (7,2): error CS8636: Explicit application of 'System.Runtime.CompilerServices.NonNullTypesAttribute' is not allowed.
-                // [NonNullTypes(B<A>.True)]
-                Diagnostic(ErrorCode.ERR_ExplicitNonNullTypesAttribute, "NonNullTypes(B<A>.True)").WithLocation(7, 2),
-                // (11,18): error CS8370: Feature 'nullable reference types' is not available in C# 7.3. Please use language version 8.0 or greater.
-                // [NonNullTypes(B<A?>.True)]
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "?").WithArguments("nullable reference types", "8.0").WithLocation(11, 18),
-                // (11,2): error CS8636: Explicit application of 'System.Runtime.CompilerServices.NonNullTypesAttribute' is not allowed.
-                // [NonNullTypes(B<A?>.True)]
-                Diagnostic(ErrorCode.ERR_ExplicitNonNullTypesAttribute, "NonNullTypes(B<A?>.True)").WithLocation(11, 2));
-
-            var comp2 = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
-            comp2.VerifyDiagnostics(
-                // (7,2): error CS8636: Explicit application of 'System.Runtime.CompilerServices.NonNullTypesAttribute' is not allowed.
-                // [NonNullTypes(B<A>.True)]
-                Diagnostic(ErrorCode.ERR_ExplicitNonNullTypesAttribute, "NonNullTypes(B<A>.True)").WithLocation(7, 2),
-                // (11,2): error CS8636: Explicit application of 'System.Runtime.CompilerServices.NonNullTypesAttribute' is not allowed.
-                // [NonNullTypes(B<A?>.True)]
-                Diagnostic(ErrorCode.ERR_ExplicitNonNullTypesAttribute, "NonNullTypes(B<A?>.True)").WithLocation(11, 2),
-                // (11,15): warning CS8631: The type 'A?' cannot be used as type parameter 'T' in the generic type or method 'B<T>'. Nullability of type argument 'A?' doesn't match constraint type 'A'.
-                // [NonNullTypes(B<A?>.True)]
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "B<A?>").WithArguments("B<T>", "A", "T", "A?").WithLocation(11, 15));
-        }
-
-        [WorkItem(29186, "https://github.com/dotnet/roslyn/issues/29186")]
-        [Fact]
-        public void AttributeArgumentCycle_Nullable()
-        {
-            var source0 =
-@"
-
-namespace System
-{
-    public class Object { }
-    public abstract class ValueType { }
-    public struct Void { }
-    public struct Int32 { }
-    public class Type { }
-    public struct Boolean { }
-    public struct Enum { }
-    public class Attribute { }
-    public interface INullable<T> { }
-    public struct Nullable<T> where T : INullable<object> { }
-}
-namespace System.Runtime.CompilerServices
-{
-    public sealed class NonNullTypesAttribute : Attribute
-    {
-        public NonNullTypesAttribute(bool flag = true) { }
-    }
-}";
-            var source =
-@"using System;
-class AAttribute : Attribute
-{
-    internal AAttribute(object o) { }
-}
-struct S : INullable<object?> { }
-[A(typeof(S?))]
-class C
-{
-}";
-            var comp = CreateEmptyCompilation(new[] { source0, source }, options: WithNonNullTypesTrue());
-            comp.VerifyDiagnostics(
-                // (7,11): warning CS8631: The type 'S' cannot be used as type parameter 'T' in the generic type or method 'Nullable<T>'. Nullability of type argument 'S' doesn't match constraint type 'System.INullable<object>'.
-                // [A(typeof(S?))]
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "S?").WithArguments("System.Nullable<T>", "System.INullable<object>", "T", "S").WithLocation(7, 11));
-        }
-
         [Fact]
         [WorkItem(30178, "https://github.com/dotnet/roslyn/issues/30178")]
         public void GenericSubstitution_01()
@@ -50937,165 +49937,6 @@ class C {}
                 //         A<C>.B<C?> f1;
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "C?").WithArguments("A<C>.B<T2>", "C", "T2", "C?").WithLocation(22, 16)
                 );
-        }
-
-        [Fact]
-        public void NonNullTypes_27()
-        {
-            var source =
-@"using System.Runtime.CompilerServices;
-
-[module: NonNullTypes] // 1
-
-[NonNullTypes] // 2
-class A 
-{
-    [NonNullTypes] // 3
-    string F1;
-
-    [NonNullTypes] // 4
-    string P1 {get; set;}
-
-    [NonNullTypes] // 5
-    void M1() {}
-
-    [NonNullTypes] // 6
-    event System.Action E1;
-}
-";
-            var comp = CreateCompilation(new[] { source });
-            comp.VerifyDiagnostics(
-                // (3,10): error CS8636: Explicit application of 'System.Runtime.CompilerServices.NonNullTypesAttribute' is not allowed.
-                // [module: NonNullTypes] // 1
-                Diagnostic(ErrorCode.ERR_ExplicitNonNullTypesAttribute, "NonNullTypes").WithLocation(3, 10),
-                // (5,2): error CS8636: Explicit application of 'System.Runtime.CompilerServices.NonNullTypesAttribute' is not allowed.
-                // [NonNullTypes] // 2
-                Diagnostic(ErrorCode.ERR_ExplicitNonNullTypesAttribute, "NonNullTypes").WithLocation(5, 2),
-                // (8,6): error CS8636: Explicit application of 'System.Runtime.CompilerServices.NonNullTypesAttribute' is not allowed.
-                //     [NonNullTypes] // 3
-                Diagnostic(ErrorCode.ERR_ExplicitNonNullTypesAttribute, "NonNullTypes").WithLocation(8, 6),
-                // (9,12): warning CS0169: The field 'A.F1' is never used
-                //     string F1;
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "F1").WithArguments("A.F1").WithLocation(9, 12),
-                // (11,6): error CS8636: Explicit application of 'System.Runtime.CompilerServices.NonNullTypesAttribute' is not allowed.
-                //     [NonNullTypes] // 4
-                Diagnostic(ErrorCode.ERR_ExplicitNonNullTypesAttribute, "NonNullTypes").WithLocation(11, 6),
-                // (14,6): error CS8636: Explicit application of 'System.Runtime.CompilerServices.NonNullTypesAttribute' is not allowed.
-                //     [NonNullTypes] // 5
-                Diagnostic(ErrorCode.ERR_ExplicitNonNullTypesAttribute, "NonNullTypes").WithLocation(14, 6),
-                // (17,6): error CS8636: Explicit application of 'System.Runtime.CompilerServices.NonNullTypesAttribute' is not allowed.
-                //     [NonNullTypes] // 6
-                Diagnostic(ErrorCode.ERR_ExplicitNonNullTypesAttribute, "NonNullTypes").WithLocation(17, 6),
-                // (18,25): warning CS0067: The event 'A.E1' is never used
-                //     event System.Action E1;
-                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E1").WithArguments("A.E1").WithLocation(18, 25)
-);
-        }
-
-        [Fact]
-        public void NonNullTypes_28()
-        {
-            var source =
-@"using System.Runtime.CompilerServices;
-
-[module: NonNullTypes(false)] // 1
-
-[NonNullTypes(false)] // 2
-class A 
-{
-    [NonNullTypes(false)] // 3
-    string F1;
-
-    [NonNullTypes(false)] // 4
-    string P1 {get; set;}
-
-    [NonNullTypes(false)] // 5
-    void M1() {}
-
-    [NonNullTypes(false)] // 6
-    event System.Action E1;
-}
-";
-            var comp = CreateCompilation(new[] { source });
-            comp.VerifyDiagnostics(
-                // (3,10): error CS8636: Explicit application of 'System.Runtime.CompilerServices.NonNullTypesAttribute' is not allowed.
-                // [module: NonNullTypes(false)] // 1
-                Diagnostic(ErrorCode.ERR_ExplicitNonNullTypesAttribute, "NonNullTypes(false)").WithLocation(3, 10),
-                // (5,2): error CS8636: Explicit application of 'System.Runtime.CompilerServices.NonNullTypesAttribute' is not allowed.
-                // [NonNullTypes(false)] // 2
-                Diagnostic(ErrorCode.ERR_ExplicitNonNullTypesAttribute, "NonNullTypes(false)").WithLocation(5, 2),
-                // (8,6): error CS8636: Explicit application of 'System.Runtime.CompilerServices.NonNullTypesAttribute' is not allowed.
-                //     [NonNullTypes(false)] // 3
-                Diagnostic(ErrorCode.ERR_ExplicitNonNullTypesAttribute, "NonNullTypes(false)").WithLocation(8, 6),
-                // (9,12): warning CS0169: The field 'A.F1' is never used
-                //     string F1;
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "F1").WithArguments("A.F1").WithLocation(9, 12),
-                // (11,6): error CS8636: Explicit application of 'System.Runtime.CompilerServices.NonNullTypesAttribute' is not allowed.
-                //     [NonNullTypes(false)] // 4
-                Diagnostic(ErrorCode.ERR_ExplicitNonNullTypesAttribute, "NonNullTypes(false)").WithLocation(11, 6),
-                // (14,6): error CS8636: Explicit application of 'System.Runtime.CompilerServices.NonNullTypesAttribute' is not allowed.
-                //     [NonNullTypes(false)] // 5
-                Diagnostic(ErrorCode.ERR_ExplicitNonNullTypesAttribute, "NonNullTypes(false)").WithLocation(14, 6),
-                // (17,6): error CS8636: Explicit application of 'System.Runtime.CompilerServices.NonNullTypesAttribute' is not allowed.
-                //     [NonNullTypes(false)] // 6
-                Diagnostic(ErrorCode.ERR_ExplicitNonNullTypesAttribute, "NonNullTypes(false)").WithLocation(17, 6),
-                // (18,25): warning CS0067: The event 'A.E1' is never used
-                //     event System.Action E1;
-                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E1").WithArguments("A.E1").WithLocation(18, 25)
-);
-        }
-
-        [Fact]
-        public void NonNullTypes_29()
-        {
-            var source =
-@"using System.Runtime.CompilerServices;
-
-[module: NonNullTypes(true)] // 1
-
-[NonNullTypes(true)] // 2
-class A 
-{
-    [NonNullTypes(true)] // 3
-    string F1;
-
-    [NonNullTypes(true)] // 4
-    string P1 {get; set;}
-
-    [NonNullTypes(true)] // 5
-    void M1() {}
-
-    [NonNullTypes(true)] // 6
-    event System.Action E1;
-}
-";
-            var comp = CreateCompilation(new[] { source });
-            comp.VerifyDiagnostics(
-                // (3,10): error CS8636: Explicit application of 'System.Runtime.CompilerServices.NonNullTypesAttribute' is not allowed.
-                // [module: NonNullTypes(true)] // 1
-                Diagnostic(ErrorCode.ERR_ExplicitNonNullTypesAttribute, "NonNullTypes(true)").WithLocation(3, 10),
-                // (5,2): error CS8636: Explicit application of 'System.Runtime.CompilerServices.NonNullTypesAttribute' is not allowed.
-                // [NonNullTypes(true)] // 2
-                Diagnostic(ErrorCode.ERR_ExplicitNonNullTypesAttribute, "NonNullTypes(true)").WithLocation(5, 2),
-                // (8,6): error CS8636: Explicit application of 'System.Runtime.CompilerServices.NonNullTypesAttribute' is not allowed.
-                //     [NonNullTypes(true)] // 3
-                Diagnostic(ErrorCode.ERR_ExplicitNonNullTypesAttribute, "NonNullTypes(true)").WithLocation(8, 6),
-                // (9,12): warning CS0169: The field 'A.F1' is never used
-                //     string F1;
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "F1").WithArguments("A.F1").WithLocation(9, 12),
-                // (11,6): error CS8636: Explicit application of 'System.Runtime.CompilerServices.NonNullTypesAttribute' is not allowed.
-                //     [NonNullTypes(true)] // 4
-                Diagnostic(ErrorCode.ERR_ExplicitNonNullTypesAttribute, "NonNullTypes(true)").WithLocation(11, 6),
-                // (14,6): error CS8636: Explicit application of 'System.Runtime.CompilerServices.NonNullTypesAttribute' is not allowed.
-                //     [NonNullTypes(true)] // 5
-                Diagnostic(ErrorCode.ERR_ExplicitNonNullTypesAttribute, "NonNullTypes(true)").WithLocation(14, 6),
-                // (17,6): error CS8636: Explicit application of 'System.Runtime.CompilerServices.NonNullTypesAttribute' is not allowed.
-                //     [NonNullTypes(true)] // 6
-                Diagnostic(ErrorCode.ERR_ExplicitNonNullTypesAttribute, "NonNullTypes(true)").WithLocation(17, 6),
-                // (18,25): warning CS0067: The event 'A.E1' is never used
-                //     event System.Action E1;
-                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E1").WithArguments("A.E1").WithLocation(18, 25)
-);
         }
 
         [WorkItem(23270, "https://github.com/dotnet/roslyn/issues/23270")]
@@ -51948,8 +50789,12 @@ namespace Metadata
                     // @"!!X modopt([mscorlib]System.Runtime.CompilerServices.IsConst)[] modopt([mscorlib]System.Runtime.CompilerServices.IsConst) z) cil managed")
                     Signature("Metadata.GD", "Method",
                               @".method public hidebysig virtual instance System.Void Method<X>(" +
+                              @"[System.Runtime.CompilerServices.NullableAttribute(1)] " +
                               @"modopt(System.Runtime.CompilerServices.IsConst) System.String[] x, " +
-                              @"modopt(System.Runtime.CompilerServices.IsConst) System.UInt64[] y, modopt(System.Runtime.CompilerServices.IsConst) X[] z) cil managed"),
+                              @"[System.Runtime.CompilerServices.NullableAttribute(System.Collections.ObjectModel.ReadOnlyCollection`1[System.Reflection.CustomAttributeTypedArgument])] " +
+                              @"modopt(System.Runtime.CompilerServices.IsConst) System.UInt64[] y, "+
+                              @"[System.Runtime.CompilerServices.NullableAttribute(1)] " +
+                              @"modopt(System.Runtime.CompilerServices.IsConst) X[] z) cil managed"),
                 });
         }
 

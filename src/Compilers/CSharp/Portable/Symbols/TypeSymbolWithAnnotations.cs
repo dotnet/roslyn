@@ -284,7 +284,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return CreateLazyNullableType(compilation, this);
         }
 
-        public TypeSymbolWithAnnotations AsNullableReferenceType(bool fromDeclaration) => _extensions.AsNullableReferenceType(this, fromDeclaration);
+        private TypeSymbolWithAnnotations AsNullableReferenceType() => _extensions.AsNullableReferenceType(this);
         public TypeSymbolWithAnnotations AsNotNullableReferenceType() => _extensions.AsNotNullableReferenceType(this);
 
         /// <summary>
@@ -752,46 +752,58 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public TypeSymbolWithAnnotations WithTypeAndModifiers(TypeSymbol typeSymbol, ImmutableArray<CustomModifier> customModifiers) =>
             _extensions.WithTypeAndModifiers(this, typeSymbol, customModifiers);
 
-        public bool ContainsNullableReferenceTypes()
+        public bool NeedsNullableAttribute()
         {
-            return ContainsNullableReferenceTypes(this, typeOpt: null);
+            return NeedsNullableAttribute(this, typeOpt: null);
         }
 
-        public static bool ContainsNullableReferenceTypes(
+        public static bool NeedsNullableAttribute(
             TypeSymbolWithAnnotations typeWithAnnotationsOpt,
             TypeSymbol typeOpt)
         {
             var type = TypeSymbolExtensions.VisitType(
                 typeWithAnnotationsOpt,
                 typeOpt,
-                typeWithAnnotationsPredicateOpt: (t, a, b) => t.NullableAnnotation.IsAnyNullable() && !t.TypeSymbol.IsErrorType() && !t.TypeSymbol.IsValueType,
+                typeWithAnnotationsPredicateOpt: (t, a, b) => t.NullableAnnotation != NullableAnnotation.Unknown && !t.TypeSymbol.IsErrorType() && !t.TypeSymbol.IsValueType,
                 typePredicateOpt: null,
                 arg: (object)null);
             return (object)type != null;
         }
 
-        public void AddNullableTransforms(ArrayBuilder<bool> transforms)
+        public void AddNullableTransforms(ArrayBuilder<byte> transforms)
         {
             var typeSymbol = TypeSymbol;
-            transforms.Add(NullableAnnotation.IsAnyNullable() && !typeSymbol.IsValueType);
+            byte flag;
+
+            if (NullableAnnotation == NullableAnnotation.Unknown || typeSymbol.IsValueType)
+            {
+                flag = (byte)NullableAnnotation.Unknown;
+            }
+            else if (NullableAnnotation.IsAnyNullable())
+            {
+                flag = (byte)NullableAnnotation.Nullable;
+            }
+            else
+            {
+                flag = (byte)NullableAnnotation.NotNullable;
+            }
+
+            transforms.Add(flag);
             typeSymbol.AddNullableTransforms(transforms);
         }
 
-        public bool ApplyNullableTransforms(ImmutableArray<bool> transforms, INonNullTypesContext nonNullTypesContext, ref int position, out TypeSymbolWithAnnotations result)
+        public bool ApplyNullableTransforms(byte defaultTransformFlag, ImmutableArray<byte> transforms, ref int position, out TypeSymbolWithAnnotations result)
         {
-            Debug.Assert(nonNullTypesContext != null);
-
             result = this;
 
-            bool isAnnotated;
+            byte transformFlag;
             if (transforms.IsDefault)
             {
-                // No explicit transforms. All reference types are unannotated.
-                isAnnotated = false;
+                transformFlag = defaultTransformFlag;
             }
             else if (position < transforms.Length)
             {
-                isAnnotated = transforms[position++];
+                transformFlag = transforms[position++];
             }
             else
             {
@@ -801,7 +813,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             TypeSymbol oldTypeSymbol = TypeSymbol;
             TypeSymbol newTypeSymbol;
 
-            if (!oldTypeSymbol.ApplyNullableTransforms(transforms, nonNullTypesContext, ref position, out newTypeSymbol))
+            if (!oldTypeSymbol.ApplyNullableTransforms(defaultTransformFlag, transforms, ref position, out newTypeSymbol))
             {
                 return false;
             }
@@ -811,17 +823,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 result = result.WithTypeAndModifiers(newTypeSymbol, result.CustomModifiers);
             }
 
-            if (isAnnotated)
+            switch ((NullableAnnotation)transformFlag)
             {
-                result = result.AsNullableReferenceType(fromDeclaration: true);
-            }
-            else if (nonNullTypesContext.NonNullTypes == true)
-            {
-                result = result.AsNotNullableReferenceType();
-            }
-            else if (result.NullableAnnotation != NullableAnnotation.Unknown && (!result.NullableAnnotation.IsAnyNullable() || !oldTypeSymbol.IsValueType))
-            {
-                result = CreateNonLazyType(newTypeSymbol, NullableAnnotation.Unknown, result.CustomModifiers);
+                case NullableAnnotation.Nullable:
+                    result = result.AsNullableReferenceType();
+                    break;
+
+                case NullableAnnotation.NotNullable:
+                    result = result.AsNotNullableReferenceType();
+                    break;
+
+                default:
+                    Debug.Assert((NullableAnnotation)transformFlag == NullableAnnotation.Unknown);
+                    if (result.NullableAnnotation != NullableAnnotation.Unknown && (!result.NullableAnnotation.IsAnyNullable() || !oldTypeSymbol.IsNullableType()))
+                    {
+                        result = CreateNonLazyType(newTypeSymbol, NullableAnnotation.Unknown, result.CustomModifiers);
+                    }
+                    break;
             }
 
             return true;
@@ -930,7 +948,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             internal abstract TypeSymbol GetResolvedType(TypeSymbol defaultType);
             internal abstract ImmutableArray<CustomModifier> CustomModifiers { get; }
 
-            internal abstract TypeSymbolWithAnnotations AsNullableReferenceType(TypeSymbolWithAnnotations type, bool fromDeclaration);
+            internal abstract TypeSymbolWithAnnotations AsNullableReferenceType(TypeSymbolWithAnnotations type);
             internal abstract TypeSymbolWithAnnotations AsNotNullableReferenceType(TypeSymbolWithAnnotations type);
 
             internal abstract TypeSymbolWithAnnotations WithModifiers(TypeSymbolWithAnnotations type, ImmutableArray<CustomModifier> customModifiers);
@@ -1007,9 +1025,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return CreateNonLazyType(typeSymbol, type.NullableAnnotation, customModifiers);
             }
 
-            internal override TypeSymbolWithAnnotations AsNullableReferenceType(TypeSymbolWithAnnotations type, bool fromDeclaration)
+            internal override TypeSymbolWithAnnotations AsNullableReferenceType(TypeSymbolWithAnnotations type)
             {
-                return CreateNonLazyType(type._defaultType, fromDeclaration ? NullableAnnotation.Nullable : NullableAnnotation.NullableBasedOnAnalysis, _customModifiers);
+                return CreateNonLazyType(type._defaultType, NullableAnnotation.Nullable, _customModifiers);
             }
 
             internal override TypeSymbolWithAnnotations AsNotNullableReferenceType(TypeSymbolWithAnnotations type)
@@ -1143,7 +1161,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return CreateNonLazyType(typeSymbol, type.NullableAnnotation, customModifiers);
             }
 
-            internal override TypeSymbolWithAnnotations AsNullableReferenceType(TypeSymbolWithAnnotations type, bool fromDeclaration)
+            internal override TypeSymbolWithAnnotations AsNullableReferenceType(TypeSymbolWithAnnotations type)
             {
                 return type;
             }

@@ -244,15 +244,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _factory.CompilationState.ModuleBuilderOpt?.EnsureIsUnmanagedAttributeExists();
             }
 
-            bool hasConstraintsWithNullableReferenceTypes = typeParameters.Any(
-               typeParameter => typeParameter.ReferenceTypeConstraintIsNullable == true ||
+            bool constraintsNeedNullableAttribute = typeParameters.Any(
+               typeParameter => (typeParameter.HasReferenceTypeConstraint && typeParameter.ReferenceTypeConstraintIsNullable != null) ||
                                 typeParameter.ConstraintTypesNoUseSiteDiagnostics.Any(
-                                    typeConstraint => typeConstraint.ContainsNullableReferenceTypes()));
+                                    typeConstraint => typeConstraint.NeedsNullableAttribute()));
 
-            bool hasReturnTypeWithNullableReferenceTypes = node.Symbol.ReturnType.ContainsNullableReferenceTypes();
-            bool hasParametersWithNullableReferenceTypes = node.Symbol.ParameterTypes.Any(parameter => parameter.ContainsNullableReferenceTypes());
+            bool returnTypeNeedsNullableAttribute = node.Symbol.ReturnType.NeedsNullableAttribute();
+            bool parametersNeedNullableAttribute = node.Symbol.ParameterTypes.Any(parameter => parameter.NeedsNullableAttribute());
 
-            if (hasConstraintsWithNullableReferenceTypes || hasReturnTypeWithNullableReferenceTypes || hasParametersWithNullableReferenceTypes)
+            if (constraintsNeedNullableAttribute || returnTypeNeedsNullableAttribute || parametersNeedNullableAttribute)
             {
                 _factory.CompilationState.ModuleBuilderOpt?.EnsureNullableAttributeExists();
             }
