@@ -63,11 +63,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
             mockServiceProvider.MockMonitorSelection = New MockShellMonitorSelection(solutionIsFullyLoaded)
             ServiceProvider = mockServiceProvider
 
-            Dim ruleSetFileProvider = New VisualStudioRuleSetManager(
-                New FileChangeWatcher(System.Threading.Tasks.Task.FromResult(DirectCast(ServiceProvider.GetService(GetType(SVsFileChangeEx)), IVsFileChangeEx))),
-                New TestForegroundNotificationService(),
-                AsynchronousOperationListenerProvider.NullListener)
-
             Dim documentTrackingService = New VisualStudioDocumentTrackingService(ServiceProvider)
         End Sub
 
