@@ -2471,19 +2471,7 @@ class C
         [Fact]
         public void TestRemove_KeepUnbalancedDirectives()
         {
-            TestRemove_KeepUnbalancedDirectives(false);
-        }
-
-        [Fact]
-        [WorkItem(22924, "https://github.com/dotnet/roslyn/issues/22924")]
-        public void TestRemove_KeepUnbalancedDirectives_UseOriginalEndOfLine()
-        {
-            TestRemove_KeepUnbalancedDirectives(true);
-        }
-
-        private void TestRemove_KeepUnbalancedDirectives(bool useOriginalEol)
-        {
-            var text = @"
+            var cu = SyntaxFactory.ParseCompilationUnit(@"
 class C
 {
 // before
@@ -2493,7 +2481,8 @@ void M()
 {
 } // after
 #endregion
-}";
+}");
+
             var expectedText = @"
 class C
 {
@@ -2501,23 +2490,13 @@ class C
 #region Fred
 #endregion
 }";
-            if (!useOriginalEol)
-            {
-                text = text.NormalizeLineEndings();
-                expectedText = expectedText.NormalizeLineEndings();
-            }
-            var cu = SyntaxFactory.ParseCompilationUnit(text);
+
             var m = cu.DescendantNodes().OfType<MethodDeclarationSyntax>().FirstOrDefault();
             Assert.NotNull(m);
 
-            var removeOptions = SyntaxRemoveOptions.KeepUnbalancedDirectives;
-            if (useOriginalEol)
-            {
-                removeOptions |= SyntaxRemoveOptions.UseOriginalEndOfLine;
-            }
-            var cu2 = cu.RemoveNode(m, removeOptions);
+            var cu2 = cu.RemoveNode(m, SyntaxRemoveOptions.KeepUnbalancedDirectives);
 
-            text = cu2.ToFullString();
+            var text = cu2.ToFullString();
 
             Assert.Equal(expectedText, text);
         }
@@ -2525,19 +2504,7 @@ class C
         [Fact]
         public void TestRemove_KeepDirectives()
         {
-            TestRemove_KeepDirectives(false);
-        }
-
-        [Fact]
-        [WorkItem(22924, "https://github.com/dotnet/roslyn/issues/22924")]
-        public void TestRemove_KeepDirectives_UseOriginalEndOfLine()
-        {
-            TestRemove_KeepDirectives(true);
-        }
-
-        private void TestRemove_KeepDirectives(bool useOriginalEol)
-        {
-            var text = @"
+            var cu = SyntaxFactory.ParseCompilationUnit(@"
 class C
 {
 // before
@@ -2549,7 +2516,8 @@ void M()
 #endif
 } // after
 #endregion
-}";
+}");
+
             var expectedText = @"
 class C
 {
@@ -2559,102 +2527,56 @@ class C
 #endif
 #endregion
 }";
-            if (!useOriginalEol)
-            {
-                text = text.NormalizeLineEndings();
-                expectedText = expectedText.NormalizeLineEndings();
-            }
-            var cu = SyntaxFactory.ParseCompilationUnit(text);
+
             var m = cu.DescendantNodes().OfType<MethodDeclarationSyntax>().FirstOrDefault();
             Assert.NotNull(m);
 
-            var removeOptions = SyntaxRemoveOptions.KeepDirectives;
-            if (useOriginalEol)
-            {
-                removeOptions |= SyntaxRemoveOptions.UseOriginalEndOfLine;
-            }
-            var cu2 = cu.RemoveNode(m, removeOptions);
+            var cu2 = cu.RemoveNode(m, SyntaxRemoveOptions.KeepDirectives);
 
-            text = cu2.ToFullString();
+            var text = cu2.ToFullString();
 
             Assert.Equal(expectedText, text);
         }
 
         [Fact]
+        [WorkItem(22924, "https://github.com/dotnet/roslyn/issues/22924")]
         public void TestRemove_KeepEndOfLine()
         {
-            TestRemove_KeepEndOfLine(false);
-        }
-
-        [Fact]
-        [WorkItem(22924, "https://github.com/dotnet/roslyn/issues/22924")]
-        public void TestRemove_KeepEndOfLine_UseOriginalEndOfLine()
-        {
-            TestRemove_KeepEndOfLine(true);
-        }
-
-        private void TestRemove_KeepEndOfLine(bool useOriginalEol)
-        {
-            var text = @"
+            var cu = SyntaxFactory.ParseCompilationUnit(@"
 class C
 {
 // before
 void M()
 {
 } // after
-}";
+}");
+
             var expectedText = @"
 class C
 {
 
 }";
-            if (!useOriginalEol)
-            {
-                text = text.NormalizeLineEndings();
-                expectedText = expectedText.NormalizeLineEndings();
-            }
-            var cu = SyntaxFactory.ParseCompilationUnit(text);
+
             var m = cu.DescendantNodes().OfType<MethodDeclarationSyntax>().FirstOrDefault();
             Assert.NotNull(m);
 
-            var removeOptions = SyntaxRemoveOptions.KeepEndOfLine;
-            if (useOriginalEol)
-            {
-                removeOptions |= SyntaxRemoveOptions.UseOriginalEndOfLine;
-            }
-            var cu2 = cu.RemoveNode(m, removeOptions);
+            var cu2 = cu.RemoveNode(m, SyntaxRemoveOptions.KeepEndOfLine);
 
-            text = cu2.ToFullString();
+            var text = cu2.ToFullString();
 
             Assert.Equal(expectedText, text);
         }
 
         [Fact]
-        public void TestRemoveWithoutEOL_KeepEndOfLine()
-        {
-            TestRemoveWithoutEOL_KeepEndOfLine(false);
-        }
-
-        [Fact]
         [WorkItem(22924, "https://github.com/dotnet/roslyn/issues/22924")]
-        public void TestRemoveWithoutEOL_KeepEndOfLine_UseOriginalEndOfLine()
-        {
-            TestRemoveWithoutEOL_KeepEndOfLine(true);
-        }
-
-        private void TestRemoveWithoutEOL_KeepEndOfLine(bool useOriginalEol)
+        public void TestRemoveWithoutEOL_KeepEndOfLine()
         {
             var cu = SyntaxFactory.ParseCompilationUnit(@"class A { } class B { } // test");
 
             var m = cu.DescendantNodes().OfType<TypeDeclarationSyntax>().LastOrDefault();
             Assert.NotNull(m);
 
-            var removeOptions = SyntaxRemoveOptions.KeepEndOfLine;
-            if (useOriginalEol)
-            {
-                removeOptions |= SyntaxRemoveOptions.UseOriginalEndOfLine;
-            }
-            var cu2 = cu.RemoveNode(m, removeOptions);
+            var cu2 = cu.RemoveNode(m, SyntaxRemoveOptions.KeepEndOfLine);
 
             var text = cu2.ToFullString();
 
@@ -2662,31 +2584,15 @@ class C
         }
 
         [Fact]
-        public void TestRemoveBadDirectiveWithoutEOL_KeepEndOfLine_KeepDirectives()
-        {
-            TestRemoveBadDirectiveWithoutEOL_KeepEndOfLine_KeepDirectives(false);
-        }
-
-        [Fact]
         [WorkItem(22924, "https://github.com/dotnet/roslyn/issues/22924")]
-        public void TestRemoveBadDirectiveWithoutEOL_KeepEndOfLine_KeepDirectives_UseOriginalEndOfLine()
-        {
-            TestRemoveBadDirectiveWithoutEOL_KeepEndOfLine_KeepDirectives(true);
-        }
-
-        private void TestRemoveBadDirectiveWithoutEOL_KeepEndOfLine_KeepDirectives(bool useOriginalEol)
+        public void TestRemoveBadDirectiveWithoutEOL_KeepEndOfLine_KeepDirectives()
         {
             var cu = SyntaxFactory.ParseCompilationUnit(@"class A { } class B { } #endregion");
 
             var m = cu.DescendantNodes().OfType<TypeDeclarationSyntax>().LastOrDefault();
             Assert.NotNull(m);
 
-            var removeOptions = SyntaxRemoveOptions.KeepEndOfLine | SyntaxRemoveOptions.KeepDirectives;
-            if (useOriginalEol)
-            {
-                removeOptions |= SyntaxRemoveOptions.UseOriginalEndOfLine;
-            }
-            var cu2 = cu.RemoveNode(m, removeOptions);
+            var cu2 = cu.RemoveNode(m, SyntaxRemoveOptions.KeepEndOfLine | SyntaxRemoveOptions.KeepDirectives);
 
             var text = cu2.ToFullString();
 
@@ -2694,19 +2600,8 @@ class C
         }
 
         [Fact]
-        public void TestRemoveDocument_KeepEndOfLine()
-        {
-            TestRemoveDocument_KeepEndOfLine(false);
-        }
-
-        [Fact]
         [WorkItem(22924, "https://github.com/dotnet/roslyn/issues/22924")]
-        public void TestRemoveDocument_KeepEndOfLine_UseOriginalEndOfLine()
-        {
-            TestRemoveDocument_KeepEndOfLine(true);
-        }
-
-        private void TestRemoveDocument_KeepEndOfLine(bool useOriginalEol)
+        public void TestRemoveDocument_KeepEndOfLine()
         {
             var cu = SyntaxFactory.ParseCompilationUnit(@"
 #region A
@@ -2714,32 +2609,16 @@ class A
 { } 
 #endregion");
 
-            var removeOptions = SyntaxRemoveOptions.KeepEndOfLine;
-            if (useOriginalEol)
-            {
-                removeOptions |= SyntaxRemoveOptions.UseOriginalEndOfLine;
-            }
-            var cu2 = cu.RemoveNode(cu, removeOptions);
+            var cu2 = cu.RemoveNode(cu, SyntaxRemoveOptions.KeepEndOfLine);
 
             Assert.Null(cu2);
         }
 
         [Fact]
+        [WorkItem(22924, "https://github.com/dotnet/roslyn/issues/22924")]
         public void TestRemoveFirstParameter_KeepEndOfLine()
         {
-            TestRemoveFirstParameter_KeepEndOfLine(false);
-        }
-
-        [Fact]
-        [WorkItem(22924, "https://github.com/dotnet/roslyn/issues/22924")]
-        public void TestRemoveFirstParameter_KeepEndOfLine_UseOriginalEndOfLine()
-        {
-            TestRemoveFirstParameter_KeepEndOfLine(true);
-        }
-
-        private void TestRemoveFirstParameter_KeepEndOfLine(bool useOriginalEol)
-        {
-            var text = @"
+            var cu = SyntaxFactory.ParseCompilationUnit(@"
 class C
 {
 void M(
@@ -2751,7 +2630,8 @@ int b
 // after b)
 {
 }
-}";
+}");
+
             var expectedText = @"
 class C
 {
@@ -2764,43 +2644,22 @@ int b
 {
 }
 }";
-            if (!useOriginalEol)
-            {
-                text = text.NormalizeLineEndings();
-                expectedText = expectedText.NormalizeLineEndings();
-            }
-            var cu = SyntaxFactory.ParseCompilationUnit(text);
+
             var m = cu.DescendantNodes().OfType<ParameterSyntax>().FirstOrDefault();
             Assert.NotNull(m);
 
-            var removeOptions = SyntaxRemoveOptions.KeepEndOfLine;
-            if (useOriginalEol)
-            {
-                removeOptions |= SyntaxRemoveOptions.UseOriginalEndOfLine;
-            }
-            var cu2 = cu.RemoveNode(m, removeOptions);
+            var cu2 = cu.RemoveNode(m, SyntaxRemoveOptions.KeepEndOfLine);
 
-            text = cu2.ToFullString();
+            var text = cu2.ToFullString();
 
             Assert.Equal(expectedText, text);
         }
 
         [Fact]
+        [WorkItem(22924, "https://github.com/dotnet/roslyn/issues/22924")]
         public void TestRemoveLastParameter_KeepEndOfLine()
         {
-            TestRemoveLastParameter_KeepEndOfLine(false);
-        }
-
-        [Fact]
-        [WorkItem(22924, "https://github.com/dotnet/roslyn/issues/22924")]
-        public void TestRemoveLastParameter_KeepEndOfLine_UseOriginalEndOfLine()
-        {
-            TestRemoveLastParameter_KeepEndOfLine(true);
-        }
-
-        private void TestRemoveLastParameter_KeepEndOfLine(bool useOriginalEol)
-        {
-            var text = @"
+            var cu = SyntaxFactory.ParseCompilationUnit(@"
 class C
 {
 void M(
@@ -2812,7 +2671,7 @@ int b
 // after b)
 {
 }
-}";
+}");
             var expectedText = @"
 class C
 {
@@ -2823,23 +2682,13 @@ int a
 {
 }
 }";
-            if (!useOriginalEol)
-            {
-                text = text.NormalizeLineEndings();
-                expectedText = expectedText.NormalizeLineEndings();
-            }
-            var cu = SyntaxFactory.ParseCompilationUnit(text);
+
             var m = cu.DescendantNodes().OfType<ParameterSyntax>().LastOrDefault();
             Assert.NotNull(m);
 
-            var removeOptions = SyntaxRemoveOptions.KeepEndOfLine;
-            if (useOriginalEol)
-            {
-                removeOptions |= SyntaxRemoveOptions.UseOriginalEndOfLine;
-            }
-            var cu2 = cu.RemoveNode(m, removeOptions);
+            var cu2 = cu.RemoveNode(m, SyntaxRemoveOptions.KeepEndOfLine);
 
-            text = cu2.ToFullString();
+            var text = cu2.ToFullString();
 
             Assert.Equal(expectedText, text);
         }

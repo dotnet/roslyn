@@ -46,12 +46,6 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Adds elastic marker trivia
         /// </summary>
-        AddElasticMarker = 0x20,
-
-        /// <summary>
-        /// Use the same end of line used in the node being removed, when adding one.
-        /// If no end of line was present, use default.
-        /// </summary>
-        UseOriginalEndOfLine = 0x40
+        AddElasticMarker = 0x20
     }
 }

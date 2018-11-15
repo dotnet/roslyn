@@ -107,11 +107,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
             private void AddEndOfLine(SyntaxTrivia eolTrivia)
             {
-                if ((_options & SyntaxRemoveOptions.UseOriginalEndOfLine) == 0)
-                {
-                    eolTrivia = SyntaxFactory.CarriageReturnLineFeed;
-                }
-
                 if (_residualTrivia.Count == 0 || !IsEndOfLine(_residualTrivia[_residualTrivia.Count - 1]))
                 {
                     _residualTrivia.Add(eolTrivia);
