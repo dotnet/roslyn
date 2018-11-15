@@ -27436,7 +27436,7 @@ class D
 {
     void M(C c)
     {
-        c.M() /*T:System.Collections.Generic.IEnumerable<string>!*/ ;
+        c.M() /*T:System.Collections.Generic.IEnumerable<string!>!*/ ;
         c.M2() /*T:System.Collections.Generic.IEnumerable<string?>!*/ ;
     }
 }
