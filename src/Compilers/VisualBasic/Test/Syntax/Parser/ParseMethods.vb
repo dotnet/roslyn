@@ -339,15 +339,17 @@ Public Class ParseMethods
 
     <Fact>
     Public Sub Bug862505()
-        ParseAndVerify(<![CDATA[
-            Class C1
-                Function f1(Optional ByVal c1 As New Object())
-                End Function
-            End Class
-        ]]>,
+        Dim code = "
+Class C1
+    Function f1(Optional ByVal c1 As New Object())
+    End Function
+End Class
+"
+        Dim  po=GetParseOptionsWithFeature(InternalSyntax.Feature.DefaultOptionalParameter)
+
+        ParseAndVerify(code, Po, expectedErrors:=
         <errors>
-            <error id="30201"/>
-            <error id="30180"/>
+            <error id=<%= __(ERRID.ERR_UnrecognizedTypeKeyword) %> />
         </errors>)
     End Sub
 

@@ -4710,24 +4710,23 @@ checkNullable:
             Dim equals As PunctuationSyntax = Nothing
             Dim value As ExpressionSyntax = Nothing
 
+            Dim Feature_DefaultOptionalParameter_Allowed =  CheckFeatureAvailability(me._scanner.Options.LanguageVersion, Feature.DefaultOptionalParameter)
             ' TODO - Move these errors (ERRID.ERR_DefaultValueForNonOptionalParamout, ERRID.ERR_ObsoleteOptionalWithoutValue) of the parser. 
             ' These are semantic errors. The grammar allows the syntax. 
             If TryGetTokenAndEatNewLine(SyntaxKind.EqualsToken, equals) Then
-
                 If Not (modifiers.Any AndAlso modifiers.Any(SyntaxKind.OptionalKeyword)) Then
                     equals = ReportSyntaxError(equals, ERRID.ERR_DefaultValueForNonOptionalParam)
                 End If
-
                 value = ParseExpressionCore()
 
             ElseIf modifiers.Any AndAlso modifiers.Any(SyntaxKind.OptionalKeyword) Then
-                equals = InternalSyntaxFactory.MissingPunctuation(SyntaxKind.EqualsToken)
-                value = ParseExpressionCore()
-
+                If Feature_DefaultOptionalParameter_Allowed = False then
+                    equals = ReportSyntaxError(InternalSyntaxFactory.MissingPunctuation(SyntaxKind.EqualsToken), ERRID.ERR_ObsoleteOptionalWithoutValue)
+                     value = ParseExpressionCore()
+                End If
             End If
 
             Dim initializer As EqualsValueSyntax = Nothing
-
             If value IsNot Nothing Then
 
                 If value.ContainsDiagnostics Then

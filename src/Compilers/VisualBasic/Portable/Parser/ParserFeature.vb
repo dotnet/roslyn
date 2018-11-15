@@ -88,7 +88,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     Feature.PrivateProtected
                     Return LanguageVersion.VisualBasic15_5
                 Case Feature.DefaultOptionalParameter ' PROTOTYPE
-                    Return LanguageVersion.VisualBasic15
+                    Return LanguageVersion.VisualBasic15_5
                 Case Else
                     Throw ExceptionUtilities.UnexpectedValue(feature)
             End Select

@@ -1435,16 +1435,20 @@ End Class
 
     <Fact()>
     Public Sub BC30200ERR_InvalidNewInType()
-        ParseAndVerify(<![CDATA[
-                       Class C1
-                            Function myfunc(Optional ByVal x As New test()) 
-                            End Function
-                        End Class
-                ]]>,
-            <errors>
-                <error id="30200"/>
-                <error id="30201"/>
-            </errors>)
+        Dim code = "
+Class C1
+    Function myfunc(Optional ByVal x As New test()) 
+    End Function
+End Class
+"
+        Dim  po=GetParseOptionsWithFeature(InternalSyntax.Feature.DefaultOptionalParameter)
+        ParseAndVerify(code, po,
+                       expectedErrors:= 
+                       <errors>
+                <error id=<%= __(ERRID.ERR_InvalidNewInType) %> />
+            </errors>
+                       )
+
     End Sub
 
     <Fact()>
@@ -2229,22 +2233,24 @@ End Module
 
     <Fact()>
     Public Sub BC30642ERR_MultipleOptionalParameterSpecifiers()
-        ParseAndVerify(<![CDATA[
-                Namespace NS1
-                    Module Module1
-                        Public Function calcSum(ByVal ParamArray optional args() As Double) As Double
-                            calcSum = 0
-                            If args.Length <= 0 Then Exit Function
-                            For i As Integer = 0 To UBound(args, 1)
-                                calcSum += args(i)
-                            Next i
-                        End Function
-                    End Module
-                End Namespace
-            ]]>,
+        Dim code = "
+Namespace NS1
+    Module Module1
+        Public Function calcSum(ByVal ParamArray optional args() As Double) As Double
+            calcSum = 0
+            If args.Length <= 0 Then Exit Function
+            For i As Integer = 0 To UBound(args, 1)
+                calcSum += args(i)
+            Next i
+        End Function
+    End Module
+End Namespace
+"
+        Dim  po=GetParseOptionsWithFeature(InternalSyntax.Feature.DefaultOptionalParameter)
+
+        ParseAndVerify(code, Po, expectedErrors:=
         <errors>
-            <error id="30642"/>
-            <error id="30201"/>
+            <error id=<%= __(ERRID.ERR_MultipleOptionalParameterSpecifiers) %> />
         </errors>)
     End Sub
 
@@ -2548,15 +2554,14 @@ End Module
 
     <Fact()>
     Public Sub BC30812ERR_ObsoleteOptionalWithoutValue()
-        Dim code = <![CDATA[
-                Class C1
-                    Function f1(Optional ByVal c1 )
-                    End Function
-                End Class
-            ]]>.Value
-        ParseAndVerify(code, <errors>
-                                 <error id="30201"/>
-                             </errors>)
+        Dim code = "
+Class C1
+    Function f1(Optional ByVal c1 As Integer )
+    End Function
+End Class
+"
+        Dim  po=GetParseOptionsWithFeature(InternalSyntax.Feature.DefaultOptionalParameter)
+        ParseAndVerify(code, po)
     End Sub
 
     <Fact()>

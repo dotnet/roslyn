@@ -10,6 +10,10 @@ Imports Xunit
 Public MustInherit Class BasicTestBase
     Inherits CommonTestBase
 
+    Friend Function __(ThisErrID As ErrID) As String
+        Return ThisErrID.ToString("D")
+    End Function 
+
     Public Function XCDataToString(Optional data As XCData = Nothing) As String
         Return data?.Value.Replace(vbLf, Environment.NewLine)
     End Function
@@ -910,5 +914,11 @@ Public MustInherit Class BasicTestBase
     End Function
 
 #End Region
+
+    Friend Function GetParseOptionsWithFeature(feature As InternalSyntax.Feature) As VisualBasicParseOptions
+        Dim FL= InternalSyntax.FeatureExtensions.GetLanguageVersion(feature) 
+        If VisualBasicParseOptions.Default.LanguageVersion >= FL Then Return VisualBasicParseOptions.Default
+        Return VisualBasicParseOptions.Default.WithLanguageVersion(fl)
+    End Function
 
 End Class
