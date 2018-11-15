@@ -217,7 +217,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         convertedExpression = operand;
                     }
                     else if (conversion.ConversionKind == ConversionKind.NullToPointer ||
-                        conversion.ConversionKind == ConversionKind.NoConversion && convertedExpression.Type?.IsErrorType() == true)
+                        (conversion.ConversionKind == ConversionKind.NoConversion && convertedExpression.Type?.IsErrorType() == true))
                     {
                         convertedExpression = operand;
                     }

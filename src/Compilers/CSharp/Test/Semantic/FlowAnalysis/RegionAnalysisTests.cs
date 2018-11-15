@@ -6312,7 +6312,7 @@ class C {
             Assert.Equal("this, x", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside));
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/30548")]
+        [Fact]
         [WorkItem(30548, "https://github.com/dotnet/roslyn/issues/30548")]
         public void SymbolInDataFlowInButNotInReadInside()
         {

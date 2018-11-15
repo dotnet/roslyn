@@ -2103,6 +2103,13 @@ done:
                 return (BoundStatement)boundNode;
             }
 
+            internal override BoundBlock BindEmbeddedBlock(BlockSyntax node, DiagnosticBag diagnostics)
+            {
+                BoundBlock block = (BoundBlock)TryGetBoundNodeFromMap(node) ?? base.BindEmbeddedBlock(node, diagnostics);
+                Debug.Assert(!block.WasCompilerGenerated);
+                return block;
+            }
+
             private BoundNode TryGetBoundNodeFromMap(CSharpSyntaxNode node)
             {
                 ImmutableArray<BoundNode> boundNodes = _semanticModel.GuardedGetBoundNodesFromMap(node);

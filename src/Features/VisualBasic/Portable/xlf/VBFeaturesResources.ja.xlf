@@ -17,6 +17,11 @@
         <target state="new">Add missing Imports</target>
         <note>{Locked="Import"} "Import" is a VB keyword and should not be localized.</note>
       </trans-unit>
+      <trans-unit id="Add_Shadows">
+        <source>Add 'Shadows'</source>
+        <target state="new">Add 'Shadows'</target>
+        <note>{Locked="Shadows"} "Shadows" is a VB keyword and should not be localized.</note>
+      </trans-unit>
       <trans-unit id="If_statement_can_be_simplified">
         <source>'If' statement can be simplified</source>
         <target state="translated">'if' ステートメントは簡素化できます</target>
@@ -56,6 +61,11 @@
         <source>Conflict(s) detected.</source>
         <target state="translated">競合が検出されました。</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Introduce_Using_statement">
+        <source>Introduce 'Using' statement</source>
+        <target state="new">Introduce 'Using' statement</target>
+        <note>{Locked="Using"} "Using" is a VB keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Move_the_0_statement_to_line_1">
         <source>Move the '{0}' statement to line {1}.</source>
@@ -1712,9 +1722,9 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_Overloads">
-        <source>Add Overloads</source>
-        <target state="translated">オーバーロードを追加します</target>
-        <note />
+        <source>Add 'Overloads'</source>
+        <target state="needs-review-translation">オーバーロードを追加します</target>
+        <note>{Locked="Overloads"} "Overloads" is a VB keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Add_a_metadata_reference_to_specified_assembly_and_all_its_dependencies_e_g_Sharpr_myLib_dll">
         <source>Add a metadata reference to specified assembly and all its dependencies, e.g. #r "myLib.dll".</source>

@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private ImmutableHashSet<LabelSymbol> _reachableLabels;
         private ImmutableArray<BoundDecisionDagNode> _topologicallySortedNodes;
 
-        private static ImmutableArray<BoundDecisionDagNode> Successors(BoundDecisionDagNode node)
+        internal static ImmutableArray<BoundDecisionDagNode> Successors(BoundDecisionDagNode node)
         {
             switch (node)
             {
