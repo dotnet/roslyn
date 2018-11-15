@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Meet two nullable annotations for computing the nullable annotation of a type parameter from upper bounds.
         /// </summary>
-        public static NullableAnnotation MeetForFixingUpperBounds<T>(this NullableAnnotation a, NullableAnnotation b, T type, Func<T, bool> isPossiblyNullableReferenceTypeTypeParameter)
+        public static NullableAnnotation MeetForFixingUpperBounds(this NullableAnnotation a, NullableAnnotation b)
         {
             if (a == b)
             {
@@ -528,7 +528,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             switch (variance)
             {
                 case VarianceKind.In:
-                    return a.MeetForFixingUpperBounds(b, type, _IsPossiblyNullableReferenceTypeTypeParameterDelegate);
+                    return a.MeetForFixingUpperBounds(b);
                 case VarianceKind.Out:
                     return a.JoinForFixingLowerBounds(b);
                 case VarianceKind.None:
@@ -538,7 +538,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private static Func<TypeSymbol, bool> _IsPossiblyNullableReferenceTypeTypeParameterDelegate = type => type.IsPossiblyNullableReferenceTypeTypeParameter();
+        private readonly static Func<TypeSymbol, bool> _IsPossiblyNullableReferenceTypeTypeParameterDelegate = type => type.IsPossiblyNullableReferenceTypeTypeParameter();
 
         public TypeSymbolWithAnnotations WithModifiers(ImmutableArray<CustomModifier> customModifiers) =>
             _extensions.WithModifiers(this, customModifiers);

@@ -4695,7 +4695,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private static Func<(int slot, NullableWalker self), bool> isPossiblyNullableReferenceTypeTypeParameterDelegate = args =>
+        private readonly static Func<(int slot, NullableWalker self), bool> isPossiblyNullableReferenceTypeTypeParameterDelegate = args =>
         {
             Symbol symbol = args.self.variableBySlot[args.slot].Symbol;
             return (object)symbol != null && VariableType(symbol).TypeSymbol?.IsPossiblyNullableReferenceTypeTypeParameter() == true;
