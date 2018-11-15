@@ -35,11 +35,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 SyntaxKind.EachKeyword,
                 SyntaxKind.ElseKeyword,
                 SyntaxKind.ElseIfKeyword,
+                SyntaxKind.EndKeyword,
                 SyntaxKind.ExitKeyword,
                 SyntaxKind.FinallyKeyword,
                 SyntaxKind.ForKeyword,
                 SyntaxKind.GoToKeyword,
                 SyntaxKind.IfKeyword,
+                SyntaxKind.InKeyword,
                 SyntaxKind.LoopKeyword,
                 SyntaxKind.NextKeyword,
                 SyntaxKind.ResumeKeyword,
@@ -53,6 +55,60 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 SyntaxKind.EndIfKeyword,
                 SyntaxKind.GosubKeyword,
                 SyntaxKind.YieldKeyword
+                    Return True
+            End Select
+
+            Return False
+        End Function
+
+        ''' <summary>
+        ''' Determine if the kind represents a control statement
+        ''' </summary>
+        Public Shared Function IsControlStatement(kind As SyntaxKind) As Boolean
+            Select Case kind
+                Case _
+                SyntaxKind.CallStatement,
+                SyntaxKind.CaseElseStatement,
+                SyntaxKind.CaseStatement,
+                SyntaxKind.CatchStatement,
+                SyntaxKind.ContinueDoStatement,
+                SyntaxKind.ContinueForStatement,
+                SyntaxKind.ContinueWhileStatement,
+                SyntaxKind.DoUntilStatement,
+                SyntaxKind.DoWhileStatement,
+                SyntaxKind.ElseIfStatement,
+                SyntaxKind.ElseStatement,
+                SyntaxKind.EndIfStatement,
+                SyntaxKind.EndSelectStatement,
+                SyntaxKind.EndTryStatement,
+                SyntaxKind.EndUsingStatement,
+                SyntaxKind.EndWhileStatement,
+                SyntaxKind.ExitDoStatement,
+                SyntaxKind.ExitForStatement,
+                SyntaxKind.ExitSelectStatement,
+                SyntaxKind.ExitTryStatement,
+                SyntaxKind.ExitWhileStatement,
+                SyntaxKind.FinallyStatement,
+                SyntaxKind.ForEachStatement,
+                SyntaxKind.ForStatement,
+                SyntaxKind.GoToStatement,
+                SyntaxKind.IfStatement,
+                SyntaxKind.LoopUntilStatement,
+                SyntaxKind.LoopWhileStatement,
+                SyntaxKind.NextStatement,
+                SyntaxKind.ResumeLabelStatement,
+                SyntaxKind.ResumeNextStatement,
+                SyntaxKind.ReturnStatement,
+                SyntaxKind.SelectStatement,
+                SyntaxKind.SimpleDoStatement,
+                SyntaxKind.SimpleLoopStatement,
+                SyntaxKind.SingleLineIfStatement,
+                SyntaxKind.ThrowStatement,
+                SyntaxKind.TryStatement,
+                SyntaxKind.UntilClause,
+                SyntaxKind.WhileClause,
+                SyntaxKind.WhileStatement,
+                SyntaxKind.YieldStatement
                     Return True
             End Select
 

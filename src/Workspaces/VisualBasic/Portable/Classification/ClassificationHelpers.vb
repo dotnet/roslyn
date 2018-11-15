@@ -16,7 +16,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
         ''' <returns>The classification type for the token</returns>
         ''' <remarks></remarks>
         Public Function GetClassification(token As SyntaxToken) As String
-            If SyntaxFacts.IsControlKeyword(token.Kind) Then
+
+            If IsControlKeyword(token) Then
                 Return ClassificationTypeNames.ControlKeyword
             ElseIf SyntaxFacts.IsKeywordKind(token.Kind) Then
                 Return ClassificationTypeNames.Keyword
@@ -50,6 +51,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
             Else
                 Return Contract.FailWithReturn(Of String)("Unhandled token kind: " & token.Kind().ToString())
             End If
+        End Function
+
+        Private Function IsControlKeyword(token As SyntaxToken) As Boolean
+            If (token.Parent Is Nothing) Then
+                Return False
+            End If
+
+            ' For Exit Statments classify everything as a control keyword
+            If token.Parent.IsKind(
+                SyntaxKind.ExitFunctionStatement,
+                SyntaxKind.ExitOperatorStatement,
+                SyntaxKind.ExitPropertyStatement,
+                SyntaxKind.ExitSubStatement) Then
+                Return True
+            End If
+
+            ' Control keyword are used in other contexts so check that it is
+            ' being used in a supported context.
+            Return SyntaxFacts.IsControlKeyword(token.Kind) AndAlso
+                SyntaxFacts.IsControlStatement(token.Parent.Kind)
         End Function
 
         Private Function ClassifyPunctuation(token As SyntaxToken) As String

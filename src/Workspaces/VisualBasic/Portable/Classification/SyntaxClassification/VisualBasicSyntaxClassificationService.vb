@@ -18,9 +18,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
         Private Shared ReadOnly s_defaultSyntaxClassifiers As ImmutableArray(Of ISyntaxClassifier) =
             ImmutableArray.Create(Of ISyntaxClassifier)(
                 New NameSyntaxClassifier(),
-                New ForEachStatementSyntaxClassifier(),
-                New EndBlockStatementSyntaxClassifier(),
-                New ExitStatementSyntaxClassifier(),
                 New ImportAliasClauseSyntaxClassifier(),
                 New IdentifierNameSyntaxClassifier(),
                 New EmbeddedLanguagesClassifier())

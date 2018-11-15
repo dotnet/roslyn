@@ -204,7 +204,7 @@ class C
                 Operators.Equals,
                 Number("10"),
                 Punctuation.Semicolon,
-                Keyword("return"),
+                ControlKeyword("return"),
                 Local("dynamic"),
                 Operators.Dot,
                 Method("ToString"),
@@ -406,7 +406,7 @@ class C
                 Operators.Equals,
                 String(@"""a"""),
                 Punctuation.Semicolon,
-                Keyword("return"),
+                ControlKeyword("return"),
                 Local("dynamic"),
                 Operators.Dot,
                 Property("Length"),
@@ -598,7 +598,7 @@ partial void F(dynamic d)
                 Punctuation.OpenParen,
                 Punctuation.CloseParen,
                 Punctuation.OpenCurly,
-                Keyword("return"),
+                ControlKeyword("return"),
                 Keyword("sizeof"),
                 Punctuation.OpenParen,
                 Keyword("dynamic"),
@@ -639,11 +639,11 @@ partial void F(dynamic d)
         public async Task DynamicInForeach()
         {
             await TestInMethodAsync(@"foreach (dynamic dynamic in dynamic",
-                Keyword("foreach"),
+                ControlKeyword("foreach"),
                 Punctuation.OpenParen,
                 Keyword("dynamic"),
                 Local("dynamic"),
-                Keyword("in"),
+                ControlKeyword("in"),
                 Identifier("dynamic"));
         }
 
@@ -739,7 +739,7 @@ partial void F(dynamic d)
                 Operators.Equals,
                 Number("0"),
                 Punctuation.Semicolon,
-                Keyword("goto"),
+                ControlKeyword("goto"),
                 Identifier("dynamic"),
                 Punctuation.Semicolon);
         }
@@ -906,7 +906,7 @@ partial void F(dynamic d)
         public async Task DynamicAfterIs()
         {
             await TestInMethodAsync(@"if (a is dynamic)",
-                Keyword("if"),
+                ControlKeyword("if"),
                 Punctuation.OpenParen,
                 Identifier("a"),
                 Keyword("is"),

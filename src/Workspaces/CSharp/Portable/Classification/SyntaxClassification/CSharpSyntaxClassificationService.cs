@@ -19,7 +19,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
             ImmutableArray.Create<ISyntaxClassifier>(
                 new EmbeddedLanguagesClassifier(),
                 new NameSyntaxClassifier(),
-                new ForEachStatementSyntaxClassifier(),
                 new SyntaxTokenClassifier(),
                 new UsingDirectiveSyntaxClassifier());
 
