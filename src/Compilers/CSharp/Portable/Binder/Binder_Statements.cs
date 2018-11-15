@@ -641,6 +641,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                 diagnostics.HasAnyErrors(),
                                                 node,
                                                 node.Declaration,
+                                                hasAwait: false,
                                                 out iDisposableConversion,
                                                 out disposeMethod);
             return new BoundUsingLocalDeclarations(node, disposeMethod, iDisposableConversion, declarations);
@@ -711,7 +712,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     var declarationLocal = new BoundLocal(declaration.Syntax, declaration.LocalSymbol, null, declType);
 
-                    disposeMethod = TryFindDisposePatternMethod(declarationLocal, declarationSyntax, diagnostics);
+                    disposeMethod = TryFindDisposePatternMethod(declarationLocal, declarationSyntax, hasAwait, diagnostics);
                     if (disposeMethod is null)
                     {
                         if (!declType.IsErrorType())
@@ -732,21 +733,21 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="syntaxNode">The syntax node to perform lookup on</param>
         /// <param name="diagnostics">Populated with invocation errors, and warnings of near misses</param>
         /// <returns>The <see cref="MethodSymbol"/> of the Dispose method if one is found, otherwise null.</returns>
-        internal MethodSymbol TryFindDisposePatternMethod(BoundExpression expr, SyntaxNode syntaxNode, DiagnosticBag diagnostics)
+        internal MethodSymbol TryFindDisposePatternMethod(BoundExpression expr, SyntaxNode syntaxNode, bool hasAwait, DiagnosticBag diagnostics)
         {
             Debug.Assert(!(expr is null));
-            if(expr.Type is null)
+            if (expr.Type is null)
             {
                 return null;
             }
 
             var result = FindPatternMethodRelaxed(expr,
-                                                  WellKnownMemberNames.DisposeMethodName,
+                                                  hasAwait ? WellKnownMemberNames.DisposeAsyncMethodName : WellKnownMemberNames.DisposeMethodName,
                                                   syntaxNode,
                                                   diagnostics,
                                                   out var disposeMethod);
-            
-            if (disposeMethod?.ReturnsVoid == false || result == PatternLookupResult.NotAMethod)
+
+            if ((!hasAwait && disposeMethod?.ReturnsVoid == false) || (hasAwait && disposeMethod?.ReturnType.TypeSymbol.IsNonGenericTaskType(Compilation) == false) || result == PatternLookupResult.NotAMethod)
             {
                 ReportPatternWarning(diagnostics, expr.Type, disposeMethod, syntaxNode, MessageID.IDS_Disposable);
                 disposeMethod = null;

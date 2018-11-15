@@ -4,6 +4,7 @@ using System.Collections;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -1450,6 +1451,280 @@ class C2
 }
 ";
             CreateCompilation(source).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void UsingPatternAsyncTest()
+        {
+            var source = @"
+namespace System
+{
+    public interface IAsyncDisposable
+    {
+        System.Threading.Tasks.ValueTask DisposeAsync();
+    }
+}
+class C1
+{
+    public C1() { }
+    public System.Threading.Tasks.ValueTask DisposeAsync() { System.Console.WriteLine(""Dispose async""); return new System.Threading.Tasks.ValueTask(System.Threading.Tasks.Task.CompletedTask); }
+}
+
+class C2
+{
+    static async System.Threading.Tasks.Task Main()
+    {
+        await using (C1 c = new C1())
+        {
+        }
+    }
+}";
+            var compilation = CreateCompilationWithTasksExtensions(source, options: TestOptions.DebugExe).VerifyDiagnostics();
+
+            CompileAndVerify(compilation, expectedOutput: "Dispose async");
+        }
+
+        [Fact]
+        public void UsingPatternAsyncWithTaskLikeReturnTest()
+        {
+            var source = @"
+using System;
+using System.Runtime.CompilerServices;
+namespace System
+{
+    public interface IAsyncDisposable
+    {
+        System.Threading.Tasks.ValueTask DisposeAsync();
+    }
+}
+class C1
+{
+    public C1() { }
+    public System.Threading.Tasks.Task DisposeAsync() { return System.Threading.Tasks.Task.CompletedTask; }
+}
+
+class C2
+{
+    public C2() { }
+    public MyTask DisposeAsync() { return new MyTask(); }
+}
+
+[AsyncMethodBuilder(typeof(MyTaskMethodBuilder))]
+struct MyTask
+{
+    internal Awaiter GetAwaiter() => new Awaiter();
+    internal class Awaiter : INotifyCompletion
+    {
+        public void OnCompleted(Action a) { }
+        internal bool IsCompleted => true;
+        internal void GetResult() { }
+    }
+}
+
+struct MyTaskMethodBuilder
+{
+    private MyTask _task;
+    public static MyTaskMethodBuilder Create() => new MyTaskMethodBuilder(new MyTask());
+    internal MyTaskMethodBuilder(MyTask task)
+    {
+        _task = task;
+    }
+    public void SetStateMachine(IAsyncStateMachine stateMachine) { }
+    public void Start<TStateMachine>(ref TStateMachine stateMachine) where TStateMachine : IAsyncStateMachine
+    {
+        stateMachine.MoveNext();
+    }
+    public void SetException(Exception e) { }
+    public void SetResult() { }
+    public void AwaitOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : INotifyCompletion where TStateMachine : IAsyncStateMachine { }
+    public void AwaitUnsafeOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : ICriticalNotifyCompletion where TStateMachine : IAsyncStateMachine { }
+    public MyTask Task => _task;
+}
+
+
+
+class C3
+{
+    static async System.Threading.Tasks.Task Main()
+    {
+        await using (C1 c = new C1())
+        {
+        }
+
+        await using (C2 c = new C2())
+        {
+        }
+    }
+}";
+            CreateCompilationWithTasksExtensions(source).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void UsingPatternAsyncNoAwaitTest()
+        {
+            var source = @"
+namespace System
+{
+    public interface IAsyncDisposable
+    {
+        System.Threading.Tasks.ValueTask DisposeAsync();
+    }
+}
+class C1
+{
+    public C1() { }
+    public System.Threading.Tasks.ValueTask DisposeAsync() { return new System.Threading.Tasks.ValueTask(System.Threading.Tasks.Task.CompletedTask); }
+}
+
+class C2
+{
+    static async System.Threading.Tasks.Task Main()
+    {
+        using (C1 c = new C1())
+        {
+        }
+    }
+}";
+            CreateCompilationWithTasksExtensions(source).VerifyDiagnostics(
+                // (17,46): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                //     static async System.Threading.Tasks.Task Main()
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "Main").WithLocation(17, 46),
+                // (19,16): error CS1674: 'C1': type used in a using statement must be implicitly convertible to 'System.IDisposable' or have a public void-returning Dispose() instance method.
+                //         using (C1 c = new C1())
+                Diagnostic(ErrorCode.ERR_NoConvToIDisp, "C1 c = new C1()").WithArguments("C1").WithLocation(19, 16)
+                );
+        }
+
+        [Fact]
+        public void UsingPatternAsyncAndSyncTest()
+        {
+            var source = @"
+namespace System
+{
+    public interface IAsyncDisposable
+    {
+        System.Threading.Tasks.ValueTask DisposeAsync();
+    }
+}
+class C1
+{
+    public C1() { }
+    public System.Threading.Tasks.ValueTask DisposeAsync() { System.Console.Write(""Dispose async"");return new System.Threading.Tasks.ValueTask(System.Threading.Tasks.Task.CompletedTask); }
+    public void Dispose() { System.Console.Write(""Dispose; ""); }
+}
+
+class C2
+{
+    static async System.Threading.Tasks.Task Main()
+    {
+        using (C1 c = new C1())
+        {
+        }
+        await using (C1 c = new C1())
+        {
+        }
+    }
+}";
+            var compilation = CreateCompilationWithTasksExtensions(source, options: TestOptions.DebugExe).VerifyDiagnostics();
+
+            CompileAndVerify(compilation, expectedOutput: "Dispose; Dispose async");
+        }
+
+        [Fact]
+        public void UsingPatternAsyncExtensionMethodTest()
+        {
+            var source = @"
+namespace System
+{
+    public interface IAsyncDisposable
+    {
+        System.Threading.Tasks.ValueTask DisposeAsync();
+    }
+}
+class C1
+{
+}
+
+static class C2 
+{
+    public static System.Threading.Tasks.ValueTask DisposeAsync(this C1 c1) { System.Console.WriteLine(""Dispose async""); return new System.Threading.Tasks.ValueTask(System.Threading.Tasks.Task.CompletedTask); }
+}
+
+class C3
+{
+    static async System.Threading.Tasks.Task Main()
+    {
+        await using (C1 c = new C1())
+        {
+        }
+    }
+}";
+            var compilation = CreateCompilationWithTasksExtensions(source, options: TestOptions.DebugExe).VerifyDiagnostics();
+
+            CompileAndVerify(compilation, expectedOutput: "Dispose async");
+        }
+
+        [Fact]
+        public void UsingPatternAsyncWrongReturnTypeTest()
+        {
+            var source = @"
+namespace System
+{
+    public interface IAsyncDisposable
+    {
+        System.Threading.Tasks.ValueTask DisposeAsync();
+    }
+}
+class C1
+{
+    public bool DisposeAsync() { return false; }
+}
+
+class C2
+{
+    static async System.Threading.Tasks.Task Main()
+    {
+        await using (C1 c = new C1())
+        {
+        }
+    }
+}";
+            CreateCompilationWithTasksExtensions(source).VerifyDiagnostics(
+                // (18,22): warning CS0280: 'C1' does not implement the 'disposable' pattern. 'C1.DisposeAsync()' has the wrong signature.
+                //         await using (C1 c = new C1())
+                Diagnostic(ErrorCode.WRN_PatternBadSignature, "C1 c = new C1()").WithArguments("C1", "disposable", "C1.DisposeAsync()").WithLocation(18, 22),
+                // (18,22): error CS8410: 'C1': type used in an async using statement must be implicitly convertible to 'System.IAsyncDisposable'
+                //         await using (C1 c = new C1())
+                Diagnostic(ErrorCode.ERR_NoConvToIAsyncDisp, "C1 c = new C1()").WithArguments("C1").WithLocation(18, 22)
+                );
+        }
+
+        [Fact]
+        public void UsingPatternAsyncDefaultParametersTest()
+        {
+            var source = @"
+namespace System
+{
+    public interface IAsyncDisposable
+    {
+        System.Threading.Tasks.ValueTask DisposeAsync();
+    }
+}
+class C1
+{
+    public System.Threading.Tasks.ValueTask DisposeAsync(int x = 4) {  return new System.Threading.Tasks.ValueTask(System.Threading.Tasks.Task.CompletedTask); }
+}
+
+class C2
+{
+    static async System.Threading.Tasks.Task Main()
+    {
+        await using (C1 c = new C1())
+        {
+        }
+    }
+}";
+            CreateCompilationWithTasksExtensions(source).VerifyDiagnostics();
         }
 
         [Fact]
