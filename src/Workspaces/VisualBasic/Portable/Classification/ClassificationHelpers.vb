@@ -118,7 +118,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
             ElseIf TypeOf parent Is EventStatementSyntax AndAlso DirectCast(parent, EventStatementSyntax).Identifier = identifier Then
                 Return DirectCast(parent, EventStatementSyntax).GetModifiers().Any(SyntaxKind.SharedKeyword)
             ElseIf TypeOf parent Is EnumMemberDeclarationSyntax AndAlso DirectCast(parent, EnumMemberDeclarationSyntax).Identifier = identifier Then
-                Return True ' Enum members are always static
+                Return False ' TODO: Since Enum members are always static is it useful to classify them as static?
             ElseIf TypeOf parent Is ModifiedIdentifierSyntax AndAlso DirectCast(parent, ModifiedIdentifierSyntax).Identifier = identifier Then
                 If TypeOf parent?.Parent?.Parent Is FieldDeclarationSyntax Then
                     Dim localDeclaration = DirectCast(parent.Parent.Parent, FieldDeclarationSyntax)

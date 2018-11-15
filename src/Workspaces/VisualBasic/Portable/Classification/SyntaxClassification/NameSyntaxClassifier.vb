@@ -61,8 +61,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification.Classifiers
             End If
 
             If TryClassifySymbol(node, symbol, semanticModel, cancellationToken, classifiedSpan) Then
-                TryClassifyStaticSymbol(symbol, classifiedSpan.TextSpan, result)
                 result.Add(classifiedSpan)
+
+                ' Additionally classify static symbols
+                TryClassifyStaticSymbol(symbol, classifiedSpan.TextSpan, result)
             ElseIf TryClassifyMyNamespace(node, symbol, semanticModel, cancellationToken, classifiedSpan) Then
                 result.Add(classifiedSpan)
             End If
@@ -169,9 +171,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification.Classifiers
             symbol As ISymbol,
             span As Text.TextSpan,
             result As ArrayBuilder(Of ClassifiedSpan))
-            If (symbol?.IsStatic = True _
-                AndAlso Not symbol.IsKind(SymbolKind.Namespace)) Then ' TODO: Since Namespace are always static Is it useful to classify them as static?
-                ' AndAlso (!symbol.IsKind(SymbolKind.Field) OrElse symbol.ContainingType?.IsEnumType() == false) _ ' TODO: Since Enum members are always Static Is it useful To classify them As Static? 
+
+            If symbol Is Nothing Then
+                Return
+            End If
+
+            Dim isEnumMember = symbol.IsKind(SymbolKind.Field) AndAlso symbol.ContainingType?.IsEnumType() = True
+            Dim isNamespace = symbol.IsKind(SymbolKind.Namespace)
+
+            If symbol.IsStatic AndAlso
+                Not isEnumMember AndAlso ' TODO: Since Enum members are always Static Is it useful To classify them As Static? 
+                Not isNamespace Then ' TODO: Since Namespace are always static Is it useful to classify them as static?
                 result.Add(New ClassifiedSpan(span, ClassificationTypeNames.StaticSymbol))
             End If
         End Sub

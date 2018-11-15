@@ -52,6 +52,7 @@ End Module"
 
             Await TestAsync(code,
                 [Class]("Console"),
+                [Static]("WriteLine"),
                 Method("WriteLine"))
         End Function
 
@@ -576,7 +577,8 @@ Regex.Anchor("^"))
 Dim x As Integer = Number"
 
             Await TestInClassAsync(code,
-                Constant("Number"))
+                Constant("Number"),
+                [Static]("Number"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
@@ -606,7 +608,8 @@ x$ = ""19"""
 Dim y$ = x$"
 
             Await TestInClassAsync(code,
-                Constant("x$"))
+                Constant("x$"),
+                [Static]("x$"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
@@ -650,6 +653,7 @@ End Class"
                 ExtensionMethod("Square"),
                 [Module]("M"),
                 Method("Square"),
+                [Static]("Square"),
                 Local("x"))
         End Function
 

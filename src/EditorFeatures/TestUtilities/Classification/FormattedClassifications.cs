@@ -71,6 +71,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
             => New(text, ClassificationTypeNames.EventName);
 
         [DebuggerStepThrough]
+        public static FormattedClassification Static(string text)
+            => New(text, ClassificationTypeNames.StaticSymbol);
+
+        [DebuggerStepThrough]
         public static FormattedClassification String(string text)
             => New(text, ClassificationTypeNames.StringLiteral);
 

@@ -185,7 +185,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
             }
             else if (token.Parent is EnumMemberDeclarationSyntax enumMemberDeclaration && enumMemberDeclaration.Identifier == token)
             {
-                return true;  // TODO: Since Enum members are always static is it useful to classify them as static?
+                return false;  // TODO: Since Enum members are always static is it useful to classify them as static?
             }
             else if (token.Parent is VariableDeclaratorSyntax variableDeclarator && variableDeclarator.Identifier == token)
             {

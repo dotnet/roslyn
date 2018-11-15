@@ -63,7 +63,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
             await TestAsync(
 @"using M = System.Math;",
                 Class("M"),
-                Class("Math"));
+                Class("Math"),
+                Static("Math"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
@@ -717,7 +718,8 @@ class Derived : Base
 }",
                 Class("T"),
                 Class("T"),
-                Field("T"));
+                Field("T"),
+                Static("T"));
         }
 
         /// <summary>
@@ -763,7 +765,8 @@ class Derived : Base
                 Class("T"),
                 Class("T"),
                 Class("T"),
-                Field("field"));
+                Field("field"),
+                Static("field"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
@@ -994,7 +997,8 @@ class Derived : Base
                 Class("T"),
                 Class("H"),
                 Class("T"),
-                Field("f"));
+                Field("f"),
+                Static("f"));
         }
 
         /// <summary>
@@ -1249,6 +1253,7 @@ class C
             delegate (object sender, System.AssemblyLoadEventArgs args) {};",
                 Class("AppDomain"),
                 Property("CurrentDomain"),
+                Static("CurrentDomain"),
                 Event("AssemblyLoad"),
                 Class("AssemblyLoadEventArgs"));
         }
@@ -1287,6 +1292,7 @@ class C
             await TestAsync(code,
                 ParseOptions(Options.Regular),
                 Class("C"),
+                Static("M"),
                 Method("M"));
         }
 
@@ -1299,7 +1305,8 @@ class C
                 ParseOptions(Options.Script),
                 Class("Script"),
                 Class("C"),
-                Method("M"));
+                Method("M"),
+                Static("M"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
@@ -1319,6 +1326,7 @@ namespace N
     }
 }",
                 Class("C"),
+                Static("M"),
                 Method("M"));
         }
 
@@ -1339,6 +1347,7 @@ namespace N
     }
 }",
                 Class("C"),
+                Static("M"),
                 Method("M"));
         }
 
@@ -1359,6 +1368,7 @@ namespace N
     }
 }",
                 Class("C"),
+                Static("M"),
                 Method("M"));
         }
 
@@ -1379,6 +1389,7 @@ namespace N
     }
 }",
                 Class("C"),
+                Static("M"),
                 Method("M"));
         }
 
@@ -1399,6 +1410,7 @@ namespace N
     }
 }",
                 Class("C"),
+                Static("M"),
                 Method("M"));
         }
 
@@ -1526,14 +1538,17 @@ namespace MyNameSpace
 }",
                 Class("MyClass2"),
                 Method("method"),
+                Static("method"),
                 Class("MyClass2"),
                 Event("myEvent"),
                 Enum("MyEnum"),
                 Struct("MyStruct"),
                 Class("MyClass2"),
                 Property("MyProp"),
+                Static("MyProp"),
                 Class("MyClass2"),
                 Field("myField"),
+                Static("myField"),
                 Class("MyClass2"),
                 Delegate("MyDelegate"),
                 Delegate("MyDelegate"));
@@ -1583,9 +1598,13 @@ class Outer
     }
 }",
                 Class("Console"),
+                Static("Console"),
                 Method("WriteLine"),
+                Static("WriteLine"),
                 Class("Console"),
-                Method("WriteLine"));
+                Static("Console"),
+                Method("WriteLine"),
+                Static("WriteLine"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
@@ -1914,6 +1933,7 @@ public class X : B<X>
                 Class("var"),
                 Keyword("var"),
                 Method("GetVarT"),
+                Static("GetVarT"),
                 Keyword("var"),
                 Class("var"));
         }
@@ -2332,7 +2352,13 @@ namespace ConsoleApplication1
             Debug.Assert(args?.Length < 2);
         }
     }
-}", Class("Debug"), Method("Assert"), Parameter("args"), Property("Length"));
+}", 
+    Class("Debug"),
+    Static("Debug"),
+    Method("Assert"),
+    Static("Assert"),
+    Parameter("args"),
+    Property("Length"));
         }
 
         [WorkItem(18956, "https://github.com/dotnet/roslyn/issues/18956")]
