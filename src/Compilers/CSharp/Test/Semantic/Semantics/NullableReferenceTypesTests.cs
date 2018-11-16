@@ -9099,6 +9099,54 @@ class C
 
         [Fact]
         [WorkItem(29916, "https://github.com/dotnet/roslyn/issues/29916")]
+        public void PassingParameters_UnknownMethod_UnknownReceiver()
+        {
+            CSharpCompilation c = CreateCompilation(new[] { @"
+class C
+{
+    static int F(object x)
+    {
+        bad.Missing(F(null)); // 1
+        bad.Missing(F(x = null)); // 2
+        x.ToString(); // 3
+
+        bad.Missing(F(x = this)); // 4
+        x.ToString();
+        return 0;
+    }
+}
+" }, options: WithNonNullTypesTrue());
+
+            c.VerifyDiagnostics(
+                // (6,9): error CS0103: The name 'bad' does not exist in the current context
+                //         bad.Missing(F(null)); // 1
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "bad").WithArguments("bad").WithLocation(6, 9),
+                // (6,23): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //         bad.Missing(F(null)); // 1
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(6, 23),
+                // (7,9): error CS0103: The name 'bad' does not exist in the current context
+                //         bad.Missing(F(x = null)); // 2
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "bad").WithArguments("bad").WithLocation(7, 9),
+                // (7,23): warning CS8604: Possible null reference argument for parameter 'x' in 'int C.F(object x)'.
+                //         bad.Missing(F(x = null)); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x = null").WithArguments("x", "int C.F(object x)").WithLocation(7, 23),
+                // (7,27): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         bad.Missing(F(x = null)); // 2
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(7, 27),
+                // (8,9): warning CS8602: Possible dereference of a null reference.
+                //         x.ToString(); // 3
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(8, 9),
+                // (10,9): error CS0103: The name 'bad' does not exist in the current context
+                //         bad.Missing(F(x = this)); // 4
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "bad").WithArguments("bad").WithLocation(10, 9),
+                // (10,27): error CS0026: Keyword 'this' is not valid in a static property, static method, or static field initializer
+                //         bad.Missing(F(x = this)); // 4
+                Diagnostic(ErrorCode.ERR_ThisInStaticMeth, "this").WithLocation(10, 27)
+                );
+        }
+
+        [Fact]
+        [WorkItem(29916, "https://github.com/dotnet/roslyn/issues/29916")]
         public void PassingParameters_UnknownMethod_AffectingState()
         {
             CSharpCompilation c = CreateCompilation(new[] { @"
