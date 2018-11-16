@@ -5,6 +5,7 @@ using Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Analyzers.MetaAnalyzers;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.VisualBasic.Analyzers.MetaAnalyzers;
 using Test.Utilities;
 using Xunit;
@@ -207,27 +208,20 @@ End Class
 
         private static DiagnosticResult GetCSharpExpectedDiagnostic(int line, int column, string typeArgumentName, string registerMethodName)
         {
-            return GetExpectedDiagnostic(LanguageNames.CSharp, line, column, typeArgumentName, registerMethodName);
+            return GetExpectedDiagnostic(line, column, typeArgumentName, registerMethodName);
         }
 
         private static DiagnosticResult GetBasicExpectedDiagnostic(int line, int column, string typeArgumentName, string registerMethodName)
         {
-            return GetExpectedDiagnostic(LanguageNames.VisualBasic, line, column, typeArgumentName, registerMethodName);
+            return GetExpectedDiagnostic(line, column, typeArgumentName, registerMethodName);
         }
 
-        private static DiagnosticResult GetExpectedDiagnostic(string language, int line, int column, string typeArgumentName, string registerMethodName)
+        private static DiagnosticResult GetExpectedDiagnostic(int line, int column, string typeArgumentName, string registerMethodName)
         {
-            string fileName = language == LanguageNames.CSharp ? "Test0.cs" : "Test0.vb";
-            return new DiagnosticResult
-            {
-                Id = DiagnosticIds.InvalidSyntaxKindTypeArgumentRuleId,
-                Message = string.Format(CodeAnalysisDiagnosticsResources.InvalidSyntaxKindTypeArgumentMessage, typeArgumentName, DiagnosticAnalyzerCorrectnessAnalyzer.TLanguageKindEnumName, registerMethodName),
-                Severity = DiagnosticHelpers.DefaultDiagnosticSeverity,
-                Locations = new[]
-                {
-                    new DiagnosticResultLocation(fileName, line, column)
-                }
-            };
+            return new DiagnosticResult(DiagnosticIds.InvalidSyntaxKindTypeArgumentRuleId, DiagnosticHelpers.DefaultDiagnosticSeverity)
+                .WithLocation(line, column)
+                .WithMessageFormat(CodeAnalysisDiagnosticsResources.InvalidSyntaxKindTypeArgumentMessage)
+                .WithArguments(typeArgumentName, DiagnosticAnalyzerCorrectnessAnalyzer.TLanguageKindEnumName, registerMethodName);
         }
     }
 }
