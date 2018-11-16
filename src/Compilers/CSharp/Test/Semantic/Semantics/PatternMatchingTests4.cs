@@ -2960,5 +2960,75 @@ namespace System
             CompileAndVerify(compilation, expectedOutput: @"3
 MatchFailureException()");
         }
+
+        [Fact]
+        public void RecordOrderOfEvaluation()
+        {
+            var source = @"using System;
+class Program
+{
+    static void Main()
+    {
+        var data = new A(new A(1, new A(2, 3)), new A(4, new A(5, 6)));
+        Console.WriteLine(data switch
+            {
+            A(A(1, A(2, 1)), _) => 3,
+            A(A(1, 2), _) { X: 1 } => 2,
+            A(1, _) => 1,
+            A(A(1, A(2, 3) { X: 1 }), A(4, A(5, 6))) => 5,
+            A(_, A(4, A(5, 1))) => 4,
+            A(A(1, A(2, 3)), A(4, A(5, 6) { Y: 5 })) => 6,
+            A(A(1, A(2, 3) { Y: 5 }), A(4, A(5, 6))) => 7,
+            A(A(1, A(2, 3)), A(4, A(5, 6))) => 8,
+            _ => 9
+            });
+    }
+}
+class A
+{
+    public A(object x, object y)
+    {
+        (_x, _y) = (x, y);
+    }
+    public void Deconstruct(out object x, out object y)
+    {
+        Console.WriteLine($""{this}.Deconstruct"");
+        (x, y) = (_x, _y);
+    }
+    private object _x;
+    public object X
+    {
+        get
+        {
+            Console.WriteLine($""{this}.X"");
+            return _x;
+        }
+    }
+    private object _y;
+    public object Y
+    {
+        get
+        {
+            Console.WriteLine($""{this}.Y"");
+            return _y;
+        }
+    }
+    public override string ToString() => $""A({_x}, {_y})"";
+}
+";
+            var compilation = CreatePatternCompilation(source);
+            compilation.VerifyDiagnostics(
+                );
+            CompileAndVerify(compilation, expectedOutput:
+@"A(A(1, A(2, 3)), A(4, A(5, 6))).Deconstruct
+A(1, A(2, 3)).Deconstruct
+A(2, 3).Deconstruct
+A(2, 3).X
+A(4, A(5, 6)).Deconstruct
+A(5, 6).Deconstruct
+A(5, 6).Y
+A(2, 3).Y
+8");
+        }
     }
 }
