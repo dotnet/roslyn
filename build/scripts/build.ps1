@@ -102,6 +102,7 @@ function Process-Arguments() {
     if ($cibuild -and -not $official -and $anyVsi) {
         # Avoid spending time in analyzers when requested, and also in the slowest integration test builds
         $script:skipAnalyzers = $true
+        $script:bootstrap = $false
     }
 
     if ($testDeterminism -and ($anyUnit -or $anyVsi)) {
@@ -394,7 +395,7 @@ function Test-XUnit() {
 
     if ($cibuild) {
         # Use a 75 minute timeout on CI
-        $args += " -xml -timeout:75"
+        $args += " -xml -timeout:45"
     }
 
     if ($procdump) {
