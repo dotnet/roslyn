@@ -4,6 +4,7 @@ namespace Microsoft.CodeAnalysis
 {
     internal static class WellKnownDiagnosticTagsExtensions
     {
-        public static string[] DataflowAndTelemetry = new string[] { "Dataflow", WellKnownDiagnosticTags.Telemetry };
+        public const string Dataflow = nameof(Dataflow);
+        public static string[] DataflowAndTelemetry = new string[] { Dataflow, WellKnownDiagnosticTags.Telemetry };
     }
 }

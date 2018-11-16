@@ -49,7 +49,7 @@ namespace Test.Utilities
                 DiagnosticResult expected = expectedResults[i].WithDefaultPath(defaultPath);
 
                 int actualIndex = actualList.FindIndex(
-                    (Diagnostic a) => IsMatch(a, expected, isAssertEnabled: false));
+                    (Diagnostic a) => IsMatch(a, isAssertEnabled: false));
                 if (actualIndex >= 0)
                 {
                     actualList.RemoveAt(actualIndex);
@@ -57,11 +57,11 @@ namespace Test.Utilities
                 else
                 {
                     // Eh...just blow up on the first actual that's left?
-                    IsMatch(actualList[0], expected, isAssertEnabled: true);
+                    IsMatch(actualList[0], isAssertEnabled: true);
                 }
 
                 // So we can use the same checks to look for an actual that matches an expected, or assert on actual.
-                bool IsMatch(Diagnostic actual, DiagnosticResult expected, bool isAssertEnabled)
+                bool IsMatch(Diagnostic actual, bool isAssertEnabled)
                 {
                     if (!expected.HasLocation)
                     {
@@ -89,13 +89,13 @@ namespace Test.Utilities
 
                         Location[] additionalLocations = actual.AdditionalLocations.ToArray();
 
-                        if (additionalLocations.Length != expected.Locations.Length - 1)
+                        if (additionalLocations.Length != expected.Spans.Length - 1)
                         {
                             if (isAssertEnabled)
                             {
                                 AssertFalse(
                                     string.Format("Expected {0} additional locations but got {1} for Diagnostic:\r\n    {2}\r\n",
-                                        expected.Locations.Length - 1, additionalLocations.Length,
+                                        expected.Spans.Length - 1, additionalLocations.Length,
                                         FormatDiagnostics(analyzer, actual)),
                                     printActualDiagnosticsOnFailure,
                                     expectedDiagnosticsAssertionTemplate,
@@ -241,7 +241,7 @@ namespace Test.Utilities
                     {
                         Assert.True(false,
                             string.Format("Expected diagnostic to be on line \"{0}\" was actually on line \"{1}\"\r\n\r\nDiagnostic:\r\n    {2}\r\n",
-                                expected.Line, actualLinePosition.Line + 1, FormatDiagnostics(analyzer, diagnostic)));
+                                expected.Span, actualLinePosition.Line + 1, FormatDiagnostics(analyzer, diagnostic)));
                     }
                     else
                     {
