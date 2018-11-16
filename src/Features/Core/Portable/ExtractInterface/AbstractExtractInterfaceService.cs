@@ -233,7 +233,6 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
                 out var typeNodeSyntaxAnnotation,
                 cancellationToken);
 
-            // Add the interface before the type to extract from
             var document = solution.GetDocument(documentId);
             var originalRoot = document.GetSyntaxRootSynchronously(cancellationToken);
             var typeDeclaration = originalRoot.GetAnnotatedNodes(typeNodeSyntaxAnnotation).Single();

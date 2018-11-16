@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
             NewFile
         }
 
-        public static readonly ExtractInterfaceOptionsResult Cancelled = new CanceledExtractInterfaceOptionsResult();
+        public static readonly ExtractInterfaceOptionsResult Cancelled = new ExtractInterfaceOptionsResult(isCancelled: true);
 
         public bool IsCancelled { get; }
         public IEnumerable<ISymbol> IncludedMembers { get; }
@@ -32,12 +32,6 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
         private ExtractInterfaceOptionsResult(bool isCancelled)
         {
             IsCancelled = isCancelled;
-        }
-
-        private class CanceledExtractInterfaceOptionsResult : ExtractInterfaceOptionsResult
-        {
-            public CanceledExtractInterfaceOptionsResult() : base(isCancelled: true)
-            { }
         }
     }
 }
