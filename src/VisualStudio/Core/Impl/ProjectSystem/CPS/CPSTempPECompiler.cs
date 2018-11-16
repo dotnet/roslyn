@@ -7,6 +7,7 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.VisualStudio.LanguageServices.ProjectSystem;
 using Roslyn.Utilities;
 
@@ -15,9 +16,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
     [Export(typeof(ITempPECompiler))]
     internal class CPSTempPECompiler : ITempPECompiler
     {
-        public async Task<bool> CompileAsync(IWorkspaceProjectContext context, string outputFileName, string[] filesToInclude, CancellationToken cancellationToken)
+        private readonly VisualStudioWorkspace _workspace;
+
+        [ImportingConstructor]
+        public CPSTempPECompiler(VisualStudioWorkspace workspace)
         {
-            if (filesToInclude == null || filesToInclude.Length == 0)
+            _workspace = workspace;
+        }
+
+        public async Task<bool> CompileAsync(IWorkspaceProjectContext context, string outputFileName, HashSet<string> filesToInclude, CancellationToken cancellationToken)
+        {
+            if (filesToInclude == null || filesToInclude.Count == 0)
             {
                 throw new ArgumentException(nameof(filesToInclude), "Must specify some files to compile.");
             }
@@ -26,16 +35,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
                 throw new ArgumentException(nameof(outputFileName), "Must specify an output file name.");
             }
 
-            var project = ((CPSProject)context).GetProjectSnapshot();
-
-            // Allow for faster checking because projects could be very large
-            var files = new HashSet<string>(filesToInclude, StringComparer.OrdinalIgnoreCase);
+            var project = _workspace.CurrentSolution.GetProject(context.Id);
 
             // Remove all files except the ones we care about
             var documents = project.Documents;
             foreach (var document in documents)
             {
-                if (!files.Contains(document.FilePath))
+                if (!filesToInclude.Contains(document.FilePath))
                 {
                     project = project.RemoveDocument(document.Id);
                 }
@@ -43,13 +49,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
                 cancellationToken.ThrowIfCancellationRequested();
             }
 
-            // We want to produce a DLL regardless of project type
-            project = project.WithCompilationOptions(project.CompilationOptions.WithOutputKind(OutputKind.DynamicallyLinkedLibrary));
+            var options = project.LanguageServices.GetRequiredService<ICompilationFactoryService>().GetDefaultCompilationOptions()
+                    // copied from TempPECompilerServices.cs used by legacy, for parity
+                    .WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default)
+                    .WithSourceReferenceResolver(SourceFileResolver.Default)
+                    .WithXmlReferenceResolver(XmlFileResolver.Default)
+                    // we always want to produce a DLL
+                    .WithOutputKind(OutputKind.DynamicallyLinkedLibrary);
+
+            project = project.WithCompilationOptions(options);
 
             var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
 
             cancellationToken.ThrowIfCancellationRequested();
-
 
             var outputPath = Path.GetDirectoryName(outputFileName);
 
