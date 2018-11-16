@@ -213,13 +213,15 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         private static readonly CodeStyleOption<UnusedParametersPreference> s_preferAllMethodsUnusedParametersPreference =
             new CodeStyleOption<UnusedParametersPreference>(UnusedParametersPreference.AllMethods, NotificationOption.Suggestion);
 
+        // TODO: https://github.com/dotnet/roslyn/issues/31225 tracks adding CodeQualityOption<T> and CodeQualityOptions
+        // and moving this option to CodeQualityOptions.
         internal static readonly PerLanguageOption<CodeStyleOption<UnusedParametersPreference>> UnusedParameters = CreateOption(
             CodeStyleOptionGroups.Parameter,
             nameof(UnusedParameters),
             defaultValue: s_preferAllMethodsUnusedParametersPreference,
             storageLocations: new OptionStorageLocation[]{
                 new EditorConfigStorageLocation<CodeStyleOption<UnusedParametersPreference>>(
-                        "dotnet_style_unused_parameters",
+                        "dotnet_code_quality_unused_parameters",
                         ParseUnusedParametersPreference,
                         o => GetUnusedParametersPreferenceEditorConfigString(o, s_preferAllMethodsUnusedParametersPreference.Value)),
                 new RoamingProfileStorageLocation($"TextEditor.%LANGUAGE%.Specific.{nameof(UnusedParameters)}Preference") });

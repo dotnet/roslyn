@@ -75,7 +75,7 @@ dotnet_style_prefer_is_null_check_over_reference_equality_method = true:suggesti
 dotnet_style_readonly_field = true:suggestion
 
 # Parameter preferences
-dotnet_style_unused_parameters = all:suggestion
+dotnet_code_quality_unused_parameters = all:suggestion
 
 #### VB Coding Conventions ####
 
@@ -157,7 +157,7 @@ dotnet_style_prefer_is_null_check_over_reference_equality_method = true:suggesti
 dotnet_style_readonly_field = true:suggestion
 
 # Parameter preferences
-dotnet_style_unused_parameters = all:suggestion
+dotnet_code_quality_unused_parameters = all:suggestion
 
 #### VB Coding Conventions ####
 
