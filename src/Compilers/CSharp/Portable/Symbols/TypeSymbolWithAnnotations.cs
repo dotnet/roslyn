@@ -506,7 +506,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (format != null)
             {
                 if (format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier) &&
-                    !IsNullableType() &&
+                    !IsNullableType() && !IsValueType &&
                     (NullableAnnotation == NullableAnnotation.Nullable ||
                      (NullableAnnotation == NullableAnnotation.NullableBasedOnAnalysis && !TypeSymbol.IsUnconstrainedTypeParameter())))
                 {
@@ -833,13 +833,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     result = result.AsNotNullableReferenceType();
                     break;
 
-                default:
+                case NullableAnnotation.Unknown:
                     Debug.Assert((NullableAnnotation)transformFlag == NullableAnnotation.Unknown);
                     if (result.NullableAnnotation != NullableAnnotation.Unknown && (!result.NullableAnnotation.IsAnyNullable() || !oldTypeSymbol.IsNullableType()))
                     {
                         result = CreateNonLazyType(newTypeSymbol, NullableAnnotation.Unknown, result.CustomModifiers);
                     }
                     break;
+
+                default:
+                    result = this;
+                    return false;
             }
 
             return true;

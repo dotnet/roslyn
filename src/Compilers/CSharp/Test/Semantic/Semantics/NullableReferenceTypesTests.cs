@@ -45624,8 +45624,15 @@ class B
 }
 ";
             var comp1 = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
-            comp1.VerifyDiagnostics(
-            );
+            CompileAndVerify(comp1, sourceSymbolValidator: symbolValidator, symbolValidator: symbolValidator);
+            void symbolValidator(ModuleSymbol m)
+            {
+                var m1 = (MethodSymbol)m.GlobalNamespace.GetMember("B.M1");
+                Assert.Equal("void B.M1<TM1>(TM1 x) where TM1 : class", m1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+                TypeParameterSymbol tm1 = m1.TypeParameters[0];
+                Assert.Null(tm1.ReferenceTypeConstraintIsNullable);
+                Assert.Empty(tm1.GetAttributes());
+            }
         }
 
         [Fact]
@@ -55290,6 +55297,429 @@ class Program
                 // (14,9): error CS0176: Member 'C<object>.F()' cannot be accessed with an instance reference; qualify it with a type name instead
                 //         c2.F().ToString();
                 Diagnostic(ErrorCode.ERR_ObjectProhibited, "c2.F").WithArguments("C<object>.F()").WithLocation(14, 9));
+        }
+
+        [Fact]
+        public void AnnotationsInMetadata_01()
+        {
+            var source =
+@"
+using System.Collections.Generic;
+
+class B
+{
+    public int F01;
+    public int? F02;
+    public string F03;
+    public string? F04;
+    public KeyValuePair<int, long> F05;
+    public KeyValuePair<string, object> F06;
+    public KeyValuePair<string?, object> F07;
+    public KeyValuePair<string, object?> F08;
+    public KeyValuePair<string?, object?> F09;
+    public KeyValuePair<int, object> F10;
+    public KeyValuePair<int, object?> F11;
+    public KeyValuePair<object, int> F12;
+    public KeyValuePair<object?, int> F13;
+    public Dictionary<int, long> F14;
+    public Dictionary<int, long>? F15;
+    public Dictionary<string, object> F16;
+    public Dictionary<string, object>? F17;
+    public Dictionary<string?, object> F18;
+    public Dictionary<string?, object>? F19;
+    public Dictionary<string, object?> F20;
+    public Dictionary<string, object?>? F21;
+    public Dictionary<string?, object?> F22;
+    public Dictionary<string?, object?>? F23;
+    public Dictionary<int, object> F24;
+    public Dictionary<int, object>? F25;
+    public Dictionary<int, object?> F26;
+    public Dictionary<int, object?>? F27;
+    public Dictionary<object, int> F28;
+    public Dictionary<object, int>? F29;
+    public Dictionary<object?, int> F30;
+    public Dictionary<object?, int>? F31;
+}
+";
+            var comp1 = CreateCompilation(new[] { source });
+            CompileAndVerify(comp1, symbolValidator: 
+            (ModuleSymbol m) =>
+            {
+                (string type, string attribute)[] baseline = new[]
+                {
+                    ("System.Int32", null),
+                    ("System.Int32?", null),
+                    ("System.String", null),
+                    ("System.String?", "System.Runtime.CompilerServices.NullableAttribute(2)"),
+                    ("System.Collections.Generic.KeyValuePair<System.Int32, System.Int64>", null),
+                    ("System.Collections.Generic.KeyValuePair<System.String, System.Object>", null),
+                    ("System.Collections.Generic.KeyValuePair<System.String?, System.Object>", "System.Runtime.CompilerServices.NullableAttribute({0, 2, 0})"),
+                    ("System.Collections.Generic.KeyValuePair<System.String, System.Object?>", "System.Runtime.CompilerServices.NullableAttribute({0, 0, 2})"),
+                    ("System.Collections.Generic.KeyValuePair<System.String?, System.Object?>", "System.Runtime.CompilerServices.NullableAttribute({0, 2, 2})"),
+                    ("System.Collections.Generic.KeyValuePair<System.Int32, System.Object>", null),
+                    ("System.Collections.Generic.KeyValuePair<System.Int32, System.Object?>", "System.Runtime.CompilerServices.NullableAttribute({0, 0, 2})"),
+                    ("System.Collections.Generic.KeyValuePair<System.Object, System.Int32>", null),
+                    ("System.Collections.Generic.KeyValuePair<System.Object?, System.Int32>", "System.Runtime.CompilerServices.NullableAttribute({0, 2, 0})"),
+                    ("System.Collections.Generic.Dictionary<System.Int32, System.Int64>", null),
+                    ("System.Collections.Generic.Dictionary<System.Int32, System.Int64>?", "System.Runtime.CompilerServices.NullableAttribute({2, 0, 0})"),
+                    ("System.Collections.Generic.Dictionary<System.String, System.Object>", null),
+                    ("System.Collections.Generic.Dictionary<System.String, System.Object>?", "System.Runtime.CompilerServices.NullableAttribute({2, 0, 0})"),
+                    ("System.Collections.Generic.Dictionary<System.String?, System.Object>", "System.Runtime.CompilerServices.NullableAttribute({0, 2, 0})"),
+                    ("System.Collections.Generic.Dictionary<System.String?, System.Object>?", "System.Runtime.CompilerServices.NullableAttribute({2, 2, 0})"),
+                    ("System.Collections.Generic.Dictionary<System.String, System.Object?>", "System.Runtime.CompilerServices.NullableAttribute({0, 0, 2})"),
+                    ("System.Collections.Generic.Dictionary<System.String, System.Object?>?", "System.Runtime.CompilerServices.NullableAttribute({2, 0, 2})"),
+                    ("System.Collections.Generic.Dictionary<System.String?, System.Object?>", "System.Runtime.CompilerServices.NullableAttribute({0, 2, 2})"),
+                    ("System.Collections.Generic.Dictionary<System.String?, System.Object?>?", "System.Runtime.CompilerServices.NullableAttribute(2)"),
+                    ("System.Collections.Generic.Dictionary<System.Int32, System.Object>", null),
+                    ("System.Collections.Generic.Dictionary<System.Int32, System.Object>?", "System.Runtime.CompilerServices.NullableAttribute({2, 0, 0})"),
+                    ("System.Collections.Generic.Dictionary<System.Int32, System.Object?>", "System.Runtime.CompilerServices.NullableAttribute({0, 0, 2})"),
+                    ("System.Collections.Generic.Dictionary<System.Int32, System.Object?>?", "System.Runtime.CompilerServices.NullableAttribute({2, 0, 2})"),
+                    ("System.Collections.Generic.Dictionary<System.Object, System.Int32>", null),
+                    ("System.Collections.Generic.Dictionary<System.Object, System.Int32>?", "System.Runtime.CompilerServices.NullableAttribute({2, 0, 0})"),
+                    ("System.Collections.Generic.Dictionary<System.Object?, System.Int32>", "System.Runtime.CompilerServices.NullableAttribute({0, 2, 0})"),
+                    ("System.Collections.Generic.Dictionary<System.Object?, System.Int32>?", "System.Runtime.CompilerServices.NullableAttribute({2, 2, 0})")
+                };
+
+                Assert.Equal(31, baseline.Length);
+                AnnotationsInMetadataFieldSymbolValidator(m, baseline);
+            });
+
+            var comp2 = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+            CompileAndVerify(comp2, symbolValidator:
+            (ModuleSymbol m) =>
+            {
+                (string type, string attribute)[] baseline = new[]
+                {
+                    ("System.Int32", null),
+                    ("System.Int32?", null),
+                    ("System.String!", "System.Runtime.CompilerServices.NullableAttribute(1)"),
+                    ("System.String?", "System.Runtime.CompilerServices.NullableAttribute(2)"),
+                    ("System.Collections.Generic.KeyValuePair<System.Int32, System.Int64>", null),
+                    ("System.Collections.Generic.KeyValuePair<System.String!, System.Object!>", "System.Runtime.CompilerServices.NullableAttribute({0, 1, 1})"),
+                    ("System.Collections.Generic.KeyValuePair<System.String?, System.Object!>", "System.Runtime.CompilerServices.NullableAttribute({0, 2, 1})"),
+                    ("System.Collections.Generic.KeyValuePair<System.String!, System.Object?>", "System.Runtime.CompilerServices.NullableAttribute({0, 1, 2})"),
+                    ("System.Collections.Generic.KeyValuePair<System.String?, System.Object?>", "System.Runtime.CompilerServices.NullableAttribute({0, 2, 2})"),
+                    ("System.Collections.Generic.KeyValuePair<System.Int32, System.Object!>", "System.Runtime.CompilerServices.NullableAttribute({0, 0, 1})"),
+                    ("System.Collections.Generic.KeyValuePair<System.Int32, System.Object?>", "System.Runtime.CompilerServices.NullableAttribute({0, 0, 2})"),
+                    ("System.Collections.Generic.KeyValuePair<System.Object!, System.Int32>", "System.Runtime.CompilerServices.NullableAttribute({0, 1, 0})"),
+                    ("System.Collections.Generic.KeyValuePair<System.Object?, System.Int32>", "System.Runtime.CompilerServices.NullableAttribute({0, 2, 0})"),
+                    ("System.Collections.Generic.Dictionary<System.Int32, System.Int64>!", "System.Runtime.CompilerServices.NullableAttribute({1, 0, 0})"),
+                    ("System.Collections.Generic.Dictionary<System.Int32, System.Int64>?", "System.Runtime.CompilerServices.NullableAttribute({2, 0, 0})"),
+                    ("System.Collections.Generic.Dictionary<System.String!, System.Object!>!", "System.Runtime.CompilerServices.NullableAttribute(1)"),
+                    ("System.Collections.Generic.Dictionary<System.String!, System.Object!>?", "System.Runtime.CompilerServices.NullableAttribute({2, 1, 1})"),
+                    ("System.Collections.Generic.Dictionary<System.String?, System.Object!>!", "System.Runtime.CompilerServices.NullableAttribute({1, 2, 1})"),
+                    ("System.Collections.Generic.Dictionary<System.String?, System.Object!>?", "System.Runtime.CompilerServices.NullableAttribute({2, 2, 1})"),
+                    ("System.Collections.Generic.Dictionary<System.String!, System.Object?>!", "System.Runtime.CompilerServices.NullableAttribute({1, 1, 2})"),
+                    ("System.Collections.Generic.Dictionary<System.String!, System.Object?>?", "System.Runtime.CompilerServices.NullableAttribute({2, 1, 2})"),
+                    ("System.Collections.Generic.Dictionary<System.String?, System.Object?>!", "System.Runtime.CompilerServices.NullableAttribute({1, 2, 2})"),
+                    ("System.Collections.Generic.Dictionary<System.String?, System.Object?>?", "System.Runtime.CompilerServices.NullableAttribute(2)"),
+                    ("System.Collections.Generic.Dictionary<System.Int32, System.Object!>!", "System.Runtime.CompilerServices.NullableAttribute({1, 0, 1})"),
+                    ("System.Collections.Generic.Dictionary<System.Int32, System.Object!>?", "System.Runtime.CompilerServices.NullableAttribute({2, 0, 1})"),
+                    ("System.Collections.Generic.Dictionary<System.Int32, System.Object?>!", "System.Runtime.CompilerServices.NullableAttribute({1, 0, 2})"),
+                    ("System.Collections.Generic.Dictionary<System.Int32, System.Object?>?", "System.Runtime.CompilerServices.NullableAttribute({2, 0, 2})"),
+                    ("System.Collections.Generic.Dictionary<System.Object!, System.Int32>!", "System.Runtime.CompilerServices.NullableAttribute({1, 1, 0})"),
+                    ("System.Collections.Generic.Dictionary<System.Object!, System.Int32>?", "System.Runtime.CompilerServices.NullableAttribute({2, 1, 0})"),
+                    ("System.Collections.Generic.Dictionary<System.Object?, System.Int32>!", "System.Runtime.CompilerServices.NullableAttribute({1, 2, 0})"),
+                    ("System.Collections.Generic.Dictionary<System.Object?, System.Int32>?", "System.Runtime.CompilerServices.NullableAttribute({2, 2, 0})")
+                };
+
+                Assert.Equal(31, baseline.Length);
+                AnnotationsInMetadataFieldSymbolValidator(m, baseline);
+            });
+        }
+
+        private static void AnnotationsInMetadataFieldSymbolValidator(ModuleSymbol m, (string type, string attribute)[] baseline)
+        {
+            var b = m.GlobalNamespace.GetMember<NamedTypeSymbol>("B");
+
+            for (int i = 0; i < baseline.Length; i++)
+            {
+                var name = "F" + (i + 1).ToString("00");
+                var f = b.GetMember<FieldSymbol>(name);
+                Assert.Equal(baseline[i].type, f.Type.ToTestDisplayString(true));
+
+                if (baseline[i].attribute == null)
+                {
+                    Assert.Empty(f.GetAttributes());
+                }
+                else
+                {
+                    Assert.Equal(baseline[i].attribute, f.GetAttributes().Single().ToString());
+                }
+            }
+        }
+
+        [Fact]
+        public void AnnotationsInMetadata_02()
+        {
+            var ilSource = @"
+// =============== CLASS MEMBERS DECLARATION ===================
+
+.class private auto ansi beforefieldinit B`12<class T01,class T02,class T03,class T04,
+                                              class T05,class T06,class T07,class T08,
+                                              class T09,class T10,class T11,class T12>
+       extends [mscorlib]System.Object
+{
+  .param type T01 
+  .custom instance void System.Runtime.CompilerServices.NullableAttribute::.ctor(uint8) = ( 01 00 00 00 00 ) 
+  .param type T02 
+  .custom instance void System.Runtime.CompilerServices.NullableAttribute::.ctor(uint8) = ( 01 00 01 00 00 ) 
+  .param type T03 
+  .custom instance void System.Runtime.CompilerServices.NullableAttribute::.ctor(uint8) = ( 01 00 02 00 00 ) 
+  .param type T04 
+  .custom instance void System.Runtime.CompilerServices.NullableAttribute::.ctor(uint8) = ( 01 00 03 00 00 ) 
+  .param type T05 
+  .custom instance void System.Runtime.CompilerServices.NullableAttribute::.ctor(uint8) = ( 01 00 04 00 00 ) 
+  .param type T06 
+  .custom instance void System.Runtime.CompilerServices.NullableAttribute::.ctor(uint8) = ( 01 00 05 00 00 ) 
+  .param type T07 
+  .custom instance void System.Runtime.CompilerServices.NullableAttribute::.ctor(uint8[]) = ( 01 00 01 00 00 00 00 00 00 ) 
+  .param type T08 
+  .custom instance void System.Runtime.CompilerServices.NullableAttribute::.ctor(uint8[]) = ( 01 00 01 00 00 00 01 00 00 ) 
+  .param type T09 
+  .custom instance void System.Runtime.CompilerServices.NullableAttribute::.ctor(uint8[]) = ( 01 00 01 00 00 00 02 00 00 ) 
+  .param type T10 
+  .custom instance void System.Runtime.CompilerServices.NullableAttribute::.ctor(uint8[]) = ( 01 00 02 00 00 00 01 01 00 00 ) 
+  .param type T11 
+  .custom instance void System.Runtime.CompilerServices.NullableAttribute::.ctor(uint8[]) = ( 01 00 00 00 00 00 00 00 ) 
+  .param type T12 
+  .custom instance void System.Runtime.CompilerServices.NullableAttribute::.ctor(uint8[]) = ( 01 00 FF FF FF FF 00 00 ) 
+  .field public int32 F01
+  .custom instance void System.Runtime.CompilerServices.NullableAttribute::.ctor(uint8) = ( 01 00 00 00 00 ) 
+  .field public int32 F02
+  .custom instance void System.Runtime.CompilerServices.NullableAttribute::.ctor(uint8) = ( 01 00 01 00 00 ) 
+  .field public int32 F03
+  .custom instance void System.Runtime.CompilerServices.NullableAttribute::.ctor(uint8) = ( 01 00 02 00 00 ) 
+  .field public int32 F04
+  .custom instance void System.Runtime.CompilerServices.NullableAttribute::.ctor(uint8) = ( 01 00 03 00 00 ) 
+  .field public int32 F05
+  .custom instance void System.Runtime.CompilerServices.NullableAttribute::.ctor(uint8[]) = ( 01 00 01 00 00 00 00 00 00 ) 
+  .field public int32 F06
+  .custom instance void System.Runtime.CompilerServices.NullableAttribute::.ctor(uint8[]) = ( 01 00 01 00 00 00 01 00 00 ) 
+  .field public int32 F07
+  .custom instance void System.Runtime.CompilerServices.NullableAttribute::.ctor(uint8[]) = ( 01 00 01 00 00 00 02 00 00 ) 
+  .field public int32 F08
+  .custom instance void System.Runtime.CompilerServices.NullableAttribute::.ctor(uint8[]) = ( 01 00 01 00 00 00 04 00 00 ) 
+  .field public int32 F09
+  .custom instance void System.Runtime.CompilerServices.NullableAttribute::.ctor(uint8[]) = ( 01 00 FF FF FF FF 00 00 ) 
+  .field public valuetype [mscorlib]System.Nullable`1<int32> F10
+  .custom instance void System.Runtime.CompilerServices.NullableAttribute::.ctor(uint8) = ( 01 00 00 00 00 ) 
+  .field public valuetype [mscorlib]System.Nullable`1<int32> F11
+  .custom instance void System.Runtime.CompilerServices.NullableAttribute::.ctor(uint8[]) = ( 01 00 02 00 00 00 00 00 00 00 ) 
+  .field public valuetype [mscorlib]System.Nullable`1<int32> F12
+  .custom instance void System.Runtime.CompilerServices.NullableAttribute::.ctor(uint8[]) = ( 01 00 FF FF FF FF 00 00 ) 
+  .field public string F13
+  .custom instance void System.Runtime.CompilerServices.NullableAttribute::.ctor(uint8) = ( 01 00 00 00 00 ) 
+  .field public string F14
+  .custom instance void System.Runtime.CompilerServices.NullableAttribute::.ctor(uint8) = ( 01 00 03 00 00 ) 
+  .field public string F15
+  .custom instance void System.Runtime.CompilerServices.NullableAttribute::.ctor(uint8[]) = ( 01 00 01 00 00 00 00 00 00 ) 
+  .field public string F16
+  .custom instance void System.Runtime.CompilerServices.NullableAttribute::.ctor(uint8[]) = ( 01 00 01 00 00 00 01 00 00 ) 
+  .field public string F17
+  .custom instance void System.Runtime.CompilerServices.NullableAttribute::.ctor(uint8[]) = ( 01 00 01 00 00 00 02 00 00 ) 
+  .field public string F18
+  .custom instance void System.Runtime.CompilerServices.NullableAttribute::.ctor(uint8[]) = ( 01 00 01 00 00 00 04 00 00 ) 
+  .field public string F19
+  .custom instance void System.Runtime.CompilerServices.NullableAttribute::.ctor(uint8[]) = ( 01 00 FF FF FF FF 00 00 ) 
+  .field public class [mscorlib]System.Collections.Generic.Dictionary`2<string,object> F20
+  .custom instance void System.Runtime.CompilerServices.NullableAttribute::.ctor(uint8) = ( 01 00 00 00 00 ) 
+  .field public class [mscorlib]System.Collections.Generic.Dictionary`2<string,object> F21
+  .custom instance void System.Runtime.CompilerServices.NullableAttribute::.ctor(uint8) = ( 01 00 03 00 00 ) 
+  .field public class [mscorlib]System.Collections.Generic.Dictionary`2<string,object> F22
+  .custom instance void System.Runtime.CompilerServices.NullableAttribute::.ctor(uint8[]) = ( 01 00 FF FF FF FF 00 00 ) 
+  .field public class [mscorlib]System.Collections.Generic.Dictionary`2<string,object> F23
+  .custom instance void System.Runtime.CompilerServices.NullableAttribute::.ctor(uint8[]) = ( 01 00 03 00 00 00 00 00 00 00 00 ) 
+  .field public class [mscorlib]System.Collections.Generic.Dictionary`2<string,object> F24
+  .custom instance void System.Runtime.CompilerServices.NullableAttribute::.ctor(uint8[]) = ( 01 00 03 00 00 00 01 01 01 00 00 ) 
+  .field public class [mscorlib]System.Collections.Generic.Dictionary`2<string,object> F25
+  .custom instance void System.Runtime.CompilerServices.NullableAttribute::.ctor(uint8[]) = ( 01 00 03 00 00 00 02 02 02 00 00 ) 
+  .field public class [mscorlib]System.Collections.Generic.Dictionary`2<string,object> F26
+  .custom instance void System.Runtime.CompilerServices.NullableAttribute::.ctor(uint8[]) = ( 01 00 03 00 00 00 01 04 05 00 00 ) 
+  .field public class [mscorlib]System.Collections.Generic.Dictionary`2<string,object> F27
+  .custom instance void System.Runtime.CompilerServices.NullableAttribute::.ctor(uint8[]) = ( 01 00 03 00 00 00 00 01 02 00 00 ) 
+  .field public class [mscorlib]System.Collections.Generic.Dictionary`2<string,object> F28
+  .custom instance void System.Runtime.CompilerServices.NullableAttribute::.ctor(uint8[]) = ( 01 00 03 00 00 00 01 02 00 00 00 ) 
+  .field public class [mscorlib]System.Collections.Generic.Dictionary`2<string,object> F29
+  .custom instance void System.Runtime.CompilerServices.NullableAttribute::.ctor(uint8[]) = ( 01 00 03 00 00 00 02 00 01 00 00 ) 
+  .field public string F30
+  .custom instance void System.Runtime.CompilerServices.NullableAttribute::.ctor(uint8[]) = ( 01 00 02 00 00 00 01 01 00 00 ) 
+  .field public string F31
+  .custom instance void System.Runtime.CompilerServices.NullableAttribute::.ctor(uint8[]) = ( 01 00 00 00 00 00 00 00 ) 
+  .field public class [mscorlib]System.Collections.Generic.Dictionary`2<string,object> F32
+  .custom instance void System.Runtime.CompilerServices.NullableAttribute::.ctor(uint8[]) = ( 01 00 04 00 00 00 01 01 01 01 00 00 ) 
+  .field public class [mscorlib]System.Collections.Generic.Dictionary`2<string,object> F33
+  .custom instance void System.Runtime.CompilerServices.NullableAttribute::.ctor(uint8[]) = ( 01 00 02 00 00 00 01 01 00 00 ) 
+  .field public class [mscorlib]System.Collections.Generic.Dictionary`2<string,object> F34
+  .custom instance void System.Runtime.CompilerServices.NullableAttribute::.ctor(uint8[]) = ( 01 00 00 00 00 00 00 00 ) 
+  .method public hidebysig specialname rtspecialname 
+          instance void  .ctor() cil managed
+  {
+    // Code size       8 (0x8)
+    .maxstack  8
+    IL_0000:  ldarg.0
+    IL_0001:  call       instance void [mscorlib]System.Object::.ctor()
+    IL_0006:  nop
+    IL_0007:  ret
+  } // end of method B`12::.ctor
+
+} // end of class B`12
+
+.class public auto ansi beforefieldinit System.Runtime.CompilerServices.NullableAttribute
+       extends [mscorlib]System.Attribute
+{
+  .method public hidebysig specialname rtspecialname 
+          instance void  .ctor(uint8 x) cil managed
+  {
+    // Code size       9 (0x9)
+    .maxstack  8
+    IL_0000:  ldarg.0
+    IL_0001:  call       instance void [mscorlib]System.Attribute::.ctor()
+    IL_0006:  nop
+    IL_0007:  nop
+    IL_0008:  ret
+  } // end of method NullableAttribute::.ctor
+
+  .method public hidebysig specialname rtspecialname 
+          instance void  .ctor(uint8[] x) cil managed
+  {
+    // Code size       9 (0x9)
+    .maxstack  8
+    IL_0000:  ldarg.0
+    IL_0001:  call       instance void [mscorlib]System.Attribute::.ctor()
+    IL_0006:  nop
+    IL_0007:  nop
+    IL_0008:  ret
+  } // end of method NullableAttribute::.ctor
+
+} // end of class System.Runtime.CompilerServices.NullableAttribute
+
+
+// =============================================================
+
+// *********** DISASSEMBLY COMPLETE ***********************
+/*
+class B<[Nullable(0)]T01,
+        [Nullable(1)]T02,
+        [Nullable(2)]T03,
+        [Nullable(3)]T04,
+        [Nullable(4)]T05,
+        [Nullable(5)]T06,
+        [Nullable(new byte[] { 0 })]T07,
+        [Nullable(new byte[] { 1 })]T08,
+        [Nullable(new byte[] { 2 })]T09,
+        [Nullable(new byte[] { 1, 1 })]T10,
+        [Nullable(new byte[] { })]T11,
+        [Nullable(null)]T12>
+    where T01 : class where T02 : class where T03 : class where T04 : class where T05 : class where T06 : class
+    where T07 : class where T08 : class where T09 : class where T10 : class where T11 : class where T12 : class
+{
+    [Nullable(0)] public int F01;
+    [Nullable(1)] public int F02;
+    [Nullable(2)] public int F03;
+    [Nullable(3)] public int F04;
+    [Nullable(new byte[] { 0 })] public int F05;
+    [Nullable(new byte[] { 1 })] public int F06;
+    [Nullable(new byte[] { 2 })] public int F07;
+    [Nullable(new byte[] { 4 })] public int F08;
+    [Nullable(null)] public int F09;
+    [Nullable(0)] public int? F10;
+    [Nullable(new byte[] { 0, 0 })] public int? F11;
+    [Nullable(null)] public int? F12;
+    [Nullable(0)] public string F13;
+    [Nullable(3)] public string F14;
+    [Nullable(new byte[] { 0 })] public string F15;
+    [Nullable(new byte[] { 1 })] public string F16;
+    [Nullable(new byte[] { 2 })] public string F17;
+    [Nullable(new byte[] { 4 })] public string F18;
+    [Nullable(null)] public string F19;
+    [Nullable(0)] public System.Collections.Generic.Dictionary<string, object> F20;
+    [Nullable(3)] public System.Collections.Generic.Dictionary<string, object> F21;
+    [Nullable(null)] public System.Collections.Generic.Dictionary<string, object> F22;
+    [Nullable(new byte[] { 0, 0, 0 })] public System.Collections.Generic.Dictionary<string, object> F23;
+    [Nullable(new byte[] { 1, 1, 1 })] public System.Collections.Generic.Dictionary<string, object> F24;
+    [Nullable(new byte[] { 2, 2, 2 })] public System.Collections.Generic.Dictionary<string, object> F25;
+    [Nullable(new byte[] { 1, 4, 5 })] public System.Collections.Generic.Dictionary<string, object> F26;
+    [Nullable(new byte[] { 0, 1, 2 })] public System.Collections.Generic.Dictionary<string, object> F27;
+    [Nullable(new byte[] { 1, 2, 0 })] public System.Collections.Generic.Dictionary<string, object> F28;
+    [Nullable(new byte[] { 2, 0, 1 })] public System.Collections.Generic.Dictionary<string, object> F29;
+    [Nullable(new byte[] { 1, 1 })] public string F30;
+    [Nullable(new byte[] { })] public string F31;
+    [Nullable(new byte[] { 1, 1, 1, 1 })] public System.Collections.Generic.Dictionary<string, object> F32;
+    [Nullable(new byte[] { 1, 1 })] public System.Collections.Generic.Dictionary<string, object> F33;
+    [Nullable(new byte[] { })] public System.Collections.Generic.Dictionary<string, object> F34;
+}*/
+";
+
+            var source = @"";
+            var compilation = CreateCompilation(new[] { source }, new[] { CompileIL(ilSource) });
+            NamedTypeSymbol b = compilation.GetTypeByMetadataName("B`12");
+
+            (string type, string attribute)[] fieldsBaseline = new[]
+            {
+                ("System.Int32", "System.Runtime.CompilerServices.NullableAttribute(0)"),
+                ("System.Int32", "System.Runtime.CompilerServices.NullableAttribute(1)"),
+                ("System.Int32", "System.Runtime.CompilerServices.NullableAttribute(2)"),
+                ("System.Int32", "System.Runtime.CompilerServices.NullableAttribute(3)"),
+                ("System.Int32", "System.Runtime.CompilerServices.NullableAttribute({0})"),
+                ("System.Int32", "System.Runtime.CompilerServices.NullableAttribute({1})"),
+                ("System.Int32", "System.Runtime.CompilerServices.NullableAttribute({2})"),
+                ("System.Int32", "System.Runtime.CompilerServices.NullableAttribute({4})"),
+                ("System.Int32", "System.Runtime.CompilerServices.NullableAttribute(null)"),
+                ("System.Int32?", "System.Runtime.CompilerServices.NullableAttribute(0)"),
+                ("System.Int32?", "System.Runtime.CompilerServices.NullableAttribute({0, 0})"),
+                ("System.Int32?", "System.Runtime.CompilerServices.NullableAttribute(null)"),
+                ("System.String", "System.Runtime.CompilerServices.NullableAttribute(0)"),
+                ("System.String", "System.Runtime.CompilerServices.NullableAttribute(3)"),
+                ("System.String", "System.Runtime.CompilerServices.NullableAttribute({0})"),
+                ("System.String!", "System.Runtime.CompilerServices.NullableAttribute({1})"),
+                ("System.String?", "System.Runtime.CompilerServices.NullableAttribute({2})"),
+                ("System.String", "System.Runtime.CompilerServices.NullableAttribute({4})"),
+                ("System.String", "System.Runtime.CompilerServices.NullableAttribute(null)"),
+                ("System.Collections.Generic.Dictionary<System.String, System.Object>", "System.Runtime.CompilerServices.NullableAttribute(0)"),
+                ("System.Collections.Generic.Dictionary<System.String, System.Object>", "System.Runtime.CompilerServices.NullableAttribute(3)"),
+                ("System.Collections.Generic.Dictionary<System.String, System.Object>", "System.Runtime.CompilerServices.NullableAttribute(null)"),
+                ("System.Collections.Generic.Dictionary<System.String, System.Object>", "System.Runtime.CompilerServices.NullableAttribute({0, 0, 0})"),
+                ("System.Collections.Generic.Dictionary<System.String!, System.Object!>!", "System.Runtime.CompilerServices.NullableAttribute({1, 1, 1})"),
+                ("System.Collections.Generic.Dictionary<System.String?, System.Object?>?", "System.Runtime.CompilerServices.NullableAttribute({2, 2, 2})"),
+                ("System.Collections.Generic.Dictionary<System.String, System.Object>", "System.Runtime.CompilerServices.NullableAttribute({1, 4, 5})"),
+                ("System.Collections.Generic.Dictionary<System.String!, System.Object?>", "System.Runtime.CompilerServices.NullableAttribute({0, 1, 2})"),
+                ("System.Collections.Generic.Dictionary<System.String?, System.Object>!", "System.Runtime.CompilerServices.NullableAttribute({1, 2, 0})"),
+                ("System.Collections.Generic.Dictionary<System.String, System.Object!>?", "System.Runtime.CompilerServices.NullableAttribute({2, 0, 1})"),
+                ("System.String", "System.Runtime.CompilerServices.NullableAttribute({1, 1})"),
+                ("System.String", "System.Runtime.CompilerServices.NullableAttribute({})"),
+                ("System.Collections.Generic.Dictionary<System.String, System.Object>", "System.Runtime.CompilerServices.NullableAttribute({1, 1, 1, 1})"),
+                ("System.Collections.Generic.Dictionary<System.String, System.Object>", "System.Runtime.CompilerServices.NullableAttribute({1, 1})"),
+                ("System.Collections.Generic.Dictionary<System.String, System.Object>", "System.Runtime.CompilerServices.NullableAttribute({})"),
+            };
+
+            Assert.Equal(34, fieldsBaseline.Length);
+            AnnotationsInMetadataFieldSymbolValidator(b.ContainingModule, fieldsBaseline);
+
+            (bool? constraintIsNullable, string attribute)[] typeParametersBaseline = new[]
+            {
+                ((bool?)null, "System.Runtime.CompilerServices.NullableAttribute(0)"),
+                (false, "System.Runtime.CompilerServices.NullableAttribute(1)"),
+                (true, "System.Runtime.CompilerServices.NullableAttribute(2)"),
+                (null, "System.Runtime.CompilerServices.NullableAttribute(3)"),
+                (null, "System.Runtime.CompilerServices.NullableAttribute(4)"),
+                (null, "System.Runtime.CompilerServices.NullableAttribute(5)"),
+                (null, "System.Runtime.CompilerServices.NullableAttribute({0})"),
+                (null, "System.Runtime.CompilerServices.NullableAttribute({1})"),
+                (null, "System.Runtime.CompilerServices.NullableAttribute({2})"),
+                (null, "System.Runtime.CompilerServices.NullableAttribute({1, 1})"),
+                (null, "System.Runtime.CompilerServices.NullableAttribute({})"),
+                (null, "System.Runtime.CompilerServices.NullableAttribute(null)"),
+            };
+
+            Assert.Equal(12, typeParametersBaseline.Length);
+
+            for (int i = 0; i < typeParametersBaseline.Length; i++)
+            {
+                var t = b.TypeParameters[i];
+                Assert.Equal(typeParametersBaseline[i].constraintIsNullable, t.ReferenceTypeConstraintIsNullable);
+                Assert.Equal(typeParametersBaseline[i].attribute, t.GetAttributes().Single().ToString());
+            }
         }
 
         [Fact, WorkItem(30561, "https://github.com/dotnet/roslyn/issues/30561")]

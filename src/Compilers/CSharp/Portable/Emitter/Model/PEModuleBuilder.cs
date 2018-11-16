@@ -1515,6 +1515,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
                 foreach (byte flag in flagsBuilder)
                 {
+                    Debug.Assert(flag == (byte)NullableAnnotation.Unknown || flag == (byte)NullableAnnotation.NotNullable || flag == (byte)NullableAnnotation.Nullable);
                     constantsBuilder.Add(new TypedConstant(byteType, TypedConstantKind.Primitive, flag));
                 }
 
