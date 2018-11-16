@@ -43,7 +43,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var result = ArrayBuilder<BoundStatement>.GetInstance();
                 var outerVariables = ArrayBuilder<LocalSymbol>.GetInstance();
                 var loweredSwitchGoverningExpression = _localRewriter.VisitExpression(node.Expression);
-                BoundDecisionDag decisionDag = ShareTempsIfPossibleAndEvaluateInput(node.DecisionDag, loweredSwitchGoverningExpression, result);
+                BoundDecisionDag decisionDag = ShareTempsIfPossibleAndEvaluateInput(
+                    node.DecisionDag, loweredSwitchGoverningExpression, result, out BoundExpression optionalSavedInput);
 
                 // lower the decision dag.
                 (ImmutableArray<BoundStatement> loweredDag, ImmutableDictionary<SyntaxNode, ImmutableArray<BoundStatement>> switchSections) =
@@ -86,14 +87,29 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (node.DefaultLabel != null)
                 {
                     result.Add(_factory.Label(node.DefaultLabel));
-                    // https://github.com/dotnet/roslyn/issues/27747 Need a dedicated platform exception type to throw for input not matched.
-                    result.Add(_factory.ThrowNull());
+                    var objectType = _factory.SpecialType(SpecialType.System_Object);
+                    var thrownExpression =
+                        (optionalSavedInput != null &&
+                                implicitConversionExists(optionalSavedInput, objectType) &&
+                                _factory.WellKnownMember(WellKnownMember.System_MatchFailureException__ctor1, isOptional: true) is MethodSymbol newMatchFailureException1)
+                            ? _factory.New(newMatchFailureException1, _factory.Convert(objectType, optionalSavedInput)) :
+                        (_factory.WellKnownMember(WellKnownMember.System_MatchFailureException__ctor0, isOptional: true) is MethodSymbol newMatchFailureException0)
+                            ? _factory.New(newMatchFailureException0) :
+                        _factory.New(_factory.WellKnownMethod(WellKnownMember.System_InvalidOperationException__ctor));
+                    result.Add(_factory.Throw(thrownExpression));
                 }
 
                 result.Add(_factory.Label(afterSwitchExpression));
                 outerVariables.Add(resultTemp);
                 outerVariables.AddRange(_tempAllocator.AllTemps());
                 return _factory.SpillSequence(outerVariables.ToImmutableAndFree(), result.ToImmutableAndFree(), _factory.Local(resultTemp));
+
+                bool implicitConversionExists(BoundExpression expression, TypeSymbol type)
+                {
+                    HashSet<DiagnosticInfo> discarded = null;
+                    Conversion c = _localRewriter._compilation.Conversions.ClassifyConversionFromExpression(expression, type, ref discarded);
+                    return c.IsImplicit;
+                }
             }
         }
     }

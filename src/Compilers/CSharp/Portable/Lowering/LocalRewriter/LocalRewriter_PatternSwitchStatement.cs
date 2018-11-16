@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 outerVariables.AddRange(node.InnerLocals);
 
                 // Evaluate the input and set up sharing for dag temps with user variables
-                BoundDecisionDag decisionDag = ShareTempsIfPossibleAndEvaluateInput(node.DecisionDag, loweredSwitchGoverningExpression, result);
+                BoundDecisionDag decisionDag = ShareTempsIfPossibleAndEvaluateInput(node.DecisionDag, loweredSwitchGoverningExpression, result, out _);
 
                 // lower the decision dag.
                 (ImmutableArray<BoundStatement> loweredDag, ImmutableDictionary<SyntaxNode, ImmutableArray<BoundStatement>> switchSections) =
