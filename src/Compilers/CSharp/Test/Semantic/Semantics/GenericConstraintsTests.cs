@@ -3377,12 +3377,34 @@ public unsafe struct YourStruct
         }
 
         [Fact]
-        public void UnmanagedRecursiveTypeArgument()
+        public void UnmanagedExpandingTypeArgument()
         {
             var code = @"
 public struct MyStruct<T>
 {
     public YourStruct<MyStruct<MyStruct<T>>> field;
+}
+
+public struct YourStruct<T> where T : unmanaged
+{
+    public T field;
+}
+";
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll)
+                .VerifyDiagnostics(
+                    // (4,46): error CS0523: Struct member 'MyStruct<T>.field' of type 'YourStruct<MyStruct<MyStruct<T>>>' causes a cycle in the struct layout
+                    //     public YourStruct<MyStruct<MyStruct<T>>> field;
+                    Diagnostic(ErrorCode.ERR_StructLayoutCycle, "field").WithArguments("MyStruct<T>.field", "YourStruct<MyStruct<MyStruct<T>>>").WithLocation(4, 46));
+        }
+
+        [Fact]
+        public void UnmanagedExpandingTypeArgumentManagedGenericField()
+        {
+            var code = @"
+public struct MyStruct<T>
+{
+    public YourStruct<MyStruct<MyStruct<T>>> field;
+    public T myField;
 }
 
 public struct YourStruct<T> where T : unmanaged
@@ -3414,12 +3436,12 @@ public struct YourStruct<T> where T : unmanaged
 ";
             CreateCompilation(code, options: TestOptions.UnsafeReleaseDll)
                 .VerifyDiagnostics(
+                    // (4,12): error CS8377: The type 'MyStruct<MyStruct<T>>' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'YourStruct<T>'
+                    //     public YourStruct<MyStruct<MyStruct<T>>> field;
+                    Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "YourStruct<MyStruct<MyStruct<T>>>").WithArguments("YourStruct<T>", "T", "MyStruct<MyStruct<T>>").WithLocation(4, 12),
                     // (4,46): error CS0523: Struct member 'MyStruct<T>.field' of type 'YourStruct<MyStruct<MyStruct<T>>>' causes a cycle in the struct layout
                     //     public YourStruct<MyStruct<MyStruct<T>>> field;
-                    Diagnostic(ErrorCode.ERR_StructLayoutCycle, "field").WithArguments("MyStruct<T>.field", "YourStruct<MyStruct<MyStruct<T>>>").WithLocation(4, 46),
-                    // (4,46): error CS8377: The type 'MyStruct<MyStruct<T>>' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'YourStruct<T>'
-                    //     public YourStruct<MyStruct<MyStruct<T>>> field;
-                    Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "field").WithArguments("YourStruct<T>", "T", "MyStruct<MyStruct<T>>").WithLocation(4, 46));
+                    Diagnostic(ErrorCode.ERR_StructLayoutCycle, "field").WithArguments("MyStruct<T>.field", "YourStruct<MyStruct<MyStruct<T>>>").WithLocation(4, 46));
         }
 
         [Fact]
@@ -3439,12 +3461,12 @@ public struct YourStruct<T> where T : unmanaged
 ";
             CreateCompilation(code, options: TestOptions.UnsafeReleaseDll)
                 .VerifyDiagnostics(
+                    // (4,12): error CS8377: The type 'MyStruct<MyStruct<T>>' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'YourStruct<T>'
+                    //     public YourStruct<MyStruct<MyStruct<T>>> field;
+                    Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "YourStruct<MyStruct<MyStruct<T>>>").WithArguments("YourStruct<T>", "T", "MyStruct<MyStruct<T>>").WithLocation(4, 12),
                     // (4,46): error CS0523: Struct member 'MyStruct<T>.field' of type 'YourStruct<MyStruct<MyStruct<T>>>' causes a cycle in the struct layout
                     //     public YourStruct<MyStruct<MyStruct<T>>> field;
-                    Diagnostic(ErrorCode.ERR_StructLayoutCycle, "field").WithArguments("MyStruct<T>.field", "YourStruct<MyStruct<MyStruct<T>>>").WithLocation(4, 46),
-                    // (4,46): error CS8377: The type 'MyStruct<MyStruct<T>>' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'YourStruct<T>'
-                    //     public YourStruct<MyStruct<MyStruct<T>>> field;
-                    Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "field").WithArguments("YourStruct<T>", "T", "MyStruct<MyStruct<T>>").WithLocation(4, 46));
+                    Diagnostic(ErrorCode.ERR_StructLayoutCycle, "field").WithArguments("MyStruct<T>.field", "YourStruct<MyStruct<MyStruct<T>>>").WithLocation(4, 46));
         }
     }
 }
