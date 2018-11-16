@@ -67,6 +67,8 @@ public class TestAnalyzer : DiagnosticAnalyzer
             dir.CopyFile(typeof(System.Reflection.Metadata.MetadataReader).Assembly.Location);
             var immutable = dir.CopyFile(typeof(ImmutableArray).Assembly.Location);
             var analyzer = dir.CopyFile(typeof(DiagnosticAnalyzer).Assembly.Location);
+            dir.CopyFile(typeof(Memory<>).Assembly.Location);
+            dir.CopyFile(typeof(System.Runtime.CompilerServices.Unsafe).Assembly.Location);
 
             var analyzerCompilation = CSharpCompilation.Create(
                 assemblyName,
