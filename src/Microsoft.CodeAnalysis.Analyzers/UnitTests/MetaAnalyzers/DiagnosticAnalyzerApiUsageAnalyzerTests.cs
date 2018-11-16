@@ -4,6 +4,7 @@ using Analyzer.Utilities;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Analyzers.MetaAnalyzers;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.VisualBasic.Analyzers.MetaAnalyzers;
 using Test.Utilities;
 using Xunit;
@@ -27,12 +28,17 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 interface I<T> { }
 
+internal delegate void MyDelegateGlobal();
+
 class MyAnalyzer : DiagnosticAnalyzer
 {
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics=> throw new NotImplementedException();
 
+    internal delegate void MyDelegateInType();
+
     public override void Initialize(AnalysisContext context)
     {
+        var x = typeof(I<>);
     }
 }
 
@@ -64,8 +70,11 @@ Imports Microsoft.CodeAnalysis.VisualBasic
 Interface I(Of T)
 End Interface
 
+Friend Delegate Sub MyDelegateGlobal()
+
 Class MyAnalyzer
     Inherits DiagnosticAnalyzer
+    Friend Delegate Sub MyDelegateInType()
 
     Public Overrides ReadOnly Property SupportedDiagnostics() As ImmutableArray(Of DiagnosticDescriptor)
         Get
@@ -940,39 +949,40 @@ End Class
 
         private static DiagnosticResult GetCSharpExpectedDiagnostic(int line, int column, string analyzerTypeName, string violatingTypes)
         {
-            return GetExpectedDiagnostic(LanguageNames.CSharp, line, column, analyzerTypeName, violatingIndirectTypesOpt: null, violatingTypes: violatingTypes);
+            return GetExpectedDiagnostic(line, column, analyzerTypeName, violatingIndirectTypesOpt: null, violatingTypes: violatingTypes);
         }
 
         private static DiagnosticResult GetCSharpExpectedDiagnostic(int line, int column, string analyzerTypeName, string violatingIndirectTypes, string violatingTypes)
         {
-            return GetExpectedDiagnostic(LanguageNames.CSharp, line, column, analyzerTypeName, violatingIndirectTypes, violatingTypes);
+            return GetExpectedDiagnostic(line, column, analyzerTypeName, violatingIndirectTypes, violatingTypes);
         }
 
         private static DiagnosticResult GetBasicExpectedDiagnostic(int line, int column, string analyzerTypeName, string violatingTypes)
         {
-            return GetExpectedDiagnostic(LanguageNames.VisualBasic, line, column, analyzerTypeName, violatingIndirectTypesOpt: null, violatingTypes: violatingTypes);
+            return GetExpectedDiagnostic(line, column, analyzerTypeName, violatingIndirectTypesOpt: null, violatingTypes: violatingTypes);
         }
 
         private static DiagnosticResult GetBasicExpectedDiagnostic(int line, int column, string analyzerTypeName, string violatingIndirectTypes, string violatingTypes)
         {
-            return GetExpectedDiagnostic(LanguageNames.VisualBasic, line, column, analyzerTypeName, violatingIndirectTypes, violatingTypes);
+            return GetExpectedDiagnostic(line, column, analyzerTypeName, violatingIndirectTypes, violatingTypes);
         }
 
-        private static DiagnosticResult GetExpectedDiagnostic(string language, int line, int column, string analyzerTypeName, string violatingIndirectTypesOpt, string violatingTypes)
+        private static DiagnosticResult GetExpectedDiagnostic(int line, int column, string analyzerTypeName, string violatingIndirectTypesOpt, string violatingTypes)
         {
-            string fileName = language == LanguageNames.CSharp ? "Test0.cs" : "Test0.vb";
-            return new DiagnosticResult
+            var result = new DiagnosticResult(DiagnosticIds.DoNotUseTypesFromAssemblyRuleId, DiagnosticHelpers.DefaultDiagnosticSeverity)
+                .WithLocation(line, column);
+            if (violatingIndirectTypesOpt is null)
             {
-                Id = DiagnosticIds.DoNotUseTypesFromAssemblyRuleId,
-                Message = violatingIndirectTypesOpt == null ?
-                    string.Format(CodeAnalysisDiagnosticsResources.DoNotUseTypesFromAssemblyRuleDirectMessage, analyzerTypeName, violatingTypes) :
-                    string.Format(CodeAnalysisDiagnosticsResources.DoNotUseTypesFromAssemblyRuleIndirectMessage, analyzerTypeName, violatingIndirectTypesOpt, violatingTypes),
-                Severity = DiagnosticHelpers.DefaultDiagnosticSeverity,
-                Locations = new[]
-                {
-                    new DiagnosticResultLocation(fileName, line, column)
-                }
-            };
+                return result
+                    .WithMessageFormat(CodeAnalysisDiagnosticsResources.DoNotUseTypesFromAssemblyRuleDirectMessage)
+                    .WithArguments(analyzerTypeName, violatingTypes);
+            }
+            else
+            {
+                return result
+                    .WithMessageFormat(CodeAnalysisDiagnosticsResources.DoNotUseTypesFromAssemblyRuleIndirectMessage)
+                    .WithArguments(analyzerTypeName, violatingIndirectTypesOpt, violatingTypes);
+            }
         }
     }
 }

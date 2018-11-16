@@ -7,6 +7,7 @@ using System.Reflection;
 using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Testing;
 using Xunit;
 
 namespace Test.Utilities
@@ -18,6 +19,7 @@ namespace Test.Utilities
             DiagnosticAnalyzer analyzer,
             bool printActualDiagnosticsOnFailure,
             string expectedDiagnosticsAssertionTemplate,
+            string defaultPath,
             params DiagnosticResult[] expectedResults)
         {
             if (analyzer != null && analyzer.SupportedDiagnostics.Length == 0)
@@ -44,8 +46,10 @@ namespace Test.Utilities
 
             for (int i = 0; i < expectedResults.Length; i++)
             {
+                DiagnosticResult expected = expectedResults[i].WithDefaultPath(defaultPath);
+
                 int actualIndex = actualList.FindIndex(
-                    (Diagnostic a) => IsMatch(a, expectedResults[i], isAssertEnabled: false));
+                    (Diagnostic a) => IsMatch(a, expected, isAssertEnabled: false));
                 if (actualIndex >= 0)
                 {
                     actualList.RemoveAt(actualIndex);
@@ -53,13 +57,13 @@ namespace Test.Utilities
                 else
                 {
                     // Eh...just blow up on the first actual that's left?
-                    IsMatch(actualList[0], expectedResults[i], isAssertEnabled: true);
+                    IsMatch(actualList[0], expected, isAssertEnabled: true);
                 }
 
                 // So we can use the same checks to look for an actual that matches an expected, or assert on actual.
                 bool IsMatch(Diagnostic actual, DiagnosticResult expected, bool isAssertEnabled)
                 {
-                    if (expected.Line == -1 && expected.Column == -1)
+                    if (!expected.HasLocation)
                     {
                         if (actual.Location != Location.None)
                         {
@@ -78,7 +82,7 @@ namespace Test.Utilities
                     }
                     else
                     {
-                        if (!VerifyDiagnosticLocation(analyzer, actual, actual.Location, expected.Locations.First(), isAssertEnabled))
+                        if (!VerifyDiagnosticLocation(analyzer, actual, actual.Location, expected.Spans[0], isAssertEnabled))
                         {
                             return false;
                         }
@@ -105,7 +109,7 @@ namespace Test.Utilities
 
                         for (int j = 0; j < additionalLocations.Length; ++j)
                         {
-                            if (!VerifyDiagnosticLocation(analyzer, actual, additionalLocations[j], expected.Locations[j + 1], isAssertEnabled))
+                            if (!VerifyDiagnosticLocation(analyzer, actual, additionalLocations[j], expected.Spans[j + 1], isAssertEnabled))
                             {
                                 return false;
                             }
@@ -169,9 +173,9 @@ namespace Test.Utilities
             }
         }
 
-        public static void Verify(this IEnumerable<Diagnostic> actualResults, DiagnosticAnalyzer analyzer, params DiagnosticResult[] expectedResults)
+        public static void Verify(this IEnumerable<Diagnostic> actualResults, DiagnosticAnalyzer analyzer, string defaultPath, params DiagnosticResult[] expectedResults)
         {
-            Verify(actualResults, analyzer, false, null, expectedResults);
+            Verify(actualResults, analyzer, false, null, defaultPath, expectedResults);
         }
 
         private static void AssertFalse(
@@ -211,7 +215,7 @@ namespace Test.Utilities
 
         /// <param name="isAssertEnabled">Indicates that unit test assertions are enabled for non-matches.</param>
         /// <returns>True if actual matches expected, false otherwise.</returns>
-        private static bool VerifyDiagnosticLocation(DiagnosticAnalyzer analyzer, Diagnostic diagnostic, Location actual, DiagnosticResultLocation expected, bool isAssertEnabled)
+        private static bool VerifyDiagnosticLocation(DiagnosticAnalyzer analyzer, Diagnostic diagnostic, Location actual, FileLinePositionSpan expected, bool isAssertEnabled)
         {
             FileLinePositionSpan actualSpan = actual.GetLineSpan();
 
@@ -229,9 +233,9 @@ namespace Test.Utilities
             Microsoft.CodeAnalysis.Text.LinePosition actualLinePosition = actualSpan.StartLinePosition;
 
             // Only check line position if there is an actual line in the real diagnostic
-            if (actualLinePosition.Line > 0)
+            if (expected.StartLinePosition.Line > 0)
             {
-                if (actualLinePosition.Line + 1 != expected.Line)
+                if (actualLinePosition.Line + 1 != expected.StartLinePosition.Line)
                 {
                     if (isAssertEnabled)
                     {
@@ -247,15 +251,15 @@ namespace Test.Utilities
             }
 
             // Only check column position if there is an actual column position in the real diagnostic
-            if (actualLinePosition.Character > 0)
+            if (expected.StartLinePosition.Character > 0)
             {
-                if (actualLinePosition.Character + 1 != expected.Column)
+                if (actualLinePosition.Character + 1 != expected.StartLinePosition.Character)
                 {
                     if (isAssertEnabled)
                     {
                         Assert.True(false,
                             string.Format("Expected diagnostic to start at column \"{0}\" was actually at column \"{1}\"\r\n\r\nDiagnostic:\r\n    {2}\r\n",
-                                expected.Column, actualLinePosition.Character + 1, FormatDiagnostics(analyzer, diagnostic)));
+                                expected.StartLinePosition.Character, actualLinePosition.Character + 1, FormatDiagnostics(analyzer, diagnostic)));
                     }
                     else
                     {
