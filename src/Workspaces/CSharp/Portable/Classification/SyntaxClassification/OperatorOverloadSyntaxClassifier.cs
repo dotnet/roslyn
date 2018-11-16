@@ -23,7 +23,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
             if (symbolInfo.Symbol is IMethodSymbol methodSymbol
                 && methodSymbol.MethodKind == MethodKind.UserDefinedOperator)
             {
-                result.Add(new ClassifiedSpan(syntax.Span, ClassificationTypeNames.OperatorOverload));
+                if (syntax is BinaryExpressionSyntax binaryExpression)
+                {
+                    result.Add(new ClassifiedSpan(binaryExpression.OperatorToken.Span, ClassificationTypeNames.OperatorOverload));
+                }
+                else if (syntax is PrefixUnaryExpressionSyntax prefixUnaryExpression)
+                {
+                    result.Add(new ClassifiedSpan(prefixUnaryExpression.OperatorToken.Span, ClassificationTypeNames.OperatorOverload));
+                }
+                else if (syntax is PostfixUnaryExpressionSyntax postfixUnaryExpression)
+                {
+                    result.Add(new ClassifiedSpan(postfixUnaryExpression.OperatorToken.Span, ClassificationTypeNames.OperatorOverload));
+                }
+                else if (syntax is ConditionalExpressionSyntax conditionalExpression)
+                {
+                    result.Add(new ClassifiedSpan(conditionalExpression.Condition.Span, ClassificationTypeNames.OperatorOverload));
+                }
             }
         }
 

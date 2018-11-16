@@ -13,8 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification.Classifiers
 
         Public Overrides ReadOnly Property SyntaxNodeTypes As ImmutableArray(Of Type) = ImmutableArray.Create(
             GetType(BinaryExpressionSyntax),
-            GetType(UnaryExpressionSyntax),
-            GetType(BinaryConditionalExpressionSyntax))
+            GetType(UnaryExpressionSyntax))
 
         Public Overrides Sub AddClassifications(
             workspace As Workspace,
@@ -26,7 +25,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification.Classifiers
             Dim symbolInfo = semanticModel.GetSymbolInfo(syntax, cancellationToken)
             If (TypeOf symbolInfo.Symbol Is IMethodSymbol _
                 AndAlso DirectCast(symbolInfo.Symbol, IMethodSymbol).MethodKind = MethodKind.UserDefinedOperator) Then
-                result.Add(New ClassifiedSpan(syntax.Span, ClassificationTypeNames.OperatorOverload))
+
+                If (TypeOf syntax Is BinaryExpressionSyntax) Then
+                    result.Add(New ClassifiedSpan(DirectCast(syntax, BinaryExpressionSyntax).OperatorToken.Span, ClassificationTypeNames.OperatorOverload))
+                ElseIf (TypeOf syntax Is UnaryExpressionSyntax) Then
+                    result.Add(New ClassifiedSpan(DirectCast(syntax, UnaryExpressionSyntax).OperatorToken.Span, ClassificationTypeNames.OperatorOverload))
+                End If
             End If
         End Sub
     End Class
