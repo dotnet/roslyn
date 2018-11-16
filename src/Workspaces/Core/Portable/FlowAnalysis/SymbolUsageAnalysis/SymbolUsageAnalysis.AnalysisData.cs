@@ -232,7 +232,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
             {
                 foreach (var instance in _allocatedBasicBlockAnalysisDatas)
                 {
-                    instance.Free();
+                    instance.Dispose();
                 }
 
                 _allocatedBasicBlockAnalysisDatas.Free();

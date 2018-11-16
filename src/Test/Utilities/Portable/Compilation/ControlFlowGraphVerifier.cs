@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             // Basic block reachability analysis verification using a test-only dataflow analyzer
             // that uses the dataflow analysis engine linked from the Workspaces layer.
             // This provides test coverage for Workspace layer dataflow analysis engine
-            // for all ContolFlowGraphs created in compiler layer's flow analysis unit tests.
+            // for all ControlFlowGraphs created in compiler layer's flow analysis unit tests.
             var reachabilityVector = BasicBlockReachabilityDataFlowAnalyzer.Run(graph);
             for (int i = 0; i < graph.Blocks.Length; i++)
             {

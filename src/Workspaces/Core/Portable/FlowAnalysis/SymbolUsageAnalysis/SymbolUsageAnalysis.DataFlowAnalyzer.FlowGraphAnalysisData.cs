@@ -151,7 +151,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
                 /// </summary>
                 public ImmutableHashSet<CaptureId> LValueFlowCapturesInGraph { get; }
 
-                public BasicBlockAnalysisData GetCurrentBlockAnalysisData(BasicBlock basicBlock)
+                public BasicBlockAnalysisData GetBlockAnalysisData(BasicBlock basicBlock)
                     => _analysisDataByBasicBlockMap[basicBlock];
 
                 public BasicBlockAnalysisData GetOrCreateBlockAnalysisData(BasicBlock basicBlock)
@@ -254,7 +254,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
                     // All symbol writes reachable at start of try region are considered reachable at start of catch/finally region.
                     var firstBasicBlockInOutermostRegion = ControlFlowGraph.Blocks[containingTryCatchFinallyRegion.FirstBlockOrdinal];
                     var mergedAnalysisData = _analysisDataByBasicBlockMap[basicBlock];
-                    mergedAnalysisData.SetAnalysisDataFrom(GetCurrentBlockAnalysisData(firstBasicBlockInOutermostRegion));
+                    mergedAnalysisData.SetAnalysisDataFrom(GetBlockAnalysisData(firstBasicBlockInOutermostRegion));
 
                     // All symbol writes within the try region are considered reachable at start of catch/finally region.
                     foreach (var (symbol, write) in GetOrCreateSymbolWritesInBlockRange(containingTryCatchFinallyRegion.FirstBlockOrdinal, basicBlock.Ordinal - 1))
@@ -362,6 +362,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
                 }
 
                 public override bool IsTrackingDelegateCreationTargets => true;
+
                 public override void SetTargetsFromSymbolForDelegate(IOperation write, ISymbol symbol)
                 {
                     // Transfer reaching delegate creation targets when assigning from a local/parameter symbol
@@ -369,7 +370,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
                     // for definition 'y' from symbol 'x' for below code:
                     //      Action x = () => { };
                     //      Action y = x;
-
+                    //
                     var targetsBuilder = PooledHashSet<IOperation>.GetInstance();
                     foreach (var symbolWrite in CurrentBlockAnalysisData.GetCurrentWrites(symbol))
                     {
@@ -402,7 +403,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
                     // Sets a lambda delegate target for the current write.
                     // For example, this method will be called for the definition 'x' below with assigned lambda.
                     //      Action x = () => { };
-
+                    //
                     SetReachingDelegateTargetCore(write, lambdaTarget);
                     _lambdaTargetsToAccessingCfgMap[lambdaTarget] = ControlFlowGraph;
                 }
@@ -413,7 +414,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
                     // For example, this method will be called for the definition 'x' below with assigned LocalFunction delegate.
                     //      Action x = LocalFunction;
                     //      void LocalFunction() { }
-
+                    //
                     Debug.Assert(localFunctionTarget.Method.IsLocalFunction());
                     SetReachingDelegateTargetCore(write, localFunctionTarget);
                     _localFunctionTargetsToAccessingCfgMap[localFunctionTarget.Method] = ControlFlowGraph;
@@ -453,14 +454,14 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
                     // Dispose the base data structures only for primary method's flow analysis data.
                     if (ControlFlowGraph.Parent == null)
                     {
-                        DisposeForNonLocalFunctionOrLambdaAnalsis();
+                        DisposeForNonLocalFunctionOrLambdaAnalysis();
                     }
 
                     DisposeCommon();
                     return;
 
                     // Local functions.
-                    void DisposeForNonLocalFunctionOrLambdaAnalsis()
+                    void DisposeForNonLocalFunctionOrLambdaAnalysis()
                     {
                         base.DisposeCoreData();
 
@@ -468,6 +469,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
                         {
                             creations.Free();
                         }
+
                         _reachingDelegateCreationTargets.Free();
 
                         _localFunctionTargetsToAccessingCfgMap.Free();
@@ -484,12 +486,14 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
                         {
                             captures.Free();
                         }
+
                         _lValueFlowCapturesMap.Free();
 
                         foreach (var operations in _symbolWritesInsideBlockRangeMap.Values)
                         {
                             operations.Free();
                         }
+
                         _symbolWritesInsideBlockRangeMap.Free();
                     }
                 }

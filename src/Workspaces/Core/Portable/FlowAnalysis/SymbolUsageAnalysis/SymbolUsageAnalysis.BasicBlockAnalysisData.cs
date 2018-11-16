@@ -2,8 +2,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
@@ -16,7 +14,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
         /// based dataflow analysis OR for the entire executable code block for high level operation
         /// tree based analysis.
         /// </summary>
-        private sealed class BasicBlockAnalysisData
+        private sealed class BasicBlockAnalysisData : IDisposable
         {
             private static readonly ObjectPool<BasicBlockAnalysisData> s_pool =
                 new ObjectPool<BasicBlockAnalysisData>(() => new BasicBlockAnalysisData());
@@ -34,7 +32,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
 
             public static BasicBlockAnalysisData GetInstance() => s_pool.Allocate();
 
-            public void Free()
+            public void Dispose()
             {
                 FreeAndClearValues();
                 s_pool.Free(this);
@@ -141,6 +139,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
                 BasicBlockAnalysisData data2,
                 Func<BasicBlockAnalysisData> createBasicBlockAnalysisData)
             {
+                // Ensure that we don't return 'null' data if other the other data is non-null,
+                // even if latter is Empty.
                 if (data1 == null)
                 {
                     return data2;
