@@ -2634,11 +2634,10 @@ struct S<T>
 ";
             var compilation = CreateCompilation(text);
             var type = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
-
-            foreach (var field in type.GetMembers().OfType<FieldSymbol>())
-            {
-                Assert.True(!field.Type.IsManagedType, field.ToString());
-            }
+            Assert.False(type.GetMember<FieldSymbol>("f1").Type.IsManagedType);
+            Assert.False(type.GetMember<FieldSymbol>("f2").Type.IsManagedType);
+            Assert.True(type.GetMember<FieldSymbol>("f3").Type.IsManagedType);
+            Assert.True(type.GetMember<FieldSymbol>("f4").Type.IsManagedType);
         }
 
         [Fact]
@@ -2837,7 +2836,7 @@ struct W<T> { X<W<W<T>>> x; }
             var compilation = CreateCompilation(text);
             var globalNamespace = compilation.GlobalNamespace;
             Assert.True(globalNamespace.GetMember<NamedTypeSymbol>("X").IsManagedType); // because of X.t
-            Assert.True(globalNamespace.GetMember<NamedTypeSymbol>("W").IsManagedType);
+            Assert.False(globalNamespace.GetMember<NamedTypeSymbol>("W").IsManagedType);
         }
 
         [Fact]
