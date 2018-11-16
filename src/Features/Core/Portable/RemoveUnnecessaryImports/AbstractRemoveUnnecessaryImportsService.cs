@@ -12,9 +12,9 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
 {
-    internal abstract class AbstractRemoveUnnecessaryImportsService<T> : 
-        IRemoveUnnecessaryImportsService, 
-        IUnnecessaryImportsService, 
+    internal abstract class AbstractRemoveUnnecessaryImportsService<T> :
+        IRemoveUnnecessaryImportsService,
+        IUnnecessaryImportsService,
         IEqualityComparer<T> where T : SyntaxNode
     {
         public Task<Document> RemoveUnnecessaryImportsAsync(Document document, CancellationToken cancellationToken)
@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
         }
 
         protected abstract ImmutableArray<T> GetUnnecessaryImports(
-            SemanticModel model, SyntaxNode root, 
+            SemanticModel model, SyntaxNode root,
             Func<SyntaxNode, bool> predicate, CancellationToken cancellationToken);
 
         protected async Task<HashSet<T>> GetCommonUnnecessaryImportsOfAllContextAsync(
