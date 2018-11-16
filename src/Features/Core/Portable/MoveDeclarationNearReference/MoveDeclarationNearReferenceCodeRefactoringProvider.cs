@@ -53,15 +53,8 @@ namespace Microsoft.CodeAnalysis.MoveDeclarationNearReference
             }
 
             var service = document.GetLanguageService<IMoveDeclarationNearReferenceService>();
-
-            // Don't want to move a decl past other decls in order to move it to the first
-            // affected statement.  If we do we can end up in the following situation: 
-#if false
-                    int x = 0;
-                    int y = 0;
-                    Console.WriteLine(x + y);
-#endif
-            if (!await service.CanMoveDeclarationNearReferenceAsync(document, statement, cancellationToken))
+            if (!await service.CanMoveDeclarationNearReferenceAsync(
+                    document, statement, cancellationToken))
             {
                 return;
             }

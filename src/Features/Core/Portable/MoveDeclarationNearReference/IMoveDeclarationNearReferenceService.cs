@@ -12,9 +12,6 @@ namespace Microsoft.CodeAnalysis.MoveDeclarationNearReference
         /// Returns true if <paramref name="localDeclarationStatement"/> is local declaration statement
         /// that can be moved forward to be closer to its first reference.
         /// </summary>
-        /// <param name="document">Original document with the declaration.</param>
-        /// <param name="localDeclarationStatement">Declaration statement to be moved.</param>
-        /// <param name="cancellationToken">Cancellation token.</param>
         Task<bool> CanMoveDeclarationNearReferenceAsync(Document document, SyntaxNode localDeclarationStatement, CancellationToken cancellationToken);
 
         /// <summary>
