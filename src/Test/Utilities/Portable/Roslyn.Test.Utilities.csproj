@@ -82,6 +82,9 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>TestResource.resx</DependentUpon>
     </Compile>
+    <Compile Include="..\..\..\Workspaces\Core\Portable\Extensions\ControlFlowRegionExtensions.cs" Link="Compilation\FlowAnalysis\ControlFlowRegionExtensions.cs" />
+    <Compile Include="..\..\..\Workspaces\Core\Portable\FlowAnalysis\CustomDataFlowAnalysis.cs" Link="Compilation\FlowAnalysis\CustomDataFlowAnalysis.cs" />
+    <Compile Include="..\..\..\Workspaces\Core\Portable\FlowAnalysis\DataFlowAnalyzer.cs" Link="Compilation\FlowAnalysis\DataFlowAnalyzer.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Update="TestResource.resx">
