@@ -122,11 +122,6 @@
         <target state="new">Arguments with 'in' modifier cannot be used in dynamically dispatched expessions.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_InferredRecursivePatternType">
-        <source>The type 'var' is not permitted in recursive patterns. If you want the type inferred, just omit it.</source>
-        <target state="new">The type 'var' is not permitted in recursive patterns. If you want the type inferred, just omit it.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_InterfaceImplementedImplicitlyByVariadic">
         <source>'{0}' cannot implement interface member '{1}' in type '{2}' because it has an __arglist parameter</source>
         <target state="new">'{0}' cannot implement interface member '{1}' in type '{2}' because it has an __arglist parameter</target>
@@ -198,8 +193,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_PropertyPatternNameMissing">
-        <source>A property subpattern requires a reference to the property or field to be matched, e.g. '{{ Name: {0}}}'</source>
-        <target state="new">A property subpattern requires a reference to the property or field to be matched, e.g. '{{ Name: {0}}}'</target>
+        <source>A property subpattern requires a reference to the property or field to be matched, e.g. '{{ Name: {0} }}'</source>
+        <target state="new">A property subpattern requires a reference to the property or field to be matched, e.g. '{{ Name: {0} }}'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefAssignNarrower">

@@ -177,6 +177,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return null;
                 }
 
+                public override BoundNode VisitIncrementOperator(BoundIncrementOperator node)
+                {
+                    _mightAssignSomething = true;
+                    return null;
+                }
+
                 public override BoundNode VisitDynamicInvocation(BoundDynamicInvocation node)
                 {
                     // perhaps we are passing a variable by ref and mutating it that way
@@ -199,12 +205,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 public override BoundNode VisitObjectInitializerMember(BoundObjectInitializerMember node)
                 {
+                    // Although ref indexers are not declarable in C#, they may be usable
                     _mightAssignSomething = !node.ArgumentRefKindsOpt.IsDefault;
                     return base.VisitObjectInitializerMember(node);
                 }
 
                 public override BoundNode VisitIndexerAccess(BoundIndexerAccess node)
                 {
+                    // Although property arguments with ref indexers are not declarable in C#, they may be usable
                     _mightAssignSomething = !node.ArgumentRefKindsOpt.IsDefault;
                     return base.VisitIndexerAccess(node);
                 }
@@ -456,6 +464,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var module = _localRewriter.EmitModule;
                 if (module == null)
                 {
+                    // we're not generating code, so we don't need the hash function
                     return;
                 }
 
@@ -511,22 +520,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 LabelSymbol labelToSectionScope = GetDagNodeLabel(whenClause);
 
                 // We need the section syntax to get the section builder from the map. Unfortunately this is a bit awkward
-                SyntaxNode sectionSyntax;
-                switch (whenClause.Syntax)
-                {
-                    case WhenClauseSyntax w:
-                        sectionSyntax = w.Parent.Parent;
-                        break;
-                    case SwitchLabelSyntax l:
-                        sectionSyntax = l.Parent;
-                        break;
-                    case SwitchExpressionArmSyntax a:
-                        sectionSyntax = a;
-                        break;
-                    default:
-                        throw ExceptionUtilities.UnexpectedValue(whenClause.Syntax.Kind());
-                }
-
+                SyntaxNode sectionSyntax = whenClause.Syntax is SwitchLabelSyntax l ? l.Parent : whenClause.Syntax;
                 bool foundSectionBuilder = _switchArms.TryGetValue(sectionSyntax, out ArrayBuilder<BoundStatement> sectionBuilder);
                 Debug.Assert(foundSectionBuilder);
                 sectionBuilder.Add(_factory.Label(labelToSectionScope));

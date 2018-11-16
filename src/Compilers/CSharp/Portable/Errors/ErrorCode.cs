@@ -1595,7 +1595,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_NoConvToIDispWrongAsync = 8418,
 
         #region diagnostics introduced for recursive patterns
-        ERR_InferredRecursivePatternType = 8501,
+        // ERR_InferredRecursivePatternType = 8501, // unused
         ERR_WrongNumberOfSubpatterns = 8502,
         ERR_PropertyPatternNameMissing = 8503,
         ERR_MissingPattern = 8504,
