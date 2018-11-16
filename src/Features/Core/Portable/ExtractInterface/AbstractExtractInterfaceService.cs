@@ -252,9 +252,9 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
             var unformattedSolution = solution.WithDocumentSyntaxRoot(documentId, editor.GetChangedRoot(), PreservationMode.PreserveIdentity);
 
             var completedSolution = await GetSolutionWithOriginalTypeUpdatedAsync(
-                unformattedSolution, documentIds, 
-                documentId, typeNodeSyntaxAnnotation, 
-                typeToExtractFrom, extractedInterfaceSymbol, 
+                unformattedSolution, documentIds,
+                documentId, typeNodeSyntaxAnnotation,
+                typeToExtractFrom, extractedInterfaceSymbol,
                 includedMembers, symbolToDeclarationAnnotationMap, cancellationToken).ConfigureAwait(false);
 
             return new ExtractInterfaceResult(
@@ -368,14 +368,14 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
             return solutionWithInterfaceDocument;
         }
 
-        private async Task<Solution> GetFormattedSolutionAsync(Solution unformattedSolution, IEnumerable<DocumentId> documentIds)
+        private async Task<Solution> GetFormattedSolutionAsync(Solution unformattedSolution, IEnumerable<DocumentId> documentIds, CancellationToken cancellationToken)
         {
             var formattedSolution = unformattedSolution;
             foreach (var documentId in documentIds)
             {
                 var document = formattedSolution.GetDocument(documentId);
-                var formattedDocument = await Formatter.FormatAsync(document).ConfigureAwait(false);
-                var simplifiedDocument = await Simplifier.ReduceAsync(formattedDocument).ConfigureAwait(false);
+                var formattedDocument = await Formatter.FormatAsync(document, cancellationToken: cancellationToken).ConfigureAwait(false);
+                var simplifiedDocument = await Simplifier.ReduceAsync(formattedDocument, cancellationToken: cancellationToken).ConfigureAwait(false);
                 formattedSolution = simplifiedDocument.Project.Solution;
             }
 
@@ -427,7 +427,7 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
                 symbolToDeclarationAnnotationMap,
                 cancellationToken);
 
-            var formattedSolution = await GetFormattedSolutionAsync(updatedUnformattedSolution, documentIds).ConfigureAwait(false);
+            var formattedSolution = await GetFormattedSolutionAsync(updatedUnformattedSolution, documentIds, cancellationToken).ConfigureAwait(false);
 
             foreach (var docId in documentIds)
             {
