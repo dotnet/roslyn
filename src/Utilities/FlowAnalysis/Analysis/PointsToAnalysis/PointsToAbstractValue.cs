@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
             return new PointsToAbstractValue(lValueCapturedOperations);
         }
 
-        public PointsToAbstractValue MakeNonNull(IOperation operation, PointsToAnalysisContext analysisContext)
+        public PointsToAbstractValue MakeNonNull(IOperation operation, PointsToAnalysisContext analysisContext, AnalysisEntity analysisEntityForOperationOpt)
         {
             Debug.Assert(Kind != PointsToAbstractValueKind.KnownLValueCaptures);
 
@@ -105,7 +105,10 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
 
             if (Kind != PointsToAbstractValueKind.KnownLocations)
             {
-                return Create(AbstractLocation.CreateAllocationLocation(operation, operation.Type, analysisContext), mayBeNull: false);
+                var location = analysisEntityForOperationOpt != null ?
+                    AbstractLocation.CreateAnalysisEntityDefaultLocation(analysisEntityForOperationOpt) :
+                    AbstractLocation.CreateAllocationLocation(operation, operation.Type, analysisContext);
+                return Create(location, mayBeNull: false);
             }
 
             var locations = Locations.Where(location => !location.IsNull).ToImmutableHashSet();

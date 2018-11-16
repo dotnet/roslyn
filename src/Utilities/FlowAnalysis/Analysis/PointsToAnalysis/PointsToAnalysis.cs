@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
 
         private static PointsToAnalysisResult GetOrComputeResultForAnalysisContext(PointsToAnalysisContext analysisContext)
         {
-            var defaultPointsToValueGenerator = new DefaultPointsToValueGenerator();
+            var defaultPointsToValueGenerator = new DefaultPointsToValueGenerator(analysisContext.ControlFlowGraph);
             var analysisDomain = new PointsToAnalysisDomain(defaultPointsToValueGenerator);
             var operationVisitor = new PointsToDataFlowOperationVisitor(defaultPointsToValueGenerator, analysisDomain, analysisContext);
             var pointsToAnalysis = new PointsToAnalysis(analysisDomain, operationVisitor);

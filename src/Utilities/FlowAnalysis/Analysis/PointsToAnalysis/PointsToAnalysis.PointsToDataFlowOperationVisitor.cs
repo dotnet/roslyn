@@ -152,7 +152,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                         break;
 
                     case NullAbstractValue.NotNull:
-                        newPointsToValue = existingValue.MakeNonNull(operation, analysisContext);
+                        newPointsToValue = existingValue.MakeNonNull(operation, analysisContext, analysisEntity);
                         break;
 
                     case NullAbstractValue.Invalid:
@@ -640,7 +640,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                 switch (nullState)
                 {
                     case NullAbstractValue.NotNull:
-                        return defaultValue.MakeNonNull(operation, DataFlowAnalysisContext);
+                        if (!AnalysisEntityFactory.TryCreate(operation, out var analysisEntityOpt))
+                        {
+                            analysisEntityOpt = null;
+                        }
+
+                        return defaultValue.MakeNonNull(operation, DataFlowAnalysisContext, analysisEntityOpt);
 
                     case NullAbstractValue.Null:
                         return defaultValue.MakeNull();
