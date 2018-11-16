@@ -29,7 +29,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
             {
                 return ClassificationTypeNames.Identifier;
             }
-            if (SyntaxFacts.IsKeywordKind(token.Kind()))
+            if (IsControlKeyword(token))
+            {
+                return ClassificationTypeNames.ControlKeyword;
+            }
+            else if (SyntaxFacts.IsKeywordKind(token.Kind()))
             {
                 return ClassificationTypeNames.Keyword;
             }
@@ -53,6 +57,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
             }
 
             return null;
+        }
+
+        private static bool IsControlKeyword(SyntaxToken token)
+        {
+            if (!SyntaxFacts.IsControlKeyword(token.Kind()))
+            {
+                return false;
+            }
+
+            if (token.IsKind(SyntaxKind.DefaultKeyword))
+            {
+                return token.Parent.IsKind(SyntaxKind.DefaultSwitchLabel);
+            }
+            else if (token.IsKind(SyntaxKind.CaseKeyword))
+            {
+                return token.Parent.IsKind(SyntaxKind.CaseSwitchLabel, SyntaxKind.CasePatternSwitchLabel);
+            }
+
+            return SyntaxFacts.IsControlStatement(token.Parent.Kind());
         }
 
         private static bool IsStringToken(SyntaxToken token)
@@ -100,6 +123,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
                         return interpolatedString != null
                             && interpolatedString.StringStartToken.IsKind(SyntaxKind.InterpolatedVerbatimStringStartToken);
                     }
+
             }
 
             return false;

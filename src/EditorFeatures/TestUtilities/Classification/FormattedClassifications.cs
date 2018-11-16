@@ -95,6 +95,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
             => New(text, ClassificationTypeNames.Keyword);
 
         [DebuggerStepThrough]
+        public static FormattedClassification ControlKeyword(string text)
+            => New(text, ClassificationTypeNames.ControlKeyword);
+
+        [DebuggerStepThrough]
         public static FormattedClassification WhiteSpace(string text)
             => New(text, ClassificationTypeNames.WhiteSpace);
 

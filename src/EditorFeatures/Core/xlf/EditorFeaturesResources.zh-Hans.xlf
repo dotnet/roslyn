@@ -52,6 +52,11 @@
         <target state="new">Invalid characters in assembly name</target>
         <note />
       </trans-unit>
+      <trans-unit id="Keyword_Control">
+        <source>Keyword - Control</source>
+        <target state="new">Keyword - Control</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Paste_Tracking">
         <source>Paste Tracking</source>
         <target state="new">Paste Tracking</target>

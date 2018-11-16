@@ -1161,6 +1161,15 @@ namespace Microsoft.CodeAnalysis.Editor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Keyword - Control.
+        /// </summary>
+        internal static string Keyword_Control {
+            get {
+                return ResourceManager.GetString("Keyword_Control", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Light bulb session is already dismissed..
         /// </summary>
         internal static string Light_bulb_session_is_already_dismissed {

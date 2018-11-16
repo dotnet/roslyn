@@ -37,6 +37,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             return kind >= SyntaxKind.BoolKeyword && kind <= SyntaxKind.ImplicitKeyword;
         }
 
+        public static bool IsControlKeyword(SyntaxKind kind)
+        {
+            return kind == SyntaxKind.YieldKeyword
+                || kind == SyntaxKind.WhenKeyword
+                || kind == SyntaxKind.InKeyword
+                || (kind != SyntaxKind.LockKeyword 
+                    && kind >= SyntaxKind.IfKeyword 
+                    && kind <= SyntaxKind.ThrowKeyword);
+        }
+
+        public static bool IsControlStatement(SyntaxKind kind)
+        {
+            return (kind >= SyntaxKind.GotoStatement && kind <= SyntaxKind.ForEachStatement) // Jump Statements
+                || (kind >= SyntaxKind.IfStatement && kind <= SyntaxKind.FinallyClause); // Checked Statements
+        }
+
         public static bool IsAttributeTargetSpecifier(SyntaxKind kind)
         {
             switch (kind)
