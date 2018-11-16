@@ -16,6 +16,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         Protected ReadOnly m_SourceAssembly As SourceAssemblySymbol
         Private ReadOnly _additionalTypes As ImmutableArray(Of NamedTypeSymbol)
         Private _lazyFiles As ImmutableArray(Of Cci.IFileReference)
+        Private _lazyFilesWithoutManifestResources As ImmutableArray(Of Cci.IFileReference)
 
         ''' <summary>
         ''' This value will override m_SourceModule.MetadataName.
@@ -59,7 +60,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         End Function
 
         Public NotOverridable Overrides Function GetFiles(context As EmitContext) As IEnumerable(Of Cci.IFileReference)
-            If _lazyFiles.IsDefault Then
+            If (context.IncludeManifestResources) Then
+                Return GetFilesCore(context, _lazyFiles)
+            End If
+
+            Return GetFilesCore(context, _lazyFilesWithoutManifestResources)
+        End Function
+
+        Private Function GetFilesCore(context As EmitContext, ByRef lazyFiles As ImmutableArray(Of Cci.IFileReference)) As IEnumerable(Of Cci.IFileReference)
+            If lazyFiles.IsDefault Then
                 Dim builder = ArrayBuilder(Of Cci.IFileReference).GetInstance()
                 Try
                     Dim modules = m_SourceAssembly.Modules
@@ -68,14 +77,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                         builder.Add(DirectCast(Translate(modules(i), context.Diagnostics), Cci.IFileReference))
                     Next
 
-                    For Each resource In ManifestResources
-                        If Not resource.IsEmbedded Then
-                            builder.Add(resource)
-                        End If
-                    Next
+                    If context.IncludeManifestResources Then
+                        For Each resource In ManifestResources
+                            If Not resource.IsEmbedded Then
+                                builder.Add(resource)
+                            End If
+                        Next
+                    End If
 
                     ' Dev12 compilers don't report ERR_CryptoHashFailed if there are no files to be hashed.
-                    If ImmutableInterlocked.InterlockedInitialize(_lazyFiles, builder.ToImmutable()) AndAlso _lazyFiles.Length > 0 Then
+                    If ImmutableInterlocked.InterlockedInitialize(lazyFiles, builder.ToImmutable()) AndAlso lazyFiles.Length > 0 Then
                         If Not CryptographicHashProvider.IsSupportedAlgorithm(m_SourceAssembly.HashAlgorithm) Then
                             context.Diagnostics.Add(New VBDiagnostic(ErrorFactory.ErrorInfo(ERRID.ERR_CryptoHashFailed), NoLocation.Singleton))
                         End If
@@ -86,7 +97,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                 End Try
             End If
 
-            Return _lazyFiles
+            Return lazyFiles
         End Function
 
         Private Shared Function Free(builder As ArrayBuilder(Of Cci.IFileReference)) As Boolean

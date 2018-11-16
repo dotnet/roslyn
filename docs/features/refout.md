@@ -25,6 +25,7 @@ Ref assemblies further remove metadata (private members) from metadata-only asse
 - But all types (including private or nested types) are kept in ref assemblies. All attributes are kept (even internal ones).
 - All virtual methods are kept. Explicit interface implementations are kept. Explicitly-implemented properties and events are kept, as their accessors are virtual (and are therefore kept).
 - All fields of a struct are kept. (This is a candidate for post-C#-7.1 refinement)
+- If any resources are included on the command-line, they are only emitted into the primary output. So they are not emitted into a ref assembly produced with `/refout`.
 
 ## API changes
 

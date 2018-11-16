@@ -2779,7 +2779,7 @@ namespace Microsoft.CodeAnalysis
             bool includePrivateMembersOnPrimaryOutput = metadataOnly ? includePrivateMembers : true;
             bool deterministicPrimaryOutput = (metadataOnly && !includePrivateMembers) || isDeterministic;
             if (!Cci.PeWriter.WritePeToStream(
-                new EmitContext(moduleBeingBuilt, null, metadataDiagnostics, metadataOnly, includePrivateMembersOnPrimaryOutput),
+                new EmitContext(moduleBeingBuilt, null, metadataDiagnostics, metadataOnly, includePrivateMembersOnPrimaryOutput, includeManifestResources: true),
                 messageProvider,
                 getPeStream,
                 getPortablePdbStreamOpt,
@@ -2801,7 +2801,7 @@ namespace Microsoft.CodeAnalysis
                 Debug.Assert(!includePrivateMembers);
 
                 if (!Cci.PeWriter.WritePeToStream(
-                    new EmitContext(moduleBeingBuilt, null, metadataDiagnostics, metadataOnly: true, includePrivateMembers: false),
+                    new EmitContext(moduleBeingBuilt, null, metadataDiagnostics, metadataOnly: true, includePrivateMembers: false, includeManifestResources: false),
                     messageProvider,
                     getMetadataPeStreamOpt,
                     getPortablePdbStreamOpt: null,
@@ -2842,7 +2842,7 @@ namespace Microsoft.CodeAnalysis
 
             using (nativePdbWriterOpt)
             {
-                var context = new EmitContext(moduleBeingBuilt, null, diagnostics, metadataOnly: false, includePrivateMembers: true);
+                var context = new EmitContext(moduleBeingBuilt, null, diagnostics, metadataOnly: false, includePrivateMembers: true, includeManifestResources: true);
                 var encId = Guid.NewGuid();
 
                 try

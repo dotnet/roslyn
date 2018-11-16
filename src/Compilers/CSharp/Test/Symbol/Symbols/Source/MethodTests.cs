@@ -1672,7 +1672,7 @@ class C : I
             var typeDef = (Cci.ITypeDefinition)@class;
             var module = new PEAssemblyBuilder((SourceAssemblySymbol)@class.ContainingAssembly, EmitOptions.Default, OutputKind.DynamicallyLinkedLibrary,
                 GetDefaultModulePropertiesForSerialization(), SpecializedCollections.EmptyEnumerable<ResourceDescription>());
-            var context = new EmitContext(module, null, new DiagnosticBag(), metadataOnly: false, includePrivateMembers: true);
+            var context = new EmitContext(module, null, new DiagnosticBag(), metadataOnly: false, includePrivateMembers: true, includeManifestResources: true);
             var explicitOverride = typeDef.GetExplicitImplementationOverrides(context).Single();
             Assert.Equal(@class, explicitOverride.ContainingType);
             Assert.Equal(classMethod, explicitOverride.ImplementingMethod);
@@ -1716,7 +1716,7 @@ class F : System.IFormattable
             var typeDef = (Cci.ITypeDefinition)@class;
             var module = new PEAssemblyBuilder((SourceAssemblySymbol)@class.ContainingAssembly, EmitOptions.Default, OutputKind.DynamicallyLinkedLibrary,
                GetDefaultModulePropertiesForSerialization(), SpecializedCollections.EmptyEnumerable<ResourceDescription>());
-            var context = new EmitContext(module, null, new DiagnosticBag(), metadataOnly: false, includePrivateMembers: true);
+            var context = new EmitContext(module, null, new DiagnosticBag(), metadataOnly: false, includePrivateMembers: true, includeManifestResources: true);
             var explicitOverride = typeDef.GetExplicitImplementationOverrides(context).Single();
             Assert.Equal(@class, explicitOverride.ContainingType);
             Assert.Equal(classMethod, explicitOverride.ImplementingMethod);
@@ -1763,7 +1763,7 @@ class C : I
             var typeDef = (Cci.ITypeDefinition)@class;
             var module = new PEAssemblyBuilder((SourceAssemblySymbol)@class.ContainingAssembly, EmitOptions.Default, OutputKind.DynamicallyLinkedLibrary,
                 GetDefaultModulePropertiesForSerialization(), SpecializedCollections.EmptyEnumerable<ResourceDescription>());
-            var context = new EmitContext(module, null, new DiagnosticBag(), metadataOnly: false, includePrivateMembers: true);
+            var context = new EmitContext(module, null, new DiagnosticBag(), metadataOnly: false, includePrivateMembers: true, includeManifestResources: true);
             var explicitOverride = typeDef.GetExplicitImplementationOverrides(context).Single();
             Assert.Equal(@class, explicitOverride.ContainingType);
             Assert.Equal(classMethod, explicitOverride.ImplementingMethod);
@@ -1817,7 +1817,7 @@ class IC : Namespace.I<int>
             var typeDef = (Cci.ITypeDefinition)@class;
             var module = new PEAssemblyBuilder((SourceAssemblySymbol)@class.ContainingAssembly, EmitOptions.Default, OutputKind.DynamicallyLinkedLibrary,
                 GetDefaultModulePropertiesForSerialization(), SpecializedCollections.EmptyEnumerable<ResourceDescription>());
-            var context = new EmitContext(module, null, new DiagnosticBag(), metadataOnly: false, includePrivateMembers: true);
+            var context = new EmitContext(module, null, new DiagnosticBag(), metadataOnly: false, includePrivateMembers: true, includeManifestResources: true);
             var explicitOverride = typeDef.GetExplicitImplementationOverrides(context).Single();
             Assert.Equal(@class, explicitOverride.ContainingType);
             Assert.Equal(classMethod, explicitOverride.ImplementingMethod);
@@ -1958,7 +1958,7 @@ public class C : B
             var typeDefC = (Cci.ITypeDefinition)classC;
             var module = new PEAssemblyBuilder((SourceAssemblySymbol)classC.ContainingAssembly, EmitOptions.Default, OutputKind.DynamicallyLinkedLibrary,
                 GetDefaultModulePropertiesForSerialization(), SpecializedCollections.EmptyEnumerable<ResourceDescription>());
-            var context = new EmitContext(module, null, new DiagnosticBag(), metadataOnly: false, includePrivateMembers: true);
+            var context = new EmitContext(module, null, new DiagnosticBag(), metadataOnly: false, includePrivateMembers: true, includeManifestResources: true);
             var explicitOverride = typeDefC.GetExplicitImplementationOverrides(context).Single();
             Assert.Equal(classC, explicitOverride.ContainingType);
             Assert.Equal(methodC, explicitOverride.ImplementingMethod);
@@ -2002,7 +2002,7 @@ public class C : B
             var typeDefC = (Cci.ITypeDefinition)classC;
             var module = new PEAssemblyBuilder((SourceAssemblySymbol)classC.ContainingAssembly, EmitOptions.Default, OutputKind.DynamicallyLinkedLibrary,
                 GetDefaultModulePropertiesForSerialization(), SpecializedCollections.EmptyEnumerable<ResourceDescription>());
-            var context = new EmitContext(module, null, new DiagnosticBag(), metadataOnly: false, includePrivateMembers: true);
+            var context = new EmitContext(module, null, new DiagnosticBag(), metadataOnly: false, includePrivateMembers: true, includeManifestResources: true);
             var explicitOverride = typeDefC.GetExplicitImplementationOverrides(context).Single();
             Assert.Equal(classC, explicitOverride.ContainingType);
             Assert.Equal(methodC, explicitOverride.ImplementingMethod);

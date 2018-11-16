@@ -190,7 +190,8 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
 
         protected void EmbedReferences(Cci.ITypeDefinitionMember embeddedMember, TSyntaxNode syntaxNodeOpt, DiagnosticBag diagnostics)
         {
-            var noPiaIndexer = new Cci.TypeReferenceIndexer(new EmitContext(ModuleBeingBuilt, syntaxNodeOpt, diagnostics, metadataOnly: false, includePrivateMembers: true));
+            var noPiaIndexer = new Cci.TypeReferenceIndexer(new EmitContext(ModuleBeingBuilt, syntaxNodeOpt, diagnostics,
+                metadataOnly: false, includePrivateMembers: true, includeManifestResources: true));
             noPiaIndexer.Visit(embeddedMember);
         }
 

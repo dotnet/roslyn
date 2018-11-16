@@ -15,8 +15,9 @@ namespace Microsoft.CodeAnalysis.Emit
         public bool IncludePrivateMembers => (_flags & Flags.IncludePrivateMembers) != 0;
         public bool MetadataOnly => (_flags & Flags.MetadataOnly) != 0;
         public bool IsRefAssembly => MetadataOnly && !IncludePrivateMembers;
+        public bool IncludeManifestResources => (_flags & Flags.IncludeManifestResources) != 0;
 
-        public EmitContext(CommonPEModuleBuilder module, SyntaxNode syntaxNodeOpt, DiagnosticBag diagnostics, bool metadataOnly, bool includePrivateMembers)
+        public EmitContext(CommonPEModuleBuilder module, SyntaxNode syntaxNodeOpt, DiagnosticBag diagnostics, bool metadataOnly, bool includePrivateMembers, bool includeManifestResources)
         {
             Debug.Assert(module != null);
             Debug.Assert(diagnostics != null);
@@ -35,6 +36,10 @@ namespace Microsoft.CodeAnalysis.Emit
             {
                 flags |= Flags.IncludePrivateMembers;
             }
+            if (includeManifestResources)
+            {
+                flags |= Flags.IncludeManifestResources;
+            }
             _flags = flags;
         }
 
@@ -44,6 +49,7 @@ namespace Microsoft.CodeAnalysis.Emit
             None = 0,
             MetadataOnly = 1,
             IncludePrivateMembers = 2,
+            IncludeManifestResources = 4,
         }
     }
 }

@@ -2485,7 +2485,7 @@ End Class";
             var module = new PEAssemblyBuilder((SourceAssemblySymbol)@class.ContainingAssembly, EmitOptions.Default, OutputKind.DynamicallyLinkedLibrary,
                 GetDefaultModulePropertiesForSerialization(), SpecializedCollections.EmptyEnumerable<ResourceDescription>());
 
-            var context = new EmitContext(module, null, new DiagnosticBag(), metadataOnly: false, includePrivateMembers: true);
+            var context = new EmitContext(module, null, new DiagnosticBag(), metadataOnly: false, includePrivateMembers: true, includeManifestResources: true);
             var explicitOverrides = typeDef.GetExplicitImplementationOverrides(context);
             Assert.Equal(2, explicitOverrides.Count());
             Assert.True(explicitOverrides.All(@override => ReferenceEquals(@class, @override.ContainingType)));
@@ -2523,7 +2523,7 @@ End Class";
             var module = new PEAssemblyBuilder((SourceAssemblySymbol)@class.ContainingAssembly, EmitOptions.Default, OutputKind.DynamicallyLinkedLibrary,
                 GetDefaultModulePropertiesForSerialization(), SpecializedCollections.EmptyEnumerable<ResourceDescription>());
 
-            var context = new EmitContext(module, null, new DiagnosticBag(), metadataOnly: false, includePrivateMembers: true);
+            var context = new EmitContext(module, null, new DiagnosticBag(), metadataOnly: false, includePrivateMembers: true, includeManifestResources: true);
             var explicitOverrides = typeDef.GetExplicitImplementationOverrides(context);
             Assert.Equal(1, explicitOverrides.Count());
             Assert.True(explicitOverrides.All(@override => ReferenceEquals(@class, @override.ContainingType)));
