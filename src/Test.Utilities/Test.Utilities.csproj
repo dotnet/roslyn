@@ -16,5 +16,8 @@
     <PackageReference Include="Microsoft.CodeAnalysis.Test.Resources.Proprietary" Version="$(MicrosoftCodeAnalysisTestResourcesProprietaryVersion)" />
     <PackageReference Include="xunit.assert" Version="$(XunitVersion)" />
   </ItemGroup>
+  <ItemGroup>
+    <Reference Include="System.Web" />
+  </ItemGroup>
   <Import Project="..\Utilities\Analyzer.Utilities.projitems" Label="Shared" />
 </Project>
