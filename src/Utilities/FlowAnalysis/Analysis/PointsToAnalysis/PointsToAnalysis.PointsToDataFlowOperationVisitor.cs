@@ -642,7 +642,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                     case NullAbstractValue.NotNull:
                         if (!AnalysisEntityFactory.TryCreate(operation, out var analysisEntityOpt))
                         {
-                            analysisEntityOpt = null;
+                            Debug.Assert(analysisEntityOpt == null);
                         }
 
                         return defaultValue.MakeNonNull(operation, DataFlowAnalysisContext, analysisEntityOpt);
