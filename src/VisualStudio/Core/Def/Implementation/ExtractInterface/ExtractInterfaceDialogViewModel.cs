@@ -173,7 +173,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ExtractInterfac
 
         public bool FileNameEnabled => Destination == InterfaceDestination.NewFile;
 
-
         internal class MemberSymbolViewModel : AbstractNotifyPropertyChanged
         {
             private readonly IGlyphService _glyphService;

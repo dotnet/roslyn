@@ -46,27 +46,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractInterface
             return span.IntersectsWith(position) ? typeDeclaration : null;
         }
 
-        internal override Solution GetSolutionWithUpdatedOriginalType(
-            Solution solutionWithFormattedInterfaceDocument,
-            INamedTypeSymbol extractedInterfaceSymbol,
-            IEnumerable<ISymbol> includedMembers,
-            Dictionary<ISymbol, SyntaxAnnotation> symbolToDeclarationAnnotationMap,
-            List<DocumentId> documentIds,
-            SyntaxAnnotation typeNodeAnnotation,
-            DocumentId documentIdWithTypeNode,
-            CancellationToken cancellationToken)
-        {
-            var documentWithTypeNode = solutionWithFormattedInterfaceDocument.GetDocument(documentIdWithTypeNode);
-            var root = documentWithTypeNode.GetSyntaxRootSynchronously(cancellationToken);
-            var typeDeclaration = root.GetAnnotatedNodes<TypeDeclarationSyntax>(typeNodeAnnotation).Single();
-            var docId = solutionWithFormattedInterfaceDocument.GetDocument(typeDeclaration.SyntaxTree).Id;
-
-            var updatedDeclaration = UpdateTypeWithInterface(extractedInterfaceSymbol, typeNodeAnnotation, typeDeclaration);
-            var updatedRoot = root.ReplaceNode(root.GetAnnotatedNodes<TypeDeclarationSyntax>(typeNodeAnnotation).Single(), updatedDeclaration);
-            var solutionWithOriginalTypeUpdated = solutionWithFormattedInterfaceDocument.WithDocumentSyntaxRoot(docId, updatedRoot, PreservationMode.PreserveIdentity);
-            return solutionWithOriginalTypeUpdated;
-        }
-
         private SyntaxNode UpdateTypeWithInterface(
             INamedTypeSymbol extractedInterfaceSymbol,
             SyntaxAnnotation typeNodeAnnotation,
@@ -136,7 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractInterface
             return typeDeclaration.Modifiers.Any(m => SyntaxFacts.IsAccessibilityModifier(m.Kind()));
         }
 
-        internal override Solution GetSolutionWithSameFileUpdated(
+        internal Solution GetSolutionWithSameFileUpdated(
             Solution solution,
             INamedTypeSymbol extractedInterfaceSymbol,
             IEnumerable<ISymbol> includedMembers,
@@ -174,6 +153,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractInterface
             newDocument = simplificationService.ReduceAsync(newDocument, ArrayBuilder<TextSpan>.GetInstance(1, interfaceNode.Span).AsImmutable()).WaitAndGetResult_CanCallOnBackground(cancellationToken);
 
             return solution.WithDocumentSyntaxRoot(documentIdWithTypeNode, newDocument.GetSyntaxRootSynchronously(cancellationToken), PreservationMode.PreserveIdentity);
+        }
+
+        internal override Solution UpdateMembersWithExplicitImplementations(
+            Solution unformattedSolution, DocumentId _1, 
+            INamedTypeSymbol _2, INamedTypeSymbol _3, 
+            IEnumerable<ISymbol> _4, Dictionary<ISymbol, SyntaxAnnotation> _5, CancellationToken _6)
+        {
+            return unformattedSolution;
         }
     }
 }

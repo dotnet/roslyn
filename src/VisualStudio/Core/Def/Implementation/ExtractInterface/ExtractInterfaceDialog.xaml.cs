@@ -36,12 +36,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ExtractInterfac
         public string OK { get { return ServicesVSResources.OK; } }
         public string Cancel { get { return ServicesVSResources.Cancel; } }
 
-        private const string _currentFileDestinationTag = "CurrentFileDestinationTag";
-        private const string _newFileDestinationTag = "NewFileDestinationTag";
-
-        public string CurrentFileDestinationTag { get { return _currentFileDestinationTag; } }
-        public string NewFileDestinationTag { get { return _newFileDestinationTag; } }
-
         // Use C# Extract Interface helpTopic for C# and VB.
         internal ExtractInterfaceDialog(ExtractInterfaceDialogViewModel viewModel)
             : base(helpTopic: "vs.csharp.refactoring.extractinterface")

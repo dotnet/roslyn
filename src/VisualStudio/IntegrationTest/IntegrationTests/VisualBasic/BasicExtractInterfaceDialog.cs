@@ -44,6 +44,7 @@ End Class");
 
             VisualStudio.Editor.Verify.TextContains(@"Class C
     Implements IC
+
     Public Sub M() Implements IC.M
     End Sub
 End Class");
@@ -103,6 +104,7 @@ End Interface
 
 Class C
     Implements IC
+
     Public Sub M() Implements IC.M
     End Sub
 End Class");
@@ -136,6 +138,7 @@ End Interface
 
 Class C
     Implements IC
+
     Public Sub M1()
     Public Sub M2() Implements IC.M2
     End Sub
@@ -172,6 +175,7 @@ End Namespace");
 
     Class C
         Implements IC
+
         Public Sub M() Implements IC.M
         End Sub
     End Class

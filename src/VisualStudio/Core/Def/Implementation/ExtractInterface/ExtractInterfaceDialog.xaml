@@ -78,7 +78,6 @@
 
                     <RadioButton x:Uid="DestinationCurrentFileSelectionRadioButton"
                                  GroupName="FileDestination"
-                                 Tag="{Binding ElementName=dialog, Path=CurrentFileDestinationTag}"
                                  Grid.Row="0"
                                  Grid.ColumnSpan="2" 
                                  Content="{Binding ElementName=dialog, Path=SelectCurrentFileAsDestination}"
@@ -89,7 +88,6 @@
 
                     <RadioButton x:Uid="DestinationNewFileSelectionRadioButton"
                                  GroupName="FileDestination"
-                                 Tag="{Binding ElementName=dialog, Path=NewFileDestinationTag}"
                                  Grid.Row="1"
                                  Grid.Column="0"
                                  Content="{Binding ElementName=dialog, Path=SelectNewFileAsDestination}"

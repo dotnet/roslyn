@@ -34,13 +34,13 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
                 cancellationToken);
         }
 
-        protected override Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(object options, CancellationToken cancellationToken)
+        protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(object options, CancellationToken cancellationToken)
         {
             IEnumerable<CodeActionOperation> operations = null;
 
             if (options is ExtractInterfaceOptionsResult extractInterfaceOptions && !extractInterfaceOptions.IsCancelled)
             {
-                var extractInterfaceResult = _extractInterfaceService.ExtractInterfaceFromAnalyzedType(_typeAnalysisResult, extractInterfaceOptions, cancellationToken);
+                var extractInterfaceResult = await _extractInterfaceService.ExtractInterfaceFromAnalyzedTypeAsync(_typeAnalysisResult, extractInterfaceOptions, cancellationToken);
 
                 if (extractInterfaceResult.Succeeded)
                 {
@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
                 }
             }
 
-            return Task.FromResult(operations);
+            return operations;
         }
 
         public override string Title => FeaturesResources.Extract_Interface;

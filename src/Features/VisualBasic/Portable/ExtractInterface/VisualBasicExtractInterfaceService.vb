@@ -50,23 +50,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractInterface
             Return Formatter.Format(typeParameterList, workspace).ToString()
         End Function
 
-        Friend Overrides Function GetSolutionWithUpdatedOriginalType(
-            solutionWithInterfaceDocument As Solution,
-            extractedInterfaceSymbol As INamedTypeSymbol,
-            includedMembers As IEnumerable(Of ISymbol),
-            symbolToDeclarationAnnotationMap As Dictionary(Of ISymbol, SyntaxAnnotation),
-            documentIds As List(Of DocumentId),
-            typeNodeAnnotation As SyntaxAnnotation,
-            documentIdWithTypeNode As DocumentId,
-            cancellationToken As CancellationToken) As Solution
-
-            Dim docToRootMap = New Dictionary(Of DocumentId, CompilationUnitSyntax)
-            Dim implementedInterfaceTypeName = UpdateTypeWithImplementsClause(solutionWithInterfaceDocument, documentIdWithTypeNode, typeNodeAnnotation, extractedInterfaceSymbol, docToRootMap, cancellationToken)
-
-            UpdateMembersWithExplicitImplementations(solutionWithInterfaceDocument, implementedInterfaceTypeName, includedMembers, symbolToDeclarationAnnotationMap, documentIds, docToRootMap, cancellationToken)
-            Return CreateFinalSolution(solutionWithInterfaceDocument, documentIds, docToRootMap)
-        End Function
-
         Friend Overrides Function GetContainingNamespaceDisplay(typeSymbol As INamedTypeSymbol, compilationOptions As CompilationOptions) As String
             Dim namespaceSymbol = typeSymbol.ContainingNamespace
             If namespaceSymbol.IsGlobalNamespace Then
@@ -123,14 +106,32 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractInterface
             Return Formatter.Format(implementedInterfaceStatementSyntax, solutionWithInterfaceDocument.Workspace).ToFullString()
         End Function
 
-        Private Sub UpdateMembersWithExplicitImplementations(
-            solutionWithInterfaceDocument As Solution,
-            implementedInterfaceStatementSyntax As String,
-            includedMembers As IEnumerable(Of ISymbol),
-            symbolToDeclarationAnnotationMap As Dictionary(Of ISymbol, SyntaxAnnotation),
-            documentIds As List(Of DocumentId),
-            docToRootMap As Dictionary(Of DocumentId, CompilationUnitSyntax),
-            cancellationToken As CancellationToken)
+        Private Function GetUpdatedImplementsClause(implementsClause As ImplementsClauseSyntax, qualifiedName As QualifiedNameSyntax) As ImplementsClauseSyntax
+            If implementsClause IsNot Nothing Then
+                Return implementsClause.AddInterfaceMembers(qualifiedName).WithAdditionalAnnotations(Formatter.Annotation)
+            Else
+                Return SyntaxFactory.ImplementsClause(qualifiedName).WithAdditionalAnnotations(Formatter.Annotation)
+            End If
+        End Function
+
+        Private Function CreateFinalSolution(solutionWithInterfaceDocument As Solution, documentIds As IEnumerable(Of DocumentId), docToRootMap As Dictionary(Of DocumentId, CompilationUnitSyntax)) As Solution
+            Dim finalSolution = solutionWithInterfaceDocument
+
+            For Each docId In documentIds
+                finalSolution = finalSolution.WithDocumentSyntaxRoot(docId, docToRootMap(docId), PreservationMode.PreserveIdentity)
+            Next
+
+            Return finalSolution
+        End Function
+
+        Friend Overrides Function ShouldIncludeAccessibilityModifier(typeNode As SyntaxNode) As Boolean
+            Dim typeDeclaration = DirectCast(typeNode, TypeBlockSyntax)
+            Return typeDeclaration.GetModifiers().Any(Function(m) SyntaxFacts.IsAccessibilityModifier(m.Kind()))
+        End Function
+
+        Friend Overrides Function UpdateMembersWithExplicitImplementations(unformattedSolution As Solution, documentId As DocumentId, extractedInterfaceSymbol As INamedTypeSymbol, typeToExtractFrom As INamedTypeSymbol, includedMembers As IEnumerable(Of ISymbol), symbolToDeclarationAnnotationMap As Dictionary(Of ISymbol, SyntaxAnnotation), cancellationToken As CancellationToken) As Solution
+            Dim docToRootMap = New Dictionary(Of DocumentId, CompilationUnitSyntax)
+            Dim documentIds = SpecializedCollections.SingletonList(documentId)
 
             For Each member In includedMembers
                 Dim annotation = symbolToDeclarationAnnotationMap(member)
@@ -143,7 +144,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractInterface
                     If docToRootMap.ContainsKey(candidateDocId) Then
                         currentRoot = docToRootMap(candidateDocId)
                     Else
-                        currentRoot = CType(solutionWithInterfaceDocument.GetDocument(candidateDocId).GetSyntaxRootSynchronously(cancellationToken), CompilationUnitSyntax)
+                        currentRoot = CType(unformattedSolution.GetDocument(candidateDocId).GetSyntaxRootSynchronously(cancellationToken), CompilationUnitSyntax)
                     End If
 
                     token = currentRoot.DescendantNodesAndTokensAndSelf().FirstOrDefault(Function(x) x.HasAnnotation(annotation))
@@ -157,7 +158,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractInterface
                     Continue For
                 End If
 
-                Dim qualifiedName As QualifiedNameSyntax = SyntaxFactory.QualifiedName(SyntaxFactory.ParseName(implementedInterfaceStatementSyntax), SyntaxFactory.IdentifierName(member.Name))
+                Dim qualifiedName As QualifiedNameSyntax = SyntaxFactory.QualifiedName(SyntaxFactory.ParseName(extractedInterfaceSymbol.Name), SyntaxFactory.IdentifierName(member.Name))
 
                 Dim method = TryCast(token.Parent, MethodStatementSyntax)
                 If method IsNot Nothing Then
@@ -177,68 +178,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractInterface
                     Continue For
                 End If
             Next
-        End Sub
 
-        Private Function GetUpdatedImplementsClause(implementsClause As ImplementsClauseSyntax, qualifiedName As QualifiedNameSyntax) As ImplementsClauseSyntax
-            If implementsClause IsNot Nothing Then
-                Return implementsClause.AddInterfaceMembers(qualifiedName).WithAdditionalAnnotations(Formatter.Annotation)
-            Else
-                Return SyntaxFactory.ImplementsClause(qualifiedName).WithAdditionalAnnotations(Formatter.Annotation)
-            End If
-        End Function
-
-        Private Function CreateFinalSolution(solutionWithInterfaceDocument As Solution, documentIds As List(Of DocumentId), docToRootMap As Dictionary(Of DocumentId, CompilationUnitSyntax)) As Solution
-            Dim finalSolution = solutionWithInterfaceDocument
-
-            For Each docId In documentIds
-                finalSolution = finalSolution.WithDocumentSyntaxRoot(docId, docToRootMap(docId), PreservationMode.PreserveIdentity)
-            Next
-
-            Return finalSolution
-        End Function
-
-        Friend Overrides Function ShouldIncludeAccessibilityModifier(typeNode As SyntaxNode) As Boolean
-            Dim typeDeclaration = DirectCast(typeNode, TypeBlockSyntax)
-            Return typeDeclaration.GetModifiers().Any(Function(m) SyntaxFacts.IsAccessibilityModifier(m.Kind()))
-        End Function
-
-        Friend Overrides Function GetSolutionWithSameFileUpdated(
-            solution As Solution,
-            extractedInterfaceSymbol As INamedTypeSymbol,
-            includedMembers As IEnumerable(Of ISymbol),
-            symbolToDeclarationAnnotationMap As Dictionary(Of ISymbol, SyntaxAnnotation),
-            documentIds As List(Of DocumentId),
-            typeNodeAnnotation As SyntaxAnnotation,
-            documentIdWithTypeNode As DocumentId,
-            cancellationToken As CancellationToken) As Solution
-
-            Dim updatedSolution = GetSolutionWithUpdatedOriginalType(solution,
-                                               extractedInterfaceSymbol,
-                                               includedMembers,
-                                               symbolToDeclarationAnnotationMap,
-                                               documentIds,
-                                               typeNodeAnnotation,
-                                               documentIdWithTypeNode,
-                                               cancellationToken)
-
-            Dim document = updatedSolution.GetDocument(documentIdWithTypeNode)
-            Dim originalRoot = document.GetSyntaxRootSynchronously(cancellationToken)
-            Dim typeDeclaration = originalRoot.GetAnnotatedNodes(typeNodeAnnotation).Single()
-
-            document = document.WithSyntaxRoot(originalRoot.TrackNodes(typeDeclaration))
-
-            Dim currentRoot = document.GetSyntaxRootSynchronously(cancellationToken)
-            Dim editor = New SyntaxEditor(currentRoot, VisualBasicSyntaxGenerator.Instance)
-
-            typeDeclaration = currentRoot.GetCurrentNode(typeDeclaration)
-
-            Dim codeGenService = updatedSolution.Workspace.Services.GetLanguageServices(LanguageNames.VisualBasic).GetService(Of ICodeGenerationService)
-            Dim interfaceNode = codeGenService.CreateNamedTypeDeclaration(extractedInterfaceSymbol)
-
-            editor.InsertBefore(typeDeclaration, interfaceNode)
-
-            Dim newRoot = Formatter.Format(editor.GetChangedRoot(), updatedSolution.Workspace)
-            Return updatedSolution.WithDocumentSyntaxRoot(documentIdWithTypeNode, newRoot, PreservationMode.PreserveIdentity)
+            Return CreateFinalSolution(unformattedSolution, documentIds, docToRootMap)
         End Function
     End Class
 End Namespace
