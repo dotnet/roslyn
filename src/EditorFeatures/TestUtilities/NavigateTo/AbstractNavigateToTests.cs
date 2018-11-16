@@ -213,7 +213,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo
         public event EventHandler<DocumentId> ActiveDocumentChanged;
         public event EventHandler<EventArgs> NonRoslynBufferTextChanged;
 
-        public DocumentId GetActiveDocument()
+        public DocumentId TryGetActiveDocument()
             => null;
 
         public ImmutableArray<DocumentId> GetVisibleDocuments()
@@ -232,7 +232,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo
         public event EventHandler<DocumentId> ActiveDocumentChanged;
         public event EventHandler<EventArgs> NonRoslynBufferTextChanged;
 
-        public DocumentId GetActiveDocument()
+        public DocumentId TryGetActiveDocument()
             => _workspace.CurrentSolution.Projects.First().DocumentIds.First();
 
         public ImmutableArray<DocumentId> GetVisibleDocuments()

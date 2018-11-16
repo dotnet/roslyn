@@ -32,7 +32,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             _workspace = workspace;
             _projectFactory = projectFactory;
             ThreadingContext = threadingContext;
-            DocumentProvider = new DocumentProvider(this, null, null);
+            DocumentProvider = new DocumentProvider();
         }
 
         [Obsolete("This is a compatibility shim for Live Share; please do not use it.")]

@@ -602,7 +602,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             var documentTrackingService = this.Services.GetService<IDocumentTrackingService>();
             if (documentTrackingService != null)
             {
-                var documentId = documentTrackingService.GetActiveDocument() ?? documentTrackingService.GetVisibleDocuments().FirstOrDefault();
+                var documentId = documentTrackingService.TryGetActiveDocument() ?? documentTrackingService.GetVisibleDocuments().FirstOrDefault();
                 if (documentId != null)
                 {
                     var composition = (IComponentModel)ServiceProvider.GlobalProvider.GetService(typeof(SComponentModel));
