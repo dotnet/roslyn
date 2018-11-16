@@ -317,7 +317,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else
                 {
                     // IAsyncDisposable.DisposeAsync()
-                    TryGetWellKnownTypeMember(syntax: null, WellKnownMember.System_IAsyncDisposable__DisposeAsync, out MethodSymbol disposeAsyncMethodSymbol, location: awaitKeywordOpt.GetLocation());
+                    TryGetWellKnownTypeMember(syntax: null, WellKnownMember.System_IAsyncDisposable__DisposeAsync, out methodOpt, location: awaitKeywordOpt.GetLocation());
                 }
             }
 
