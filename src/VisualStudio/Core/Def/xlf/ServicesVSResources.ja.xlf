@@ -12,11 +12,6 @@
         <target state="translated">'{0}' のキー マップ スキームを適用します</target>
         <note />
       </trans-unit>
-      <trans-unit id="Back">
-        <source>Back</source>
-        <target state="new">Back</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Colorize_regular_expressions">
         <source>Colorize regular expressions</source>
         <target state="new">Colorize regular expressions</target>
@@ -32,16 +27,6 @@
         <target state="new">Finish</target>
         <note />
       </trans-unit>
-      <trans-unit id="Found_Problems">
-        <source>Found Problems:</source>
-        <target state="new">Found Problems:</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Global_name_space">
-        <source>Gobal namespace</source>
-        <target state="new">Gobal namespace</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Highlight_related_components_under_cursor">
         <source>Highlight related components under cursor</source>
         <target state="new">Highlight related components under cursor</target>
@@ -52,34 +37,9 @@
         <target state="translated">その他の演算子内で</target>
         <note />
       </trans-unit>
-      <trans-unit id="Interface_cant_have_abstract_member">
-        <source>Interface can't have abstract member.</source>
-        <target state="new">Interface can't have abstract member.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Interface_cant_have_field">
-        <source>Interface can't have field.</source>
-        <target state="new">Interface can't have field.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Keep_all_parentheses_in_colon">
         <source>Keep all parentheses in:</source>
         <target state="translated">すべてのかっこを保持:</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Make_abstract">
-        <source>Make abstract</source>
-        <target state="new">Make abstract</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Members">
-        <source>Members</source>
-        <target state="new">Members</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Namespace">
-        <source>Namespace:</source>
-        <target state="new">Namespace:</target>
         <note />
       </trans-unit>
       <trans-unit id="Never_if_unnecessary">
@@ -97,16 +57,6 @@
         <target state="new">Prefer compound assignments</target>
         <note />
       </trans-unit>
-      <trans-unit id="Pull_Up_Description">
-        <source>Select destination and members to pull up.</source>
-        <target state="new">Select destination and members to pull up.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Pull_Up_Members">
-        <source>Pull Members Up</source>
-        <target state="new">Pull Members Up</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Regular_Expressions">
         <source>Regular Expressions</source>
         <target state="new">Regular Expressions</target>
@@ -120,31 +70,6 @@
       <trans-unit id="Reset_Visual_Studio_default_keymapping">
         <source>Reset Visual Studio default keymapping</source>
         <target state="translated">Visual Studio の既定のキーマップをリセットします</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Review_Problems">
-        <source>Review problems below. Click Finish to proceed pull up.</source>
-        <target state="new">Review problems below. Click Finish to proceed pull up.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Select_Dependents">
-        <source>Select Dependents</source>
-        <target state="new">Select Dependents</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Select_Destination">
-        <source>Select destination type:</source>
-        <target state="new">Select destination type:</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Select_Members">
-        <source>Select members:</source>
-        <target state="new">Select members:</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Select_Public">
-        <source>Select Public</source>
-        <target state="new">Select Public</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_expression_body_for_lambdas">
@@ -275,21 +200,6 @@
       <trans-unit id="Not_a_valid_value">
         <source>Not a valid value</source>
         <target state="translated">有効な値ではありません</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="_0_will_be_changed_to_abstract">
-        <source>{0} will be changed to abstract.</source>
-        <target state="new">{0} will be changed to abstract.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="_0_will_be_changed_to_non_static_since_1_is_an_interface">
-        <source>{0} will be changed to non-static since {1} is an interface.</source>
-        <target state="new">{0} will be changed to non-static since {1} is an interface.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="_0_will_be_changed_to_public_since_1_is_an_interface">
-        <source>{0} will be changed to public since {1} is an interface.</source>
-        <target state="new">{0} will be changed to public since {1} is an interface.</target>
         <note />
       </trans-unit>
       <trans-unit id="given_workspace_doesn_t_support_undo">

@@ -177,8 +177,10 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         bool CanAddTo(SyntaxNode destination, Solution solution, CancellationToken cancellationToken = default);
 
         /// <summary>
-        /// Return the most relevant declaration to
-        /// <param name="namespaceOrType"/>
+        /// Return the most relevant declaration to namespaceOrType,
+        /// it will first search the context node contained within,
+        /// then the declaration in the same file, then non auto-generated file,
+        /// then all the potential location.
         /// </summary>
         Task<SyntaxNode> FindMostRelevantNameSpaceOrTypeDeclarationAsync(Solution solution, INamespaceOrTypeSymbol namespaceOrType, CodeGenerationOptions options = null, CancellationToken cancellationToken = default);
     }

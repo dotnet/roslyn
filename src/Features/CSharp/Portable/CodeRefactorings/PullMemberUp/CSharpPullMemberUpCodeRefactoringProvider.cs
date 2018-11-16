@@ -28,18 +28,15 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.PullMemberUp
 
         private SyntaxToken GetIdentifier(SyntaxNode userSelectedSyntax)
         {
-            if (userSelectedSyntax is MemberDeclarationSyntax memberDeclarationSyntax)
+            switch (userSelectedSyntax)
             {
-                return memberDeclarationSyntax.GetNameToken();
-            }
-            else if (userSelectedSyntax is VariableDeclaratorSyntax variableDeclaratorSyntax)
-            {
-            // It handles multiple fields or events declared in one line
-                return variableDeclaratorSyntax.Identifier;
-            }
-            else
-            {
-                return default;
+                case MemberDeclarationSyntax memberDeclarationSyntax:
+                    return memberDeclarationSyntax.GetNameToken();
+                case VariableDeclaratorSyntax variableDeclaratorSyntax:
+                    // It handles multiple fields or events declared in one line
+                    return variableDeclaratorSyntax.Identifier;
+                default:
+                    return default;
             }
         }
     }

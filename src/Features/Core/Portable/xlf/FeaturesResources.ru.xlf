@@ -27,11 +27,6 @@
         <target state="translated">Действия не могут быть пустыми.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Add_to">
-        <source>Add to</source>
-        <target state="new">Add to</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Adding_method_with_explicit_interface_specifier_will_prevernt_the_debug_session_from_continuing">
         <source>Adding a method with an explicit interface specifier will prevent the debug session from continuing.</source>
         <target state="new">Adding a method with an explicit interface specifier will prevent the debug session from continuing.</target>
@@ -70,11 +65,6 @@
       <trans-unit id="Convert_to_tuple">
         <source>Convert to tuple</source>
         <target state="new">Convert to tuple</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="DotDotDot">
-        <source>...</source>
-        <target state="new">...</target>
         <note />
       </trans-unit>
       <trans-unit id="Fix_typo_0">

@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -10,17 +11,21 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
 {
-    internal abstract partial class AbstractPullMemberUpRefactoringProvider : CodeRefactoringProvider
+    internal abstract class AbstractPullMemberUpRefactoringProvider : CodeRefactoringProvider
     {
+        private CancellationToken _cancellationToken;
+
         protected abstract bool IsSelectionValid(TextSpan span, SyntaxNode userSelectedSyntax);
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
             // Currently support to pull field, method, event, property and indexer up,
             // constructor, operator and finalizer are excluded.
+            _cancellationToken = context.CancellationToken;
             var semanticModel = await context.Document.GetSemanticModelAsync(context.CancellationToken).ConfigureAwait(false);
             var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
             var userSelectedNode = root.FindNode(context.Span);
+
 
             if (!IsSelectionValid(context.Span, userSelectedNode))
             {
@@ -33,9 +38,9 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
                 return;
             }
 
-            var allTargets = FindAllValidTargets(userSelectNodeSymbol.ContainingType, context.Document.Project.Solution, context.CancellationToken);
+            var allTargets = FindAllValidTargets(userSelectNodeSymbol.ContainingType, context.Document.Project.Solution);
 
-            if (allTargets.Count() == 0)
+            if (allTargets.Length == 0)
             {
                 return;
             }
@@ -45,31 +50,30 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
                 userSelectNodeSymbol.Kind == SymbolKind.Event ||
                 userSelectNodeSymbol.Kind == SymbolKind.Field)
             {
-                PullMemberUpViaQuickAction(context, userSelectNodeSymbol, allTargets);
+                await PullMemberUpViaQuickAction(context, userSelectNodeSymbol, allTargets);
             }
         }
 
-        private IEnumerable<INamedTypeSymbol> FindAllValidTargets(
+        private ImmutableArray<INamedTypeSymbol> FindAllValidTargets(
             INamedTypeSymbol selectedNodeOwnerSymbol,
-            Solution solution,
-            CancellationToken cancellationToken)
+            Solution solution)
         {
             return selectedNodeOwnerSymbol.AllInterfaces.Concat(selectedNodeOwnerSymbol.GetBaseTypes()).
                 Where(baseType => baseType != null &&
                     baseType.DeclaringSyntaxReferences.Length > 0 &&
-                    IsLocationValid(baseType, solution, cancellationToken));
+                    IsLocationValid(baseType, solution)).ToImmutableArray();
         }
 
-        private bool IsLocationValid(INamedTypeSymbol symbol, Solution solution, CancellationToken cancellationToken)
+        private bool IsLocationValid(INamedTypeSymbol symbol, Solution solution)
         {
             return symbol.Locations.Any(location => location.IsInSource &&
-                !solution.GetDocument(location.SourceTree).IsGeneratedCode(cancellationToken));
+                !solution.GetDocument(location.SourceTree).IsGeneratedCode(_cancellationToken));
         }
 
-        private void PullMemberUpViaQuickAction(
+        private async Task PullMemberUpViaQuickAction(
             CodeRefactoringContext context,
             ISymbol userSelectNodeSymbol,
-            IEnumerable<INamedTypeSymbol> targets)
+            ImmutableArray<INamedTypeSymbol> targets)
         {
             foreach (var target in targets)
             {
@@ -84,7 +88,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
                     puller = new ClassPullerWithQuickAction();
                 }
 
-                var action = puller.ComputeRefactoring(context.Document, userSelectNodeSymbol, target);
+                var action = await puller.TryComputeRefactoring(context.Document, userSelectNodeSymbol, target);
                 if (action != null)
                 {
                     context.RegisterRefactoring(action);

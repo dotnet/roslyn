@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.  
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 
 namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
@@ -9,53 +10,41 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
     {
         internal static AnalysisResult BuildAnalysisResult(
             INamedTypeSymbol targetSymbol,
-            IEnumerable<(ISymbol member, bool makeAbstract)> selectedMembersAndOption)
+            IEnumerable<ISymbol> selectedMembersAndOption)
         {
-            var memberResult = selectedMembersAndOption.Select(selection =>
+            var memberResult = selectedMembersAndOption.Select(member =>
             {
                 if (targetSymbol.TypeKind == TypeKind.Interface)
                 {
                     return new MemberAnalysisResult(
-                        selection.member,
-                        changeOriginToPublic: selection.member.DeclaredAccessibility != Accessibility.Public,
-                        changeOriginToNonStatic: selection.member.IsStatic);
+                        member, member.DeclaredAccessibility != Accessibility.Public,
+                        member.IsStatic);
                 }
                 else
                 {
-                    return new MemberAnalysisResult(selection.member, makeAbstract: selection.makeAbstract);
+                    var changeOriginToPublic = false;
+                    var changeOriginToNonStatic = false;
+                    return new MemberAnalysisResult(member, changeOriginToPublic, changeOriginToNonStatic);
                 }
             });
 
-            if (targetSymbol.TypeKind == TypeKind.Interface)
-            {
-                return new AnalysisResult(false, targetSymbol, memberResult);
-            }
-            else
-            {
-                var changeTargetToAbstract = 
-                    !targetSymbol.IsAbstract &&
-                    selectedMembersAndOption.Aggregate(false, (acc, selection) => acc || selection.member.IsAbstract || selection.makeAbstract);
-                return new AnalysisResult(changeTargetToAbstract, targetSymbol, memberResult);
-            }
+            return new AnalysisResult(targetSymbol, memberResult);
         }
     }
 
     internal class MemberAnalysisResult
     {
-        public ISymbol Member { get; }
+        public readonly ISymbol _member;
 
-        public bool ChangeOriginToPublic { get; }
+        public readonly bool _changeOriginToPublic;
 
-        public bool ChangeOriginToNonStatic { get; }
+        public readonly bool _changeOriginToNonStatic;
 
-        public bool MakeAbstract { get; }
-
-        internal MemberAnalysisResult(ISymbol member, bool changeOriginToPublic = false, bool changeOriginToNonStatic = false, bool makeAbstract = false)
+        internal MemberAnalysisResult(ISymbol member, bool changeOriginToPublic, bool changeOriginToNonStatic)
         {
-            Member = member;
-            ChangeOriginToPublic = changeOriginToPublic;
-            ChangeOriginToNonStatic = changeOriginToNonStatic;
-            MakeAbstract = makeAbstract;
+            _member = member;
+            _changeOriginToPublic = changeOriginToPublic;
+            _changeOriginToNonStatic = changeOriginToNonStatic;
         }
     }
 
@@ -64,25 +53,19 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
     /// </summary>
     internal class AnalysisResult
     {
-        public bool ChangeTargetAbstract { get; }
+        public readonly INamedTypeSymbol _target;
 
-        public INamedTypeSymbol Target { get; }
+        public readonly ImmutableArray<MemberAnalysisResult> _membersAnalysisResults;
 
-        public IEnumerable<MemberAnalysisResult> MembersAnalysisResults { get; }
-
-        public bool IsPullUpOperationCauseError { get; }
+        public readonly bool _pullUpOperationCauseError;
 
         internal AnalysisResult(
-            bool changeTargetAbstract,
             INamedTypeSymbol target,
             IEnumerable<MemberAnalysisResult> membersAnalysisResults)
         {
-            ChangeTargetAbstract = changeTargetAbstract;
-            Target = target;
-            MembersAnalysisResults = membersAnalysisResults;
-            IsPullUpOperationCauseError = !MembersAnalysisResults.Aggregate(
-                ChangeTargetAbstract,
-                (acc, result) => acc || result.ChangeOriginToPublic || result.ChangeOriginToNonStatic || result.MakeAbstract);
+            _target = target;
+            _membersAnalysisResults = membersAnalysisResults.ToImmutableArray();
+            _pullUpOperationCauseError = _membersAnalysisResults.All(result => result._changeOriginToNonStatic || result._changeOriginToPublic);
         }
     }
 }

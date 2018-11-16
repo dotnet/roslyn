@@ -324,15 +324,6 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Add to.
-        /// </summary>
-        internal static string Add_to {
-            get {
-                return ResourceManager.GetString("Add_to", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Add to &apos;{0}&apos;.
         /// </summary>
         internal static string Add_to_0 {
@@ -1123,15 +1114,6 @@ namespace Microsoft.CodeAnalysis {
         internal static string Document {
             get {
                 return ResourceManager.GetString("Document", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to ....
-        /// </summary>
-        internal static string DotDotDot {
-            get {
-                return ResourceManager.GetString("DotDotDot", resourceCulture);
             }
         }
         

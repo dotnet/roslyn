@@ -109,8 +109,10 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         }
 
         /// <summary>
-        /// Return the most relevant declaration to
-        /// <param name="namespaceOrType"/>
+        /// Return the most relevant declaration to namespaceOrType,
+        /// it will first search the context node contained within,
+        /// then the declaration in the same file, then non auto-generated file,
+        /// then all the potential location.
         /// </summary>
         public async Task<SyntaxNode> FindMostRelevantNameSpaceOrTypeDeclarationAsync(
             Solution solution,
