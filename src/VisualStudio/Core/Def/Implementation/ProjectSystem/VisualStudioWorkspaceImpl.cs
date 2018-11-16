@@ -233,7 +233,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 throw new InvalidOperationException(ServicesVSResources.VisualStudioWorkspace_TryApplyChanges_cannot_be_called_from_a_background_thread);
             }
 
-            var projectChanges = newSolution.GetChanges(this.CurrentSolution).GetProjectChanges().ToList();
+            var currentSolution = this.CurrentSolution;
+            var projectChanges = newSolution.GetChanges(currentSolution).GetProjectChanges().ToList();
+
             var projectsToLoad = new HashSet<Guid>();
             foreach (var pc in projectChanges)
             {
@@ -267,13 +269,25 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
 
             // first make sure we can edit the document we will be updating (check them out from source control, etc)
-            var changedDocs = projectChanges.SelectMany(pd => pd.GetChangedDocuments(true).Concat(pd.GetChangedAdditionalDocuments())).ToList();
+            var changedDocs = projectChanges.SelectMany(pd => pd.GetChangedDocuments(true).Concat(pd.GetChangedAdditionalDocuments())).Where(CanApplyChange).ToList();
             if (changedDocs.Count > 0)
             {
                 this.EnsureEditableDocuments(changedDocs);
             }
 
             return base.TryApplyChanges(newSolution, progressTracker);
+
+            bool CanApplyChange(DocumentId documentId)
+            {
+                var document = newSolution.GetDocument(documentId) ?? currentSolution.GetDocument(documentId);
+                if (document == null)
+                {
+                    // we can have null if documentId is for additional files
+                    return true;
+                }
+
+                return document.CanApplyChange();
+            }
         }
 
         public override bool CanOpenDocuments
@@ -1149,6 +1163,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             var queryEdit = (IVsQueryEditQuerySave2)ServiceProvider.GlobalProvider.GetService(typeof(SVsQueryEditQuerySave));
 
+            // make sure given document id actually exist in current solution and the file is marked as supporting modifications
+            // and actually has non null file path
             var fileNames = documents.Select(GetFilePath).ToArray();
 
             // TODO: meditate about the flags we can pass to this and decide what is most appropriate for Roslyn
