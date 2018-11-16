@@ -1069,7 +1069,4 @@ I agree to all of the foregoing:</value>
   <data name="Prefer_compound_assignments" xml:space="preserve">
     <value>Prefer compound assignments</value>
   </data>
-  <data name="Finish" xml:space="preserve">
-    <value>Finish</value>
-  </data>
 </root>

@@ -10,9 +10,9 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
     {
         internal static AnalysisResult BuildAnalysisResult(
             INamedTypeSymbol targetSymbol,
-            IEnumerable<ISymbol> selectedMembersAndOption)
+            IEnumerable<ISymbol> members)
         {
-            var memberResult = selectedMembersAndOption.Select(member =>
+            var memberResult = members.Select(member =>
             {
                 if (targetSymbol.TypeKind == TypeKind.Interface)
                 {
