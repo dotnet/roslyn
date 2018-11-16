@@ -51,26 +51,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.None, n.SemicolonToken.Kind());
         }
 
-        [Fact]
-        public void TestConstructClassWithKindAndNameOnly()
-        {
-            var c = SyntaxFactory.ClassDeclaration(identifier: SyntaxFactory.Identifier("goo"));
-            Assert.NotNull(c);
-            Assert.Equal(0, c.AttributeLists.Count);
-            Assert.Equal(0, c.Modifiers.Count);
-            Assert.Equal(5, c.Keyword.Width);
-            Assert.Equal(SyntaxKind.ClassKeyword, c.Keyword.Kind());
-            Assert.Equal(0, c.ConstraintClauses.Count);
-            Assert.False(c.OpenBraceToken.IsMissing);
-            Assert.Equal(SyntaxKind.OpenBraceToken, c.OpenBraceToken.Kind());
-            Assert.Equal(1, c.OpenBraceToken.Width);
-            Assert.Equal(0, c.Members.Count);
-            Assert.False(c.CloseBraceToken.IsMissing);
-            Assert.Equal(SyntaxKind.CloseBraceToken, c.CloseBraceToken.Kind());
-            Assert.Equal(1, c.CloseBraceToken.Width);
-            Assert.Equal(SyntaxKind.None, c.SemicolonToken.Kind());
-        }
-
         [WorkItem(528399, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528399")]
         [Fact()]
         public void PassExpressionToSyntaxToken()
