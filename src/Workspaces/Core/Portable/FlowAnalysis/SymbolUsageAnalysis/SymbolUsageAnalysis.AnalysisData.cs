@@ -41,6 +41,18 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
             /// <summary>
             /// Map from each (symbol, write) to a boolean indicating if the value assigned
             /// at the write is read on some control flow path.
+            /// For example, consider the following code:
+            /// <code>
+            ///     int x = 0;
+            ///     x = 1;
+            ///     Console.WriteLine(x);
+            /// </code>
+            /// This map will have two entries for 'x':
+            ///     1. Key = (symbol: x, write: 'int x = 0')
+            ///        Value = 'false', because value assigned to 'x' here **is never** read. 
+            ///     2. Key = (symbol: x, write: 'x = 1')
+            ///        Value = 'true', because value assigned to 'x' here **may be** read on
+            ///        some control flow path.
             /// </summary>
             protected PooledDictionary<(ISymbol symbol, IOperation operation), bool> SymbolsWriteBuilder { get; }
 
@@ -220,7 +232,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
             {
                 foreach (var instance in _allocatedBasicBlockAnalysisDatas)
                 {
-                    instance.Free();
+                    instance.Dispose();
                 }
 
                 _allocatedBasicBlockAnalysisDatas.Free();

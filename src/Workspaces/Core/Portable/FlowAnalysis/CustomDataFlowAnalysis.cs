@@ -17,6 +17,11 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         /// <param name="controlFlowGraph">Control flow graph on which to execute analysis.</param>
         /// <param name="analyzer">Dataflow analyzer.</param>
         /// <returns>Block analysis data at the end of the exit block.</returns>
+        /// <remarks>
+        /// Algorithm for this CFG walker has been forked from <see cref="ControlFlowGraphBuilder"/>'s internal
+        /// implementation for basic block reachability computation: "MarkReachableBlocks",
+        /// we should keep them in sync as much as possible.
+        /// </remarks>
         public static TBlockAnalysisData Run(ControlFlowGraph controlFlowGraph, DataFlowAnalyzer<TBlockAnalysisData> analyzer, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();

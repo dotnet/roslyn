@@ -7,7 +7,7 @@
     <OutputType>Library</OutputType>
     <RootNamespace>Roslyn.VisualStudio.InteractiveComponents</RootNamespace>
     <RoslynProjectType>Vsix</RoslynProjectType>
-    <TargetFramework>net46</TargetFramework>
+    <TargetFramework>net472</TargetFramework>
 
     <!-- VSIX -->
     <GeneratePkgDefFile>true</GeneratePkgDefFile>
@@ -88,12 +88,6 @@
       <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup</IncludeOutputGroupsInVSIXLocalOnly>
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
     </ProjectReference>
-    <ProjectReference Include="..\..\Workspaces\Core\Desktop\Microsoft.CodeAnalysis.Workspaces.Desktop.csproj">
-      <Name>Workspaces.Desktop</Name>
-      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup</IncludeOutputGroupsInVSIX>
-      <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup</IncludeOutputGroupsInVSIXLocalOnly>
-      <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
-    </ProjectReference>
     <ProjectReference Include="..\..\Workspaces\Core\Portable\Microsoft.CodeAnalysis.Workspaces.csproj">
       <Name>Workspaces</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup</IncludeOutputGroupsInVSIX>
@@ -109,7 +103,6 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="System.Security.Cryptography.Algorithms" Version="$(SystemSecurityCryptographyAlgorithmsVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.SDK.Analyzers" Version="$(MicrosoftVisualStudioSDKAnalyzersVersion)" PrivateAssets="all" />
     <PackageReference Include="Microsoft.VisualStudio.Shell.15.0" Version="$(MicrosoftVisualStudioShell150Version)" />
     <PackageReference Include="Microsoft.VisualStudio.Shell.Framework" Version="$(MicrosoftVisualStudioShellFrameworkVersion)" />
@@ -118,45 +111,7 @@
     <!-- Even though the VS process includes these, we need to also include them in the VSIX for the interactive host processes -->
     <NuGetPackageToIncludeInVsix Include="System.Collections.Immutable" />
     <NuGetPackageToIncludeInVsix Include="System.Reflection.Metadata" />
-    <!-- Other interactive host process dependencies -->
-    <NuGetPackageToIncludeInVsix Include="System.AppContext" />
-    <NuGetPackageToIncludeInVsix Include="System.Collections" />
-    <NuGetPackageToIncludeInVsix Include="System.Collections.Concurrent" />
-    <NuGetPackageToIncludeInVsix Include="System.Collections.Immutable" />
-    <NuGetPackageToIncludeInVsix Include="System.Console" />
-    <NugetPackageToIncludeInVsix Include="System.Diagnostics.Contracts" />
-    <NuGetPackageToIncludeInVsix Include="System.Diagnostics.FileVersionInfo" />
-    <NuGetPackageToIncludeInVsix Include="System.Diagnostics.Process" />
-    <NuGetPackageToIncludeInVsix Include="System.Diagnostics.StackTrace" />
-    <NuGetPackageToIncludeInVsix Include="System.Diagnostics.Tools" />
-    <NuGetPackageToIncludeInVsix Include="System.IO" />
-    <NuGetPackageToIncludeInVsix Include="System.IO.Compression" />
-    <NuGetPackageToIncludeInVsix Include="System.IO.FileSystem" />
-    <NuGetPackageToIncludeInVsix Include="System.IO.FileSystem.DriveInfo" />
-    <NuGetPackageToIncludeInVsix Include="System.IO.FileSystem.Primitives" />
-    <NuGetPackageToIncludeInVsix Include="System.IO.Pipes" />
-    <NuGetPackageToIncludeInVsix Include="System.Linq.Expressions" />
-    <NuGetPackageToIncludeInVsix Include="System.Linq.Parallel" />
-    <NuGetPackageToIncludeInVsix Include="System.ObjectModel" />
-    <NuGetPackageToIncludeInVsix Include="System.Reflection.Metadata" />
-    <NuGetPackageToIncludeInVsix Include="System.Runtime.Numerics" />
-    <NuGetPackageToIncludeInVsix Include="System.Security.AccessControl" />
-    <NuGetPackageToIncludeInVsix Include="System.Security.Cryptography.Algorithms" />
-    <NuGetPackageToIncludeInVsix Include="System.Security.Cryptography.Encoding" />
-    <NuGetPackageToIncludeInVsix Include="System.Security.Cryptography.Primitives" />
-    <NuGetPackageToIncludeInVsix Include="System.Security.Cryptography.X509Certificates" />
-    <NuGetPackageToIncludeInVsix Include="System.Security.Principal.Windows" />
-    <NuGetPackageToIncludeInVsix Include="System.Text.Encoding" />
     <NuGetPackageToIncludeInVsix Include="System.Text.Encoding.CodePages" />
-    <NuGetPackageToIncludeInVsix Include="System.Text.Encoding.Extensions" />
-    <NuGetPackageToIncludeInVsix Include="System.Text.RegularExpressions" />
-    <NuGetPackageToIncludeInVsix Include="System.Threading.Tasks.Parallel" />
-    <NuGetPackageToIncludeInVsix Include="System.Threading.Thread" />
-    <NuGetPackageToIncludeInVsix Include="System.Xml.ReaderWriter" />
-    <NuGetPackageToIncludeInVsix Include="System.Xml.XDocument" />
-    <NuGetPackageToIncludeInVsix Include="System.Xml.XmlDocument" />
-    <NuGetPackageToIncludeInVsix Include="System.Xml.XPath.XDocument" />
-    <NuGetPackageToIncludeInVsix Include="System.ValueTuple" />
   </ItemGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />

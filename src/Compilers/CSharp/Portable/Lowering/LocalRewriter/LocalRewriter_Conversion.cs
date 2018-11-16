@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var result = MakeConversionNode(node, node.Syntax, rewrittenOperand, node.Conversion, node.Checked, node.ExplicitCastInCode, node.ConstantValue, rewrittenType);
 
             var toType = node.Type;
-            Debug.Assert(result.Type.Equals(toType, TypeCompareKind.IgnoreDynamicAndTupleNames));
+            Debug.Assert(result.Type.Equals(toType, TypeCompareKind.IgnoreDynamicAndTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes));
 
             // 4.1.6 C# spec: To force a value of a floating point type to the exact precision of its type, an explicit cast can be used.
             // It means that explicit casts to (double) or (float) should be preserved on the node.
@@ -241,7 +241,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         // we keep tuple literal conversions in the tree for the purpose of semantic model (for example when they are casts in the source)
                         // for the purpose of lowering/codegeneration they are identity conversions.
-                        Debug.Assert(rewrittenOperand.Type.Equals(rewrittenType, TypeCompareKind.IgnoreDynamicAndTupleNames));
+                        Debug.Assert(rewrittenOperand.Type.Equals(rewrittenType, TypeCompareKind.IgnoreDynamicAndTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes));
                         return rewrittenOperand;
                     }
 

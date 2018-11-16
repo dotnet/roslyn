@@ -63,6 +63,15 @@ namespace Microsoft.CodeAnalysis
         public string OutputRefFilePath => _projectState.OutputRefFilePath;
 
         /// <summary>
+        /// The default namespace of the project ("" if not defined, which means global namespace),
+        /// or null if it is unknown or not applicable. 
+        /// </summary>
+        /// <remarks>
+        /// This only has meaning in C# and is explicitly set to null in VB.
+        /// </remarks>>
+        internal string DefaultNamespace => _projectState.DefaultNamespace;
+
+        /// <summary>
         /// <see langword="true"/> if this <see cref="Project"/> supports providing data through the
         /// <see cref="GetCompilationAsync(CancellationToken)"/> method.
         /// 
@@ -340,6 +349,14 @@ namespace Microsoft.CodeAnalysis
         public Project WithAssemblyName(string assemblyName)
         {
             return this.Solution.WithProjectAssemblyName(this.Id, assemblyName).GetProject(this.Id);
+        }
+
+        /// <summary>
+        /// Creates a new instance of this project updated to have the new default namespace.
+        /// </summary>
+        internal Project WithDefaultNamespace(string defaultNamespace)
+        {
+            return this.Solution.WithProjectDefaultNamespace(this.Id, defaultNamespace).GetProject(this.Id);
         }
 
         /// <summary>

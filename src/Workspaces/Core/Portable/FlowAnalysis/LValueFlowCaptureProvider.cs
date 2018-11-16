@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
     /// Helper class to detect <see cref="IFlowCaptureOperation"/>s that are l-value captures.
     /// L-value captures are essentially captures of a symbol's location/address.
     /// Corresponding <see cref="IFlowCaptureReferenceOperation"/>s which share the same
-    /// <see cref="CaptureId"/> as this flow capture, dereferences and writes to this locaion
+    /// <see cref="CaptureId"/> as this flow capture, dereferences and writes to this location
     /// subsequently in the flow graph.
     /// For example, consider the below code:
     ///     a[i] = x ?? a[j];
@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
     ///     FCR0 = result
     /// </summary>
     /// <remarks>
-    /// NOTE: This type is a temporary workaround for https://github.com/dotnet/roslyn/issues/31007
+    /// NOTE: This type is a workaround for https://github.com/dotnet/roslyn/issues/31007
     /// and it can be deleted once that feature is implemented.
     /// </remarks>
     internal static class LValueFlowCapturesProvider

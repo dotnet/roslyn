@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         public abstract void SetCurrentAnalysisData(BasicBlock basicBlock, TBlockAnalysisData data);
 
         /// <summary>
-        /// Analyze the given basic block and return the block analysis data at the end of the block for it's succesors.
+        /// Analyze the given basic block and return the block analysis data at the end of the block for its successors.
         /// </summary>
         public abstract TBlockAnalysisData AnalyzeBlock(BasicBlock basicBlock, CancellationToken cancellationToken);
 

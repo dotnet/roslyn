@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.ComponentModelHost;
+using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
@@ -127,9 +128,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 
         public void UpdatePreview(string text)
         {
-            var service = MefV1HostServices.Create(_componentModel.DefaultExportProvider);
+            var service = VisualStudioMefHostServices.Create(_componentModel.GetService<ExportProvider>());
             var workspace = new PreviewWorkspace(service);
-            var fileName = string.Format("project.{0}", Language == "C#" ? "csproj" : "vbproj");
+            var fileName = "project." + (Language == "C#" ? "csproj" : "vbproj");
             var project = workspace.CurrentSolution.AddProject(fileName, "assembly.dll", Language);
 
             // use the mscorlib, system, and system.core that are loaded in the current process.

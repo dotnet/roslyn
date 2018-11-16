@@ -41,6 +41,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         public const string MoveToTopOfFile = nameof(MoveToTopOfFile);
         public const string PopulateSwitch = nameof(PopulateSwitch);
         public const string QualifyMemberAccess = nameof(QualifyMemberAccess);
+        public const string ReplaceDefaultLiteral = nameof(ReplaceDefaultLiteral);
         public const string RemoveUnnecessaryCast = nameof(RemoveUnnecessaryCast);
         public const string DeclareAsNullable = nameof(DeclareAsNullable);
         public const string RemoveUnnecessaryImports = nameof(RemoveUnnecessaryImports);

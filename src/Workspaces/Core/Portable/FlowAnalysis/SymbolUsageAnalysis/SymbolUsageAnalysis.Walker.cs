@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
                 }
 
                 if (isWrittenTo)
-                {   
+                {
                     // maybeWritten == 'ref' argument.
                     OnWriteReferenceFound(symbol, operation, maybeWritten: valueUsageInfo == ValueUsageInfo.ReadableWritableReference);
                 }
@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
                         _pendingWritesMap.Add(assignmentOperation, set);
                         return true;
                     }
-                    else if(operation.IsInLeftOfDeconstructionAssignment(out var deconstructionAssignment))
+                    else if (operation.IsInLeftOfDeconstructionAssignment(out var deconstructionAssignment))
                     {
                         if (!_pendingWritesMap.TryGetValue(deconstructionAssignment, out var set))
                         {
@@ -291,7 +291,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
                     AnalyzePossibleDelegateInvocation(operation.Value, isInvocation: false);
                 }
             }
-            
+
             public override void VisitLocalFunction(ILocalFunctionOperation operation)
             {
                 // Skip visiting if we are doing an operation tree walk.
@@ -432,7 +432,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
                     _currentAnalysisData.ResetState();
                     return;
                 }
-                
+
                 switch (targets.Count)
                 {
                     case 0:
@@ -454,7 +454,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
                             // We have this logic in the default case.
                             goto default;
                         }
-                        
+
                         break;
 
                     default:

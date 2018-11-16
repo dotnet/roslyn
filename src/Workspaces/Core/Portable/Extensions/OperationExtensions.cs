@@ -1,16 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Operations;
-using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Simplification;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -42,7 +33,7 @@ namespace Microsoft.CodeAnalysis
             | typeof(x)       |      |       |             |             |       ✔️        | ️
             | out var x       |      |  ✔️   |             |             |                 | ️
             | case X x:       |      |  ✔️   |             |             |                 | ️
-            | obj is X x      |  ✔️  |  ✔️   |             |             |                 |
+            | obj is X x      |      |  ✔️   |             |             |                 |
 
             */
             if (operation is ILocalReferenceOperation localReference &&
@@ -76,7 +67,7 @@ namespace Microsoft.CodeAnalysis
 
                     default:
                         Debug.Fail("Unhandled declaration pattern context");
-                        
+
                         // Conservatively assume read/write.
                         return ValueUsageInfo.ReadWrite;
                 }

@@ -1,5 +1,4 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
-
 using System.Collections.Immutable;
 using System.Reflection;
 using System.Threading;
@@ -27,28 +26,6 @@ namespace Microsoft.CodeAnalysis.Host.Mef
             s_defaultServices = null;
         }
 
-        private static ImmutableArray<Assembly> s_defaultAssemblies;
-        public static ImmutableArray<Assembly> DefaultAssemblies
-        {
-            get
-            {
-                if (s_defaultAssemblies == null)
-                {
-                    ImmutableInterlocked.InterlockedCompareExchange(ref s_defaultAssemblies, CreateDefaultAssemblies(), default);
-                }
-
-                return s_defaultAssemblies;
-            }
-        }
-
-        private static ImmutableArray<Assembly> CreateDefaultAssemblies()
-        {
-            var assemblyNames = new string[]
-            {
-                "Microsoft.CodeAnalysis.Workspaces.Desktop",
-            };
-
-            return MefHostServices.DefaultAssemblies.Concat(MefHostServices.LoadNearbyAssemblies(assemblyNames));
-        }
+        public static ImmutableArray<Assembly> DefaultAssemblies => MefHostServices.DefaultAssemblies;
     }
 }
