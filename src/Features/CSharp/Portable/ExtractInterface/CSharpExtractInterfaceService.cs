@@ -46,46 +46,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractInterface
             return span.IntersectsWith(position) ? typeDeclaration : null;
         }
 
-        private SyntaxNode UpdateTypeWithInterface(
-            INamedTypeSymbol extractedInterfaceSymbol,
-            SyntaxAnnotation typeNodeAnnotation,
-            TypeDeclarationSyntax typeDeclaration)
-        {
-            var implementedInterfaceTypeSyntax = GetTypeSyntaxFromNamedSymbol(extractedInterfaceSymbol);
-            var baseList = typeDeclaration.BaseList ?? SyntaxFactory.BaseList();
-            var updatedBaseList = baseList.WithTypes(SyntaxFactory.SeparatedList(baseList.Types.Union(new[] { SyntaxFactory.SimpleBaseType(implementedInterfaceTypeSyntax) })));
-
-            if (!baseList.Types.Any())
-            {
-                // If we're adding the first element to the base list, then we need to move 
-                // trivia from the type name itself to the end of the base list
-
-                updatedBaseList = updatedBaseList.WithLeadingTrivia(SyntaxFactory.Space);
-
-                if (typeDeclaration.TypeParameterList != null)
-                {
-                    updatedBaseList = updatedBaseList.WithTrailingTrivia(typeDeclaration.TypeParameterList.GetTrailingTrivia());
-                    typeDeclaration = typeDeclaration.WithTypeParameterList(typeDeclaration.TypeParameterList.WithoutTrailingTrivia());
-                }
-                else
-                {
-                    updatedBaseList = updatedBaseList.WithTrailingTrivia(typeDeclaration.Identifier.TrailingTrivia);
-                    typeDeclaration = typeDeclaration.WithIdentifier(typeDeclaration.Identifier.WithTrailingTrivia());
-                }
-            }
-
-            return typeDeclaration.WithBaseList(updatedBaseList.WithAdditionalAnnotations(Formatter.Annotation));
-        }
-
-        private TypeSyntax GetTypeSyntaxFromNamedSymbol(INamedTypeSymbol extractedInterfaceSymbol)
-        {
-            return extractedInterfaceSymbol.TypeParameters.Any()
-                ? SyntaxFactory.GenericName(
-                    SyntaxFactory.Identifier(extractedInterfaceSymbol.Name),
-                    SyntaxFactory.TypeArgumentList(SyntaxFactory.SeparatedList(extractedInterfaceSymbol.TypeParameters.Select(p => SyntaxFactory.ParseTypeName(p.Name)))))
-                : SyntaxFactory.ParseTypeName(extractedInterfaceSymbol.Name);
-        }
-
         internal override string GetGeneratedNameTypeParameterSuffix(IList<ITypeParameterSymbol> typeParameters, Workspace workspace)
         {
             if (typeParameters.IsEmpty())
@@ -113,46 +73,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractInterface
         {
             var typeDeclaration = typeNode as TypeDeclarationSyntax;
             return typeDeclaration.Modifiers.Any(m => SyntaxFacts.IsAccessibilityModifier(m.Kind()));
-        }
-
-        internal Solution GetSolutionWithSameFileUpdated(
-            Solution solution,
-            INamedTypeSymbol extractedInterfaceSymbol,
-            IEnumerable<ISymbol> includedMembers,
-            Dictionary<ISymbol, SyntaxAnnotation> symbolToDeclarationAnnotationMap,
-            List<DocumentId> documentIds,
-            SyntaxAnnotation typeNodeAnnotation,
-            DocumentId documentIdWithTypeNode,
-            CancellationToken cancellationToken)
-        {
-            var document = solution.GetDocument(documentIdWithTypeNode);
-            var originalRoot = document.GetSyntaxRootSynchronously(cancellationToken);
-            var typeDeclaration = originalRoot.GetAnnotatedNodes<TypeDeclarationSyntax>(typeNodeAnnotation).Single();
-
-            document = document.WithSyntaxRoot(originalRoot.TrackNodes(typeDeclaration));
-
-            var currentRoot = document.GetSyntaxRootSynchronously(cancellationToken);
-            var editor = new SyntaxEditor(currentRoot, CSharpSyntaxGenerator.Instance);
-
-            typeDeclaration = currentRoot.GetCurrentNode(typeDeclaration);
-
-            var interfaceTypeSyntax = GetTypeSyntaxFromNamedSymbol(extractedInterfaceSymbol);
-
-            var languageService = solution.Workspace.Services.GetLanguageServices(LanguageNames.CSharp);
-            var codeGenService = languageService.GetService<ICodeGenerationService>();
-            var interfaceNode = codeGenService.CreateNamedTypeDeclaration(extractedInterfaceSymbol).WithAdditionalAnnotations(SimplificationHelpers.SimplifyModuleNameAnnotation);
-
-            editor.InsertBefore(typeDeclaration, interfaceNode);
-
-            var updatedDeclaration = UpdateTypeWithInterface(extractedInterfaceSymbol, typeNodeAnnotation, typeDeclaration);
-            editor.ReplaceNode(typeDeclaration, updatedDeclaration);
-
-            var newRoot = Formatter.Format(editor.GetChangedRoot(), solution.Workspace, cancellationToken: cancellationToken);
-            var simplificationService = languageService.GetService<ISimplificationService>();
-            var newDocument = document.WithSyntaxRoot(newRoot);
-            newDocument = simplificationService.ReduceAsync(newDocument, ArrayBuilder<TextSpan>.GetInstance(1, interfaceNode.Span).AsImmutable()).WaitAndGetResult_CanCallOnBackground(cancellationToken);
-
-            return solution.WithDocumentSyntaxRoot(documentIdWithTypeNode, newDocument.GetSyntaxRootSynchronously(cancellationToken), PreservationMode.PreserveIdentity);
         }
 
         internal override Solution UpdateMembersWithExplicitImplementations(

@@ -74,38 +74,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractInterface
             Return fullDisplayName
         End Function
 
-        Private Function UpdateTypeWithImplementsClause(
-            solutionWithInterfaceDocument As Solution,
-            invocationLocationDocument As DocumentId,
-            typeNodeAnnotation As SyntaxAnnotation,
-            extractedInterfaceSymbol As INamedTypeSymbol,
-            docToRootMap As Dictionary(Of DocumentId, CompilationUnitSyntax),
-            cancellationToken As CancellationToken) As String
-
-            Dim documentWithTypeNode = solutionWithInterfaceDocument.GetDocument(invocationLocationDocument)
-            Dim typeDeclaration = documentWithTypeNode.GetSyntaxRootSynchronously(cancellationToken).GetAnnotatedNodes(Of TypeBlockSyntax)(typeNodeAnnotation).Single()
-
-            Dim implementedInterfaceStatementSyntax = If(extractedInterfaceSymbol.TypeParameters.Any(),
-                SyntaxFactory.GenericName(
-                    SyntaxFactory.Identifier(extractedInterfaceSymbol.Name),
-                    SyntaxFactory.TypeArgumentList(SyntaxFactory.SeparatedList(extractedInterfaceSymbol.TypeParameters.Select(Function(p) SyntaxFactory.ParseTypeName(p.Name))))),
-                SyntaxFactory.ParseTypeName(extractedInterfaceSymbol.Name))
-
-            Dim newImplementsStatement = SyntaxFactory.ImplementsStatement(implementedInterfaceStatementSyntax).WithTrailingTrivia(SyntaxFactory.CarriageReturnLineFeed).WithAdditionalAnnotations(Formatter.Annotation)
-            Dim updatedImplementsList = typeDeclaration.Implements.Add(newImplementsStatement)
-            Dim updatedTypeDeclaration = typeDeclaration.WithImplements(updatedImplementsList)
-
-            Dim docId = solutionWithInterfaceDocument.GetDocument(typeDeclaration.SyntaxTree).Id
-            Dim updatedRoot = solutionWithInterfaceDocument.GetDocument(docId).
-                                                            GetSyntaxRootSynchronously(cancellationToken).
-                                                            ReplaceNode(typeDeclaration, updatedTypeDeclaration)
-            Dim updatedCompilationUnit = CType(updatedRoot, CompilationUnitSyntax)
-
-            docToRootMap.Add(docId, updatedCompilationUnit)
-
-            Return Formatter.Format(implementedInterfaceStatementSyntax, solutionWithInterfaceDocument.Workspace).ToFullString()
-        End Function
-
         Private Function GetUpdatedImplementsClause(implementsClause As ImplementsClauseSyntax, qualifiedName As QualifiedNameSyntax) As ImplementsClauseSyntax
             If implementsClause IsNot Nothing Then
                 Return implementsClause.AddInterfaceMembers(qualifiedName).WithAdditionalAnnotations(Formatter.Annotation)
