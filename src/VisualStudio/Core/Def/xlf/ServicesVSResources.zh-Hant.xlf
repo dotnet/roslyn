@@ -22,11 +22,6 @@
         <target state="translated">元素無效。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Finish">
-        <source>Finish</source>
-        <target state="new">Finish</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Highlight_related_components_under_cursor">
         <source>Highlight related components under cursor</source>
         <target state="new">Highlight related components under cursor</target>
