@@ -45,15 +45,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Build the decision dag, giving an error if some cases are subsumed and an error if the switch expression is not exhaustive.
-        /// Returns true if there was a non-exhaustive warning reported.
+        /// Build the decision dag, giving an error if some cases are subsumed and a warning if the switch expression is not exhaustive.
         /// </summary>
         /// <param name="node"></param>
         /// <param name="boundInputExpression"></param>
         /// <param name="switchArms"></param>
         /// <param name="decisionDag"></param>
         /// <param name="diagnostics"></param>
-        /// <returns>true if the switch expression is not exhaustive</returns>
+        /// <returns>true if there was a non-exhaustive warning reported</returns>
         private bool CheckSwitchExpressionExhaustive(
             SwitchExpressionSyntax node,
             BoundExpression boundInputExpression,
