@@ -136,9 +136,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.SyncNamespace
             // The name will be resolved by adding proper import.
             old = @new = nameRef;
             return false;
-
-            bool IsGlobalNamespace(ImmutableArray<string> parts)
-                => parts.Length == 1 && parts[0].Length == 0;
         }
 
         protected override string EscapeIdentifier(string identifier)
@@ -178,12 +175,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.SyncNamespace
 
             SyntaxNode GetTriggeringNode(CompilationUnitSyntax compUnit, int pos)
             {
-                var namespaceDecls = compilationUnit.DescendantNodes().OfType<NamespaceDeclarationSyntax>().ToImmutableArray();
+                var namespaceDecls = compilationUnit.DescendantNodes(n => n is CompilationUnitSyntax || n is NamespaceDeclarationSyntax)
+                    .OfType<NamespaceDeclarationSyntax>().ToImmutableArray();
 
                 if (namespaceDecls.Length == 1 && compilationUnit.Members.Count == 1)
                 {
-                    var namespaceDeclaration = namespaceDecls.Single();
-                    Debug.Assert(namespaceDeclaration == compilationUnit.Members.Single());
+                    var namespaceDeclaration = namespaceDecls[0];
+                    Debug.Assert(namespaceDeclaration == compilationUnit.Members[0]);
 
                     if (namespaceDeclaration.Name.Span.IntersectsWith(position)
                         && namespaceDeclaration.Name.GetDiagnostics().All(diag => diag.DefaultSeverity != DiagnosticSeverity.Error))
@@ -223,7 +221,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.SyncNamespace
             Debug.Assert(!declaredNamespaceParts.IsDefault && !targetNamespaceParts.IsDefault);
 
             // Move everything from global namespace to a namespace declaration
-            if (declaredNamespaceParts.Length == 1 && declaredNamespaceParts[0].Length == 0)
+            if (IsGlobalNamespace(declaredNamespaceParts))
             {
                 var targetNamespaceDecl = SyntaxFactory.NamespaceDeclaration(
                     name: CreateNameSyntax(targetNamespaceParts, aliasQualifier: null, targetNamespaceParts.Length - 1)
@@ -238,7 +236,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.SyncNamespace
             var namespaceDeclaration = compilationUnit.DescendantNodes().OfType<NamespaceDeclarationSyntax>().Single();
 
             // Move everything to global namespace
-            if (targetNamespaceParts.Length == 1 && targetNamespaceParts[0].Length == 0)
+            if (IsGlobalNamespace(targetNamespaceParts))
             {
                 var (namespaceOpeningTrivia, namespaceClosingTrivia) = 
                     GetOpeningAndClosingTriviaOfNamespaceDeclaration(namespaceDeclaration);
@@ -288,8 +286,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.SyncNamespace
             return compilationUnit.ReplaceNode(namespaceDeclaration, 
                 namespaceDeclaration.WithName(
                     CreateNameSyntax(targetNamespaceParts, aliasQualifier: null, targetNamespaceParts.Length - 1)
-                    .WithTriviaFrom(namespaceDeclaration.Name)));
+                        .WithTriviaFrom(namespaceDeclaration.Name)
+                        .WithAdditionalAnnotations(WarningAnnotation)));
         }
+
+        private static bool IsGlobalNamespace(ImmutableArray<string> parts)
+            => parts.Length == 1 && parts[0].Length == 0;
 
         private static string GetAliasQualifierOpt(SyntaxNode name)
         {

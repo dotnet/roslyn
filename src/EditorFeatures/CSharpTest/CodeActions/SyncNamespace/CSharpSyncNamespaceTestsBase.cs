@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace;
 using Microsoft.CodeAnalysis.CSharp.CodeRefactorings.SyncNamespace;
@@ -172,6 +173,26 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.SyncNamespa
                     Assert.True(expectedSourceReference == null || changedDocumentIds.Contains(refDocumentId), "reference document was not changed.");
 
                     var modifiedOriginalDocument = newSolution.GetDocument(originalDocumentId);
+                    var modifiedOringinalRoot = await modifiedOriginalDocument.GetSyntaxRootAsync();
+
+                    // One node/token will contain the warning we attached for change namespace action.
+                    Assert.Single(modifiedOringinalRoot.DescendantNodesAndTokensAndSelf().Where(n =>
+                        {
+                            IEnumerable<SyntaxAnnotation> annotations;
+                            if (n.IsNode)
+                            {
+                                annotations = n.AsNode().GetAnnotations(WarningAnnotation.Kind);
+                            }
+                            else
+                            {
+                                annotations = n.AsToken().GetAnnotations(WarningAnnotation.Kind);
+                            }
+
+                            return annotations.Any(annotation => 
+                                WarningAnnotation.GetDescription(annotation) == FeaturesResources.Warning_colon_changing_namespace_may_produce_invalid_code_and_change_code_meaning);
+                        }));
+
+
                     var actualText = (await modifiedOriginalDocument.GetTextAsync()).ToString();
                     Assert.Equal(expectedSourceOriginal, actualText);
 

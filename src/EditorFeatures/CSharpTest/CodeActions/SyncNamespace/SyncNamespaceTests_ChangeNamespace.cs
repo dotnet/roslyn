@@ -1125,18 +1125,6 @@ namespace Foo
             await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
         }
 
-
-
-
-
-
-
-
-
-
-
-
-
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSyncNamespace)]
         public async Task ChangeFromGlobalNamespace_SingleDocumentNoRef()
         {

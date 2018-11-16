@@ -382,7 +382,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
             {
                 var editor = await DocumentEditor.CreateAsync(document, cancellationToken).ConfigureAwait(false);
                 var root = editor.OriginalRoot;
-                var containers = new HashSet<SyntaxNode>();
+                var containers = PooledHashSet<SyntaxNode>.GetInstance();
 
                 var generator = SyntaxGenerator.GetGenerator(document);
                 var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
@@ -432,7 +432,10 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
 
                 var fixedDocument = editor.GetChangedDocument();
                 root = await fixedDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-                return (fixedDocument, containers.Select(c => root.GetCurrentNode(c)).ToImmutableArray());
+                var result = (fixedDocument, containers.SelectAsArray(c => root.GetCurrentNode(c)));
+
+                containers.Free();
+                return result;
             }
 
             private async Task<Solution> RemoveUnnecessaryImportsAsync(

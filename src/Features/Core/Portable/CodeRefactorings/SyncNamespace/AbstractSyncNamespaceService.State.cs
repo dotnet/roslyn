@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -159,42 +160,51 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
                 // (See `ShouldPositionTriggerRefactoringAsync`), or we are getting different namespace declarations among 
                 // those documents, then we know we can't make a proper code change. We will return false and the refactoring 
                 // will then bail. We use span of namespace declaration found in each document to decide if they are identical.
-                var spansForNamespaceDeclaration = new Dictionary<TextSpan, TNamespaceDeclarationSyntax>();
-                foreach (var document in documents)
-                {
-                    var compilationUnitOrNamespaceDeclOpt = await service.ShouldPositionTriggerRefactoringAsync(document, textSpan.Start, cancellationToken)
-                        .ConfigureAwait(false);
 
-                    if (compilationUnitOrNamespaceDeclOpt is TNamespaceDeclarationSyntax namespaceDeclaration)
+                var spansForNamespaceDeclaration = PooledDictionary<TextSpan, TNamespaceDeclarationSyntax>.GetInstance();
+
+                try
+                {
+                    foreach (var document in documents)
                     {
-                        spansForNamespaceDeclaration[namespaceDeclaration.Span] = namespaceDeclaration;
+                        var compilationUnitOrNamespaceDeclOpt = await service.ShouldPositionTriggerRefactoringAsync(document, textSpan.Start, cancellationToken)
+                            .ConfigureAwait(false);
+
+                        if (compilationUnitOrNamespaceDeclOpt is TNamespaceDeclarationSyntax namespaceDeclaration)
+                        {
+                            spansForNamespaceDeclaration[namespaceDeclaration.Span] = namespaceDeclaration;
+                        }
+                        else if (compilationUnitOrNamespaceDeclOpt is TCompilationUnitSyntax)
+                        {
+                            // In case there's no namespace declaration in the document, we used an empty span as key, 
+                            // since a valid namespace declaration node can't have zero length.
+                            spansForNamespaceDeclaration[default] = null;
+                        }
+                        else
+                        {
+                            return default;
+                        }
                     }
-                    else if (compilationUnitOrNamespaceDeclOpt is TCompilationUnitSyntax)
-                    {
-                        // In case there's no namespace declaration in the document, we used an empty span as key, 
-                        // since a valid namespace declaration node can't have zero length.
-                        spansForNamespaceDeclaration[default] = null;
-                    }
-                    else
+
+                    if (spansForNamespaceDeclaration.Count != 1)
                     {
                         return default;
                     }
-                }
 
-                if (spansForNamespaceDeclaration.Count != 1)
+                    var namespaceDecl = spansForNamespaceDeclaration.Values.Single();
+                    var declaredNamespace = namespaceDecl == null
+                        // namespaceDecl == null means the target namespace is global namespace.
+                        ? string.Empty
+                        // Since the node in each document has identical type and span, 
+                        // they should have same name.
+                        : SyntaxGenerator.GetGenerator(documents.First()).GetName(namespaceDecl);
+
+                    return (true, declaredNamespace);
+                }
+                finally
                 {
-                    return default;
+                    spansForNamespaceDeclaration.Free();
                 }
-
-                var namespaceDecl = spansForNamespaceDeclaration.Values.Single();
-                var declaredNamespace = namespaceDecl == null
-                    // namespaceDecl == null means the target namespace is global namespace.
-                    ? string.Empty
-                    // Since the node in each document has identical type and span, 
-                    // they should have same name.
-                    : SyntaxGenerator.GetGenerator(documents.First()).GetName(namespaceDecl);
-
-                return (true, declaredNamespace);
             }
 
             public static async Task<State> CreateAsync(
