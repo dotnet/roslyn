@@ -1053,6 +1053,100 @@ class C
             CompileAndVerify(comp, expectedOutput: "1 2 Stream1:3 4 2 1 2 Stream2:3 4 2 Done");
         }
 
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [WorkItem(30275, "https://github.com/dotnet/roslyn/issues/30275")]
+        public void CallingGetEnumeratorTwice3()
+        {
+            string source = @"
+using static System.Console;
+class C
+{
+    static async System.Collections.Generic.IAsyncEnumerable<int> M(int value)
+    {
+        yield return 0;
+        Write(""1 "");
+        await System.Threading.Tasks.Task.CompletedTask;
+        Write(""2 "");
+        yield return 3;
+        Write(""4 "");
+        value++;
+        Write($""{value} "");
+    }
+    static async System.Threading.Tasks.Task Main()
+    {
+        var enumerable = M(1);
+        var enumerator1 = enumerable.GetAsyncEnumerator();
+        if (!await enumerator1.MoveNextAsync()) throw null;
+        Write($""Stream1:{enumerator1.Current} "");
+
+        var enumerator2 = enumerable.GetAsyncEnumerator();
+
+        if (!await enumerator2.MoveNextAsync()) throw null;
+        Write($""Stream2:{enumerator2.Current} "");
+
+        if (!await enumerator1.MoveNextAsync()) throw null;
+        Write($""Stream1:{enumerator1.Current} "");
+        if (await enumerator1.MoveNextAsync()) throw null;
+        await enumerator1.DisposeAsync();
+
+        if (!await enumerator2.MoveNextAsync()) throw null;
+        Write($""Stream2:{enumerator2.Current} "");
+        if (await enumerator2.MoveNextAsync()) throw null;
+        await enumerator2.DisposeAsync();
+
+        Write(""Done"");
+    }
+}";
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, s_common }, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "Stream1:0 Stream2:0 1 2 Stream1:3 4 2 1 2 Stream2:3 4 2 Done");
+        }
+
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [WorkItem(30275, "https://github.com/dotnet/roslyn/issues/30275")]
+        public void CallingGetEnumeratorTwice4()
+        {
+            string source = @"
+using System.Threading.Tasks;
+using static System.Console;
+class C
+{
+    static async System.Collections.Generic.IAsyncEnumerable<int> M(int value)
+    {
+        yield return 0;
+        Write(""1 "");
+        await Task.Delay(10);
+        Write(""2 "");
+        yield return 3;
+        await Task.Delay(10);
+        Write(""4 "");
+        value++;
+        await Task.Delay(10);
+        Write($""{value} "");
+        await Task.Delay(10);
+    }
+    static async System.Threading.Tasks.Task Main()
+    {
+        var enumerable = M(41);
+        await foreach (var item1 in enumerable)
+        {
+            Write($""Stream1:{item1} "");
+        }
+        Write(""Await "");
+        await Task.Delay(10);
+        await foreach (var item2 in enumerable)
+        {
+            Write($""Stream2:{item2} "");
+        }
+
+        Write(""Done"");
+    }
+}";
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, s_common }, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "Stream1:0 1 2 Stream1:3 4 42 Await Stream2:0 1 2 Stream2:3 4 42 Done");
+        }
+
         [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void AsyncIteratorWithAwaitCompletedAndYield()
         {
