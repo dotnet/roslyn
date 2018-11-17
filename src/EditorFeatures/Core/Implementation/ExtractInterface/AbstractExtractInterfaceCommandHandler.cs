@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using VSCommanding = Microsoft.VisualStudio.Commanding;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.ExtractInterface
 {
@@ -70,11 +71,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ExtractInterface
             // and also will take it into consideration when measuring command handling duration.
             context.OperationContext.TakeOwnership();
             var extractInterfaceService = document.GetLanguageService<AbstractExtractInterfaceService>();
-            var result = extractInterfaceService.ExtractInterface(
+            var result = extractInterfaceService.ExtractInterfaceAsync(
                 document,
                 caretPoint.Value.Position,
                 (errorMessage, severity) => workspace.Services.GetService<INotificationService>().SendNotification(errorMessage, severity: severity),
-                CancellationToken.None);
+                CancellationToken.None).WaitAndGetResult_CanCallOnBackground(CancellationToken.None);
 
             if (result == null || !result.Succeeded)
             {

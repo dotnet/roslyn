@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.VisualBasic.ExtractInterface;
 using Microsoft.VisualStudio.Composition;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.ExtractInterface
 {
@@ -77,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ExtractInterface
 
         public ExtractInterfaceResult ExtractViaCommand()
         {
-            return ExtractInterfaceService.ExtractInterface(
+            return ExtractInterfaceService.ExtractInterfaceAsync(
                 ExtractFromDocument,
                 _testDocument.CursorPosition.Value,
                 (errorMessage, severity) =>
@@ -85,7 +86,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ExtractInterface
                     this.ErrorMessage = errorMessage;
                     this.ErrorSeverity = severity;
                 },
-                CancellationToken.None);
+                CancellationToken.None).WaitAndGetResult_CanCallOnBackground(CancellationToken.None);
         }
 
         public void Dispose()
