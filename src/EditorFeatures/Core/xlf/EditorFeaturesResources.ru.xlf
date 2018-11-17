@@ -57,6 +57,11 @@
         <target state="new">Keyword - Control</target>
         <note />
       </trans-unit>
+      <trans-unit id="Operator_Overload">
+        <source>Operator - Overload</source>
+        <target state="new">Operator - Overload</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Paste_Tracking">
         <source>Paste Tracking</source>
         <target state="new">Paste Tracking</target>

@@ -1327,5 +1327,81 @@ class X
                 Punctuation.CloseCurly,
                 Punctuation.CloseCurly);
         }
+
+        [WorkItem(29492, "https://github.com/dotnet/roslyn/issues/29492")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestOperatorOverloading()
+        {
+            await TestAsync(@"
+class C
+{
+    void M()
+    {
+        var a = 1 + 1;
+        var b = new True() + new True();
+    }
+}
+class True
+{
+    public static True operator +(True a, True b)
+    {
+         return new True();
+    }
+}",
+    Keyword("class"),
+    Class("C"),
+    Punctuation.OpenCurly,
+    Keyword("void"),
+    Method("M"),
+    Punctuation.OpenParen,
+    Punctuation.CloseParen,
+    Punctuation.OpenCurly,
+    Keyword("var"),
+    Local("a"),
+    Operators.Equals,
+    Number("1"),
+    Operators.Plus,
+    Number("1"),
+    Punctuation.Semicolon,
+    Keyword("var"),
+    Local("b"),
+    Operators.Equals,
+    Keyword("new"),
+    Class("True"),
+    Punctuation.OpenParen,
+    Punctuation.CloseParen,
+    OverloadedOperators.Plus,
+    Keyword("new"),
+    Class("True"),
+    Punctuation.OpenParen,
+    Punctuation.CloseParen,
+    Punctuation.Semicolon,
+    Punctuation.CloseCurly,
+    Punctuation.CloseCurly,
+    Keyword("class"),
+    Class("True"),
+    Punctuation.OpenCurly,
+    Keyword("public"),
+    Keyword("static"),
+    Class("True"),
+    Keyword("operator"),
+    Operators.Plus,
+    Punctuation.OpenParen,
+    Class("True"),
+    Parameter("a"),
+    Punctuation.Comma,
+    Class("True"),
+    Parameter("b"),
+    Punctuation.CloseParen,
+    Punctuation.OpenCurly,
+    ControlKeyword("return"),
+    Keyword("new"),
+    Class("True"),
+    Punctuation.OpenParen,
+    Punctuation.CloseParen,
+    Punctuation.Semicolon,
+    Punctuation.CloseCurly,
+    Punctuation.CloseCurly);
+        }
     }
 }

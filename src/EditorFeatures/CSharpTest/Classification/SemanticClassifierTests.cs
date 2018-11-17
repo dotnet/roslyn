@@ -3263,5 +3263,125 @@ class X
                 Escape(@"{{"),
                 Escape(@"}}"));
         }
+
+        [WorkItem(29492, "https://github.com/dotnet/roslyn/issues/29492")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestOverloadedOperator_BinaryExpression()
+        {
+            await TestAsync(@"
+class C
+{
+    void M()
+    {
+        var a = 1 + 1;
+        var b = new True() + new True();
+    }
+}
+class True
+{
+    public static True operator +(True a, True b)
+    {
+         return new True();
+    }
+}",
+                Keyword("var"),
+                Keyword("var"),
+                Class("True"),
+                OverloadedOperators.Plus,
+                Class("True"),
+                Class("True"),
+                Class("True"),
+                Class("True"),
+                Class("True"));
+        }
+
+        [WorkItem(29492, "https://github.com/dotnet/roslyn/issues/29492")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestOverloadedOperator_PrefixUnaryExpression()
+        {
+            await TestAsync(@"
+class C
+{
+    void M()
+    {
+        var a = !false;
+        var b = !new True();
+    }
+}
+class True
+{
+    public static bool operator !(True a)
+    {
+         return false;
+    }
+}",
+                Keyword("var"),
+                Keyword("var"),
+                OverloadedOperators.Exclamation,
+                Class("True"),
+                Class("True"));
+        }
+
+        [WorkItem(29492, "https://github.com/dotnet/roslyn/issues/29492")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestOverloadedOperator_PostfixUnaryExpression()
+        {
+            await TestAsync(@"
+class C
+{
+    void M()
+    {
+        var a = 1;
+        a++;
+        var b = new True();
+        b++;
+    }
+}
+class True
+{
+    public static True operator ++(True a)
+    {
+         return new True();
+    }
+}",
+                Keyword("var"),
+                Local("a"),
+                Keyword("var"),
+                Class("True"),
+                Local("b"),
+                OverloadedOperators.PlusPlus,
+                Class("True"),
+                Class("True"),
+                Class("True"));
+        }
+
+        [WorkItem(29492, "https://github.com/dotnet/roslyn/issues/29492")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestOverloadedOperator_ConditionalExpression()
+        {
+            await TestAsync(@"
+class C
+{
+    void M()
+    {
+        var a = 1 == 1;
+        var b = new True() == new True();
+    }
+}
+class True
+{
+    public static bool operator ==(True a, True b)
+    {
+         return true;
+    }
+}",
+                Keyword("var"),
+                Keyword("var"),
+                Class("True"),
+                OverloadedOperators.EqualsEquals,
+                Class("True"),
+                Class("True"),
+                Class("True"));
+        }
     }
 }

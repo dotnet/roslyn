@@ -875,4 +875,7 @@ Do you want to proceed?</value>
   <data name="Symbol_Static" xml:space="preserve">
     <value>Symbol - Static</value>
   </data>
+  <data name="Operator_Overload" xml:space="preserve">
+    <value>Operator - Overload</value>
+  </data>
 </root>

@@ -760,5 +760,52 @@ End Sub"
             Await TestInClassAsync(code,
                 [Label]("E"))
         End Function
+
+        <WorkItem(29492, "https://github.com/dotnet/roslyn/issues/29492")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        Public Async Function TestOperatorOverloads_BinaryExpression() As Task
+            Dim code =
+"Class C
+    Public Sub M(a As C)
+        Dim b = 1 + 1
+        Dim c = a + Me
+    End Sub
+
+    Public Shared Operator +(a As C, b As C) As C
+        Return New C
+    End Operator
+End Class"
+
+            Await TestAsync(code,
+                [Class]("C"),
+                Parameter("a"),
+                OverloadedOperators.Plus,
+                [Class]("C"),
+                [Class]("C"),
+                [Class]("C"),
+                [Class]("C"))
+        End Function
+
+        <WorkItem(29492, "https://github.com/dotnet/roslyn/issues/29492")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        Public Async Function TestOperatorOverloads_UnaryExpression() As Task
+            Dim code =
+"Class C
+    Public Sub M()
+        Dim b = -1
+        Dim c = -Me
+    End Sub
+
+    Public Shared Operator -(a As C) As C
+        Return New C
+    End Operator
+End Class"
+
+            Await TestAsync(code,
+                OverloadedOperators.Minus,
+                [Class]("C"),
+                [Class]("C"),
+                [Class]("C"))
+        End Function
     End Class
 End Namespace

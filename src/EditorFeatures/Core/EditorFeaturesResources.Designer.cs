@@ -1305,6 +1305,15 @@ namespace Microsoft.CodeAnalysis.Editor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Operator - Overload.
+        /// </summary>
+        internal static string Operator_Overload {
+            get {
+                return ResourceManager.GetString("Operator_Overload", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Organize Document.
         /// </summary>
         internal static string Organize_Document {

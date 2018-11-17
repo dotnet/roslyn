@@ -40,7 +40,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         internal ClassificationTypeDefinition ControlKeywordTypeDefinition;
         #endregion
 
-
         #region User Types - Classes
         [Export]
         [Name(ClassificationTypeNames.ClassName)]
@@ -333,5 +332,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         internal readonly ClassificationTypeDefinition StaticSymbolTypeDefinition;
         #endregion
 
+        #region Operator - Overload Name
+        [Export]
+        [Name(ClassificationTypeNames.OperatorOverload)]
+        [BaseDefinition(PredefinedClassificationTypeNames.Operator)]
+        internal readonly ClassificationTypeDefinition OperatorOverloadTypeDefinition;
+        #endregion
     }
 }
