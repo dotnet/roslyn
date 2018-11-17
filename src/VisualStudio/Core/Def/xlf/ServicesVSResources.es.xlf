@@ -99,7 +99,7 @@
       </trans-unit>
       <trans-unit id="We_notice_you_suspended_0_Reset_keymappings_to_continue_to_navigate_and_refactor">
         <source>We notice you suspended '{0}'. Reset keymappings to continue to navigate and refactor.</source>
-        <target state="translated">Observamos que ha suspendido "{0}'. Restablezca las asignaciones de teclado para continuar navegando y refactorizando.</target>
+        <target state="translated">Observamos que ha suspendido "{0}". Restablezca las asignaciones de teclado para continuar navegando y refactorizando.</target>
         <note />
       </trans-unit>
       <trans-unit id="You_must_select_at_least_one_member">
@@ -626,7 +626,7 @@ Use la lista desplegable para ver y cambiar a otros proyectos a los que puede pe
       </trans-unit>
       <trans-unit id="_0_encountered_an_error_and_has_been_disabled">
         <source>'{0}' encountered an error and has been disabled.</source>
-        <target state="translated">'{0}' detectó un error y se ha deshabilitado.</target>
+        <target state="translated">"{0}" detectó un error y se ha deshabilitado.</target>
         <note />
       </trans-unit>
       <trans-unit id="Enable">

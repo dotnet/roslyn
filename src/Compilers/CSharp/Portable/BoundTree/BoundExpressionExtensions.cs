@@ -217,8 +217,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return default;
             }
-            var isNullable = expr.IsNullableInternal();
-            return TypeSymbolWithAnnotations.Create(type, isNullable);
+            var annotation = expr.GetNullableAnnotation();
+            return TypeSymbolWithAnnotations.Create(type, annotation);
         }
 
         // https://github.com/dotnet/roslyn/issues/29618 Remove this method. Initial binding should not infer nullability.
@@ -230,35 +230,35 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// This method is not a replacement for the actual calculation of nullability through flow analysis
         /// which is handled in NullableWalker.
         /// </summary>
-        private static bool? IsNullableInternal(this BoundExpression expr)
+        private static NullableAnnotation GetNullableAnnotation(this BoundExpression expr)
         {
             switch (expr.Kind)
             {
                 case BoundKind.SuppressNullableWarningExpression:
-                    return null;
+                    return NullableAnnotation.Unknown;
                 case BoundKind.Local:
                     {
                         var local = (BoundLocal)expr;
-                        return local.IsNullableUnknown ? null : local.LocalSymbol.Type.IsNullable;
+                        return local.IsNullableUnknown ? NullableAnnotation.Unknown : local.LocalSymbol.Type.NullableAnnotation;
                     }
                 case BoundKind.Parameter:
-                    return ((BoundParameter)expr).ParameterSymbol.Type.IsNullable;
+                    return ((BoundParameter)expr).ParameterSymbol.Type.NullableAnnotation;
                 case BoundKind.FieldAccess:
-                    return ((BoundFieldAccess)expr).FieldSymbol.Type.IsNullable;
+                    return ((BoundFieldAccess)expr).FieldSymbol.Type.NullableAnnotation;
                 case BoundKind.PropertyAccess:
-                    return ((BoundPropertyAccess)expr).PropertySymbol.Type.IsNullable;
+                    return ((BoundPropertyAccess)expr).PropertySymbol.Type.NullableAnnotation;
                 case BoundKind.Call:
-                    return ((BoundCall)expr).Method.ReturnType.IsNullable;
+                    return ((BoundCall)expr).Method.ReturnType.NullableAnnotation;
                 case BoundKind.Conversion:
-                    return ((BoundConversion)expr).ConversionGroupOpt?.ExplicitType.IsNullable == true ? (bool?)true : null;
+                    return ((BoundConversion)expr).ConversionGroupOpt?.ExplicitType.NullableAnnotation ?? NullableAnnotation.Unknown;
                 case BoundKind.BinaryOperator:
-                    return ((BoundBinaryOperator)expr).MethodOpt?.ReturnType.IsNullable;
+                    return ((BoundBinaryOperator)expr).MethodOpt?.ReturnType.NullableAnnotation ?? NullableAnnotation.Unknown;
                 case BoundKind.NullCoalescingOperator:
                     {
                         var op = (BoundNullCoalescingOperator)expr;
-                        var left = op.LeftOperand.IsNullableInternal();
-                        var right = op.RightOperand.IsNullableInternal();
-                        return (left == true) ? right : left;
+                        var left = op.LeftOperand.GetNullableAnnotation();
+                        var right = op.RightOperand.GetNullableAnnotation();
+                        return left.IsAnyNullable() ? right : left;
                     }
                 case BoundKind.ThisReference:
                 case BoundKind.BaseReference:
@@ -270,13 +270,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.TypeOfOperator:
                 case BoundKind.NameOfOperator:
                 case BoundKind.TupleLiteral:
-                    return false;
+                    return NullableAnnotation.NotNullableBasedOnAnalysis;
                 case BoundKind.DefaultExpression:
                 case BoundKind.Literal:
                 case BoundKind.UnboundLambda:
                     break;
                 case BoundKind.ExpressionWithNullability:
-                    return ((BoundExpressionWithNullability)expr).IsNullable;
+                    return ((BoundExpressionWithNullability)expr).NullableAnnotation;
                 default:
                     break;
             }
@@ -286,15 +286,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (constant.IsNull)
                 {
-                    return true;
+                    return NullableAnnotation.NullableBasedOnAnalysis;
                 }
                 if (expr.Type?.IsReferenceType == true)
                 {
-                    return false;
+                    return NullableAnnotation.NotNullableBasedOnAnalysis;
                 }
             }
 
-            return null;
+            return NullableAnnotation.Unknown;
         }
     }
 }

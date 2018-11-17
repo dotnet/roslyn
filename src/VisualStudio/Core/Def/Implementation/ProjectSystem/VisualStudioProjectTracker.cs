@@ -3,10 +3,12 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.Extensions;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
@@ -16,22 +18,53 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private readonly VisualStudioProjectFactory _projectFactory;
         internal IThreadingContext ThreadingContext { get; }
 
-        internal ImmutableArray<AbstractProject> ImmutableProjects => ImmutableArray<AbstractProject>.Empty;
+        [Obsolete("This is a compatibility shim for Live Share; please do not use it.")]
+        internal ImmutableArray<AbstractProject> ImmutableProjects => _projects.Values.ToImmutableArray();
 
         internal HostWorkspaceServices WorkspaceServices => _workspace.Services;
 
-        [Obsolete("This is a compatibility shim for TypeScript; please do not use it.")]
-        private readonly Dictionary<ProjectId, AbstractProject> _typeScriptProjects = new Dictionary<ProjectId, AbstractProject>();
+        [Obsolete("This is a compatibility shim for TypeScript and Live Share; please do not use it.")]
+        private readonly Dictionary<ProjectId, AbstractProject> _projects = new Dictionary<ProjectId, AbstractProject>();
 
+        [Obsolete("This is a compatibility shim; please do not use it.")]
         public VisualStudioProjectTracker(Workspace workspace, VisualStudioProjectFactory projectFactory, IThreadingContext threadingContext)
         {
             _workspace = workspace;
             _projectFactory = projectFactory;
             ThreadingContext = threadingContext;
+            DocumentProvider = new DocumentProvider(this, null, null);
+        }
+
+        [Obsolete("This is a compatibility shim for Live Share; please do not use it.")]
+        public VisualStudioProjectTracker(IServiceProvider serviceProvider, Workspace workspace)
+        {
+            _workspace = workspace;
+            ThreadingContext = serviceProvider.GetMefService<IThreadingContext>();
+
+            // This is used by Live Share to target their own workspace which is not the standard VS workspace; as a result this shouldn't have a project factory
+            // at all, because that's only targeting the VisualStudioWorkspace.
+            _projectFactory = null;
+
+            // We don't set DocumentProvider, because Live Share creates their own and then sets it later.
         }
 
         [Obsolete("This is a compatibility shim for TypeScript; please do not use it.")]
-        public DocumentProvider DocumentProvider => new DocumentProvider();
+        public DocumentProvider DocumentProvider { get; set; }
+
+        public Workspace Workspace => _workspace;
+
+        [Obsolete("This is a compatibility shim for Live Share; please do not use it.")]
+        public void InitializeProviders(DocumentProvider documentProvider, VisualStudioMetadataReferenceManager metadataReferenceProvider, VisualStudioRuleSetManager ruleSetFileProvider)
+        {
+            DocumentProvider = documentProvider;
+        }
+
+        [Obsolete("This is a compatibility shim for Live Share; please do not use it.")]
+        public void StartPushingToWorkspaceAndNotifyOfOpenDocuments(IEnumerable<AbstractProject> projects)
+        {
+            // This shim doesn't expect to get actual things passed to it
+            Debug.Assert(!projects.Any());
+        }
 
         /*
           
@@ -62,7 +95,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         public AbstractProject GetProject(ProjectId projectId)
         {
             // HACK: if we have a TypeScript project, they expect to return the real thing deriving from AbstractProject
-            if (_typeScriptProjects.TryGetValue(projectId, out var typeScriptProject))
+            if (_projects.TryGetValue(projectId, out var typeScriptProject))
             {
                 return typeScriptProject;
             }
@@ -110,36 +143,52 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             public override ProjectId Id => _id;
         }
 
-        [Obsolete("This is a compatibility shim for TypeScript; please do not use it.")]
+        [Obsolete("This is a compatibility shim for TypeScript and Live Share; please do not use it.")]
         public void AddProject(AbstractProject project)
         {
-            var creationInfo = new VisualStudioProjectCreationInfo
+            if (_projectFactory != null)
             {
-                AssemblyName = project.AssemblyName,
-                FilePath = project.ProjectFilePath,
-                Hierarchy = project.Hierarchy,
-                ProjectGuid = project.Guid,
-            };
-            project.VisualStudioProject = _projectFactory.CreateAndAddToWorkspace(project.ProjectSystemName, project.Language, creationInfo);
-            project.UpdateVisualStudioProjectProperties();
-        
-            _typeScriptProjects[project.Id] = project;
+                var creationInfo = new VisualStudioProjectCreationInfo
+                {
+                    AssemblyName = project.AssemblyName,
+                    FilePath = project.ProjectFilePath,
+                    Hierarchy = project.Hierarchy,
+                    ProjectGuid = project.Guid,
+                };
+                project.VisualStudioProject = _projectFactory.CreateAndAddToWorkspace(project.ProjectSystemName, project.Language, creationInfo);
+                project.UpdateVisualStudioProjectProperties();
+            }
+            else
+            {
+                // We don't have an ID, so make something up
+                project.ExplicitId = ProjectId.CreateNewId(project.ProjectSystemName);
+                Workspace.OnProjectAdded(ProjectInfo.Create(project.ExplicitId, VersionStamp.Create(), project.ProjectSystemName, project.ProjectSystemName, project.Language));
+            }
+
+            _projects[project.Id] = project;
         }
 
         [Obsolete("This is a compatibility shim for TypeScript; please do not use it.")]
         public bool ContainsProject(AbstractProject project)
         {
             // This will be set as long as the project has been added and not since removed
-            return project.VisualStudioProject != null;
+            return _projects.Values.Contains(project);
         }
 
         [Obsolete("This is a compatibility shim for TypeScript; please do not use it.")]
         public void RemoveProject(AbstractProject project)
         {
-            _typeScriptProjects.Remove(project.Id);
+            _projects.Remove(project.Id);
 
-            project.VisualStudioProject.RemoveFromWorkspace();
-            project.VisualStudioProject = null;
+            if (project.ExplicitId != null)
+            {
+                Workspace.OnProjectRemoved(project.ExplicitId);
+            }
+            else
+            {
+                project.VisualStudioProject.RemoveFromWorkspace();
+                project.VisualStudioProject = null;
+            }
         }
     }
 }

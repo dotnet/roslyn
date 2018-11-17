@@ -251,7 +251,9 @@ function Build-Artifacts() {
     }
 
     if ($build -and $pack -and (-not $buildCoreClr)) {
-        Build-OptProfData
+        if ($official){
+            Build-OptProfData
+        }
     }
 
     if ($cibuild) {
