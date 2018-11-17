@@ -4648,22 +4648,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 NullableAnnotation selfAnnotation = self[slot];
                 NullableAnnotation otherAnnotation = other[slot];
-                NullableAnnotation union;
-
-                if (selfAnnotation.IsAnyNotNullable() || otherAnnotation.IsAnyNotNullable())
-                {
-                    union = selfAnnotation == NullableAnnotation.NotNullableBasedOnAnalysis || otherAnnotation == NullableAnnotation.NotNullableBasedOnAnalysis ?
-                                NullableAnnotation.NotNullableBasedOnAnalysis : NullableAnnotation.NotNullable;
-                }
-                else if (selfAnnotation == NullableAnnotation.Unknown || otherAnnotation == NullableAnnotation.Unknown)
-                {
-                    union = NullableAnnotation.Unknown;
-                }
-                else
-                {
-                    union = selfAnnotation == NullableAnnotation.NullableBasedOnAnalysis || otherAnnotation == NullableAnnotation.NullableBasedOnAnalysis ?
-                                NullableAnnotation.NullableBasedOnAnalysis : NullableAnnotation.Nullable;
-                }
+                NullableAnnotation union = selfAnnotation.MeetForFlowAnalysisFinally(otherAnnotation);
 
                 if (selfAnnotation != union)
                 {
@@ -4688,57 +4673,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     NullableAnnotation selfAnnotation = self[slot];
                     NullableAnnotation otherAnnotation = other[slot];
-                    NullableAnnotation intersection;
-
-                    if (selfAnnotation.IsAnyNullable() || otherAnnotation.IsAnyNullable())
-                    {
-                        intersection = selfAnnotation == NullableAnnotation.Nullable || otherAnnotation == NullableAnnotation.Nullable ?
-                                    NullableAnnotation.Nullable : NullableAnnotation.NullableBasedOnAnalysis;
-                    }
-                    else if (selfAnnotation == NullableAnnotation.Unknown)
-                    {
-                        if (otherAnnotation == NullableAnnotation.Unknown || otherAnnotation == NullableAnnotation.NotNullableBasedOnAnalysis)
-                        {
-                            intersection = NullableAnnotation.Unknown;
-                        }
-                        else
-                        {
-                            Debug.Assert(otherAnnotation == NullableAnnotation.NotNullable);
-                            if (isPossiblyNullableReferenceTypeTypeParameter(slot))
-                            {
-                                intersection = otherAnnotation;
-                            }
-                            else
-                            {
-                                intersection = NullableAnnotation.Unknown;
-                            }
-                        }
-                    }
-                    else if (otherAnnotation == NullableAnnotation.Unknown)
-                    {
-                        if (selfAnnotation == NullableAnnotation.NotNullableBasedOnAnalysis)
-                        {
-                            intersection = NullableAnnotation.Unknown;
-                        }
-                        else
-                        {
-                            Debug.Assert(selfAnnotation == NullableAnnotation.NotNullable);
-                            if (isPossiblyNullableReferenceTypeTypeParameter(slot))
-                            {
-                                intersection = selfAnnotation;
-                            }
-                            else
-                            {
-                                intersection = NullableAnnotation.Unknown;
-                            }
-                        }
-                    }
-                    else
-                    {
-                        intersection = selfAnnotation == NullableAnnotation.NotNullable || otherAnnotation == NullableAnnotation.NotNullable ?
-                                    NullableAnnotation.NotNullable : NullableAnnotation.NotNullableBasedOnAnalysis;
-                    }
-
+                    NullableAnnotation intersection = selfAnnotation.JoinForFlowAnalysisBranches(otherAnnotation, (slot, this), isPossiblyNullableReferenceTypeTypeParameterDelegate);
                     if (selfAnnotation != intersection)
                     {
                         self[slot] = intersection;
@@ -4758,13 +4693,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(!other.Reachable);
                 return false;
             }
-
-            bool isPossiblyNullableReferenceTypeTypeParameter(int slot)
-            {
-                Symbol symbol = variableBySlot[slot].Symbol;
-                return (object)symbol != null && VariableType(symbol).TypeSymbol?.IsPossiblyNullableReferenceTypeTypeParameter() == true;
-            }
         }
+
+        private readonly static Func<(int slot, NullableWalker self), bool> isPossiblyNullableReferenceTypeTypeParameterDelegate = args =>
+        {
+            Symbol symbol = args.self.variableBySlot[args.slot].Symbol;
+            return (object)symbol != null && VariableType(symbol).TypeSymbol?.IsPossiblyNullableReferenceTypeTypeParameter() == true;
+        };
 
         [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
 #if REFERENCE_STATE

@@ -57132,5 +57132,215 @@ class Program
                 //         y = (object)x;
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(object)x").WithLocation(8, 13));
         }
+
+        private readonly static NullableAnnotation[] s_AllNullableAnnotations = (NullableAnnotation[])Enum.GetValues(typeof(NullableAnnotation));
+
+        [Fact]
+        public void TestJoinForFixingLowerBoundsIsAssociative()
+        {
+            foreach (var a in s_AllNullableAnnotations)
+            {
+                foreach (var b in s_AllNullableAnnotations)
+                {
+                    foreach (var c in s_AllNullableAnnotations)
+                    {
+                        var leftFirst = a.JoinForFixingLowerBounds(b).JoinForFixingLowerBounds(c);
+                        var rightFirst = a.JoinForFixingLowerBounds(b.JoinForFixingLowerBounds(c));
+                        Assert.Equal(leftFirst, rightFirst);
+                    }
+                }
+            }
+        }
+
+        [Fact]
+        public void TestJoinForFlowAnalysisBranchesIsAssociative()
+        {
+            Func<bool, bool> identity = x => x;
+            foreach (var a in s_AllNullableAnnotations)
+            {
+                foreach (var b in s_AllNullableAnnotations)
+                {
+                    foreach (var c in s_AllNullableAnnotations)
+                    {
+                        foreach (bool isPossiblyNullableReferenceTypeTypeParameter in new[] { true, false })
+                        {
+                            var leftFirst = a.JoinForFlowAnalysisBranches(b, isPossiblyNullableReferenceTypeTypeParameter, identity).JoinForFlowAnalysisBranches(c, isPossiblyNullableReferenceTypeTypeParameter, identity);
+                            var rightFirst = a.JoinForFlowAnalysisBranches(b.JoinForFlowAnalysisBranches(c, isPossiblyNullableReferenceTypeTypeParameter, identity), isPossiblyNullableReferenceTypeTypeParameter, identity);
+                            Assert.Equal(leftFirst, rightFirst);
+                        }
+                    }
+                }
+            }
+        }
+
+        [Fact]
+        public void TestMeetForFixingUpperBoundsIsAssociative()
+        {
+            foreach (var a in s_AllNullableAnnotations)
+            {
+                foreach (var b in s_AllNullableAnnotations)
+                {
+                    foreach (var c in s_AllNullableAnnotations)
+                    {
+                        var leftFirst = a.MeetForFixingUpperBounds(b).MeetForFixingUpperBounds(c);
+                        var rightFirst = a.MeetForFixingUpperBounds(b.MeetForFixingUpperBounds(c));
+                        Assert.Equal(leftFirst, rightFirst);
+                    }
+                }
+            }
+        }
+
+        [Fact]
+        public void TestMeetForFlowAnalysisFinallyIsAssociative()
+        {
+            foreach (var a in s_AllNullableAnnotations)
+            {
+                foreach (var b in s_AllNullableAnnotations)
+                {
+                    foreach (var c in s_AllNullableAnnotations)
+                    {
+                        var leftFirst = a.MeetForFlowAnalysisFinally(b).MeetForFlowAnalysisFinally(c);
+                        var rightFirst = a.MeetForFlowAnalysisFinally(b.MeetForFlowAnalysisFinally(c));
+                        Assert.Equal(leftFirst, rightFirst);
+                    }
+                }
+            }
+        }
+
+        [Fact]
+        public void TestEnsureCompatibleIsAssociative()
+        {
+            Func<bool, bool> identity = x => x;
+            foreach (var a in s_AllNullableAnnotations)
+            {
+                foreach (var b in s_AllNullableAnnotations)
+                {
+                    foreach (var c in s_AllNullableAnnotations)
+                    {
+                        foreach (bool isPossiblyNullableReferenceTypeTypeParameter in new[] { true, false })
+                        {
+                            var leftFirst = a.EnsureCompatible(b, isPossiblyNullableReferenceTypeTypeParameter, identity, out var w1a).EnsureCompatible(c, isPossiblyNullableReferenceTypeTypeParameter, identity, out var w1b);
+                            var rightFirst = a.EnsureCompatible(b.EnsureCompatible(c, isPossiblyNullableReferenceTypeTypeParameter, identity, out var w2a), isPossiblyNullableReferenceTypeTypeParameter, identity, out var w2b);
+                            Assert.Equal(leftFirst, rightFirst);
+                            Assert.Equal(w1a | w1b, w2a | w2b);
+                        }
+                    }
+                }
+            }
+        }
+
+        [Fact]
+        public void TestJoinForFixingLowerBoundsIsCommutative()
+        {
+            foreach (var a in s_AllNullableAnnotations)
+            {
+                foreach (var b in s_AllNullableAnnotations)
+                {
+                    var leftFirst = a.JoinForFixingLowerBounds(b);
+                    var rightFirst = b.JoinForFixingLowerBounds(a);
+                    Assert.Equal(leftFirst, rightFirst);
+                }
+            }
+        }
+
+        [Fact]
+        public void TestJoinForFlowAnalysisBranchesIsCommutative()
+        {
+            Func<bool, bool> identity = x => x;
+            foreach (var a in s_AllNullableAnnotations)
+            {
+                foreach (var b in s_AllNullableAnnotations)
+                {
+                    foreach (bool isPossiblyNullableReferenceTypeTypeParameter in new[] { true, false })
+                    {
+                        var leftFirst = a.JoinForFlowAnalysisBranches(b, isPossiblyNullableReferenceTypeTypeParameter, identity);
+                        var rightFirst = b.JoinForFlowAnalysisBranches(a, isPossiblyNullableReferenceTypeTypeParameter, identity);
+                        Assert.Equal(leftFirst, rightFirst);
+                    }
+                }
+            }
+        }
+
+        [Fact]
+        public void TestMeetForFixingUpperBoundsIsCommutative()
+        {
+            foreach (var a in s_AllNullableAnnotations)
+            {
+                foreach (var b in s_AllNullableAnnotations)
+                {
+                    var leftFirst = a.MeetForFixingUpperBounds(b);
+                    var rightFirst = b.MeetForFixingUpperBounds(a);
+                    Assert.Equal(leftFirst, rightFirst);
+                }
+            }
+        }
+
+        [Fact]
+        public void TestMeetForFlowAnalysisFinallyIsCommutative()
+        {
+            foreach (var a in s_AllNullableAnnotations)
+            {
+                foreach (var b in s_AllNullableAnnotations)
+                {
+                    foreach (var c in s_AllNullableAnnotations)
+                    {
+                        var leftFirst = a.MeetForFlowAnalysisFinally(b);
+                        var rightFirst = b.MeetForFlowAnalysisFinally(a);
+                        Assert.Equal(leftFirst, rightFirst);
+                    }
+                }
+            }
+        }
+
+        [Fact]
+        public void TestEnsureCompatibleIsCommutative()
+        {
+            Func<bool, bool> identity = x => x;
+            foreach (var a in s_AllNullableAnnotations)
+            {
+                foreach (var b in s_AllNullableAnnotations)
+                {
+                    foreach (bool isPossiblyNullableReferenceTypeTypeParameter in new[] { true, false })
+                    {
+                        var leftFirst = a.EnsureCompatible(b, isPossiblyNullableReferenceTypeTypeParameter, identity, out var w1);
+                        var rightFirst = b.EnsureCompatible(a, isPossiblyNullableReferenceTypeTypeParameter, identity, out var w2);
+                        Assert.Equal(leftFirst, rightFirst);
+                        Assert.Equal(w1, w2);
+                    }
+                }
+            }
+        }
+
+        [Fact(Skip ="Two different implementations of NullableAnnotation Join do not agree")]
+        public void TestJoinsAgree()
+        {
+            Func<bool, bool> identity = x => x;
+            foreach (var a in s_AllNullableAnnotations)
+            {
+                foreach (var b in s_AllNullableAnnotations)
+                {
+                    foreach (bool isPossiblyNullableReferenceTypeTypeParameter in new[] { true, false })
+                    {
+                        var result1 = a.JoinForFixingLowerBounds(b);
+                        var result2 = a.JoinForFlowAnalysisBranches(b, isPossiblyNullableReferenceTypeTypeParameter, identity);
+                        Assert.Equal(result1, result2);
+                    }
+                }
+            }
+        }
+
+        [Fact(Skip = "Two different implementations of NullableAnnotation Meet do not agree")]
+        public void TestMeetsAgree()
+        {
+            foreach (var a in s_AllNullableAnnotations)
+            {
+                foreach (var b in s_AllNullableAnnotations)
+                {
+                    var result1 = a.MeetForFixingUpperBounds(b);
+                    var result2 = a.MeetForFlowAnalysisFinally(b);
+                    Assert.Equal(result1, result2);
+                }
+            }
+        }
     }
 }

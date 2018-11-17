@@ -31,6 +31,222 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             return annotation == NullableAnnotation.NotNullable || annotation == NullableAnnotation.NotNullableBasedOnAnalysis;
         }
+
+        /// <summary>
+        /// Join nullable annotations from the set of lower bounds for fixing a type parameter.
+        /// </summary>
+        public static NullableAnnotation JoinForFixingLowerBounds(this NullableAnnotation a, NullableAnnotation b)
+        {
+            if (a == b)
+            {
+                return a;
+            }
+
+            if (a.IsAnyNullable() && b.IsAnyNullable())
+            {
+                return NullableAnnotation.Nullable;
+            }
+
+            // If nullability on both sides matches - result is that nullability (trivial cases like these are handled before the switch)
+            // If either candidate is nullable - result is nullable
+            // Otherwise - result is "oblivious". 
+
+            if (a.IsAnyNullable())
+            {
+                Debug.Assert(!b.IsAnyNullable());
+                return a;
+            }
+
+            if (b.IsAnyNullable())
+            {
+                return b;
+            }
+
+            if (a == NullableAnnotation.Unknown || b == NullableAnnotation.Unknown)
+            {
+                return NullableAnnotation.Unknown;
+            }
+
+            Debug.Assert((a == NullableAnnotation.NotNullable && b == NullableAnnotation.NotNullableBasedOnAnalysis) ||
+                (b == NullableAnnotation.NotNullable && a == NullableAnnotation.NotNullableBasedOnAnalysis));
+            return NullableAnnotation.NotNullable; // It is reasonable to settle on this value because the difference in annotations is either
+                                                   // not significant for the type, or candidate corresponding to this value is possibly a 
+                                                   // nullable reference type type parameter and nullable should win. 
+        }
+
+        /// <summary>
+        /// Join nullable annotations from distinct branches during flow analysis.
+        /// </summary>
+        public static NullableAnnotation JoinForFlowAnalysisBranches<T>(this NullableAnnotation selfAnnotation, NullableAnnotation otherAnnotation, T type, Func<T, bool> isPossiblyNullableReferenceTypeTypeParameter)
+        {
+            if (selfAnnotation == otherAnnotation)
+            {
+                return selfAnnotation;
+            }
+
+            if (selfAnnotation.IsAnyNullable() || otherAnnotation.IsAnyNullable())
+            {
+                return selfAnnotation == NullableAnnotation.Nullable || otherAnnotation == NullableAnnotation.Nullable ?
+                            NullableAnnotation.Nullable : NullableAnnotation.NullableBasedOnAnalysis;
+            }
+            else if (selfAnnotation == NullableAnnotation.Unknown)
+            {
+                if (otherAnnotation == NullableAnnotation.Unknown || otherAnnotation == NullableAnnotation.NotNullableBasedOnAnalysis)
+                {
+                    return NullableAnnotation.Unknown;
+                }
+                else
+                {
+                    Debug.Assert(otherAnnotation == NullableAnnotation.NotNullable);
+                    if (isPossiblyNullableReferenceTypeTypeParameter(type))
+                    {
+                        return otherAnnotation;
+                    }
+                    else
+                    {
+                        return NullableAnnotation.Unknown;
+                    }
+                }
+            }
+            else if (otherAnnotation == NullableAnnotation.Unknown)
+            {
+                if (selfAnnotation == NullableAnnotation.NotNullableBasedOnAnalysis)
+                {
+                    return NullableAnnotation.Unknown;
+                }
+                else
+                {
+                    Debug.Assert(selfAnnotation == NullableAnnotation.NotNullable);
+                    if (isPossiblyNullableReferenceTypeTypeParameter(type))
+                    {
+                        return selfAnnotation;
+                    }
+                    else
+                    {
+                        return NullableAnnotation.Unknown;
+                    }
+                }
+            }
+            else
+            {
+                return selfAnnotation == NullableAnnotation.NotNullable || otherAnnotation == NullableAnnotation.NotNullable ?
+                            NullableAnnotation.NotNullable : NullableAnnotation.NotNullableBasedOnAnalysis;
+            }
+        }
+
+        /// <summary>
+        /// Meet two nullable annotations for computing the nullable annotation of a type parameter from upper bounds.
+        /// </summary>
+        public static NullableAnnotation MeetForFixingUpperBounds(this NullableAnnotation a, NullableAnnotation b)
+        {
+            if (a == b)
+            {
+                return a;
+            }
+
+            if (a.IsAnyNullable() && b.IsAnyNullable())
+            {
+                return NullableAnnotation.Nullable;
+            }
+
+            // If nullability on both sides matches - result is that nullability (trivial cases like these are handled before the switch)
+            // If either candidate is not nullable - result is not nullable
+            // Otherwise - result is "oblivious". 
+
+            if (a == NullableAnnotation.NotNullableBasedOnAnalysis || b == NullableAnnotation.NotNullableBasedOnAnalysis)
+            {
+                return NullableAnnotation.NotNullableBasedOnAnalysis;
+            }
+
+            if (a == NullableAnnotation.NotNullable || b == NullableAnnotation.NotNullable)
+            {
+                return NullableAnnotation.NotNullable;
+            }
+
+            Debug.Assert(a == NullableAnnotation.Unknown || b == NullableAnnotation.Unknown);
+            return NullableAnnotation.Unknown;
+        }
+
+        /// <summary>
+        /// Meet two nullable annotations from distinct states for the meet (union) operation in flow analysis.
+        /// </summary>
+        public static NullableAnnotation MeetForFlowAnalysisFinally(this NullableAnnotation selfAnnotation, NullableAnnotation otherAnnotation)
+        {
+            if (selfAnnotation == otherAnnotation)
+            {
+                return selfAnnotation;
+            }
+
+            if (selfAnnotation.IsAnyNotNullable() || otherAnnotation.IsAnyNotNullable())
+            {
+                return selfAnnotation == NullableAnnotation.NotNullableBasedOnAnalysis || otherAnnotation == NullableAnnotation.NotNullableBasedOnAnalysis ?
+                            NullableAnnotation.NotNullableBasedOnAnalysis : NullableAnnotation.NotNullable;
+            }
+            else if (selfAnnotation == NullableAnnotation.Unknown || otherAnnotation == NullableAnnotation.Unknown)
+            {
+                return NullableAnnotation.Unknown;
+            }
+            else
+            {
+                return selfAnnotation == NullableAnnotation.NullableBasedOnAnalysis || otherAnnotation == NullableAnnotation.NullableBasedOnAnalysis ?
+                            NullableAnnotation.NullableBasedOnAnalysis : NullableAnnotation.Nullable;
+            }
+        }
+
+        /// <summary>
+        /// Check that two nullable annotations are "compatible", which means they could be the same. Return the
+        /// nullable annotation to be used as a result. Also returns through <paramref name="hadNullabilityMismatch"/>
+        /// whether the caller should report a warning because there was an actual mismatch (e.g. nullable vs non-nullable).
+        /// </summary>
+        public static NullableAnnotation EnsureCompatible<T>(this NullableAnnotation a, NullableAnnotation b, T type, Func<T, bool> isPossiblyNullableReferenceTypeTypeParameter, out bool hadNullabilityMismatch)
+        {
+            hadNullabilityMismatch = false;
+            if (a == b)
+            {
+                return a;
+            }
+
+            if (a.IsAnyNullable() && b.IsAnyNullable())
+            {
+                return NullableAnnotation.Nullable;
+            }
+
+            // If nullability on both sides matches - result is that nullability (trivial cases like these are handled before the switch)
+            // If either candidate is "oblivious" - result is the nullability of the other candidate
+            // Otherwise - we declare a mismatch and result is not nullable. 
+
+            if (a == NullableAnnotation.Unknown)
+            {
+                return b;
+            }
+
+            if (b == NullableAnnotation.Unknown)
+            {
+                return a;
+            }
+
+            // At this point we know that either nullability of both sides is significantly different NotNullable vs. Nullable,
+            // or we are dealing with different flavors of not nullable for both candidates
+            if ((a == NullableAnnotation.NotNullable && b == NullableAnnotation.NotNullableBasedOnAnalysis) ||
+                (b == NullableAnnotation.NotNullable && a == NullableAnnotation.NotNullableBasedOnAnalysis))
+            {
+                if (!isPossiblyNullableReferenceTypeTypeParameter(type))
+                {
+                    // For this type both not nullable annotations are equivalent and therefore match.
+                    return NullableAnnotation.NotNullable;
+                }
+
+                // We are dealing with different flavors of not nullable for a possibly nullable reference type parameter,
+                // we don't have a reliable way to merge them since one of them can actually represent a nullable type.
+            }
+            else
+            {
+                Debug.Assert(a.IsAnyNullable() != b.IsAnyNullable());
+            }
+
+            hadNullabilityMismatch = true;
+            return NullableAnnotation.NotNullable;
+        }
     }
 
     /// <summary>
@@ -309,103 +525,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private static NullableAnnotation MergeNullableAnnotation(TypeSymbol type, NullableAnnotation a, NullableAnnotation b, VarianceKind variance, out bool hadNullabilityMismatch)
         {
             hadNullabilityMismatch = false;
-            if (a == b)
-            {
-                return a;
-            }
-
-            if (a.IsAnyNullable() && b.IsAnyNullable())
-            {
-                return NullableAnnotation.Nullable;
-            }
-
             switch (variance)
             {
                 case VarianceKind.In:
-
-                    // If nullability on both sides matches - result is that nullability (trivial cases like these are handled before the switch)
-                    // If either candidate is not nullable - result is not nullable
-                    // Otherwise - result is "oblivious". 
-
-                    if (a == NullableAnnotation.NotNullableBasedOnAnalysis || b == NullableAnnotation.NotNullableBasedOnAnalysis)
-                    {
-                        return NullableAnnotation.NotNullableBasedOnAnalysis;
-                    }
-
-                    if (a == NullableAnnotation.NotNullable || b == NullableAnnotation.NotNullable)
-                    {
-                        return NullableAnnotation.NotNullable;
-                    }
-
-                    Debug.Assert(a == NullableAnnotation.Unknown || b == NullableAnnotation.Unknown);
-                    return NullableAnnotation.Unknown;
-
+                    return a.MeetForFixingUpperBounds(b);
                 case VarianceKind.Out:
-
-                    // If nullability on both sides matches - result is that nullability (trivial cases like these are handled before the switch)
-                    // If either candidate is nullable - result is nullable
-                    // Otherwise - result is "oblivious". 
-
-                    if (a.IsAnyNullable())
-                    {
-                        Debug.Assert(!b.IsAnyNullable());
-                        return a;
-                    }
-
-                    if (b.IsAnyNullable())
-                    {
-                        return b;
-                    }
-
-                    if (a == NullableAnnotation.Unknown || b == NullableAnnotation.Unknown)
-                    {
-                        return NullableAnnotation.Unknown;
-                    }
-
-                    Debug.Assert((a == NullableAnnotation.NotNullable && b == NullableAnnotation.NotNullableBasedOnAnalysis) ||
-                        (b == NullableAnnotation.NotNullable && a == NullableAnnotation.NotNullableBasedOnAnalysis));
-                    return NullableAnnotation.NotNullable; // It is reasonable to settle on this value because the difference in annotations is either
-                                                           // not significant for the type, or candidate corresponding to this value is possibly a 
-                                                           // nullable reference type type parameter and nullable should win. 
-
+                    return a.JoinForFixingLowerBounds(b);
+                case VarianceKind.None:
+                    return a.EnsureCompatible(b, type, _IsPossiblyNullableReferenceTypeTypeParameterDelegate, out hadNullabilityMismatch);
                 default:
-
-                    // If nullability on both sides matches - result is that nullability (trivial cases like these are handled before the switch)
-                    // If either candidate is "oblivious" - result is the nullability of the other candidate
-                    // Otherwise - we declare a mismatch and result is not nullable. 
-
-                    if (a == NullableAnnotation.Unknown)
-                    {
-                        return b;
-                    }
-                    if (b == NullableAnnotation.Unknown)
-                    {
-                        return a;
-                    }
-
-                    // At this point we know that either nullability of both sides is significantly different NotNullable vs. Nullable,
-                    // or we are dealing with different flavors of not nullable for both candidates
-                    if ((a == NullableAnnotation.NotNullable && b == NullableAnnotation.NotNullableBasedOnAnalysis) ||
-                        (b == NullableAnnotation.NotNullable && a == NullableAnnotation.NotNullableBasedOnAnalysis))
-                    {
-                        if (!type.IsPossiblyNullableReferenceTypeTypeParameter())
-                        {
-                            // For this type both not nullable annotations are equivalent and therefore match.
-                            return NullableAnnotation.NotNullable;
-                        }
-
-                        // We are dealing with different flavors of not nullable for a possibly nullable reference type parameter,
-                        // we don't have a reliable way to merge them since one of them can actually represent a nullable type.
-                    }
-                    else
-                    {
-                        Debug.Assert(a.IsAnyNullable() != b.IsAnyNullable());
-                    }
-
-                    hadNullabilityMismatch = true;
-                    return NullableAnnotation.NotNullable;
+                    throw ExceptionUtilities.UnexpectedValue(variance);
             }
         }
+
+        private readonly static Func<TypeSymbol, bool> _IsPossiblyNullableReferenceTypeTypeParameterDelegate = type => type.IsPossiblyNullableReferenceTypeTypeParameter();
 
         public TypeSymbolWithAnnotations WithModifiers(ImmutableArray<CustomModifier> customModifiers) =>
             _extensions.WithModifiers(this, customModifiers);
