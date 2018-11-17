@@ -21,24 +21,24 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             /// Mapping of a tainted data sinks to their originating sources.
             /// </summary>
             /// <remarks>Keys are <see cref="SymbolAccess"/> sinks where the tainted data entered, values are <see cref="SymbolAccess"/>s where the tainted data originated from.</remarks>
-            private Dictionary<SymbolAccess, HashSet<SymbolAccess>> TaintedSourcesBySink { get; set; }
+            private Dictionary<SymbolAccess, ImmutableHashSet<SymbolAccess>.Builder> TaintedSourcesBySink { get; }
 
             public TaintedDataOperationVisitor(TaintedDataAnalysisContext analysisContext)
                 : base(analysisContext)
             {
-                this.TaintedSourcesBySink = new Dictionary<SymbolAccess, HashSet<SymbolAccess>>();
+                this.TaintedSourcesBySink = new Dictionary<SymbolAccess, ImmutableHashSet<SymbolAccess>.Builder>();
             }
 
             public ImmutableArray<TaintedDataSourceSink> GetTaintedDataSourceSinkEntries()
             {
                 ImmutableArray<TaintedDataSourceSink>.Builder builder = ImmutableArray.CreateBuilder<TaintedDataSourceSink>();
-                foreach (KeyValuePair<SymbolAccess, HashSet<SymbolAccess>> kvp in this.TaintedSourcesBySink)
+                foreach (KeyValuePair<SymbolAccess, ImmutableHashSet<SymbolAccess>.Builder> kvp in this.TaintedSourcesBySink)
                 {
                     builder.Add(
                         new TaintedDataSourceSink(
                             kvp.Key,
                             SinkKind.Sql,
-                            ImmutableArray.Create<SymbolAccess>(kvp.Value.ToArray())));
+                            kvp.Value.ToImmutable()));
                 }
                  
                 return builder.ToImmutableArray();
@@ -61,7 +61,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 
             protected override TaintedDataAbstractValue GetAbstractValue(AnalysisEntity analysisEntity)
             {
-                return this.CurrentAnalysisData.TryGetValue(analysisEntity, out TaintedDataAbstractValue value) ? value : TaintedDataAbstractValue.Unknown;
+                return this.CurrentAnalysisData.TryGetValue(analysisEntity, out TaintedDataAbstractValue value) ? value : TaintedDataAbstractValue.NotTainted;
             }
 
             protected override TaintedDataAnalysisData GetClonedAnalysisData(TaintedDataAnalysisData analysisData)
@@ -176,11 +176,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             public override TaintedDataAbstractValue VisitObjectCreation(IObjectCreationOperation operation, object argument)
             {
                 TaintedDataAbstractValue baseValue = base.VisitObjectCreation(operation, argument);
-                IEnumerable<IArgumentOperation> taintedArguments = operation.Arguments.Where(
-                    a => this.GetCachedAbstractValue(a).Kind == TaintedDataAbstractValueKind.Tainted
-                         && (a.Parameter.RefKind == RefKind.None
-                             || a.Parameter.RefKind == RefKind.Ref
-                             || a.Parameter.RefKind == RefKind.In));
+                IEnumerable<IArgumentOperation> taintedArguments = GetTaintedArguments(operation.Arguments);
                 if (taintedArguments.Any())
                 {
                     ProcessTaintedDataEnteringInvocationOrCreation(operation.Constructor, taintedArguments, operation);
@@ -206,12 +202,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                     originalOperation, 
                     defaultValue);
 
-                IEnumerable<IArgumentOperation> taintedArguments = visitedArguments.Where(
-                    a => this.GetCachedAbstractValue(a).Kind == TaintedDataAbstractValueKind.Tainted
-                         && (a.Parameter.RefKind == RefKind.None
-                             || a.Parameter.RefKind == RefKind.Ref
-                             || a.Parameter.RefKind == RefKind.In));
-
+                IEnumerable<IArgumentOperation> taintedArguments = GetTaintedArguments(visitedArguments);
                 if (taintedArguments.Any())
                 {
                     ProcessTaintedDataEnteringInvocationOrCreation(method, visitedArguments, originalOperation);
@@ -234,12 +225,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 // Always invoke base visit.
                 TaintedDataAbstractValue baseValue = base.VisitInvocation_LocalFunction(localFunction, visitedArguments, originalOperation, defaultValue);
 
-                IEnumerable<IArgumentOperation> taintedArguments = visitedArguments.Where(
-                    a => this.GetCachedAbstractValue(a).Kind == TaintedDataAbstractValueKind.Tainted
-                         && (a.Parameter.RefKind == RefKind.None
-                             || a.Parameter.RefKind == RefKind.Ref
-                             || a.Parameter.RefKind == RefKind.In));
-
+                IEnumerable<IArgumentOperation> taintedArguments = GetTaintedArguments(visitedArguments);
                 if (taintedArguments.Any())
                 {
                     ProcessTaintedDataEnteringInvocationOrCreation(localFunction, visitedArguments, originalOperation);
@@ -319,9 +305,9 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 
             private void TrackTaintedDataEnteringSink(SymbolAccess sink, IEnumerable<SymbolAccess> sources)
             {
-                if (!this.TaintedSourcesBySink.TryGetValue(sink, out HashSet<SymbolAccess> sourceOrigins))
+                if (!this.TaintedSourcesBySink.TryGetValue(sink, out ImmutableHashSet<SymbolAccess>.Builder sourceOrigins))
                 {
-                    sourceOrigins = new HashSet<SymbolAccess>();
+                    sourceOrigins = ImmutableHashSet.CreateBuilder<SymbolAccess>();
                     this.TaintedSourcesBySink.Add(sink, sourceOrigins);
                 }
 
@@ -353,9 +339,9 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 {
                     foreach (TaintedDataSourceSink sourceSink in subResult.TaintedDataSourceSinks)
                     {
-                        if (!this.TaintedSourcesBySink.TryGetValue(sourceSink.Sink, out HashSet<SymbolAccess> sourceOrigins))
+                        if (!this.TaintedSourcesBySink.TryGetValue(sourceSink.Sink, out ImmutableHashSet<SymbolAccess>.Builder sourceOrigins))
                         {
-                            sourceOrigins = new HashSet<SymbolAccess>();
+                            sourceOrigins = ImmutableHashSet.CreateBuilder<SymbolAccess>();
                             this.TaintedSourcesBySink.Add(sourceSink.Sink, sourceOrigins);
                         }
 
@@ -466,6 +452,15 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 }
 
                 return false;
+            }
+
+            private IEnumerable<IArgumentOperation> GetTaintedArguments(ImmutableArray<IArgumentOperation> arguments)
+            {
+                return arguments.Where(
+                    a => this.GetCachedAbstractValue(a).Kind == TaintedDataAbstractValueKind.Tainted
+                         && (a.Parameter.RefKind == RefKind.None
+                             || a.Parameter.RefKind == RefKind.Ref
+                             || a.Parameter.RefKind == RefKind.In));
             }
         }
     }

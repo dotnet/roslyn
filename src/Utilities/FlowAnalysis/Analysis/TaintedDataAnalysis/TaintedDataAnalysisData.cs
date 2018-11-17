@@ -7,7 +7,6 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 {
     using CoreTaintedDataAnalysisData = IDictionary<AnalysisEntity, TaintedDataAbstractValue>;
 
-
     internal sealed class TaintedDataAnalysisData : AnalysisEntityBasedPredicateAnalysisData<TaintedDataAbstractValue>
     {
         public TaintedDataAnalysisData()

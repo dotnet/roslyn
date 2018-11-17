@@ -150,6 +150,11 @@ namespace Test.Utilities
             return GetResultAt(VisualBasicDefaultFilePath, line, column, rule, messageArguments);
         }
 
+        protected static DiagnosticResult GetBasicResultAt(IEnumerable<Tuple<int, int>> lineColumnPairs, DiagnosticDescriptor rule, params object[] messageArguments)
+        {
+            return GetResultAt(VisualBasicDefaultFilePath, lineColumnPairs, rule, messageArguments);
+        }
+
         protected static DiagnosticResult GetCSharpResultAt(int line, int column, string id, string message)
         {
             return GetResultAt(CSharpDefaultFilePath, line, column, id, message);
@@ -169,7 +174,6 @@ namespace Test.Utilities
         {
             return GetResultAt(CSharpDefaultFilePath, lineColumnPairs, rule, messageArguments);
         }
-
 
         protected static DiagnosticResult GetAdditionalFileResultAt(int line, int column, string additionalFilePath, DiagnosticDescriptor rule, params object[] messageArguments)
         {

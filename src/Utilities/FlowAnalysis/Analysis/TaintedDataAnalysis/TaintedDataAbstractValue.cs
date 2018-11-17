@@ -12,9 +12,8 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
     /// Abstract tainted data value shared by a set of one of more <see cref="AnalysisEntity"/> instances tracked by <see cref="TaintedDataAnalysis"/>.
     /// </summary>
     [DebuggerDisplay("{Kind} ({SourceOrigins.Count} source origins)")]
-    internal class TaintedDataAbstractValue : CacheBasedEquatable<TaintedDataAbstractValue>
+    internal sealed class TaintedDataAbstractValue : CacheBasedEquatable<TaintedDataAbstractValue>
     {
-        public static readonly TaintedDataAbstractValue Unknown = new TaintedDataAbstractValue(TaintedDataAbstractValueKind.Unknown, ImmutableHashSet<SymbolAccess>.Empty);
         public static readonly TaintedDataAbstractValue NotTainted = new TaintedDataAbstractValue(TaintedDataAbstractValueKind.NotTainted, ImmutableHashSet<SymbolAccess>.Empty);
 
         private TaintedDataAbstractValue(TaintedDataAbstractValueKind kind, ImmutableHashSet<SymbolAccess> sourceOrigins)
@@ -74,6 +73,11 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 value1.SourceOrigins.Union(value2.SourceOrigins));
         }
 
+        /// <summary>
+        /// Merges multiple tainted abstract values together.
+        /// </summary>
+        /// <param name="taintedValues">Enumeration of tainted abstract values.</param>
+        /// <returns>Tainted abstract value containing the super set of source origins.</returns>
         internal static TaintedDataAbstractValue MergeTainted(IEnumerable<TaintedDataAbstractValue> taintedValues)
         {
             ImmutableHashSet<SymbolAccess>.Builder sourceOriginsBuilder = ImmutableHashSet.CreateBuilder<SymbolAccess>();

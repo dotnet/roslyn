@@ -1,17 +1,19 @@
-﻿
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using Analyzer.Utilities.Extensions;
+using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow;
+
 namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 {
-    using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow;
-
     internal partial class TaintedDataAnalysis
     {
         private sealed class TaintedDataAbstractValueDomain : AbstractValueDomain<TaintedDataAbstractValue>
         {
             public static readonly TaintedDataAbstractValueDomain Default = new TaintedDataAbstractValueDomain();
 
-            public override TaintedDataAbstractValue UnknownOrMayBeValue => TaintedDataAbstractValue.Unknown;
+            public override TaintedDataAbstractValue UnknownOrMayBeValue => TaintedDataAbstractValue.NotTainted;
 
-            public override TaintedDataAbstractValue Bottom => TaintedDataAbstractValue.Unknown;
+            public override TaintedDataAbstractValue Bottom => TaintedDataAbstractValue.NotTainted;
 
             public override int Compare(TaintedDataAbstractValue oldValue, TaintedDataAbstractValue newValue)
             {
@@ -19,10 +21,10 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 // must be always greater or equal than the previous value
                 // to ensure termination.
 
-                // Unknown < NotTainted < Tainted
+                // NotTainted < Tainted
                 if (oldValue.Kind == TaintedDataAbstractValueKind.Tainted && newValue.Kind == TaintedDataAbstractValueKind.Tainted)
                 {
-                    return oldValue.SourceOrigins.Count.CompareTo(newValue.SourceOrigins.Count);
+                    return SetAbstractDomain<SymbolAccess>.Default.Compare(oldValue.SourceOrigins, newValue.SourceOrigins);
                 }
                 else
                 {
@@ -32,11 +34,10 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 
             public override TaintedDataAbstractValue Merge(TaintedDataAbstractValue value1, TaintedDataAbstractValue value2)
             {
-                //     U N T
-                //   +------
-                // U | U N T
-                // N | N N T
-                // T | T T T
+                //     N T
+                //   +----
+                // N | N T
+                // T | T T
 
                 if (value1 == null)
                 {

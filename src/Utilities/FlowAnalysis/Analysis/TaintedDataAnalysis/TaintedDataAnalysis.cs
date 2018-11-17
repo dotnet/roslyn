@@ -33,8 +33,8 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 containingMethod,
                 wellKnownTypeProvider,
                 InterproceduralAnalysisKind.ContextSensitive,
-                true,
-                true);
+                pessimisticAnalysis: true,
+                performCopyAnalysis: true);
 
             TaintedDataAnalysisContext analysisContext = TaintedDataAnalysisContext.Create(
                 TaintedDataAbstractValueDomain.Default,
@@ -42,12 +42,12 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 cfg,
                 containingMethod,
                 InterproceduralAnalysisKind.ContextSensitive,
-                false /* pessimisticAnalysis */,
-                pointsToAnalysisResult,
-                GetOrComputeResultForAnalysisContext,
-                taintedSourceInfos,
-                taintedSanitizerInfos,
-                taintedSinkInfos);
+                pessimisticAnalysis: false,
+                pointsToAnalysisResultOpt: pointsToAnalysisResult,
+                getOrComputeAnalysisResult: GetOrComputeResultForAnalysisContext,
+                taintedSourceInfos: taintedSourceInfos,
+                taintedSanitizerInfos: taintedSanitizerInfos,
+                taintedSinkInfos: taintedSinkInfos);
 
             return GetOrComputeResultForAnalysisContext(analysisContext);
         }

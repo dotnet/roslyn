@@ -567,7 +567,8 @@ namespace Analyzer.Utilities.Extensions
                     return null;
 
                 default:
-                    throw new NotImplementedException("Unhandled IOperation " + operation.Kind);
+                    Debug.Fail($"Unhandled IOperation {operation.Kind}");
+                    return null;
             }
         }
     }

@@ -14,12 +14,12 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 
             protected override bool CanSkipNewEntry(AnalysisEntity analysisEntity, TaintedDataAbstractValue value)
             {
-                return value.Kind == TaintedDataAbstractValueKind.Unknown;
+                return value.Kind == TaintedDataAbstractValueKind.NotTainted;
             }
 
             protected override TaintedDataAbstractValue GetDefaultValue(AnalysisEntity analysisEntity)
             {
-                return TaintedDataAbstractValue.Unknown;
+                return TaintedDataAbstractValue.NotTainted;
             }
         }
     }
