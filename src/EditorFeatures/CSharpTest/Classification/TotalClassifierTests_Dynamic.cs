@@ -440,6 +440,7 @@ class C
                 Keyword("static"),
                 Keyword("dynamic"),
                 Method("dynamic"),
+                Static("dynamic"),
                 Punctuation.OpenParen,
                 Keyword("params"),
                 Keyword("dynamic"),
@@ -826,7 +827,8 @@ partial void F(dynamic d)
             await TestInClassAsync(@"static dynamic d",
                 Keyword("static"),
                 Keyword("dynamic"),
-                Field("d"));
+                Field("d"),
+                Static("d"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]

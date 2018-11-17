@@ -128,6 +128,33 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
             Return ClassificationTypeNames.Identifier
         End Function
 
+        Public Function IsStaticallyDeclared(identifier As SyntaxToken) As Boolean
+            'Note: parent might be Nothing, if we are classifying raw tokens.
+            Dim parent = identifier.Parent
+
+            Dim classification As String = Nothing
+
+            If TypeOf parent Is TypeStatementSyntax AndAlso DirectCast(parent, TypeStatementSyntax).Identifier = identifier Then
+                Return DirectCast(parent, TypeStatementSyntax).GetModifiers().Any(SyntaxKind.SharedKeyword)
+            ElseIf TypeOf parent Is MethodStatementSyntax AndAlso DirectCast(parent, MethodStatementSyntax).Identifier = identifier Then
+                Return DirectCast(parent, MethodStatementSyntax).GetModifiers().Any(SyntaxKind.SharedKeyword)
+            ElseIf TypeOf parent Is PropertyStatementSyntax AndAlso DirectCast(parent, PropertyStatementSyntax).Identifier = identifier Then
+                Return DirectCast(parent, PropertyStatementSyntax).GetModifiers().Any(SyntaxKind.SharedKeyword)
+            ElseIf TypeOf parent Is EventStatementSyntax AndAlso DirectCast(parent, EventStatementSyntax).Identifier = identifier Then
+                Return DirectCast(parent, EventStatementSyntax).GetModifiers().Any(SyntaxKind.SharedKeyword)
+            ElseIf TypeOf parent Is EnumMemberDeclarationSyntax AndAlso DirectCast(parent, EnumMemberDeclarationSyntax).Identifier = identifier Then
+                Return False ' TODO: Since Enum members are always static is it useful to classify them as static?
+            ElseIf TypeOf parent Is ModifiedIdentifierSyntax AndAlso DirectCast(parent, ModifiedIdentifierSyntax).Identifier = identifier Then
+                If TypeOf parent?.Parent?.Parent Is FieldDeclarationSyntax Then
+                    Dim localDeclaration = DirectCast(parent.Parent.Parent, FieldDeclarationSyntax)
+                    Return localDeclaration.GetModifiers().Any(
+                        Function(modifier As SyntaxToken) modifier.IsKind(SyntaxKind.SharedKeyword, SyntaxKind.ConstKeyword))
+                End If
+            End If
+
+            Return False
+        End Function
+
         Private Function IsStringToken(token As SyntaxToken) As Boolean
             If token.IsKind(SyntaxKind.StringLiteralToken, SyntaxKind.CharacterLiteralToken, SyntaxKind.InterpolatedStringTextToken) Then
                 Return True

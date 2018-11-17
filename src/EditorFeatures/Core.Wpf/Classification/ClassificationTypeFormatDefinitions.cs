@@ -901,5 +901,22 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             }
         }
         #endregion
+
+        #region Symbol - Static
+        [Export(typeof(EditorFormatDefinition))]
+        [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.StaticSymbol)]
+        [Name(ClassificationTypeNames.StaticSymbol)]
+        [Order(After = PredefinedClassificationTypeNames.Identifier)]
+        [UserVisible(true)]
+        [ExcludeFromCodeCoverage]
+        private class SymbolStaticFormatDefinition : ClassificationFormatDefinition
+        {
+            private SymbolStaticFormatDefinition()
+            {
+                this.DisplayName = EditorFeaturesResources.Symbol_Static;
+                this.IsBold = true;
+            }
+        }
+        #endregion
     }
 }

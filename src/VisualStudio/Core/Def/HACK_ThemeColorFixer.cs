@@ -113,6 +113,8 @@ namespace Microsoft.VisualStudio.LanguageServices
             UpdateForegroundColor(ClassificationTypeNames.NamespaceName, sourceFormatMap, targetFormatMap);
             UpdateForegroundColor(ClassificationTypeNames.LabelName, sourceFormatMap, targetFormatMap);
 
+            UpdateForegroundColor(ClassificationTypeNames.StaticSymbol, sourceFormatMap, targetFormatMap);
+
             UpdateForegroundColor(ClassificationTypeNames.VerbatimStringLiteral, sourceFormatMap, targetFormatMap);
             UpdateForegroundColor(ClassificationTypeNames.StringEscapeCharacter, sourceFormatMap, targetFormatMap);
 

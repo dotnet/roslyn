@@ -1756,6 +1756,15 @@ namespace Microsoft.CodeAnalysis.Editor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Symbol - Static.
+        /// </summary>
+        internal static string Symbol_Static {
+            get {
+                return ResourceManager.GetString("Symbol_Static", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Text Buffer Change.
         /// </summary>
         internal static string Text_Buffer_Change {

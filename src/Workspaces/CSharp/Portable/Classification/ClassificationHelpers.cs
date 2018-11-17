@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -201,6 +202,47 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
             else
             {
                 return ClassificationTypeNames.Identifier;
+            }
+        }
+
+        public static bool IsStaticallyDeclared(SyntaxToken token)
+        {
+            if (token.Parent is BaseTypeDeclarationSyntax typeDeclaration && typeDeclaration.Identifier == token)
+            {
+                return typeDeclaration.GetModifiers().Any(SyntaxKind.StaticKeyword);
+            }
+            else if (token.Parent is MethodDeclarationSyntax methodDeclaration && methodDeclaration.Identifier == token)
+            {
+                return methodDeclaration.GetModifiers().Any(SyntaxKind.StaticKeyword);
+            }
+            else if (token.Parent is PropertyDeclarationSyntax propertyDeclaration && propertyDeclaration.Identifier == token)
+            {
+                return propertyDeclaration.GetModifiers().Any(SyntaxKind.StaticKeyword);
+            }
+            else if (token.Parent is EnumMemberDeclarationSyntax enumMemberDeclaration && enumMemberDeclaration.Identifier == token)
+            {
+                return false;  // TODO: Since Enum members are always static is it useful to classify them as static?
+            }
+            else if (token.Parent is VariableDeclaratorSyntax variableDeclarator && variableDeclarator.Identifier == token)
+            {
+                var varDecl = variableDeclarator.Parent as VariableDeclarationSyntax;
+                switch (varDecl.Parent)
+                {
+                    case FieldDeclarationSyntax fieldDeclaration:
+                        return fieldDeclaration.GetModifiers().Any(
+                            modifier => modifier.Kind() == SyntaxKind.StaticKeyword || modifier.Kind() == SyntaxKind.ConstKeyword);
+                    case EventFieldDeclarationSyntax aventFieldDeclarationSyntax:
+                        return aventFieldDeclarationSyntax.GetModifiers().Any(SyntaxKind.StaticKeyword);
+                }
+                return false;
+            }
+            else if (token.Parent is EventDeclarationSyntax eventDeclarationSyntax && eventDeclarationSyntax.Identifier == token)
+            {
+                return eventDeclarationSyntax.GetModifiers().Any(SyntaxKind.StaticKeyword);
+            }
+            else
+            {
+                return false;
             }
         }
 

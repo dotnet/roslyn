@@ -872,4 +872,7 @@ Do you want to proceed?</value>
   <data name="Keyword_Control" xml:space="preserve">
     <value>Keyword - Control</value>
   </data>
+  <data name="Symbol_Static" xml:space="preserve">
+    <value>Symbol - Static</value>
+  </data>
 </root>

@@ -64,7 +64,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
 @"using M = System.Math;",
                 Class("M"),
                 Namespace("System"),
-                Class("Math"));
+                Class("Math"),
+                Static("Math"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
@@ -724,7 +725,8 @@ class Derived : Base
 }",
                 Class("T"),
                 Class("T"),
-                Field("T"));
+                Field("T"),
+                Static("T"));
         }
 
         /// <summary>
@@ -770,7 +772,8 @@ class Derived : Base
                 Class("T"),
                 Class("T"),
                 Class("T"),
-                Field("field"));
+                Field("field"),
+                Static("field"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
@@ -1005,7 +1008,8 @@ class Derived : Base
                 Class("T"),
                 Class("H"),
                 Class("T"),
-                Field("f"));
+                Field("f"),
+                Static("f"));
         }
 
         /// <summary>
@@ -1278,6 +1282,7 @@ class C
                 Namespace("System"),
                 Class("AppDomain"),
                 Property("CurrentDomain"),
+                Static("CurrentDomain"),
                 Event("AssemblyLoad"),
                 Namespace("System"),
                 Class("AssemblyLoadEventArgs"));
@@ -1324,6 +1329,7 @@ class C
             await TestAsync(code,
                 ParseOptions(Options.Regular),
                 Class("C"),
+                Static("M"),
                 Method("M"));
         }
 
@@ -1336,7 +1342,8 @@ class C
                 ParseOptions(Options.Script),
                 Class("Script"),
                 Class("C"),
-                Method("M"));
+                Method("M"),
+                Static("M"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
@@ -1360,7 +1367,8 @@ namespace N
                 Namespace("N"),
                 Namespace("N"),
                 Class("C"),
-                Method("M"));
+                Method("M"),
+                Static("M"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
@@ -1384,7 +1392,8 @@ namespace N
                 Namespace("N"),
                 Namespace("@global"),
                 Class("C"),
-                Method("M"));
+                Method("M"),
+                Static("M"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
@@ -1408,7 +1417,8 @@ namespace N
                 Namespace("N"),
                 Namespace("global"),
                 Class("C"),
-                Method("M"));
+                Method("M"),
+                Static("M"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
@@ -1432,7 +1442,8 @@ namespace N
                 Namespace("N"),
                 Namespace("goo"),
                 Class("C"),
-                Method("M"));
+                Method("M"),
+                Static("M"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
@@ -1456,7 +1467,8 @@ namespace N
                 Namespace("N"),
                 Namespace("goo"),
                 Class("C"),
-                Method("M"));
+                Method("M"),
+                Static("M"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
@@ -1597,6 +1609,7 @@ namespace MyNameSpace
                 Namespace("MyNameSpace"),
                 Namespace("rabbit"),
                 Class("MyClass2"),
+                Static("method"),
                 Method("method"),
                 Namespace("rabbit"),
                 Class("MyClass2"),
@@ -1607,9 +1620,11 @@ namespace MyNameSpace
                 Struct("MyStruct"),
                 Namespace("rabbit"),
                 Class("MyClass2"),
+                Static("MyProp"),
                 Property("MyProp"),
                 Namespace("rabbit"),
                 Class("MyClass2"),
+                Static("myField"),
                 Field("myField"),
                 Namespace("rabbit"),
                 Class("MyClass2"),
@@ -1664,9 +1679,13 @@ class Outer
 }",
                 Namespace("System"),
                 Class("Console"),
+                Static("Console"),
                 Method("WriteLine"),
+                Static("WriteLine"),
                 Class("Console"),
-                Method("WriteLine"));
+                Static("Console"),
+                Method("WriteLine"),
+                Static("WriteLine"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
@@ -2004,6 +2023,7 @@ public class X : B<X>
                 Class("var"),
                 Keyword("var"),
                 Method("GetVarT"),
+                Static("GetVarT"),
                 Keyword("var"),
                 Class("var"));
         }
@@ -2434,7 +2454,9 @@ namespace ConsoleApplication1
     Namespace("Tasks"),
     Namespace("ConsoleApplication1"),
     Class("Debug"),
+    Static("Debug"),
     Method("Assert"),
+    Static("Assert"),
     Parameter("args"),
     Property("Length"));
         }

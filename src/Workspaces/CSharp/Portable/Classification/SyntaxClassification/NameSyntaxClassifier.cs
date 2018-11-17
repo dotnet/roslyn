@@ -65,6 +65,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
             if (TryClassifySymbol(name, symbol, semanticModel, cancellationToken, out var classifiedSpan))
             {
                 result.Add(classifiedSpan);
+
+                if (classifiedSpan.ClassificationType != ClassificationTypeNames.Keyword)
+                {
+                    // Additionally classify static symbols
+                    TryClassifyStaticSymbol(symbol, classifiedSpan.TextSpan, result);
+                }
+
                 return true;
             }
 
@@ -101,6 +108,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
             finally
             {
                 set.Free();
+            }
+        }
+
+        private void TryClassifyStaticSymbol(
+            ISymbol symbol,
+            Text.TextSpan span,
+            ArrayBuilder<ClassifiedSpan> result)
+        {
+            if (symbol?.IsStatic == true
+                && (!symbol.IsKind(SymbolKind.Field) || symbol.ContainingType?.IsEnumType() == false) // TODO: Since Enum members are always static is it useful to classify them as static?
+                && !symbol.IsKind(SymbolKind.Namespace)) // TODO: Since Namespace are always static is it useful to classify them as static?
+            {
+                result.Add(new ClassifiedSpan(span, ClassificationTypeNames.StaticSymbol));
             }
         }
 

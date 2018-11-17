@@ -132,6 +132,11 @@
         <target state="new">User Symbols - Property Name</target>
         <note />
       </trans-unit>
+      <trans-unit id="Symbol_Static">
+        <source>Symbol - Static</source>
+        <target state="new">Symbol - Static</target>
+        <note />
+      </trans-unit>
       <trans-unit id="User_Types_Classes">
         <source>User Types - Classes</source>
         <target state="translated">Tipos de usuario: clases</target>

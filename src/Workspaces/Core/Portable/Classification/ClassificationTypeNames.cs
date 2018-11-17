@@ -16,6 +16,8 @@ namespace Microsoft.CodeAnalysis.Classification
         public const string WhiteSpace = "whitespace";
         public const string Text = "text";
 
+        public const string StaticSymbol = "static symbol";
+
         public const string PreprocessorText = "preprocessor text";
         public const string Punctuation = "punctuation";
         public const string VerbatimStringLiteral = "string - verbatim";
