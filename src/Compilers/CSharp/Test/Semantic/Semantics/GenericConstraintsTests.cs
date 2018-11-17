@@ -3492,6 +3492,33 @@ public struct YourStruct<T> where T : unmanaged
         }
 
         [Fact]
+        public void UnmanagedCyclic()
+        {
+            var code = @"
+public struct MyStruct<T>
+{
+    public YourStruct<T> field;
+}
+
+public struct YourStruct<T> where T : unmanaged
+{
+    public MyStruct<T> field;
+}
+";
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll)
+                .VerifyDiagnostics(
+                    // (4,26): error CS0523: Struct member 'MyStruct<T>.field' of type 'YourStruct<T>' causes a cycle in the struct layout
+                    //     public YourStruct<T> field;
+                    Diagnostic(ErrorCode.ERR_StructLayoutCycle, "field").WithArguments("MyStruct<T>.field", "YourStruct<T>").WithLocation(4, 26),
+                    // (4,26): error CS8377: The type 'T' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'YourStruct<T>'
+                    //     public YourStruct<T> field;
+                    Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "field").WithArguments("YourStruct<T>", "T", "T").WithLocation(4, 26),
+                    // (9,24): error CS0523: Struct member 'YourStruct<T>.field' of type 'MyStruct<T>' causes a cycle in the struct layout
+                    //     public MyStruct<T> field;
+                    Diagnostic(ErrorCode.ERR_StructLayoutCycle, "field").WithArguments("YourStruct<T>.field", "MyStruct<T>").WithLocation(9, 24));
+        }
+
+        [Fact]
         public void UnmanagedExpandingTypeArgumentManagedGenericField()
         {
             var code = @"
