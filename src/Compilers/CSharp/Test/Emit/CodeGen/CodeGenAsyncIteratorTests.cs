@@ -1125,7 +1125,7 @@ class C
         Write($""{value} "");
         await Task.Delay(10);
     }
-    static async System.Threading.Tasks.Task Main()
+    static async Task Main()
     {
         var enumerable = M(41);
         await foreach (var item1 in enumerable)
