@@ -52907,7 +52907,9 @@ class Outer
         z = x;
         z = y;
         z = (T)x;
+        z.ToString(); // 1
         z = (T)y;
+        z.ToString();
     }
 }
 ";
@@ -52923,7 +52925,10 @@ class Outer
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "y").WithArguments("object", "T").WithLocation(8, 13),
                 // (9,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         z = (T)x;
-                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(T)x").WithLocation(9, 13)
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(T)x").WithLocation(9, 13),
+                // (10,9): warning CS8602: Possible dereference of a null reference.
+                //         z.ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "z").WithLocation(10, 9)
                 );
         }
 
@@ -52940,7 +52945,9 @@ class Outer
         z = x;
         z = y;
         z = (T)x;
+        z.ToString(); // 1
         z = (T)y;
+        z.ToString();
     }
 }
 ";
@@ -52951,7 +52958,10 @@ class Outer
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "x").WithLocation(7, 13),
                 // (9,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         z = (T)x;
-                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(T)x").WithLocation(9, 13)
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(T)x").WithLocation(9, 13),
+                // (10,9): warning CS8602: Possible dereference of a null reference.
+                //         z.ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "z").WithLocation(10, 9)
                 );
         }
 
@@ -52967,7 +52977,9 @@ class Outer
         z = x;
         z = y;
         z = (T)x;
+        z.ToString(); // 1
         z = (T)y;
+        z.ToString();
     }
 }
 
@@ -52986,7 +52998,10 @@ interface I1{}
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "y").WithArguments("object", "T").WithLocation(8, 13),
                 // (9,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         z = (T)x;
-                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(T)x").WithLocation(9, 13)
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(T)x").WithLocation(9, 13),
+                // (10,9): warning CS8602: Possible dereference of a null reference.
+                //         z.ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "z").WithLocation(10, 9)
                 );
         }
 
@@ -53002,7 +53017,9 @@ class Outer
         z = x;
         z = y;
         z = (T)x;
+        z.ToString(); // 1
         z = (T)y;
+        z.ToString();
     }
 }
 
@@ -53015,7 +53032,10 @@ interface I1{}
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "x").WithLocation(7, 13),
                 // (9,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         z = (T)x;
-                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(T)x").WithLocation(9, 13)
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(T)x").WithLocation(9, 13),
+                // (10,9): warning CS8602: Possible dereference of a null reference.
+                //         z.ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "z").WithLocation(10, 9)
                 );
         }
 
@@ -53031,7 +53051,9 @@ class Outer
         z = x;
         z = y;
         z = (T)x;
+        z.ToString(); // 1
         z = (T)y;
+        z.ToString();
     }
 }
 
@@ -53050,7 +53072,10 @@ interface I1{}
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "y").WithArguments("object", "T").WithLocation(8, 13),
                 // (9,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         z = (T)x;
-                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(T)x").WithLocation(9, 13)
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(T)x").WithLocation(9, 13),
+                // (10,9): warning CS8602: Possible dereference of a null reference.
+                //         z.ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "z").WithLocation(10, 9)
                 );
         }
 
@@ -53066,7 +53091,9 @@ class Outer
         z = x;
         z = y;
         z = (T)x;
+        z.ToString(); // 1
         z = (T)y;
+        z.ToString();
     }
 }
 
@@ -53079,7 +53106,10 @@ interface I1{}
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "x").WithLocation(7, 13),
                 // (9,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         z = (T)x;
-                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(T)x").WithLocation(9, 13)
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(T)x").WithLocation(9, 13),
+                // (10,9): warning CS8602: Possible dereference of a null reference.
+                //         z.ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "z").WithLocation(10, 9)
                 );
         }
 
@@ -53094,6 +53124,7 @@ class Outer
         U y;
         y = x;
         y = (U)x;
+        y.ToString();
     }
 }
 ";
@@ -53107,7 +53138,10 @@ class Outer
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "x").WithLocation(7, 13),
                 // (8,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         y = (U)x;
-                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(U)x").WithLocation(8, 13)
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(U)x").WithLocation(8, 13),
+                // (9,9): warning CS8602: Possible dereference of a null reference.
+                //         y.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y").WithLocation(9, 9)
                 );
         }
 
@@ -53122,6 +53156,7 @@ class Outer
         U y;
         y = x;
         y = (U)x;
+        y.ToString();
     }
 }
 
@@ -53137,7 +53172,10 @@ interface I1 {}
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "x").WithLocation(7, 13),
                 // (8,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         y = (U)x;
-                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(U)x").WithLocation(8, 13)
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(U)x").WithLocation(8, 13),
+                // (9,9): warning CS8602: Possible dereference of a null reference.
+                //         y.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y").WithLocation(9, 9)
                 );
         }
 
@@ -53152,6 +53190,7 @@ class Outer
         U y;
         y = x;
         y = (U)x;
+        y.ToString();
     }
 }
 
@@ -53167,7 +53206,10 @@ interface I1 {}
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "x").WithLocation(7, 13),
                 // (8,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         y = (U)x;
-                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(U)x").WithLocation(8, 13)
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(U)x").WithLocation(8, 13),
+                // (9,9): warning CS8602: Possible dereference of a null reference.
+                //         y.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y").WithLocation(9, 9)
                 );
         }
 
@@ -53182,6 +53224,7 @@ class Outer
         U y;
         y = x;
         y = (U)x;
+        y.ToString();
     }
 }
 
@@ -53207,6 +53250,7 @@ class Outer
         T y;
         y = x;
         y = (T)x;
+        y.ToString();
     }
 }
 ";
@@ -53231,17 +53275,21 @@ class Outer
         T y;
         y = x;
         y = (T)x;
+        y.ToString();
     }
 }
 ";
-            // https://github.com/dotnet/roslyn/issues/30939 - ErrorCode.WRN_ConvertingNullableToNonNullable warnings are not expected
+            // https://github.com/dotnet/roslyn/issues/30939 - ErrorCode.WRN_ConvertingNullableToNonNullable/ErrorCode.WRN_NullReferenceReceiver warnings are not expected
             CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics(
                 // (8,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         y = x;
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "x").WithLocation(8, 13),
                 // (9,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         y = (T)x;
-                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(T)x").WithLocation(9, 13)
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(T)x").WithLocation(9, 13),
+                // (10,9): warning CS8602: Possible dereference of a null reference.
+                //         y.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y").WithLocation(10, 9)
                 );
         }
 
@@ -53259,7 +53307,9 @@ class Outer
         z = x;
         z = y;
         z = (T)x;
+        z.ToString(); // 1
         z = (T)y;
+        z.ToString();
     }
 }
 ";
@@ -53285,7 +53335,10 @@ class Outer
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "y").WithArguments("Outer", "T").WithLocation(8, 13),
                 // (9,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         z = (T)x;
-                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(T)x").WithLocation(9, 13)
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(T)x").WithLocation(9, 13),
+                // (10,9): warning CS8602: Possible dereference of a null reference.
+                //         z.ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "z").WithLocation(10, 9)
                 );
         }
 
@@ -53302,6 +53355,7 @@ class Outer
         T y;
         y = x;
         y = (T)x;
+        y.ToString();
     }
 }
 ";
@@ -53331,7 +53385,9 @@ class Outer
         z = x;
         z = y;
         z = (T)x;
+        z.ToString(); // 1
         z = (T)y;
+        z.ToString();
     }
 }
 ";
@@ -53357,7 +53413,10 @@ class Outer
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "y").WithArguments("Outer", "T").WithLocation(8, 13),
                 // (9,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         z = (T)x;
-                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(T)x").WithLocation(9, 13)
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(T)x").WithLocation(9, 13),
+                // (10,9): warning CS8602: Possible dereference of a null reference.
+                //         z.ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "z").WithLocation(10, 9)
                 );
         }
 
@@ -53374,6 +53433,7 @@ class Outer
         T y;
         y = x;
         y = (T)x;
+        y.ToString();
     }
 }
 ";
@@ -53420,6 +53480,7 @@ class Outer
     void M0<T>(T x)
     {
         x = default;
+        x.ToString();
     }
 }
 ";
@@ -53427,7 +53488,10 @@ class Outer
             CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics(
                 // (6,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         x = default;
-                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "default").WithLocation(6, 13)
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "default").WithLocation(6, 13),
+                // (7,9): warning CS8602: Possible dereference of a null reference.
+                //         x.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(7, 9)
                 );
         }
 
@@ -53440,6 +53504,7 @@ class Outer
     void M0<T>(T x)
     {
         x = default(T);
+        x.ToString();
     }
 }
 ";
@@ -53447,7 +53512,10 @@ class Outer
             CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics(
                 // (6,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         x = default(T);
-                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "default(T)").WithLocation(6, 13)
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "default(T)").WithLocation(6, 13),
+                // (7,9): warning CS8602: Possible dereference of a null reference.
+                //         x.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(7, 9)
                 );
         }
 
@@ -53460,6 +53528,7 @@ class Outer
     void M0<T>(T x) where T : I1?
     {
         x = default;
+        x.ToString();
     }
 }
 
@@ -53469,7 +53538,10 @@ interface I1 {}
             CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics(
                 // (6,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         x = default;
-                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "default").WithLocation(6, 13)
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "default").WithLocation(6, 13),
+                // (7,9): warning CS8602: Possible dereference of a null reference.
+                //         x.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(7, 9)
                 );
         }
 
@@ -53482,6 +53554,7 @@ class Outer
     void M0<T>(T x) where T : I1?
     {
         x = default(T);
+        x.ToString();
     }
 }
 
@@ -53491,7 +53564,10 @@ interface I1 {}
             CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics(
                 // (6,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         x = default(T);
-                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "default(T)").WithLocation(6, 13)
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "default(T)").WithLocation(6, 13),
+                // (7,9): warning CS8602: Possible dereference of a null reference.
+                //         x.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(7, 9)
                 );
         }
 
@@ -53504,6 +53580,7 @@ class Outer
     void M0<T>(T x) where T : Outer
     {
         x = default;
+        x.ToString();
     }
 }
 ";
@@ -53511,7 +53588,10 @@ class Outer
             CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics(
                 // (6,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         x = default;
-                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "default").WithLocation(6, 13)
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "default").WithLocation(6, 13),
+                // (7,9): warning CS8602: Possible dereference of a null reference.
+                //         x.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(7, 9)
                 );
         }
 
@@ -53524,6 +53604,7 @@ class Outer
     void M0<T>(T x) where T : Outer
     {
         x = default(T);
+        x.ToString();
     }
 }
 ";
@@ -53531,7 +53612,10 @@ class Outer
             CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics(
                 // (6,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         x = default(T);
-                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "default(T)").WithLocation(6, 13)
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "default(T)").WithLocation(6, 13),
+                // (7,9): warning CS8602: Possible dereference of a null reference.
+                //         x.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(7, 9)
                 );
         }
 
@@ -53544,6 +53628,7 @@ class Outer
     void M0<T>(T x) where T : I1
     {
         x = default;
+        x.ToString();
     }
 }
 
@@ -53553,7 +53638,10 @@ interface I1 {}
             CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics(
                 // (6,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         x = default;
-                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "default").WithLocation(6, 13)
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "default").WithLocation(6, 13),
+                // (7,9): warning CS8602: Possible dereference of a null reference.
+                //         x.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(7, 9)
                 );
         }
 
@@ -53566,6 +53654,7 @@ class Outer
     void M0<T>(T x) where T : I1
     {
         x = default(T);
+        x.ToString();
     }
 }
 
@@ -53575,7 +53664,10 @@ interface I1 {}
             CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics(
                 // (6,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         x = default(T);
-                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "default(T)").WithLocation(6, 13)
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "default(T)").WithLocation(6, 13),
+                // (7,9): warning CS8602: Possible dereference of a null reference.
+                //         x.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(7, 9)
                 );
         }
 
@@ -53793,6 +53885,7 @@ class Outer
     void M0<T>(T x) where T : class?
     {
         x = null;
+        x.ToString();
     }
 }
 ";
@@ -53800,7 +53893,10 @@ class Outer
             CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics(
                 // (6,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         x = null;
-                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(6, 13)
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(6, 13),
+                // (7,9): warning CS8602: Possible dereference of a null reference.
+                //         x.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(7, 9)
                 );
         }
 
@@ -53813,6 +53909,7 @@ class Outer
     void M0<T>(T x) where T : class
     {
         x = null;
+        x.ToString();
     }
 }
 ";
@@ -53820,7 +53917,10 @@ class Outer
             CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics(
                 // (6,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         x = null;
-                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(6, 13)
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(6, 13),
+                // (7,9): warning CS8602: Possible dereference of a null reference.
+                //         x.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(7, 9)
                 );
         }
 
@@ -53833,6 +53933,7 @@ class Outer
     void M0<T>(T x) where T : Outer?
     {
         x = null;
+        x.ToString();
     }
 }
 ";
@@ -53840,7 +53941,10 @@ class Outer
             CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics(
                 // (6,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         x = null;
-                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(6, 13)
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(6, 13),
+                // (7,9): warning CS8602: Possible dereference of a null reference.
+                //         x.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(7, 9)
                 );
         }
 
@@ -53853,6 +53957,7 @@ class Outer
     void M0<T>(T x) where T : Outer
     {
         x = null;
+        x.ToString();
     }
 }
 ";
@@ -53860,7 +53965,10 @@ class Outer
             CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics(
                 // (6,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         x = null;
-                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(6, 13)
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(6, 13),
+                // (7,9): warning CS8602: Possible dereference of a null reference.
+                //         x.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(7, 9)
                 );
         }
 

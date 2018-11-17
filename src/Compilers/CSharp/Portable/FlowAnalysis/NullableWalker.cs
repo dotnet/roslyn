@@ -3252,12 +3252,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ConversionKind.ExplicitDynamic:
                 case ConversionKind.ImplicitDynamic:
                     resultAnnotation = operandType.IsNull ? NullableAnnotation.Unknown : operandType.NullableAnnotation;
+                    if (resultAnnotation == NullableAnnotation.NotNullable && targetType.IsTypeParameter())
+                    {
+                        resultAnnotation = NullableAnnotation.NotNullableBasedOnAnalysis;
+                    }
                     break;
 
                 case ConversionKind.Unboxing:
                     if (!operandType.IsNull && targetType.IsTypeParameter())
                     {
                         resultAnnotation = operandType.GetValueNullableAnnotation();
+
+                        if (resultAnnotation == NullableAnnotation.NotNullable)
+                        {
+                            resultAnnotation = NullableAnnotation.NotNullableBasedOnAnalysis;
+                        }
                     }
                     break;
 
@@ -3334,14 +3343,25 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             resultAnnotation = NullableAnnotation.Unknown;
                         }
-                        else if (operandType.IsPossiblyNullableReferenceTypeTypeParameter() && !targetTypeWithNullability.IsPossiblyNullableReferenceTypeTypeParameter())
+                        else if (operandType.IsPossiblyNullableReferenceTypeTypeParameter())
                         {
-                            resultAnnotation = NullableAnnotation.NullableBasedOnAnalysis;
-                            forceOperandAnnotationForResult = targetType.IsPossiblyNullableReferenceTypeTypeParameter();
+                            if (!targetTypeWithNullability.IsPossiblyNullableReferenceTypeTypeParameter())
+                            {
+                                resultAnnotation = NullableAnnotation.NullableBasedOnAnalysis;
+                                forceOperandAnnotationForResult = targetType.IsPossiblyNullableReferenceTypeTypeParameter();
+                            }
+                            else
+                            {
+                                resultAnnotation = operandType.NullableAnnotation;
+                            }
                         }
                         else
                         {
                             resultAnnotation = operandType.NullableAnnotation;
+                            if (resultAnnotation == NullableAnnotation.NotNullable && targetType.IsTypeParameter())
+                            {
+                                resultAnnotation = NullableAnnotation.NotNullableBasedOnAnalysis;
+                            }
                         }
                     }
                     break;
