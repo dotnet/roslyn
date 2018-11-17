@@ -3282,7 +3282,7 @@ public class C
         M2(&myStruct);
     }
 
-    public unsafe void M2(MyStruct<int> *ms) { }
+    public unsafe void M2(MyStruct<int>* ms) { }
 }
 ";
             CreateCompilation(code, options: TestOptions.UnsafeReleaseDll)
@@ -3338,6 +3338,100 @@ public class C
 ";
             CreateCompilation(code, options: TestOptions.UnsafeReleaseDll)
                 .VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void UnmanagedGenericConstraintNestedStructPointer()
+        {
+            var code = @"
+public struct MyStruct<T> where T : unmanaged
+{
+    public T field;
+}
+
+public struct OuterStruct
+{
+    public int x;
+    public InnerStruct inner;
+}
+
+public struct InnerStruct
+{
+    public int y;
+}
+
+public class C
+{
+    public unsafe void M()
+    {
+        MyStruct<OuterStruct> myStruct;
+        M2(&myStruct);
+    }
+
+    public unsafe void M2(MyStruct<OuterStruct>* ms) { }
+}
+";
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll)
+                .VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void UnmanagedGenericConstraintNestedGenericStructPointer()
+        {
+            var code = @"
+public struct MyStruct<T> where T : unmanaged
+{
+    public T field;
+}
+
+public struct InnerStruct<U>
+{
+    public U value;
+}
+
+public class C
+{
+    public unsafe void M()
+    {
+        MyStruct<InnerStruct<int>> myStruct;
+        M2(&myStruct);
+    }
+
+    public unsafe void M2(MyStruct<InnerStruct<int>>* ms) { }
+}
+";
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll)
+                .VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void GenericStructManagedFieldPointer()
+        {
+            var code = @"
+public struct MyStruct<T>
+{
+    public T field;
+}
+
+public class C
+{
+    public unsafe void M()
+    {
+        MyStruct<string> myStruct;
+        M2(&myStruct);
+    }
+
+    public unsafe void M2(MyStruct<string>* ms) { }
+}
+";
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll)
+                .VerifyDiagnostics(
+                    // (12,12): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('MyStruct<string>')
+                    //         M2(&myStruct);
+                    Diagnostic(ErrorCode.ERR_ManagedAddr, "&myStruct").WithArguments("MyStruct<string>").WithLocation(12, 12),
+                    // (15,27): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('MyStruct<string>')
+                    //     public unsafe void M2(MyStruct<string>* ms) { }
+                    Diagnostic(ErrorCode.ERR_ManagedAddr, "MyStruct<string>*").WithArguments("MyStruct<string>").WithLocation(15, 27));
         }
 
         [Fact]
@@ -3420,7 +3514,7 @@ public struct YourStruct<T> where T : unmanaged
         }
 
         [Fact]
-        public void UnmanagedRecursiveTypeArgumentConstraintViolation()
+        public void UnmanagedExpandingTypeArgumentConstraintViolation()
         {
             var code = @"
 public struct MyStruct<T>
@@ -3436,12 +3530,12 @@ public struct YourStruct<T> where T : unmanaged
 ";
             CreateCompilation(code, options: TestOptions.UnsafeReleaseDll)
                 .VerifyDiagnostics(
-                    // (4,12): error CS8377: The type 'MyStruct<MyStruct<T>>' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'YourStruct<T>'
-                    //     public YourStruct<MyStruct<MyStruct<T>>> field;
-                    Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "YourStruct<MyStruct<MyStruct<T>>>").WithArguments("YourStruct<T>", "T", "MyStruct<MyStruct<T>>").WithLocation(4, 12),
                     // (4,46): error CS0523: Struct member 'MyStruct<T>.field' of type 'YourStruct<MyStruct<MyStruct<T>>>' causes a cycle in the struct layout
                     //     public YourStruct<MyStruct<MyStruct<T>>> field;
-                    Diagnostic(ErrorCode.ERR_StructLayoutCycle, "field").WithArguments("MyStruct<T>.field", "YourStruct<MyStruct<MyStruct<T>>>").WithLocation(4, 46));
+                    Diagnostic(ErrorCode.ERR_StructLayoutCycle, "field").WithArguments("MyStruct<T>.field", "YourStruct<MyStruct<MyStruct<T>>>").WithLocation(4, 46),
+                    // (4,46): error CS8377: The type 'MyStruct<MyStruct<T>>' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'YourStruct<T>'
+                    //     public YourStruct<MyStruct<MyStruct<T>>> field;
+                    Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "field").WithArguments("YourStruct<T>", "T", "MyStruct<MyStruct<T>>").WithLocation(4, 46));
         }
 
         [Fact]
@@ -3461,12 +3555,12 @@ public struct YourStruct<T> where T : unmanaged
 ";
             CreateCompilation(code, options: TestOptions.UnsafeReleaseDll)
                 .VerifyDiagnostics(
-                    // (4,12): error CS8377: The type 'MyStruct<MyStruct<T>>' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'YourStruct<T>'
-                    //     public YourStruct<MyStruct<MyStruct<T>>> field;
-                    Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "YourStruct<MyStruct<MyStruct<T>>>").WithArguments("YourStruct<T>", "T", "MyStruct<MyStruct<T>>").WithLocation(4, 12),
                     // (4,46): error CS0523: Struct member 'MyStruct<T>.field' of type 'YourStruct<MyStruct<MyStruct<T>>>' causes a cycle in the struct layout
                     //     public YourStruct<MyStruct<MyStruct<T>>> field;
-                    Diagnostic(ErrorCode.ERR_StructLayoutCycle, "field").WithArguments("MyStruct<T>.field", "YourStruct<MyStruct<MyStruct<T>>>").WithLocation(4, 46));
+                    Diagnostic(ErrorCode.ERR_StructLayoutCycle, "field").WithArguments("MyStruct<T>.field", "YourStruct<MyStruct<MyStruct<T>>>").WithLocation(4, 46),
+                    // (4,46): error CS8377: The type 'MyStruct<MyStruct<T>>' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'YourStruct<T>'
+                    //     public YourStruct<MyStruct<MyStruct<T>>> field;
+                    Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "field").WithArguments("YourStruct<T>", "T", "MyStruct<MyStruct<T>>").WithLocation(4, 46));
         }
     }
 }
