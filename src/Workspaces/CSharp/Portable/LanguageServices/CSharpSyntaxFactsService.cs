@@ -88,6 +88,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 SyntaxFacts.IsKeywordKind(kind); // both contextual and reserved keywords
         }
 
+        public bool IsReservedKeyword(string text)
+        {
+            return SyntaxFacts.GetKeywordKind(text) != SyntaxKind.None; // reserved keywords only
+        }
+
         public bool IsContextualKeyword(SyntaxToken token)
         {
             var kind = (SyntaxKind)token.RawKind;
