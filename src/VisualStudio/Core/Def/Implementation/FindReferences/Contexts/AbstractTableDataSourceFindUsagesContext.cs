@@ -413,7 +413,9 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             private void UpdateCustomColumnsVisibility(ImmutableDictionary<string, ImmutableArray<string>> customData)
             {
                 // Check if we have any custom reference data to display.
-                if (customData.Count == 0)
+                // columnDefinitionManager will be null under unit test
+                var columnDefinitionManager = TableControl.ColumnDefinitionManager;
+                if (customData.Count == 0 || columnDefinitionManager == null)
                 {
                     return;
                 }
@@ -428,7 +430,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                         foreach (var customColumnName in customData.Keys)
                         {
                             // Get the matching custom column.
-                            var customColumnDefinition = TableControl.ColumnDefinitionManager.GetColumnDefinition(customColumnName) as AbstractFindUsagesCustomColumnDefinition;
+                            var customColumnDefinition = columnDefinitionManager.GetColumnDefinition(customColumnName) as AbstractFindUsagesCustomColumnDefinition;
                             if (customColumnDefinition == null)
                             {
                                 Debug.Fail($"{nameof(SourceReferenceItem.ReferenceInfo)} has a key '{customColumnName}', but there is no exported '{nameof(AbstractFindUsagesCustomColumnDefinition)}' with this name.");

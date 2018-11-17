@@ -469,6 +469,10 @@ class { }
             Public Event SourcesChanged As EventHandler Implements ITableManager.SourcesChanged
 
             Public Function AddSource(source As ITableDataSource, ParamArray columns() As String) As Boolean Implements ITableManager.AddSource
+                Return AddSource(source, columns.ToImmutableArray())
+            End Function
+
+            Public Function AddSource(source As ITableDataSource, columns As IReadOnlyCollection(Of String)) As Boolean Implements ITableManager.AddSource
                 LastSink = New TableDataSink()
 
                 source.Subscribe(LastSink)
@@ -482,10 +486,6 @@ class { }
             End Function
 
 #Region "Not Implemented"
-            Public Function AddSource(source As ITableDataSource, columns As IReadOnlyCollection(Of String)) As Boolean Implements ITableManager.AddSource
-                Throw New NotImplementedException()
-            End Function
-
             Public Function GetColumnsForSources(sources As IEnumerable(Of ITableDataSource)) As IReadOnlyList(Of String) Implements ITableManager.GetColumnsForSources
                 Throw New NotImplementedException()
             End Function
@@ -508,6 +508,12 @@ class { }
             Public Sub SetColumnStates(states As IEnumerable(Of ColumnState)) Implements IWpfTableControl2.SetColumnStates
                 _states = states.ToList()
             End Sub
+
+            Public ReadOnly Property ColumnDefinitionManager As ITableColumnDefinitionManager Implements IWpfTableControl.ColumnDefinitionManager
+                Get
+                    Return Nothing
+                End Get
+            End Property
 
 #Region "Not Implemented"
             Public ReadOnly Property IsDataStable As Boolean Implements IWpfTableControl2.IsDataStable
@@ -622,12 +628,6 @@ class { }
                 Set(value As SelectionMode)
                     Throw New NotImplementedException()
                 End Set
-            End Property
-
-            Public ReadOnly Property ColumnDefinitionManager As ITableColumnDefinitionManager Implements IWpfTableControl.ColumnDefinitionManager
-                Get
-                    Throw New NotImplementedException()
-                End Get
             End Property
 
             Public ReadOnly Property Entries As IEnumerable(Of ITableEntryHandle) Implements IWpfTableControl.Entries
