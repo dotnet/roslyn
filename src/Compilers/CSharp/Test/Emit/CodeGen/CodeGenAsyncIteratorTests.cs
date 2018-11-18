@@ -435,6 +435,16 @@ public class C
         }
 
         [Fact]
+        public void MissingTypeAndMembers_AsyncVoidMethodBuilder()
+        {
+            VerifyMissingMember(WellKnownMember.System_Runtime_CompilerServices_AsyncVoidMethodBuilder__Create,
+                // (5,64): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.AsyncVoidMethodBuilder.Create'
+                //     async System.Collections.Generic.IAsyncEnumerable<int> M() { await Task.CompletedTask; yield return 3; }
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "{ await Task.CompletedTask; yield return 3; }").WithArguments("System.Runtime.CompilerServices.AsyncVoidMethodBuilder", "Create").WithLocation(5, 64)
+                );
+        }
+
+        [Fact]
         public void MissingTypeAndMembers_ManualResetValueTaskSourceLogic()
         {
             VerifyMissingMember(WellKnownMember.System_Threading_Tasks_ManualResetValueTaskSourceLogic_T__ctor,
@@ -959,6 +969,184 @@ class C
             CompileAndVerify(comp, expectedOutput: "0 1 2 3 4 5");
         }
 
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [WorkItem(30275, "https://github.com/dotnet/roslyn/issues/30275")]
+        public void CallingGetEnumeratorTwice()
+        {
+            string source = @"
+using static System.Console;
+class C
+{
+    static async System.Collections.Generic.IAsyncEnumerable<int> M(int value)
+    {
+        Write(""1 "");
+        await System.Threading.Tasks.Task.CompletedTask;
+        Write(""2 "");
+        yield return 3;
+        Write(""4 "");
+        value++;
+        Write($""{value} "");
+    }
+    static async System.Threading.Tasks.Task Main()
+    {
+        var enumerable = M(1);
+        await using (var enumerator1 = enumerable.GetAsyncEnumerator())
+        {
+            await using (var enumerator2 = enumerable.GetAsyncEnumerator())
+            {
+                if (!await enumerator1.MoveNextAsync()) throw null;
+                Write($""Stream1:{enumerator1.Current} "");
+                if (!await enumerator2.MoveNextAsync()) throw null;
+                Write($""Stream2:{enumerator2.Current} "");
+                if (await enumerator1.MoveNextAsync()) throw null;
+                if (await enumerator2.MoveNextAsync()) throw null;
+                Write(""Done"");
+            }
+        }
+    }
+}";
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, AsyncStreamsTypes }, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "1 2 Stream1:3 1 2 Stream2:3 4 2 4 2 Done");
+        }
+
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [WorkItem(30275, "https://github.com/dotnet/roslyn/issues/30275")]
+        public void CallingGetEnumeratorTwice2()
+        {
+            string source = @"
+using static System.Console;
+class C
+{
+    static async System.Collections.Generic.IAsyncEnumerable<int> M(int value)
+    {
+        Write(""1 "");
+        await System.Threading.Tasks.Task.CompletedTask;
+        Write(""2 "");
+        yield return 3;
+        Write(""4 "");
+        value++;
+        Write($""{value} "");
+    }
+    static async System.Threading.Tasks.Task Main()
+    {
+        var enumerable = M(1);
+        await using (var enumerator1 = enumerable.GetAsyncEnumerator())
+        {
+            await using (var enumerator2 = enumerable.GetAsyncEnumerator())
+            {
+                if (!await enumerator1.MoveNextAsync()) throw null;
+                Write($""Stream1:{enumerator1.Current} "");
+                if (await enumerator1.MoveNextAsync()) throw null;
+
+                if (!await enumerator2.MoveNextAsync()) throw null;
+                Write($""Stream2:{enumerator2.Current} "");
+                if (await enumerator2.MoveNextAsync()) throw null;
+
+                Write(""Done"");
+            }
+        }
+    }
+}";
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, AsyncStreamsTypes }, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "1 2 Stream1:3 4 2 1 2 Stream2:3 4 2 Done");
+        }
+
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [WorkItem(30275, "https://github.com/dotnet/roslyn/issues/30275")]
+        public void CallingGetEnumeratorTwice3()
+        {
+            string source = @"
+using static System.Console;
+class C
+{
+    static async System.Collections.Generic.IAsyncEnumerable<int> M(int value)
+    {
+        yield return 0;
+        Write(""1 "");
+        await System.Threading.Tasks.Task.CompletedTask;
+        Write(""2 "");
+        yield return 3;
+        Write(""4 "");
+        value++;
+        Write($""{value} "");
+    }
+    static async System.Threading.Tasks.Task Main()
+    {
+        var enumerable = M(1);
+        var enumerator1 = enumerable.GetAsyncEnumerator();
+        if (!await enumerator1.MoveNextAsync()) throw null;
+        Write($""Stream1:{enumerator1.Current} "");
+
+        var enumerator2 = enumerable.GetAsyncEnumerator();
+
+        if (!await enumerator2.MoveNextAsync()) throw null;
+        Write($""Stream2:{enumerator2.Current} "");
+
+        if (!await enumerator1.MoveNextAsync()) throw null;
+        Write($""Stream1:{enumerator1.Current} "");
+        if (await enumerator1.MoveNextAsync()) throw null;
+        await enumerator1.DisposeAsync();
+
+        if (!await enumerator2.MoveNextAsync()) throw null;
+        Write($""Stream2:{enumerator2.Current} "");
+        if (await enumerator2.MoveNextAsync()) throw null;
+        await enumerator2.DisposeAsync();
+
+        Write(""Done"");
+    }
+}";
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, AsyncStreamsTypes }, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "Stream1:0 Stream2:0 1 2 Stream1:3 4 2 1 2 Stream2:3 4 2 Done");
+        }
+
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [WorkItem(30275, "https://github.com/dotnet/roslyn/issues/30275")]
+        public void CallingGetEnumeratorTwice4()
+        {
+            string source = @"
+using System.Threading.Tasks;
+using static System.Console;
+class C
+{
+    static async System.Collections.Generic.IAsyncEnumerable<int> M(int value)
+    {
+        yield return 0;
+        Write(""1 "");
+        await Task.Delay(10);
+        Write(""2 "");
+        yield return 3;
+        await Task.Delay(10);
+        Write(""4 "");
+        value++;
+        await Task.Delay(10);
+        Write($""{value} "");
+        await Task.Delay(10);
+    }
+    static async Task Main()
+    {
+        var enumerable = M(41);
+        await foreach (var item1 in enumerable)
+        {
+            Write($""Stream1:{item1} "");
+        }
+        Write(""Await "");
+        await Task.Delay(10);
+        await foreach (var item2 in enumerable)
+        {
+            Write($""Stream2:{item2} "");
+        }
+
+        Write(""Done"");
+    }
+}";
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, AsyncStreamsTypes }, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "Stream1:0 1 2 Stream1:3 4 42 Await Stream2:0 1 2 Stream2:3 4 42 Done");
+        }
+
         [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void AsyncIteratorWithAwaitCompletedAndYield()
         {
@@ -992,24 +1180,62 @@ class C
 
                 verifier.VerifyIL("C.M", @"
 {
-  // Code size       38 (0x26)
-  .maxstack  2
-  .locals init (C.<M>d__0 V_0)
-  IL_0000:  newobj     ""C.<M>d__0..ctor()""
-  IL_0005:  stloc.0
-  IL_0006:  ldloc.0
-  IL_0007:  call       ""System.Runtime.CompilerServices.AsyncVoidMethodBuilder System.Runtime.CompilerServices.AsyncVoidMethodBuilder.Create()""
-  IL_000c:  stfld      ""System.Runtime.CompilerServices.AsyncVoidMethodBuilder C.<M>d__0.<>t__builder""
-  IL_0011:  ldloc.0
-  IL_0012:  ldc.i4.m1
-  IL_0013:  stfld      ""int C.<M>d__0.<>1__state""
-  IL_0018:  ldloc.0
-  IL_0019:  ldloc.0
-  IL_001a:  newobj     ""System.Threading.Tasks.ManualResetValueTaskSourceLogic<bool>..ctor(System.Runtime.CompilerServices.IStrongBox<System.Threading.Tasks.ManualResetValueTaskSourceLogic<bool>>)""
-  IL_001f:  stfld      ""System.Threading.Tasks.ManualResetValueTaskSourceLogic<bool> C.<M>d__0.<>v__promiseOfValueOrEnd""
-  IL_0024:  ldloc.0
-  IL_0025:  ret
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldc.i4.s   -2
+  IL_0002:  newobj     ""C.<M>d__0..ctor(int)""
+  IL_0007:  ret
 }", sequencePoints: "C.M", source: source);
+
+                if (options == TestOptions.DebugExe)
+                {
+                    verifier.VerifyIL("C.<M>d__0..ctor", @"
+{
+  // Code size       49 (0x31)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""object..ctor()""
+  IL_0006:  nop
+  IL_0007:  ldarg.0
+  IL_0008:  ldarg.1
+  IL_0009:  stfld      ""int C.<M>d__0.<>1__state""
+  IL_000e:  ldarg.0
+  IL_000f:  call       ""int System.Environment.CurrentManagedThreadId.get""
+  IL_0014:  stfld      ""int C.<M>d__0.<>l__initialThreadId""
+  IL_0019:  ldarg.0
+  IL_001a:  call       ""System.Runtime.CompilerServices.AsyncVoidMethodBuilder System.Runtime.CompilerServices.AsyncVoidMethodBuilder.Create()""
+  IL_001f:  stfld      ""System.Runtime.CompilerServices.AsyncVoidMethodBuilder C.<M>d__0.<>t__builder""
+  IL_0024:  ldarg.0
+  IL_0025:  ldarg.0
+  IL_0026:  newobj     ""System.Threading.Tasks.ManualResetValueTaskSourceLogic<bool>..ctor(System.Runtime.CompilerServices.IStrongBox<System.Threading.Tasks.ManualResetValueTaskSourceLogic<bool>>)""
+  IL_002b:  stfld      ""System.Threading.Tasks.ManualResetValueTaskSourceLogic<bool> C.<M>d__0.<>v__promiseOfValueOrEnd""
+  IL_0030:  ret
+}", sequencePoints: "C+<M>d__0..ctor", source: source);
+                }
+                else
+                {
+                    verifier.VerifyIL("C.<M>d__0..ctor", @"
+{
+  // Code size       48 (0x30)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""object..ctor()""
+  IL_0006:  ldarg.0
+  IL_0007:  ldarg.1
+  IL_0008:  stfld      ""int C.<M>d__0.<>1__state""
+  IL_000d:  ldarg.0
+  IL_000e:  call       ""int System.Environment.CurrentManagedThreadId.get""
+  IL_0013:  stfld      ""int C.<M>d__0.<>l__initialThreadId""
+  IL_0018:  ldarg.0
+  IL_0019:  call       ""System.Runtime.CompilerServices.AsyncVoidMethodBuilder System.Runtime.CompilerServices.AsyncVoidMethodBuilder.Create()""
+  IL_001e:  stfld      ""System.Runtime.CompilerServices.AsyncVoidMethodBuilder C.<M>d__0.<>t__builder""
+  IL_0023:  ldarg.0
+  IL_0024:  ldarg.0
+  IL_0025:  newobj     ""System.Threading.Tasks.ManualResetValueTaskSourceLogic<bool>..ctor(System.Runtime.CompilerServices.IStrongBox<System.Threading.Tasks.ManualResetValueTaskSourceLogic<bool>>)""
+  IL_002a:  stfld      ""System.Threading.Tasks.ManualResetValueTaskSourceLogic<bool> C.<M>d__0.<>v__promiseOfValueOrEnd""
+  IL_002f:  ret
+}", sequencePoints: "C+<M>d__0..ctor", source: source);
+                }
 
                 verifier.VerifyIL("C.<M>d__0.System.Collections.Generic.IAsyncEnumerator<int>.get_Current()", @"
 {
@@ -1079,10 +1305,28 @@ class C
 }");
                 verifier.VerifyIL("C.<M>d__0.System.Collections.Generic.IAsyncEnumerable<int>.GetAsyncEnumerator()", @"
 {
-  // Code size        2 (0x2)
-  .maxstack  1
+  // Code size       43 (0x2b)
+  .maxstack  2
+  .locals init (C.<M>d__0 V_0)
   IL_0000:  ldarg.0
-  IL_0001:  ret
+  IL_0001:  ldfld      ""int C.<M>d__0.<>1__state""
+  IL_0006:  ldc.i4.s   -2
+  IL_0008:  bne.un.s   IL_0022
+  IL_000a:  ldarg.0
+  IL_000b:  ldfld      ""int C.<M>d__0.<>l__initialThreadId""
+  IL_0010:  call       ""int System.Environment.CurrentManagedThreadId.get""
+  IL_0015:  bne.un.s   IL_0022
+  IL_0017:  ldarg.0
+  IL_0018:  ldc.i4.m1
+  IL_0019:  stfld      ""int C.<M>d__0.<>1__state""
+  IL_001e:  ldarg.0
+  IL_001f:  stloc.0
+  IL_0020:  br.s       IL_0029
+  IL_0022:  ldc.i4.m1
+  IL_0023:  newobj     ""C.<M>d__0..ctor(int)""
+  IL_0028:  stloc.0
+  IL_0029:  ldloc.0
+  IL_002a:  ret
 }");
                 verifier.VerifyIL("C.<M>d__0.System.Threading.Tasks.Sources.IValueTaskSource<bool>.GetResult(short)", @"
 {

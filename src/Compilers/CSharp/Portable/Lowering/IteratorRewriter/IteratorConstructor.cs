@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         private readonly ImmutableArray<ParameterSymbol> _parameters;
 
-        internal IteratorConstructor(IteratorStateMachine container)
+        internal IteratorConstructor(StateMachineTypeSymbol container)
             : base(container)
         {
             var intType = container.DeclaringCompilation.GetSpecialType(SpecialType.System_Int32);
