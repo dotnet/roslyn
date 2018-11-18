@@ -9,16 +9,13 @@
     <Summary>Text Analyzers</Summary>
     <ReleaseNotes>Text Analyzers</ReleaseNotes>
     <PackageTags>Roslyn CodeAnalysis Compiler CSharp VB VisualBasic Diagnostic Analyzers Syntax Semantics</PackageTags>
+    <ContainsPortedFxCopRules>true</ContainsPortedFxCopRules>
   </PropertyGroup>
 
   <ItemGroup>
     <AnalyzerNupkgAssembly Include="Text.Analyzers.dll" />
     <AnalyzerNupkgAssembly Include="Text.CSharp.Analyzers.dll" />
     <AnalyzerNupkgAssembly Include="Text.VisualBasic.Analyzers.dll" />
-
-    <AnalyzerNupkgFile Include="Text.Analyzers.props" />
-    <AnalyzerNupkgFile Include="Text.CSharp.Analyzers.props" />
-    <AnalyzerNupkgFile Include="Text.VisualBasic.Analyzers.props" />
   </ItemGroup>
 
   <ItemGroup>

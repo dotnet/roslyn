@@ -65,6 +65,7 @@ namespace Roslyn.Diagnostics.Analyzers
             private readonly INamedTypeSymbol _compilationType;
             private readonly HashSet<INamedTypeSymbol> _sourceSymbolsToCheck = new HashSet<INamedTypeSymbol>();
             private readonly HashSet<INamedTypeSymbol> _typesWithSymbolDeclaredEventInvoked = new HashSet<INamedTypeSymbol>();
+            private readonly bool _hasMemberNamedSymbolDeclaredEvent;
 
             private const string SymbolDeclaredEventName = "SymbolDeclaredEvent";
 
@@ -73,9 +74,19 @@ namespace Roslyn.Diagnostics.Analyzers
                 _symbolType = symbolType;
                 _compilationType = compilationType;
 
-                // If the below assert fire then probably the definition of "SymbolDeclaredEvent" has changed and we need to fix this analyzer.
-                ISymbol symbolDeclaredEvent = compilationType.GetMembers(SymbolDeclaredEventName).Single();
-                Debug.Assert(symbolDeclaredEvent.GetParameters().Count() == 1);
+                ISymbol symbolDeclaredEvent = compilationType.GetMembers(SymbolDeclaredEventName).FirstOrDefault();
+                if (symbolDeclaredEvent == null)
+                {
+                    // Likely indicates compilation with errors, where we could not find the required symbol.
+                    _hasMemberNamedSymbolDeclaredEvent = false;
+                }
+                else
+                {
+                    _hasMemberNamedSymbolDeclaredEvent = true;
+
+                    // If the below assert fire then probably the definition of "SymbolDeclaredEvent" has changed and we need to fix this analyzer.
+                    Debug.Assert(symbolDeclaredEvent.GetParameters().Count() == 1);
+                }
             }
 
             protected abstract SyntaxNode GetFirstArgumentOfInvocation(SyntaxNode invocation);
@@ -144,6 +155,11 @@ namespace Roslyn.Diagnostics.Analyzers
 
             internal void AnalyzeCompilationEnd(CompilationAnalysisContext context)
             {
+                if (!_hasMemberNamedSymbolDeclaredEvent)
+                {
+                    return;
+                }
+
                 foreach (INamedTypeSymbol sourceSymbol in _sourceSymbolsToCheck)
                 {
                     var found = false;

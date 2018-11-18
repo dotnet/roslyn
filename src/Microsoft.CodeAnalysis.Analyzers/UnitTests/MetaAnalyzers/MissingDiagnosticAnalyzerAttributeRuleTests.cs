@@ -5,6 +5,7 @@ using Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Analyzers.MetaAnalyzers.Fixers;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.VisualBasic.Analyzers.MetaAnalyzers.CodeFixes;
 using Test.Utilities;
 using Xunit;
@@ -240,27 +241,20 @@ End Class
 
         private static DiagnosticResult GetCSharpExpectedDiagnostic(int line, int column)
         {
-            return GetExpectedDiagnostic(LanguageNames.CSharp, line, column);
+            return GetExpectedDiagnostic(line, column);
         }
 
         private static DiagnosticResult GetBasicExpectedDiagnostic(int line, int column)
         {
-            return GetExpectedDiagnostic(LanguageNames.VisualBasic, line, column);
+            return GetExpectedDiagnostic(line, column);
         }
 
-        private static DiagnosticResult GetExpectedDiagnostic(string language, int line, int column)
+        private static DiagnosticResult GetExpectedDiagnostic(int line, int column)
         {
-            string fileName = language == LanguageNames.CSharp ? "Test0.cs" : "Test0.vb";
-            return new DiagnosticResult
-            {
-                Id = DiagnosticIds.MissingDiagnosticAnalyzerAttributeRuleId,
-                Message = string.Format(CodeAnalysisDiagnosticsResources.MissingAttributeMessage, DiagnosticAnalyzerCorrectnessAnalyzer.DiagnosticAnalyzerAttributeFullName),
-                Severity = DiagnosticHelpers.DefaultDiagnosticSeverity,
-                Locations = new[]
-                {
-                    new DiagnosticResultLocation(fileName, line, column)
-                }
-            };
+            return new DiagnosticResult(DiagnosticIds.MissingDiagnosticAnalyzerAttributeRuleId, DiagnosticHelpers.DefaultDiagnosticSeverity)
+                .WithLocation(line, column)
+                .WithMessageFormat(CodeAnalysisDiagnosticsResources.MissingAttributeMessage)
+                .WithArguments(DiagnosticAnalyzerCorrectnessAnalyzer.DiagnosticAnalyzerAttributeFullName);
         }
     }
 }

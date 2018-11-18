@@ -15,7 +15,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
             public AnalysisEntity AnalysisEntity { get; }
 
+#pragma warning disable CA1307 // Specify StringComparison - string.GetHashCode(StringComparison) not available in all projects that reference this shared project
             protected override int ComputeHashCode() => HashUtilities.Combine(AnalysisEntity.GetHashCode(), nameof(AnalysisEntityBasedIndex).GetHashCode());
+#pragma warning restore CA1307 // Specify StringComparison
         }
     }
 }

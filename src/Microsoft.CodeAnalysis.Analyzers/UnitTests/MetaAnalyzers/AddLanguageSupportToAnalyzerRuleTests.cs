@@ -4,6 +4,7 @@ using Analyzer.Utilities;
 using Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Testing;
 using Test.Utilities;
 using Xunit;
 
@@ -191,27 +192,20 @@ End Class
 
         private static DiagnosticResult GetCSharpExpectedDiagnostic(int line, int column, string analyzerTypeName, string missingLanguageName)
         {
-            return GetExpectedDiagnostic(LanguageNames.CSharp, line, column, analyzerTypeName, missingLanguageName);
+            return GetExpectedDiagnostic(line, column, analyzerTypeName, missingLanguageName);
         }
 
         private static DiagnosticResult GetBasicExpectedDiagnostic(int line, int column, string analyzerTypeName, string missingLanguageName)
         {
-            return GetExpectedDiagnostic(LanguageNames.VisualBasic, line, column, analyzerTypeName, missingLanguageName);
+            return GetExpectedDiagnostic(line, column, analyzerTypeName, missingLanguageName);
         }
 
-        private static DiagnosticResult GetExpectedDiagnostic(string language, int line, int column, string analyzerTypeName, string missingLanguageName)
+        private static DiagnosticResult GetExpectedDiagnostic(int line, int column, string analyzerTypeName, string missingLanguageName)
         {
-            string fileName = language == LanguageNames.CSharp ? "Test0.cs" : "Test0.vb";
-            return new DiagnosticResult
-            {
-                Id = DiagnosticIds.AddLanguageSupportToAnalyzerRuleId,
-                Message = string.Format(CodeAnalysisDiagnosticsResources.AddLanguageSupportToAnalyzerMessage, analyzerTypeName, missingLanguageName),
-                Severity = DiagnosticHelpers.DefaultDiagnosticSeverity,
-                Locations = new[]
-                {
-                    new DiagnosticResultLocation(fileName, line, column)
-                }
-            };
+            return new DiagnosticResult(DiagnosticIds.AddLanguageSupportToAnalyzerRuleId, DiagnosticHelpers.DefaultDiagnosticSeverity)
+                .WithLocation(line, column)
+                .WithMessageFormat(CodeAnalysisDiagnosticsResources.AddLanguageSupportToAnalyzerMessage)
+                .WithArguments(analyzerTypeName, missingLanguageName);
         }
     }
 }

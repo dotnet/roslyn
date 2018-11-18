@@ -1,9 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using Analyzer.Utilities;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Analyzers;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Analyzer.Utilities;
+using Microsoft.CodeAnalysis.Testing;
 using Test.Utilities;
 using Xunit;
 
@@ -120,16 +121,10 @@ namespace ConsoleApplication1
         private static DiagnosticResult GetExpectedDiagnostic(string language, int line, int column, string objectName, string methodName)
         {
             string fileName = language == LanguageNames.CSharp ? "Test0.cs" : "Test0.vb";
-            return new DiagnosticResult
-            {
-                Id = DiagnosticIds.DoNotIgnoreReturnValueOnImmutableObjectMethodInvocation,
-                Message = string.Format(CodeAnalysisDiagnosticsResources.DoNotIgnoreReturnValueOnImmutableObjectMethodInvocationMessage, objectName, methodName),
-                Severity = DiagnosticHelpers.DefaultDiagnosticSeverity,
-                Locations = new[]
-                {
-                    new DiagnosticResultLocation(fileName, line, column)
-                }
-            };
+            return new DiagnosticResult(DiagnosticIds.DoNotIgnoreReturnValueOnImmutableObjectMethodInvocation, DiagnosticHelpers.DefaultDiagnosticSeverity)
+                .WithLocation(fileName, line, column)
+                .WithMessageFormat(CodeAnalysisDiagnosticsResources.DoNotIgnoreReturnValueOnImmutableObjectMethodInvocationMessage)
+                .WithArguments(objectName, methodName);
         }
     }
 }

@@ -359,6 +359,9 @@ namespace Analyzer.Utilities.Extensions
             return false;
         }
 
+        public static bool IsInsideAnonymousFunction(this IOperation operation)
+            => operation.GetAncestor<IAnonymousFunctionOperation>(OperationKind.AnonymousFunction) != null;
+
         public static bool HasAnyOperationDescendant(this ImmutableArray<IOperation> operationBlocks, Func<IOperation, bool> predicate)
         {
             foreach (var operationBlock in operationBlocks)
@@ -571,5 +574,9 @@ namespace Analyzer.Utilities.Extensions
                     return null;
             }
         }
+        
+        public static bool IsWithinLambdaOrLocalFunction(this IOperation operation)
+            => operation.GetAncestor<IAnonymousFunctionOperation>(OperationKind.AnonymousFunction) != null ||
+               operation.GetAncestor<ILocalFunctionOperation>(OperationKind.LocalFunction) != null;
     }
 }

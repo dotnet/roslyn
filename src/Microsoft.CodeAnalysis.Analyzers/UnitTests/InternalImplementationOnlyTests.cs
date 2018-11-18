@@ -2,7 +2,9 @@
 
 using System.Diagnostics;
 using System.Linq;
+using Analyzer.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Testing;
 using Test.Utilities;
 using Xunit;
 
@@ -233,7 +235,7 @@ End Class
                            .AddProjectReference(new ProjectReference(project1.Id));
 
             DiagnosticAnalyzer analyzer = language == LanguageNames.CSharp ? GetCSharpDiagnosticAnalyzer() : GetBasicDiagnosticAnalyzer();
-            GetSortedDiagnostics(analyzer, project2.Documents.ToArray()).Verify(analyzer, expected);
+            GetSortedDiagnostics(analyzer, project2.Documents.ToArray()).Verify(analyzer, GetDefaultPath(language), expected);
         }
 
         private void VerifyCSharpAcrossTwoAssemblies(string source1, string source2, params DiagnosticResult[] expected)
@@ -258,27 +260,20 @@ End Class
 
         private static DiagnosticResult GetCSharpExpectedDiagnostic(int line, int column, string typeName, string interfaceName)
         {
-            return GetExpectedDiagnostic(LanguageNames.CSharp, line, column, typeName, interfaceName);
+            return GetExpectedDiagnostic(line, column, typeName, interfaceName);
         }
 
         private static DiagnosticResult GetBasicExpectedDiagnostic(int line, int column, string typeName, string interfaceName)
         {
-            return GetExpectedDiagnostic(LanguageNames.VisualBasic, line, column, typeName, interfaceName);
+            return GetExpectedDiagnostic(line, column, typeName, interfaceName);
         }
 
-        private static DiagnosticResult GetExpectedDiagnostic(string language, int line, int column, string typeName, string interfaceName)
+        private static DiagnosticResult GetExpectedDiagnostic(int line, int column, string typeName, string interfaceName)
         {
-            string fileName = language == LanguageNames.CSharp ? "Test0.cs" : "Test0.vb";
-            return new DiagnosticResult
-            {
-                Id = DiagnosticIds.InternalImplementationOnlyRuleId,
-                Message = string.Format(CodeAnalysisDiagnosticsResources.InternalImplementationOnlyMessage, typeName, interfaceName),
-                Severity = DiagnosticSeverity.Error,
-                Locations = new[]
-                {
-                    new DiagnosticResultLocation(fileName, line, column)
-                }
-            };
+            return new DiagnosticResult(DiagnosticIds.InternalImplementationOnlyRuleId, DiagnosticSeverity.Error)
+                .WithLocation(line, column)
+                .WithMessageFormat(CodeAnalysisDiagnosticsResources.InternalImplementationOnlyMessage)
+                .WithArguments(typeName, interfaceName);
         }
     }
 }
