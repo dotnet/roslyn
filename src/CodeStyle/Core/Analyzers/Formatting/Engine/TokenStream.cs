@@ -329,7 +329,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             {
                 // get indentation from last line of the text
                 onMultipleLines = true;
-                length = text.GetTextColumn(_optionSet.GetOption(FormattingOptions.TabSize, _treeData.Root.Language), initialColumn: 0);
+                length = text.GetTextColumn(_optionSet.GetOption(FormattingOptions.TabSize), initialColumn: 0);
                 return;
             }
 
@@ -339,8 +339,8 @@ namespace Microsoft.CodeAnalysis.Formatting
             if (text.ContainsTab())
             {
                 // do expansive calculation
-                var initialColumn = _treeData.GetOriginalColumn(_optionSet.GetOption(FormattingOptions.TabSize, _treeData.Root.Language), token);
-                length = text.ConvertTabToSpace(_optionSet.GetOption(FormattingOptions.TabSize, _treeData.Root.Language), initialColumn, text.Length);
+                var initialColumn = _treeData.GetOriginalColumn(_optionSet.GetOption(FormattingOptions.TabSize), token);
+                length = text.ConvertTabToSpace(_optionSet.GetOption(FormattingOptions.TabSize), initialColumn, text.Length);
                 return;
             }
 

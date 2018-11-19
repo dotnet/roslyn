@@ -4,8 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Internal.Log;
@@ -32,7 +30,6 @@ namespace Microsoft.CodeAnalysis.Formatting
         private readonly SyntaxNode _commonRoot;
         private readonly SyntaxToken _token1;
         private readonly SyntaxToken _token2;
-        private readonly string _language;
 
         protected readonly TextSpan SpanToFormat;
 
@@ -77,14 +74,6 @@ namespace Microsoft.CodeAnalysis.Formatting
             // get span and common root
             this.SpanToFormat = GetSpanToFormat();
             _commonRoot = token1.GetCommonRoot(token2);
-            if (token1 == default)
-            {
-                _language = token2.Language;
-            }
-            else
-            {
-                _language = token1.Language;
-            }
         }
 
         protected abstract AbstractTriviaDataFactory CreateTriviaFactory();
@@ -125,7 +114,7 @@ namespace Microsoft.CodeAnalysis.Formatting
         protected virtual FormattingContext CreateFormattingContext(TokenStream tokenStream, CancellationToken cancellationToken)
         {
             // initialize context
-            var context = new FormattingContext(this, tokenStream, _language);
+            var context = new FormattingContext(this, tokenStream);
             context.Initialize(_formattingRules, _token1, _token2, cancellationToken);
 
             return context;

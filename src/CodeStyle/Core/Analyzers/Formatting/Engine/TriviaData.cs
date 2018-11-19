@@ -17,17 +17,14 @@ namespace Microsoft.CodeAnalysis.Formatting
         protected const int TokenPairIndexNotNeeded = int.MinValue;
 
         private readonly AnalyzerConfigOptions _optionSet;
-        private readonly string _language;
 
-        protected TriviaData(AnalyzerConfigOptions optionSet, string language)
+        protected TriviaData(AnalyzerConfigOptions optionSet)
         {
             Contract.ThrowIfNull(optionSet);
             _optionSet = optionSet;
-            _language = language;
         }
 
         protected AnalyzerConfigOptions OptionSet => _optionSet;
-        protected string Language => _language;
 
         public int LineBreaks { get; protected set; }
         public int Spaces { get; protected set; }

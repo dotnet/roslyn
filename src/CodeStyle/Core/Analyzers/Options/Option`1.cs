@@ -57,8 +57,6 @@ namespace Microsoft.CodeAnalysis.Options
 
         object IOption.DefaultValue => this.DefaultValue;
 
-        bool IOption.IsPerLanguage => false;
-
         public override string ToString()
         {
             return string.Format("{0} - {1}", this.Feature, this.Name);

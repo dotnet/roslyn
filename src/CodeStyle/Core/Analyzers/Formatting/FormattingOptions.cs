@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Options;
 using Roslyn.Utilities;
 
@@ -9,25 +8,12 @@ namespace Microsoft.CodeAnalysis.Formatting
 {
     internal static class FormattingOptions
     {
-        private static readonly ImmutableArray<IOption>.Builder s_allOptionsBuilder = ImmutableArray.CreateBuilder<IOption>();
-
-        internal static ImmutableArray<IOption> AllOptions { get; }
-
-        private static PerLanguageOption<T> CreatePerLanguageOption<T>(string name, T defaultValue, params OptionStorageLocation[] storageLocations)
-        {
-            var option = new PerLanguageOption<T>(nameof(FormattingOptions), name, defaultValue, storageLocations);
-            s_allOptionsBuilder.Add(option);
-            return option;
-        }
-
         private static Option<T> CreateOption<T>(string name, T defaultValue, params OptionStorageLocation[] storageLocations)
         {
-            var option = new Option<T>(nameof(FormattingOptions), name, defaultValue, storageLocations);
-            s_allOptionsBuilder.Add(option);
-            return option;
+            return new Option<T>(nameof(FormattingOptions), name, defaultValue, storageLocations);
         }
 
-        public static PerLanguageOption<bool> UseTabs { get; } = CreatePerLanguageOption(
+        public static Option<bool> UseTabs { get; } = CreateOption(
             nameof(UseTabs),
             defaultValue: false,
             storageLocations: new EditorConfigStorageLocation<bool>(
@@ -36,23 +22,23 @@ namespace Microsoft.CodeAnalysis.Formatting
                 isSet => isSet ? "tab" : "space"));
 
         // This is also serialized by the Visual Studio-specific LanguageSettingsPersister
-        public static PerLanguageOption<int> TabSize { get; } = CreatePerLanguageOption(
+        public static Option<int> TabSize { get; } = CreateOption(
             nameof(TabSize),
             defaultValue: 4,
             storageLocations: EditorConfigStorageLocation.ForInt32Option("tab_width"));
 
         // This is also serialized by the Visual Studio-specific LanguageSettingsPersister
-        public static PerLanguageOption<int> IndentationSize { get; } = CreatePerLanguageOption(
+        public static Option<int> IndentationSize { get; } = CreateOption(
             nameof(IndentationSize),
             defaultValue: 4,
             storageLocations: EditorConfigStorageLocation.ForInt32Option("indent_size"));
 
         // This is also serialized by the Visual Studio-specific LanguageSettingsPersister
-        public static PerLanguageOption<IndentStyle> SmartIndent { get; } = CreatePerLanguageOption(
+        public static Option<IndentStyle> SmartIndent { get; } = CreateOption(
             nameof(SmartIndent),
             defaultValue: IndentStyle.Smart);
 
-        public static PerLanguageOption<string> NewLine { get; } = CreatePerLanguageOption(
+        public static Option<string> NewLine { get; } = CreateOption(
             nameof(NewLine),
             defaultValue: Environment.NewLine,
             storageLocations: new EditorConfigStorageLocation<string>(
@@ -79,16 +65,9 @@ namespace Microsoft.CodeAnalysis.Formatting
         private static string GetEndOfLineEditorConfigString(string option)
             => s_parenthesesPreferenceMap.TryGetKey(option, out var editorConfigString) ? editorConfigString : null;
 
-        internal static PerLanguageOption<bool> DebugMode { get; } = CreatePerLanguageOption(nameof(DebugMode), defaultValue: false);
+        internal static Option<bool> DebugMode { get; } = CreateOption(nameof(DebugMode), defaultValue: false);
 
         internal static Option<bool> AllowDisjointSpanMerging { get; } = CreateOption(nameof(AllowDisjointSpanMerging), defaultValue: false);
-
-        static FormattingOptions()
-        {
-            // Note that the static constructor executes after all the static field initializers for the options have executed,
-            // and each field initializer adds the created option to s_allOptionsBuilder.
-            AllOptions = s_allOptionsBuilder.ToImmutable();
-        }
 
         public enum IndentStyle
         {

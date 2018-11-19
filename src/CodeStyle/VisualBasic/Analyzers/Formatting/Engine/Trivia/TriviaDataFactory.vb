@@ -163,7 +163,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             If result.LineBreaks = 0 AndAlso result.Tab > 0 Then
                 ' calculate actual space size from tab
                 Dim spaces = CalculateSpaces(token1, token2)
-                Return New ModifiedWhitespace(Me.OptionSet, result.LineBreaks, indentation:=spaces, elastic:=result.TreatAsElastic, language:=LanguageNames.VisualBasic)
+                Return New ModifiedWhitespace(Me.OptionSet, result.LineBreaks, indentation:=spaces, elastic:=result.TreatAsElastic)
             End If
 
             ' check whether we can cache trivia info for current indentation
@@ -174,22 +174,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
         End Function
 
         Private Function CalculateSpaces(token1 As SyntaxToken, token2 As SyntaxToken) As Integer
-            Dim initialColumn = If(token1.Kind = 0, 0, Me.TreeInfo.GetOriginalColumn(Me.OptionSet.GetOption(FormattingOptions.TabSize, LanguageNames.VisualBasic), token1) + token1.Width)
+            Dim initialColumn = If(token1.Kind = 0, 0, Me.TreeInfo.GetOriginalColumn(Me.OptionSet.GetOption(FormattingOptions.TabSize), token1) + token1.Width)
             Dim textSnippet = Me.TreeInfo.GetTextBetween(token1, token2)
 
-            Return textSnippet.ConvertTabToSpace(Me.OptionSet.GetOption(FormattingOptions.TabSize, LanguageNames.VisualBasic), initialColumn, textSnippet.Length)
+            Return textSnippet.ConvertTabToSpace(Me.OptionSet.GetOption(FormattingOptions.TabSize), initialColumn, textSnippet.Length)
         End Function
 
         Private Function GetLineBreaksAndIndentation(result As Analyzer.AnalysisResult) As ValueTuple(Of Boolean, Integer, Integer)
             Debug.Assert(result.Tab >= 0)
             Debug.Assert(result.LineBreaks >= 0)
 
-            Dim indentation = result.Tab * Me.OptionSet.GetOption(FormattingOptions.TabSize, LanguageNames.VisualBasic) + result.Space
+            Dim indentation = result.Tab * Me.OptionSet.GetOption(FormattingOptions.TabSize) + result.Space
             If result.HasTrailingSpace OrElse result.HasUnknownWhitespace Then
                 Return ValueTuple.Create(False, result.LineBreaks, indentation)
             End If
 
-            If Not Me.OptionSet.GetOption(FormattingOptions.UseTabs, LanguageNames.VisualBasic) Then
+            If Not Me.OptionSet.GetOption(FormattingOptions.UseTabs) Then
                 If result.Tab > 0 Then
                     Return ValueTuple.Create(False, result.LineBreaks, indentation)
                 End If
@@ -197,19 +197,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                 Return ValueTuple.Create(True, result.LineBreaks, indentation)
             End If
 
-            Debug.Assert(Me.OptionSet.GetOption(FormattingOptions.UseTabs, LanguageNames.VisualBasic))
+            Debug.Assert(Me.OptionSet.GetOption(FormattingOptions.UseTabs))
 
             ' tab can only appear before space to be a valid tab for indentation
             If result.HasTabAfterSpace Then
                 Return ValueTuple.Create(False, result.LineBreaks, indentation)
             End If
 
-            If result.Space >= Me.OptionSet.GetOption(FormattingOptions.TabSize, LanguageNames.VisualBasic) Then
+            If result.Space >= Me.OptionSet.GetOption(FormattingOptions.TabSize) Then
                 Return ValueTuple.Create(False, result.LineBreaks, indentation)
             End If
 
-            Debug.Assert((indentation \ Me.OptionSet.GetOption(FormattingOptions.TabSize, LanguageNames.VisualBasic)) = result.Tab)
-            Debug.Assert((indentation Mod Me.OptionSet.GetOption(FormattingOptions.TabSize, LanguageNames.VisualBasic)) = result.Space)
+            Debug.Assert((indentation \ Me.OptionSet.GetOption(FormattingOptions.TabSize)) = result.Tab)
+            Debug.Assert((indentation Mod Me.OptionSet.GetOption(FormattingOptions.TabSize)) = result.Space)
 
             Return ValueTuple.Create(True, result.LineBreaks, indentation)
         End Function

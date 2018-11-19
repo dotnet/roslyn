@@ -3,10 +3,6 @@
 using System;
 using System.Collections.Generic;
 using System.Threading;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Text;
@@ -21,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             private readonly ComplexTrivia _original;
 
             public ModifiedComplexTrivia(AnalyzerConfigOptions optionSet, ComplexTrivia original, int lineBreaks, int space)
-                : base(optionSet, original.Token1.Language)
+                : base(optionSet)
             {
                 Contract.ThrowIfNull(original);
 

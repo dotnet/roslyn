@@ -11,7 +11,6 @@ namespace Microsoft.CodeAnalysis.Options
         string Name { get; }
         Type Type { get; }
         object DefaultValue { get; }
-        bool IsPerLanguage { get; }
 
         ImmutableArray<OptionStorageLocation> StorageLocations { get; }
     }

@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
         protected override FormattingContext CreateFormattingContext(TokenStream tokenStream, CancellationToken cancellationToken)
         {
-            return new FormattingContext(this, tokenStream, LanguageNames.CSharp);
+            return new FormattingContext(this, tokenStream);
         }
 
         protected override NodeOperations CreateNodeOperations(CancellationToken cancellationToken)

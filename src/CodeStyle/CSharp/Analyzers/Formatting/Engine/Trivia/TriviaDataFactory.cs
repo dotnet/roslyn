@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             {
                 // calculate actual space size from tab
                 var spaces = CalculateSpaces(token1, token2);
-                return new ModifiedWhitespace(this.OptionSet, result.LineBreaks, indentation: spaces, elastic: result.TreatAsElastic, language: LanguageNames.CSharp);
+                return new ModifiedWhitespace(this.OptionSet, result.LineBreaks, indentation: spaces, elastic: result.TreatAsElastic);
             }
 
             // check whether we can cache trivia info for current indentation
@@ -137,10 +137,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
         private int CalculateSpaces(SyntaxToken token1, SyntaxToken token2)
         {
-            var initialColumn = (token1.RawKind == 0) ? 0 : this.TreeInfo.GetOriginalColumn(this.OptionSet.GetOption(FormattingOptions.TabSize, LanguageNames.CSharp), token1) + token1.Span.Length;
+            var initialColumn = (token1.RawKind == 0) ? 0 : this.TreeInfo.GetOriginalColumn(this.OptionSet.GetOption(FormattingOptions.TabSize), token1) + token1.Span.Length;
             var textSnippet = this.TreeInfo.GetTextBetween(token1, token2);
 
-            return textSnippet.ConvertTabToSpace(this.OptionSet.GetOption(FormattingOptions.TabSize, LanguageNames.CSharp), initialColumn, textSnippet.Length);
+            return textSnippet.ConvertTabToSpace(this.OptionSet.GetOption(FormattingOptions.TabSize), initialColumn, textSnippet.Length);
         }
 
         private ValueTuple<bool, int, int> GetLineBreaksAndIndentation(Analyzer.AnalysisResult result)
@@ -148,13 +148,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             Debug.Assert(result.Tab >= 0);
             Debug.Assert(result.LineBreaks >= 0);
 
-            var indentation = result.Tab * this.OptionSet.GetOption(FormattingOptions.TabSize, LanguageNames.CSharp) + result.Space;
+            var indentation = result.Tab * this.OptionSet.GetOption(FormattingOptions.TabSize) + result.Space;
             if (result.HasTrailingSpace || result.HasUnknownWhitespace)
             {
                 return ValueTuple.Create(false, result.LineBreaks, indentation);
             }
 
-            if (!this.OptionSet.GetOption(FormattingOptions.UseTabs, LanguageNames.CSharp))
+            if (!this.OptionSet.GetOption(FormattingOptions.UseTabs))
             {
                 if (result.Tab > 0)
                 {
@@ -164,7 +164,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 return ValueTuple.Create(true, result.LineBreaks, indentation);
             }
 
-            Debug.Assert(this.OptionSet.GetOption(FormattingOptions.UseTabs, LanguageNames.CSharp));
+            Debug.Assert(this.OptionSet.GetOption(FormattingOptions.UseTabs));
 
             // tab can only appear before space to be a valid tab for indentation
             if (result.HasTabAfterSpace)
@@ -172,13 +172,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 return ValueTuple.Create(false, result.LineBreaks, indentation);
             }
 
-            if (result.Space >= this.OptionSet.GetOption(FormattingOptions.TabSize, LanguageNames.CSharp))
+            if (result.Space >= this.OptionSet.GetOption(FormattingOptions.TabSize))
             {
                 return ValueTuple.Create(false, result.LineBreaks, indentation);
             }
 
-            Debug.Assert((indentation / this.OptionSet.GetOption(FormattingOptions.TabSize, LanguageNames.CSharp)) == result.Tab);
-            Debug.Assert((indentation % this.OptionSet.GetOption(FormattingOptions.TabSize, LanguageNames.CSharp)) == result.Space);
+            Debug.Assert((indentation / this.OptionSet.GetOption(FormattingOptions.TabSize)) == result.Tab);
+            Debug.Assert((indentation % this.OptionSet.GetOption(FormattingOptions.TabSize)) == result.Space);
 
             return ValueTuple.Create(true, result.LineBreaks, indentation);
         }

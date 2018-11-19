@@ -13,14 +13,14 @@ namespace Microsoft.CodeAnalysis.Formatting
         {
             private readonly Whitespace _original;
 
-            public ModifiedWhitespace(AnalyzerConfigOptions optionSet, int lineBreaks, int indentation, bool elastic, string language) :
-                base(optionSet, lineBreaks, indentation, elastic, language)
+            public ModifiedWhitespace(AnalyzerConfigOptions optionSet, int lineBreaks, int indentation, bool elastic) :
+                base(optionSet, lineBreaks, indentation, elastic)
             {
                 _original = null;
             }
 
-            public ModifiedWhitespace(AnalyzerConfigOptions optionSet, Whitespace original, int lineBreaks, int indentation, bool elastic, string language) :
-                base(optionSet, lineBreaks, indentation, elastic, language)
+            public ModifiedWhitespace(AnalyzerConfigOptions optionSet, Whitespace original, int lineBreaks, int indentation, bool elastic) :
+                base(optionSet, lineBreaks, indentation, elastic)
             {
                 Contract.ThrowIfNull(original);
                 _original = original;
@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                 CancellationToken cancellationToken,
                 int tokenPairIndex = TokenPairIndexNotNeeded)
             {
-                formattingResultApplier(tokenPairIndex, new FormattedWhitespace(this.OptionSet, this.LineBreaks, this.Spaces, this.Language));
+                formattingResultApplier(tokenPairIndex, new FormattedWhitespace(this.OptionSet, this.LineBreaks, this.Spaces));
             }
         }
     }

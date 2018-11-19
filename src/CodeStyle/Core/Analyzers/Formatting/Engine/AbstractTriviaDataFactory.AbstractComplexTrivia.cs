@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             private readonly bool _treatAsElastic;
 
             public AbstractComplexTrivia(AnalyzerConfigOptions optionSet, TreeData treeInfo, SyntaxToken token1, SyntaxToken token2) :
-                base(optionSet, token1.Language)
+                base(optionSet)
             {
                 Contract.ThrowIfNull(treeInfo);
 

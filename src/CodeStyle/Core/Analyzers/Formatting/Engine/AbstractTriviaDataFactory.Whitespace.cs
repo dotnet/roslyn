@@ -19,14 +19,14 @@ namespace Microsoft.CodeAnalysis.Formatting
         {
             private readonly bool _elastic;
 
-            public Whitespace(AnalyzerConfigOptions optionSet, int space, bool elastic, string language) :
-                this(optionSet, lineBreaks: 0, indentation: space, elastic: elastic, language: language)
+            public Whitespace(AnalyzerConfigOptions optionSet, int space, bool elastic) :
+                this(optionSet, lineBreaks: 0, indentation: space, elastic: elastic)
             {
                 Contract.ThrowIfFalse(space >= 0);
             }
 
-            public Whitespace(AnalyzerConfigOptions optionSet, int lineBreaks, int indentation, bool elastic, string language)
-                : base(optionSet, language)
+            public Whitespace(AnalyzerConfigOptions optionSet, int lineBreaks, int indentation, bool elastic)
+                : base(optionSet)
             {
                 _elastic = elastic;
 
@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                     return this;
                 }
 
-                return new ModifiedWhitespace(this.OptionSet, this, /*lineBreak*/0, space, elastic: false, language: this.Language);
+                return new ModifiedWhitespace(this.OptionSet, this, /*lineBreak*/0, space, elastic: false);
             }
 
             public override TriviaData WithLine(int line, int indentation, FormattingContext context, ChainedFormattingRules formattingRules, CancellationToken cancellationToken)
@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                     return this;
                 }
 
-                return new ModifiedWhitespace(this.OptionSet, this, line, indentation, elastic: false, language: this.Language);
+                return new ModifiedWhitespace(this.OptionSet, this, line, indentation, elastic: false);
             }
 
             public override TriviaData WithIndentation(
@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                     return this;
                 }
 
-                return new ModifiedWhitespace(this.OptionSet, this, this.LineBreaks, indentation, elastic: false, language: this.Language);
+                return new ModifiedWhitespace(this.OptionSet, this, this.LineBreaks, indentation, elastic: false);
             }
 
             public override void Format(

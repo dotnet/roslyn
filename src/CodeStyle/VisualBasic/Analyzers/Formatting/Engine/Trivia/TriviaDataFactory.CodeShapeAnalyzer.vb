@@ -117,7 +117,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                     Return True
                 End If
 
-                Dim currentSpaces = text.ConvertTabToSpace(_optionSet.GetOption(FormattingOptions.TabSize, LanguageNames.VisualBasic), Me._currentColumn, text.Length)
+                Dim currentSpaces = text.ConvertTabToSpace(_optionSet.GetOption(FormattingOptions.TabSize), Me._currentColumn, text.Length)
 
                 If currentIndex + 1 < Me._list.Count AndAlso Me._list(currentIndex + 1).RawKind = SyntaxKind.LineContinuationTrivia Then
                     If currentSpaces <> 1 Then
@@ -219,7 +219,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                 End If
 
                 If trivia.Kind = SyntaxKind.DocumentationCommentTrivia AndAlso
-                   ShouldFormatDocumentationComment(_indentation, _optionSet.GetOption(FormattingOptions.TabSize, LanguageNames.VisualBasic), trivia) Then
+                   ShouldFormatDocumentationComment(_indentation, _optionSet.GetOption(FormattingOptions.TabSize), trivia) Then
                     Return True
                 End If
 

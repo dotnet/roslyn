@@ -8,8 +8,8 @@ namespace Microsoft.CodeAnalysis.Formatting
 {
     internal abstract class TriviaDataWithList : TriviaData
     {
-        public TriviaDataWithList(AnalyzerConfigOptions optionSet, string language)
-            : base(optionSet, language)
+        public TriviaDataWithList(AnalyzerConfigOptions optionSet)
+            : base(optionSet)
         {
         }
 

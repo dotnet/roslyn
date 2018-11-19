@@ -33,7 +33,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
         End Function
 
         Protected Overrides Function CreateFormattingContext(tokenStream As TokenStream, cancellationToken As CancellationToken) As FormattingContext
-            Return New FormattingContext(Me, tokenStream, LanguageNames.VisualBasic)
+            Return New FormattingContext(Me, tokenStream)
         End Function
 
         Protected Overrides Function CreateNodeOperations(cancellationToken As CancellationToken) As NodeOperations

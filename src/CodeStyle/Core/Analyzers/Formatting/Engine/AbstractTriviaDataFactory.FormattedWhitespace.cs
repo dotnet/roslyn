@@ -16,13 +16,13 @@ namespace Microsoft.CodeAnalysis.Formatting
         {
             private readonly string _newString;
 
-            public FormattedWhitespace(AnalyzerConfigOptions optionSet, int lineBreaks, int indentation, string language) :
-                base(optionSet, language)
+            public FormattedWhitespace(AnalyzerConfigOptions optionSet, int lineBreaks, int indentation) :
+                base(optionSet)
             {
                 this.LineBreaks = Math.Max(0, lineBreaks);
                 this.Spaces = Math.Max(0, indentation);
 
-                _newString = CreateString(this.OptionSet.GetOption(FormattingOptions.NewLine, language));
+                _newString = CreateString(this.OptionSet.GetOption(FormattingOptions.NewLine));
             }
 
             private string CreateString(string newLine)
@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                         builder.Append(newLine);
                     }
 
-                    builder.AppendIndentationString(this.Spaces, this.OptionSet.GetOption(FormattingOptions.UseTabs, this.Language), this.OptionSet.GetOption(FormattingOptions.TabSize, this.Language));
+                    builder.AppendIndentationString(this.Spaces, this.OptionSet.GetOption(FormattingOptions.UseTabs), this.OptionSet.GetOption(FormattingOptions.TabSize));
                     return StringBuilderPool.ReturnAndFree(builder);
                 }
 
