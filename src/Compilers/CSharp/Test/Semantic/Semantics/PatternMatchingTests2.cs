@@ -1000,14 +1000,14 @@ public class X
                 Console.WriteLine(t9);
                 break;
         }
-        // PROTOTYPE(patterns2): Lowering and code gen not yet supported for switch expression
-        //Console.WriteLine(t switch { (_, _, _, _, _, _, _, _, var t9) => t9 });
+        Console.WriteLine(t switch { (_, _, _, _, _, _, _, _, var t9) => t9 });
     }
 }";
             var compilation = CreatePatternCompilation(source);
             compilation.VerifyDiagnostics(
                 );
             var comp = CompileAndVerify(compilation, expectedOutput: @"9
+9
 9");
         }
 

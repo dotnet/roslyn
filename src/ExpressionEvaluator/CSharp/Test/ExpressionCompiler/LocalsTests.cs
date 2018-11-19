@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
             });
         }
 
-        [Fact(Skip = "PROTOTYPE(patterns2): switch code gen is in flux.")]
+        [Fact]
         public void LocalsInSwitch()
         {
             var source =
@@ -165,14 +165,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
 @"{
   // Code size        2 (0x2)
   .maxstack  1
-  .locals init (object V_0,
-                string V_1,
+  .locals init (string V_0, //a
+                string V_1, //s
                 int V_2,
-                string V_3, //a
-                string V_4, //s
-                int V_5,
-                object V_6,
-                object V_7)
+                object V_3,
+                object V_4)
   IL_0000:  ldarg.0
   IL_0001:  ret
 }");
@@ -180,14 +177,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
 @"{
   // Code size        2 (0x2)
   .maxstack  1
-  .locals init (object V_0,
-                string V_1,
+  .locals init (string V_0, //a
+                string V_1, //s
                 int V_2,
-                string V_3, //a
-                string V_4, //s
-                int V_5,
-                object V_6,
-                object V_7)
+                object V_3,
+                object V_4)
   IL_0000:  ldarg.1
   IL_0001:  ret
 }");
@@ -195,31 +189,25 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
 @"{
   // Code size        2 (0x2)
   .maxstack  1
-  .locals init (object V_0,
-                string V_1,
+  .locals init (string V_0, //a
+                string V_1, //s
                 int V_2,
-                string V_3, //a
-                string V_4, //s
-                int V_5,
-                object V_6,
-                object V_7)
-  IL_0000:  ldloc.3
+                object V_3,
+                object V_4)
+  IL_0000:  ldloc.0
   IL_0001:  ret
 }");
                 VerifyLocal(testData, typeName, locals[3], "<>m3", "s", expectedILOpt:
 @"{
-  // Code size        3 (0x3)
+  // Code size        2 (0x2)
   .maxstack  1
-  .locals init (object V_0,
-                string V_1,
+  .locals init (string V_0, //a
+                string V_1, //s
                 int V_2,
-                string V_3, //a
-                string V_4, //s
-                int V_5,
-                object V_6,
-                object V_7)
-  IL_0000:  ldloc.s    V_4
-  IL_0002:  ret
+                object V_3,
+                object V_4)
+  IL_0000:  ldloc.1
+  IL_0001:  ret
 }");
                 locals.Free();
 
@@ -236,14 +224,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
 @"{
   // Code size        2 (0x2)
   .maxstack  1
-  .locals init (object V_0,
+  .locals init (string V_0, //a
                 string V_1,
-                int V_2,
-                string V_3, //a
-                string V_4,
-                int V_5, //s
-                object V_6,
-                object V_7)
+                int V_2, //s
+                object V_3,
+                object V_4)
   IL_0000:  ldarg.0
   IL_0001:  ret
 }");
@@ -251,14 +236,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
 @"{
   // Code size        2 (0x2)
   .maxstack  1
-  .locals init (object V_0,
+  .locals init (string V_0, //a
                 string V_1,
-                int V_2,
-                string V_3, //a
-                string V_4,
-                int V_5, //s
-                object V_6,
-                object V_7)
+                int V_2, //s
+                object V_3,
+                object V_4)
   IL_0000:  ldarg.1
   IL_0001:  ret
 }");
@@ -266,37 +248,31 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
 @"{
   // Code size        2 (0x2)
   .maxstack  1
-  .locals init (object V_0,
+  .locals init (string V_0, //a
                 string V_1,
-                int V_2,
-                string V_3, //a
-                string V_4,
-                int V_5, //s
-                object V_6,
-                object V_7)
-  IL_0000:  ldloc.3
+                int V_2, //s
+                object V_3,
+                object V_4)
+  IL_0000:  ldloc.0
   IL_0001:  ret
 }");
                 VerifyLocal(testData, typeName, locals[3], "<>m3", "s", expectedILOpt:
 @"{
-  // Code size        3 (0x3)
+  // Code size        2 (0x2)
   .maxstack  1
-  .locals init (object V_0,
+  .locals init (string V_0, //a
                 string V_1,
-                int V_2,
-                string V_3, //a
-                string V_4,
-                int V_5, //s
-                object V_6,
-                object V_7)
-  IL_0000:  ldloc.s    V_5
-  IL_0002:  ret
+                int V_2, //s
+                object V_3,
+                object V_4)
+  IL_0000:  ldloc.2
+  IL_0001:  ret
 }");
                 locals.Free();
             });
         }
 
-        [Fact(Skip = "PROTOTYPE(patterns2): switch code gen is in flux.")]
+        [Fact]
         [WorkItem(16594, "https://github.com/dotnet/roslyn/issues/16594")]
         public void LocalsInSwitchWithLambda()
         {
@@ -346,11 +322,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
   .maxstack  1
   .locals init (C.<>c__DisplayClass0_0 V_0, //CS$<>8__locals0
                 object V_1,
-                string V_2,
-                int V_3,
-                object V_4,
-                object V_5,
-                System.Action V_6)
+                object V_2,
+                System.Action V_3)
   IL_0000:  ldarg.0
   IL_0001:  ret
 }");
@@ -360,11 +333,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
   .maxstack  1
   .locals init (C.<>c__DisplayClass0_0 V_0, //CS$<>8__locals0
                 object V_1,
-                string V_2,
-                int V_3,
-                object V_4,
-                object V_5,
-                System.Action V_6)
+                object V_2,
+                System.Action V_3)
   IL_0000:  ldarg.1
   IL_0001:  ret
 }");
@@ -374,11 +344,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
   .maxstack  1
   .locals init (C.<>c__DisplayClass0_0 V_0, //CS$<>8__locals0
                 object V_1,
-                string V_2,
-                int V_3,
-                object V_4,
-                object V_5,
-                System.Action V_6)
+                object V_2,
+                System.Action V_3)
   IL_0000:  ldloc.0
   IL_0001:  ldfld      ""string C.<>c__DisplayClass0_0.a""
   IL_0006:  ret
@@ -419,11 +386,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
   .maxstack  1
   .locals init (C.<>c__DisplayClass0_0 V_0, //CS$<>8__locals0
                 object V_1,
-                string V_2,
-                int V_3,
-                object V_4,
-                object V_5,
-                System.Action V_6)
+                object V_2,
+                System.Action V_3)
   IL_0000:  ldarg.0
   IL_0001:  ret
 }");
@@ -433,11 +397,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
   .maxstack  1
   .locals init (C.<>c__DisplayClass0_0 V_0, //CS$<>8__locals0
                 object V_1,
-                string V_2,
-                int V_3,
-                object V_4,
-                object V_5,
-                System.Action V_6)
+                object V_2,
+                System.Action V_3)
   IL_0000:  ldarg.1
   IL_0001:  ret
 }");
@@ -447,11 +408,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
   .maxstack  1
   .locals init (C.<>c__DisplayClass0_0 V_0, //CS$<>8__locals0
                 object V_1,
-                string V_2,
-                int V_3,
-                object V_4,
-                object V_5,
-                System.Action V_6)
+                object V_2,
+                System.Action V_3)
   IL_0000:  ldloc.0
   IL_0001:  ldfld      ""string C.<>c__DisplayClass0_0.a""
   IL_0006:  ret
@@ -535,7 +493,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
             });
         }
 
-        [Fact(Skip = "PROTOTYPE(patterns2): switch code gen is in flux.")]
+        [Fact]
         public void LocalsInSwitchWithAwait()
         {
             var source =
@@ -590,12 +548,10 @@ class C
   .locals init (int V_0,
                 object V_1,
                 object V_2,
-                string V_3,
-                object V_4,
+                System.Runtime.CompilerServices.TaskAwaiter<object> V_3,
+                C.<M>d__1 V_4,
                 System.Runtime.CompilerServices.TaskAwaiter<object> V_5,
-                C.<M>d__1 V_6,
-                System.Runtime.CompilerServices.TaskAwaiter<object> V_7,
-                System.Exception V_8)
+                System.Exception V_6)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""C C.<M>d__1.<>4__this""
   IL_0006:  ret
@@ -607,12 +563,10 @@ class C
   .locals init (int V_0,
                 object V_1,
                 object V_2,
-                string V_3,
-                object V_4,
+                System.Runtime.CompilerServices.TaskAwaiter<object> V_3,
+                C.<M>d__1 V_4,
                 System.Runtime.CompilerServices.TaskAwaiter<object> V_5,
-                C.<M>d__1 V_6,
-                System.Runtime.CompilerServices.TaskAwaiter<object> V_7,
-                System.Exception V_8)
+                System.Exception V_6)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""object C.<M>d__1.o""
   IL_0006:  ret
@@ -624,14 +578,12 @@ class C
   .locals init (int V_0,
                 object V_1,
                 object V_2,
-                string V_3,
-                object V_4,
+                System.Runtime.CompilerServices.TaskAwaiter<object> V_3,
+                C.<M>d__1 V_4,
                 System.Runtime.CompilerServices.TaskAwaiter<object> V_5,
-                C.<M>d__1 V_6,
-                System.Runtime.CompilerServices.TaskAwaiter<object> V_7,
-                System.Exception V_8)
+                System.Exception V_6)
   IL_0000:  ldarg.0
-  IL_0001:  ldfld      ""string C.<M>d__1.<a>5__4""
+  IL_0001:  ldfld      ""string C.<M>d__1.<a>5__1""
   IL_0006:  ret
 }");
                 VerifyLocal(testData, typeName, locals[3], "<>m3", "s", expectedILOpt:
@@ -641,14 +593,12 @@ class C
   .locals init (int V_0,
                 object V_1,
                 object V_2,
-                string V_3,
-                object V_4,
+                System.Runtime.CompilerServices.TaskAwaiter<object> V_3,
+                C.<M>d__1 V_4,
                 System.Runtime.CompilerServices.TaskAwaiter<object> V_5,
-                C.<M>d__1 V_6,
-                System.Runtime.CompilerServices.TaskAwaiter<object> V_7,
-                System.Exception V_8)
+                System.Exception V_6)
   IL_0000:  ldarg.0
-  IL_0001:  ldfld      ""string C.<M>d__1.<s>5__5""
+  IL_0001:  ldfld      ""string C.<M>d__1.<s>5__2""
   IL_0006:  ret
 }");
                 locals.Free();
@@ -669,12 +619,10 @@ class C
   .locals init (int V_0,
                 object V_1,
                 object V_2,
-                string V_3,
-                object V_4,
+                System.Runtime.CompilerServices.TaskAwaiter<object> V_3,
+                C.<M>d__1 V_4,
                 System.Runtime.CompilerServices.TaskAwaiter<object> V_5,
-                C.<M>d__1 V_6,
-                System.Runtime.CompilerServices.TaskAwaiter<object> V_7,
-                System.Exception V_8)
+                System.Exception V_6)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""C C.<M>d__1.<>4__this""
   IL_0006:  ret
@@ -686,12 +634,10 @@ class C
   .locals init (int V_0,
                 object V_1,
                 object V_2,
-                string V_3,
-                object V_4,
+                System.Runtime.CompilerServices.TaskAwaiter<object> V_3,
+                C.<M>d__1 V_4,
                 System.Runtime.CompilerServices.TaskAwaiter<object> V_5,
-                C.<M>d__1 V_6,
-                System.Runtime.CompilerServices.TaskAwaiter<object> V_7,
-                System.Exception V_8)
+                System.Exception V_6)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""object C.<M>d__1.o""
   IL_0006:  ret
@@ -703,14 +649,12 @@ class C
   .locals init (int V_0,
                 object V_1,
                 object V_2,
-                string V_3,
-                object V_4,
+                System.Runtime.CompilerServices.TaskAwaiter<object> V_3,
+                C.<M>d__1 V_4,
                 System.Runtime.CompilerServices.TaskAwaiter<object> V_5,
-                C.<M>d__1 V_6,
-                System.Runtime.CompilerServices.TaskAwaiter<object> V_7,
-                System.Exception V_8)
+                System.Exception V_6)
   IL_0000:  ldarg.0
-  IL_0001:  ldfld      ""string C.<M>d__1.<a>5__4""
+  IL_0001:  ldfld      ""string C.<M>d__1.<a>5__1""
   IL_0006:  ret
 }");
                 VerifyLocal(testData, typeName, locals[3], "<>m3", "s", expectedILOpt:
@@ -720,14 +664,12 @@ class C
   .locals init (int V_0,
                 object V_1,
                 object V_2,
-                string V_3,
-                object V_4,
+                System.Runtime.CompilerServices.TaskAwaiter<object> V_3,
+                C.<M>d__1 V_4,
                 System.Runtime.CompilerServices.TaskAwaiter<object> V_5,
-                C.<M>d__1 V_6,
-                System.Runtime.CompilerServices.TaskAwaiter<object> V_7,
-                System.Exception V_8)
+                System.Exception V_6)
   IL_0000:  ldarg.0
-  IL_0001:  ldfld      ""int C.<M>d__1.<s>5__6""
+  IL_0001:  ldfld      ""int C.<M>d__1.<s>5__3""
   IL_0006:  ret
 }");
                 locals.Free();
