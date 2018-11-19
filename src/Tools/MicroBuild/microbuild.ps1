@@ -81,6 +81,10 @@ function Copy-InsertionItems() {
         $items += "Vsix\RoslynCompilersExtension\Roslyn.Compilers.Extension.Resources.$($language).vsix"
         $items += "Vsix\RoslynCompilersExtension\Roslyn.Compilers.Extension.Resources.$($language).vsmand"
         $items += "Vsix\RoslynCompilersExtension\Roslyn.Compilers.Extension.Resources.$($language).json"
+
+        $items += "Vsix\RoslynVisualStudioDiagnosticsWindow\Roslyn.VisualStudio.Diagnostics.Window.Resources.$($language).vsix"
+        $items += "Vsix\RoslynVisualStudioDiagnosticsWindow\Roslyn.VisualStudio.Diagnostics.Window.Resources.$($language).vsmand"
+        $items += "Vsix\RoslynVisualStudioDiagnosticsWindow\Roslyn.VisualStudio.Diagnostics.Window.Resources.$($language).json"
     }
 
     foreach ($item in $items) { 

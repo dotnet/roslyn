@@ -1,0 +1,2 @@
+folder "TBD"
+  file source=$(OutputPath)\Vsix\Roslyn.VisualStudio.DiagnosticsWindow\$(Culture)\Microsoft.Build.Tasks.CodeAnalysis.resources.dll

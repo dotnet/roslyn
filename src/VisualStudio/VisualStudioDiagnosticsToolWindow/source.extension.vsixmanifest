@@ -8,6 +8,9 @@
   <Installation Experimental="true">
     <InstallationTarget Id="Microsoft.VisualStudio.Pro" Version="[15.0,]" />
   </Installation>
+  </Dependencies>
+    <Dependency Id="Roslyn.VisualStudio.DiagnosticsWindow.Resources" DisplayName="Roslyn DiagnosticsWindow Resources" d:Source="Manual" Version="|%CurrentProject%;GetBuildVersion|" />
+  </Dependencies>
   <Assets>
     <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="Project" d:ProjectName="%CurrentProject%" Path="|%CurrentProject%|" />
     <Asset Type="Microsoft.VisualStudio.VsPackage" d:Source="Project" d:ProjectName="%CurrentProject%" Path="|%CurrentProject%;PkgdefProjectOutputGroup|" />

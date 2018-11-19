@@ -20,6 +20,8 @@
     <MergeManifest Include="$(OutputPath)\..\Roslyn.VisualStudio.InteractiveComponents\Microsoft.CodeAnalysis.VisualStudio.InteractiveComponents.Resources.*.json" />
     <MergeManifest Include="$(OutputPath)\..\Roslyn.VisualStudio.Setup\Microsoft.CodeAnalysis.VisualStudio.Setup.json" />
     <MergeManifest Include="$(OutputPath)\..\Roslyn.VisualStudio.Setup\Microsoft.CodeAnalysis.VisualStudio.Setup.Resources.*.json" />
+    <MergeManifest Include="$(OutputPath)\..\Roslyn.VisualStudio.Diagnostics.Window\Roslyn.VisualStudio.Diagnostics.Window.json" />
+    <MergeManifest Include="$(OutputPath)\..\Roslyn.VisualStudio.Diagnostics.Window\Roslyn.VisualStudio.Diagnostics.Window.Resources.*.json" />
   </ItemGroup>
   <Import Project="$(SwixBuildPath)build\MicroBuild.Plugins.*.targets" />
   <Target Name="ValidateManifest" />
