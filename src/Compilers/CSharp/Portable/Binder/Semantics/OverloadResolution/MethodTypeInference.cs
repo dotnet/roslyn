@@ -1415,11 +1415,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            if (ExactTupleInference(source, target, ref useSiteDiagnostics))
-            {
-                return;
-            }
-
             // SPEC: * Otherwise, if V is a constructed type C<V1...Vk> and U is a constructed
             // SPEC:   type C<U1...Uk> then an exact inference is made
             // SPEC:    from each Ui to the corresponding Vi.
@@ -1527,7 +1522,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return ExactOrBoundsNullableInference(ExactOrBoundsKind.Exact, source, target, ref useSiteDiagnostics);
         }
 
-        private bool ExactOrBoundsTupleInference(ExactOrBoundsKind kind, TypeSymbolWithAnnotations source, TypeSymbolWithAnnotations target, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        private bool LowerBoundTupleInference(TypeSymbolWithAnnotations source, TypeSymbolWithAnnotations target, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             Debug.Assert(!source.IsNull);
             Debug.Assert(!target.IsNull);
@@ -1548,15 +1543,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             for (int i = 0; i < sourceTypes.Length; i++)
             {
-                ExactOrBoundsInference(kind, sourceTypes[i], targetTypes[i], ref useSiteDiagnostics);
+                LowerBoundInference(sourceTypes[i], targetTypes[i], ref useSiteDiagnostics);
             }
 
             return true;
-        }
-
-        private bool ExactTupleInference(TypeSymbolWithAnnotations source, TypeSymbolWithAnnotations target, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
-        {
-            return ExactOrBoundsTupleInference(ExactOrBoundsKind.Exact, source, target, ref useSiteDiagnostics);
         }
 
         private bool ExactConstructedInference(TypeSymbolWithAnnotations source, TypeSymbolWithAnnotations target, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
@@ -1800,11 +1790,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         private bool LowerBoundNullableInference(TypeSymbolWithAnnotations source, TypeSymbolWithAnnotations target, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             return ExactOrBoundsNullableInference(ExactOrBoundsKind.LowerBound, source, target, ref useSiteDiagnostics);
-        }
-
-        private bool LowerBoundTupleInference(TypeSymbolWithAnnotations source, TypeSymbolWithAnnotations target, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
-        {
-            return ExactOrBoundsTupleInference(ExactOrBoundsKind.LowerBound, source, target, ref useSiteDiagnostics);
         }
 
         private bool LowerBoundConstructedInference(TypeSymbol source, TypeSymbol target, ref HashSet<DiagnosticInfo> useSiteDiagnostics)

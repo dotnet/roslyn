@@ -2,8 +2,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 
 namespace Microsoft.VisualStudio.LanguageServices.ProjectSystem
@@ -39,7 +37,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ProjectSystem
         void AddAdditionalFile(string filePath, bool isInCurrentContext = true);
         void RemoveAdditionalFile(string filePath);
         void AddDynamicFile(string filePath, IEnumerable<string> folderNames = null);
-        void RemoveDynamicFile(string fullPath);
+        void RemoveDynamicFile(string filePath);
         void SetRuleSetFile(string filePath);
 
         void StartBatch();

@@ -4640,6 +4640,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
 -errorendlocation             Output line and column of the end location of
                               each error
 -preferreduilang              Specify the preferred output language name.
+-nosdkpath                    Disable searching the default SDK path for standard library assemblies.
 -nostdlib[+|-]                Do not reference standard library (mscorlib.dll)
 -subsystemversion:&lt;string&gt;    Specify subsystem version of this assembly
 -lib:&lt;file list&gt;              Specify additional directories to search in for
@@ -5636,5 +5637,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_ExpressionTreeCantContainRefStruct" xml:space="preserve">
     <value>Expression tree cannot contain value of ref struct or restricted type '{0}'.</value>
+  </data>
+  <data name="ERR_ElseCannotStartStatement" xml:space="preserve">
+    <value>'else' cannot start a statement.</value>
   </data>
 </root>

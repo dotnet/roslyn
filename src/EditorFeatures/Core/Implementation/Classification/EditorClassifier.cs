@@ -117,8 +117,8 @@ namespace Microsoft.CodeAnalysis.Editor
 
             try
             {
-                FillInClassifiedSpanGaps(sourceText, widenedSpan.Start, syntaxSpans, filledInSyntaxSpans);
-                FillInClassifiedSpanGaps(sourceText, widenedSpan.Start, semanticSpans, filledInSemanticSpans);
+                FillInClassifiedSpanGaps(widenedSpan.Start, syntaxSpans, filledInSyntaxSpans);
+                FillInClassifiedSpanGaps(widenedSpan.Start, semanticSpans, filledInSemanticSpans);
 
                 // Now merge the lists together, taking all the results from syntaxParts
                 // unless they were overridden by results in semanticParts.
@@ -160,9 +160,7 @@ namespace Microsoft.CodeAnalysis.Editor
             }
         }
 
-        private static void FillInClassifiedSpanGaps(
-            SourceText sourceText, int startPosition,
-            List<ClassifiedSpan> classifiedSpans, ArrayBuilder<ClassifiedSpan> result)
+        public static void FillInClassifiedSpanGaps(int startPosition, IEnumerable<ClassifiedSpan> classifiedSpans, ArrayBuilder<ClassifiedSpan> result)
         {
             foreach (var span in classifiedSpans)
             {

@@ -250,6 +250,35 @@ d.cs
             AssertEx.Equal(ImmutableArray.Create<string>(), parser.KeyFileSearchPaths);
         }
 
+        [Fact, WorkItem(29252, "https://github.com/dotnet/roslyn/issues/29252")]
+        public void NoSdkPath()
+        {
+            var parentDir = Temp.CreateDirectory();
+            var parser = CSharpCommandLineParser.Default.Parse(new[] { "file.cs", $"-out:{parentDir.Path}", "/noSdkPath" }, parentDir.Path, null);
+            AssertEx.Equal(ImmutableArray<string>.Empty, parser.ReferencePaths);
+        }
+
+        [Fact, WorkItem(29252, "https://github.com/dotnet/roslyn/issues/29252")]
+        public void NoSdkPathReferenceSystemDll()
+        {
+            string source = @"
+class C
+{
+}
+";
+            var dir = Temp.CreateDirectory();
+
+            var file = dir.CreateFile("a.cs");
+            file.WriteAllText(source);
+
+            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
+            var csc = CreateCSharpCompiler(null, dir.Path, new[] { "/nologo", "/preferreduilang:en", "/nosdkpath", "/r:System.dll", "a.cs" });
+            var exitCode = csc.Run(outWriter);
+
+            Assert.Equal(1, exitCode);
+            Assert.Equal("error CS0006: Metadata file 'System.dll' could not be found", outWriter.ToString().Trim());
+        }
+
         [ConditionalFact(typeof(WindowsOnly))]
         public void SourceFiles_Patterns()
         {

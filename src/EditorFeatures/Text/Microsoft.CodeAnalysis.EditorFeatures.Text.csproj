@@ -33,6 +33,8 @@
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures.Wpf" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.EditorFeatures" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.CSharp.Repl" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.InteractiveServices" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.CSharp" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.VisualBasic" />
@@ -41,13 +43,18 @@
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.InteractiveEditorFeatures" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.InteractiveEditorFeatures" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.TypeScript.EditorFeatures" Key="$(TypeScriptKey)" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Implementation" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.TypeScript" Key="$(TypeScriptKey)" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Remote" Key="$(RemoteLanguageServiceKey)" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Remote.15.7" Key="$(RemoteLanguageServiceKey)" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Remote.15.8" Key="$(RemoteLanguageServiceKey)" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Remote.16.0" Key="$(RemoteLanguageServiceKey)" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Remote.CSharp" Key="$(RemoteLanguageServiceKey)" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Remote.CSharp.15.7" Key="$(RemoteLanguageServiceKey)" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Remote.CSharp.15.8" Key="$(RemoteLanguageServiceKey)" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Remote.CSharp.16.0" Key="$(RemoteLanguageServiceKey)" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Xaml" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.VisualBasic.Repl" />
     <InternalsVisibleTo Include="FSharp.Editor" Key="$(FSharpKey)" />
     <InternalsVisibleTo Include="FSharp.LanguageService" Key="$(FSharpKey)" />
     <!-- The rest are for test purposes only. -->

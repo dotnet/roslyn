@@ -3135,7 +3135,7 @@ namespace Microsoft.CodeAnalysis
 
             public unsafe override string GetString(byte* bytes, int byteCount)
             {
-                return StringTable.AddSharedUTF8(bytes, byteCount);
+                return StringTable.AddSharedUTF8(new ReadOnlySpan<byte>(bytes, byteCount));
             }
         }
 

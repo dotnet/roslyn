@@ -84,6 +84,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         public bool IsReservedKeyword(SyntaxToken token)
             => SyntaxFacts.IsReservedKeyword(token.Kind());
 
+        public bool IsReservedKeyword(string text)
+        {
+            return SyntaxFacts.GetKeywordKind(text) != SyntaxKind.None; // reserved keywords only
+        }
+
         public bool IsContextualKeyword(SyntaxToken token)
             => SyntaxFacts.IsContextualKeyword(token.Kind());
 
