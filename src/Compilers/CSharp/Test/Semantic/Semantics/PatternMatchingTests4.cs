@@ -1733,5 +1733,114 @@ class Program
                 );
             CompileAndVerify(compilation, expectedOutput: "1 throw");
         }
+
+        [Fact]
+        public void PointerAsInput_01()
+        {
+            var source =
+@"public class C
+{
+    public unsafe static void Main()
+    {
+        int x = 0;
+        M(1, null);
+        M(2, &x);
+    }
+    static unsafe void M(int i, int* p)
+    {
+        if (p is var x)
+            System.Console.Write(i);
+    }
+}
+";
+            var compilation = CreatePatternCompilation(source, options: TestOptions.DebugExe.WithAllowUnsafe(true));
+            compilation.VerifyDiagnostics(
+                );
+            var expectedOutput = @"12";
+            var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput, verify: Verification.Skipped);
+        }
+
+        [Fact]
+        public void PointerAsInput_02()
+        {
+            var source =
+@"public class C
+{
+    public unsafe static void Main()
+    {
+        int x = 0;
+        M(1, null);
+        M(2, &x);
+    }
+    static unsafe void M(int i, int* p)
+    {
+        if (p switch { _ => true })
+            System.Console.Write(i);
+    }
+}
+";
+            var compilation = CreatePatternCompilation(source, options: TestOptions.DebugExe.WithAllowUnsafe(true));
+            compilation.VerifyDiagnostics(
+                );
+            var expectedOutput = @"12";
+            var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput, verify: Verification.Skipped);
+        }
+
+        [Fact]
+        public void PointerAsInput_03()
+        {
+            var source =
+@"public class C
+{
+    public unsafe static void Main()
+    {
+        int x = 0;
+        M(1, null);
+        M(2, &x);
+    }
+    static unsafe void M(int i, int* p)
+    {
+        if (p is null)
+            System.Console.Write(i);
+    }
+}
+";
+            var compilation = CreatePatternCompilation(source, options: TestOptions.DebugExe.WithAllowUnsafe(true));
+            compilation.VerifyDiagnostics(
+                );
+            var expectedOutput = @"1";
+            var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput, verify: Verification.Skipped);
+        }
+
+        [Fact]
+        public void PointerAsInput_04()
+        {
+            var source =
+@"public class C
+{
+    static unsafe void M(int* p)
+    {
+        if (p is {}) { }
+        if (p is 1) { }
+        if (p is var (x, y)) { }
+    }
+}
+";
+            var compilation = CreatePatternCompilation(source, options: TestOptions.DebugDll.WithAllowUnsafe(true));
+            compilation.VerifyDiagnostics(
+                // (5,18): error CS8521: Pattern-matching is not permitted for pointer types.
+                //         if (p is {}) { }
+                Diagnostic(ErrorCode.ERR_PointerTypeInPatternMatching, "{}").WithLocation(5, 18),
+                // (6,18): error CS0266: Cannot implicitly convert type 'int' to 'int*'. An explicit conversion exists (are you missing a cast?)
+                //         if (p is 1) { }
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "1").WithArguments("int", "int*").WithLocation(6, 18),
+                // (6,18): error CS0150: A constant value is expected
+                //         if (p is 1) { }
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "1").WithLocation(6, 18),
+                // (7,18): error CS8521: Pattern-matching is not permitted for pointer types.
+                //         if (p is var (x, y)) { }
+                Diagnostic(ErrorCode.ERR_PointerTypeInPatternMatching, "var (x, y)").WithLocation(7, 18)
+                );
+        }
     }
 }
