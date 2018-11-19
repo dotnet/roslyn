@@ -8,7 +8,7 @@ In source, nullable reference types are annotated with `?`.
 string? OptString; // may be null
 Dictionary<string, object?>? OptDictionaryOptValues; // dictionary may be null, values may be null
 ```
-A warning is reported when annotating a reference type or unconstrained generic type with `?` outside a `#nullable` context.
+A warning is reported when annotating a reference type with `?` outside a `#nullable` context.
 
 In metadata, nullable reference types are annotated with a `[Nullable]` attribute.
 ```c#
@@ -28,7 +28,8 @@ namespace System.Runtime.CompilerServices
 }
 ```
 
-Each type reference is accompanied by a NullableAttribute with an array of bytes, where 0 is Oblivious, 1 is NotAnnotated and 2 is Annotated. 
+Each type reference is accompanied by a NullableAttribute with an array of bytes, where 0 is Oblivious, 1 is NotAnnotated and 2 is Annotated.
+All value types are marked with flag 0 (oblivious).
 
 To optimize trivial cases the attribute can be omitted, or instead can be replaced with an attribute that takes a single byte value rather than an array.  
 
@@ -41,7 +42,7 @@ Trivial/optimized cases:
 
 NullableAttribute(1) should be placed on a type parameter definition that has a `class!` constraint.
 NullableAttribute(2) should be placed on a type parameter definition that has a `class?` constraint.
-Other forms of NullableAttribute ar not emitted on type parameter definitions and are not specially recognized on them.
+Other forms of NullableAttribute are not emitted on type parameter definitions and are not specially recognized on them.
 
 The `NullableAttribute` type declaration is synthesized by the compiler if it is not included in the compilation, but is needed to produce the output.
 
@@ -58,6 +59,8 @@ string[] Oblivious1; // string~[]~
 [Nullable(new[] { 1, 1 })] string[] NotNull2; // string![]!
 [Nullable(new[] { 0, 2 })] string[] ObliviousMaybeNull; // string?[]~
 [Nullable(new[] { 1, 2 })] string[] NotNullMaybeNull; // string?[]!
+int Int; // int
+Nullable<int> NullableInt1; // Nullable<int>
 ```
 ## Declaration warnings
 _Describe warnings reported for declarations in initial binding._

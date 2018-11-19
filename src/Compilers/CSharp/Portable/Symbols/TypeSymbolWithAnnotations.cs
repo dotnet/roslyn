@@ -967,8 +967,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     break;
 
                 case NullableAnnotation.Unknown:
-                    Debug.Assert((NullableAnnotation)transformFlag == NullableAnnotation.Unknown);
-                    if (result.NullableAnnotation != NullableAnnotation.Unknown && (!result.NullableAnnotation.IsAnyNullable() || !oldTypeSymbol.IsNullableType()))
+                    if (result.NullableAnnotation != NullableAnnotation.Unknown &&
+                        !(result.NullableAnnotation.IsAnyNullable() && oldTypeSymbol.IsNullableType())) // Preserve nullable annotation on Nullable<T>.
                     {
                         result = CreateNonLazyType(newTypeSymbol, NullableAnnotation.Unknown, result.CustomModifiers);
                     }
