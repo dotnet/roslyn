@@ -3405,6 +3405,42 @@ public class C
         }
 
         [Fact]
+        public void UnmanagedGenericConstraintPartialConstructedStruct()
+        {
+            var code = @"
+public struct MyStruct<T> where T : unmanaged
+{
+    public T field;
+}
+
+public class C
+{
+    public unsafe void M<U>()
+    {
+        MyStruct<U> myStruct;
+        M2<U>(&myStruct);
+    }
+
+    public unsafe void M2<V>(MyStruct<V>* ms) { }
+}
+";
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll)
+                .VerifyDiagnostics(
+                    // (11,18): error CS8377: The type 'U' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'MyStruct<T>'
+                    //         MyStruct<U> myStruct;
+                    Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "U").WithArguments("MyStruct<T>", "T", "U").WithLocation(11, 18),
+                    // (12,15): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('MyStruct<U>')
+                    //         M2<U>(&myStruct);
+                    Diagnostic(ErrorCode.ERR_ManagedAddr, "&myStruct").WithArguments("MyStruct<U>").WithLocation(12, 15),
+                    // (15,30): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('MyStruct<V>')
+                    //     public unsafe void M2<V>(MyStruct<V>* ms) { }
+                    Diagnostic(ErrorCode.ERR_ManagedAddr, "MyStruct<V>*").WithArguments("MyStruct<V>").WithLocation(15, 30),
+                    // (15,43): error CS8377: The type 'V' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'MyStruct<T>'
+                    //     public unsafe void M2<V>(MyStruct<V>* ms) { }
+                    Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "ms").WithArguments("MyStruct<T>", "T", "V").WithLocation(15, 43));
+        }
+
+        [Fact]
         public void GenericStructManagedFieldPointer()
         {
             var code = @"
