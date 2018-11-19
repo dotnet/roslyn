@@ -91,9 +91,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var thrownExpression =
                         (optionalSavedInput != null &&
                                 implicitConversionExists(optionalSavedInput, objectType) &&
-                                _factory.WellKnownMember(WellKnownMember.System_MatchFailureException__ctor1, isOptional: true) is MethodSymbol newMatchFailureException1)
+                                _factory.WellKnownMember(WellKnownMember.System_MatchFailureException__ctorObject, isOptional: true) is MethodSymbol newMatchFailureException1)
                             ? _factory.New(newMatchFailureException1, _factory.Convert(objectType, optionalSavedInput)) :
-                        (_factory.WellKnownMember(WellKnownMember.System_MatchFailureException__ctor0, isOptional: true) is MethodSymbol newMatchFailureException0)
+                        (_factory.WellKnownMember(WellKnownMember.System_MatchFailureException__ctor, isOptional: true) is MethodSymbol newMatchFailureException0)
                             ? _factory.New(newMatchFailureException0) :
                         _factory.New(_factory.WellKnownMethod(WellKnownMember.System_InvalidOperationException__ctor));
                     result.Add(_factory.Throw(thrownExpression));
