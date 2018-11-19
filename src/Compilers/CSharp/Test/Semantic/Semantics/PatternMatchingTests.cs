@@ -6454,7 +6454,7 @@ True");
                 );
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/24865")]
+        [Fact]
         public void ExhaustiveBoolSwitch00()
         {
             // Note that the switches in this code are exhaustive. The idea of a switch
@@ -6482,14 +6482,14 @@ public class C
                 b = true;
                 break;
             case false:
-                b = true;
+                b = false;
                 break;
         }
 
-        Console.WriteLine(b); // incorrect error CS0165: Use of unassigned local variable 'b'
+        Console.WriteLine(b); // no more error CS0165: Use of unassigned local variable 'b'
     }
 
-    public static bool M2(bool e) // incorrect error CS0161: not all code paths return a value
+    public static bool M2(bool e) // no more error CS0161: not all code paths return a value
     {
         switch (e)
         {
