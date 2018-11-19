@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Immutable;
-using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.Options
 {
@@ -10,17 +9,12 @@ namespace Microsoft.CodeAnalysis.Options
     /// An option that can be specified once per language.
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    internal class PerLanguageOption<T> : IOptionWithGroup
+    internal class PerLanguageOption<T> : IOption
     {
         /// <summary>
         /// Feature this option is associated with.
         /// </summary>
         public string Feature { get; }
-
-        /// <summary>
-        /// Optional group/sub-feature for this option.
-        /// </summary>
-        internal OptionGroup Group { get; }
 
         /// <summary>
         /// The name of the option.
@@ -45,20 +39,10 @@ namespace Microsoft.CodeAnalysis.Options
         }
 
         public PerLanguageOption(string feature, string name, T defaultValue, params OptionStorageLocation[] storageLocations)
-            : this(feature, group: OptionGroup.Default, name, defaultValue, storageLocations)
-        {
-        }
-
-        internal PerLanguageOption(string feature, OptionGroup group, string name, T defaultValue, params OptionStorageLocation[] storageLocations)
         {
             if (string.IsNullOrWhiteSpace(feature))
             {
                 throw new ArgumentNullException(nameof(feature));
-            }
-
-            if (group == null)
-            {
-                throw new ArgumentNullException(nameof(group));
             }
 
             if (string.IsNullOrWhiteSpace(name))
@@ -67,7 +51,6 @@ namespace Microsoft.CodeAnalysis.Options
             }
 
             this.Feature = feature;
-            this.Group = group;
             this.Name = name;
             this.DefaultValue = defaultValue;
             this.StorageLocations = storageLocations.ToImmutableArray();
@@ -76,8 +59,6 @@ namespace Microsoft.CodeAnalysis.Options
         object IOption.DefaultValue => this.DefaultValue;
 
         bool IOption.IsPerLanguage => true;
-
-        OptionGroup IOptionWithGroup.Group => this.Group;
 
         public override string ToString()
         {

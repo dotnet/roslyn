@@ -13,22 +13,22 @@ namespace Microsoft.CodeAnalysis.Formatting
 
         internal static ImmutableArray<IOption> AllOptions { get; }
 
-        private static PerLanguageOption<T> CreatePerLanguageOption<T>(OptionGroup group, string name, T defaultValue, params OptionStorageLocation[] storageLocations)
+        private static PerLanguageOption<T> CreatePerLanguageOption<T>(string name, T defaultValue, params OptionStorageLocation[] storageLocations)
         {
-            var option = new PerLanguageOption<T>(nameof(FormattingOptions), group, name, defaultValue, storageLocations);
+            var option = new PerLanguageOption<T>(nameof(FormattingOptions), name, defaultValue, storageLocations);
             s_allOptionsBuilder.Add(option);
             return option;
         }
 
-        private static Option<T> CreateOption<T>(OptionGroup group, string name, T defaultValue, params OptionStorageLocation[] storageLocations)
+        private static Option<T> CreateOption<T>(string name, T defaultValue, params OptionStorageLocation[] storageLocations)
         {
-            var option = new Option<T>(nameof(FormattingOptions), group, name, defaultValue, storageLocations);
+            var option = new Option<T>(nameof(FormattingOptions), name, defaultValue, storageLocations);
             s_allOptionsBuilder.Add(option);
             return option;
         }
 
         public static PerLanguageOption<bool> UseTabs { get; } = CreatePerLanguageOption(
-            FormattingOptionGroups.IndentationAndSpacing, nameof(UseTabs),
+            nameof(UseTabs),
             defaultValue: false,
             storageLocations: new EditorConfigStorageLocation<bool>(
                 "indent_style",
@@ -37,23 +37,23 @@ namespace Microsoft.CodeAnalysis.Formatting
 
         // This is also serialized by the Visual Studio-specific LanguageSettingsPersister
         public static PerLanguageOption<int> TabSize { get; } = CreatePerLanguageOption(
-            FormattingOptionGroups.IndentationAndSpacing, nameof(TabSize),
+            nameof(TabSize),
             defaultValue: 4,
             storageLocations: EditorConfigStorageLocation.ForInt32Option("tab_width"));
 
         // This is also serialized by the Visual Studio-specific LanguageSettingsPersister
         public static PerLanguageOption<int> IndentationSize { get; } = CreatePerLanguageOption(
-            FormattingOptionGroups.IndentationAndSpacing, nameof(IndentationSize),
+            nameof(IndentationSize),
             defaultValue: 4,
             storageLocations: EditorConfigStorageLocation.ForInt32Option("indent_size"));
 
         // This is also serialized by the Visual Studio-specific LanguageSettingsPersister
         public static PerLanguageOption<IndentStyle> SmartIndent { get; } = CreatePerLanguageOption(
-            FormattingOptionGroups.IndentationAndSpacing, nameof(SmartIndent),
+            nameof(SmartIndent),
             defaultValue: IndentStyle.Smart);
 
         public static PerLanguageOption<string> NewLine { get; } = CreatePerLanguageOption(
-            FormattingOptionGroups.NewLine, nameof(NewLine),
+            nameof(NewLine),
             defaultValue: Environment.NewLine,
             storageLocations: new EditorConfigStorageLocation<string>(
                 "end_of_line",
@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                 GetEndOfLineEditorConfigString));
 
         internal static Option<bool> InsertFinalNewLine { get; } = CreateOption(
-            FormattingOptionGroups.NewLine, nameof(InsertFinalNewLine),
+            nameof(InsertFinalNewLine),
             defaultValue: false,
             storageLocations: EditorConfigStorageLocation.ForBoolOption("insert_final_newline"));
 
@@ -79,11 +79,11 @@ namespace Microsoft.CodeAnalysis.Formatting
         private static string GetEndOfLineEditorConfigString(string option)
             => s_parenthesesPreferenceMap.TryGetKey(option, out var editorConfigString) ? editorConfigString : null;
 
-        internal static PerLanguageOption<bool> DebugMode { get; } = CreatePerLanguageOption(OptionGroup.Default, nameof(DebugMode), defaultValue: false);
+        internal static PerLanguageOption<bool> DebugMode { get; } = CreatePerLanguageOption(nameof(DebugMode), defaultValue: false);
 
         internal static Option<bool> AllowConcurrent { get; } = new Option<bool>(nameof(FormattingOptions), nameof(AllowConcurrent), defaultValue: true);
 
-        internal static Option<bool> AllowDisjointSpanMerging { get; } = CreateOption(OptionGroup.Default, nameof(AllowDisjointSpanMerging), defaultValue: false);
+        internal static Option<bool> AllowDisjointSpanMerging { get; } = CreateOption(nameof(AllowDisjointSpanMerging), defaultValue: false);
 
         static FormattingOptions()
         {
@@ -98,11 +98,5 @@ namespace Microsoft.CodeAnalysis.Formatting
             Block = 1,
             Smart = 2
         }
-    }
-
-    internal static class FormattingOptionGroups
-    {
-        public static readonly OptionGroup IndentationAndSpacing = new OptionGroup(CodeStyleResources.Indentation_and_spacing, priority: 1);
-        public static readonly OptionGroup NewLine = new OptionGroup(CodeStyleResources.New_line_preferences, priority: 2);
     }
 }

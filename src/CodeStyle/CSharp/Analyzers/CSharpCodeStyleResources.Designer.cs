@@ -10,6 +10,7 @@
 
 namespace Microsoft.CodeAnalysis.CSharp {
     using System;
+    using System.Reflection;
     
     
     /// <summary>
@@ -19,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "15.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "4.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class CSharpCodeStyleResources {
@@ -39,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Microsoft.CodeAnalysis.CSharp.CSharpCodeStyleResources", typeof(CSharpCodeStyleResources).Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Microsoft.CodeAnalysis.CSharp.CSharpCodeStyleResources", typeof(CSharpCodeStyleResources).GetTypeInfo().Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
@@ -61,47 +62,11 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to .
+        ///   Looks up a localized string similar to Remove this value when another is added..
         /// </summary>
-        internal static string Expected_string_or_char_literal {
+        internal static string EmptyResource {
             get {
-                return ResourceManager.GetString("Expected_string_or_char_literal", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to .
-        /// </summary>
-        internal static string Indentation_preferences {
-            get {
-                return ResourceManager.GetString("Indentation_preferences", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to .
-        /// </summary>
-        internal static string New_line_preferences {
-            get {
-                return ResourceManager.GetString("New_line_preferences", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to .
-        /// </summary>
-        internal static string Space_preferences {
-            get {
-                return ResourceManager.GetString("Space_preferences", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to .
-        /// </summary>
-        internal static string Wrapping_preferences {
-            get {
-                return ResourceManager.GetString("Wrapping_preferences", resourceCulture);
+                return ResourceManager.GetString("EmptyResource", resourceCulture);
             }
         }
     }
