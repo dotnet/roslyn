@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return NullableAnnotation.Nullable;
             }
 
-            // If nullability on both sides matches - result is that nullability (trivial cases like these are handled before the switch)
+            // If nullability on both sides matches - result is that nullability (trivial cases like these are handled above)
             // If either candidate is nullable - result is nullable
             // Otherwise - result is "oblivious". 
 
@@ -149,7 +149,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return NullableAnnotation.Nullable;
             }
 
-            // If nullability on both sides matches - result is that nullability (trivial cases like these are handled before the switch)
+            // If nullability on both sides matches - result is that nullability (trivial cases like these are handled above)
             // If either candidate is not nullable - result is not nullable
             // Otherwise - result is "oblivious". 
 
@@ -211,7 +211,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return NullableAnnotation.Nullable;
             }
 
-            // If nullability on both sides matches - result is that nullability (trivial cases like these are handled before the switch)
+            // If nullability on both sides matches - result is that nullability (trivial cases like these are handled above)
             // If either candidate is "oblivious" - result is the nullability of the other candidate
             // Otherwise - we declare a mismatch and result is not nullable. 
 

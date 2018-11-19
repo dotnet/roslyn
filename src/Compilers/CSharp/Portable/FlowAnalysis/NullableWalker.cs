@@ -1862,7 +1862,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             Conversion alternativeConversion;
             TypeSymbolWithAnnotations consequenceResult;
             TypeSymbolWithAnnotations alternativeResult;
-            bool? isNullableIfReferenceType;
 
             bool isConstantTrue = IsConstantTrue(node.Condition);
             bool isConstantFalse = IsConstantFalse(node.Condition);
@@ -1870,13 +1869,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 (alternative, alternativeConversion, alternativeResult) = visitConditionalOperand(alternativeState, node.Alternative);
                 (consequence, consequenceConversion, consequenceResult) = visitConditionalOperand(consequenceState, node.Consequence);
-                isNullableIfReferenceType = getIsNullableIfReferenceType(consequence, consequenceResult);
             }
             else if (isConstantFalse)
             {
                 (consequence, consequenceConversion, consequenceResult) = visitConditionalOperand(consequenceState, node.Consequence);
                 (alternative, alternativeConversion, alternativeResult) = visitConditionalOperand(alternativeState, node.Alternative);
-                isNullableIfReferenceType = getIsNullableIfReferenceType(alternative, alternativeResult);
             }
             else
             {
@@ -1885,7 +1882,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 (alternative, alternativeConversion, alternativeResult) = visitConditionalOperand(alternativeState, node.Alternative);
                 Unsplit();
                 IntersectWith(ref this.State, ref consequenceState);
-                isNullableIfReferenceType = (getIsNullableIfReferenceType(consequence, consequenceResult) | getIsNullableIfReferenceType(alternative, alternativeResult));
             }
 
             TypeSymbol resultType;
@@ -1920,13 +1916,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            var resultTypeWithAnnotations = TypeSymbolWithAnnotations.Create(resultType ?? node.Type.SetUnknownNullabilityForReferenceTypes(), isNullableIfReferenceType);
-
             if ((object)resultType != null)
             {
+                // Let's pretend the result type is nullable, in order to avoid warnings reported for top level nullability by ApplyConversion.
+                var resultTypeWithAnnotations = TypeSymbolWithAnnotations.Create(resultType, resultType.IsValueType ? NullableAnnotation.Unknown : NullableAnnotation.NullableBasedOnAnalysis);
+                TypeSymbolWithAnnotations convertedConsequenceResult = default;
+                TypeSymbolWithAnnotations convertedAlternativeResult = default;
+
                 if (!isConstantFalse)
                 {
-                    ApplyConversion(
+                    convertedConsequenceResult = ApplyConversion(
                         node.Consequence,
                         consequence,
                         consequenceConversion,
@@ -1940,7 +1939,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (!isConstantTrue)
                 {
-                    ApplyConversion(
+                    convertedAlternativeResult = ApplyConversion(
                         node.Alternative,
                         alternative,
                         alternativeConversion,
@@ -1951,22 +1950,60 @@ namespace Microsoft.CodeAnalysis.CSharp
                         useLegacyWarnings: false,
                         AssignmentKind.Assignment);
                 }
+
+                if (convertedAlternativeResult.IsNull)
+                {
+                    Debug.Assert(!convertedConsequenceResult.IsNull);
+                    _resultType = convertedConsequenceResult;
+                }
+                else if (convertedConsequenceResult.IsNull)
+                {
+                    Debug.Assert(!convertedAlternativeResult.IsNull);
+                    _resultType = convertedAlternativeResult;
+                }
+                else
+                {
+                    _resultType = TypeSymbolWithAnnotations.Create(resultType,
+                                                                   convertedConsequenceResult.NullableAnnotation.JoinForFlowAnalysisBranches(convertedAlternativeResult.NullableAnnotation,
+                                                                                                                                             resultType,
+                                                                                                                                             type => type.IsPossiblyNullableReferenceTypeTypeParameter()));
+                }
             }
-            _resultType = resultTypeWithAnnotations;
+            else
+            {
+                NullableAnnotation resultNullableAnnotation;
+
+                if (isConstantTrue)
+                {
+                    resultNullableAnnotation = getNullableAnnotation(consequence, consequenceResult);
+                }
+                else if (isConstantFalse)
+                {
+                    resultNullableAnnotation = getNullableAnnotation(alternative, alternativeResult);
+                }
+                else
+                {
+                    resultNullableAnnotation = getNullableAnnotation(consequence, consequenceResult).JoinForFlowAnalysisBranches(getNullableAnnotation(alternative, alternativeResult),
+                                                                                                                                 node.Type,
+                                                                                                                                 type => type.IsPossiblyNullableReferenceTypeTypeParameter());
+                }
+
+                _resultType = TypeSymbolWithAnnotations.Create(node.Type.SetUnknownNullabilityForReferenceTypes(), resultNullableAnnotation);
+            }
 
             return null;
 
-            bool? getIsNullableIfReferenceType(BoundExpression expr, TypeSymbolWithAnnotations type)
+            NullableAnnotation getNullableAnnotation(BoundExpression expr, TypeSymbolWithAnnotations type)
             {
                 if (!type.IsNull)
                 {
-                    return type.IsNullable;
+                    return type.GetValueNullableAnnotation();
                 }
                 if (expr.IsLiteralNullOrDefault())
                 {
-                    return true;
+                    return NullableAnnotation.NullableBasedOnAnalysis;
                 }
-                return null;
+                return NullableAnnotation.Unknown;
             }
 
             (BoundExpression, Conversion, TypeSymbolWithAnnotations) visitConditionalOperand(LocalState state, BoundExpression operand)
@@ -4692,8 +4729,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 for (int slot = 1; slot < self.Capacity; slot++)
                 {
                     NullableAnnotation selfAnnotation = self[slot];
-                    NullableAnnotation otherAnnotation = other[slot];
-                    NullableAnnotation intersection = selfAnnotation.JoinForFlowAnalysisBranches(otherAnnotation, (slot, this), isPossiblyNullableReferenceTypeTypeParameterDelegate);
+                    NullableAnnotation intersection = selfAnnotation.JoinForFlowAnalysisBranches(other[slot], (slot, this), IsPossiblyNullableReferenceTypeTypeParameterDelegate);
                     if (selfAnnotation != intersection)
                     {
                         self[slot] = intersection;
@@ -4715,7 +4751,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private readonly static Func<(int slot, NullableWalker self), bool> isPossiblyNullableReferenceTypeTypeParameterDelegate = args =>
+        private readonly static Func<(int slot, NullableWalker self), bool> IsPossiblyNullableReferenceTypeTypeParameterDelegate = args =>
         {
             Symbol symbol = args.self.variableBySlot[args.slot].Symbol;
             return (object)symbol != null && VariableType(symbol).TypeSymbol?.IsPossiblyNullableReferenceTypeTypeParameter() == true;
