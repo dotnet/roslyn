@@ -574,7 +574,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override void AfterAddingTypeMembersChecks(ConversionsBase conversions, DiagnosticBag diagnostics)
         {
-            Type.CheckAllConstraints(conversions.WithNullability(true), SyntaxNode.Location, diagnostics);
+            bool includeNullability = DeclaringCompilation.IsFeatureEnabled(MessageID.IDS_FeatureNullableReferenceTypes);
+            Type.CheckAllConstraints(conversions.WithNullability(includeNullability), SyntaxNode.Location, diagnostics);
             base.AfterAddingTypeMembersChecks(conversions, diagnostics);
         }
     }
