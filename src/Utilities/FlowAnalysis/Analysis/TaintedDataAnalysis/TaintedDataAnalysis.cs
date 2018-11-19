@@ -43,7 +43,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 containingMethod,
                 InterproceduralAnalysisKind.ContextSensitive,
                 pessimisticAnalysis: false,
-                pointsToAnalysisResultOpt: pointsToAnalysisResult,
+                pointsToAnalysisResult: pointsToAnalysisResult,
                 getOrComputeAnalysisResult: GetOrComputeResultForAnalysisContext,
                 taintedSourceInfos: taintedSourceInfos,
                 taintedSanitizerInfos: taintedSanitizerInfos,

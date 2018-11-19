@@ -43,6 +43,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                   interproceduralAnalysisDataOpt: interproceduralAnalysisDataOpt)
         {
             Debug.Assert(pointsToAnalysisResult != null);
+
             this.SourceInfos = taintedSourceInfos ?? throw new ArgumentNullException(nameof(taintedSourceInfos));
             this.SanitizerInfos = taintedSanitizerInfos ?? throw new ArgumentNullException(nameof(taintedSanitizerInfos));
             this.SinkInfos = taintedSinkInfos ?? throw new ArgumentNullException(nameof(taintedSinkInfos));
@@ -55,12 +56,14 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             ISymbol owningSymbol,
             InterproceduralAnalysisKind interproceduralAnalysisKind,
             bool pessimisticAnalysis,
-            DataFlowAnalysisResult<PointsToBlockAnalysisResult, PointsToAbstractValue> pointsToAnalysisResultOpt,
+            DataFlowAnalysisResult<PointsToBlockAnalysisResult, PointsToAbstractValue> pointsToAnalysisResult,
             Func<TaintedDataAnalysisContext, TaintedDataAnalysisResult> getOrComputeAnalysisResult,
             TaintedDataSymbolMap<SourceInfo> taintedSourceInfos,
             TaintedDataSymbolMap<SanitizerInfo> taintedSanitizerInfos,
             TaintedDataSymbolMap<SinkInfo> taintedSinkInfos)
         {
+            Debug.Assert(pointsToAnalysisResult != null);
+
             return new TaintedDataAnalysisContext(
                 valueDomain,
                 wellKnownTypeProvider,
@@ -68,13 +71,13 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 owningSymbol,
                 interproceduralAnalysisKind,
                 pessimisticAnalysis,
-                pointsToAnalysisResultOpt,
+                pointsToAnalysisResult,
                 getOrComputeAnalysisResult,
-                null,
-                null,
-                taintedSourceInfos,
-                taintedSanitizerInfos,
-                taintedSinkInfos);
+                parentControlFlowGraph: null,
+                interproceduralAnalysisDataOpt: null,
+                taintedSourceInfos: taintedSourceInfos,
+                taintedSanitizerInfos: taintedSanitizerInfos,
+                taintedSinkInfos: taintedSinkInfos);
         }
 
         public override TaintedDataAnalysisContext ForkForInterproceduralAnalysis(
@@ -85,6 +88,8 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             DataFlowAnalysisResult<CopyBlockAnalysisResult, CopyAbstractValue> copyAnalysisResultOpt,
             InterproceduralTaintedDataAnalysisData interproceduralAnalysisData)
         {
+            Debug.Assert(copyAnalysisResultOpt == null);   // Just because we're not passing this argument along.
+
             return new TaintedDataAnalysisContext(
                 this.ValueDomain,
                 this.WellKnownTypeProvider,
@@ -101,10 +106,19 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 this.SinkInfos);
         }
 
+        /// <summary>
+        /// Information about types for tainted data sources.
+        /// </summary>
         public TaintedDataSymbolMap<SourceInfo> SourceInfos { get; }
 
+        /// <summary>
+        /// Information about types for tainted data sanitizers.
+        /// </summary>
         public TaintedDataSymbolMap<SanitizerInfo> SanitizerInfos { get; }
 
+        /// <summary>
+        /// Information about types for the tainted data sinks.
+        /// </summary>
         public TaintedDataSymbolMap<SinkInfo> SinkInfos { get; }
 
         protected override int GetHashCode(int hashCode)

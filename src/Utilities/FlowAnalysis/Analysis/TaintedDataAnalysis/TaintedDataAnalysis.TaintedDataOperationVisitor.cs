@@ -262,6 +262,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             }
 
             // So we can treat the array as tainted when it's passed to other object constructors.
+            // See HttpRequest_Form_Array_List_Diagnostic and HttpRequest_Form_List_Diagnostic tests.
             public override TaintedDataAbstractValue VisitArrayInitializer(IArrayInitializerOperation operation, object argument)
             {
                 HashSet<SymbolAccess> sourceOrigins = null;
