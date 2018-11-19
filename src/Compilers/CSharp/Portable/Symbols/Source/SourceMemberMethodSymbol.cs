@@ -1206,11 +1206,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     arguments.Diagnostics.Add(ErrorCode.ERR_SecurityCriticalOrSecuritySafeCriticalOnAsync, arguments.AttributeSyntaxOpt.Location, arguments.AttributeSyntaxOpt.GetErrorDisplayName());
                 }
             }
-            else if (attribute.IsTargetAttribute(this, AttributeDescription.NonNullTypesAttribute))
-            {
-                // NonNullTypesAttribute should not be set explicitly.
-                arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitNonNullTypesAttribute, arguments.AttributeSyntaxOpt.Location);
-            }
             else
             {
                 var compilation = this.DeclaringCompilation;
@@ -1622,8 +1617,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
         {
             base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
-
-            AddSynthesizedNonNullTypesAttributeForMember(ref attributes);
 
             bool isAsync = this.IsAsync;
             bool isIterator = this.IsIterator;

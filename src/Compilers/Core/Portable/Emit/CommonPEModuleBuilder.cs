@@ -425,8 +425,6 @@ namespace Microsoft.CodeAnalysis.Emit
 
         public abstract TEmbeddedTypesManager EmbeddedTypesManagerOpt { get; }
 
-        protected abstract bool InjectedSymbolsAreFrozen { get; }
-
         protected PEModuleBuilder(
             TCompilation compilation,
             TSourceModuleSymbol sourceModule,
@@ -497,9 +495,8 @@ namespace Microsoft.CodeAnalysis.Emit
             }
 
             // First time through, we need to push things through TypeReferenceIndexer
-            // to make sure we collect all to be embedded NoPia types and members, as well as detect any usage of NonNullTypes.
-            if ((EmbeddedTypesManagerOpt != null && !EmbeddedTypesManagerOpt.IsFrozen) ||
-                !InjectedSymbolsAreFrozen)
+            // to make sure we collect all to be embedded NoPia types and members.
+            if (EmbeddedTypesManagerOpt != null && !EmbeddedTypesManagerOpt.IsFrozen)
             {
                 typeReferenceIndexer = new Cci.TypeReferenceIndexer(context);
                 Debug.Assert(names != null);
@@ -536,13 +533,6 @@ namespace Microsoft.CodeAnalysis.Emit
                 yield return privateImpl;
             }
 
-            foreach (var injected in GetInjectedTypes(context.Diagnostics))
-            {
-                AddTopLevelType(names, injected);
-                VisitTopLevelType(typeReferenceIndexer, injected);
-                yield return injected;
-            }
-
             if (EmbeddedTypesManagerOpt != null)
             {
                 foreach (var embedded in EmbeddedTypesManagerOpt.GetTypes(context.Diagnostics, names))
@@ -558,8 +548,6 @@ namespace Microsoft.CodeAnalysis.Emit
                 _namesOfTopLevelTypes = names;
             }
         }
-
-        protected abstract ImmutableArray<TNamedTypeSymbol> GetInjectedTypes(DiagnosticBag diagnostics);
 
         internal abstract Cci.IAssemblyReference Translate(TAssemblySymbol symbol, DiagnosticBag diagnostics);
         internal abstract Cci.ITypeReference Translate(TTypeSymbol symbol, TSyntaxNode syntaxNodeOpt, DiagnosticBag diagnostics);

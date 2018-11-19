@@ -1646,7 +1646,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            if (type.ContainsNullableReferenceTypes())
+            if (type.NeedsNullableAttribute())
             {
                 SynthesizedAttributeData attr = moduleBuilder.SynthesizeNullableAttribute(declaringSymbol, type);
                 if (attr != null)

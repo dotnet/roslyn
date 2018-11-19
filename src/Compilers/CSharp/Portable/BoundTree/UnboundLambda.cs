@@ -499,7 +499,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!returnType.IsNull)
             {
-                if (returnType.ContainsNullableReferenceTypes())
+                if (returnType.NeedsNullableAttribute())
                 {
                     binder.Compilation.EnsureNullableAttributeExists(diagnostics, lambdaSymbol.DiagnosticLocation, modifyCompilation: false);
                     // Note: we don't need to warn on annotations used without NonNullTypes context for lambdas, as this is handled in binding already
