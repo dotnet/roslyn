@@ -31,7 +31,26 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsPredefinedType(SyntaxToken token, PredefinedType type);
         bool IsPredefinedOperator(SyntaxToken token);
         bool IsPredefinedOperator(SyntaxToken token, PredefinedOperator op);
+        /// <summary>
+        /// Determine if <paramref name="token"/> is a keyword. i.e. both reserved and contextual.
+        /// For example:
+        ///     IsKeyword("class") == true
+        ///     IsKeyword("async") == true
+        /// </summary>
         bool IsKeyword(SyntaxToken token);
+        /// <summary>
+        /// Determine if <paramref name="text"/> is a reserved keyword. i.e. not contextual.
+        /// For example:
+        ///     IsReservedKeyword("class") == true
+        ///     IsReservedKeyword("async") == false
+        /// </summary>
+        bool IsReservedKeyword(string text);
+        /// <summary>
+        /// Determine if <paramref name="token"/> is a contextual keyword. i.e. not reserved.
+        /// For example:
+        ///     IsContextualKeyword("class") == false
+        ///     IsContextualKeyword("async") == true
+        /// </summary>
         bool IsContextualKeyword(SyntaxToken token);
         bool IsPreprocessorKeyword(SyntaxToken token);
         bool IsHashToken(SyntaxToken token);

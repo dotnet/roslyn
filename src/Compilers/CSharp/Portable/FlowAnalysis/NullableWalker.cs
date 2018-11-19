@@ -2021,20 +2021,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // https://github.com/dotnet/roslyn/issues/29605 Can we handle some error cases?
             // (Compare with CSharpOperationFactory.CreateBoundCallOperation.)
-            if (!node.HasErrors)
+            ImmutableArray<RefKind> refKindsOpt = node.ArgumentRefKindsOpt;
+            (ImmutableArray<BoundExpression> arguments, ImmutableArray<Conversion> conversions) = RemoveArgumentConversions(node.Arguments, refKindsOpt);
+            if (!receiverType.IsNull)
             {
-                if (!receiverType.IsNull)
-                {
-                    // Update method based on inferred receiver type.
-                    method = (MethodSymbol)AsMemberOfResultType(receiverType, method);
-                }
-
-                ImmutableArray<RefKind> refKindsOpt = node.ArgumentRefKindsOpt;
-                (ImmutableArray<BoundExpression> arguments, ImmutableArray<Conversion> conversions) = RemoveArgumentConversions(node.Arguments, refKindsOpt);
-                ImmutableArray<int> argsToParamsOpt = node.ArgsToParamsOpt;
-
-                method = VisitArguments(node, arguments, refKindsOpt, method.Parameters, argsToParamsOpt, node.Expanded, node.InvokedAsExtensionMethod, conversions, method);
+                // Update method based on inferred receiver type.
+                method = (MethodSymbol)AsMemberOfResultType(receiverType, method);
             }
+
+            method = VisitArguments(node, arguments, refKindsOpt, method.Parameters, node.ArgsToParamsOpt,
+                node.Expanded, node.InvokedAsExtensionMethod, conversions, method);
 
             UpdateStateForCall(node);
 
@@ -3378,20 +3374,23 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var resultType = TypeSymbolWithAnnotations.Create(targetType, resultAnnotation);
 
-            // Need to report all warnings that apply since the warnings can be suppressed individually.
-            if (reportTopLevelWarnings)
+            if (operandType.TypeSymbol?.IsErrorType() != true)
             {
-                ReportNullableAssignmentIfNecessary(node, targetTypeWithNullability, resultType, useLegacyWarnings: useLegacyWarnings, assignmentKind, target);
-            }
-            if (reportNestedWarnings && !canConvertNestedNullability)
-            {
-                if (assignmentKind == AssignmentKind.Argument)
+                // Need to report all warnings that apply since the warnings can be suppressed individually.
+                if (reportTopLevelWarnings)
                 {
-                    ReportNullabilityMismatchInArgument(node, operandType.TypeSymbol, target, targetType);
+                    ReportNullableAssignmentIfNecessary(node, targetTypeWithNullability, resultType, useLegacyWarnings: useLegacyWarnings, assignmentKind, target);
                 }
-                else
+                if (reportNestedWarnings && !canConvertNestedNullability)
                 {
-                    ReportDiagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, node.Syntax, GetTypeAsDiagnosticArgument(operandType.TypeSymbol), targetType);
+                    if (assignmentKind == AssignmentKind.Argument)
+                    {
+                        ReportNullabilityMismatchInArgument(node, operandType.TypeSymbol, target, targetType);
+                    }
+                    else
+                    {
+                        ReportDiagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, node.Syntax, GetTypeAsDiagnosticArgument(operandType.TypeSymbol), targetType);
+                    }
                 }
             }
 
@@ -4649,22 +4648,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 NullableAnnotation selfAnnotation = self[slot];
                 NullableAnnotation otherAnnotation = other[slot];
-                NullableAnnotation union;
-
-                if (selfAnnotation.IsAnyNotNullable() || otherAnnotation.IsAnyNotNullable())
-                {
-                    union = selfAnnotation == NullableAnnotation.NotNullableBasedOnAnalysis || otherAnnotation == NullableAnnotation.NotNullableBasedOnAnalysis ?
-                                NullableAnnotation.NotNullableBasedOnAnalysis : NullableAnnotation.NotNullable;
-                }
-                else if (selfAnnotation == NullableAnnotation.Unknown || otherAnnotation == NullableAnnotation.Unknown)
-                {
-                    union = NullableAnnotation.Unknown;
-                }
-                else
-                {
-                    union = selfAnnotation == NullableAnnotation.NullableBasedOnAnalysis || otherAnnotation == NullableAnnotation.NullableBasedOnAnalysis ?
-                                NullableAnnotation.NullableBasedOnAnalysis : NullableAnnotation.Nullable;
-                }
+                NullableAnnotation union = selfAnnotation.MeetForFlowAnalysisFinally(otherAnnotation);
 
                 if (selfAnnotation != union)
                 {
@@ -4696,57 +4680,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     NullableAnnotation selfAnnotation = self[slot];
                     NullableAnnotation otherAnnotation = other[slot];
-                    NullableAnnotation intersection;
-
-                    if (selfAnnotation.IsAnyNullable() || otherAnnotation.IsAnyNullable())
-                    {
-                        intersection = selfAnnotation == NullableAnnotation.Nullable || otherAnnotation == NullableAnnotation.Nullable ?
-                                    NullableAnnotation.Nullable : NullableAnnotation.NullableBasedOnAnalysis;
-                    }
-                    else if (selfAnnotation == NullableAnnotation.Unknown)
-                    {
-                        if (otherAnnotation == NullableAnnotation.Unknown || otherAnnotation == NullableAnnotation.NotNullableBasedOnAnalysis)
-                        {
-                            intersection = NullableAnnotation.Unknown;
-                        }
-                        else
-                        {
-                            Debug.Assert(otherAnnotation == NullableAnnotation.NotNullable);
-                            if (isPossiblyNullableReferenceTypeTypeParameter(slot))
-                            {
-                                intersection = otherAnnotation;
-                            }
-                            else
-                            {
-                                intersection = NullableAnnotation.Unknown;
-                            }
-                        }
-                    }
-                    else if (otherAnnotation == NullableAnnotation.Unknown)
-                    {
-                        if (selfAnnotation == NullableAnnotation.NotNullableBasedOnAnalysis)
-                        {
-                            intersection = NullableAnnotation.Unknown;
-                        }
-                        else
-                        {
-                            Debug.Assert(selfAnnotation == NullableAnnotation.NotNullable);
-                            if (isPossiblyNullableReferenceTypeTypeParameter(slot))
-                            {
-                                intersection = selfAnnotation;
-                            }
-                            else
-                            {
-                                intersection = NullableAnnotation.Unknown;
-                            }
-                        }
-                    }
-                    else
-                    {
-                        intersection = selfAnnotation == NullableAnnotation.NotNullable || otherAnnotation == NullableAnnotation.NotNullable ?
-                                    NullableAnnotation.NotNullable : NullableAnnotation.NotNullableBasedOnAnalysis;
-                    }
-
+                    NullableAnnotation intersection = selfAnnotation.JoinForFlowAnalysisBranches(otherAnnotation, (slot, this), isPossiblyNullableReferenceTypeTypeParameterDelegate);
                     if (selfAnnotation != intersection)
                     {
                         self[slot] = intersection;
@@ -4774,13 +4708,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(!other.Reachable);
                 return false;
             }
-
-            bool isPossiblyNullableReferenceTypeTypeParameter(int slot)
-            {
-                Symbol symbol = variableBySlot[slot].Symbol;
-                return (object)symbol != null && VariableType(symbol).TypeSymbol?.IsPossiblyNullableReferenceTypeTypeParameter() == true;
-            }
         }
+
+        private readonly static Func<(int slot, NullableWalker self), bool> isPossiblyNullableReferenceTypeTypeParameterDelegate = args =>
+        {
+            Symbol symbol = args.self.variableBySlot[args.slot].Symbol;
+            return (object)symbol != null && VariableType(symbol).TypeSymbol?.IsPossiblyNullableReferenceTypeTypeParameter() == true;
+        };
 
         [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
 #if REFERENCE_STATE

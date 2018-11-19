@@ -8134,6 +8134,218 @@ class C
         }
 
         [Fact]
+        [WorkItem(29916, "https://github.com/dotnet/roslyn/issues/29916")]
+        public void PassingParameters_UnknownMethod()
+        {
+            CSharpCompilation c = CreateCompilation(new[] { @"
+class C
+{
+    static int F(object x)
+    {
+        Missing(F(null)); // 1
+        Missing(F(x = null)); // 2
+        x.ToString(); // 3
+
+        Missing(F(x = this)); // 4
+        x.ToString();
+        return 0;
+    }
+}
+" }, options: WithNonNullTypesTrue());
+
+            c.VerifyDiagnostics(
+                // (6,9): error CS0103: The name 'Missing' does not exist in the current context
+                //         Missing(F(null)); // 1
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "Missing").WithArguments("Missing").WithLocation(6, 9),
+                // (6,19): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //         Missing(F(null)); // 1
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(6, 19),
+                // (7,9): error CS0103: The name 'Missing' does not exist in the current context
+                //         Missing(F(x = null)); // 2
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "Missing").WithArguments("Missing").WithLocation(7, 9),
+                // (7,19): warning CS8604: Possible null reference argument for parameter 'x' in 'int C.F(object x)'.
+                //         Missing(F(x = null)); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x = null").WithArguments("x", "int C.F(object x)").WithLocation(7, 19),
+                // (7,23): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         Missing(F(x = null)); // 2
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(7, 23),
+                // (8,9): warning CS8602: Possible dereference of a null reference.
+                //         x.ToString(); // 3
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(8, 9),
+                // (10,9): error CS0103: The name 'Missing' does not exist in the current context
+                //         Missing(F(x = this)); // 4
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "Missing").WithArguments("Missing").WithLocation(10, 9),
+                // (10,23): error CS0026: Keyword 'this' is not valid in a static property, static method, or static field initializer
+                //         Missing(F(x = this)); // 4
+                Diagnostic(ErrorCode.ERR_ThisInStaticMeth, "this").WithLocation(10, 23)
+                );
+        }
+
+        [Fact]
+        [WorkItem(29916, "https://github.com/dotnet/roslyn/issues/29916")]
+        public void PassingParameters_UnknownMethod_UnknownReceiver()
+        {
+            CSharpCompilation c = CreateCompilation(new[] { @"
+class C
+{
+    static int F(object x)
+    {
+        bad.Missing(F(null)); // 1
+        bad.Missing(F(x = null)); // 2
+        x.ToString(); // 3
+
+        bad.Missing(F(x = this)); // 4
+        x.ToString();
+        return 0;
+    }
+}
+" }, options: WithNonNullTypesTrue());
+
+            c.VerifyDiagnostics(
+                // (6,9): error CS0103: The name 'bad' does not exist in the current context
+                //         bad.Missing(F(null)); // 1
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "bad").WithArguments("bad").WithLocation(6, 9),
+                // (6,23): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //         bad.Missing(F(null)); // 1
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(6, 23),
+                // (7,9): error CS0103: The name 'bad' does not exist in the current context
+                //         bad.Missing(F(x = null)); // 2
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "bad").WithArguments("bad").WithLocation(7, 9),
+                // (7,23): warning CS8604: Possible null reference argument for parameter 'x' in 'int C.F(object x)'.
+                //         bad.Missing(F(x = null)); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x = null").WithArguments("x", "int C.F(object x)").WithLocation(7, 23),
+                // (7,27): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         bad.Missing(F(x = null)); // 2
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(7, 27),
+                // (8,9): warning CS8602: Possible dereference of a null reference.
+                //         x.ToString(); // 3
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(8, 9),
+                // (10,9): error CS0103: The name 'bad' does not exist in the current context
+                //         bad.Missing(F(x = this)); // 4
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "bad").WithArguments("bad").WithLocation(10, 9),
+                // (10,27): error CS0026: Keyword 'this' is not valid in a static property, static method, or static field initializer
+                //         bad.Missing(F(x = this)); // 4
+                Diagnostic(ErrorCode.ERR_ThisInStaticMeth, "this").WithLocation(10, 27)
+                );
+        }
+
+        [Fact]
+        [WorkItem(29916, "https://github.com/dotnet/roslyn/issues/29916")]
+        public void PassingParameters_UnknownMethod_AffectingState()
+        {
+            CSharpCompilation c = CreateCompilation(new[] { @"
+class C
+{
+    object F(object x)
+    {
+        Missing(
+            F(x = null) /*warn*/,
+            x.ToString() /*warn*/,
+            F(x = this),
+            x.ToString());
+        return x;
+    }
+}
+" }, options: WithNonNullTypesTrue());
+
+            c.VerifyDiagnostics(
+                // (6,9): error CS0103: The name 'Missing' does not exist in the current context
+                //         Missing(
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "Missing").WithArguments("Missing").WithLocation(6, 9),
+                // (7,15): warning CS8604: Possible null reference argument for parameter 'x' in 'object C.F(object x)'.
+                //             F(x = null) /*warn*/,
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x = null").WithArguments("x", "object C.F(object x)").WithLocation(7, 15),
+                // (7,19): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //             F(x = null) /*warn*/,
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(7, 19),
+                // (8,13): warning CS8602: Possible dereference of a null reference.
+                //             x.ToString() /*warn*/,
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(8, 13)
+                );
+        }
+
+        [Fact]
+        [WorkItem(29916, "https://github.com/dotnet/roslyn/issues/29916")]
+        public void PassingParameters_UnknownMethod_AffectingConditionalState()
+        {
+            CSharpCompilation c = CreateCompilation(new[] { @"
+class C
+{
+    int F(object x)
+    {
+        if (G(F(x = null)))
+        {
+            x.ToString(); // 1
+        }
+        else
+        {
+            x.ToString(); // 2
+        }
+        return 0;
+    }
+}
+" }, options: WithNonNullTypesTrue());
+
+            c.VerifyDiagnostics(
+                // (6,13): error CS0103: The name 'G' does not exist in the current context
+                //         if (G(F(x = null)))
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "G").WithArguments("G").WithLocation(6, 13),
+                // (6,17): warning CS8604: Possible null reference argument for parameter 'x' in 'int C.F(object x)'.
+                //         if (G(F(x = null)))
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x = null").WithArguments("x", "int C.F(object x)").WithLocation(6, 17),
+                // (6,21): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         if (G(F(x = null)))
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(6, 21),
+                // (8,13): warning CS8602: Possible dereference of a null reference.
+                //             x.ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(8, 13),
+                // (12,13): warning CS8602: Possible dereference of a null reference.
+                //             x.ToString(); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(12, 13)
+                );
+        }
+
+        [Fact]
+        [WorkItem(29916, "https://github.com/dotnet/roslyn/issues/29916")]
+        public void PassingParameters_UnknownMethod_AffectingConditionalState2()
+        {
+            CSharpCompilation c = CreateCompilation(new[] { @"
+class C
+{
+    void F(object x)
+    {
+        if (Missing(x) && Missing(x = null))
+        {
+            x.ToString(); // 1
+        }
+        else
+        {
+            x.ToString(); // 2
+        }
+    }
+}
+" }, options: WithNonNullTypesTrue());
+
+            c.VerifyDiagnostics(
+                // (6,13): error CS0103: The name 'Missing' does not exist in the current context
+                //         if (Missing(x) && Missing(x = null))
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "Missing").WithArguments("Missing").WithLocation(6, 13),
+                // (6,27): error CS0103: The name 'Missing' does not exist in the current context
+                //         if (Missing(x) && Missing(x = null))
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "Missing").WithArguments("Missing").WithLocation(6, 27),
+                // (6,39): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         if (Missing(x) && Missing(x = null))
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(6, 39),
+                // (8,13): warning CS8602: Possible dereference of a null reference.
+                //             x.ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(8, 13),
+                // (12,13): warning CS8602: Possible dereference of a null reference.
+                //             x.ToString(); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(12, 13)
+                );
+        }
+
+        [Fact]
         public void DuplicateArguments()
         {
             var source =
@@ -9401,10 +9613,7 @@ class C
             c.VerifyDiagnostics(
                 // (6,16): error CS0103: The name 'bad' does not exist in the current context
                 //         return bad;
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "bad").WithArguments("bad").WithLocation(6, 16),
-                // (6,16): warning CS8619: Nullability of reference types in value of type '?' doesn't match target type 'string'.
-                //         return bad;
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "bad").WithArguments("?", "string").WithLocation(6, 16)
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "bad").WithArguments("bad").WithLocation(6, 16)
                 );
         }
 
@@ -9529,6 +9738,44 @@ public class C
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(9, 13),
                 // (13,13): warning CS8602: Possible dereference of a null reference.
                 //             s.ToString(); // ok
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(13, 13)
+                );
+        }
+
+        [Fact]
+        [WorkItem(29916, "https://github.com/dotnet/roslyn/issues/29916")]
+        public void NotNullWhenFalse_EqualsTrue_InErrorInvocation()
+        {
+            CSharpCompilation c = CreateCompilation(new[] { @"
+using System.Runtime.CompilerServices;
+public class C
+{
+    public void Main(string? s)
+    {
+        if (Missing(MyIsNullOrEmpty(s)))
+        {
+            s.ToString(); // 1
+        }
+        else
+        {
+            s.ToString(); // 2
+        }
+
+        s.ToString();
+    }
+    public static bool MyIsNullOrEmpty([NotNullWhenFalse] string? s) => throw null;
+}
+", NotNullWhenFalseAttributeDefinition }, options: WithNonNullTypesTrue());
+
+            c.VerifyDiagnostics(
+                // (7,13): error CS0103: The name 'Missing' does not exist in the current context
+                //         if (Missing(MyIsNullOrEmpty(s)))
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "Missing").WithArguments("Missing").WithLocation(7, 13),
+                // (9,13): warning CS8602: Possible dereference of a null reference.
+                //             s.ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(9, 13),
+                // (13,13): warning CS8602: Possible dereference of a null reference.
+                //             s.ToString(); // 2
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(13, 13)
                 );
         }
@@ -9723,6 +9970,46 @@ public class C
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s2").WithLocation(10, 13),
                 // (15,13): warning CS8602: Possible dereference of a null reference.
                 //             s2.ToString(); // warn 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s2").WithLocation(15, 13)
+                );
+        }
+
+        [Fact]
+        public void MethodWithOutNullableParameter_AfterEnsuresNotNull_InErrorInvocation()
+        {
+            CSharpCompilation c = CreateCompilation(new[] { @"
+using System.Runtime.CompilerServices;
+public class C
+{
+    public void Main(string? s)
+    {
+        if (Missing(M(s, out string? s2)))
+        {
+            s.ToString();
+            s2.ToString(); // 1
+        }
+        else
+        {
+            s.ToString();
+            s2.ToString(); // 2
+        }
+
+        s.ToString();
+        s2.ToString();
+    }
+    public static bool M([EnsuresNotNull] string? s, out string? s2) => throw null;
+}
+", EnsuresNotNullAttributeDefinition }, options: WithNonNullTypesTrue());
+
+            c.VerifyDiagnostics(
+                // (7,13): error CS0103: The name 'Missing' does not exist in the current context
+                //         if (Missing(M(s, out string? s2)))
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "Missing").WithArguments("Missing").WithLocation(7, 13),
+                // (10,13): warning CS8602: Possible dereference of a null reference.
+                //             s2.ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s2").WithLocation(10, 13),
+                // (15,13): warning CS8602: Possible dereference of a null reference.
+                //             s2.ToString(); // 2
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s2").WithLocation(15, 13)
                 );
         }
@@ -10860,6 +11147,31 @@ class C
         }
 
         [Fact]
+        [WorkItem(29916, "https://github.com/dotnet/roslyn/issues/29916")]
+        public void AssertsTrue_NotNull_InErrorInvocation()
+        {
+            CSharpCompilation c = CreateCompilation(new[] { @"
+using System.Runtime.CompilerServices;
+class C
+{
+    void Main(C? c)
+    {
+        Missing(MyAssert(c != null));
+        c.ToString();
+    }
+
+    void MyAssert([AssertsTrue] bool condition) => throw null;
+}
+", AssertsTrueAttributeDefinition }, options: WithNonNullTypesTrue());
+
+            c.VerifyDiagnostics(
+                // (7,9): error CS0103: The name 'Missing' does not exist in the current context
+                //         Missing(MyAssert(c != null));
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "Missing").WithArguments("Missing").WithLocation(7, 9)
+                );
+        }
+
+        [Fact]
         public void AssertsTrue_NotNull_NullConditionalAccess()
         {
             CSharpCompilation c = CreateCompilation(new[] { @"
@@ -10899,6 +11211,34 @@ class C
 ", AssertsTrueAttributeDefinition }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
+                // (8,9): warning CS8602: Possible dereference of a null reference.
+                //         c.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c").WithLocation(8, 9)
+                );
+        }
+
+        [Fact]
+        [WorkItem(29916, "https://github.com/dotnet/roslyn/issues/29916")]
+        public void AssertsTrue_Null_InErrorInvocation()
+        {
+            CSharpCompilation c = CreateCompilation(new[] { @"
+using System.Runtime.CompilerServices;
+class C
+{
+    void Main(C? c)
+    {
+        Missing(MyAssert(c == null));
+        c.ToString();
+    }
+
+    void MyAssert([AssertsTrue] bool condition) => throw null;
+}
+", AssertsTrueAttributeDefinition }, options: WithNonNullTypesTrue());
+
+            c.VerifyDiagnostics(
+                // (7,9): error CS0103: The name 'Missing' does not exist in the current context
+                //         Missing(MyAssert(c == null));
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "Missing").WithArguments("Missing").WithLocation(7, 9),
                 // (8,9): warning CS8602: Possible dereference of a null reference.
                 //         c.ToString();
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c").WithLocation(8, 9)
@@ -11992,7 +12332,10 @@ class C
             c.VerifyDiagnostics(
                 // (6,35): error CS1503: Argument 1: cannot convert from 'void' to 'string'
                 //         if (!string.IsNullOrEmpty(M2(null)))
-                Diagnostic(ErrorCode.ERR_BadArgType, "M2(null)").WithArguments("1", "void", "string").WithLocation(6, 35)
+                Diagnostic(ErrorCode.ERR_BadArgType, "M2(null)").WithArguments("1", "void", "string").WithLocation(6, 35),
+                // (6,38): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //         if (!string.IsNullOrEmpty(M2(null)))
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(6, 38)
                 );
         }
 
@@ -12774,6 +13117,30 @@ public class C
                 // (8,9): warning CS8602: Possible dereference of a null reference.
                 //         s2.ToString(); // warn
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s2").WithLocation(8, 9)
+                );
+        }
+
+        [Fact]
+        [WorkItem(29916, "https://github.com/dotnet/roslyn/issues/29916")]
+        public void EnsuresNotNull_InErrorInvocation()
+        {
+            CSharpCompilation c = CreateCompilation(new[] { @"
+using System.Runtime.CompilerServices;
+public class C
+{
+    void M(string? s1, string? s2)
+    {
+        Missing(ThrowIfNull(s1, s2 = s1));
+        s2.ToString();
+    }
+    public static void ThrowIfNull([EnsuresNotNull] string? x1, string? x2) => throw null;
+}
+", EnsuresNotNullAttributeDefinition }, options: WithNonNullTypesTrue());
+
+            c.VerifyDiagnostics(
+                // (7,9): error CS0103: The name 'Missing' does not exist in the current context
+                //         Missing(ThrowIfNull(s1, s2 = s1));
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "Missing").WithArguments("Missing").WithLocation(7, 9)
                 );
         }
 
@@ -27530,10 +27897,7 @@ class C
             CreateCompilation(new[] { source }, options: WithNonNullTypesTrue()).VerifyDiagnostics(
                 // (6,22): error CS0103: The name 'bad' does not exist in the current context
                 //         yield return bad;
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "bad").WithArguments("bad").WithLocation(6, 22),
-                // (6,22): warning CS8619: Nullability of reference types in value of type '?' doesn't match target type 'string'.
-                //         yield return bad;
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "bad").WithArguments("?", "string").WithLocation(6, 22)
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "bad").WithArguments("bad").WithLocation(6, 22)
                 );
         }
 
@@ -27583,9 +27947,6 @@ class C
     }
 }";
             CreateCompilation(new[] { source }, options: WithNonNullTypesTrue()).VerifyDiagnostics(
-                // (6,9): warning CS8619: Nullability of reference types in value of type '?' doesn't match target type 'string'.
-                //         yield return;
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "yield return;").WithArguments("?", "string").WithLocation(6, 9),
                 // (6,15): error CS1627: Expression expected after yield return
                 //         yield return;
                 Diagnostic(ErrorCode.ERR_EmptyYield, "return").WithLocation(6, 15)
@@ -34103,17 +34464,10 @@ class C<T>
     }
 }";
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
-            // https://github.com/dotnet/roslyn/issues/29916: WRN_NullabilityMismatchInAssignment, WRN_NullReferenceReturn are cascading, caused by the binding error.
             comp.VerifyDiagnostics(
                 // (6,17): error CS0023: Operator '?' cannot be applied to operand of type 'T'
                 //         return f?.Invoke();
-                Diagnostic(ErrorCode.ERR_BadUnaryOp, "?").WithArguments("?", "T").WithLocation(6, 17),
-                // (6,16): warning CS8603: Possible null reference return.
-                //         return f?.Invoke();
-                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "f?.Invoke()").WithLocation(6, 16),
-                // (6,16): warning CS8619: Nullability of reference types in value of type '?' doesn't match target type 'T'.
-                //         return f?.Invoke();
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "f?.Invoke()").WithArguments("?", "T").WithLocation(6, 16)
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "?").WithArguments("?", "T").WithLocation(6, 17)
                 );
         }
 
@@ -39343,20 +39697,18 @@ class C
     static void G(object?* x, object* y)
     {
         var z = CreatePointer(A.F)/*T:object**/;
-        F(x, x)/*T:object**/;
-        F(x, y)/*T:object**/;
-        F(x, z)/*T:object**/;
-        F(y, x)/*T:object**/;
-        F(y, y)/*T:object**/;
-        F(y, z)/*T:object**/;
-        F(z, x)/*T:object**/;
-        F(z, y)/*T:object**/;
+        F(x, x)/*T:object?**/;
+        F(x, y)/*T:object!**/;
+        F(x, z)/*T:object?**/;
+        F(y, x)/*T:object!**/;
+        F(y, y)/*T:object!**/;
+        F(y, z)/*T:object!**/;
+        F(z, x)/*T:object?**/;
+        F(z, y)/*T:object!**/;
         F(z, z)/*T:object**/;
     }
 }";
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(TestOptions.UnsafeDebugDll), references: new[] { ref0 });
-            // NullableWalker.VisitCall is currently skipping F(x, y), etc. because
-            // each BoundCall has errors.
             comp.VerifyTypes();
             comp.VerifyDiagnostics(
                 // (4,12): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('T')
@@ -39369,31 +39721,37 @@ class C
                 //     static void G(object?* x, object* y)
                 Diagnostic(ErrorCode.ERR_ManagedAddr, "object*").WithArguments("object").WithLocation(5, 31),
                 // (8,9): error CS0306: The type 'object*' may not be used as a type argument
-                //         F(x, x)/*T:object?*!*/;
+                //         F(x, x)/*T:object?**/;
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "F").WithArguments("object*").WithLocation(8, 9),
                 // (9,9): error CS0306: The type 'object*' may not be used as a type argument
-                //         F(x, y)/*T:object*!*/;
+                //         F(x, y)/*T:object!**/;
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "F").WithArguments("object*").WithLocation(9, 9),
+                // (9,9): warning CS8638: The nullability of type arguments for method 'C.F<T>(T, T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         F(x, y)/*T:object!**/;
+                Diagnostic(ErrorCode.WRN_CantInferNullabilityOfMethodTypeArgs, "F(x, y)").WithArguments("C.F<T>(T, T)").WithLocation(9, 9),
                 // (10,9): error CS0306: The type 'object*' may not be used as a type argument
-                //         F(x, z)/*T:object*!*/;
+                //         F(x, z)/*T:object?**/;
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "F").WithArguments("object*").WithLocation(10, 9),
                 // (11,9): error CS0306: The type 'object*' may not be used as a type argument
-                //         F(y, x)/*T:object*!*/;
+                //         F(y, x)/*T:object!**/;
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "F").WithArguments("object*").WithLocation(11, 9),
+                // (11,9): warning CS8638: The nullability of type arguments for method 'C.F<T>(T, T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         F(y, x)/*T:object!**/;
+                Diagnostic(ErrorCode.WRN_CantInferNullabilityOfMethodTypeArgs, "F(y, x)").WithArguments("C.F<T>(T, T)").WithLocation(11, 9),
                 // (12,9): error CS0306: The type 'object*' may not be used as a type argument
-                //         F(y, y)/*T:object!*!*/;
+                //         F(y, y)/*T:object!**/;
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "F").WithArguments("object*").WithLocation(12, 9),
                 // (13,9): error CS0306: The type 'object*' may not be used as a type argument
-                //         F(y, z)/*T:object*!*/;
+                //         F(y, z)/*T:object!**/;
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "F").WithArguments("object*").WithLocation(13, 9),
                 // (14,9): error CS0306: The type 'object*' may not be used as a type argument
-                //         F(z, x)/*T:object*!*/;
+                //         F(z, x)/*T:object?**/;
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "F").WithArguments("object*").WithLocation(14, 9),
                 // (15,9): error CS0306: The type 'object*' may not be used as a type argument
-                //         F(z, y)/*T:object*!*/;
+                //         F(z, y)/*T:object!**/;
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "F").WithArguments("object*").WithLocation(15, 9),
                 // (16,9): error CS0306: The type 'object*' may not be used as a type argument
-                //         F(z, z)/*T:object*!*/;
+                //         F(z, z)/*T:object**/;
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "F").WithArguments("object*").WithLocation(16, 9));
         }
 
@@ -55296,7 +55654,10 @@ class Program
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(12, 13),
                 // (14,9): error CS0176: Member 'C<object>.F()' cannot be accessed with an instance reference; qualify it with a type name instead
                 //         c2.F().ToString();
-                Diagnostic(ErrorCode.ERR_ObjectProhibited, "c2.F").WithArguments("C<object>.F()").WithLocation(14, 9));
+                Diagnostic(ErrorCode.ERR_ObjectProhibited, "c2.F").WithArguments("C<object>.F()").WithLocation(14, 9),
+                // (14,9): warning CS8602: Possible dereference of a null reference.
+                //         c2.F().ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c2.F()").WithLocation(14, 9));
         }
 
         [Fact]
@@ -56406,6 +56767,216 @@ class B<[Nullable(0)]T01,
                 // (8,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         y = (object)x;
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(object)x").WithLocation(8, 13));
+        }
+
+        private readonly static NullableAnnotation[] s_AllNullableAnnotations = (NullableAnnotation[])Enum.GetValues(typeof(NullableAnnotation));
+
+        [Fact]
+        public void TestJoinForFixingLowerBoundsIsAssociative()
+        {
+            foreach (var a in s_AllNullableAnnotations)
+            {
+                foreach (var b in s_AllNullableAnnotations)
+                {
+                    foreach (var c in s_AllNullableAnnotations)
+                    {
+                        var leftFirst = a.JoinForFixingLowerBounds(b).JoinForFixingLowerBounds(c);
+                        var rightFirst = a.JoinForFixingLowerBounds(b.JoinForFixingLowerBounds(c));
+                        Assert.Equal(leftFirst, rightFirst);
+                    }
+                }
+            }
+        }
+
+        [Fact]
+        public void TestJoinForFlowAnalysisBranchesIsAssociative()
+        {
+            Func<bool, bool> identity = x => x;
+            foreach (var a in s_AllNullableAnnotations)
+            {
+                foreach (var b in s_AllNullableAnnotations)
+                {
+                    foreach (var c in s_AllNullableAnnotations)
+                    {
+                        foreach (bool isPossiblyNullableReferenceTypeTypeParameter in new[] { true, false })
+                        {
+                            var leftFirst = a.JoinForFlowAnalysisBranches(b, isPossiblyNullableReferenceTypeTypeParameter, identity).JoinForFlowAnalysisBranches(c, isPossiblyNullableReferenceTypeTypeParameter, identity);
+                            var rightFirst = a.JoinForFlowAnalysisBranches(b.JoinForFlowAnalysisBranches(c, isPossiblyNullableReferenceTypeTypeParameter, identity), isPossiblyNullableReferenceTypeTypeParameter, identity);
+                            Assert.Equal(leftFirst, rightFirst);
+                        }
+                    }
+                }
+            }
+        }
+
+        [Fact]
+        public void TestMeetForFixingUpperBoundsIsAssociative()
+        {
+            foreach (var a in s_AllNullableAnnotations)
+            {
+                foreach (var b in s_AllNullableAnnotations)
+                {
+                    foreach (var c in s_AllNullableAnnotations)
+                    {
+                        var leftFirst = a.MeetForFixingUpperBounds(b).MeetForFixingUpperBounds(c);
+                        var rightFirst = a.MeetForFixingUpperBounds(b.MeetForFixingUpperBounds(c));
+                        Assert.Equal(leftFirst, rightFirst);
+                    }
+                }
+            }
+        }
+
+        [Fact]
+        public void TestMeetForFlowAnalysisFinallyIsAssociative()
+        {
+            foreach (var a in s_AllNullableAnnotations)
+            {
+                foreach (var b in s_AllNullableAnnotations)
+                {
+                    foreach (var c in s_AllNullableAnnotations)
+                    {
+                        var leftFirst = a.MeetForFlowAnalysisFinally(b).MeetForFlowAnalysisFinally(c);
+                        var rightFirst = a.MeetForFlowAnalysisFinally(b.MeetForFlowAnalysisFinally(c));
+                        Assert.Equal(leftFirst, rightFirst);
+                    }
+                }
+            }
+        }
+
+        [Fact]
+        public void TestEnsureCompatibleIsAssociative()
+        {
+            Func<bool, bool> identity = x => x;
+            foreach (var a in s_AllNullableAnnotations)
+            {
+                foreach (var b in s_AllNullableAnnotations)
+                {
+                    foreach (var c in s_AllNullableAnnotations)
+                    {
+                        foreach (bool isPossiblyNullableReferenceTypeTypeParameter in new[] { true, false })
+                        {
+                            var leftFirst = a.EnsureCompatible(b, isPossiblyNullableReferenceTypeTypeParameter, identity, out var w1a).EnsureCompatible(c, isPossiblyNullableReferenceTypeTypeParameter, identity, out var w1b);
+                            var rightFirst = a.EnsureCompatible(b.EnsureCompatible(c, isPossiblyNullableReferenceTypeTypeParameter, identity, out var w2a), isPossiblyNullableReferenceTypeTypeParameter, identity, out var w2b);
+                            Assert.Equal(leftFirst, rightFirst);
+                            Assert.Equal(w1a | w1b, w2a | w2b);
+                        }
+                    }
+                }
+            }
+        }
+
+        [Fact]
+        public void TestJoinForFixingLowerBoundsIsCommutative()
+        {
+            foreach (var a in s_AllNullableAnnotations)
+            {
+                foreach (var b in s_AllNullableAnnotations)
+                {
+                    var leftFirst = a.JoinForFixingLowerBounds(b);
+                    var rightFirst = b.JoinForFixingLowerBounds(a);
+                    Assert.Equal(leftFirst, rightFirst);
+                }
+            }
+        }
+
+        [Fact]
+        public void TestJoinForFlowAnalysisBranchesIsCommutative()
+        {
+            Func<bool, bool> identity = x => x;
+            foreach (var a in s_AllNullableAnnotations)
+            {
+                foreach (var b in s_AllNullableAnnotations)
+                {
+                    foreach (bool isPossiblyNullableReferenceTypeTypeParameter in new[] { true, false })
+                    {
+                        var leftFirst = a.JoinForFlowAnalysisBranches(b, isPossiblyNullableReferenceTypeTypeParameter, identity);
+                        var rightFirst = b.JoinForFlowAnalysisBranches(a, isPossiblyNullableReferenceTypeTypeParameter, identity);
+                        Assert.Equal(leftFirst, rightFirst);
+                    }
+                }
+            }
+        }
+
+        [Fact]
+        public void TestMeetForFixingUpperBoundsIsCommutative()
+        {
+            foreach (var a in s_AllNullableAnnotations)
+            {
+                foreach (var b in s_AllNullableAnnotations)
+                {
+                    var leftFirst = a.MeetForFixingUpperBounds(b);
+                    var rightFirst = b.MeetForFixingUpperBounds(a);
+                    Assert.Equal(leftFirst, rightFirst);
+                }
+            }
+        }
+
+        [Fact]
+        public void TestMeetForFlowAnalysisFinallyIsCommutative()
+        {
+            foreach (var a in s_AllNullableAnnotations)
+            {
+                foreach (var b in s_AllNullableAnnotations)
+                {
+                    foreach (var c in s_AllNullableAnnotations)
+                    {
+                        var leftFirst = a.MeetForFlowAnalysisFinally(b);
+                        var rightFirst = b.MeetForFlowAnalysisFinally(a);
+                        Assert.Equal(leftFirst, rightFirst);
+                    }
+                }
+            }
+        }
+
+        [Fact]
+        public void TestEnsureCompatibleIsCommutative()
+        {
+            Func<bool, bool> identity = x => x;
+            foreach (var a in s_AllNullableAnnotations)
+            {
+                foreach (var b in s_AllNullableAnnotations)
+                {
+                    foreach (bool isPossiblyNullableReferenceTypeTypeParameter in new[] { true, false })
+                    {
+                        var leftFirst = a.EnsureCompatible(b, isPossiblyNullableReferenceTypeTypeParameter, identity, out var w1);
+                        var rightFirst = b.EnsureCompatible(a, isPossiblyNullableReferenceTypeTypeParameter, identity, out var w2);
+                        Assert.Equal(leftFirst, rightFirst);
+                        Assert.Equal(w1, w2);
+                    }
+                }
+            }
+        }
+
+        [Fact(Skip ="Two different implementations of NullableAnnotation Join do not agree")]
+        public void TestJoinsAgree()
+        {
+            Func<bool, bool> identity = x => x;
+            foreach (var a in s_AllNullableAnnotations)
+            {
+                foreach (var b in s_AllNullableAnnotations)
+                {
+                    foreach (bool isPossiblyNullableReferenceTypeTypeParameter in new[] { true, false })
+                    {
+                        var result1 = a.JoinForFixingLowerBounds(b);
+                        var result2 = a.JoinForFlowAnalysisBranches(b, isPossiblyNullableReferenceTypeTypeParameter, identity);
+                        Assert.Equal(result1, result2);
+                    }
+                }
+            }
+        }
+
+        [Fact(Skip = "Two different implementations of NullableAnnotation Meet do not agree")]
+        public void TestMeetsAgree()
+        {
+            foreach (var a in s_AllNullableAnnotations)
+            {
+                foreach (var b in s_AllNullableAnnotations)
+                {
+                    var result1 = a.MeetForFixingUpperBounds(b);
+                    var result2 = a.MeetForFlowAnalysisFinally(b);
+                    Assert.Equal(result1, result2);
+                }
+            }
         }
     }
 }

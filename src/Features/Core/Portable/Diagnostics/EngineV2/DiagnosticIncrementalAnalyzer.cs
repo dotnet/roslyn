@@ -245,7 +245,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 return result;
             }
 
-            return new DiagnosticAnalysisResult(projectId, version);
+            return DiagnosticAnalysisResult.CreateEmpty(projectId, version);
         }
 
         private static ImmutableArray<DiagnosticData> GetResult(DiagnosticAnalysisResult result, AnalysisKind kind, DocumentId id)

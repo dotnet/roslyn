@@ -163,7 +163,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 
             if (this.Project != null)
             {
-                documentId = this.Project.AddSourceTextContainer(SubjectBuffer.AsTextContainer(), filePath);
+                documentId = this.Project.AddSourceTextContainer(
+                    SubjectBuffer.AsTextContainer(), filePath,
+                    sourceCodeKind: SourceCodeKind.Regular, folders: default, 
+                    documentServiceProvider: new ContainedDocument.DocumentServiceProvider(DataBuffer));
             }
             else
             {

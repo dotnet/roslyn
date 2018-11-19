@@ -878,7 +878,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     new LocalRewritingValidator().Visit(node);
                 }
-                catch (Exception ex) when (StackGuard.IsInsufficientExecutionStackException(ex))
+                catch (InsufficientExecutionStackException)
                 {
                     // Intentionally ignored to let the overflow get caught in a more crucial visitor
                 }
