@@ -10,6 +10,7 @@
   </Installation>
   <Dependencies>
     <Dependency Id="Microsoft.Framework.NDP" DisplayName="Microsoft .NET Framework" d:Source="Manual" Version="[4.5,)" />
+    <Dependency Id="Roslyn.Compilers.Extension.Resources" DisplayName="Roslyn Compiler Extension Resources" d:Source="Manual" Version="|%CurrentProject%;GetBuildVersion|" />
   </Dependencies>
   <Assets>
     <Asset Type="Microsoft.VisualStudio.MefComponent" Path="|%CurrentProject%|" d:Source="Project" d:ProjectName="%CurrentProject%" />

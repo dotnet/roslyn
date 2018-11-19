@@ -1,0 +1,7 @@
+folder "TBD"
+  file source=$(OutputPath)\Dlls\Microsoft.Build.Tasks.CodeAnalysis\netcoreapp2.0\$(Culture)\Microsoft.Build.Tasks.CodeAnalysis.resources.dll
+  file source=$(OutputPath)\Dlls\Microsoft.Build.Tasks.CodeAnalysis\net46\$(Culture)\Microsoft.Build.Tasks.CodeAnalysis.resources.dll
+  file source=$(OutputPath)\Dlls\Microsoft.CodeAnalysis.CSharp\$(Culture)\Microsoft.CodeAnalysis.CSharp.resources.dll
+  file source=$(OutputPath)\Dlls\Microsoft.CodeAnalysis.CSharp.Scripting\$(Culture)\Microsoft.CodeAnalysis.CSharp.Scripting.resources.dll
+  file source=$(OutputPath)\Dlls\Microsoft.CodeAnalysis\$(Culture)\Microsoft.CodeAnalysis.resources.dll
+  file source=$(OutputPath)\Dlls\Microsoft.CodeAnalysis.VisualBasic\$(Culture)\Microsoft.CodeAnalysis.VisualBasic.resources.dll

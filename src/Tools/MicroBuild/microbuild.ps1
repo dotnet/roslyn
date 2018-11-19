@@ -77,6 +77,10 @@ function Copy-InsertionItems() {
         $items += "Vsix\ExpressionEvaluatorPackage\Microsoft.CodeAnalysis.ExpressionEvaluator.Resources.$($language).vsix"
         $items += "Vsix\ExpressionEvaluatorPackage\Microsoft.CodeAnalysis.ExpressionEvaluator.Resources.$($language).vsmand"
         $items += "Vsix\ExpressionEvaluatorPackage\Microsoft.CodeAnalysis.ExpressionEvaluator.Resources.$($language).json"
+
+        $items += "Vsix\RoslynCompilersExtension\Roslyn.Compilers.Extension.Resources.$($language).vsix"
+        $items += "Vsix\RoslynCompilersExtension\Roslyn.Compilers.Extension.Resources.$($language).vsmand"
+        $items += "Vsix\RoslynCompilersExtension\Roslyn.Compilers.Extension.Resources.$($language).json"
     }
 
     foreach ($item in $items) { 
