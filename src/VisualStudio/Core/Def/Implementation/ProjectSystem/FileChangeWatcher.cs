@@ -105,6 +105,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             /// you'll need a file watched (eventually) but it's not worth blocking yet.
             /// </summary>
             IFileWatchingToken EnqueueWatchingFile(string filePath);
+
             void StopWatchingFile(IFileWatchingToken token);
         }
 
@@ -174,9 +175,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                             await service.UnadviseDirChangeAsync(_directoryWatchCookie).ConfigureAwait(false);
                         }
 
+                        // it runs after disposed. so no lock is needed for _activeFileWatchingTokens
                         foreach (var token in _activeFileWatchingTokens)
                         {
-                            await service.UnadviseFileChangeAsync(token.Cookie.Value).ConfigureAwait(false);
+                            await UnsubscribeFileChangeEventsAsync(service, token).ConfigureAwait(false);
                         }
                     });
             }
@@ -221,8 +223,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     Contract.ThrowIfFalse(_activeFileWatchingTokens.Remove(typedToken), "This token was no longer being watched.");
                 }
 
-                _fileChangeWatcher.EnqueueWork(service =>
-                    service.UnadviseFileChangeAsync(typedToken.Cookie.Value));
+                _fileChangeWatcher.EnqueueWork(service => UnsubscribeFileChangeEventsAsync(service, typedToken));
+            }
+
+            private Task UnsubscribeFileChangeEventsAsync(IVsAsyncFileChangeEx service, FileWatchingToken typedToken)
+            {
+                return service.UnadviseFileChangeAsync(typedToken.Cookie.Value);
             }
 
             public event EventHandler<string> FileChanged;

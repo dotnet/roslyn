@@ -2020,20 +2020,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // https://github.com/dotnet/roslyn/issues/29605 Can we handle some error cases?
             // (Compare with CSharpOperationFactory.CreateBoundCallOperation.)
-            if (!node.HasErrors)
+            ImmutableArray<RefKind> refKindsOpt = node.ArgumentRefKindsOpt;
+            (ImmutableArray<BoundExpression> arguments, ImmutableArray<Conversion> conversions) = RemoveArgumentConversions(node.Arguments, refKindsOpt);
+            if (!receiverType.IsNull)
             {
-                if (!receiverType.IsNull)
-                {
-                    // Update method based on inferred receiver type.
-                    method = (MethodSymbol)AsMemberOfResultType(receiverType, method);
-                }
-
-                ImmutableArray<RefKind> refKindsOpt = node.ArgumentRefKindsOpt;
-                (ImmutableArray<BoundExpression> arguments, ImmutableArray<Conversion> conversions) = RemoveArgumentConversions(node.Arguments, refKindsOpt);
-                ImmutableArray<int> argsToParamsOpt = node.ArgsToParamsOpt;
-
-                method = VisitArguments(node, arguments, refKindsOpt, method.Parameters, argsToParamsOpt, node.Expanded, node.InvokedAsExtensionMethod, conversions, method);
+                // Update method based on inferred receiver type.
+                method = (MethodSymbol)AsMemberOfResultType(receiverType, method);
             }
+
+            method = VisitArguments(node, arguments, refKindsOpt, method.Parameters, node.ArgsToParamsOpt,
+                node.Expanded, node.InvokedAsExtensionMethod, conversions, method);
 
             UpdateStateForCall(node);
 
@@ -3377,20 +3373,23 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var resultType = TypeSymbolWithAnnotations.Create(targetType, resultAnnotation);
 
-            // Need to report all warnings that apply since the warnings can be suppressed individually.
-            if (reportTopLevelWarnings)
+            if (operandType.TypeSymbol?.IsErrorType() != true)
             {
-                ReportNullableAssignmentIfNecessary(node, targetTypeWithNullability, resultType, useLegacyWarnings: useLegacyWarnings, assignmentKind, target);
-            }
-            if (reportNestedWarnings && !canConvertNestedNullability)
-            {
-                if (assignmentKind == AssignmentKind.Argument)
+                // Need to report all warnings that apply since the warnings can be suppressed individually.
+                if (reportTopLevelWarnings)
                 {
-                    ReportNullabilityMismatchInArgument(node, operandType.TypeSymbol, target, targetType);
+                    ReportNullableAssignmentIfNecessary(node, targetTypeWithNullability, resultType, useLegacyWarnings: useLegacyWarnings, assignmentKind, target);
                 }
-                else
+                if (reportNestedWarnings && !canConvertNestedNullability)
                 {
-                    ReportDiagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, node.Syntax, GetTypeAsDiagnosticArgument(operandType.TypeSymbol), targetType);
+                    if (assignmentKind == AssignmentKind.Argument)
+                    {
+                        ReportNullabilityMismatchInArgument(node, operandType.TypeSymbol, target, targetType);
+                    }
+                    else
+                    {
+                        ReportDiagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, node.Syntax, GetTypeAsDiagnosticArgument(operandType.TypeSymbol), targetType);
+                    }
                 }
             }
 

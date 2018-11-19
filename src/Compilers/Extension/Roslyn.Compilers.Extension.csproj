@@ -30,7 +30,10 @@
   </ItemGroup>
   <ItemGroup>
     <NuGetPackageToIncludeInVsix Include="Microsoft.DiaSymReader.Native" />
+    <NuGetPackageToIncludeInVsix Include="System.Buffers" />
     <NuGetPackageToIncludeInVsix Include="System.Collections.Immutable" />
+    <NuGetPackageToIncludeInVsix Include="System.Memory" />
+    <NuGetPackageToIncludeInVsix Include="System.Numerics.Vectors" />
     <NuGetPackageToIncludeInVsix Include="System.Reflection" />
     <NuGetPackageToIncludeInVsix Include="System.Reflection.Metadata" />
     <NuGetPackageToIncludeInVsix Include="System.Text.Encoding.CodePages" />
