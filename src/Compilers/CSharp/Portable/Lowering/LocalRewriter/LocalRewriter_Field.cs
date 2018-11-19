@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 oldNodeOpt.Update(rewrittenReceiver, fieldSymbol, constantValueOpt, resultKind, type) :
                 new BoundFieldAccess(syntax, rewrittenReceiver, fieldSymbol, constantValueOpt, resultKind, type);
 
-            if (fieldSymbol.IsFixed)
+            if (fieldSymbol.IsFixedSizeBuffer)
             {
                 // a reference to a fixed buffer is translated into its address
                 result = new BoundAddressOfOperator(syntax, result, type, false);

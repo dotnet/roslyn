@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Options
 {
@@ -161,7 +162,6 @@ namespace Microsoft.CodeAnalysis.Options
             {
                 private readonly OptionSet _underlyingOptions;
                 private readonly List<IDocumentOptions> _documentOptions;
-                private readonly object _gate = new object();
                 private ImmutableDictionary<OptionKey, object> _values;
 
                 public DocumentSpecificOptionSet(List<IDocumentOptions> documentOptions, OptionSet underlyingOptions)
@@ -176,6 +176,7 @@ namespace Microsoft.CodeAnalysis.Options
                     _values = values;
                 }
 
+                [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/30819", AllowLocks = false)]
                 public override object GetOption(OptionKey optionKey)
                 {
                     // If we already know the document specific value, we're done
@@ -189,12 +190,7 @@ namespace Microsoft.CodeAnalysis.Options
                         if (documentOptionSource.TryGetDocumentOption(optionKey, _underlyingOptions, out value))
                         {
                             // Cache and return
-                            lock (_gate)
-                            {
-                                _values = _values.Add(optionKey, value);
-                            }
-
-                            return value;
+                            return ImmutableInterlocked.GetOrAdd(ref _values, optionKey, value);
                         }
                     }
 

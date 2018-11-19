@@ -142,7 +142,12 @@ then
     exit
 fi
 
-source "${scriptroot}"/obtain_dotnet.sh
+# Import Arcade functions
+. $scriptroot/tools.sh
+
+InitializeDotNetCli $restore
+
+export PATH="$DOTNET_INSTALL_DIR:$PATH"
 
 if [[ "$restore" == true ]]
 then
@@ -225,5 +230,6 @@ then
     else
         test_runtime=dotnet
     fi
+
     "${scriptroot}"/tests.sh "${build_configuration}" "${test_runtime}"
 fi

@@ -84,7 +84,7 @@
       </trans-unit>
       <trans-unit id="Generate_XML_documentation_comments_for">
         <source>_Generate XML documentation comments for '''</source>
-        <target state="translated">_Generar comentarios de documentación XML con '''</target>
+        <target state="translated">_Generar comentarios de documentación XML con """</target>
         <note />
       </trans-unit>
       <trans-unit id="Highlighting">
@@ -129,7 +129,7 @@
       </trans-unit>
       <trans-unit id="Go_to_Definition">
         <source>Go to Definition</source>
-        <target state="translated">Ir a definición</target>
+        <target state="translated">Ir a la definición</target>
         <note />
       </trans-unit>
       <trans-unit id="Import_Directives">
@@ -154,37 +154,37 @@
       </trans-unit>
       <trans-unit id="Qualify_event_access_with_Me">
         <source>Qualify event access with 'Me'</source>
-        <target state="translated">Calificar el acceso a eventos con 'Me'</target>
+        <target state="translated">Calificar el acceso a eventos con "Me"</target>
         <note />
       </trans-unit>
       <trans-unit id="Qualify_field_access_with_Me">
         <source>Qualify field access with 'Me'</source>
-        <target state="translated">Calificar el acceso a campos con 'Me'</target>
+        <target state="translated">Calificar el acceso a campos con "Me"</target>
         <note />
       </trans-unit>
       <trans-unit id="Qualify_method_access_with_Me">
         <source>Qualify method access with 'Me'</source>
-        <target state="translated">Calificar el acceso a métodos con 'Me'</target>
+        <target state="translated">Calificar el acceso a métodos con "Me"</target>
         <note />
       </trans-unit>
       <trans-unit id="Qualify_property_access_with_Me">
         <source>Qualify property access with 'Me'</source>
-        <target state="translated">Calificar el acceso a propiedades con 'Me'</target>
+        <target state="translated">Calificar el acceso a propiedades con "Me"</target>
         <note />
       </trans-unit>
       <trans-unit id="Do_not_prefer_Me">
         <source>Do not prefer 'Me.'</source>
-        <target state="translated">No preferir 'Me.'</target>
+        <target state="translated">No preferir "Me."</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_Me">
         <source>Prefer 'Me.'</source>
-        <target state="translated">Preferir 'Me.'</target>
+        <target state="translated">Preferir "Me."</target>
         <note />
       </trans-unit>
       <trans-unit id="Me_preferences_colon">
         <source>'Me.' preferences:</source>
-        <target state="translated">'Preferencias de "Me.":</target>
+        <target state="translated">"Preferencias de "Me.":</target>
         <note />
       </trans-unit>
       <trans-unit id="Predefined_type_preferences_colon">
@@ -264,7 +264,7 @@
       </trans-unit>
       <trans-unit id="nothing_checking_colon">
         <source>'nothing' checking:</source>
-        <target state="translated">'Comprobación de "nothing":</target>
+        <target state="translated">"Comprobación de "nothing":</target>
         <note />
       </trans-unit>
       <trans-unit id="Fade_out_unused_imports">

@@ -4,6 +4,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
@@ -1383,6 +1384,258 @@ class _
             compilation.VerifyDiagnostics(
                 );
             CompileAndVerify(compilation, expectedOutput: "8");
+        }
+
+        [Fact]
+        public void IgnoreNullInExhaustiveness_01()
+        {
+            var source =
+@"class Program
+{
+    static void Main() {}
+    static int M1(bool? b1, bool? b2)
+    {
+        return (b1, b2) switch {
+            (false, false) => 1,
+            (false, true) => 2,
+            // (true, false) => 3,
+            (true, true) => 4
+            };
+    }
+}
+";
+            var compilation = CreatePatternCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (6,25): warning CS8509: The switch expression does not handle all possible inputs (it is not exhaustive).
+                //         return (b1, b2) switch {
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithLocation(6, 25)
+                );
+        }
+
+        [Fact]
+        public void IgnoreNullInExhaustiveness_02()
+        {
+            var source =
+@"class Program
+{
+    static void Main() {}
+    static int M1(bool? b1, bool? b2)
+    {
+        return (b1, b2) switch {
+            (false, false) => 1,
+            (false, true) => 2,
+            (true, false) => 3,
+            (true, true) => 4
+            };
+    }
+}
+";
+            var compilation = CreatePatternCompilation(source);
+            compilation.VerifyDiagnostics(
+                );
+        }
+
+        [Fact]
+        public void IgnoreNullInExhaustiveness_03()
+        {
+            var source =
+@"class Program
+{
+    static void Main() {}
+    static int M1(bool? b1, bool? b2)
+    {
+        (bool? b1, bool? b2)? cond = (b1, b2);
+        return cond switch {
+            (false, false) => 1,
+            (false, true) => 2,
+            (true, false) => 3,
+            (true, true) => 4,
+            (null, true) => 5
+            };
+    }
+}
+";
+            var compilation = CreatePatternCompilation(source);
+            compilation.VerifyDiagnostics(
+                );
+        }
+
+        [Fact]
+        public void IgnoreNullInExhaustiveness_04()
+        {
+            var source =
+@"class Program
+{
+    static void Main() {}
+    static int M1(bool? b1, bool? b2)
+    {
+        (bool? b1, bool? b2)? cond = (b1, b2);
+        return cond switch {
+            (false, false) => 1,
+            (false, true) => 2,
+            (true, false) => 3,
+            (true, true) => 4,
+            _ => 5,
+            (null, true) => 6
+            };
+    }
+}
+";
+            var compilation = CreatePatternCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (13,13): error CS8510: The pattern has already been handled by a previous arm of the switch expression.
+                //             (null, true) => 6
+                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "(null, true)").WithLocation(13, 13)
+                );
+        }
+
+        [Fact, WorkItem(31167, "https://github.com/dotnet/roslyn/issues/31167")]
+        public void NonExhaustiveBoolSwitchExpression()
+        {
+            var source = @"using System;
+class Program
+{
+    static void Main()
+    {
+        new Program().Start();
+    }
+    void Start()
+    {
+        Console.Write(M(true));
+        try
+        {
+            Console.Write(M(false));
+        }
+        catch (Exception)
+        {
+            Console.Write("" throw"");
+        }
+    }
+    public int M(bool b) 
+    {
+        return b switch
+        {
+           true => 1
+        }; 
+    }
+}
+";
+            var compilation = CreatePatternCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (22,18): warning CS8509: The switch expression does not handle all possible inputs (it is not exhaustive).
+                //         return b switch
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithLocation(22, 18)
+                );
+            CompileAndVerify(compilation, expectedOutput: "1 throw");
+        }
+
+        [Fact]
+        public void PointerAsInput_01()
+        {
+            var source =
+@"public class C
+{
+    public unsafe static void Main()
+    {
+        int x = 0;
+        M(1, null);
+        M(2, &x);
+    }
+    static unsafe void M(int i, int* p)
+    {
+        if (p is var x)
+            System.Console.Write(i);
+    }
+}
+";
+            var compilation = CreatePatternCompilation(source, options: TestOptions.DebugExe.WithAllowUnsafe(true));
+            compilation.VerifyDiagnostics(
+                );
+            var expectedOutput = @"12";
+            var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput, verify: Verification.Skipped);
+        }
+
+        [Fact]
+        public void PointerAsInput_02()
+        {
+            var source =
+@"public class C
+{
+    public unsafe static void Main()
+    {
+        int x = 0;
+        M(1, null);
+        M(2, &x);
+    }
+    static unsafe void M(int i, int* p)
+    {
+        if (p switch { _ => true })
+            System.Console.Write(i);
+    }
+}
+";
+            var compilation = CreatePatternCompilation(source, options: TestOptions.DebugExe.WithAllowUnsafe(true));
+            compilation.VerifyDiagnostics(
+                );
+            var expectedOutput = @"12";
+            var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput, verify: Verification.Skipped);
+        }
+
+        [Fact]
+        public void PointerAsInput_03()
+        {
+            var source =
+@"public class C
+{
+    public unsafe static void Main()
+    {
+        int x = 0;
+        M(1, null);
+        M(2, &x);
+    }
+    static unsafe void M(int i, int* p)
+    {
+        if (p is null)
+            System.Console.Write(i);
+    }
+}
+";
+            var compilation = CreatePatternCompilation(source, options: TestOptions.DebugExe.WithAllowUnsafe(true));
+            compilation.VerifyDiagnostics(
+                );
+            var expectedOutput = @"1";
+            var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput, verify: Verification.Skipped);
+        }
+
+        [Fact]
+        public void PointerAsInput_04()
+        {
+            var source =
+@"public class C
+{
+    static unsafe void M(int* p)
+    {
+        if (p is {}) { }
+        if (p is 1) { }
+        if (p is var (x, y)) { }
+    }
+}
+";
+            var compilation = CreatePatternCompilation(source, options: TestOptions.DebugDll.WithAllowUnsafe(true));
+            compilation.VerifyDiagnostics(
+                // (5,18): error CS8521: Pattern-matching is not permitted for pointer types.
+                //         if (p is {}) { }
+                Diagnostic(ErrorCode.ERR_PointerTypeInPatternMatching, "{}").WithLocation(5, 18),
+                // (6,18): error CS0266: Cannot implicitly convert type 'int' to 'int*'. An explicit conversion exists (are you missing a cast?)
+                //         if (p is 1) { }
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "1").WithArguments("int", "int*").WithLocation(6, 18),
+                // (6,18): error CS0150: A constant value is expected
+                //         if (p is 1) { }
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "1").WithLocation(6, 18),
+                // (7,18): error CS8521: Pattern-matching is not permitted for pointer types.
+                //         if (p is var (x, y)) { }
+                Diagnostic(ErrorCode.ERR_PointerTypeInPatternMatching, "var (x, y)").WithLocation(7, 18)
+                );
         }
     }
 }

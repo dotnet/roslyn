@@ -218,7 +218,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                 // Decode nullable before tuple types to avoid converting between
                 // NamedTypeSymbol and TupleTypeSymbol unnecessarily.
-                type = NullableTypeDecoder.TransformType(type, _handle, moduleSymbol);
+                type = NullableTypeDecoder.TransformType(type, _handle, moduleSymbol, nonNullTypesContext: this);
                 type = TupleTypeDecoder.DecodeTupleTypesIfApplicable(type, _handle, moduleSymbol);
 
                 _lazyIsVolatile = isVolatile;
@@ -273,7 +273,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             return _lazyType.ToType();
         }
 
-        public override bool IsFixed
+        public override bool IsFixedSizeBuffer
         {
             get
             {

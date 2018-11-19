@@ -61,6 +61,20 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
                 EditorConfigStorageLocation.ForBoolCodeStyleOption("csharp_style_pattern_matching_over_is_with_cast_check"),
                 new RoamingProfileStorageLocation($"TextEditor.CSharp.Specific.{nameof(PreferPatternMatchingOverIsWithCastCheck)}")});
 
+        public static readonly Option<CodeStyleOption<bool>> PreferIndexOperator = CreateOption(
+            CSharpCodeStyleOptionGroups.ExpressionLevelPreferences, nameof(PreferIndexOperator),
+            defaultValue: CodeStyleOptions.TrueWithSuggestionEnforcement,
+            storageLocations: new OptionStorageLocation[] {
+                EditorConfigStorageLocation.ForBoolCodeStyleOption("csharp_style_prefer_index_operator"),
+                new RoamingProfileStorageLocation("TextEditor.CSharp.Specific.PreferIndexOperator")});
+
+        public static readonly Option<CodeStyleOption<bool>> PreferRangeOperator = CreateOption(
+            CSharpCodeStyleOptionGroups.ExpressionLevelPreferences, nameof(PreferRangeOperator),
+            defaultValue: CodeStyleOptions.TrueWithSuggestionEnforcement,
+            storageLocations: new OptionStorageLocation[] {
+                EditorConfigStorageLocation.ForBoolCodeStyleOption("csharp_style_prefer_range_operator"),
+                new RoamingProfileStorageLocation("TextEditor.CSharp.Specific.PreferRangeOperator")});
+
         public static readonly CodeStyleOption<ExpressionBodyPreference> NeverWithSilentEnforcement =
             new CodeStyleOption<ExpressionBodyPreference>(ExpressionBodyPreference.Never, NotificationOption.Silent);
 
@@ -205,6 +219,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
             yield return PreferBraces;
             yield return PreferSimpleDefaultExpression;
             yield return PreferLocalOverAnonymousFunction;
+            yield return PreferIndexOperator;
+            yield return PreferRangeOperator;
         }
 
         public static IEnumerable<Option<CodeStyleOption<ExpressionBodyPreference>>> GetExpressionBodyOptions()

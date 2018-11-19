@@ -666,6 +666,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Introduce &apos;using&apos; statement.
+        /// </summary>
+        internal static string Introduce_using_statement {
+            get {
+                return ResourceManager.GetString("Introduce_using_statement", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Invalid selection..
         /// </summary>
         internal static string Invalid_selection {
@@ -1249,6 +1258,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string Upgrade_this_project_to_csharp_language_version_0 {
             get {
                 return ResourceManager.GetString("Upgrade_this_project_to_csharp_language_version_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use &apos;{0}&apos;.
+        /// </summary>
+        internal static string Use_0 {
+            get {
+                return ResourceManager.GetString("Use_0", resourceCulture);
             }
         }
         

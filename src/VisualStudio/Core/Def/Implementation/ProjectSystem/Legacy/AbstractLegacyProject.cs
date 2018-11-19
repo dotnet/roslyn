@@ -31,6 +31,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
         protected IProjectCodeModel ProjectCodeModel { get; set; }
         protected VisualStudioWorkspace Workspace { get; }
 
+        private static readonly char[] PathSeparatorCharacters = { Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar };
+
         #region Mutable fields that should only be used from the UI thread
 
         private readonly VsENCRebuildableProjectImpl _editAndContinueProject;
@@ -55,7 +57,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
             var componentModel = (IComponentModel)serviceProvider.GetService(typeof(SComponentModel));
             Workspace = componentModel.GetService<VisualStudioWorkspace>();
 
-            var projectFilePath = hierarchy.GetProjectFilePath();
+            var projectFilePath = hierarchy.TryGetProjectFilePath();
 
             if (projectFilePath != null && !File.Exists(projectFilePath))
             {
@@ -74,6 +76,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
                     FilePath = projectFilePath,
                     Hierarchy = hierarchy,
                     ProjectGuid = GetProjectIDGuid(hierarchy),
+                    DefaultNamespace = GetDefaultNamespace(hierarchy, language)
                 });
 
             Hierarchy = hierarchy;
@@ -128,6 +131,29 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
             if (itemid != VSConstants.VSITEMID_NIL)
             {
                 folders = GetFolderNamesForDocument(itemid);
+            }
+
+            VisualStudioProject.AddSourceFile(filename, sourceCodeKind, folders);
+        }
+
+        protected void AddFile(
+            string filename,
+            string linkMetadata,
+            SourceCodeKind sourceCodeKind)
+        {
+            // We have tests that assert that XOML files should not get added; this was similar
+            // behavior to how ASP.NET projects would add .aspx files even though we ultimately ignored
+            // them. XOML support is planned to go away for Dev16, but for now leave the logic there.
+            if (filename.EndsWith(".xoml"))
+            {
+                return;
+            }
+
+            var folders = ImmutableArray<string>.Empty;
+            if (!string.IsNullOrEmpty(linkMetadata))
+            {
+                var linkFolderPath = Path.GetDirectoryName(linkMetadata);
+                folders = linkFolderPath.Split(PathSeparatorCharacters).ToImmutableArray();
             }
 
             VisualStudioProject.AddSourceFile(filename, sourceCodeKind, folders);
@@ -301,6 +327,51 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
                     ComputeFolderNames(parentID, names, hierarchy);
                 }
             }
+        }
+
+        /// <summary>
+        /// Get the default namespace of the project ("" if not defined, which means global namespace),
+        /// or null if it is unknown or not applicable. 
+        /// </summary>
+        /// <remarks>
+        /// This only has meaning in C# and is explicitly set to null in VB.
+        /// </remarks>>
+        private static string GetDefaultNamespace(IVsHierarchy hierarchy, string language)
+        {
+            // While both csproj and vbproj might define <rootnamespace> property in the project file, 
+            // they are very different things.
+            // 
+            // In C#, it's called default namespace (even though we got the value from rootnamespace property),
+            // and it doesn't affect the semantic of the code in anyway, just something used by VS.
+            // For example, when you create a new class, the namespace for the new class is based on it. 
+            // Therefore, we can't get this info from compiler.
+            // 
+            // However, in VB, it's actually called root namespace, and that info is part of the VB compilation 
+            // (parsed from arguments), because VB compiler needs it to determine the root of all the namespace 
+            // declared in the compilation.
+            // 
+            // Unfortunately, although being different concepts, default namespace and root namespace are almost
+            // used interchangebly in VS. For example, (1) the value is define in "rootnamespace" property in project 
+            // files and, (2) the property name we use to call into DTE project below to retrieve the value is 
+            // called "DefaultNamespace".
+
+            if (hierarchy != null && language == LanguageNames.CSharp)
+            {
+                if (hierarchy.TryGetProject(out var dteProject))
+                {
+                    try
+                    {
+                        return (string)dteProject.Properties.Item("DefaultNamespace").Value;
+                    }
+                    catch (ArgumentException)
+                    {
+                        // DefaultNamespace does not exist for this project.
+                        return string.Empty;
+                    }
+                }
+            }
+
+            return null;
         }
     }
 }

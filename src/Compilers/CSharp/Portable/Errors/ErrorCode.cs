@@ -1591,6 +1591,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_ForEachMissingMemberWrongAsync = 8414,
         ERR_AwaitForEachMissingMemberWrongAsync = 8415,
         ERR_BadDynamicAwaitForEach = 8416,
+        ERR_NoConvToIAsyncDispWrongAsync = 8417,
+        ERR_NoConvToIDispWrongAsync = 8418,
 
         #region diagnostics introduced for recursive patterns
         ERR_InferredRecursivePatternType = 8501,
@@ -1660,8 +1662,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_NoBestNullabilityArrayElements = 8639,
 
         #endregion diagnostics introduced for C# 8.0
-
-        // Note: you will need to re-generate compiler code after adding warnings (build\scripts\generate-compiler-code.cmd)
 
         // Note: you will need to re-generate compiler code after adding warnings (build\scripts\generate-compiler-code.cmd)
     }
