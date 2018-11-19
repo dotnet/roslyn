@@ -50121,9 +50121,6 @@ class D
                 // (4,24): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
                 // class B1<T> where T : A? { }
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(4, 24),
-                // (21,8): warning CS8631: The type 'A?' cannot be used as type parameter 'T' in the generic type or method 'B4<T>'. Nullability of type argument 'A?' doesn't match constraint type 'A'.
-                //     B4<A?> F9; // 5 and 6
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "A?").WithArguments("B4<T>", "A", "T", "A?").WithLocation(21, 8),
                 // (15,9): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
                 //     B1<A?> F3; // 2
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(15, 9),
@@ -50139,9 +50136,12 @@ class D
                 // (13,9): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
                 //     B0<A?> F1; // 1
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(13, 9),
-                // (35,8): warning CS8631: The type 'A?' cannot be used as type parameter 'T' in the generic type or method 'B4<T>'. Nullability of type argument 'A?' doesn't match constraint type 'A'.
+                // (21,12): warning CS8631: The type 'A?' cannot be used as type parameter 'T' in the generic type or method 'B4<T>'. Nullability of type argument 'A?' doesn't match constraint type 'A'.
+                //     B4<A?> F9; // 5 and 6
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "F9").WithArguments("B4<T>", "A", "T", "A?").WithLocation(21, 12),
+                // (35,12): warning CS8631: The type 'A?' cannot be used as type parameter 'T' in the generic type or method 'B4<T>'. Nullability of type argument 'A?' doesn't match constraint type 'A'.
                 //     B4<A?> G9; // 7
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "A?").WithArguments("B4<T>", "A", "T", "A?").WithLocation(35, 8)
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "G9").WithArguments("B4<T>", "A", "T", "A?").WithLocation(35, 12)
                 );
         }
 
@@ -50213,18 +50213,18 @@ class D
                 // (13,16): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
                 //     B0<A<object?>> F1; // 1
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(13, 16),
-                // (30,8): warning CS8631: The type 'A<object>' cannot be used as type parameter 'T' in the generic type or method 'B1<T>'. Nullability of type argument 'A<object>' doesn't match constraint type 'A<object?>'.
-                //     B1<A<object>> G4; // 7
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "A<object>").WithArguments("B1<T>", "A<object?>", "T", "A<object>").WithLocation(30, 8),
-                // (34,8): warning CS8631: The type 'A<object>' cannot be used as type parameter 'T' in the generic type or method 'B3<T>'. Nullability of type argument 'A<object>' doesn't match constraint type 'A<object?>'.
-                //     B3<A<object>> G8; // 8
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "A<object>").WithArguments("B3<T>", "A<object?>", "T", "A<object>").WithLocation(34, 8),
-                // (35,8): warning CS8631: The type 'A<object?>' cannot be used as type parameter 'T' in the generic type or method 'B4<T>'. Nullability of type argument 'A<object?>' doesn't match constraint type 'A<object>'.
-                //     B4<A<object?>> G9; // 9
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "A<object?>").WithArguments("B4<T>", "A<object>", "T", "A<object?>").WithLocation(35, 8),
-                // (21,8): warning CS8631: The type 'A<object?>' cannot be used as type parameter 'T' in the generic type or method 'B4<T>'. Nullability of type argument 'A<object?>' doesn't match constraint type 'A<object>'.
+                // (21,20): warning CS8631: The type 'A<object?>' cannot be used as type parameter 'T' in the generic type or method 'B4<T>'. Nullability of type argument 'A<object?>' doesn't match constraint type 'A<object>'.
                 //     B4<A<object?>> F9; // 5 and 6
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "A<object?>").WithArguments("B4<T>", "A<object>", "T", "A<object?>").WithLocation(21, 8)
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "F9").WithArguments("B4<T>", "A<object>", "T", "A<object?>").WithLocation(21, 20),
+                // (30,19): warning CS8631: The type 'A<object>' cannot be used as type parameter 'T' in the generic type or method 'B1<T>'. Nullability of type argument 'A<object>' doesn't match constraint type 'A<object?>'.
+                //     B1<A<object>> G4; // 7
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "G4").WithArguments("B1<T>", "A<object?>", "T", "A<object>").WithLocation(30, 19),
+                // (34,19): warning CS8631: The type 'A<object>' cannot be used as type parameter 'T' in the generic type or method 'B3<T>'. Nullability of type argument 'A<object>' doesn't match constraint type 'A<object?>'.
+                //     B3<A<object>> G8; // 8
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "G8").WithArguments("B3<T>", "A<object?>", "T", "A<object>").WithLocation(34, 19),
+                // (35,20): warning CS8631: The type 'A<object?>' cannot be used as type parameter 'T' in the generic type or method 'B4<T>'. Nullability of type argument 'A<object?>' doesn't match constraint type 'A<object>'.
+                //     B4<A<object?>> G9; // 9
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "G9").WithArguments("B4<T>", "A<object>", "T", "A<object?>").WithLocation(35, 20)
                 );
         }
 
