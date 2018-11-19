@@ -115,6 +115,7 @@
     <NuGetPackageToIncludeInVsix Include="System.Numerics.Vectors" />
     <NuGetPackageToIncludeInVsix Include="System.Reflection.Metadata" />
     <NuGetPackageToIncludeInVsix Include="System.Text.Encoding.CodePages" />
+    <NuGetPackageToIncludeInVsix Include="System.Runtime.CompilerServices.Unsafe" />
   </ItemGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
