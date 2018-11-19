@@ -35,13 +35,6 @@
             "vsix": [ "https://dotnet.myget.org/F/roslyn/vsix/upload" ],
             "channels": [ "dev16.0p1" ]
         },
-        "dev16.0-preview2-vs-deps": {
-            "nugetKind": ["Shipping", "NonShipping"],
-            "version": "2.11.*",
-            "nuget": [ "https://dotnet.myget.org/F/roslyn/api/v2/package" ],
-            "vsix": [ "https://dotnet.myget.org/F/roslyn/vsix/upload" ],
-            "channels": [ "dev16.0p2" ]
-        },
         "features/NullableReferenceTypes": {
             "nugetKind": "PerBuildPreRelease",
             "version": "2.6.*",
