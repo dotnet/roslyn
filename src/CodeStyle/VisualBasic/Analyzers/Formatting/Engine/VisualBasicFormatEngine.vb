@@ -18,8 +18,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                        optionSet,
                        formattingRules,
                        token1,
-                       token2,
-                       TaskExecutor.Concurrent)
+                       token2)
         End Sub
 
         Protected Overrides Function CreateTriviaFactory() As AbstractTriviaDataFactory
@@ -29,7 +28,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
         Protected Overrides Function CreateFormattingResult(tokenStream As TokenStream) As AbstractFormattingResult
             Contract.ThrowIfNull(tokenStream)
 
-            Return New FormattingResult(Me.TreeData, tokenStream, Me.SpanToFormat, Me.TaskExecutor)
+            Return New FormattingResult(Me.TreeData, tokenStream, Me.SpanToFormat)
         End Function
     End Class
 End Namespace

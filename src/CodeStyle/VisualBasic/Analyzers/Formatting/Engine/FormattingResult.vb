@@ -16,8 +16,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
         Inherits AbstractFormattingResult
         Implements IFormattingResult
 
-        Friend Sub New(treeInfo As TreeData, tokenStream As TokenStream, spanToFormat As TextSpan, taskExecutor As TaskExecutor)
-            MyBase.New(treeInfo, tokenStream, spanToFormat, taskExecutor)
+        Friend Sub New(treeInfo As TreeData, tokenStream As TokenStream, spanToFormat As TextSpan)
+            MyBase.New(treeInfo, tokenStream, spanToFormat)
         End Sub
 
         Protected Overrides Function Rewriter(changeMap As Dictionary(Of ValueTuple(Of SyntaxToken, SyntaxToken), TriviaData), cancellationToken As CancellationToken) As SyntaxNode

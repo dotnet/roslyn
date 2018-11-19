@@ -1,16 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
-using System.Runtime.ExceptionServices;
 using System.Threading;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Formatting
 {
@@ -40,8 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                  optionSet,
                  formattingRules,
                  token1,
-                 token2,
-                 TaskExecutor.Synchronous)
+                 token2)
         {
         }
 
@@ -63,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
         protected override AbstractFormattingResult CreateFormattingResult(TokenStream tokenStream)
         {
-            return new FormattingResult(this.TreeData, tokenStream, this.SpanToFormat, this.TaskExecutor);
+            return new FormattingResult(this.TreeData, tokenStream, this.SpanToFormat);
         }
     }
 }

@@ -81,8 +81,6 @@ namespace Microsoft.CodeAnalysis.Formatting
 
         internal static PerLanguageOption<bool> DebugMode { get; } = CreatePerLanguageOption(nameof(DebugMode), defaultValue: false);
 
-        internal static Option<bool> AllowConcurrent { get; } = new Option<bool>(nameof(FormattingOptions), nameof(AllowConcurrent), defaultValue: true);
-
         internal static Option<bool> AllowDisjointSpanMerging { get; } = CreateOption(nameof(AllowDisjointSpanMerging), defaultValue: false);
 
         static FormattingOptions()

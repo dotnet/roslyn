@@ -27,8 +27,6 @@ namespace Microsoft.CodeAnalysis.Formatting
     //             that would create too big graph. key for this approach is how to reduce size of graph.
     internal abstract partial class AbstractFormatEngine
     {
-        private const int ConcurrentThreshold = 30000;
-
         private readonly ChainedFormattingRules _formattingRules;
 
         private readonly SyntaxNode _commonRoot;
@@ -38,7 +36,6 @@ namespace Microsoft.CodeAnalysis.Formatting
 
         protected readonly TextSpan SpanToFormat;
 
-        internal readonly TaskExecutor TaskExecutor;
         internal readonly AnalyzerConfigOptions Options;
         internal readonly TreeData TreeData;
 
@@ -47,15 +44,13 @@ namespace Microsoft.CodeAnalysis.Formatting
             AnalyzerConfigOptions options,
             IEnumerable<IFormattingRule> formattingRules,
             SyntaxToken token1,
-            SyntaxToken token2,
-            TaskExecutor executor)
+            SyntaxToken token2)
             : this(
                   treeData,
                   options,
                   new ChainedFormattingRules(formattingRules, options),
                   token1,
-                  token2,
-                  executor)
+                  token2)
         {
         }
 
@@ -64,13 +59,11 @@ namespace Microsoft.CodeAnalysis.Formatting
             AnalyzerConfigOptions options,
             ChainedFormattingRules formattingRules,
             SyntaxToken token1,
-            SyntaxToken token2,
-            TaskExecutor executor)
+            SyntaxToken token2)
         {
             Contract.ThrowIfNull(options);
             Contract.ThrowIfNull(treeData);
             Contract.ThrowIfNull(formattingRules);
-            Contract.ThrowIfNull(executor);
 
             Contract.ThrowIfTrue(treeData.Root.IsInvalidTokenRange(token1, token2));
 
@@ -92,14 +85,6 @@ namespace Microsoft.CodeAnalysis.Formatting
             {
                 _language = token1.Language;
             }
-
-            // set synchronous task executor if it is enabled (explicitly or as part of debug mode) or if there is not
-            // many things to format
-            var synchronousExecutorAllowed =
-                !options.GetOption(FormattingOptions.AllowConcurrent)
-                || options.GetOption(FormattingOptions.DebugMode, _language);
-            var useSynchronousExecutor = synchronousExecutorAllowed || SpanToFormat.Length < ConcurrentThreshold;
-            TaskExecutor = useSynchronousExecutor ? TaskExecutor.Synchronous : executor;
         }
 
         protected abstract AbstractTriviaDataFactory CreateTriviaFactory();
@@ -207,8 +192,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             using (var localList = new ThreadLocal<List<T>>(() => new List<T>(), trackAllValues: false))
             {
                 // find out which executor we want to use.
-                var taskExecutor = nodes.Count > (1000 * Environment.ProcessorCount) ? TaskExecutor.Concurrent : TaskExecutor.Synchronous;
-                taskExecutor.ForEach(nodes, n =>
+                foreach (var n in nodes)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
@@ -224,7 +208,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                     }
 
                     list.Clear();
-                }, cancellationToken);
+                }
 
                 var operations = new List<T>(localOperations.Values.Sum(v => v.Count));
                 operations.AddRange(localOperations.Values.SelectMany(v => v));
@@ -244,13 +228,15 @@ namespace Microsoft.CodeAnalysis.Formatting
                 // pre-allocate list once. this is cheaper than re-adjusting list as items are added.
                 var list = new TokenPairWithOperations[tokenStream.TokenCount - 1];
 
-                this.TaskExecutor.ForEach(tokenStream.TokenIterator, pair =>
+                foreach (var pair in tokenStream.TokenIterator)
                 {
+                    cancellationToken.ThrowIfCancellationRequested();
+
                     var spaceOperation = _formattingRules.GetAdjustSpacesOperation(pair.Item2, pair.Item3);
                     var lineOperation = _formattingRules.GetAdjustNewLinesOperation(pair.Item2, pair.Item3);
 
                     list[pair.Item1] = new TokenPairWithOperations(tokenStream, pair.Item1, spaceOperation, lineOperation);
-                }, cancellationToken);
+                }
 
                 return list;
             }
@@ -324,7 +310,11 @@ namespace Microsoft.CodeAnalysis.Formatting
                 triviaInfo.Format(context, _formattingRules, regularApplier, cancellationToken, tokenPairIndex);
             }
 
-            this.TaskExecutor.For(0, tokenStream.TokenCount - 1, triviaFormatter, cancellationToken);
+            for (var i = 0; i < tokenStream.TokenCount - 1; i++)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                triviaFormatter(i);
+            }
         }
 
         private TextSpan GetSpanToFormat()
@@ -372,20 +362,19 @@ namespace Microsoft.CodeAnalysis.Formatting
         {
             using (Logger.LogBlock(FunctionId.Formatting_ApplyAnchorOperation, cancellationToken))
             {
-                var tokenPairsToApplyAnchorOperations = this.TaskExecutor.Filter(
-                                                            tokenOperations,
-                                                            p => AnchorOperationCandidate(p),
-                                                            p => p.PairIndex, cancellationToken);
-
-                cancellationToken.ThrowIfCancellationRequested();
-
                 // TODO: find out a way to apply anchor operation concurrently if possible
                 var previousChangesMap = new Dictionary<SyntaxToken, int>();
-                tokenPairsToApplyAnchorOperations.Do(pairIndex =>
+                foreach (var p in tokenOperations)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
+                    if (!AnchorOperationCandidate(p))
+                    {
+                        continue;
+                    }
+
+                    var pairIndex = p.PairIndex;
                     applier.ApplyAnchorIndentation(pairIndex, previousChangesMap, cancellationToken);
-                });
+                }
 
                 // go through all relative indent block operation, and see whether it is affected by the anchor operation
                 context.GetAllRelativeIndentBlockOperations().Do(o =>
@@ -435,23 +424,13 @@ namespace Microsoft.CodeAnalysis.Formatting
                 var partitioner = new Partitioner(context, tokenStream, tokenOperations);
 
                 // always create task 1 more than current processor count
-                var partitions = partitioner.GetPartitions(this.TaskExecutor == TaskExecutor.Synchronous ? 1 : Environment.ProcessorCount + 1, cancellationToken);
+                var partitions = partitioner.GetPartitions(partitionCount: 1, cancellationToken);
 
-                cancellationToken.ThrowIfCancellationRequested();
-
-                var tasks = new Task[partitions.Count];
-                for (int i = 0; i < partitions.Count; i++)
+                foreach (var partition in partitions)
                 {
-                    var partition = partitions[i];
-                    tasks[i] = this.TaskExecutor.StartNew(() =>
-                    {
-                        cancellationToken.ThrowIfCancellationRequested();
-                        partition.Do(operationPair => ApplySpaceAndWrappingOperationsBody(context, tokenStream, operationPair, applier, cancellationToken));
-                    },
-                    cancellationToken);
+                    cancellationToken.ThrowIfCancellationRequested();
+                    partition.Do(operationPair => ApplySpaceAndWrappingOperationsBody(context, tokenStream, operationPair, applier, cancellationToken));
                 }
-
-                Task.WaitAll(tasks, cancellationToken);
             }
         }
 
@@ -519,11 +498,10 @@ namespace Microsoft.CodeAnalysis.Formatting
         /// </summary>
         private string FormatSummary()
         {
-            return string.Format("({0}) ({1} - {2}) {3}",
+            return string.Format("({0}) ({1} - {2})",
                 this.SpanToFormat,
                 _token1.ToString().Replace("\r\n", "\\r\\n"),
-                _token2.ToString().Replace("\r\n", "\\r\\n"),
-                this.TaskExecutor.ToString());
+                _token2.ToString().Replace("\r\n", "\\r\\n"));
         }
     }
 }
