@@ -2006,7 +2006,7 @@ Block[B3] - Exit
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
         [Fact]
-        public void SwitchFlow_22b()
+        public void SwitchIOperation_022()
         {
             string source = @"
 public sealed class MyClass
