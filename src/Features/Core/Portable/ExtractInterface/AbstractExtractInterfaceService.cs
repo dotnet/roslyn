@@ -173,6 +173,7 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
                         cancellationToken: cancellationToken).ConfigureAwait(false);
 
                 default: throw new InvalidOperationException($"Unable to extract interface for operation of type {extractInterfaceOptions.GetType()}");
+
             }
         }
 
@@ -181,18 +182,16 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
             SyntaxNode typeNode, ProjectId projectId, IReadOnlyList<string> documentFolders, DocumentId documentId,
             INamedTypeSymbol typeToExtractFrom, string fileName, IEnumerable<ISymbol> includedMembers, CancellationToken cancellationToken)
         {
-            var symbolToDeclarationAnnotationMap = CreateSymbolToDeclarationAnnotationMap(
+            var (symbolToDeclarationAnnotationMap, annotatedSolution, documentIds, typeNodeSyntaxAnnotation) = CreateSymbolToDeclarationAnnotationMap(
                 includedMembers,
-                ref solution,
-                out var documentIds,
+                solution,
                 typeNode,
-                out var typeNodeSyntaxAnnotation,
                 cancellationToken);
 
             var interfaceDocumentId = DocumentId.CreateNewId(projectId, debugName: fileName);
 
             var unformattedInterfaceDocument = await GetUnformattedInterfaceDocumentAsync(
-                solution,
+                annotatedSolution,
                 containingNamespaceDisplay,
                 fileName,
                 documentFolders,
@@ -226,23 +225,23 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
             Solution solution, INamedTypeSymbol extractedInterfaceSymbol, SyntaxNode typeNode, ProjectId projectId,
             DocumentId documentId, INamedTypeSymbol typeToExtractFrom, IEnumerable<ISymbol> includedMembers, CancellationToken cancellationToken)
         {
-            var symbolToDeclarationAnnotationMap = CreateSymbolToDeclarationAnnotationMap(
+            // Track all of the symbols we need to modify, which includes the original type declaration being modified
+            var (symbolToDeclarationAnnotationMap, annotatedSolution, documentIds, typeNodeSyntaxAnnotation) = CreateSymbolToDeclarationAnnotationMap(
                 includedMembers,
-                ref solution,
-                out var documentIds,
+                solution,
                 typeNode,
-                out var typeNodeSyntaxAnnotation,
                 cancellationToken);
 
-            var document = solution.GetDocument(documentId);
-            var originalRoot = document.GetSyntaxRootSynchronously(cancellationToken);
+            var document = annotatedSolution.GetDocument(documentId);
+            var originalRoot = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var typeDeclaration = originalRoot.GetAnnotatedNodes(typeNodeSyntaxAnnotation).Single();
 
             var trackedDocument = document.WithSyntaxRoot(originalRoot.TrackNodes(typeDeclaration));
 
-            var currentRoot = await trackedDocument.GetSyntaxRootAsync().ConfigureAwait(false);
+            var currentRoot = await trackedDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var editor = new SyntaxEditor(currentRoot, solution.Workspace);
 
+            // Generate the interface syntax node, which will be inserted above the type it's extracted from
             var codeGenService = trackedDocument.GetLanguageService<ICodeGenerationService>();
             var interfaceNode = codeGenService.CreateNamedTypeDeclaration(extractedInterfaceSymbol).WithAdditionalAnnotations(SimplificationHelpers.SimplifyModuleNameAnnotation);
 
@@ -251,6 +250,7 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
 
             var unformattedSolution = document.WithSyntaxRoot(editor.GetChangedRoot()).Project.Solution;
 
+            // After the interface is inserted, update the original type to show it implements the new interface
             var completedSolution = await GetSolutionWithOriginalTypeUpdatedAsync(
                 unformattedSolution, documentIds,
                 documentId, typeNodeSyntaxAnnotation,
@@ -263,20 +263,18 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
                 navigationDocumentId: documentId);
         }
 
-        private Dictionary<ISymbol, SyntaxAnnotation> CreateSymbolToDeclarationAnnotationMap(
+        private (Dictionary<ISymbol, SyntaxAnnotation> symbolToDeclarationAnnotationMap, Solution annotatedSolution, List<DocumentId> documentIds, SyntaxAnnotation typeNodeAnnotation) CreateSymbolToDeclarationAnnotationMap(
             IEnumerable<ISymbol> includedMembers,
-            ref Solution solution,
-            out List<DocumentId> documentIds,
+            Solution solution,
             SyntaxNode typeNode,
-            out SyntaxAnnotation typeNodeAnnotation,
             CancellationToken cancellationToken)
         {
             var symbolToDeclarationAnnotationMap = new Dictionary<ISymbol, SyntaxAnnotation>();
             var currentRoots = new Dictionary<SyntaxTree, SyntaxNode>();
-            documentIds = new List<DocumentId>();
+            var documentIds = new List<DocumentId>();
 
             var typeNodeRoot = typeNode.SyntaxTree.GetRoot(CancellationToken.None);
-            typeNodeAnnotation = new SyntaxAnnotation();
+            var typeNodeAnnotation = new SyntaxAnnotation();
             currentRoots[typeNode.SyntaxTree] = typeNodeRoot.ReplaceNode(typeNode, typeNode.WithAdditionalAnnotations(typeNodeAnnotation));
             documentIds.Add(solution.GetDocument(typeNode.SyntaxTree).Id);
 
@@ -297,13 +295,14 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
                 currentRoots[tree] = root.ReplaceToken(token, token.WithAdditionalAnnotations(annotation));
             }
 
+            Solution annotatedSolution = solution;
             foreach (var root in currentRoots)
             {
                 var document = solution.GetDocument(root.Key);
-                solution = document.WithSyntaxRoot(root.Value).Project.Solution;
+                annotatedSolution = document.WithSyntaxRoot(root.Value).Project.Solution;
             }
 
-            return symbolToDeclarationAnnotationMap;
+            return (symbolToDeclarationAnnotationMap, annotatedSolution, documentIds, typeNodeAnnotation);
         }
 
         internal ExtractInterfaceOptionsResult GetExtractInterfaceOptions(
@@ -356,18 +355,6 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
             return unformattedInterfaceDocument;
         }
 
-        private static async Task<Solution> GetSolutionWithFormattedInterfaceDocumentAsync(Document unformattedInterfaceDocument, CancellationToken cancellationToken)
-        {
-            Solution solutionWithInterfaceDocument;
-            var formattedRoot = Formatter.Format(unformattedInterfaceDocument.GetSyntaxRootSynchronously(cancellationToken),
-                unformattedInterfaceDocument.Project.Solution.Workspace, cancellationToken: cancellationToken);
-            var rootToSimplify = formattedRoot.WithAdditionalAnnotations(Simplifier.Annotation);
-            var finalInterfaceDocument = await Simplifier.ReduceAsync(unformattedInterfaceDocument.WithSyntaxRoot(rootToSimplify), cancellationToken: cancellationToken).ConfigureAwait(false);
-
-            solutionWithInterfaceDocument = finalInterfaceDocument.Project.Solution;
-            return solutionWithInterfaceDocument;
-        }
-
         private async Task<Solution> GetFormattedSolutionAsync(Solution unformattedSolution, IEnumerable<DocumentId> documentIds, CancellationToken cancellationToken)
         {
             var formattedSolution = unformattedSolution;
@@ -411,10 +398,9 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
                 var syntaxGenerator = SyntaxGenerator.GetGenerator(document);
                 var typeReference = syntaxGenerator.TypeExpression(extractedInterfaceSymbol);
 
-                foreach (var typeDeclaration in currentRoot.GetAnnotatedNodes(typeNodeAnnotation))
-                {
-                    editor.AddInterfaceType(typeDeclaration, typeReference);
-                }
+                var typeDeclaration = currentRoot.GetAnnotatedNodes(typeNodeAnnotation).Single();
+                editor.AddInterfaceType(typeDeclaration, typeReference);
+                
                 unformattedSolution = document.WithSyntaxRoot(editor.GetChangedRoot()).Project.Solution;
             }
 
