@@ -574,7 +574,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override void AfterAddingTypeMembersChecks(ConversionsBase conversions, DiagnosticBag diagnostics)
         {
-            Type.CheckAllConstraints(conversions, SyntaxNode.Location, diagnostics);
+            Type.CheckAllConstraints(conversions.WithNullability(true), SyntaxNode.Location, diagnostics);
             base.AfterAddingTypeMembersChecks(conversions, diagnostics);
         }
     }
