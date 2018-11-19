@@ -15,8 +15,6 @@ namespace Microsoft.CodeAnalysis.CodeStyle
     {
         private readonly EditorConfigOptionsApplier _editorConfigOptionsApplier = new EditorConfigOptionsApplier();
 
-        protected override IFormattingService FormattingService => CSharpFormattingService.Instance;
-
         protected override ISyntaxFormattingService SyntaxFormattingService => new CSharpSyntaxFormattingService();
 
         protected override AnalyzerConfigOptions ApplyFormattingOptions(AnalyzerConfigOptions optionSet, ICodingConventionContext codingConventionContext)

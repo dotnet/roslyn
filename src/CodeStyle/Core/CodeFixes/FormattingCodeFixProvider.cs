@@ -22,8 +22,6 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         public sealed override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(IDEDiagnosticIds.FormattingDiagnosticId);
 
-        protected abstract IFormattingService FormattingService { get; }
-
         protected abstract ISyntaxFormattingService SyntaxFormattingService { get; }
 
         public sealed override FixAllProvider GetFixAllProvider()
@@ -52,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         {
             var options = await GetOptionsAsync(context.Document, cancellationToken).ConfigureAwait(false);
             var tree = await context.Document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-            var updatedTree = await FormattingCodeFixHelper.FixOneAsync(tree, FormattingService, SyntaxFormattingService, options, diagnostic, cancellationToken).ConfigureAwait(false);
+            var updatedTree = await FormattingCodeFixHelper.FixOneAsync(tree, SyntaxFormattingService, options, diagnostic, cancellationToken).ConfigureAwait(false);
             return context.Document.WithText(await updatedTree.GetTextAsync(cancellationToken).ConfigureAwait(false));
         }
 

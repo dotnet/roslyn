@@ -39,8 +39,8 @@ namespace Microsoft.CodeAnalysis.Formatting
         /// <param name="options">An optional set of formatting options. If these options are not supplied the current set of options from the document's workspace will be used.</param>
         /// <param name="cancellationToken">An optional cancellation token.</param>
         /// <returns>The formatted document.</returns>
-        public static Task<SyntaxTree> FormatAsync(SyntaxTree syntaxTree, IFormattingService formattingService, ISyntaxFormattingService syntaxFormattingService, TextSpan span, AnalyzerConfigOptions options, CancellationToken cancellationToken)
-            => FormatAsync(syntaxTree, formattingService, syntaxFormattingService, SpecializedCollections.SingletonEnumerable(span), options, cancellationToken);
+        public static Task<SyntaxTree> FormatAsync(SyntaxTree syntaxTree, ISyntaxFormattingService syntaxFormattingService, TextSpan span, AnalyzerConfigOptions options, CancellationToken cancellationToken)
+            => FormatAsync(syntaxTree, syntaxFormattingService, SpecializedCollections.SingletonEnumerable(span), options, cancellationToken);
 
         /// <summary>
         /// Formats the whitespace in areas of a document corresponding to multiple non-overlapping spans.
@@ -50,14 +50,12 @@ namespace Microsoft.CodeAnalysis.Formatting
         /// <param name="options">An optional set of formatting options. If these options are not supplied the current set of options from the document's workspace will be used.</param>
         /// <param name="cancellationToken">An optional cancellation token.</param>
         /// <returns>The formatted document.</returns>
-        public static Task<SyntaxTree> FormatAsync(SyntaxTree syntaxTree, IFormattingService formattingService, ISyntaxFormattingService syntaxFormattingService, IEnumerable<TextSpan> spans, AnalyzerConfigOptions options, CancellationToken cancellationToken)
+        public static Task<SyntaxTree> FormatAsync(SyntaxTree syntaxTree, ISyntaxFormattingService syntaxFormattingService, IEnumerable<TextSpan> spans, AnalyzerConfigOptions options, CancellationToken cancellationToken)
         {
-            return formattingService == null
-                ? Task.FromResult(syntaxTree)
-                : formattingService.FormatAsync(syntaxTree, syntaxFormattingService, spans, options, cancellationToken);
+            return FormatAsync(syntaxTree, syntaxFormattingService, spans, options, rules: null, cancellationToken);
         }
 
-        internal static async Task<SyntaxTree> FormatAsync(SyntaxTree syntaxTree, IFormattingService formattingService, ISyntaxFormattingService syntaxFormattingService, IEnumerable<TextSpan> spans, AnalyzerConfigOptions options, IEnumerable<IFormattingRule> rules, CancellationToken cancellationToken)
+        internal static async Task<SyntaxTree> FormatAsync(SyntaxTree syntaxTree, ISyntaxFormattingService syntaxFormattingService, IEnumerable<TextSpan> spans, AnalyzerConfigOptions options, IEnumerable<IFormattingRule> rules, CancellationToken cancellationToken)
         {
             if (syntaxTree == null)
             {

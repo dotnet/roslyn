@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis
 
     internal static class FormattingCodeFixHelper
     {
-        internal static async Task<SyntaxTree> FixOneAsync(SyntaxTree syntaxTree, IFormattingService formattingService, ISyntaxFormattingService syntaxFormattingService, AnalyzerConfigOptions options, Diagnostic diagnostic, CancellationToken cancellationToken)
+        internal static async Task<SyntaxTree> FixOneAsync(SyntaxTree syntaxTree, ISyntaxFormattingService syntaxFormattingService, AnalyzerConfigOptions options, Diagnostic diagnostic, CancellationToken cancellationToken)
         {
             // The span to format is the full line(s) containing the diagnostic
             var text = await syntaxTree.GetTextAsync(cancellationToken).ConfigureAwait(false);
@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis
                 text.Lines[diagnosticLinePositionSpan.Start.Line].Start,
                 text.Lines[diagnosticLinePositionSpan.End.Line].End);
 
-            return await Formatter.FormatAsync(syntaxTree, formattingService, syntaxFormattingService, spanToFormat, options, cancellationToken).ConfigureAwait(false);
+            return await Formatter.FormatAsync(syntaxTree, syntaxFormattingService, spanToFormat, options, cancellationToken).ConfigureAwait(false);
         }
     }
 }
