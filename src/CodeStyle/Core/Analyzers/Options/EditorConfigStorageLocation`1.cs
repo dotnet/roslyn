@@ -2,8 +2,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
 using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.Options
@@ -11,7 +9,7 @@ namespace Microsoft.CodeAnalysis.Options
     /// <summary>
     /// Specifies that an option should be read from an .editorconfig file.
     /// </summary>
-    internal sealed class EditorConfigStorageLocation<T> : OptionStorageLocation, IEditorConfigStorageLocation2
+    internal sealed class EditorConfigStorageLocation<T> : OptionStorageLocation
     {
         public string KeyName { get; }
 
@@ -71,19 +69,5 @@ namespace Microsoft.CodeAnalysis.Options
             result = null;
             return false;
         }
-
-        /// <summary>
-        /// Gets the editorconfig string representation for this storage location.
-        /// </summary>
-        public string GetEditorConfigString(T value, AnalyzerConfigOptions optionSet)
-        {
-            var editorConfigStringForValue = _getEditorConfigStringForValue(value, optionSet);
-            Debug.Assert(!string.IsNullOrEmpty(editorConfigStringForValue));
-            Debug.Assert(editorConfigStringForValue.All(ch => !(char.IsWhiteSpace(ch) || char.IsUpper(ch))));
-            return $"{KeyName} = {editorConfigStringForValue}";
-        }
-
-        string IEditorConfigStorageLocation2.GetEditorConfigString(object value, AnalyzerConfigOptions optionSet)
-            => GetEditorConfigString((T)value, optionSet);
     }
 }

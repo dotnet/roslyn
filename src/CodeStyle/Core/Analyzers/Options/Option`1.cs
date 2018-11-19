@@ -32,12 +32,6 @@ namespace Microsoft.CodeAnalysis.Options
 
         public ImmutableArray<OptionStorageLocation> StorageLocations { get; }
 
-        public Option(string feature, string name)
-            : this(feature, name, default)
-        {
-            // This constructor forwards to the next one; it exists to maintain source-level compatibility with older callers.
-        }
-
         public Option(string feature, string name, T defaultValue)
             : this(feature, name, defaultValue, storageLocations: Array.Empty<OptionStorageLocation>())
         {

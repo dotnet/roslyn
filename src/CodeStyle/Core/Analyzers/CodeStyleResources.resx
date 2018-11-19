@@ -123,25 +123,10 @@
   <data name="A_language_name_must_be_specified_for_this_option" xml:space="preserve">
     <value>A language name must be specified for this option.</value>
   </data>
-  <data name="Error" xml:space="preserve">
-    <value />
-  </data>
   <data name="Fix_formatting" xml:space="preserve">
     <value>Fix formatting</value>
   </data>
-  <data name="None" xml:space="preserve">
-    <value />
-  </data>
-  <data name="Refactoring_Only" xml:space="preserve">
-    <value />
-  </data>
   <data name="Style" xml:space="preserve">
     <value>Style</value>
-  </data>
-  <data name="Suggestion" xml:space="preserve">
-    <value />
-  </data>
-  <data name="Warning" xml:space="preserve">
-    <value />
   </data>
 </root>
