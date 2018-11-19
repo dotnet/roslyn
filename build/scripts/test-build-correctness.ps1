@@ -51,11 +51,10 @@ try {
 
     # create a fake BootstrapperInfo.json file
     $bootstrapperInfoFolder = Join-Path $configDir "MicroBuild\Output"
-    if(!(Test-Path -Path $bootstrapperInfoFolder )){
-        New-Item -ItemType directory -Path $bootstrapperInfoFolder
-    }
+    Create-Directory $bootstrapperInfoFolder
+    
     $bootstrapperInfoPath = Join-Path $bootstrapperInfoFolder "BootstrapperInfo.json"
-    $bootstrapperInfoContent = "[{""VSBuildVersion"":  ""16.0.28309.54""}]"
+    $bootstrapperInfoContent = "[{""VSBuildVersion"":  ""42.42.42424.42""}]"
     $bootstrapperInfoContent >> $bootstrapperInfoPath
 
     # generate run settings
