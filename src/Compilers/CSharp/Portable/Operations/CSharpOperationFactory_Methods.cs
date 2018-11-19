@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Operations
             return value != null && !value.IsBad ? new Optional<object>(value.Value) : default(Optional<object>);
         }
 
-        private ImmutableArray<BoundStatement> ToStatements(BoundStatement statement)
+        internal ImmutableArray<BoundStatement> ToStatements(BoundStatement statement)
         {
             if (statement == null)
             {
@@ -350,13 +350,14 @@ namespace Microsoft.CodeAnalysis.Operations
         }
 
         internal ImmutableArray<IOperation> GetAnonymousObjectCreationInitializers(
-            ImmutableArray<BoundExpression> arguments,
-            ImmutableArray<BoundAnonymousPropertyDeclaration> declarations,
+            IBoundAnonymousObjectCreation anonymousObjectCreation,
             SyntaxNode syntax,
             ITypeSymbol type,
             bool isImplicit)
         {
             // For error cases and non-assignment initializers, the binder generates only the argument.
+            ImmutableArray<BoundExpression> arguments = anonymousObjectCreation.Arguments;
+            ImmutableArray<BoundAnonymousPropertyDeclaration> declarations = anonymousObjectCreation.PropertyDeclarationsOpt;
             Debug.Assert(arguments.Length >= declarations.Length);
 
             var builder = ArrayBuilder<IOperation>.GetInstance(arguments.Length);
