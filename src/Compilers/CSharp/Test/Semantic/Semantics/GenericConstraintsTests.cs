@@ -2286,6 +2286,10 @@ public class B : A
         public void UnmanagedConstraint_StructMismatchInImplements()
         {
             CreateCompilation(@"
+public struct Segment<T> {
+    public T[] array;
+}
+
 public interface I1<in T> where T : unmanaged
 {
     void Test<G>(G x) where G : unmanaged;
@@ -2296,22 +2300,22 @@ public class C2<T> : I1<T> where T : struct
     public void Test<G>(G x) where G : struct
     {
         I1<T> i = this;
-        i.Test(default(System.ArraySegment<int>));
+        i.Test(default(Segment<int>));
     }
 }
 ").VerifyDiagnostics(
-                // (7,14): error CS8379: The type 'T' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'I1<T>'
+                // (11,14): error CS8377: The type 'T' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'I1<T>'
                 // public class C2<T> : I1<T> where T : struct
-                Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "C2").WithArguments("I1<T>", "T", "T").WithLocation(7, 14),
-                // (9,17): error CS0425: The constraints for type parameter 'G' of method 'C2<T>.Test<G>(G)' must match the constraints for type parameter 'G' of interface method 'I1<T>.Test<G>(G)'. Consider using an explicit interface implementation instead.
+                Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "C2").WithArguments("I1<T>", "T", "T").WithLocation(11, 14),
+                // (13,17): error CS0425: The constraints for type parameter 'G' of method 'C2<T>.Test<G>(G)' must match the constraints for type parameter 'G' of interface method 'I1<T>.Test<G>(G)'. Consider using an explicit interface implementation instead.
                 //     public void Test<G>(G x) where G : struct
-                Diagnostic(ErrorCode.ERR_ImplBadConstraints, "Test").WithArguments("G", "C2<T>.Test<G>(G)", "G", "I1<T>.Test<G>(G)").WithLocation(9, 17),
-                // (11,12): error CS8379: The type 'T' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'I1<T>'
+                Diagnostic(ErrorCode.ERR_ImplBadConstraints, "Test").WithArguments("G", "C2<T>.Test<G>(G)", "G", "I1<T>.Test<G>(G)").WithLocation(13, 17),
+                // (15,12): error CS8377: The type 'T' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'I1<T>'
                 //         I1<T> i = this;
-                Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "T").WithArguments("I1<T>", "T", "T").WithLocation(11, 12),
-                // (12,11): error CS8379: The type 'ArraySegment<int>' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter 'G' in the generic type or method 'I1<T>.Test<G>(G)'
-                //         i.Test(default(System.ArraySegment<int>));
-                Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "Test").WithArguments("I1<T>.Test<G>(G)", "G", "System.ArraySegment<int>").WithLocation(12, 11)
+                Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "T").WithArguments("I1<T>", "T", "T").WithLocation(15, 12),
+                // (16,11): error CS8377: The type 'Segment<int>' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter 'G' in the generic type or method 'I1<T>.Test<G>(G)'
+                //         i.Test(default(Segment<int>));
+                Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "Test").WithArguments("I1<T>.Test<G>(G)", "G", "Segment<int>").WithLocation(16, 11)
                 );
         }
 
