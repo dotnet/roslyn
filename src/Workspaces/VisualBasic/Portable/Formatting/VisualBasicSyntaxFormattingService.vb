@@ -15,18 +15,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
     Friend Class VisualBasicSyntaxFormattingService
         Inherits AbstractSyntaxFormattingService
 
-        Private ReadOnly _lazyExportedRules As Lazy(Of IEnumerable(Of IFormattingRule))
+        Private ReadOnly _rules As ImmutableList(Of IFormattingRule)
 
         <ImportingConstructor>
-        Public Sub New(<ImportMany> rules As IEnumerable(Of Lazy(Of IFormattingRule, OrderableLanguageMetadata)))
-            Me._lazyExportedRules = New Lazy(Of IEnumerable(Of IFormattingRule))(
-                Function()
-                    Return ExtensionOrderer.Order(rules).Where(Function(x) x.Metadata.Language = LanguageNames.VisualBasic).Select(Function(x) x.Value).Concat(New DefaultOperationProvider()).ToImmutableArray()
-                End Function)
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
+        Public Sub New()
+            _rules = ImmutableList.Create(Of IFormattingRule)(
+                New StructuredTriviaFormattingRule(),
+                New ElasticTriviaFormattingRule(),
+                New AdjustSpaceFormattingRule(),
+                New AlignTokensFormattingRule(),
+                New NodeBasedFormattingRule(),
+                New DefaultOperationProvider())
         End Sub
 
         Public Overrides Function GetDefaultFormattingRules() As IEnumerable(Of IFormattingRule)
-            Return _lazyExportedRules.Value
+            Return _rules
         End Function
 
         Protected Overrides Function CreateAggregatedFormattingResult(node As SyntaxNode, results As IList(Of AbstractFormattingResult), Optional formattingSpans As SimpleIntervalTree(Of TextSpan) = Nothing) As IFormattingResult

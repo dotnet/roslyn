@@ -1,28 +1,26 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using System.Threading;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Formatting
 {
     internal class CSharpSyntaxFormattingService : AbstractSyntaxFormattingService
     {
-        private readonly Lazy<IEnumerable<IFormattingRule>> _lazyExportedRules;
+        private readonly ImmutableList<IFormattingRule> _rules;
 
         public CSharpSyntaxFormattingService()
         {
-            _lazyExportedRules = new Lazy<IEnumerable<IFormattingRule>>(() => new IFormattingRule[]
-            {
+            _rules = ImmutableList.Create<IFormattingRule>(
+                new WrappingFormattingRule(),
+                new SpacingFormattingRule(),
+                new NewLineUserSettingFormattingRule(),
+                new IndentUserSettingsFormattingRule(),
                 new ElasticTriviaFormattingRule(),
                 new EndOfFileTokenFormattingRule(),
                 new StructuredTriviaFormattingRule(),
@@ -31,23 +29,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 new AnchorIndentationFormattingRule(),
                 new QueryExpressionFormattingRule(),
                 new TokenBasedFormattingRule(),
-                new DefaultOperationProvider(),
-            });
+                new DefaultOperationProvider());
         }
 
         public override IEnumerable<IFormattingRule> GetDefaultFormattingRules()
         {
-            var rules = _lazyExportedRules.Value;
-
-            var spaceFormattingRules = new IFormattingRule[]
-                {
-                    new WrappingFormattingRule(),
-                    new SpacingFormattingRule(),
-                    new NewLineUserSettingFormattingRule(),
-                    new IndentUserSettingsFormattingRule()
-                };
-
-            return spaceFormattingRules.Concat(rules).ToImmutableArray();
+            return _rules;
         }
 
         protected override IFormattingResult CreateAggregatedFormattingResult(SyntaxNode node, IList<AbstractFormattingResult> results, SimpleIntervalTree<TextSpan> formattingSpans = null)
