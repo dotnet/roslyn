@@ -51,21 +51,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 EnsureWellKnownMember(WellKnownMember.System_IAsyncDisposable__DisposeAsync, bag);
                 EnsureWellKnownMember(WellKnownMember.System_Threading_Tasks_ValueTask_T__ctor, bag);
 
-                EnsureWellKnownMember(WellKnownMember.System_Threading_Tasks_ManualResetValueTaskSourceLogic_T__ctor, bag);
-                EnsureWellKnownMember(WellKnownMember.System_Threading_Tasks_ManualResetValueTaskSourceLogic_T__GetResult, bag);
-                EnsureWellKnownMember(WellKnownMember.System_Threading_Tasks_ManualResetValueTaskSourceLogic_T__GetStatus, bag);
-                EnsureWellKnownMember(WellKnownMember.System_Threading_Tasks_ManualResetValueTaskSourceLogic_T__get_Version, bag);
-                EnsureWellKnownMember(WellKnownMember.System_Threading_Tasks_ManualResetValueTaskSourceLogic_T__OnCompleted, bag);
-                EnsureWellKnownMember(WellKnownMember.System_Threading_Tasks_ManualResetValueTaskSourceLogic_T__Reset, bag);
-                EnsureWellKnownMember(WellKnownMember.System_Threading_Tasks_ManualResetValueTaskSourceLogic_T__SetException, bag);
-                EnsureWellKnownMember(WellKnownMember.System_Threading_Tasks_ManualResetValueTaskSourceLogic_T__SetResult, bag);
+                EnsureWellKnownMember(WellKnownMember.System_Threading_Tasks_Sources_ManualResetValueTaskSourceCore_T__GetResult, bag);
+                EnsureWellKnownMember(WellKnownMember.System_Threading_Tasks_Sources_ManualResetValueTaskSourceCore_T__GetStatus, bag);
+                EnsureWellKnownMember(WellKnownMember.System_Threading_Tasks_Sources_ManualResetValueTaskSourceCore_T__get_Version, bag);
+                EnsureWellKnownMember(WellKnownMember.System_Threading_Tasks_Sources_ManualResetValueTaskSourceCore_T__OnCompleted, bag);
+                EnsureWellKnownMember(WellKnownMember.System_Threading_Tasks_Sources_ManualResetValueTaskSourceCore_T__Reset, bag);
+                EnsureWellKnownMember(WellKnownMember.System_Threading_Tasks_Sources_ManualResetValueTaskSourceCore_T__SetException, bag);
+                EnsureWellKnownMember(WellKnownMember.System_Threading_Tasks_Sources_ManualResetValueTaskSourceCore_T__SetResult, bag);
 
                 EnsureWellKnownMember(WellKnownMember.System_Threading_Tasks_Sources_IValueTaskSource_T__GetResult, bag);
                 EnsureWellKnownMember(WellKnownMember.System_Threading_Tasks_Sources_IValueTaskSource_T__GetStatus, bag);
                 EnsureWellKnownMember(WellKnownMember.System_Threading_Tasks_Sources_IValueTaskSource_T__OnCompleted, bag);
-
-                EnsureWellKnownMember(WellKnownMember.System_Runtime_CompilerServices_IStrongBox_T__get_Value, bag);
-                EnsureWellKnownMember(WellKnownMember.System_Runtime_CompilerServices_IStrongBox_T__Value, bag);
             }
 
             protected override void GenerateMethodImplementations()
@@ -88,9 +84,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 GenerateIValueTaskSourceImplementation_GetStatus();
                 GenerateIValueTaskSourceImplementation_OnCompleted();
 
-                // IStrongBox<ManualResetValueTaskSourceLogic<TResult>>
-                GenerateIStrongBox_get_Value();
-
                 // IAsyncDisposable
                 GenerateIAsyncDisposable_DisposeAsync();
             }
@@ -107,7 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // Add a field: ManualResetValueTaskSourceLogic<bool> promiseOfValueOrEnd
                 _promiseOfValueOrEndField = F.StateMachineField(
-                    F.WellKnownType(WellKnownType.System_Threading_Tasks_ManualResetValueTaskSourceLogic_T).Construct(boolType),
+                    F.WellKnownType(WellKnownType.System_Threading_Tasks_Sources_ManualResetValueTaskSourceCore_T).Construct(boolType),
                     GeneratedNames.MakeAsyncIteratorPromiseOfValueOrEndFieldName(), isPublic: true);
 
                 // the element type may contain method type parameters, which are now alpha-renamed into type parameters of the generated class
@@ -125,7 +118,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 //     this.state = state;
                 //     this.initialThreadId = {managedThreadId};
                 //     this.builder = System.Runtime.CompilerServices.AsyncVoidMethodBuilder.Create();
-                //     this.valueOrEndPromise = new ManualResetValueTaskSourceLogic<bool>(this);
                 // }
                 Debug.Assert(stateMachineType.Constructor is IteratorConstructor);
 
@@ -152,16 +144,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         F.StaticCall(
                             null,
                             methodScopeAsyncMethodBuilderMemberCollection.CreateBuilder)));
-
-                // this._valueOrEndPromise = new ManualResetValueTaskSourceLogic<bool>(this);
-                MethodSymbol mrvtslCtor =
-                    F.WellKnownMethod(WellKnownMember.System_Threading_Tasks_ManualResetValueTaskSourceLogic_T__ctor)
-                    .AsMember((NamedTypeSymbol)_promiseOfValueOrEndField.Type.TypeSymbol);
-
-                bodyBuilder.Add(
-                    F.Assignment(
-                        F.Field(F.This(), _promiseOfValueOrEndField),
-                        F.New(mrvtslCtor, F.This())));
 
                 bodyBuilder.Add(F.Return());
                 F.CloseMethod(F.Block(bodyBuilder.ToImmutableAndFree()));
@@ -218,7 +200,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // _promiseOfValueOrEnd.Reset();
                 BoundFieldAccess promiseField = F.Field(F.This(), _promiseOfValueOrEndField);
-                var resetMethod = (MethodSymbol)F.WellKnownMethod(WellKnownMember.System_Threading_Tasks_ManualResetValueTaskSourceLogic_T__Reset, isOptional: true)
+                var resetMethod = (MethodSymbol)F.WellKnownMethod(WellKnownMember.System_Threading_Tasks_Sources_ManualResetValueTaskSourceCore_T__Reset, isOptional: true)
                     .SymbolAsMember((NamedTypeSymbol)_promiseOfValueOrEndField.Type.TypeSymbol);
 
                 var callReset = F.ExpressionStatement(F.Call(promiseField, resetMethod));
@@ -239,7 +221,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     .AsMember((NamedTypeSymbol)IAsyncEnumerableOfElementType_MoveNextAsync.ReturnType.TypeSymbol);
 
                 MethodSymbol promise_get_Version =
-                    F.WellKnownMethod(WellKnownMember.System_Threading_Tasks_ManualResetValueTaskSourceLogic_T__get_Version)
+                    F.WellKnownMethod(WellKnownMember.System_Threading_Tasks_Sources_ManualResetValueTaskSourceCore_T__get_Version)
                     .AsMember((NamedTypeSymbol)_promiseOfValueOrEndField.Type.TypeSymbol);
 
                 // return new ValueTask<bool>(this, _valueOrEndPromise.Version);
@@ -289,7 +271,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     .AsMember(IValueTaskSourceOfBool);
 
                 MethodSymbol promise_GetResult =
-                    F.WellKnownMethod(WellKnownMember.System_Threading_Tasks_ManualResetValueTaskSourceLogic_T__GetResult)
+                    F.WellKnownMethod(WellKnownMember.System_Threading_Tasks_Sources_ManualResetValueTaskSourceCore_T__GetResult)
                     .AsMember((NamedTypeSymbol)_promiseOfValueOrEndField.Type.TypeSymbol);
 
                 // The implementation doesn't depend on the method body of the iterator method.
@@ -314,7 +296,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     .AsMember(IValueTaskSourceOfBool);
 
                 MethodSymbol promise_GetStatus =
-                    F.WellKnownMethod(WellKnownMember.System_Threading_Tasks_ManualResetValueTaskSourceLogic_T__GetStatus)
+                    F.WellKnownMethod(WellKnownMember.System_Threading_Tasks_Sources_ManualResetValueTaskSourceCore_T__GetStatus)
                     .AsMember((NamedTypeSymbol)_promiseOfValueOrEndField.Type.TypeSymbol);
 
                 // The implementation doesn't depend on the method body of the iterator method.
@@ -340,7 +322,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     .AsMember(IValueTaskSourceOfBool);
 
                 MethodSymbol promise_OnCompleted =
-                    F.WellKnownMethod(WellKnownMember.System_Threading_Tasks_ManualResetValueTaskSourceLogic_T__OnCompleted)
+                    F.WellKnownMethod(WellKnownMember.System_Threading_Tasks_Sources_ManualResetValueTaskSourceCore_T__OnCompleted)
                     .AsMember((NamedTypeSymbol)_promiseOfValueOrEndField.Type.TypeSymbol);
 
                 // The implementation doesn't depend on the method body of the iterator method.
@@ -355,29 +337,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         F.Parameter(IValueTaskSourceOfBool_OnCompleted.Parameters[2]),
                         F.Parameter(IValueTaskSourceOfBool_OnCompleted.Parameters[3]))),
                     F.Return())); // return;
-            }
-
-            private void GenerateIStrongBox_get_Value()
-            {
-                // Produce the implementation for `ref ManualResetValueTaskSourceLogic<bool> IStrongBox<ManualResetValueTaskSourceLogic<bool>>.Value { get; }`:
-                // return ref _valueOrEndPromise;
-
-                NamedTypeSymbol MrvtslOfBool =
-                    F.WellKnownType(WellKnownType.System_Threading_Tasks_ManualResetValueTaskSourceLogic_T)
-                    .Construct(F.SpecialType(SpecialType.System_Boolean));
-
-                NamedTypeSymbol IStrongBoxOfMrvtslOfBool =
-                    F.WellKnownType(WellKnownType.System_Runtime_CompilerServices_IStrongBox_T)
-                    .Construct(MrvtslOfBool);
-
-                MethodSymbol IStrongBoxOfMrvtslOfBool_get_Value =
-                    F.WellKnownMethod(WellKnownMember.System_Runtime_CompilerServices_IStrongBox_T__get_Value)
-                    .AsMember(IStrongBoxOfMrvtslOfBool);
-
-                OpenPropertyImplementation(IStrongBoxOfMrvtslOfBool_get_Value);
-
-                // return ref _valueOrEndPromise;
-                F.CloseMethod(F.Return(F.Field(F.This(), _promiseOfValueOrEndField)));
             }
 
             private void GenerateIAsyncDisposable_DisposeAsync()
@@ -401,7 +360,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var bodyBuilder = ArrayBuilder<BoundStatement>.GetInstance();
 
                 MethodSymbol promise_Reset =
-                    F.WellKnownMethod(WellKnownMember.System_Threading_Tasks_ManualResetValueTaskSourceLogic_T__Reset)
+                    F.WellKnownMethod(WellKnownMember.System_Threading_Tasks_Sources_ManualResetValueTaskSourceCore_T__Reset)
                     .AsMember((NamedTypeSymbol)_promiseOfValueOrEndField.Type.TypeSymbol);
 
                 bodyBuilder.Add(
@@ -446,13 +405,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             protected override void GenerateMoveNext(SynthesizedImplementationMethod moveNextMethod)
             {
-                MethodSymbol setResultMethod = F.WellKnownMethod(WellKnownMember.System_Threading_Tasks_ManualResetValueTaskSourceLogic_T__SetResult, isOptional: true);
+                MethodSymbol setResultMethod = F.WellKnownMethod(WellKnownMember.System_Threading_Tasks_Sources_ManualResetValueTaskSourceCore_T__SetResult, isOptional: true);
                 if ((object)setResultMethod != null)
                 {
                     setResultMethod = (MethodSymbol)setResultMethod.SymbolAsMember((NamedTypeSymbol)_promiseOfValueOrEndField.Type.TypeSymbol);
                 }
 
-                MethodSymbol setExceptionMethod = F.WellKnownMethod(WellKnownMember.System_Threading_Tasks_ManualResetValueTaskSourceLogic_T__SetException, isOptional: true);
+                MethodSymbol setExceptionMethod = F.WellKnownMethod(WellKnownMember.System_Threading_Tasks_Sources_ManualResetValueTaskSourceCore_T__SetException, isOptional: true);
                 if ((object)setExceptionMethod != null)
                 {
                     setExceptionMethod = (MethodSymbol)setExceptionMethod.SymbolAsMember((NamedTypeSymbol)_promiseOfValueOrEndField.Type.TypeSymbol);
