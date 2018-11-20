@@ -129,13 +129,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// </summary>
             protected class WhenClauseMightAssignWalker : BoundTreeWalkerWithStackGuardWithoutRecursionOnTheLeftOfBinaryOperator
             {
-                private readonly bool _isSwitchStatement;
                 private bool _mightAssignSomething;
-
-                internal WhenClauseMightAssignWalker(bool isSwitchStatement)
-                {
-                    this._isSwitchStatement = isSwitchStatement;
-                }
 
                 public bool MightAssignSomething(BoundExpression expr)
                 {
@@ -147,6 +141,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     this._mightAssignSomething = false;
                     this.Visit(expr);
                     return this._mightAssignSomething;
+                }
+
+                public override BoundNode Visit(BoundNode node)
+                {
+                    // Stop visiting once we determine something might get assigned
+                    return this._mightAssignSomething ? null : base.Visit(node);
                 }
 
                 public override BoundNode VisitCall(BoundCall node)
@@ -234,7 +234,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // in a different section via the use of a local function), so we need to analyze all
                 // of the when clauses to see if they are all simple enough to conclude that they do
                 // not mutate pattern variables.
-                var mightAssignWalker = new WhenClauseMightAssignWalker(isSwitchStatement: this._isSwitchStatement);
+                var mightAssignWalker = new WhenClauseMightAssignWalker();
                 bool canShareTemps =
                     !decisionDag.TopologicallySortedNodes
                     .Any(node => node is BoundWhenDecisionDagNode w && mightAssignWalker.MightAssignSomething(w.WhenExpression));

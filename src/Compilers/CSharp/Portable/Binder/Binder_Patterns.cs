@@ -362,9 +362,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(inputType != (object)null);
             Debug.Assert(!typeSyntax.IsVar); // if the syntax had `var`, it would have been parsed as a var pattern.
-            AliasSymbol aliasOpt;
-            TypeSymbolWithAnnotations declType = BindTypeOrVarKeyword(typeSyntax, diagnostics, out bool isVar, out aliasOpt);
-            Debug.Assert(!isVar); // if the type were `var`, it would not have been parsed as a pattern's type
+            TypeSymbolWithAnnotations declType = BindType(typeSyntax, diagnostics, out AliasSymbol aliasOpt);
             Debug.Assert(!declType.IsNull);
             BoundTypeExpression boundDeclType = new BoundTypeExpression(typeSyntax, aliasOpt, inferredType: false, type: declType.TypeSymbol);
             hasErrors |= CheckValidPatternType(typeSyntax, inputType, declType.TypeSymbol, patternTypeWasInSource: true, diagnostics: diagnostics);
@@ -795,7 +793,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             {
                                 var location = new SourceLocation(node.SyntaxTree, 
                                     new Text.TextSpan(tupleDesignation.OpenParenToken.SpanStart, tupleDesignation.CloseParenToken.Span.End - tupleDesignation.OpenParenToken.SpanStart));
-                                diagnostics.Add(ErrorCode.ERR_WrongNumberOfSubpatterns, location, inputType.ToDisplayString(), elementTypes.Length, tupleDesignation.Variables.Count);
+                                diagnostics.Add(ErrorCode.ERR_WrongNumberOfSubpatterns, location, inputType, elementTypes.Length, tupleDesignation.Variables.Count);
                                 hasErrors = true;
                             }
                             for (int i = 0; i < tupleDesignation.Variables.Count; i++)

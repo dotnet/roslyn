@@ -7,10 +7,10 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
+namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
 {
     [CompilerTrait(CompilerFeature.Patterns)]
-    public class ITuplePatternTests : PatternMatchingTestBase
+    public class PatternMatchingTests4 : PatternMatchingTestBase
     {
         [Fact]
         public void TestPresenceOfITuple()
