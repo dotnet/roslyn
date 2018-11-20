@@ -405,7 +405,9 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                         }
                         else if (unusedSymbolWriteOperation.Parent is IIncrementOrDecrementOperation)
                         {
-                            // Increment or decrement operations have no side effects.
+                            // As the new value assigned to the incremented/decremented variable is unused,
+                            // it is safe to remove the entire increment/decrement operation,
+                            // as it cannot have side effects on anything but the variable.
                             return true;
                         }
 

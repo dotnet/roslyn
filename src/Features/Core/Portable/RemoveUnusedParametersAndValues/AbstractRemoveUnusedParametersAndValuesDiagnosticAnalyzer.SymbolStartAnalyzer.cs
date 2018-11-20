@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
 {
@@ -41,7 +42,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                 CompilationStartAnalysisContext context,
                 AbstractRemoveUnusedParametersAndValuesDiagnosticAnalyzer analyzer)
             {
-                var attributeSetForMethodsToIgnore = ImmutableHashSet.CreateRange(GetAttributesForMethodsToIgnore(context.Compilation));
+                var attributeSetForMethodsToIgnore = ImmutableHashSet.CreateRange(GetAttributesForMethodsToIgnore(context.Compilation).WhereNotNull());
                 var eventsArgType = context.Compilation.EventArgsType();
                 var symbolAnalyzer = new SymbolStartAnalyzer(analyzer, eventsArgType, attributeSetForMethodsToIgnore);
                 context.RegisterSymbolStartAction(symbolAnalyzer.OnSymbolStart, SymbolKind.NamedType);
@@ -102,76 +103,56 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                     return;
                 }
 
+                var message = GetMessageForUnusedParameterDiagnostic(
+                    parameter.Name,
+                    hasReference,
+                    isPublicApiParameter: parameter.ContainingSymbol.HasPublicResultantVisibility(),
+                    isLocalFunctionParameter: parameter.ContainingSymbol.IsLocalFunction());
+
                 var diagnostic = DiagnosticHelper.CreateWithMessage(s_unusedParameterRule, location,
-                    option.Notification.Severity, additionalLocations: null, properties: null, message: GetMessage());
+                    option.Notification.Severity, additionalLocations: null, properties: null, message);
                 reportDiagnostic(diagnostic);
+            }
 
-                return;
-
-                // Local functions.
-                LocalizableString GetMessage()
+            private static LocalizableString GetMessageForUnusedParameterDiagnostic(
+                string parameterName,
+                bool hasReference,
+                bool isPublicApiParameter,
+                bool isLocalFunctionParameter)
+            {
+                LocalizableString messageFormat;
+                if (isPublicApiParameter &&
+                    !isLocalFunctionParameter)
                 {
-                    LocalizableString messageFormat;
-                    if (parameter.ContainingSymbol.HasPublicResultantVisibility() &&
-                        !parameter.ContainingSymbol.IsLocalFunction())
-                    {
-                        messageFormat = hasReference
-                            ? FeaturesResources.Remove_unused_parameter_0_if_it_is_not_part_of_a_shipped_public_API_its_initial_value_is_never_used
-                            : FeaturesResources.Remove_unused_parameter_0_if_it_is_not_part_of_a_shipped_public_API;
-                    }
-                    else if (hasReference)
-                    {
-                        messageFormat = FeaturesResources.Remove_unused_parameter_0_its_initial_value_is_never_used;
-                    }
-                    else
-                    {
-                        messageFormat = s_unusedParameterRule.MessageFormat;
-                    }
-
-                    return new DiagnosticHelper.LocalizableStringWithArguments(messageFormat, parameter.Name);
+                    messageFormat = hasReference
+                        ? FeaturesResources.Remove_unused_parameter_0_if_it_is_not_part_of_a_shipped_public_API_its_initial_value_is_never_used
+                        : FeaturesResources.Remove_unused_parameter_0_if_it_is_not_part_of_a_shipped_public_API;
                 }
+                else if (hasReference)
+                {
+                    messageFormat = FeaturesResources.Remove_unused_parameter_0_its_initial_value_is_never_used;
+                }
+                else
+                {
+                    messageFormat = s_unusedParameterRule.MessageFormat;
+                }
+
+                return new DiagnosticHelper.LocalizableStringWithArguments(messageFormat, parameterName);
             }
 
             private static IEnumerable<INamedTypeSymbol> GetAttributesForMethodsToIgnore(Compilation compilation)
             {
                 // Ignore conditional methods (One conditional will often call another conditional method as its only use of a parameter)
-                var conditionalAttribte = compilation.ConditionalAttribute();
-                if (conditionalAttribte != null)
-                {
-                    yield return conditionalAttribte;
-                }
+                yield return compilation.ConditionalAttribute();
 
                 // Ignore methods with special serialization attributes (All serialization methods need to take 'StreamingContext')
-                var onDeserializingAttribute = compilation.OnDeserializingAttribute();
-                if (onDeserializingAttribute != null)
-                {
-                    yield return onDeserializingAttribute;
-                }
-
-                var onDeserializedAttribute = compilation.OnDeserializedAttribute();
-                if (onDeserializedAttribute != null)
-                {
-                    yield return onDeserializedAttribute;
-                }
-
-                var onSerializingAttribute = compilation.OnSerializingAttribute();
-                if (onSerializingAttribute != null)
-                {
-                    yield return onSerializingAttribute;
-                }
-
-                var onSerializedAttribute = compilation.OnSerializedAttribute();
-                if (onSerializedAttribute != null)
-                {
-                    yield return onSerializedAttribute;
-                }
+                yield return compilation.OnDeserializingAttribute();
+                yield return compilation.OnDeserializedAttribute();
+                yield return compilation.OnSerializingAttribute();
+                yield return compilation.OnSerializedAttribute();
 
                 // Don't flag obsolete methods.
-                var obsoleteAttribute = compilation.ObsoleteAttribute();
-                if (obsoleteAttribute != null)
-                {
-                    yield return obsoleteAttribute;
-                }
+                yield return compilation.ObsoleteAttribute();
             }
 
             private bool IsUnusedParameterCandidate(IParameterSymbol parameter)
@@ -210,7 +191,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
 
                 // Ignore flagging parameters for methods with certain well-known attributes,
                 // which are known to have unused parameters in real world code.
-                if (method.GetAttributes().Any(a => a.AttributeClass != null && _attributeSetForMethodsToIgnore.Contains(a.AttributeClass)))
+                if (method.GetAttributes().Any(a => _attributeSetForMethodsToIgnore.Contains(a.AttributeClass)))
                 {
                     return false;
                 }
