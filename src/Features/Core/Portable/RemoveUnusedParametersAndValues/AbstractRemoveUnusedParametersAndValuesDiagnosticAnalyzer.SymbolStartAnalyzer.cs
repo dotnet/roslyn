@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
         {
             private readonly AbstractRemoveUnusedParametersAndValuesDiagnosticAnalyzer _compilationAnalyzer;
 
-            private readonly INamedTypeSymbol _eventArgsTypeOpt, _interlockedTypeOpt, _immutableInterlockedTypeOpt;
+            private readonly INamedTypeSymbol _eventArgsTypeOpt;
             private readonly ImmutableHashSet<INamedTypeSymbol> _attributeSetForMethodsToIgnore;
             private readonly ConcurrentDictionary<IParameterSymbol, bool> _unusedParameters;
             private readonly ConcurrentDictionary<IMethodSymbol, bool> _methodsUsedAsDelegates;
@@ -27,15 +27,11 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
             public SymbolStartAnalyzer(
                 AbstractRemoveUnusedParametersAndValuesDiagnosticAnalyzer compilationAnalyzer,
                 INamedTypeSymbol eventArgsTypeOpt,
-                INamedTypeSymbol interlockedTypeOpt,
-                INamedTypeSymbol immutableInterlockedTypeOpt,
                 ImmutableHashSet<INamedTypeSymbol> attributeSetForMethodsToIgnore)
             {
                 _compilationAnalyzer = compilationAnalyzer;
 
                 _eventArgsTypeOpt = eventArgsTypeOpt;
-                _interlockedTypeOpt = interlockedTypeOpt;
-                _immutableInterlockedTypeOpt = immutableInterlockedTypeOpt;
                 _attributeSetForMethodsToIgnore = attributeSetForMethodsToIgnore;
                 _unusedParameters = new ConcurrentDictionary<IParameterSymbol, bool>();
                 _methodsUsedAsDelegates = new ConcurrentDictionary<IMethodSymbol, bool>();
@@ -47,10 +43,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
             {
                 var attributeSetForMethodsToIgnore = ImmutableHashSet.CreateRange(GetAttributesForMethodsToIgnore(context.Compilation));
                 var eventsArgType = context.Compilation.EventArgsType();
-                var interlockedType = context.Compilation.InterlockedType();
-                var immutableInterlockedType = context.Compilation.ImmutableInterlockedType();
-
-                var symbolAnalyzer = new SymbolStartAnalyzer(analyzer, eventsArgType, interlockedType, immutableInterlockedType, attributeSetForMethodsToIgnore);
+                var symbolAnalyzer = new SymbolStartAnalyzer(analyzer, eventsArgType, attributeSetForMethodsToIgnore);
                 context.RegisterSymbolStartAction(symbolAnalyzer.OnSymbolStart, SymbolKind.NamedType);
             }
 
@@ -109,12 +102,8 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                     return;
                 }
 
-                var diagnostic = DiagnosticHelper.CreateWithMessage(s_unusedParameterRule,
-                                                         location,
-                                                         option.Notification.Severity,
-                                                         additionalLocations: null,
-                                                         properties: null,
-                                                         message: GetMessage());
+                var diagnostic = DiagnosticHelper.CreateWithMessage(s_unusedParameterRule, location,
+                    option.Notification.Severity, additionalLocations: null, properties: null, message: GetMessage());
                 reportDiagnostic(diagnostic);
 
                 return;

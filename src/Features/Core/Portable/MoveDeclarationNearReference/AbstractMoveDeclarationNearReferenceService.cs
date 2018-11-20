@@ -50,8 +50,8 @@ namespace Microsoft.CodeAnalysis.MoveDeclarationNearReference
                 return null;
             }
 
-            if (state.IndexOfDeclarationStatemntInInnermostBlock >= 0 &&
-                state.IndexOfDeclarationStatemntInInnermostBlock == state.IndexOfFirstStatementAffectedInInnermostBlock - 1 &&
+            if (state.IndexOfDeclarationStatementInInnermostBlock >= 0 &&
+                state.IndexOfDeclarationStatementInInnermostBlock == state.IndexOfFirstStatementAffectedInInnermostBlock - 1 &&
                 !await CanMergeDeclarationAndAssignmentAsync(document, state, cancellationToken).ConfigureAwait(false))
             {
                 // Declaration statement is already closest to the first reference

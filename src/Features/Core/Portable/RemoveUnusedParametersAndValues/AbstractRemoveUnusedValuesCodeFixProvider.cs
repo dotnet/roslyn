@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.MoveDeclarationNearReference;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.ReplaceDiscardDeclarationsWithAssignments;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Simplification;
@@ -70,20 +71,18 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
         protected abstract SyntaxNode TryUpdateNameForFlaggedNode(SyntaxNode node, SyntaxToken newName);
 
         /// <summary>
-        /// Get the identifier token for the iteration variable of the given foreach statement node.
+        /// Gets the identifier token for the iteration variable of the given foreach statement node.
         /// </summary>
-        /// <param name="node"></param>
-        /// <returns></returns>
         protected abstract SyntaxToken GetForEachStatementIdentifier(TForEachStatementSyntax node);
 
         /// <summary>
-        /// Wrap the given statements within a block statement.
+        /// Wraps the given statements within a block statement.
         /// Note this method is invoked when replacing a statement that is parented by a non-block statement syntax.
         /// </summary>
         protected abstract TBlockSyntax WrapWithBlockIfNecessary(IEnumerable<TStatementSyntax> statements);
 
         /// <summary>
-        /// Insert the given declaration statement at the start of the given switch case block.
+        /// Inserts the given declaration statement at the start of the given switch case block.
         /// </summary>
         protected abstract void InsertAtStartOfSwitchCaseBlockForDeclarationInCaseLabelOrClause(TSwitchCaseBlockSyntax switchCaseBlock, SyntaxEditor editor, TLocalDeclarationStatementSyntax declarationStatement);
 
@@ -592,7 +591,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
             if (preference == UnusedValuePreference.DiscardVariable)
             {
                 currentRoot = await PostProcessDocumentCoreAsync(
-                    RemoveDiscardDeclarationsAsync, currentRoot, document, cancellationToken).ConfigureAwait(false);
+                    ReplaceDiscardDeclarationsWithAssignmentsAsync, currentRoot, document, cancellationToken).ConfigureAwait(false);
             }
 
             // If we added new variable declaration statements, move these as close as possible to their
@@ -643,10 +642,16 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
         /// This is needed to prevent the code fix/FixAll from generating code with
         /// multiple local variables named '_', which is a compiler error.
         /// </summary>
-        protected abstract Task<SyntaxNode> RemoveDiscardDeclarationsAsync(
-            SyntaxNode memberDeclaration,
-            Document document,
-            CancellationToken cancellationToken);
+        private async Task<SyntaxNode> ReplaceDiscardDeclarationsWithAssignmentsAsync(SyntaxNode memberDeclaration, Document document, CancellationToken cancellationToken)
+        {
+            var service = document.GetLanguageService<IReplaceDiscardDeclarationsWithAssignmentsService>();
+            if (service == null)
+            {
+                return memberDeclaration;
+            }
+
+            return await service.ReplaceAsync(memberDeclaration, cancellationToken).ConfigureAwait(false);
+        }
 
         /// <summary>
         /// Returns an updated <paramref name="memberDeclaration"/> with all the

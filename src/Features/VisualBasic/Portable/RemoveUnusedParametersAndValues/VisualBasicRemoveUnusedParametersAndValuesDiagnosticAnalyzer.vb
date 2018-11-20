@@ -2,9 +2,11 @@
 
 Imports Microsoft.CodeAnalysis.CodeStyle
 Imports Microsoft.CodeAnalysis.Diagnostics
+Imports Microsoft.CodeAnalysis.Operations
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
 Imports Microsoft.CodeAnalysis.VisualBasic.CodeStyle
+Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnusedParametersAndValues
 
@@ -25,6 +27,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnusedParametersAndValues
 
         Protected Overrides Function SupportsDiscard(tree As SyntaxTree) As Boolean
             Return False
+        End Function
+
+        Protected Overrides Function IsCallStatement(expressionStatement As IExpressionStatementOperation) As Boolean
+            Return TryCast(expressionStatement.Syntax, CallStatementSyntax) IsNot Nothing
         End Function
 
         Protected Overrides Function GetDefinitionLocationToFade(unusedDefinition As IOperation) As Location

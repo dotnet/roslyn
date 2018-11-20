@@ -1,7 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Composition
-Imports System.Threading
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
@@ -37,10 +36,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnusedParametersAndValues
 
             Debug.Fail($"Unexpected node kind for local/parameter declaration or reference: '{node.Kind()}'")
             Return Nothing
-        End Function
-
-        Protected Overrides Function RemoveDiscardDeclarationsAsync(memberDeclaration As SyntaxNode, document As Document, cancellationToken As CancellationToken) As Task(Of SyntaxNode)
-            Throw ExceptionUtilities.Unreachable
         End Function
 
         Protected Overrides Function GetForEachStatementIdentifier(node As ForEachBlockSyntax) As SyntaxToken

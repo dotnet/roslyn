@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.MoveDeclarationNearReference
             public SyntaxList<TStatementSyntax> OutermostBlockStatements { get; private set; }
             public SyntaxList<TStatementSyntax> InnermostBlockStatements { get; private set; }
             public TStatementSyntax FirstStatementAffectedInInnermostBlock { get; private set; }
-            public int IndexOfDeclarationStatemntInInnermostBlock { get; private set; }
+            public int IndexOfDeclarationStatementInInnermostBlock { get; private set; }
             public int IndexOfFirstStatementAffectedInInnermostBlock { get; private set; }
 
             internal static async Task<State> GenerateAsync(
@@ -132,10 +132,10 @@ namespace Microsoft.CodeAnalysis.MoveDeclarationNearReference
                     return false;
                 }
 
-                this.IndexOfDeclarationStatemntInInnermostBlock = this.InnermostBlockStatements.IndexOf(this.DeclarationStatement);
+                this.IndexOfDeclarationStatementInInnermostBlock = this.InnermostBlockStatements.IndexOf(this.DeclarationStatement);
                 this.IndexOfFirstStatementAffectedInInnermostBlock = this.InnermostBlockStatements.IndexOf(this.FirstStatementAffectedInInnermostBlock);
-                if (this.IndexOfDeclarationStatemntInInnermostBlock >= 0 &&
-                    this.IndexOfDeclarationStatemntInInnermostBlock < this.IndexOfFirstStatementAffectedInInnermostBlock)
+                if (this.IndexOfDeclarationStatementInInnermostBlock >= 0 &&
+                    this.IndexOfDeclarationStatementInInnermostBlock < this.IndexOfFirstStatementAffectedInInnermostBlock)
                 {
                     // Don't want to move a decl with initializer past other decls in order to move it to the first
                     // affected statement.  If we do we can end up in the following situation: 
@@ -157,7 +157,7 @@ namespace Microsoft.CodeAnalysis.MoveDeclarationNearReference
                     // So, we also check if the variable declaration has an initializer below.
 
                     if (syntaxFacts.GetInitializerOfVariableDeclarator(this.VariableDeclarator) != null &&
-                        InDeclarationStatementGroup(this.IndexOfDeclarationStatemntInInnermostBlock, this.IndexOfFirstStatementAffectedInInnermostBlock))
+                        InDeclarationStatementGroup(this.IndexOfDeclarationStatementInInnermostBlock, this.IndexOfFirstStatementAffectedInInnermostBlock))
                     {
                         return false;
                     }

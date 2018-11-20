@@ -145,11 +145,5 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static INamedTypeSymbol OnSerializedAttribute(this Compilation compilation)
             => compilation.GetTypeByMetadataName("System.Runtime.Serialization.OnSerializedAttribute");
-
-        public static INamedTypeSymbol InterlockedType(this Compilation compilation)
-            => compilation.GetTypeByMetadataName(typeof(System.Threading.Interlocked).FullName);
-
-        public static INamedTypeSymbol ImmutableInterlockedType(this Compilation compilation)
-            => compilation.GetTypeByMetadataName(typeof(System.Collections.Immutable.ImmutableInterlocked).FullName);
     }
 }

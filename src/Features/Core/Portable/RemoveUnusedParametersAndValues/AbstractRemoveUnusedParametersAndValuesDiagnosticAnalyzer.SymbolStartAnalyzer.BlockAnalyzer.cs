@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
 {
@@ -56,8 +57,11 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
 
                     // All operation blocks for a symbol belong to the same tree.
                     var firstBlock = context.OperationBlocks[0];
-                    if (!symbolStartAnalyzer._compilationAnalyzer.TryGetOptions(firstBlock.Syntax.SyntaxTree, firstBlock.Language,
-                        context.Options, context.CancellationToken, out var options))
+                    if (!symbolStartAnalyzer._compilationAnalyzer.TryGetOptions(firstBlock.Syntax.SyntaxTree,
+                                                                                firstBlock.Language,
+                                                                                context.Options,
+                                                                                context.CancellationToken,
+                                                                                out var options))
                     {
                         return;
                     }
@@ -76,7 +80,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                     {
                         foreach (var operationBlock in context.OperationBlocks)
                         {
-                            if (operationBlock.SemanticModel.GetSyntaxDiagnostics(operationBlock.Syntax.Span, context.CancellationToken).HasAnyErrors())
+                            if (operationBlock.Syntax.GetDiagnostics().ToImmutableArrayOrEmpty().HasAnyErrors())
                             {
                                 return true;
                             }
@@ -105,9 +109,11 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                         return;
                     }
 
-                    //  2. Bail out for syntax error (constant expressions) and semantic error (invalid operation) cases.
-                    if (value.ConstantValue.HasValue ||
-                        value is IInvalidOperation)
+                    //  2. Bail out for semantic error (invalid operation) cases.
+                    //     Also bail out for constant expressions in expression statement syntax, say as "1;",
+                    //     which do not seem to have an invalid operation in the operation tree.
+                    if (value is IInvalidOperation ||
+                        value.ConstantValue.HasValue)
                     {
                         return;
                     }
@@ -119,28 +125,10 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                         return;
                     }
 
-                    //  4. Bool returning method invocations: these are extremely noisy as large number of bool 
-                    //     returning methods return the status of the operation.
-                    //     In future, if we feel noise level is fine, we can consider removing this check.
-                    if (value.Type.SpecialType == SpecialType.System_Boolean)
-                    {
-                        return;
-                    }
-
-                    //  5. If expression statement and its underlying expression have differing first tokens that likely indicates
-                    //     an explicit discard. For example, VB call statement is used to explicitly ignore the value returned by
+                    //  4. Bail out if there is language specific syntax to indicate an explicit discard.
+                    //     For example, VB call statement is used to explicitly ignore the value returned by
                     //     an invocation by prefixing the invocation with keyword "Call".
-                    if (value.Syntax.GetFirstToken() != expressionStatement.Syntax.GetFirstToken())
-                    {
-                        return;
-                    }
-
-                    //  6. Special cases where return value is not required to be checked:
-                    //     Methods belonging to System.Threading.Interlocked and System.Collections.Immutable.ImmutableInterlocked
-                    //     return the original value, which is not required to be checked.
-                    if (value is IInvocationOperation invocation &&
-                        (invocation.TargetMethod.ContainingType.OriginalDefinition == _symbolStartAnalyzer._interlockedTypeOpt ||
-                         invocation.TargetMethod.ContainingType.OriginalDefinition == _symbolStartAnalyzer._immutableInterlockedTypeOpt))
+                    if (_symbolStartAnalyzer._compilationAnalyzer.IsCallStatement(expressionStatement))
                     {
                         return;
                     }
@@ -174,7 +162,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                     if (!_delegateAssignedToFieldOrProperty &&
                         fieldOrPropertyReference.Type.IsDelegateType() &&
                         fieldOrPropertyReference.Parent is ISimpleAssignmentOperation simpleAssignment &&
-                        simpleAssignment.Target == fieldOrPropertyReference)
+                        simpleAssignment.Target.Equals(fieldOrPropertyReference))
                     {
                         _delegateAssignedToFieldOrProperty = true;
                     }
@@ -195,8 +183,12 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                             return false;
                     }
 
-                    // We currently do not support points-to analysis, so we cannot accurately 
-                    // track delegate invocations for all cases.
+                    // We currently do not support points-to analysis, which is needed to accurately track locations of
+                    // allocated objects and their aliasing, which enables us to determine if two symbols reference the
+                    // same object instance at a given program point and also enables us to track the set of runtime objects
+                    // that a variable can point to.
+                    // Hence, we cannot accurately track the exact set of delegates that a symbol with delegate type
+                    // can point to for all control flow cases.
                     // We attempt to do our best effort delegate invocation analysis as follows:
 
                     //  1. If we have no delegate creations or lambdas, our current analysis works fine,
@@ -207,6 +199,10 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                     }
 
                     //  2. Bail out if we have a delegate escape via an assigment to a field/property reference.
+                    //     This indicates the delegate targets (such as lambda/local functions) have been captured
+                    //     and can be invoked from a separate method, and these invocations can read values written
+                    //     to any local/parameter in the current method. We cannot reliably flag any write to a 
+                    //     local/parameter as unused for such cases.
                     if (_delegateAssignedToFieldOrProperty)
                     {
                         return false;
