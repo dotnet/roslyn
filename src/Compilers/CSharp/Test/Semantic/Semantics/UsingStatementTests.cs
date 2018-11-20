@@ -29,6 +29,15 @@ struct MyManagedType : System.IDisposable
     { }
 }";
 
+        private readonly string _asyncDisposable = @"
+namespace System
+{
+    public interface IAsyncDisposable
+    {
+        System.Threading.Tasks.ValueTask DisposeAsync();
+    }
+}";
+
         [Fact]
         public void SemanticModel()
         {
@@ -1457,29 +1466,27 @@ class C2
         public void UsingPatternAsyncTest()
         {
             var source = @"
-namespace System
-{
-    public interface IAsyncDisposable
-    {
-        System.Threading.Tasks.ValueTask DisposeAsync();
-    }
-}
+using System.Threading.Tasks;
 class C1
 {
     public C1() { }
-    public System.Threading.Tasks.ValueTask DisposeAsync() { System.Console.WriteLine(""Dispose async""); return new System.Threading.Tasks.ValueTask(System.Threading.Tasks.Task.CompletedTask); }
+    public ValueTask DisposeAsync() 
+    { 
+        System.Console.WriteLine(""Dispose async"");
+        return new ValueTask(Task.CompletedTask);
+    }
 }
 
 class C2
 {
-    static async System.Threading.Tasks.Task Main()
+    static async Task Main()
     {
         await using (C1 c = new C1())
         {
         }
     }
 }";
-            var compilation = CreateCompilationWithTasksExtensions(source, options: TestOptions.DebugExe).VerifyDiagnostics();
+            var compilation = CreateCompilationWithTasksExtensions(source + _asyncDisposable, options: TestOptions.DebugExe).VerifyDiagnostics();
 
             CompileAndVerify(compilation, expectedOutput: "Dispose async");
         }
@@ -1490,13 +1497,6 @@ class C2
             var source = @"
 using System;
 using System.Runtime.CompilerServices;
-namespace System
-{
-    public interface IAsyncDisposable
-    {
-        System.Threading.Tasks.ValueTask DisposeAsync();
-    }
-}
 class C1
 {
     public C1() { }
@@ -1556,42 +1556,38 @@ class C3
         }
     }
 }";
-            CreateCompilationWithTasksExtensions(source).VerifyDiagnostics();
+            CreateCompilationWithTasksExtensions(source + _asyncDisposable).VerifyDiagnostics();
         }
 
         [Fact]
         public void UsingPatternAsyncNoAwaitTest()
         {
             var source = @"
-namespace System
-{
-    public interface IAsyncDisposable
-    {
-        System.Threading.Tasks.ValueTask DisposeAsync();
-    }
-}
+using System.Threading.Tasks;
 class C1
 {
-    public C1() { }
-    public System.Threading.Tasks.ValueTask DisposeAsync() { return new System.Threading.Tasks.ValueTask(System.Threading.Tasks.Task.CompletedTask); }
+    public ValueTask DisposeAsync()
+    { 
+        return new ValueTask(Task.CompletedTask); 
+    }
 }
 
 class C2
 {
-    static async System.Threading.Tasks.Task Main()
+    static async Task Main()
     {
         using (C1 c = new C1())
         {
         }
     }
 }";
-            CreateCompilationWithTasksExtensions(source).VerifyDiagnostics(
-                // (17,46): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+            CreateCompilationWithTasksExtensions(source + _asyncDisposable).VerifyDiagnostics(
+                // (13,23): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
                 //     static async System.Threading.Tasks.Task Main()
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "Main").WithLocation(17, 46),
-                // (19,16): error CS1674: 'C1': type used in a using statement must be implicitly convertible to 'System.IDisposable' or have a public void-returning Dispose() instance method.
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "Main").WithLocation(13, 23),
+                // (15,16): error CS1674: 'C1': type used in a using statement must be implicitly convertible to 'System.IDisposable' or have a public void-returning Dispose() instance method.
                 //         using (C1 c = new C1())
-                Diagnostic(ErrorCode.ERR_NoConvToIDisp, "C1 c = new C1()").WithArguments("C1").WithLocation(19, 16)
+                Diagnostic(ErrorCode.ERR_NoConvToIDisp, "C1 c = new C1()").WithArguments("C1").WithLocation(15, 16)
                 );
         }
 
@@ -1599,23 +1595,23 @@ class C2
         public void UsingPatternAsyncAndSyncTest()
         {
             var source = @"
-namespace System
-{
-    public interface IAsyncDisposable
-    {
-        System.Threading.Tasks.ValueTask DisposeAsync();
-    }
-}
+using System.Threading.Tasks;
 class C1
 {
-    public C1() { }
-    public System.Threading.Tasks.ValueTask DisposeAsync() { System.Console.Write(""Dispose async"");return new System.Threading.Tasks.ValueTask(System.Threading.Tasks.Task.CompletedTask); }
-    public void Dispose() { System.Console.Write(""Dispose; ""); }
+    public ValueTask DisposeAsync()
+    { 
+        System.Console.Write(""Dispose async"");
+        return new ValueTask(Task.CompletedTask); 
+    }
+    public void Dispose()
+    { 
+        System.Console.Write(""Dispose; "");
+    }
 }
 
 class C2
 {
-    static async System.Threading.Tasks.Task Main()
+    static async Task Main()
     {
         using (C1 c = new C1())
         {
@@ -1625,7 +1621,7 @@ class C2
         }
     }
 }";
-            var compilation = CreateCompilationWithTasksExtensions(source, options: TestOptions.DebugExe).VerifyDiagnostics();
+            var compilation = CreateCompilationWithTasksExtensions(source + _asyncDisposable, options: TestOptions.DebugExe).VerifyDiagnostics();
 
             CompileAndVerify(compilation, expectedOutput: "Dispose; Dispose async");
         }
@@ -1634,20 +1630,18 @@ class C2
         public void UsingPatternAsyncExtensionMethodTest()
         {
             var source = @"
-namespace System
-{
-    public interface IAsyncDisposable
-    {
-        System.Threading.Tasks.ValueTask DisposeAsync();
-    }
-}
+using System.Threading.Tasks;
 class C1
 {
 }
 
 static class C2 
 {
-    public static System.Threading.Tasks.ValueTask DisposeAsync(this C1 c1) { System.Console.WriteLine(""Dispose async""); return new System.Threading.Tasks.ValueTask(System.Threading.Tasks.Task.CompletedTask); }
+    public static ValueTask DisposeAsync(this C1 c1) 
+    { 
+        System.Console.WriteLine(""Dispose async""); 
+        return new ValueTask(Task.CompletedTask);
+    }
 }
 
 class C3
@@ -1659,7 +1653,7 @@ class C3
         }
     }
 }";
-            var compilation = CreateCompilationWithTasksExtensions(source, options: TestOptions.DebugExe).VerifyDiagnostics();
+            var compilation = CreateCompilationWithTasksExtensions(source + _asyncDisposable, options: TestOptions.DebugExe).VerifyDiagnostics();
 
             CompileAndVerify(compilation, expectedOutput: "Dispose async");
         }
@@ -1668,13 +1662,6 @@ class C3
         public void UsingPatternAsyncWrongReturnTypeTest()
         {
             var source = @"
-namespace System
-{
-    public interface IAsyncDisposable
-    {
-        System.Threading.Tasks.ValueTask DisposeAsync();
-    }
-}
 class C1
 {
     public bool DisposeAsync() { return false; }
@@ -1689,13 +1676,13 @@ class C2
         }
     }
 }";
-            CreateCompilationWithTasksExtensions(source).VerifyDiagnostics(
-                // (18,22): warning CS0280: 'C1' does not implement the 'disposable' pattern. 'C1.DisposeAsync()' has the wrong signature.
+            CreateCompilationWithTasksExtensions(source + _asyncDisposable).VerifyDiagnostics(
+                // (11,22): warning CS0280: 'C1' does not implement the 'disposable' pattern. 'C1.DisposeAsync()' has the wrong signature.
                 //         await using (C1 c = new C1())
-                Diagnostic(ErrorCode.WRN_PatternBadSignature, "C1 c = new C1()").WithArguments("C1", "disposable", "C1.DisposeAsync()").WithLocation(18, 22),
-                // (18,22): error CS8410: 'C1': type used in an async using statement must be implicitly convertible to 'System.IAsyncDisposable'
+                Diagnostic(ErrorCode.WRN_PatternBadSignature, "C1 c = new C1()").WithArguments("C1", "disposable", "C1.DisposeAsync()").WithLocation(11, 22),
+                // (11,22): error CS8410: 'C1': type used in an async using statement must be implicitly convertible to 'System.IAsyncDisposable'
                 //         await using (C1 c = new C1())
-                Diagnostic(ErrorCode.ERR_NoConvToIAsyncDisp, "C1 c = new C1()").WithArguments("C1").WithLocation(18, 22)
+                Diagnostic(ErrorCode.ERR_NoConvToIAsyncDisp, "C1 c = new C1()").WithArguments("C1").WithLocation(11, 22)
                 );
         }
 
@@ -1703,28 +1690,97 @@ class C2
         public void UsingPatternAsyncDefaultParametersTest()
         {
             var source = @"
-namespace System
-{
-    public interface IAsyncDisposable
-    {
-        System.Threading.Tasks.ValueTask DisposeAsync();
-    }
-}
+using System.Threading.Tasks;
 class C1
 {
-    public System.Threading.Tasks.ValueTask DisposeAsync(int x = 4) {  return new System.Threading.Tasks.ValueTask(System.Threading.Tasks.Task.CompletedTask); }
+    public ValueTask DisposeAsync(int x = 4) 
+    {
+        return new ValueTask(Task.CompletedTask); 
+    }
 }
 
 class C2
 {
-    static async System.Threading.Tasks.Task Main()
+    static async Task Main()
     {
         await using (C1 c = new C1())
         {
         }
     }
 }";
-            CreateCompilationWithTasksExtensions(source).VerifyDiagnostics();
+            CreateCompilationWithTasksExtensions(source + _asyncDisposable).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void UsingPatternAsyncInterfaceDisposeTest()
+        {
+            var source = @"
+using System.Threading.Tasks;
+class C1 : System.IDisposable
+{
+    public ValueTask DisposeAsync() 
+    { 
+        System.Console.Write(""Dispose async; "");
+        return new ValueTask(Task.CompletedTask);
+    }
+
+    public void Dispose()
+    {
+        System.Console.Write(""Dispose; "");
+    }
+}
+
+class C2
+{
+    static async Task Main()
+    {
+        await using (C1 c = new C1())
+        {
+        }
+        using (C1 c = new C1())
+        {
+        }
+    }
+}";
+            var compilation = CreateCompilationWithTasksExtensions(source + _asyncDisposable, options: TestOptions.DebugExe).VerifyDiagnostics();
+
+            CompileAndVerify(compilation, expectedOutput: "Dispose async; Dispose; ");
+        }
+
+        [Fact]
+        public void UsingPatternDisposeInterfaceAsyncTest()
+        {
+            var source = @"
+using System.Threading.Tasks;
+class C1 : System.IAsyncDisposable
+{
+    public ValueTask DisposeAsync() 
+    { 
+        System.Console.Write(""Dispose async; "");
+        return new ValueTask(Task.CompletedTask);
+    }
+
+    public void Dispose()
+    {
+        System.Console.Write(""Dispose; "");
+    }
+}
+
+class C2
+{
+    static async Task Main()
+    {
+        await using (C1 c = new C1())
+        {
+        }
+        using (C1 c = new C1())
+        {
+        }
+    }
+}";
+            var compilation = CreateCompilationWithTasksExtensions(source + _asyncDisposable, options: TestOptions.DebugExe).VerifyDiagnostics();
+
+            CompileAndVerify(compilation, expectedOutput: "Dispose async; Dispose; ");
         }
 
         [Fact]

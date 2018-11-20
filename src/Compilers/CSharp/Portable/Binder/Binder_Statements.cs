@@ -747,7 +747,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                   diagnostics,
                                                   out var disposeMethod);
 
-            if ((!hasAwait && disposeMethod?.ReturnsVoid == false) || (hasAwait && disposeMethod?.ReturnType.TypeSymbol.IsNonGenericTaskType(Compilation) == false) || result == PatternLookupResult.NotAMethod)
+            if ((!hasAwait && disposeMethod?.ReturnsVoid == false) 
+                || (hasAwait && disposeMethod?.ReturnType.TypeSymbol.IsNonGenericTaskType(Compilation) == false) 
+                || result == PatternLookupResult.NotAMethod)
             {
                 ReportPatternWarning(diagnostics, expr.Type, disposeMethod, syntaxNode, MessageID.IDS_Disposable);
                 disposeMethod = null;
