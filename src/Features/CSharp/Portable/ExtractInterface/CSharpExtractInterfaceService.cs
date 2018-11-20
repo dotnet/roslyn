@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractInterface
         }
 
         internal override Solution UpdateMembersWithExplicitImplementations(
-            Solution unformattedSolution, DocumentId _1, 
+            Solution unformattedSolution, IReadOnlyList<DocumentId> _1, 
             INamedTypeSymbol _2, INamedTypeSymbol _3, 
             IEnumerable<ISymbol> _4, Dictionary<ISymbol, SyntaxAnnotation> _5, CancellationToken _6)
         {

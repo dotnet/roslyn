@@ -340,6 +340,7 @@ End Class</text>.NormalizedValue()
             Dim expectedCode = <text>
 Class TestClass
     Implements ITestClass
+
     Public Sub Goo() Implements ITestClass.Goo
     End Sub
 End Class</text>.NormalizedValue()
@@ -356,6 +357,7 @@ End Structure</text>.NormalizedValue()
             Dim expectedCode = <text>
 Structure TestClass
     Implements ITestClass
+
     Public Sub Goo() Implements ITestClass.Goo
     End Sub
 End Structure</text>.NormalizedValue()
@@ -698,6 +700,7 @@ End Class</text>.NormalizedValue()
             Dim expectedCode = <text>
 Class Program
     Implements IProgram
+
     Public Sub Goo() Implements IProgram.Goo
     End Sub
 End Class</text>.NormalizedValue()
@@ -714,6 +717,7 @@ End Class</text>.NormalizedValue()
             Dim expectedCode = <text>
 Class Program(Of T)
     Implements IProgram(Of T)
+
     Public Sub Goo(x As T) Implements IProgram(Of T).Goo
     End Sub
 End Class</text>.NormalizedValue()
@@ -730,6 +734,7 @@ End Class</text>.NormalizedValue()
             Dim expectedCode = <text>
 Class Program(Of T As U, U)
     Implements IProgram(Of T, U)
+
     Public Sub Goo(x As T, y As U) Implements IProgram(Of T, U).Goo
     End Sub
 End Class</text>.NormalizedValue()
@@ -750,8 +755,7 @@ Interface ISomeInterface
 End Interface</text>.NormalizedValue()
             Dim expectedCode = <text>
 Class Program
-    Implements ISomeInterface
-    Implements IProgram
+    Implements ISomeInterface, IProgram
 
     Public Sub Goo() Implements IProgram.Goo
     End Sub
@@ -813,8 +817,7 @@ Interface ISomeInterface(Of T)
 End Interface</text>.NormalizedValue()
             Dim expectedCode = <text>
 Class Program(Of T, U)
-    Implements ISomeInterface(Of T)
-    Implements IProgram(Of T, U)
+    Implements ISomeInterface(Of T), IProgram(Of T, U)
 
     Public Sub Goo(t As T, u As U) Implements IProgram(Of T, U).Goo
     End Sub
@@ -843,8 +846,7 @@ Interface ISomeInterface2(Of T, U)
 End Interface</text>.NormalizedValue()
             Dim expectedCode = <text>
 Class Program(Of T, U)
-    Implements ISomeInterface(Of T), ISomeInterface2(Of T, U)
-    Implements IProgram(Of T, U)
+    Implements ISomeInterface(Of T), ISomeInterface2(Of T, U), IProgram(Of T, U)
 
     Public Sub Goo(t As T, u As U) Implements IProgram(Of T, U).Goo
     End Sub
@@ -883,6 +885,7 @@ End Class
             Dim expectedCode = <text>
 Class C
     Implements IC
+
     Public Sub Goo() Implements IC.Goo
     End Sub
 
@@ -936,8 +939,8 @@ End Interface
 </text>.NormalizedValue()
             Dim expectedCode = <text>
 Class C
-    Implements IC
-    Implements IC1
+    Implements IC, IC1
+
     Public Sub Goo() Implements IC.Goo, IC1.Goo
     End Sub
 
@@ -1161,6 +1164,7 @@ End Class</Document>
             Dim expectedDoc1Text = <text>
 Partial Class C
     Implements IC
+
     Public Sub Goo() Implements IC.Goo
     End Sub
     Public Function Bar() As Integer Implements IC.Bar
@@ -1203,6 +1207,7 @@ End Class
             Dim expectedUpdatedDocument = <text>Imports System
 Class TestClass
     Implements ITestClass
+
     Public Sub Goo() Implements ITestClass.Goo
     End Sub
 End Class
@@ -1236,6 +1241,7 @@ End Namespace
 Namespace NS1
     Class TestClass
         Implements ITestClass
+
         Public Sub Goo() Implements ITestClass.Goo
         End Sub
     End Class

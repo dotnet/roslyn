@@ -215,7 +215,7 @@ class C : IC
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractInterface)]
         public void CheckSameFileNamespace()
         {
-            SetUpEditor(@"namespace A 
+            SetUpEditor(@"namespace A
 {
     class C$$
     {

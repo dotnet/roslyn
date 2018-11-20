@@ -94,9 +94,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractInterface
             Return typeDeclaration.GetModifiers().Any(Function(m) SyntaxFacts.IsAccessibilityModifier(m.Kind()))
         End Function
 
-        Friend Overrides Function UpdateMembersWithExplicitImplementations(unformattedSolution As Solution, documentId As DocumentId, extractedInterfaceSymbol As INamedTypeSymbol, typeToExtractFrom As INamedTypeSymbol, includedMembers As IEnumerable(Of ISymbol), symbolToDeclarationAnnotationMap As Dictionary(Of ISymbol, SyntaxAnnotation), cancellationToken As CancellationToken) As Solution
+        Friend Overrides Function UpdateMembersWithExplicitImplementations(unformattedSolution As Solution, documentIds As IReadOnlyList(Of DocumentId), extractedInterfaceSymbol As INamedTypeSymbol, typeToExtractFrom As INamedTypeSymbol, includedMembers As IEnumerable(Of ISymbol), symbolToDeclarationAnnotationMap As Dictionary(Of ISymbol, SyntaxAnnotation), cancellationToken As CancellationToken) As Solution
             Dim docToRootMap = New Dictionary(Of DocumentId, CompilationUnitSyntax)
-            Dim documentIds = SpecializedCollections.SingletonList(documentId)
+
+            Dim implementedInterfaceStatementSyntax = If(extractedInterfaceSymbol.TypeParameters.Any(),
+                SyntaxFactory.GenericName(
+                    SyntaxFactory.Identifier(extractedInterfaceSymbol.Name),
+                    SyntaxFactory.TypeArgumentList(SyntaxFactory.SeparatedList(extractedInterfaceSymbol.TypeParameters.Select(Function(p) SyntaxFactory.ParseTypeName(p.Name))))),
+                SyntaxFactory.ParseTypeName(extractedInterfaceSymbol.Name))
+
+            Dim implementedInterfaceStatement = Formatter.Format(implementedInterfaceStatementSyntax, unformattedSolution.Workspace).ToFullString()
 
             For Each member In includedMembers
                 Dim annotation = symbolToDeclarationAnnotationMap(member)
@@ -123,7 +130,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractInterface
                     Continue For
                 End If
 
-                Dim qualifiedName As QualifiedNameSyntax = SyntaxFactory.QualifiedName(SyntaxFactory.ParseName(extractedInterfaceSymbol.Name), SyntaxFactory.IdentifierName(member.Name))
+                Dim qualifiedName As QualifiedNameSyntax = SyntaxFactory.QualifiedName(SyntaxFactory.ParseName(implementedInterfaceStatement), SyntaxFactory.IdentifierName(member.Name))
 
                 Dim method = TryCast(token.Parent, MethodStatementSyntax)
                 If method IsNot Nothing Then
