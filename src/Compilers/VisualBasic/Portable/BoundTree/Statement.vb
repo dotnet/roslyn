@@ -61,6 +61,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
     End Class
 
+    Partial Friend Class BoundRaiseEventStatement
+        Protected Overrides ReadOnly Property Children As ImmutableArray(Of BoundNode)
+            Get
+                Return ImmutableArray.Create(Of BoundNode)(Me.EventInvocation)
+            End Get
+        End Property
+    End Class
+
     Partial Friend Class BoundResumeStatement
         Protected Overrides ReadOnly Property Children As ImmutableArray(Of BoundNode)
             Get

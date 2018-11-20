@@ -7,6 +7,19 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
     Friend Partial Class BoundNullableIsTrueOperator
+        Implements IBoundInvocable
+
+        Private ReadOnly Property IBoundInvocable_CallOpt As BoundCall Implements IBoundInvocable.CallOpt
+            Get
+                Return Nothing
+            End Get
+        End Property
+
+        Private ReadOnly Property IBoundInvocable_InstanceOpt As BoundExpression Implements IBoundInvocable.InstanceOpt
+            Get
+                Return Me.Operand
+            End Get
+        End Property
 
 #If DEBUG Then
         Private Sub Validate()

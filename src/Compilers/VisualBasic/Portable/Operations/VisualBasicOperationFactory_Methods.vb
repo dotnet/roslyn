@@ -254,17 +254,35 @@ Namespace Microsoft.CodeAnalysis.Operations
             ' put argument syntax to argument operation
             Dim argument = If(valueNode.Syntax.Kind = SyntaxKind.OmittedArgument, valueNode.Syntax, TryCast(valueNode.Syntax?.Parent, ArgumentSyntax))
 
-            ' if argument syntax doesn't exist, then this operation is implicit
-            Return New VisualBasicLazyArgumentOperation(
-                Me,
-                valueNode,
-                kind,
-                inConversion,
-                outConversion,
-                parameter,
-                semanticModel:=_semanticModel,
-                syntax:=If(argument, valueNode.Syntax),
-                isImplicit:=isImplicit OrElse argument Is Nothing)
+            If argument Is Nothing Then
+
+                ' We don't create this lazily because, in the case of query nodes we may want to skip intermediate nodes and then
+                ' use the same syntax as the underlying value for the containing Argument. So we need to actually create the child
+                ' node to determine the correct syntax
+                Dim value = Create(valueNode)
+
+                Return New ArgumentOperation(
+                    value,
+                    kind,
+                    parameter,
+                    inConversion,
+                    outConversion,
+                    semanticModel:=_semanticModel,
+                    syntax:=value.Syntax,
+                    isImplicit:=True)
+            Else
+                Debug.Assert(argument IsNot valueNode.Syntax OrElse valueNode.Syntax Is CreateInternal(valueNode).Syntax)
+                Return New VisualBasicLazyArgumentOperation(
+                    Me,
+                    valueNode,
+                    kind,
+                    inConversion,
+                    outConversion,
+                    parameter,
+                    semanticModel:=_semanticModel,
+                    syntax:=argument,
+                    isImplicit:=isImplicit)
+            End If
         End Function
 
         Friend Function CreateReceiverOperation(node As BoundNode, symbol As ISymbol) As IOperation
@@ -364,7 +382,7 @@ Namespace Microsoft.CodeAnalysis.Operations
             Return GetCaseClauseValue(clause.ValueOpt, clause.ConditionOpt)
         End Function
 
-        Private Shared Function GetCaseClauseValue(valueOpt As BoundExpression, conditionOpt As BoundExpression) As BoundExpression
+        Friend Shared Function GetCaseClauseValue(valueOpt As BoundExpression, conditionOpt As BoundExpression) As BoundExpression
             If valueOpt IsNot Nothing Then
                 Return valueOpt
             End If
@@ -477,11 +495,9 @@ Namespace Microsoft.CodeAnalysis.Operations
         End Function
 
         Friend Function GetAddRemoveHandlerStatementExpression(statement As BoundAddRemoveHandlerStatement) As IOperation
-            Dim eventAccess As BoundNode = statement.EventAccess
-            Dim handler As BoundNode = statement.Handler
             Dim adds = statement.Kind = BoundKind.AddHandlerStatement
             Return New VisualBasicLazyEventAssignmentOperation(
-                Me, eventAccess, handler, adds:=adds, semanticModel:=_semanticModel, syntax:=statement.Syntax, type:=Nothing, constantValue:=Nothing, isImplicit:=True)
+                Me, statement, adds:=adds, semanticModel:=_semanticModel, syntax:=statement.Syntax, type:=Nothing, constantValue:=Nothing, isImplicit:=True)
         End Function
 
 #Region "Conversions"

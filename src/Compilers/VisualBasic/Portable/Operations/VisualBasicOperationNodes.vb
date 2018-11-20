@@ -60,22 +60,20 @@ Namespace Microsoft.CodeAnalysis.Operations
         Inherits LazyArrayCreationOperation
 
         Private ReadOnly _operationFactory As VisualBasicOperationFactory
-        Private ReadOnly _dimensionSizes As ImmutableArray(Of BoundExpression)
-        Private ReadOnly _initializer As BoundNode
+        Private ReadOnly _arrayCreation As BoundArrayCreation
 
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, dimensionSizes As ImmutableArray(Of BoundExpression), initializer As BoundNode, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As [Optional](Of Object), isImplicit As Boolean)
+        Friend Sub New(operationFactory As VisualBasicOperationFactory, arrayCreation As BoundArrayCreation, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As [Optional](Of Object), isImplicit As Boolean)
             MyBase.New(semanticModel, syntax, type, constantValue, isImplicit)
             _operationFactory = operationFactory
-            _dimensionSizes = dimensionSizes
-            _initializer = initializer
+            _arrayCreation = arrayCreation
         End Sub
 
         Protected Overrides Function CreateDimensionSizes() As ImmutableArray(Of IOperation)
-            Return _operationFactory.CreateFromArray(Of BoundExpression, IOperation)(_dimensionSizes)
+            Return _operationFactory.CreateFromArray(Of BoundExpression, IOperation)(_arrayCreation.Bounds)
         End Function
 
         Protected Overrides Function CreateInitializer() As IArrayInitializerOperation
-            Return DirectCast(_operationFactory.Create(_initializer), IArrayInitializerOperation)
+            Return DirectCast(_operationFactory.Create(_arrayCreation.InitializerOpt), IArrayInitializerOperation)
         End Function
     End Class
 
@@ -83,22 +81,20 @@ Namespace Microsoft.CodeAnalysis.Operations
         Inherits LazyArrayElementReferenceOperation
 
         Private ReadOnly _operationFactory As VisualBasicOperationFactory
-        Private ReadOnly _arrayReference As BoundNode
-        Private ReadOnly _indices As ImmutableArray(Of BoundExpression)
+        Private ReadOnly _arrayAccess As BoundArrayAccess
 
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, arrayReference As BoundNode, indices As ImmutableArray(Of BoundExpression), semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As [Optional](Of Object), isImplicit As Boolean)
+        Friend Sub New(operationFactory As VisualBasicOperationFactory, arrayAccess As BoundArrayAccess, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As [Optional](Of Object), isImplicit As Boolean)
             MyBase.New(semanticModel, syntax, type, constantValue, isImplicit)
             _operationFactory = operationFactory
-            _arrayReference = arrayReference
-            _indices = indices
+            _arrayAccess = arrayAccess
         End Sub
 
         Protected Overrides Function CreateArrayReference() As IOperation
-            Return _operationFactory.Create(_arrayReference)
+            Return _operationFactory.Create(_arrayAccess.Expression)
         End Function
 
         Protected Overrides Function CreateIndices() As ImmutableArray(Of IOperation)
-            Return _operationFactory.CreateFromArray(Of BoundExpression, IOperation)(_indices)
+            Return _operationFactory.CreateFromArray(Of BoundExpression, IOperation)(_arrayAccess.Indices)
         End Function
     End Class
 
@@ -106,16 +102,16 @@ Namespace Microsoft.CodeAnalysis.Operations
         Inherits LazyArrayInitializerOperation
 
         Private ReadOnly _operationFactory As VisualBasicOperationFactory
-        Private ReadOnly _elementValues As ImmutableArray(Of BoundExpression)
+        Private ReadOnly _arrayInitialization As BoundArrayInitialization
 
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, elementValues As ImmutableArray(Of BoundExpression), semanticModel As SemanticModel, syntax As SyntaxNode, constantValue As [Optional](Of Object), isImplicit As Boolean)
+        Friend Sub New(operationFactory As VisualBasicOperationFactory, arrayInitialization As BoundArrayInitialization, semanticModel As SemanticModel, syntax As SyntaxNode, constantValue As [Optional](Of Object), isImplicit As Boolean)
             MyBase.New(semanticModel, syntax, constantValue, isImplicit)
             _operationFactory = operationFactory
-            _elementValues = elementValues
+            _arrayInitialization = arrayInitialization
         End Sub
 
         Protected Overrides Function CreateElementValues() As ImmutableArray(Of IOperation)
-            Return _operationFactory.CreateFromArray(Of BoundExpression, IOperation)(_elementValues)
+            Return _operationFactory.CreateFromArray(Of BoundExpression, IOperation)(_arrayInitialization.Initializers)
         End Function
     End Class
 
@@ -123,22 +119,20 @@ Namespace Microsoft.CodeAnalysis.Operations
         Inherits LazySimpleAssignmentOperation
 
         Private ReadOnly _operationFactory As VisualBasicOperationFactory
-        Private ReadOnly _target As BoundNode
-        Private ReadOnly _value As BoundNode
+        Private ReadOnly _assignment As BoundAssignmentOperator
 
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, target As BoundNode, value As BoundNode, isRef As Boolean, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As [Optional](Of Object), isImplicit As Boolean)
+        Friend Sub New(operationFactory As VisualBasicOperationFactory, assignment As BoundAssignmentOperator, isRef As Boolean, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As [Optional](Of Object), isImplicit As Boolean)
             MyBase.New(isRef, semanticModel, syntax, type, constantValue, isImplicit)
             _operationFactory = operationFactory
-            _target = target
-            _value = value
+            _assignment = assignment
         End Sub
 
         Protected Overrides Function CreateTarget() As IOperation
-            Return _operationFactory.Create(_target)
+            Return _operationFactory.Create(_assignment.Left)
         End Function
 
         Protected Overrides Function CreateValue() As IOperation
-            Return _operationFactory.Create(_value)
+            Return _operationFactory.Create(_assignment.Right)
         End Function
     End Class
 
@@ -184,16 +178,16 @@ Namespace Microsoft.CodeAnalysis.Operations
         Inherits LazyBlockOperation
 
         Private ReadOnly _operationFactory As VisualBasicOperationFactory
-        Private ReadOnly _operations As ImmutableArray(Of BoundStatement)
+        Private ReadOnly _block As BoundBlock
 
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, operations As ImmutableArray(Of BoundStatement), locals As ImmutableArray(Of ILocalSymbol), semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As [Optional](Of Object), isImplicit As Boolean)
+        Friend Sub New(operationFactory As VisualBasicOperationFactory, block As BoundBlock, locals As ImmutableArray(Of ILocalSymbol), semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As [Optional](Of Object), isImplicit As Boolean)
             MyBase.New(locals, semanticModel, syntax, type, constantValue, isImplicit)
             _operationFactory = operationFactory
-            _operations = operations
+            _block = block
         End Sub
 
         Protected Overrides Function CreateOperations() As ImmutableArray(Of IOperation)
-            Return _operationFactory.CreateFromArray(Of BoundStatement, IOperation)(_operations)
+            Return _operationFactory.CreateFromArray(Of BoundStatement, IOperation)(_block.Statements)
         End Function
     End Class
 
@@ -247,22 +241,20 @@ Namespace Microsoft.CodeAnalysis.Operations
         Inherits LazyConditionalAccessOperation
 
         Private ReadOnly _operationFactory As VisualBasicOperationFactory
-        Private ReadOnly _operation As BoundNode
-        Private ReadOnly _whenNotNull As BoundNode
+        Private ReadOnly _conditionalAccess As BoundConditionalAccess
 
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, operation As BoundNode, whenNotNull As BoundNode, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As [Optional](Of Object), isImplicit As Boolean)
+        Friend Sub New(operationFactory As VisualBasicOperationFactory, conditionalAccess As BoundConditionalAccess, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As [Optional](Of Object), isImplicit As Boolean)
             MyBase.New(semanticModel, syntax, type, constantValue, isImplicit)
             _operationFactory = operationFactory
-            _operation = operation
-            _whenNotNull = whenNotNull
+            _conditionalAccess = conditionalAccess
         End Sub
 
         Protected Overrides Function CreateOperation() As IOperation
-            Return _operationFactory.Create(_operation)
+            Return _operationFactory.Create(_conditionalAccess.Receiver)
         End Function
 
         Protected Overrides Function CreateWhenNotNull() As IOperation
-            Return _operationFactory.Create(_whenNotNull)
+            Return _operationFactory.Create(_conditionalAccess.AccessExpression)
         End Function
     End Class
 
@@ -270,28 +262,24 @@ Namespace Microsoft.CodeAnalysis.Operations
         Inherits LazyConditionalOperation
 
         Private ReadOnly _operationFactory As VisualBasicOperationFactory
-        Private ReadOnly _condition As BoundNode
-        Private ReadOnly _whenTrue As BoundNode
-        Private ReadOnly _whenFalse As BoundNode
+        Private ReadOnly _conditional As IBoundConditional
 
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, condition As BoundNode, whenTrue As BoundNode, whenFalse As BoundNode, isRef As Boolean, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As [Optional](Of Object), isImplicit As Boolean)
+        Friend Sub New(operationFactory As VisualBasicOperationFactory, conditional As IBoundConditional, isRef As Boolean, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As [Optional](Of Object), isImplicit As Boolean)
             MyBase.New(isRef, semanticModel, syntax, type, constantValue, isImplicit)
             _operationFactory = operationFactory
-            _condition = condition
-            _whenTrue = whenTrue
-            _whenFalse = whenFalse
+            _conditional = conditional
         End Sub
 
         Protected Overrides Function CreateCondition() As IOperation
-            Return _operationFactory.Create(_condition)
+            Return _operationFactory.Create(_conditional.Condition)
         End Function
 
         Protected Overrides Function CreateWhenTrue() As IOperation
-            Return _operationFactory.Create(_whenTrue)
+            Return _operationFactory.Create(_conditional.WhenTrue)
         End Function
 
         Protected Overrides Function CreateWhenFalse() As IOperation
-            Return _operationFactory.Create(_whenFalse)
+            Return _operationFactory.Create(_conditional.WhenFalseOpt)
         End Function
     End Class
 
@@ -299,22 +287,20 @@ Namespace Microsoft.CodeAnalysis.Operations
         Inherits LazyEventAssignmentOperation
 
         Private ReadOnly _operationFactory As VisualBasicOperationFactory
-        Private ReadOnly _eventReference As BoundNode
-        Private ReadOnly _handlerValue As BoundNode
+        Private ReadOnly _addRemoveHandlerStatement As BoundAddRemoveHandlerStatement
 
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, eventReference As BoundNode, handlerValue As BoundNode, adds As Boolean, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As [Optional](Of Object), isImplicit As Boolean)
+        Friend Sub New(operationFactory As VisualBasicOperationFactory, addRemoveHandlerStatement As BoundAddRemoveHandlerStatement, adds As Boolean, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As [Optional](Of Object), isImplicit As Boolean)
             MyBase.New(adds, semanticModel, syntax, type, constantValue, isImplicit)
             _operationFactory = operationFactory
-            _eventReference = eventReference
-            _handlerValue = handlerValue
+            _addRemoveHandlerStatement = addRemoveHandlerStatement
         End Sub
 
         Protected Overrides Function CreateEventReference() As IOperation
-            Return _operationFactory.Create(_eventReference)
+            Return _operationFactory.Create(_addRemoveHandlerStatement.EventAccess)
         End Function
 
         Protected Overrides Function CreateHandlerValue() As IOperation
-            Return _operationFactory.Create(_handlerValue)
+            Return _operationFactory.Create(_addRemoveHandlerStatement.Handler)
         End Function
     End Class
 
@@ -479,16 +465,16 @@ _operationFactory.CreateFromArray(Of BoundExpression, IOperation)(_boundForToLoo
         Inherits LazyInterpolatedStringOperation
 
         Private ReadOnly _operationFactory As VisualBasicOperationFactory
-        Private ReadOnly _parts As ImmutableArray(Of BoundNode)
+        Private ReadOnly _interpolatedStringExpression As BoundInterpolatedStringExpression
 
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, parts As ImmutableArray(Of BoundNode), semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As [Optional](Of Object), isImplicit As Boolean)
+        Friend Sub New(operationFactory As VisualBasicOperationFactory, interpolatedStringExpression As BoundInterpolatedStringExpression, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As [Optional](Of Object), isImplicit As Boolean)
             MyBase.New(semanticModel, syntax, type, constantValue, isImplicit)
             _operationFactory = operationFactory
-            _parts = parts
+            _interpolatedStringExpression = interpolatedStringExpression
         End Sub
 
         Protected Overrides Function CreateParts() As ImmutableArray(Of IInterpolatedStringContentOperation)
-            Return _operationFactory.CreateBoundInterpolatedStringContentOperation(_parts)
+            Return _operationFactory.CreateBoundInterpolatedStringContentOperation(_interpolatedStringExpression.Contents)
         End Function
     End Class
 
@@ -513,28 +499,24 @@ _operationFactory.CreateFromArray(Of BoundExpression, IOperation)(_boundForToLoo
         Inherits LazyInterpolationOperation
 
         Private ReadOnly _operationFactory As VisualBasicOperationFactory
-        Private ReadOnly _expression As BoundNode
-        Private ReadOnly _alignment As BoundNode
-        Private ReadOnly _formatString As BoundNode
+        Private ReadOnly _interpolation As BoundInterpolation
 
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, expression As BoundNode, alignment As BoundNode, formatString As BoundNode, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As [Optional](Of Object), isImplicit As Boolean)
+        Friend Sub New(operationFactory As VisualBasicOperationFactory, interpolation As BoundInterpolation, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As [Optional](Of Object), isImplicit As Boolean)
             MyBase.New(semanticModel, syntax, type, constantValue, isImplicit)
             _operationFactory = operationFactory
-            _expression = expression
-            _alignment = alignment
-            _formatString = formatString
+            _interpolation = interpolation
         End Sub
 
         Protected Overrides Function CreateExpression() As IOperation
-            Return _operationFactory.Create(_expression)
+            Return _operationFactory.Create(_interpolation.Expression)
         End Function
 
         Protected Overrides Function CreateAlignment() As IOperation
-            Return _operationFactory.Create(_alignment)
+            Return _operationFactory.Create(_interpolation.AlignmentOpt)
         End Function
 
         Protected Overrides Function CreateFormatString() As IOperation
-            Return _operationFactory.Create(_formatString)
+            Return _operationFactory.Create(_interpolation.FormatStringOpt)
         End Function
     End Class
 
@@ -542,16 +524,16 @@ _operationFactory.CreateFromArray(Of BoundExpression, IOperation)(_boundForToLoo
         Inherits LazyInvalidOperation
 
         Private ReadOnly _operationFactory As VisualBasicOperationFactory
-        Private ReadOnly _children As ImmutableArray(Of BoundNode)
+        Private ReadOnly _originalNode As IBoundNodeWithIOperationChildren
 
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, children As ImmutableArray(Of BoundNode), semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As [Optional](Of Object), isImplicit As Boolean)
+        Friend Sub New(operationFactory As VisualBasicOperationFactory, originalNode As IBoundNodeWithIOperationChildren, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As [Optional](Of Object), isImplicit As Boolean)
             MyBase.New(semanticModel, syntax, type, constantValue, isImplicit)
             _operationFactory = operationFactory
-            _children = children
+            _originalNode = originalNode
         End Sub
 
         Protected Overrides Function CreateChildren() As ImmutableArray(Of IOperation)
-            Return _operationFactory.CreateFromArray(Of BoundNode, IOperation)(_children)
+            Return _operationFactory.CreateFromArray(Of BoundNode, IOperation)(_originalNode.Children)
         End Function
     End Class
 
@@ -559,22 +541,20 @@ _operationFactory.CreateFromArray(Of BoundExpression, IOperation)(_boundForToLoo
         Inherits LazyInvocationOperation
 
         Private ReadOnly _operationFactory As VisualBasicOperationFactory
-        Private ReadOnly _boundCall As BoundCall
-        Private ReadOnly _instance As BoundNode
+        Private ReadOnly _invocable As IBoundInvocable
 
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, instance As BoundNode, boundCall As BoundCall, targetMethod As IMethodSymbol, isVirtual As Boolean, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As [Optional](Of Object), isImplicit As Boolean)
+        Friend Sub New(operationFactory As VisualBasicOperationFactory, invocable As IBoundInvocable, targetMethod As IMethodSymbol, isVirtual As Boolean, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As [Optional](Of Object), isImplicit As Boolean)
             MyBase.New(targetMethod, isVirtual, semanticModel, syntax, type, constantValue, isImplicit)
             _operationFactory = operationFactory
-            _instance = instance
-            _boundCall = boundCall
+            _invocable = invocable
         End Sub
 
         Protected Overrides Function CreateInstance() As IOperation
-            Return _operationFactory.CreateReceiverOperation(_instance, TargetMethod)
+            Return _operationFactory.CreateReceiverOperation(_invocable.InstanceOpt, TargetMethod)
         End Function
 
         Protected Overrides Function CreateArguments() As ImmutableArray(Of IArgumentOperation)
-            Return If(_boundCall IsNot Nothing, _operationFactory.DeriveArguments(_boundCall), ImmutableArray(Of IArgumentOperation).Empty)
+            Return If(_invocable.CallOpt IsNot Nothing, _operationFactory.DeriveArguments(_invocable.CallOpt), ImmutableArray(Of IArgumentOperation).Empty)
         End Function
     End Class
 
@@ -688,22 +668,20 @@ _operationFactory.CreateFromArray(Of BoundExpression, IOperation)(_boundForToLoo
         Inherits LazyLockOperation
 
         Private ReadOnly _operationFactory As VisualBasicOperationFactory
-        Private ReadOnly _lockedValue As BoundNode
-        Private ReadOnly _body As BoundNode
+        Private ReadOnly _lockStatement As BoundSyncLockStatement
 
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, lockedValue As BoundNode, body As BoundNode, lockTakenSymbol As ILocalSymbol, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As [Optional](Of Object), isImplicit As Boolean)
+        Friend Sub New(operationFactory As VisualBasicOperationFactory, lockStatement As BoundSyncLockStatement, lockTakenSymbol As ILocalSymbol, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As [Optional](Of Object), isImplicit As Boolean)
             MyBase.New(lockTakenSymbol, semanticModel, syntax, type, constantValue, isImplicit)
             _operationFactory = operationFactory
-            _lockedValue = lockedValue
-            _body = body
+            _lockStatement = lockStatement
         End Sub
 
         Protected Overrides Function CreateLockedValue() As IOperation
-            Return _operationFactory.Create(_lockedValue)
+            Return _operationFactory.Create(_lockStatement.LockExpression)
         End Function
 
         Protected Overrides Function CreateBody() As IOperation
-            Return _operationFactory.Create(_body)
+            Return _operationFactory.Create(_lockStatement.Body)
         End Function
     End Class
 
@@ -728,22 +706,20 @@ _operationFactory.CreateFromArray(Of BoundExpression, IOperation)(_boundForToLoo
         Inherits LazyCoalesceOperation
 
         Private ReadOnly _operationFactory As VisualBasicOperationFactory
-        Private ReadOnly _value As BoundNode
-        Private ReadOnly _whenNull As BoundNode
+        Private ReadOnly _conditionalExpression As BoundBinaryConditionalExpression
 
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, value As BoundNode, whenNull As BoundNode, convertibleValueConversion As IConvertibleConversion, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As [Optional](Of Object), isImplicit As Boolean)
+        Friend Sub New(operationFactory As VisualBasicOperationFactory, conditionalExpression As BoundBinaryConditionalExpression, convertibleValueConversion As IConvertibleConversion, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As [Optional](Of Object), isImplicit As Boolean)
             MyBase.New(convertibleValueConversion, semanticModel, syntax, type, constantValue, isImplicit)
             _operationFactory = operationFactory
-            _value = value
-            _whenNull = whenNull
+            _conditionalExpression = conditionalExpression
         End Sub
 
         Protected Overrides Function CreateValue() As IOperation
-            Return _operationFactory.Create(_value)
+            Return _operationFactory.Create(_conditionalExpression.TestExpression)
         End Function
 
         Protected Overrides Function CreateWhenNull() As IOperation
-            Return _operationFactory.Create(_whenNull)
+            Return _operationFactory.Create(_conditionalExpression.ElseExpression)
         End Function
     End Class
 
@@ -840,18 +816,18 @@ _operationFactory.CreateFromArray(Of BoundExpression, IOperation)(_boundForToLoo
         Inherits LazyPropertyReferenceOperation
 
         Private ReadOnly _operationFactory As VisualBasicOperationFactory
-        Private ReadOnly _instance As BoundNode
         Private ReadOnly _boundProperty As BoundPropertyAccess
 
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, instance As BoundNode, boundProperty As BoundPropertyAccess, [property] As IPropertySymbol, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As [Optional](Of Object), isImplicit As Boolean)
+        Friend Sub New(operationFactory As VisualBasicOperationFactory, boundProperty As BoundPropertyAccess, [property] As IPropertySymbol, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As [Optional](Of Object), isImplicit As Boolean)
             MyBase.New([property], semanticModel, syntax, type, constantValue, isImplicit)
             _operationFactory = operationFactory
-            _instance = instance
             _boundProperty = boundProperty
         End Sub
 
         Protected Overrides Function CreateInstance() As IOperation
-            Return _operationFactory.CreateReceiverOperation(_instance, [Property])
+            Return _operationFactory.CreateReceiverOperation(
+                If(_boundProperty.ReceiverOpt, _boundProperty.PropertyGroupOpt?.ReceiverOpt),
+                [Property])
         End Function
 
         Protected Overrides Function CreateArguments() As ImmutableArray(Of IArgumentOperation)
@@ -863,22 +839,20 @@ _operationFactory.CreateFromArray(Of BoundExpression, IOperation)(_boundForToLoo
         Inherits LazyRangeCaseClauseOperation
 
         Private ReadOnly _operationFactory As VisualBasicOperationFactory
-        Private ReadOnly _minimumValue As BoundNode
-        Private ReadOnly _maximumValue As BoundNode
+        Private ReadOnly _rangeCaseClause As BoundRangeCaseClause
 
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, minimumValue As BoundNode, maximumValue As BoundNode, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As [Optional](Of Object), isImplicit As Boolean)
+        Friend Sub New(operationFactory As VisualBasicOperationFactory, rangeCaseClause As BoundRangeCaseClause, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As [Optional](Of Object), isImplicit As Boolean)
             MyBase.New(semanticModel, syntax, type, constantValue, isImplicit)
             _operationFactory = operationFactory
-            _minimumValue = minimumValue
-            _maximumValue = maximumValue
+            _rangeCaseClause = rangeCaseClause
         End Sub
 
         Protected Overrides Function CreateMinimumValue() As IOperation
-            Return _operationFactory.Create(_minimumValue)
+            Return _operationFactory.Create(VisualBasicOperationFactory.GetCaseClauseValue(_rangeCaseClause.LowerBoundOpt, _rangeCaseClause.LowerBoundConditionOpt))
         End Function
 
         Protected Overrides Function CreateMaximumValue() As IOperation
-            Return _operationFactory.Create(_maximumValue)
+            Return _operationFactory.Create(VisualBasicOperationFactory.GetCaseClauseValue(_rangeCaseClause.UpperBoundOpt, _rangeCaseClause.UpperBoundConditionOpt))
         End Function
     End Class
 
@@ -962,22 +936,20 @@ _operationFactory.CreateFromArray(Of BoundExpression, IOperation)(_boundForToLoo
         Inherits LazySwitchOperation
 
         Private ReadOnly _operationFactory As VisualBasicOperationFactory
-        Private ReadOnly _value As BoundNode
-        Private ReadOnly _cases As ImmutableArray(Of BoundCaseBlock)
+        Private ReadOnly _selectStatement As BoundSelectStatement
 
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, value As BoundNode, cases As ImmutableArray(Of BoundCaseBlock), locals As ImmutableArray(Of ILocalSymbol), exitLabel As ILabelSymbol, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As [Optional](Of Object), isImplicit As Boolean)
+        Friend Sub New(operationFactory As VisualBasicOperationFactory, selectStatement As BoundSelectStatement, locals As ImmutableArray(Of ILocalSymbol), exitLabel As ILabelSymbol, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As [Optional](Of Object), isImplicit As Boolean)
             MyBase.New(locals, exitLabel, semanticModel, syntax, type, constantValue, isImplicit)
             _operationFactory = operationFactory
-            _value = value
-            _cases = cases
+            _selectStatement = selectStatement
         End Sub
 
         Protected Overrides Function CreateValue() As IOperation
-            Return _operationFactory.Create(_value)
+            Return _operationFactory.Create(_selectStatement.ExpressionStatement.Expression)
         End Function
 
         Protected Overrides Function CreateCases() As ImmutableArray(Of ISwitchCaseOperation)
-            Return _operationFactory.CreateFromArray(Of BoundCaseBlock, ISwitchCaseOperation)(_cases)
+            Return _operationFactory.CreateFromArray(Of BoundCaseBlock, ISwitchCaseOperation)(_selectStatement.CaseBlocks)
         End Function
     End Class
 
@@ -985,28 +957,24 @@ _operationFactory.CreateFromArray(Of BoundExpression, IOperation)(_boundForToLoo
         Inherits LazyTryOperation
 
         Private ReadOnly _operationFactory As VisualBasicOperationFactory
-        Private ReadOnly _body As BoundNode
-        Private ReadOnly _catches As ImmutableArray(Of BoundCatchBlock)
-        Private ReadOnly _finally As BoundNode
+        Private ReadOnly _tryStatement As BoundTryStatement
 
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, body As BoundNode, catches As ImmutableArray(Of BoundCatchBlock), [finally] As BoundNode, exitLabel As ILabelSymbol, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As [Optional](Of Object), isImplicit As Boolean)
+        Friend Sub New(operationFactory As VisualBasicOperationFactory, tryStatement As BoundTryStatement, exitLabel As ILabelSymbol, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As [Optional](Of Object), isImplicit As Boolean)
             MyBase.New(exitLabel, semanticModel, syntax, type, constantValue, isImplicit)
             _operationFactory = operationFactory
-            _body = body
-            _catches = catches
-            _finally = [finally]
+            _tryStatement = tryStatement
         End Sub
 
         Protected Overrides Function CreateBody() As IBlockOperation
-            Return DirectCast(_operationFactory.Create(_body), IBlockOperation)
+            Return DirectCast(_operationFactory.Create(_tryStatement.TryBlock), IBlockOperation)
         End Function
 
         Protected Overrides Function CreateCatches() As ImmutableArray(Of ICatchClauseOperation)
-            Return _operationFactory.CreateFromArray(Of BoundCatchBlock, ICatchClauseOperation)(_catches)
+            Return _operationFactory.CreateFromArray(Of BoundCatchBlock, ICatchClauseOperation)(_tryStatement.CatchBlocks)
         End Function
 
         Protected Overrides Function CreateFinally() As IBlockOperation
-            Return DirectCast(_operationFactory.Create(_finally), IBlockOperation)
+            Return DirectCast(_operationFactory.Create(_tryStatement.FinallyBlockOpt), IBlockOperation)
         End Function
     End Class
 
@@ -1014,16 +982,16 @@ _operationFactory.CreateFromArray(Of BoundExpression, IOperation)(_boundForToLoo
         Inherits LazyTupleOperation
 
         Private ReadOnly _operationFactory As VisualBasicOperationFactory
-        Private ReadOnly _elements As ImmutableArray(Of BoundExpression)
+        Private ReadOnly _tupleExpression As BoundTupleExpression
 
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, elements As ImmutableArray(Of BoundExpression), semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, naturalType As ITypeSymbol, constantValue As [Optional](Of Object), isImplicit As Boolean)
+        Friend Sub New(operationFactory As VisualBasicOperationFactory, tupleExpression As BoundTupleExpression, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, naturalType As ITypeSymbol, constantValue As [Optional](Of Object), isImplicit As Boolean)
             MyBase.New(semanticModel, syntax, type, naturalType, constantValue, isImplicit)
             _operationFactory = operationFactory
-            _elements = elements
+            _tupleExpression = tupleExpression
         End Sub
 
         Protected Overrides Function CreateElements() As ImmutableArray(Of IOperation)
-            Return SetParentOperation(_operationFactory.CreateFromArray(Of BoundExpression, IOperation)(_elements), Me)
+            Return _operationFactory.CreateFromArray(Of BoundExpression, IOperation)(_tupleExpression.Arguments)
         End Function
     End Class
 
@@ -1048,22 +1016,20 @@ _operationFactory.CreateFromArray(Of BoundExpression, IOperation)(_boundForToLoo
         Inherits LazyDynamicInvocationOperation
 
         Private ReadOnly _operationFactory As VisualBasicOperationFactory
-        Private ReadOnly _operation As BoundNode
-        Private ReadOnly _arguments As ImmutableArray(Of BoundExpression)
+        Private ReadOnly _lateInvocation As BoundLateInvocation
 
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, operation As BoundNode, arguments As ImmutableArray(Of BoundExpression), argumentNames As ImmutableArray(Of String), argumentRefKinds As ImmutableArray(Of RefKind), semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As [Optional](Of Object), isImplicit As Boolean)
+        Friend Sub New(operationFactory As VisualBasicOperationFactory, lateInvocation As BoundLateInvocation, argumentNames As ImmutableArray(Of String), argumentRefKinds As ImmutableArray(Of RefKind), semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As [Optional](Of Object), isImplicit As Boolean)
             MyBase.New(argumentNames, argumentRefKinds, semanticModel, syntax, type, constantValue, isImplicit)
             _operationFactory = operationFactory
-            _operation = operation
-            _arguments = arguments
+            _lateInvocation = lateInvocation
         End Sub
 
         Protected Overrides Function CreateOperation() As IOperation
-            Return _operationFactory.Create(_operation)
+            Return _operationFactory.Create(_lateInvocation.Member)
         End Function
 
         Protected Overrides Function CreateArguments() As ImmutableArray(Of IOperation)
-            Return _operationFactory.CreateFromArray(Of BoundExpression, IOperation)(_arguments)
+            Return _operationFactory.CreateFromArray(Of BoundExpression, IOperation)(_lateInvocation.ArgumentsOpt)
         End Function
     End Class
 
@@ -1109,16 +1075,16 @@ _operationFactory.CreateFromArray(Of BoundExpression, IOperation)(_boundForToLoo
         Inherits LazyVariableDeclarationGroupOperation
 
         Private ReadOnly _operationFactory As VisualBasicOperationFactory
-        Private ReadOnly _declarations As ImmutableArray(Of BoundLocalDeclarationBase)
+        Private ReadOnly _localDeclarations As IBoundLocalDeclarations
 
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, declarations As ImmutableArray(Of BoundLocalDeclarationBase), semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As [Optional](Of Object), isImplicit As Boolean)
+        Friend Sub New(operationFactory As VisualBasicOperationFactory, localDeclarations As IBoundLocalDeclarations, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As [Optional](Of Object), isImplicit As Boolean)
             MyBase.New(semanticModel, syntax, type, constantValue, isImplicit)
             _operationFactory = operationFactory
-            _declarations = declarations
+            _localDeclarations = localDeclarations
         End Sub
 
         Protected Overrides Function CreateDeclarations() As ImmutableArray(Of IVariableDeclarationOperation)
-            Return _operationFactory.GetVariableDeclarationStatementVariables(_declarations)
+            Return _operationFactory.GetVariableDeclarationStatementVariables(_localDeclarations.Declarations)
         End Function
     End Class
 
@@ -1126,28 +1092,24 @@ _operationFactory.CreateFromArray(Of BoundExpression, IOperation)(_boundForToLoo
         Inherits LazyWhileLoopOperation
 
         Private ReadOnly _operationFactory As VisualBasicOperationFactory
-        Private ReadOnly _condition As BoundNode
-        Private ReadOnly _body As BoundNode
-        Private ReadOnly _ignoredCondition As BoundNode
+        Private ReadOnly _conditionalLoop As IBoundConditionalLoop
 
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, condition As BoundNode, body As BoundNode, ignoredCondition As BoundNode, locals As ImmutableArray(Of ILocalSymbol), continueLabel As ILabelSymbol, exitLabel As ILabelSymbol, conditionIsTop As Boolean, conditionIsUntil As Boolean, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As [Optional](Of Object), isImplicit As Boolean)
+        Friend Sub New(operationFactory As VisualBasicOperationFactory, conditionalLoop As IBoundConditionalLoop, locals As ImmutableArray(Of ILocalSymbol), continueLabel As ILabelSymbol, exitLabel As ILabelSymbol, conditionIsTop As Boolean, conditionIsUntil As Boolean, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As [Optional](Of Object), isImplicit As Boolean)
             MyBase.New(locals, continueLabel, exitLabel, conditionIsTop, conditionIsUntil, semanticModel, syntax, type, constantValue, isImplicit)
             _operationFactory = operationFactory
-            _condition = condition
-            _body = body
-            _ignoredCondition = ignoredCondition
+            _conditionalLoop = conditionalLoop
         End Sub
 
         Protected Overrides Function CreateCondition() As IOperation
-            Return _operationFactory.Create(_condition)
+            Return _operationFactory.Create(_conditionalLoop.Condition)
         End Function
 
         Protected Overrides Function CreateBody() As IOperation
-            Return _operationFactory.Create(_body)
+            Return _operationFactory.Create(_conditionalLoop.Body)
         End Function
 
         Protected Overrides Function CreateIgnoredCondition() As IOperation
-            Return _operationFactory.Create(_ignoredCondition)
+            Return _operationFactory.Create(_conditionalLoop.IgnoredCondition)
         End Function
     End Class
 
@@ -1155,45 +1117,20 @@ _operationFactory.CreateFromArray(Of BoundExpression, IOperation)(_boundForToLoo
         Inherits LazyWithOperation
 
         Private ReadOnly _operationFactory As VisualBasicOperationFactory
-        Private ReadOnly _body As BoundNode
-        Private ReadOnly _value As BoundNode
+        Private ReadOnly _withStatement As BoundWithStatement
 
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, body As BoundNode, value As BoundNode, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As [Optional](Of Object), isImplicit As Boolean)
+        Friend Sub New(operationFactory As VisualBasicOperationFactory, withStatement As BoundWithStatement, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As [Optional](Of Object), isImplicit As Boolean)
             MyBase.New(semanticModel, syntax, type, constantValue, isImplicit)
             _operationFactory = operationFactory
-            _body = body
-            _value = value
+            _withStatement = withStatement
         End Sub
 
         Protected Overrides Function CreateBody() As IOperation
-            Return _operationFactory.Create(_body)
+            Return _operationFactory.Create(_withStatement.Body)
         End Function
 
         Protected Overrides Function CreateValue() As IOperation
-            Return _operationFactory.Create(_value)
-        End Function
-    End Class
-
-    Friend NotInheritable Class VisualBasicLazyLocalFunctionOperation
-        Inherits LazyLocalFunctionOperation
-
-        Private ReadOnly _operationFactory As VisualBasicOperationFactory
-        Private ReadOnly _body As BoundNode
-        Private ReadOnly _ignoredBody As BoundNode
-
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, body As BoundNode, ignoredBody As BoundNode, symbol As IMethodSymbol, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As [Optional](Of Object), isImplicit As Boolean)
-            MyBase.New(symbol, semanticModel, syntax, type, constantValue, isImplicit)
-            _operationFactory = operationFactory
-            _body = body
-            _ignoredBody = ignoredBody
-        End Sub
-
-        Protected Overrides Function CreateBody() As IBlockOperation
-            Return DirectCast(_operationFactory.Create(_body), IBlockOperation)
-        End Function
-
-        Protected Overrides Function CreateIgnoredBody() As IBlockOperation
-            Return DirectCast(_operationFactory.Create(_ignoredBody), IBlockOperation)
+            Return _operationFactory.Create(_withStatement.OriginalExpression)
         End Function
     End Class
 
@@ -1201,16 +1138,16 @@ _operationFactory.CreateFromArray(Of BoundExpression, IOperation)(_boundForToLoo
         Inherits LazyObjectOrCollectionInitializerOperation
 
         Private ReadOnly _operationFactory As VisualBasicOperationFactory
-        Private ReadOnly _initializers As ImmutableArray(Of BoundExpression)
+        Private ReadOnly _objectOrCollectionInitializer As BoundObjectInitializerExpressionBase
 
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, initializers As ImmutableArray(Of BoundExpression), semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As [Optional](Of Object), isImplicit As Boolean)
+        Friend Sub New(operationFactory As VisualBasicOperationFactory, objectOrCollectionInitializer As BoundObjectInitializerExpressionBase, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As [Optional](Of Object), isImplicit As Boolean)
             MyBase.New(semanticModel, syntax, type, constantValue, isImplicit)
             _operationFactory = operationFactory
-            _initializers = initializers
+            _objectOrCollectionInitializer = objectOrCollectionInitializer
         End Sub
 
         Protected Overrides Function CreateInitializers() As ImmutableArray(Of IOperation)
-            Return _operationFactory.CreateFromArray(Of BoundExpression, IOperation)(_initializers)
+            Return _operationFactory.CreateFromArray(Of BoundExpression, IOperation)(_objectOrCollectionInitializer.Initializers)
         End Function
     End Class
 
@@ -1235,22 +1172,20 @@ _operationFactory.CreateFromArray(Of BoundExpression, IOperation)(_boundForToLoo
         Inherits LazyAggregateQueryOperation
 
         Private ReadOnly _operationFactory As VisualBasicOperationFactory
-        Private ReadOnly _group As BoundNode
-        Private ReadOnly _aggregation As BoundNode
+        Private ReadOnly _aggregateClause As BoundAggregateClause
 
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, group As BoundNode, aggregation As BoundNode, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As [Optional](Of Object), isImplicit As Boolean)
+        Friend Sub New(operationFactory As VisualBasicOperationFactory, aggregateClause As BoundAggregateClause, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As [Optional](Of Object), isImplicit As Boolean)
             MyBase.New(semanticModel, syntax, type, constantValue, isImplicit)
             _operationFactory = operationFactory
-            _group = group
-            _aggregation = aggregation
+            _aggregateClause = aggregateClause
         End Sub
 
         Protected Overrides Function CreateGroup() As IOperation
-            Return _operationFactory.Create(_group)
+            Return _operationFactory.Create(_aggregateClause.CapturedGroupOpt)
         End Function
 
         Protected Overrides Function CreateAggregation() As IOperation
-            Return _operationFactory.Create(_aggregation)
+            Return _operationFactory.Create(_aggregateClause.UnderlyingExpression)
         End Function
     End Class
 
@@ -1275,16 +1210,16 @@ _operationFactory.CreateFromArray(Of BoundExpression, IOperation)(_boundForToLoo
         Inherits LazyReDimOperation
 
         Private ReadOnly _operationFactory As VisualBasicOperationFactory
-        Private ReadOnly _clauses As ImmutableArray(Of BoundRedimClause)
+        Private ReadOnly _redimStatement As BoundRedimStatement
 
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, clauses As ImmutableArray(Of BoundRedimClause), preserve As Boolean, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As [Optional](Of Object), isImplicit As Boolean)
+        Friend Sub New(operationFactory As VisualBasicOperationFactory, redimStatement As BoundRedimStatement, preserve As Boolean, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As [Optional](Of Object), isImplicit As Boolean)
             MyBase.New(preserve, semanticModel, syntax, type, constantValue, isImplicit)
             _operationFactory = operationFactory
-            _clauses = clauses
+            _redimStatement = redimStatement
         End Sub
 
         Protected Overrides Function CreateClauses() As ImmutableArray(Of IReDimClauseOperation)
-            Return _operationFactory.CreateFromArray(Of BoundRedimClause, IReDimClauseOperation)(_clauses)
+            Return _operationFactory.CreateFromArray(Of BoundRedimClause, IReDimClauseOperation)(_redimStatement.Clauses)
         End Function
     End Class
 
@@ -1292,22 +1227,20 @@ _operationFactory.CreateFromArray(Of BoundExpression, IOperation)(_boundForToLoo
         Inherits LazyReDimClauseOperation
 
         Private ReadOnly _operationFactory As VisualBasicOperationFactory
-        Private ReadOnly _operand As BoundNode
-        Private ReadOnly _dimensionSizes As ImmutableArray(Of BoundExpression)
+        Private ReadOnly _redimClause As BoundRedimClause
 
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, operand As BoundNode, dimensionSizes As ImmutableArray(Of BoundExpression), semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As [Optional](Of Object), isImplicit As Boolean)
+        Friend Sub New(operationFactory As VisualBasicOperationFactory, redimClause As BoundRedimClause, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As [Optional](Of Object), isImplicit As Boolean)
             MyBase.New(semanticModel, syntax, type, constantValue, isImplicit)
             _operationFactory = operationFactory
-            _operand = operand
-            _dimensionSizes = dimensionSizes
+            _redimClause = redimClause
         End Sub
 
         Protected Overrides Function CreateOperand() As IOperation
-            Return _operationFactory.Create(_operand)
+            Return _operationFactory.Create(_redimClause.Operand)
         End Function
 
         Protected Overrides Function CreateDimensionSizes() As ImmutableArray(Of IOperation)
-            Return _operationFactory.CreateFromArray(Of BoundExpression, IOperation)(_dimensionSizes)
+            Return _operationFactory.CreateFromArray(Of BoundExpression, IOperation)(_redimClause.Indices)
         End Function
     End Class
 End Namespace
