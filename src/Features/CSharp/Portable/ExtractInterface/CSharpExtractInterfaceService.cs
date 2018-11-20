@@ -74,6 +74,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractInterface
             INamedTypeSymbol _2, INamedTypeSymbol _3, 
             IEnumerable<ISymbol> _4, Dictionary<ISymbol, SyntaxAnnotation> _5, CancellationToken _6)
         {
+            // In C#, member implementations do not always need
+            // to be explicitly added. It's safe enough to return
+            // the passed in solution
             return unformattedSolution;
         }
     }

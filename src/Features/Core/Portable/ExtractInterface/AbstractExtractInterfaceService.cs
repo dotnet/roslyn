@@ -54,17 +54,17 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
                 : ImmutableArray<ExtractInterfaceCodeAction>.Empty;
         }
 
-        public async Task<ExtractInterfaceResult> ExtractInterfaceAsync(
+        public ExtractInterfaceResult ExtractInterface(
             Document documentWithTypeToExtractFrom,
             int position,
             Action<string, NotificationSeverity> errorHandler,
             CancellationToken cancellationToken)
         {
-            var typeAnalysisResult = await AnalyzeTypeAtPositionAsync(
-                documentWithTypeToExtractFrom, 
-                position, 
-                TypeDiscoveryRule.TypeDeclaration, 
-                cancellationToken).ConfigureAwait(false);
+            var typeAnalysisResult = AnalyzeTypeAtPositionAsync(
+                documentWithTypeToExtractFrom,
+                position,
+                TypeDiscoveryRule.TypeDeclaration,
+                cancellationToken).WaitAndGetResult_CanCallOnBackground(cancellationToken);
 
             if (!typeAnalysisResult.CanExtractInterface)
             {
@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
                 return new ExtractInterfaceResult(succeeded: false);
             }
 
-            return await ExtractInterfaceFromAnalyzedTypeAsync(typeAnalysisResult, cancellationToken).ConfigureAwait(false);
+            return ExtractInterfaceFromAnalyzedType(typeAnalysisResult, cancellationToken);
         }
 
         public async Task<ExtractInterfaceTypeAnalysisResult> AnalyzeTypeAtPositionAsync(
@@ -107,12 +107,15 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
             return new ExtractInterfaceTypeAnalysisResult(this, document, typeNode, typeToExtractFrom, extractableMembers);
         }
 
-        public Task<ExtractInterfaceResult> ExtractInterfaceFromAnalyzedTypeAsync(ExtractInterfaceTypeAnalysisResult refactoringResult, CancellationToken cancellationToken)
+        public ExtractInterfaceResult ExtractInterfaceFromAnalyzedType(ExtractInterfaceTypeAnalysisResult refactoringResult, CancellationToken cancellationToken)
         {
             var containingNamespaceDisplay = refactoringResult.TypeToExtractFrom.ContainingNamespace.IsGlobalNamespace
                 ? string.Empty
                 : refactoringResult.TypeToExtractFrom.ContainingNamespace.ToDisplayString();
 
+            // GetExtractInterfaceOptions will potentially show a UI dialog, and may be 
+            // expected to mantain the same calling thread. After this call, 
+            // everything else can be done in a background thread
             var extractInterfaceOptions = GetExtractInterfaceOptions(
                 refactoringResult.DocumentToExtractFrom,
                 refactoringResult.TypeToExtractFrom,
@@ -122,10 +125,10 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
 
             if (extractInterfaceOptions.IsCancelled)
             {
-                return Task.FromResult(new ExtractInterfaceResult(succeeded: false));
+                return new ExtractInterfaceResult(succeeded: false);
             }
 
-            return ExtractInterfaceFromAnalyzedTypeAsync(refactoringResult, extractInterfaceOptions, cancellationToken);
+            return ExtractInterfaceFromAnalyzedTypeAsync(refactoringResult, extractInterfaceOptions, cancellationToken).WaitAndGetResult_CanCallOnBackground(cancellationToken);
         }
 
         public async Task<ExtractInterfaceResult> ExtractInterfaceFromAnalyzedTypeAsync(
@@ -362,6 +365,9 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
 
         private async Task<Solution> GetFormattedSolutionAsync(Solution unformattedSolution, IEnumerable<DocumentId> documentIds, CancellationToken cancellationToken)
         {
+            // Since code action performs formatting and simplification on a single document, 
+            // this ensures that anything marked with formatter or simplifier annotations gets 
+            // correctly handled as long as it it's in the listed documents
             var formattedSolution = unformattedSolution;
             foreach (var documentId in documentIds)
             {

@@ -56,7 +56,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ExtractInterfac
 
                 return new ExtractInterfaceOptionsResult(
                     isCancelled: false,
-                    includedMembers: includedMembers,
+                    includedMembers: includedMembers.AsImmutable(),
                     interfaceName: viewModel.InterfaceName.Trim(),
                     fileName: viewModel.FileName.Trim(),
                     location: GetLocation(viewModel.Destination));

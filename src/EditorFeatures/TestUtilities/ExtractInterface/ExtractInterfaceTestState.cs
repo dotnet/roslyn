@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ExtractInterface
 
         public ExtractInterfaceResult ExtractViaCommand()
         {
-            return ExtractInterfaceService.ExtractInterfaceAsync(
+            return ExtractInterfaceService.ExtractInterface(
                 ExtractFromDocument,
                 _testDocument.CursorPosition.Value,
                 (errorMessage, severity) =>
@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ExtractInterface
                     this.ErrorMessage = errorMessage;
                     this.ErrorSeverity = severity;
                 },
-                CancellationToken.None).WaitAndGetResult_CanCallOnBackground(CancellationToken.None);
+                CancellationToken.None);
         }
 
         public void Dispose()

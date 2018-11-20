@@ -71,11 +71,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ExtractInterface
             // and also will take it into consideration when measuring command handling duration.
             context.OperationContext.TakeOwnership();
             var extractInterfaceService = document.GetLanguageService<AbstractExtractInterfaceService>();
-            var result = extractInterfaceService.ExtractInterfaceAsync(
+            var result = extractInterfaceService.ExtractInterface(
                 document,
                 caretPoint.Value.Position,
                 (errorMessage, severity) => workspace.Services.GetService<INotificationService>().SendNotification(errorMessage, severity: severity),
-                CancellationToken.None).WaitAndGetResult_CanCallOnBackground(CancellationToken.None);
+                CancellationToken.None);
 
             if (result == null || !result.Succeeded)
             {
