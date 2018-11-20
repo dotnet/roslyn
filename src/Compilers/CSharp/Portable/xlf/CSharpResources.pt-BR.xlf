@@ -52,11 +52,6 @@
         <target state="new">'else' cannot start a statement.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_ExplicitNonNullTypesAttribute">
-        <source>Explicit application of 'System.Runtime.CompilerServices.NonNullTypesAttribute' is not allowed.</source>
-        <target state="new">Explicit application of 'System.Runtime.CompilerServices.NonNullTypesAttribute' is not allowed.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_ExplicitNullableAttribute">
         <source>Explicit application of 'System.Runtime.CompilerServices.NullableAttribute' is not allowed.</source>
         <target state="new">Explicit application of 'System.Runtime.CompilerServices.NullableAttribute' is not allowed.</target>
@@ -315,11 +310,6 @@
       <trans-unit id="IDS_FeatureUnmanagedGenericTypeConstraint">
         <source>unmanaged generic type constraints</source>
         <target state="new">unmanaged generic type constraints</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="IDS_InjectedDeclaration">
-        <source>injected declaration</source>
-        <target state="new">injected declaration</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_NULL">

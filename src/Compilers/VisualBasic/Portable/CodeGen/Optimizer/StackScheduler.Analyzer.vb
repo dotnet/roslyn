@@ -196,7 +196,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
 
                     Return result
 
-                Catch ex As Exception When StackGuard.IsInsufficientExecutionStackException(ex)
+                Catch ex As InsufficientExecutionStackException
                     Throw New CancelledByStackGuardException(ex, node)
                 End Try
             End Function

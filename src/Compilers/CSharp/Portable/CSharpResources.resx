@@ -4284,9 +4284,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="IDS_Text" xml:space="preserve">
     <value>&lt;text&gt;</value>
   </data>
-  <data name="IDS_InjectedDeclaration" xml:space="preserve">
-    <value>injected declaration</value>
-  </data>
   <data name="IDS_FeatureNullPropagatingOperator" xml:space="preserve">
     <value>null propagating operator</value>
   </data>
@@ -5628,9 +5625,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_BadDynamicAwaitForEach" xml:space="preserve">
     <value>Cannot use a collection of dynamic type in an asynchronous foreach</value>
-  </data>
-  <data name="ERR_ExplicitNonNullTypesAttribute" xml:space="preserve">
-    <value>Explicit application of 'System.Runtime.CompilerServices.NonNullTypesAttribute' is not allowed.</value>
   </data>
   <data name="ERR_NullableDirectiveQualifierExpected" xml:space="preserve">
     <value>Expected enable or disable</value>

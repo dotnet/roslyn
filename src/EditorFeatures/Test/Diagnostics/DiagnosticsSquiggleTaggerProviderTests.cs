@@ -279,7 +279,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             {
                 context.RegisterSyntaxTreeAction(c =>
                 {
-                    c.ReportDiagnostic(Diagnostic.Create(_rule, Location.Create(c.Tree, new Text.TextSpan(0, 1))));
+                    c.ReportDiagnostic(Diagnostic.Create(_rule, Location.Create(c.Tree, new TextSpan(0, 1))));
                 });
             }
 

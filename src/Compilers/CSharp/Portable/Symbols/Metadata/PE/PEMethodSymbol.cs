@@ -583,7 +583,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             bool isBadParameter;
 
             string key = ExtraAnnotations.MakeMethodKey(this, paramInfo);
-            ImmutableArray<ImmutableArray<bool>> extraMethodAnnotations = ExtraAnnotations.GetExtraAnnotations(key);
+            ImmutableArray<ImmutableArray<byte>> extraMethodAnnotations = ExtraAnnotations.GetExtraAnnotations(key);
 
             if (count > 0)
             {
@@ -591,7 +591,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 for (int i = 0; i < count; i++)
                 {
                     // zero-th annotation is for the return type
-                    ImmutableArray<bool> extraAnnotations = extraMethodAnnotations.IsDefault ? default : extraMethodAnnotations[i + 1];
+                    ImmutableArray<byte> extraAnnotations = extraMethodAnnotations.IsDefault ? default : extraMethodAnnotations[i + 1];
 
                     builder.Add(PEParameterSymbol.Create(
                         moduleSymbol, this, this.IsMetadataVirtual(), i,
@@ -615,7 +615,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             paramInfo[0].Type = returnType;
 
-            ImmutableArray<bool> extraReturnAnnotations = extraMethodAnnotations.IsDefault ? default : extraMethodAnnotations[0];
+            ImmutableArray<byte> extraReturnAnnotations = extraMethodAnnotations.IsDefault ? default : extraMethodAnnotations[0];
             var returnParam = PEParameterSymbol.Create(
                 moduleSymbol, this, this.IsMetadataVirtual(), 0,
                 paramInfo[0], extraReturnAnnotations, isReturn: true, out isBadParameter);
@@ -715,9 +715,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             get
             {
-                var moduleSymbol = _containingType.ContainingPEModule;
-                bool nonNullTypes;
-                return moduleSymbol.Module.HasNonNullTypesAttribute(_handle, out nonNullTypes) ? nonNullTypes : base.NonNullTypes;
+                throw ExceptionUtilities.Unreachable;
             }
         }
 

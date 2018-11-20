@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Roslyn.Utilities;
 
@@ -93,9 +94,8 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
             // Some combination we didn't anticipate.  Can't do anything here.  Log the issue
             // and bail out.
-            Logger.Log(
-                FunctionId.Refactoring_ExtractMethod_UnknownMatrixItem,
-                KeyValueLogMessage.Create(d => d["unknown_key"] = key.ToString()));
+            FatalError.ReportWithoutCrash(new Exception($"extract method encountered unknown states: {key.ToString()}"));
+
             return false;
         }
 

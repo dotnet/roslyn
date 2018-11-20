@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "15.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class CSharpResources {
@@ -4314,15 +4314,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_ExplicitMethodImplAccessor {
             get {
                 return ResourceManager.GetString("ERR_ExplicitMethodImplAccessor", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Explicit application of &apos;System.Runtime.CompilerServices.NonNullTypesAttribute&apos; is not allowed..
-        /// </summary>
-        internal static string ERR_ExplicitNonNullTypesAttribute {
-            get {
-                return ResourceManager.GetString("ERR_ExplicitNonNullTypesAttribute", resourceCulture);
             }
         }
         
@@ -11380,15 +11371,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string IDS_GlobalNamespace {
             get {
                 return ResourceManager.GetString("IDS_GlobalNamespace", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to injected declaration.
-        /// </summary>
-        internal static string IDS_InjectedDeclaration {
-            get {
-                return ResourceManager.GetString("IDS_InjectedDeclaration", resourceCulture);
             }
         }
         

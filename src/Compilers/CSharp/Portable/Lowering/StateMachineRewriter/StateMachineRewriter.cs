@@ -1,10 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -27,6 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected int nextFreeHoistedLocalSlot;
         protected IReadOnlySet<Symbol> hoistedVariables;
         protected Dictionary<Symbol, CapturedSymbolReplacement> initialParameters;
+        protected FieldSymbol initialThreadIdField;
 
         protected StateMachineRewriter(
             BoundStatement body,
@@ -55,9 +54,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// True if the initial values of locals in the rewritten method need to be preserved. (e.g. enumerable iterator methods)
+        /// True if the initial values of locals in the rewritten method and the initial thread ID need to be preserved. (e.g. enumerable iterator methods and async-enumerable iterator methods)
         /// </summary>
-        protected abstract bool PreserveInitialParameterValues { get; }
+        protected abstract bool PreserveInitialParameterValuesAndThreadId { get; }
 
         /// <summary>
         /// Add fields to the state machine class that control the state machine.
@@ -90,8 +89,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             GenerateControlFields();
 
+            if (PreserveInitialParameterValuesAndThreadId && CanGetThreadId())
+            {
+                // if it is an enumerable or async-enumerable, and either Environment.CurrentManagedThreadId or Thread.ManagedThreadId are available
+                // add a field: int initialThreadId
+                initialThreadIdField = F.StateMachineField(F.SpecialType(SpecialType.System_Int32), GeneratedNames.MakeIteratorCurrentThreadIdFieldName());
+            }
+
             // fields for the initial values of all the parameters of the method
-            if (PreserveInitialParameterValues)
+            if (PreserveInitialParameterValuesAndThreadId)
             {
                 initialParameters = new Dictionary<Symbol, CapturedSymbolReplacement>();
             }
@@ -212,7 +218,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var proxyField = F.StateMachineField(containingType, GeneratedNames.ThisProxyFieldName(), isPublic: true, isThis: true);
                         proxiesBuilder.Add(parameter, new CapturedToStateMachineFieldReplacement(proxyField, isReusable: false));
 
-                        if (PreserveInitialParameterValues)
+                        if (PreserveInitialParameterValuesAndThreadId)
                         {
                             var initialThis = containingType.IsStructType() ?
                                 F.StateMachineField(containingType, GeneratedNames.StateMachineThisParameterProxyName(), isPublic: true, isThis: true) : proxyField;
@@ -224,10 +230,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         // The field needs to be public iff it is initialized directly from the kickoff method 
                         // (i.e. not for IEnumerable which loads the values from parameter proxies).
-                        var proxyField = F.StateMachineField(typeMap.SubstituteType(parameter.Type.TypeSymbol).TypeSymbol, parameter.Name, isPublic: !PreserveInitialParameterValues);
+                        var proxyField = F.StateMachineField(typeMap.SubstituteType(parameter.Type.TypeSymbol).TypeSymbol, parameter.Name, isPublic: !PreserveInitialParameterValuesAndThreadId);
                         proxiesBuilder.Add(parameter, new CapturedToStateMachineFieldReplacement(proxyField, isReusable: false));
 
-                        if (PreserveInitialParameterValues)
+                        if (PreserveInitialParameterValuesAndThreadId)
                         {
                             var field = F.StateMachineField(typeMap.SubstituteType(parameter.Type.TypeSymbol).TypeSymbol, GeneratedNames.StateMachineParameterProxyFieldName(parameter.Name), isPublic: true);
                             initialParameters.Add(parameter, new CapturedToStateMachineFieldReplacement(field, isReusable: false));
@@ -265,7 +271,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             InitializeStateMachine(bodyBuilder, frameType, stateMachineVariable);
 
             // plus code to initialize all of the parameter proxies result.proxy
-            var proxies = PreserveInitialParameterValues ? initialParameters : nonReusableLocalProxies;
+            var proxies = PreserveInitialParameterValuesAndThreadId ? initialParameters : nonReusableLocalProxies;
 
             // starting with the "this" proxy
             if (!method.IsStatic)
@@ -332,6 +338,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected BoundExpression MakeCurrentThreadId()
         {
             Debug.Assert(CanGetThreadId());
+
+            // .NET Core has removed the Thread class. We can get the managed thread id by making a call to
+            // Environment.CurrentManagedThreadId. If that method is not present (pre 4.5) fall back to the old behavior.
+
             var currentManagedThreadIdProperty = (PropertySymbol)F.WellKnownMember(WellKnownMember.System_Environment__CurrentManagedThreadId, isOptional: true);
             if ((object)currentManagedThreadIdProperty != null)
             {
@@ -343,6 +353,93 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return F.Property(F.Property(WellKnownMember.System_Threading_Thread__CurrentThread), WellKnownMember.System_Threading_Thread__ManagedThreadId);
+        }
+
+        /// <summary>
+        /// Generate the GetEnumerator() method for iterators and GetAsyncEnumerator() for async-iterators.
+        /// </summary>
+        protected SynthesizedImplementationMethod GenerateIteratorGetEnumerator(MethodSymbol getEnumeratorMethod, ref BoundExpression managedThreadId, int initialState)
+        {
+            // Produces:
+            //    {StateMachineType} result;
+            //    if (this.initialThreadId == {managedThreadId} && this.state == -2)
+            //    {
+            //        this.state = {initialState};
+            //        result = this;
+            //    }
+            //    else
+            //    {
+            //        result = new {StateMachineType}({initialState});
+            //    }
+            //    result.parameter = this.parameterProxy; // copy all of the parameter proxies
+
+            // The implementation doesn't depend on the method body of the iterator method.
+            // Only on its parameters and staticness.
+            var getEnumerator = OpenMethodImplementation(
+                getEnumeratorMethod,
+                hasMethodBodyDependency: false);
+
+            var bodyBuilder = ArrayBuilder<BoundStatement>.GetInstance();
+            // {StateMachineType} result;
+            var resultVariable = F.SynthesizedLocal(stateMachineType, null);
+            // result = new {StateMachineType}({initialState})
+            BoundStatement makeIterator = F.Assignment(F.Local(resultVariable), F.New(stateMachineType.Constructor, F.Literal(initialState)));
+
+            var thisInitialized = F.GenerateLabel("thisInitialized");
+
+            if ((object)initialThreadIdField != null)
+            {
+                managedThreadId = MakeCurrentThreadId();
+                makeIterator = F.If(
+                    // if (this.state == -2 && this.initialThreadId == Thread.CurrentThread.ManagedThreadId)
+                    condition: F.LogicalAnd(
+                            F.IntEqual(F.Field(F.This(), stateField), F.Literal(StateMachineStates.FinishedStateMachine)),
+                        F.IntEqual(F.Field(F.This(), initialThreadIdField), managedThreadId)),
+                    thenClause: F.Block(
+                            F.Assignment(F.Field(F.This(), stateField), F.Literal(initialState)), // this.state = {initialState};
+                            F.Assignment(F.Local(resultVariable), F.This()), // result = this;
+                            method.IsStatic || method.ThisParameter.Type.IsReferenceType ? // if this is a reference type, no need to copy it since it is not assignable
+                                F.Goto(thisInitialized) : // goto thisInitialized
+                                (BoundStatement)F.StatementList()),
+                    // else result = new {StateMachineType}({initialState})
+                    elseClauseOpt: makeIterator);
+            }
+
+            bodyBuilder.Add(makeIterator);
+
+            // Initialize all the parameter copies
+            var copySrc = initialParameters;
+            var copyDest = nonReusableLocalProxies;
+            if (!method.IsStatic)
+            {
+                // starting with "this"
+                CapturedSymbolReplacement proxy;
+                if (copyDest.TryGetValue(method.ThisParameter, out proxy))
+                {
+                    bodyBuilder.Add(
+                        F.Assignment(
+                            proxy.Replacement(F.Syntax, stateMachineType => F.Local(resultVariable)),
+                            copySrc[method.ThisParameter].Replacement(F.Syntax, stateMachineType => F.This())));
+                }
+            }
+
+            bodyBuilder.Add(F.Label(thisInitialized));
+
+            foreach (var parameter in method.Parameters)
+            {
+                CapturedSymbolReplacement proxy;
+                if (copyDest.TryGetValue(parameter, out proxy))
+                {
+                    bodyBuilder.Add(
+                        F.Assignment(
+                            proxy.Replacement(F.Syntax, stateMachineType => F.Local(resultVariable)),
+                            copySrc[parameter].Replacement(F.Syntax, stateMachineType => F.This())));
+                }
+            }
+
+            bodyBuilder.Add(F.Return(F.Local(resultVariable)));
+            F.CloseMethod(F.Block(ImmutableArray.Create(resultVariable), bodyBuilder.ToImmutableAndFree()));
+            return getEnumerator;
         }
 
         /// <summary>

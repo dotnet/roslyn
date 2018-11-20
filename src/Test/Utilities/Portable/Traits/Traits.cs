@@ -146,6 +146,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string CodeActionsUseLocalFunction = "CodeActions.UseLocalFunction";
             public const string CodeActionsUseNullPropagation = "CodeActions.UseNullPropagation";
             public const string CodeActionsUseNamedArguments = "CodeActions.UseNamedArguments";
+            public const string CodeActionsNameTupleElement = "CodeActions.NameTupleElement";
             public const string CodeActionsUseObjectInitializer = "CodeActions.UseObjectInitializer";
             public const string CodeActionsUseRangeOperator = "CodeActions.UseRangeOperator";
             public const string CodeActionsUseThrowExpression = "CodeActions.UseThrowExpression";
