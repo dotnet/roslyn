@@ -2,7 +2,7 @@ phases:
 - phase: Windows_Desktop_Unit_Tests
   queue:
     name: dotnet-external-temp
-    timeoutInMinutes: 90
+    timeoutInMinutes: 120
     parallel: 4
     matrix:
       debug_32:
@@ -41,7 +41,7 @@ phases:
 - phase: Windows_Desktop_Spanish_Unit_Tests
   queue:
     name: dnceng-windows-spanish-external-temp
-    timeoutInMinutes: 90
+    timeoutInMinutes: 120
 
   steps:
     - script: build/scripts/cibuild.cmd -configuration Debug -testDesktop
@@ -66,7 +66,7 @@ phases:
 - phase: Windows_CoreClr_Unit_Tests
   queue:
     name: dotnet-external-temp
-    timeoutInMinutes: 90
+    timeoutInMinutes: 120
     parallel: 2
     matrix:
       debug:
@@ -97,7 +97,7 @@ phases:
 - phase: Windows_Determinism_Test
   queue:
     name: dotnet-external-temp
-    timeoutInMinutes: 90
+    timeoutInMinutes: 120
   steps:
     - script: build/scripts/cibuild.cmd -testDeterminism
       displayName: Build - Validate determinism
@@ -113,7 +113,7 @@ phases:
 - phase: Windows_Correctness_Test
   queue:
     name: dotnet-external-temp
-    timeoutInMinutes: 90
+    timeoutInMinutes: 120
   steps:
     - script: build/scripts/test-build-correctness.cmd -configuration Release -cibuild
       displayName: Build - Validate correctness
@@ -129,7 +129,7 @@ phases:
 - phase: Linux_Test
   queue:
     name: DotNetCore-Linux                     
-    timeoutInMinutes: 90
+    timeoutInMinutes: 120
     parallel: 2
     matrix:
       coreclr:
