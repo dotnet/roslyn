@@ -6,7 +6,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
-using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.LanguageServices;
@@ -38,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
         internal const string NonBlockingCompletion = nameof(NonBlockingCompletion);
 
         private static readonly ImmutableArray<ImageElement> s_WarningImageAttributeImagesArray =
-            ImmutableArray.Create(new ImageElement(Glyph.CompletionWarning.GetImageId(), EditorFeaturesResources.Warning_image_element_automation_name));
+            ImmutableArray.Create(new ImageElement(Glyph.CompletionWarning.GetImageId(), EditorFeaturesResources.Warning_image_element));
 
         private static readonly EditorOptionKey<bool> NonBlockingCompletionEditorOption = new EditorOptionKey<bool>(NonBlockingCompletion);
 
@@ -75,8 +74,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 _textView.Options.GlobalOptions.SetOptionValue(NonBlockingCompletionEditorOption, true);
             }
 
-            triggerLocation.Snapshot.TextBuffer.Properties.RemoveProperty(PotentialCommitCharacters);
-            triggerLocation.Snapshot.TextBuffer.Properties.AddProperty(PotentialCommitCharacters, service.GetRules().DefaultCommitCharacters);
+            if (!triggerLocation.Snapshot.TextBuffer.Properties.ContainsProperty(PotentialCommitCharacters))
+            {
+                triggerLocation.Snapshot.TextBuffer.Properties.AddProperty(PotentialCommitCharacters, service.GetRules().DefaultCommitCharacters);
+            }
 
             var sourceText = document.GetTextSynchronously(cancellationToken);
 
@@ -139,7 +140,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             if (syntaxFactsOpt == null ||
                 caretPoint < 3 ||
                 text[caretPoint - 2] != '?' ||
-                !Controller.QuestionMarkIsPrecededByIdentifierAndWhitespace(text, caretPoint - 2, syntaxFactsOpt))
+                !QuestionMarkIsPrecededByIdentifierAndWhitespace(text, caretPoint - 2, syntaxFactsOpt))
             {
                 return false;
             }
@@ -317,7 +318,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                         itemFilter = new AsyncCompletionData.CompletionFilter(
                             filter.DisplayText,
                             filter.AccessKey.ToString(),
-                            new ImageElement(new ImageId(imageId.Guid, imageId.Id), EditorFeaturesResources.Filter_image_element_automation_name));
+                            new ImageElement(new ImageId(imageId.Guid, imageId.Id), EditorFeaturesResources.Filter_image_element));
                         filterCache[filter.DisplayText] = itemFilter;
                     }
 
@@ -326,6 +327,35 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             }
 
             return listBuilder.ToImmutableAndFree();
+        }
+
+        internal static bool QuestionMarkIsPrecededByIdentifierAndWhitespace(
+            SourceText text, int questionPosition, ISyntaxFactsService syntaxFacts)
+        {
+            var startOfLine = text.Lines.GetLineFromPosition(questionPosition).Start;
+
+            // First, skip all the whitespace.
+            var current = startOfLine;
+            while (current < questionPosition && char.IsWhiteSpace(text[current]))
+            {
+                current++;
+            }
+
+            if (current < questionPosition && syntaxFacts.IsIdentifierStartCharacter(text[current]))
+            {
+                current++;
+            }
+            else
+            {
+                return false;
+            }
+
+            while (current < questionPosition && syntaxFacts.IsIdentifierPartCharacter(text[current]))
+            {
+                current++;
+            }
+
+            return current == questionPosition;
         }
     }
 }

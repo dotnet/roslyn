@@ -11,7 +11,7 @@ Imports VSCommanding = Microsoft.VisualStudio.Commanding
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
-    Partial Friend Class TestState
+    Partial Friend Class LegacyTestState
         Inherits TestStateBase
 
         Friend ReadOnly CompletionCommandHandler As CompletionCommandHandler

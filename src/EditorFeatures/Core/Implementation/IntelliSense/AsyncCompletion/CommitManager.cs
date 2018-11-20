@@ -3,9 +3,9 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Completion;
-using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
@@ -27,13 +27,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
         private static readonly AsyncCompletionData.CommitResult CommitResultUnhandled =
             new AsyncCompletionData.CommitResult(isHandled: false, AsyncCompletionData.CommitBehavior.None);
 
-        private ImmutableArray<char> _potentialCommitCharacters;
+        private readonly RecentItemsManager _recentItemsManager;
 
-        public IEnumerable<char> PotentialCommitCharacters => _potentialCommitCharacters;
+        public IEnumerable<char> PotentialCommitCharacters { get; }
 
-        internal CommitManager(ImmutableArray<char> potentialCommitCharacters, IThreadingContext threadingContext) : base(threadingContext)
+        internal CommitManager(ImmutableArray<char> potentialCommitCharacters, RecentItemsManager recentItemsManager, IThreadingContext threadingContext) : base(threadingContext)
         {
-            _potentialCommitCharacters = potentialCommitCharacters;
+            PotentialCommitCharacters = potentialCommitCharacters;
+            _recentItemsManager = recentItemsManager;
         }
 
         /// <summary>
@@ -49,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             char typedChar,
             CancellationToken cancellationToken)
         {
-            if (!_potentialCommitCharacters.Contains(typedChar))
+            if (!PotentialCommitCharacters.Contains(typedChar))
             {
                 return false;
             }
@@ -82,12 +83,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
             if (!item.Properties.TryGetProperty(CompletionSource.RoslynItem, out RoslynCompletionItem roslynItem))
             {
-                // This isn't an item we provided (e.g. Razor). Let the editor handle it normally.
+                // Roslyn should not be called if the item committing was not provided by Roslyn.
                 return CommitResultUnhandled;
             }
 
             var filterText = session.ApplicableToSpan.GetText(session.ApplicableToSpan.TextBuffer.CurrentSnapshot) + typeChar;
-            if (Controller.IsFilterCharacter(roslynItem, typeChar, filterText))
+            if (Helpers.IsFilterCharacter(roslynItem, typeChar, filterText))
             { 
                 return new AsyncCompletionData.CommitResult(isHandled: true, AsyncCompletionData.CommitBehavior.CancelCommit);
             }
@@ -98,7 +99,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             // Now we check for the commit charcter in the context of Rules that could change the list of commit characters.
 
             // Tab, Enter and Null (call invoke commit) are always commit characters. 
-            if (typeChar != '\t' && typeChar != '\n' && typeChar != '\0' && !Controller.IsCommitCharacter(serviceRules, roslynItem, typeChar, filterText))
+            if (typeChar != '\t' && typeChar != '\n' && typeChar != '\0' && !IsCommitCharacter(serviceRules, roslynItem, typeChar, filterText))
             {
                 return new AsyncCompletionData.CommitResult(isHandled: true, AsyncCompletionData.CommitBehavior.CancelCommit);
             }
@@ -117,6 +118,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 document, completionService, session.TextView, subjectBuffer, 
                 roslynItem, commitChar, triggerSnapshot, serviceRules, filterText, cancellationToken);
 
+            _recentItemsManager.MakeMostRecentItem(roslynItem.DisplayText);
             return new AsyncCompletionData.CommitResult(isHandled: true, commitBehavior);            
         }
 
@@ -186,12 +188,80 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 return AsyncCompletionData.CommitBehavior.SuppressFurtherTypeCharCommandHandlers;
             }
 
-            if (commitCharacter == '\n' && Controller.SendEnterThroughToEditor(rules, roslynItem, filterText))
+            if (commitCharacter == '\n' && SendEnterThroughToEditor(rules, roslynItem, filterText))
             {
                 return AsyncCompletionData.CommitBehavior.RaiseFurtherReturnKeyAndTabKeyCommandHandlers;
             }
 
             return AsyncCompletionData.CommitBehavior.None;
+        }
+
+        internal static bool IsCommitCharacter(CompletionRules completionRules, CompletionItem item, char ch, string textTypedSoFar)
+        {
+            // First see if the item has any specifc commit rules it wants followed.
+            foreach (var rule in item.Rules.CommitCharacterRules)
+            {
+                switch (rule.Kind)
+                {
+                    case CharacterSetModificationKind.Add:
+                        if (rule.Characters.Contains(ch))
+                        {
+                            return true;
+                        }
+                        continue;
+
+                    case CharacterSetModificationKind.Remove:
+                        if (rule.Characters.Contains(ch))
+                        {
+                            return false;
+                        }
+                        continue;
+
+                    case CharacterSetModificationKind.Replace:
+                        return rule.Characters.Contains(ch);
+                }
+            }
+
+            // general rule: if the filtering text exactly matches the start of the item then it must be a filter character
+            if (TextTypedSoFarMatchesItem(item, textTypedSoFar))
+            {
+                return false;
+            }
+
+            // Fall back to the default rules for this language's completion service.
+            return completionRules.DefaultCommitCharacters.IndexOf(ch) >= 0;
+        }
+
+        internal static bool TextTypedSoFarMatchesItem(CompletionItem item, string textTypedSoFar)
+        {
+            if (textTypedSoFar.Length > 0)
+            {
+                return item.DisplayText.StartsWith(textTypedSoFar, StringComparison.CurrentCultureIgnoreCase) ||
+                       item.FilterText.StartsWith(textTypedSoFar, StringComparison.CurrentCultureIgnoreCase);
+            }
+
+            return false;
+        }
+
+        internal static bool SendEnterThroughToEditor(CompletionRules rules, CompletionItem item, string textTypedSoFar)
+        {
+            var rule = item.Rules.EnterKeyRule;
+            if (rule == EnterKeyRule.Default)
+            {
+                rule = rules.DefaultEnterKeyRule;
+            }
+
+            switch (rule)
+            {
+                default:
+                case EnterKeyRule.Default:
+                case EnterKeyRule.Never:
+                    return false;
+                case EnterKeyRule.Always:
+                    return true;
+                case EnterKeyRule.AfterFullyTypedWord:
+                    return item.DisplayText + item.DisplayTextSuffix == textTypedSoFar;
+            }
         }
     }
 }

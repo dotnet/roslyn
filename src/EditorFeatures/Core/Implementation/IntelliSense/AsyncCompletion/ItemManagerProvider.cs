@@ -18,9 +18,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public ItemManagerProvider(IAsyncCompletionBroker broker)
+        public ItemManagerProvider(IAsyncCompletionCommitManagerProvider commitManagerProvider)
         {
-            _instance = new ItemManager(broker);
+            // The only commitManagerProvider must be Roslyn CommitManagerProvider just initialized by Editor.
+            _instance = new ItemManager(((CommitManagerProvider)commitManagerProvider).RecentItemsManager);
         }
 
         public IAsyncCompletionItemManager GetOrCreate(ITextView textView) => _instance;

@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Completion;
+using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncCompletion;
 using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.LanguageServices;
@@ -351,7 +352,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             MarkupTestFile.GetPosition(expectedCodeAfterCommit, out var actualExpectedCode, out int expectedCaretPosition);
 
             if (commitChar.HasValue && 
-                !Controller.IsCommitCharacter(service.GetRules(), completionItem, commitChar.Value, commitChar.Value.ToString()))
+                !CommitManager.IsCommitCharacter(service.GetRules(), completionItem, commitChar.Value, commitChar.Value.ToString()))
             {
                 Assert.Equal(codeBeforeCommit, actualExpectedCode);
                 return;
@@ -388,7 +389,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             MarkupTestFile.GetPosition(expectedCodeAfterCommit, out var actualExpectedCode, out int expectedCaretPosition);
 
             if (commitChar.HasValue &&
-                !Controller.IsCommitCharacter(service.GetRules(), completionItem, commitChar.Value, commitChar.Value.ToString()))
+                !CommitManager.IsCommitCharacter(service.GetRules(), completionItem, commitChar.Value, commitChar.Value.ToString()))
             {
                 Assert.Equal(codeBeforeCommit, actualExpectedCode);
                 return;
@@ -440,7 +441,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             var text = await document.GetTextAsync();
 
             if (commitChar == '\t' ||
-                Controller.IsCommitCharacter(service.GetRules(), firstItem, commitChar, textTypedSoFar + commitChar))
+                CommitManager.IsCommitCharacter(service.GetRules(), firstItem, commitChar, textTypedSoFar + commitChar))
             {
                 var textChange = (await service.GetChangeAsync(document, firstItem, commitChar, CancellationToken.None)).TextChange;
 
@@ -815,13 +816,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
 
                 foreach (var ch in validChars)
                 {
-                    Assert.True(Controller.IsCommitCharacter(
+                    Assert.True(CommitManager.IsCommitCharacter(
                         service.GetRules(), item, ch, textTypedSoFar + ch), $"Expected '{ch}' to be a commit character");
                 }
 
                 foreach (var ch in invalidChars)
                 {
-                    Assert.False(Controller.IsCommitCharacter(
+                    Assert.False(CommitManager.IsCommitCharacter(
                         service.GetRules(), item, ch, textTypedSoFar + ch), $"Expected '{ch}' NOT to be a commit character");
                 }
             }

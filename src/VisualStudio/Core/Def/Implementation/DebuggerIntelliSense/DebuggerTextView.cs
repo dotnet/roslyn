@@ -23,6 +23,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
 
         private IMultiSelectionBroker _multiSelectionBroker;
 
+        // This name "CompletionRoot" is specified on the Editor side.
+        // Roslyn must match the name.
+        // The const should be removed with resolution of https://github.com/dotnet/roslyn/issues/31189
         public const string CompletionRoot = nameof(CompletionRoot);
 
         public DebuggerTextView(

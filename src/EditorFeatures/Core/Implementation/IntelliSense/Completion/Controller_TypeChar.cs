@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
 using Roslyn.Utilities;
 using VSCommanding = Microsoft.VisualStudio.Commanding;
+using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncCompletion;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 {
@@ -140,7 +141,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             Contract.ThrowIfNull(options);
 
             var isTextuallyTriggered = IsTextualTriggerCharacter(completionService, typedChar, options);
-            var isPotentialFilterCharacter = IsPotentialFilterCharacter(typedChar);
+            var isPotentialFilterCharacter = ItemManager.IsPotentialFilterCharacter(typedChar);
             var trigger = CompletionTrigger.CreateInsertionTrigger(typedChar);
 
             if (sessionOpt == null)
@@ -248,18 +249,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             return false;
         }
 
-        /// <summary>
-        /// A potential filter character is something that can filter a completion lists and is
-        /// *guaranteed* to not be a commit character.
-        /// </summary>
-        internal static bool IsPotentialFilterCharacter(char c)
-        {
-            // TODO(cyrusn): Actually use the right unicode categories here.
-            return char.IsLetter(c)
-                || char.IsNumber(c)
-                || c == '_';
-        }
-
         private Document GetDocument()
         {
             // Documents can be closed while we are computing in the background.
@@ -314,43 +303,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             }
 
             var textTypedSoFar = GetTextTypedSoFar(model, model.SelectedItemOpt);
-            return IsCommitCharacter(completionService.GetRules(), model.SelectedItemOpt, ch, textTypedSoFar);
-        }
-
-        internal static bool IsCommitCharacter(CompletionRules completionRules, CompletionItem item, char ch, string textTypedSoFar)
-        {
-            // First see if the item has any specifc commit rules it wants followed.
-            foreach (var rule in item.Rules.CommitCharacterRules)
-            {
-                switch (rule.Kind)
-                {
-                    case CharacterSetModificationKind.Add:
-                        if (rule.Characters.Contains(ch))
-                        {
-                            return true;
-                        }
-                        continue;
-
-                    case CharacterSetModificationKind.Remove:
-                        if (rule.Characters.Contains(ch))
-                        {
-                            return false;
-                        }
-                        continue;
-
-                    case CharacterSetModificationKind.Replace:
-                        return rule.Characters.Contains(ch);
-                }
-            }
-
-            // general rule: if the filtering text exactly matches the start of the item then it must be a filter character
-            if (TextTypedSoFarMatchesItem(item, textTypedSoFar))
-            {
-                return false;
-            }
-
-            // Fall back to the default rules for this language's completion service.
-            return completionRules.DefaultCommitCharacters.IndexOf(ch) >= 0;
+            return CommitManager.IsCommitCharacter(completionService.GetRules(), model.SelectedItemOpt, ch, textTypedSoFar);
         }
 
         private bool IsFilterCharacter(char ch, Model model)
@@ -373,53 +326,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             }
 
             var textTypedSoFar = GetTextTypedSoFar(model, model.SelectedItemOpt);
-            return IsFilterCharacter(model.SelectedItemOpt, ch, textTypedSoFar);
-        }
-
-        internal static bool TextTypedSoFarMatchesItem(CompletionItem item, string textTypedSoFar)
-        {
-            if (textTypedSoFar.Length > 0)
-            {
-                return item.DisplayText.StartsWith(textTypedSoFar, StringComparison.CurrentCultureIgnoreCase) ||
-                       item.FilterText.StartsWith(textTypedSoFar, StringComparison.CurrentCultureIgnoreCase);
-            }
-
-            return false;
-        }
-
-        internal static bool IsFilterCharacter(CompletionItem item, char ch, string textTypedSoFar)
-        {
-            // First see if the item has any specific filter rules it wants followed.
-            foreach (var rule in item.Rules.FilterCharacterRules)
-            {
-                switch (rule.Kind)
-                {
-                    case CharacterSetModificationKind.Add:
-                        if (rule.Characters.Contains(ch))
-                        {
-                            return true;
-                        }
-                        continue;
-
-                    case CharacterSetModificationKind.Remove:
-                        if (rule.Characters.Contains(ch))
-                        {
-                            return false;
-                        }
-                        continue;
-
-                    case CharacterSetModificationKind.Replace:
-                        return rule.Characters.Contains(ch);
-                }
-            }
-
-            // general rule: if the filtering text exactly matches the start of the item then it must be a filter character
-            if (TextTypedSoFarMatchesItem(item, textTypedSoFar))
-            {
-                return true;
-            }
-
-            return false;
+            return AsyncCompletion.Helpers.IsFilterCharacter(model.SelectedItemOpt, ch, textTypedSoFar);
         }
 
         private string GetTextTypedSoFar(Model model, CompletionItem selectedItem)

@@ -128,18 +128,18 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                 Await WaitForAsynchronousOperationsAsync()
             End If
             Dim session = GetExportedValue(Of IAsyncCompletionBroker)().GetSession(TextView)
-            If (session Is Nothing) Then
+            If session Is Nothing Then
                 Return
             End If
 
-            If (session.IsDismissed) Then
+            If session.IsDismissed Then
                 Return
             End If
 
             ' If completionItems cannot be calculated in 5 seconds, no session exists.
             If Not block Then
                 Dim task1 = New Task(Sub()
-                                         Thread.Sleep(5000)
+                                         Task.Delay(5000)
                                      End Sub)
                 task1.Start()
 

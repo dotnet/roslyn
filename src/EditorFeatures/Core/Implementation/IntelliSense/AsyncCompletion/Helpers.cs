@@ -9,42 +9,37 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 {
     internal static class Helpers
     {
-        internal static RoslynTrigger GetRoslynTrigger(AsyncCompletionData.CompletionTrigger trigger, SnapshotPoint triggerLocation)
-        {
-            var snapshotBeforeEdit = trigger.ViewSnapshotBeforeTrigger;
-            char characterRemoved;
-            if (triggerLocation.Position >= 0 && triggerLocation.Position < snapshotBeforeEdit.Length)
-            {
-                // If multiple characters were removed (selection), this finds the first character from the left. 
-                characterRemoved = snapshotBeforeEdit[triggerLocation.Position];
-            }
-            else
-            {
-                characterRemoved = (char)0;
-            }
-
-            return GetRoslynTrigger(trigger, characterRemoved);
-        }
-
         /// <summary>
-        /// Attempts to convert VS Completion trigger into Roslyn completion trigget
+        /// Attempts to convert VS Completion trigger into Roslyn completion trigger
         /// </summary>
         /// <param name="trigger">VS completion trigger</param>
-        /// <param name="c">Character. 
+        /// <param name="triggerLocation">Character. 
         /// VS provides Backspace and Delete characters inside the trigger while Roslyn needs the char deleted by the trigger.
         /// Therefore, we provide this character separately and use it for Delete and Backspace cases only.
+        /// We retrieve this character from triggerLocation.
         /// </param>
         /// <returns>Roslyn completion trigger</returns>
-        internal static RoslynTrigger GetRoslynTrigger(AsyncCompletionData.CompletionTrigger trigger, char c)
+        internal static RoslynTrigger GetRoslynTrigger(AsyncCompletionData.CompletionTrigger trigger, SnapshotPoint triggerLocation)
         {
             switch (trigger.Reason)
             {
                 case AsyncCompletionData.CompletionTriggerReason.Insertion:
                     return RoslynTrigger.CreateInsertionTrigger(trigger.Character);
                 case AsyncCompletionData.CompletionTriggerReason.Deletion:
-                    return RoslynTrigger.CreateDeletionTrigger(c);
                 case AsyncCompletionData.CompletionTriggerReason.Backspace:
-                    return RoslynTrigger.CreateDeletionTrigger(c);
+                    var snapshotBeforeEdit = trigger.ViewSnapshotBeforeTrigger;
+                    char characterRemoved;
+                    if (triggerLocation.Position >= 0 && triggerLocation.Position < snapshotBeforeEdit.Length)
+                    {
+                        // If multiple characters were removed (selection), this finds the first character from the left. 
+                        characterRemoved = snapshotBeforeEdit[triggerLocation.Position];
+                    }
+                    else
+                    {
+                        characterRemoved = (char)0;
+                    }
+
+                    return RoslynTrigger.CreateDeletionTrigger(characterRemoved);
                 case AsyncCompletionData.CompletionTriggerReason.SnippetsMode:
                     return new RoslynTrigger(CompletionTriggerKind.Snippets);
                 default:
@@ -52,17 +47,53 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             }
         }
 
-        internal static CompletionFilterReason GetFilterReason(RoslynTrigger trigger)
+        internal static CompletionFilterReason GetFilterReason(AsyncCompletionData.CompletionTrigger trigger)
         {
-            switch (trigger.Kind)
+            switch (trigger.Reason)
             {
-                case CompletionTriggerKind.Insertion:
+                case AsyncCompletionData.CompletionTriggerReason.Insertion:
                     return CompletionFilterReason.Insertion;
-                case CompletionTriggerKind.Deletion:
+                case AsyncCompletionData.CompletionTriggerReason.Deletion:
+                case AsyncCompletionData.CompletionTriggerReason.Backspace:
                     return CompletionFilterReason.Deletion;
                 default:
                     return CompletionFilterReason.Other;
             }
+        }
+
+        internal static bool IsFilterCharacter(CompletionItem item, char ch, string textTypedSoFar)
+        {
+            // First see if the item has any specific filter rules it wants followed.
+            foreach (var rule in item.Rules.FilterCharacterRules)
+            {
+                switch (rule.Kind)
+                {
+                    case CharacterSetModificationKind.Add:
+                        if (rule.Characters.Contains(ch))
+                        {
+                            return true;
+                        }
+                        continue;
+
+                    case CharacterSetModificationKind.Remove:
+                        if (rule.Characters.Contains(ch))
+                        {
+                            return false;
+                        }
+                        continue;
+
+                    case CharacterSetModificationKind.Replace:
+                        return rule.Characters.Contains(ch);
+                }
+            }
+
+            // general rule: if the filtering text exactly matches the start of the item then it must be a filter character
+            if (CommitManager.TextTypedSoFarMatchesItem(item, textTypedSoFar))
+            {
+                return true;
+            }
+
+            return false;
         }
     }
 }

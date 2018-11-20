@@ -61,7 +61,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
             Select Case completionImplementation
                 Case CompletionImplementation.Legacy
-                    Return New TestState(workspaceElement, extraCompletionProviders, excludedTypes, extraExportedTypes,
+                    Return New LegacyTestState(workspaceElement, extraCompletionProviders, excludedTypes, extraExportedTypes,
                                          includeFormatCommandHandler, workspaceKind)
                 Case CompletionImplementation.Modern
                     Return New ModernCompletionTestState(workspaceElement, extraCompletionProviders, excludedTypes, extraExportedTypes,

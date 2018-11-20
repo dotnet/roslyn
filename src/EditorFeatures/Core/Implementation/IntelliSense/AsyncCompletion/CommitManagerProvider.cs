@@ -18,11 +18,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
     {
         private readonly IThreadingContext _threadingContext;
 
+        public RecentItemsManager RecentItemsManager { get;}
+
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CommitManagerProvider(IThreadingContext threadingContext)
         {
             _threadingContext = threadingContext;
+            RecentItemsManager = new RecentItemsManager();
         }
 
         IAsyncCompletionCommitManager IAsyncCompletionCommitManagerProvider.GetOrCreate(ITextView textView)
@@ -33,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 potentialCommitCharacters = ImmutableArray<char>.Empty;
             }
 
-            return new CommitManager(potentialCommitCharacters, _threadingContext);
+            return new CommitManager(potentialCommitCharacters, RecentItemsManager, _threadingContext);
         }
     }
 }
