@@ -433,7 +433,7 @@ class C
             c1 = null;
         }
 
-        [ConditionalFact(typeof(DesktopOnly))]
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
         public void AddResourceToModule()
         {
             bool metadataOnly = false;
