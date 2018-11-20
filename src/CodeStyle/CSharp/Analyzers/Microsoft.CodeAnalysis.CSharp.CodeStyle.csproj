@@ -49,6 +49,7 @@
     <Compile Include="..\..\..\Workspaces\CSharp\Portable\Formatting\Rules\SpacingFormattingRule.cs" Link="Formatting\Rules\SpacingFormattingRule.cs" />
     <Compile Include="..\..\..\Workspaces\CSharp\Portable\Formatting\Rules\StructuredTriviaFormattingRule.cs" Link="Formatting\Rules\StructuredTriviaFormattingRule.cs" />
     <Compile Include="..\..\..\Workspaces\CSharp\Portable\Formatting\Rules\SuppressFormattingRule.cs" Link="Formatting\Rules\SuppressFormattingRule.cs" />
+    <Compile Include="..\..\..\Workspaces\CSharp\Portable\Formatting\Rules\SyntaxKindEx.cs" Link="Formatting\Rules\SyntaxKindEx.cs" />
     <Compile Include="..\..\..\Workspaces\CSharp\Portable\Formatting\Rules\TokenBasedFormattingRule.cs" Link="Formatting\Rules\TokenBasedFormattingRule.cs" />
     <Compile Include="..\..\..\Workspaces\CSharp\Portable\Formatting\Rules\WrappingFormattingRule.cs" Link="Formatting\Rules\WrappingFormattingRule.cs" />
     <Compile Include="..\..\..\Workspaces\CSharp\Portable\Utilities\FormattingRangeHelper.cs" Link="Formatting\FormattingRangeHelper.cs" />

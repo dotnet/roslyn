@@ -359,14 +359,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpaces);
             }
 
-#if !CODE_STYLE
             // suppress warning operator: null! or x! or x++! or x[i]! or (x)! or ...
             if (currentToken.Kind() == SyntaxKind.ExclamationToken &&
-                currentToken.Parent.Kind() == SyntaxKind.SuppressNullableWarningExpression)
+                currentToken.Parent.Kind() == SyntaxKindEx.SuppressNullableWarningExpression)
             {
                 return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
             }
-#endif
 
             // ( * or ) * or [ * or ] * or . * or -> *
             switch (previousToken.Kind())
