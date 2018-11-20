@@ -4,9 +4,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -33,12 +33,12 @@ namespace Microsoft.CodeAnalysis.Formatting
 
         protected readonly TextSpan SpanToFormat;
 
-        internal readonly AnalyzerConfigOptions Options;
+        internal readonly OptionSet Options;
         internal readonly TreeData TreeData;
 
         public AbstractFormatEngine(
             TreeData treeData,
-            AnalyzerConfigOptions options,
+            OptionSet options,
             IEnumerable<IFormattingRule> formattingRules,
             SyntaxToken token1,
             SyntaxToken token2)
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Formatting
 
         internal AbstractFormatEngine(
             TreeData treeData,
-            AnalyzerConfigOptions options,
+            OptionSet options,
             ChainedFormattingRules formattingRules,
             SyntaxToken token1,
             SyntaxToken token2)

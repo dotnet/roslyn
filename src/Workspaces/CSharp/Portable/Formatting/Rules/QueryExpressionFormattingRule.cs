@@ -9,8 +9,10 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.Formatting
 {
+#if !CODE_STYLE
     [ExportFormattingRule(Name, LanguageNames.CSharp), Shared]
     [ExtensionOrder(After = AnchorIndentationFormattingRule.Name)]
+#endif
     internal class QueryExpressionFormattingRule : BaseFormattingRule
     {
         internal const string Name = "CSharp Query Expressions Formatting Rule";

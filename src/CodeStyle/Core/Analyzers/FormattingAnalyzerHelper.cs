@@ -2,13 +2,14 @@
 
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CodeStyle
 {
     internal static class FormattingAnalyzerHelper
     {
-        internal static void AnalyzeSyntaxTree(SyntaxTreeAnalysisContext context, ISyntaxFormattingService syntaxFormattingService, DiagnosticDescriptor descriptor, AnalyzerConfigOptions options)
+        internal static void AnalyzeSyntaxTree(SyntaxTreeAnalysisContext context, ISyntaxFormattingService syntaxFormattingService, DiagnosticDescriptor descriptor, OptionSet options)
         {
             var tree = context.Tree;
             var cancellationToken = context.CancellationToken;

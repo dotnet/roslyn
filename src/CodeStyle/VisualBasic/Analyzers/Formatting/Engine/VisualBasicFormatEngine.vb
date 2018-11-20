@@ -3,6 +3,7 @@
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Formatting.Rules
+Imports Microsoft.CodeAnalysis.Options
 Imports Roslyn.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
@@ -10,7 +11,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
         Inherits AbstractFormatEngine
 
         Public Sub New(node As SyntaxNode,
-                       optionSet As AnalyzerConfigOptions,
+                       optionSet As OptionSet,
                        formattingRules As IEnumerable(Of IFormattingRule),
                        token1 As SyntaxToken,
                        token2 As SyntaxToken)

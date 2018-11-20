@@ -8,6 +8,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -54,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             return new AggregatedFormattingResult(node, results, formattingSpans);
         }
 
-        protected override AbstractFormattingResult Format(SyntaxNode node, AnalyzerConfigOptions optionSet, IEnumerable<IFormattingRule> formattingRules, SyntaxToken token1, SyntaxToken token2, CancellationToken cancellationToken)
+        protected override AbstractFormattingResult Format(SyntaxNode node, OptionSet optionSet, IEnumerable<IFormattingRule> formattingRules, SyntaxToken token1, SyntaxToken token2, CancellationToken cancellationToken)
         {
             return new CSharpFormatEngine(node, optionSet, formattingRules, token1, token2).Format(cancellationToken);
         }

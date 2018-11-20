@@ -3,6 +3,7 @@
 using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.CSharp.Formatting
 {
@@ -11,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         public static IFormattingResult Format(
             SyntaxTrivia trivia,
             int initialColumn,
-            AnalyzerConfigOptions optionSet,
+            OptionSet optionSet,
             ChainedFormattingRules formattingRules,
             CancellationToken cancellationToken)
         {
@@ -24,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         private CSharpStructuredTriviaFormatEngine(
             SyntaxTrivia trivia,
             int initialColumn,
-            AnalyzerConfigOptions optionSet,
+            OptionSet optionSet,
             ChainedFormattingRules formattingRules,
             SyntaxToken token1,
             SyntaxToken token2) :

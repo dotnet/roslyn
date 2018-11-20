@@ -6,9 +6,13 @@ Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
+#If Not CODE_STYLE Then
     <ExportFormattingRule(AdjustSpaceFormattingRule.Name, LanguageNames.VisualBasic), [Shared]>
     <ExtensionOrder(After:=ElasticTriviaFormattingRule.Name)>
     Friend Class AdjustSpaceFormattingRule
+#Else
+    Friend Class AdjustSpaceFormattingRule
+#End If
         Inherits BaseFormattingRule
         Friend Const Name As String = "VisualBasic Adjust Space Formatting Rule"
 

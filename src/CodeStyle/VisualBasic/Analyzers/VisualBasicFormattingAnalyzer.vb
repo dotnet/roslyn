@@ -2,6 +2,7 @@
 
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Formatting
+Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.VisualBasic.Formatting
 Imports Microsoft.VisualStudio.CodingConventions
 
@@ -16,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.CodeStyle
             End Get
         End Property
 
-        Protected Overrides Function ApplyFormattingOptions(optionSet As AnalyzerConfigOptions, codingConventionContext As ICodingConventionContext) As AnalyzerConfigOptions
+        Protected Overrides Function ApplyFormattingOptions(optionSet As OptionSet, codingConventionContext As ICodingConventionContext) As OptionSet
             Return optionSet
         End Function
     End Class

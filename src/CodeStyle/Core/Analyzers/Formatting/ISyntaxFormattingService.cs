@@ -2,8 +2,8 @@
 
 using System.Collections.Generic;
 using System.Threading;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting.Rules;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Formatting
@@ -11,6 +11,6 @@ namespace Microsoft.CodeAnalysis.Formatting
     internal interface ISyntaxFormattingService
     {
         IEnumerable<IFormattingRule> GetDefaultFormattingRules();
-        IFormattingResult Format(SyntaxNode node, IEnumerable<TextSpan> spans, AnalyzerConfigOptions options, IEnumerable<IFormattingRule> rules, CancellationToken cancellationToken);
+        IFormattingResult Format(SyntaxNode node, IEnumerable<TextSpan> spans, OptionSet options, IEnumerable<IFormattingRule> rules, CancellationToken cancellationToken);
     }
 }

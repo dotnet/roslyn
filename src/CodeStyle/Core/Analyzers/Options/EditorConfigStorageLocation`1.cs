@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Options
         public string KeyName { get; }
 
         private readonly Func<string, Type, Optional<T>> _parseValue;
-        private readonly Func<T, AnalyzerConfigOptions, string> _getEditorConfigStringForValue;
+        private readonly Func<T, OptionSet, string> _getEditorConfigStringForValue;
 
         public EditorConfigStorageLocation(string keyName, Func<string, Optional<T>> parseValue, Func<T, string> getEditorConfigStringForValue)
             : this (keyName, parseValue, (value, optionSet) => getEditorConfigStringForValue(value))
@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Options
             }
         }
 
-        public EditorConfigStorageLocation(string keyName, Func<string, Optional<T>> parseValue, Func<AnalyzerConfigOptions, string> getEditorConfigStringForValue)
+        public EditorConfigStorageLocation(string keyName, Func<string, Optional<T>> parseValue, Func<OptionSet, string> getEditorConfigStringForValue)
             : this(keyName, parseValue, (value, optionSet) => getEditorConfigStringForValue(optionSet))
         {
             if (getEditorConfigStringForValue == null)
@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Options
             }
         }
 
-        public EditorConfigStorageLocation(string keyName, Func<string, Optional<T>> parseValue, Func<T, AnalyzerConfigOptions, string> getEditorConfigStringForValue)
+        public EditorConfigStorageLocation(string keyName, Func<string, Optional<T>> parseValue, Func<T, OptionSet, string> getEditorConfigStringForValue)
         {
             if (parseValue == null)
             {

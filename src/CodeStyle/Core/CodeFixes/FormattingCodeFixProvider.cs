@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             return Task.CompletedTask;
         }
 
-        protected abstract AnalyzerConfigOptions ApplyFormattingOptions(AnalyzerConfigOptions optionSet, ICodingConventionContext codingConventionContext);
+        protected abstract OptionSet ApplyFormattingOptions(OptionSet optionSet, ICodingConventionContext codingConventionContext);
 
         private async Task<Document> FixOneAsync(CodeFixContext context, Diagnostic diagnostic, CancellationToken cancellationToken)
         {
@@ -54,10 +54,10 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             return context.Document.WithText(await updatedTree.GetTextAsync(cancellationToken).ConfigureAwait(false));
         }
 
-        private async Task<AnalyzerConfigOptions> GetOptionsAsync(Document document, CancellationToken cancellationToken)
+        private async Task<OptionSet> GetOptionsAsync(Document document, CancellationToken cancellationToken)
         {
-            OptionSet documentOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-            AnalyzerConfigOptions options = new OptionSetAnalyzerConfigOptions(documentOptions);
+            var documentOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+            OptionSet options = new OptionSetAnalyzerConfigOptions(documentOptions);
 
             // The in-IDE workspace supports .editorconfig without special handling. However, the AdhocWorkspace used
             // in testing requires manual handling of .editorconfig.
@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
 
         /// <summary>
         /// Provide an optimized Fix All implementation that runs
-        /// <see cref="Formatter.Format(SyntaxNode, ISyntaxFormattingService, AnalyzerConfigOptions, CancellationToken)"/> on the document(s)
+        /// <see cref="Formatter.Format(SyntaxNode, ISyntaxFormattingService, OptionSet, CancellationToken)"/> on the document(s)
         /// included in the Fix All scope.
         /// </summary>
         private sealed class FixAll : DocumentBasedFixAllProvider
@@ -96,11 +96,11 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             }
         }
 
-        internal sealed class OptionSetAnalyzerConfigOptions : AnalyzerConfigOptions
+        internal sealed class OptionSetAnalyzerConfigOptions : OptionSet
         {
-            private readonly OptionSet _optionSet;
+            private readonly DocumentOptionSet _optionSet;
 
-            public OptionSetAnalyzerConfigOptions(OptionSet optionSet)
+            public OptionSetAnalyzerConfigOptions(DocumentOptionSet optionSet)
             {
                 _optionSet = optionSet;
             }

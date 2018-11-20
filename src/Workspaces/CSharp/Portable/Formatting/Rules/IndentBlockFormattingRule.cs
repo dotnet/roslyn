@@ -12,8 +12,10 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Formatting
 {
+#if !CODE_STYLE
     [ExportFormattingRule(Name, LanguageNames.CSharp), Shared]
     [ExtensionOrder(After = StructuredTriviaFormattingRule.Name)]
+#endif
     internal class IndentBlockFormattingRule : BaseFormattingRule
     {
         internal const string Name = "CSharp IndentBlock Formatting Rule";

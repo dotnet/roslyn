@@ -7,8 +7,10 @@ using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.CSharp.Formatting
 {
+#if !CODE_STYLE
     [ExportFormattingRule(Name, LanguageNames.CSharp), Shared]
     [ExtensionOrder(After = EndOfFileTokenFormattingRule.Name)]
+#endif
     internal class StructuredTriviaFormattingRule : BaseFormattingRule
     {
         internal const string Name = "CSharp Structured Trivia Formatting Rule";

@@ -2,7 +2,6 @@
 
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Text;
 
@@ -13,7 +12,7 @@ namespace Microsoft.CodeAnalysis
 
     internal static class FormattingCodeFixHelper
     {
-        internal static async Task<SyntaxTree> FixOneAsync(SyntaxTree syntaxTree, ISyntaxFormattingService syntaxFormattingService, AnalyzerConfigOptions options, Diagnostic diagnostic, CancellationToken cancellationToken)
+        internal static async Task<SyntaxTree> FixOneAsync(SyntaxTree syntaxTree, ISyntaxFormattingService syntaxFormattingService, OptionSet options, Diagnostic diagnostic, CancellationToken cancellationToken)
         {
             // The span to format is the full line(s) containing the diagnostic
             var text = await syntaxTree.GetTextAsync(cancellationToken).ConfigureAwait(false);

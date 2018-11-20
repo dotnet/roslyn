@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
+using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.CSharp.Formatting
 {
@@ -11,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
     {
         public CSharpFormatEngine(
             SyntaxNode node,
-            AnalyzerConfigOptions optionSet,
+            OptionSet optionSet,
             IEnumerable<IFormattingRule> formattingRules,
             SyntaxToken token1,
             SyntaxToken token2) :

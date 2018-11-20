@@ -16,7 +16,9 @@ using Microsoft.CodeAnalysis.Shared.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Formatting
 {
+#if !CODE_STYLE
     [ExportFormattingRule(Name, LanguageNames.CSharp), Shared]
+#endif
     internal class ElasticTriviaFormattingRule : BaseFormattingRule
     {
         internal const string Name = "CSharp Elastic trivia Formatting Rule";

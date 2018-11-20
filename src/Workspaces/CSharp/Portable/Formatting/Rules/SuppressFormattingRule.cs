@@ -10,8 +10,10 @@ using System.Linq;
 
 namespace Microsoft.CodeAnalysis.CSharp.Formatting
 {
+#if !CODE_STYLE
     [ExportFormattingRule(Name, LanguageNames.CSharp), Shared]
     [ExtensionOrder(After = IndentBlockFormattingRule.Name)]
+#endif
     internal class SuppressFormattingRule : BaseFormattingRule
     {
         internal const string Name = "CSharp Suppress Formatting Rule";

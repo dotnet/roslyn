@@ -8,9 +8,13 @@ Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
+#If Not CODE_STYLE Then
     <ExportFormattingRule(ElasticTriviaFormattingRule.Name, LanguageNames.VisualBasic), [Shared]>
     <ExtensionOrder(After:=StructuredTriviaFormattingRule.Name)>
     Friend Class ElasticTriviaFormattingRule
+#Else
+    Friend Class ElasticTriviaFormattingRule
+#End If
         Inherits BaseFormattingRule
         Friend Const Name As String = "VisualBasic Elastic Trivia Formatting Rule"
 

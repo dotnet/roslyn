@@ -4,6 +4,7 @@ using System.Collections.Immutable;
 using System.IO;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.CodingConventions;
 
 namespace Microsoft.CodeAnalysis.CodeStyle
@@ -30,14 +31,14 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             context.RegisterSyntaxTreeAction(c => AnalyzeSyntaxTree(c, codingConventionsManager));
         }
 
-        protected abstract AnalyzerConfigOptions ApplyFormattingOptions(AnalyzerConfigOptions optionSet, ICodingConventionContext codingConventionContext);
+        protected abstract OptionSet ApplyFormattingOptions(OptionSet optionSet, ICodingConventionContext codingConventionContext);
 
         private void AnalyzeSyntaxTree(SyntaxTreeAnalysisContext context, ICodingConventionsManager codingConventionsManager)
         {
             var tree = context.Tree;
             var cancellationToken = context.CancellationToken;
 
-            AnalyzerConfigOptions options = CompilerAnalyzerConfigOptions.Empty;
+            OptionSet options = CompilerAnalyzerConfigOptions.Empty;
             if (File.Exists(tree.FilePath))
             {
                 var codingConventionContext = codingConventionsManager.GetConventionContextAsync(tree.FilePath, cancellationToken).GetAwaiter().GetResult();

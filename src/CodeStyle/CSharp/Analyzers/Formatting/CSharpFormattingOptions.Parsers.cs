@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                ? option
                : (SpacingWithinParenthesesOption?)null;
 
-        private static string GetSpacingWithParenthesesEditorConfigString(AnalyzerConfigOptions optionSet)
+        private static string GetSpacingWithParenthesesEditorConfigString(OptionSet optionSet)
         {
             var editorConfigStringBuilder = new List<string>();
             foreach (var kvp in SpacingWithinParenthesisOptionsMap)
@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             return null;
         }
 
-        private static string GetNewLineOptionEditorConfigString(AnalyzerConfigOptions optionSet)
+        private static string GetNewLineOptionEditorConfigString(OptionSet optionSet)
         {
             var editorConfigStringBuilder = new List<string>(NewLineOptionsMap.Count);
             foreach (var kvp in NewLineOptionsMap)

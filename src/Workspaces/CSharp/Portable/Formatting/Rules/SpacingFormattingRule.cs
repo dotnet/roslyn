@@ -325,6 +325,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 return CreateAdjustSpacesOperation(1, AdjustSpacesOption.ForceSpaces);
             }
 
+#if !CODE_STYLE
             // Index expressions
             if (previousKind == SyntaxKind.CaretToken && previousParentKind == SyntaxKind.IndexExpression)
             {
@@ -350,6 +351,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                     return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpaces);
                 }
             }
+#endif
 
             return nextOperation.Invoke();
         }

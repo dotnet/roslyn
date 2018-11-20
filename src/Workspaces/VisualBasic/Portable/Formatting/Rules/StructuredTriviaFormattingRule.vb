@@ -6,9 +6,13 @@ Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
+#If Not CODE_STYLE Then
     <ExportFormattingRule(StructuredTriviaFormattingRule.Name, LanguageNames.VisualBasic), [Shared]>
     <ExtensionOrder()>
     Friend Class StructuredTriviaFormattingRule
+#Else
+    Friend Class StructuredTriviaFormattingRule
+#End If
         Inherits BaseFormattingRule
         Friend Const Name As String = "VisualBasic Structured Trivia Formatting Rule"
 

@@ -9,9 +9,13 @@ Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
+#If Not CODE_STYLE Then
     <ExportFormattingRule(NodeBasedFormattingRule.Name, LanguageNames.VisualBasic), [Shared]>
     <ExtensionOrder(After:=AlignTokensFormattingRule.Name)>
     Friend Class NodeBasedFormattingRule
+#Else
+    Friend Class NodeBasedFormattingRule
+#End If
         Inherits BaseFormattingRule
         Friend Const Name As String = "VisualBasic Node Based Formatting Rule"
 

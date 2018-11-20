@@ -1,23 +1,23 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.CodingConventions;
 
 namespace Microsoft.CodeAnalysis.CodeStyle
 {
     internal class EditorConfigOptionsApplier
     {
-        public AnalyzerConfigOptions ApplyConventions(AnalyzerConfigOptions optionSet, ICodingConventionsSnapshot codingConventions)
+        public OptionSet ApplyConventions(OptionSet optionSet, ICodingConventionsSnapshot codingConventions)
         {
             return new CodingConventionsAnalyzerConfigOptions(codingConventions, optionSet);
         }
 
-        private sealed class CodingConventionsAnalyzerConfigOptions : AnalyzerConfigOptions
+        private sealed class CodingConventionsAnalyzerConfigOptions : OptionSet
         {
             private readonly ICodingConventionsSnapshot _codingConventionsSnapshot;
-            private readonly AnalyzerConfigOptions _fallbackOptions;
+            private readonly OptionSet _fallbackOptions;
 
-            public CodingConventionsAnalyzerConfigOptions(ICodingConventionsSnapshot codingConventionsSnapshot, AnalyzerConfigOptions fallbackOptions)
+            public CodingConventionsAnalyzerConfigOptions(ICodingConventionsSnapshot codingConventionsSnapshot, OptionSet fallbackOptions)
             {
                 _codingConventionsSnapshot = codingConventionsSnapshot;
                 _fallbackOptions = fallbackOptions;

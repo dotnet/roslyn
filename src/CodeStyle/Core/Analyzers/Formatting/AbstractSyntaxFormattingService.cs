@@ -5,8 +5,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting.Rules;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -28,9 +28,9 @@ namespace Microsoft.CodeAnalysis.Formatting
 
         protected abstract IFormattingResult CreateAggregatedFormattingResult(SyntaxNode node, IList<AbstractFormattingResult> results, SimpleIntervalTree<TextSpan> formattingSpans = null);
 
-        protected abstract AbstractFormattingResult Format(SyntaxNode node, AnalyzerConfigOptions options, IEnumerable<IFormattingRule> rules, SyntaxToken token1, SyntaxToken token2, CancellationToken cancellationToken);
+        protected abstract AbstractFormattingResult Format(SyntaxNode node, OptionSet options, IEnumerable<IFormattingRule> rules, SyntaxToken token1, SyntaxToken token2, CancellationToken cancellationToken);
 
-        public IFormattingResult Format(SyntaxNode node, IEnumerable<TextSpan> spans, AnalyzerConfigOptions options, IEnumerable<IFormattingRule> rules, CancellationToken cancellationToken)
+        public IFormattingResult Format(SyntaxNode node, IEnumerable<TextSpan> spans, OptionSet options, IEnumerable<IFormattingRule> rules, CancellationToken cancellationToken)
         {
             CheckArguments(node, spans, options, rules);
 
@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Formatting
         }
 
         private IFormattingResult FormatMergedSpan(
-            SyntaxNode node, AnalyzerConfigOptions options, IEnumerable<IFormattingRule> rules, IList<TextSpan> spansToFormat, CancellationToken cancellationToken)
+            SyntaxNode node, OptionSet options, IEnumerable<IFormattingRule> rules, IList<TextSpan> spansToFormat, CancellationToken cancellationToken)
         {
             var spanToFormat = TextSpan.FromBounds(spansToFormat[0].Start, spansToFormat[spansToFormat.Count - 1].End);
             var pair = node.ConvertToTokenPair(spanToFormat);
@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Formatting
         }
 
         private IFormattingResult FormatIndividually(
-            SyntaxNode node, AnalyzerConfigOptions options, IEnumerable<IFormattingRule> rules, IList<TextSpan> spansToFormat, CancellationToken cancellationToken)
+            SyntaxNode node, OptionSet options, IEnumerable<IFormattingRule> rules, IList<TextSpan> spansToFormat, CancellationToken cancellationToken)
         {
             List<AbstractFormattingResult> results = null;
             foreach (var pair in node.ConvertToTokenPairs(spansToFormat))
@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             return (formattingSpan.Length / Math.Max(actualFormattingSize, 1)) < 2;
         }
 
-        private static void CheckArguments(SyntaxNode node, IEnumerable<TextSpan> spans, AnalyzerConfigOptions options, IEnumerable<IFormattingRule> rules)
+        private static void CheckArguments(SyntaxNode node, IEnumerable<TextSpan> spans, OptionSet options, IEnumerable<IFormattingRule> rules)
         {
             if (node == null)
             {

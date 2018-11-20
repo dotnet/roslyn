@@ -64,24 +64,37 @@
     <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\Engine\AbstractAggregatedFormattingResult.cs" Link="Formatting\Engine\AbstractAggregatedFormattingResult.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\Engine\AbstractFormatEngine.OperationApplier.cs" Link="Formatting\Engine\AbstractFormatEngine.OperationApplier.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\Engine\AbstractFormatEngine.Partitioner.cs" Link="Formatting\Engine\AbstractFormatEngine.Partitioner.cs" />
+    <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\Engine\AbstractTriviaDataFactory.AbstractComplexTrivia.cs" Link="Formatting\Engine\AbstractTriviaDataFactory.AbstractComplexTrivia.cs" />
+    <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\Engine\AbstractTriviaDataFactory.cs" Link="Formatting\Engine\AbstractTriviaDataFactory.cs" />
+    <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\Engine\AbstractTriviaDataFactory.FormattedWhitespace.cs" Link="Formatting\Engine\AbstractTriviaDataFactory.FormattedWhitespace.cs" />
+    <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\Engine\AbstractTriviaDataFactory.ModifiedWhitespace.cs" Link="Formatting\Engine\AbstractTriviaDataFactory.ModifiedWhitespace.cs" />
+    <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\Engine\AbstractTriviaDataFactory.Whitespace.cs" Link="Formatting\Engine\AbstractTriviaDataFactory.Whitespace.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\Engine\ActionCache`1.cs" Link="Formatting\Engine\ActionCache`1.cs" />
+    <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\Engine\ChainedFormattingRules.cs" Link="Formatting\Engine\ChainedFormattingRules.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\Engine\OperationCache`1.cs" Link="Formatting\Engine\OperationCache`1.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\Engine\TokenData.cs" Link="Formatting\Engine\TokenData.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\Engine\TokenPairWithOperations.cs" Link="Formatting\Engine\TokenPairWithOperations.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\Engine\TokenStream.Changes.cs" Link="Formatting\Engine\TokenStream.Changes.cs" />
+    <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\Engine\TokenStream.cs" Link="Formatting\Engine\TokenStream.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\Engine\TokenStream.Iterator.cs" Link="Formatting\Engine\TokenStream.Iterator.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\Engine\TreeData.cs" Link="Formatting\Engine\TreeData.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\Engine\TreeData.Debug.cs" Link="Formatting\Engine\TreeData.Debug.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\Engine\TreeData.Node.cs" Link="Formatting\Engine\TreeData.Node.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\Engine\TreeData.NodeAndText.cs" Link="Formatting\Engine\TreeData.NodeAndText.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\Engine\TreeData.StructuredTrivia.cs" Link="Formatting\Engine\TreeData.StructuredTrivia.cs" />
+    <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\Engine\TriviaData.cs" Link="Formatting\Engine\TriviaData.cs" />
+    <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\Engine\TriviaDataWithList.cs" Link="Formatting\Engine\TriviaDataWithList.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\FormattingExtensions.cs" Link="Formatting\FormattingExtensions.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\IFormattingResult.cs" Link="Formatting\IFormattingResult.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\ListPool.cs" Link="Formatting\ListPool.cs" />
+    <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\Rules\AbstractFormattingRule.cs" Link="Formatting\Rules\AbstractFormattingRule.cs" />
+    <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\Rules\BaseIndentationFormattingRule.cs" Link="Formatting\Rules\BaseIndentationFormattingRule.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\Rules\IActionHolder`1.cs" Link="Formatting\Rules\IActionHolder`1.cs" />
+    <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\Rules\IFormattingRule.cs" Link="Formatting\Rules\IFormattingRule.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\Rules\IOperationHolder`1.cs" Link="Formatting\Rules\IOperationHolder`1.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\Rules\NextAction`1.cs" Link="Formatting\Rules\NextAction`1.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\Rules\NextOperation`1.cs" Link="Formatting\Rules\NextOperation`1.cs" />
+    <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\Rules\NoOpFormattingRule.cs" Link="Formatting\Rules\NoOpFormattingRule.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\Rules\Operations\AdjustNewLinesOperation.cs" Link="Formatting\Rules\Operations\AdjustNewLinesOperation.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\Rules\Operations\AdjustNewLinesOption.cs" Link="Formatting\Rules\Operations\AdjustNewLinesOption.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\Rules\Operations\AdjustSpacesOperation.cs" Link="Formatting\Rules\Operations\AdjustSpacesOperation.cs" />
@@ -89,11 +102,13 @@
     <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\Rules\Operations\AlignTokensOperation.cs" Link="Formatting\Rules\Operations\AlignTokensOperation.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\Rules\Operations\AlignTokensOption.cs" Link="Formatting\Rules\Operations\AlignTokensOption.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\Rules\Operations\AnchorIndentationOperation.cs" Link="Formatting\Rules\Operations\AnchorIndentationOperation.cs" />
+    <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\Rules\Operations\FormattingOperations.cs" Link="Formatting\Rules\Operations\FormattingOperations.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\Rules\Operations\IndentBlockOperation.cs" Link="Formatting\Rules\Operations\IndentBlockOperation.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\Rules\Operations\IndentBlockOption.cs" Link="Formatting\Rules\Operations\IndentBlockOption.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\Rules\Operations\SuppressOperation.cs" Link="Formatting\Rules\Operations\SuppressOperation.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\Rules\Operations\SuppressOption.cs" Link="Formatting\Rules\Operations\SuppressOption.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\StringBuilderPool.cs" Link="Formatting\StringBuilderPool.cs" />
+    <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\TriviaEngine\AbstractTriviaFormatter.cs" Link="Formatting\TriviaEngine\AbstractTriviaFormatter.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\TriviaEngine\LineColumn.cs" Link="Formatting\TriviaEngine\LineColumn.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\TriviaEngine\LineColumnDelta.cs" Link="Formatting\TriviaEngine\LineColumnDelta.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\TriviaEngine\LineColumnRule.cs" Link="Formatting\TriviaEngine\LineColumnRule.cs" />

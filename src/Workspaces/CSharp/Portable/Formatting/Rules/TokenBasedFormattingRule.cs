@@ -2,15 +2,20 @@
 
 using System.Composition;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
-using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Options;
 
+#if !CODE_STYLE
+using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
+#endif
+
 namespace Microsoft.CodeAnalysis.CSharp.Formatting
 {
+#if !CODE_STYLE
     [ExportFormattingRule(Name, LanguageNames.CSharp), Shared]
     [ExtensionOrder(After = QueryExpressionFormattingRule.Name)]
+#endif
     internal class TokenBasedFormattingRule : BaseFormattingRule
     {
         internal const string Name = "CSharp Token Based Formatting Rule";
@@ -354,12 +359,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpaces);
             }
 
+#if !CODE_STYLE
             // suppress warning operator: null! or x! or x++! or x[i]! or (x)! or ...
             if (currentToken.Kind() == SyntaxKind.ExclamationToken &&
                 currentToken.Parent.Kind() == SyntaxKind.SuppressNullableWarningExpression)
             {
                 return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
             }
+#endif
 
             // ( * or ) * or [ * or ] * or . * or -> *
             switch (previousToken.Kind())

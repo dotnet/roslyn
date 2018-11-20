@@ -8,8 +8,10 @@ using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.CSharp.Formatting
 {
+#if !CODE_STYLE
     [ExportFormattingRule(Name, LanguageNames.CSharp), Shared]
     [ExtensionOrder(After = SuppressFormattingRule.Name)]
+#endif
     internal class AnchorIndentationFormattingRule : BaseFormattingRule
     {
         internal const string Name = "CSharp Anchor Indentation Formatting Rule";

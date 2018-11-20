@@ -6,9 +6,13 @@ Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
+#If Not CODE_STYLE Then
     <ExportFormattingRule(AlignTokensFormattingRule.Name, LanguageNames.VisualBasic), [Shared]>
     <ExtensionOrder(After:=AdjustSpaceFormattingRule.Name)>
     Friend Class AlignTokensFormattingRule
+#Else
+    Friend Class AlignTokensFormattingRule
+#End If
         Inherits BaseFormattingRule
         Friend Const Name As String = "VisualBasic Align Tokens Formatting Rule"
 

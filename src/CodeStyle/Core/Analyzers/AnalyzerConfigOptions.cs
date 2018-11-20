@@ -3,9 +3,9 @@
 using System;
 using System.Collections.Immutable;
 
-namespace Microsoft.CodeAnalysis.Diagnostics
+namespace Microsoft.CodeAnalysis
 {
-    internal abstract class AnalyzerConfigOptions
+    internal abstract class OptionSet
     {
         /// <summary>
         /// Comparer that should be used for all analyzer config keys. This is a case-insensitive comparison based
@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public abstract bool TryGetValue(string key, out string value);
     }
 
-    internal sealed class CompilerAnalyzerConfigOptions : AnalyzerConfigOptions
+    internal sealed class CompilerAnalyzerConfigOptions : OptionSet
     {
         public static CompilerAnalyzerConfigOptions Empty { get; } = new CompilerAnalyzerConfigOptions(
             ImmutableDictionary.Create<string, string>(KeyComparer));

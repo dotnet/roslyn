@@ -6,8 +6,10 @@ using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.CSharp.Formatting
 {
+#if !CODE_STYLE
     [ExportFormattingRule(Name, LanguageNames.CSharp), Shared]
     [ExtensionOrder(After = ElasticTriviaFormattingRule.Name)]
+#endif
     internal class EndOfFileTokenFormattingRule : BaseFormattingRule
     {
         internal const string Name = "CSharp End Of File Token Formatting Rule";
