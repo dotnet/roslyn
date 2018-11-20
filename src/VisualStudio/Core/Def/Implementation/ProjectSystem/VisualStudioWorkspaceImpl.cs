@@ -1468,8 +1468,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     if (string.Equals(convertedReference.path, outputPath, StringComparison.OrdinalIgnoreCase) &&
                         convertedReference.projectReference.ProjectId == projectId)
                     {
-                        var metadataReference =
-                            CreateMetadataReference(
+                        var metadataReference = 
+                            CreatePortableExecutableReference(
                                 convertedReference.path,
                                 new MetadataReferenceProperties(
                                     aliases: convertedReference.projectReference.Aliases,
@@ -1541,12 +1541,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             return null;
         }
-
-        public MetadataReference CreateMetadataReference(string path, MetadataReferenceProperties properties)
-        {
-            return Services.GetRequiredService<IMetadataService>().GetReference(path, properties);
-        }
-
+        
         private void SetSolutionAndRaiseWorkspaceChanged_NoLock(CodeAnalysis.Solution modifiedSolution, ICollection<ProjectId> projectIdsChanged)
         {
             if (projectIdsChanged.Count > 0)
