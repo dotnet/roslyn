@@ -342,6 +342,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Add tuple element name &apos;{0}&apos;.
+        /// </summary>
+        internal static string Add_tuple_element_name_0 {
+            get {
+                return ResourceManager.GetString("Add_tuple_element_name_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Adding &apos;{0}&apos; around an active statement will prevent the debug session from continuing..
         /// </summary>
         internal static string Adding_0_around_an_active_statement_will_prevent_the_debug_session_from_continuing {
