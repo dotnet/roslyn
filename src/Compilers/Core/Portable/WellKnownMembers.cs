@@ -3336,14 +3336,14 @@ namespace Microsoft.CodeAnalysis
                     0,                                                                                                                        // Method Signature
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void,
 
-                 // System_MatchFailureException__ctor0
+                 // System_MatchFailureException__ctor
                  (byte)MemberFlags.Constructor,                                                                                               // Flags
                  (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_MatchFailureException - WellKnownType.ExtSentinel),             // DeclaringTypeId
                  0,                                                                                                                           // Arity
                     0,                                                                                                                        // Method Signature
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void,
 
-                 // System_MatchFailureException__ctor1
+                 // System_MatchFailureException__ctorObject
                  (byte)MemberFlags.Constructor,                                                                                               // Flags
                  (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_MatchFailureException - WellKnownType.ExtSentinel),             // DeclaringTypeId
                  0,                                                                                                                           // Arity
@@ -3769,8 +3769,8 @@ namespace Microsoft.CodeAnalysis
                 "get_Item",                                 // System_Runtime_CompilerServices_ITuple__get_Item
                 "get_Length",                               // System_Runtime_CompilerServices_ITuple__get_Length
                 ".ctor",                                    // System_InvalidOperationException__ctor
-                ".ctor",                                    // System_MatchFailureException__ctor0
-                ".ctor",                                    // System_MatchFailureException__ctor1
+                ".ctor",                                    // System_MatchFailureException__ctor
+                ".ctor",                                    // System_MatchFailureException__ctorObject
             };
 
             s_descriptors = MemberDescriptor.InitializeFromStream(new System.IO.MemoryStream(initializationBytes, writable: false), allNames);
