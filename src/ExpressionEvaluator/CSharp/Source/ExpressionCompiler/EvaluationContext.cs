@@ -223,7 +223,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                     using (var stream = new MemoryStream())
                     {
                         Cci.PeWriter.WritePeToStream(
-                            new EmitContext(moduleBuilder, null, diagnostics, metadataOnly: false, includePrivateMembers: true),
+                            new EmitContext(moduleBuilder, null, diagnostics, metadataOnly: false, includePrivateMembers: true, includeManifestResources: true),
                             context.MessageProvider,
                             () => stream,
                             getPortablePdbStreamOpt: null,
@@ -286,7 +286,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             using (var stream = new MemoryStream())
             {
                 Cci.PeWriter.WritePeToStream(
-                    new EmitContext(moduleBuilder, null, diagnostics, metadataOnly: false, includePrivateMembers: true),
+                    new EmitContext(moduleBuilder, null, diagnostics, metadataOnly: false, includePrivateMembers: true, includeManifestResources: true),
                     context.MessageProvider,
                     () => stream,
                     getPortablePdbStreamOpt: null,
@@ -372,7 +372,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             using (var stream = new MemoryStream())
             {
                 Cci.PeWriter.WritePeToStream(
-                    new EmitContext(moduleBuilder, null, diagnostics, metadataOnly: false, includePrivateMembers: true),
+                    new EmitContext(moduleBuilder, null, diagnostics, metadataOnly: false, includePrivateMembers: true, includeManifestResources: true),
                     context.MessageProvider,
                     () => stream,
                     getPortablePdbStreamOpt: null,
@@ -421,7 +421,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 using (var stream = new MemoryStream())
                 {
                     Cci.PeWriter.WritePeToStream(
-                        new EmitContext(moduleBuilder, null, diagnostics, metadataOnly: false, includePrivateMembers: true),
+                        new EmitContext(moduleBuilder, null, diagnostics, metadataOnly: false, includePrivateMembers: true, includeManifestResources: true),
                         context.MessageProvider,
                         () => stream,
                         getPortablePdbStreamOpt: null,

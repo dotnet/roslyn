@@ -782,7 +782,8 @@ End Function",
             End If
         End Sub
 
-        <Fact, WorkItem(31197, "https://github.com/dotnet/roslyn/issues/31197")>
+        <ConditionalFact(GetType(WindowsDesktopOnly))>
+        <WorkItem(31197, "https://github.com/dotnet/roslyn/issues/31197")>
         Public Sub RefAssembly_InvariantToResourceChanges_RefOut()
             Dim arrayOfEmbeddedData1 = New Byte() {1, 2, 3, 4, 5}
             Dim arrayOfEmbeddedData2 = New Byte() {1, 2, 3, 4, 5, 6}
@@ -824,7 +825,8 @@ End Function",
             Assert.DoesNotContain("A", refAssembly1.GetManifestResourceNames())
         End Sub
 
-        <Fact, WorkItem(31197, "https://github.com/dotnet/roslyn/issues/31197")>
+        <ConditionalFact(GetType(WindowsDesktopOnly))>
+        <WorkItem(31197, "https://github.com/dotnet/roslyn/issues/31197")>
         Public Sub RefAssembly_SensitiveToResourceChanges_RefOnly()
             Dim arrayOfEmbeddedData1 = New Byte() {1, 2, 3, 4, 5}
             Dim arrayOfEmbeddedData2 = New Byte() {1, 2, 3, 4, 5, 6}

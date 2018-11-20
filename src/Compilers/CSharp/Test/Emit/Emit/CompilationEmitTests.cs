@@ -854,7 +854,8 @@ public class C
             }
         }
 
-        [Fact, WorkItem(31197, "https://github.com/dotnet/roslyn/issues/31197")]
+        [ConditionalFact(typeof(DesktopOnly))]
+        [WorkItem(31197, "https://github.com/dotnet/roslyn/issues/31197")]
         public void RefAssembly_InvariantToResourceChanges_RefOut()
         {
             var arrayOfEmbeddedData1 = new byte[] { 1, 2, 3, 4, 5 };
@@ -898,7 +899,8 @@ public class C
             }
         }
 
-        [Fact, WorkItem(31197, "https://github.com/dotnet/roslyn/issues/31197")]
+        [ConditionalFact(typeof(DesktopOnly))]
+        [WorkItem(31197, "https://github.com/dotnet/roslyn/issues/31197")]
         public void RefAssembly_SensitiveToResourceChanges_RefOnly()
         {
             var arrayOfEmbeddedData1 = new byte[] { 1, 2, 3, 4, 5 };

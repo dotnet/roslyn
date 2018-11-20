@@ -831,7 +831,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
                 using (var pdbStream = new MemoryStream())
                 {
                     PeWriter.WritePeToStream(
-                        new EmitContext(moduleBuilder, null, diagnostics, metadataOnly: false, includePrivateMembers: true),
+                        new EmitContext(moduleBuilder, null, diagnostics, metadataOnly: false, includePrivateMembers: true, includeManifestResources: true),
                         comp.MessageProvider,
                         () => peStream,
                         () => pdbStream,
