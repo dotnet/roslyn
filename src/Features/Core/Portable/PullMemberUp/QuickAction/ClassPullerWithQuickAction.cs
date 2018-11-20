@@ -9,39 +9,24 @@ namespace Microsoft.CodeAnalysis.PullMemberUp.QuickAction
 {
     internal class ClassPullerWithQuickAction : AbstractMemberPullerWithQuickAction
     {
-        protected override bool IsDeclarationAlreadyInTarget(INamedTypeSymbol targetSymbol, ISymbol userSelectedNodeSymbol)
+        protected override bool IsSelectedMemberDeclarationAlreadyInDestination(INamedTypeSymbol destination, ISymbol selectedMember)
         {
-            if (userSelectedNodeSymbol is IFieldSymbol fieldSymbol)
+            if (selectedMember is IFieldSymbol fieldSymbol)
             {
-                // If a member whose name is same as the selected one, then don't provide the refactoring option
-                return targetSymbol.GetMembers(fieldSymbol.Name).Any(member => member.Kind == SymbolKind.Field);
+                // If there is a field with same name in destination, pull the selected field will cause error,
+                // so don't provide refactoring under this scenario
+                return destination.GetMembers(fieldSymbol.Name).Any(member => member.IsKind(SymbolKind.Field));
             }
             else
             {
                 var overrideMembersSet = new HashSet<ISymbol>();
-                for (var symbol = userSelectedNodeSymbol; symbol != null; symbol = symbol.OverriddenMember())
+                for (var symbol = selectedMember; symbol != null; symbol = symbol.OverriddenMember())
                 {
                     overrideMembersSet.Add(symbol);
                 }
                 
-                var membersInTargetClass =
-                    targetSymbol.GetMembers().Where(member =>
-                    {
-                        if (member is IMethodSymbol method)
-                        {
-                            return method.MethodKind == MethodKind.Ordinary;
-                        }
-                        else if (member.Kind == SymbolKind.Field)
-                        {
-                            return !member.IsImplicitlyDeclared;
-                        }
-                        else
-                        {
-                            return true;
-                        }
-                    });
-
-                return overrideMembersSet.Intersect(membersInTargetClass, SymbolEquivalenceComparer.Instance).Any();
+                // Since the destination and selectedMember may belong different language, so use SymbolEquivalenceComparer as comparer
+                return overrideMembersSet.Intersect(destination.GetMembers(), SymbolEquivalenceComparer.Instance).Any();
             }
         }
     }

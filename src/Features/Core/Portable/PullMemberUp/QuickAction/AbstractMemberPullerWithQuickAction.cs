@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.  
 
+using System.Collections.Immutable;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp;
@@ -9,26 +11,26 @@ namespace Microsoft.CodeAnalysis.PullMemberUp.QuickAction
     internal abstract class AbstractMemberPullerWithQuickAction
     {
         /// <summary>
-        ///  This method is used to check whether the selected member overrides the member in target.
-        ///  It just checks the members directly declared in the target.
+        ///  This method is used to check whether the selected member overrides the member in destination.
+        ///  It just checks the members directly declared in the destination.
         /// </summary>
-        protected abstract bool IsDeclarationAlreadyInTarget(INamedTypeSymbol target, ISymbol symbol);
+        protected abstract bool IsSelectedMemberDeclarationAlreadyInDestination(INamedTypeSymbol destination, ISymbol symbol);
 
         internal async Task<CodeAction> TryComputeRefactoring(
             Document document,
-            ISymbol userSelectNodeSymbol,
-            INamedTypeSymbol targetTypeSymbol)
+            ISymbol selectedMember,
+            INamedTypeSymbol destinationType,
+            CancellationToken cancellationToken)
         {
-            var result = PullMembersUpAnalysisBuilder.BuildAnalysisResult(targetTypeSymbol, new ISymbol[] { userSelectNodeSymbol });
-            if (IsDeclarationAlreadyInTarget(targetTypeSymbol, userSelectNodeSymbol) ||
-                result._pullUpOperationCauseError)
+            var result = PullMembersUpAnalysisBuilder.BuildAnalysisResult(destinationType, ImmutableArray.Create(selectedMember));
+            if (result.PullUpOperationCausesError ||
+                IsSelectedMemberDeclarationAlreadyInDestination(destinationType, selectedMember))
             {
                 return default;
             }
 
             var generator = new CodeActionAndSolutionGenerator(); 
-            var title = string.Format(FeaturesResources.Add_to_0, targetTypeSymbol.ToDisplayString());
-            return await generator.TryGetCodeActionAsync(result, document, title);
+            return await generator.TryGetCodeActionAsync(result, document, cancellationToken);
         }
     }
 }

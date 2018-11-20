@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -13,21 +12,18 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
 {
     internal abstract class AbstractPullMemberUpRefactoringProvider : CodeRefactoringProvider
     {
-        private CancellationToken _cancellationToken;
-
         protected abstract bool IsSelectionValid(TextSpan span, SyntaxNode userSelectedSyntax);
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
             // Currently support to pull field, method, event, property and indexer up,
             // constructor, operator and finalizer are excluded.
-            _cancellationToken = context.CancellationToken;
-            var semanticModel = await context.Document.GetSemanticModelAsync(context.CancellationToken).ConfigureAwait(false);
-            var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
+            var document = context.Document;
+            var semanticModel = await document.GetSemanticModelAsync(context.CancellationToken).ConfigureAwait(false);
+            var root = await document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
             var userSelectedNode = root.FindNode(context.Span);
 
-
-            if (!IsSelectionValid(context.Span, userSelectedNode))
+            if (userSelectedNode == null)
             {
                 return;
             }
@@ -38,57 +34,68 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
                 return;
             }
 
-            var allTargets = FindAllValidTargets(userSelectNodeSymbol.ContainingType, context.Document.Project.Solution);
+            if (!userSelectNodeSymbol.IsKind(SymbolKind.Property) &&
+                !userSelectNodeSymbol.IsKind(SymbolKind.Event) &&
+                !userSelectNodeSymbol.IsKind(SymbolKind.Field) &&
+                !userSelectNodeSymbol.IsKind(SymbolKind.Method))
+            {
+                // Static, abstract and accessiblity are not checked here but in PullMemberUpAnalyzer.cs since there are
+                // two refactoring options provided for pull members up,
+                // 1. Quick Action (Only allow members that don't cause error)
+                // 2. Dialog box (Allow modifers may cause errors and will provide fixing)
+                return;
+            }
 
-            if (allTargets.Length == 0)
+            if (userSelectNodeSymbol is IMethodSymbol methodSymbol && !methodSymbol.IsOrdinaryMethod())
             {
                 return;
             }
 
-            if ((userSelectNodeSymbol is IMethodSymbol methodSymbol && methodSymbol.IsOrdinaryMethod()) ||
-                userSelectNodeSymbol.Kind == SymbolKind.Property ||
-                userSelectNodeSymbol.Kind == SymbolKind.Event ||
-                userSelectNodeSymbol.Kind == SymbolKind.Field)
+            if (!IsSelectionValid(context.Span, userSelectedNode))
             {
-                await PullMemberUpViaQuickAction(context, userSelectNodeSymbol, allTargets);
+                return;
             }
+
+            var allDestinations = FindAllValidDestinations(
+                userSelectNodeSymbol.ContainingType,
+                document.Project.Solution,
+                context.CancellationToken);
+            if (allDestinations.Length == 0)
+            {
+                return;
+            }
+            
+            await PullMemberUpViaQuickAction(context, userSelectNodeSymbol, allDestinations);
         }
 
-        private ImmutableArray<INamedTypeSymbol> FindAllValidTargets(
+        private ImmutableArray<INamedTypeSymbol> FindAllValidDestinations(
             INamedTypeSymbol selectedNodeOwnerSymbol,
-            Solution solution)
+            Solution solution,
+            CancellationToken cancellationToken)
         {
-            return selectedNodeOwnerSymbol.AllInterfaces.Concat(selectedNodeOwnerSymbol.GetBaseTypes()).
-                Where(baseType => baseType != null &&
+            return selectedNodeOwnerSymbol.AllInterfaces.Concat(selectedNodeOwnerSymbol.GetBaseTypes()).ToImmutableArray().
+                WhereAsArray(baseType => baseType != null &&
                     baseType.DeclaringSyntaxReferences.Length > 0 &&
-                    IsLocationValid(baseType, solution)).ToImmutableArray();
+                    IsLocationValid(baseType, solution, cancellationToken));
         }
 
-        private bool IsLocationValid(INamedTypeSymbol symbol, Solution solution)
+        private bool IsLocationValid(INamedTypeSymbol symbol, Solution solution, CancellationToken cancellationToken)
         {
             return symbol.Locations.Any(location => location.IsInSource &&
-                !solution.GetDocument(location.SourceTree).IsGeneratedCode(_cancellationToken));
+                !solution.GetDocument(location.SourceTree).IsGeneratedCode(cancellationToken));
         }
 
         private async Task PullMemberUpViaQuickAction(
             CodeRefactoringContext context,
             ISymbol userSelectNodeSymbol,
-            ImmutableArray<INamedTypeSymbol> targets)
+            ImmutableArray<INamedTypeSymbol> destinations)
         {
-            foreach (var target in targets)
+            foreach (var destination in destinations)
             {
-                AbstractMemberPullerWithQuickAction puller = default;
-                if (target.TypeKind == TypeKind.Interface &&
-                    userSelectNodeSymbol.Kind != SymbolKind.Field)
-                {
-                    puller = new InterfacePullerWithQuickAction();
-                }
-                else
-                {
-                    puller = new ClassPullerWithQuickAction();
-                }
-
-                var action = await puller.TryComputeRefactoring(context.Document, userSelectNodeSymbol, target);
+                var puller = destination.TypeKind == TypeKind.Interface && userSelectNodeSymbol.Kind != SymbolKind.Field
+                ? new InterfacePullerWithQuickAction() as AbstractMemberPullerWithQuickAction
+                : new ClassPullerWithQuickAction();
+                var action = await puller.TryComputeRefactoring(context.Document, userSelectNodeSymbol, destination, context.CancellationToken);
                 if (action != null)
                 {
                     context.RegisterRefactoring(action);

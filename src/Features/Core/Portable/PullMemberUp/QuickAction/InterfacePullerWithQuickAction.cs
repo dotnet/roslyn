@@ -6,13 +6,12 @@ namespace Microsoft.CodeAnalysis.PullMemberUp.QuickAction
 {
     internal class InterfacePullerWithQuickAction : AbstractMemberPullerWithQuickAction
     {
-        protected override bool IsDeclarationAlreadyInTarget(
-            INamedTypeSymbol targetSymbol,
+        protected override bool IsSelectedMemberDeclarationAlreadyInDestination(
+            INamedTypeSymbol destinationSymbol,
             ISymbol userSelectedNodeSymbol)
         {
-            var allMembers = targetSymbol.GetMembers();
             var comparer = SymbolEquivalenceComparer.Instance;
-            foreach (var interfaceMember in allMembers)
+            foreach (var interfaceMember in destinationSymbol.GetMembers())
             {
                 var implementationOfMember = userSelectedNodeSymbol.ContainingType.FindImplementationForInterfaceMember(interfaceMember);
                 if (comparer.Equals(userSelectedNodeSymbol, implementationOfMember?.OriginalDefinition))

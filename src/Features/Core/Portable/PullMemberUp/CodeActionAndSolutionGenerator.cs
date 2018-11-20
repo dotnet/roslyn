@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -16,83 +15,82 @@ namespace Microsoft.CodeAnalysis.PullMemberUp
 {
     internal class CodeActionAndSolutionGenerator
     {
-        private async Task<Solution> GetUpdateSolutionAsync(
-            AnalysisResult result,
+        private async Task<Solution> PullMembersUpAsync(
+            PullMembersUpAnalysisResult result,
             Document contextDocument,
-            SyntaxNode targetNodeSyntax,
+            SyntaxNode destinationNodeSyntax,
             CancellationToken cancellationToken)
         {
             var solution = contextDocument.Project.Solution;
             var solutionEditor = new SolutionEditor(solution);
             var codeGenerationService = contextDocument.Project.LanguageServices.GetRequiredService<ICodeGenerationService>();
-            var (editorMap, syntaxMap) = await InitializeEditorMapsAndSyntaxMapAsync(result, targetNodeSyntax, solutionEditor, solution, cancellationToken).ConfigureAwait(false);
+            var (editorMap, syntaxMap) = await InitializeEditorMapsAndSyntaxMapAsync(result, destinationNodeSyntax, solutionEditor, solution, cancellationToken).ConfigureAwait(false);
             return PullMembersIntoClass(
-                result, codeGenerationService, targetNodeSyntax,
+                result, codeGenerationService, destinationNodeSyntax,
                 solutionEditor, solution, editorMap, syntaxMap);
         }
 
         internal async Task<CodeAction> TryGetCodeActionAsync(
-            AnalysisResult result,
+            PullMembersUpAnalysisResult result,
             Document contextDocument,
-            string title)
+            CancellationToken cancellationToken)
         { 
             var codeGenerationService = contextDocument.Project.LanguageServices.GetRequiredService<ICodeGenerationService>();
-            var targetNodeSyntax = await codeGenerationService.FindMostRelevantNameSpaceOrTypeDeclarationAsync(
-                contextDocument.Project.Solution, result._target).ConfigureAwait(false);
+            var destinationNodeSyntax = await codeGenerationService.FindMostRelevantNameSpaceOrTypeDeclarationAsync(
+                contextDocument.Project.Solution, result.Destination, default, cancellationToken).ConfigureAwait(false);
 
-            if (targetNodeSyntax != null)
+            if (destinationNodeSyntax == null)
             {
-                if (result._target.TypeKind == TypeKind.Interface)
-                {
-                    return PullMembersIntoInterface(result, contextDocument, codeGenerationService, title);
-                }
-                else if (result._target.TypeKind == TypeKind.Class)
-                {
-                    return new SolutionChangeAction(
-                        title,
-                        cancellationToken => GetUpdateSolutionAsync(result, contextDocument, targetNodeSyntax, cancellationToken));
-                }
-                else
-                {
-                    throw ExceptionUtilities.UnexpectedValue(result._target);
-                }
+                return null;
+            }
+
+            if (result.Destination.TypeKind == TypeKind.Interface)
+            {
+                return PullMembersIntoInterface(result, contextDocument, codeGenerationService);
+            }
+            else if (result.Destination.TypeKind == TypeKind.Class)
+            {
+                return new SolutionChangeAction(
+                    string.Format(FeaturesResources.Add_to_0, result.Destination),
+                    token => PullMembersUpAsync(result, contextDocument, destinationNodeSyntax, token));
             }
             else
             {
-                return null;
+                throw ExceptionUtilities.UnexpectedValue(result.Destination);
             }
         }
 
         private CodeAction PullMembersIntoInterface(
-            AnalysisResult result,
+            PullMembersUpAnalysisResult result,
             Document contextDocument,
-            ICodeGenerationService codeGenerationService,
-            string title)
+            ICodeGenerationService codeGenerationService)
         {
-            var options = new CodeGenerationOptions(generateMethodBodies: false, generateMembers: false);
-            var symbolsToPullUp = result._membersAnalysisResults.
-                Select(analysisResult =>
-                {
-                    if (analysisResult._member is IPropertySymbol propertySymbol)
-                    {
-                        // When it is a property, it could have a public getter/setter
-                        // but other one is not public. In this scenario, only the public getter/setter
-                        // will be add the target interface
-                        return CodeGenerationSymbolFactory.CreatePropertySymbol(
-                                propertySymbol,
-                                getMethod: FilterGetterOrSetter(propertySymbol.GetMethod),
-                                setMethod: FilterGetterOrSetter(propertySymbol.SetMethod));
-                    }
-                    else
-                    {
-                        return analysisResult._member;
-                    }
-                });
-
             return new DocumentChangeAction(
-                title,
-                cancellationToken => codeGenerationService.AddMembersAsync(
-                    contextDocument.Project.Solution, result._target, symbolsToPullUp, options: options, cancellationToken: cancellationToken));
+                string.Format(FeaturesResources.Add_to_0, result.Destination),
+                cancellationToken =>
+                {
+                    var options = new CodeGenerationOptions(generateMethodBodies: false, generateMembers: false);
+                    var symbolsToPullUp = result.MembersAnalysisResults.
+                        Select(analysisResult =>
+                        {
+                            if (analysisResult.Member is IPropertySymbol propertySymbol)
+                            {
+                                // When it is a property, it could have a public getter/setter
+                                // but other one is not public. In this scenario, only the public getter/setter
+                                // will be add to the destination interface
+                                return CodeGenerationSymbolFactory.CreatePropertySymbol(
+                                    propertySymbol,
+                                    getMethod: FilterGetterOrSetter(propertySymbol.GetMethod),
+                                    setMethod: FilterGetterOrSetter(propertySymbol.SetMethod));
+                            }
+                            else
+                            {
+                                return analysisResult.Member;
+                            }
+                        });
+                    return codeGenerationService.AddMembersAsync(
+                        contextDocument.Project.Solution, result.Destination, symbolsToPullUp, options: options, cancellationToken: cancellationToken);
+                });
         }
 
         private IMethodSymbol FilterGetterOrSetter(IMethodSymbol getterOrSetter)
@@ -101,97 +99,78 @@ namespace Microsoft.CodeAnalysis.PullMemberUp
         }
 
         private Solution PullMembersIntoClass(
-            AnalysisResult result,
+            PullMembersUpAnalysisResult result,
             ICodeGenerationService codeGenerationService,
-            SyntaxNode targetNodeSyntax,
+            SyntaxNode destinationNodeSyntax,
             SolutionEditor solutionEditor,
             Solution solution,
-            ImmutableDictionary<DocumentId, DocumentEditor> editorMap,
-            ImmutableDictionary<ISymbol, IEnumerable<SyntaxNode>> syntaxMap)
+            ImmutableDictionary<SyntaxTree, DocumentEditor> editorMap,
+            ImmutableDictionary<ISymbol, ImmutableArray<SyntaxNode>> syntaxMap)
         {
-            AddMembersToClass(result, codeGenerationService, targetNodeSyntax, solution, editorMap);
-            RemoveOriginalMembers(result, solution, editorMap, syntaxMap);
+            // Add members to destination
+            var pullUpMembersSymbols = result.MembersAnalysisResults.Select(memberResult => memberResult.Member);
+            var options = new CodeGenerationOptions(reuseSyntax: true, generateMethodBodies: false);
+            var membersAddedNode = codeGenerationService.AddMembers(destinationNodeSyntax, pullUpMembersSymbols, options: options);
+            var destinationEditor = editorMap[destinationNodeSyntax.SyntaxTree];
+            destinationEditor.ReplaceNode(destinationNodeSyntax, (syntaxNode, generator) => membersAddedNode);
+
+            // Remove the original members since we are pulling members into class
+            foreach (var analysisResult in result.MembersAnalysisResults)
+            {
+                foreach (var syntax in syntaxMap[analysisResult.Member])
+                {
+                    var originalMemberEditor = editorMap[syntax.SyntaxTree];
+                    originalMemberEditor.RemoveNode(originalMemberEditor.Generator.GetDeclaration(syntax));
+                }
+            }
+
             return solutionEditor.GetChangedSolution();
         }
 
-        private void AddMembersToClass(
-            AnalysisResult result,
-            ICodeGenerationService codeGenerationService,
-            SyntaxNode targetNodeSyntax,
-            Solution solution,
-            ImmutableDictionary<DocumentId, DocumentEditor> editorMap)
-        {
-            var pullUpMembersSymbols = result._membersAnalysisResults.Select(memberResult => memberResult._member);
-
-            var options = new CodeGenerationOptions(reuseSyntax: true, generateMethodBodies: false);
-            var membersAddedNode = codeGenerationService.AddMembers(targetNodeSyntax, pullUpMembersSymbols, options: options);
-
-            var editor = editorMap[solution.GetDocumentId(targetNodeSyntax.SyntaxTree)];
-            editor.ReplaceNode(targetNodeSyntax, membersAddedNode);
-        }
-
-        private void RemoveOriginalMembers(
-            AnalysisResult result,
-            Solution solution,
-            ImmutableDictionary<DocumentId, DocumentEditor> editorMap,
-            ImmutableDictionary<ISymbol, IEnumerable<SyntaxNode>> syntaxMap)
-        {
-            foreach (var analysisResult in result._membersAnalysisResults)
-            {
-                foreach (var syntax in syntaxMap[analysisResult._member])
-                {
-                    RemoveDeclaration(editorMap[solution.GetDocumentId(syntax.SyntaxTree)], syntax);
-                }
-            }
-        }
-
-        private async Task<(ImmutableDictionary<DocumentId, DocumentEditor>, ImmutableDictionary<ISymbol, IEnumerable<SyntaxNode>>)> InitializeEditorMapsAndSyntaxMapAsync(
-            AnalysisResult result,
-            SyntaxNode targetSyntaxNode,
+        private async Task<(ImmutableDictionary<SyntaxTree, DocumentEditor> editorMap, ImmutableDictionary<ISymbol, ImmutableArray<SyntaxNode>> syntaxMap)> InitializeEditorMapsAndSyntaxMapAsync(
+            PullMembersUpAnalysisResult result,
+            SyntaxNode destinationSyntaxNode,
             SolutionEditor solutionEditor,
             Solution solution,
             CancellationToken cancellationToken)
         {
-            // Members and target may come from different documents,
-            // So EditorMap is used to save and group all the editors will be used.
-            var editorMapBuilder = ImmutableDictionary.CreateBuilder<DocumentId, DocumentEditor>();
+            // Members and destination may come from different documents,
+            // EditorMap is used to save and group all the editors will be used.
+            var editorMapBuilder = ImmutableDictionary.CreateBuilder<SyntaxTree, DocumentEditor>();
             // One member may have multiple syntaxNodes (e.g partial method).
             // SyntaxMap is used to find the syntaxNodes need to be changed more easily.
-            var syntaxMapBuilder = ImmutableDictionary.CreateBuilder<ISymbol, IEnumerable<SyntaxNode>>();
-            var membersNeedToBeChanged = result._membersAnalysisResults;
+            var syntaxMapBuilder = ImmutableDictionary.CreateBuilder<ISymbol, ImmutableArray<SyntaxNode>>();
 
-            foreach (var memberAnalysisResult in membersNeedToBeChanged)
+            foreach (var memberAnalysisResult in result.MembersAnalysisResults)
             {
-                var tasks = memberAnalysisResult._member.DeclaringSyntaxReferences.Select(@ref => @ref.GetSyntaxAsync(cancellationToken));
+                var tasks = memberAnalysisResult.Member.DeclaringSyntaxReferences.SelectAsArray(@ref => @ref.GetSyntaxAsync(cancellationToken));
                 var allSyntaxes = await Task.WhenAll(tasks).ConfigureAwait(false);
-                await AddEditorsToEditorMapBuilderAsync(editorMapBuilder, allSyntaxes, solutionEditor, solution);
-                syntaxMapBuilder.Add(memberAnalysisResult._member, allSyntaxes.ToImmutableArray());
+                await AddEditorsToEditorMapBuilderAsync(editorMapBuilder, allSyntaxes.ToImmutableArray(), solutionEditor, solution);
+                syntaxMapBuilder.Add(memberAnalysisResult.Member, allSyntaxes.ToImmutableArray());
             }
 
-            await AddEditorsToEditorMapBuilderAsync(editorMapBuilder, new SyntaxNode[] { targetSyntaxNode }, solutionEditor, solution);
+            await AddEditorsToEditorMapBuilderAsync(
+                editorMapBuilder,
+                ImmutableArray.Create(destinationSyntaxNode),
+                solutionEditor,
+                solution);
             return (editorMapBuilder.ToImmutableDictionary(), syntaxMapBuilder.ToImmutableDictionary());
         }
 
         private async Task AddEditorsToEditorMapBuilderAsync(
-            ImmutableDictionary<DocumentId, DocumentEditor>.Builder mapBuilder,
-            IEnumerable<SyntaxNode> syntaxNodes,
+            ImmutableDictionary<SyntaxTree, DocumentEditor>.Builder mapBuilder,
+            ImmutableArray<SyntaxNode> syntaxNodes,
             SolutionEditor solutionEditor,
             Solution solution)
         {
             foreach (var syntax in syntaxNodes)
             {
-                if (!mapBuilder.ContainsKey(solution.GetDocumentId(syntax.SyntaxTree)))
+                if (!mapBuilder.ContainsKey(syntax.SyntaxTree))
                 {
-                    var id = solution.GetDocumentId(syntax.SyntaxTree);
-                    var editor = await solutionEditor.GetDocumentEditorAsync(id).ConfigureAwait(false);
-                    mapBuilder.Add(solution.GetDocumentId(syntax.SyntaxTree), editor);
+                    var editor = await solutionEditor.GetDocumentEditorAsync(solution.GetDocumentId(syntax.SyntaxTree)).ConfigureAwait(false);
+                    mapBuilder.Add(syntax.SyntaxTree, editor);
                 }
             }
-        }
-
-        private void RemoveDeclaration(DocumentEditor editor, SyntaxNode node)
-        {
-            editor.RemoveNode(editor.Generator.GetDeclaration(node));
         }
     }
 }

@@ -8,64 +8,83 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
 {
     internal class PullMembersUpAnalysisBuilder
     {
-        internal static AnalysisResult BuildAnalysisResult(
-            INamedTypeSymbol targetSymbol,
-            IEnumerable<ISymbol> members)
+        internal static PullMembersUpAnalysisResult BuildAnalysisResult(
+            INamedTypeSymbol destination,
+            ImmutableArray<ISymbol> members)
         {
-            var memberResult = members.Select(member =>
+            var membersAnalysisResult = members.SelectAsArray(member =>
             {
-                if (targetSymbol.TypeKind == TypeKind.Interface)
+                if (destination.TypeKind == TypeKind.Interface)
                 {
-                    return new MemberAnalysisResult(
-                        member, member.DeclaredAccessibility != Accessibility.Public,
-                        member.IsStatic);
+                    var changeOriginalToPublic = member.DeclaredAccessibility != Accessibility.Public;
+                    var changeOriginalToNonStatic = member.IsStatic;
+                    return new MemberAnalysisResult(member, changeOriginalToPublic, changeOriginalToNonStatic);
                 }
                 else
                 {
-                    var changeOriginToPublic = false;
-                    var changeOriginToNonStatic = false;
-                    return new MemberAnalysisResult(member, changeOriginToPublic, changeOriginToNonStatic);
+                    var changeOriginalToPublic = false;
+                    var changeOriginalToNonStatic = false;
+                    return new MemberAnalysisResult(member, changeOriginalToPublic, changeOriginalToNonStatic);
                 }
             });
 
-            return new AnalysisResult(targetSymbol, memberResult);
+            return new PullMembersUpAnalysisResult(destination, membersAnalysisResult);
         }
     }
 
-    internal class MemberAnalysisResult
+    internal readonly struct MemberAnalysisResult
     {
-        public readonly ISymbol _member;
+        /// <summary>
+        /// The member needs to be pulled up.
+        /// </summary>
+        public readonly ISymbol Member;
 
-        public readonly bool _changeOriginToPublic;
+        /// <summary>
+        /// Indicate whether this member needs to be changed to public so it won't cause error after it is pulled up to destination.
+        /// </summary>
+        public readonly bool ChangeOriginalToPublic;
 
-        public readonly bool _changeOriginToNonStatic;
+        /// <summary>
+        /// Indicate whether this member needs to be changed to non-static so it won't cause error after it is pulled up to destination.
+        /// </summary>
+        public readonly bool ChangeOriginalToNonStatic;
 
-        internal MemberAnalysisResult(ISymbol member, bool changeOriginToPublic, bool changeOriginToNonStatic)
+        internal MemberAnalysisResult(ISymbol member, bool changeOriginalToPublic, bool changeOriginalToNonStatic)
         {
-            _member = member;
-            _changeOriginToPublic = changeOriginToPublic;
-            _changeOriginToNonStatic = changeOriginToNonStatic;
+            Member = member;
+            ChangeOriginalToPublic = changeOriginalToPublic;
+            ChangeOriginalToNonStatic = changeOriginalToNonStatic;
         }
     }
 
     /// <summary>
-    /// This is class contains all the operations to be done on members and target in order to pull members up to target
+    /// This is struct contains all the operations needs to be done on members and destination to complete the pull up operation.
     /// </summary>
-    internal class AnalysisResult
+    internal readonly struct PullMembersUpAnalysisResult
     {
-        public readonly INamedTypeSymbol _target;
+        /// <summary>
+        /// Destination of where members should be pulled up to.
+        /// </summary>
+        public readonly INamedTypeSymbol Destination;
 
-        public readonly ImmutableArray<MemberAnalysisResult> _membersAnalysisResults;
+        /// <summary>
+        /// All the members involved in this pull up operation,
+        /// and the other changes (in adddition to pull up) needed so that this pull up operation won't cause error.
+        /// </summary>
+        public readonly ImmutableArray<MemberAnalysisResult> MembersAnalysisResults;
 
-        public readonly bool _pullUpOperationCauseError;
+        /// <summary>
+        /// Indicate whether it would cause error if we directly pull the members up to destination.
+        /// </summary>
+        public readonly bool PullUpOperationCausesError;
 
-        internal AnalysisResult(
-            INamedTypeSymbol target,
-            IEnumerable<MemberAnalysisResult> membersAnalysisResults)
+        internal PullMembersUpAnalysisResult(
+            INamedTypeSymbol destination,
+            ImmutableArray<MemberAnalysisResult> membersAnalysisResults)
         {
-            _target = target;
-            _membersAnalysisResults = membersAnalysisResults.ToImmutableArray();
-            _pullUpOperationCauseError = _membersAnalysisResults.All(result => result._changeOriginToNonStatic || result._changeOriginToPublic);
+            Destination = destination;
+            MembersAnalysisResults = membersAnalysisResults;
+            PullUpOperationCausesError = MembersAnalysisResults.Any(result => result.ChangeOriginalToNonStatic || result.ChangeOriginalToPublic);
         }
     }
 }

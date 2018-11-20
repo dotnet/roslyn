@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.PullMemberUp
 {
-    [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = nameof(PredefinedCodeRefactoringProviderNames.PullMember)), Shared]
+    [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = nameof(PredefinedCodeRefactoringProviderNames.PullMemberUp)), Shared]
     internal class CSharpPullMemberUpCodeRefactoringProvider : AbstractPullMemberUpRefactoringProvider
     {
         protected override bool IsSelectionValid(TextSpan span, SyntaxNode userSelectedSyntax)
@@ -19,10 +19,19 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.PullMemberUp
             {
                 return false;
             }
+            else if (identifier.FullSpan.Contains(span) && span.Contains(identifier.Span))
+            {
+                // Selection lies within the identifier's span
+                return true;
+            }
+            else if (identifier.Span.Contains(span) && span.Length == 0)
+            {
+                // Cursor stands on the identifier
+                return true;
+            }
             else
             {
-                return (identifier.FullSpan.Contains(span) && span.Contains(identifier.Span)) ||  
-                    (identifier.Span.Contains(span) && span.Length == 0);
+                return false;
             }
         }
 
