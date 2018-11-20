@@ -269,16 +269,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             int capacity = state.Capacity;
             for (int slot = start; slot < capacity; slot++)
             {
-                var value = GetDefaultState(ref state, slot);
+                (NullableAnnotation value, bool assigned) = GetDefaultState(ref state, slot);
                 state[slot] = value;
+                state.SetAssigned(slot, assigned);
             }
         }
 
-        private NullableAnnotation GetDefaultState(ref LocalState state, int slot)
+        private (NullableAnnotation annotation, bool assigned) GetDefaultState(ref LocalState state, int slot)
         {
             if (slot == 0)
             {
-                return NullableAnnotation.Unknown;
+                return (NullableAnnotation.Unknown, false);
             }
 
             var variable = variableBySlot[slot];
@@ -287,35 +288,35 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (symbol.Kind)
             {
                 case SymbolKind.Local:
-                    return NullableAnnotation.Unknown;
+                    return (NullableAnnotation.Unknown, false);
                 case SymbolKind.Parameter:
                     {
                         var parameter = (ParameterSymbol)symbol;
                         if (parameter.RefKind == RefKind.Out)
                         {
-                            return NullableAnnotation.Unknown;
+                            return (NullableAnnotation.Unknown, false);
                         }
                         TypeSymbolWithAnnotations parameterType;
                         if (!_variableTypes.TryGetValue(parameter, out parameterType))
                         {
                             parameterType = parameter.Type;
                         }
-                        return parameterType.NullableAnnotation;
+
+                        return (parameterType.NullableAnnotation, true);
                     }
                 case SymbolKind.Field:
                 case SymbolKind.Property:
                 case SymbolKind.Event:
                     {
-                        // https://github.com/dotnet/roslyn/issues/30065 State of containing struct should not be important.
-                        // And if it is important, what about fields of structs that are fields of other structs, etc.?
                         int containingSlot = variable.ContainingSlot;
                         if (containingSlot > 0 &&
                             variableBySlot[containingSlot].Symbol.GetTypeOrReturnType().TypeKind == TypeKind.Struct &&
-                            state[containingSlot] == NullableAnnotation.Unknown)
+                            !state.IsAssigned(containingSlot))
                         {
-                            return NullableAnnotation.Unknown;
+                            return (NullableAnnotation.Unknown, false);
                         }
-                        return symbol.GetTypeOrReturnType().NullableAnnotation;
+
+                        return (symbol.GetTypeOrReturnType().NullableAnnotation, true);
                     }
                 default:
                     throw ExceptionUtilities.UnexpectedValue(symbol.Kind);
@@ -820,14 +821,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override LocalState ReachableState()
         {
-            var state = new LocalState(reachable: true, new ArrayBuilder<NullableAnnotation>(nextVariableSlot));
+            var state = new LocalState(reachable: true, BitVector.Create(nextVariableSlot), new ArrayBuilder<NullableAnnotation>(nextVariableSlot));
             Populate(ref state, start: 0);
             return state;
         }
 
         protected override LocalState UnreachableState()
         {
-            return new LocalState(reachable: false, null);
+            return new LocalState(reachable: false, BitVector.Empty, null);
         }
 
         protected override LocalState AllBitsSet()
@@ -835,7 +836,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Create a reachable state in which all variables are known to be non-null.
             var builder = new ArrayBuilder<NullableAnnotation>(nextVariableSlot);
             builder.AddMany(NullableAnnotation.NotNullableBasedOnAnalysis, nextVariableSlot);
-            return new LocalState(reachable: true, builder);
+            return new LocalState(reachable: true, BitVector.AllSet(nextVariableSlot), builder);
         }
 
         private void EnterParameters()
@@ -4653,6 +4654,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     self[slot] = union;
                 }
+
+                bool selfIsAssigned = self.IsAssigned(slot);
+                bool isAssigned = selfIsAssigned || other.IsAssigned(slot);
+                if (selfIsAssigned != isAssigned)
+                {
+                    self.SetAssigned(slot, isAssigned);
+                }
             }
         }
 
@@ -4676,6 +4684,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (selfAnnotation != intersection)
                     {
                         self[slot] = intersection;
+                        result = true;
+                    }
+
+                    bool selfIsAssigned = self.IsAssigned(slot);
+                    bool isAssigned = selfIsAssigned && other.IsAssigned(slot);
+                    if (selfIsAssigned != isAssigned)
+                    {
+                        self.SetAssigned(slot, isAssigned);
                         result = true;
                     }
                 }
@@ -4707,12 +4723,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal struct LocalState : AbstractLocalState
 #endif
         {
+            private BitVector _assigned;
             private ArrayBuilder<NullableAnnotation> _state;
             public bool Reachable { get; }
 
-            internal LocalState(bool reachable, ArrayBuilder<NullableAnnotation> state)
+            internal LocalState(bool reachable, BitVector assigned, ArrayBuilder<NullableAnnotation> state)
             {
+                Debug.Assert(!assigned.IsNull);
                 this.Reachable = reachable;
+                this._assigned = assigned;
                 this._state = state;
             }
 
@@ -4720,6 +4739,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             internal void EnsureCapacity(int capacity)
             {
+                _assigned.EnsureCapacity(capacity);
+
                 if (_state == null)
                 {
                     _state = new ArrayBuilder<NullableAnnotation>(capacity);
@@ -4746,7 +4767,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     EnsureCapacity(slot + 1);
                     _state[slot] = value;
+                    SetAssigned(slot, true);
                 }
+            }
+
+            internal void SetAssigned(int slot, bool value)
+            {
+                _assigned[slot] = value;
+            }
+
+            internal bool IsAssigned(int slot)
+            {
+                return _assigned[slot];
             }
 
             /// <summary>
@@ -4768,7 +4800,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     clone.AddRange(_state);
                 }
 
-                return new LocalState(Reachable, clone);
+                return new LocalState(Reachable, _assigned.Clone(), clone);
             }
 
             internal string GetDebuggerDisplay()

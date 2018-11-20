@@ -44,8 +44,8 @@ namespace System.Runtime.CompilerServices
                    AllowMultiple = false)]
     public class NullableAttribute : Attribute
     {
-        public NullableAttribute() { }
-        public NullableAttribute(bool[] transformFlags)
+        public NullableAttribute(byte transformFlag) { }
+        public NullableAttribute(byte[] transformFlags)
         {
         }
     }
