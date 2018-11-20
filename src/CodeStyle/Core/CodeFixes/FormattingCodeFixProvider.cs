@@ -56,12 +56,11 @@ namespace Microsoft.CodeAnalysis.CodeStyle
 
         private async Task<OptionSet> GetOptionsAsync(Document document, CancellationToken cancellationToken)
         {
-            var documentOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-            OptionSet options = new OptionSetAnalyzerConfigOptions(documentOptions);
+            OptionSet options = CompilerAnalyzerConfigOptions.Empty;
 
             // The in-IDE workspace supports .editorconfig without special handling. However, the AdhocWorkspace used
             // in testing requires manual handling of .editorconfig.
-            if (document.Project.Solution.Workspace is AdhocWorkspace && File.Exists(document.FilePath ?? document.Name))
+            if (File.Exists(document.FilePath ?? document.Name))
             {
                 var codingConventionsManager = CodingConventionsManagerFactory.CreateCodingConventionsManager();
                 var codingConventionContext = await codingConventionsManager.GetConventionContextAsync(document.FilePath ?? document.Name, cancellationToken).ConfigureAwait(false);
@@ -93,23 +92,6 @@ namespace Microsoft.CodeAnalysis.CodeStyle
                 var syntaxRoot = await document.GetSyntaxRootAsync(fixAllContext.CancellationToken).ConfigureAwait(false);
                 var updatedSyntaxRoot = Formatter.Format(syntaxRoot, _formattingCodeFixProvider.SyntaxFormattingService, options, fixAllContext.CancellationToken);
                 return updatedSyntaxRoot;
-            }
-        }
-
-        internal sealed class OptionSetAnalyzerConfigOptions : OptionSet
-        {
-            private readonly DocumentOptionSet _optionSet;
-
-            public OptionSetAnalyzerConfigOptions(DocumentOptionSet optionSet)
-            {
-                _optionSet = optionSet;
-            }
-
-            public override bool TryGetValue(string key, out string value)
-            {
-                // TODO: map known options to OptionSet
-                value = null;
-                return false;
             }
         }
     }
