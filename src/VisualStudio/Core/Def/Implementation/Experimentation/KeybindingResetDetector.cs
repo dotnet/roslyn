@@ -19,6 +19,7 @@ using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.PlatformUI.OleComponentSupport;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
 using Task = System.Threading.Tasks.Task;
 
@@ -68,17 +69,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
         private OleComponent _oleComponent;
         private uint _priorityCommandTargetCookie = VSConstants.VSCOOKIE_NIL;
 
+        private CancellationTokenSource _cancellationTokenSource;
         /// <summary>
         /// If false, ReSharper is either not installed, or has been disabled in the extension manager.
         /// If true, the ReSharper extension is enabled. ReSharper's internal status could be either suspended or enabled.
         /// </summary>
         private bool _resharperExtensionInstalled = false;
         private bool _infoBarOpen = false;
-        /// <summary>
-        /// True, when ReSharper is installed and running
-        /// False, when ReSharper is not installed, or when installed and suspended
-        /// </summary>
-        private bool _resharperRunning = false;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -146,44 +143,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
 
         private void UpdateStateMachine()
         {
-            if (!TryUpdateStateMachine())
+            ThreadHelper.JoinableTaskFactory.RunAsync(async delegate
             {
-                Task.Factory.SafeStartNew(LoopOnBackgroundAsync, CancellationToken.None, TaskScheduler.Default);
-            }
+                await UpdateStateMachineAsync();
+            });
         }
 
-        private async Task LoopOnBackgroundAsync()
-        {
-            for (var i = 0; i < 10; i++)
-            {
-                await Task.Delay(TimeSpan.FromSeconds(2));
-
-                // periodically look for the Resume button
-                await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
-                if (TryUpdateStateMachine())
-                {
-                    return;
-                }
-            }
-
-            // No resume button so ReSharper must be running
-            _resharperRunning = true;
-            TryUpdateStateMachine();
-        }
-
-        private bool TryUpdateStateMachine()
+        private async Task UpdateStateMachineAsync()
         {
             AssertIsForeground();
 
-            var currentStatus = IsReSharperRunning();
-
-            if (currentStatus == ReSharperStatus.Undetermined)
-            {
-                return false;
-            }
-
             var options = _workspace.Options;
             ReSharperStatus lastStatus = options.GetOption(KeybindingResetOptions.ReSharperStatus);
+            var currentStatus = await IsReSharperRunningAsync(lastStatus).ConfigureAwait(false);
+            if (currentStatus == lastStatus)
+                return;
 
             options = options.WithChangedOption(KeybindingResetOptions.ReSharperStatus, currentStatus);
 
@@ -195,7 +169,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
                     {
                         // N->E or S->E. If ReSharper was just installed and is enabled, reset NeedsReset.
                         options = options.WithChangedOption(KeybindingResetOptions.NeedsReset, false);
-                        _resharperRunning = false;
                     }
                     // Else is N->N, N->S, S->N, S->S. N->S can occur if the user suspends ReSharper, then disables
                     // the extension, then reenables the extension. We will show the gold bar after the switch
@@ -207,7 +180,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
                     {
                         // E->N or E->S. Set NeedsReset. Pop the gold bar to the user.
                         options = options.WithChangedOption(KeybindingResetOptions.NeedsReset, true);
-                        _resharperRunning = true;
                     }
 
                     // Else is E->E. No actions to take
@@ -220,8 +192,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
             {
                 ShowGoldBar();
             }
-
-            return true;
         }
 
         private void ShowGoldBar()
@@ -260,7 +230,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
                               action: InfoBarClose));
         }
 
-        private ReSharperStatus IsReSharperRunning()
+        private async Task<ReSharperStatus> IsReSharperRunningAsync(ReSharperStatus lastStatus)
         {
             AssertIsForeground();
 
@@ -268,11 +238,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
             if (!_resharperExtensionInstalled)
             {
                 return ReSharperStatus.NotInstalledOrDisabled;
-            }
-
-            if (_resharperRunning)
-            {
-                return ReSharperStatus.Enabled;
             }
 
             if (_oleCommandTarget == null)
@@ -283,20 +248,42 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
             var cmds = new OLECMD[1];
             cmds[0].cmdID = ResumeId;
             cmds[0].cmdf = 0;
-           
-            var hr = _oleCommandTarget.QueryStatus(ReSharperCommandGroup, (uint)cmds.Length, cmds, IntPtr.Zero);
-            if (ErrorHandler.Failed(hr))
+
+            for (var count = 0; count < 10; count++)
             {
-                // In the case of an error when attempting to get the status, pretend that ReSharper isn't enabled. We also
-                // shut down monitoring so we don't keep hitting this.
-                FatalError.ReportWithoutCrash(Marshal.GetExceptionForHR(hr));
-                Shutdown();
-                return ReSharperStatus.NotInstalledOrDisabled;
+                var hr = _oleCommandTarget.QueryStatus(ReSharperCommandGroup, (uint)cmds.Length, cmds, IntPtr.Zero);
+                if (ErrorHandler.Failed(hr))
+                {
+                    // In the case of an error when attempting to get the status, pretend that ReSharper isn't enabled. We also
+                    // shut down monitoring so we don't keep hitting this.
+                    FatalError.ReportWithoutCrash(Marshal.GetExceptionForHR(hr));
+                    Shutdown();
+                    return ReSharperStatus.NotInstalledOrDisabled;
+                }
+
+                // When ReSharper is suspended, the ReSharper_Resume command has the Enabled | Supported flags. 
+                if (((OLECMDF) cmds[0].cmdf).HasFlag(OLECMDF.OLECMDF_ENABLED))
+                {
+                    return ReSharperStatus.Suspended;
+                }
+
+                //otherwise sleep for a bit and check again
+                _cancellationTokenSource = new CancellationTokenSource();
+                await Task.Factory.SafeStartNew(WaitTwoSeconds, _cancellationTokenSource.Token, TaskScheduler.Default);
+                if (_cancellationTokenSource.IsCancellationRequested)
+                {
+                    // if user cancels, return the last status
+                    return lastStatus;
+                }
             }
 
-            // When ReSharper is suspended, the ReSharper_Resume command has the Enabled | Supported flags. 
-            return ((OLECMDF)cmds[0].cmdf).HasFlag(OLECMDF.OLECMDF_ENABLED) ? ReSharperStatus.Suspended : ReSharperStatus.Undetermined;
+            // If resume doesn't become active within a reasonable amount of time, assume ReSharper is Enabled
+            return ReSharperStatus.Enabled;
+        }
 
+        private async Task WaitTwoSeconds()
+        { 
+            await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
         }
 
         private void RestoreVsKeybindings()
@@ -384,6 +371,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
             // extra QueryStatus.
             if (args.TransitionType == StateTransitionType.Exit)
             {
+                _cancellationTokenSource.Cancel();
                 InvokeBelowInputPriorityAsync(UpdateStateMachine);
             }
         }
