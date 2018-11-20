@@ -1,4 +1,6 @@
-﻿using System;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -56,6 +58,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private string _intermediateOutputFilePath;
         private string _outputFilePath;
         private string _outputRefFilePath;
+        private string _defaultNamespace;
 
         private readonly Dictionary<string, List<MetadataReferenceProperties>> _allMetadataReferences = new Dictionary<string, List<MetadataReferenceProperties>>();
 
@@ -137,7 +140,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             _additionalFiles = new BatchingDocumentCollection(this, (s, d) => s.ContainsAdditionalDocument(d), (w, d) => w.OnAdditionalDocumentAdded(d), (w, documentId) => w.OnAdditionalDocumentRemoved(documentId));
         }
 
-
         private void ChangeProjectProperty<T>(ref T field, T newValue, Func<Solution, Solution> withNewValue, Action<Workspace> changeValue)
         {
             lock (_gate)
@@ -184,6 +186,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 ChangeProjectProperty(ref field, newValue, withNewValue, changeValue);
             }
         }
+
         public string AssemblyName
         {
             get => _assemblyName;
@@ -276,6 +279,24 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                        value,
                        s => s.WithHasAllInformation(Id, value),
                        w => w.OnHasAllInformationChanged(Id, value));
+        }
+
+        /// <summary>
+        /// The default namespace of the project.
+        /// In C#, this is defined as the value of "rootnamespace" msbuild property. Right now VB doesn't 
+        /// have the concept of "default namespace". But we conjure one in workspace by assigning the value
+        /// of the project's root namespace to it. So various feature can choose to use it their own purpose.
+        /// 
+        /// In the future, we might consider officially exposing "default namespace" for VB project
+        /// (e.g.through a "defaultnamespace" msbuild property)
+        /// </summary>
+        internal string DefaultNamespace
+        {
+            get => _defaultNamespace;
+            set => ChangeProjectProperty(ref _defaultNamespace,
+                       value,
+                       s => s.WithProjectDefaultNamespace(Id, value),
+                       w => w.OnDefaultNamespaceChanged(Id, value));
         }
 
 
