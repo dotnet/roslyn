@@ -1841,9 +1841,77 @@ namespace Microsoft.CodeAnalysis.CSharp
             VisitRvalue(node.AccessExpression);
             IntersectWith(ref this.State, ref receiverState);
 
+            TypeSymbol type = node.Type;
+            NullableAnnotation resultAnnotation;
+            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+
+            if (type.SpecialType == SpecialType.System_Void || type.IsErrorType() || _resultType.IsNull)
+            {
+                resultAnnotation = NullableAnnotation.Unknown;
+            }
+            else if (_resultType.IsPossiblyNullableReferenceTypeTypeParameter())
+            {
+                Debug.Assert(_resultType.TypeSymbol == type);
+
+                if (!receiverType.GetValueNullableAnnotation().IsAnyNullable())
+                {
+                    resultAnnotation = NullableAnnotation.NotNullable; // Inherit nullability of the access
+                }
+                else if (receiverType.IsPossiblyNullableReferenceTypeTypeParameter() &&
+                    _conversions.ClassifyConversionFromType(receiverType.TypeSymbol, _resultType.TypeSymbol, ref useSiteDiagnostics).Exists)
+                {
+                    // where T : U
+                    // T ?? U or U ?? T
+
+                    // T ?? U
+                    // If T is nullable, U is also nullable - result is nullable
+                    // If T is not nullable - result is nullable if U is nullable
+                    // If U is nullable - result is nullable
+                    // If U is not nullable, T is also not nullable - result is not nullable
+                    // So, nullability of the result can be inferred from nullability of U, and the type of the result is U.   
+
+                    // U ?? T
+                    // If U is nullable - result is nullable
+                    // If U is not nullable, T is also not nullable - result is not nullable
+                    // If T is nullable, U is also nullable - result is nullable
+                    // If T is not nullable - result is nullable if U is nullable
+                    // So, nullability of the result can be inferred from nullability of U, but the type of the result is T.   
+                    // At the moment we don't have a way to represent this correlation, result type is one type parameter, but
+                    // nullability comes from another. 
+                    // Ideally, we would want to have the following behavior:
+                    //     U x = U ?? T - no warning
+                    //     T y = U ?? T - a warning
+                    // But we can track the state only in the way when either both produce a warning, or none.
+                    // It feels like it is reasonable to prefer the latter approach, i.e. produce no warnings 
+                    // for both scenarios - no false diagnostics.
+                    resultAnnotation = NullableAnnotation.NotNullable; // Inherit nullability of U
+                }
+                else
+                {
+                    resultAnnotation = NullableAnnotation.NullableBasedOnAnalysis;
+                }
+            }
+            else
+            {
+                NullableAnnotation receiverAnnotation = receiverType.GetValueNullableAnnotation();
+                NullableAnnotation accessAnnotation = _resultType.GetValueNullableAnnotation();
+                if (receiverAnnotation.IsAnyNullable() || accessAnnotation.IsAnyNullable())
+                {
+                    resultAnnotation = NullableAnnotation.NullableBasedOnAnalysis;
+                }
+                else if (receiverAnnotation == NullableAnnotation.Unknown || accessAnnotation == NullableAnnotation.Unknown)
+                {
+                    resultAnnotation = NullableAnnotation.Unknown;
+                }
+                else
+                {
+                    resultAnnotation = NullableAnnotation.NotNullableBasedOnAnalysis;
+                }
+            }
+
             // https://github.com/dotnet/roslyn/issues/29956 Use flow analysis type rather than node.Type
             // so that nested nullability is inferred from flow analysis. See VisitConditionalOperator.
-            _resultType = TypeSymbolWithAnnotations.Create(node.Type, isNullableIfReferenceType: receiverType.IsNullable | _resultType.IsNullable);
+            _resultType = TypeSymbolWithAnnotations.Create(type, resultAnnotation);
             // https://github.com/dotnet/roslyn/issues/29956 Report conversion warnings.
             return null;
         }
@@ -3382,7 +3450,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         else if (operandType.IsPossiblyNullableReferenceTypeTypeParameter())
                         {
-                            if (!targetTypeWithNullability.IsPossiblyNullableReferenceTypeTypeParameter())
+                            if (conversion.Kind == ConversionKind.ExplicitReference)
+                            {
+                                resultAnnotation = NullableAnnotation.NullableBasedOnAnalysis;
+                            }
+                            else if (!targetTypeWithNullability.IsPossiblyNullableReferenceTypeTypeParameter())
                             {
                                 resultAnnotation = NullableAnnotation.NullableBasedOnAnalysis;
                                 forceOperandAnnotationForResult = targetType.IsPossiblyNullableReferenceTypeTypeParameter();

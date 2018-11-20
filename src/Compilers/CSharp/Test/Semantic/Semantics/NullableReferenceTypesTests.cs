@@ -57045,6 +57045,627 @@ class Outer<T>
         }
 
         [Fact]
+        public void NullabilityOfTypeParameters_171()
+        {
+            var source = @"
+class Outer<T, U> where T : Outer<T, U>? where U : T
+{
+    void M0(T x0)
+    {
+        U y0 = (U)x0;
+        U z0 = y0;
+        y0?.ToString();
+        y0.ToString();
+        z0?.ToString();
+        z0.ToString();
+    }
+}
+";
+
+            CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics(
+                // (6,16): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         U y0 = (U)x0;
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(U)x0").WithLocation(6, 16),
+                // (7,16): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         U z0 = y0;
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "y0").WithLocation(7, 16),
+                // (9,9): warning CS8602: Possible dereference of a null reference.
+                //         y0.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y0").WithLocation(9, 9),
+                // (11,9): warning CS8602: Possible dereference of a null reference.
+                //         z0.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "z0").WithLocation(11, 9)
+                );
+        }
+
+        [Fact]
+        public void NullabilityOfTypeParameters_172()
+        {
+            var source = @"
+class Outer<T, U> where T : class? where U : T
+{
+    void M0(T x0)
+    {
+        U y0 = (U)x0;
+        U z0 = y0;
+        y0?.ToString();
+        y0.ToString();
+        z0?.ToString();
+        z0.ToString();
+    }
+}
+";
+
+            CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics(
+                // (6,16): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         U y0 = (U)x0;
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(U)x0").WithLocation(6, 16),
+                // (7,16): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         U z0 = y0;
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "y0").WithLocation(7, 16),
+                // (9,9): warning CS8602: Possible dereference of a null reference.
+                //         y0.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y0").WithLocation(9, 9),
+                // (11,9): warning CS8602: Possible dereference of a null reference.
+                //         z0.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "z0").WithLocation(11, 9)
+                );
+        }
+
+        [Fact]
+        public void NullabilityOfTypeParameters_173()
+        {
+            var source = @"
+class Outer<T, U> where T : Outer<T, U>?, U
+{
+    void M0(T x0)
+    {
+        T z0 = x0?.M1();
+        U y0 = z0;
+        y0?.ToString();
+        y0.ToString();
+        z0?.ToString();
+        z0.ToString();
+    }
+
+    T M1() => throw null;
+}
+";
+
+            CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics(
+                // (9,9): warning CS8602: Possible dereference of a null reference.
+                //         y0.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y0").WithLocation(9, 9),
+                // (11,9): warning CS8602: Possible dereference of a null reference.
+                //         z0.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "z0").WithLocation(11, 9)
+                );
+        }
+
+        [Fact]
+        public void NullabilityOfTypeParameters_174()
+        {
+            var source = @"
+class Outer<T, U> where T : Outer<T, U>? where U : T
+{
+    void M0(T x0)
+    {
+        T z0 = x0?.M1();
+        U y0 = (U)z0;
+        y0?.ToString();
+        y0.ToString();
+        z0?.ToString();
+        z0.ToString();
+    }
+
+    T M1() => throw null;
+}
+";
+
+            CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics(
+                // (7,16): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         U y0 = (U)z0;
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(U)z0").WithLocation(7, 16),
+                // (9,9): warning CS8602: Possible dereference of a null reference.
+                //         y0.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y0").WithLocation(9, 9),
+                // (11,9): warning CS8602: Possible dereference of a null reference.
+                //         z0.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "z0").WithLocation(11, 9)
+                );
+        }
+
+        [Fact]
+        public void NullabilityOfTypeParameters_175()
+        {
+            var source = @"
+class Outer<T, U> where T : Outer<T, U>?, U
+{
+    void M0(T x0)
+    {
+        if (x0 == null) return;
+        T z0 = x0?.M1();
+        U y0 = z0;
+        y0?.ToString();
+        y0.ToString();
+        z0?.ToString();
+        z0.ToString();
+    }
+
+    T M1() => throw null;
+}
+";
+
+            CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics(
+                // (7,16): hidden CS8607: Expression is probably never null.
+                //         T z0 = x0?.M1();
+                Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "x0").WithLocation(7, 16),
+                // (10,9): warning CS8602: Possible dereference of a null reference.
+                //         y0.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y0").WithLocation(10, 9),
+                // (12,9): warning CS8602: Possible dereference of a null reference.
+                //         z0.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "z0").WithLocation(12, 9)
+                );
+        }
+
+        [Fact]
+        public void NullabilityOfTypeParameters_176()
+        {
+            var source = @"
+class Outer<T, U> where T : Outer<T, U>?, U
+{
+    void M0(Outer<T, U>? x0)
+    {
+        T z0 = x0?.M1();
+        U y0 = z0;
+        y0?.ToString();
+        y0.ToString();
+        z0?.ToString();
+        z0.ToString();
+    }
+
+    T M1() => throw null;
+}
+";
+
+            CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics(
+                // (6,16): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         T z0 = x0?.M1();
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "x0?.M1()").WithLocation(6, 16),
+                // (7,16): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         U y0 = z0;
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "z0").WithLocation(7, 16),
+                // (9,9): warning CS8602: Possible dereference of a null reference.
+                //         y0.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y0").WithLocation(9, 9),
+                // (11,9): warning CS8602: Possible dereference of a null reference.
+                //         z0.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "z0").WithLocation(11, 9)
+                );
+        }
+
+        [Fact]
+        public void NullabilityOfTypeParameters_177()
+        {
+            var source = @"
+class Outer<T, U> where T : Outer<T, U>?, U
+{
+    void M0(Outer<T, U> x0)
+    {
+        T z0 = x0?.M1();
+        U y0 = z0;
+        y0?.ToString();
+        y0.ToString();
+        z0?.ToString();
+        z0.ToString();
+    }
+
+    T M1() => throw null;
+}
+";
+
+            CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics(
+                // (6,16): hidden CS8607: Expression is probably never null.
+                //         T z0 = x0?.M1();
+                Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "x0").WithLocation(6, 16),
+                // (9,9): warning CS8602: Possible dereference of a null reference.
+                //         y0.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y0").WithLocation(9, 9),
+                // (11,9): warning CS8602: Possible dereference of a null reference.
+                //         z0.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "z0").WithLocation(11, 9)
+                );
+        }
+
+        [Fact]
+        public void NullabilityOfTypeParameters_178()
+        {
+            var source = @"
+class Outer<T> where T : Outer<T>?
+{
+    void M0(T x0)
+    {
+        Outer<T> z0 = x0?.M1();
+        z0?.ToString();
+        z0.ToString();
+    }
+
+    Outer<T> M1() => throw null;
+}
+";
+
+            CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics(
+                // (6,23): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         Outer<T> z0 = x0?.M1();
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "x0?.M1()").WithLocation(6, 23),
+                // (8,9): warning CS8602: Possible dereference of a null reference.
+                //         z0.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "z0").WithLocation(8, 9)
+                );
+        }
+
+        [Fact]
+        public void NullabilityOfTypeParameters_179()
+        {
+            var source = @"
+class Outer<T> where T : Outer<T>?
+{
+    void M0(T x0)
+    {
+        if (x0 == null) return;
+        Outer<T> z0 = x0?.M1();
+        z0?.ToString();
+        z0.ToString();
+    }
+
+    Outer<T> M1() => throw null;
+}
+";
+
+            CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics(
+                // (7,23): hidden CS8607: Expression is probably never null.
+                //         Outer<T> z0 = x0?.M1();
+                Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "x0").WithLocation(7, 23),
+                // (8,9): hidden CS8607: Expression is probably never null.
+                //         z0?.ToString();
+                Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "z0").WithLocation(8, 9)
+                );
+        }
+
+        [Fact]
+        public void NullabilityOfTypeParameters_180()
+        {
+            var source = @"
+class Outer<T> where T : Outer<T>?
+{
+    void M0(T x0)
+    {
+        Outer<T> z0 = x0?.M1();
+        z0?.ToString();
+        z0.ToString();
+    }
+
+    Outer<T>? M1() => throw null;
+}
+";
+
+            CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics(
+                // (6,23): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         Outer<T> z0 = x0?.M1();
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "x0?.M1()").WithLocation(6, 23),
+                // (8,9): warning CS8602: Possible dereference of a null reference.
+                //         z0.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "z0").WithLocation(8, 9)
+                );
+        }
+
+        [Fact]
+        public void NullabilityOfTypeParameters_181()
+        {
+            var source = @"
+class Outer<T> where T : Outer<T>?
+{
+    void M0(T x0)
+    {
+        if (x0 == null) return;
+        Outer<T> z0 = x0?.M1();
+        z0?.ToString();
+        z0.ToString();
+    }
+
+    Outer<T>? M1() => throw null;
+}
+";
+
+            CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics(
+                // (7,23): hidden CS8607: Expression is probably never null.
+                //         Outer<T> z0 = x0?.M1();
+                Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "x0").WithLocation(7, 23),
+                // (7,23): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         Outer<T> z0 = x0?.M1();
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "x0?.M1()").WithLocation(7, 23),
+                // (9,9): warning CS8602: Possible dereference of a null reference.
+                //         z0.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "z0").WithLocation(9, 9)
+                );
+        }
+
+        [Fact]
+        public void NullabilityOfTypeParameters_182()
+        {
+            var source = @"
+class Outer<T, U> where T : Outer<T, U>?, U where U : class?
+{
+    void M0(T x0)
+    {
+        U z0 = x0?.M1();
+        z0?.ToString();
+        z0.ToString();
+    }
+
+    U M1() => throw null;
+}
+";
+
+            CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics(
+                // (8,9): warning CS8602: Possible dereference of a null reference.
+                //         z0.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "z0").WithLocation(8, 9)
+                );
+        }
+
+        [Fact]
+        public void NullabilityOfTypeParameters_183()
+        {
+            var source = @"
+class Outer<T, U> where T : Outer<T, U>?, U where U : class?
+{
+    void M0(T x0)
+    {
+        if (x0 == null) return;
+        U z0 = x0?.M1();
+        z0?.ToString();
+        z0.ToString();
+    }
+
+    U M1() => throw null;
+}
+";
+
+            CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics(
+                // (7,16): hidden CS8607: Expression is probably never null.
+                //         U z0 = x0?.M1();
+                Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "x0").WithLocation(7, 16),
+                // (9,9): warning CS8602: Possible dereference of a null reference.
+                //         z0.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "z0").WithLocation(9, 9)
+                );
+        }
+
+        [Fact]
+        public void NullabilityOfTypeParameters_184()
+        {
+            var source = @"
+class Outer<T, U> where T : U where U : Outer<T, U>?
+{
+    void M0(U x0)
+    {
+        U z0 = x0?.M1();
+        z0?.ToString();
+        z0.ToString();
+    }
+
+    T M1() => throw null;
+}
+";
+
+            CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics(
+                // (8,9): warning CS8602: Possible dereference of a null reference.
+                //         z0.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "z0").WithLocation(8, 9)
+                );
+        }
+
+        [Fact]
+        public void NullabilityOfTypeParameters_185()
+        {
+            var source = @"
+class Outer<T, U> where T : U where U : Outer<T, U>?
+{
+    void M0(U x0)
+    {
+        T z0 = x0?.M1();
+        z0?.ToString();
+        z0.ToString();
+    }
+
+    T M1() => throw null;
+}
+";
+            // Strictly speaking, we should warn on assignment (“T z0 = x0?.M1();”) because T
+            // could be not-nullable reference type and U can be nullable reference type at
+            // the same time, making result of conditional access nullable of T. However,
+            // assigning the same value to U (the previous unit-test) should not warn. If U is
+            // not-nullable reference type, T is also not nullable, the result of conditional
+            // access is not nullable T.
+            // At the moment, we don’t have a way to track this complex dependency between nullable
+            // state and possible target type. During implementation the preference is given to
+            // suppression of incorrect warning for the scenario from the previous unit-test.
+            CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics(
+                // (8,9): warning CS8602: Possible dereference of a null reference.
+                //         z0.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "z0").WithLocation(8, 9)
+                );
+        }
+
+        [Fact]
+        public void NullabilityOfTypeParameters_186()
+        {
+            var source = @"
+class Outer<T, U> where T : U where U : Outer<T, U>?
+{
+    void M0(U x0)
+    {
+        if (x0 == null) return;
+        U z0 = x0?.M1();
+        z0?.ToString();
+        z0.ToString();
+    }
+
+    T M1() => throw null;
+}
+";
+
+            CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics(
+                // (7,16): hidden CS8607: Expression is probably never null.
+                //         U z0 = x0?.M1();
+                Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "x0").WithLocation(7, 16),
+                // (9,9): warning CS8602: Possible dereference of a null reference.
+                //         z0.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "z0").WithLocation(9, 9)
+                );
+        }
+
+        [Fact]
+        public void NullabilityOfTypeParameters_187()
+        {
+            var source = @"
+class Outer<T, U> where T : U where U : Outer<T, U>?
+{
+    void M0(U x0)
+    {
+        if (x0 == null) return;
+        T z0 = x0?.M1();
+        z0?.ToString();
+        z0.ToString();
+    }
+
+    T M1() => throw null;
+}
+";
+
+            CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics(
+                // (7,16): hidden CS8607: Expression is probably never null.
+                //         T z0 = x0?.M1();
+                Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "x0").WithLocation(7, 16),
+                // (9,9): warning CS8602: Possible dereference of a null reference.
+                //         z0.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "z0").WithLocation(9, 9)
+                );
+        }
+
+        [Fact]
+        public void NullabilityOfTypeParameters_188()
+        {
+            var source = @"
+class Outer<T, U> where T : Outer<T, U>? where U : class?
+{
+    void M0(T x0)
+    {
+        U z0 = x0?.M1();
+        z0?.ToString();
+        z0.ToString();
+    }
+
+    U M1() => throw null;
+}
+";
+
+            CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics(
+                // (6,16): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         U z0 = x0?.M1();
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "x0?.M1()").WithLocation(6, 16),
+                // (8,9): warning CS8602: Possible dereference of a null reference.
+                //         z0.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "z0").WithLocation(8, 9)
+                );
+        }
+
+        [Fact]
+        public void NullabilityOfTypeParameters_189()
+        {
+            var source = @"
+class Outer<T, U> where T : Outer<T, U>? where U : class?
+{
+    void M0(T x0)
+    {
+        if (x0 == null) return;
+        U z0 = x0?.M1();
+        z0?.ToString();
+        z0.ToString();
+    }
+
+    U M1() => throw null;
+}
+";
+
+            CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics(
+                // (7,16): hidden CS8607: Expression is probably never null.
+                //         U z0 = x0?.M1();
+                Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "x0").WithLocation(7, 16),
+                // (9,9): warning CS8602: Possible dereference of a null reference.
+                //         z0.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "z0").WithLocation(9, 9)
+                );
+        }
+
+        [Fact]
+        public void NullabilityOfTypeParameters_190()
+        {
+            var source = @"
+class Outer<T, U> where T : Outer<T, U>? where U : class
+{
+    void M0(T x0)
+    {
+        U z0 = x0?.M1();
+        z0?.ToString();
+        z0.ToString();
+    }
+
+    U M1() => throw null;
+}
+";
+
+            CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics(
+                // (6,16): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         U z0 = x0?.M1();
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "x0?.M1()").WithLocation(6, 16),
+                // (8,9): warning CS8602: Possible dereference of a null reference.
+                //         z0.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "z0").WithLocation(8, 9)
+                );
+        }
+
+        [Fact]
+        public void NullabilityOfTypeParameters_191()
+        {
+            var source = @"
+class Outer<T, U> where T : Outer<T, U>? where U : class
+{
+    void M0(T x0)
+    {
+        if (x0 == null) return;
+        U z0 = x0?.M1();
+        z0?.ToString();
+        z0.ToString();
+    }
+
+    U M1() => throw null;
+}
+";
+
+            CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics(
+                // (7,16): hidden CS8607: Expression is probably never null.
+                //         U z0 = x0?.M1();
+                Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "x0").WithLocation(7, 16),
+                // (8,9): hidden CS8607: Expression is probably never null.
+                //         z0?.ToString();
+                Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "z0").WithLocation(8, 9)
+                );
+        }
+
+        [Fact]
         public void UpdateFieldFromReceiverType()
         {
             var source =
