@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
         protected override Task<AbstractFormattingResult> FormatAsync(SyntaxNode node, OptionSet optionSet, IEnumerable<IFormattingRule> formattingRules, SyntaxToken token1, SyntaxToken token2, CancellationToken cancellationToken)
         {
-            return new CSharpFormatEngine(node, optionSet, formattingRules, token1, token2).FormatAsync(cancellationToken);
+            return Task.FromResult(new CSharpFormatEngine(node, optionSet, formattingRules, token1, token2).Format(cancellationToken));
         }
     }
 }

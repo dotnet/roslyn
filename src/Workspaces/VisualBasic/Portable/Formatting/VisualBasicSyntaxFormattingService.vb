@@ -3,10 +3,8 @@
 Imports System.Collections.Immutable
 Imports System.Composition
 Imports System.Threading
-Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Formatting.Rules
-Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Shared.Collections
@@ -36,7 +34,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
         End Function
 
         Protected Overrides Function FormatAsync(root As SyntaxNode, optionSet As OptionSet, formattingRules As IEnumerable(Of IFormattingRule), token1 As SyntaxToken, token2 As SyntaxToken, cancellationToken As CancellationToken) As Task(Of AbstractFormattingResult)
-            Return New VisualBasicFormatEngine(root, optionSet, formattingRules, token1, token2).FormatAsync(cancellationToken)
+            Return Task.FromResult(New VisualBasicFormatEngine(root, optionSet, formattingRules, token1, token2).Format(cancellationToken))
         End Function
     End Class
 End Namespace

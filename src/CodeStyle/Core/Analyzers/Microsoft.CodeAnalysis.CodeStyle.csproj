@@ -56,14 +56,17 @@
     <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\BottomUpBaseIndentationFinder.cs" Link="Formatting\BottomUpBaseIndentationFinder.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\ContextIntervalTree.cs" Link="Formatting\ContextIntervalTree.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\Context\FormattingContext.AnchorData.cs" Link="Formatting\Context\FormattingContext.AnchorData.cs" />
+    <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\Context\FormattingContext.cs" Link="Formatting\Context\FormattingContext.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\Context\FormattingContext.IndentationData.cs" Link="Formatting\Context\FormattingContext.IndentationData.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\Context\FormattingContext.InitialContextFinder.cs" Link="Formatting\Context\FormattingContext.InitialContextFinder.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\Context\SuppressIntervalIntrospector.cs" Link="Formatting\Context\SuppressIntervalIntrospector.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\Context\SuppressSpacingData.cs" Link="Formatting\Context\SuppressSpacingData.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\Context\SuppressWrappingData.cs" Link="Formatting\Context\SuppressWrappingData.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\Engine\AbstractAggregatedFormattingResult.cs" Link="Formatting\Engine\AbstractAggregatedFormattingResult.cs" />
+    <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\Engine\AbstractFormatEngine.cs" Link="Formatting\Engine\AbstractFormatEngine.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\Engine\AbstractFormatEngine.OperationApplier.cs" Link="Formatting\Engine\AbstractFormatEngine.OperationApplier.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\Engine\AbstractFormatEngine.Partitioner.cs" Link="Formatting\Engine\AbstractFormatEngine.Partitioner.cs" />
+    <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\Engine\AbstractFormattingResult.cs" Link="Formatting\Engine\AbstractFormattingResult.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\Engine\AbstractTriviaDataFactory.AbstractComplexTrivia.cs" Link="Formatting\Engine\AbstractTriviaDataFactory.AbstractComplexTrivia.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\Engine\AbstractTriviaDataFactory.cs" Link="Formatting\Engine\AbstractTriviaDataFactory.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\Engine\AbstractTriviaDataFactory.FormattedWhitespace.cs" Link="Formatting\Engine\AbstractTriviaDataFactory.FormattedWhitespace.cs" />
@@ -71,6 +74,7 @@
     <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\Engine\AbstractTriviaDataFactory.Whitespace.cs" Link="Formatting\Engine\AbstractTriviaDataFactory.Whitespace.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\Engine\ActionCache`1.cs" Link="Formatting\Engine\ActionCache`1.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\Engine\ChainedFormattingRules.cs" Link="Formatting\Engine\ChainedFormattingRules.cs" />
+    <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\Engine\NodeOperations.cs" Link="Formatting\Engine\NodeOperations.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\Engine\OperationCache`1.cs" Link="Formatting\Engine\OperationCache`1.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\Engine\TokenData.cs" Link="Formatting\Engine\TokenData.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\Engine\TokenPairWithOperations.cs" Link="Formatting\Engine\TokenPairWithOperations.cs" />

@@ -65,8 +65,6 @@ namespace Microsoft.CodeAnalysis.Formatting
         private static string GetEndOfLineEditorConfigString(string option)
             => s_parenthesesPreferenceMap.TryGetKey(option, out var editorConfigString) ? editorConfigString : null;
 
-        internal static Option<bool> DebugMode { get; } = CreateOption(nameof(DebugMode), defaultValue: false);
-
         internal static Option<bool> AllowDisjointSpanMerging { get; } = CreateOption(nameof(AllowDisjointSpanMerging), defaultValue: false);
 
         public enum IndentStyle
