@@ -7,6 +7,7 @@
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis</RootNamespace>
     <TargetFramework>netstandard1.3</TargetFramework>
+    <DefineConstants>$(DefineConstants),CODE_STYLE</DefineConstants>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
@@ -31,7 +32,6 @@
   <ItemGroup>
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\EnumerableExtensions.cs" Link="Formatting\EnumerableExtensions.cs" />
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\ExceptionUtilities.cs" Link="ExceptionUtilities.cs" />
-    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\Hash.cs" Link="Hash.cs" />
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\IReadOnlySet.cs" Link="InternalUtilities\IReadOnlySet.cs" />
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\KeyValuePairUtil.cs" Link="InternalUtilities\KeyValuePairUtil.cs" />
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\SpecializedCollections.cs" Link="InternalUtilities\SpecializedCollections.cs" />
@@ -125,6 +125,10 @@
     <Compile Include="..\..\..\Workspaces\Core\Portable\Log\Logger.LogBlock.cs" Link="Formatting\Logger.LogBlock.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Log\LogMessage.cs" Link="Formatting\LogMessage.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\NamingStyles\EditorConfig\EditorConfigSeverityStrings.cs" Link="Options\EditorConfigSeverityStrings.cs" />
+    <Compile Include="..\..\..\Workspaces\Core\Portable\Options\EditorConfig\EditorConfigStorageLocation.cs" Link="Options\EditorConfigStorageLocation.cs" />
+    <Compile Include="..\..\..\Workspaces\Core\Portable\Options\EditorConfig\EditorConfigStorageLocation`1.cs" Link="Options\EditorConfigStorageLocation`1.cs" />
+    <Compile Include="..\..\..\Workspaces\Core\Portable\Options\EditorConfig\IEditorConfigStorageLocation.cs" Link="Options\IEditorConfigStorageLocation.cs" />
+    <Compile Include="..\..\..\Workspaces\Core\Portable\Options\EditorConfig\IEditorConfigStorageLocation2.cs" Link="Options\IEditorConfigStorageLocation2.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Options\LocalUserProfileStorageLocation.cs" Link="Options\LocalUserProfileStorageLocation.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Options\RoamingProfileStorageLocation.cs" Link="Options\RoamingProfileStorageLocation.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Shared\Collections\IIntervalIntrospector.cs" Link="Formatting\Context\IIntervalIntrospector.cs" />

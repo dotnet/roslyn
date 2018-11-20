@@ -1,11 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
-using Microsoft.CodeAnalysis.CodeStyle;
-using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Options;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Formatting
@@ -26,26 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
         private static string GetSpacingWithParenthesesEditorConfigString(OptionSet optionSet)
         {
-            var editorConfigStringBuilder = new List<string>();
-            foreach (var kvp in SpacingWithinParenthesisOptionsMap)
-            {
-                var value = optionSet.GetOption(kvp.Key);
-                if (value)
-                {
-                    Debug.Assert(s_spacingWithinParenthesisOptionsEditorConfigMap.ContainsValue(kvp.Value));
-                    editorConfigStringBuilder.Add(s_spacingWithinParenthesisOptionsEditorConfigMap.GetKeyOrDefault(kvp.Value));
-                }
-            }
-
-            if (editorConfigStringBuilder.Count == 0)
-            {
-                // No spacing within parenthesis option set.
-                return "false";
-            }
-            else
-            {
-                return string.Join(",", editorConfigStringBuilder.Order());
-            }
+            throw ExceptionUtilities.Unreachable;
         }
 
         internal static BinaryOperatorSpacingOptions ParseEditorConfigSpacingAroundBinaryOperator(string binaryOperatorSpacingValue)
@@ -95,31 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
         private static string GetNewLineOptionEditorConfigString(OptionSet optionSet)
         {
-            var editorConfigStringBuilder = new List<string>(NewLineOptionsMap.Count);
-            foreach (var kvp in NewLineOptionsMap)
-            {
-                var value = optionSet.GetOption(kvp.Key);
-                if (value)
-                {
-                    Debug.Assert(s_newLineOptionsEditorConfigMap.ContainsValue(kvp.Value));
-                    editorConfigStringBuilder.Add(s_newLineOptionsEditorConfigMap.GetKeyOrDefault(kvp.Value));
-                }
-            }
-
-            if (editorConfigStringBuilder.Count == 0)
-            {
-                // No NewLine option set.
-                return "none";
-            }
-            else if (editorConfigStringBuilder.Count == s_newLineOptionsMapBuilder.Count)
-            {
-                // All NewLine options set.
-                return "all";
-            }
-            else
-            {
-                return string.Join(",", editorConfigStringBuilder.Order());
-            }
+            throw ExceptionUtilities.Unreachable;
         }
 
         internal static bool DetermineIfIgnoreSpacesAroundVariableDeclarationIsSet(string value)

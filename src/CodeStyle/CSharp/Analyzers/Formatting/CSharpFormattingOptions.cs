@@ -9,14 +9,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 {
     internal static partial class CSharpFormattingOptions
     {
-        private static readonly ImmutableArray<IOption>.Builder s_allOptionsBuilder = ImmutableArray.CreateBuilder<IOption>();
-
-        // Maps to store mapping between special option kinds and the corresponding options.
-        private static readonly ImmutableDictionary<Option<bool>, SpacingWithinParenthesesOption>.Builder s_spacingWithinParenthesisOptionsMapBuilder
-            = ImmutableDictionary.CreateBuilder<Option<bool>, SpacingWithinParenthesesOption>();
-        private static readonly ImmutableDictionary<Option<bool>, NewLineOption>.Builder s_newLineOptionsMapBuilder =
-           ImmutableDictionary.CreateBuilder<Option<bool>, NewLineOption>();
-
         // Maps to store mapping between special option kinds and the corresponding editor config string representations.
         #region Editor Config maps
         private static readonly BidirectionalMap<string, SpacingWithinParenthesesOption> s_spacingWithinParenthesisOptionsEditorConfigMap =
@@ -63,20 +55,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             });
         #endregion
 
-        internal static ImmutableArray<IOption> AllOptions { get; }
-        private static ImmutableDictionary<Option<bool>, SpacingWithinParenthesesOption> SpacingWithinParenthesisOptionsMap { get; }
-        private static ImmutableDictionary<Option<bool>, NewLineOption> NewLineOptionsMap { get; }
-
         private static Option<T> CreateOption<T>(string name, T defaultValue, params OptionStorageLocation[] storageLocations)
         {
-            var option = new Option<T>(nameof(CSharpFormattingOptions), name, defaultValue, storageLocations);
-            s_allOptionsBuilder.Add(option);
-            return option;
+            return new Option<T>(nameof(CSharpFormattingOptions), name, defaultValue, storageLocations);
         }
 
         private static Option<bool> CreateSpaceWithinParenthesesOption(SpacingWithinParenthesesOption parenthesesOption, string name)
         {
-            var option = CreateOption(
+            return CreateOption(
                 name,
                 defaultValue: false,
                 storageLocations: new OptionStorageLocation[] {
@@ -85,16 +71,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                         s => DetermineIfSpaceOptionIsSet(s, parenthesesOption),
                         GetSpacingWithParenthesesEditorConfigString),
                     new RoamingProfileStorageLocation($"TextEditor.CSharp.Specific.{name}")});
-
-            Debug.Assert(s_spacingWithinParenthesisOptionsEditorConfigMap.ContainsValue(parenthesesOption));
-            s_spacingWithinParenthesisOptionsMapBuilder.Add(option, parenthesesOption);
-
-            return option;
         }
 
         private static Option<bool> CreateNewLineForBracesOption(NewLineOption newLineOption, string name)
         {
-            var option = CreateOption(
+            return CreateOption(
                 name,
                 defaultValue: true,
                 storageLocations: new OptionStorageLocation[] {
@@ -103,11 +84,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                         value => DetermineIfNewLineOptionIsSet(value, newLineOption),
                         GetNewLineOptionEditorConfigString),
                     new RoamingProfileStorageLocation($"TextEditor.CSharp.Specific.{name}")});
-
-            Debug.Assert(s_newLineOptionsEditorConfigMap.ContainsValue(newLineOption));
-            s_newLineOptionsMapBuilder.Add(option, newLineOption);
-
-            return option;
         }
 
         public static Option<bool> SpacingAfterMethodDeclarationName { get; } = CreateOption(
@@ -399,15 +375,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             storageLocations: new OptionStorageLocation[] {
                 EditorConfigStorageLocation.ForBoolOption("csharp_new_line_between_query_expression_clauses"),
                 new RoamingProfileStorageLocation("TextEditor.CSharp.Specific.NewLineForClausesInQuery")});
-
-        static CSharpFormattingOptions()
-        {
-            // Note that the static constructor executes after all the static field initializers for the options have executed,
-            // and each field initializer adds the created option to the following builders.
-            AllOptions = s_allOptionsBuilder.ToImmutable();
-            SpacingWithinParenthesisOptionsMap = s_spacingWithinParenthesisOptionsMapBuilder.ToImmutable();
-            NewLineOptionsMap = s_newLineOptionsMapBuilder.ToImmutable();
-        }
     }
 
     internal enum LabelPositionOptions
