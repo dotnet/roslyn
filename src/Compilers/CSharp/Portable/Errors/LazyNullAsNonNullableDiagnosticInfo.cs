@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override DiagnosticInfo ResolveInfo()
         {
-            if (_possiblyNullableType.IsNullable == false)
+            if (_possiblyNullableType.NullableAnnotation.IsAnyNotNullable())
             {
                 return new CSDiagnosticInfo(ErrorCode.WRN_NullAsNonNullable);
             }

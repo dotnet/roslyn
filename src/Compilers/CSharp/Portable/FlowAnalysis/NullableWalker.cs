@@ -502,9 +502,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (targetType.IsNull ||
                 targetType.IsValueType ||
-                targetType.IsNullable != false ||
+                !targetType.NullableAnnotation.IsAnyNotNullable() ||
                 valueType.IsNull ||
-                valueType.IsNullable != true)
+                !valueType.NullableAnnotation.IsAnyNullable())
             {
                 return false;
             }
@@ -632,7 +632,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var newState = isByRefTarget ?
                     // Since reference can point to the heap, we cannot assume the value is not null after this assignment,
                     // regardless of what value is being assigned.
-                    (targetType.IsNullable == true) ? targetType.NullableAnnotation : NullableAnnotation.Unknown :
+                    targetType.NullableAnnotation.IsAnyNullable() ? targetType.NullableAnnotation : NullableAnnotation.Unknown :
                     valueType.NullableAnnotation;
                 this.State[targetSlot] = newState;
                 if (newState.IsAnyNullable() && _tryState.HasValue)
@@ -732,7 +732,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // If statically declared as not-nullable, no need to adjust the tracking info. 
                 // Declaration information takes priority.
-                if (fieldOrPropertyType.IsNullable != false)
+                if (!fieldOrPropertyType.NullableAnnotation.IsAnyNotNullable())
                 {
                     int targetMemberSlot = GetOrCreateSlot(member, targetContainerSlot);
                     NullableAnnotation value = fieldOrPropertyType.NullableAnnotation;
@@ -1412,7 +1412,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private TypeSymbolWithAnnotations InferResultNullability(BinaryOperatorKind operatorKind, MethodSymbol methodOpt, TypeSymbol resultType, TypeSymbolWithAnnotations leftType, TypeSymbolWithAnnotations rightType)
         {
-            bool? isNullable = null;
+            NullableAnnotation nullableAnnotation = NullableAnnotation.Unknown;
             if (operatorKind.IsUserDefined())
             {
                 if (operatorKind.IsLifted())
@@ -1432,31 +1432,32 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     case BinaryOperatorKind.DelegateCombination:
                         {
-                            bool? leftIsNullable = leftType.IsNullable;
-                            bool? rightIsNullable = rightType.IsNullable;
-                            if (leftIsNullable == false || rightIsNullable == false)
+                            NullableAnnotation left = leftType.GetValueNullableAnnotation();
+                            NullableAnnotation right = rightType.GetValueNullableAnnotation();
+                            if (left.IsAnyNotNullable() || right.IsAnyNotNullable())
                             {
-                                isNullable = false;
+                                nullableAnnotation = NullableAnnotation.NotNullableBasedOnAnalysis;
                             }
-                            else if (leftIsNullable == true && rightIsNullable == true)
+                            else if (left.IsAnyNullable() && right.IsAnyNullable())
                             {
-                                isNullable = true;
+                                nullableAnnotation = NullableAnnotation.NullableBasedOnAnalysis;
                             }
                             else
                             {
-                                Debug.Assert(leftIsNullable == null || rightIsNullable == null);
+                                Debug.Assert(left == NullableAnnotation.Unknown || right == NullableAnnotation.Unknown);
                             }
                         }
                         break;
                     case BinaryOperatorKind.DelegateRemoval:
-                        isNullable = true; // Delegate removal can produce null.
+                        nullableAnnotation = NullableAnnotation.NullableBasedOnAnalysis; // Delegate removal can produce null.
                         break;
                     default:
-                        isNullable = false;
+                        nullableAnnotation = NullableAnnotation.NotNullableBasedOnAnalysis;
                         break;
                 }
             }
-            return TypeSymbolWithAnnotations.Create(resultType, isNullable);
+
+            return TypeSymbolWithAnnotations.Create(resultType, nullableAnnotation);
         }
 
         protected override void AfterLeftChildHasBeenVisited(BoundBinaryOperator binary)
@@ -1509,7 +1510,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // https://github.com/dotnet/roslyn/issues/29953 This check is incorrect since it compares declared
                         // nullability rather than tracked nullability. Moreover, we should only report such
                         // diagnostics for locals that are set or checked explicitly within this method.
-                        if (!operandComparedToNullType.IsNull && operandComparedToNullType.IsNullable == false)
+                        if (!operandComparedToNullType.IsNull && operandComparedToNullType.NullableAnnotation.IsAnyNotNullable())
                         {
                             ReportDiagnostic(op == BinaryOperatorKind.Equal ?
                                                                     ErrorCode.HDN_NullCheckIsProbablyAlwaysFalse :
@@ -1853,13 +1854,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             else if (_resultType.IsPossiblyNullableReferenceTypeTypeParameter())
             {
                 Debug.Assert(_resultType.TypeSymbol == type);
+                Conversion conversion;
 
                 if (!receiverType.GetValueNullableAnnotation().IsAnyNullable())
                 {
                     resultAnnotation = NullableAnnotation.NotNullable; // Inherit nullability of the access
                 }
                 else if (receiverType.IsPossiblyNullableReferenceTypeTypeParameter() &&
-                    _conversions.ClassifyConversionFromType(receiverType.TypeSymbol, _resultType.TypeSymbol, ref useSiteDiagnostics).Exists)
+                    (conversion = _conversions.ClassifyConversionFromType(receiverType.TypeSymbol, _resultType.TypeSymbol, ref useSiteDiagnostics)).Exists &&
+                    !conversion.IsUserDefined)
                 {
                     // where T : U
                     // T ?? U or U ?? T
@@ -4052,7 +4055,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         AssignmentKind.Assignment,
                         reportTopLevelWarnings: false,
                         reportNestedWarnings: false);
-                    if (destinationType.IsReferenceType && destinationType.IsNullable == false && sourceType.IsNullable == true)
+                    if (destinationType.IsReferenceType && destinationType.NullableAnnotation.IsAnyNotNullable() && sourceType.NullableAnnotation.IsAnyNullable())
                     {
                         ReportWWarning(node.IterationVariableType.Syntax);
                     }
@@ -4533,8 +4536,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(node.Type.IsReferenceType);
 
             // https://github.com/dotnet/roslyn/issues/29893 Update applicable members based on inferred argument types.
-            bool? isNullable = InferResultNullabilityFromApplicableCandidates(StaticCast<Symbol>.From(node.ApplicableMethods));
-            _resultType = TypeSymbolWithAnnotations.Create(node.Type, isNullableIfReferenceType: isNullable);
+            NullableAnnotation nullableAnnotation = InferResultNullabilityFromApplicableCandidates(StaticCast<Symbol>.From(node.ApplicableMethods));
+            _resultType = TypeSymbolWithAnnotations.Create(node.Type, nullableAnnotation);
             return null;
         }
 
@@ -4646,10 +4649,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(node.Type.IsDynamic());
 
             // https://github.com/dotnet/roslyn/issues/29893 Update applicable members based on inferred argument types.
-            bool? isNullable = node.Type != null && !node.Type.IsValueType ?
+            NullableAnnotation nullableAnnotation = node.Type != null && !node.Type.IsValueType ?
                 InferResultNullabilityFromApplicableCandidates(StaticCast<Symbol>.From(node.ApplicableIndexers)) :
-                null;
-            _resultType = TypeSymbolWithAnnotations.Create(node.Type, isNullableIfReferenceType: isNullable);
+                NullableAnnotation.Unknown;
+            _resultType = TypeSymbolWithAnnotations.Create(node.Type, nullableAnnotation);
             return null;
         }
 
@@ -4692,14 +4695,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 !type1.Equals(type2, TypeCompareKind.AllIgnoreOptions & ~TypeCompareKind.IgnoreNullableModifiersForReferenceTypes);
         }
 
-        private bool? InferResultNullabilityFromApplicableCandidates(ImmutableArray<Symbol> applicableMembers)
+        private NullableAnnotation InferResultNullabilityFromApplicableCandidates(ImmutableArray<Symbol> applicableMembers)
         {
             if (applicableMembers.IsDefaultOrEmpty)
             {
-                return null;
+                return NullableAnnotation.Unknown;
             }
 
-            bool? resultIsNullable = false;
+            NullableAnnotation result = NullableAnnotation.NotNullableBasedOnAnalysis;
 
             foreach (Symbol member in applicableMembers)
             {
@@ -4707,27 +4710,27 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (type.IsReferenceType)
                 {
-                    bool? memberResultIsNullable = type.IsNullable;
-                    if (memberResultIsNullable == true)
+                    NullableAnnotation memberResult = type.GetValueNullableAnnotation();
+                    if (memberResult.IsAnyNullable())
                     {
                         // At least one candidate can produce null, assume dynamic access can produce null as well
-                        resultIsNullable = true;
+                        result = NullableAnnotation.NullableBasedOnAnalysis;
                         break;
                     }
-                    else if (memberResultIsNullable == null)
+                    else if (memberResult == NullableAnnotation.Unknown)
                     {
                         // At least one candidate can produce result of an unknown nullability.
                         // At best, dynamic access can produce result of an unknown nullability as well.
-                        resultIsNullable = null;
+                        result = NullableAnnotation.Unknown;
                     }
                 }
                 else if (!type.IsValueType)
                 {
-                    resultIsNullable = null;
+                    result = NullableAnnotation.Unknown;
                 }
             }
 
-            return resultIsNullable;
+            return result;
         }
 
         public override BoundNode VisitQueryClause(BoundQueryClause node)

@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     continue;
                 }
-                if (fieldType.IsNullable != false && !fieldType.TypeSymbol.IsUnconstrainedTypeParameter())
+                if (!fieldType.NullableAnnotation.IsAnyNotNullable() && !fieldType.TypeSymbol.IsUnconstrainedTypeParameter())
                 {
                     continue;
                 }
