@@ -24,8 +24,13 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
 
         public PointsToAbstractValue GetOrCreateDefaultValue(AnalysisEntity analysisEntity)
         {
-            // Must be a reference type, a nullable value type or an lvalue capture of a non-nullable value type.
+            // Must be one of the following:
+            //  1. A reference type OR
+            //  2. A nullable value type OR
+            //  3. ThisOrMeInstance of a non-nullable value type OR
+            //  4. An lvalue capture of a non-nullable value type
             Debug.Assert(analysisEntity.Type.IsReferenceTypeOrNullableValueType() ||
+                         analysisEntity.IsThisOrMeInstance ||
                          (analysisEntity.CaptureIdOpt != null &&
                           LValueFlowCapturesProvider.GetOrCreateLValueFlowCaptures(_controlFlowGraph).Contains(analysisEntity.CaptureIdOpt.Value)));
             Debug.Assert(_lazyDefaultPointsToValueMap == null);
@@ -37,6 +42,11 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                     analysisEntity.CaptureIdOpt != null)
                 {
                     return PointsToAbstractValue.Undefined;
+                }
+                else if (analysisEntity.IsThisOrMeInstance &&
+                    !analysisEntity.Type.IsReferenceTypeOrNullableValueType())
+                {
+                    return PointsToAbstractValue.NoLocation;
                 }
 
                 value = PointsToAbstractValue.Create(AbstractLocation.CreateAnalysisEntityDefaultLocation(analysisEntity), mayBeNull: true);
