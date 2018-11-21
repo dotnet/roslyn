@@ -19,13 +19,10 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ChangeNamespace
 {
-    internal abstract class AbstractChangeNamespaceService<TNamespaceDeclarationSyntax, TCompilationUnitSyntax, TMemberDeclarationSyntax>
-        : IChangeNamespaceService
-        where TNamespaceDeclarationSyntax : SyntaxNode
-        where TCompilationUnitSyntax : SyntaxNode
-        where TMemberDeclarationSyntax : SyntaxNode
+    // This intermediate class is used to hide language specific method  `TryGetReplacementReferenceSyntax` from the service interface.
+    internal abstract class AbstractChangeNamespaceService : IChangeNamespaceService
     {
-        private static readonly char[] s_dotSeparator = new[] { '.' };
+        public abstract Task<Solution> ChangeNamespaceAsync(Solution solution, ImmutableArray<DocumentId> documentIds, string declaredNamespace, string targetNamespace, CancellationToken cancellationToken);
 
         /// <summary>
         /// Try to get a new node to replace given node, which is a reference to a top-level type declared inside the 
@@ -39,8 +36,16 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
         /// namespace in the replacement node.</param>
         /// <param name="old">The node to be replaced. This might be an ancestor of original </param>
         /// <param name="new">The replacement node.</param>
-        public abstract bool TryGetReplacementReferenceSyntax(
-            SyntaxNode reference, ImmutableArray<string> newNamespaceParts, ISyntaxFactsService syntaxFacts, out SyntaxNode old, out SyntaxNode @new);
+        public abstract bool TryGetReplacementReferenceSyntax(SyntaxNode reference, ImmutableArray<string> newNamespaceParts, ISyntaxFactsService syntaxFacts, out SyntaxNode old, out SyntaxNode @new);
+    }
+
+    internal abstract class AbstractChangeNamespaceService<TNamespaceDeclarationSyntax, TCompilationUnitSyntax, TMemberDeclarationSyntax>
+        : AbstractChangeNamespaceService
+        where TNamespaceDeclarationSyntax : SyntaxNode
+        where TCompilationUnitSyntax : SyntaxNode
+        where TMemberDeclarationSyntax : SyntaxNode
+    {
+        private static readonly char[] s_dotSeparator = new[] { '.' };
 
         protected abstract TCompilationUnitSyntax ChangeNamespaceDeclaration(
             TCompilationUnitSyntax root, ImmutableArray<string> declaredNamespaceParts, ImmutableArray<string> targetNamespaceParts);
@@ -66,7 +71,12 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
         /// is global namespace, i.e. default namespace is "" and the file is located at project 
         /// root directory, and no namespace declaration in the document, respectively.
         /// </summary>
-        public async Task<Solution> ChangeNamespaceAsync(Solution solution, ImmutableArray<DocumentId> documentIds, string declaredNamespace, string targetNamespace, CancellationToken cancellationToken)
+        public override async Task<Solution> ChangeNamespaceAsync(
+            Solution solution, 
+            ImmutableArray<DocumentId> documentIds, 
+            string declaredNamespace, 
+            string targetNamespace, 
+            CancellationToken cancellationToken)
         {
             Debug.Assert(targetNamespace != null);            
 
@@ -81,46 +91,54 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
             var solutionAfterNamespaceChange = solution;
             var referenceDocuments = PooledHashSet<DocumentId>.GetInstance();
 
-            foreach (var id in documentIds)
+            try
             {
-                var (newSolution, refDocumentIds) = await ChangeNamespaceToMatchFoldersAsync(solutionAfterNamespaceChange, id, declaredNamespace, targetNamespace, cancellationToken).ConfigureAwait(false);
-                solutionAfterNamespaceChange = newSolution;
-                referenceDocuments.AddRange(refDocumentIds);
+                foreach (var id in documentIds)
+                {
+                    var (newSolution, refDocumentIds) =
+                        await ChangeNamespaceToMatchFoldersAsync(solutionAfterNamespaceChange, id, declaredNamespace, targetNamespace, cancellationToken)
+                            .ConfigureAwait(false);
+                    solutionAfterNamespaceChange = newSolution;
+                    referenceDocuments.AddRange(refDocumentIds);
+                }
+
+                var solutionAfterFirstMerge = await MergeDiffAsync(solution, solutionAfterNamespaceChange, cancellationToken).ConfigureAwait(false);
+
+                // After changing documents, we still need to remove unnecessary imports related to our change.
+                // We don't try to remove all imports that might become unnecessary/invalid after the namespace change, 
+                // just ones that fully matche the old/new namespace. Because it's hard to get it right and will almost 
+                // certainly cause perf issue.
+                // For example, if we are changing namespace `Foo.Bar` (which is the only namespace declaration with such name)
+                // to `A.B`, the using of name `Bar` in a different file below would remain untouched, even it's no longer valid:
+                //
+                //      namespace Foo
+                //      {
+                //          using Bar;
+                //          ~~~~~~~~~
+                //      }
+                //
+                // Also, because we may have added different imports to document that triggered the refactoring
+                // and the documents that reference affected types declared in changed namespace, we try to remove
+                // unnecessary imports separately.
+
+                var solutionAfterImportsRemoved = await RemoveUnnecessaryImportsAsync(
+                    solutionAfterFirstMerge,
+                    documentIds,
+                    CreateAllContainingNamespaces(declaredNamespace),
+                    cancellationToken).ConfigureAwait(false);
+
+                solutionAfterImportsRemoved = await RemoveUnnecessaryImportsAsync(
+                    solutionAfterImportsRemoved,
+                    referenceDocuments.ToImmutableArray(),
+                    ImmutableArray.Create(declaredNamespace, targetNamespace),
+                    cancellationToken).ConfigureAwait(false);
+
+                return await MergeDiffAsync(solutionAfterFirstMerge, solutionAfterImportsRemoved, cancellationToken).ConfigureAwait(false);
             }
-
-            var solutionAfterFirstMerge = await MergeDiffAsync(solution, solutionAfterNamespaceChange, cancellationToken).ConfigureAwait(false);
-
-            // After changing documents, we still need to remove unnecessary imports related to our change.
-            // We don't try to remove all imports that might become unnecessary/invalid after the namespace change, 
-            // just ones that fully matche the old/new namespace. Because it's hard to get it right and will almost 
-            // certainly cause perf issue.
-            // For example, if we are changing namespace `Foo.Bar` (which is the only namespace declaration with such name)
-            // to `A.B`, the using of name `Bar` in a different file below would remain untouched, even it's no longer valid:
-            //
-            //      namespace Foo
-            //      {
-            //          using Bar;
-            //          ~~~~~~~~~
-            //      }
-            //
-            // Also, because we may have added different imports to document that triggered the refactoring
-            // and the documents that reference affected types declared in changed namespace, we try to remove
-            // unnecessary imports separately.
-
-            var solutionAfterImportsRemoved = await RemoveUnnecessaryImportsAsync(
-                solutionAfterFirstMerge,
-                documentIds,
-                CreateAllContainingNamespaces(declaredNamespace),
-                cancellationToken).ConfigureAwait(false);
-
-            solutionAfterImportsRemoved = await RemoveUnnecessaryImportsAsync(
-                solutionAfterImportsRemoved,
-                referenceDocuments.ToImmutableArray(),
-                ImmutableArray.Create(declaredNamespace, targetNamespace),
-                cancellationToken).ConfigureAwait(false);
-
-            referenceDocuments.Free();
-            return await MergeDiffAsync(solutionAfterFirstMerge, solutionAfterImportsRemoved, cancellationToken).ConfigureAwait(false);
+            finally
+            {
+                referenceDocuments.Free();
+            }
         }
 
         private ImmutableArray<ISymbol> GetDeclaredSymbolsInContainer(
@@ -411,6 +429,7 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
 
             // We need a dummy import to figure out the container for given reference.
             var dummyImport = CreateImport(generator, "Dummy", withFormatterAnnotation: false);
+            var abstractChangeNamespaceService = (AbstractChangeNamespaceService)changeNamespaceService;
 
             foreach (var refLoc in refLocations)
             {
@@ -436,7 +455,7 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
                 // have exact same span.
 
                 var refNode = root.FindNode(refLoc.Location.SourceSpan, findInsideTrivia: true, getInnermostNodeForTie: true);
-                if (changeNamespaceService.TryGetReplacementReferenceSyntax(
+                if (abstractChangeNamespaceService.TryGetReplacementReferenceSyntax(
                         refNode, newNamespaceParts, syntaxFacts, out var oldNode, out var newNode))
                 {
                     editor.ReplaceNode(oldNode, newNode.WithAdditionalAnnotations(Simplifier.Annotation));

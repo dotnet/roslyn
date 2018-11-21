@@ -50,11 +50,11 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
         ///     (2) in the name of first declaration in global namespace if there's no namespace declaration in this document.
         /// </summary>
         /// <returns>
-        /// If the refactoring should be triggered, then returns the only namespace declaration node in the document (or type 
+        /// If the refactoring should be triggered, then returns the only namespace declaration node in the document (of type 
         /// <typeparamref name="TNamespaceDeclarationSyntax"/>) or the compilation unit node (of type <typeparamref name="TCompilationUnitSyntax"/>)
         /// if no namespace declaration in the document. Otherwise, return null.
         /// </returns>
-        protected abstract Task<SyntaxNode> ShouldPositionTriggerRefactoringAsync(Document document, int position, CancellationToken cancellationToken);
+        protected abstract Task<SyntaxNode> TryGetApplicableInvocationNode(Document document, int position, CancellationToken cancellationToken);
 
         protected abstract string EscapeIdentifier(string identifier);
 

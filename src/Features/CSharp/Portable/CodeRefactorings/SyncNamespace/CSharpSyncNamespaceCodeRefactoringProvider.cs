@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.SyncNamespace
     internal sealed class CSharpSyncNamespaceCodeRefactoringProvider 
         : AbstractSyncNamespaceCodeRefactoringProvider<NamespaceDeclarationSyntax, CompilationUnitSyntax, MemberDeclarationSyntax>
     {
-        protected override async Task<SyntaxNode> ShouldPositionTriggerRefactoringAsync(Document document, int position, CancellationToken cancellationToken)
+        protected override async Task<SyntaxNode> TryGetApplicableInvocationNode(Document document, int position, CancellationToken cancellationToken)
         {
             var compilationUnit = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false) as CompilationUnitSyntax;
 
@@ -49,36 +49,36 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.SyncNamespace
             }
 
             return default;
+        }
 
-            SyntaxNode GetTriggeringNode(CompilationUnitSyntax compUnit, int pos)
+        private static SyntaxNode GetTriggeringNode(CompilationUnitSyntax compilationUnit, int position)
+        {
+            var namespaceDecls = compilationUnit.DescendantNodes(n => n is CompilationUnitSyntax || n is NamespaceDeclarationSyntax)
+                .OfType<NamespaceDeclarationSyntax>().ToImmutableArray();
+
+            if (namespaceDecls.Length == 1 && compilationUnit.Members.Count == 1)
             {
-                var namespaceDecls = compilationUnit.DescendantNodes(n => n is CompilationUnitSyntax || n is NamespaceDeclarationSyntax)
-                    .OfType<NamespaceDeclarationSyntax>().ToImmutableArray();
+                var namespaceDeclaration = namespaceDecls[0];
+                Debug.Assert(namespaceDeclaration == compilationUnit.Members[0]);
 
-                if (namespaceDecls.Length == 1 && compilationUnit.Members.Count == 1)
+                if (namespaceDeclaration.Name.Span.IntersectsWith(position)
+                    && namespaceDeclaration.Name.GetDiagnostics().All(diag => diag.DefaultSeverity != DiagnosticSeverity.Error))
                 {
-                    var namespaceDeclaration = namespaceDecls[0];
-                    Debug.Assert(namespaceDeclaration == compilationUnit.Members[0]);
-
-                    if (namespaceDeclaration.Name.Span.IntersectsWith(position)
-                        && namespaceDeclaration.Name.GetDiagnostics().All(diag => diag.DefaultSeverity != DiagnosticSeverity.Error))
-                    {
-                        return namespaceDeclaration;
-                    }
+                    return namespaceDeclaration;
                 }
-                else if (namespaceDecls.Length == 0)
-                {
-                    var firstMemberDeclarationName = compilationUnit.Members.FirstOrDefault().GetNameToken();
-
-                    if (firstMemberDeclarationName != default
-                        && firstMemberDeclarationName.Span.IntersectsWith(position))
-                    {
-                        return compilationUnit;
-                    }
-                }
-
-                return null;
             }
+            else if (namespaceDecls.Length == 0)
+            {
+                var firstMemberDeclarationName = compilationUnit.Members.FirstOrDefault().GetNameToken();
+
+                if (firstMemberDeclarationName != default
+                    && firstMemberDeclarationName.Span.IntersectsWith(position))
+                {
+                    return compilationUnit;
+                }
+            }
+
+            return null;
         }
 
         protected override SyntaxList<MemberDeclarationSyntax> GetMemberDeclarationsInContainer(SyntaxNode compilationUnitOrNamespaceDecl)

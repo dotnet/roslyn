@@ -168,7 +168,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
                 {
                     foreach (var document in documents)
                     {
-                        var compilationUnitOrNamespaceDeclOpt = await provider.ShouldPositionTriggerRefactoringAsync(document, textSpan.Start, cancellationToken)
+                        var compilationUnitOrNamespaceDeclOpt = await provider.TryGetApplicableInvocationNode(document, textSpan.Start, cancellationToken)
                             .ConfigureAwait(false);
 
                         if (compilationUnitOrNamespaceDeclOpt is TNamespaceDeclarationSyntax namespaceDeclaration)
