@@ -114,10 +114,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
             {
                 if (ShouldBeTracked(analysisEntity))
                 {
-                    if (!CurrentAnalysisData.HasAbstractValue(analysisEntity) &&
-                        value.Kind == PointsToAbstractValueKind.Undefined)
+                    if (value.Kind == PointsToAbstractValueKind.Undefined)
                     {
                         Debug.Assert(value == _defaultPointsToValueGenerator.GetOrCreateDefaultValue(analysisEntity));
+                        Debug.Assert(!CurrentAnalysisData.TryGetValue(analysisEntity, out var currentValue) ||
+                                     currentValue == PointsToAbstractValue.Unknown &&         
+                                     (analysisEntity.SymbolOpt as IParameterSymbol)?.RefKind == RefKind.Out);
                         return;
                     }
 
