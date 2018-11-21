@@ -295,7 +295,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             options = options ?? workspace.Options;
             rules = rules ?? GetDefaultFormattingRules(workspace, node.Language);
             spans = spans ?? SpecializedCollections.SingletonEnumerable(node.FullSpan);
-            return languageFormatter.FormatAsync(node, spans, options, rules, cancellationToken);
+            return Task.FromResult(languageFormatter.Format(node, spans, options, rules, cancellationToken));
         }
 
         /// <summary>

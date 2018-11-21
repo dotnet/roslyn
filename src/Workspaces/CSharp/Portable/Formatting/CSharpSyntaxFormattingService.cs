@@ -1,27 +1,33 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Composition;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
-using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Text;
 
+#if !CODE_STYLE
+using System;
+using System.Composition;
+using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
+#endif
+
 namespace Microsoft.CodeAnalysis.CSharp.Formatting
 {
+#if !CODE_STYLE
     [ExportLanguageService(typeof(ISyntaxFormattingService), LanguageNames.CSharp), Shared]
+#endif
     internal class CSharpSyntaxFormattingService : AbstractSyntaxFormattingService
     {
         private readonly ImmutableList<IFormattingRule> _rules;
 
+#if !CODE_STYLE
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+#endif
         public CSharpSyntaxFormattingService()
         {
             _rules = ImmutableList.Create<IFormattingRule>(
@@ -50,9 +56,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             return new AggregatedFormattingResult(node, results, formattingSpans);
         }
 
-        protected override Task<AbstractFormattingResult> FormatAsync(SyntaxNode node, OptionSet optionSet, IEnumerable<IFormattingRule> formattingRules, SyntaxToken token1, SyntaxToken token2, CancellationToken cancellationToken)
+        protected override AbstractFormattingResult Format(SyntaxNode node, OptionSet optionSet, IEnumerable<IFormattingRule> formattingRules, SyntaxToken token1, SyntaxToken token2, CancellationToken cancellationToken)
         {
-            return Task.FromResult(new CSharpFormatEngine(node, optionSet, formattingRules, token1, token2).Format(cancellationToken));
+            return new CSharpFormatEngine(node, optionSet, formattingRules, token1, token2).Format(cancellationToken);
         }
     }
 }

@@ -27,6 +27,7 @@
     <Compile Include="..\..\..\Workspaces\CSharp\Portable\Extensions\SyntaxNodeExtensions_SharedWithCodeStyle.cs" Link="Formatting\SyntaxNodeExtensions_SharedWithCodeStyle.cs" />
     <Compile Include="..\..\..\Workspaces\CSharp\Portable\Extensions\SyntaxTokenExtensions_SharedWithCodeStyle.cs" Link="Formatting\SyntaxTokenExtensions_SharedWithCodeStyle.cs" />
     <Compile Include="..\..\..\Workspaces\CSharp\Portable\Extensions\SyntaxTriviaExtensions.cs" Link="Formatting\SyntaxTriviaExtensions.cs" />
+    <Compile Include="..\..\..\Workspaces\CSharp\Portable\Formatting\CSharpSyntaxFormattingService.cs" Link="Formatting\CSharpSyntaxFormattingService.cs" />
     <Compile Include="..\..\..\Workspaces\CSharp\Portable\Formatting\DefaultOperationProvider.cs" Link="Formatting\DefaultOperationProvider.cs" />
     <Compile Include="..\..\..\Workspaces\CSharp\Portable\Formatting\Engine\AggregatedFormattingResult.cs" Link="Formatting\Engine\AggregatedFormattingResult.cs" />
     <Compile Include="..\..\..\Workspaces\CSharp\Portable\Formatting\Engine\CSharpFormatEngine.cs" Link="Formatting\Engine\CSharpFormatEngine.cs" />

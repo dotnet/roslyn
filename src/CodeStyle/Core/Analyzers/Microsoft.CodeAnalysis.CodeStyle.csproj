@@ -53,6 +53,7 @@
     <Compile Include="..\..\..\Compilers\Core\Portable\Syntax\SyntaxTreeExtensions.cs" Link="InternalUtilities\SyntaxTreeExtensions.cs" />
     <Compile Include="..\..\..\Features\Core\Portable\Diagnostics\Analyzers\IDEDiagnosticIds.cs" Link="IDEDiagnosticIds.cs" />
     <Compile Include="..\..\..\Features\Core\Portable\Diagnostics\DiagnosticCustomTags.cs" Link="DiagnosticCustomTags.cs" />
+    <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\AbstractSyntaxFormattingService.cs" Link="Formatting\AbstractSyntaxFormattingService.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\BottomUpBaseIndentationFinder.cs" Link="Formatting\BottomUpBaseIndentationFinder.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\ContextIntervalTree.cs" Link="Formatting\ContextIntervalTree.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\Context\FormattingContext.AnchorData.cs" Link="Formatting\Context\FormattingContext.AnchorData.cs" />
@@ -90,6 +91,7 @@
     <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\Engine\TriviaDataWithList.cs" Link="Formatting\Engine\TriviaDataWithList.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\FormattingExtensions.cs" Link="Formatting\FormattingExtensions.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\IFormattingResult.cs" Link="Formatting\IFormattingResult.cs" />
+    <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\ISyntaxFormattingService.cs" Link="Formatting\ISyntaxFormattingService.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\ListPool.cs" Link="Formatting\ListPool.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\Rules\AbstractFormattingRule.cs" Link="Formatting\Rules\AbstractFormattingRule.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\Rules\BaseIndentationFormattingRule.cs" Link="Formatting\Rules\BaseIndentationFormattingRule.cs" />

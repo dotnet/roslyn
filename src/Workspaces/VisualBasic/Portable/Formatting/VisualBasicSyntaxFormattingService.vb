@@ -1,25 +1,36 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
-Imports System.Composition
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Formatting.Rules
-Imports Microsoft.CodeAnalysis.Host.Mef
-Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Shared.Collections
 Imports Microsoft.CodeAnalysis.Text
 
+#If Not CODE_STYLE Then
+Imports System.Composition
+Imports Microsoft.CodeAnalysis.Host.Mef
+Imports Microsoft.CodeAnalysis.Options
+#End If
+
 Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
+#If Not CODE_STYLE Then
     <ExportLanguageService(GetType(ISyntaxFormattingService), LanguageNames.VisualBasic), [Shared]>
     Friend Class VisualBasicSyntaxFormattingService
+#Else
+    Friend Class VisualBasicSyntaxFormattingService
+#End If
         Inherits AbstractSyntaxFormattingService
 
         Private ReadOnly _rules As ImmutableList(Of IFormattingRule)
 
+#If Not CODE_STYLE Then
         <ImportingConstructor>
         <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
+#Else
+        Public Sub New()
+#End If
             _rules = ImmutableList.Create(Of IFormattingRule)(
                 New StructuredTriviaFormattingRule(),
                 New ElasticTriviaFormattingRule(),
@@ -37,8 +48,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             Return New AggregatedFormattingResult(node, results, formattingSpans)
         End Function
 
-        Protected Overrides Function FormatAsync(root As SyntaxNode, optionSet As OptionSet, formattingRules As IEnumerable(Of IFormattingRule), token1 As SyntaxToken, token2 As SyntaxToken, cancellationToken As CancellationToken) As Task(Of AbstractFormattingResult)
-            Return Task.FromResult(New VisualBasicFormatEngine(root, optionSet, formattingRules, token1, token2).Format(cancellationToken))
+        Protected Overrides Function Format(root As SyntaxNode, optionSet As OptionSet, formattingRules As IEnumerable(Of IFormattingRule), token1 As SyntaxToken, token2 As SyntaxToken, cancellationToken As CancellationToken) As AbstractFormattingResult
+            Return New VisualBasicFormatEngine(root, optionSet, formattingRules, token1, token2).Format(cancellationToken)
         End Function
     End Class
 End Namespace
