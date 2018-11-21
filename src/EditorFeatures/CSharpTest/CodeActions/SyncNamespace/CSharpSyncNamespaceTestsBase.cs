@@ -8,7 +8,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
-using Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace;
 using Microsoft.CodeAnalysis.CSharp.CodeRefactorings.SyncNamespace;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
@@ -26,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.SyncNamespa
         protected override string GetLanguage() => LanguageNames.CSharp;
 
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
-            => new SyncNamespaceCodeRefactoringProvider();
+            => new CSharpSyncNamespaceCodeRefactoringProvider();
 
         protected override TestWorkspace CreateWorkspaceFromFile(string initialMarkup, TestParameters parameters)
         {
@@ -102,8 +101,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.SyncNamespa
                     var (actions, _) = await GetCodeActionsAsync(workspace, testOptions);
                     if (actions.Length > 0)
                     {
-                        var renameFileAction = actions.Any(action => action is CSharpSyncNamespaceService.MoveFileCodeAction);
-                        Assert.False(renameFileAction, "Rename File to match type code action was not expected, but shows up.");
+                        var renameFileAction = actions.Any(action => !(action is CodeAction.SolutionChangeAction));
+                        Assert.False(renameFileAction, "Move File to match namespace code action was not expected, but shows up.");
                     }
                 }
             }
@@ -116,7 +115,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.SyncNamespa
                 var results = new List<Tuple<Solution, Solution>>();
 
                 var (actions, _) = await GetCodeActionsAsync(workspace, parameters);
-                var moveFileActions = actions.Where(a => a is CSharpSyncNamespaceService.MoveFileCodeAction);
+                var moveFileActions = actions.Where(a => !(a is CodeAction.SolutionChangeAction));
 
                 foreach (var action in moveFileActions)
                 {
@@ -207,7 +206,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.SyncNamespa
                     var (actions, _) = await GetCodeActionsAsync(workspace, testOptions);
                     if (actions.Length > 0)
                     {
-                        var hasChangeNamespaceAction = actions.Any(action => action is CSharpSyncNamespaceService.ChangeNamespaceCodeAction);
+                        var hasChangeNamespaceAction = actions.Any(action => action is CodeAction.SolutionChangeAction);
                         Assert.False(hasChangeNamespaceAction, "Change namespace to match folder action was not expected, but shows up.");
                     }
                 }
@@ -216,7 +215,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.SyncNamespa
             async Task<Tuple<Solution, Solution>> TestOperationAsync(TestParameters parameters, TestWorkspace workspace)
             {
                 var (actions, _) = await GetCodeActionsAsync(workspace, parameters);
-                var changeNamespaceAction = actions.Single(a => a is CSharpSyncNamespaceService.ChangeNamespaceCodeAction);
+                var changeNamespaceAction = actions.Single(a => a is CodeAction.SolutionChangeAction);
                 var operations = await changeNamespaceAction.GetOperationsAsync(CancellationToken.None);
 
                 return ApplyOperationsAndGetSolution(workspace, operations);

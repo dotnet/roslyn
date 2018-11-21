@@ -2,16 +2,15 @@
 
 Imports System.Collections.Immutable
 Imports System.Composition
-Imports System.Threading
-Imports Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
+Imports Microsoft.CodeAnalysis.ChangeNamespace
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
-Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.SyncNamespace
-    <ExportLanguageService(GetType(ISyncNamespaceService), LanguageNames.VisualBasic), [Shared]>
-    Friend Class VisualBasicSyncNamespaceService
-        Inherits AbstractSyncNamespaceService(Of NamespaceStatementSyntax, CompilationUnitSyntax, StatementSyntax)
+Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeNamespace
+    <ExportLanguageService(GetType(IChangeNamespaceService), LanguageNames.VisualBasic), [Shared]>
+    Friend Class VisualBasicChangeNamespaceService
+        Inherits AbstractChangeNamespaceService(Of NamespaceStatementSyntax, CompilationUnitSyntax, StatementSyntax)
 
         Public Overrides Function TryGetReplacementReferenceSyntax(reference As SyntaxNode, newNamespaceParts As ImmutableArray(Of String), syntaxFacts As ISyntaxFactsService, ByRef old As SyntaxNode, ByRef [new] As SyntaxNode) As Boolean
             Dim nameRef = TryCast(reference, SimpleNameSyntax)
@@ -37,10 +36,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.SyncNamespace
             End If
         End Function
 
-        Protected Overrides Function EscapeIdentifier(identifier As String) As String
-            Return identifier.EscapeIdentifier()
-        End Function
-
         ' This is only reachable when called from a VB refacoring provider, which is not implemented yet.
         Protected Overrides Function ChangeNamespaceDeclaration(root As CompilationUnitSyntax, declaredNamespaceParts As ImmutableArray(Of String), targetNamespaceParts As ImmutableArray(Of String)) As CompilationUnitSyntax
             Throw ExceptionUtilities.Unreachable
@@ -48,11 +43,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.SyncNamespace
 
         ' This is only reachable when called from a VB refacoring provider, which is not implemented yet.
         Protected Overrides Function GetMemberDeclarationsInContainer(compilationUnitOrNamespaceDecl As SyntaxNode) As SyntaxList(Of StatementSyntax)
-            Throw ExceptionUtilities.Unreachable
-        End Function
-
-        ' This is only reachable when called from a VB refacoring provider, which is not implemented yet.
-        Protected Overrides Function ShouldPositionTriggerRefactoringAsync(document As Document, position As Integer, cancellationToken As CancellationToken) As Task(Of SyntaxNode)
             Throw ExceptionUtilities.Unreachable
         End Function
 
