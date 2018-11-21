@@ -45,8 +45,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
 
         /// <summary>
         /// Gets symbol writes that have are never read.
-        /// Note that returned WriteOperation might be null for parameter symbols indicating
-        /// the value write from the callsite.
+        /// WriteOperation will be null for the initial value write to parameter symbols from the callsite.
         /// </summary>
         public IEnumerable<(ISymbol Symbol, IOperation WriteOperation)> GetUnreadSymbolWrites()
             => SymbolWritesMap.Where(kvp => !kvp.Value).Select(kvp => kvp.Key);
