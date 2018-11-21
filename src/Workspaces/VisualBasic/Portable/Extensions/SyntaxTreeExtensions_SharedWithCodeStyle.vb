@@ -4,10 +4,9 @@ Imports System.Runtime.CompilerServices
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Roslyn.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
-    Friend Module SyntaxTreeExtensions
+    Partial Friend Module SyntaxTreeExtensions
         ''' <summary>
         ''' check whether given token is the last token of a statement that ends with end of line trivia or an elastic trivia
         ''' </summary>

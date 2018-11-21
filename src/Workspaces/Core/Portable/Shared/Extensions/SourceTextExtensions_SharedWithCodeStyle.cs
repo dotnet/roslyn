@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
-    internal static class SourceTextExtensions
+    internal static partial class SourceTextExtensions
     {
         public static bool OverlapsHiddenPosition(
             this SourceText text, TextSpan span, Func<int, CancellationToken, bool> isPositionHidden, CancellationToken cancellationToken)
