@@ -314,7 +314,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         // 3.and then the work item got picked up from the queue
                         // 4.and use the work item with the solution that got picked up in step 1
                         // 
-                        // step 2 is happening beacuse solution has changed, but step 4 used old solution from step 1
+                        // step 2 is happening because solution has changed, but step 4 used old solution from step 1
                         // that doesn't have effects of the solution changes.
                         // 
                         // solution crawler must remove the work item from the queue first and then pick up the soluton,
