@@ -196,6 +196,13 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             if (_returnValueOperationsOpt == null ||
                 _returnValueOperationsOpt.Count == 0)
             {
+                if (OwningSymbol is IMethodSymbol method &&
+                    !method.ReturnsVoid)
+                {
+                    // Non-void method without any return statements
+                    return (GetAbstractDefaultValue(method.ReturnType), PredicateValueKind.Unknown);
+                }
+
                 return null;
             }
 

@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                 switch (nullState)
                 {
                     case NullAbstractValue.Null:
-                        newPointsToValue = existingValue.MakeNull();
+                        newPointsToValue = existingValue.MakeNull(analysisEntity);
                         break;
 
                     case NullAbstractValue.NotNull:
@@ -636,11 +636,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
 
             private PointsToAbstractValue GetValueBasedOnInstanceOrReferenceValue(IOperation referenceOrInstance, IOperation operation, PointsToAbstractValue defaultValue)
             {
+                AnalysisEntity analysisEntityOpt;
                 NullAbstractValue nullState = GetNullStateBasedOnInstanceOrReferenceValue(referenceOrInstance, operation.Type, defaultValue.NullState);
                 switch (nullState)
                 {
                     case NullAbstractValue.NotNull:
-                        if (!AnalysisEntityFactory.TryCreate(operation, out var analysisEntityOpt))
+                        if (!AnalysisEntityFactory.TryCreate(operation, out analysisEntityOpt))
                         {
                             Debug.Assert(analysisEntityOpt == null);
                         }
@@ -648,7 +649,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                         return defaultValue.MakeNonNull(operation, DataFlowAnalysisContext, analysisEntityOpt);
 
                     case NullAbstractValue.Null:
-                        return defaultValue.MakeNull();
+                        if (!AnalysisEntityFactory.TryCreate(operation, out analysisEntityOpt))
+                        {
+                            Debug.Assert(analysisEntityOpt == null);
+                        }
+
+                        return defaultValue.MakeNull(analysisEntityOpt);
 
                     case NullAbstractValue.Invalid:
                         return PointsToAbstractValue.Invalid;
@@ -705,22 +711,24 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                 var value = base.VisitConversion(operation, argument);
                 if (value.NullState == NullAbstractValue.NotNull)
                 {
+                    AnalysisEntityFactory.TryCreate(operation.Operand, out var analysisEntityOpt);
+
                     if (TryInferConversion(operation, out bool alwaysSucceed, out bool alwaysFail))
                     {
                         Debug.Assert(!alwaysSucceed || !alwaysFail);
                         if (alwaysFail)
                         {
-                            value = value.MakeNull();
+                            value = value.MakeNull(analysisEntityOpt);
                         }
                         else if (operation.IsTryCast && !alwaysSucceed)
                         {
                             // TryCast which may or may not succeed.
-                            value = value.MakeMayBeNull();
+                            value = value.MakeMayBeNull(analysisEntityOpt);
                         }
                     }
                     else
                     {
-                        value = value.MakeMayBeNull();
+                        value = value.MakeMayBeNull(analysisEntityOpt);
                     }
                 }
 
