@@ -13,7 +13,6 @@ using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
-using Microsoft.CodeAnalysis.Versions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.SolutionCrawler
@@ -32,7 +31,6 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     private readonly ConcurrentDictionary<DocumentId, IDisposable> _higherPriorityDocumentsNotProcessed;
 
                     private ProjectId _currentProjectProcessing;
-                    private Solution _processingSolution;
                     private IDisposable _projectCache;
 
                     // whether this processor is running or not
@@ -52,7 +50,6 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         _higherPriorityDocumentsNotProcessed = new ConcurrentDictionary<DocumentId, IDisposable>(concurrencyLevel: 2, capacity: 20);
 
                         _currentProjectProcessing = default;
-                        _processingSolution = null;
 
                         Start();
                     }
@@ -309,12 +306,31 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         var processedEverything = false;
                         var documentId = workItem.DocumentId;
 
+                        // we should always use solution snapshot after workitem is removed from the queue.
+                        // otherwise, we can have a race such as below.
+                        //
+                        // 1.solution crawler picked up a solution
+                        // 2.before processing the solution, an workitem got changed
+                        // 3.and then the work item got picked up from the queue
+                        // 4.and use the work item with the solution that got picked up in step 1
+                        // 
+                        // step 2 is happening beacuse solution has changed, but step 4 used old solution from step 1
+                        // that doesn't have effects of the solution changes.
+                        // 
+                        // solution crawler must remove the work item from the queue first and then pick up the soluton,
+                        // so that the queue gets new work item if there is any solution changes after the work item is removed
+                        // from the queue
+                        // 
+                        // using later version of solution is always fine since, as long as there is new work item in the queue,
+                        // solution crawler will eventually call the last workitem with the lastest solution
+                        // making everything to catch up
+                        var solution = this.Processor.CurrentSolution;
                         try
                         {
                             using (Logger.LogBlock(FunctionId.WorkCoordinator_ProcessDocumentAsync, w => w.ToString(), workItem, source.Token))
                             {
                                 var cancellationToken = source.Token;
-                                var document = _processingSolution.GetDocument(documentId);
+                                var document = solution.GetDocument(documentId);
 
                                 if (document != null)
                                 {
@@ -441,40 +457,31 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         }
                     }
 
-                    private void ResetLogAggregatorIfNeeded(Solution currentSolution)
-                    {
-                        if (currentSolution == null || _processingSolution == null ||
-                            currentSolution.Id == _processingSolution.Id)
-                        {
-                            return;
-                        }
-
-                        SolutionCrawlerLogger.LogIncrementalAnalyzerProcessorStatistics(
-                            this.Processor._registration.CorrelationId, _processingSolution, this.Processor._logAggregator, this.Analyzers);
-
-                        this.Processor.ResetLogAggregator();
-                    }
+                   // this is only used in ResetState to find out solution has changed
+                   // and reset some states
+                    private Solution _lastSolution = null;
 
                     private async Task ResetStatesAsync()
                     {
+                        var currentSolution = this.Processor.CurrentSolution;
+                        var oldSolution = _lastSolution;
+
                         try
                         {
-                            var currentSolution = this.Processor.CurrentSolution;
-
-                            if (currentSolution == _processingSolution)
+                            if (currentSolution == oldSolution)
                             {
                                 return;
                             }
 
-                            // solution has changed
-                            ResetLogAggregatorIfNeeded(currentSolution);
+                            _lastSolution = currentSolution;
 
-                            _processingSolution = currentSolution;
+                            ResetLogAggregatorIfNeeded();
 
                             // synchronize new solution to OOP
                             await currentSolution.Workspace.SynchronizePrimaryWorkspaceAsync(currentSolution, this.CancellationToken).ConfigureAwait(false);
 
-                            await RunAnalyzersAsync(this.Analyzers, currentSolution, (a, s, c) => a.NewSolutionSnapshotAsync(s, c), this.CancellationToken).ConfigureAwait(false);
+                            // always run analyzers with latest solution
+                            await RunAnalyzersAsync(this.Analyzers, this.Processor.CurrentSolution, (a, s, c) => a.NewSolutionSnapshotAsync(s, c), this.CancellationToken).ConfigureAwait(false);
 
                             foreach (var id in this.Processor.GetOpenDocumentIds())
                             {
@@ -487,13 +494,28 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         {
                             throw ExceptionUtilities.Unreachable;
                         }
+
+                        void ResetLogAggregatorIfNeeded()
+                        {
+                            if (currentSolution == null || oldSolution == null ||
+                                currentSolution.Id == oldSolution.Id)
+                            {
+                                return;
+                            }
+
+                            // solution has changed
+                            SolutionCrawlerLogger.LogIncrementalAnalyzerProcessorStatistics(
+                                this.Processor._registration.CorrelationId, oldSolution, this.Processor._logAggregator, this.Analyzers);
+
+                            this.Processor.ResetLogAggregator();
+                        }
                     }
 
                     public override void Shutdown()
                     {
                         base.Shutdown();
 
-                        SolutionCrawlerLogger.LogIncrementalAnalyzerProcessorStatistics(this.Processor._registration.CorrelationId, _processingSolution, this.Processor._logAggregator, this.Analyzers);
+                        SolutionCrawlerLogger.LogIncrementalAnalyzerProcessorStatistics(this.Processor._registration.CorrelationId, this.Processor.CurrentSolution, this.Processor._logAggregator, this.Analyzers);
 
                         _workItemQueue.Dispose();
 
@@ -508,7 +530,6 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     {
                         CancellationTokenSource source = new CancellationTokenSource();
 
-                        _processingSolution = this.Processor.CurrentSolution;
                         foreach (var item in items)
                         {
                             ProcessDocumentAsync(analyzers, item, source).Wait();
