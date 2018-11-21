@@ -111,7 +111,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
                 if (!resultMap.ContainsKey(key1))
                 {
-                    resultMap[key1] = ValueDomain.UnknownOrMayBeValue;
+                    TValue mergedValue = GetMergedValueForEntityPresentInOneMap(key1, value1);
+                    Debug.Assert(ValueDomain.Compare(value1, mergedValue) <= 0);
+                    resultMap.Add(key1, mergedValue);
                 }
             }
 

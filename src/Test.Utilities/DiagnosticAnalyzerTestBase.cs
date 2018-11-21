@@ -27,7 +27,8 @@ namespace Test.Utilities
             None = 0b000,
             RemoveCodeAnalysis = 0b001,
             RemoveImmutable = 0b010,
-            RemoveSystemData = 0b100
+            RemoveSystemData = 0b100,
+            AddTestReferenceAssembly = 0b1000,
         }
 
         private static readonly MetadataReference s_corlibReference = MetadataReference.CreateFromFile(typeof(object).Assembly.Location);
@@ -43,6 +44,7 @@ namespace Test.Utilities
         private static readonly MetadataReference s_systemDiagnosticsDebugReference = MetadataReference.CreateFromFile(typeof(Debug).Assembly.Location);
         private static readonly MetadataReference s_systemDataReference = MetadataReference.CreateFromFile(typeof(System.Data.DataSet).Assembly.Location);
         private static readonly MetadataReference s_systemWebReference = MetadataReference.CreateFromFile(typeof(System.Web.HttpRequest).Assembly.Location);
+        private static readonly MetadataReference s_testReferenceAssembly = MetadataReference.CreateFromFile(typeof(OtherDll.OtherDllStaticMethods).Assembly.Location);
         private static readonly MetadataReference s_systemXmlLinq = MetadataReference.CreateFromFile(typeof(System.Xml.Linq.XAttribute).Assembly.Location);
         protected static readonly CompilationOptions s_CSharpDefaultOptions = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
         protected static readonly CompilationOptions s_CSharpUnsafeCodeDefaultOptions = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary).WithAllowUnsafe(true);
@@ -139,6 +141,11 @@ namespace Test.Utilities
             return GetResultAt(VisualBasicDefaultFilePath, line, column, rule, messageArguments);
         }
 
+        protected static DiagnosticResult GetBasicResultAt(IEnumerable<Tuple<int, int>> lineColumnPairs, DiagnosticDescriptor rule, params object[] messageArguments)
+        {
+            return GetResultAt(VisualBasicDefaultFilePath, lineColumnPairs, rule, messageArguments);
+        }
+
         protected static DiagnosticResult GetCSharpResultAt(int line, int column, string id, string message)
         {
             return GetResultAt(CSharpDefaultFilePath, line, column, id, message);
@@ -152,6 +159,11 @@ namespace Test.Utilities
         protected static DiagnosticResult GetCSharpResultAt(int line, int column, DiagnosticDescriptor rule, params object[] messageArguments)
         {
             return GetResultAt(CSharpDefaultFilePath, line, column, rule, messageArguments);
+        }
+
+        protected static DiagnosticResult GetCSharpResultAt(IEnumerable<Tuple<int, int>> lineColumnPairs, DiagnosticDescriptor rule, params object[] messageArguments)
+        {
+            return GetResultAt(CSharpDefaultFilePath, lineColumnPairs, rule, messageArguments);
         }
 
         protected static DiagnosticResult GetAdditionalFileResultAt(int line, int column, string additionalFilePath, DiagnosticDescriptor rule, params object[] messageArguments)
@@ -178,6 +190,17 @@ namespace Test.Utilities
         private static DiagnosticResult GetResultAt(string path, int line, int column, DiagnosticDescriptor rule, params object[] messageArguments)
         {
             return new DiagnosticResult(rule).WithLocation(path, line, column).WithArguments(messageArguments);
+        }
+
+        private static DiagnosticResult GetResultAt(string path, IEnumerable<Tuple<int, int>> lineColumnPairs, DiagnosticDescriptor rule, params object[] messageArguments)
+        {
+            DiagnosticResult result = new DiagnosticResult(rule).WithArguments(messageArguments);
+            foreach (Tuple<int, int> pair in lineColumnPairs)
+            {
+                result = result.WithLocation(path, pair.Item1, pair.Item2);
+            }
+
+            return result;
         }
 
         private static (string path, LinePosition location)[] ParseResultLocations(string defaultPath, string[] locationStrings)
@@ -434,6 +457,11 @@ namespace Test.Utilities
             {
                 project = project.AddMetadataReference(s_systemDataReference)
                     .AddMetadataReference(s_systemXmlDataReference);
+            }
+
+            if ((referenceFlags & ReferenceFlags.AddTestReferenceAssembly) == ReferenceFlags.AddTestReferenceAssembly)
+            {
+                project = project.AddMetadataReference(s_testReferenceAssembly);
             }
 
             if (language == LanguageNames.VisualBasic)

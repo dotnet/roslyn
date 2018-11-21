@@ -7,16 +7,124 @@ namespace Analyzer.Utilities
 {
     internal static class WellKnownTypes
     {
+        public const string SystemWebHttpRequest = "System.Web.HttpRequest";
+        public const string SystemDataIDataAdapter= "System.Data.IDataAdapter";
+        public const string SystemDataIDbCommand = "System.Data.IDbCommand";
         public const string SystemException = "System.Exception";
         public const string SystemDiagnosticContractsContract = "System.Diagnostics.Contracts.Contract";
         public const string SystemIDisposable = "System.IDisposable";
         public const string SystemThreadingMonitor = "System.Threading.Monitor";
         public const string SystemThreadingTasksTask = "System.Threading.Tasks.Task";
         public const string SystemCollectionsICollection = "System.Collections.ICollection";
-        public const string SystemCollectionsGenericICollection1 = "System.Collections.Generic.ICollection`1";
-        public const string SystemCollectionsGenericIReadOnlyCollection1 = "System.Collections.Generic.IReadOnlyCollection`1";
         public const string SystemRuntimeSerializationSerializationInfo = "System.Runtime.Serialization.SerializationInfo";
         public const string SystemIEquatable1 = "System.IEquatable`1";
+        public const string SystemWebUIWebControlsSqlDataSource = "System.Web.UI.WebControls.SqlDataSource";
+        public const string SystemDataSqlClientSqlParameter = "System.Data.SqlClient.SqlParameter";
+        public const string SystemDataOleDbOleDbParameter = "System.Data.OleDb.OleDbParameter";
+        public const string SystemDataOdbcOdbcParameter = "System.Data.Odbc.OdbcParameter";
+        public const string SystemBoolean = "System.Boolean";
+        public const string SystemByte = "System.Byte";
+        public const string SystemChar = "System.Char";
+        public const string SystemDateTime = "System.DateTime";
+        public const string SystemDecimal = "System.Decimal";
+        public const string SystemDouble = "System.Double";
+        public const string SystemGlobalizationTimeSpanParse = "System.Globalization.TimeSpanParse";
+        public const string SystemGuid = "System.Guid";
+        public const string SystemInt16 = "System.Int16";
+        public const string SystemInt32 = "System.Int32";
+        public const string SystemInt64 = "System.Int64";
+        public const string SystemNumber = "System.Number";
+        public const string SystemSingle = "System.Single";
+        public const string SystemTimeSpan = "System.TimeSpan";
+        public const string SystemWebHttpCookie = "System.Web.HttpCookie";
+        public const string SystemWebHttpRequestBase = "System.Web.HttpRequestBase";
+        public const string SystemWebHttpRequestWrapper = "System.Web.HttpRequestWrapper";
+        public const string SystemWebUIAdaptersPageAdapter = "System.Web.UI.Adapters.PageAdapter";
+        public const string SystemWebUIDataBoundLiteralControl = "System.Web.UI.DataBoundLiteralControl";
+        public const string SystemWebUIDesignerDataBoundLiteralControl = "System.Web.UI.DesignerDataBoundLiteralControl";
+        public const string SystemWebUIHtmlControlsHtmlInputControl = "System.Web.UI.HtmlControls.HtmlInputControl";
+        public const string SystemWebUIHtmlControlsHtmlInputFile = "System.Web.UI.HtmlControls.HtmlInputFile";
+        public const string SystemWebUIHtmlControlsHtmlInputRadioButton = "System.Web.UI.HtmlControls.HtmlInputRadioButton";
+        public const string SystemWebUIHtmlControlsHtmlInputText = "System.Web.UI.HtmlControls.HtmlInputText";
+        public const string SystemWebUIHtmlControlsHtmlSelect = "System.Web.UI.HtmlControls.HtmlSelect";
+        public const string SystemWebUIHtmlControlsHtmlTextArea = "System.Web.UI.HtmlControls.HtmlTextArea";
+        public const string SystemWebUIHtmlControlsHtmlTitle = "System.Web.UI.HtmlControls.HtmlTitle";
+        public const string SystemWebUIIndexedString = "System.Web.UI.IndexedString";
+        public const string SystemWebUILiteralControl = "System.Web.UI.LiteralControl";
+        public const string SystemWebUIResourceBasedLiteralControl = "System.Web.UI.ResourceBasedLiteralControl";
+        public const string SystemWebUISimplePropertyEntry = "System.Web.UI.SimplePropertyEntry";
+        public const string SystemWebUIStateItem = "System.Web.UI.StateItem";
+        public const string SystemWebUIStringPropertyBuilder = "System.Web.UI.StringPropertyBuilder";
+        public const string SystemWebUITemplateBuilder = "System.Web.UI.TemplateBuilder";
+        public const string SystemWebUITemplateParser = "System.Web.UI.TemplateParser";
+        public const string SystemWebUIWebControlsBaseValidator = "System.Web.UI.WebControls.BaseValidator";
+        public const string SystemWebUIWebControlsBulletedList = "System.Web.UI.WebControls.BulletedList";
+        public const string SystemWebUIWebControlsButton = "System.Web.UI.WebControls.Button";
+        public const string SystemWebUIWebControlsButtonColumn = "System.Web.UI.WebControls.ButtonColumn";
+        public const string SystemWebUIWebControlsButtonField = "System.Web.UI.WebControls.ButtonField";
+        public const string SystemWebUIWebControlsChangePassword = "System.Web.UI.WebControls.ChangePassword";
+        public const string SystemWebUIWebControlsCheckBox = "System.Web.UI.WebControls.CheckBox";
+        public const string SystemWebUIWebControlsCheckBoxField = "System.Web.UI.WebControls.CheckBoxField";
+        public const string SystemWebUIWebControlsCheckBoxList = "System.Web.UI.WebControls.CheckBoxList";
+        public const string SystemWebUIWebControlsCommandEventArgs = "System.Web.UI.WebControls.CommandEventArgs";
+        public const string SystemWebUIWebControlsCreateUserWizard = "System.Web.UI.WebControls.CreateUserWizard";
+        public const string SystemWebUIWebControlsDataKey = "System.Web.UI.WebControls.DataKey";
+        public const string SystemWebUIWebControlsDataList = "System.Web.UI.WebControls.DataList";
+        public const string SystemWebUIWebControlsDetailsView = "System.Web.UI.WebControls.DetailsView";
+        public const string SystemWebUIWebControlsDetailsViewInsertEventArgs = "System.Web.UI.WebControls.DetailsViewInsertEventArgs";
+        public const string SystemWebUIWebControlsDetailsViewUpdateEventArgs = "System.Web.UI.WebControls.DetailsViewUpdateEventArgs";
+        public const string SystemWebUIWebControlsFormView = "System.Web.UI.WebControls.FormView";
+        public const string SystemWebUIWebControlsFormViewInsertEventArgs = "System.Web.UI.WebControls.FormViewInsertEventArgs";
+        public const string SystemWebUIWebControlsFormViewUpdateEventArgs = "System.Web.UI.WebControls.FormViewUpdateEventArgs";
+        public const string SystemWebUIWebControlsGridView = "System.Web.UI.WebControls.GridView";
+        public const string SystemWebUIWebControlsHiddenField = "System.Web.UI.WebControls.HiddenField";
+        public const string SystemWebUIWebControlsHyperLink = "System.Web.UI.WebControls.HyperLink";
+        public const string SystemWebUIWebControlsHyperLinkColumn = "System.Web.UI.WebControls.HyperLinkColumn";
+        public const string SystemWebUIWebControlsHyperLinkField = "System.Web.UI.WebControls.HyperLinkField";
+        public const string SystemWebUIWebControlsImageButton = "System.Web.UI.WebControls.ImageButton";
+        public const string SystemWebUIWebControlsLabel = "System.Web.UI.WebControls.Label";
+        public const string SystemWebUIWebControlsLinkButton = "System.Web.UI.WebControls.LinkButton";
+        public const string SystemWebUIWebControlsListControl = "System.Web.UI.WebControls.ListControl";
+        public const string SystemWebUIWebControlsListItem = "System.Web.UI.WebControls.ListItem";
+        public const string SystemWebUIWebControlsLiteral = "System.Web.UI.WebControls.Literal";
+        public const string SystemWebUIWebControlsLogin = "System.Web.UI.WebControls.Login";
+        public const string SystemWebUIWebControlsMenu = "System.Web.UI.WebControls.Menu";
+        public const string SystemWebUIWebControlsMenuItem = "System.Web.UI.WebControls.MenuItem";
+        public const string SystemWebUIWebControlsMenuItemBinding = "System.Web.UI.WebControls.MenuItemBinding";
+        public const string SystemWebUIWebControlsPasswordRecovery = "System.Web.UI.WebControls.PasswordRecovery";
+        public const string SystemWebUIWebControlsQueryStringParameter = "System.Web.UI.WebControls.QueryStringParameter";
+        public const string SystemWebUIWebControlsRadioButtonList = "System.Web.UI.WebControls.RadioButtonList";
+        public const string SystemWebUIWebControlsServerValidateEventArgs = "System.Web.UI.WebControls.ServerValidateEventArgs";
+        public const string SystemWebUIWebControlsTableCell = "System.Web.UI.WebControls.TableCell";
+        public const string SystemWebUIWebControlsTextBox = "System.Web.UI.WebControls.TextBox";
+        public const string SystemWebUIWebControlsTreeNode = "System.Web.UI.WebControls.TreeNode";
+        public const string SystemWebUIWebControlsTreeNodeBinding = "System.Web.UI.WebControls.TreeNodeBinding";
+        public const string SystemWebUIWebControlsTreeView = "System.Web.UI.WebControls.TreeView";
+        public const string SystemWebUIWebControlsUnit = "System.Web.UI.WebControls.Unit";
+        public const string SystemWebUIWebControlsWebPartsAppearanceEditorPart = "System.Web.UI.WebControls.WebParts.AppearanceEditorPart";
+        public const string SystemWebUIWebControlsWebPartsPersonalizationEntry = "System.Web.UI.WebControls.WebParts.PersonalizationEntry";
+        public const string SystemWebUIWebControlsWebPartsWebPartCatalogAddVerb = "System.Web.UI.WebControls.WebParts.WebPartCatalogAddVerb";
+        public const string SystemWebUIWebControlsWebPartsWebPartCatalogCloseVerb = "System.Web.UI.WebControls.WebParts.WebPartCatalogCloseVerb";
+        public const string SystemWebUIWebControlsWebPartsWebPartCloseVerb = "System.Web.UI.WebControls.WebParts.WebPartCloseVerb";
+        public const string SystemWebUIWebControlsWebPartsWebPartConnectionsCancelVerb = "System.Web.UI.WebControls.WebParts.WebPartConnectionsCancelVerb";
+        public const string SystemWebUIWebControlsWebPartsWebPartConnectionsCloseVerb = "System.Web.UI.WebControls.WebParts.WebPartConnectionsCloseVerb";
+        public const string SystemWebUIWebControlsWebPartsWebPartConnectionsConfigureVerb = "System.Web.UI.WebControls.WebParts.WebPartConnectionsConfigureVerb";
+        public const string SystemWebUIWebControlsWebPartsWebPartConnectionsConnectVerb = "System.Web.UI.WebControls.WebParts.WebPartConnectionsConnectVerb";
+        public const string SystemWebUIWebControlsWebPartsWebPartConnectionsDisconnectVerb = "System.Web.UI.WebControls.WebParts.WebPartConnectionsDisconnectVerb";
+        public const string SystemWebUIWebControlsWebPartsWebPartConnectVerb = "System.Web.UI.WebControls.WebParts.WebPartConnectVerb";
+        public const string SystemWebUIWebControlsWebPartsWebPartDeleteVerb = "System.Web.UI.WebControls.WebParts.WebPartDeleteVerb";
+        public const string SystemWebUIWebControlsWebPartsWebPartEditorApplyVerb = "System.Web.UI.WebControls.WebParts.WebPartEditorApplyVerb";
+        public const string SystemWebUIWebControlsWebPartsWebPartEditorCancelVerb = "System.Web.UI.WebControls.WebParts.WebPartEditorCancelVerb";
+        public const string SystemWebUIWebControlsWebPartsWebPartEditorOKVerb = "System.Web.UI.WebControls.WebParts.WebPartEditorOKVerb";
+        public const string SystemWebUIWebControlsWebPartsWebPartEditVerb = "System.Web.UI.WebControls.WebParts.WebPartEditVerb";
+        public const string SystemWebUIWebControlsWebPartsWebPartExportVerb = "System.Web.UI.WebControls.WebParts.WebPartExportVerb";
+        public const string SystemWebUIWebControlsWebPartsWebPartHeaderCloseVerb = "System.Web.UI.WebControls.WebParts.WebPartHeaderCloseVerb";
+        public const string SystemWebUIWebControlsWebPartsWebPartHelpVerb = "System.Web.UI.WebControls.WebParts.WebPartHelpVerb";
+        public const string SystemWebUIWebControlsWebPartsWebPartMinimizeVerb = "System.Web.UI.WebControls.WebParts.WebPartMinimizeVerb";
+        public const string SystemWebUIWebControlsWebPartsWebPartRestoreVerb = "System.Web.UI.WebControls.WebParts.WebPartRestoreVerb";
+        public const string SystemWebUIWebControlsWebPartsWebPartVerb = "System.Web.UI.WebControls.WebParts.WebPartVerb";
+        public const string SystemCollectionsGenericICollection1 = "System.Collections.Generic.ICollection`1";
+        public const string SystemCollectionsGenericIReadOnlyCollection1 = "System.Collections.Generic.IReadOnlyCollection`1";
         public const string SystemRuntimeSerializationFormattersBinaryBinaryFormatter = "System.Runtime.Serialization.Formatters.Binary.BinaryFormatter";
         public const string SystemWebUILosFormatter = "System.Web.UI.LosFormatter";
 
@@ -58,6 +166,16 @@ namespace Analyzer.Utilities
         public static INamedTypeSymbol IList(Compilation compilation)
         {
             return compilation.GetTypeByMetadataName("System.Collections.IList");
+        }
+
+        internal static INamedTypeSymbol HttpRequest(Compilation compilation)
+        {
+            return compilation.GetTypeByMetadataName(SystemWebHttpRequest);
+        }
+
+        internal static INamedTypeSymbol NameValueCollection(Compilation compilation)
+        {
+            return compilation.GetTypeByMetadataName("System.Collections.Specialized.NameValueCollection");
         }
 
         public static INamedTypeSymbol GenericIList(Compilation compilation)
@@ -312,7 +430,7 @@ namespace Analyzer.Utilities
 
         public static INamedTypeSymbol Exception(Compilation compilation)
         {
-            return compilation.GetTypeByMetadataName("System.Exception");
+            return compilation.GetTypeByMetadataName(SystemException);
         }
 
         public static INamedTypeSymbol InvalidOperationException(Compilation compilation)
@@ -407,7 +525,7 @@ namespace Analyzer.Utilities
 
         public static INamedTypeSymbol IDbCommand(Compilation compilation)
         {
-            return compilation.GetTypeByMetadataName("System.Data.IDbCommand");
+            return compilation.GetTypeByMetadataName(SystemDataIDbCommand);
         }
 
         public static INamedTypeSymbol IDataAdapter(Compilation compilation)
