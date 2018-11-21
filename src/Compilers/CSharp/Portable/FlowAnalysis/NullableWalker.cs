@@ -4336,37 +4336,76 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             //if (this.State.Reachable) // Consider reachability: see https://github.com/dotnet/roslyn/issues/28798
             {
-                bool? isNullable = null;
+                NullableAnnotation nullableAnnotation = NullableAnnotation.Unknown;
                 if (!node.Type.IsValueType)
                 {
                     switch (node.Conversion.Kind)
                     {
                         case ConversionKind.Identity:
-                        case ConversionKind.ImplicitReference:
                             // Inherit nullability from the operand
-                            isNullable = _resultType.IsNullable;
+                            nullableAnnotation = _resultType.NullableAnnotation;
+                            break;
+
+                        case ConversionKind.ImplicitReference:
+
+                            // Inherit nullability from the operand
+                            if (!_resultType.IsNull && _resultType.IsPossiblyNullableReferenceTypeTypeParameter())
+                            {
+                                if (!node.Type.IsPossiblyNullableReferenceTypeTypeParameter())
+                                {
+                                    nullableAnnotation = NullableAnnotation.NullableBasedOnAnalysis;
+                                }
+                                else
+                                {
+                                    nullableAnnotation = NullableAnnotation.NotNullable;
+                                }
+                            }
+                            else
+                            {
+                                nullableAnnotation = _resultType.NullableAnnotation;
+                                if (nullableAnnotation == NullableAnnotation.NotNullable && node.Type.IsTypeParameter())
+                                {
+                                    nullableAnnotation = NullableAnnotation.NotNullableBasedOnAnalysis;
+                                }
+                            }
                             break;
 
                         case ConversionKind.Boxing:
                             var operandType = node.Operand.Type;
                             if (operandType?.IsValueType == true)
                             {
-                                // We currently don't worry about a pathological case of boxing nullable value known to be not null
-                                isNullable = operandType.IsNullableType();
+                                // https://github.com/dotnet/roslyn/issues/29959 We currently don't worry about a pathological case of boxing nullable value known to be not null
+                                nullableAnnotation = operandType.IsNullableType() ?  NullableAnnotation.NullableBasedOnAnalysis : NullableAnnotation.NotNullableBasedOnAnalysis;
                             }
                             else
                             {
                                 Debug.Assert(operandType?.IsReferenceType != true);
-                                isNullable = true;
+
+                                if (!_resultType.IsNull)
+                                {
+                                    if (_resultType.IsPossiblyNullableReferenceTypeTypeParameter() && node.Type.IsPossiblyNullableReferenceTypeTypeParameter())
+                                    {
+                                        nullableAnnotation = NullableAnnotation.NotNullable;
+                                    }
+                                    else
+                                    {
+                                        nullableAnnotation = _resultType.GetValueNullableAnnotation();
+                                    }
+                                }
+                                else
+                                {
+                                    nullableAnnotation = NullableAnnotation.NullableBasedOnAnalysis;
+                                }
                             }
                             break;
 
                         default:
-                            isNullable = true;
+                            nullableAnnotation = NullableAnnotation.NullableBasedOnAnalysis;
                             break;
                     }
                 }
-                _resultType = TypeSymbolWithAnnotations.Create(node.Type, isNullableIfReferenceType: isNullable);
+
+                _resultType = TypeSymbolWithAnnotations.Create(node.Type, nullableAnnotation);
             }
 
             return result;
