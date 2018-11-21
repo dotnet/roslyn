@@ -51,7 +51,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         {
             return HashUtilities.Combine(this.SinkProperties,
                 HashUtilities.Combine(this.SinkMethodParameters,
-                HashUtilities.Combine(this.FullTypeName.GetHashCode(),
+                HashUtilities.Combine(StringComparer.Ordinal.GetHashCode(this.FullTypeName),
                 HashUtilities.Combine(this.IsInterface.GetHashCode(),
                 this.IsAnyStringParameterInConstructorASink.GetHashCode()))));
         }

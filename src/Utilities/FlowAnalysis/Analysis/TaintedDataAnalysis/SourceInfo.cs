@@ -50,7 +50,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             return HashUtilities.Combine(this.TaintedProperties,
                 HashUtilities.Combine(this.TaintedMethods,
                 HashUtilities.Combine(this.IsInterface.GetHashCode(),
-                    this.FullTypeName.GetHashCode())));
+                    StringComparer.Ordinal.GetHashCode(this.FullTypeName))));
         }
 
         public override bool Equals(object obj)

@@ -41,7 +41,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         public override int GetHashCode()
         {
             return HashUtilities.Combine(this.SanitizingMethods,
-                HashUtilities.Combine(this.FullTypeName.GetHashCode(),
+                HashUtilities.Combine(StringComparer.Ordinal.GetHashCode(this.FullTypeName),
                 this.IsConstructorSanitizing.GetHashCode()));
         }
 
