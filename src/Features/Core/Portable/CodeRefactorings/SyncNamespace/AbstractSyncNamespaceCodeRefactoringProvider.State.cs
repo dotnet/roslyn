@@ -16,7 +16,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
 {
-    internal abstract partial class AbstractSyncNamespaceService<TNamespaceDeclarationSyntax, TCompilationUnitSyntax, TMemberDeclarationSyntax>
+    internal abstract partial class AbstractSyncNamespaceCodeRefactoringProvider<TNamespaceDeclarationSyntax, TCompilationUnitSyntax, TMemberDeclarationSyntax>
+        : CodeRefactoringProvider
         where TNamespaceDeclarationSyntax : SyntaxNode
         where TCompilationUnitSyntax : SyntaxNode
         where TMemberDeclarationSyntax : SyntaxNode
@@ -153,7 +154,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
             private static async Task<(bool shouldTrigger, string declaredNamespace)> TryGetNamespaceDeclarationAsync(
                 TextSpan textSpan,
                 ImmutableArray<Document> documents,
-                AbstractSyncNamespaceService<TNamespaceDeclarationSyntax, TCompilationUnitSyntax, TMemberDeclarationSyntax> service,
+                AbstractSyncNamespaceCodeRefactoringProvider<TNamespaceDeclarationSyntax, TCompilationUnitSyntax, TMemberDeclarationSyntax> provider,
                 CancellationToken cancellationToken)
             {
                 // If the cursor location doesn't meet the requirement to trigger the refactoring in any of the documents 
@@ -167,7 +168,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
                 {
                     foreach (var document in documents)
                     {
-                        var compilationUnitOrNamespaceDeclOpt = await service.ShouldPositionTriggerRefactoringAsync(document, textSpan.Start, cancellationToken)
+                        var compilationUnitOrNamespaceDeclOpt = await provider.TryGetApplicableInvocationNode(document, textSpan.Start, cancellationToken)
                             .ConfigureAwait(false);
 
                         if (compilationUnitOrNamespaceDeclOpt is TNamespaceDeclarationSyntax namespaceDeclaration)
@@ -208,7 +209,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
             }
 
             public static async Task<State> CreateAsync(
-                AbstractSyncNamespaceService<TNamespaceDeclarationSyntax, TCompilationUnitSyntax, TMemberDeclarationSyntax> service, 
+                AbstractSyncNamespaceCodeRefactoringProvider<TNamespaceDeclarationSyntax, TCompilationUnitSyntax, TMemberDeclarationSyntax> provider, 
                 Document document, 
                 TextSpan textSpan, 
                 CancellationToken cancellationToken)
@@ -237,7 +238,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
                 }
 
                 var (shouldTrigger, declaredNamespace) = 
-                    await TryGetNamespaceDeclarationAsync(textSpan, documents, service, cancellationToken).ConfigureAwait(false);
+                    await TryGetNamespaceDeclarationAsync(textSpan, documents, provider, cancellationToken).ConfigureAwait(false);
 
                 if (!shouldTrigger)
                 {
@@ -246,7 +247,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
 
                 // Namespace can't be changed if we can't construct a valid qualified identifier from folder names.
                 // In this case, we might still be able to provide refactoring to move file to new location.
-                var namespaceFromFolders = TryBuildNamespaceFromFolders(service, document.Folders, syntaxFacts);
+                var namespaceFromFolders = TryBuildNamespaceFromFolders(provider, document.Folders, syntaxFacts);
                 var targetNamespace = namespaceFromFolders == null 
                     ? null 
                     : ConcatNamespace(defaultNamespace, namespaceFromFolders);      
@@ -277,7 +278,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
             /// Create a qualified identifier as the suffix of namespace based on a list of folder names.
             /// </summary>
             private static string TryBuildNamespaceFromFolders(
-                AbstractSyncNamespaceService<TNamespaceDeclarationSyntax, TCompilationUnitSyntax, TMemberDeclarationSyntax> service, 
+                AbstractSyncNamespaceCodeRefactoringProvider<TNamespaceDeclarationSyntax, TCompilationUnitSyntax, TMemberDeclarationSyntax> service, 
                 IEnumerable<string> folders, 
                 ISyntaxFactsService syntaxFacts)
             {

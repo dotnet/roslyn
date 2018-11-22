@@ -1,46 +1,47 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.ChangeNamespace;
 using Microsoft.CodeAnalysis.LanguageServices;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Text;
+using static Microsoft.CodeAnalysis.CodeActions.CodeAction;
 
 namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
 {
-    internal abstract partial class AbstractSyncNamespaceService<TNamespaceDeclarationSyntax, TCompilationUnitSyntax, TMemberDeclarationSyntax> :
-        ISyncNamespaceService
+    internal abstract partial class AbstractSyncNamespaceCodeRefactoringProvider<TNamespaceDeclarationSyntax, TCompilationUnitSyntax, TMemberDeclarationSyntax>
+        : CodeRefactoringProvider
         where TNamespaceDeclarationSyntax : SyntaxNode
         where TCompilationUnitSyntax : SyntaxNode
         where TMemberDeclarationSyntax : SyntaxNode
     {
-        public async Task<ImmutableArray<CodeAction>> GetRefactoringsAsync(
-            Document document, TextSpan textSpan, CancellationToken cancellationToken)
+        public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
+            var document = context.Document;
+            var textSpan = context.Span;
+            var cancellationToken = context.CancellationToken;
+            
             var state = await State.CreateAsync(this, document, textSpan, cancellationToken).ConfigureAwait(false);
             if (state == null)
             {
-                return default;
+                return;
             }
 
-            return CreateCodeActions(this, state);
+            // No move file action if rootnamespace isn't a prefix of current declared namespace
+            if (state.RelativeDeclaredNamespace != null)
+            {
+                context.RegisterRefactorings(MoveFileCodeAction.Create(state));
+            }
+
+            // No change namespace action if we can't construct a valid namespace from rootnamespace and folder names.
+            if (state.TargetNamespace != null)
+            {
+                var service = document.GetLanguageService<IChangeNamespaceService>();
+                var solutionChangeAction = new SolutionChangeAction(ChangeNamespaceActionTitle(state), token => service.ChangeNamespaceAsync(state.Solution, state.DocumentIds, state.DeclaredNamespace, state.TargetNamespace, token));
+                context.RegisterRefactoring(solutionChangeAction);
+            }            
         }
-
-        public abstract bool TryGetReplacementReferenceSyntax(
-            SyntaxNode reference, ImmutableArray<string> newNamespaceParts, ISyntaxFactsService syntaxFacts, out SyntaxNode old, out SyntaxNode @new);
-
-        protected abstract string EscapeIdentifier(string identifier);
-        
-        protected abstract TCompilationUnitSyntax ChangeNamespaceDeclaration(
-            TCompilationUnitSyntax root, ImmutableArray<string> declaredNamespaceParts, ImmutableArray<string> targetNamespaceParts);
-
-        protected abstract SyntaxList<TMemberDeclarationSyntax> GetMemberDeclarationsInContainer(SyntaxNode compilationUnitOrNamespaceDecl);
 
         /// <summary>
         /// Determine if this refactoring should be triggered based on current cursor position and if there's any partial 
@@ -49,15 +50,15 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
         ///     (2) in the name of first declaration in global namespace if there's no namespace declaration in this document.
         /// </summary>
         /// <returns>
-        /// If the refactoring should be triggered, then returns the only namespace declaration node in the document (or type 
+        /// If the refactoring should be triggered, then returns the only namespace declaration node in the document (of type 
         /// <typeparamref name="TNamespaceDeclarationSyntax"/>) or the compilation unit node (of type <typeparamref name="TCompilationUnitSyntax"/>)
         /// if no namespace declaration in the document. Otherwise, return null.
         /// </returns>
-        protected abstract Task<SyntaxNode> ShouldPositionTriggerRefactoringAsync(Document document, int position, CancellationToken cancellationToken);
+        protected abstract Task<SyntaxNode> TryGetApplicableInvocationNode(Document document, int position, CancellationToken cancellationToken);
 
-        protected static SyntaxAnnotation WarningAnnotation { get; }
-            = CodeActions.WarningAnnotation.Create(
-                FeaturesResources.Warning_colon_changing_namespace_may_produce_invalid_code_and_change_code_meaning);
+        protected abstract string EscapeIdentifier(string identifier);
+
+        protected abstract SyntaxList<TMemberDeclarationSyntax> GetMemberDeclarationsInContainer(SyntaxNode compilationUnitOrNamespaceDecl);
 
         protected async Task<bool> ContainsPartialTypeWithMultipleDeclarationsAsync(
             Document document, SyntaxNode compilationUnitOrNamespaceDecl, CancellationToken cancellationToken)
@@ -80,6 +81,11 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
             }
             return false;
         }
+
+        private static string ChangeNamespaceActionTitle(State state)
+            => state.TargetNamespace.Length == 0
+                ? FeaturesResources.Change_to_global_namespace
+                : string.Format(FeaturesResources.Change_namespace_to_0, state.TargetNamespace);
 
         /// <summary>
         /// Try get the relative namespace for <paramref name="namespace"/> based on <paramref name="relativeTo"/>,
@@ -114,26 +120,6 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
             return syntaxFacts.StringComparer.Equals(containingText, namespacePrefix)
                 ? @namespace.Substring(relativeTo.Length + 1)
                 : null;
-        }
-
-        private static ImmutableArray<CodeAction> CreateCodeActions(
-            AbstractSyncNamespaceService<TNamespaceDeclarationSyntax, TCompilationUnitSyntax, TMemberDeclarationSyntax> service, State state)
-        {
-            var builder = ArrayBuilder<CodeAction>.GetInstance();
-
-            // No move file action if rootnamespace isn't a prefix of current declared namespace
-            if (state.RelativeDeclaredNamespace != null)
-            {
-                builder.AddRange(MoveFileCodeAction.Create(state));
-            }
-
-            // No change namespace action if we can't construct a valid namespace from rootnamespace and folder names.
-            if (state.TargetNamespace != null)
-            {
-                builder.Add(new ChangeNamespaceCodeAction(service, state));
-            }
-
-            return builder.ToImmutableAndFree();
         }
     }
 }
