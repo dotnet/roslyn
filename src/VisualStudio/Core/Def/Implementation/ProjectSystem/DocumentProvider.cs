@@ -12,11 +12,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
     [Obsolete("This is a compatibility shim for TypeScript and Live Share; please do not use it.")]
     internal sealed class DocumentProvider
     {
-        [Obsolete("This is a compatibility shim for Live Share; please do not use it.")]
-        public DocumentProvider(VisualStudioProjectTracker projectTracker, IServiceProvider serviceProvider, VisualStudioDocumentTrackingService documentTrackingService)
-        {
-        }
-
         [Obsolete("This overload is a compatibility shim for TypeScript; please do not use it.")]
         public IVisualStudioHostDocument TryGetDocumentForFile(
             AbstractProject hostProject,
