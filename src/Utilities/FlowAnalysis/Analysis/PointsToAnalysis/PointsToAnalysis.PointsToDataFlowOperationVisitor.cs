@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
             private static bool ShouldBeTracked(ITypeSymbol typeSymbol) => typeSymbol.IsReferenceTypeOrNullableValueType();
 
             private bool ShouldBeTracked(AnalysisEntity analysisEntity) => ShouldBeTracked(analysisEntity.Type) ||
-                analysisEntity.CaptureIdOpt.HasValue && IsLValueFlowCapture(analysisEntity.CaptureIdOpt.Value);
+                analysisEntity.CaptureIdOpt.HasValue && IsLValueFlowCapture(analysisEntity.CaptureIdOpt.Value.Id);
 
             protected override void AddTrackedEntities(ImmutableArray<AnalysisEntity>.Builder builder)
             {
@@ -114,10 +114,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
             {
                 if (ShouldBeTracked(analysisEntity))
                 {
-                    if (!CurrentAnalysisData.HasAbstractValue(analysisEntity) &&
-                        value.Kind == PointsToAbstractValueKind.Undefined)
+                    if (value.Kind == PointsToAbstractValueKind.Undefined)
                     {
                         Debug.Assert(value == _defaultPointsToValueGenerator.GetOrCreateDefaultValue(analysisEntity));
+                        Debug.Assert(!CurrentAnalysisData.TryGetValue(analysisEntity, out var currentValue) ||
+                                     currentValue == PointsToAbstractValue.Unknown &&         
+                                     (analysisEntity.SymbolOpt as IParameterSymbol)?.RefKind == RefKind.Out);
                         return;
                     }
 
@@ -148,7 +150,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                 switch (nullState)
                 {
                     case NullAbstractValue.Null:
-                        newPointsToValue = existingValue.MakeNull();
+                        newPointsToValue = existingValue.MakeNull(analysisEntity);
                         break;
 
                     case NullAbstractValue.NotNull:
@@ -636,11 +638,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
 
             private PointsToAbstractValue GetValueBasedOnInstanceOrReferenceValue(IOperation referenceOrInstance, IOperation operation, PointsToAbstractValue defaultValue)
             {
+                AnalysisEntity analysisEntityOpt;
                 NullAbstractValue nullState = GetNullStateBasedOnInstanceOrReferenceValue(referenceOrInstance, operation.Type, defaultValue.NullState);
                 switch (nullState)
                 {
                     case NullAbstractValue.NotNull:
-                        if (!AnalysisEntityFactory.TryCreate(operation, out var analysisEntityOpt))
+                        if (!AnalysisEntityFactory.TryCreate(operation, out analysisEntityOpt))
                         {
                             Debug.Assert(analysisEntityOpt == null);
                         }
@@ -648,7 +651,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                         return defaultValue.MakeNonNull(operation, DataFlowAnalysisContext, analysisEntityOpt);
 
                     case NullAbstractValue.Null:
-                        return defaultValue.MakeNull();
+                        if (!AnalysisEntityFactory.TryCreate(operation, out analysisEntityOpt))
+                        {
+                            Debug.Assert(analysisEntityOpt == null);
+                        }
+
+                        return defaultValue.MakeNull(analysisEntityOpt);
 
                     case NullAbstractValue.Invalid:
                         return PointsToAbstractValue.Invalid;
@@ -705,22 +713,24 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                 var value = base.VisitConversion(operation, argument);
                 if (value.NullState == NullAbstractValue.NotNull)
                 {
+                    AnalysisEntityFactory.TryCreate(operation.Operand, out var analysisEntityOpt);
+
                     if (TryInferConversion(operation, out bool alwaysSucceed, out bool alwaysFail))
                     {
                         Debug.Assert(!alwaysSucceed || !alwaysFail);
                         if (alwaysFail)
                         {
-                            value = value.MakeNull();
+                            value = value.MakeNull(analysisEntityOpt);
                         }
                         else if (operation.IsTryCast && !alwaysSucceed)
                         {
                             // TryCast which may or may not succeed.
-                            value = value.MakeMayBeNull();
+                            value = value.MakeMayBeNull(analysisEntityOpt);
                         }
                     }
                     else
                     {
-                        value = value.MakeMayBeNull();
+                        value = value.MakeMayBeNull(analysisEntityOpt);
                     }
                 }
 

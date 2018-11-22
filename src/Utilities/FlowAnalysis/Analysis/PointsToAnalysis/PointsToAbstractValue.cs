@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
             return new PointsToAbstractValue(locations, NullAbstractValue.NotNull);
         }
 
-        public PointsToAbstractValue MakeNull()
+        public PointsToAbstractValue MakeNull(AnalysisEntity analysisEntityForOperationOpt)
         {
             Debug.Assert(Kind != PointsToAbstractValueKind.KnownLValueCaptures);
 
@@ -129,30 +129,53 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                 return this;
             }
 
-            if (Kind != PointsToAbstractValueKind.KnownLocations)
-            {
-                return NullLocation;
-            }
-
-            return new PointsToAbstractValue(Locations, NullAbstractValue.Null);
+            return MakeNull(Kind, Locations, analysisEntityForOperationOpt);
         }
 
-        public PointsToAbstractValue MakeMayBeNull()
+        private static PointsToAbstractValue MakeNull(PointsToAbstractValueKind kind, ImmutableHashSet<AbstractLocation> locations, AnalysisEntity analysisEntityForOperationOpt)
+        {
+            if (kind != PointsToAbstractValueKind.KnownLocations)
+            {
+                if (analysisEntityForOperationOpt == null)
+                {
+                    return NullLocation;
+                }
+
+                var location = AbstractLocation.CreateAnalysisEntityDefaultLocation(analysisEntityForOperationOpt);
+                locations = ImmutableHashSet.Create(location);
+            }
+
+            return new PointsToAbstractValue(locations, NullAbstractValue.Null);
+        }
+
+        public PointsToAbstractValue MakeMayBeNull(AnalysisEntity analysisEntityForOperationOpt)
         {
             Debug.Assert(Kind != PointsToAbstractValueKind.KnownLValueCaptures);
             Debug.Assert(NullState != NullAbstractValue.Null);
 
-            if (NullState == NullAbstractValue.MaybeNull || ReferenceEquals(this, Unknown))
+            if (NullState == NullAbstractValue.MaybeNull)
             {
                 return this;
             }
-            else if (Locations.IsEmpty)
+
+            return MakeMayBeNull(Locations, analysisEntityForOperationOpt);
+        }
+
+        private static PointsToAbstractValue MakeMayBeNull(ImmutableHashSet<AbstractLocation> locations, AnalysisEntity analysisEntityForOperationOpt)
+        {
+            if (locations.IsEmpty)
             {
-                return Unknown;
+                if (analysisEntityForOperationOpt == null)
+                {
+                    return Unknown;
+                }
+
+                var location = AbstractLocation.CreateAnalysisEntityDefaultLocation(analysisEntityForOperationOpt);
+                locations = ImmutableHashSet.Create(location);
             }
 
-            Debug.Assert(Locations.All(location => !location.IsNull));
-            return new PointsToAbstractValue(Locations, NullAbstractValue.MaybeNull);
+            Debug.Assert(locations.All(location => !location.IsNull));
+            return new PointsToAbstractValue(locations, NullAbstractValue.MaybeNull);
         }
 
         public ImmutableHashSet<AbstractLocation> Locations { get; }

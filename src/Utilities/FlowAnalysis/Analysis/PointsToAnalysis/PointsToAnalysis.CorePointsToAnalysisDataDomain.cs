@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                                 break;
 
                             case NullAbstractValue.NotNull:
-                                if (backEdgeValue.MakeMayBeNull() != forwardEdgeValue)
+                                if (backEdgeValue.MakeMayBeNull(key) != forwardEdgeValue)
                                 {
                                     if (forwardEdgeValue.NullState == NullAbstractValue.NotNull)
                                     {

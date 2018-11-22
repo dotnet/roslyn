@@ -174,6 +174,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             }
 
             AnalysisEntityFactory = new AnalysisEntityFactory(
+                DataFlowAnalysisContext.ControlFlowGraph,
                 getPointsToAbstractValueOpt: (analysisContext.PointsToAnalysisResultOpt != null || IsPointsToAnalysis) ?
                     GetPointsToAbstractValue :
                     (Func<IOperation, PointsToAbstractValue>)null,
@@ -196,6 +197,13 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             if (_returnValueOperationsOpt == null ||
                 _returnValueOperationsOpt.Count == 0)
             {
+                if (OwningSymbol is IMethodSymbol method &&
+                    !method.ReturnsVoid)
+                {
+                    // Non-void method without any return statements
+                    return (GetAbstractDefaultValue(method.ReturnType), PredicateValueKind.Unknown);
+                }
+
                 return null;
             }
 
