@@ -14,17 +14,17 @@ using Roslyn.Utilities;
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.CPS
 {
     [Export(typeof(ITempPECompiler))]
-    internal class CPSTempPECompiler : ITempPECompiler
+    internal class TempPECompiler : ITempPECompiler
     {
         private readonly VisualStudioWorkspace _workspace;
 
         [ImportingConstructor]
-        public CPSTempPECompiler(VisualStudioWorkspace workspace)
+        public TempPECompiler(VisualStudioWorkspace workspace)
         {
             _workspace = workspace;
         }
 
-        public async Task<bool> CompileAsync(IWorkspaceProjectContext context, string outputFileName, HashSet<string> filesToInclude, CancellationToken cancellationToken)
+        public async Task<bool> CompileAsync(IWorkspaceProjectContext context, string outputFileName, ISet<string> filesToInclude, CancellationToken cancellationToken)
         {
             if (filesToInclude == null || filesToInclude.Count == 0)
             {
@@ -50,7 +50,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
             }
 
             var options = project.LanguageServices.GetRequiredService<ICompilationFactoryService>().GetDefaultCompilationOptions()
-                    // copied from TempPECompilerServices.cs used by legacy, for parity
+                    // copied from the old TempPE compiler used by legacy, for parity.
+                    // See: https://github.com/dotnet/roslyn/blob/fab7134296816fc80019c60b0f5bef7400cf23ea/src/VisualStudio/CSharp/Impl/ProjectSystemShim/TempPECompilerService.cs#L58
                     .WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default)
                     .WithSourceReferenceResolver(SourceFileResolver.Default)
                     .WithXmlReferenceResolver(XmlFileResolver.Default)
