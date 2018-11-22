@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             ISymbol symbolOpt,
             ImmutableArray<AbstractIndex> indices,
             SyntaxNode instanceReferenceOperationSyntaxOpt,
-            CaptureId? captureIdOpt,
+            InterproceduralCaptureId? captureIdOpt,
             PointsToAbstractValue location,
             ITypeSymbol type,
             AnalysisEntity parentOpt,
@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             Debug.Assert(instanceReferenceOperation != null);
         }
 
-        private AnalysisEntity(CaptureId captureId, ITypeSymbol capturedType)
+        private AnalysisEntity(InterproceduralCaptureId captureId, ITypeSymbol capturedType)
             : this(symbolOpt: null, indices: ImmutableArray<AbstractIndex>.Empty, instanceReferenceOperationSyntaxOpt: null,
                   captureIdOpt: captureId, location: PointsToAbstractValue.NoLocation, type: capturedType, parentOpt: null, isThisOrMeInstance: false)
         {
@@ -105,18 +105,20 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             return new AnalysisEntity(instanceReferenceOperation, instanceLocation);
         }
 
-        public static AnalysisEntity Create(IFlowCaptureOperation flowCaptureOperation)
+        public static AnalysisEntity Create(IFlowCaptureOperation flowCaptureOperation, ControlFlowGraph controlFlowGraph)
         {
             Debug.Assert(flowCaptureOperation != null);
 
-            return new AnalysisEntity(flowCaptureOperation.Id, flowCaptureOperation.Value.Type);
+            var captureId = new InterproceduralCaptureId(flowCaptureOperation.Id, controlFlowGraph);
+            return new AnalysisEntity(captureId, flowCaptureOperation.Value.Type);
         }
 
-        public static AnalysisEntity Create(IFlowCaptureReferenceOperation flowCaptureReferenceOperation)
+        public static AnalysisEntity Create(IFlowCaptureReferenceOperation flowCaptureReferenceOperation, ControlFlowGraph controlFlowGraph)
         {
             Debug.Assert(flowCaptureReferenceOperation != null);
 
-            return new AnalysisEntity(flowCaptureReferenceOperation.Id, flowCaptureReferenceOperation.Type);
+            var captureId = new InterproceduralCaptureId(flowCaptureReferenceOperation.Id, controlFlowGraph);
+            return new AnalysisEntity(captureId, flowCaptureReferenceOperation.Type);
         }
 
         public static AnalysisEntity CreateThisOrMeInstance(INamedTypeSymbol typeSymbol, PointsToAbstractValue instanceLocation)
@@ -173,7 +175,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         public ISymbol SymbolOpt { get; }
         public ImmutableArray<AbstractIndex> Indices { get; }
         public SyntaxNode InstanceReferenceOperationSyntaxOpt { get; }
-        public CaptureId? CaptureIdOpt { get; }
+        public InterproceduralCaptureId? CaptureIdOpt { get; }
         public PointsToAbstractValue InstanceLocation { get; }
         public ITypeSymbol Type { get; }
         public AnalysisEntity ParentOpt { get; }

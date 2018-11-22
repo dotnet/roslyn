@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
             private static bool ShouldBeTracked(ITypeSymbol typeSymbol) => typeSymbol.IsReferenceTypeOrNullableValueType();
 
             private bool ShouldBeTracked(AnalysisEntity analysisEntity) => ShouldBeTracked(analysisEntity.Type) ||
-                analysisEntity.CaptureIdOpt.HasValue && IsLValueFlowCapture(analysisEntity.CaptureIdOpt.Value);
+                analysisEntity.CaptureIdOpt.HasValue && IsLValueFlowCapture(analysisEntity.CaptureIdOpt.Value.Id);
 
             protected override void AddTrackedEntities(ImmutableArray<AnalysisEntity>.Builder builder)
             {
