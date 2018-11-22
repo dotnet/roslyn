@@ -12,13 +12,11 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
     /// </summary>
     internal sealed class DefaultPointsToValueGenerator
     {
-        private readonly ControlFlowGraph _controlFlowGraph;
         private readonly ImmutableDictionary<AnalysisEntity, PointsToAbstractValue>.Builder _defaultPointsToValueMapBuilder;
         private ImmutableDictionary<AnalysisEntity, PointsToAbstractValue> _lazyDefaultPointsToValueMap;
 
-        public DefaultPointsToValueGenerator(ControlFlowGraph controlFlowGraph)
+        public DefaultPointsToValueGenerator()
         {
-            _controlFlowGraph = controlFlowGraph;
             _defaultPointsToValueMapBuilder = ImmutableDictionary.CreateBuilder<AnalysisEntity, PointsToAbstractValue>();
         }
 
