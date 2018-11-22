@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         protected abstract string PathToManagedTool { get; }
 
         /// <summary>
-        /// Note: "Native" here does not neccesarily mean "native binary".
+        /// Note: "Native" here does not necessarily mean "native binary".
         /// "Native" in this context means "native invocation", and running the executable directly.
         /// </summary>
         protected abstract string PathToNativeTool { get; }
