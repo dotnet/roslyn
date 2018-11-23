@@ -1,14 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Text;
+﻿using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeQuality;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
 
 namespace Microsoft.CodeAnalysis.CSharp.MakeStructFieldsWritable
 {
-    internal sealed class CSharpMakeStructFieldsWritableDiagnosticAnalyzers : AbstractCodeQualityDiagnosticAnalyzer
+    internal sealed class CSharpMakeStructFieldsWritableDiagnosticAnalyzer : AbstractCodeQualityDiagnosticAnalyzer
     {
         private static readonly DiagnosticDescriptor s_diagnosticDescriptor = CreateDescriptor(
             IDEDiagnosticIds.MakeStructFieldsWritable,
@@ -16,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeStructFieldsWritable
             new LocalizableResourceString("test", FeaturesResources.ResourceManager, typeof(FeaturesResources)),
             isUnneccessary: true);
 
-        public CSharpMakeStructFieldsWritableDiagnosticAnalyzers()
+        public CSharpMakeStructFieldsWritableDiagnosticAnalyzer()
             : base(ImmutableArray.Create(s_diagnosticDescriptor), GeneratedCodeAnalysisFlags.ReportDiagnostics)
         {
         }
@@ -31,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeStructFieldsWritable
 
         protected override void InitializeWorker(AnalysisContext context)
         {
-            context.RegisterCompilationStartAction(compilationStartContext 
+            context.RegisterCompilationStartAction(compilationStartContext
                 => CompilationAnalyzer.CreateAndRegisterActions(compilationStartContext));
         }
 
@@ -39,13 +36,14 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeStructFieldsWritable
         {
             private bool _hasNonReadonlyFields = false;
             private bool _hasTypeInstanceAssigment = false;
+            private SyntaxNode _typeInstanceAssigmentNode;
 
             public static void CreateAndRegisterActions(CompilationStartAnalysisContext compilationStartContext)
             {
                 var compilationAnalyzer = new CompilationAnalyzer();
                 compilationAnalyzer.RegisterActions(compilationStartContext);
             }
-            
+
             private void RegisterActions(CompilationStartAnalysisContext context)
             {
                 context.RegisterSymbolStartAction(symbolStartContext =>
@@ -55,20 +53,39 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeStructFieldsWritable
 
                     symbolStartContext.RegisterSyntaxNodeAction(AnalyzeIfFieldIsReadonly, SymbolKind.Field);
                     symbolStartContext.RegisterOperationAction(AnalyzeAssignment, OperationKind.SimpleAssignment);
+                    symbolStartContext.RegisterSymbolEndAction(SymbolEndAction);
                 }, SymbolKind.NamedType);
-            }
-
-            private void AnalyzeAssignment(OperationAnalysisContext operationContext)
-            {
-                var operationAssigmnent = (IAssignmentOperation)operationContext.Operation;
-                _hasTypeInstanceAssigment = operationAssigmnent.Target is IInstanceReferenceOperation instance && 
-                                            instance.ReferenceKind == InstanceReferenceKind.ContainingTypeInstance;
             }
 
             private void AnalyzeIfFieldIsReadonly(SyntaxNodeAnalysisContext nodeContext)
             {
                 var fieldSymbol = (IFieldSymbol)nodeContext.ContainingSymbol;
                 _hasNonReadonlyFields |= fieldSymbol.IsReadOnly;
+            }
+
+            private void AnalyzeAssignment(OperationAnalysisContext operationContext)
+            {
+                var operationAssigmnent = (IAssignmentOperation)operationContext.Operation;
+                _hasTypeInstanceAssigment = operationAssigmnent.Target is IInstanceReferenceOperation instance &&
+                                            instance.ReferenceKind == InstanceReferenceKind.ContainingTypeInstance;
+
+                if (_hasTypeInstanceAssigment)
+                {
+                    _typeInstanceAssigmentNode = operationAssigmnent.Syntax;
+                }
+            }
+
+            private void SymbolEndAction(SymbolAnalysisContext symbolEndContext)
+            {
+                if (_hasTypeInstanceAssigment && !_hasNonReadonlyFields)
+                {
+                    var diagnostic = Diagnostic.Create(
+                                    s_diagnosticDescriptor,
+                                    _typeInstanceAssigmentNode.GetLocation());
+                    symbolEndContext.ReportDiagnostic(diagnostic);
+                }
+
+                return;
             }
         }
     }

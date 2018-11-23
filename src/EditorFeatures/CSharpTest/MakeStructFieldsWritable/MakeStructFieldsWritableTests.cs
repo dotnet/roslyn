@@ -5,13 +5,14 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
+using static Roslyn.Test.Utilities.TestHelpers;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeStructFieldsWritable
 {
     public class MakeStructFieldsWritableTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
-            => (new CSharpMakeStructFieldsWritableDiagnosticAnalyzers(), new CSharpMakeStructFieldsWritableCodeFixProvider());
+            => (new CSharpMakeStructFieldsWritableDiagnosticAnalyzer(), new CSharpMakeStructFieldsWritableCodeFixProvider());
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeStructFieldsWritable)]
         public async Task SingleReadonlyField_ThisAssigmentInMethod()
@@ -122,6 +123,27 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeStructFieldsWritabl
         [||]Value = value;
     }
 }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeStructFieldsWritable)]
+        public async Task SingleReadonlyField_ThisAssigmentInMethod_ReportDiagnostic()
+        {
+            await TestDiagnosticsAsync(
+@"struct MyStruct
+{
+    public readonly int Value;
+
+    public MyStruct(int value)
+    {
+        Value = value;
+    }
+
+    public void Test()
+    {
+        [||]this = new MyStruct(5);
+    }
+}",
+    expected: Diagnostic(IDEDiagnosticIds.MakeStructFieldsWritable));
         }
     }
 }
