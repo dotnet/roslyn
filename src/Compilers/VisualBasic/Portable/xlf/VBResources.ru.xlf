@@ -4,7 +4,7 @@
     <body>
       <trans-unit id="FEATURE_UnconstrainedTypeParameterInConditional">
         <source>unconstrained type parameters in binary conditional expressions</source>
-        <target state="new">unconstrained type parameters in binary conditional expressions</target>
+        <target state="translated">параметры неограниченного типа в двоичных условных выражениях</target>
         <note />
       </trans-unit>
       <trans-unit id="Trees0">
@@ -284,17 +284,17 @@
       </trans-unit>
       <trans-unit id="ERR_LbExpectedEndIf">
         <source>'#If' block must end with a matching '#End If'.</source>
-        <target state="translated">'Блок "#If" должен завершаться соответствующим блоком "#End If".</target>
+        <target state="translated">Блок "#If" должен завершаться соответствующим блоком "#End If".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_LbNoMatchingIf">
         <source>'#ElseIf', '#Else', or '#End If' must be preceded by a matching '#If'.</source>
-        <target state="translated">'Блоку "#ElseIf", "#Else" или "#End If" должен предшествовать соответствующий оператор "#If".</target>
+        <target state="translated">Блоку "#ElseIf", "#Else" или "#End If" должен предшествовать соответствующий оператор "#If".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_LbBadElseif">
         <source>'#ElseIf' must be preceded by a matching '#If' or '#ElseIf'.</source>
-        <target state="translated">'Блоку "#ElseIf" должен предшествовать соответствующий блок "#If" или "#ElseIf".</target>
+        <target state="translated">Блоку "#ElseIf" должен предшествовать соответствующий блок "#If" или "#ElseIf".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InheritsFromRestrictedType1">
@@ -319,12 +319,12 @@
       </trans-unit>
       <trans-unit id="ERR_IsOperatorRequiresReferenceTypes1">
         <source>'Is' operator does not accept operands of type '{0}'. Operands must be reference or nullable types.</source>
-        <target state="translated">'Оператор "Is" не принимает операнды типа "{0}". Операнды должны быть ссылочными типами или типами, допускающими значения Null.</target>
+        <target state="translated">Оператор "Is" не принимает операнды типа "{0}". Операнды должны быть ссылочными типами или типами, допускающими значения Null.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_TypeOfRequiresReferenceType1">
         <source>'TypeOf ... Is' requires its left operand to have a reference type, but this operand has the value type '{0}'.</source>
-        <target state="translated">'"TypeOf ... Is" требует, чтобы левый операнд имел ссылочный тип, но этот операнд имеет тип значения "{0}".</target>
+        <target state="translated">"TypeOf ... Is" требует, чтобы левый операнд имел ссылочный тип, но этот операнд имеет тип значения "{0}".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ReadOnlyHasSet">
@@ -359,12 +359,12 @@
       </trans-unit>
       <trans-unit id="ERR_EndSubExpected">
         <source>'End Sub' expected.</source>
-        <target state="translated">'Требуется "End Sub".</target>
+        <target state="translated">Требуется "End Sub".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_EndFunctionExpected">
         <source>'End Function' expected.</source>
-        <target state="translated">'Требуется "End Function".</target>
+        <target state="translated">Требуется "End Function".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_LbElseNoMatchingIf">
@@ -579,7 +579,7 @@
       </trans-unit>
       <trans-unit id="ERR_ElseNoMatchingIf">
         <source>'Else' must be preceded by a matching 'If' or 'ElseIf'.</source>
-        <target state="translated">'Оператору "ElseIf" должен предшествовать соответствующий "If" или "ElseIf".</target>
+        <target state="translated">'Оператору "Else" должен предшествовать соответствующий "If" или "ElseIf".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_EndIfNoMatchingIf">
@@ -864,7 +864,7 @@
       </trans-unit>
       <trans-unit id="ERR_ExpectedOptional">
         <source>'Optional' expected.</source>
-        <target state="translated">'Требуется "Optional".</target>
+        <target state="translated">Требуется "Optional".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpectedIdentifier">
@@ -884,17 +884,17 @@
       </trans-unit>
       <trans-unit id="ERR_ExpectedForOptionStmt">
         <source>'Option' must be followed by 'Compare', 'Explicit', 'Infer', or 'Strict'.</source>
-        <target state="translated">'После "Option" должно следовать "Compare", "Explicit", "Infer" или "Strict".</target>
+        <target state="translated">После "Option" должно следовать "Compare", "Explicit", "Infer" или "Strict".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidOptionCompare">
         <source>'Option Compare' must be followed by 'Text' or 'Binary'.</source>
-        <target state="translated">'За оператором "Option Compare" должны следовать "Text" или "Binary".</target>
+        <target state="translated">За оператором "Option Compare" должны следовать "Text" или "Binary".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpectedOptionCompare">
         <source>'Compare' expected.</source>
-        <target state="translated">'Требуется Compare.</target>
+        <target state="translated">Требуется Compare.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_StrictDisallowImplicitObject">
@@ -919,7 +919,7 @@
       </trans-unit>
       <trans-unit id="ERR_ExpectedSubFunction">
         <source>'Sub' or 'Function' expected.</source>
-        <target state="translated">'Требуется "Sub" или "Function".</target>
+        <target state="translated">Требуется "Sub" или "Function".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpectedStringLiteral">
@@ -929,7 +929,7 @@
       </trans-unit>
       <trans-unit id="ERR_MissingLibInDeclare">
         <source>'Lib' expected.</source>
-        <target state="translated">'Требуется "Lib".</target>
+        <target state="translated">Требуется "Lib".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DelegateNoInvoke1">
@@ -1088,7 +1088,7 @@
       </trans-unit>
       <trans-unit id="ERR_MultiplyDefinedType3">
         <source>'{0}' is already declared as '{1}' in this {2}.</source>
-        <target state="translated">'"{0}" уже объявлено как "{1}" в {2}.</target>
+        <target state="translated">"{0}" уже объявлено как "{1}" в {2}.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadOverrideAccess2">
@@ -1799,7 +1799,7 @@
       </trans-unit>
       <trans-unit id="ERR_DoubleToDateConversion">
         <source>Conversion from 'Double' to 'Date' requires calling the 'Date.FromOADate' method.</source>
-        <target state="translated">Для преобразования из типа Date в Double требуется вызов метода Date.ToOADate.</target>
+        <target state="translated">Для преобразования из типа Double в Date требуется вызов метода Date.ToOADate.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ZeroDivide">
@@ -2711,12 +2711,12 @@
       </trans-unit>
       <trans-unit id="ERR_InheritsTypeArgAccessMismatch7">
         <source>'{0}' cannot inherit from {1} '{2}' because it expands the access of type '{3}' to {4} '{5}'.</source>
-        <target state="translated">'"{0}" не может наследовать от {1} "{2}", поскольку он расширяет доступ типа "{3}" до {4} "{5}".</target>
+        <target state="translated">"{0}" не может наследовать от {1} "{2}", поскольку он расширяет доступ типа "{3}" до {4} "{5}".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InheritsTypeArgAccessMismatchOutside5">
         <source>'{0}' cannot inherit from {1} '{2}' because it expands the access of type '{3}' outside the assembly.</source>
-        <target state="translated">'"{0}" не может наследовать от {1} "{2}", поскольку он расширяет доступ типа "{3}" за пределы данной сборки.</target>
+        <target state="translated">"{0}" не может наследовать от {1} "{2}", поскольку он расширяет доступ типа "{3}" за пределы данной сборки.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialTypeAccessMismatch3">
@@ -2726,12 +2726,12 @@
       </trans-unit>
       <trans-unit id="ERR_PartialTypeBadMustInherit1">
         <source>'MustInherit' cannot be specified for partial type '{0}' because it cannot be combined with 'NotInheritable' specified for one of its other partial types.</source>
-        <target state="translated">'"MustInherit" не может быть указан для разделяемого типа "{0}", так как не может быть объединен с "NotInheritable", указанным для одного из других разделяемых типов.</target>
+        <target state="translated">"MustInherit" не может быть указан для разделяемого типа "{0}", так как не может быть объединен с "NotInheritable", указанным для одного из других разделяемых типов.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MustOverOnNotInheritPartClsMem1">
         <source>'MustOverride' cannot be specified on this member because it is in a partial type that is declared 'NotInheritable' in another partial definition.</source>
-        <target state="translated">'Невозможно определить "MustOverride" для этого члена, поскольку он находится в разделяемом типе, объявленном как "NotInheritable" в другом частичном определении.</target>
+        <target state="translated">Невозможно определить "MustOverride" для этого члена, поскольку он находится в разделяемом типе, объявленном как "NotInheritable" в другом частичном определении.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BaseMismatchForPartialClass3">
@@ -4859,7 +4859,7 @@
       </trans-unit>
       <trans-unit id="ERR_IllegalCondTypeInIIF">
         <source>First operand in a binary 'If' expression must be a nullable value type, a reference type, or an unconstrained generic type.</source>
-        <target state="needs-review-translation">Первым операндом в бинарном выражении "If" должен быть тип, допускающий значения NULL, или ссылочный тип.</target>
+        <target state="translated">Первым операндом в бинарном выражении "If" должен быть тип, допускающий значения NULL, или ссылочный тип.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CantCallIIF">
@@ -4899,17 +4899,17 @@
       </trans-unit>
       <trans-unit id="ERR_NoGlobalExpectedIdentifier">
         <source>'Global' not allowed in this context; identifier expected.</source>
-        <target state="translated">'"Global" нельзя использовать в данном контексте; требуется идентификатор.</target>
+        <target state="translated">"Global" нельзя использовать в данном контексте; требуется идентификатор.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoGlobalInHandles">
         <source>'Global' not allowed in handles; local name expected.</source>
-        <target state="translated">'"Global" нельзя использовать в обработчиках; требуется локальное имя.</target>
+        <target state="translated">"Global" нельзя использовать в обработчиках; требуется локальное имя.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ElseIfNoMatchingIf">
         <source>'ElseIf' must be preceded by a matching 'If' or 'ElseIf'.</source>
-        <target state="translated">'Оператору "ElseIf" должен предшествовать соответствующий "If" или "ElseIf".</target>
+        <target state="translated">Оператору "ElseIf" должен предшествовать соответствующий "If" или "ElseIf".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAttributeConstructor2">
@@ -4919,42 +4919,42 @@
       </trans-unit>
       <trans-unit id="ERR_EndUsingWithoutUsing">
         <source>'End Using' must be preceded by a matching 'Using'.</source>
-        <target state="translated">'Оператору "End Using" должен предшествовать соответствующий ему оператор "Using".</target>
+        <target state="translated">Оператору "End Using" должен предшествовать соответствующий ему оператор "Using".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpectedEndUsing">
         <source>'Using' must end with a matching 'End Using'.</source>
-        <target state="translated">'Операнд "Using" должен завершаться соответствующим операндом "End Using".</target>
+        <target state="translated">Операнд "Using" должен завершаться соответствующим операндом "End Using".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_GotoIntoUsing">
         <source>'GoTo {0}' is not valid because '{0}' is inside a 'Using' statement that does not contain this statement.</source>
-        <target state="translated">'Недопустимый оператор "GoTo {0}", поскольку "{0}" находится в теле оператора "Using", не содержащего данный оператор.</target>
+        <target state="translated">Недопустимый оператор "GoTo {0}", поскольку "{0}" находится в теле оператора "Using", не содержащего данный оператор.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UsingRequiresDisposePattern">
         <source>'Using' operand of type '{0}' must implement 'System.IDisposable'.</source>
-        <target state="translated">'Операнд "Using" типа "{0}" должен реализовать "System.IDisposable".</target>
+        <target state="translated">Операнд "Using" типа "{0}" должен реализовать "System.IDisposable".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UsingResourceVarNeedsInitializer">
         <source>'Using' resource variable must have an explicit initialization.</source>
-        <target state="translated">'Для переменной ресурса в "Using" требуется явная инициализация.</target>
+        <target state="translated">Для переменной ресурса в "Using" требуется явная инициализация.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UsingResourceVarCantBeArray">
         <source>'Using' resource variable type can not be array type.</source>
-        <target state="translated">'Тип переменной ресурса в операторе "Using" не может быть массивом.</target>
+        <target state="translated">Тип переменной ресурса в операторе "Using" не может быть массивом.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OnErrorInUsing">
         <source>'On Error' statements are not valid within 'Using' statements.</source>
-        <target state="translated">'Операторы "On Error" нельзя использовать в операторе "Using".</target>
+        <target state="translated">Операторы "On Error" нельзя использовать в операторе "Using".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PropertyNameConflictInMyCollection">
         <source>'{0}' has the same name as a member used for type '{1}' exposed in a 'My' group. Rename the type or its enclosing namespace.</source>
-        <target state="translated">'"{0}" имеет то же имя, что и член, используемый для типа "{1}" в группе "My". Переименуйте тип или его вложенное пространство имен.</target>
+        <target state="translated">"{0}" имеет то же имя, что и член, используемый для типа "{1}" в группе "My". Переименуйте тип или его вложенное пространство имен.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidImplicitVar">
@@ -4984,7 +4984,7 @@
       </trans-unit>
       <trans-unit id="ERR_CannotLiftByRefParamQuery1">
         <source>'ByRef' parameter '{0}' cannot be used in a query expression.</source>
-        <target state="translated">'Параметр "ByRef" "{0}" нельзя использовать в выражении запроса.</target>
+        <target state="translated">Параметр "ByRef" "{0}" нельзя использовать в выражении запроса.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeNotSupported">
@@ -5263,7 +5263,7 @@
       </trans-unit>
       <trans-unit id="ERR_ExpectedBy">
         <source>'By' expected.</source>
-        <target state="translated">'Требуется "By".</target>
+        <target state="translated">Требуется "By".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_QueryInvalidControlVariableName1">
@@ -5273,7 +5273,7 @@
       </trans-unit>
       <trans-unit id="ERR_ExpectedIn">
         <source>'In' expected.</source>
-        <target state="translated">'Требуется "In".</target>
+        <target state="translated">Требуется "In".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_QueryNameNotDeclared">
@@ -5298,7 +5298,7 @@
       </trans-unit>
       <trans-unit id="ERR_ExpectedInto">
         <source>'Into' expected.</source>
-        <target state="translated">'Требуется "Into".</target>
+        <target state="translated">Требуется "Into".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_TypeCharOnAggregation">
@@ -5308,22 +5308,22 @@
       </trans-unit>
       <trans-unit id="ERR_ExpectedOn">
         <source>'On' expected.</source>
-        <target state="translated">'Требуется "On".</target>
+        <target state="translated">Требуется "On".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpectedEquals">
         <source>'Equals' expected.</source>
-        <target state="translated">'Требуется "Equals".</target>
+        <target state="translated">Требуется "Equals".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpectedAnd">
         <source>'And' expected.</source>
-        <target state="translated">'Требуется "And".</target>
+        <target state="translated">Требуется "And".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_EqualsTypeMismatch">
         <source>'Equals' cannot compare a value of type '{0}' with a value of type '{1}'.</source>
-        <target state="translated">'"Equals" не может сравнить значение типа "{0}" со значением типа "{1}".</target>
+        <target state="translated">"Equals" не может сравнить значение типа "{0}" со значением типа "{1}".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_EqualsOperandIsBad">
@@ -5800,7 +5800,7 @@
       </trans-unit>
       <trans-unit id="WRN_NameNotCLSCompliant1">
         <source>Name '{0}' is not CLS-compliant.</source>
-        <target state="translated">Тип "{0}" не совместим с CLS.</target>
+        <target state="translated">Имя "{0}" не совместимо с CLS.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NameNotCLSCompliant1_Title">
@@ -7537,7 +7537,7 @@
       </trans-unit>
       <trans-unit id="ERR_AbsentReferenceToPIA1">
         <source>Cannot find the interop type that matches the embedded type '{0}'. Are you missing an assembly reference?</source>
-        <target state="translated">Не удается найти тип взаимодействия, соответствующий внедренному типу взаимодействия "{0}". Возможно, отсутствует ссылка на сборку.</target>
+        <target state="translated">Не удается найти тип взаимодействия, соответствующий внедренному типу "{0}". Возможно, отсутствует ссылка на сборку.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CannotLinkClassWithNoPIA1">
@@ -7607,7 +7607,7 @@
       </trans-unit>
       <trans-unit id="ERR_BadIsCompletedOnCompletedGetResult2">
         <source>'Await' requires that the return type '{0}' of '{1}.GetAwaiter()' have suitable IsCompleted, OnCompleted and GetResult members, and implement INotifyCompletion or ICriticalNotifyCompletion.</source>
-        <target state="translated">'Для использования оператора "Await" необходимо, чтобы у возвращаемого типа "{0}" метода "{1}.GetAwaiter()" были соответствующие члены IsCompleted, OnCompleted и GetResult и чтобы этот тип реализовывал интерфейс INotifyCompletion или ICriticalNotifyCompletion.</target>
+        <target state="translated">Для использования оператора "Await" необходимо, чтобы у возвращаемого типа "{0}" метода "{1}.GetAwaiter()" были соответствующие члены IsCompleted, OnCompleted и GetResult и чтобы этот тип реализовывал интерфейс INotifyCompletion или ICriticalNotifyCompletion.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DoesntImplementAwaitInterface2">
@@ -8396,163 +8396,164 @@
 -vbruntime:&lt;file&gt;                 Compile with the alternate Visual Basic
                                   runtime in &lt;file&gt;.
 </source>
-        <target state="needs-review-translation">                  Параметры компилятора Visual Basic
+        <target state="translated">                  Параметры компилятора Visual Basic
 
                                   - ВЫХОДНОЙ ФАЙЛ -
-/out:&lt;файл&gt;                       Задает имя выходного файла.
-/target:exe                       Создать консольное приложение (по умолчанию). 
-                                  (Краткая форма: /t)
-/target:winexe                    Создать Windows-приложение.
-/target:library                   Создать библиотечную сборку.
-/target:module                    Создать модуль, который может быть добавлен в 
+-out:&lt;файл&gt;                       Задает имя выходного файла.
+-target:exe                       Создать консольное приложение (по умолчанию). 
+                                  (Краткая форма: -t)
+-target:winexe                    Создать Windows-приложение.
+-target:library                   Создать библиотечную сборку.
+-target:module                    Создать модуль, который может быть добавлен в 
                                   сборку.
-/target:appcontainerexe           Создать Windows-приложение, выполняемое в контейнере 
+-target:appcontainerexe           Создать Windows-приложение, выполняемое в контейнере 
                                   AppContainer.
-/target:winmdobj                  Создать промежуточный файл метаданных Windows
-/doc[+|-]                         Создает XML-файл документации.
-/doc:&lt;файл&gt;                       Создает XML-файл документации &lt;файл&gt;.
-/refout:&lt;файл&gt;                    Выходные данные создаваемой базовой сборки
+-target:winmdobj                  Создать промежуточный файл метаданных Windows
+-doc[+|-]                         Создает XML-файл документации.
+-doc:&lt;файл&gt;                       Создает XML-файл документации &lt;файл&gt;.
+-refout:&lt;файл&gt;                    Выходные данные создаваемой базовой сборки
 
                                   - ВХОДНЫЕ ФАЙЛЫ -
-/addmodule:&lt;список файлов&gt;                Ссылка на метаданные из заданного модуля
-/link:&lt;список файлов&gt;                     Внедрять метаданные из указанной сборки 
-                                  взаимодействия. (Краткая форма: /l)
-/recurse:&lt;подстановочный знак&gt;            Включить все файлы в текущем каталоге 
+-addmodule:&lt;список файлов&gt;                Ссылка на метаданные из заданного модуля
+-link:&lt;список файлов&gt;                     Внедрять метаданные из указанной сборки 
+                                  взаимодействия. (Краткая форма: -l)
+-recurse:&lt;подстановочный знак&gt;            Включить все файлы в текущем каталоге 
                                   и подкаталогах в соответствии с
                                   заданным шаблоном.
-/reference:&lt;список файлов&gt;                Указывать метаданные из заданной 
-                                  сборки. (Краткая форма: /r)
-/analyzer:&lt;список файлов&gt;                 Запускать анализаторы из этой сборки
-                                  (Краткая форма: /a)
-/additionalfile:&lt;список файлов&gt;           Дополнительные файлы, которые не оказывают прямого влияния на создание
+-reference:&lt;список файлов&gt;                Указывать метаданные из заданной 
+                                  сборки. (Краткая форма: -r)
+-analyzer:&lt;список файлов&gt;                 Запускать анализаторы из этой сборки
+                                  (Краткая форма: -a)
+-additionalfile:&lt;список файлов&gt;           Дополнительные файлы, которые не оказывают прямого влияния на создание
                                   кода, но могут использоваться анализаторами для вывода
                                   ошибок или предупреждений.
 
                                   - РЕСУРСЫ -
-/linkresource:&lt;данные_о_ресурсе&gt;            Привязывает указанный файл в качестве внешнего 
+-linkresource:&lt;данные_о_ресурсе&gt;            Привязывает указанный файл в качестве внешнего 
                                   ресурса сборки.
                                   Данные о ресурсе: &lt;файл&gt;[,&lt;имя&gt;[,public|private]] 
-                                  (Краткая форма: /linkres)
-/nowin32manifest                  Манифест по умолчанию не должен внедряться 
+                                  (Краткая форма: -linkres)
+-nowin32manifest                  Манифест по умолчанию не должен внедряться 
                                   в раздел манифеста выходного PE.
-/resource:&lt;данные_о_ресурсе&gt;                Добавляет указанный файл в качестве внедренного 
+-resource:&lt;данные_о_ресурсе&gt;                Добавляет указанный файл в качестве внедренного 
                                   ресурса сборки.
                                   Данные о ресурсе: &lt;файл&gt;[,&lt;имя&gt;[,public|private]] 
-                                  (Краткая форма: /res)
-/win32icon:&lt;файл&gt;                 Задает файл значка Win32 (ICO-файл) для 
+                                  (Краткая форма: -res)
+-win32icon:&lt;файл&gt;                 Задает файл значка Win32 (ICO-файл) для 
                                   ресурсов Win32 по умолчанию.
-/win32manifest:&lt;файл&gt;             Предоставленный файл внедряется в
+-win32manifest:&lt;файл&gt;             Предоставленный файл внедряется в
                                   раздел манифеста выходного PE.
-/win32resource:&lt;файл&gt;             Задает файл ресурсов Win32 (RES-файл).
+-win32resource:&lt;файл&gt;             Задает файл ресурсов Win32 (RES-файл).
 
                                   - СОЗДАНИЕ КОДА -
-/optimize[+|-]                    Включить оптимизацию.
-/removeintchecks[+|-]             Удалить проверки на целые числа. По умолчанию отключены.
-/debug[+|-]                       Выдать отладочную информацию.
-/debug:full                       Выдавать полные отладочные данные (по умолчанию).
-/debug:pdbonly                    Выдавать полные отладочные данные.
-/debug:portable                   Выдавать кроссплатформенные отладочные данные.
-/debug:embedded                   Выдавать кроссплатформенные отладочные данные в 
+-optimize[+|-]                    Включить оптимизацию.
+-removeintchecks[+|-]             Удалить проверки на целые числа. По умолчанию отключены.
+-debug[+|-]                       Выдать отладочную информацию.
+-debug:full                       Выдавать полные отладочные данные (по умолчанию).
+-debug:pdbonly                    Выдавать полные отладочные данные.
+-debug:portable                   Выдавать кроссплатформенные отладочные данные.
+-debug:embedded                   Выдавать кроссплатформенные отладочные данные в 
                                   целевой DLL-файл или EXE-файл.
-/deterministic                    Создать детерминированную сборку
+-deterministic                    Создать детерминированную сборку
                                   (включая GUID версии модуля и метку времени)
-/refonly                          Создавать базовую сборку вместо основных выходных данных
-/instrument:TestCoverage          Создавать сборку, инструментированную для сбора
+-refonly                          Создавать базовую сборку вместо основных выходных данных
+-instrument:TestCoverage          Создавать сборку, инструментированную для сбора
                                   данных о покрытии
-/sourcelink:&lt;файл&gt;                Данные о ссылке на исходные файлы для внедрения в PDB.
+-sourcelink:&lt;файл&gt;                Данные о ссылке на исходные файлы для внедрения в PDB.
 
                                   - ОШИБКИ И ПРЕДУПРЕЖДЕНИЯ -
-/nowarn                           Отключить все предупреждения.
-/nowarn:&lt;список чисел&gt;                   Отключить отдельные предупреждения.
-/warnaserror[+|-]                 Обрабатывать все предупреждения как ошибки.
-/warnaserror[+|-]:&lt;список чисел&gt;         Обрабатывать список предупреждений как ошибки.
-/ruleset:&lt;файл&gt;                   Указать файл набора правил, отключающий определенные
+-nowarn                           Отключить все предупреждения.
+-nowarn:&lt;список чисел&gt;                   Отключить отдельные предупреждения.
+-warnaserror[+|-]                 Обрабатывать все предупреждения как ошибки.
+-warnaserror[+|-]:&lt;список чисел&gt;         Обрабатывать список предупреждений как ошибки.
+-ruleset:&lt;файл&gt;                   Указать файл набора правил, отключающий определенные
                                   диагностические операции.
-/errorlog:&lt;файл&gt;                  Указать файл для записи всех диагностических данных
+-errorlog:&lt;файл&gt;                  Указать файл для записи всех диагностических данных
                                   компилятора и анализатора.
-/reportanalyzer                   Сообщить дополнительные сведения об анализаторе, например
+-reportanalyzer                   Сообщить дополнительные сведения об анализаторе, например
                                   время выполнения.
                                   - ЯЗЫК -
 
-/define:&lt;список символов&gt;                 Объявить глобальные символы условной 
+-define:&lt;список символов&gt;                 Объявить глобальные символы условной 
                                   компиляции. Список символов:имя=значение,... 
-                                  (Краткая форма: /d)
-/imports:&lt;список_импорта&gt;         Объявить глобальные импорты для пространств имен в 
+                                  (Краткая форма: -d)
+-imports:&lt;список_импорта&gt;         Объявить глобальные импорты для пространств имен в 
                                   указанных файлах метаданных. 
                                   список_импорта:пространство_имен,...
-/langversion:?                    Отображать допустимые значения версии языка
-/langversion:&lt;string&gt;             Указать версию языка, например
+-langversion:?                    Отображать допустимые значения версии языка
+-langversion:&lt;string&gt;             Указать версию языка, например
                                   "default" (последняя основная версия) или
                                   "latest" (последняя версия, включая дополнительные),
                                   или конкретные версии, например 14 или 15.3
-/optionexplicit[+|-]              Требовать явного объявления переменных.
-/optioninfer[+|-]                 Разрешить вывод для типов переменных.
-/rootnamespace:&lt;строка&gt;           Задает корневое пространство имен для всех объявлений 
+-optionexplicit[+|-]              Требовать явного объявления переменных.
+-optioninfer[+|-]                 Разрешить вывод для типов переменных.
+-rootnamespace:&lt;строка&gt;           Задает корневое пространство имен для всех объявлений 
                                   типов.
-/optionstrict[+|-]                Требовать строгой семантики языка.
-/optionstrict:custom              Предупреждать, когда не соблюдается строгая семантика 
+-optionstrict[+|-]                Требовать строгой семантики языка.
+-optionstrict:custom              Предупреждать, когда не соблюдается строгая семантика 
                                   языка.
-/optioncompare:binary             Задает сравнение строк как двоичных данных. 
+-optioncompare:binary             Задает сравнение строк как двоичных данных. 
                                   Задано по умолчанию.
-/optioncompare:text               Задает сравнение строк как текста.
+-optioncompare:text               Задает сравнение строк как текста.
 
                                   - ПРОЧЕЕ -
-/help                             Отображать это сообщение об использовании. (Краткая форма: /?)
-/noconfig                         Файл VBC.RSP не включается в состав автоматически.
-/nologo                           Не отображать заставку компилятора с информацией об авторских правах.
-/quiet                            Режим вывода без сообщений.
-/verbose                          Отображать подробные сообщения.
-/parallel[+|-]                    Параллельная сборка.
-/version                          Отображать номер версии компилятора и выполнять выход.
+-help                             Отображать это сообщение об использовании. (Краткая форма: -?)
+-noconfig                         Файл VBC.RSP не включается в состав автоматически.
+-nologo                           Не отображать заставку компилятора с информацией об авторских правах.
+-quiet                            Режим вывода без сообщений.
+-verbose                          Отображать подробные сообщения.
+-parallel[+|-]                    Параллельная сборка.
+-version                          Отображать номер версии компилятора и выполнять выход.
 
                                   - ДОПОЛНИТЕЛЬНО -
-/baseaddress:&lt;число&gt;              Базовый адрес библиотеки или модуля 
+-baseaddress:&lt;число&gt;              Базовый адрес библиотеки или модуля 
                                   (шестнадцатеричный).
-/checksumalgorithm:&lt;алгоритм&gt;     Задать алгоритм расчета контрольной суммы 
+-checksumalgorithm:&lt;алгоритм&gt;     Задать алгоритм расчета контрольной суммы 
                                   исходного файла, хранимой в PDB. Поддерживаемые значения:
                                   SHA1 (по умолчанию) или SHA256.
-/codepage:&lt;число&gt;                 Указывает кодовую страницу, используемую при открытии 
+-codepage:&lt;число&gt;                 Указывает кодовую страницу, используемую при открытии 
                                   исходных файлов.
-/delaysign[+|-]                   Использовать отложенную подпись для сборки, применяя только
+-delaysign[+|-]                   Использовать отложенную подпись для сборки, применяя только
                                   открытую часть ключа строгого имени.
-/publicsign[+|-]                  Подписать сборку, используя только открытую
+-publicsign[+|-]                  Подписать сборку, используя только открытую
                                   часть ключа строгого имени.
-/errorreport:&lt;строка&gt;             Указывает способ обработки внутренних ошибок
+-errorreport:&lt;строка&gt;             Указывает способ обработки внутренних ошибок
                                   компилятора; принимает prompt, send, none или queue
                                   (по умолчанию).
-/filealign:&lt;число&gt;                Задать выравнивание для разделов выходных 
+-filealign:&lt;число&gt;                Задать выравнивание для разделов выходных 
                                   файлов.
-/highentropyva[+|-]               Включить технологию ASLR с высокой энтропией.
-/keycontainer:&lt;строка&gt;            Задает контейнер ключа для строгого имени.
-/keyfile:&lt;файл&gt;                   Задает файл ключа для строгого имени.
-/libpath:&lt;список_путей&gt;           Список каталогов для поиска ссылок на 
+-highentropyva[+|-]               Включить технологию ASLR с высокой энтропией.
+-keycontainer:&lt;строка&gt;            Задает контейнер ключа для строгого имени.
+-keyfile:&lt;файл&gt;                   Задает файл ключа для строгого имени.
+-libpath:&lt;список_путей&gt;           Список каталогов для поиска ссылок на 
                                   метаданные. (разделитель — точка с запятой.)
-/main:&lt;класс&gt;                     Задает класс или модуль, содержащий 
+-main:&lt;класс&gt;                     Задает класс или модуль, содержащий 
                                   Sub Main. Он может являться производным 
                                   классом от System.Windows.Forms.Form. 
-                                  (Краткая форма: /m)
-/moduleassemblyname:&lt;строка&gt;      Имя сборки, частью которой будет 
+                                  (Краткая форма: -m)
+-moduleassemblyname:&lt;строка&gt;      Имя сборки, частью которой будет 
                                   данный модуль.
-/netcf                            Целевая версия .NET Compact Framework.
-/nostdlib                         Не обращаться к стандартным библиотекам 
+-netcf                            Целевая версия .NET Compact Framework.
+-nostdlib                         Не обращаться к стандартным библиотекам 
                                   (файл system.dll и VBC.RSP).
-/pathmap:&lt;K1&gt;=&lt;V1&gt;,&lt;K2&gt;=&lt;V2&gt;,...
+-pathmap:&lt;K1&gt;=&lt;V1&gt;,&lt;K2&gt;=&lt;V2&gt;,...
                                   Указать сопоставление для выходных данных имен исходного пути по
                                   компилятору.
-/platform:&lt;строка&gt;                Ограничить платформы, на которых может выполняться этот код: 
+-platform:&lt;строка&gt;                Ограничить платформы, на которых может выполняться этот код: 
                                   x86, x64, Itanium, arm, arm64,
                                   AnyCPU32BitPreferred или anycpu (по умолчанию).
-/preferreduilang                  Указать имя предпочтительного языка вывода.
-/sdkpath:&lt;путь&gt;                   Расположение каталога пакета SDK .NET Framework
+-preferreduilang                  Указать имя предпочтительного языка вывода.
+-nosdkpath                        Отключение поиска пути пакета SDK по умолчанию для сборок стандартных библиотек.
+-sdkpath:&lt;путь&gt;                   Расположение каталога пакета SDK .NET Framework
                                   (mscorlib.dll).
-/subsystemversion:&lt;версия&gt;        Указать версию подсистемы выходного PE-файла. 
+-subsystemversion:&lt;версия&gt;        Указать версию подсистемы выходного PE-файла. 
                                   version: &lt;номер&gt;[.&lt;номер&gt;]
-/utf8output[+|-]                  Выдавать выходные данные компилятора в кодировке 
+-utf8output[+|-]                  Выдавать выходные данные компилятора в кодировке 
                                   UTF8.
 @&lt;файл&gt;                           Вставить параметры командной строки из текстового файла
-/vbruntime[+|-|*]                 Скомпилировать с помощью или без использования стандартной среды выполнения
+-vbruntime[+|-|*]                 Скомпилировать с помощью или без использования стандартной среды выполнения
                                   Visual Basic.
-/vbruntime:&lt;файл&gt;                 Скомпилировать с помощью альтернативной среды выполнения 
+-vbruntime:&lt;файл&gt;                 Скомпилировать с помощью альтернативной среды выполнения 
                                   Visual Basic в &lt;файле&gt;.
 </target>
         <note />
@@ -8594,7 +8595,7 @@
       </trans-unit>
       <trans-unit id="WRN_AnalyzerCannotBeCreated">
         <source>An instance of analyzer {0} cannot be created from {1} : {2}.</source>
-        <target state="translated">Экземпляр анализатора {0} невозможно создать из {1} : {2}"</target>
+        <target state="translated">Экземпляр анализатора {0} невозможно создать из {1} : {2}.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AnalyzerCannotBeCreated_Title">
@@ -8654,7 +8655,7 @@
       </trans-unit>
       <trans-unit id="ERR_InvalidFormatSpecifier">
         <source>'{0}' is not a valid format specifier</source>
-        <target state="translated">'{0}" не является допустимым описателем формата.</target>
+        <target state="translated">"{0}" не является допустимым описателем формата.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidPreprocessorConstantType">
@@ -9039,7 +9040,7 @@
       </trans-unit>
       <trans-unit id="WRN_Experimental">
         <source>'{0}' is for evaluation purposes only and is subject to change or removal in future updates.</source>
-        <target state="translated">'"{0}" предназначен только для оценки и может быть изменен или удален в будущих обновлениях.</target>
+        <target state="translated">"{0}" предназначен только для оценки и может быть изменен или удален в будущих обновлениях.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_Experimental_Title">

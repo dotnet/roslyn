@@ -4,7 +4,7 @@
     <body>
       <trans-unit id="FEATURE_UnconstrainedTypeParameterInConditional">
         <source>unconstrained type parameters in binary conditional expressions</source>
-        <target state="new">unconstrained type parameters in binary conditional expressions</target>
+        <target state="translated">이진 조건식의 비제한 형식 매개 변수</target>
         <note />
       </trans-unit>
       <trans-unit id="Trees0">
@@ -179,7 +179,7 @@
       </trans-unit>
       <trans-unit id="ERR_BadCodepage">
         <source>code page '{0}' is invalid or not installed</source>
-        <target state="translated">{0}' 코드 페이지가 잘못되었거나 설치되어 있지 않습니다.</target>
+        <target state="translated">'{0}' 코드 페이지가 잘못되었거나 설치되어 있지 않습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BinaryFile">
@@ -1417,7 +1417,7 @@
       </trans-unit>
       <trans-unit id="ERR_NoConstructorOnBase2">
         <source>Class '{0}' must declare a 'Sub New' because its base class '{1}' does not have an accessible 'Sub New' that can be called with no arguments.</source>
-        <target state="translated">{0}' 클래스의 기본 클래스 '{1}'에는 인수 없이 호출할 수 있는 액세스 가능한 'Sub New'가 두 개 이상 있으므로 'Sub New'를 선언해야 합니다.</target>
+        <target state="translated">'{0}' 클래스의 기본 클래스 '{1}'에는 인수 없이 호출할 수 있는 액세스 가능한 'Sub New'가 두 개 이상 있으므로 'Sub New'를 선언해야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InaccessibleSymbol2">
@@ -2691,22 +2691,22 @@
       </trans-unit>
       <trans-unit id="ERR_NoNonObsoleteConstructorOnBase3">
         <source>Class '{0}' must declare a 'Sub New' because the '{1}' in its base class '{2}' is marked obsolete.</source>
-        <target state="translated">{0}' 클래스는 기본 클래스 '{2}'의 '{1}'이(가) obsolete로 표시되어 있으므로 'Sub New'를 선언해야 합니다.</target>
+        <target state="translated">'{0}' 클래스는 기본 클래스 '{2}'의 '{1}'이(가) obsolete로 표시되어 있으므로 'Sub New'를 선언해야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoNonObsoleteConstructorOnBase4">
         <source>Class '{0}' must declare a 'Sub New' because the '{1}' in its base class '{2}' is marked obsolete: '{3}'.</source>
-        <target state="translated">{0}' 클래스는 기본 클래스 '{2}'의 '{1}'이(가) obsolete로 표시되어 있으므로 'Sub New'를 선언해야 합니다('{3}').</target>
+        <target state="translated">'{0}' 클래스는 기본 클래스 '{2}'의 '{1}'이(가) obsolete로 표시되어 있으므로 'Sub New'를 선언해야 합니다('{3}').</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RequiredNonObsoleteNewCall3">
         <source>First statement of this 'Sub New' must be an explicit call to 'MyBase.New' or 'MyClass.New' because the '{0}' in the base class '{1}' of '{2}' is marked obsolete.</source>
-        <target state="translated">{2}'의 기본 클래스 '{1}'에 있는 '{0}'이(가) obsolete로 표시되어 있으므로 이 'Sub New'의 첫째 문은 'MyBase.New' 또는 'MyClass.New'에 대한 명시적 호출이어야 합니다.</target>
+        <target state="translated">'{2}'의 기본 클래스 '{1}'에 있는 '{0}'이(가) obsolete로 표시되어 있으므로 이 'Sub New'의 첫째 문은 'MyBase.New' 또는 'MyClass.New'에 대한 명시적 호출이어야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RequiredNonObsoleteNewCall4">
         <source>First statement of this 'Sub New' must be an explicit call to 'MyBase.New' or 'MyClass.New' because the '{0}' in the base class '{1}' of '{2}' is marked obsolete: '{3}'.</source>
-        <target state="translated">{2}'의 기본 클래스 '{1}'에 있는 '{0}'이(가) obsolete로 표시되어 있으므로 이 'Sub New'의 첫째 문은 'MyBase.New' 또는 'MyClass.New'에 대한 명시적 호출이어야 합니다. '{3}'</target>
+        <target state="translated">'{2}'의 기본 클래스 '{1}'에 있는 '{0}'이(가) obsolete로 표시되어 있으므로 이 'Sub New'의 첫째 문은 'MyBase.New' 또는 'MyClass.New'에 대한 명시적 호출이어야 합니다. '{3}'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InheritsTypeArgAccessMismatch7">
@@ -2721,7 +2721,7 @@
       </trans-unit>
       <trans-unit id="ERR_PartialTypeAccessMismatch3">
         <source>Specified access '{0}' for '{1}' does not match the access '{2}' specified on one of its other partial types.</source>
-        <target state="translated">{1}'에 지정된 '{0}' 액세스가 다른 부분 형식(Partial Type) 중 하나에 지정된 '{2}' 액세스와 일치하지 않습니다.</target>
+        <target state="translated">'{1}'에 지정된 '{0}' 액세스가 다른 부분 형식(Partial Type) 중 하나에 지정된 '{2}' 액세스와 일치하지 않습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialTypeBadMustInherit1">
@@ -2736,12 +2736,12 @@
       </trans-unit>
       <trans-unit id="ERR_BaseMismatchForPartialClass3">
         <source>Base class '{0}' specified for class '{1}' cannot be different from the base class '{2}' of one of its other partial types.</source>
-        <target state="translated">{1}' 클래스에 지정된 기본 클래스 '{0}'은(는) 다른 부분 형식(Partial Type) 중 하나의 기본 클래스 '{2}'과(와) 다르면 안 됩니다.</target>
+        <target state="translated">'{1}' 클래스에 지정된 기본 클래스 '{0}'은(는) 다른 부분 형식(Partial Type) 중 하나의 기본 클래스 '{2}'과(와) 다르면 안 됩니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialTypeTypeParamNameMismatch3">
         <source>Type parameter name '{0}' does not match the name '{1}' of the corresponding type parameter defined on one of the other partial types of '{2}'.</source>
-        <target state="translated">{0}' 형식 매개 변수 이름이 '{2}'의 다른 부분 형식(Partial Type) 중 하나에 정의된 해당 '{1}' 형식 매개 변수의 이름과 일치하지 않습니다.</target>
+        <target state="translated">'{0}' 형식 매개 변수 이름이 '{2}'의 다른 부분 형식(Partial Type) 중 하나에 정의된 해당 '{1}' 형식 매개 변수의 이름과 일치하지 않습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialTypeConstraintMismatch1">
@@ -2812,7 +2812,7 @@
       </trans-unit>
       <trans-unit id="ERR_IterationVariableShadowLocal1">
         <source>Range variable '{0}' hides a variable in an enclosing block or a range variable previously defined in the query expression.</source>
-        <target state="translated">{0}' 범위 변수가 바깥쪽 블록의 변수를 숨기거나 이전에 쿼리 식에 정의한 범위 변수를 숨깁니다.</target>
+        <target state="translated">'{0}' 범위 변수가 바깥쪽 블록의 변수를 숨기거나 이전에 쿼리 식에 정의한 범위 변수를 숨깁니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidOptionInfer">
@@ -2862,17 +2862,17 @@
       </trans-unit>
       <trans-unit id="ERR_DuplicateAggrMemberInit1">
         <source>Multiple initializations of '{0}'.  Fields and properties can be initialized only once in an object initializer expression.</source>
-        <target state="translated">{0}'을(를) 여러 번 초기화했습니다. 개체 이니셜라이저 식에서 필드와 속성은 한 번만 초기화할 수 있습니다.</target>
+        <target state="translated">'{0}'을(를) 여러 번 초기화했습니다. 개체 이니셜라이저 식에서 필드와 속성은 한 번만 초기화할 수 있습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NonFieldPropertyAggrMemberInit1">
         <source>Member '{0}' cannot be initialized in an object initializer expression because it is not a field or property.</source>
-        <target state="translated">{0}' 멤버는 필드 또는 속성이 아니므로 개체 이니셜라이저 식에서 초기화할 수 없습니다.</target>
+        <target state="translated">'{0}' 멤버는 필드 또는 속성이 아니므로 개체 이니셜라이저 식에서 초기화할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_SharedMemberAggrMemberInit1">
         <source>Member '{0}' cannot be initialized in an object initializer expression because it is shared.</source>
-        <target state="translated">{0}' 멤버를 공유하고 있으므로 개체 이니셜라이저 식에서 초기화할 수 없습니다.</target>
+        <target state="translated">'{0}' 멤버를 공유하고 있으므로 개체 이니셜라이저 식에서 초기화할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ParameterizedPropertyInAggrInit1">
@@ -2902,7 +2902,7 @@
       </trans-unit>
       <trans-unit id="ERR_BadModuleFile1">
         <source>Unable to load module file '{0}': {1}</source>
-        <target state="translated">{0}' 모듈 파일을 로드할 수 없습니다({1}).</target>
+        <target state="translated">'{0}' 모듈 파일을 로드할 수 없습니다({1}).</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadRefLib1">
@@ -2912,7 +2912,7 @@
       </trans-unit>
       <trans-unit id="ERR_EventHandlerSignatureIncompatible2">
         <source>Method '{0}' cannot handle event '{1}' because they do not have a compatible signature.</source>
-        <target state="translated">{0}' 메서드에 호환되는 시그니처가 없으므로 '{1}' 이벤트를 처리할 수 없습니다.</target>
+        <target state="translated">'{0}' 메서드에 호환되는 시그니처가 없으므로 '{1}' 이벤트를 처리할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConditionalCompilationConstantNotValid">
@@ -2922,52 +2922,52 @@
       </trans-unit>
       <trans-unit id="ERR_InterfaceImplementedTwice1">
         <source>Interface '{0}' can be implemented only once by this type.</source>
-        <target state="translated">{0}' 인터페이스는 이 형식으로 한 번만 구현할 수 있습니다.</target>
+        <target state="translated">'{0}' 인터페이스는 이 형식으로 한 번만 구현할 수 있습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterfaceImplementedTwiceWithDifferentTupleNames2">
         <source>Interface '{0}' can be implemented only once by this type, but already appears with different tuple element names, as '{1}'.</source>
-        <target state="translated">{0}' 인터페이스는 이 형식으로 한 번만 구현할 수 있지만 이미 다른 튜플 요소 이름을 사용하여 '{1}'(으)로 표시되어 있습니다.</target>
+        <target state="translated">'{0}' 인터페이스는 이 형식으로 한 번만 구현할 수 있지만 이미 다른 튜플 요소 이름을 사용하여 '{1}'(으)로 표시되어 있습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterfaceImplementedTwiceWithDifferentTupleNames3">
         <source>Interface '{0}' can be implemented only once by this type, but already appears with different tuple element names, as '{1}' (via '{2}').</source>
-        <target state="translated">{0}' 인터페이스는 이 형식으로 한 번만 구현할 수 있지만 이미 다른 튜플 요소 이름을 사용하여 '{2}'을(를) 통해 '{1}'(으)로 표시되어 있습니다.</target>
+        <target state="translated">'{0}' 인터페이스는 이 형식으로 한 번만 구현할 수 있지만 이미 다른 튜플 요소 이름을 사용하여 '{2}'을(를) 통해 '{1}'(으)로 표시되어 있습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterfaceImplementedTwiceWithDifferentTupleNamesReverse3">
         <source>Interface '{0}' (via '{1}') can be implemented only once by this type, but already appears with different tuple element names, as '{2}'.</source>
-        <target state="translated">{0}' 인터페이스는 '{1}'을(를) 통해 이 형식으로 한 번만 구현할 수 있지만 이미 다른 튜플 요소 이름을 사용하여 '{2}'(으)로 표시되어 있습니다.</target>
+        <target state="translated">'{0}' 인터페이스는 '{1}'을(를) 통해 이 형식으로 한 번만 구현할 수 있지만 이미 다른 튜플 요소 이름을 사용하여 '{2}'(으)로 표시되어 있습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterfaceImplementedTwiceWithDifferentTupleNames4">
         <source>Interface '{0}' (via '{1}') can be implemented only once by this type, but already appears with different tuple element names, as '{2}' (via '{3}').</source>
-        <target state="translated">{0}' 인터페이스는 '{1}'을(를) 통해 이 형식으로 한 번만 구현할 수 있지만 이미 다른 튜플 요소 이름을 사용하여 '{3}'을(를) 통해 '{2}'(으)로 표시되어 있습니다.</target>
+        <target state="translated">'{0}' 인터페이스는 '{1}'을(를) 통해 이 형식으로 한 번만 구현할 수 있지만 이미 다른 튜플 요소 이름을 사용하여 '{3}'을(를) 통해 '{2}'(으)로 표시되어 있습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterfaceInheritedTwiceWithDifferentTupleNames2">
         <source>Interface '{0}' can be inherited only once by this interface, but already appears with different tuple element names, as '{1}'.</source>
-        <target state="translated">{0}' 인터페이스는 이 인터페이스에서 한 번만 상속될 수 있지만 이미 다른 튜플 요소 이름을 사용하여 '{1}'(으)로 표시되어 있습니다.</target>
+        <target state="translated">'{0}' 인터페이스는 이 인터페이스에서 한 번만 상속될 수 있지만 이미 다른 튜플 요소 이름을 사용하여 '{1}'(으)로 표시되어 있습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterfaceInheritedTwiceWithDifferentTupleNames3">
         <source>Interface '{0}' can be inherited only once by this interface, but already appears with different tuple element names, as '{1}' (via '{2}').</source>
-        <target state="translated">{0}' 인터페이스는 이 인터페이스에서 한 번만 상속될 수 있지만 이미 다른 튜플 요소 이름을 사용하여 '{2}'을(를) 통해 '{1}'(으)로 표시되어 있습니다.</target>
+        <target state="translated">'{0}' 인터페이스는 이 인터페이스에서 한 번만 상속될 수 있지만 이미 다른 튜플 요소 이름을 사용하여 '{2}'을(를) 통해 '{1}'(으)로 표시되어 있습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterfaceInheritedTwiceWithDifferentTupleNamesReverse3">
         <source>Interface '{0}' (via '{1}') can be inherited only once by this interface, but already appears with different tuple element names, as '{2}'.</source>
-        <target state="translated">{0}' 인터페이스는 '{1}'을(를) 통해 이 인터페이스에서 한 번만 상속될 수 있지만 이미 다른 튜플 요소 이름을 사용하여 '{2}'(으)로 표시되어 있습니다.</target>
+        <target state="translated">'{0}' 인터페이스는 '{1}'을(를) 통해 이 인터페이스에서 한 번만 상속될 수 있지만 이미 다른 튜플 요소 이름을 사용하여 '{2}'(으)로 표시되어 있습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterfaceInheritedTwiceWithDifferentTupleNames4">
         <source>Interface '{0}' (via '{1}') can be inherited only once by this interface, but already appears with different tuple element names, as '{2}' (via '{3}').</source>
-        <target state="translated">{0}' 인터페이스는 '{1}'을(를) 통해 이 인터페이스에서 한 번만 상속될 수 있지만 이미 다른 튜플 요소 이름을 사용하여 '{3}'을(를) 통해 '{2}'(으)로 표시되어 있습니다.</target>
+        <target state="translated">'{0}' 인터페이스는 '{1}'을(를) 통해 이 인터페이스에서 한 번만 상속될 수 있지만 이미 다른 튜플 요소 이름을 사용하여 '{3}'을(를) 통해 '{2}'(으)로 표시되어 있습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterfaceNotImplemented1">
         <source>Interface '{0}' is not implemented by this class.</source>
-        <target state="translated">{0}' 인터페이스가 이 클래스에서 구현되지 않았습니다.</target>
+        <target state="translated">'{0}' 인터페이스가 이 클래스에서 구현되지 않았습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AmbiguousImplementsMember3">
@@ -3007,7 +3007,7 @@
       </trans-unit>
       <trans-unit id="ERR_DuplicateImport1">
         <source>Namespace or type '{0}' has already been imported.</source>
-        <target state="translated">{0}' 네임스페이스 또는 형식을 이미 가져왔습니다.</target>
+        <target state="translated">'{0}' 네임스페이스 또는 형식을 이미 가져왔습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadModuleFlags1">
@@ -3022,22 +3022,22 @@
       </trans-unit>
       <trans-unit id="ERR_SynthMemberClashesWithSynth7">
         <source>{0} '{1}' implicitly defines '{2}', which conflicts with a member implicitly declared for {3} '{4}' in {5} '{6}'.</source>
-        <target state="translated">{0} '{1}'은(는) {5} '{6}'의 {3} '{4}'에 대해 암시적으로 선언된 멤버와 충돌하는 '{2}'을(를) 암시적으로 정의합니다.</target>
+        <target state="translated">'{0} '{1}'은(는) {5} '{6}'의 {3} '{4}'에 대해 암시적으로 선언된 멤버와 충돌하는 '{2}'을(를) 암시적으로 정의합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_SynthMemberClashesWithMember5">
         <source>{0} '{1}' implicitly defines '{2}', which conflicts with a member of the same name in {3} '{4}'.</source>
-        <target state="translated">{0} '{1}'은(는) {3} '{4}'에서 이름이 같은 멤버와 충돌하는 '{2}'을(를) 암시적으로 정의합니다.</target>
+        <target state="translated">'{0} '{1}'은(는) {3} '{4}'에서 이름이 같은 멤버와 충돌하는 '{2}'을(를) 암시적으로 정의합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MemberClashesWithSynth6">
         <source>{0} '{1}' conflicts with a member implicitly declared for {2} '{3}' in {4} '{5}'.</source>
-        <target state="translated">{0} '{1}'은(는) {4} '{5}'의 {2} '{3}'에 대해 암시적으로 선언된 멤버와 충돌합니다.</target>
+        <target state="translated">'{0} '{1}'은(는) {4} '{5}'의 {2} '{3}'에 대해 암시적으로 선언된 멤버와 충돌합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_TypeClashesWithVbCoreType4">
         <source>{0} '{1}' conflicts with a Visual Basic Runtime {2} '{3}'.</source>
-        <target state="translated">{0} '{1}'이(가) Visual Basic Runtime {2} '{3}'과(와) 충돌합니다.</target>
+        <target state="translated">'{0} '{1}'이(가) Visual Basic Runtime {2} '{3}'과(와) 충돌합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_SecurityAttributeMissingAction">
@@ -3047,7 +3047,7 @@
       </trans-unit>
       <trans-unit id="ERR_SecurityAttributeInvalidAction">
         <source>Security attribute '{0}' has an invalid SecurityAction value '{1}'.</source>
-        <target state="translated">{0}' 보안 특성에 있는 SecurityAction 값('{1}')이 잘못되었습니다.</target>
+        <target state="translated">'{0}' 보안 특성에 있는 SecurityAction 값('{1}')이 잘못되었습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_SecurityAttributeInvalidActionAssembly">
@@ -3137,7 +3137,7 @@
       </trans-unit>
       <trans-unit id="ERR_ReferenceComparison3">
         <source>Operator '{0}' is not defined for types '{1}' and '{2}'. Use 'Is' operator to compare two reference types.</source>
-        <target state="translated">{1}' 및 '{2}' 형식에 대한 '{0}' 연산자가 정의되지 않았습니다. 두 참조 형식을 비교하려면 'Is' 연산자를 사용하세요.</target>
+        <target state="translated">'{1}' 및 '{2}' 형식에 대한 '{0}' 연산자가 정의되지 않았습니다. 두 참조 형식을 비교하려면 'Is' 연산자를 사용하세요.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CatchVariableNotLocal1">
@@ -3182,7 +3182,7 @@
       </trans-unit>
       <trans-unit id="ERR_TypeRefResolutionError3">
         <source>Import of type '{0}' from assembly or module '{1}' failed.</source>
-        <target state="translated">{1}' 어셈블리 또는 모듈에서 '{0}' 형식을 가져오지 못했습니다.</target>
+        <target state="translated">'{1}' 어셈블리 또는 모듈에서 '{0}' 형식을 가져오지 못했습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ValueTupleTypeRefResolutionError1">
@@ -3197,12 +3197,12 @@
       </trans-unit>
       <trans-unit id="ERR_CoClassMissing2">
         <source>Implementing class '{0}' for interface '{1}' cannot be found.</source>
-        <target state="translated">{1}' 인터페이스에 대한 '{0}' 구현 클래스를 찾을 수 없습니다.</target>
+        <target state="translated">'{1}' 인터페이스에 대한 '{0}' 구현 클래스를 찾을 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidCoClass1">
         <source>Type '{0}' cannot be used as an implementing class.</source>
-        <target state="translated">{0}' 형식은 클래스를 구현하는 데 사용할 수 없습니다.</target>
+        <target state="translated">'{0}' 형식은 클래스를 구현하는 데 사용할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidMeReference">
@@ -3217,7 +3217,7 @@
       </trans-unit>
       <trans-unit id="ERR_RuntimeMemberNotFound2">
         <source>Member '{0}' cannot be found in class '{1}'. This condition is usually the result of a mismatched 'Microsoft.VisualBasic.dll'.</source>
-        <target state="translated">{0}' 멤버가 '{1}' 클래스에 없습니다. 일반적으로 'Microsoft.VisualBasic.dll'이 일치하는 않은 결과로 발생하는 조건입니다.</target>
+        <target state="translated">'{0}' 멤버가 '{1}' 클래스에 없습니다. 일반적으로 'Microsoft.VisualBasic.dll'이 일치하는 않은 결과로 발생하는 조건입니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadPropertyAccessorFlags">
@@ -3227,7 +3227,7 @@
       </trans-unit>
       <trans-unit id="ERR_BadPropertyAccessorFlagsRestrict">
         <source>Access modifier '{0}' is not valid. The access modifier of 'Get' and 'Set' should be more restrictive than the property access level.</source>
-        <target state="translated">{0}' 액세스 한정자가 잘못되었습니다. 'Get' 및 'Set'의 액세스 한정자는 속성 액세스 수준보다 제한적이어야 합니다.</target>
+        <target state="translated">'{0}' 액세스 한정자가 잘못되었습니다. 'Get' 및 'Set'의 액세스 한정자는 속성 액세스 수준보다 제한적이어야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OnlyOneAccessorForGetSet">
@@ -3272,7 +3272,7 @@
       </trans-unit>
       <trans-unit id="ERR_InAccessibleCoClass3">
         <source>Implementing class '{0}' for interface '{1}' is not accessible in this context because it is '{2}'.</source>
-        <target state="translated">{1}' 인터페이스의 '{0}' 구현 클래스는 '{2}'이므로 이 컨텍스트에서 액세스할 수 없습니다.</target>
+        <target state="translated">'{1}' 인터페이스의 '{0}' 구현 클래스는 '{2}'이므로 이 컨텍스트에서 액세스할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MissingValuesForArraysInApplAttrs">
@@ -3422,7 +3422,7 @@
       </trans-unit>
       <trans-unit id="ERR_DelegateBindingIncompatible2">
         <source>Method '{0}' does not have a signature compatible with delegate '{1}'.</source>
-        <target state="translated">{0}' 메서드에 '{1}' 대리자와 호환되는 시그니처가 없습니다.</target>
+        <target state="translated">'{0}' 메서드에 '{1}' 대리자와 호환되는 시그니처가 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpectedXmlName">
@@ -3437,7 +3437,7 @@
       </trans-unit>
       <trans-unit id="ERR_DuplicateXmlAttribute">
         <source>Duplicate XML attribute '{0}'.</source>
-        <target state="translated">{0}' XML 특성이 중복되었습니다.</target>
+        <target state="translated">'{0}' XML 특성이 중복되었습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MismatchedXmlEndTag">
@@ -3597,7 +3597,7 @@
       </trans-unit>
       <trans-unit id="ERR_ReservedXmlNamespace">
         <source>Prefix '{0}' cannot be bound to namespace name reserved for '{1}'.</source>
-        <target state="translated">{0}' 접두사는 '{1}'에 사용하도록 예약된 네임스페이스 이름에 바인딩할 수 없습니다.</target>
+        <target state="translated">'{0}' 접두사는 '{1}'에 사용하도록 예약된 네임스페이스 이름에 바인딩할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_IllegalDefaultNamespace">
@@ -3627,12 +3627,12 @@
       </trans-unit>
       <trans-unit id="ERR_UnableToReadUacManifest2">
         <source>Unable to open Win32 manifest file '{0}' : {1}</source>
-        <target state="translated">{0}' Win32 매니페스트 파일을 열 수 없습니다({1}).</target>
+        <target state="translated">'{0}' Win32 매니페스트 파일을 열 수 없습니다({1}).</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UseValueForXmlExpression3">
         <source>Cannot convert '{0}' to '{1}'. You can use the 'Value' property to get the string value of the first element of '{2}'.</source>
-        <target state="translated">{0}'을(를) '{1}'(으)로 변환할 수 없습니다. 'Value' 속성을 사용하여 '{2}'의 첫 번째 요소의 문자열 값을 가져올 수 있습니다.</target>
+        <target state="translated">'{0}'을(를) '{1}'(으)로 변환할 수 없습니다. 'Value' 속성을 사용하여 '{2}'의 첫 번째 요소의 문자열 값을 가져올 수 있습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UseValueForXmlExpression3_Title">
@@ -3642,12 +3642,12 @@
       </trans-unit>
       <trans-unit id="ERR_TypeMismatchForXml3">
         <source>Value of type '{0}' cannot be converted to '{1}'. You can use the 'Value' property to get the string value of the first element of '{2}'.</source>
-        <target state="translated">{0}' 형식의 값을 '{1}'(으)로 변환할 수 없습니다. 'Value' 속성을 사용하여 '{2}'의 첫 번째 요소의 문자열 값을 가져올 수 있습니다.</target>
+        <target state="translated">'{0}' 형식의 값을 '{1}'(으)로 변환할 수 없습니다. 'Value' 속성을 사용하여 '{2}'의 첫 번째 요소의 문자열 값을 가져올 수 있습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BinaryOperandsForXml4">
         <source>Operator '{0}' is not defined for types '{1}' and '{2}'. You can use the 'Value' property to get the string value of the first element of '{3}'.</source>
-        <target state="translated">{1}' 및 '{2}' 형식에 대한 '{0}' 연산자가 정의되지 않았습니다. 'Value' 속성을 사용하여 첫 번째 '{3}' 요소의 문자열 값을 가져올 수 있습니다.</target>
+        <target state="translated">'{1}' 및 '{2}' 형식에 대한 '{0}' 연산자가 정의되지 않았습니다. 'Value' 속성을 사용하여 첫 번째 '{3}' 요소의 문자열 값을 가져올 수 있습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FullWidthAsXmlDelimiter">
@@ -3657,7 +3657,7 @@
       </trans-unit>
       <trans-unit id="ERR_InvalidSubsystemVersion">
         <source>The value '{0}' is not a valid subsystem version. The version must be 6.02 or greater for ARM or AppContainerExe, and 4.00 or greater otherwise.</source>
-        <target state="translated">{0}' 값이 유효한 하위 시스템 버전이 아닙니다. 버전은 ARM 또는 AppContainerExe의 경우 6.02 이상이어야 하고, 그 외의 경우 4.00 이상이어야 합니다.</target>
+        <target state="translated">'{0}' 값이 유효한 하위 시스템 버전이 아닙니다. 버전은 ARM 또는 AppContainerExe의 경우 6.02 이상이어야 하고, 그 외의 경우 4.00 이상이어야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidFileAlignment">
@@ -3707,7 +3707,7 @@
       </trans-unit>
       <trans-unit id="ERR_NoAccessibleConstructorOnBase">
         <source>Class '{0}' has no accessible 'Sub New' and cannot be inherited.</source>
-        <target state="translated">{0}' 클래스에 액세스 가능한 'Sub New'가 없으므로 상속할 수 없습니다.</target>
+        <target state="translated">'{0}' 클래스에 액세스 가능한 'Sub New'가 없으므로 상속할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadStaticLocalInStruct">
@@ -3717,7 +3717,7 @@
       </trans-unit>
       <trans-unit id="ERR_DuplicateLocalStatic1">
         <source>Static local variable '{0}' is already declared.</source>
-        <target state="translated">{0}' static 지역 변수가 이미 선언되었습니다.</target>
+        <target state="translated">'{0}' static 지역 변수가 이미 선언되었습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ImportAliasConflictsWithType2">
@@ -3732,7 +3732,7 @@
       </trans-unit>
       <trans-unit id="ERR_MultipleEventImplMismatch3">
         <source>Event '{0}' cannot implement event '{2}.{1}' because its delegate type does not match the delegate type of another event implemented by '{0}'.</source>
-        <target state="translated">{2}.{1}' 이벤트의 대리자 형식이 '{0}' 이벤트에 의해 구현된 다른 이벤트의 대리자 형식과 일치하지 않으므로 '{0}' 이벤트에서 이 이벤트를 구현할 수 없습니다.</target>
+        <target state="translated">'{2}.{1}' 이벤트의 대리자 형식이 '{0}' 이벤트에 의해 구현된 다른 이벤트의 대리자 형식과 일치하지 않으므로 '{0}' 이벤트에서 이 이벤트를 구현할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadSpecifierCombo2">
@@ -3827,7 +3827,7 @@
       </trans-unit>
       <trans-unit id="ERR_TypeOfExprAlwaysFalse2">
         <source>Expression of type '{0}' can never be of type '{1}'.</source>
-        <target state="translated">{0}' 형식의 식은 '{1}' 형식일 수 없습니다.</target>
+        <target state="translated">'{0}' 형식의 식은 '{1}' 형식일 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OnlyPrivatePartialMethods1">
@@ -3842,12 +3842,12 @@
       </trans-unit>
       <trans-unit id="ERR_OnlyOnePartialMethodAllowed2">
         <source>Method '{0}' cannot be declared 'Partial' because only one method '{1}' can be marked 'Partial'.</source>
-        <target state="translated">{1}' 메서드 하나만 'Partial'로 표시할 수 있으므로 '{0}' 메서드는 'Partial'로 선언할 수 없습니다.</target>
+        <target state="translated">'{1}' 메서드 하나만 'Partial'로 표시할 수 있으므로 '{0}' 메서드는 'Partial'로 선언할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OnlyOneImplementingMethodAllowed3">
         <source>Method '{0}' cannot implement partial method '{1}' because '{2}' already implements it. Only one method can implement a partial method.</source>
-        <target state="translated">{2}'에서 이미 '{1}' 부분 메서드(Partial Method)를 구현했으므로 '{0}' 메서드에서 부분 메서드를 구현할 수 없습니다. 메서드 하나만 부분 메서드를 구현할 수 있습니다.</target>
+        <target state="translated">'{2}'에서 이미 '{1}' 부분 메서드(Partial Method)를 구현했으므로 '{0}' 메서드에서 부분 메서드를 구현할 수 없습니다. 메서드 하나만 부분 메서드를 구현할 수 있습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodMustBeEmpty">
@@ -3862,12 +3862,12 @@
       </trans-unit>
       <trans-unit id="ERR_PartialMethodGenericConstraints2">
         <source>Method '{0}' does not have the same generic constraints as the partial method '{1}'.</source>
-        <target state="translated">{0}' 메서드에는 '{1}' 부분 메서드(Partial Method)과 같은 제네릭 제약 조건이 없습니다.</target>
+        <target state="translated">'{0}' 메서드에는 '{1}' 부분 메서드(Partial Method)과 같은 제네릭 제약 조건이 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialDeclarationImplements1">
         <source>Partial method '{0}' cannot use the 'Implements' keyword.</source>
-        <target state="translated">{0}' 부분 메서드(Partial Method)에서 'Implements' 키워드를 사용할 수 없습니다.</target>
+        <target state="translated">'{0}' 부분 메서드(Partial Method)에서 'Implements' 키워드를 사용할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoPartialMethodInAddressOf1">
@@ -3882,7 +3882,7 @@
       </trans-unit>
       <trans-unit id="ERR_PartialMethodParamNamesMustMatch3">
         <source>Parameter name '{0}' does not match the name of the corresponding parameter, '{1}', defined on the partial method declaration '{2}'.</source>
-        <target state="translated">{0}' 매개 변수 이름이 '{2}' 부분 메서드(Partial Method) 선언에 정의된 해당 '{1}' 매개 변수의 이름과 일치하지 않습니다.</target>
+        <target state="translated">'{0}' 매개 변수 이름이 '{2}' 부분 메서드(Partial Method) 선언에 정의된 해당 '{1}' 매개 변수의 이름과 일치하지 않습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodTypeParamNameMismatch3">
@@ -3927,7 +3927,7 @@
       </trans-unit>
       <trans-unit id="ERR_UnableToOpenResourceFile1">
         <source>Unable to open resource file '{0}': {1}</source>
-        <target state="translated">{0}' 리소스 파일을 열 수 없습니다({1}).</target>
+        <target state="translated">'{0}' 리소스 파일을 열 수 없습니다({1}).</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAttributeNonPublicProperty1">
@@ -4137,7 +4137,7 @@
       </trans-unit>
       <trans-unit id="ERR_NoUniqueConstructorOnBase2">
         <source>Class '{0}' must declare a 'Sub New' because its base class '{1}' has more than one accessible 'Sub New' that can be called with no arguments.</source>
-        <target state="translated">{0}' 클래스의 기본 클래스 '{1}'에는 인수 없이 호출할 수 있는 액세스 가능한 'Sub New'가 두 개 이상 있으므로 'Sub New'를 선언해야 합니다.</target>
+        <target state="translated">'{0}' 클래스의 기본 클래스 '{1}'에는 인수 없이 호출할 수 있는 액세스 가능한 'Sub New'가 두 개 이상 있으므로 'Sub New'를 선언해야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExtraNextVariable">
@@ -4147,7 +4147,7 @@
       </trans-unit>
       <trans-unit id="ERR_RequiredNewCallTooMany2">
         <source>First statement of this 'Sub New' must be a call to 'MyBase.New' or 'MyClass.New' because base class '{0}' of '{1}' has more than one accessible 'Sub New' that can be called with no arguments.</source>
-        <target state="translated">{1}'의 기본 클래스 '{0}'에는 인수 없이 호출할 수 있는 액세스 가능한 'Sub New'가 두 개 이상 있으므로 이 'Sub New'의 첫째 문은 'MyBase.New' 또는 'MyClass.New'에 대한 호출이어야 합니다.</target>
+        <target state="translated">'{1}'의 기본 클래스 '{0}'에는 인수 없이 호출할 수 있는 액세스 가능한 'Sub New'가 두 개 이상 있으므로 이 'Sub New'의 첫째 문은 'MyBase.New' 또는 'MyClass.New'에 대한 호출이어야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ForCtlVarArraySizesSpecified">
@@ -4157,7 +4157,7 @@
       </trans-unit>
       <trans-unit id="ERR_BadFlagsOnNewOverloads">
         <source>The '{0}' keyword is used to overload inherited members; do not use the '{0}' keyword when overloading 'Sub New'.</source>
-        <target state="translated">{0}' 키워드를 사용하여 상속된 멤버를 오버로드했습니다. 'Sub New'를 오버로드할 때에는 '{0}' 키워드를 사용하지 마세요.</target>
+        <target state="translated">'{0}' 키워드를 사용하여 상속된 멤버를 오버로드했습니다. 'Sub New'를 오버로드할 때에는 '{0}' 키워드를 사용하지 마세요.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_TypeCharOnGenericParam">
@@ -4167,12 +4167,12 @@
       </trans-unit>
       <trans-unit id="ERR_TooFewGenericArguments1">
         <source>Too few type arguments to '{0}'.</source>
-        <target state="translated">{0}'에 대한 형식 인수가 너무 적습니다.</target>
+        <target state="translated">'{0}'에 대한 형식 인수가 너무 적습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_TooManyGenericArguments1">
         <source>Too many type arguments to '{0}'.</source>
-        <target state="translated">{0}'에 대한 형식 인수가 너무 많습니다.</target>
+        <target state="translated">'{0}'에 대한 형식 인수가 너무 많습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_GenericConstraintNotSatisfied2">
@@ -4192,7 +4192,7 @@
       </trans-unit>
       <trans-unit id="ERR_MultipleClassConstraints1">
         <source>Type parameter '{0}' can only have one constraint that is a class.</source>
-        <target state="translated">{0}' 형식 매개 변수는 제약 조건(클래스)을 하나만 포함할 수 있습니다.</target>
+        <target state="translated">'{0}' 형식 매개 변수는 제약 조건(클래스)을 하나만 포함할 수 있습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConstNotClassInterfaceOrTypeParam1">
@@ -4207,7 +4207,7 @@
       </trans-unit>
       <trans-unit id="ERR_UnboundTypeParam2">
         <source>Type parameter '{0}' for '{1}' cannot be inferred.</source>
-        <target state="translated">{1}'의 형식 매개 변수 '{0}'을(를) 유추할 수 없습니다.</target>
+        <target state="translated">'{1}'의 형식 매개 변수 '{0}'을(를) 유추할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_IsOperatorGenericParam1">
@@ -4282,7 +4282,7 @@
       </trans-unit>
       <trans-unit id="ERR_InterfacePossiblyImplTwice2">
         <source>Cannot implement interface '{0}' because its implementation could conflict with the implementation of another implemented interface '{1}' for some type arguments.</source>
-        <target state="translated">{0}' 인터페이스 구현이 일부 형식 인수에 대해 구현된 다른 인터페이스 '{1}'의 구현과 충돌할 수 있으므로 이 인터페이스를 구현할 수 없습니다.</target>
+        <target state="translated">'{0}' 인터페이스 구현이 일부 형식 인수에 대해 구현된 다른 인터페이스 '{1}'의 구현과 충돌할 수 있으므로 이 인터페이스를 구현할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ModulesCannotBeGeneric">
@@ -4859,7 +4859,7 @@
       </trans-unit>
       <trans-unit id="ERR_IllegalCondTypeInIIF">
         <source>First operand in a binary 'If' expression must be a nullable value type, a reference type, or an unconstrained generic type.</source>
-        <target state="needs-review-translation">If' 이항 식의 첫 번째 피연산자는 nullable이거나 참조 형식이어야 합니다.</target>
+        <target state="translated">If' 이항 식의 첫 번째 피연산자는 nullable이거나 참조 형식이어야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CantCallIIF">
@@ -6030,7 +6030,7 @@
       </trans-unit>
       <trans-unit id="WRN_NoNonObsoleteConstructorOnBase3">
         <source>Class '{0}' should declare a 'Sub New' because the '{1}' in its base class '{2}' is marked obsolete.</source>
-        <target state="translated">{0}' 클래스는 기본 클래스 '{2}'의 '{1}'이(가) obsolete로 표시되어 있으므로 'Sub New'를 선언해야 합니다.</target>
+        <target state="translated">'{0}' 클래스는 기본 클래스 '{2}'의 '{1}'이(가) obsolete로 표시되어 있으므로 'Sub New'를 선언해야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NoNonObsoleteConstructorOnBase3_Title">
@@ -6040,7 +6040,7 @@
       </trans-unit>
       <trans-unit id="WRN_NoNonObsoleteConstructorOnBase4">
         <source>Class '{0}' should declare a 'Sub New' because the '{1}' in its base class '{2}' is marked obsolete: '{3}'.</source>
-        <target state="translated">{0}' 클래스는 기본 클래스 '{2}'의 '{1}'이(가) obsolete로 표시되어 있으므로 'Sub New'를 선언해야 합니다('{3}').</target>
+        <target state="translated">'{0}' 클래스는 기본 클래스 '{2}'의 '{1}'이(가) obsolete로 표시되어 있으므로 'Sub New'를 선언해야 합니다('{3}').</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NoNonObsoleteConstructorOnBase4_Title">
@@ -6050,7 +6050,7 @@
       </trans-unit>
       <trans-unit id="WRN_RequiredNonObsoleteNewCall3">
         <source>First statement of this 'Sub New' should be an explicit call to 'MyBase.New' or 'MyClass.New' because the '{0}' in the base class '{1}' of '{2}' is marked obsolete.</source>
-        <target state="translated">{2}'의 기본 클래스 '{1}'에 있는 '{0}'이(가) 사용되지 않는 상태로 표시되어 있으므로, 이 'Sub New'의 첫째 문은 'MyBase.New' 또는 'MyClass.New'에 대한 명시적 호출이어야 합니다.</target>
+        <target state="translated">'{2}'의 기본 클래스 '{1}'에 있는 '{0}'이(가) 사용되지 않는 상태로 표시되어 있으므로, 이 'Sub New'의 첫째 문은 'MyBase.New' 또는 'MyClass.New'에 대한 명시적 호출이어야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_RequiredNonObsoleteNewCall3_Title">
@@ -6060,7 +6060,7 @@
       </trans-unit>
       <trans-unit id="WRN_RequiredNonObsoleteNewCall4">
         <source>First statement of this 'Sub New' should be an explicit call to 'MyBase.New' or 'MyClass.New' because the '{0}' in the base class '{1}' of '{2}' is marked obsolete: '{3}'</source>
-        <target state="translated">{2}'의 기본 클래스 '{1}'에 있는 '{0}'이(가) obsolete로 표시되어 있으므로 이 'Sub New'의 첫째 문은 'MyBase.New' 또는 'MyClass.New'에 대한 명시적 호출이어야 합니다('{3}').</target>
+        <target state="translated">'{2}'의 기본 클래스 '{1}'에 있는 '{0}'이(가) obsolete로 표시되어 있으므로 이 'Sub New'의 첫째 문은 'MyBase.New' 또는 'MyClass.New'에 대한 명시적 호출이어야 합니다('{3}').</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_RequiredNonObsoleteNewCall4_Title">
@@ -6075,7 +6075,7 @@
       </trans-unit>
       <trans-unit id="WRN_MissingAsClauseinOperator_Title">
         <source>Operator without an 'As' clause</source>
-        <target state="translated">As' 절이 없는 연산자</target>
+        <target state="translated">'As' 절이 없는 연산자</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ConstraintsFailedForInferredArgs2">
@@ -6505,12 +6505,12 @@
       </trans-unit>
       <trans-unit id="WRN_StaticLocalNoInference_Title">
         <source>Static variable declared without an 'As' clause</source>
-        <target state="translated">As' 절 없이 정적 변수가 선언됨</target>
+        <target state="translated">'As' 절 없이 정적 변수가 선언됨</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InvalidAssemblyName">
         <source>Assembly reference '{0}' is invalid and cannot be resolved.</source>
-        <target state="translated">{0}' 어셈블리 참조가 잘못되어 확인할 수 없습니다.</target>
+        <target state="translated">'{0}' 어셈블리 참조가 잘못되어 확인할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InvalidAssemblyName_Title">
@@ -7042,7 +7042,7 @@
       </trans-unit>
       <trans-unit id="ERR_FriendRefNotEqualToThis">
         <source>Friend access was granted by '{0}', but the public key of the output assembly does not match that specified by the attribute in the granting assembly.</source>
-        <target state="translated">{0}'에서 friend 액세스 권한을 부여했지만, 출력 어셈블리의 공용 키가 부여한 어셈블리의 특성에서 지정된 키와 일치하지 않습니다.</target>
+        <target state="translated">'{0}'에서 friend 액세스 권한을 부여했지만, 출력 어셈블리의 공용 키가 부여한 어셈블리의 특성에서 지정된 키와 일치하지 않습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FriendRefSigningMismatch">
@@ -7602,7 +7602,7 @@
       </trans-unit>
       <trans-unit id="ERR_BadGetAwaiterMethod1">
         <source>'Await' requires that the type '{0}' have a suitable GetAwaiter method.</source>
-        <target state="translated">'Await'의 경우 {0} 형식에 적합한 GetAwaiter 메서드가 있어야 합니다.</target>
+        <target state="translated">'Await'의 경우 '{0}' 형식에 적합한 GetAwaiter 메서드가 있어야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadIsCompletedOnCompletedGetResult2">
@@ -7812,7 +7812,7 @@
       </trans-unit>
       <trans-unit id="ERR_MixingWinRTAndNETEvents">
         <source>Event '{0}' cannot implement a Windows Runtime event '{1}' and a regular .NET event '{2}'</source>
-        <target state="translated">{0}' 이벤트에서 Windows Runtime 이벤트 '{1}'과(와) 일반 .NET 이벤트 '{2}'을(를) 모두 구현할 수는 없습니다.</target>
+        <target state="translated">'{0}' 이벤트에서 Windows 런타임 이벤트 '{1}'과(와) 일반 .NET 이벤트 '{2}'을(를) 모두 구현할 수는 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_EventImplRemoveHandlerParamWrong">
@@ -7832,12 +7832,12 @@
       </trans-unit>
       <trans-unit id="ERR_ReImplementingWinRTInterface5">
         <source>'{0}.{1}' from 'implements {2}' is already implemented by the base class '{3}'. Re-implementation of Windows Runtime Interface '{4}' is not allowed</source>
-        <target state="translated">'implements {0}'에서 구현된 '{1}.{2}'은(는) 기본 클래스 '{3}'에 의해 이미 구현되었습니다. Windows Runtime 인터페이스 '{4}'을(를) 다시 구현할 수 없습니다.</target>
+        <target state="translated">'implements {0}'에서 구현된 '{1}.{2}'은(는) 기본 클래스 '{3}'에 의해 이미 구현되었습니다. Windows 런타임 인터페이스 '{4}'을(를) 다시 구현할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ReImplementingWinRTInterface4">
         <source>'{0}.{1}' is already implemented by the base class '{2}'. Re-implementation of Windows Runtime Interface '{3}' is not allowed</source>
-        <target state="translated">'{0}.{1}'은(는) 기본 클래스 '{2}'에 의해 이미 구현되었습니다. Windows Runtime 인터페이스 '{3}'을(를) 다시 구현할 수 없습니다.</target>
+        <target state="translated">'{0}.{1}'은(는) 기본 클래스 '{2}'에 의해 이미 구현되었습니다. Windows 런타임 인터페이스 '{3}'을(를) 다시 구현할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadIteratorByRefParam">
@@ -7872,7 +7872,7 @@
       </trans-unit>
       <trans-unit id="WRN_DefAsgNoRetValWinRtEventVal1">
         <source>The AddHandler for Windows Runtime event '{0}' doesn't return a value on all code paths. Are you missing a 'Return' statement?</source>
-        <target state="translated">Windows Runtime용 AddHandler 이벤트 '{0}'이(가) 일부 코드 경로에서만 값을 반환합니다. 'Return' 문이 있는지 확인하세요.</target>
+        <target state="translated">Windows 런타임용 AddHandler 이벤트 '{0}'이(가) 일부 코드 경로에서만 값을 반환합니다. 'Return' 문이 있는지 확인하세요.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DefAsgNoRetValWinRtEventVal1_Title">
@@ -8396,163 +8396,164 @@
 -vbruntime:&lt;file&gt;                 Compile with the alternate Visual Basic
                                   runtime in &lt;file&gt;.
 </source>
-        <target state="needs-review-translation">                  Visual Basic 컴파일러 옵션
+        <target state="translated">                  Visual Basic 컴파일러 옵션
 
                                   - 출력 파일 -
-/out:&lt;file&gt;                       출력 파일 이름을 지정합니다.
-/target:exe                       콘솔 응용 프로그램을 만듭니다(기본값). 
-                                  (약식: /t)
-/target:winexe                    Windows 응용 프로그램을 만듭니다.
-/target:library                   라이브러리 어셈블리를 만듭니다.
-/target:module                    어셈블리에 추가할 수 있는 모듈을 
+-out:&lt;file&gt;                       출력 파일 이름을 지정합니다.
+-target:exe                       콘솔 응용 프로그램을 만듭니다(기본값). 
+                                  (약식: -t)
+-target:winexe                    Windows 응용 프로그램을 만듭니다.
+-target:library                   라이브러리 어셈블리를 만듭니다.
+-target:module                    어셈블리에 추가할 수 있는 모듈을 
                                   만듭니다.
-/target:appcontainerexe           AppContainer에서 실행되는 Windows 응용 프로그램을 
+-target:appcontainerexe           AppContainer에서 실행되는 Windows 응용 프로그램을 
                                   만듭니다.
-/target:winmdobj                  Windows 메타데이터 중간 파일을 만듭니다.
-/doc[+|-]                         XML 문서 파일을 생성합니다.
-/doc:&lt;file&gt;                       XML 문서 파일을 &lt;file&gt;에 생성합니다.
-/refout:&lt;file&gt;                생성할 참조 어셈블리 출력
+-target:winmdobj                  Windows 메타데이터 중간 파일을 만듭니다.
+-doc[+|-]                         XML 문서 파일을 생성합니다.
+-doc:&lt;file&gt;                       XML 문서 파일을 &lt;file&gt;에 생성합니다.
+-refout:&lt;file&gt;                생성할 참조 어셈블리 출력
 
                                   - 입력 파일 -
-/addmodule:&lt;file_list&gt;            지정된 모듈에서 메타데이터를 참조합니다.
-/link:&lt;file_list&gt;                 지정된 interop 어셈블리의 메타데이터를 
-                                  포함합니다. (약식: /l)
-/recurse:&lt;wildcard&gt;               와일드카드 지정에 따라 현재 디렉터리와 
+-addmodule:&lt;file_list&gt;            지정된 모듈에서 메타데이터를 참조합니다.
+-link:&lt;file_list&gt;                 지정된 interop 어셈블리의 메타데이터를 
+                                  포함합니다. (약식: -l)
+-recurse:&lt;wildcard&gt;               와일드카드 지정에 따라 현재 디렉터리와 
                                   하위 디렉터리에 있는 모든 파일을
                                   포함합니다.
-/reference:&lt;file_list&gt;            지정한 어셈블리 파일에서 메타데이터를 
-                                  참조합니다. (약식: /r)
-/analyzer:&lt;file_list&gt;             이 어셈블리에서 분석기를 실행합니다.
-                                  (약식: /a)
-/additionalfile:&lt;file list&gt;       코드 생성에 직접적인 영향을 주지 않지만
+-reference:&lt;file_list&gt;            지정한 어셈블리 파일에서 메타데이터를 
+                                  참조합니다. (약식: -r)
+-analyzer:&lt;file_list&gt;             이 어셈블리에서 분석기를 실행합니다.
+                                  (약식: -a)
+-additionalfile:&lt;file list&gt;       코드 생성에 직접적인 영향을 주지 않지만
                                   오류 또는 경고 생성을 위해 분석기에서 사용될 수 있는
                                   추가 파일입니다.
 
                                   - 리소스 -
-/linkresource:&lt;resinfo&gt;           지정된 파일을 외부 어셈블리 
+-linkresource:&lt;resinfo&gt;           지정된 파일을 외부 어셈블리 
                                   리소스로 연결합니다.
                                   resinfo:&lt;file&gt;[,&lt;name&gt;[,public|private]] 
-                                  (약식: /linkres)
-/nowin32manifest                  기본 매니페스트는 출력 PE의 매니페스트 섹션에 
+                                  (약식: -linkres)
+-nowin32manifest                  기본 매니페스트는 출력 PE의 매니페스트 섹션에 
                                   포함되면 안 됩니다.
-/resource:&lt;resinfo&gt;               지정한 파일을 포함된 어셈블리 
+-resource:&lt;resinfo&gt;               지정한 파일을 포함된 어셈블리 
                                   리소스로 추가합니다.
                                   resinfo:&lt;file&gt;[,&lt;name&gt;[,public|private]] 
-                                  (약식: /res)
-/win32icon:&lt;file&gt;                 기본 Win32 리소스에 사용되는 Win32 아이콘 파일(.ico)을 
+                                  (약식: -res)
+-win32icon:&lt;file&gt;                 기본 Win32 리소스에 사용되는 Win32 아이콘 파일(.ico)을 
                                   지정합니다.
-/win32manifest:&lt;file&gt;             제공된 파일은 출력 PE의 매니페스트
+-win32manifest:&lt;file&gt;             제공된 파일은 출력 PE의 매니페스트
                                   섹션에 포함됩니다.
-/win32resource:&lt;file&gt;             Win32 리소스 파일(.res)을 지정합니다.
+-win32resource:&lt;file&gt;             Win32 리소스 파일(.res)을 지정합니다.
 
                                   - 코드 생성 -
-/optimize[+|-]                    최적화를 사용합니다.
-/removeintchecks[+|-]             정수 확인을 제거합니다. 기본값은 off입니다.
-/debug[+|-]                       디버깅 정보를 내보냅니다.
-/debug:full                       전체 디버깅 정보를 내보냅니다(기본값).
-/debug:pdbonly                    전체 디버깅 정보를 내보냅니다.
-/debug:portable                   플랫폼 간 디버깅 정보를 내보냅니다.
-/debug:embedded                   플랫폼 간 디버깅 정보를 대상 .dll 또는 .exe로 
+-optimize[+|-]                    최적화를 사용합니다.
+-removeintchecks[+|-]             정수 확인을 제거합니다. 기본값은 off입니다.
+-debug[+|-]                       디버깅 정보를 내보냅니다.
+-debug:full                       전체 디버깅 정보를 내보냅니다(기본값).
+-debug:pdbonly                    전체 디버깅 정보를 내보냅니다.
+-debug:portable                   플랫폼 간 디버깅 정보를 내보냅니다.
+-debug:embedded                   플랫폼 간 디버깅 정보를 대상 .dll 또는 .exe로 
                                   내보냅니다.
-/deterministic                    결정적 어셈블리를 생성합니다
+-deterministic                    결정적 어셈블리를 생성합니다
                                   (모듈 버전 GUID 및 타임스탬프 포함).
-/refonly                          주 출력 대신 참조 어셈블리를 생성합니다.
-/instrument:TestCoverage          검사 정보를 수집하기 위해 계측한
+-refonly                          주 출력 대신 참조 어셈블리를 생성합니다.
+-instrument:TestCoverage          검사 정보를 수집하기 위해 계측한
                                   어셈블리를 생성합니다.
-/sourcelink:&lt;file&gt;                PDB에 포함할 소스 링크 정보입니다.
+-sourcelink:&lt;file&gt;                PDB에 포함할 소스 링크 정보입니다.
 
                                   - 오류 및 경고 -
-/nowarn                           모든 경고를 사용하지 않습니다.
-/nowarn:&lt;number_list&gt;             개별 경고 목록을 사용하지 않습니다.
-/warnaserror[+|-]                 모든 경고를 오류로 처리합니다.
-/warnaserror[+|-]:&lt;number_list&gt;   경고 목록을 오류로 처리합니다.
-/ruleset:&lt;file&gt;                   특정 진단을 사용하지 않도록 하는 규칙 집합을
+-nowarn                           모든 경고를 사용하지 않습니다.
+-nowarn:&lt;number_list&gt;             개별 경고 목록을 사용하지 않습니다.
+-warnaserror[+|-]                 모든 경고를 오류로 처리합니다.
+-warnaserror[+|-]:&lt;number_list&gt;   경고 목록을 오류로 처리합니다.
+-ruleset:&lt;file&gt;                   특정 진단을 사용하지 않도록 하는 규칙 집합을
                                   지정합니다.
-/errorlog:&lt;file&gt;                  모든 컴파일러 및 분석기 진단을 기록할 파일을
+-errorlog:&lt;file&gt;                  모든 컴파일러 및 분석기 진단을 기록할 파일을
                                   지정합니다.
-/reportanalyzer                   추가 분석기 정보(예: 실행 시간)를
+-reportanalyzer                   추가 분석기 정보(예: 실행 시간)를
                                   보고합니다.
 
                                   - 언어 -
-/define:&lt;symbol_list&gt;             전역 조건부 컴파일 기호를 
+-define:&lt;symbol_list&gt;             전역 조건부 컴파일 기호를 
                                   선언합니다. symbol_list:name=value,... 
-                                  (약식: /d)
-/imports:&lt;import_list&gt;            참조된 메타데이터 파일에 네임스페이스의 
+                                  (약식: -d)
+-imports:&lt;import_list&gt;            참조된 메타데이터 파일에 네임스페이스의 
                                   전역 가져오기를 선언합니다. 
                                   import_list:namespace,...
-/langversion:?                    언어 버전에 허용되는 값을 표시합니다.
-/langversion:&lt;string&gt;             언어 버전을
+-langversion:?                    언어 버전에 허용되는 값을 표시합니다.
+-langversion:&lt;string&gt;             언어 버전을
                                   `default`(최신 주 버전),
                                   `latest`(최신 버전, 부 버전 포함),
                                   `14` 또는 `15.3` 같은 특정 버전으로 지정합니다.
-/optionexplicit[+|-]              변수의 명시적 선언을 요구합니다.
-/optioninfer[+|-]                 변수의 형식 유추를 허용합니다.
-/rootnamespace:&lt;string&gt;           모든 형식 선언의 루트 네임스페이스를 
+-optionexplicit[+|-]              변수의 명시적 선언을 요구합니다.
+-optioninfer[+|-]                 변수의 형식 유추를 허용합니다.
+-rootnamespace:&lt;string&gt;           모든 형식 선언의 루트 네임스페이스를 
                                   지정합니다.
-/optionstrict[+|-]                엄격한 언어 의미 체계를 적용합니다.
-/optionstrict:custom              엄격한 언어 의미 체계가 사용되지 않을 때 
+-optionstrict[+|-]                엄격한 언어 의미 체계를 적용합니다.
+-optionstrict:custom              엄격한 언어 의미 체계가 사용되지 않을 때 
                                   경고합니다.
-/optioncompare:binary             이진 스타일 문자열 비교를 지정합니다.
+-optioncompare:binary             이진 스타일 문자열 비교를 지정합니다.
                                   기본값입니다.
-/optioncompare:text               텍스트 스타일 문자열 비교를 지정합니다.
+-optioncompare:text               텍스트 스타일 문자열 비교를 지정합니다.
 
                                   - 기타 -
-/help                             사용법 메시지를 표시합니다. (약식: /?)
-/noconfig                         VBC.RSP 파일을 자동으로 포함하지 않습니다.
-/nologo                           컴파일러 저작권 배너를 표시하지 않습니다.
-/quiet                            자동 출력 모드입니다.
-/verbose                          자세한 메시지를 표시합니다.
-/parallel[+|-]                    동시 빌드입니다. 
-/version                          컴파일러 버전 번호를 표시하고 종료합니다. 
+-help                             사용법 메시지를 표시합니다. (약식: -?)
+-noconfig                         VBC.RSP 파일을 자동으로 포함하지 않습니다.
+-nologo                           컴파일러 저작권 배너를 표시하지 않습니다.
+-quiet                            자동 출력 모드입니다.
+-verbose                          자세한 메시지를 표시합니다.
+-parallel[+|-]                    동시 빌드입니다. 
+-version                          컴파일러 버전 번호를 표시하고 종료합니다. 
 
                                   - 고급 -
-/baseaddress:&lt;number&gt;             16진수로 지정된 라이브러리 또는 모듈의 기준 
+-baseaddress:&lt;number&gt;             16진수로 지정된 라이브러리 또는 모듈의 기준 
                                   주소입니다.
-/checksumalgorithm:&lt;alg&gt;          PDB에 저장된 소스 파일 체크섬을 계산하기 위한 
+-checksumalgorithm:&lt;alg&gt;          PDB에 저장된 소스 파일 체크섬을 계산하기 위한 
                                   알고리즘을 지정합니다. 지원되는 값은
                                   SHA1(기본값) 또는 SHA256입니다.
-/codepage:&lt;number&gt;                소스 파일을 열 때 사용할 코드 페이지를 
+-codepage:&lt;number&gt;                소스 파일을 열 때 사용할 코드 페이지를 
                                   지정합니다.
-/delaysign[+|-]                   강력한 이름 키의 공개 부분만 사용하여
+-delaysign[+|-]                   강력한 이름 키의 공개 부분만 사용하여
                                   어셈블리 서명을 연기합니다.
-/publicsign[+|-]                  강력한 이름 키의 공개 부분만 사용하여
+-publicsign[+|-]                  강력한 이름 키의 공개 부분만 사용하여
                                   어셈블리에 공개 서명합니다.
-/errorreport:&lt;string&gt;             내부 컴파일러 오류를 처리하는 방법을
+-errorreport:&lt;string&gt;             내부 컴파일러 오류를 처리하는 방법을
                                   prompt, send, none 또는 queue(기본값)
                                   중에서 선택합니다.
-/filealign:&lt;number&gt;               출력 파일 섹션에 사용되는 맞춤을 
+-filealign:&lt;number&gt;               출력 파일 섹션에 사용되는 맞춤을 
                                   지정합니다.
-/highentropyva[+|-]               높은 엔트로피 ASLR을 사용합니다.
-/keycontainer:&lt;string&gt;            강력한 이름의 키 컨테이너를 지정합니다.
-/keyfile:&lt;file&gt;                   강력한 이름의 키 파일을 지정합니다.
-/libpath:&lt;path_list&gt;              메타데이터 참조에 대해 검색할 디렉터리 
+-highentropyva[+|-]               높은 엔트로피 ASLR을 사용합니다.
+-keycontainer:&lt;string&gt;            강력한 이름의 키 컨테이너를 지정합니다.
+-keyfile:&lt;file&gt;                   강력한 이름의 키 파일을 지정합니다.
+-libpath:&lt;path_list&gt;              메타데이터 참조에 대해 검색할 디렉터리 
                                   목록이며 세미콜론으로 구분됩니다.
-/main:&lt;class&gt;                     Sub Main을 포함하는 클래스 또는 모듈을 
+-main:&lt;class&gt;                     Sub Main을 포함하는 클래스 또는 모듈을 
                                   지정합니다. System.Windows.Forms.Form에서 상속하는 
                                   클래스를 사용할 수도 있습니다. 
-                                  (약식: /m)
-/moduleassemblyname:&lt;string&gt;      이 모듈이 속할 어셈블리의 
+                                  (약식: -m)
+-moduleassemblyname:&lt;string&gt;      이 모듈이 속할 어셈블리의 
                                   이름입니다.
-/netcf                            .NET Compact Framework를 대상으로 지정합니다.
-/nostdlib                         표준 라이브러리(system.dll 및 VBC.RSP 파일)를 
+-netcf                            .NET Compact Framework를 대상으로 지정합니다.
+-nostdlib                         표준 라이브러리(system.dll 및 VBC.RSP 파일)를 
                                   참조하지 않습니다.
-/pathmap:&lt;K1&gt;=&lt;V1&gt;,&lt;K2&gt;=&lt;V2&gt;,...
+-pathmap:&lt;K1&gt;=&lt;V1&gt;,&lt;K2&gt;=&lt;V2&gt;,...
                                   컴파일러에서 소스 경로 이름 출력에 대한
                                   매핑을 지정합니다.
-/platform:&lt;string&gt;                이 코드를 실행할 수 있는 플랫폼을 
+-platform:&lt;string&gt;                이 코드를 실행할 수 있는 플랫폼을 
                                   x86, x64, Itanium, arm, arm64,
                                   AnyCPU32BitPreferred 또는 anycpu(기본값)로 제한합니다.
-/preferreduilang                  기본 출력 언어 이름을 지정합니다.
-/sdkpath:&lt;path&gt;                   .NET Framework SDK 디렉터리의 
+-preferreduilang                  기본 출력 언어 이름을 지정합니다.
+-nosdkpath                        표준 라이브러리 어셈블리의 기본 SDK 경로를 찾지 않도록 설정합니다.
+-sdkpath:&lt;path&gt;                   .NET Framework SDK 디렉터리의 
                                   위치(mscorlib.dll)입니다.
-/subsystemversion:&lt;version&gt;       출력 PE의 하위 시스템 버전을 지정합니다. 
+-subsystemversion:&lt;version&gt;       출력 PE의 하위 시스템 버전을 지정합니다. 
                                   version:&lt;number&gt;[.&lt;number&gt;]
-/utf8output[+|-]                  UTF8 문자 인코딩으로 컴파일러 출력을 
+-utf8output[+|-]                  UTF8 문자 인코딩으로 컴파일러 출력을 
                                   내보냅니다.
 @&lt;file&gt;                           텍스트 파일에서 명령줄 설정을 삽입합니다.
-/vbruntime[+|-|*]                 기본 Visual Basic 런타임을 사용하거나 사용하지 않고
+-vbruntime[+|-|*]                 기본 Visual Basic 런타임을 사용하거나 사용하지 않고
                                   컴파일합니다.
-/vbruntime:&lt;file&gt;                 &lt;file&gt;에서 대체 Visual Basic 런타임을 사용하여 
+-vbruntime:&lt;file&gt;                 &lt;file&gt;에서 대체 Visual Basic 런타임을 사용하여 
                                   컴파일합니다.
 </target>
         <note />
@@ -8619,7 +8620,7 @@
       </trans-unit>
       <trans-unit id="WRN_UnableToLoadAnalyzer_Title">
         <source>Unable to load analyzer assembly</source>
-        <target state="translated">분석기 어셈블리를 로드할 수 없음</target>
+        <target state="translated">분석기 어셈블리를 로드할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="INF_UnableToLoadSomeTypesInAnalyzer">

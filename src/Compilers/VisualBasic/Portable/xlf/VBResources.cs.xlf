@@ -4,7 +4,7 @@
     <body>
       <trans-unit id="FEATURE_UnconstrainedTypeParameterInConditional">
         <source>unconstrained type parameters in binary conditional expressions</source>
-        <target state="new">unconstrained type parameters in binary conditional expressions</target>
+        <target state="translated">parametry neomezeného typu v binárních podmíněných výrazech</target>
         <note />
       </trans-unit>
       <trans-unit id="Trees0">
@@ -3627,7 +3627,7 @@
       </trans-unit>
       <trans-unit id="ERR_UnableToReadUacManifest2">
         <source>Unable to open Win32 manifest file '{0}' : {1}</source>
-        <target state="translated">Nejde otevřít soubor manifestu {0} : {1}.</target>
+        <target state="translated">Nejde otevřít soubor manifestu Win32 {0} : {1}.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UseValueForXmlExpression3">
@@ -4352,7 +4352,7 @@
       </trans-unit>
       <trans-unit id="ERR_NoTypeArgumentCountOverloadCand1">
         <source>Overload resolution failed because no accessible '{0}' accepts this number of type arguments.</source>
-        <target state="translated">Rozlišení přetěžování se nezdařilo, protože tento počet argumentů nepřijímá žádná přístupná metoda {0}.</target>
+        <target state="translated">Rozlišení přetěžování se nezdařilo, protože tento počet argumentů typu nepřijímá žádná přístupná metoda {0}.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_TypeArgsUnexpected">
@@ -4859,7 +4859,7 @@
       </trans-unit>
       <trans-unit id="ERR_IllegalCondTypeInIIF">
         <source>First operand in a binary 'If' expression must be a nullable value type, a reference type, or an unconstrained generic type.</source>
-        <target state="needs-review-translation">První operand v binárním výrazu If musí být typu, který připouští hodnotu Null, nebo typu odkazu.</target>
+        <target state="translated">První operand v binárním výrazu If musí být typu, který připouští hodnotu Null, nebo typu odkazu.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CantCallIIF">
@@ -7812,7 +7812,7 @@
       </trans-unit>
       <trans-unit id="ERR_MixingWinRTAndNETEvents">
         <source>Event '{0}' cannot implement a Windows Runtime event '{1}' and a regular .NET event '{2}'</source>
-        <target state="translated">Událost {0} nemůže implementovat událost {1} modulu Windows Runtime a současně normální událost {2} rozhraní .NET.</target>
+        <target state="translated">Událost {0} nemůže implementovat událost {1} prostředí Windows Runtime a současně normální událost {2} rozhraní .NET.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_EventImplRemoveHandlerParamWrong">
@@ -7832,12 +7832,12 @@
       </trans-unit>
       <trans-unit id="ERR_ReImplementingWinRTInterface5">
         <source>'{0}.{1}' from 'implements {2}' is already implemented by the base class '{3}'. Re-implementation of Windows Runtime Interface '{4}' is not allowed</source>
-        <target state="translated">'{0}.{1} z klauzule implements {2} je už implementované základní třídou {3}. Opětovná implementace rozhraní Windows Runtime {4} není povolená.</target>
+        <target state="translated">'{0}.{1} z klauzule implements {2} je už implementované základní třídou {3}. Opětovná implementace rozhraní prostředí Windows Runtime {4} není povolená.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ReImplementingWinRTInterface4">
         <source>'{0}.{1}' is already implemented by the base class '{2}'. Re-implementation of Windows Runtime Interface '{3}' is not allowed</source>
-        <target state="translated">'{0}.{1} je už implementované základní třídou {2}. Opětovná implementace rozhraní modulu Windows Runtime {3} není povolená.</target>
+        <target state="translated">'{0}.{1} je už implementované základní třídou {2}. Opětovná implementace rozhraní prostředí Windows Runtime {3} není povolená.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadIteratorByRefParam">
@@ -7872,7 +7872,7 @@
       </trans-unit>
       <trans-unit id="WRN_DefAsgNoRetValWinRtEventVal1">
         <source>The AddHandler for Windows Runtime event '{0}' doesn't return a value on all code paths. Are you missing a 'Return' statement?</source>
-        <target state="translated">AddHandler pro událost Windows Runtimu {0} nevrací hodnotu na všech cestách kódu. Nechybí příkaz Return?</target>
+        <target state="translated">AddHandler pro událost prostředí Windows Runtime {0} nevrací hodnotu na všech cestách kódu. Nechybí příkaz Return?</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DefAsgNoRetValWinRtEventVal1_Title">
@@ -8396,163 +8396,164 @@
 -vbruntime:&lt;file&gt;                 Compile with the alternate Visual Basic
                                   runtime in &lt;file&gt;.
 </source>
-        <target state="needs-review-translation">                  Parametry kompilátoru Visual Basic
+        <target state="translated">                  Parametry kompilátoru Visual Basic
 
                                   - VÝSTUPNÍ SOUBOR -
-/out:&lt;soubor&gt;                     Určuje název výstupního souboru.
-/target:exe                       Vytvoří konzolovou aplikaci (výchozí).
-                                  (Krátký tvar: /t)
-/target:winexe                    Vytvoří aplikaci Windows.
-/target:library                   Vytvoří sestavení knihovny.
-/target:module                    Vytvoří modul, který jde přidat
+-out:&lt;soubor&gt;                     Určuje název výstupního souboru.
+-target:exe                       Vytvoří konzolovou aplikaci (výchozí).
+                                  (Krátký tvar: -t)
+-target:winexe                    Vytvoří aplikaci Windows.
+-target:library                   Vytvoří sestavení knihovny.
+-target:module                    Vytvoří modul, který jde přidat
                                   do sestavení.
-/target:appcontainerexe           Vytvoří aplikaci Windows, která bude běžet
+-target:appcontainerexe           Vytvoří aplikaci Windows, která bude běžet
                                   v kontejneru AppContainer.
-/target:winmdobj                  Vytvoří pomocný soubor metadat Windows.
-/doc[+|-]                         Generuje soubor dokumentace XML.
-/doc:&lt;soubor&gt;                     Generuje soubor dokumentace XML s určeným názvem.
-/refout:&lt;file&gt;                    Výstup referenčního sestavení, který se bude generovat
+-target:winmdobj                  Vytvoří pomocný soubor metadat Windows.
+-doc[+|-]                         Generuje soubor dokumentace XML.
+-doc:&lt;soubor&gt;                     Generuje soubor dokumentace XML s určeným názvem.
+-refout:&lt;file&gt;                    Výstup referenčního sestavení, který se bude generovat
 
                                   - VSTUPNÍ SOUBORY -
-/addmodule:&lt;seznam_souborů&gt;       Odkazuje na metadata ze zadaných modulů.
-/link:&lt;seznam_souborů&gt;            Vloží metadata ze zadaného definičního
-                                  sestavení. (Krátký tvar: /l)
-/recurse:&lt;zástupný_znak&gt;          Zahrne všechny soubory v aktuálním adresáři
+-addmodule:&lt;seznam_souborů&gt;       Odkazuje na metadata ze zadaných modulů.
+-link:&lt;seznam_souborů&gt;            Vloží metadata ze zadaného definičního
+                                  sestavení. (Krátký tvar: -l)
+-recurse:&lt;zástupný_znak&gt;          Zahrne všechny soubory v aktuálním adresáři
                                   a podadresářích podle zadaného
                                   zástupného znaku.
-/reference:&lt;seznam_souborů&gt;       Odkazuje na metadata ze zadaného
-                                  sestavení. (Krátký tvar: /r)
-/analyzer:&lt;seznam_souborů&gt;        Spustí analyzátory z tohoto sestavení.
-                                  (Krátký tvar: /a)
-/additionalfile:&lt;seznam_souborů&gt;  Další soubory, které přímo neovlivňují generování
+-reference:&lt;seznam_souborů&gt;       Odkazuje na metadata ze zadaného
+                                  sestavení. (Krátký tvar: -r)
+-analyzer:&lt;seznam_souborů&gt;        Spustí analyzátory z tohoto sestavení.
+                                  (Krátký tvar: -a)
+-additionalfile:&lt;seznam_souborů&gt;  Další soubory, které přímo neovlivňují generování
                                   kódu, ale analyzátory můžou jejich pomocí
                                   produkovat chyby nebo upozornění.
 
                                   - PROSTŘEDKY -
-/linkresource:&lt;prostředek&gt;        Připojí zadaný soubor jako externí prostředek
+-linkresource:&lt;prostředek&gt;        Připojí zadaný soubor jako externí prostředek
                                   sestavení.
                                   prostředek: &lt;soubor&gt;[,&lt;název&gt;[,public|private]]
-                                  (Krátký tvar: /linkres)
-/nowin32manifest                  Výchozí manifest by se neměl vkládat
+                                  (Krátký tvar: -linkres)
+-nowin32manifest                  Výchozí manifest by se neměl vkládat
                                   do oddílu manifestu výstupního PE.
-/resource:&lt;prostředek&gt;            Přidá zadaný soubor jako vložený prostředek
+-resource:&lt;prostředek&gt;            Přidá zadaný soubor jako vložený prostředek
                                   sestavení.
                                   prostředek: &lt;soubor&gt;[,&lt;název&gt;[,public|private]]
-                                  (Krátký tvar: /res)
-/win32icon:&lt;soubor&gt;               Určuje soubor ikony Win32 (.ico) pro
+                                  (Krátký tvar: -res)
+-win32icon:&lt;soubor&gt;               Určuje soubor ikony Win32 (.ico) pro
                                   výchozí prostředky Win32.
-/win32manifest:&lt;soubor&gt;           Zadaný soubor se vloží do oddílu
+-win32manifest:&lt;soubor&gt;           Zadaný soubor se vloží do oddílu
                                   manifestu výstupního PE.
-/win32resource:&lt;soubor&gt;           Určuje soubor prostředků Win32 (.res).
+-win32resource:&lt;soubor&gt;           Určuje soubor prostředků Win32 (.res).
 
                                   - GENEROVÁNÍ KÓDU -
-/optimize[+|-]                    Povolí optimalizace.
-/removeintchecks[+|-]             Odebere kontroly celých čísel. Standardně vypnuté.
-/debug[+|-]                       Generuje ladicí informace.
-/debug:full                       Generuje úplné ladicí informace (výchozí).
-/debug:pdbonly                    Generuje úplné ladicí informace.
-/debug:portable                   Generuje ladicí informace napříč platformami.
-/debug:embedded                   Generuje ladicí informace napříč platformami
+-optimize[+|-]                    Povolí optimalizace.
+-removeintchecks[+|-]             Odebere kontroly celých čísel. Standardně vypnuté.
+-debug[+|-]                       Generuje ladicí informace.
+-debug:full                       Generuje úplné ladicí informace (výchozí).
+-debug:pdbonly                    Generuje úplné ladicí informace.
+-debug:portable                   Generuje ladicí informace napříč platformami.
+-debug:embedded                   Generuje ladicí informace napříč platformami
                                   do cílového souboru .dll nebo .exe.
-/deterministic                    Vytvoří deterministické sestavení
+-deterministic                    Vytvoří deterministické sestavení
                                   (včetně GUID verze modulu a časového razítka).
-/refonly                          Vytvoří referenční sestavení na místě hlavního výstupu.
-/instrument:TestCoverage          Vytvoří sestavení instrumentované pro shromažďování informací
+-refonly                          Vytvoří referenční sestavení na místě hlavního výstupu.
+-instrument:TestCoverage          Vytvoří sestavení instrumentované pro shromažďování informací
                                   o pokrytí.
-/sourcelink:&lt;soubor&gt;              Informace o zdrojovém odkazu vkládané do přenosného PDB.
+-sourcelink:&lt;soubor&gt;              Informace o zdrojovém odkazu vkládané do přenosného PDB.
 
                                   - CHYBY A UPOZORNĚNÍ -
-/nowarn                           Zakáže všechna upozornění.
-/nowarn:&lt;seznam_čísel&gt;            Zakáže upozornění ze seznamu.
-/warnaserror[+|-]                 Zpracuje všechna upozornění jako chyby.
-/warnaserror[+|-]:&lt;seznam_čísel&gt;  Zpracuje zadaná upozornění jako chyby.
-/ruleset:&lt;soubor&gt;                 Určuje soubor sady pravidel, která zakazuje
+-nowarn                           Zakáže všechna upozornění.
+-nowarn:&lt;seznam_čísel&gt;            Zakáže upozornění ze seznamu.
+-warnaserror[+|-]                 Zpracuje všechna upozornění jako chyby.
+-warnaserror[+|-]:&lt;seznam_čísel&gt;  Zpracuje zadaná upozornění jako chyby.
+-ruleset:&lt;soubor&gt;                 Určuje soubor sady pravidel, která zakazuje
                                   specifickou diagnostiku.
-/errorlog:&lt;soubor&gt;                Určuje soubor pro protokolování veškeré diagnostiky
+-errorlog:&lt;soubor&gt;                Určuje soubor pro protokolování veškeré diagnostiky
                                   kompilátoru a analyzátoru.
-/reportanalyzer                   Oznamuje další informace analyzátoru, jako třeba
+-reportanalyzer                   Oznamuje další informace analyzátoru, jako třeba
                                   dobu zpracování.
 
                                   - JAZYK -
-/define:&lt;seznam_symbolů&gt;          Deklaruje globální symboly podmíněné
+-define:&lt;seznam_symbolů&gt;          Deklaruje globální symboly podmíněné
                                   kompilace. seznam_symbolů: název=hodnota,...
-                                  (Krátký tvar: /d)
-/imports:&lt;seznam_importů&gt;         Deklaruje globální importy pro obory názvů
+                                  (Krátký tvar: -d)
+-imports:&lt;seznam_importů&gt;         Deklaruje globální importy pro obory názvů
                                   v odkazovaných souborech metadat.
                                   seznam_importů: obor_názvů,...
-/langversion:?                    Zobrazí povolené hodnoty jazykové verze.                              
-/langversion:&lt;číslo&gt;              Určuje jazykovou verzi, například
+-langversion:?                    Zobrazí povolené hodnoty jazykové verze.                              
+-langversion:&lt;číslo&gt;              Určuje jazykovou verzi, například
                                   default (nejnovější hlavní verze) nebo
                                   latest (nejnovější verze včetně podverzí) nebo
                                   konkrétní verze, například 14 nebo 15.3.
-/optionexplicit[+|-]              Vyžaduje explicitní deklarování proměnných.
-/optioninfer[+|-]                 Povoluje odvození typu proměnných.
-/rootnamespace:&lt;řetězec&gt;          Určuje kořenový obor názvů pro všechny
+-optionexplicit[+|-]              Vyžaduje explicitní deklarování proměnných.
+-optioninfer[+|-]                 Povoluje odvození typu proměnných.
+-rootnamespace:&lt;řetězec&gt;          Určuje kořenový obor názvů pro všechny
                                   deklarace typů.
-/optionstrict[+|-]                Vynucuje striktní sémantiku jazyka.
-/optionstrict:custom              Upozorňuje na nedodržování striktní
+-optionstrict[+|-]                Vynucuje striktní sémantiku jazyka.
+-optionstrict:custom              Upozorňuje na nedodržování striktní
                                   sémantiky jazyka.
-/optioncompare:binary             Určuje binární styl porovnávání řetězců.
+-optioncompare:binary             Určuje binární styl porovnávání řetězců.
                                   Jde o výchozí možnost.
-/optioncompare:text               Určuje textový styl porovnávání řetězců.
+-optioncompare:text               Určuje textový styl porovnávání řetězců.
 
                                   - RŮZNÉ -
-/help                             Zobrazí tuto zprávu o použití. (Krátký tvar: /?)
-/noconfig                         Nezahrnuje automaticky soubor VBC.RSP.
-/nologo                           Nezobrazí zprávu o autorských právech kompilátoru.
-/quiet                            Určuje tichý výstupní režim.
-/verbose                          Zobrazí podrobné zprávy.
-/parallel[+|-]                    Souběžné sestavení 
-/version                          Zobrazí číslo verze kompilátoru a ukončí se.
+-help                             Zobrazí tuto zprávu o použití. (Krátký tvar: -?)
+-noconfig                         Nezahrnuje automaticky soubor VBC.RSP.
+-nologo                           Nezobrazí zprávu o autorských právech kompilátoru.
+-quiet                            Určuje tichý výstupní režim.
+-verbose                          Zobrazí podrobné zprávy.
+-parallel[+|-]                    Souběžné sestavení 
+-version                          Zobrazí číslo verze kompilátoru a ukončí se.
 
                                   - POKROČILÉ -
-/baseaddress:&lt;číslo&gt;              Určuje základní adresu pro knihovnu nebo
+-baseaddress:&lt;číslo&gt;              Určuje základní adresu pro knihovnu nebo
                                   modul (hex).
-/checksumalgorithm:&lt;alg&gt;          Určuje algoritmus pro výpočet kontrolního součtu
+-checksumalgorithm:&lt;alg&gt;          Určuje algoritmus pro výpočet kontrolního součtu
                                   zdrojového souboru uloženého v PDB. Podporované
                                   hodnoty jsou SHA1 (výchozí) nebo SHA256.
-/codepage:&lt;číslo&gt;                 Určuje znakovou stránku, která se má použít
+-codepage:&lt;číslo&gt;                 Určuje znakovou stránku, která se má použít
                                   při otevírání zdrojových souborů.
-/delaysign[+|-]                   Vytvoří zpožděný podpis sestavení s využitím
+-delaysign[+|-]                   Vytvoří zpožděný podpis sestavení s využitím
                                   veřejné části klíče silného názvu.
-/publicsign[+|-]                  Vytvoří veřejný podpis sestavení s využitím jenom veřejné
+-publicsign[+|-]                  Vytvoří veřejný podpis sestavení s využitím jenom veřejné
                                   části klíče silného názvu.
-/errorreport:&lt;řetězec&gt;            Určuje způsob zpracování interních chyb
+-errorreport:&lt;řetězec&gt;            Určuje způsob zpracování interních chyb
                                   kompilátoru: prompt, send, none nebo queue
                                   (výchozí).
-/filealign:&lt;číslo&gt;                Určuje zarovnání použité pro oddíly výstupního
+-filealign:&lt;číslo&gt;                Určuje zarovnání použité pro oddíly výstupního
                                   souboru.
-/highentropyva[+|-]               Povoluje ASLR s vysokou entropií.
-/keycontainer:&lt;řetězec&gt;           Určuje kontejner klíče se silným názvem.
-/keyfile:&lt;soubor&gt;                 Určuje soubor klíče se silným názvem.
-/libpath:&lt;seznam_cest&gt;            Seznam adresářů, kde se mají hledat odkazy
+-highentropyva[+|-]               Povoluje ASLR s vysokou entropií.
+-keycontainer:&lt;řetězec&gt;           Určuje kontejner klíče se silným názvem.
+-keyfile:&lt;soubor&gt;                 Určuje soubor klíče se silným názvem.
+-libpath:&lt;seznam_cest&gt;            Seznam adresářů, kde se mají hledat odkazy
                                   na metadata (oddělený středníky)
-/main:&lt;třída&gt;                     Určuje třídu nebo modul obsahující
+-main:&lt;třída&gt;                     Určuje třídu nebo modul obsahující
                                   Sub Main. Může to být taky třída, která
                                   dědí od System.Windows.Forms.Form.
-                                  (Krátký tvar: /m)
-/moduleassemblyname:&lt;řetězec&gt;     Určuje název sestavení, jehož součástí bude
+                                  (Krátký tvar: -m)
+-moduleassemblyname:&lt;řetězec&gt;     Určuje název sestavení, jehož součástí bude
                                   tento modul.
-/netcf                            Cílí na .NET Compact Framework.
-/nostdlib                         Neodkazuje na standardní knihovny
+-netcf                            Cílí na .NET Compact Framework.
+-nostdlib                         Neodkazuje na standardní knihovny
                                   (system.dll a VBC.RSP).
-/pathmap:&lt;K1&gt;=&lt;V1&gt;,&lt;K2&gt;=&lt;V2&gt;,...
+-pathmap:&lt;K1&gt;=&lt;V1&gt;,&lt;K2&gt;=&lt;V2&gt;,...
                                   Určuje mapování pro výstup zdrojových názvů cest
                                   kompilátorem.
-/platform:&lt;řetězec&gt;               Omezuje platformy, na kterých se dá tento kód
+-platform:&lt;řetězec&gt;               Omezuje platformy, na kterých se dá tento kód
                                   spustit: x86, x64, Itanium, arm, arm64,
                                   AnyCPU32BitPreferred nebo anycpu (výchozí).
-/preferreduilang                  Určuje název upřednostňovaného výstupního jazyka.
-/sdkpath:&lt;cesta&gt;                  Umístění adresáře s .NET Framework SDK
+-preferreduilang                  Určuje název upřednostňovaného výstupního jazyka.
+-nosdkpath                        Zakáže hledání cesty k výchozí sadě SDK pro sestavení standardních knihoven.
+-sdkpath:&lt;cesta&gt;                  Umístění adresáře s .NET Framework SDK
                                   (mscorlib.dll).
-/subsystemversion:&lt;verze&gt;         Určuje verzi subsystému výstupního PE.
+-subsystemversion:&lt;verze&gt;         Určuje verzi subsystému výstupního PE.
                                   verze: &lt;číslo&gt;[.&lt;číslo&gt;]
-/utf8output[+|-]                  Generuje výstup kompilátoru v kódování
+-utf8output[+|-]                  Generuje výstup kompilátoru v kódování
                                   UTF-8.
 @&lt;soubor&gt;                         Vloží nastavení příkazového řádku ze souboru.
-/vbruntime[+|-|*]                 Kompiluje s výchozím modulem runtime nebo bez něj
+-vbruntime[+|-|*]                 Kompiluje s výchozím modulem runtime nebo bez něj
                                   Visual Basicu.
-/vbruntime:&lt;soubor&gt;               Kompiluje s alternativním modulem runtime
+-vbruntime:&lt;soubor&gt;               Kompiluje s alternativním modulem runtime
                                   Visual Basicu určeným parametrem &lt;soubor&gt;.
 </target>
         <note />
@@ -8814,7 +8815,7 @@
       </trans-unit>
       <trans-unit id="FEATURE_NullPropagatingOperator">
         <source>null conditional operations</source>
-        <target state="translated">nulové podmíněné operace</target>
+        <target state="translated">podmíněné operace null</target>
         <note />
       </trans-unit>
       <trans-unit id="FEATURE_NameOfExpressions">

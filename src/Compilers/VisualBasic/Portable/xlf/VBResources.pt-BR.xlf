@@ -4,7 +4,7 @@
     <body>
       <trans-unit id="FEATURE_UnconstrainedTypeParameterInConditional">
         <source>unconstrained type parameters in binary conditional expressions</source>
-        <target state="new">unconstrained type parameters in binary conditional expressions</target>
+        <target state="translated">parâmetros de tipo irrestritos em expressões condicionais binárias</target>
         <note />
       </trans-unit>
       <trans-unit id="Trees0">
@@ -2877,12 +2877,12 @@
       </trans-unit>
       <trans-unit id="ERR_ParameterizedPropertyInAggrInit1">
         <source>Property '{0}' cannot be initialized in an object initializer expression because it requires arguments.</source>
-        <target state="translated">Propriedade "{0}" não pode ser inicializada em uma expressão de inicializador de objeto porque todas as sobrecargas acessíveis requerem argumentos.</target>
+        <target state="translated">Propriedade '{0}' não pode ser inicializada em uma expressão de inicializador de objeto porque isso requer argumentos.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoZeroCountArgumentInitCandidates1">
         <source>Property '{0}' cannot be initialized in an object initializer expression because all accessible overloads require arguments.</source>
-        <target state="translated">Propriedade "{0}" não pode ser inicializada em uma expressão de inicializador de objeto porque todas as sobrecargas acessíveis requerem argumentos.</target>
+        <target state="translated">Propriedade '{0}' não pode ser inicializada em uma expressão de inicializador de objeto porque todas as sobrecargas acessíveis requerem argumentos.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AggrInitInvalidForObject">
@@ -3242,7 +3242,7 @@
       </trans-unit>
       <trans-unit id="ERR_NoAccessibleGet">
         <source>'Get' accessor of property '{0}' is not accessible.</source>
-        <target state="translated">'Acessador de propriedade "Set" "{0}" não está acessível.</target>
+        <target state="translated">'Acessador de propriedade "Get" "{0}" não está acessível.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_WriteOnlyNoAccessorFlag">
@@ -4147,7 +4147,7 @@
       </trans-unit>
       <trans-unit id="ERR_RequiredNewCallTooMany2">
         <source>First statement of this 'Sub New' must be a call to 'MyBase.New' or 'MyClass.New' because base class '{0}' of '{1}' has more than one accessible 'Sub New' that can be called with no arguments.</source>
-        <target state="translated">Primeira instrução deste "Sub New" deve ser uma chamada para "MyBase.New" ou "MyClass.New" porque a classe base "{0}" de "{1}" não tem um "Sub New" acessível que pode ser chamado sem argumentos.</target>
+        <target state="translated">Primeira instrução deste "Sub New" deve ser uma chamada para "MyBase.New" ou "MyClass.New" porque a classe base "{0}" de "{1}" tem mais de um "Sub New" acessível que pode ser chamado sem argumentos.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ForCtlVarArraySizesSpecified">
@@ -4859,7 +4859,7 @@
       </trans-unit>
       <trans-unit id="ERR_IllegalCondTypeInIIF">
         <source>First operand in a binary 'If' expression must be a nullable value type, a reference type, or an unconstrained generic type.</source>
-        <target state="needs-review-translation">O primeiro operando em uma expressão 'If' binária deve ser anulável ou um tipo de referência.</target>
+        <target state="translated">O primeiro operando em uma expressão binária 'If' precisa ser um tipo de valor que permite valor nulo, um tipo de referência ou um tipo genérico irrestrito.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CantCallIIF">
@@ -5378,7 +5378,7 @@
       </trans-unit>
       <trans-unit id="ERR_AddressOfInSelectCaseExpr">
         <source>'AddressOf' expressions are not valid in the first expression of a 'Select Case' statement.</source>
-        <target state="translated">'Expressões 'AddressOf' não são válidas na primeira expressão de uma instrução 'Select Case'. </target>
+        <target state="translated">'Expressões 'AddressOf' não são válidas na primeira expressão de uma instrução 'Select Case'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NullableCharNotSupported">
@@ -6730,7 +6730,7 @@
       </trans-unit>
       <trans-unit id="WRN_XMLDocBadFormedXML">
         <source>Unable to include XML fragment '{1}' of file '{0}'. {2}</source>
-        <target state="translated">Não é possível incluir fragmento XML "{1}" do arquivo "{0}". {2} </target>
+        <target state="translated">Não é possível incluir fragmento XML "{1}" do arquivo "{0}". {2}</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_XMLDocBadFormedXML_Title">
@@ -7812,7 +7812,7 @@
       </trans-unit>
       <trans-unit id="ERR_MixingWinRTAndNETEvents">
         <source>Event '{0}' cannot implement a Windows Runtime event '{1}' and a regular .NET event '{2}'</source>
-        <target state="translated">Evento "{0}" não pode implementar um evento de Tempo de Execução do Windows "{1}" e um evento .NET regular "{2}"</target>
+        <target state="translated">Evento "{0}" não pode implementar um evento do Windows Runtime "{1}" e um evento .NET regular "{2}"</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_EventImplRemoveHandlerParamWrong">
@@ -7827,17 +7827,17 @@
       </trans-unit>
       <trans-unit id="ERR_RemoveParamWrongForWinRT">
         <source>In a Windows Runtime event, the type of the 'RemoveHandler' method parameter must be 'EventRegistrationToken'</source>
-        <target state="translated">Em um evento do Tempo de Execução do Windows, o tipo do parâmetro do método 'RemoveHandler' deve ser 'EventRegistrationToken'</target>
+        <target state="translated">Em um evento do Windows Runtime, o tipo do parâmetro do método 'RemoveHandler' deve ser 'EventRegistrationToken'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ReImplementingWinRTInterface5">
         <source>'{0}.{1}' from 'implements {2}' is already implemented by the base class '{3}'. Re-implementation of Windows Runtime Interface '{4}' is not allowed</source>
-        <target state="translated">'{0}.{1}' de 'implementa {2}' já foi implementado pela classe base '{3}'. A reimplementação da Interface do Tempo de Execução do Windows '{4}' não é permitida</target>
+        <target state="translated">'{0}.{1}' de 'implementa {2}' já foi implementado pela classe base '{3}'. A reimplementação da Interface do Windows Runtime '{4}' não é permitida</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ReImplementingWinRTInterface4">
         <source>'{0}.{1}' is already implemented by the base class '{2}'. Re-implementation of Windows Runtime Interface '{3}' is not allowed</source>
-        <target state="translated">'{0}.{1}' já foi implementado pela classe base '{2}'. A reimplementação da Interface do Tempo de Execução do Windows '{3}' não é permitida</target>
+        <target state="translated">'{0}.{1}' já foi implementado pela classe base '{2}'. A reimplementação da Interface do Windows Runtime '{3}' não é permitida</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadIteratorByRefParam">
@@ -7872,12 +7872,12 @@
       </trans-unit>
       <trans-unit id="WRN_DefAsgNoRetValWinRtEventVal1">
         <source>The AddHandler for Windows Runtime event '{0}' doesn't return a value on all code paths. Are you missing a 'Return' statement?</source>
-        <target state="translated">O AddHandler para evento de Tempo de Execução do Windows "{0}" não retorna um valor em todos os caminhos de código. Está faltando uma instrução "Return"?</target>
+        <target state="translated">O AddHandler para evento do Windows Runtime "{0}" não retorna um valor em todos os caminhos de código. Está faltando uma instrução "Return"?</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DefAsgNoRetValWinRtEventVal1_Title">
         <source>The AddHandler for Windows Runtime event doesn't return a value on all code paths</source>
-        <target state="translated">O AddHandler para Tempo de Execução do Windows não retorna um valor em todos os caminhos de código</target>
+        <target state="translated">O AddHandler para Windows Runtime não retorna um valor em todos os caminhos de código</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodDefaultParameterValueMismatch2">
@@ -8396,163 +8396,164 @@
 -vbruntime:&lt;file&gt;                 Compile with the alternate Visual Basic
                                   runtime in &lt;file&gt;.
 </source>
-        <target state="needs-review-translation">                  Opções do Compilador do Visual Basic
+        <target state="translated">                  Opções do Compilador do Visual Basic
 
                                   – ARQUIVO DE SAÍDA –
-/out:&lt;file&gt;                       Especifica o nome do arquivo de saída.
-/target:exe                       Criar um aplicativo de console (padrão). 
-                                  (Forma abreviada: /t)
-/target:winexe                    Criar um aplicativo do Windows.
-/target:library                   Criar um assembly de biblioteca.
-/target:module                    Criar um módulo que pode ser adicionado a um 
+-out:&lt;file&gt;                       Especifica o nome do arquivo de saída.
+-target:exe                       Criar um aplicativo de console (padrão). 
+                                  (Forma abreviada: -t)
+-target:winexe                    Criar um aplicativo do Windows.
+-target:library                   Criar um assembly de biblioteca.
+-target:module                    Criar um módulo que pode ser adicionado a um 
                                   assembly.
-/target:appcontainerexe           Criar um aplicativo do Windows que executa no 
+-target:appcontainerexe           Criar um aplicativo do Windows que executa no 
                                   AppContainer.
-/target:winmdobj                  Criar um arquivo intermediário de Metadados do Windows
-/doc[+|-]                         Gera um arquivo de documentação XML.
-/doc:&lt;file&gt;                       Gera um arquivo de documentação XML para &lt;file&gt;.
-/refout:&lt;file&gt;                    Saída do assembly de referência a ser gerado
+-target:winmdobj                  Criar um arquivo intermediário de Metadados do Windows
+-doc[+|-]                         Gera um arquivo de documentação XML.
+-doc:&lt;file&gt;                       Gera um arquivo de documentação XML para &lt;file&gt;.
+-refout:&lt;file&gt;                    Saída do assembly de referência a ser gerado
 
                                   – ARQUIVOS DE ENTRADA –
-/addmodule:&lt;file_list&gt;            Metadados de referência dos módulos especificados
-/link:&lt;file_list&gt;                 Inserir metadados do assembly de interoperalidade 
-                                  especificado. (Forma abreviada: /l)
-/recurse:&lt;wildcard&gt;               Incluir todos os arquivos no diretório e subdiretórios 
+-addmodule:&lt;file_list&gt;            Metadados de referência dos módulos especificados
+-link:&lt;file_list&gt;                 Inserir metadados do assembly de interoperalidade 
+                                  especificado. (Forma abreviada: -l)
+-recurse:&lt;wildcard&gt;               Incluir todos os arquivos no diretório e subdiretórios 
                                   atuais de acordo com as
                                   especificações curinga.
-/reference:&lt;file_list&gt;            Metadados de referência do assembly 
-                                  especificado. (Forma abreviada: /r)
-/analyzer:&lt;file_list&gt;             Executa os analisadores do assembly
-                                  (Forma abreviada: /a)
-/additionalfile:&lt;file list&gt;       Arquivos adicionais que não afetam diretamente a geração de
+-reference:&lt;file_list&gt;            Metadados de referência do assembly 
+                                  especificado. (Forma abreviada: -r)
+-analyzer:&lt;file_list&gt;             Executa os analisadores do assembly
+                                  (Forma abreviada: -a)
+-additionalfile:&lt;file list&gt;       Arquivos adicionais que não afetam diretamente a geração de
                                   código, mas que podem ser usados por analisadores para produzir
                                   erros ou avisos.
 
                                   – RECURSOS –
-/linkresource:&lt;resinfo&gt;           Vincula o arquivo especificado como um recurso do 
+-linkresource:&lt;resinfo&gt;           Vincula o arquivo especificado como um recurso do 
                                   assembly externo.
                                   resinfo:&lt;file&gt;[,&lt;name&gt;[,public|private]] 
-                                  (Forma abreviada: /linkres)
-/nowin32manifest                  O manifesto padrão não deve ser inserido 
+                                  (Forma abreviada: -linkres)
+-nowin32manifest                  O manifesto padrão não deve ser inserido 
                                   na seção do manifesto do PE de saída.
-/resource:&lt;resinfo&gt;               Adiciona o arquivo especificado como um recurso inserido do 
+-resource:&lt;resinfo&gt;               Adiciona o arquivo especificado como um recurso inserido do 
                                   assembly.
                                   resinfo:&lt;file&gt;[,&lt;name&gt;[,public|private]] 
-                                  (Forma abreviada: /res)
-/win32icon:&lt;file&gt;                 Especifica um arquivo de ícone Win32 (.ico) para os 
+                                  (Forma abreviada: -res)
+-win32icon:&lt;file&gt;                 Especifica um arquivo de ícone Win32 (.ico) para os 
                                   recursos Win32 padrão.
-/win32manifest:&lt;file&gt;             O arquivo fornecido é inserido na seção do manifesto
+-win32manifest:&lt;file&gt;             O arquivo fornecido é inserido na seção do manifesto
                                   do PE de saída.
-/win32resource:&lt;file&gt;             Especifica um arquivo de recurso Win32 (.res).
+-win32resource:&lt;file&gt;             Especifica um arquivo de recurso Win32 (.res).
 
                                   – GERAÇÃO DE CÓDIGO –
-/optimize[+|-]                    Habilitar otimizações.
-/removeintchecks[+|-]             Remover verificações de números inteiros. O padrão é desligado.
-/debug[+|-]                       Emitir informações de depuração.
-/debug:full                       Emitir informações de depuração completas (padrão).
-/debug:pdbonly                    Emitir informações de depuração completas.
-/debug:portable                   Emitir informações de depuração multiplataforma.
-/debug:embedded                   Emitir informações de depuração multiplataforma 
+-optimize[+|-]                    Habilitar otimizações.
+-removeintchecks[+|-]             Remover verificações de números inteiros. O padrão é desligado.
+-debug[+|-]                       Emitir informações de depuração.
+-debug:full                       Emitir informações de depuração completas (padrão).
+-debug:pdbonly                    Emitir informações de depuração completas.
+-debug:portable                   Emitir informações de depuração multiplataforma.
+-debug:embedded                   Emitir informações de depuração multiplataforma 
                                   no .dll ou no .exe de destino.
-/deterministic                    Produzir um assembly determinístico
+-deterministic                    Produzir um assembly determinístico
                                   (incluindo carimbo de data/hora e GUID da versão do módulo)
-/refonly          Produzir um assembly de referência no lugar do instrumento de saída
-/principal:TestCoverage         Produzir um assembly instrumentado para coletar
+-refonly          Produzir um assembly de referência no lugar do instrumento de saída
+-principal:TestCoverage         Produzir um assembly instrumentado para coletar
                                   informações de cobertura
-/sourcelink:&lt;file&gt;                Informações do link de origem para inserir no PDB.
+-sourcelink:&lt;file&gt;                Informações do link de origem para inserir no PDB.
 
                                   – ERROS E AVISOS –
-/nowarn                           Desabilitar todos os avisos.
-/nowarn:&lt;number_list&gt;             Desabilitar uma lista de avisos individuais.
-/warnaserror[+|-]                 Tratar todos os avisos como erros.
-/warnaserror[+|-]:&lt;number_list&gt;   Tratar uma lista de avisos como erros.
-/ruleset:&lt;file&gt;                   Especificar um arquivo de conjunto de regras que desabilita um diagnóstico
+-nowarn                           Desabilitar todos os avisos.
+-nowarn:&lt;number_list&gt;             Desabilitar uma lista de avisos individuais.
+-warnaserror[+|-]                 Tratar todos os avisos como erros.
+-warnaserror[+|-]:&lt;number_list&gt;   Tratar uma lista de avisos como erros.
+-ruleset:&lt;file&gt;                   Especificar um arquivo de conjunto de regras que desabilita um diagnóstico
                                   específico.
-/errorlog:&lt;file&gt;                  Especificar um arquivo para registrar todos os diagnósticos do compilador e do
+-errorlog:&lt;file&gt;                  Especificar um arquivo para registrar todos os diagnósticos do compilador e do
                                   analisador.
-/reportanalyzer                   Relatar informações adicionais do analisador, como o
+-reportanalyzer                   Relatar informações adicionais do analisador, como o
                                   tempo de execução.
 
                                   – LINGUAGEM –
-/define:&lt;symbol_list&gt;             Declarar os símbolos globais de 
+-define:&lt;symbol_list&gt;             Declarar os símbolos globais de 
                                   compilação condicional. symbol_list:name=value,... 
-                                  (Forma abreviada: /d)
-/imports:&lt;import_list&gt;            Declarar as importações globais dos namespaces nos 
+                                  (Forma abreviada: -d)
+-imports:&lt;import_list&gt;            Declarar as importações globais dos namespaces nos 
                                   arquivos de metadados referenciados. 
                                   import_list:namespace,...
-/langversion:?                                  Exibir todos os valores permitidos para a versão da linguagem
-/langversion:&lt;string&gt;              Especificar a versão da linguagem como:
+-langversion:?                                  Exibir todos os valores permitidos para a versão da linguagem
+-langversion:&lt;string&gt;              Especificar a versão da linguagem como:
                                `padrão` (versão principal mais recente) ou
                                `mais recente` (versão mais recente, incluindo versões secundárias),
                                ou versões específicas como `14` ou `15.3`
-/optionexplicit[+|-]              Exigir declaração explícita de variáveis.
-/optioninfer[+|-]                 Permitir inferência de tipos de variáveis.
-/rootnamespace:&lt;string&gt;           Especifica o Namespace raiz para todos os tipos de 
+-optionexplicit[+|-]              Exigir declaração explícita de variáveis.
+-optioninfer[+|-]                 Permitir inferência de tipos de variáveis.
+-rootnamespace:&lt;string&gt;           Especifica o Namespace raiz para todos os tipos de 
                                   declarações.
-/optionstrict[+|-]                Impor semântica de linguagem estrita.
-/optionstrict:custom              Avisar quando a semântica de linguagem estrita não é
+-optionstrict[+|-]                Impor semântica de linguagem estrita.
+-optionstrict:custom              Avisar quando a semântica de linguagem estrita não é
                                   respeitada.
-/optioncompare:binary             Especifica comparações de cadeia de caracteres de estilo binário.
+-optioncompare:binary             Especifica comparações de cadeia de caracteres de estilo binário.
                                   Esse é o padrão.
-/optioncompare:text               Especifica comparações de cadeia de caracteres de estilo de texto.
+-optioncompare:text               Especifica comparações de cadeia de caracteres de estilo de texto.
 
                                   – DIVERSOS –
-/help                             Exibir essa mensagem de uso. (Forma abreviada: /?)
-/noconfig                         Não incluir o arquivo VBC.RSP automaticamente.
-/nologo                           Não exibir o banner de direitos autorais do compilador.
-/quiet                            Modo de saída silencioso.
-/verbose                          Exibir mensagens detalhadas.
-/parallel[+|-]                    Build simultâneo. 
-/version                          Exibir o número de versão do compilador e sair.
+-help                             Exibir essa mensagem de uso. (Forma abreviada: -?)
+-noconfig                         Não incluir o arquivo VBC.RSP automaticamente.
+-nologo                           Não exibir o banner de direitos autorais do compilador.
+-quiet                            Modo de saída silencioso.
+-verbose                          Exibir mensagens detalhadas.
+-parallel[+|-]                    Build simultâneo. 
+-version                          Exibir o número de versão do compilador e sair.
 
                                   – AVANÇADO –
-/baseaddress:&lt;number&gt;             O endereço básico de uma biblioteca ou módulo 
+-baseaddress:&lt;number&gt;             O endereço básico de uma biblioteca ou módulo 
                                   (hexadecimal).
-/checksumalgorithm:&lt;alg&gt;          Especificar o algoritmo para calcular a soma de verificação do 
+-checksumalgorithm:&lt;alg&gt;          Especificar o algoritmo para calcular a soma de verificação do 
                                   arquivo de origem armazenado no PDB. Os valores com suporte são:
                                   SHA1 (padrão) ou SHA256.
-/codepage:&lt;number&gt;                Especifica a página de código a ser usada ao abrir os 
+-codepage:&lt;number&gt;                Especifica a página de código a ser usada ao abrir os 
                                   arquivos de origem.
-/delaysign[+|-]                   Sinalizar o assembly com atraso usando somente a parte pública
+-delaysign[+|-]                   Sinalizar o assembly com atraso usando somente a parte pública
                                   da chave de nome forte.
-/publicsign[+|-]                  Sinalizar o assembly como público usando somente a parte pública
+-publicsign[+|-]                  Sinalizar o assembly como público usando somente a parte pública
                                   da chave do nome forte.
-/errorreport:&lt;string&gt;             Especifica como lidar com os erros internos do
+-errorreport:&lt;string&gt;             Especifica como lidar com os erros internos do
                                   compilador; deve ser prompt, send, none ou queue
                                   (padrão).
-/filealign:&lt;number&gt;               Especificar o alinhamento usado nas seções do arquivo de 
+-filealign:&lt;number&gt;               Especificar o alinhamento usado nas seções do arquivo de 
                                   saída.
-/highentropyva[+|-]               Habilitar ASLR de alta entropia.
-/keycontainer:&lt;string&gt;            Especifica um contêiner de chaves de nome forte.
-/keyfile:&lt;file&gt;                   Especifica um arquivo de chave de nome forte.
-/libpath:&lt;path_list&gt;              Lista de diretórios nas quais pesquisar as referências de 
+-highentropyva[+|-]               Habilitar ASLR de alta entropia.
+-keycontainer:&lt;string&gt;            Especifica um contêiner de chaves de nome forte.
+-keyfile:&lt;file&gt;                   Especifica um arquivo de chave de nome forte.
+-libpath:&lt;path_list&gt;              Lista de diretórios nas quais pesquisar as referências de 
                                   metadados. (Delimitada por ponto e vírgula.)
-/main:&lt;class&gt;                     Especifica a Classe ou o Módulo que contém 
+-main:&lt;class&gt;                     Especifica a Classe ou o Módulo que contém 
                                   Sub Main. Também pode ser uma Classe 
                                   herdada de System.Windows.Forms.Form. 
-                                  (Forma abreviada: /m)
-/moduleassemblyname:&lt;string&gt;      Nome do assembly do qual o módulo 
+                                  (Forma abreviada: -m)
+-moduleassemblyname:&lt;string&gt;      Nome do assembly do qual o módulo 
                                   fará parte.
-/netcf                            Direcionar ao .NET Compact Framework.
-/nostdlib                         Não referenciar bibliotecas padrão 
+-netcf                            Direcionar ao .NET Compact Framework.
+-nostdlib                         Não referenciar bibliotecas padrão 
                                   (arquivo system.dll e VBC.RSP).
-/pathmap:&lt;K1&gt;=&lt;V1&gt;,&lt;K2&gt;=&lt;V2&gt;,...
+-pathmap:&lt;K1&gt;=&lt;V1&gt;,&lt;K2&gt;=&lt;V2&gt;,...
                                   Especificar um mapeamento para nomes de caminhos de origem produzidos pelo
                                   compilador.
-/platform:&lt;string&gt;                Limitar em quais plataformas o código pode ser executado; 
+-platform:&lt;string&gt;                Limitar em quais plataformas o código pode ser executado; 
                                   deve ser x86, x64, Itanium, arm, arm64,
                                   AnyCPU32BitPreferred ou anycpu (padrão).
-/preferreduilang                  Especificar o nome da linguagem de saída preferencial.
-/sdkpath:&lt;path&gt;                   Localização do diretório do SDK do .NET Framework
+-preferreduilang                  Especificar o nome da linguagem de saída preferencial.
+-nosdkpath                        Desabilite a pesquisa no caminho de SDK padrão para assemblies de biblioteca padrão.
+-sdkpath:&lt;path&gt;                   Localização do diretório do SDK do .NET Framework
                                   (mscorlib.dll).
-/subsystemversion:&lt;version&gt;       Especificar a versão do subsistema do PE de saída. 
+-subsystemversion:&lt;version&gt;       Especificar a versão do subsistema do PE de saída. 
                                   version:&lt;number&gt;[.&lt;number&gt;]
-/utf8output[+|-]                  Emitir a saída do compilador em codificação de caracteres 
+-utf8output[+|-]                  Emitir a saída do compilador em codificação de caracteres 
                                   UTF8.
 @&lt;file&gt;                           Inserir configurações de linha de comando de um arquivo de texto
-/vbruntime[+|-|*]                 Compilar com/sem o tempo de execução padrão do
+-vbruntime[+|-|*]                 Compilar com-sem o tempo de execução padrão do
                                   Visual Basic.
-/vbruntime:&lt;file&gt;                 Compilar com o tempo de execução alternativo do 
+-vbruntime:&lt;file&gt;                 Compilar com o tempo de execução alternativo do 
                                   Visual Basic em &lt;file&gt;.
 </target>
         <note />
@@ -8579,7 +8580,7 @@
       </trans-unit>
       <trans-unit id="WRN_XMLDocCrefToTypeParameter">
         <source>XML comment has a tag with a 'cref' attribute '{0}' that bound to a type parameter.  Use the &lt;typeparamref&gt; tag instead.</source>
-        <target state="translated">O comentário XML tem uma marca com um atributo "cref" "{0}" que é associada a um parâmetro de tipo. Ao invés disso, use a marca &lt;typeparamref&gt;. </target>
+        <target state="translated">O comentário XML tem uma marca com um atributo "cref" "{0}" que é associada a um parâmetro de tipo. Ao invés disso, use a marca &lt;typeparamref&gt;.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_XMLDocCrefToTypeParameter_Title">
