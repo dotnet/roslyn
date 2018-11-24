@@ -7,7 +7,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
+using Analyzer.Utilities.Extensions;
 using Microsoft.CodeAnalysis.Operations;
 
 namespace Microsoft.CodeAnalysis.CodeMetrics
@@ -179,6 +179,14 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
                         // Add used types within executable code in the operation tree.
                         foreach (var operation in operationBlock.DescendantsAndSelf())
                         {
+#if LEGACY_CODE_METRICS_MODE
+                            // Legacy mode does not account for code within lambdas/local functions for code metrics.
+                            if (operation.IsWithinLambdaOrLocalFunction())
+                            {
+                                continue;
+                            }
+#endif
+
                             if (!operation.IsImplicit && hasConditionalLogic(operation))
                             {
                                 cyclomaticComplexity += 1;
@@ -217,7 +225,6 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
                 switch (operation.Kind)
                 {
                     case OperationKind.CaseClause:
-                    case OperationKind.CatchClause:
                     case OperationKind.Coalesce:
                     case OperationKind.Conditional:
                     case OperationKind.ConditionalAccess:

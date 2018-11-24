@@ -8,12 +8,14 @@
     -->
     <AssemblyName>Roslyn.Test.Utilities</AssemblyName>
     
-    <PublishOutputToSymStore>false</PublishOutputToSymStore>
+    <IsShipping>false</IsShipping>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.VisualBasic" Version="$(MicrosoftVisualBasicVersion)" />
     <PackageReference Include="Microsoft.CodeAnalysis" Version="$(MicrosoftCodeAnalysisVersion)" />
     <PackageReference Include="Microsoft.CodeAnalysis.Test.Resources.Proprietary" Version="$(MicrosoftCodeAnalysisTestResourcesProprietaryVersion)" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.CodeFix.Testing.XUnit" Version="$(MicrosoftCodeAnalysisTestingVersion)" />
+    <PackageReference Include="Microsoft.CodeAnalysis.VisualBasic.CodeFix.Testing.XUnit" Version="$(MicrosoftCodeAnalysisTestingVersion)" />
     <PackageReference Include="xunit.assert" Version="$(XunitVersion)" />
   </ItemGroup>
   <Import Project="..\Utilities\Analyzer.Utilities.projitems" Label="Shared" />

@@ -185,6 +185,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                     nameof(SymbolKind.Method),
                     nameof(SymbolKind.NamedType),
                     nameof(SymbolKind.Namespace),
+                    nameof(SymbolKind.Parameter),
                     nameof(SymbolKind.Property));
 
             private struct NodeAndSymbol

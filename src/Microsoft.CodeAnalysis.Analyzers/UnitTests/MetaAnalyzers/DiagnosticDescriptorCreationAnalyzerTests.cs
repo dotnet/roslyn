@@ -4,6 +4,7 @@ using Analyzer.Utilities;
 using Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Testing;
 using Test.Utilities;
 using Xunit;
 
@@ -850,105 +851,62 @@ CategoryWithBadId5: Prefix000-DifferentPrefix099
         private static DiagnosticResult GetRS1007ExpectedDiagnostic(string language, int line, int column)
         {
             string fileName = language == LanguageNames.CSharp ? "Test0.cs" : "Test0.vb";
-            return new DiagnosticResult
-            {
-                Id = DiagnosticIds.UseLocalizableStringsInDescriptorRuleId,
-                Message = string.Format(CodeAnalysisDiagnosticsResources.UseLocalizableStringsInDescriptorMessage, DiagnosticAnalyzerCorrectnessAnalyzer.LocalizableStringFullName),
-                Severity = DiagnosticHelpers.DefaultDiagnosticSeverity,
-                Locations = new[]
-                {
-                    new DiagnosticResultLocation(fileName, line, column)
-                }
-            };
+            return new DiagnosticResult(DiagnosticIds.UseLocalizableStringsInDescriptorRuleId, DiagnosticHelpers.DefaultDiagnosticSeverity)
+                .WithLocation(fileName, line, column)
+                .WithMessageFormat(CodeAnalysisDiagnosticsResources.UseLocalizableStringsInDescriptorMessage)
+                .WithArguments(DiagnosticAnalyzerCorrectnessAnalyzer.LocalizableStringFullName);
         }
 
         private static DiagnosticResult GetRS1015ExpectedDiagnostic(string language, int line, int column)
         {
             string fileName = language == LanguageNames.CSharp ? "Test0.cs" : "Test0.vb";
-            return new DiagnosticResult
-            {
-                Id = DiagnosticIds.ProvideHelpUriInDescriptorRuleId,
-                Message = CodeAnalysisDiagnosticsResources.ProvideHelpUriInDescriptorMessage,
-                Severity = DiagnosticHelpers.DefaultDiagnosticSeverity,
-                Locations = new[]
-                {
-                    new DiagnosticResultLocation(fileName, line, column)
-                }
-            };
+            return new DiagnosticResult(DiagnosticIds.ProvideHelpUriInDescriptorRuleId, DiagnosticHelpers.DefaultDiagnosticSeverity)
+                .WithLocation(fileName, line, column)
+                .WithMessageFormat(CodeAnalysisDiagnosticsResources.ProvideHelpUriInDescriptorMessage);
         }
 
         private static DiagnosticResult GetRS1017ExpectedDiagnostic(string language, int line, int column, string descriptorName)
         {
             string fileName = language == LanguageNames.CSharp ? "Test0.cs" : "Test0.vb";
-            return new DiagnosticResult
-            {
-                Id = DiagnosticIds.DiagnosticIdMustBeAConstantRuleId,
-                Message = string.Format(CodeAnalysisDiagnosticsResources.DiagnosticIdMustBeAConstantMessage, descriptorName),
-                Severity = DiagnosticHelpers.DefaultDiagnosticSeverity,
-                Locations = new[]
-                {
-                    new DiagnosticResultLocation(fileName, line, column)
-                }
-            };
+            return new DiagnosticResult(DiagnosticIds.DiagnosticIdMustBeAConstantRuleId, DiagnosticHelpers.DefaultDiagnosticSeverity)
+                .WithLocation(fileName, line, column)
+                .WithMessageFormat(CodeAnalysisDiagnosticsResources.DiagnosticIdMustBeAConstantMessage)
+                .WithArguments(descriptorName);
         }
 
         private static DiagnosticResult GetRS1018ExpectedDiagnostic(string language, int line, int column, string diagnosticId, string category, string format, string additionalFile)
         {
             string fileName = language == LanguageNames.CSharp ? "Test0.cs" : "Test0.vb";
-            return new DiagnosticResult
-            {
-                Id = DiagnosticIds.DiagnosticIdMustBeInSpecifiedFormatRuleId,
-                Message = string.Format(CodeAnalysisDiagnosticsResources.DiagnosticIdMustBeInSpecifiedFormatMessage, diagnosticId, category, format, additionalFile),
-                Severity = DiagnosticHelpers.DefaultDiagnosticSeverity,
-                Locations = new[]
-                {
-                    new DiagnosticResultLocation(fileName, line, column)
-                }
-            };
+            return new DiagnosticResult(DiagnosticIds.DiagnosticIdMustBeInSpecifiedFormatRuleId, DiagnosticHelpers.DefaultDiagnosticSeverity)
+                .WithLocation(fileName, line, column)
+                .WithMessageFormat(CodeAnalysisDiagnosticsResources.DiagnosticIdMustBeInSpecifiedFormatMessage)
+                .WithArguments(diagnosticId, category, format, additionalFile);
         }
 
         private static DiagnosticResult GetRS1019ExpectedDiagnostic(string language, int line, int column, string duplicateId, string otherAnalyzerName)
         {
             string fileName = language == LanguageNames.CSharp ? "Test0.cs" : "Test0.vb";
-            return new DiagnosticResult
-            {
-                Id = DiagnosticIds.UseUniqueDiagnosticIdRuleId,
-                Message = string.Format(CodeAnalysisDiagnosticsResources.UseUniqueDiagnosticIdMessage, duplicateId, otherAnalyzerName),
-                Severity = DiagnosticHelpers.DefaultDiagnosticSeverity,
-                Locations = new[]
-                {
-                    new DiagnosticResultLocation(fileName, line, column)
-                }
-            };
+            return new DiagnosticResult(DiagnosticIds.UseUniqueDiagnosticIdRuleId, DiagnosticHelpers.DefaultDiagnosticSeverity)
+                .WithLocation(fileName, line, column)
+                .WithMessageFormat(CodeAnalysisDiagnosticsResources.UseUniqueDiagnosticIdMessage)
+                .WithArguments(duplicateId, otherAnalyzerName);
         }
 
         private static DiagnosticResult GetRS1020ExpectedDiagnostic(string language, int line, int column, string category, string additionalFile)
         {
             string fileName = language == LanguageNames.CSharp ? "Test0.cs" : "Test0.vb";
-            return new DiagnosticResult
-            {
-                Id = DiagnosticIds.UseCategoriesFromSpecifiedRangeRuleId,
-                Message = string.Format(CodeAnalysisDiagnosticsResources.UseCategoriesFromSpecifiedRangeMessage, category, additionalFile),
-                Severity = DiagnosticHelpers.DefaultDiagnosticSeverity,
-                Locations = new[]
-                {
-                    new DiagnosticResultLocation(fileName, line, column)
-                }
-            };
+            return new DiagnosticResult(DiagnosticIds.UseCategoriesFromSpecifiedRangeRuleId, DiagnosticHelpers.DefaultDiagnosticSeverity)
+                .WithLocation(fileName, line, column)
+                .WithMessageFormat(CodeAnalysisDiagnosticsResources.UseCategoriesFromSpecifiedRangeMessage)
+                .WithArguments(category, additionalFile);
         }
 
         private static DiagnosticResult GetRS1021ExpectedDiagnostic(int line, int column, string invalidEntry, string additionalFile)
         {
-            return new DiagnosticResult
-            {
-                Id = DiagnosticIds.AnalyzerCategoryAndIdRangeFileInvalidRuleId,
-                Message = string.Format(CodeAnalysisDiagnosticsResources.AnalyzerCategoryAndIdRangeFileInvalidMessage, invalidEntry, additionalFile),
-                Severity = DiagnosticHelpers.DefaultDiagnosticSeverity,
-                Locations = new[]
-                {
-                    new DiagnosticResultLocation(AdditionalFileName, line, column)
-                }
-            };
+            return new DiagnosticResult(DiagnosticIds.AnalyzerCategoryAndIdRangeFileInvalidRuleId, DiagnosticHelpers.DefaultDiagnosticSeverity)
+                .WithLocation(AdditionalFileName, line, column)
+                .WithMessageFormat(CodeAnalysisDiagnosticsResources.AnalyzerCategoryAndIdRangeFileInvalidMessage)
+                .WithArguments(invalidEntry, additionalFile);
         }
 
         private const string AdditionalFileName = "DiagnosticCategoryAndIdRanges.txt";
