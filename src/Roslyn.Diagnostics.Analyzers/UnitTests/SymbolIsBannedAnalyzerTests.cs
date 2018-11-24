@@ -424,6 +424,7 @@ End Class";
             VerifyBasic(source, bannedText,
                 GetBasicResultAt(5, 22, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C"));
         }
+
         #endregion
     }
 }

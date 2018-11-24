@@ -14,7 +14,7 @@ using Microsoft.CodeAnalysis.Text;
 namespace Roslyn.Diagnostics.Analyzers
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
-    public sealed partial class SymbolIsBannedAnalyzer : DiagnosticAnalyzer
+    public sealed class SymbolIsBannedAnalyzer : DiagnosticAnalyzer
     {
         internal const string BannedSymbolsFileName = "BannedSymbols.txt";
 
@@ -51,7 +51,7 @@ namespace Roslyn.Diagnostics.Analyzers
             context.RegisterCompilationStartAction(OnCompilationStart);
         }
 
-        private void OnCompilationStart(CompilationStartAnalysisContext compilationContext)
+        private static void OnCompilationStart(CompilationStartAnalysisContext compilationContext)
         {
             var additionalFiles = compilationContext.Options.AdditionalFiles;
 
@@ -224,6 +224,7 @@ namespace Roslyn.Diagnostics.Analyzers
                 }
             }
         }
+
         private class ApiData
         {
             public ApiData(ImmutableArray<ApiLine> apiList)
@@ -237,8 +238,8 @@ namespace Roslyn.Diagnostics.Analyzers
             public TextSpan Span { get; }
             public SourceText SourceText { get; }
             public string Path { get; }
-
             public string Text { get; }
+
             public ApiLine(string text, TextSpan span, SourceText sourceText, string path)
             {
                 Text = text;
