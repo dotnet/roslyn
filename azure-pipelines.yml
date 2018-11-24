@@ -25,18 +25,19 @@ phases:
     - task: PublishTestResults@1
       inputs:
         testRunner: XUnit
-        testResultsFiles: '**/xUnitResults/*.xml'
+        testResultsFiles: '$(Build.SourcesDirectory)\Binaries\TestResults\$(_configuration)\*.xml'
         mergeTestResults: true
         testRunTitle: 'Windows Desktop $(_configuration) $(_testKind)'
-      condition: succeededOrFailed()
+      condition: always()
 
     - task: PublishBuildArtifacts@1
+      displayName: Publish Logs
       inputs:
         PathtoPublish: '$(Build.SourcesDirectory)\Binaries\$(_configuration)\Logs'
         ArtifactName: 'Windows Desktop $(_configuration) $(_testKind)' 
         publishLocation: Container
       continueOnError: true
-      condition: failed()
+      condition: not(succeeded())
 
 - phase: Windows_Desktop_Spanish_Unit_Tests
   queue:
@@ -81,19 +82,20 @@ phases:
     - task: PublishTestResults@1
       inputs:
         testRunner: XUnit
-        testResultsFiles: '**/xUnitResults/*.xml'
+        testResultsFiles: '$(Build.SourcesDirectory)\Binaries\TestResults\$(_configuration)\*.xml'
         mergeTestResults: true
         testRunTitle: 'Windows CoreClr $(_configuration)'
-      condition: succeededOrFailed()
+      condition: always()
 
     - task: PublishBuildArtifacts@1
+      displayName: Publish Logs
       inputs:
         PathtoPublish: '$(Build.SourcesDirectory)\Binaries\$(_configuration)\Logs'
         ArtifactName: 'Windows CoreClr $(_configuration)'
         publishLocation: Container
       continueOnError: true
-      condition: failed()
-           
+      condition: not(succeeded())
+
 - phase: Windows_Determinism_Test
   queue:
     name: dotnet-external-temp
@@ -103,12 +105,13 @@ phases:
       displayName: Build - Validate determinism
 
     - task: PublishBuildArtifacts@1
+      displayName: Publish Logs
       inputs:
         PathtoPublish: '$(Build.SourcesDirectory)\Binaries\Debug\Logs'
         ArtifactName: 'Build Determinism Files'
         publishLocation: Container
       continueOnError: true
-      condition: failed()
+      condition: not(succeeded())
 
 - phase: Windows_Correctness_Test
   queue:
@@ -119,25 +122,28 @@ phases:
       displayName: Build - Validate correctness
 
     - task: PublishBuildArtifacts@1
+      displayName: Publish Logs
       inputs:
         PathtoPublish: '$(Build.SourcesDirectory)\Binaries\Release\Logs'
         ArtifactName: 'Build Correctness Files'
         publishLocation: Container
       continueOnError: true
-      condition: failed()
+      condition: not(succeeded())
 
 - phase: Linux_Test
   queue:
-    name: DotNetCore-Linux                     
+    name: DotNetCore-Linux
     timeoutInMinutes: 90
     parallel: 2
     matrix:
       coreclr:
         _args: --configuration Debug
-        _name: CoreClr 
+        _name: CoreClr
+        _configuration: Debug
       mono:
         _args: --configuration Debug --docker --mono
         _name: Mono
+        _configuration: Debug
   steps:
     - script: ./build/scripts/cibuild.sh $(_args)
       displayName: Build and Test
@@ -147,16 +153,17 @@ phases:
     - task: PublishTestResults@1
       inputs:
         testRunner: XUnit
-        testResultsFiles: '**/xUnitResults/*.xml'
+        testResultsFiles: '$(Build.SourcesDirectory)/Binaries/TestResults/$(_configuration)/*.xml'
         mergeTestResults: true
         testRunTitle: 'Linux $(_name)'
-      condition: succeededOrFailed()
+      condition: always()
 
     - task: PublishBuildArtifacts@1
+      displayName: Publish Logs
       inputs:
         PathtoPublish: '$(Build.SourcesDirectory)/Binaries/Debug/Logs'
         ArtifactName: 'Linux $(_name)'
         publishLocation: Container
       continueOnError: true
-      condition: failed()
-    
+      condition: not(succeeded())
+

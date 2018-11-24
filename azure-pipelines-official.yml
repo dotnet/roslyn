@@ -132,7 +132,7 @@ steps:
   displayName: Publish Test Results
   inputs:
     testRunner: XUnit
-    testResultsFiles: '**/xUnitResults/*.xml'
+    testResultsFiles: '$(Build.SourcesDirectory)\Binaries\TestResults\$(BuildConfiguration)\*.xml'
     mergeTestResults: true
     testRunTitle: 'Unit Tests'
   condition: succeededOrFailed()
@@ -160,7 +160,7 @@ steps:
 # the proper entries in the build log so that the insertion tool can find the drop that 
 # needs to get published
 - task: PublishBuildArtifacts@1
-  displayName: Publish Drop - Binaries
+  displayName: Publish Drop - DevDivInsertionFiles
   inputs:
     PathtoPublish: 'Binaries\$(BuildConfiguration)\DevDivInsertionFiles'
     ArtifactName: '$(Build.BuildNumber)'
@@ -172,7 +172,7 @@ steps:
 
 # Archive the files from the build necessary for future investigations
 - task: PowerShell@2
-  displayName: Publish Drop - Binaries Real
+  displayName: Publish Drop - Binaries
   inputs:
     arguments: '-Source Binaries\$(BuildConfiguration) -Target $(DropRoot)\Roslyn-Signed\$(Build.SourceBranchName)\$(BuildConfiguration)\$(Build.BuildNumber) -ParallelCount 8 -Exclude UnitTests,PerfTests'
     filePath: 'build\scripts\vsts-robocopy.ps1'
