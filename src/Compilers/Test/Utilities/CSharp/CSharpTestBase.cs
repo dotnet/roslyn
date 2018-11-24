@@ -354,6 +354,48 @@ namespace System.Threading.Tasks.Sources
         }
     }
 }
+
+namespace System.Runtime.CompilerServices
+{
+    using System.Runtime.InteropServices;
+
+    /// <summary>Represents a builder for asynchronous iterators.</summary>
+    [StructLayout(LayoutKind.Auto)]
+    public struct AsyncIteratorMethodBuilder
+    {
+        // AsyncIteratorMethodBuilder is used by the language compiler as part of generating
+        // async iterators. For now, the implementation just wraps AsyncTaskMethodBuilder, as
+        // most of the logic is shared.  However, in the future this could be changed and
+        // optimized.  For example, we do need to allocate an object (once) to flow state like
+        // ExecutionContext, which AsyncTaskMethodBuilder handles, but it handles it by
+        // allocating a Task-derived object.  We could optimize this further by removing
+        // the Task from the hierarchy, but in doing so we'd also lose a variety of optimizations
+        // related to it, so we'd need to replicate all of those optimizations (e.g. storing
+        // that box object directly into a Task's continuation field).
+
+        private AsyncTaskMethodBuilder _methodBuilder; // mutable struct; do not make it readonly
+
+        public static AsyncIteratorMethodBuilder Create() =>
+            new AsyncIteratorMethodBuilder() { _methodBuilder = AsyncTaskMethodBuilder.Create() };
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void MoveNext<TStateMachine>(ref TStateMachine stateMachine) where TStateMachine : IAsyncStateMachine =>
+            _methodBuilder.Start(ref stateMachine);
+
+        public void AwaitOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine)
+            where TAwaiter : INotifyCompletion
+            where TStateMachine : IAsyncStateMachine =>
+            _methodBuilder.AwaitOnCompleted(ref awaiter, ref stateMachine);
+
+        public void AwaitUnsafeOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine)
+            where TAwaiter : ICriticalNotifyCompletion
+            where TStateMachine : IAsyncStateMachine =>
+            _methodBuilder.AwaitUnsafeOnCompleted(ref awaiter, ref stateMachine);
+
+        /// <summary>Marks iteration as being completed, whether successfully or otherwise.</summary>
+        public void Complete() => _methodBuilder.SetResult();
+    }
+}
 ";
 
         protected static CSharpCompilationOptions WithNonNullTypesTrue(CSharpCompilationOptions options = null)

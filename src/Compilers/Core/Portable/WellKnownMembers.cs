@@ -3272,6 +3272,46 @@ namespace Microsoft.CodeAnalysis
                     1,
                         (byte)SignatureTypeCode.GenericTypeParameter, 0,
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Int16, // Argument
+
+                // System_Runtime_CompilerServices_AsyncIteratorMethodBuilder__Create
+                (byte)(MemberFlags.Method | MemberFlags.Static),                                                                                               // Flags
+                (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Runtime_CompilerServices_AsyncIteratorMethodBuilder - WellKnownType.ExtSentinel), // DeclaringTypeId
+                0,                                                                                                                                             // Arity
+                    0,                                                                                                                                         // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Runtime_CompilerServices_AsyncIteratorMethodBuilder - WellKnownType.ExtSentinel),
+
+                // System_Runtime_CompilerServices_AsyncIteratorMethodBuilder__Complete
+                (byte)MemberFlags.Method,                                                                                                                      // Flags
+                (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Runtime_CompilerServices_AsyncIteratorMethodBuilder - WellKnownType.ExtSentinel), // DeclaringTypeId
+                0,                                                                                                                                             // Arity
+                    0,                                                                                                                                         // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void, // Return Type
+
+                // System_Runtime_CompilerServices_AsyncIteratorMethodBuilder__AwaitOnCompleted
+                (byte)MemberFlags.Method,                                                                                                                      // Flags
+                (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Runtime_CompilerServices_AsyncIteratorMethodBuilder - WellKnownType.ExtSentinel), // DeclaringTypeId
+                2,                                                                                                                                             // Arity
+                    2,                                                                                                                                         // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void, // Return Type
+                    (byte)SignatureTypeCode.ByReference, (byte)SignatureTypeCode.GenericMethodParameter, 0,
+                    (byte)SignatureTypeCode.ByReference, (byte)SignatureTypeCode.GenericMethodParameter, (byte)SpecialType.System_Object,
+
+                // System_Runtime_CompilerServices_AsyncIteratorMethodBuilder__AwaitUnsafeOnCompleted
+                (byte)MemberFlags.Method,                                                                                                                      // Flags
+                (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Runtime_CompilerServices_AsyncIteratorMethodBuilder - WellKnownType.ExtSentinel), // DeclaringTypeId
+                2,                                                                                                                                             // Arity
+                    2,                                                                                                                                         // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void, // Return Type
+                    (byte)SignatureTypeCode.ByReference, (byte)SignatureTypeCode.GenericMethodParameter, 0,
+                    (byte)SignatureTypeCode.ByReference, (byte)SignatureTypeCode.GenericMethodParameter, (byte)SpecialType.System_Object,
+
+                // System_Runtime_CompilerServices_AsyncIteratorMethodBuilder__MoveNext_T
+                (byte)MemberFlags.Method,                                                                                                                      // Flags
+                (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Runtime_CompilerServices_AsyncIteratorMethodBuilder - WellKnownType.ExtSentinel), // DeclaringTypeId
+                1,                                                                                                                                             // Arity
+                    1,                                                                                                                                         // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void, // Return Type
+                    (byte)SignatureTypeCode.ByReference, (byte)SignatureTypeCode.GenericMethodParameter, 0,
             };
 
             string[] allNames = new string[(int)WellKnownMember.Count]
@@ -3683,6 +3723,12 @@ namespace Microsoft.CodeAnalysis
                 "GetStatus",                                // System_Threading_Tasks_Sources_IValueTaskSource_T__GetStatus
                 "OnCompleted",                              // System_Threading_Tasks_Sources_IValueTaskSource_T__OnCompleted
                 ".ctor",                                    // System_Threading_Tasks_ValueTask_T__ctor
+
+                "Create",                                   // System_Runtime_CompilerServices_AsyncIteratorMethodBuilder__Create
+                "Complete",                                 // System_Runtime_CompilerServices_AsyncIteratorMethodBuilder__Complete
+                "AwaitOnCompleted",                         // System_Runtime_CompilerServices_AsyncIteratorMethodBuilder__AwaitOnCompleted
+                "AwaitUnsafeOnCompleted",                   // System_Runtime_CompilerServices_AsyncIteratorMethodBuilder__AwaitUnsafeOnCompleted
+                "MoveNext",                                 // System_Runtime_CompilerServices_AsyncIteratorMethodBuilder__MoveNext_T
             };
 
             s_descriptors = MemberDescriptor.InitializeFromStream(new System.IO.MemoryStream(initializationBytes, writable: false), allNames);

@@ -473,6 +473,12 @@ namespace Microsoft.CodeAnalysis
         System_Threading_Tasks_Sources_IValueTaskSource_T__OnCompleted,
         System_Threading_Tasks_ValueTask_T__ctor,
 
+        System_Runtime_CompilerServices_AsyncIteratorMethodBuilder__Create,
+        System_Runtime_CompilerServices_AsyncIteratorMethodBuilder__Complete,
+        System_Runtime_CompilerServices_AsyncIteratorMethodBuilder__AwaitOnCompleted,
+        System_Runtime_CompilerServices_AsyncIteratorMethodBuilder__AwaitUnsafeOnCompleted,
+        System_Runtime_CompilerServices_AsyncIteratorMethodBuilder__MoveNext_T,
+
         Count
     }
 }

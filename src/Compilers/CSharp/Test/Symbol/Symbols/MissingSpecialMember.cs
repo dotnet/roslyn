@@ -575,6 +575,7 @@ namespace System
                     case WellKnownType.System_Threading_Tasks_Sources_IValueTaskSource_T:
                     case WellKnownType.System_Threading_Tasks_ValueTask_T:
                     case WellKnownType.System_Threading_Tasks_ValueTask:
+                    case WellKnownType.System_Runtime_CompilerServices_AsyncIteratorMethodBuilder:
                     // Not yet in the platform.
                     case WellKnownType.Microsoft_CodeAnalysis_Runtime_Instrumentation:
                         // Not always available.
@@ -903,7 +904,14 @@ namespace System
                     case WellKnownMember.System_Threading_Tasks_Sources_ManualResetValueTaskSourceCore_T__SetException:
                     case WellKnownMember.System_Threading_Tasks_Sources_IValueTaskSource_T__GetStatus:
                     case WellKnownMember.System_Threading_Tasks_Sources_IValueTaskSource_T__OnCompleted:
+                    case WellKnownMember.System_Threading_Tasks_Sources_IValueTaskSource_T__GetResult:
                     case WellKnownMember.System_Threading_Tasks_ValueTask_T__ctor:
+                    case WellKnownMember.System_Runtime_CompilerServices_AsyncIteratorMethodBuilder__AwaitOnCompleted:
+                    case WellKnownMember.System_Runtime_CompilerServices_AsyncIteratorMethodBuilder__AwaitUnsafeOnCompleted:
+                    case WellKnownMember.System_Runtime_CompilerServices_AsyncIteratorMethodBuilder__Complete:
+                    case WellKnownMember.System_Runtime_CompilerServices_AsyncIteratorMethodBuilder__Create:
+                    case WellKnownMember.System_Runtime_CompilerServices_AsyncIteratorMethodBuilder__MoveNext_T:
+                    case WellKnownMember.System_Runtime_CompilerServices_AsyncStateMachineAttribute__ctor:
                         // Not yet in the platform.
                         continue;
                     case WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningSingleFile:

@@ -515,7 +515,8 @@ End Namespace
                          WellKnownType.System_Threading_Tasks_Sources_ValueTaskSourceOnCompletedFlags,
                          WellKnownType.System_Threading_Tasks_Sources_IValueTaskSource_T,
                          WellKnownType.System_Threading_Tasks_ValueTask_T,
-                         WellKnownType.System_Threading_Tasks_ValueTask
+                         WellKnownType.System_Threading_Tasks_ValueTask,
+                         WellKnownType.System_Runtime_CompilerServices_AsyncIteratorMethodBuilder
                         ' Not available on all platforms.
                         Continue For
                     Case WellKnownType.ExtSentinel
@@ -568,7 +569,8 @@ End Namespace
                          WellKnownType.System_Threading_Tasks_Sources_ValueTaskSourceOnCompletedFlags,
                          WellKnownType.System_Threading_Tasks_Sources_IValueTaskSource_T,
                          WellKnownType.System_Threading_Tasks_ValueTask_T,
-                         WellKnownType.System_Threading_Tasks_ValueTask
+                         WellKnownType.System_Threading_Tasks_ValueTask,
+                         WellKnownType.System_Runtime_CompilerServices_AsyncIteratorMethodBuilder
                         ' Not available on all platforms.
                         Continue For
                     Case WellKnownType.ExtSentinel
@@ -635,7 +637,13 @@ End Namespace
                          WellKnownMember.System_Threading_Tasks_Sources_IValueTaskSource_T__GetResult,
                          WellKnownMember.System_Threading_Tasks_Sources_IValueTaskSource_T__GetStatus,
                          WellKnownMember.System_Threading_Tasks_Sources_IValueTaskSource_T__OnCompleted,
-                         WellKnownMember.System_Threading_Tasks_ValueTask_T__ctor
+                         WellKnownMember.System_Threading_Tasks_ValueTask_T__ctor,
+                         WellKnownMember.System_Runtime_CompilerServices_AsyncIteratorMethodBuilder__AwaitOnCompleted,
+                         WellKnownMember.System_Runtime_CompilerServices_AsyncIteratorMethodBuilder__AwaitUnsafeOnCompleted,
+                         WellKnownMember.System_Runtime_CompilerServices_AsyncIteratorMethodBuilder__Complete,
+                         WellKnownMember.System_Runtime_CompilerServices_AsyncIteratorMethodBuilder__Create,
+                         WellKnownMember.System_Runtime_CompilerServices_AsyncIteratorMethodBuilder__MoveNext_T,
+                         WellKnownMember.System_Runtime_CompilerServices_AsyncStateMachineAttribute__ctor
                         ' Not available yet, but will be in upcoming release.
                         Continue For
                     Case WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningSingleFile,
@@ -755,7 +763,13 @@ End Namespace
                          WellKnownMember.System_Threading_Tasks_Sources_IValueTaskSource_T__GetResult,
                          WellKnownMember.System_Threading_Tasks_Sources_IValueTaskSource_T__GetStatus,
                          WellKnownMember.System_Threading_Tasks_Sources_IValueTaskSource_T__OnCompleted,
-                         WellKnownMember.System_Threading_Tasks_ValueTask_T__ctor
+                         WellKnownMember.System_Threading_Tasks_ValueTask_T__ctor,
+                         WellKnownMember.System_Runtime_CompilerServices_AsyncIteratorMethodBuilder__AwaitOnCompleted,
+                         WellKnownMember.System_Runtime_CompilerServices_AsyncIteratorMethodBuilder__AwaitUnsafeOnCompleted,
+                         WellKnownMember.System_Runtime_CompilerServices_AsyncIteratorMethodBuilder__Complete,
+                         WellKnownMember.System_Runtime_CompilerServices_AsyncIteratorMethodBuilder__Create,
+                         WellKnownMember.System_Runtime_CompilerServices_AsyncIteratorMethodBuilder__MoveNext_T,
+                         WellKnownMember.System_Runtime_CompilerServices_AsyncStateMachineAttribute__ctor
                         ' Not available yet, but will be in upcoming release.
                         Continue For
                     Case WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningSingleFile,
