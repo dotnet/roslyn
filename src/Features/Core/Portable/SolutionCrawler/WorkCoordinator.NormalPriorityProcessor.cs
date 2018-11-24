@@ -33,6 +33,11 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     private ProjectId _currentProjectProcessing;
                     private IDisposable _projectCache;
 
+                    // this is only used in ResetState to find out solution has changed
+                    // and reset some states such as logging some telemetry or
+                    // priorities active,visible, opened files and etc
+                    private Solution _lastSolution = null;
+
                     // whether this processor is running or not
                     private Task _running;
 
@@ -457,30 +462,15 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         }
                     }
 
-                   // this is only used in ResetState to find out solution has changed
-                   // and reset some states
-                    private Solution _lastSolution = null;
-
                     private async Task ResetStatesAsync()
                     {
-                        var currentSolution = this.Processor.CurrentSolution;
-                        var oldSolution = _lastSolution;
-
                         try
                         {
-                            if (currentSolution == oldSolution)
+                            if (!IsSolutionChanged())
                             {
                                 return;
                             }
 
-                            _lastSolution = currentSolution;
-
-                            ResetLogAggregatorIfNeeded();
-
-                            // synchronize new solution to OOP
-                            await currentSolution.Workspace.SynchronizePrimaryWorkspaceAsync(currentSolution, this.CancellationToken).ConfigureAwait(false);
-
-                            // always run analyzers with latest solution
                             await RunAnalyzersAsync(this.Analyzers, this.Processor.CurrentSolution, (a, s, c) => a.NewSolutionSnapshotAsync(s, c), this.CancellationToken).ConfigureAwait(false);
 
                             foreach (var id in this.Processor.GetOpenDocumentIds())
@@ -495,15 +485,37 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                             throw ExceptionUtilities.Unreachable;
                         }
 
-                        void ResetLogAggregatorIfNeeded()
+                        bool IsSolutionChanged()
+                        {
+                            var currentSolution = this.Processor.CurrentSolution;
+                            var oldSolution = _lastSolution;
+
+                            if (currentSolution == oldSolution)
+                            {
+                                return false;
+                            }
+
+                            _lastSolution = currentSolution;
+
+                            ResetLogAggregatorIfNeeded(currentSolution, oldSolution);
+
+                            return true;
+                        }
+
+                        void ResetLogAggregatorIfNeeded(Solution currentSolution, Solution oldSolution)
                         {
                             if (currentSolution == null || oldSolution == null ||
                                 currentSolution.Id == oldSolution.Id)
                             {
+                                // we log aggregated info when solution is changed such as
+                                // new solution is opened or solution is closed
                                 return;
                             }
 
-                            // solution has changed
+                            // this log things like how many time we analyzed active files, how many times other files are analyzed,
+                            // avg time to analyze files, how many solution snapshot got analyzed and etc.
+                            // all accumultation is done in VS side and we only send statistics to VS telemetry otherwise, it is too much
+                            // data to send
                             SolutionCrawlerLogger.LogIncrementalAnalyzerProcessorStatistics(
                                 this.Processor._registration.CorrelationId, oldSolution, this.Processor._logAggregator, this.Analyzers);
 
