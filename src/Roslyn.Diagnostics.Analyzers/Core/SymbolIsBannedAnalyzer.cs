@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
-using System.Threading;
 using Analyzer.Utilities;
 using Analyzer.Utilities.Extensions;
 using Microsoft.CodeAnalysis;
@@ -55,27 +54,7 @@ namespace Roslyn.Diagnostics.Analyzers
 
         private static void OnCompilationStart(CompilationStartAnalysisContext compilationContext)
         {
-            var additionalFiles = compilationContext.Options.AdditionalFiles;
-
-            if (!TryGetApiData(additionalFiles, compilationContext.CancellationToken, out ApiData apiData))
-            {
-                return;
-            }
-
-            if (!ValidateApiFiles(apiData, out List<Diagnostic> errors))
-            {
-                compilationContext.RegisterCompilationEndAction(context =>
-                {
-                    foreach (Diagnostic cur in errors)
-                    {
-                        context.ReportDiagnostic(cur);
-                    }
-                });
-
-                return;
-            }
-
-            var bannedSymbols = ResolveBannedApis(compilationContext.Compilation, apiData, compilationContext.CancellationToken);
+            var bannedSymbols = ReadBannedApis(compilationContext);
 
             if (bannedSymbols.Count > 0)
             {
@@ -127,22 +106,59 @@ namespace Roslyn.Diagnostics.Analyzers
             }
         }
 
-        private static ImmutableHashSet<ISymbol> ResolveBannedApis(Compilation compilation, ApiData apiData, CancellationToken cancellationToken)
+        private static ImmutableHashSet<ISymbol> ReadBannedApis(CompilationStartAnalysisContext context)
         {
-            var bannedApisBuilder = ImmutableHashSet.CreateBuilder<ISymbol>();
-            foreach (var apiString in apiData.ApiList)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
+            var query = 
+                from additionalFile in context.Options.AdditionalFiles
+                where StringComparer.Ordinal.Equals(Path.GetFileName(additionalFile.Path), BannedSymbolsFileName)
+                let sourceText = additionalFile.GetText(context.CancellationToken)
+                where sourceText != null
+                from line in sourceText.Lines
+                let text = line.ToString()
+                where !string.IsNullOrWhiteSpace(text)
+                select new ApiLine(text, line.Span, sourceText, additionalFile.Path);
 
-                var symbols = DocumentationCommentId.GetSymbolsForDeclarationId(apiString.Text, compilation);
+            var apiLines = query.ToList();
+
+            if (apiLines.Count == 0)
+            {
+                return ImmutableHashSet<ISymbol>.Empty;
+            }
+
+            var lineById = new Dictionary<string, ApiLine>(StringComparer.Ordinal);
+            var errors = new List<Diagnostic>();
+            var bannedSymbols = ImmutableHashSet.CreateBuilder<ISymbol>();
+
+            foreach (var line in apiLines)
+            {
+                if (lineById.TryGetValue(line.Text, out ApiLine existingLine))
+                {
+                    errors.Add(Diagnostic.Create(DuplicateBannedSymbolRule, line.Location, new[] { existingLine.Location }, line.Text));
+                    continue;
+                }
+
+                lineById.Add(line.Text, line);
+
+                var symbols = DocumentationCommentId.GetSymbolsForDeclarationId(line.Text, context.Compilation);
                 if (!symbols.IsDefaultOrEmpty)
                 {
-                    bannedApisBuilder.UnionWith(symbols);
+                    bannedSymbols.UnionWith(symbols);
                 }
             }
 
-            var bannedApis = bannedApisBuilder.ToImmutable();
-            return bannedApis;
+            if (errors.Count != 0)
+            {
+                context.RegisterCompilationEndAction(
+                    endContext =>
+                    {
+                        foreach (var error in errors)
+                        {
+                            endContext.ReportDiagnostic(error);
+                        }
+                    });
+            }
+
+            return bannedSymbols.ToImmutable();
         }
 
         private static void AnalyzeOperation(OperationAnalysisContext oac, ImmutableHashSet<ISymbol> bannedSymbols, SymbolDisplayFormat symbolDisplayFormat)
@@ -175,102 +191,7 @@ namespace Roslyn.Diagnostics.Analyzers
             }
         }
 
-        private static ApiData ReadApiData(string path, SourceText sourceText)
-        {
-            ImmutableArray<ApiLine>.Builder apiBuilder = ImmutableArray.CreateBuilder<ApiLine>();
-
-            foreach (TextLine line in sourceText.Lines)
-            {
-                string text = line.ToString();
-                if (string.IsNullOrWhiteSpace(text))
-                {
-                    continue;
-                }
-
-                var apiLine = new ApiLine(text, line.Span, sourceText, path);
-                apiBuilder.Add(apiLine);
-            }
-
-            return new ApiData(apiBuilder.ToImmutable());
-        }
-
-        private static bool TryGetApiData(ImmutableArray<AdditionalText> additionalTexts, CancellationToken cancellationToken, out ApiData apiData)
-        {
-            if (!TryGetApiText(additionalTexts, cancellationToken, out AdditionalText apiText))
-            {
-                apiData = default(ApiData);
-                return false;
-            }
-
-            var sourceText = apiText.GetText(cancellationToken);
-            if (sourceText == null)
-            {
-                apiData = default(ApiData);
-                return false;
-            }
-
-            apiData = ReadApiData(apiText.Path, sourceText);
-            return true;
-        }
-
-        private static bool TryGetApiText(ImmutableArray<AdditionalText> additionalTexts, CancellationToken cancellationToken, out AdditionalText apiText)
-        {
-            apiText = null;
-
-            StringComparer comparer = StringComparer.Ordinal;
-            foreach (AdditionalText text in additionalTexts)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                string fileName = Path.GetFileName(text.Path);
-                if (comparer.Equals(fileName, BannedSymbolsFileName))
-                {
-                    apiText = text;
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
-        private static bool ValidateApiFiles(ApiData apiData, out List<Diagnostic> errors)
-        {
-            errors = new List<Diagnostic>();
-            var publicApiMap = new Dictionary<string, ApiLine>(StringComparer.Ordinal);
-            ValidateApiList(publicApiMap, apiData.ApiList, errors);
-
-            return errors.Count == 0;
-        }
-
-        private static void ValidateApiList(Dictionary<string, ApiLine> publicApiMap, ImmutableArray<ApiLine> apiList, List<Diagnostic> errors)
-        {
-            foreach (ApiLine cur in apiList)
-            {
-                if (publicApiMap.TryGetValue(cur.Text, out ApiLine existingLine))
-                {
-                    LinePositionSpan existingLinePositionSpan = existingLine.SourceText.Lines.GetLinePositionSpan(existingLine.Span);
-                    Location existingLocation = Location.Create(existingLine.Path, existingLine.Span, existingLinePositionSpan);
-
-                    LinePositionSpan duplicateLinePositionSpan = cur.SourceText.Lines.GetLinePositionSpan(cur.Span);
-                    Location duplicateLocation = Location.Create(cur.Path, cur.Span, duplicateLinePositionSpan);
-                    errors.Add(Diagnostic.Create(DuplicateBannedSymbolRule, duplicateLocation, new[] { existingLocation }, cur.Text));
-                }
-                else
-                {
-                    publicApiMap.Add(cur.Text, cur);
-                }
-            }
-        }
-
-        private class ApiData
-        {
-            public ApiData(ImmutableArray<ApiLine> apiList)
-                => ApiList = apiList;
-
-            public ImmutableArray<ApiLine> ApiList { get; }
-        }
-
-        private class ApiLine
+        private sealed class ApiLine
         {
             public TextSpan Span { get; }
             public SourceText SourceText { get; }
@@ -284,6 +205,8 @@ namespace Roslyn.Diagnostics.Analyzers
                 SourceText = sourceText;
                 Path = path;
             }
+
+            public Location Location => Location.Create(Path, Span, SourceText.Lines.GetLinePositionSpan(Span));
         }
     }
 }
