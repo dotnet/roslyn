@@ -261,6 +261,79 @@ class C
         }
 
         [Fact]
+        public void CSharp_TypeAttributeUsage()
+        {
+            var source = @"
+using System;
+
+[AttributeUsage(AttributeTargets.All, Inherited = true)]
+class BannedAttribute : Attribute { }
+
+[Banned]
+class C { }
+class D : C { }
+";
+            var bannedText = @"T:BannedAttribute";
+
+            VerifyCSharp(source, bannedText,
+                GetCSharpResultAt(7, 2, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "BannedAttribute"));
+        }
+
+        [Fact]
+        public void CSharp_MemberAttributeUsage()
+        {
+            var source = @"
+using System;
+
+[AttributeUsage(AttributeTargets.All, Inherited = true)] class BannedAttribute : Attribute { }
+
+class C 
+{
+    [Banned]
+    public int Foo { get; }
+}
+";
+            var bannedText = @"T:BannedAttribute";
+
+            VerifyCSharp(source, bannedText,
+                GetCSharpResultAt(8, 6, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "BannedAttribute"));
+        }
+
+        [Fact]
+        public void CSharp_AssemblyAttributeUsage()
+        {
+            var source = @"
+using System;
+
+[assembly: BannedAttribute]
+
+[AttributeUsage(AttributeTargets.All, Inherited = true)] class BannedAttribute : Attribute { }
+";
+
+            var bannedText = @"T:BannedAttribute";
+
+            VerifyCSharp(source, bannedText,
+                GetCSharpResultAt(4, 12, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "BannedAttribute"));
+        }
+
+        [Fact]
+        public void CSharp_ModuleAttributeUsage()
+        {
+            var source = @"
+using System;
+
+[module: BannedAttribute]
+
+[AttributeUsage(AttributeTargets.All, Inherited = true)] class BannedAttribute : Attribute { }
+";
+
+            var bannedText = @"T:BannedAttribute";
+
+            VerifyCSharp(source, bannedText,
+                GetCSharpResultAt(4, 10, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "BannedAttribute"));
+        }
+
+        [Fact]
         public void VisualBasic_DiagnosticReportedForTypeInSource()
         {
             var source = @"
@@ -423,6 +496,92 @@ End Class";
 
             VerifyBasic(source, bannedText,
                 GetBasicResultAt(5, 22, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C"));
+        }
+
+        [Fact]
+        public void VisualBasic_TypeAttributeUsage()
+        {
+            var source = @"
+Imports System
+
+<AttributeUsage(AttributeTargets.All, Inherited:=true)>
+Class BannedAttribute
+    Inherits Attribute
+End Class
+
+<Banned>
+Class C
+End Class
+Class D
+    Inherits C
+End Class
+";
+            var bannedText = @"T:BannedAttribute";
+
+            VerifyBasic(source, bannedText,
+                GetBasicResultAt(9, 2, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "BannedAttribute"));
+        }
+
+        [Fact]
+        public void VisualBasic_MemberAttributeUsage()
+        {
+            var source = @"
+Imports System
+
+<AttributeUsage(System.AttributeTargets.All, Inherited:=True)>
+Class BannedAttribute
+    Inherits System.Attribute
+End Class
+
+Class C
+    <Banned>
+    Public ReadOnly Property Foo As Integer
+End Class
+";
+            var bannedText = @"T:BannedAttribute";
+
+            VerifyBasic(source, bannedText,
+                GetBasicResultAt(10, 6, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "BannedAttribute"));
+        }
+
+        [Fact]
+        public void VisualBasic_AssemblyAttributeUsage()
+        {
+            var source = @"
+Imports System
+
+<Assembly:BannedAttribute>
+
+<AttributeUsage(AttributeTargets.All, Inherited:=True)>
+Class BannedAttribute
+    Inherits Attribute
+End Class
+";
+
+            var bannedText = @"T:BannedAttribute";
+
+            VerifyBasic(source, bannedText,
+                GetBasicResultAt(4, 2, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "BannedAttribute"));
+        }
+
+        [Fact]
+        public void VisualBasic_ModuleAttributeUsage()
+        {
+            var source = @"
+Imports System
+
+<Module:BannedAttribute>
+
+<AttributeUsage(AttributeTargets.All, Inherited:=True)>
+Class BannedAttribute
+    Inherits Attribute
+End Class
+";
+
+            var bannedText = @"T:BannedAttribute";
+
+            VerifyBasic(source, bannedText,
+                GetBasicResultAt(4, 2, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "BannedAttribute"));
         }
 
         #endregion

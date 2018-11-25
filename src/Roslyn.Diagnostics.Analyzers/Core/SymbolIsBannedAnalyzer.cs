@@ -4,8 +4,10 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using Analyzer.Utilities;
+using Analyzer.Utilities.Extensions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
@@ -73,20 +75,55 @@ namespace Roslyn.Diagnostics.Analyzers
                 return;
             }
 
-            var bannedApis = ResolveBannedApis(compilationContext.Compilation, apiData, compilationContext.CancellationToken);
-            if (bannedApis.Count > 0)
+            var bannedSymbols = ResolveBannedApis(compilationContext.Compilation, apiData, compilationContext.CancellationToken);
+
+            if (bannedSymbols.Count > 0)
             {
                 var symbolDisplayFormat = compilationContext.Compilation.Language == LanguageNames.CSharp
                     ? SymbolDisplayFormat.CSharpShortErrorMessageFormat
                     : SymbolDisplayFormat.VisualBasicShortErrorMessageFormat;
+
+                var bannedAttributes = bannedSymbols
+                    .Where(s => s is ITypeSymbol n && n.IsAttribute())
+                    .ToImmutableHashSet();
+
+                if (bannedAttributes.Count > 0)
+                {
+                    compilationContext.RegisterCompilationEndAction(context =>
+                    {
+                        VerifyAttributes(context.ReportDiagnostic, compilationContext.Compilation.Assembly.GetAttributes());
+                        VerifyAttributes(context.ReportDiagnostic, compilationContext.Compilation.SourceModule.GetAttributes());
+                    });
+
+                    compilationContext.RegisterSymbolAction(
+                        sac => VerifyAttributes(sac.ReportDiagnostic, sac.Symbol.GetAttributes()),
+                        SymbolKind.NamedType,
+                        SymbolKind.Method,
+                        SymbolKind.Field,
+                        SymbolKind.Property,
+                        SymbolKind.Event);
+                }
+
                 compilationContext.RegisterOperationAction(
-                    oac => AnalyzeOperation(oac, bannedApis, symbolDisplayFormat),
+                    oac => AnalyzeOperation(oac, bannedSymbols, symbolDisplayFormat),
                     OperationKind.ObjectCreation,
                     OperationKind.Invocation,
                     OperationKind.EventReference,
                     OperationKind.FieldReference,
                     OperationKind.MethodReference,
                     OperationKind.PropertyReference);
+
+                void VerifyAttributes(Action<Diagnostic> reportDiagnostic, ImmutableArray<AttributeData> attributes)
+                {
+                    foreach (AttributeData attribute in attributes)
+                    {
+                        if (bannedAttributes.Contains(attribute.AttributeClass))
+                        {
+                            SyntaxNode node = attribute.ApplicationSyntaxReference.GetSyntax();
+                            reportDiagnostic(node.CreateDiagnostic(SymbolIsBannedRule, attribute.AttributeClass.ToDisplayString()));
+                        }
+                    }
+                }
             }
         }
 
