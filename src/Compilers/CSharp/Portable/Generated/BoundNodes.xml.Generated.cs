@@ -31,6 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         PassByCopy,
         BadExpression,
         BadStatement,
+        ExtractedFinallyBlock,
         TypeExpression,
         TypeOrValueExpression,
         NamespaceExpression,
@@ -634,6 +635,37 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (childBoundNodes != this.ChildBoundNodes)
             {
                 var result = new BoundBadStatement(this.Syntax, childBoundNodes, this.HasErrors);
+                result.WasCompilerGenerated = this.WasCompilerGenerated;
+                return result;
+            }
+            return this;
+        }
+    }
+
+    internal sealed partial class BoundExtractedFinallyBlock : BoundStatement
+    {
+        public BoundExtractedFinallyBlock(SyntaxNode syntax, BoundBlock finallyBlock, bool hasErrors = false)
+            : base(BoundKind.ExtractedFinallyBlock, syntax, hasErrors || finallyBlock.HasErrors())
+        {
+
+            Debug.Assert(finallyBlock != null, "Field 'finallyBlock' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
+
+            this.FinallyBlock = finallyBlock;
+        }
+
+
+        public BoundBlock FinallyBlock { get; }
+
+        public override BoundNode Accept(BoundTreeVisitor visitor)
+        {
+            return visitor.VisitExtractedFinallyBlock(this);
+        }
+
+        public BoundExtractedFinallyBlock Update(BoundBlock finallyBlock)
+        {
+            if (finallyBlock != this.FinallyBlock)
+            {
+                var result = new BoundExtractedFinallyBlock(this.Syntax, finallyBlock, this.HasErrors);
                 result.WasCompilerGenerated = this.WasCompilerGenerated;
                 return result;
             }
@@ -3670,7 +3702,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundTryStatement : BoundStatement
     {
-        public BoundTryStatement(SyntaxNode syntax, BoundBlock tryBlock, ImmutableArray<BoundCatchBlock> catchBlocks, BoundBlock finallyBlockOpt, bool preferFaultHandler, bool hasErrors = false)
+        public BoundTryStatement(SyntaxNode syntax, BoundBlock tryBlock, ImmutableArray<BoundCatchBlock> catchBlocks, BoundBlock finallyBlockOpt, LabelSymbol finallyLabelOpt, bool preferFaultHandler, bool hasErrors = false)
             : base(BoundKind.TryStatement, syntax, hasErrors || tryBlock.HasErrors() || catchBlocks.HasErrors() || finallyBlockOpt.HasErrors())
         {
 
@@ -3680,6 +3712,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.TryBlock = tryBlock;
             this.CatchBlocks = catchBlocks;
             this.FinallyBlockOpt = finallyBlockOpt;
+            this.FinallyLabelOpt = finallyLabelOpt;
             this.PreferFaultHandler = preferFaultHandler;
         }
 
@@ -3690,6 +3723,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundBlock FinallyBlockOpt { get; }
 
+        public LabelSymbol FinallyLabelOpt { get; }
+
         public bool PreferFaultHandler { get; }
 
         public override BoundNode Accept(BoundTreeVisitor visitor)
@@ -3697,11 +3732,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return visitor.VisitTryStatement(this);
         }
 
-        public BoundTryStatement Update(BoundBlock tryBlock, ImmutableArray<BoundCatchBlock> catchBlocks, BoundBlock finallyBlockOpt, bool preferFaultHandler)
+        public BoundTryStatement Update(BoundBlock tryBlock, ImmutableArray<BoundCatchBlock> catchBlocks, BoundBlock finallyBlockOpt, LabelSymbol finallyLabelOpt, bool preferFaultHandler)
         {
-            if (tryBlock != this.TryBlock || catchBlocks != this.CatchBlocks || finallyBlockOpt != this.FinallyBlockOpt || preferFaultHandler != this.PreferFaultHandler)
+            if (tryBlock != this.TryBlock || catchBlocks != this.CatchBlocks || finallyBlockOpt != this.FinallyBlockOpt || finallyLabelOpt != this.FinallyLabelOpt || preferFaultHandler != this.PreferFaultHandler)
             {
-                var result = new BoundTryStatement(this.Syntax, tryBlock, catchBlocks, finallyBlockOpt, preferFaultHandler, this.HasErrors);
+                var result = new BoundTryStatement(this.Syntax, tryBlock, catchBlocks, finallyBlockOpt, finallyLabelOpt, preferFaultHandler, this.HasErrors);
                 result.WasCompilerGenerated = this.WasCompilerGenerated;
                 return result;
             }
@@ -6645,6 +6680,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return VisitBadExpression(node as BoundBadExpression, arg);
                 case BoundKind.BadStatement: 
                     return VisitBadStatement(node as BoundBadStatement, arg);
+                case BoundKind.ExtractedFinallyBlock: 
+                    return VisitExtractedFinallyBlock(node as BoundExtractedFinallyBlock, arg);
                 case BoundKind.TypeExpression: 
                     return VisitTypeExpression(node as BoundTypeExpression, arg);
                 case BoundKind.TypeOrValueExpression: 
@@ -6992,6 +7029,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this.DefaultVisit(node, arg);
         }
         public virtual R VisitBadStatement(BoundBadStatement node, A arg)
+        {
+            return this.DefaultVisit(node, arg);
+        }
+        public virtual R VisitExtractedFinallyBlock(BoundExtractedFinallyBlock node, A arg)
         {
             return this.DefaultVisit(node, arg);
         }
@@ -7636,6 +7677,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this.DefaultVisit(node);
         }
         public virtual BoundNode VisitBadStatement(BoundBadStatement node)
+        {
+            return this.DefaultVisit(node);
+        }
+        public virtual BoundNode VisitExtractedFinallyBlock(BoundExtractedFinallyBlock node)
         {
             return this.DefaultVisit(node);
         }
@@ -8288,6 +8333,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitBadStatement(BoundBadStatement node)
         {
             this.VisitList(node.ChildBoundNodes);
+            return null;
+        }
+        public override BoundNode VisitExtractedFinallyBlock(BoundExtractedFinallyBlock node)
+        {
+            this.Visit(node.FinallyBlock);
             return null;
         }
         public override BoundNode VisitTypeExpression(BoundTypeExpression node)
@@ -9133,6 +9183,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<BoundNode> childBoundNodes = (ImmutableArray<BoundNode>)this.VisitList(node.ChildBoundNodes);
             return node.Update(childBoundNodes);
         }
+        public override BoundNode VisitExtractedFinallyBlock(BoundExtractedFinallyBlock node)
+        {
+            BoundBlock finallyBlock = (BoundBlock)this.Visit(node.FinallyBlock);
+            return node.Update(finallyBlock);
+        }
         public override BoundNode VisitTypeExpression(BoundTypeExpression node)
         {
             BoundTypeExpression boundContainingTypeOpt = (BoundTypeExpression)this.Visit(node.BoundContainingTypeOpt);
@@ -9592,7 +9647,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundBlock tryBlock = (BoundBlock)this.Visit(node.TryBlock);
             ImmutableArray<BoundCatchBlock> catchBlocks = (ImmutableArray<BoundCatchBlock>)this.VisitList(node.CatchBlocks);
             BoundBlock finallyBlockOpt = (BoundBlock)this.Visit(node.FinallyBlockOpt);
-            return node.Update(tryBlock, catchBlocks, finallyBlockOpt, node.PreferFaultHandler);
+            return node.Update(tryBlock, catchBlocks, finallyBlockOpt, node.FinallyLabelOpt, node.PreferFaultHandler);
         }
         public override BoundNode VisitCatchBlock(BoundCatchBlock node)
         {
@@ -10138,6 +10193,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new TreeDumperNode("badStatement", null, new TreeDumperNode[]
             {
                 new TreeDumperNode("childBoundNodes", null, from x in node.ChildBoundNodes select Visit(x, null))
+            }
+            );
+        }
+        public override TreeDumperNode VisitExtractedFinallyBlock(BoundExtractedFinallyBlock node, object arg)
+        {
+            return new TreeDumperNode("extractedFinallyBlock", null, new TreeDumperNode[]
+            {
+                new TreeDumperNode("finallyBlock", null, new TreeDumperNode[] { Visit(node.FinallyBlock, null) })
             }
             );
         }
@@ -10940,6 +11003,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 new TreeDumperNode("tryBlock", null, new TreeDumperNode[] { Visit(node.TryBlock, null) }),
                 new TreeDumperNode("catchBlocks", null, from x in node.CatchBlocks select Visit(x, null)),
                 new TreeDumperNode("finallyBlockOpt", null, new TreeDumperNode[] { Visit(node.FinallyBlockOpt, null) }),
+                new TreeDumperNode("finallyLabelOpt", node.FinallyLabelOpt, null),
                 new TreeDumperNode("preferFaultHandler", node.PreferFaultHandler, null)
             }
             );
