@@ -24,11 +24,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         protected SynthesizedMethodBaseSymbol(NamedTypeSymbol containingType,
                                               MethodSymbol baseMethod,
                                               SyntaxReference syntaxReference,
-                                              SyntaxReference blockSyntaxReference,
                                               Location location,
                                               string name,
                                               DeclarationModifiers declarationModifiers)
-            : base(containingType, syntaxReference, blockSyntaxReference, location)
+            : base(containingType, syntaxReference, location)
         {
             Debug.Assert((object)containingType != null);
             Debug.Assert((object)baseMethod != null);

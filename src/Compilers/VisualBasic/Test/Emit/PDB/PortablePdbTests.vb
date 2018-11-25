@@ -8,6 +8,7 @@ Imports System.Text
 Imports Microsoft.CodeAnalysis.Debugging
 Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.Test.Utilities
+Imports Roslyn.Reflection.PortableExecutable
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.PDB
@@ -30,7 +31,7 @@ End Class
 </file>
                          </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
                 source,
                 TestOptions.DebugDll)
 
@@ -72,7 +73,7 @@ Class C
     End Sub
 End Class
 "
-            Dim c = CreateCompilationWithMscorlib(Parse(source, "goo.vb"), options:=TestOptions.DebugDll)
+            Dim c = CreateCompilationWithMscorlib40(Parse(source, "goo.vb"), options:=TestOptions.DebugDll)
             Dim peBlob = c.EmitToArray(EmitOptions.Default.
                                        WithDebugInformationFormat(DebugInformationFormat.Embedded).
                                        WithPdbFilePath("a/b/c/d.pdb").
@@ -125,7 +126,7 @@ Class C
     End Sub
 End Class
 "
-            Dim c = CreateCompilationWithMscorlib(Parse(source, "goo.vb"), options:=TestOptions.DebugDll.WithDeterministic(True))
+            Dim c = CreateCompilationWithMscorlib40(Parse(source, "goo.vb"), options:=TestOptions.DebugDll.WithDeterministic(True))
             Dim peBlob = c.EmitToArray(EmitOptions.Default.
                                        WithDebugInformationFormat(DebugInformationFormat.Embedded).
                                        WithPdbChecksumAlgorithm(HashAlgorithmName.SHA384).
@@ -192,7 +193,7 @@ End Class
   }
 }
 ")
-            Dim c = CreateCompilationWithMscorlib(Parse(source, "f:/build/goo.vb"), options:=TestOptions.DebugDll)
+            Dim c = CreateCompilationWithMscorlib40(Parse(source, "f:/build/goo.vb"), options:=TestOptions.DebugDll)
 
             Dim pdbStream = New MemoryStream()
             c.EmitToArray(EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.PortablePdb), pdbStream:=pdbStream, sourceLinkStream:=New MemoryStream(sourceLinkBlob))
@@ -228,7 +229,7 @@ End Class
   }
 }
 ")
-            Dim c = CreateCompilationWithMscorlib(Parse(source, "f:/build/goo.vb"), options:=TestOptions.DebugDll)
+            Dim c = CreateCompilationWithMscorlib40(Parse(source, "f:/build/goo.vb"), options:=TestOptions.DebugDll)
             Dim peBlob = c.EmitToArray(EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.Embedded), sourceLinkStream:=New MemoryStream(sourceLinkBlob))
 
             Using peReader = New PEReader(peBlob)
@@ -263,7 +264,7 @@ End Class
                                                                                Throw New Exception("Error!")
                                                                            End Function)
 
-            Dim c = CreateCompilationWithMscorlib(Parse(source, "f:/build/goo.vb"), options:=TestOptions.DebugDll)
+            Dim c = CreateCompilationWithMscorlib40(Parse(source, "f:/build/goo.vb"), options:=TestOptions.DebugDll)
             Dim result = c.Emit(New MemoryStream(), New MemoryStream(), options:=EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.PortablePdb), sourceLinkStream:=sourceLinkStream)
 
             result.Diagnostics.Verify(

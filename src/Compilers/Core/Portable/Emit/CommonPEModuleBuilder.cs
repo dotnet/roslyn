@@ -176,7 +176,11 @@ namespace Microsoft.CodeAnalysis.Emit
         /// provide a basis for approximating the capacities of
         /// various databases used during Emit.
         /// </summary>
-        public int HintNumberOfMethodDefinitions => _methodBodyMap.Count;
+        public int HintNumberOfMethodDefinitions
+            // Try to guess at the size of tables to prevent re-allocation. The method body
+            // map is pretty close, but unfortunately it tends to undercount. x1.5 seems like
+            // a healthy amount of room based on compiling Roslyn.
+            => (int)(_methodBodyMap.Count * 1.5);
 
         internal Cci.IMethodBody GetMethodBody(IMethodSymbol methodSymbol)
         {

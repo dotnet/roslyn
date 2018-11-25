@@ -24,8 +24,9 @@ namespace Microsoft.CodeAnalysis.Interactive
     /// </remarks>
     internal sealed partial class InteractiveHost : MarshalByRefObject
     {
+        internal const bool DefaultIs64Bit = true;
+
         private readonly Type _replServiceProviderType;
-        private readonly string _hostPath;
         private readonly string _initialWorkingDirectory;
 
         // adjustable for testing purposes
@@ -40,12 +41,13 @@ namespace Microsoft.CodeAnalysis.Interactive
 
         private TextWriter _output;
         private TextWriter _errorOutput;
+        private readonly object _outputGuard;
+        private readonly object _errorOutputGuard;
 
         internal event Action<bool> ProcessStarting;
 
         public InteractiveHost(
             Type replServiceProviderType,
-            string hostPath,
             string workingDirectory,
             int millisecondsTimeout = 5000)
         {
@@ -53,8 +55,9 @@ namespace Microsoft.CodeAnalysis.Interactive
             _output = TextWriter.Null;
             _errorOutput = TextWriter.Null;
             _replServiceProviderType = replServiceProviderType;
-            _hostPath = hostPath;
             _initialWorkingDirectory = workingDirectory;
+            _outputGuard = new object();
+            _errorOutputGuard = new object();
 
             var serverProvider = new BinaryServerFormatterSinkProvider { TypeFilterLevel = TypeFilterLevel.Full };
             _serverChannel = new IpcServerChannel(GenerateUniqueChannelLocalName(), "ReplChannel-" + Guid.NewGuid(), serverProvider);
@@ -69,9 +72,9 @@ namespace Microsoft.CodeAnalysis.Interactive
         internal Process TryGetProcess()
         {
             InitializedRemoteService initializedService;
-
-            return (_lazyRemoteService?.InitializedService != null &&
-                    _lazyRemoteService.InitializedService.TryGetValue(out initializedService)) ? initializedService.ServiceOpt.Process : null;
+            var lazyRemoteService = _lazyRemoteService;
+            return (lazyRemoteService?.InitializedService != null &&
+                    lazyRemoteService.InitializedService.TryGetValue(out initializedService)) ? initializedService.ServiceOpt.Process : null;
         }
 
         internal Service TryGetService()
@@ -91,6 +94,9 @@ namespace Microsoft.CodeAnalysis.Interactive
 
         #endregion
 
+        public static string GetPath(bool is64bit)
+            => Path.Combine(Path.GetDirectoryName(typeof(InteractiveHost).Assembly.Location), "InteractiveHost" + (is64bit ? "64" : "32") + ".exe");
+
         private static string GenerateUniqueChannelLocalName()
         {
             return typeof(InteractiveHost).FullName + Guid.NewGuid();
@@ -101,7 +107,7 @@ namespace Microsoft.CodeAnalysis.Interactive
             return null;
         }
 
-        private RemoteService TryStartProcess(CultureInfo culture, CancellationToken cancellationToken)
+        private RemoteService TryStartProcess(string hostPath, CultureInfo culture, CancellationToken cancellationToken)
         {
             Process newProcess = null;
             int newProcessId = -1;
@@ -129,7 +135,7 @@ namespace Microsoft.CodeAnalysis.Interactive
 
                 var remoteServerPort = "InteractiveHostChannel-" + Guid.NewGuid();
 
-                var processInfo = new ProcessStartInfo(_hostPath);
+                var processInfo = new ProcessStartInfo(hostPath);
                 processInfo.Arguments = remoteServerPort + " " + semaphoreName + " " + currentProcessId;
                 processInfo.WorkingDirectory = _initialWorkingDirectory;
                 processInfo.CreateNoWindow = true;
@@ -162,12 +168,16 @@ namespace Microsoft.CodeAnalysis.Interactive
                 // sync:
                 while (!semaphore.WaitOne(_millisecondsTimeout))
                 {
-                    if (!CheckAlive(newProcess))
+                    if (!CheckAlive(newProcess, hostPath))
                     {
                         return null;
                     }
 
-                    _output.WriteLine(FeaturesResources.Attempt_to_connect_to_process_Sharp_0_failed_retrying, newProcessId);
+                    lock (_outputGuard)
+                    {
+                        _output.WriteLine(FeaturesResources.Attempt_to_connect_to_process_Sharp_0_failed_retrying, newProcessId);
+                    }
+
                     cancellationToken.ThrowIfCancellationRequested();
                 }
 
@@ -183,7 +193,7 @@ namespace Microsoft.CodeAnalysis.Interactive
 
                     newService.Initialize(_replServiceProviderType, culture.Name);
                 }
-                catch (RemotingException) when (!CheckAlive(newProcess))
+                catch (RemotingException) when (!CheckAlive(newProcess, hostPath))
                 {
                     return null;
                 }
@@ -207,13 +217,18 @@ namespace Microsoft.CodeAnalysis.Interactive
                 }
             }
         }
-        private bool CheckAlive(Process process)
+
+        private bool CheckAlive(Process process, string hostPath)
         {
             bool alive = process.IsAlive();
             if (!alive)
             {
-                _errorOutput.WriteLine(FeaturesResources.Failed_to_launch_0_process_exit_code_colon_1_with_output_colon, _hostPath, process.ExitCode);
-                _errorOutput.WriteLine(process.StandardError.ReadToEnd());
+                string errorString = process.StandardError.ReadToEnd();
+                lock (_errorOutputGuard)
+                {
+                    _errorOutput.WriteLine(FeaturesResources.Failed_to_launch_0_process_exit_code_colon_1_with_output_colon, hostPath, process.ExitCode);
+                    _errorOutput.WriteLine(errorString);
+                }
             }
 
             return alive;
@@ -224,9 +239,12 @@ namespace Microsoft.CodeAnalysis.Interactive
             DisposeRemoteService(disposing: false);
         }
 
+        // Dispose may be called anytime.
         public void Dispose()
         {
             DisposeChannel();
+            SetOutput(TextWriter.Null);
+            SetErrorOutput(TextWriter.Null);
             DisposeRemoteService(disposing: true);
             GC.SuppressFinalize(this);
         }
@@ -249,41 +267,31 @@ namespace Microsoft.CodeAnalysis.Interactive
             }
         }
 
-        public TextWriter Output
+        public void SetOutput(TextWriter value)
         {
-            get
+            if (value == null)
             {
-                return _output;
+                throw new ArgumentNullException(nameof(value));
             }
 
-            set
+            lock(_outputGuard)
             {
-                if (value == null)
-                {
-                    throw new ArgumentNullException(nameof(value));
-                }
-
-                var oldOutput = Interlocked.Exchange(ref _output, value);
-                oldOutput.Flush();
+                _output.Flush();
+                _output = value;
             }
         }
 
-        public TextWriter ErrorOutput
+        public void SetErrorOutput(TextWriter value)
         {
-            get
+            if (value == null)
             {
-                return _errorOutput;
+                throw new ArgumentNullException(nameof(value));
             }
 
-            set
+            lock(_errorOutputGuard)
             {
-                if (value == null)
-                {
-                    throw new ArgumentNullException(nameof(value));
-                }
-
-                var oldOutput = Interlocked.Exchange(ref _errorOutput, value);
-                oldOutput.Flush();
+                _errorOutput.Flush();
+                _errorOutput = value;
             }
         }
 
@@ -291,8 +299,12 @@ namespace Microsoft.CodeAnalysis.Interactive
         {
             (error ? ErrorOutputReceived : OutputReceived)?.Invoke(buffer, count);
 
-            var writer = error ? ErrorOutput : Output;
-            writer.Write(buffer, 0, count);
+            var writer = error ? _errorOutput : _output;
+            var guard = error ? _errorOutputGuard : _outputGuard;
+            lock (guard)
+            {
+                writer.Write(buffer, 0, count);
+            }
         }
 
         private LazyRemoteService CreateRemoteService(InteractiveHostOptions options, bool skipInitialization)
@@ -320,7 +332,10 @@ namespace Microsoft.CodeAnalysis.Interactive
 
             if (exitCode.HasValue)
             {
-                _errorOutput.WriteLine(FeaturesResources.Hosting_process_exited_with_exit_code_0, exitCode.Value);
+                lock (_errorOutputGuard)
+                {
+                    _errorOutput.WriteLine(FeaturesResources.Hosting_process_exited_with_exit_code_0, exitCode.Value);
+                }
             }
         }
 
@@ -330,11 +345,14 @@ namespace Microsoft.CodeAnalysis.Interactive
             {
                 LazyRemoteService currentRemoteService = _lazyRemoteService;
 
-                // disposed or not reset:
-                Debug.Assert(currentRemoteService != null);
-
                 for (int attempt = 0; attempt < MaxAttemptsToCreateProcess; attempt++)
                 {
+                    // Remote service may be disposed anytime.
+                    if (currentRemoteService == null)
+                    {
+                        return default;
+                    }
+
                     var initializedService = await currentRemoteService.InitializedService.GetValueAsync(currentRemoteService.CancellationSource.Token).ConfigureAwait(false);
                     if (initializedService.ServiceOpt != null && initializedService.ServiceOpt.Process.IsAlive())
                     {
@@ -359,7 +377,10 @@ namespace Microsoft.CodeAnalysis.Interactive
                     }
                 }
 
-                _errorOutput.WriteLine(FeaturesResources.Unable_to_create_hosting_process);
+                lock (_errorOutputGuard)
+                {
+                    _errorOutput.WriteLine(FeaturesResources.Unable_to_create_hosting_process);
+                }
             }
             catch (OperationCanceledException)
             {
@@ -406,20 +427,23 @@ namespace Microsoft.CodeAnalysis.Interactive
 
         #region Operations
 
+        public InteractiveHostOptions OptionsOpt 
+            => _lazyRemoteService?.Options;
+
         /// <summary>
         /// Restarts and reinitializes the host process (or starts a new one if it is not running yet).
         /// </summary>
-        /// <param name="optionsOpt">The options to initialize the new process with, or null to use the current options (or default options if the process isn't running yet).</param>
-        public async Task<RemoteExecutionResult> ResetAsync(InteractiveHostOptions optionsOpt)
+        /// <param name="options">The options to initialize the new process with.</param>
+        public async Task<RemoteExecutionResult> ResetAsync(InteractiveHostOptions options)
         {
+            Debug.Assert(options != null);
+
             try
             {
-                var options = optionsOpt ?? _lazyRemoteService?.Options ?? new InteractiveHostOptions(null, CultureInfo.CurrentUICulture);
-
                 // replace the existing service with a new one:
                 var newService = CreateRemoteService(options, skipInitialization: false);
 
-                LazyRemoteService oldService = Interlocked.Exchange(ref _lazyRemoteService, newService);
+                var oldService = Interlocked.Exchange(ref _lazyRemoteService, newService);
                 if (oldService != null)
                 {
                     oldService.Dispose(joinThreads: false);
@@ -428,7 +452,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                 var initializedService = await TryGetOrCreateRemoteServiceAsync(processPendingOutput: false).ConfigureAwait(false);
                 if (initializedService.ServiceOpt == null)
                 {
-                    return default(RemoteExecutionResult);
+                    return default;
                 }
 
                 return initializedService.InitializationResult;

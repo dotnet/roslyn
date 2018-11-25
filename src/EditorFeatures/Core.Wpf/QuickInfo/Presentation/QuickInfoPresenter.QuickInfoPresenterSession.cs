@@ -9,6 +9,7 @@ using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 
+#pragma warning disable CS0618 // IQuickInfo* is obsolete, tracked by https://github.com/dotnet/roslyn/issues/24094
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo.Presentation
 {
     internal partial class QuickInfoPresenter
@@ -27,12 +28,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo.Pr
 
             public event EventHandler<EventArgs> Dismissed;
 
-            public QuickInfoPresenterSession(IQuickInfoBroker quickInfoBroker, DeferredContentFrameworkElementFactory elementFactory, ITextView textView, ITextBuffer subjectBuffer)
-                : this(quickInfoBroker, elementFactory, textView, subjectBuffer, null)
+            public QuickInfoPresenterSession(IThreadingContext threadingContext, IQuickInfoBroker quickInfoBroker, DeferredContentFrameworkElementFactory elementFactory, ITextView textView, ITextBuffer subjectBuffer)
+                : this(threadingContext, quickInfoBroker, elementFactory, textView, subjectBuffer, null)
             {
             }
 
-            public QuickInfoPresenterSession(IQuickInfoBroker quickInfoBroker, DeferredContentFrameworkElementFactory elementFactory, ITextView textView, ITextBuffer subjectBuffer, IQuickInfoSession sessionOpt)
+            public QuickInfoPresenterSession(IThreadingContext threadingContext, IQuickInfoBroker quickInfoBroker, DeferredContentFrameworkElementFactory elementFactory, ITextView textView, ITextBuffer subjectBuffer, IQuickInfoSession sessionOpt)
+                : base(threadingContext)
             {
                 _quickInfoBroker = quickInfoBroker;
                 _elementFactory = elementFactory;
@@ -109,3 +111,4 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo.Pr
         }
     }
 }
+#pragma warning restore CS0618 // IQuickInfo* is obsolete, tracked by https://github.com/dotnet/roslyn/issues/24094

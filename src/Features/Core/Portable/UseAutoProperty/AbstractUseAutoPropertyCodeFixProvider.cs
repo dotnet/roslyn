@@ -14,15 +14,16 @@ using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.UseAutoProperty
 {
-    internal abstract class AbstractUseAutoPropertyCodeFixProvider<TPropertyDeclaration, TFieldDeclaration, TVariableDeclarator, TConstructorDeclaration, TExpression> : CodeFixProvider
+    internal abstract class AbstractUseAutoPropertyCodeFixProvider<TTypeDeclarationSyntax, TPropertyDeclaration, TVariableDeclarator, TConstructorDeclaration, TExpression> : CodeFixProvider
+        where TTypeDeclarationSyntax : SyntaxNode
         where TPropertyDeclaration : SyntaxNode
-        where TFieldDeclaration : SyntaxNode
         where TVariableDeclarator : SyntaxNode
         where TConstructorDeclaration : SyntaxNode
         where TExpression : SyntaxNode
@@ -58,7 +59,7 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
                     diagnostic);
             }
 
-            return SpecializedTasks.EmptyTask;
+            return Task.CompletedTask;
         }
 
         private async Task<Solution> ProcessResultAsync(CodeFixContext context, Diagnostic diagnostic, CancellationToken cancellationToken)
@@ -83,13 +84,17 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
 
             var solution = context.Document.Project.Solution;
             var fieldLocations = await Renamer.GetRenameLocationsAsync(
-                solution, SymbolAndProjectId.Create(fieldSymbol, fieldDocument.Project.Id), 
+                solution, SymbolAndProjectId.Create(fieldSymbol, fieldDocument.Project.Id),
                 solution.Options, cancellationToken).ConfigureAwait(false);
 
             // First, create the updated property we want to replace the old property with
             var isWrittenToOutsideOfConstructor = IsWrittenToOutsideOfConstructorOrProperty(fieldSymbol, fieldLocations, property, cancellationToken);
-            var updatedProperty = await UpdatePropertyAsync(propertyDocument, compilation, fieldSymbol, propertySymbol, property,
+            var updatedProperty = await UpdatePropertyAsync(
+                propertyDocument, compilation, fieldSymbol, propertySymbol, property,
                 isWrittenToOutsideOfConstructor, cancellationToken).ConfigureAwait(false);
+
+            // Ensure the new and old property share the same trailing trivia.
+            updatedProperty = updatedProperty.WithTrailingTrivia(property.GetTrailingTrivia());
 
             // Note: rename will try to update all the references in linked files as well.  However, 
             // this can lead to some very bad behavior as we will change the references in linked files
@@ -105,7 +110,7 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
             // The workspace will see these as two irreconcilable edits.  To avoid this, we disallow
             // any edits to the other links for the files containing the field and property.  i.e.
             // rename will only be allowed to edit the exact same doc we're removing the field from
-            // and the exact doc we're updating hte property in.  It can't touch the other linked
+            // and the exact doc we're updating the property in.  It can't touch the other linked
             // files for those docs.  (It can of course touch any other documents unrelated to the
             // docs that the field and prop are declared in).
             var linkedFiles = new HashSet<DocumentId>();
@@ -141,8 +146,46 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
 
             var nodeToRemove = GetNodeToRemove(declarator);
 
-            const SyntaxRemoveOptions options = SyntaxRemoveOptions.KeepUnbalancedDirectives | SyntaxRemoveOptions.AddElasticMarker;
+            // If we have a situation where the property is the second member in a type, and it
+            // would become the first, then remove any leading blank lines from it so we don't have
+            // random blanks above it that used to space it from the field that was there.
+            //
+            // The reason we do this special processing is that the first member of a type tends to
+            // be special wrt leading trivia. i.e. users do not normally put blank lines before the
+            // first member. And so, when a type now becomes the first member, we want to follow the
+            // user's common pattern here.
+            //
+            // In all other code cases, i.e.when there are multiple fields above, or the field is
+            // below the property, then the property isn't now becoming "the first member", and as
+            // such, it doesn't want this special behavior about it's leading blank lines. i.e. if
+            // the user has:
+            //
+            //  class C
+            //  {
+            //      int i;
+            //      int j;
+            //
+            //      int Prop => j;
+            //  }
+            //
+            // Then if we remove 'j' (or even 'i'), then 'Prop' would stay the non-first member, and
+            // would definitely want to keep that blank line above it.
+            //
+            // In essence, the blank line above the property exists for separation from what's above
+            // it. As long as something is above it, we keep the separation. However, if the
+            // property becomes the first member in the type, the separation is now inappropriate
+            // because there's nothing to actually separate it from.
+            if (fieldDocument == propertyDocument)
+            {
+                var syntaxFacts = fieldDocument.GetLanguageService<ISyntaxFactsService>();
+                if (WillRemoveFirstFieldInTypeDirectlyAboveProperty(syntaxFacts, property, nodeToRemove) &&
+                    syntaxFacts.GetLeadingBlankLines(nodeToRemove).Length == 0)
+                {
+                    updatedProperty = syntaxFacts.GetNodeWithoutLeadingBlankLines(updatedProperty);
+                }
+            }
 
+            const SyntaxRemoveOptions options = SyntaxRemoveOptions.KeepUnbalancedDirectives | SyntaxRemoveOptions.AddElasticMarker;
             if (fieldDocument == propertyDocument)
             {
                 // Same file.  Have to do this in a slightly complicated fashion.
@@ -155,8 +198,7 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
                 var newRoot = editor.GetChangedRoot();
                 newRoot = await FormatAsync(newRoot, fieldDocument, cancellationToken).ConfigureAwait(false);
 
-                return solution.WithDocumentSyntaxRoot(
-                    fieldDocument.Id, newRoot);
+                return solution.WithDocumentSyntaxRoot(fieldDocument.Id, newRoot);
             }
             else
             {
@@ -175,6 +217,19 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
 
                 return updatedSolution;
             }
+        }
+
+        private bool WillRemoveFirstFieldInTypeDirectlyAboveProperty(
+            ISyntaxFactsService syntaxFacts, TPropertyDeclaration property, SyntaxNode fieldToRemove)
+        {
+            if (fieldToRemove.Parent == property.Parent &&
+                fieldToRemove.Parent is TTypeDeclarationSyntax typeDeclaration)
+            {
+                var members = syntaxFacts.GetMembersOfTypeDeclaration(typeDeclaration);
+                return members[0] == fieldToRemove && members[1] == property;
+            }
+
+            return false;
         }
 
         private bool CanEditDocument(

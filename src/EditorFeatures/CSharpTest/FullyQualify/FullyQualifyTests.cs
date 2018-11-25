@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.CodeFixes.FullyQualify;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -801,6 +802,35 @@ class Test
 class Test
 {
     Program.Inner i;
+}");
+        }
+
+        [WorkItem(26887, "https://github.com/dotnet/roslyn/issues/26887")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        public async Task TestFullyQualifyUnboundIdentifier3()
+        {
+            await TestInRegularAndScriptAsync(
+@"public class Program
+{
+    public class Inner
+    {
+    }
+}
+
+class Test
+{
+    public [|Inner|] Name
+}",
+@"public class Program
+{
+    public class Inner
+    {
+    }
+}
+
+class Test
+{
+    public Program.Inner Name
 }");
         }
 

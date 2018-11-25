@@ -29,8 +29,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         {
             if (_workspace != null)
             {
-                _workspace.Dispose();
-                _workspace = null;
+                throw new InvalidOperationException($"Tests which use {nameof(TestWorkspaceFixture)}.{nameof(GetWorkspace)} must call {nameof(DisposeAfterTest)} after each test.");
             }
         }
 
@@ -62,7 +61,20 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             }
         }
 
-        public void CloseTextView()
+        public void DisposeAfterTest()
+        {
+            try
+            {
+                CloseTextView();
+                _workspace?.Dispose();
+            }
+            finally
+            {
+                _workspace = null;
+            }
+        }
+
+        private void CloseTextView()
         {
             // The standard use for TestWorkspaceFixture is to call this method in the test's dispose to make sure it's ready to be used for
             // the next test. But some tests in a test class won't use it, so _workspace might still be null.

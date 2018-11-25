@@ -330,16 +330,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (conversion.Kind)
             {
                 case ConversionKind.StackAllocToPointerType:
+                    ReportUnsafeIfNotAllowed(syntax.Location, diagnostics);
                     stackAllocType = new PointerTypeSymbol(elementType);
                     break;
                 case ConversionKind.StackAllocToSpanType:
+                    CheckFeatureAvailability(syntax, MessageID.IDS_FeatureRefStructs, diagnostics);
                     stackAllocType = Compilation.GetWellKnownType(WellKnownType.System_Span_T).Construct(elementType);
                     break;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(conversion.Kind);
             }
 
-            var convertedNode = new BoundConvertedStackAllocExpression(syntax, elementType, boundStackAlloc.Count, stackAllocType, boundStackAlloc.HasErrors);
+            var convertedNode = new BoundConvertedStackAllocExpression(syntax, elementType, boundStackAlloc.Count, boundStackAlloc.InitializerOpt, stackAllocType, boundStackAlloc.HasErrors);
 
             var underlyingConversion = conversion.UnderlyingConversions.Single();
             return CreateConversion(syntax, convertedNode, underlyingConversion, isCast, destination, diagnostics);

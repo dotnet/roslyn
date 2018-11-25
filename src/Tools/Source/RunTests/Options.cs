@@ -63,14 +63,17 @@ namespace RunTests
         /// </summary>
         public TimeSpan? Timeout { get; set; }
 
-        public string ProcDumpPath { get; set; }
+        /// <summary>
+        /// The directory which contains procdump.exe. 
+        /// </summary>
+        public string ProcDumpDirectory { get; set; }
 
         public string XunitPath { get; set; }
 
         /// <summary>
-        /// When set the log file for executing tests will be written to the prescribed location.
+        /// Directory to hold all of our test logging information.
         /// </summary>
-        public string LogFilePath { get; set; }
+        public string LogsDirectory { get; set; }
 
         internal static Options Parse(string[] args)
         {
@@ -93,7 +96,7 @@ namespace RunTests
                 return false;
             }
 
-            var opt = new Options { XunitPath = args[0], UseHtml = true, UseCachedResults = true };
+            var opt = new Options { XunitPath = args[0], UseHtml = true, UseCachedResults = true, LogsDirectory = Directory.GetCurrentDirectory() };
             var index = 1;
             var allGood = true;
             while (index < args.Length)
@@ -120,9 +123,9 @@ namespace RunTests
                     opt.UseCachedResults = false;
                     index++;
                 }
-                else if (isOption(current, "-log", out string value))
+                else if (isOption(current, "-logpath", out string value))
                 {
-                    opt.LogFilePath = value;
+                    opt.LogsDirectory = value;
                     index++;
                 }
                 else if (isOption(current, "-display", out value))
@@ -165,7 +168,7 @@ namespace RunTests
                 }
                 else if (isOption(current, "-procdumpPath", out value))
                 {
-                    opt.ProcDumpPath = value;
+                    opt.ProcDumpDirectory = value;
                     index++;
                 }
                 else

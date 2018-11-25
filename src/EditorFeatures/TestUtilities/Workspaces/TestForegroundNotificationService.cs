@@ -57,8 +57,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
                 task = _queue.ScheduleTask(() =>
                 {
                     action();
-                    asyncToken.Dispose();
-                }, cancellationToken);
+                }, cancellationToken).CompletesAsyncOperation(asyncToken);
 
                 _tasks.Add(task);
             }

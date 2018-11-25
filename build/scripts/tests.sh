@@ -20,9 +20,13 @@ xunit_console_version="$(get_package_version dotnet-xunit)"
 
 if [[ "${runtime}" == "dotnet" ]]; then
     target_framework=netcoreapp2.0
+    file_list=( "${unittest_dir}"/*/netcoreapp2.0/*.UnitTests.dll )
     xunit_console="${nuget_dir}"/xunit.runner.console/"${xunit_console_version}"/tools/${target_framework}/xunit.console.dll
 elif [[ "${runtime}" == "mono" ]]; then
-    target_framework=net461
+    file_list=(
+        "${unittest_dir}/Microsoft.CodeAnalysis.CSharp.Symbol.UnitTests/net46/Microsoft.CodeAnalysis.CSharp.Symbol.UnitTests.dll"
+        "${unittest_dir}/Microsoft.CodeAnalysis.CSharp.Syntax.UnitTests/net46/Microsoft.CodeAnalysis.CSharp.Syntax.UnitTests.dll"
+        )
     xunit_console="${nuget_dir}"/xunit.runner.console/"${xunit_console_version}"/tools/net452/xunit.console.exe
 else
     echo "Unknown runtime: ${runtime}"
@@ -48,9 +52,8 @@ echo "Using ${xunit_console}"
 mkdir -p "${log_dir}"
 
 exit_code=0
-for test_path in "${unittest_dir}"/*/"${target_framework}"
+for file_name in "${file_list[@]}"
 do
-    file_name=( "${test_path}"/*.UnitTests.dll )
     log_file="${log_dir}"/"$(basename "${file_name%.*}.xml")"
     deps_json="${file_name%.*}".deps.json
     runtimeconfig_json="${file_name%.*}".runtimeconfig.json
@@ -66,15 +69,21 @@ do
     echo Running "${runtime} ${file_name[@]}"
     if [[ "${runtime}" == "dotnet" ]]; then
         runner="dotnet exec --depsfile ${deps_json} --runtimeconfig ${runtimeconfig_json}"
-    elif [[ "${runtime}" == "mono" ]]; then
-        runner=mono
-        if [[ "${file_name[@]}" == *'Microsoft.CodeAnalysis.CSharp.Scripting.UnitTests.dll' || "${file_name[@]}" == *'Roslyn.Compilers.CompilerServer.UnitTests.dll' ]]
+
+        # Disable the VB Emit + Semantic tests while we investigate the core dump issue
+        # https://github.com/dotnet/roslyn/issues/29660
+        if [[ "${file_name[@]}" == *'Microsoft.CodeAnalysis.VisualBasic.Semantic.UnitTests.dll' ]] || \
+           [[ "${file_name[@]}" == *'Microsoft.CodeAnalysis.VisualBasic.Emit.UnitTests.dll' ]]
         then
             echo "Skipping ${file_name[@]}"
             continue
         fi
+    elif [[ "${runtime}" == "mono" ]]; then
+        runner=mono
     fi
-    if ${runner} "${xunit_console}" "${file_name[@]}" -xml "${log_file}"
+
+    # https://github.com/dotnet/roslyn/issues/29380
+    if ${runner} "${xunit_console}" "${file_name[@]}" -xml "${log_file}" -parallel none 
     then
         echo "Assembly ${file_name[@]} passed"
     else

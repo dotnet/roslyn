@@ -41,7 +41,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
                 Assert.NotNull(checksum);
 
                 var assetBuilder = new CustomAssetBuilder(workspace);
-                var serializer = new Serializer(workspace);
+                var serializer = workspace.Services.GetService<ISerializerService>();
 
                 var asset = assetBuilder.Build(analyzerReference, CancellationToken.None);
 

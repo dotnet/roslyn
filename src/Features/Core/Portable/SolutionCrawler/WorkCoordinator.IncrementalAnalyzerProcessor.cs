@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Notification;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Roslyn.Utilities;
 
@@ -24,7 +25,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         {
             private partial class IncrementalAnalyzerProcessor
             {
-                private static readonly Func<int, object, bool, string> s_enqueueLogger = (t, i, s) => string.Format("Tick:{0}, Id:{1}, Replaced:{2}", t, i.ToString(), s);
+                private static readonly Func<int, object, bool, string> s_enqueueLogger = EnqueueLogger;
 
                 private readonly Registration _registration;
                 private readonly IAsynchronousOperationListener _listener;
@@ -193,7 +194,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     try
                     {
                         var root = await GetOrDefaultAsync(document, (d, c) => d.GetSyntaxRootAsync(c), cancellationToken).ConfigureAwait(false);
-                        var syntaxFactsService = document.Project.LanguageServices.GetService<ISyntaxFactsService>();
+                        var syntaxFactsService = document.GetLanguageService<ISyntaxFactsService>();
                         var reasons = workItem.InvocationReasons;
                         if (root == null || syntaxFactsService == null)
                         {
@@ -271,6 +272,16 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     }
 
                     return null;
+                }
+
+                private static string EnqueueLogger(int tick, object documentOrProjectId, bool replaced)
+                {
+                    if (documentOrProjectId is DocumentId documentId)
+                    {
+                        return $"Tick:{tick}, {documentId}, {documentId.ProjectId}, Replaced:{replaced}";
+                    }
+
+                    return $"Tick:{tick}, {documentOrProjectId}, Replaced:{replaced}";
                 }
 
                 private static bool CrashUnlessCanceled(AggregateException aggregate)

@@ -1,11 +1,14 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Implementation.Workspaces;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Utilities;
 using Moq;
@@ -14,6 +17,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 {
+    [UseExportProvider]
     public class TextFactoryTests
     {
         private byte[] _nonUTF8StringBytes = new byte[] { 0x80, 0x92, 0xA4, 0xB6, 0xC9, 0xDB, 0xED, 0xFF };
@@ -121,7 +125,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                     return mockTextBuffer.Object;
                 });
 
-            return new EditorTextFactoryService(mockTextBufferFactoryService.Object, new Mock<IContentTypeRegistryService>().Object);
+            return new EditorTextFactoryService(new FakeTextBufferCloneService(), mockTextBufferFactoryService.Object, new Mock<IContentTypeRegistryService>().Object);
         }
 
         private void TestCreateTextInferredEncoding(byte[] bytes, Encoding defaultEncoding, Encoding expectedEncoding)
@@ -132,6 +136,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 var text = factory.CreateText(stream, defaultEncoding);
                 Assert.Equal(expectedEncoding, text.Encoding);
             }
+        }
+
+        private class FakeTextBufferCloneService : ITextBufferCloneService
+        {
+            public ITextBuffer Clone(SnapshotSpan span) => throw new NotImplementedException();
+
+            public ITextBuffer Clone(ITextImage textImage) => throw new NotImplementedException();
         }
     }
 }

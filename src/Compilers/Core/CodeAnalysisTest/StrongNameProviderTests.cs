@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
 
@@ -10,7 +11,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 {
     public class StrongNameProviderTests
     {
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void ResolveStrongNameKeyFile()
         {
             string fileName = "f.snk";

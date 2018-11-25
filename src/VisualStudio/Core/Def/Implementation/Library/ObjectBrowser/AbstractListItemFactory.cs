@@ -580,13 +580,33 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
 
             foreach (var typeMember in typeMembers)
             {
-                if (IncludeSymbol(typeMember) && typeMember.IsAccessibleWithin(assemblySymbol))
+                if (IncludeTypeMember(typeMember, assemblySymbol))
                 {
                     builder.Add(typeMember);
                 }
             }
 
             return builder.ToImmutable();
+        }
+
+        private bool IncludeTypeMember(INamedTypeSymbol typeMember, IAssemblySymbol assemblySymbol)
+        {
+            if (!IncludeSymbol(typeMember))
+            {
+                return false;
+            }
+
+            if (typeMember.Locations.Any(l => l.IsInSource))
+            {
+                return true;
+            }
+
+            if (typeMember.Locations.Any(l => l.IsInMetadata))
+            {
+                return typeMember.IsAccessibleWithin(assemblySymbol);
+            }
+
+            return false;
         }
 
         public ImmutableArray<ObjectListItem> GetProjectListItems(Solution solution, string languageName, uint listFlags, CancellationToken cancellationToken)

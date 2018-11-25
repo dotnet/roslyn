@@ -17,16 +17,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
             internal struct SignatureHelpSelection
             {
                 private readonly SignatureHelpItem _selectedItem;
+                private readonly bool _userSelected;
                 private readonly int? _selectedParameter;
 
-                public SignatureHelpSelection(SignatureHelpItem selectedItem, int? selectedParameter) : this()
+                public SignatureHelpSelection(SignatureHelpItem selectedItem, bool userSelected, int? selectedParameter) : this()
                 {
                     _selectedItem = selectedItem;
+                    _userSelected = userSelected;
                     _selectedParameter = selectedParameter;
                 }
 
                 public int? SelectedParameter => _selectedParameter;
                 public SignatureHelpItem SelectedItem => _selectedItem;
+                public bool UserSelected => _userSelected;
             }
 
             internal static class DefaultSignatureHelpSelector
@@ -34,14 +37,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
                 public static SignatureHelpSelection GetSelection(
                     IList<SignatureHelpItem> items,
                     SignatureHelpItem selectedItem,
+                    bool userSelected,
                     int argumentIndex,
                     int argumentCount,
                     string argumentName,
                     bool isCaseSensitive)
                 {
-                    var bestItem = GetBestItem(selectedItem, items, argumentIndex, argumentCount, argumentName, isCaseSensitive);
-                    var selectedParameter = GetSelectedParameter(bestItem, argumentIndex, argumentName, isCaseSensitive);
-                    return new SignatureHelpSelection(bestItem, selectedParameter);
+                    SelectBestItem(ref selectedItem, ref userSelected, items, argumentIndex, argumentCount, argumentName, isCaseSensitive);
+                    var selectedParameter = GetSelectedParameter(selectedItem, argumentIndex, argumentName, isCaseSensitive);
+                    return new SignatureHelpSelection(selectedItem, userSelected, selectedParameter);
                 }
 
                 private static int GetSelectedParameter(SignatureHelpItem bestItem, int parameterIndex, string parameterName, bool isCaseSensitive)
@@ -59,15 +63,20 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
                     return parameterIndex;
                 }
 
-                private static SignatureHelpItem GetBestItem(
-                    SignatureHelpItem currentItem, IList<SignatureHelpItem> filteredItems, int selectedParameter, int argumentCount, string name, bool isCaseSensitive)
+                private static void SelectBestItem(ref SignatureHelpItem currentItem, ref bool userSelected,
+                    IList<SignatureHelpItem> filteredItems, int selectedParameter, int argumentCount, string name, bool isCaseSensitive)
                 {
                     // If the current item is still applicable, then just keep it.
                     if (filteredItems.Contains(currentItem) &&
                         IsApplicable(currentItem, argumentCount, name, isCaseSensitive))
                     {
-                        return currentItem;
+                        // If the current item was user-selected, we keep it as such.
+                        return;
                     }
+
+                    // If the current item is no longer applicable, we'll be choosing a new one,
+                    // which was definitely not previously user-selected.
+                    userSelected = false;
 
                     // Try to find the first applicable item.  If there is none, then that means the
                     // selected parameter was outside the bounds of all methods.  i.e. all methods only
@@ -76,14 +85,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
                     var result = filteredItems.FirstOrDefault(i => IsApplicable(i, argumentCount, name, isCaseSensitive));
                     if (result != null)
                     {
-                        return result;
+                        currentItem = result;
+                        return;
                     }
 
                     // if we couldn't find a best item, and they provided a name, then try again without
                     // a name.
                     if (name != null)
                     {
-                        return GetBestItem(currentItem, filteredItems, selectedParameter, argumentCount, null, isCaseSensitive);
+                        SelectBestItem(ref currentItem, ref userSelected, filteredItems, selectedParameter, argumentCount, null, isCaseSensitive);
+                        return;
                     }
 
                     // If we don't have an item that can take that number of parameters, then just pick
@@ -91,10 +102,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
                     var lastItem = filteredItems.Last();
                     if (currentItem.IsVariadic || currentItem.Parameters.Length == lastItem.Parameters.Length)
                     {
-                        return currentItem;
+                        return;
                     }
 
-                    return lastItem;
+                    currentItem = lastItem;
                 }
 
                 private static bool IsApplicable(SignatureHelpItem item, int argumentCount, string name, bool isCaseSensitive)

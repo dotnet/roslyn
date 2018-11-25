@@ -431,7 +431,7 @@ class Test
 {
     public static void Main()
     {       
-        var sp = new ReadOnlySpan<int>(new[] {1, 2, 3});
+        var sp = new ReadOnlySpan<Color>(new [] {Color.Red, Color.Green, Color.Blue});
         foreach(var i in sp)
         {
             Console.Write(i);
@@ -441,36 +441,133 @@ class Test
 
 ", TestOptions.ReleaseExe);
 
-            CompileAndVerify(comp, expectedOutput: "123").VerifyIL("Test.Main", @"
+            //NOTE: the verification error is expected. Wrapping of literals into readonly spans uses unsafe Span.ctor.
+            CompileAndVerify(comp, expectedOutput: "RedGreenBlue", verify: Verification.Fails).VerifyIL("Test.Main", @"
 {
-  // Code size       56 (0x38)
-  .maxstack  3
-  .locals init (System.ReadOnlySpan<int> V_0,
+  // Code size       50 (0x32)
+  .maxstack  2
+  .locals init (System.ReadOnlySpan<System.Color> V_0,
                 int V_1)
-  IL_0000:  ldc.i4.3
-  IL_0001:  newarr     ""int""
-  IL_0006:  dup
-  IL_0007:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12 <PrivateImplementationDetails>.E429CCA3F703A39CC5954A6572FEC9086135B34E""
-  IL_000c:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
-  IL_0011:  newobj     ""System.ReadOnlySpan<int>..ctor(int[])""
-  IL_0016:  stloc.0
-  IL_0017:  ldc.i4.0
-  IL_0018:  stloc.1
-  IL_0019:  br.s       IL_002d
-  IL_001b:  ldloca.s   V_0
+  IL_0000:  ldsflda    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=3 <PrivateImplementationDetails>.0C7A623FD2BBC05B06423BE359E4021D36E721AD""
+  IL_0005:  ldc.i4.3
+  IL_0006:  newobj     ""System.ReadOnlySpan<System.Color>..ctor(void*, int)""
+  IL_000b:  stloc.0
+  IL_000c:  ldc.i4.0
+  IL_000d:  stloc.1
+  IL_000e:  br.s       IL_0027
+  IL_0010:  ldloca.s   V_0
+  IL_0012:  ldloc.1
+  IL_0013:  call       ""ref readonly System.Color System.ReadOnlySpan<System.Color>.this[int].get""
+  IL_0018:  ldind.i1
+  IL_0019:  box        ""System.Color""
+  IL_001e:  call       ""void System.Console.Write(object)""
+  IL_0023:  ldloc.1
+  IL_0024:  ldc.i4.1
+  IL_0025:  add
+  IL_0026:  stloc.1
+  IL_0027:  ldloc.1
+  IL_0028:  ldloca.s   V_0
+  IL_002a:  call       ""int System.ReadOnlySpan<System.Color>.Length.get""
+  IL_002f:  blt.s      IL_0010
+  IL_0031:  ret
+}");
+        }
+
+        [Fact]
+        public void TestReadOnlySpanString()
+        {
+            var comp = CreateCompilationWithMscorlibAndSpan(@"
+using System;
+
+class Test
+{
+    public static void Main()
+    {       
+        var sp = (ReadOnlySpan<char>)""hello"";
+        foreach(var i in sp)
+        {
+            Console.Write(i);
+        }
+    }
+}
+
+", TestOptions.ReleaseExe);
+
+            CompileAndVerify(comp, expectedOutput: "hello", verify: Verification.Passes).VerifyIL("Test.Main", @"
+{
+  // Code size       44 (0x2c)
+  .maxstack  2
+  .locals init (System.ReadOnlySpan<char> V_0,
+                int V_1)
+  IL_0000:  ldstr      ""hello""
+  IL_0005:  call       ""System.ReadOnlySpan<char> System.ReadOnlySpan<char>.op_Implicit(string)""
+  IL_000a:  stloc.0
+  IL_000b:  ldc.i4.0
+  IL_000c:  stloc.1
+  IL_000d:  br.s       IL_0021
+  IL_000f:  ldloca.s   V_0
+  IL_0011:  ldloc.1
+  IL_0012:  call       ""ref readonly char System.ReadOnlySpan<char>.this[int].get""
+  IL_0017:  ldind.u2
+  IL_0018:  call       ""void System.Console.Write(char)""
   IL_001d:  ldloc.1
-  IL_001e:  call       ""ref readonly int System.ReadOnlySpan<int>.this[int].get""
-  IL_0023:  ldind.i4
-  IL_0024:  call       ""void System.Console.Write(int)""
-  IL_0029:  ldloc.1
-  IL_002a:  ldc.i4.1
-  IL_002b:  add
-  IL_002c:  stloc.1
-  IL_002d:  ldloc.1
-  IL_002e:  ldloca.s   V_0
-  IL_0030:  call       ""int System.ReadOnlySpan<int>.Length.get""
-  IL_0035:  blt.s      IL_001b
-  IL_0037:  ret
+  IL_001e:  ldc.i4.1
+  IL_001f:  add
+  IL_0020:  stloc.1
+  IL_0021:  ldloc.1
+  IL_0022:  ldloca.s   V_0
+  IL_0024:  call       ""int System.ReadOnlySpan<char>.Length.get""
+  IL_0029:  blt.s      IL_000f
+  IL_002b:  ret
+}");
+        }
+
+        [Fact]
+        public void TestReadOnlySpan2()
+        {
+            var comp = CreateCompilationWithMscorlibAndSpan(@"
+using System;
+
+class Test
+{
+    public static void Main()
+    {       
+        foreach(var i in (ReadOnlySpan<byte>)new byte[] {1, 2, 3})
+        {
+            Console.Write(i);
+        }
+    }
+}
+
+", TestOptions.ReleaseExe);
+
+            CompileAndVerify(comp, expectedOutput: "123", verify: Verification.Fails).VerifyIL("Test.Main", @"
+{
+  // Code size       45 (0x2d)
+  .maxstack  2
+  .locals init (System.ReadOnlySpan<byte> V_0,
+                int V_1)
+  IL_0000:  ldsflda    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=3 <PrivateImplementationDetails>.7037807198C22A7D2B0807371D763779A84FDFCF""
+  IL_0005:  ldc.i4.3
+  IL_0006:  newobj     ""System.ReadOnlySpan<byte>..ctor(void*, int)""
+  IL_000b:  stloc.0
+  IL_000c:  ldc.i4.0
+  IL_000d:  stloc.1
+  IL_000e:  br.s       IL_0022
+  IL_0010:  ldloca.s   V_0
+  IL_0012:  ldloc.1
+  IL_0013:  call       ""ref readonly byte System.ReadOnlySpan<byte>.this[int].get""
+  IL_0018:  ldind.u1
+  IL_0019:  call       ""void System.Console.Write(int)""
+  IL_001e:  ldloc.1
+  IL_001f:  ldc.i4.1
+  IL_0020:  add
+  IL_0021:  stloc.1
+  IL_0022:  ldloc.1
+  IL_0023:  ldloca.s   V_0
+  IL_0025:  call       ""int System.ReadOnlySpan<byte>.Length.get""
+  IL_002a:  blt.s      IL_0010
+  IL_002c:  ret
 }");
         }
 

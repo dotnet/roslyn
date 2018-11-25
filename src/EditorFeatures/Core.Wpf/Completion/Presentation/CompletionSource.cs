@@ -9,6 +9,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
 {
     internal sealed class CompletionSource : ForegroundThreadAffinitizedObject, ICompletionSource
     {
+        public CompletionSource(IThreadingContext threadingContext)
+            : base(threadingContext)
+        {
+        }
+
         void ICompletionSource.AugmentCompletionSession(ICompletionSession session, IList<CompletionSet> completionSets)
         {
             AssertIsForeground();

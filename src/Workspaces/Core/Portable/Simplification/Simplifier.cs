@@ -196,7 +196,7 @@ namespace Microsoft.CodeAnalysis.Simplification
             Document document, ImmutableArray<AbstractReducer> reducers, OptionSet optionSet = null, CancellationToken cancellationToken = default)
         {
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            return await document.Project.LanguageServices.GetService<ISimplificationService>()
+            return await document.GetLanguageService<ISimplificationService>()
                 .ReduceAsync(document, ImmutableArray.Create(root.FullSpan), optionSet, 
                              reducers, cancellationToken).ConfigureAwait(false);
         }

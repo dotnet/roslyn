@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Storage
                 if (solution.Id == _currentPersistentStorageSolutionId)
                 {
                     // We do, great
-                    return PersistentStorageReferenceCountedDisposableWrapper.AddRefrenceCountToAndCreateWrapper(_currentPersistentStorage);
+                    return PersistentStorageReferenceCountedDisposableWrapper.AddReferenceCountToAndCreateWrapper(_currentPersistentStorage);
                 }
 
                 if (!SolutionSizeAboveThreshold(solution))
@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.Storage
 
                 _currentPersistentStorageSolutionId = solution.Id;
 
-                return PersistentStorageReferenceCountedDisposableWrapper.AddRefrenceCountToAndCreateWrapper(_currentPersistentStorage);
+                return PersistentStorageReferenceCountedDisposableWrapper.AddReferenceCountToAndCreateWrapper(_currentPersistentStorage);
             }
         }
 
@@ -239,7 +239,7 @@ namespace Microsoft.CodeAnalysis.Storage
                 _storage = storage;
             }
             
-            public static IPersistentStorage AddRefrenceCountToAndCreateWrapper(ReferenceCountedDisposable<IPersistentStorage> storage)
+            public static IPersistentStorage AddReferenceCountToAndCreateWrapper(ReferenceCountedDisposable<IPersistentStorage> storage)
             {
                 return new PersistentStorageReferenceCountedDisposableWrapper(storage.TryAddReference());
             }

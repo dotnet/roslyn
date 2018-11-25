@@ -31,6 +31,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// of TestWorkpace if we're in tests. Type checking should be avoided for the most part.
         /// </summary>
         private readonly Workspace _workspace;
+        private readonly LinkedFileUtilities _linkedFileUtilities;
         private readonly IServiceProvider _serviceProvider;
         private readonly IVsSolution _vsSolution;
         private readonly IVsRunningDocumentTable4 _runningDocumentTable;
@@ -87,6 +88,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private readonly Dictionary<string, ProjectId> _projectPathToIdMap;
         #endregion
 
+        internal LinkedFileUtilities LinkedFileUtilities => _linkedFileUtilities;
+
         /// <summary>
         /// Provided to not break CodeLens which has a dependency on this API until there is a
         /// public release which calls <see cref="ImmutableProjects"/>.  Once there is, we should
@@ -118,8 +121,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             StartPushingToWorkspaceAndNotifyOfOpenDocuments(SpecializedCollections.SingletonEnumerable(abstractProject));
         }
 
-        public VisualStudioProjectTracker(IServiceProvider serviceProvider, Workspace workspace)
-            : base(assertIsForeground: true)
+        public VisualStudioProjectTracker(IThreadingContext threadingContext, IServiceProvider serviceProvider, Workspace workspace, LinkedFileUtilities linkedFileUtilities)
+            : base(threadingContext, assertIsForeground: true)
         {
             _projectMap = new Dictionary<ProjectId, AbstractProject>();
             _projectPathToIdMap = new Dictionary<string, ProjectId>(StringComparer.OrdinalIgnoreCase);
@@ -127,6 +130,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             _serviceProvider = serviceProvider;
             _workspace = workspace;
             WorkspaceServices = workspace.Services;
+            _linkedFileUtilities = linkedFileUtilities;
 
             _vsSolution = (IVsSolution)serviceProvider.GetService(typeof(SVsSolution));
             _runningDocumentTable = (IVsRunningDocumentTable4)serviceProvider.GetService(typeof(SVsRunningDocumentTable));
@@ -148,16 +152,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             Contract.ThrowIfFalse(DocumentProvider == null);
             Contract.ThrowIfFalse(MetadataReferenceProvider == null);
-            Contract.ThrowIfFalse(RuleSetFileProvider == null);
+            Contract.ThrowIfFalse(RuleSetFileManager == null);
 
             DocumentProvider = documentProvider;
             MetadataReferenceProvider = metadataReferenceProvider;
-            RuleSetFileProvider = ruleSetFileProvider;
+            RuleSetFileManager = ruleSetFileProvider;
         }
 
         public DocumentProvider DocumentProvider { get; private set; }
         public VisualStudioMetadataReferenceManager MetadataReferenceProvider { get; private set; }
-        public VisualStudioRuleSetManager RuleSetFileProvider { get; private set; }
+        public VisualStudioRuleSetManager RuleSetFileManager { get; private set; }
 
         internal AbstractProject GetProject(ProjectId id)
         {
@@ -316,10 +320,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                         if (document.IsOpen)
                         {
                             NotifyWorkspace(workspace =>
+                            {
                                 workspace.OnDocumentOpened(
                                     document.Id,
                                     document.GetOpenTextBuffer().AsTextContainer(),
-                                    isCurrentContext: LinkedFileUtilities.IsCurrentContextHierarchy(document, _runningDocumentTable)));
+                                    isCurrentContext: _linkedFileUtilities.IsCurrentContextHierarchy(document, _runningDocumentTable));
+                                (workspace as VisualStudioWorkspaceImpl)?.ConnectToSharedHierarchyEvents(document);
+                            });
                         }
                     }
                 }
@@ -585,8 +592,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 _projectPathToIdMap.Clear();
             }
 
-            RuleSetFileProvider.ClearCachedRuleSetFiles();
-
             _solutionAdded = false;
             _pushedProjects.Clear();
 
@@ -602,7 +607,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             _solutionLoadComplete = true;
 
             // Check that the set of analyzers is complete and consistent.
-            GetAnalyzerDependencyCheckingService()?.CheckForConflictsAsync();
+            GetAnalyzerDependencyCheckingService()?.ReanalyzeSolutionForConflicts();
         }
 
         private AnalyzerDependencyCheckingService GetAnalyzerDependencyCheckingService()
@@ -624,7 +629,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             AssertIsForeground();
 
-            if (!fIsBackgroundIdleBatch)
+            if (!fIsBackgroundIdleBatch && _projectsLoadedThisBatch.Count > 0)
             {
                 // This batch was loaded eagerly. This might be because the user is force expanding the projects in the
                 // Solution Explorer, or they had some files open in an .suo we need to push.
@@ -643,6 +648,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             // remaining information we have to the Workspace.  If DPL is enabled, this is never
             // called.
             FinishLoad();
+        }
+
+        internal void OnBeforeOpenSolution()
+        {
+            AssertIsForeground();
+
+            _solutionLoadComplete = false;
         }
     }
 }

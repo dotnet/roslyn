@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#if NET46
+
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -16,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         private static readonly string s_publicKeyFile = SigningTestHelpers.PublicKeyFile;
         private static readonly ImmutableArray<byte> s_publicKey = SigningTestHelpers.PublicKey;
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void RejectIncompatibleModifiers()
         {
             string source =
@@ -50,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 );
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void AccessibleWhereRequired_01()
         {
             string source =
@@ -74,7 +76,7 @@ public class Derived : Base
                 );
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void AccessibleWhereRequired_02()
         {
             string source1 =
@@ -92,7 +94,9 @@ public class Base
     public int this[string x] { private protected set { } get { return 5; } }
     private protected Base() { Event1?.Invoke(); }
 }";
-            var baseCompilation = CreateCompilation(source1, parseOptions: TestOptions.Regular7_2, options: TestOptions.ReleaseDll.WithStrongNameProvider(s_defaultPortableProvider));
+            var baseCompilation = CreateCompilation(source1, parseOptions: TestOptions.Regular7_2,
+                options: TestOptions.ReleaseDll.WithStrongNameProvider(s_defaultPortableProvider),
+                assemblyName: "Paul");
             var bb = (INamedTypeSymbol)baseCompilation.GlobalNamespace.GetMember("Base");
             foreach (var member in bb.GetMembers())
             {
@@ -244,7 +248,7 @@ public class Base
                 );
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void NotAccessibleWhereRequired()
         {
             string source =
@@ -275,7 +279,7 @@ public class Derived // : Base
                 );
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void NotInStructOrNamespace()
         {
             string source =
@@ -295,7 +299,7 @@ public class Derived // : Base
                 );
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void NotInStaticClass()
         {
             string source =
@@ -319,7 +323,7 @@ sealed class D
                 );
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void NestedTypes()
         {
             string source =
@@ -364,7 +368,7 @@ struct Struct
                 );
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void PermittedAccessorProtection()
         {
             string source =
@@ -381,7 +385,7 @@ struct Struct
                 );
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void ForbiddenAccessorProtection_01()
         {
             string source =
@@ -401,7 +405,7 @@ struct Struct
                 );
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void ForbiddenAccessorProtection_02()
         {
             string source =
@@ -417,7 +421,7 @@ struct Struct
                 );
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void AtLeastAsRestrictivePositive_01()
         {
             string source =
@@ -443,7 +447,7 @@ public class C
                 );
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void AtLeastAsRestrictiveNegative_01()
         {
             string source =
@@ -466,7 +470,7 @@ public class Container
                 );
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void DuplicateAccessInBinder()
         {
             string source =
@@ -520,7 +524,7 @@ public class Container
                 );
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void NotInVersion71()
         {
             string source =
@@ -574,7 +578,7 @@ public class Container
                 );
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void VerifyPrivateProtectedIL()
         {
             var text = @"
@@ -594,7 +598,7 @@ class Program
                 });
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void VerifyPartialPartsMatch()
         {
             var source =
@@ -620,7 +624,7 @@ class Program
                 );
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void VerifyProtectedSemantics()
         {
             var source =
@@ -659,7 +663,7 @@ class Other : Base
                 );
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void HidingAbstract()
         {
             var source =
@@ -676,7 +680,7 @@ abstract class B : A
                 );
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void HidingInaccessible()
         {
             string source1 =
@@ -703,7 +707,7 @@ abstract class B : A
                 );
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void UnimplementedInaccessible()
         {
             string source1 =
@@ -729,7 +733,7 @@ abstract class B : A
                 );
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void ImplementInaccessible()
         {
             string source1 =
@@ -759,7 +763,7 @@ abstract class B : A
                 );
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void VerifyPPExtension()
         {
             string source = @"
@@ -781,10 +785,11 @@ class Client
                 // (4,35): error CS1057: 'Extensions.SomeExtension(string)': static classes cannot contain protected members
                 //     static private protected void SomeExtension(this string s) { } // error: no pp in static class
                 Diagnostic(ErrorCode.ERR_ProtectedInStatic, "SomeExtension").WithArguments("Extensions.SomeExtension(string)").WithLocation(4, 35),
-                // (11,11): error CS0122: 'Extensions.SomeExtension(string)' is inaccessible due to its protection level
+                // (11,11): error CS1061: 'string' does not contain a definition for 'SomeExtension' and no accessible extension method 'SomeExtension' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
                 //         s.SomeExtension(); // error: no accessible SomeExtension
-                Diagnostic(ErrorCode.ERR_BadAccess, "SomeExtension").WithArguments("Extensions.SomeExtension(string)").WithLocation(11, 11)
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "SomeExtension").WithArguments("string", "SomeExtension").WithLocation(11, 11)
                 );
         }
     }
 }
+#endif

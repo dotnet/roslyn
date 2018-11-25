@@ -3,6 +3,7 @@
 using System;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CodeGeneration;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServices;
 
@@ -13,6 +14,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
     /// </summary>
     internal sealed class CodeModelState
     {
+        public IThreadingContext ThreadingContext { get; }
         public IServiceProvider ServiceProvider { get; }
         public ICodeModelService CodeModelService { get; }
         public ISyntaxFactsService SyntaxFactsService { get; }
@@ -20,14 +22,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         public VisualStudioWorkspace Workspace { get; }
 
         public CodeModelState(
+            IThreadingContext threadingContext,
             IServiceProvider serviceProvider,
             HostLanguageServices languageServices,
             VisualStudioWorkspace workspace)
         {
+            Debug.Assert(threadingContext != null);
             Debug.Assert(serviceProvider != null);
             Debug.Assert(languageServices != null);
             Debug.Assert(workspace != null);
 
+            this.ThreadingContext = threadingContext;
             this.ServiceProvider = serviceProvider;
             this.CodeModelService = languageServices.GetService<ICodeModelService>();
             this.SyntaxFactsService = languageServices.GetService<ISyntaxFactsService>();

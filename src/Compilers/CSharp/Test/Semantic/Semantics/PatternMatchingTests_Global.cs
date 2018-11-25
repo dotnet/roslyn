@@ -3298,27 +3298,9 @@ class H
                                       };
 
                 compilation.GetDiagnostics().Where(d => !exclude.Contains(d.Code)).Verify(
-                // (3,16): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
-                // bool b = (1 is int x1);
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x1").WithLocation(3, 16),
-                // (7,16): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
-                // bool d = (2 is int x2);
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x2").WithLocation(7, 16),
-                // (9,16): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
-                // bool f = (3 is int x3);
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x3").WithLocation(9, 16),
-                // (12,25): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
-                // bool h = H.Dummy((41 is int x4),
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x4").WithLocation(12, 25),
-                // (13,25): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
-                //                  (42 is int x4));
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x4").WithLocation(13, 25),
                 // (13,29): error CS0128: A local variable named 'x4' is already defined in this scope
                 //                  (42 is int x4));
                 Diagnostic(ErrorCode.ERR_LocalDuplicate, "x4").WithArguments("x4").WithLocation(13, 29),
-                // (15,17): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
-                // bool x5 = (5 is int x5);
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x5").WithLocation(15, 17),
                 // (20,13): error CS0103: The name 'x1' does not exist in the current context
                 //     H.Dummy(x1, x2, x3, x4, x5);
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(20, 13),
@@ -3479,27 +3461,9 @@ class H
                                       };
 
                 compilation.GetDiagnostics().Where(d => !exclude.Contains(d.Code)).Verify(
-                // (3,16): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
-                // bool b = (1 is var x1);
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "var x1").WithLocation(3, 16),
-                // (7,16): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
-                // bool d = (2 is var x2);
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "var x2").WithLocation(7, 16),
-                // (9,16): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
-                // bool f = (3 is var x3);
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "var x3").WithLocation(9, 16),
-                // (12,25): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
-                // bool h = H.Dummy((41 is var x4),
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "var x4").WithLocation(12, 25),
-                // (13,25): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
-                //                  (42 is var x4));
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "var x4").WithLocation(13, 25),
                 // (13,29): error CS0128: A local variable named 'x4' is already defined in this scope
                 //                  (42 is var x4));
                 Diagnostic(ErrorCode.ERR_LocalDuplicate, "x4").WithArguments("x4").WithLocation(13, 29),
-                // (15,17): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
-                // bool x5 = (5 is var x5);
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "var x5").WithLocation(15, 17),
                 // (20,13): error CS0103: The name 'x1' does not exist in the current context
                 //     H.Dummy(x1, x2, x3, x4, x5);
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(20, 13),
@@ -4070,30 +4034,9 @@ class H
                                       };
 
                 compilation.GetDiagnostics().Where(d => !exclude.Contains(d.Code)).Verify(
-                // (3,16): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
-                // bool b = (1 is int x1);
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x1").WithLocation(3, 16),
-                // (7,16): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
-                // bool d = (2 is int x2);
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x2").WithLocation(7, 16),
-                // (9,16): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
-                // bool f = (3 is int x3);
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x3").WithLocation(9, 16),
-                // (12,25): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
-                // bool h = H.Dummy((41 is int x4),
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x4").WithLocation(12, 25),
-                // (13,25): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
-                //                  (42 is int x4));
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x4").WithLocation(13, 25),
                 // (13,29): error CS0128: A local variable named 'x4' is already defined in this scope
                 //                  (42 is int x4));
                 Diagnostic(ErrorCode.ERR_LocalDuplicate, "x4").WithArguments("x4").WithLocation(13, 29),
-                // (16,17): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
-                //           (5 is int x5);
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x5").WithLocation(16, 17),
-                // (18,16): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
-                // bool i = (5 is int x6),
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x6").WithLocation(18, 16),
                 // (23,13): error CS0103: The name 'x1' does not exist in the current context
                 //     H.Dummy(x1, x2, x3, x4, x5, x6);
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(23, 13),
@@ -4264,30 +4207,9 @@ class H
                                       };
 
                 compilation.GetDiagnostics().Where(d => !exclude.Contains(d.Code)).Verify(
-                // (3,16): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
-                // bool b = (1 is var x1);
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "var x1").WithLocation(3, 16),
-                // (7,16): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
-                // bool d = (2 is var x2);
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "var x2").WithLocation(7, 16),
-                // (9,16): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
-                // bool f = (3 is var x3);
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "var x3").WithLocation(9, 16),
-                // (12,25): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
-                // bool h = H.Dummy((41 is var x4),
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "var x4").WithLocation(12, 25),
-                // (13,25): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
-                //                  (42 is var x4));
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "var x4").WithLocation(13, 25),
                 // (13,29): error CS0128: A local variable named 'x4' is already defined in this scope
                 //                  (42 is var x4));
                 Diagnostic(ErrorCode.ERR_LocalDuplicate, "x4").WithArguments("x4").WithLocation(13, 29),
-                // (16,17): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
-                //           (5 is var x5);
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "var x5").WithLocation(16, 17),
-                // (18,16): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
-                // bool i = (5 is var x6),
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "var x6").WithLocation(18, 16),
                 // (23,13): error CS0103: The name 'x1' does not exist in the current context
                 //     H.Dummy(x1, x2, x3, x4, x5, x6);
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(23, 13),
@@ -4634,27 +4556,9 @@ class H
                                       };
 
                 compilation.GetDiagnostics().Where(d => !exclude.Contains(d.Code)).Verify(
-                // (3,25): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
-                // bool b { get; } = (1 is int x1);
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x1").WithLocation(3, 25),
-                // (7,25): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
-                // bool d { get; } = (2 is int x2);
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x2").WithLocation(7, 25),
-                // (9,25): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
-                // bool f { get; } = (3 is int x3);
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x3").WithLocation(9, 25),
-                // (12,34): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
-                // bool h { get; } = H.Dummy((41 is int x4),
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x4").WithLocation(12, 34),
-                // (13,34): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
-                //                           (42 is int x4));
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x4").WithLocation(13, 34),
                 // (13,38): error CS0128: A local variable named 'x4' is already defined in this scope
                 //                           (42 is int x4));
                 Diagnostic(ErrorCode.ERR_LocalDuplicate, "x4").WithArguments("x4").WithLocation(13, 38),
-                // (16,17): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
-                //           (5 is int x5);
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x5").WithLocation(16, 17),
                 // (20,13): error CS0103: The name 'x1' does not exist in the current context
                 //     H.Dummy(x1, x2, x3, x4, x5);
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(20, 13),
@@ -4804,27 +4708,9 @@ class H
                                       };
 
                 compilation.GetDiagnostics().Where(d => !exclude.Contains(d.Code)).Verify(
-                // (3,25): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
-                // bool b { get; } = (1 is var x1);
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "var x1").WithLocation(3, 25),
-                // (7,25): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
-                // bool d { get; } = (2 is var x2);
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "var x2").WithLocation(7, 25),
-                // (9,25): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
-                // bool f { get; } = (3 is var x3);
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "var x3").WithLocation(9, 25),
-                // (12,34): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
-                // bool h { get; } = H.Dummy((41 is var x4),
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "var x4").WithLocation(12, 34),
-                // (13,34): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
-                //                           (42 is var x4));
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "var x4").WithLocation(13, 34),
                 // (13,38): error CS0128: A local variable named 'x4' is already defined in this scope
                 //                           (42 is var x4));
                 Diagnostic(ErrorCode.ERR_LocalDuplicate, "x4").WithArguments("x4").WithLocation(13, 38),
-                // (16,17): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
-                //           (5 is var x5);
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "var x5").WithLocation(16, 17),
                 // (20,13): error CS0103: The name 'x1' does not exist in the current context
                 //     H.Dummy(x1, x2, x3, x4, x5);
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(20, 13),
@@ -5141,30 +5027,9 @@ class H
                                       };
 
                 compilation.GetDiagnostics().Where(d => !exclude.Contains(d.Code)).Verify(
-                // (3,38): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
-                // event System.Action b = H.Dummy(1 is int x1);
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x1").WithLocation(3, 38),
-                // (7,38): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
-                // event System.Action d = H.Dummy(2 is int x2);
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x2").WithLocation(7, 38),
-                // (9,38): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
-                // event System.Action f = H.Dummy(3 is int x3);
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x3").WithLocation(9, 38),
-                // (12,40): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
-                // event System.Action h = H.Dummy((41 is int x4),
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x4").WithLocation(12, 40),
-                // (13,32): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
-                //                         (42 is int x4));
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x4").WithLocation(13, 32),
                 // (13,36): error CS0128: A local variable named 'x4' is already defined in this scope
                 //                         (42 is int x4));
                 Diagnostic(ErrorCode.ERR_LocalDuplicate, "x4").WithArguments("x4").WithLocation(13, 36),
-                // (16,24): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
-                //           H.Dummy(5 is int x5);
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x5").WithLocation(16, 24),
-                // (18,38): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
-                // event System.Action i = H.Dummy(5 is int x6),
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x6").WithLocation(18, 38),
                 // (23,13): error CS0103: The name 'x1' does not exist in the current context
                 //     H.Dummy(x1, x2, x3, x4, x5, x6);
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(23, 13),
@@ -5335,30 +5200,9 @@ class H
                                       };
 
                 compilation.GetDiagnostics().Where(d => !exclude.Contains(d.Code)).Verify(
-                // (3,38): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
-                // event System.Action b = H.Dummy(1 is var x1);
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "var x1").WithLocation(3, 38),
-                // (7,38): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
-                // event System.Action d = H.Dummy(2 is var x2);
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "var x2").WithLocation(7, 38),
-                // (9,38): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
-                // event System.Action f = H.Dummy(3 is var x3);
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "var x3").WithLocation(9, 38),
-                // (12,40): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
-                // event System.Action h = H.Dummy((41 is var x4),
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "var x4").WithLocation(12, 40),
-                // (13,32): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
-                //                         (42 is var x4));
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "var x4").WithLocation(13, 32),
                 // (13,36): error CS0128: A local variable named 'x4' is already defined in this scope
                 //                         (42 is var x4));
                 Diagnostic(ErrorCode.ERR_LocalDuplicate, "x4").WithArguments("x4").WithLocation(13, 36),
-                // (16,24): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
-                //           H.Dummy(5 is var x5);
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "var x5").WithLocation(16, 24),
-                // (18,38): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
-                // event System.Action i = H.Dummy(5 is var x6),
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "var x6").WithLocation(18, 38),
                 // (23,13): error CS0103: The name 'x1' does not exist in the current context
                 //     H.Dummy(x1, x2, x3, x4, x5, x6);
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(23, 13),
@@ -7332,30 +7176,18 @@ var r11 = from x1 in new[] { 1 is var y11 ? y11 : 0}
             {
                 var compilation = CreateCompilationWithMscorlib45(source, new[] { SystemCoreRef }, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
                 compilation.VerifyDiagnostics(
-                // (12,42): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
-                //             from x2 in new[] { x1 is var z2 ? z2 : 0, z2, y2}
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "z2").WithLocation(12, 42),
                 // (14,21): error CS0103: The name 'z2' does not exist in the current context
                 //                     z2;
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "z2").WithArguments("z2").WithLocation(14, 21),
-                // (19,32): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
-                //             let x2 = x1 is var z3 && z3 > 0 && y3 < 0 
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "z3").WithLocation(19, 32),
                 // (21,25): error CS0103: The name 'z3' does not exist in the current context
                 //                         z3};
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "z3").WithArguments("z3").WithLocation(21, 25),
                 // (28,29): error CS0103: The name 'v4' does not exist in the current context
                 //                             v4 
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "v4").WithArguments("v4").WithLocation(28, 29),
-                // (27,49): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
-                //                     on x1 + y4 + z4 + (3 is var u4 ? u4 : 0) + 
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "u4").WithLocation(27, 49),
                 // (30,29): error CS1938: The name 'u4' is not in scope on the right side of 'equals'.  Consider swapping the expressions on either side of 'equals'.
                 //                             u4 
                 Diagnostic(ErrorCode.ERR_QueryInnerKey, "u4").WithArguments("u4").WithLocation(30, 29),
-                // (29,57): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
-                //                         equals x2 + y4 + z4 + (4 is var v4 ? v4 : 0) +
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "v4").WithLocation(29, 57),
                 // (32,25): error CS0103: The name 'u4' does not exist in the current context
                 //                         u4, v4 };
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "u4").WithArguments("u4").WithLocation(32, 25),
@@ -7365,60 +7197,36 @@ var r11 = from x1 in new[] { 1 is var y11 ? y11 : 0}
                 // (41,29): error CS0103: The name 'v5' does not exist in the current context
                 //                             v5 
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "v5").WithArguments("v5").WithLocation(41, 29),
-                // (40,49): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
-                //                     on x1 + y5 + z5 + (3 is var u5 ? u5 : 0) + 
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "u5").WithLocation(40, 49),
                 // (43,29): error CS1938: The name 'u5' is not in scope on the right side of 'equals'.  Consider swapping the expressions on either side of 'equals'.
                 //                             u5 
                 Diagnostic(ErrorCode.ERR_QueryInnerKey, "u5").WithArguments("u5").WithLocation(43, 29),
-                // (42,57): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
-                //                         equals x2 + y5 + z5 + (4 is var v5 ? v5 : 0) +
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "v5").WithLocation(42, 57),
                 // (46,25): error CS0103: The name 'u5' does not exist in the current context
                 //                         u5, v5 };
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "u5").WithArguments("u5").WithLocation(46, 25),
                 // (46,29): error CS0103: The name 'v5' does not exist in the current context
                 //                         u5, v5 };
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "v5").WithArguments("v5").WithLocation(46, 29),
-                // (53,38): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
-                //             where x > y6 && 1 is var z6 && z6 == 1
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "z6").WithLocation(53, 38),
                 // (55,21): error CS0103: The name 'z6' does not exist in the current context
                 //                     z6;
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "z6").WithArguments("z6").WithLocation(55, 21),
                 // (61,21): error CS0103: The name 'u7' does not exist in the current context
                 //                     u7,
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "u7").WithArguments("u7").WithLocation(61, 21),
-                // (60,40): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
-                //             orderby x > y7 && 1 is var z7 && z7 == 
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "z7").WithLocation(60, 40),
                 // (63,21): error CS0103: The name 'z7' does not exist in the current context
                 //                     z7   
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "z7").WithArguments("z7").WithLocation(63, 21),
-                // (62,40): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
-                //                     x > y7 && 1 is var u7 && u7 == 
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "u7").WithLocation(62, 40),
                 // (65,21): error CS0103: The name 'z7' does not exist in the current context
                 //                     z7 + u7;
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "z7").WithArguments("z7").WithLocation(65, 21),
                 // (65,26): error CS0103: The name 'u7' does not exist in the current context
                 //                     z7 + u7;
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "u7").WithArguments("u7").WithLocation(65, 26),
-                // (71,39): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
-                //             select x > y8 && 1 is var z8 && z8 == 1;
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "z8").WithLocation(71, 39),
                 // (80,17): error CS0103: The name 'z9' does not exist in the current context
                 //                 z9;   
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "z9").WithArguments("z9").WithLocation(80, 17),
-                // (79,36): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
-                //                 x > y9 && 1 is var u9 && u9 == 
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "u9").WithLocation(79, 36),
                 // (77,17): error CS0103: The name 'u9' does not exist in the current context
                 //                 u9
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "u9").WithArguments("u9").WithLocation(77, 17),
-                // (76,38): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
-                //             group x > y9 && 1 is var z9 && z9 == 
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "z9").WithLocation(76, 38),
                 // (16,7): error CS0103: The name 'z2' does not exist in the current context
                 // Dummy(z2); 
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "z2").WithArguments("z2").WithLocation(16, 7),
@@ -7638,8 +7446,6 @@ var r11 = from x1 in new[] { 1 is var y11 ? y11 : 0}
                                         (int)ErrorCode.ERR_TupleElementNamesAttributeMissing,
                                         (int)ErrorCode.ERR_IdentifierExpectedKW,
                                         (int)ErrorCode.ERR_NameNotInContext,
-                                        (int)ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer,
-                                        (int)ErrorCode.ERR_ExpressionVariableInQueryClause,
                                         (int)ErrorCode.ERR_UseDefViolation
                                       };
 

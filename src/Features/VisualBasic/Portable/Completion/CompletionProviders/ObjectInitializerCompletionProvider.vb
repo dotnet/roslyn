@@ -93,6 +93,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 member.IsAccessibleWithin(containingType)
         End Function
 
+        Protected Overrides Function EscapeIdentifier(symbol As ISymbol) As String
+            Return symbol.Name.EscapeIdentifier()
+        End Function
+
         Private Function IsValidProperty(member As ISymbol) As Boolean
             Dim [property] = TryCast(member, IPropertySymbol)
             If [property] IsNot Nothing Then

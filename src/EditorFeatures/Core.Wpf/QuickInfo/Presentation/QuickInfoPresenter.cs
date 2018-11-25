@@ -8,6 +8,7 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Utilities;
 
+#pragma warning disable CS0618 // IQuickInfo* is obsolete, tracked by https://github.com/dotnet/roslyn/issues/24094
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo.Presentation
 {
     [Export(typeof(IQuickInfoSourceProvider))]
@@ -23,7 +24,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo.Pr
         private readonly DeferredContentFrameworkElementFactory _elementFactory;
 
         [ImportingConstructor]
-        public QuickInfoPresenter(IQuickInfoBroker quickInfoBroker, DeferredContentFrameworkElementFactory elementFactory)
+        public QuickInfoPresenter(IThreadingContext threadingContext, IQuickInfoBroker quickInfoBroker, DeferredContentFrameworkElementFactory elementFactory)
+            : base(threadingContext)
         {
             _quickInfoBroker = quickInfoBroker;
             _elementFactory = elementFactory;
@@ -32,13 +34,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo.Pr
         IQuickInfoPresenterSession IIntelliSensePresenter<IQuickInfoPresenterSession, IQuickInfoSession>.CreateSession(ITextView textView, ITextBuffer subjectBuffer, IQuickInfoSession sessionOpt)
         {
             AssertIsForeground();
-            return new QuickInfoPresenterSession(_quickInfoBroker, _elementFactory, textView, subjectBuffer, sessionOpt);
+            return new QuickInfoPresenterSession(ThreadingContext, _quickInfoBroker, _elementFactory, textView, subjectBuffer, sessionOpt);
         }
 
         IQuickInfoSource IQuickInfoSourceProvider.TryCreateQuickInfoSource(ITextBuffer textBuffer)
         {
             AssertIsForeground();
-            return new QuickInfoSource();
+            return new QuickInfoSource(ThreadingContext);
         }
     }
 }
+#pragma warning restore CS0618 // IQuickInfo* is obsolete, tracked by https://github.com/dotnet/roslyn/issues/24094

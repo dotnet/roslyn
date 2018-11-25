@@ -95,6 +95,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
             string filePath = monikerObj as string;
 
             _rdt.Value.FindDocument(filePath, out var hierarchy, out var itemId, out var docCookie);
+            if (hierarchy == null)
+            {
+                return;
+            }
 
             AbstractProject project = GetXamlProject(hierarchy);
             if (project == null)
@@ -145,7 +149,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
             vsDocument = _vsWorkspace.DeferredState.ProjectTracker.DocumentProvider.TryGetDocumentForFile(
                 project, filePath, SourceCodeKind.Regular,
                 tb => tb.ContentType.IsOfType(ContentTypeNames.XamlContentType),
-                _ => SpecializedCollections.EmptyReadOnlyList<string>());
+                ImmutableArray<string>.Empty);
 
             return vsDocument != null;
         }

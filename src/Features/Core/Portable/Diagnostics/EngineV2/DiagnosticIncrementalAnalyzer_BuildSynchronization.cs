@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 // errors from build shouldn't have any span set.
                 // this is debug check since it gets data from us only not from third party unlike one in compiler
                 // that checks span for third party reported diagnostics
-                Contract.Requires(!diagnostic.HasTextSpan);
+                Debug.Assert(!diagnostic.HasTextSpan);
             }
         }
 

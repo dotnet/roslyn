@@ -78,8 +78,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.AddBraces
             }
 
             var firstToken = statement.GetFirstToken();
-            context.ReportDiagnostic(Diagnostic.Create(GetDescriptorWithSeverity(option.Notification.Value),
-                firstToken.GetLocation(), SyntaxFacts.GetText(firstToken.Kind())));
+            context.ReportDiagnostic(DiagnosticHelper.Create(
+                Descriptor,
+                firstToken.GetLocation(),
+                option.Notification.Severity,
+                additionalLocations: null,
+                properties: null,
+                SyntaxFacts.GetText(firstToken.Kind())));
         }
     }
 }

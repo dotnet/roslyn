@@ -70,6 +70,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
             'Note: parent might be Nothing, if we are classifying raw tokens.
             Dim parent = identifier.Parent
 
+            Dim classification As String = Nothing
+
             If TypeOf parent Is TypeStatementSyntax AndAlso DirectCast(parent, TypeStatementSyntax).Identifier = identifier Then
                 Return ClassifyTypeDeclarationIdentifier(identifier)
             ElseIf TypeOf parent Is EnumStatementSyntax AndAlso DirectCast(parent, EnumStatementSyntax).Identifier = identifier Then
@@ -80,13 +82,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
                 Return ClassificationTypeNames.DelegateName
             ElseIf TypeOf parent Is TypeParameterSyntax AndAlso DirectCast(parent, TypeParameterSyntax).Identifier = identifier Then
                 Return ClassificationTypeNames.TypeParameterName
+            ElseIf TypeOf parent Is MethodStatementSyntax AndAlso DirectCast(parent, MethodStatementSyntax).Identifier = identifier Then
+                Return ClassificationTypeNames.MethodName
+            ElseIf TypeOf parent Is DeclareStatementSyntax AndAlso DirectCast(parent, DeclareStatementSyntax).Identifier = identifier Then
+                Return ClassificationTypeNames.MethodName
+            ElseIf TypeOf parent Is PropertyStatementSyntax AndAlso DirectCast(parent, PropertyStatementSyntax).Identifier = identifier Then
+                Return ClassificationTypeNames.PropertyName
+            ElseIf TypeOf parent Is EventStatementSyntax AndAlso DirectCast(parent, EventStatementSyntax).Identifier = identifier Then
+                Return ClassificationTypeNames.EventName
+            ElseIf TypeOf parent Is EnumMemberDeclarationSyntax AndAlso DirectCast(parent, EnumMemberDeclarationSyntax).Identifier = identifier Then
+                Return ClassificationTypeNames.EnumMemberName
+            ElseIf TryClassifyModifiedIdentifer(parent, identifier, classification) Then
+                Return classification
             ElseIf (identifier.ToString() = "IsTrue" OrElse identifier.ToString() = "IsFalse") AndAlso
                 TypeOf parent Is OperatorStatementSyntax AndAlso DirectCast(parent, OperatorStatementSyntax).OperatorToken = identifier Then
 
                 Return ClassificationTypeNames.Keyword
-            Else
-                Return ClassificationTypeNames.Identifier
             End If
+
+            Return ClassificationTypeNames.Identifier
         End Function
 
         Private Function IsStringToken(token As SyntaxToken) As Boolean
@@ -96,6 +110,37 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
 
             Return token.IsKind(SyntaxKind.DollarSignDoubleQuoteToken, SyntaxKind.DoubleQuoteToken) AndAlso
                    token.Parent.IsKind(SyntaxKind.InterpolatedStringExpression)
+        End Function
+
+        Private Function TryClassifyModifiedIdentifer(node As SyntaxNode, identifier As SyntaxToken, ByRef classification As String) As Boolean
+            classification = Nothing
+
+            If TypeOf node IsNot ModifiedIdentifierSyntax OrElse DirectCast(node, ModifiedIdentifierSyntax).Identifier <> identifier Then
+                Return False
+            End If
+
+            If TypeOf node.Parent Is ParameterSyntax Then
+                classification = ClassificationTypeNames.ParameterName
+                Return True
+            End If
+
+            If TypeOf node.Parent IsNot VariableDeclaratorSyntax Then
+                Return False
+            End If
+
+            If TypeOf node.Parent.Parent Is LocalDeclarationStatementSyntax Then
+                Dim localDeclaration = DirectCast(node.Parent.Parent, LocalDeclarationStatementSyntax)
+                classification = If(localDeclaration.Modifiers.Any(SyntaxKind.ConstKeyword), ClassificationTypeNames.ConstantName, ClassificationTypeNames.LocalName)
+                Return True
+            End If
+
+            If TypeOf node.Parent.Parent Is FieldDeclarationSyntax Then
+                Dim localDeclaration = DirectCast(node.Parent.Parent, FieldDeclarationSyntax)
+                classification = If(localDeclaration.Modifiers.Any(SyntaxKind.ConstKeyword), ClassificationTypeNames.ConstantName, ClassificationTypeNames.FieldName)
+                Return True
+            End If
+
+            Return False
         End Function
 
         Private Function ClassifyTypeDeclarationIdentifier(identifier As SyntaxToken) As String

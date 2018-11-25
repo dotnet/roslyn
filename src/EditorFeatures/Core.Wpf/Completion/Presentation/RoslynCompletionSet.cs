@@ -1,14 +1,17 @@
-﻿using System.Collections.Generic;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using Microsoft.CodeAnalysis.Completion;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
+using CompletionItem = Microsoft.CodeAnalysis.Completion.CompletionItem;
 using VSCompletion = Microsoft.VisualStudio.Language.Intellisense.Completion;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.Presentation
@@ -16,7 +19,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
     internal class RoslynCompletionSet : CompletionSet2
     {
         private readonly ITextView _textView;
-        private readonly ForegroundThreadAffinitizedObject _foregroundThread = new ForegroundThreadAffinitizedObject();
 
         private readonly bool _highlightMatchingPortions;
         private readonly bool _showFilters;
@@ -28,6 +30,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
 
         protected Dictionary<CompletionItem, VSCompletion> CompletionItemMap;
         protected CompletionItem SuggestionModeItem;
+
+        private readonly Dictionary<string, string> _displayTextToBoldingTextMap = new Dictionary<string, string>();
 
         protected string FilterText;
 
@@ -88,7 +92,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
             ImmutableArray<CompletionItemFilter> completionItemFilters,
             string filterText)
         {
-            _foregroundThread.AssertIsForeground();
+            CompletionPresenterSession.AssertIsForeground();
+
+            foreach (var item in completionItems)
+            {
+                if (!_displayTextToBoldingTextMap.ContainsKey(item.DisplayText))
+                {
+                    _displayTextToBoldingTextMap.Add(item.DisplayText, CompletionHelper.GetDisplayTextForMatching(item));
+                }
+            }
 
             // Initialize the completion map to a reasonable default initial size (+1 for the builder)
             CompletionItemMap = CompletionItemMap ?? new Dictionary<CompletionItem, VSCompletion>(completionItems.Count + 1);
@@ -194,7 +206,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
 
         private CompletionHelper GetCompletionHelper()
         {
-            _foregroundThread.AssertIsForeground();
+            CompletionPresenterSession.AssertIsForeground();
             if (_completionHelper == null)
             {
                 var document = GetDocument();
@@ -215,6 +227,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
                 return null;
             }
 
+            var textForBolding = _displayTextToBoldingTextMap.TryGetValue(displayText, out var matchingText) ? matchingText : displayText;
+            Debug.Assert(displayText.Contains(textForBolding));
+
             var pattern = this.FilterText;
             if (_highlightMatchingPortions && !string.IsNullOrWhiteSpace(pattern))
             {
@@ -222,9 +237,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
                 if (completionHelper != null)
                 {
                     var highlightedSpans = completionHelper.GetHighlightedSpans(
-                        displayText, pattern, CultureInfo.CurrentCulture);
+                        textForBolding, pattern, CultureInfo.CurrentCulture);
 
-                    return highlightedSpans.SelectAsArray(s => s.ToSpan());
+                    return highlightedSpans.SelectAsArray(s => new Span(s.Start + Math.Max(0, displayText.IndexOf(textForBolding)), s.Length));
                 }
             }
 

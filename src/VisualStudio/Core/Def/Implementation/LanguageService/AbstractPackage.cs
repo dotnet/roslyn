@@ -1,66 +1,38 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
 using System.Threading;
-using System.Threading.Tasks;
-using System.Windows.Threading;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.Utilities;
+using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell;
+using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 {
-    internal abstract class AbstractPackage : Package
+    internal abstract class AbstractPackage : AsyncPackage
     {
-        protected ForegroundThreadAffinitizedObject ForegroundObject;
-
-        protected override void Initialize()
+        protected ForegroundThreadAffinitizedObject ForegroundObject
         {
-            base.Initialize();
-
-            // Assume that we are being initialized on the UI thread at this point, and setup our foreground state
-            var kind = ForegroundThreadDataInfo.CreateDefault(ForegroundThreadDataKind.ForcedByPackageInitialize);
-
-            // None of the work posted to the foregroundTaskScheduler should block pending keyboard/mouse input from the user.
-            // So instead of using the default priority which is above user input, we use Background priority which is 1 level
-            // below user input.
-            var taskScheduler = new SynchronizationContextTaskScheduler(new DispatcherSynchronizationContext(Dispatcher.CurrentDispatcher, DispatcherPriority.Background));
-
-            ForegroundThreadAffinitizedObject.CurrentForegroundThreadData = new ForegroundThreadData(Thread.CurrentThread, taskScheduler, kind);
-            ForegroundObject = new ForegroundThreadAffinitizedObject();
+            get;
+            private set;
         }
 
-        protected void LoadComponentsInUIContextOnceSolutionFullyLoaded()
+        protected override async Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
         {
-            ForegroundObject.AssertIsForeground();
+            await base.InitializeAsync(cancellationToken, progress).ConfigureAwait(true);
 
-            if (KnownUIContexts.SolutionExistsAndFullyLoadedContext.IsActive)
-            {
-                // if we are already in the right UI context, load it right away
-                LoadComponentsInUIContext();
-            }
-            else
-            {
-                // load them when it is a right context.
-                KnownUIContexts.SolutionExistsAndFullyLoadedContext.UIContextChanged += OnSolutionExistsAndFullyLoadedContext;
-            }
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            var componentModel = (IComponentModel)await GetServiceAsync(typeof(SComponentModel));
+            ForegroundObject = new ForegroundThreadAffinitizedObject(componentModel.GetService<IThreadingContext>());
         }
 
-        private void OnSolutionExistsAndFullyLoadedContext(object sender, UIContextChangedEventArgs e)
+        protected async Task LoadComponentsInUIContextOnceSolutionFullyLoadedAsync(CancellationToken cancellationToken)
         {
-            ForegroundObject.AssertIsForeground();
-
-            if (e.Activated)
-            {
-                // unsubscribe from it
-                KnownUIContexts.SolutionExistsAndFullyLoadedContext.UIContextChanged -= OnSolutionExistsAndFullyLoadedContext;
-
-                // load components
-                LoadComponentsInUIContext();
-            }
+            await KnownUIContexts.SolutionExistsAndFullyLoadedContext;
+            await LoadComponentsAsync(cancellationToken);
         }
 
-        protected abstract void LoadComponentsInUIContext();
+        protected abstract Task LoadComponentsAsync(CancellationToken cancellationToken);
     }
 }

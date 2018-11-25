@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -603,7 +604,38 @@ namespace Microsoft.CodeAnalysis
 
             CheckContainsProject(projectId);
 
-            return this.ForkProject(this.GetProjectState(projectId).UpdateOutputPath(outputFilePath));
+            var oldProjectState = this.GetProjectState(projectId);
+            var newProjectState = oldProjectState.UpdateOutputFilePath(outputFilePath);
+
+            if (oldProjectState == newProjectState)
+            {
+                return this;
+            }
+
+            return this.ForkProject(newProjectState);
+        }
+
+        /// <summary>
+        /// Creates a new solution instance with the project specified updated to have the output file path.
+        /// </summary>
+        public SolutionState WithProjectOutputRefFilePath(ProjectId projectId, string outputRefFilePath)
+        {
+            if (projectId == null)
+            {
+                throw new ArgumentNullException(nameof(projectId));
+            }
+
+            CheckContainsProject(projectId);
+
+            var oldProjectState = this.GetProjectState(projectId);
+            var newProjectState = oldProjectState.UpdateOutputRefFilePath(outputRefFilePath);
+
+            if (oldProjectState == newProjectState)
+            {
+                return this;
+            }
+
+            return this.ForkProject(newProjectState);
         }
 
         /// <summary>
@@ -618,7 +650,15 @@ namespace Microsoft.CodeAnalysis
 
             CheckContainsProject(projectId);
 
-            return this.ForkProject(this.GetProjectState(projectId).UpdateName(name));
+            var oldProjectState = this.GetProjectState(projectId);
+            var newProjectState = oldProjectState.UpdateName(name);
+
+            if (oldProjectState == newProjectState)
+            {
+                return this;
+            }
+
+            return this.ForkProject(newProjectState);
         }
 
         /// <summary>
@@ -633,7 +673,15 @@ namespace Microsoft.CodeAnalysis
 
             CheckContainsProject(projectId);
 
-            return this.ForkProject(this.GetProjectState(projectId).UpdateFilePath(filePath));
+            var oldProjectState = this.GetProjectState(projectId);
+            var newProjectState = oldProjectState.UpdateFilePath(filePath);
+
+            if (oldProjectState == newProjectState)
+            {
+                return this;
+            }
+
+            return this.ForkProject(newProjectState);
         }
 
         /// <summary>
@@ -676,7 +724,7 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentNullException(nameof(projectId));
             }
 
-            Contract.Requires(this.ContainsProject(projectId));
+            Debug.Assert(this.ContainsProject(projectId));
 
             var oldProject = this.GetProjectState(projectId);
             var newProject = oldProject.UpdateParseOptions(options);
@@ -699,6 +747,24 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
+        /// Update a new solution instance with a fork of the specified project.
+        /// 
+        /// this is a temporary workaround until editorconfig becomes real part of roslyn solution snapshot.
+        /// until then, this will explicitly fork current solution snapshot
+        /// </summary>
+        internal SolutionState WithProjectOptionsChanged(ProjectId projectId)
+        {
+            if (projectId == null)
+            {
+                throw new ArgumentNullException(nameof(projectId));
+            }
+
+            Debug.Assert(this.ContainsProject(projectId));
+
+            return ForkProject(GetProjectState(projectId));
+        }
+
+        /// <summary>
         /// Create a new solution instance with the project specified updated to have
         /// the specified hasAllInformation.
         /// </summary>
@@ -709,7 +775,7 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentNullException(nameof(projectId));
             }
 
-            Contract.Requires(this.ContainsProject(projectId));
+            Debug.Assert(this.ContainsProject(projectId));
 
             var oldProject = this.GetProjectState(projectId);
             var newProject = oldProject.UpdateHasAllInformation(hasAllInformation);
@@ -1011,33 +1077,55 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Create a new solution instance with the corresponding project updated to include a new 
-        /// document instanced defined by the document info.
+        /// Create a new solution instance with the corresponding projects updated to include new 
+        /// documents defined by the document info.
         /// </summary>
-        public SolutionState AddDocument(DocumentInfo documentInfo)
+        public SolutionState AddDocuments(ImmutableArray<DocumentInfo> documentInfos)
         {
-            if (documentInfo == null)
+            if (documentInfos.IsDefault)
             {
-                throw new ArgumentNullException(nameof(documentInfo));
+                throw new ArgumentNullException(nameof(documentInfos));
             }
 
-            CheckContainsProject(documentInfo.Id.ProjectId);
-            CheckNotContainsDocument(documentInfo.Id);
+            if (documentInfos.IsEmpty)
+            {
+                return this;
+            }
 
-            var oldProject = this.GetProjectState(documentInfo.Id.ProjectId);
+            // The documents might be contributing to multiple different projects; split them by project and then we'll process
+            // project-at-a-time.
+            var documentInfosByProjectId = documentInfos.ToLookup(d => d.Id.ProjectId);
 
-            var state = DocumentState.Create(
-                documentInfo,
-                oldProject.ParseOptions,
-                oldProject.LanguageServices,
-                _solutionServices).UpdateSourceCodeKind(documentInfo.SourceCodeKind);
+            var newSolutionState = this;
 
-            var newProject = oldProject.AddDocument(state);
+            foreach (var documentInfosInProject in documentInfosByProjectId)
+            {
+                CheckContainsProject(documentInfosInProject.Key);
+                var oldProject = this.GetProjectState(documentInfosInProject.Key);
 
-            return this.ForkProject(
-                newProject,
-                CompilationTranslationAction.AddDocument(state),
-                newLinkedFilesMap: CreateLinkedFilesMapWithAddedDocuments(newProject, SpecializedCollections.SingletonEnumerable(state.Id)));
+                var newDocumentStatesForProjectBuilder = ArrayBuilder<DocumentState>.GetInstance();
+
+                foreach (var documentInfo in documentInfosInProject)
+                {
+                    CheckNotContainsDocument(documentInfo.Id);
+
+                    newDocumentStatesForProjectBuilder.Add(DocumentState.Create(
+                        documentInfo,
+                        oldProject.ParseOptions,
+                        oldProject.LanguageServices,
+                        _solutionServices).UpdateSourceCodeKind(documentInfo.SourceCodeKind));
+                }
+
+                var newDocumentStatesForProject = newDocumentStatesForProjectBuilder.ToImmutableAndFree();
+
+                var newProjectState = oldProject.AddDocuments(newDocumentStatesForProject);
+
+                newSolutionState = newSolutionState.ForkProject(newProjectState, 
+                    CompilationTranslationAction.AddDocuments(newDocumentStatesForProject),
+                    newLinkedFilesMap: CreateLinkedFilesMapWithAddedDocuments(newProjectState, documentInfosInProject.Select(d => d.Id)));
+            }
+
+            return newSolutionState;
         }
 
         public SolutionState AddAdditionalDocument(DocumentInfo documentInfo)
@@ -1181,25 +1269,7 @@ namespace Microsoft.CodeAnalysis
                 return this;
             }
 
-            // check to see if this solution has already been branched before with the same doc & text changes.
-            // this helps reduce duplicate parsing when typing, and separate services generating duplicate symbols.
-            if (mode == PreservationMode.PreserveIdentity)
-            {
-                var branch = _firstBranch;
-                if (branch != null && branch.Id == documentId && branch.Text == text)
-                {
-                    return branch.Solution;
-                }
-            }
-
-            var newSolution = this.WithDocumentState(oldDocument.UpdateText(text, mode), textChanged: true);
-
-            if (mode == PreservationMode.PreserveIdentity && _firstBranch == null)
-            {
-                Interlocked.CompareExchange(ref _firstBranch, new SolutionBranch(documentId, text, newSolution), null);
-            }
-
-            return newSolution;
+            return this.WithDocumentState(oldDocument.UpdateText(text, mode), textChanged: true);
         }
 
         /// <summary>
@@ -1228,22 +1298,6 @@ namespace Microsoft.CodeAnalysis
 
             var newSolution = this.WithTextDocumentState(oldDocument.UpdateText(text, mode), textChanged: true);
             return newSolution;
-        }
-
-        private SolutionBranch _firstBranch;
-
-        private class SolutionBranch
-        {
-            public readonly DocumentId Id;
-            public readonly SourceText Text;
-            public readonly SolutionState Solution;
-
-            public SolutionBranch(DocumentId id, SourceText text, SolutionState solution)
-            {
-                this.Id = id;
-                this.Text = text;
-                this.Solution = solution;
-            }
         }
 
         /// <summary>
@@ -1401,7 +1455,7 @@ namespace Microsoft.CodeAnalysis
 
         private SolutionState TouchDocument(DocumentId documentId, Func<ProjectState, ProjectState> touchProject)
         {
-            Contract.Requires(this.ContainsDocument(documentId));
+            Debug.Assert(this.ContainsDocument(documentId));
 
             var oldProject = this.GetProjectState(documentId.ProjectId);
             var newProject = touchProject(oldProject);
@@ -1668,7 +1722,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Returns the compilation for the specified <see cref="ProjectId"/>.  Can return <code>null</code> when the project
+        /// Returns the compilation for the specified <see cref="ProjectId"/>.  Can return <see langword="null"/> when the project
         /// does not support compilations.
         /// </summary>
         private Task<Compilation> GetCompilationAsync(ProjectId projectId, CancellationToken cancellationToken)
@@ -1677,7 +1731,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Returns the compilation for the specified <see cref="ProjectState"/>.  Can return <code>null</code> when the project
+        /// Returns the compilation for the specified <see cref="ProjectState"/>.  Can return <see langword="null"/> when the project
         /// does not support compilations.
         /// </summary>
         public Task<Compilation> GetCompilationAsync(ProjectState project, CancellationToken cancellationToken)
@@ -1763,6 +1817,25 @@ namespace Microsoft.CodeAnalysis
             }
 
             return state.GetPartialMetadataReference(this, fromProject, projectReference, cancellationToken);
+        }
+
+        public async Task<bool> ContainsSymbolsWithNameAsync(ProjectId id, string name, SymbolFilter filter, CancellationToken cancellationToken)
+        {
+            var result = GetCompilationTracker(id).ContainsSymbolsWithNameFromDeclarationOnlyCompilation(name, filter, cancellationToken);
+            if (result.HasValue)
+            {
+                return result.Value;
+            }
+
+            // it looks like declaration compilation doesn't exist yet. we have to build full compilation
+            var compilation = await GetCompilationAsync(id, cancellationToken).ConfigureAwait(false);
+            if (compilation == null)
+            {
+                // some projects don't support compilations (e.g., TypeScript) so there's nothing to check
+                return false;
+            }
+
+            return compilation.ContainsSymbolsWithName(name, filter, cancellationToken);
         }
 
         public async Task<bool> ContainsSymbolsWithNameAsync(ProjectId id, Func<string, bool> predicate, SymbolFilter filter, CancellationToken cancellationToken)
@@ -1880,7 +1953,7 @@ namespace Microsoft.CodeAnalysis
 
         private void CheckNotContainsDocument(DocumentId documentId)
         {
-            Contract.Requires(!this.ContainsDocument(documentId));
+            Debug.Assert(!this.ContainsDocument(documentId));
 
             if (this.ContainsDocument(documentId))
             {
@@ -1890,7 +1963,7 @@ namespace Microsoft.CodeAnalysis
 
         private void CheckNotContainsAdditionalDocument(DocumentId documentId)
         {
-            Contract.Requires(!this.ContainsAdditionalDocument(documentId));
+            Debug.Assert(!this.ContainsAdditionalDocument(documentId));
 
             if (this.ContainsAdditionalDocument(documentId))
             {
@@ -1900,7 +1973,7 @@ namespace Microsoft.CodeAnalysis
 
         private void CheckContainsDocument(DocumentId documentId)
         {
-            Contract.Requires(this.ContainsDocument(documentId));
+            Debug.Assert(this.ContainsDocument(documentId));
 
             if (!this.ContainsDocument(documentId))
             {
@@ -1910,7 +1983,7 @@ namespace Microsoft.CodeAnalysis
 
         private void CheckContainsAdditionalDocument(DocumentId documentId)
         {
-            Contract.Requires(this.ContainsAdditionalDocument(documentId));
+            Debug.Assert(this.ContainsAdditionalDocument(documentId));
 
             if (!this.ContainsAdditionalDocument(documentId))
             {

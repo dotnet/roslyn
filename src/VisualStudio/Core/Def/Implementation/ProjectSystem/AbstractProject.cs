@@ -20,6 +20,7 @@ using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.ComponentModelHost;
+using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel;
 using Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
 using Microsoft.VisualStudio.Shell;
@@ -51,7 +52,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private readonly Dictionary<string, IVisualStudioHostDocument> _documentMonikers = new Dictionary<string, IVisualStudioHostDocument>(StringComparer.OrdinalIgnoreCase);
         private readonly Dictionary<string, VisualStudioAnalyzer> _analyzers = new Dictionary<string, VisualStudioAnalyzer>(StringComparer.OrdinalIgnoreCase);
         private readonly Dictionary<DocumentId, IVisualStudioHostDocument> _additionalDocuments = new Dictionary<DocumentId, IVisualStudioHostDocument>();
-        private readonly Dictionary<DocumentId, List<(IVsHierarchy hierarchy, uint cookie)>> _hierarchyEventSinks = new Dictionary<DocumentId, List<(IVsHierarchy hierarchy, uint cookie)>>();
 
         /// <summary>
         /// The list of files which have been added to the project but we aren't tracking since they
@@ -120,6 +120,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             VisualStudioWorkspaceImpl visualStudioWorkspaceOpt,
             HostDiagnosticUpdateSource hostDiagnosticUpdateSourceOpt,
             ICommandLineParserService commandLineParserServiceOpt = null)
+            : base(projectTracker.ThreadingContext)
         {
             Contract.ThrowIfNull(projectSystemName);
 
@@ -199,7 +200,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// </summary>
         internal string BinOutputPath { get; private set; }
 
-        public IRuleSetFile RuleSetFile { get; private set; }
+        public IReferenceCountedDisposable<IRuleSetFile> RuleSetFile { get; private set; }
 
         protected VisualStudioProjectTracker ProjectTracker { get; }
 
@@ -232,6 +233,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         public VersionStamp Version { get; }
 
         public IMetadataService MetadataService { get; }
+
+        public IProjectCodeModel ProjectCodeModel { get; protected set; }
 
         /// <summary>
         /// The containing directory of the project. Null if none exists (consider Venus.)
@@ -503,7 +506,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         private static string GetAssemblyNameFromPath(string outputPath)
         {
-            Contract.Requires(outputPath != null);
+            Debug.Assert(outputPath != null);
 
             // dev11 sometimes gives us output path w/o extension, so removing extension becomes problematic
             if (outputPath.EndsWith(".exe", StringComparison.OrdinalIgnoreCase) ||
@@ -622,6 +625,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             lock (_gate)
             {
+                if (_metadataReferences.Contains(r => StringComparer.OrdinalIgnoreCase.Equals(r.FilePath, reference.FilePath)))
+                {
+                    // TODO: Added in order to diagnose why duplicate references get added to the project. See https://github.com/dotnet/roslyn/issues/26437
+                    FatalError.ReportWithoutCrash(new InvalidOperationException($"Reference with path '{reference.FilePath}' already exists in project '{DisplayName}'."));
+                    return;
+                }
+
                 _metadataReferences.Add(reference);
             }
 
@@ -713,13 +723,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             // efforts to listen to file changes can lead to a deadlock situation.
             // Postponing the VisualStudioAnalyzer operations gives this thread the opportunity
             // to release the lock.
-            Dispatcher.CurrentDispatcher.BeginInvoke(new Action(() =>
+            ThreadingContext.JoinableTaskFactory.RunAsync(async () =>
             {
-                VisualStudioAnalyzer analyzer = (VisualStudioAnalyzer)sender;
+                await Task.Yield();
+
+                var analyzer = (VisualStudioAnalyzer)sender;
 
                 RemoveAnalyzerReference(analyzer.FullPath);
                 AddAnalyzerReference(analyzer.FullPath);
-            }));
+            });
         }
 
         // Internal for unit testing
@@ -863,30 +875,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             if (project.PushingChangesToWorkspace)
             {
-                project.ProjectTracker.NotifyWorkspace(workspace => workspace.OnDocumentOpened(document.Id, document.GetOpenTextBuffer().AsTextContainer(), isCurrentContext));
+                project.ProjectTracker.NotifyWorkspace(workspace =>
+                {
+                    workspace.OnDocumentOpened(document.Id, document.GetOpenTextBuffer().AsTextContainer(), isCurrentContext);
+                    (workspace as VisualStudioWorkspaceImpl)?.ConnectToSharedHierarchyEvents(document);
+                });
             }
             else
             {
                 StartPushingToWorkspaceAndNotifyOfOpenDocuments(project);
-            }
-
-            var itemId = document.GetItemId();
-
-            if (itemId != (uint)VSConstants.VSITEMID.Nil)
-            {
-                var sharedHierarchy = LinkedFileUtilities.GetSharedHierarchyForItem(project.Hierarchy, itemId);
-
-                if (sharedHierarchy != null)
-                {
-                    project.ProjectTracker.NotifyWorkspace(workspace =>
-                    {
-                        var eventSink = new HierarchyEventsSink((VisualStudioWorkspaceImpl)workspace, sharedHierarchy, document.Id);
-                        if (ErrorHandler.Succeeded(sharedHierarchy.AdviseHierarchyEvents(eventSink, out var cookie)))
-                        {
-                            project._hierarchyEventSinks.MultiAdd(document.Id, (sharedHierarchy, cookie));
-                        }
-                    });
-                }
             }
         }
 
@@ -901,16 +898,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             if (project.PushingChangesToWorkspace)
             {
                 projectTracker.NotifyWorkspace(workspace => workspace.OnDocumentClosed(document.Id, document.Loader, updateActiveContext));
-            }
-
-            if (project._hierarchyEventSinks.TryGetValue(document.Id, out var subscribedSinks))
-            {
-                foreach (var subscribedSink in subscribedSinks)
-                {
-                    subscribedSink.hierarchy.UnadviseHierarchyEvents(subscribedSink.cookie);
-                }
-
-                project._hierarchyEventSinks.Remove(document.Id);
             }
         }
 
@@ -975,7 +962,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             string filename,
             SourceCodeKind sourceCodeKind,
             Func<IVisualStudioHostDocument, bool> getIsCurrentContext,
-            Func<uint, IReadOnlyList<string>> getFolderNames)
+            ImmutableArray<string> folderNames)
         {
             AssertIsForeground();
 
@@ -985,7 +972,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 this,
                 filePath: filename,
                 sourceCodeKind: sourceCodeKind,
-                getFolderNames: getFolderNames,
+                folderNames: folderNames,
                 canUseTextBuffer: CanUseTextBuffer,
                 updatedOnDiskHandler: s_documentUpdatedOnDiskEventHandler,
                 openedHandler: s_documentOpenedEventHandler,
@@ -1064,7 +1051,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
                     if (document.IsOpen)
                     {
-                        this.ProjectTracker.NotifyWorkspace(workspace => workspace.OnDocumentOpened(document.Id, document.GetOpenTextBuffer().AsTextContainer(), isCurrentContext));
+                        this.ProjectTracker.NotifyWorkspace(workspace =>
+                        {
+                            workspace.OnDocumentOpened(document.Id, document.GetOpenTextBuffer().AsTextContainer(), isCurrentContext);
+                            (workspace as VisualStudioWorkspaceImpl)?.ConnectToSharedHierarchyEvents(document);
+                        });
                     }
                 }
 
@@ -1098,7 +1089,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 }
 
                 UninitializeDocument(document);
-                OnDocumentRemoved(document.Key.Moniker);
+                ProjectCodeModel?.OnSourceFileRemoved(document.Key.Moniker);
             }
         }
 
@@ -1159,6 +1150,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
                     ChangedReferencesPendingUpdate.Clear();
 
+                    ProjectCodeModel?.OnProjectClosed();
+
                     var wasPushing = PushingChangesToWorkspace;
 
                     // disable pushing down to workspaces, so we don't get redundant workspace document removed events
@@ -1200,8 +1193,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
                     if (_projectsReferencingMe.Count > 0)
                     {
-                        FatalError.ReportWithoutCrash(new Exception("We still have projects referencing us. That's not expected."));
-
+                        // We shouldn't be able to get here, but for reasons we don't entirely
+                        // understand we sometimes do. We've long assumed that by the time a project is
+                        // disconnected, all references to that project have been removed. However, it
+                        // appears that this isn't always true when closing a solution (which includes
+                        // reloading the solution, or opening a different solution) or when reloading a
+                        // project that has changed on disk, or when deleting a project from a
+                        // solution.
+                        
                         // Clear just so we don't cause a leak
                         _projectsReferencingMe.Clear();
                     }
@@ -1349,10 +1348,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             document.UpdatedOnDisk -= s_additionalDocumentUpdatedOnDiskEventHandler;
 
             document.Dispose();
-        }
-
-        protected virtual void OnDocumentRemoved(string filePath)
-        {
         }
 
         internal void StartPushingToWorkspaceAndNotifyOfOpenDocuments()
@@ -1544,9 +1539,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         #region FolderNames
         private readonly List<string> _tmpFolders = new List<string>();
-        private readonly Dictionary<uint, IReadOnlyList<string>> _folderNameMap = new Dictionary<uint, IReadOnlyList<string>>();
+        private readonly Dictionary<uint, ImmutableArray<string>> _folderNameMap = new Dictionary<uint, ImmutableArray<string>>();
 
-        public IReadOnlyList<string> GetFolderNamesFromHierarchy(uint documentItemID)
+        public ImmutableArray<string> GetFolderNamesFromHierarchy(uint documentItemID)
         {
             AssertIsForeground();
 
@@ -1559,10 +1554,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 }
             }
 
-            return SpecializedCollections.EmptyReadOnlyList<string>();
+            return ImmutableArray<string>.Empty;
         }
 
-        private IReadOnlyList<string> GetFolderNamesForFolder(uint folderItemID)
+        private ImmutableArray<string> GetFolderNamesForFolder(uint folderItemID)
         {
             AssertIsForeground();
 

@@ -23,7 +23,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
                 Nothing)
 
             Dim newNameToken = GenerateUniqueLocalName(
-                document, expression, isConstant, container:=Nothing,
+                document, expression, isConstant, containerOpt:=Nothing,
                 cancellationToken:=cancellationToken)
 
             Dim newQualifiedName = SyntaxFactory.SimpleMemberAccessExpression(

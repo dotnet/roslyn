@@ -7,6 +7,7 @@ Imports Microsoft.Cci
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests
+Imports Roslyn.Test.Utilities
 Imports Roslyn.Test.Utilities.SigningTestHelpers
 
 Partial Public Class InternalsVisibleToAndStrongNameTests
@@ -50,12 +51,13 @@ Partial Public Class InternalsVisibleToAndStrongNameTests
         End Sub
     End Class
 
-    <Fact>
+    <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.TestExecutionNeedsWindowsTypes)>
     Public Sub BadInputStream()
+        SigningTestHelpers.InstallKey()
         Dim testProvider = New StrongNameProviderWithBadInputStream(s_defaultDesktopProvider)
         Dim options = TestOptions.DebugDll.WithStrongNameProvider(testProvider).WithCryptoKeyContainer("RoslynTestContainer")
 
-        Dim comp = CreateCompilationWithMscorlib(
+        Dim comp = CreateCompilationWithMscorlib40(
             <compilation>
                 <file name="a.vb"><![CDATA[
 Public Class C

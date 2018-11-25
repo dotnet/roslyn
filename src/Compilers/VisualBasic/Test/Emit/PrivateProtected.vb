@@ -11,7 +11,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
         <Fact>
         Public Sub RejectIncompatibleModifiers()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
                     <compilation>
                         <file name="a.vb">
                             <![CDATA[
@@ -68,7 +68,7 @@ End Class
 ]]>
                               </file>
                           </compilation>
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
                     sources,
                     parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15_3))
             CompilationUtils.AssertTheseDiagnostics(compilation,
@@ -81,7 +81,7 @@ BC36716: Visual Basic 15.3 does not support Private Protected.
               ~~~~~~~
 </errors>)
 
-            compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            compilation = CreateCompilationWithMscorlib40AndVBRuntime(
                     sources,
                     parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15_5))
             CompilationUtils.AssertTheseDiagnostics(compilation,
@@ -120,7 +120,7 @@ End Class
 ]]>
                               </file>
                           </compilation>
-            Dim baseCompilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim baseCompilation = CreateCompilationWithMscorlib40AndVBRuntime(
                     source1,
                     parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15_5),
                     options:=TestOptions.ReleaseDll.WithStrongNameProvider(s_defaultProvider))
@@ -164,7 +164,7 @@ End Class
 ]]>
                               </file>
                           </compilation>
-            Dim derivedCompilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim derivedCompilation = CreateCompilationWithMscorlib40AndVBRuntime(
                     source2,
                     parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15_5),
                     additionalRefs:={New VisualBasicCompilationReference(baseCompilation)},
@@ -200,7 +200,7 @@ BC30148: First statement of this 'Sub New' must be a call to 'MyBase.New' or 'My
     Sub New(x As Long)
         ~~~
 </errors>)
-            derivedCompilation = CreateCompilationWithMscorlibAndVBRuntime(
+            derivedCompilation = CreateCompilationWithMscorlib40AndVBRuntime(
                     source2,
                     parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15_5),
                     additionalRefs:={MetadataReference.CreateFromImage(baseCompilation.EmitToArray())},
@@ -236,7 +236,7 @@ BC30148: First statement of this 'Sub New' must be a call to 'MyBase.New' or 'My
     Sub New(x As Long)
         ~~~
 </errors>)
-            derivedCompilation = CreateCompilationWithMscorlibAndVBRuntime(
+            derivedCompilation = CreateCompilationWithMscorlib40AndVBRuntime(
                     source2,
                     parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15_5),
                     additionalRefs:={New VisualBasicCompilationReference(baseCompilation)},
@@ -245,7 +245,7 @@ BC30148: First statement of this 'Sub New' must be a call to 'MyBase.New' or 'My
             CompilationUtils.AssertTheseDiagnostics(derivedCompilation,
 <errors>
 </errors>)
-            derivedCompilation = CreateCompilationWithMscorlibAndVBRuntime(
+            derivedCompilation = CreateCompilationWithMscorlib40AndVBRuntime(
                     source2,
                     parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15_5),
                     additionalRefs:={MetadataReference.CreateFromImage(baseCompilation.EmitToArray())},
@@ -267,7 +267,7 @@ End Structure
 ]]>
                              </file>
                          </compilation>
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
                     source,
                     parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15_5))
             CompilationUtils.AssertTheseDiagnostics(compilation,
@@ -300,7 +300,7 @@ End Class
 ]]>
                              </file>
                          </compilation>
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
                     source,
                     parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15_5))
             CompilationUtils.AssertTheseDiagnostics(compilation,
@@ -344,7 +344,7 @@ End Structure
 ]]>
                              </file>
                          </compilation>
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
                     source,
                     parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15_5))
             CompilationUtils.AssertTheseDiagnostics(compilation,
@@ -403,7 +403,7 @@ End Class
 ]]>
                              </file>
                          </compilation>
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
                     source,
                     parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15_5))
             CompilationUtils.AssertTheseDiagnostics(compilation,
@@ -437,7 +437,7 @@ End Class
 ]]>
                              </file>
                          </compilation>
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
                     source,
                     parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15_5))
             CompilationUtils.AssertTheseDiagnostics(compilation,
@@ -462,7 +462,7 @@ End Interface
 ]]>
                              </file>
                          </compilation>
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
                     source,
                     parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15_5))
             CompilationUtils.AssertTheseDiagnostics(compilation,
@@ -503,7 +503,7 @@ End Class
 ]]>
                              </file>
                          </compilation>
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
                     source,
                     parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15_5))
             CompilationUtils.AssertTheseDiagnostics(compilation,
@@ -527,7 +527,7 @@ End Class
 ]]>
                              </file>
                          </compilation>
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
                     source,
                     parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15_5))
             CompilationUtils.AssertTheseDiagnostics(compilation,
@@ -559,7 +559,7 @@ End Class
 ]]>
                              </file>
                          </compilation>
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
                     source,
                     parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15_5))
             CompilationUtils.AssertTheseDiagnostics(compilation,
@@ -617,13 +617,13 @@ End Class
 ]]>
                              </file>
                          </compilation>
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
                     source,
                     parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15_5))
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <errors>
 </errors>)
-            compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            compilation = CreateCompilationWithMscorlib40AndVBRuntime(
                     source,
                     parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15))
             CompilationUtils.AssertTheseDiagnostics(compilation,
@@ -688,7 +688,7 @@ End Class
 ]]>
                              </file>
                          </compilation>
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
                     source,
                     parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15_5))
             CompilationUtils.AssertTheseDiagnostics(compilation,
@@ -704,7 +704,7 @@ End Class
 ]]>
                          </file>
                      </compilation>
-            compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            compilation = CreateCompilationWithMscorlib40AndVBRuntime(
                     source,
                     parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15_5))
             CompilationUtils.AssertTheseDiagnostics(compilation,
@@ -742,7 +742,7 @@ End Class
 ]]>
                              </file>
                          </compilation>
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
                     source,
                     parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15_5))
             CompilationUtils.AssertTheseDiagnostics(compilation,
@@ -772,7 +772,7 @@ End Class
 ]]>
                              </file>
                          </compilation>
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
                     source,
                     parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15_5))
             CompilationUtils.AssertTheseDiagnostics(compilation,
@@ -795,7 +795,7 @@ End Class
 ]]>
                               </file>
                           </compilation>
-            Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation1 = CreateCompilationWithMscorlib40AndVBRuntime(
                     source1,
                     parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15_5))
             CompilationUtils.AssertTheseDiagnostics(compilation1,
@@ -813,7 +813,7 @@ End Class
 ]]>
                               </file>
                           </compilation>
-            Dim derivedCompilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim derivedCompilation = CreateCompilationWithMscorlib40AndVBRuntime(
                     source2,
                     parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15_5),
                     additionalRefs:={New VisualBasicCompilationReference(compilation1)})
@@ -833,7 +833,7 @@ End Class
 ]]>
                               </file>
                           </compilation>
-            Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation1 = CreateCompilationWithMscorlib40AndVBRuntime(
                     source1,
                     parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15_5))
             CompilationUtils.AssertTheseDiagnostics(compilation1,
@@ -849,7 +849,7 @@ End Class
 ]]>
                               </file>
                           </compilation>
-            Dim derivedCompilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim derivedCompilation = CreateCompilationWithMscorlib40AndVBRuntime(
                     source2,
                     parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15_5),
                     additionalRefs:={New VisualBasicCompilationReference(compilation1)})
@@ -873,7 +873,7 @@ End Class
 ]]>
                               </file>
                           </compilation>
-            Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation1 = CreateCompilationWithMscorlib40AndVBRuntime(
                     source1,
                     parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15_5))
             CompilationUtils.AssertTheseDiagnostics(compilation1,
@@ -891,7 +891,7 @@ End Class
 ]]>
                               </file>
                           </compilation>
-            Dim derivedCompilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim derivedCompilation = CreateCompilationWithMscorlib40AndVBRuntime(
                     source2,
                     parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15_5),
                     additionalRefs:={New VisualBasicCompilationReference(compilation1)})
@@ -929,7 +929,7 @@ End Class
 ]]>
                              </file>
                          </compilation>
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {SystemCoreRef},
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(source, {SystemCoreRef},
                     parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15_5))
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <errors>

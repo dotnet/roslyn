@@ -485,7 +485,7 @@ End Class
 
         <Fact()>
         Public Sub CompilerGeneratedAttributeNotRequired()
-            Dim compilation1 = CompilationUtils.CreateCompilationWithReferences(
+            Dim compilation1 = CompilationUtils.CreateEmptyCompilationWithReferences(
             <compilation name="CompilerGeneratedAttributeNotRequired">
                 <file name="a.vb">
 Class C
@@ -523,9 +523,9 @@ BC30002: Type 'System.Int32' is not defined.
             Dim unavailableAssemblyReference = TestReferences.SymbolsTests.UseSiteErrors.Unavailable
             Dim csharpAssemblyReference = TestReferences.SymbolsTests.UseSiteErrors.CSharp
             Dim ilAssemblyReference = TestReferences.SymbolsTests.UseSiteErrors.IL
-            Dim successfulCompilation = CreateCompilationWithMscorlibAndReferences(sources, New MetadataReference() {unavailableAssemblyReference, csharpAssemblyReference, ilAssemblyReference})
+            Dim successfulCompilation = CreateCompilationWithMscorlib40AndReferences(sources, New MetadataReference() {unavailableAssemblyReference, csharpAssemblyReference, ilAssemblyReference})
             successfulCompilation.VerifyDiagnostics()
-            Dim failingCompilation = CreateCompilationWithMscorlibAndReferences(sources, New MetadataReference() {csharpAssemblyReference, ilAssemblyReference})
+            Dim failingCompilation = CreateCompilationWithMscorlib40AndReferences(sources, New MetadataReference() {csharpAssemblyReference, ilAssemblyReference})
             Return failingCompilation
         End Function
 
@@ -552,7 +552,7 @@ End Interface
     </file>
             </compilation>
 
-            Dim compilation1 = CreateCompilationWithReferences(source1, options:=TestOptions.ReleaseDll, references:={MinCorlibRef})
+            Dim compilation1 = CreateEmptyCompilationWithReferences(source1, options:=TestOptions.ReleaseDll, references:={MinCorlibRef})
             compilation1.VerifyEmitDiagnostics()
 
             Assert.Equal(TypeKind.Struct, compilation1.GetTypeByMetadataName("A").TypeKind)
@@ -570,7 +570,7 @@ End Interface
     </file>
             </compilation>
 
-            Dim compilation2 = CreateCompilationWithReferences(source2, options:=TestOptions.ReleaseDll, references:={compilation1.EmitToImageReference(), MinCorlibRef})
+            Dim compilation2 = CreateEmptyCompilationWithReferences(source2, options:=TestOptions.ReleaseDll, references:={compilation1.EmitToImageReference(), MinCorlibRef})
 
             compilation2.VerifyEmitDiagnostics()
             CompileAndVerify(compilation2)
@@ -581,7 +581,7 @@ End Interface
             Assert.Equal(TypeKind.Delegate, compilation2.GetTypeByMetadataName("D").TypeKind)
             Assert.Equal(TypeKind.Interface, compilation2.GetTypeByMetadataName("I1").TypeKind)
 
-            Dim compilation3 = CreateCompilationWithReferences(source2, options:=TestOptions.ReleaseDll, references:={compilation1.ToMetadataReference(), MinCorlibRef})
+            Dim compilation3 = CreateEmptyCompilationWithReferences(source2, options:=TestOptions.ReleaseDll, references:={compilation1.ToMetadataReference(), MinCorlibRef})
 
             compilation3.VerifyEmitDiagnostics()
             CompileAndVerify(compilation3)
@@ -592,7 +592,7 @@ End Interface
             Assert.Equal(TypeKind.Delegate, compilation3.GetTypeByMetadataName("D").TypeKind)
             Assert.Equal(TypeKind.Interface, compilation3.GetTypeByMetadataName("I1").TypeKind)
 
-            Dim compilation4 = CreateCompilationWithReferences(source2, options:=TestOptions.ReleaseDll, references:={compilation1.EmitToImageReference()})
+            Dim compilation4 = CreateEmptyCompilationWithReferences(source2, options:=TestOptions.ReleaseDll, references:={compilation1.EmitToImageReference()})
 
             compilation4.AssertTheseDiagnostics(<expected>
 BC30652: Reference required to assembly 'mincorlib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2' containing the type 'ValueType'. Add one to your project.
@@ -622,7 +622,7 @@ BC30652: Reference required to assembly 'mincorlib, Version=0.0.0.0, Culture=neu
             Assert.Equal(TypeKind.Interface, i1.TypeKind)
             Assert.Null(i1.GetUseSiteErrorInfo())
 
-            Dim compilation5 = CreateCompilationWithReferences(source2, options:=TestOptions.ReleaseDll, references:={compilation1.ToMetadataReference()})
+            Dim compilation5 = CreateEmptyCompilationWithReferences(source2, options:=TestOptions.ReleaseDll, references:={compilation1.ToMetadataReference()})
 
             compilation5.VerifyEmitDiagnostics()
             CompileAndVerify(compilation5)
@@ -633,7 +633,7 @@ BC30652: Reference required to assembly 'mincorlib, Version=0.0.0.0, Culture=neu
             Assert.Equal(TypeKind.Delegate, compilation5.GetTypeByMetadataName("D").TypeKind)
             Assert.Equal(TypeKind.Interface, compilation5.GetTypeByMetadataName("I1").TypeKind)
 
-            Dim compilation6 = CreateCompilationWithReferences(source2, options:=TestOptions.ReleaseDll, references:={compilation1.EmitToImageReference(), MscorlibRef})
+            Dim compilation6 = CreateEmptyCompilationWithReferences(source2, options:=TestOptions.ReleaseDll, references:={compilation1.EmitToImageReference(), MscorlibRef})
 
             compilation6.AssertTheseDiagnostics(<expected>
 BC30652: Reference required to assembly 'mincorlib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2' containing the type 'ValueType'. Add one to your project.
@@ -663,7 +663,7 @@ BC30652: Reference required to assembly 'mincorlib, Version=0.0.0.0, Culture=neu
             Assert.Equal(TypeKind.Interface, i1.TypeKind)
             Assert.Null(i1.GetUseSiteErrorInfo())
 
-            Dim compilation7 = CreateCompilationWithReferences(source2, options:=TestOptions.ReleaseDll, references:={compilation1.ToMetadataReference(), MscorlibRef})
+            Dim compilation7 = CreateEmptyCompilationWithReferences(source2, options:=TestOptions.ReleaseDll, references:={compilation1.ToMetadataReference(), MscorlibRef})
 
             compilation7.VerifyEmitDiagnostics()
             CompileAndVerify(compilation7)

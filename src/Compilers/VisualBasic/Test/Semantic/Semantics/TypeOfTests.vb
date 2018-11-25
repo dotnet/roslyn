@@ -480,7 +480,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, , TestOptions.ReleaseExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(source, , TestOptions.ReleaseExe)
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
 BC31430: Expression of type 'TA' can never be of type 'TB'.
@@ -555,7 +555,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, , TestOptions.ReleaseExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(source, , TestOptions.ReleaseExe)
 
             CompilationUtils.AssertNoErrors(compilation)
 
@@ -732,7 +732,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, , TestOptions.ReleaseExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(source, , TestOptions.ReleaseExe)
 
             CompilationUtils.AssertNoErrors(compilation)
 
@@ -832,7 +832,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, , TestOptions.ReleaseExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(source, , TestOptions.ReleaseExe)
 
             CompilationUtils.AssertNoErrors(compilation)
 
@@ -877,7 +877,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, , TestOptions.ReleaseExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(source, , TestOptions.ReleaseExe)
 
             CompilationUtils.AssertNoErrors(compilation)
 
@@ -1104,7 +1104,7 @@ y
         <WorkItem(543781, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543781")>
         <Fact()>
         Public Sub TypeParameterWithConstraints02()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="Program.vb">
 Structure S1
@@ -1180,7 +1180,7 @@ BC31430: Expression of type 'U1' can never be of type 'S2'.
 
         <Fact()>
         Public Sub TypeParameterWithConstraints03()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="Program.vb">
 Interface I
@@ -1225,7 +1225,7 @@ End Class
 
         <Fact()>
         Public Sub TypeParameterWithConstraints04()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="Program.vb">
 MustInherit Class A(Of T)
@@ -1258,7 +1258,7 @@ BC31430: Expression of type 'U' can never be of type 'Integer()'.
 
         <Fact()>
         Public Sub TypeParameterWithConstraints05()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="Program.vb">
 Enum E
@@ -1292,7 +1292,7 @@ BC31430: Expression of type 'U' can never be of type 'E'.
 
         <Fact()>
         Public Sub BC30021ERR_TypeOfRequiresReferenceType1()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb">
     Class C
@@ -1317,7 +1317,7 @@ BC30021: 'TypeOf ... Is' requires its left operand to have a reference type, but
         ' supported for type parameter T, regardless of constraints.
         <Fact()>
         Public Sub BC30021ERR_TypeOfRequiresReferenceType1_1()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb">
 Interface I
@@ -1349,7 +1349,7 @@ End Class
 
         <Fact()>
         Public Sub BC31430ERR_TypeOfExprAlwaysFalse2()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation name="TypeOfExprAlwaysFalse2">
         <file name="a.vb">
         Module M

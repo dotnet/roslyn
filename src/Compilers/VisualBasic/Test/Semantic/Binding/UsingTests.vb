@@ -599,7 +599,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
             AssertTheseDiagnostics(compilation, <expected>
 BC30616: Variable 'local' hides a variable in an enclosing block.
         Using local as New MyDisposable()
@@ -648,7 +648,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
             AssertTheseDiagnostics(compilation, <expected>
 BC36010: 'Using' operand of type 'Integer' must implement 'System.IDisposable'.
         Using goo2 = New Integer()
@@ -685,7 +685,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
             AssertTheseDiagnostics(compilation, <expected>
 BC36010: 'Using' operand of type 'Object' must implement 'System.IDisposable'.
         Using goo 
@@ -721,7 +721,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
             AssertTheseDiagnostics(compilation, <expected>
 BC33101: Type 'MyDisposable' must be a value type or a type argument constrained to 'Structure' in order to be used with 'Nullable' or nullable modifier '?'.
         Using a?, b? as new MyDisposable()
@@ -768,7 +768,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
             AssertTheseDiagnostics(compilation, <expected>
 BC42351: Local variable 'a' is read-only and its type is a structure. Invoking its members or passing it ByRef does not change its content and might lead to unexpected results. Consider declaring this variable outside of the 'Using' block.
         Using a, b as new MyDisposable()
@@ -795,7 +795,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
             AssertTheseDiagnostics(compilation, <expected>
 BC30201: Expression expected.
         Using 
@@ -897,7 +897,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
             AssertTheseDiagnostics(compilation, <expected>
 BC32000: Local variable 'goo' cannot be referred to before it is declared.
         Using beforefoo = goo, goo = New MyDisposable("goo"), goo2 = goo.Other
@@ -957,7 +957,7 @@ Inside Using.
 
         <Fact()>
         Public Sub BC30610ERR_BaseOnlyClassesMustBeExplicit2_1()
-            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40(
     <compilation name="BaseOnlyClassesMustBeExplicit2">
         <file name="a.vb">
            Imports System
@@ -1012,7 +1012,7 @@ End Class
         ' Take the parameter as object
         <Fact()>
         Public Sub BC30610ERR_BaseOnlyClassesMustBeExplicit2_TypeParameter()
-            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40(
     <compilation name="BaseOnlyClassesMustBeExplicit2">
         <file name="a.vb">
             Class Gen(Of T)
@@ -1029,7 +1029,7 @@ End Class
         ' Using block must implement the IDisposable interface
         <Fact()>
         Public Sub BC30610ERR_BaseOnlyClassesMustBeExplicit2_Invalid()
-            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40(
     <compilation name="BaseOnlyClassesMustBeExplicit2">
         <file name="a.vb">
             Option Infer On
@@ -1056,7 +1056,7 @@ End Class
         ' Nullable type as resource
         <Fact()>
         Public Sub BC30610ERR_BaseOnlyClassesMustBeExplicit2_Invalid_Nullable()
-            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40(
     <compilation name="BaseOnlyClassesMustBeExplicit2">
         <file name="a.vb">
 Option Infer On
@@ -1087,7 +1087,7 @@ End Structure
         ' Using same named variables in different blocks
         <Fact()>
         Public Sub UsableScope()
-            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40(
     <compilation name="UsableScope">
         <file name="a.vb">
 Imports System            
@@ -1166,7 +1166,7 @@ End Class
         ' The incorrect control flow (jumps outter to inner)
         <Fact()>
         Public Sub IncorrectJump()
-            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation name="IncorrectJump">
         <file name="a.vb">
 Imports System
@@ -1197,7 +1197,7 @@ End Structure
         ' Assigning stuff to the Using variable
         <Fact()>
         Public Sub Assignment()
-            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation name="Assignment">
         <file name="a.vb">
 Imports System
@@ -1233,7 +1233,7 @@ End Structure
         ' Assigning stuff to the Using variable
         <Fact()>
         Public Sub Assignment_2()
-            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation name="Assignment">
         <file name="a.vb">
 Imports System
@@ -1261,7 +1261,7 @@ End Structure
         <WorkItem(543059, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543059")>
         <Fact()>
         Public Sub MultipleResource()
-            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation>
         <file name="a.vb">
 Option Infer On
@@ -1306,7 +1306,7 @@ BC30203: Identifier expected.
         <WorkItem(543059, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543059")>
         <Fact()>
         Public Sub MultipleResource_2()
-            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation>
         <file name="a.vb">
 Option Infer On
@@ -1344,7 +1344,7 @@ End Class
         <WorkItem(528963, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528963")>
         <Fact()>
         Public Sub InitWithMultipleDeclarators()
-            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40(
     <compilation name="InitWithMultipleDeclarators">
         <file name="a.vb">
             Option Infer On
@@ -1379,7 +1379,7 @@ End Class
         <Fact()>
         Public Sub QueryInUsing()
 
-            Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation1 = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
     <compilation name="QueryInUsing">
         <file name="a.vb">
 Option Infer On
@@ -1413,7 +1413,7 @@ Class Program
         <Fact()>
         Public Sub LambdaInUsing()
 
-            Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation1 = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
     <compilation name="LambdaInUsing">
         <file name="a.vb">
 Option Infer On
@@ -1453,7 +1453,7 @@ End Class
         ' Anonymous types cannot appear in using
         <Fact()>
         Public Sub AnonymousInUsing()
-            Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation1 = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
     <compilation name="AnonymousInUsing">
         <file name="a.vb">
 Option Infer On
@@ -1473,7 +1473,7 @@ End Class
         <WorkItem(528974, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528974")>
         <Fact()>
         Public Sub AnonymousDelegateInUsing()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
             <compilation name="AnonymousDelegateInUsing">
                 <file name="a.vb">
 Option Infer On
@@ -1499,7 +1499,7 @@ End Class
         <WorkItem(10570, "DevDiv_Projects/Roslyn")>
         <Fact()>
         Public Sub UsingBeforeConstructCall()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="UsingBeforeConstructCall">
     <file name="a.vb">
 Imports System        
@@ -1573,7 +1573,7 @@ End Class
         <WorkItem(543059, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543059")>
         <Fact()>
         Public Sub MultipleResource_3()
-            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation>
         <file name="a.vb">
 Option Infer On
@@ -1608,7 +1608,7 @@ End Class
         <WorkItem(543059, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543059")>
         <Fact()>
         Public Sub MultipleResource_4()
-            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation>
         <file name="a.vb">
 Option Infer On
@@ -1646,7 +1646,7 @@ End Class
         <WorkItem(529046, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529046")>
         <Fact>
         Public Sub UsingOutOfMethod()
-            CreateCompilationWithMscorlibAndVBRuntime(
+            CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="SyncLockOutOfMethod">
     <file name="a.vb">
 Class m1
@@ -1661,7 +1661,7 @@ End Class
         <WorkItem(529046, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529046")>
         <Fact>
         Public Sub UsingOutOfMethod_1()
-            CreateCompilationWithMscorlibAndVBRuntime(
+            CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="SyncLockOutOfMethod">
     <file name="a.vb">
     Using Nothing

@@ -61,36 +61,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             AssertEx.SetEqual(errors, diagnostics.Select(DumpDiagnostic));
         }
 
-        // Tests just the errors found while binding method M in class C.
-        [Obsolete("Use VerifyDiagnostics", true)]
-        public void TestErrors(string code, params string[] errors)
-        {
-            var compilation = CreateCompilation(code);
-            var method = (SourceMemberMethodSymbol)compilation.GlobalNamespace.GetTypeMembers("C").Single().GetMembers("M").Single();
-            var factory = compilation.GetBinderFactory(method.SyntaxTree);
-            var bodyBlock = (BlockSyntax)method.BodySyntax;
-            var parameterBinderContext = factory.GetBinder(bodyBlock);
-            var binder = new ExecutableCodeBinder(bodyBlock.Parent, method, parameterBinderContext);
-            var diagnostics = new DiagnosticBag();
-            var block = binder.BindEmbeddedBlock(bodyBlock, diagnostics);
-            AssertEx.SetEqual(errors, diagnostics.AsEnumerable().Select(DumpDiagnostic));
-        }
-
-        [Obsolete("Use VerifyDiagnostics", true)]
-        public void TestWarnings(string code, params string[] expectedWarnings)
-        {
-            var compilation = CreateCompilation(code);
-            var method = (SourceMemberMethodSymbol)compilation.GlobalNamespace.GetTypeMembers("C").Single().GetMembers("M").Single();
-            var factory = compilation.GetBinderFactory(method.SyntaxTree);
-            var bodyBlock = (BlockSyntax)method.BodySyntax;
-            var parameterBinderContext = factory.GetBinder(bodyBlock);
-            var binder = new ExecutableCodeBinder(bodyBlock.Parent, method, parameterBinderContext);
-            var block = binder.BindEmbeddedBlock(bodyBlock, new DiagnosticBag());
-            var actualWarnings = new DiagnosticBag();
-            DiagnosticsPass.IssueDiagnostics(compilation, block, actualWarnings, method);
-            AssertEx.SetEqual(expectedWarnings, actualWarnings.AsEnumerable().Select(DumpDiagnostic));
-        }
-
         public const string LINQ =
         #region the string LINQ defines a complete LINQ API called List1<T> (for instance method) and List2<T> (for extension methods)
  @"using System;

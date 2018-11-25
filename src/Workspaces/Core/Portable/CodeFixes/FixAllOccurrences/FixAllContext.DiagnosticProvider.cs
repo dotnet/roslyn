@@ -15,7 +15,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CodeFixes
 {
     /// <summary>
-    /// Context for "Fix all occurrences" code fixes provided by an <see cref="FixAllProvider"/>.
+    /// Context for "Fix all occurrences" code fixes provided by a <see cref="FixAllProvider"/>.
     /// </summary>
     public partial class FixAllContext
     {
@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                             if (document != null && !document.IsGeneratedCode(cancellationToken))
                             {
                                 var documentDiagnostics = await fixAllContext.GetDocumentDiagnosticsAsync(document).ConfigureAwait(false);
-                                var kvp = SpecializedCollections.SingletonEnumerable(KeyValuePair.Create(document, documentDiagnostics));
+                                var kvp = SpecializedCollections.SingletonEnumerable(KeyValuePairUtil.Create(document, documentDiagnostics));
                                 return ImmutableDictionary.CreateRange(kvp);
                             }
 
@@ -194,7 +194,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                         {
                             case FixAllScope.Project:
                                 var diagnostics = await fixAllContext.GetProjectDiagnosticsAsync(project).ConfigureAwait(false);
-                                var kvp = SpecializedCollections.SingletonEnumerable(KeyValuePair.Create(project, diagnostics));
+                                var kvp = SpecializedCollections.SingletonEnumerable(KeyValuePairUtil.Create(project, diagnostics));
                                 return ImmutableDictionary.CreateRange(kvp);
 
                             case FixAllScope.Solution:

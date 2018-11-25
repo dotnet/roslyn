@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 return default;
             }
 
-            var (type, plural) = UnwrapType(nameInfo.Type, semanticModel.Compilation, wasPlural: false);
+            var (type, plural) = UnwrapType(nameInfo.Type, semanticModel.Compilation, wasPlural: false, seenTypes: new HashSet<ITypeSymbol>());
 
             var baseNames = NameGenerator.GetBaseNames(type, plural);
             return baseNames;
@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return !type.IsSpecialType();
         }
 
-        private Glyph GetGlyph(SymbolKind kind, Accessibility declaredAccessibility)
+        private Glyph GetGlyph(SymbolKind kind, Accessibility? declaredAccessibility)
         {
             Glyph publicIcon;
             switch (kind)
@@ -158,11 +158,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return publicIcon;
         }
 
-        private (ITypeSymbol, bool plural) UnwrapType(ITypeSymbol type, Compilation compilation, bool wasPlural)
+        private (ITypeSymbol, bool plural) UnwrapType(ITypeSymbol type, Compilation compilation, bool wasPlural, HashSet<ITypeSymbol> seenTypes)
         {
+            // Consider C : Task<C>
+            // Visiting the C in Task<C> will stackoverflow
+            if (seenTypes.Contains(type))
+            {
+                return (type, wasPlural);
+            }
+
+            seenTypes.AddRange(type.GetBaseTypesAndThis());
+
             if (type is IArrayTypeSymbol arrayType)
             {
-                return UnwrapType(arrayType.ElementType, compilation, wasPlural: true);
+                return UnwrapType(arrayType.ElementType, compilation, wasPlural: true, seenTypes: seenTypes);
             }
 
             if (type is INamedTypeSymbol namedType && namedType.OriginalDefinition != null)
@@ -174,17 +183,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
                 if (ienumerableOfT != null)
                 {
-                    return UnwrapType(ienumerableOfT.TypeArguments[0], compilation, wasPlural: true);
+                    // Consider: Container : IEnumerable<Container>
+                    // Container |
+                    // We don't want to suggest the plural version of a type that can be used singularly
+                    if (seenTypes.Contains(ienumerableOfT.TypeArguments[0]))
+                    {
+                        return (type, wasPlural);
+                    }
+
+                    return UnwrapType(ienumerableOfT.TypeArguments[0], compilation, wasPlural: true, seenTypes: seenTypes);
                 }
 
                 var taskOfTType = compilation.TaskOfTType();
                 var valueTaskType = compilation.ValueTaskOfTType();
+                var lazyOfTType = compilation.LazyOfTType();
 
                 if (originalDefinition == taskOfTType ||
                     originalDefinition == valueTaskType ||
+                    originalDefinition == lazyOfTType ||
                     originalDefinition.SpecialType == SpecialType.System_Nullable_T)
                 {
-                    return UnwrapType(namedType.TypeArguments[0], compilation, wasPlural: wasPlural);
+                    return UnwrapType(namedType.TypeArguments[0], compilation, wasPlural: wasPlural, seenTypes: seenTypes);
                 }
             }
 
@@ -202,9 +221,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var namingStyleOptions = options.GetOption(SimplificationOptions.NamingPreferences);
             var rules = namingStyleOptions.CreateRules().NamingRules.Concat(s_BuiltInRules);
             var result = new Dictionary<string, SymbolKind>();
-            foreach (var symbolKind in declarationInfo.PossibleSymbolKinds)
+            foreach (var kind in declarationInfo.PossibleSymbolKinds)
             {
-                var kind = new SymbolKindOrTypeKind(symbolKind);
+                // There's no special glyph for local functions.
+                // We don't need to differentiate them at this point.
+                var symbolKind =
+                    kind.SymbolKind.HasValue ? kind.SymbolKind.Value :
+                    kind.MethodKind.HasValue ? SymbolKind.Method :
+                    throw ExceptionUtilities.Unreachable;
+
                 var modifiers = declarationInfo.Modifiers;
                 foreach (var rule in rules)
                 {

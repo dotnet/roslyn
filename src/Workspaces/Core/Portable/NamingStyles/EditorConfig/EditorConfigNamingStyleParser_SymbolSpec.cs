@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -59,20 +58,40 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                 return ParseSymbolKindList(result as string ?? string.Empty);
             }
 
-            return ImmutableArray<SymbolKindOrTypeKind>.Empty;
+            return _all;
         }
 
+        private static readonly SymbolKindOrTypeKind _namespace = new SymbolKindOrTypeKind(SymbolKind.Namespace);
         private static readonly SymbolKindOrTypeKind _class = new SymbolKindOrTypeKind(TypeKind.Class);
         private static readonly SymbolKindOrTypeKind _struct = new SymbolKindOrTypeKind(TypeKind.Struct);
         private static readonly SymbolKindOrTypeKind _interface = new SymbolKindOrTypeKind(TypeKind.Interface);
         private static readonly SymbolKindOrTypeKind _enum = new SymbolKindOrTypeKind(TypeKind.Enum);
         private static readonly SymbolKindOrTypeKind _property = new SymbolKindOrTypeKind(SymbolKind.Property);
-        private static readonly SymbolKindOrTypeKind _method = new SymbolKindOrTypeKind(SymbolKind.Method);
+        private static readonly SymbolKindOrTypeKind _method = new SymbolKindOrTypeKind(MethodKind.Ordinary);
+        private static readonly SymbolKindOrTypeKind _localFunction = new SymbolKindOrTypeKind(MethodKind.LocalFunction);
         private static readonly SymbolKindOrTypeKind _field = new SymbolKindOrTypeKind(SymbolKind.Field);
         private static readonly SymbolKindOrTypeKind _event = new SymbolKindOrTypeKind(SymbolKind.Event);
         private static readonly SymbolKindOrTypeKind _delegate = new SymbolKindOrTypeKind(TypeKind.Delegate);
         private static readonly SymbolKindOrTypeKind _parameter = new SymbolKindOrTypeKind(SymbolKind.Parameter);
-        private static readonly ImmutableArray<SymbolKindOrTypeKind> _all = ImmutableArray.Create(_class, _struct, _interface, _enum, _property, _method, _field, _event, _delegate, _parameter);
+        private static readonly SymbolKindOrTypeKind _typeParameter = new SymbolKindOrTypeKind(SymbolKind.TypeParameter);
+        private static readonly SymbolKindOrTypeKind _local = new SymbolKindOrTypeKind(SymbolKind.Local);
+        private static readonly ImmutableArray<SymbolKindOrTypeKind> _all =
+            ImmutableArray.Create(
+                _namespace,
+                _class,
+                _struct,
+                _interface,
+                _enum,
+                _property,
+                _method,
+                _localFunction,
+                _field,
+                _event,
+                _delegate,
+                _parameter,
+                _typeParameter,
+                _local);
+
         private static ImmutableArray<SymbolKindOrTypeKind> ParseSymbolKindList(string symbolSpecApplicableKinds)
         {
             if (symbolSpecApplicableKinds == null)
@@ -108,6 +127,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                     case "method":
                         builder.Add(_method);
                         break;
+                    case "local_function":
+                        builder.Add(_localFunction);
+                        break;
                     case "field":
                         builder.Add(_field);
                         break;
@@ -119,6 +141,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                         break;
                     case "parameter":
                         builder.Add(_parameter);
+                        break;
+                    case "type_parameter":
+                        builder.Add(_typeParameter);
+                        break;
+                    case "namespace":
+                        builder.Add(_namespace);
+                        break;
+                    case "local":
+                        builder.Add(_local);
                         break;
                     default:
                         break;
@@ -137,10 +168,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                 return ParseAccessibilityKindList(result as string ?? string.Empty);
             }
 
-            return ImmutableArray<Accessibility>.Empty;
+            return _allAccessibility;
         }
 
-        private static readonly ImmutableArray<Accessibility> _allAccessibility = ImmutableArray.Create(Accessibility.Public, Accessibility.Internal, Accessibility.Private, Accessibility.Protected, Accessibility.ProtectedOrInternal);
+        private static readonly ImmutableArray<Accessibility> _allAccessibility = ImmutableArray.Create(Accessibility.NotApplicable, Accessibility.Public, Accessibility.Internal, Accessibility.Private, Accessibility.Protected, Accessibility.ProtectedAndInternal, Accessibility.ProtectedOrInternal);
 
         private static ImmutableArray<Accessibility> ParseAccessibilityKindList(string symbolSpecApplicableAccessibilities)
         {
@@ -175,6 +206,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                     case "protected_internal":
                     case "protected_friend":
                         builder.Add(Accessibility.ProtectedOrInternal);
+                        break;
+                    case "private_protected":
+                        builder.Add(Accessibility.ProtectedAndInternal);
+                        break;
+                    case "local":
+                        builder.Add(Accessibility.NotApplicable);
                         break;
                     default:
                         break;

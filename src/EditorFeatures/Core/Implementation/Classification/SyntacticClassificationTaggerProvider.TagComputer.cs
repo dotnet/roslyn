@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 _typeMap = typeMap;
                 _taggerProvider = taggerProvider;
 
-                _workQueue = new AsynchronousSerialWorkQueue(asyncListener);
+                _workQueue = new AsynchronousSerialWorkQueue(taggerProvider._threadingContext, asyncListener);
                 _reportChangeCancellationSource = new CancellationTokenSource();
 
                 _lastLineCache = new LastLineCache();
@@ -162,6 +162,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
 
             public void DisconnectFromWorkspace()
             {
+                _reportChangeCancellationSource.Cancel();
+
                 if (_workspace != null)
                 {
                     _workspace.WorkspaceChanged -= this.OnWorkspaceChanged;

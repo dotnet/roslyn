@@ -61,8 +61,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.LineCommit
                 commitManagerFactory,
                 workspace.GetService(Of IEditorOperationsFactoryService),
                 workspace.GetService(Of ISmartIndentationService),
-                textUndoHistoryRegistry,
-                workspace.GetService(Of Microsoft.CodeAnalysis.Editor.Host.IWaitIndicator))
+                textUndoHistoryRegistry)
         End Sub
 
         Friend Sub AssertHadCommit(expectCommit As Boolean)

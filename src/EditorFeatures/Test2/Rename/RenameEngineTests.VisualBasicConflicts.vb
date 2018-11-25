@@ -5,6 +5,7 @@ Imports Microsoft.CodeAnalysis.Rename.ConflictEngine
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
     Partial Public Class RenameEngineTests
 
+        <[UseExportProvider]>
         Public Class VisualBasicConflicts
             Private ReadOnly _outputHelper As Abstractions.ITestOutputHelper
 

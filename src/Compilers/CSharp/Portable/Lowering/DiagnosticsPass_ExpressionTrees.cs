@@ -686,6 +686,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             return base.VisitTupleLiteral(node);
         }
 
+        public override BoundNode VisitTupleBinaryOperator(BoundTupleBinaryOperator node)
+        {
+            if (_inExpressionLambda)
+            {
+                Error(ErrorCode.ERR_ExpressionTreeContainsTupleBinOp, node);
+            }
+
+            return base.VisitTupleBinaryOperator(node);
+        }
+
         public override BoundNode VisitThrowExpression(BoundThrowExpression node)
         {
             if (_inExpressionLambda)

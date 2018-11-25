@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         // From what I see in our own codebase, tokens longer then 40-50 chars are 
         // not very common. 
         // So it seems reasonable to limit the sizes to some round number like 42.
-        private const int MaxCachedTokenSize = 42;
+        internal const int MaxCachedTokenSize = 42;
 
         private enum QuickScanState : byte
         {

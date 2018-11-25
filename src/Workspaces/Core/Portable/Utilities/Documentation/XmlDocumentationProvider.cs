@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Threading;
@@ -158,7 +159,7 @@ So we suppress this error until the reporting for CA3053 has been updated to acc
             public FileBasedXmlDocumentationProvider(string filePath)
             {
                 Contract.ThrowIfNull(filePath);
-                Contract.Requires(PathUtilities.IsAbsolute(filePath));
+                Debug.Assert(PathUtilities.IsAbsolute(filePath));
 
                 _filePath = filePath;
             }

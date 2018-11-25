@@ -613,9 +613,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal bool IsEntryPointCandidate
         {
-            get { return IsStatic && Name == WellKnownMemberNames.EntryPointMethodName; }
-        }
+            get
+            {
+                if (this.IsPartialDefinition() &&
+                    this.PartialImplementationPart is null)
+                {
+                    return false;
+                }
 
+                return IsStatic && Name == WellKnownMemberNames.EntryPointMethodName;
+            }
+        }
 
         internal override TResult Accept<TArgument, TResult>(CSharpSymbolVisitor<TArgument, TResult> visitor, TArgument argument)
         {

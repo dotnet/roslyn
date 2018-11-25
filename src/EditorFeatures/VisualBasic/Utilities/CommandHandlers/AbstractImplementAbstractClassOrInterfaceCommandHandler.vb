@@ -2,21 +2,30 @@
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Editor.Commands
 Imports Microsoft.CodeAnalysis.Editor.Implementation.EndConstructGeneration
 Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Simplification
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.Text.Shared.Extensions
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+Imports Microsoft.VisualStudio.Commanding
 Imports Microsoft.VisualStudio.Text
+Imports Microsoft.VisualStudio.Text.Editor.Commanding.Commands
 Imports Microsoft.VisualStudio.Text.Operations
+Imports Microsoft.VisualStudio.Utilities
+Imports VSCommanding = Microsoft.VisualStudio.Commanding
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Utilities.CommandHandlers
     Friend MustInherit Class AbstractImplementAbstractClassOrInterfaceCommandHandler
-        Implements ICommandHandler(Of ReturnKeyCommandArgs)
+        Implements VSCommanding.ICommandHandler(Of ReturnKeyCommandArgs)
 
         Private ReadOnly _editorOperationsFactoryService As IEditorOperationsFactoryService
+
+        Public ReadOnly Property DisplayName As String Implements INamed.DisplayName
+            Get
+                Return VBEditorResources.Implement_Abstract_Class_Or_Interface
+            End Get
+        End Property
 
         Protected Sub New(editorOperationsFactoryService As IEditorOperationsFactoryService)
             _editorOperationsFactoryService = editorOperationsFactoryService
@@ -27,18 +36,16 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Utilities.CommandHandlers
             typeSyntax As TypeSyntax,
             cancellationToken As CancellationToken) As Document
 
-        Private Sub ExecuteCommand(args As ReturnKeyCommandArgs, nextHandler As Action) Implements ICommandHandler(Of ReturnKeyCommandArgs).ExecuteCommand
+        Private Function ExecuteCommand(args As ReturnKeyCommandArgs, context As CommandExecutionContext) As Boolean Implements VSCommanding.ICommandHandler(Of ReturnKeyCommandArgs).ExecuteCommand
             Dim caretPointOpt = args.TextView.GetCaretPoint(args.SubjectBuffer)
             If caretPointOpt Is Nothing Then
-                nextHandler()
-                Return
+                Return False
             End If
 
             ' Implement interface is not cancellable.
             Dim _cancellationToken = CancellationToken.None
             If Not TryExecute(args, _cancellationToken) Then
-                nextHandler()
-                Return
+                Return False
             End If
 
             ' It's possible that there may be an end construct to generate at this position.
@@ -53,20 +60,20 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Utilities.CommandHandlers
             ' insert a new line.
             Dim lastNonWhitespacePosition = If(caretLine.GetLastNonWhitespacePosition(), -1)
             If lastNonWhitespacePosition > caretPosition.Position Then
-                nextHandler()
-                Return
+                Return False
             End If
 
             Dim nextLine = snapshot.GetLineFromLineNumber(caretLine.LineNumber + 1)
             If Not nextLine.IsEmptyOrWhitespace() Then
                 ' If the next line is not whitespace, we'll go ahead and pass through to insert a new line.
-                nextHandler()
-                Return
+                Return False
             End If
 
             ' If the next line *is* whitespace, we're just going to move the caret down a line.
             _editorOperationsFactoryService.GetEditorOperations(args.TextView).MoveLineDown(extendSelection:=False)
-        End Sub
+
+            Return True
+        End Function
 
         Private Function TryGenerateEndConstruct(args As ReturnKeyCommandArgs, cancellationToken As CancellationToken) As Boolean
             Dim textSnapshot = args.SubjectBuffer.CurrentSnapshot
@@ -172,8 +179,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Utilities.CommandHandlers
             Return True
         End Function
 
-        Private Function GetCommandState(args As ReturnKeyCommandArgs, nextHandler As Func(Of CommandState)) As CommandState Implements ICommandHandler(Of ReturnKeyCommandArgs).GetCommandState
-            Return nextHandler()
+        Private Function GetCommandState(args As ReturnKeyCommandArgs) As VSCommanding.CommandState Implements VSCommanding.ICommandHandler(Of ReturnKeyCommandArgs).GetCommandState
+            Return VSCommanding.CommandState.Unspecified
         End Function
     End Class
 End Namespace

@@ -92,7 +92,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             {
                 if (base.TryCreateColumnContent(columnName, out content))
                 {
-                    LazyToolTip.AttachTo(content, CreateDisposableToolTip);
+                    LazyToolTip.AttachTo(content, Presenter.ThreadingContext, CreateDisposableToolTip);
 
                     return true;
                 }

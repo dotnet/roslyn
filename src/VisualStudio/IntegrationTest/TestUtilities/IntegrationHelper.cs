@@ -80,7 +80,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
         public static string CreateTemporaryPath()
         {
-            return Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+            return Path.Combine(TempRoot.Root, Path.GetRandomFileName());
         }
 
         public static bool DetachThreadInput(uint idAttach, uint idAttachTo)
@@ -214,7 +214,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         {
             foreach (var process in Process.GetProcessesByName(processName))
             {
-                KillProcess(processName);
+                KillProcess(process);
             }
         }
 
@@ -235,7 +235,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             try
             {
                 // No need to re-attach threads in case when VS initializaed an UI thread for a debugged application.
-                if (!skipAttachingThread)
+                if (!skipAttachingThread && activeThreadId != currentThreadId)
                 {
                     // Attach the thread inputs so that 'SetActiveWindow' and 'SetFocus' work
                     threadInputsAttached = AttachThreadInput(currentThreadId, activeThreadId);

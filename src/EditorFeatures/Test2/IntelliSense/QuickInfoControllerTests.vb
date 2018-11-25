@@ -7,6 +7,7 @@ Imports Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
 Imports Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
 Imports Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo.Presentation
 Imports Microsoft.CodeAnalysis.Editor.QuickInfo
+Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
 Imports Microsoft.VisualStudio.Language.Intellisense
@@ -14,13 +15,12 @@ Imports Microsoft.VisualStudio.Text
 Imports Microsoft.VisualStudio.Text.Editor
 Imports Microsoft.VisualStudio.Utilities
 Imports Moq
+
+#Disable Warning BC40000 ' IQuickInfo* is obsolete
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
+    <[UseExportProvider]>
     Public Class QuickInfoControllerTests
-
-        Public Sub New()
-            TestWorkspace.ResetThreadAffinity()
-        End Sub
 
         <WpfFact>
         Public Sub InvokeQuickInfoWithoutDocumentShouldNotQueryProviders()
@@ -110,9 +110,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
         <WpfFact(), WorkItem(1106729, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1106729")>
         Public Sub PresenterUpdatesExistingSessionIfNotDismissed()
+            Dim threadingContext = TestExportProvider.ExportProviderWithCSharpAndVisualBasic.GetExportedValue(Of IThreadingContext)
             Dim broker = New Mock(Of IQuickInfoBroker)()
             Dim frameworkElementFactory = New DeferredContentFrameworkElementFactory({}, {})
-            Dim presenter As IIntelliSensePresenter(Of IQuickInfoPresenterSession, IQuickInfoSession) = New QuickInfoPresenter(broker.Object, frameworkElementFactory)
+            Dim presenter As IIntelliSensePresenter(Of IQuickInfoPresenterSession, IQuickInfoSession) = New QuickInfoPresenter(threadingContext, broker.Object, frameworkElementFactory)
             Dim mockEditorSession = New Mock(Of IQuickInfoSession)
             mockEditorSession.Setup(Function(m) m.IsDismissed).Returns(False)
             mockEditorSession.Setup(Sub(m) m.Recalculate())
@@ -125,13 +126,14 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
         <WpfFact>
         Public Sub PresenterDoesNotRecalculateDismissedSession()
+            Dim threadingContext = TestExportProvider.ExportProviderWithCSharpAndVisualBasic.GetExportedValue(Of IThreadingContext)
             Dim broker = New Mock(Of IQuickInfoBroker)()
             Dim brokerSession = New Mock(Of IQuickInfoSession)()
             brokerSession.Setup(Function(m) m.Properties).Returns(New PropertyCollection())
             broker.Setup(Function(m) m.CreateQuickInfoSession(It.IsAny(Of ITextView), It.IsAny(Of ITrackingPoint), It.IsAny(Of Boolean))).Returns(brokerSession.Object)
 
             Dim frameworkElementFactory = New DeferredContentFrameworkElementFactory({}, {})
-            Dim presenter As IIntelliSensePresenter(Of IQuickInfoPresenterSession, IQuickInfoSession) = New QuickInfoPresenter(broker.Object, frameworkElementFactory)
+            Dim presenter As IIntelliSensePresenter(Of IQuickInfoPresenterSession, IQuickInfoSession) = New QuickInfoPresenter(threadingContext, broker.Object, frameworkElementFactory)
             Dim mockEditorSession = New Mock(Of IQuickInfoSession)
             mockEditorSession.Setup(Function(m) m.IsDismissed).Returns(True)
             mockEditorSession.Setup(Sub(m) m.Recalculate())
@@ -150,20 +152,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             mockEditorSession.Verify(Sub(m) m.Recalculate(), Times.Never)
         End Sub
 
-        ' Create an empty document to use as a non-null parameter when needed
-        Private Shared ReadOnly s_document As Document =
-            (Function()
-                 Dim workspace = TestWorkspace.CreateWorkspace(
-                     <Workspace>
-                         <Project Language="C#">
-                             <Document>
-                             </Document>
-                         </Project>
-                     </Workspace>)
-                 Return workspace.CurrentSolution.GetDocument(workspace.Documents.Single().Id)
-             End Function)()
-        Private Shared ReadOnly s_bufferFactory As ITextBufferFactoryService = DirectCast(s_document.Project.Solution.Workspace, TestWorkspace).GetService(Of ITextBufferFactoryService)
-
         Private Shared ReadOnly s_controllerMocksMap As New ConditionalWeakTable(Of Controller, ControllerMocks)
         Private Shared Function GetMocks(controller As Controller) As ControllerMocks
             Dim result As ControllerMocks = Nothing
@@ -176,14 +164,28 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                                                  Optional provider As Mock(Of IQuickInfoProvider) = Nothing,
                                                  Optional triggerQuickInfo As Boolean = False,
                                                  Optional augmentSession As IQuickInfoSession = Nothing) As Controller
+            Dim document As Document =
+                (Function()
+                     Dim workspace = TestWorkspace.CreateWorkspace(
+                         <Workspace>
+                             <Project Language="C#">
+                                 <Document>
+                                 </Document>
+                             </Project>
+                         </Workspace>)
+                     Return workspace.CurrentSolution.GetDocument(workspace.Documents.Single().Id)
+                 End Function)()
+            Dim threadingContext = DirectCast(document.Project.Solution.Workspace, TestWorkspace).GetService(Of IThreadingContext)
+            Dim bufferFactory As ITextBufferFactoryService = DirectCast(document.Project.Solution.Workspace, TestWorkspace).GetService(Of ITextBufferFactoryService)
+
             Dim view = New Mock(Of ITextView) With {.DefaultValue = DefaultValue.Mock}
             Dim asyncListener = New Mock(Of IAsynchronousOperationListener)
-            Dim buffer = s_bufferFactory.CreateTextBuffer()
+            Dim buffer = bufferFactory.CreateTextBuffer()
 
             presenter = If(presenter, New Mock(Of IIntelliSensePresenter(Of IQuickInfoPresenterSession, IQuickInfoSession)) With {.DefaultValue = DefaultValue.Mock})
             If documentProvider Is Nothing Then
                 documentProvider = New Mock(Of IDocumentProvider)
-                documentProvider.Setup(Function(p) p.GetDocumentAsync(It.IsAny(Of ITextSnapshot), It.IsAny(Of CancellationToken))).Returns(Task.FromResult(s_document))
+                documentProvider.Setup(Function(p) p.GetDocumentAsync(It.IsAny(Of ITextSnapshot), It.IsAny(Of CancellationToken))).Returns(Task.FromResult(document))
             End If
 
             If provider Is Nothing Then
@@ -193,6 +195,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             End If
 
             Dim controller = New Controller(
+                threadingContext,
                 view.Object,
                 buffer,
                 presenter.Object,
@@ -245,3 +248,4 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         End Class
     End Class
 End Namespace
+#Enable Warning BC40000 ' IQuickInfo* is obsolete

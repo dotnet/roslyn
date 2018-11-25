@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
                     EnsureEnglishUICulture.PreferredOrNull,
                     testData: null);
                 AssertEx.SetEqual(missingAssemblyIdentities, EvaluationContextBase.SystemCoreIdentity);
-                Assert.Equal(error, "error CS1061: 'C' does not contain a definition for '$exception' and no extension method '$exception' accepting a first argument of type 'C' could be found (are you missing a using directive or an assembly reference?)");
+                Assert.Equal(error, "error CS1061: 'C' does not contain a definition for '$exception' and no accessible extension method '$exception' accepting a first argument of type 'C' could be found (are you missing a using directive or an assembly reference?)");
             });
         }
 

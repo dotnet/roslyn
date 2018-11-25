@@ -62,14 +62,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             UsingNode(node);
         }
 
-        internal void UsingExpression(string text, params DiagnosticDescription[] expectedErrors)
+        internal void UsingExpression(string text, ParseOptions options, params DiagnosticDescription[] expectedErrors)
         {
-            var node = SyntaxFactory.ParseExpression(text);
+            var node = SyntaxFactory.ParseExpression(text, options: options);
             // we validate the text roundtrips
             Assert.Equal(text, node.ToFullString());
             var actualErrors = node.GetDiagnostics();
             actualErrors.Verify(expectedErrors);
             UsingNode(node);
+        }
+
+        internal void UsingExpression(string text, params DiagnosticDescription[] expectedErrors)
+        {
+            UsingExpression(text, options: null, expectedErrors);
         }
 
         /// <summary>

@@ -26,7 +26,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertIfToSwitch
 
             Protected Overrides ReadOnly Property Title As String
                 Get
-                    Return VBFeaturesResources.Convert_If_to_Select_Case
+                    Return VBFeaturesResources.Convert_to_Select_Case
                 End Get
             End Property
 

@@ -26,6 +26,7 @@ This document provides guidance for thinking about language interactions and tes
     - AnalyzeStatementsDataFlow 
     - AnalyzeStatementDataFlow 
     - ClassifyConversion
+    - GetOperation (IOperation)
 - VB/F# interop
 - Performance and stress testing
  
@@ -36,9 +37,9 @@ This document provides guidance for thinking about language interactions and tes
     - fields
     - properties (including get/set accessors)
     - events (including add/remove accessors)
-- Parameter modifiers (ref, out, params)
+- Parameter modifiers (ref, out, in, params)
 - Attributes (including security attribute)
-- Generics (type arguments, constraints, variance)
+- Generics (type arguments, variance, constraints including `class`, `struct`, `new()`, `unmanaged`)
 - Default and constant values
 - Partial classes
 - Literals
@@ -46,7 +47,7 @@ This document provides guidance for thinking about language interactions and tes
 - Expression trees
 - Iterators
 - Initializers (object, collection, dictionary)
-- Array (single- or multi-dimensional, jagged, initializer)
+- Array (single- or multi-dimensional, jagged, initializer, fixed)
 - Expression-bodied methods/properties/...
 - Extension methods
 - Partial method
@@ -58,6 +59,7 @@ This document provides guidance for thinking about language interactions and tes
 - Multi-declaration
 - NoPIA
 - Dynamic
+- Ref structs, Readonly structs
  
 # Code
 - Operators (see Eric's list below)
@@ -69,7 +71,8 @@ This document provides guidance for thinking about language interactions and tes
 - Overload resolution, override/hide/implement (OHI)
 - Inheritance (virtual, override, abstract, new)
 - Anonymous types
-- Tuple types and literals (elements with explicit or inferred names, long tuples)
+- Tuple types and literals (elements with explicit or inferred names, long tuples), tuple equality
+- Deconstructions
 - Local functions
 - Unsafe code
 - LINQ
@@ -79,8 +82,10 @@ This document provides guidance for thinking about language interactions and tes
     - Ref / out parameters
     - Compound operators (+=, /=, etc ..) 
     - Assignment exprs
-- Ref returns
+- Ref return, ref readonly return, ref ternary, ref readonly local, ref local re-assignment, ref foreach
 - `this = e;` in `struct` .ctor
+- Stackalloc (including initializers)
+- Patterns
 
 # Misc
 - reserved keywords (sometimes contextual)
@@ -136,6 +141,7 @@ while(…) …
 do … while(…); 
 for( … ; … ; … ) … 
 foreach(…) …
+fixed(…) … // (plain, or custom with `GetPinnableReference`)
 goto … ; 
 throw … ; 
 return … ; 
@@ -159,7 +165,8 @@ Every expression can be classified as exactly one of these:
 - Namespace 
 - Type 
 - Method group 
-- Null literal 
+- Null literal
+- Default literal
 - Anonymous function 
 - Property 
 - Indexer 

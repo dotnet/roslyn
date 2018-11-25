@@ -672,26 +672,45 @@ class Test
         }
 
         [Fact]
-        public void TestMetadataImportOptions()
+        public void TestMetadataImportOptions_01()
         {
+            var expectedDiagnostics = new[]
+            {
+                // error CS7088: Invalid 'MetadataImportOptions' value: '255'.
+                Diagnostic(ErrorCode.ERR_BadCompilationOptionValue).WithArguments("MetadataImportOptions", "255").WithLocation(1, 1)
+            };
+
             var options = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
 
             Assert.Equal(MetadataImportOptions.Public, options.MetadataImportOptions);
+            options.VerifyErrors();
             options = options.WithMetadataImportOptions(MetadataImportOptions.Internal);
             Assert.Equal(MetadataImportOptions.Internal, options.MetadataImportOptions);
+            options.VerifyErrors();
             options = options.WithMetadataImportOptions(MetadataImportOptions.All);
             Assert.Equal(MetadataImportOptions.All, options.MetadataImportOptions);
+            options.VerifyErrors();
             options = options.WithMetadataImportOptions(MetadataImportOptions.Public);
             Assert.Equal(MetadataImportOptions.Public, options.MetadataImportOptions);
+            options.VerifyErrors();
+            options = options.WithMetadataImportOptions((MetadataImportOptions)byte.MaxValue);
+            Assert.Equal((MetadataImportOptions)byte.MaxValue, options.MetadataImportOptions);
+            options.VerifyErrors(expectedDiagnostics);
 
             var commonOptions = (CompilationOptions)options;
 
             commonOptions = commonOptions.WithMetadataImportOptions(MetadataImportOptions.Internal);
             Assert.Equal(MetadataImportOptions.Internal, ((CSharpCompilationOptions)commonOptions).MetadataImportOptions);
+            ((CSharpCompilationOptions)commonOptions).VerifyErrors();
             commonOptions = commonOptions.WithMetadataImportOptions(MetadataImportOptions.All);
             Assert.Equal(MetadataImportOptions.All, ((CSharpCompilationOptions)commonOptions).MetadataImportOptions);
+            ((CSharpCompilationOptions)commonOptions).VerifyErrors();
             commonOptions = commonOptions.WithMetadataImportOptions(MetadataImportOptions.Public);
             Assert.Equal(MetadataImportOptions.Public, ((CSharpCompilationOptions)commonOptions).MetadataImportOptions);
+            ((CSharpCompilationOptions)commonOptions).VerifyErrors();
+            commonOptions = commonOptions.WithMetadataImportOptions((MetadataImportOptions)byte.MaxValue);
+            Assert.Equal((MetadataImportOptions)byte.MaxValue, ((CSharpCompilationOptions)commonOptions).MetadataImportOptions);
+            ((CSharpCompilationOptions)commonOptions).VerifyErrors(expectedDiagnostics);
 
             var source = @"
 public class C
@@ -709,18 +728,84 @@ public class C
             Assert.NotEmpty(c.GetMembers("P1"));
             Assert.Empty(c.GetMembers("P2"));
             Assert.Empty(c.GetMembers("P3"));
+            CompileAndVerify(compilation);
 
             compilation = compilation.WithOptions(options.WithMetadataImportOptions(MetadataImportOptions.Internal));
             c = compilation.GetTypeByMetadataName("C");
             Assert.NotEmpty(c.GetMembers("P1"));
             Assert.NotEmpty(c.GetMembers("P2"));
             Assert.Empty(c.GetMembers("P3"));
+            CompileAndVerify(compilation);
 
             compilation = compilation.WithOptions(options.WithMetadataImportOptions(MetadataImportOptions.All));
             c = compilation.GetTypeByMetadataName("C");
             Assert.NotEmpty(c.GetMembers("P1"));
             Assert.NotEmpty(c.GetMembers("P2"));
             Assert.NotEmpty(c.GetMembers("P3"));
+            CompileAndVerify(compilation);
+
+            compilation = compilation.WithOptions(options.WithMetadataImportOptions((MetadataImportOptions)byte.MaxValue));
+            c = compilation.GetTypeByMetadataName("C");
+            Assert.NotEmpty(c.GetMembers("P1"));
+            Assert.NotEmpty(c.GetMembers("P2"));
+            Assert.Empty(c.GetMembers("P3"));
+            compilation.VerifyEmitDiagnostics(expectedDiagnostics);
+            compilation.VerifyDiagnostics(expectedDiagnostics);
+        }
+
+        [Fact]
+        public void TestMetadataImportOptions_02()
+        {
+            var expectedDiagnostics = new[]
+            {
+                // error CS7088: Invalid 'MetadataImportOptions' value: '255'.
+                Diagnostic(ErrorCode.ERR_BadCompilationOptionValue).WithArguments("MetadataImportOptions", "255").WithLocation(1, 1)
+            };
+
+            var options = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, metadataImportOptions: MetadataImportOptions.Internal);
+            Assert.Equal(MetadataImportOptions.Internal, options.MetadataImportOptions);
+            options.VerifyErrors();
+            options = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, metadataImportOptions: MetadataImportOptions.All);
+            Assert.Equal(MetadataImportOptions.All, options.MetadataImportOptions);
+            options.VerifyErrors();
+            options = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, metadataImportOptions: MetadataImportOptions.Public);
+            Assert.Equal(MetadataImportOptions.Public, options.MetadataImportOptions);
+            options.VerifyErrors();
+            options = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, metadataImportOptions: (MetadataImportOptions)byte.MaxValue);
+            Assert.Equal((MetadataImportOptions)byte.MaxValue, options.MetadataImportOptions);
+            options.VerifyErrors(expectedDiagnostics);
+
+            var source = @"
+public class C
+{
+    public int P1 {get; set;}
+    internal int P2 {get; set;}
+    private int P3 {get; set;}
+}
+";
+            var compilation0 = CreateCompilation(source);
+
+            var compilation = CreateCompilation("", options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, metadataImportOptions: MetadataImportOptions.Internal), references: new[] { compilation0.EmitToImageReference() });
+            var c = compilation.GetTypeByMetadataName("C");
+            Assert.NotEmpty(c.GetMembers("P1"));
+            Assert.NotEmpty(c.GetMembers("P2"));
+            Assert.Empty(c.GetMembers("P3"));
+            CompileAndVerify(compilation);
+
+            compilation = compilation.WithOptions(new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, metadataImportOptions: MetadataImportOptions.All));
+            c = compilation.GetTypeByMetadataName("C");
+            Assert.NotEmpty(c.GetMembers("P1"));
+            Assert.NotEmpty(c.GetMembers("P2"));
+            Assert.NotEmpty(c.GetMembers("P3"));
+            CompileAndVerify(compilation);
+
+            compilation = compilation.WithOptions(new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, metadataImportOptions: (MetadataImportOptions)byte.MaxValue));
+            c = compilation.GetTypeByMetadataName("C");
+            Assert.NotEmpty(c.GetMembers("P1"));
+            Assert.NotEmpty(c.GetMembers("P2"));
+            Assert.Empty(c.GetMembers("P3"));
+            compilation.VerifyEmitDiagnostics(expectedDiagnostics);
+            compilation.VerifyDiagnostics(expectedDiagnostics);
         }
     }
 }

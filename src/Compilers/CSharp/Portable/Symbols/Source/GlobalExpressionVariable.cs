@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var binder = binderFactory.GetBinder(typeSyntax);
 
             bool isVar;
-            type = binder.BindType(typeSyntax, diagnostics, out isVar);
+            type = binder.BindTypeOrVarKeyword(typeSyntax, diagnostics, out isVar);
 
             Debug.Assert((object)type != null || isVar);
 

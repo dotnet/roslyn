@@ -9,12 +9,14 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Execution;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Serialization;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UnitTests.Execution;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {
+    [UseExportProvider]
     public class SnapshotSerializationTestBase
     {
         internal static Solution CreateFullSolution(HostServices hostServices = null)
@@ -112,7 +114,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             IRemotableDataService service,
             Checksum checksum,
             WellKnownSynchronizationKind kind,
-            Func<T, WellKnownSynchronizationKind, Serializer, RemotableData> assetGetter)
+            Func<T, WellKnownSynchronizationKind, ISerializerService, RemotableData> assetGetter)
         {
             // re-create asset from object
             var syncService = (RemotableDataServiceFactory.Service)service;

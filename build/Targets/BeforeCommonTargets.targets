@@ -13,6 +13,7 @@
         <_NeedRuntimeAssets>true</_NeedRuntimeAssets> 
         <CopyNuGetImplementations>true</CopyNuGetImplementations>
         <OutputPath>$(OutputPath)UnitTests\$(MSBuildProjectName)\</OutputPath>
+        <IsShipping>false</IsShipping>
       </PropertyGroup>
     </When>
     <When Condition="'$(RoslynProjectType)' == 'Vsix'">
@@ -67,13 +68,13 @@
     <PublishDir Condition="'$(PublishDir)' != '' AND '$(RuntimeIdentifier)' != ''">$(OutputPath)$(RuntimeIdentifier)\$(PublishDirName)\</PublishDir>
     <PublishDir Condition="'$(PublishDir)' != '' AND '$(RuntimeIdentifier)' == ''">$(OutputPath)$(TargetFramework)\$(PublishDirName)\</PublishDir>
 
-    <DocumentationFile Condition="'$(GenerateDocumentationFile)' == 'true' AND '$(ProjectLanguage)' == 'VB'">$(AssemblyName).xml</DocumentationFile>
+    <DocumentationFile Condition="'$(GenerateDocumentationFile)' == 'true' AND '$(Language)' == 'VB'">$(AssemblyName).xml</DocumentationFile>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(TargetFrameworks)' != ''">
     <IntermediateOutputPath>$(IntermediateOutputPath)$(TargetFramework.ToLowerInvariant())\</IntermediateOutputPath>
-    <OutputPath Condition="'$(RoslynProjectType)' != 'SourcePackage'">$(OutputPath)$(TargetFramework.ToLowerInvariant())\</OutputPath>
-    <DocumentationFile Condition="'$(GenerateDocumentationFile)' == 'true' AND '$(ProjectLanguage)' == 'CSharp'">$(IntermediateOutputPath)$(AssemblyName).xml</DocumentationFile>
+    <OutputPath Condition="'$(RoslynProjectType)' != 'SourcePackage' and '$(RoslynProjectType)' != 'Custom'">$(OutputPath)$(TargetFramework.ToLowerInvariant())\</OutputPath>
+    <DocumentationFile Condition="'$(GenerateDocumentationFile)' == 'true' AND '$(Language)' == 'C#'">$(IntermediateOutputPath)$(AssemblyName).xml</DocumentationFile>
   </PropertyGroup>
 
   <!-- If the project hasn't configured a ruleset, set a default ruleset. -->
@@ -94,7 +95,7 @@
       </Choose>
 
       <PropertyGroup>
-        <CodeAnalysisRuleSet Condition="'$(CodeAnalysisRuleSet)' == '' AND '$(NonShipping)' == 'true'">$(MSBuildThisFileDirectory)..\Rulesets\NonShippingProject$(DefaultRulesetSuffix).ruleset</CodeAnalysisRuleSet>
+        <CodeAnalysisRuleSet Condition="'$(CodeAnalysisRuleSet)' == '' AND '$(IsShipping)' != 'true'">$(MSBuildThisFileDirectory)..\Rulesets\NonShippingProject$(DefaultRulesetSuffix).ruleset</CodeAnalysisRuleSet>
         <CodeAnalysisRuleSet Condition="'$(CodeAnalysisRuleSet)' == '' AND '$(AnalyzerProject)' == 'true'">$(MSBuildThisFileDirectory)..\Rulesets\AnalyzerProject$(DefaultRulesetSuffix).ruleset</CodeAnalysisRuleSet>
         <CodeAnalysisRuleSet Condition="'$(CodeAnalysisRuleSet)' == ''">$(MSBuildThisFileDirectory)..\Rulesets\Roslyn$(DefaultRulesetSuffix).ruleset</CodeAnalysisRuleSet>
       </PropertyGroup>

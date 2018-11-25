@@ -1390,7 +1390,7 @@ class Myderive : Mybase
     static void Main() { }
 }
 ";
-            CreateCompilation(source, references: new MetadataReference[] { SystemCoreRef, CSharpRef },
+            CreateCompilation(source,
                 options: TestOptions.ReleaseExe).
                 VerifyDiagnostics(
                     Diagnostic(ErrorCode.WRN_InvalidMainSig, "Main").WithArguments("Mybase.Main(dynamic)"));

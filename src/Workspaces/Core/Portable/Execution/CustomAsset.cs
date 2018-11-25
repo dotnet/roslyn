@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Execution
         public override Task WriteObjectToAsync(ObjectWriter writer, CancellationToken cancellationToken)
         {
             _writer(writer, cancellationToken);
-            return SpecializedTasks.EmptyTask;
+            return Task.CompletedTask;
         }
 
         private static Checksum CreateChecksumFromStreamWriter(WellKnownSynchronizationKind kind, Action<ObjectWriter, CancellationToken> writer)
@@ -63,9 +63,9 @@ namespace Microsoft.CodeAnalysis.Execution
     internal sealed class WorkspaceAnalyzerReferenceAsset : CustomAsset
     {
         private readonly AnalyzerReference _reference;
-        private readonly Serializer _serializer;
+        private readonly ISerializerService _serializer;
 
-        public WorkspaceAnalyzerReferenceAsset(AnalyzerReference reference, Serializer serializer) :
+        public WorkspaceAnalyzerReferenceAsset(AnalyzerReference reference, ISerializerService serializer) :
             base(
                 serializer.CreateChecksum(reference, CancellationToken.None),
                 WellKnownSynchronizationKind.AnalyzerReference)
@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.Execution
             const bool usePathFromAssembly = false;
 
             _serializer.SerializeAnalyzerReference(_reference, writer, usePathFromAssembly, cancellationToken);
-            return SpecializedTasks.EmptyTask;
+            return Task.CompletedTask;
         }
     }
 }

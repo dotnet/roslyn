@@ -1,0 +1,2 @@
+# Prevent unit tests from inheriting an EditorConfig file from a parent directory
+root = true

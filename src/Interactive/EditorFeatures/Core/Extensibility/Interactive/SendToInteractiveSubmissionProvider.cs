@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using Roslyn.Utilities;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.OptionsExtensionMethods;
+using Microsoft.VisualStudio.Text.Editor.Commanding;
 
 namespace Microsoft.CodeAnalysis.Editor.Interactive
 {
@@ -29,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
         /// <summary>Returns whether the submission can be parsed in interactive.</summary>
         protected abstract bool CanParseSubmission(string code);
 
-        string ISendToInteractiveSubmissionProvider.GetSelectedText(IEditorOptions editorOptions, CommandArgs args, CancellationToken cancellationToken)
+        string ISendToInteractiveSubmissionProvider.GetSelectedText(IEditorOptions editorOptions, EditorCommandArgs args, CancellationToken cancellationToken)
         {
             IEnumerable<SnapshotSpan> selectedSpans = args.TextView.Selection.IsEmpty
                 ? GetExpandedLineAsync(editorOptions, args, cancellationToken).WaitAndGetResult(cancellationToken)
@@ -39,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
         }
 
         /// <summary>Returns the span for the selected line. Extends it if it is a part of a multi line statement or declaration.</summary>
-        private Task<IEnumerable<SnapshotSpan>> GetExpandedLineAsync(IEditorOptions editorOptions, CommandArgs args, CancellationToken cancellationToken)
+        private Task<IEnumerable<SnapshotSpan>> GetExpandedLineAsync(IEditorOptions editorOptions, EditorCommandArgs args, CancellationToken cancellationToken)
         {
             IEnumerable<SnapshotSpan> selectedSpans = GetSelectedLine(args.TextView);
             var candidateSubmission = GetSubmissionFromSelectedSpans(editorOptions, selectedSpans);
@@ -58,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
 
         private async Task<IEnumerable<SnapshotSpan>> GetExecutableSyntaxTreeNodeSelectionAsync(
             TextSpan selectionSpan,
-            CommandArgs args,
+            EditorCommandArgs args,
             ITextSnapshot snapshot,
             CancellationToken cancellationToken)
         {
@@ -70,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
                 .Select(span => new SnapshotSpan(snapshot, span.Start, span.Length));
         }
 
-        private async Task<IEnumerable<SnapshotSpan>> ExpandSelectionAsync(IEnumerable<SnapshotSpan> selectedSpans, CommandArgs args, CancellationToken cancellationToken)
+        private async Task<IEnumerable<SnapshotSpan>> ExpandSelectionAsync(IEnumerable<SnapshotSpan> selectedSpans, EditorCommandArgs args, CancellationToken cancellationToken)
         {
             var selectedSpansStart = selectedSpans.Min(span => span.Start);
             var selectedSpansEnd = selectedSpans.Max(span => span.End);

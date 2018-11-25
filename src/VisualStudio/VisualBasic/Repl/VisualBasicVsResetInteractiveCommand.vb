@@ -7,8 +7,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Interactive
     Friend Class VisualBasicVsResetInteractiveCommand
         Inherits AbstractResetInteractiveCommand
 
-        Public Sub New(interactiveWindowProvider As VsInteractiveWindowProvider, serviceProvider As IServiceProvider)
-            MyBase.New(interactiveWindowProvider, serviceProvider)
+        Public Sub New(workspace As VisualStudioWorkspace, interactiveWindowProvider As VsInteractiveWindowProvider, serviceProvider As IServiceProvider)
+            MyBase.New(workspace, interactiveWindowProvider, serviceProvider)
         End Sub
 
         Protected Overrides ReadOnly Property LanguageName As String

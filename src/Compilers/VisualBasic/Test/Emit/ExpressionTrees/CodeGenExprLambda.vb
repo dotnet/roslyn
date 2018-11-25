@@ -300,12 +300,12 @@ Lambda(
             TestBinaryOperator_ConcatenatePlus(True, result:=ExpTreeTestResources.CheckedConcatenate)
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub TestBinaryOperator_Unchecked_Like()
             TestBinaryOperator_Like(False, result:=ExpTreeTestResources.UncheckedLike)
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub TestBinaryOperator_Checked_Like()
             TestBinaryOperator_Like(True, result:=ExpTreeTestResources.CheckedLike)
         End Sub
@@ -1801,7 +1801,7 @@ End Structure
                                                      Optional addXmlReferences As Boolean = False)
 
             Dim compilation =
-                CompilationUtils.CreateCompilationWithReferences(
+                CompilationUtils.CreateEmptyCompilationWithReferences(
                     <compilation>
                         <%= sourceFile %>
                         <%= _exprTesting %>
@@ -1849,7 +1849,7 @@ End Structure
                                         Optional latestReferences As Boolean = False,
                                         Optional addXmlReferences As Boolean = False,
                                         Optional diagnostics() As DiagnosticDescription = Nothing)
-            TestExpressionTrees(sourceFile, result.Value.Replace(vbLf, vbCrLf), checked, optimize, latestReferences, addXmlReferences, diagnostics)
+            TestExpressionTrees(sourceFile, TestBase.NormalizeNewLines(result), checked, optimize, latestReferences, addXmlReferences, diagnostics)
         End Sub
 
         Private Class ExpressionTreeTest
@@ -2855,8 +2855,7 @@ c => c.Process()
 ]]>)
         End Sub
 
-
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub Relaxation02()
             Dim file = <file name="expr.vb"><![CDATA[
 Imports System
@@ -6523,7 +6522,7 @@ End Module
 
         <Fact()>
         Public Sub MissingHelpers()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Option Strict On
@@ -7027,7 +7026,7 @@ End Module]]></file>
         End Sub
 
         <WorkItem(545757, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545757")>
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub Bug_14402()
             Dim source = <compilation>
                              <file name="a.vb"><![CDATA[
@@ -7978,7 +7977,7 @@ BC36604: Late binding operations cannot be converted to an expression tree.
         <WorkItem(797996, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/797996")>
         <Fact()>
         Public Sub MissingMember_System_Type__GetTypeFromHandle()
-            Dim compilation = CreateCompilationWithoutReferences(
+            Dim compilation = CreateEmptyCompilation(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System.Linq.Expressions
@@ -8040,7 +8039,7 @@ BC35000: Requested operation is not available because the runtime library functi
         <WorkItem(797996, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/797996")>
         <Fact()>
         Public Sub MissingMember_System_Reflection_FieldInfo__GetFieldFromHandle()
-            Dim compilation = CreateCompilationWithoutReferences(
+            Dim compilation = CreateEmptyCompilation(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System.Linq.Expressions
@@ -8117,7 +8116,7 @@ BC35000: Requested operation is not available because the runtime library functi
         <WorkItem(797996, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/797996")>
         <Fact()>
         Public Sub MissingMember_System_Reflection_MethodBase__GetMethodFromHandle()
-            Dim compilation = CreateCompilationWithoutReferences(
+            Dim compilation = CreateEmptyCompilation(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System.Collections.Generic
@@ -8228,7 +8227,8 @@ BC35000: Requested operation is not available because the runtime library functi
 
 #End Region
 
-        <Fact, WorkItem(808608, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/808608")>
+        <WorkItem(808608, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/808608")>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub Bug808608_01()
 
             Dim source = <compilation>
@@ -8293,7 +8293,8 @@ End Module
 ]]>).VerifyDiagnostics()
         End Sub
 
-        <Fact, WorkItem(808608, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/808608")>
+        <WorkItem(808608, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/808608")>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub Bug808608_02()
 
             Dim source = <compilation>
@@ -8634,7 +8635,7 @@ End Module
 
 
             Dim compilation = CreateCompilationWithMscorlib45AndVBRuntime(source,
-                 additionalRefs:={SystemCoreRef},
+                 references:={SystemCoreRef},
                  options:=TestOptions.ReleaseExe)
 
             compilation.VerifyDiagnostics(

@@ -20,7 +20,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeStyle
 
         Public ReadOnly PreferredModifierOrder As [Option](Of CodeStyleOption(Of String)) = New [Option](Of CodeStyleOption(Of String))(
             NameOf(CodeStyleOptions), NameOf(PreferredModifierOrder),
-            New CodeStyleOption(Of String)(String.Join(",", PreferredModifierOrderDefault.Select(AddressOf SyntaxFacts.GetText)), NotificationOption.None),
+            New CodeStyleOption(Of String)(String.Join(",", PreferredModifierOrderDefault.Select(AddressOf SyntaxFacts.GetText)), NotificationOption.Silent),
             EditorConfigStorageLocation.ForStringCodeStyleOption("visual_basic_preferred_modifier_order"),
             New RoamingProfileStorageLocation($"TextEditor.%LANGUAGE%.Specific.{NameOf(PreferredModifierOrder)}"))
 

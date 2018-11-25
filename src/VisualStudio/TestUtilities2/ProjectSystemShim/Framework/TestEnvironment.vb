@@ -3,18 +3,17 @@
 Imports System.IO
 Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Diagnostics
+Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
-Imports Microsoft.CodeAnalysis.Text
+Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.VisualStudio.ComponentModelHost
 Imports Microsoft.VisualStudio.Composition
 Imports Microsoft.VisualStudio.LanguageServices.Implementation
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 Imports Microsoft.VisualStudio.Shell.Interop
-Imports Microsoft.VisualStudio.Text
 Imports Moq
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Framework
@@ -26,10 +25,16 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
     Friend Class TestEnvironment
         Implements IDisposable
 
+        Private Shared ReadOnly s_exportProviderFactory As Lazy(Of IExportProviderFactory) = New Lazy(Of IExportProviderFactory)(
+            Function()
+                Dim catalog = TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithPart(GetType(LinkedFileUtilities))
+                Return ExportProviderCache.GetOrCreateExportProviderFactory(catalog)
+            End Function)
+
         Private ReadOnly _monitorSelectionMock As MockShellMonitorSelection
-        Private ReadOnly _projectTracker As VisualStudioProjectTracker
-        Private ReadOnly _serviceProvider As MockServiceProvider
         Private ReadOnly _workspace As TestWorkspace
+        Private ReadOnly _serviceProvider As MockServiceProvider
+        Private ReadOnly _projectTracker As VisualStudioProjectTracker
         Private ReadOnly _projectFilePaths As New List(Of String)
 
         Public Sub New(Optional solutionIsFullyLoaded As Boolean = True)
@@ -39,9 +44,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
             AbstractProject.CrashOnException = False
 
             _monitorSelectionMock = New MockShellMonitorSelection(solutionIsFullyLoaded)
-            _serviceProvider = New MockServiceProvider(_monitorSelectionMock)
-            _workspace = New TestWorkspace()
-            _projectTracker = New VisualStudioProjectTracker(_serviceProvider, _workspace)
+            _workspace = New TestWorkspace(s_exportProviderFactory.Value.CreateExportProvider())
+            _serviceProvider = New MockServiceProvider(_monitorSelectionMock, _workspace)
+            _projectTracker = New VisualStudioProjectTracker(
+                _workspace.ExportProvider.GetExportedValue(Of IThreadingContext),
+                _serviceProvider,
+                _workspace,
+                _workspace.ExportProvider.GetExportedValue(Of LinkedFileUtilities))
 
             Dim metadataReferenceProvider = New VisualStudioMetadataReferenceManager(_serviceProvider, _workspace.Services.GetService(Of ITemporaryStorageService)())
             Dim ruleSetFileProvider = New VisualStudioRuleSetManager(
@@ -50,7 +59,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
                 AsynchronousOperationListenerProvider.NullListener)
 
             Dim documentTrackingService = New VisualStudioDocumentTrackingService(_serviceProvider)
-            Dim documentProvider = New DocumentProvider(_projectTracker, _serviceProvider, documentTrackingService)
+            Dim documentProvider = New DocumentProvider(
+                _projectTracker,
+                _serviceProvider,
+                documentTrackingService,
+                _workspace.ExportProvider.GetExportedValue(Of LinkedFileUtilities))
 
             _projectTracker.InitializeProviders(documentProvider, metadataReferenceProvider, ruleSetFileProvider)
         End Sub
@@ -88,6 +101,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
 
             For Each filePath In _projectFilePaths
                 File.Delete(filePath)
+                Directory.Delete(Path.GetDirectoryName(filePath))
             Next
         End Sub
 
@@ -112,9 +126,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
             Implements System.IServiceProvider
 
             Private ReadOnly _mockMonitorSelection As IVsMonitorSelection
+            Private ReadOnly _workspace As TestWorkspace
 
-            Public Sub New(mockMonitorSelection As IVsMonitorSelection)
+            Public Sub New(mockMonitorSelection As IVsMonitorSelection, workspace As TestWorkspace)
                 _mockMonitorSelection = mockMonitorSelection
+                _workspace = workspace
             End Sub
 
             Public Function GetService(serviceType As Type) As Object Implements System.IServiceProvider.GetService
@@ -146,7 +162,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
 
             Friend Function GetComponentModelMock() As IComponentModel
                 Dim componentModel As New Mock(Of IComponentModel)(MockBehavior.Loose)
-                componentModel.SetupGet(Function(cm) cm.DefaultExportProvider).Returns(ExportProvider.AsExportProvider())
+                componentModel.SetupGet(Function(cm) cm.DefaultExportProvider).Returns(_workspace.ExportProvider.AsExportProvider())
                 Return componentModel.Object
             End Function
         End Class

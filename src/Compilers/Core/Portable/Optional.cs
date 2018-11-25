@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis
     /// indicating whether or not that value is meaningful.
     /// </summary>
     /// <typeparam name="T">The type of the value.</typeparam>
-    public struct Optional<T>
+    public readonly struct Optional<T>
     {
         private readonly bool _hasValue;
         private readonly T _value;

@@ -25,6 +25,22 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         #region Function Tests
 
+        [Fact, WorkItem(26464, "https://github.com/dotnet/roslyn/issues/26464")]
+        public void TestNullInAssemblyVersionAttribute()
+        {
+            var source = @"
+[assembly: System.Reflection.AssemblyVersionAttribute(null)]
+class Program
+{
+}";
+            var comp = CreateCompilation(source, options: TestOptions.DebugDll.WithDeterministic(true));
+            comp.VerifyDiagnostics(
+                // (2,55): error CS7034: The specified version string does not conform to the required format - major[.minor[.build[.revision]]]
+                // [assembly: System.Reflection.AssemblyVersionAttribute(null)]
+                Diagnostic(ErrorCode.ERR_InvalidVersionFormat, "null").WithLocation(2, 55)
+                );
+        }
+
         [Fact]
         [WorkItem(21194, "https://github.com/dotnet/roslyn/issues/21194")]
         public void TestQuickAttributeChecker()
@@ -1537,7 +1553,7 @@ public class Test
                 );
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void TestWellKnownAttributeOnProperty_DynamicAttribute()
         {
             string source = @"
@@ -1547,7 +1563,7 @@ public class Test
     public int P { get; set; }
 }
 ";
-            var comp = CreateCompilation(source, references: new[] { SystemCoreRef });
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (4,13): error CS1970: Do not use 'System.Runtime.CompilerServices.DynamicAttribute'. Use the 'dynamic' keyword instead.
                 //     [field: System.Runtime.CompilerServices.DynamicAttribute()]
@@ -3464,7 +3480,7 @@ namespace AttributeTest
         [Fact]
         public void TestAttributeStringForEnumTypedConstant()
         {
-            var source = CreateCompilation(@"
+            var source = CreateCompilationWithMscorlib40(@"
 using System;
 namespace AttributeTest
 {
@@ -4702,7 +4718,7 @@ public class C6 {}
         }
 
         [WorkItem(546621, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546621")]
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.TestExecutionNeedsDesktopTypes)]
         public void TestUnicodeAttributeArgument_Bug16353()
         {
             var source =
@@ -7372,7 +7388,7 @@ namespace System
 }
 ";
 
-            CreateCompilation(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40(source).VerifyDiagnostics(
                 // (4,6): error CS0616: 'System.Runtime.InteropServices.DllImportAttribute' is not an attribute class
                 //     [DllImport] // Error
                 Diagnostic(ErrorCode.ERR_NotAnAttributeClass, "DllImport").WithArguments("System.Runtime.InteropServices.DllImportAttribute"),
@@ -7482,7 +7498,7 @@ class System : Attribute
 }
 ";
 
-            var compilation = CreateCompilation(source);
+            var compilation = CreateCompilationWithMscorlib40(source);
 
             compilation.VerifyDiagnostics(
                 // (2,7): warning CS0437: The type 'System' in '' conflicts with the imported namespace 'System' in 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'. Using the type defined in ''.
@@ -7513,8 +7529,8 @@ public class X: Attribute
 {
 }
 ";
-            var comp1 = CreateCompilation(source2, assemblyName: "Temp0").ToMetadataReference();
-            CreateCompilation(source, references: new[] { comp1 }).VerifyDiagnostics(
+            var comp1 = CreateCompilationWithMscorlib40(source2, assemblyName: "Temp0").ToMetadataReference();
+            CreateCompilationWithMscorlib40(source, references: new[] { comp1 }).VerifyDiagnostics(
                 // (2,12): error CS0616: 'X' is not an attribute class
                 // [assembly: X]
                 Diagnostic(ErrorCode.ERR_NotAnAttributeClass, "X").WithArguments("X"));
@@ -7539,9 +7555,9 @@ class Y
 {
 }
 ";
-            comp1 = CreateCompilation(source2, assemblyName: "Temp1").ToMetadataReference();
+            comp1 = CreateCompilationWithMscorlib40(source2, assemblyName: "Temp1").ToMetadataReference();
             var comp2 = CreateEmptyCompilation(source3, assemblyName: "Temp2").ToMetadataReference();
-            var comp3 = CreateCompilation(source4, references: new[] { comp1, comp2 });
+            var comp3 = CreateCompilationWithMscorlib40(source4, references: new[] { comp1, comp2 });
             comp3.VerifyDiagnostics(
                 // (2,2): error CS0434: The namespace 'X' in 'Temp2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' conflicts with the type 'X' in 'Temp1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'
                 // [X]
@@ -7554,7 +7570,7 @@ class X
 {
 }
 ";
-            comp3 = CreateCompilation(source5, references: new[] { comp1, comp2 });
+            comp3 = CreateCompilationWithMscorlib40(source5, references: new[] { comp1, comp2 });
             comp3.VerifyDiagnostics(
                 // (2,2): error CS0616: 'X' is not an attribute class
                 // [X]
@@ -7568,7 +7584,7 @@ class X: Attribute
 {
 }
 ";
-            CompileAndVerify(source5, references: new[] { comp1, comp2 });
+            CompileAndVerifyWithMscorlib40(source5, references: new[] { comp1, comp2 });
 
             // Multiple from PE, multiple from Source
             var source6 = @"
@@ -7581,7 +7597,7 @@ namespace X
 {
 }
 ";
-            comp3 = CreateCompilation(source6, references: new[] { comp1, comp2 });
+            comp3 = CreateCompilationWithMscorlib40(source6, references: new[] { comp1, comp2 });
             comp3.VerifyDiagnostics(
                 // (3,7): error CS0101: The namespace '<global namespace>' already contains a definition for 'X'
                 // class X
@@ -7596,7 +7612,7 @@ class Goo: Attribute
 {
 }
 ";
-            comp3 = CreateCompilation(source7, references: new[] { comp1, comp2 });
+            comp3 = CreateCompilationWithMscorlib40(source7, references: new[] { comp1, comp2 });
             comp3.VerifyDiagnostics(
                 // (4,2): error CS0576: Namespace '<global namespace>' contains a definition conflicting with alias 'X'
                 // [X]
@@ -8091,7 +8107,7 @@ class Program
         }
 
         [WorkItem(728865, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/728865")]
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.TestExecutionHasNewLineDependency)]
         public void Repro728865()
         {
             var source = @"

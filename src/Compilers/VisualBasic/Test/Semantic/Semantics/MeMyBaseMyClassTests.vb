@@ -276,7 +276,7 @@ End Class
         ' Call Me.[Me]
         <Fact>
         Public Sub CallMe()
-            Dim comp = CreateCompilationWithMscorlib(
+            Dim comp = CreateCompilationWithMscorlib40(
 <compilation name="CallMe">
     <file name="a.vb">
 Imports System
@@ -299,7 +299,7 @@ End Class
 
         <Fact>
         Public Sub AssignMeToVar()
-            Dim comp = CreateCompilationWithMscorlib(
+            Dim comp = CreateCompilationWithMscorlib40(
 <compilation name="AssignMeToVar">
     <file name="a.vb">
 Option Infer On        
@@ -321,7 +321,7 @@ End Class
 
         <Fact>
         Public Sub AssignMeToVar_Derived()
-            Dim comp = CreateCompilationWithMscorlib(
+            Dim comp = CreateCompilationWithMscorlib40(
 <compilation name="AssignMeToVar">
     <file name="a.vb">
 Option Infer On        
@@ -351,7 +351,7 @@ End Structure
 
         <Fact>
         Public Sub CallFunctionInBaseClassByMe()
-            Dim comp = CreateCompilationWithMscorlib(
+            Dim comp = CreateCompilationWithMscorlib40(
 <compilation name="CallFunctionInBaseClassByMe">
     <file name="a.vb">
 Option Infer On        
@@ -381,7 +381,7 @@ End Class
         <WorkItem(529096, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529096")>
         <Fact()>
         Public Sub UseMeInLambda()
-            Dim comp = CreateCompilationWithMscorlib(
+            Dim comp = CreateCompilationWithMscorlib40(
 <compilation name="UseMeInLambda">
     <file name="a.vb">
 Option Infer On        
@@ -406,7 +406,7 @@ End Module
 
         <Fact>
         Public Sub UseMeInQuery()
-            Dim comp = CreateCompilationWithMscorlib(
+            Dim comp = CreateCompilationWithMscorlib40(
 <compilation name="UseMeInQuery">
     <file name="a.vb">
 Option Infer On        
@@ -432,7 +432,7 @@ End Module
 
         <Fact>
         Public Sub InvokeMyBaseAutoProperty()
-            Dim comp = CreateCompilationWithMscorlib(
+            Dim comp = CreateCompilationWithMscorlib40(
 <compilation name="InvokeMyBaseAutoProperty">
     <file name="a.vb">
 Option Infer On        
@@ -467,7 +467,7 @@ End Class
 
         <Fact>
         Public Sub InvokeMyBaseImplementMultInterface()
-            Dim comp = CreateCompilationWithMscorlib(
+            Dim comp = CreateCompilationWithMscorlib40(
 <compilation name="InvokeMyBaseImplementMultInterface">
     <file name="a.vb">
 Option Infer On        
@@ -494,7 +494,7 @@ End Class
         <Fact>
         Public Sub InvokeExtensionMethodFromMyClass()
 
-            Dim comp = CreateCompilationWithMscorlibAndReferences(
+            Dim comp = CreateCompilationWithMscorlib40AndReferences(
 <compilation name="InvokeExtensionMethodFromMyClass">
     <file name="a.vb">
 Option Infer On        
@@ -524,7 +524,7 @@ End Module
 
         <Fact>
         Public Sub MyClassUsedInStructure()
-            Dim comp = CreateCompilationWithMscorlib(
+            Dim comp = CreateCompilationWithMscorlib40(
 <compilation name="MyClassUsedInStructure">
     <file name="a.vb">
 Option Infer On        

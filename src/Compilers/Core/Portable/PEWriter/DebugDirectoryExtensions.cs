@@ -1,35 +1,37 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
+using System.Reflection;
 using System.Reflection.Metadata;
+using System.Reflection.PortableExecutable;
+using Roslyn.Utilities;
 
-namespace System.Reflection.PortableExecutable
+namespace Roslyn.Reflection.PortableExecutable
 {
     // TODO: move to SRM: https://github.com/dotnet/roslyn/issues/24712
     internal static class DebugDirectoryExtensions
     {
-        private static FieldInfo s_dataBuilderField;
-        private static Action<DebugDirectoryBuilder, DebugDirectoryEntryType, uint, uint, int> s_addEntry;
+        private static Lazy<(FieldInfo, Action<DebugDirectoryBuilder, DebugDirectoryEntryType, uint, uint, int>)> s_debugDirectoryBuilderMembers 
+            = new Lazy<(FieldInfo, Action<DebugDirectoryBuilder, DebugDirectoryEntryType, uint, uint, int>)>(() =>
+            {
+                var type = typeof(DebugDirectoryBuilder).GetTypeInfo();
+                return (
+                    type.GetDeclaredField("_dataBuilder"),
+                    (Action<DebugDirectoryBuilder, DebugDirectoryEntryType, uint, uint, int>)
+                        type.GetDeclaredMethod("AddEntry", typeof(DebugDirectoryEntryType), typeof(uint), typeof(uint), typeof(int)).
+                        CreateDelegate(typeof(Action<DebugDirectoryBuilder, DebugDirectoryEntryType, uint, uint, int>)));
+            });
 
         internal const DebugDirectoryEntryType PdbChecksumEntryType = (DebugDirectoryEntryType)19;
 
-        private static void InitializeReflection()
-        {
-            if (s_dataBuilderField == null)
-            {
-                var type = typeof(DebugDirectoryBuilder).GetTypeInfo();
-                s_dataBuilderField = type.GetDeclaredField("_dataBuilder");
-                s_addEntry = (Action<DebugDirectoryBuilder, DebugDirectoryEntryType, uint, uint, int>)type.GetDeclaredMethod("AddEntry").CreateDelegate(typeof(Action<DebugDirectoryBuilder, DebugDirectoryEntryType, uint, uint, int>));
-            }
-        }
-
         public static void AddPdbChecksumEntry(this DebugDirectoryBuilder builder, string algorithmName, ImmutableArray<byte> checksum)
         {
-            InitializeReflection();
-            int dataSize = WritePdbChecksumData((BlobBuilder)s_dataBuilderField.GetValue(builder), algorithmName, checksum);
-            s_addEntry(builder, PdbChecksumEntryType, 0x00000001, 0x00000000, dataSize);
+            var (dataBuilder, addEntry) = s_debugDirectoryBuilderMembers.Value;
+            int dataSize = WritePdbChecksumData((BlobBuilder)dataBuilder.GetValue(builder), algorithmName, checksum);
+            addEntry(builder, PdbChecksumEntryType, 0x00000001, 0x00000000, dataSize);
         }
 
         private static int WritePdbChecksumData(BlobBuilder builder, string algorithmName, ImmutableArray<byte> checksum)

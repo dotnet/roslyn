@@ -146,14 +146,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                             F.Call(
                                 F.Field(F.This(), _builderField),
                                 _asyncMethodBuilderMemberCollection.SetStateMachine,
-                                new BoundExpression[] { F.Parameter(F.CurrentMethod.Parameters[0]) })),
+                                new BoundExpression[] { F.Parameter(F.CurrentFunction.Parameters[0]) })),
                         F.Return()));
             }
 
             // Constructor
             if (stateMachineType.TypeKind == TypeKind.Class)
             {
-                F.CurrentMethod = stateMachineType.Constructor;
+                F.CurrentFunction = stateMachineType.Constructor;
                 F.CloseMethod(F.Block(ImmutableArray.Create(F.BaseInitialization(), F.Return())));
             }
         }

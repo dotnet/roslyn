@@ -165,7 +165,7 @@ namespace Microsoft.CodeAnalysis
             return new ValidTargetsStringLocalizableErrorArgument(builder.ToArrayAndFree());
         }
 
-        private struct ValidTargetsStringLocalizableErrorArgument : IFormattable, IMessageSerializable
+        private struct ValidTargetsStringLocalizableErrorArgument : IFormattable
         {
             private readonly string[] _targetResourceIds;
 

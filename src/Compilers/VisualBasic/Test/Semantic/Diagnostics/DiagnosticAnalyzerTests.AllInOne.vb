@@ -17,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
         Public Sub DiagnosticAnalyzerAllInOne()
             Dim source = TestResource.AllInOneVisualBasicBaseline
             Dim analyzer = New BasicTrackingDiagnosticAnalyzer()
-            CreateCompilationWithMscorlib({source}).VerifyAnalyzerDiagnostics({analyzer})
+            CreateCompilationWithMscorlib40({source}).VerifyAnalyzerDiagnostics({analyzer})
             analyzer.VerifyAllAnalyzerMembersWereCalled()
             analyzer.VerifyAnalyzeSymbolCalledForAllSymbolKinds()
             analyzer.VerifyAnalyzeNodeCalledForAllSyntaxKinds(New HashSet(Of SyntaxKind)())
@@ -35,13 +35,13 @@ Public Enum E
     Two
 End Enum
 ]]></file></project>
-            CreateCompilationWithMscorlib(source).VerifyAnalyzerDiagnostics({New BasicTrackingDiagnosticAnalyzer()})
+            CreateCompilationWithMscorlib40(source).VerifyAnalyzerDiagnostics({New BasicTrackingDiagnosticAnalyzer()})
         End Sub
 
         <Fact>
         <WorkItem(759, "https://github.com/dotnet/roslyn/issues/759")>
         Public Sub AnalyzerDriverIsSafeAgainstAnalyzerExceptions()
-            Dim compilation = CreateCompilationWithMscorlib({TestResource.AllInOneVisualBasicCode})
+            Dim compilation = CreateCompilationWithMscorlib40({TestResource.AllInOneVisualBasicCode})
             ThrowingDiagnosticAnalyzer(Of SyntaxKind).VerifyAnalyzerEngineIsSafeAgainstExceptions(
                 Function(analyzer) compilation.GetAnalyzerDiagnostics({analyzer}, logAnalyzerExceptionAsDiagnostics:=True))
         End Sub
@@ -52,7 +52,7 @@ End Enum
             Dim additionalTexts As AdditionalText() = {New TestAdditionalText("myfilepath", sourceText)}
             Dim options = New AnalyzerOptions(additionalTexts.ToImmutableArray())
 
-            Dim compilation = CreateCompilationWithMscorlib({TestResource.AllInOneVisualBasicCode})
+            Dim compilation = CreateCompilationWithMscorlib40({TestResource.AllInOneVisualBasicCode})
             Dim analyzer = New OptionsDiagnosticAnalyzer(Of SyntaxKind)(options)
             compilation.GetAnalyzerDiagnostics({analyzer}, options)
             analyzer.VerifyAnalyzerOptions()

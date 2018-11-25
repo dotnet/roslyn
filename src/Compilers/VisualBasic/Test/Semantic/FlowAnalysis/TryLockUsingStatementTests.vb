@@ -1614,7 +1614,7 @@ End Class
         <WorkItem(543597, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543597")>
         <Fact()>
         Public Sub TryStatement()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
                 <compilation name="Test">
                     <file name="a.b">
 Module Program
@@ -1649,7 +1649,7 @@ End Module
         <WorkItem(543597, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543597")>
         <Fact()>
         Public Sub CatchStatement()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
                 <compilation name="Test">
                     <file name="a.b">
 Module Program
@@ -1678,7 +1678,7 @@ End Module
         <WorkItem(543597, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543597")>
         <Fact()>
         Public Sub FinallyStatement()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
                 <compilation name="Test">
                     <file name="a.b">
 Module Program

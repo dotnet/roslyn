@@ -21,15 +21,6 @@ namespace Roslyn.Hosting.Diagnostics.Waiters
 
         public void WaitForAsyncOperations(string featureName, bool waitForWorkspaceFirst = true)
         {
-            // FeatureMetadata is MEF's way to extract export metadata from the exported instance's
-            // [Feature] attribute e.g. if the export defines an attribute like this:
-            // 
-            //     [Feature(FeatureAttribute.ErrorSquiggles)] 
-            //
-            // then all properties on FeatureAttribute ("FeatureName") are mapped to properties on
-            // the FeatureMetadata ("FeatureName" as well). Types and names of properties must
-            // match. Read more at http://mef.codeplex.com/wikipage?title=Exports%20and%20Metadata
-
             var workspaceWaiter = _provider.GetWaiter(FeatureAttribute.Workspace);
             var featureWaiter = _provider.GetWaiter(featureName);
             Contract.ThrowIfNull(featureWaiter);
@@ -57,7 +48,9 @@ namespace Roslyn.Hosting.Diagnostics.Waiters
         {
             var task = _provider.WaitAllAsync(
                 featureNames,
+#pragma warning disable VSTHRD001 // Avoid legacy thread switching APIs
                 eventProcessingAction: () => Dispatcher.CurrentDispatcher.Invoke(() => { }, DispatcherPriority.ApplicationIdle));
+#pragma warning restore VSTHRD001 // Avoid legacy thread switching APIs
 
             WaitForTask(task);
         }
@@ -82,7 +75,9 @@ namespace Roslyn.Hosting.Diagnostics.Waiters
                 GC.KeepAlive(tokens);
 
                 // make sure pending task that require UI threads to finish as well.
+#pragma warning disable VSTHRD001 // Avoid legacy thread switching APIs
                 Dispatcher.CurrentDispatcher.Invoke(() => { }, DispatcherPriority.ApplicationIdle);
+#pragma warning restore VSTHRD001 // Avoid legacy thread switching APIs
             }
         }
     }

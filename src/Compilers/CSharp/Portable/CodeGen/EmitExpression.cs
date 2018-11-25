@@ -363,9 +363,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 (receiverType.IsNullableType() && expression.HasValueMethodOpt != null), "conditional receiver cannot be a struct");
 
             var receiverConstant = receiver.ConstantValue;
-            if (receiverConstant != null)
+            if (receiverConstant?.IsNull == false)
             {
-                // const but not default, must be a reference type
+                // const but not null, must be a reference type
                 Debug.Assert(receiverType.IsVerifierReference());
                 // receiver is a reference type, so addresskind does not matter, but we do not intend to write.
                 receiverTemp = EmitReceiverRef(receiver, AddressKind.ReadOnly);
@@ -628,7 +628,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             var temp = EmitAddress(expression.Operand, AddressKind.ReadOnlyStrict);
             Debug.Assert(temp == null, "If the operand is addressable, then a temp shouldn't be required.");
 
-            if (used)
+            if (used && !expression.IsManaged)
             {
                 // When computing an address to be used to initialize a fixed-statement variable, we have to be careful
                 // not to convert the managed reference to an unmanaged pointer before storing it.  Otherwise the GC might
@@ -827,34 +827,43 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             for (int i = 0; i < arguments.Length; i++)
             {
-                RefKind argRefKind;
+                RefKind argRefKind = GetArgumentRefKind(arguments, parameters, argRefKindsOpt, i);
+                EmitArgument(arguments[i], argRefKind);
+            }
+        }
 
-                if (i < parameters.Length)
+        /// <summary>
+        /// Computes the desired refkind of the argument.
+        /// Considers all the cases - where ref kinds are explicit, omitted, vararg cases.
+        /// </summary>
+        internal static RefKind GetArgumentRefKind(ImmutableArray<BoundExpression> arguments, ImmutableArray<ParameterSymbol> parameters, ImmutableArray<RefKind> argRefKindsOpt, int i)
+        {
+            RefKind argRefKind;
+            if (i < parameters.Length)
+            {
+                if (!argRefKindsOpt.IsDefault && i < argRefKindsOpt.Length)
                 {
-                    if (!argRefKindsOpt.IsDefault && i < argRefKindsOpt.Length)
-                    {
-                        // if we have an explicit refKind for the given argument, use that
-                        argRefKind = argRefKindsOpt[i];
+                    // if we have an explicit refKind for the given argument, use that
+                    argRefKind = argRefKindsOpt[i];
 
-                        Debug.Assert(argRefKind == parameters[i].RefKind ||
-                                argRefKind == RefKindExtensions.StrictIn && parameters[i].RefKind == RefKind.In,
-                                "in Emit the argument RefKind must be compatible with the corresponding parameter");
-                    }
-                    else
-                    {
-                        // otherwise fallback to the refKind of the parameter
-                        argRefKind = parameters[i].RefKind;
-                    }
+                    Debug.Assert(argRefKind == parameters[i].RefKind ||
+                            argRefKind == RefKindExtensions.StrictIn && parameters[i].RefKind == RefKind.In,
+                            "in Emit the argument RefKind must be compatible with the corresponding parameter");
                 }
                 else
                 {
-                    // vararg case
-                    Debug.Assert(arguments[i].Kind == BoundKind.ArgListOperator);
-                    argRefKind = RefKind.None;
+                    // otherwise fallback to the refKind of the parameter
+                    argRefKind = parameters[i].RefKind;
                 }
-
-                EmitArgument(arguments[i], argRefKind);
             }
+            else
+            {
+                // vararg case
+                Debug.Assert(arguments[i].Kind == BoundKind.ArgListOperator);
+                argRefKind = RefKind.None;
+            }
+
+            return argRefKind;
         }
 
         private void EmitArrayElementLoad(BoundArrayAccess arrayAccess, bool used)
@@ -1893,6 +1902,23 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             {
                 _builder.EmitOpCode(ILOpCode.Localloc);
             }
+
+            var initializer = expression.InitializerOpt;
+            if (initializer != null)
+            {
+                if (used)
+                {
+                    EmitStackAllocInitializers(expression.Type, initializer);
+                }
+                else
+                {
+                    // If not used, just emit initializer elements to preserve possible sideeffects
+                    foreach (var init in initializer.Initializers)
+                    {
+                        EmitExpression(init, used: false);
+                    }
+                }
+            }
         }
 
         private void EmitObjectCreationExpression(BoundObjectCreationExpression expression, bool used)
@@ -1904,27 +1930,39 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
             else
             {
+                // check if need to construct at all
                 if (!used && ConstructorNotSideEffecting(constructor))
                 {
-                    // creating nullable has no side-effects, so we will just evaluate the arguments
+                    // ctor has no side-effects, so we will just evaluate the arguments
                     foreach (var arg in expression.Arguments)
                     {
                         EmitExpression(arg, used: false);
                     }
+
+                    return;
                 }
-                else
+
+                // ReadOnlySpan may just refer to the blob, if possible.
+                if (this._module.Compilation.IsReadOnlySpanType(expression.Type) &&
+                    expression.Arguments.Length == 1)
                 {
-                    EmitArguments(expression.Arguments, constructor.Parameters, expression.ArgumentRefKindsOpt);
-
-                    var stackAdjustment = GetObjCreationStackBehavior(expression);
-                    _builder.EmitOpCode(ILOpCode.Newobj, stackAdjustment);
-
-                    // for variadic ctors emit expanded ctor token
-                    EmitSymbolToken(constructor, expression.Syntax,
-                                    constructor.IsVararg ? (BoundArgListOperator)expression.Arguments[expression.Arguments.Length - 1] : null);
-
-                    EmitPopIfUnused(used);
+                    if (TryEmitReadonlySpanAsBlobWrapper((NamedTypeSymbol)expression.Type, expression.Arguments[0], used, inPlace: false))
+                    {
+                        return;
+                    }
                 }
+
+                // none of the above cases, so just create an instance
+                EmitArguments(expression.Arguments, constructor.Parameters, expression.ArgumentRefKindsOpt);
+
+                var stackAdjustment = GetObjCreationStackBehavior(expression);
+                _builder.EmitOpCode(ILOpCode.Newobj, stackAdjustment);
+
+                // for variadic ctors emit expanded ctor token
+                EmitSymbolToken(constructor, expression.Syntax,
+                                constructor.IsVararg ? (BoundArgListOperator)expression.Arguments[expression.Arguments.Length - 1] : null);
+
+                EmitPopIfUnused(used);
             }
         }
 
@@ -2128,8 +2166,23 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         private void InPlaceCtorCall(BoundExpression target, BoundObjectCreationExpression objCreation, bool used)
         {
+            Debug.Assert(TargetIsNotOnHeap(target), "in-place construction target should not be on heap");
+
             var temp = EmitAddress(target, AddressKind.Writeable);
             Debug.Assert(temp == null, "in-place ctor target should not create temps");
+
+            // ReadOnlySpan may just refer to the blob, if possible.
+            if (this._module.Compilation.IsReadOnlySpanType(objCreation.Type) && objCreation.Arguments.Length == 1)
+            {
+                if (TryEmitReadonlySpanAsBlobWrapper((NamedTypeSymbol)objCreation.Type, objCreation.Arguments[0], used, inPlace: true))
+                {
+                    if (used)
+                    {
+                        EmitExpression(target, used: true);
+                    }
+                    return;
+                }
+            }
 
             var constructor = objCreation.Constructor;
             EmitArguments(objCreation.Arguments, constructor.Parameters, objCreation.ArgumentRefKindsOpt);
@@ -2142,7 +2195,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             if (used)
             {
-                Debug.Assert(TargetIsNotOnHeap(target), "cannot read-back the target since it could have been modified");
                 EmitExpression(target, used: true);
             }
         }

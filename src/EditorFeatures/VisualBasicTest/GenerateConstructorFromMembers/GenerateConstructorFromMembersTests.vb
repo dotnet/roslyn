@@ -47,6 +47,137 @@ End Class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)>
+        Public Async Function TestMultipleFields_VerticalSelection() As Task
+            Await TestInRegularAndScriptAsync(
+"Class Program[|
+    Private i As Integer
+    Private b As String|]
+End Class",
+"Class Program
+    Private i As Integer
+    Private b As String
+
+    Public Sub New(i As Integer, b As String{|Navigation:)|}
+        Me.i = i
+        Me.b = b
+    End Sub
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)>
+        Public Async Function TestMultipleFields_VerticalSelectionUpToExcludedField() As Task
+            Await TestInRegularAndScriptAsync(
+"Class Program
+    Private a As String[|
+    Private i As Integer
+    Private b As String|]
+End Class",
+"Class Program
+    Private a As String
+    Private i As Integer
+    Private b As String
+
+    Public Sub New(i As Integer, b As String{|Navigation:)|}
+        Me.i = i
+        Me.b = b
+    End Sub
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)>
+        Public Async Function TestMultipleFields_VerticalSelectionUpToMethod() As Task
+            Await TestInRegularAndScriptAsync(
+"Class Program
+    Public Sub Foo
+    End Sub[|
+
+    Private i As Integer
+    Private b As String|]
+End Class",
+"Class Program
+    Public Sub Foo
+    End Sub
+
+    Private i As Integer
+    Private b As String
+
+    Public Sub New(i As Integer, b As String{|Navigation:)|}
+        Me.i = i
+        Me.b = b
+    End Sub
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)>
+        Public Async Function TestMultipleFields_VerticalSelectionUpToInherits() As Task
+            Await TestInRegularAndScriptAsync(
+"Class Program
+    Inherits Object[|
+
+    Private i As Integer
+    Private b As String|]
+End Class",
+"Class Program
+    Inherits Object
+
+    Private i As Integer
+    Private b As String
+
+    Public Sub New(i As Integer, b As String{|Navigation:)|}
+        Me.i = i
+        Me.b = b
+    End Sub
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)>
+        Public Async Function TestMultipleFields_VerticalSelectionUpToGeneric() As Task
+            Await TestInRegularAndScriptAsync(
+"Class Program(Of T)[|
+    Private i As Integer
+    Private b As String|]
+End Class",
+"Class Program(Of T)
+    Private i As Integer
+    Private b As String
+
+    Public Sub New(i As Integer, b As String{|Navigation:)|}
+        Me.i = i
+        Me.b = b
+    End Sub
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)>
+        Public Async Function TestMultipleFields_SelectionIncludingClassName() As Task
+            Await TestMissingAsync(
+"Class Progra[|m
+    Private i As Integer
+    Private b As String|]
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)>
+        Public Async Function TestMultipleFields_SelectionIncludingInherits() As Task
+
+            Await TestMissingAsync(
+"Class Program
+    Inherits Objec[|t
+    Private i As Integer
+    Private b As String|]
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)>
+        Public Async Function TestMultipleFields_SelectionIncludingGeneric() As Task
+            Await TestMissingAsync(
+"Class Program(Of T[|)
+    Private i As Integer
+    Private b As String|]
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)>
         Public Async Function TestSecondField() As Task
             Await TestInRegularAndScriptAsync(
 "Class Program
@@ -307,6 +438,158 @@ Class Program
     Sub M()
     End Sub
 End Class")
+        End Function
+
+        <WorkItem(17643, "https://github.com/dotnet/roslyn/issues/17643")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)>
+        Public Async Function TestWithDialogNoBackingField() As Task
+            Await TestWithPickMembersDialogAsync(
+"
+Class Program
+    Public Property F() As Integer
+    [||]
+End Class",
+"
+Class Program
+    Public Property F() As Integer
+
+    Public Sub New(f As Integer{|Navigation:)|}
+        Me.F = f
+    End Sub
+End Class",
+chosenSymbols:=Nothing)
+        End Function
+
+        <WorkItem(25690, "https://github.com/dotnet/roslyn/issues/25690")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)>
+        Public Async Function TestWithDialogNoParameterizedProperty() As Task
+            Await TestWithPickMembersDialogAsync(
+"
+Class Program
+    Public Property P() As Integer
+        Get
+            Return 0
+        End Get
+        Set
+        End Set
+    End Property
+    Public Property I(index As Integer) As Integer
+        Get
+            Return 0
+        End Get
+        Set
+        End Set
+    End Property
+    [||]
+End Class",
+"
+Class Program
+    Public Property P() As Integer
+        Get
+            Return 0
+        End Get
+        Set
+        End Set
+    End Property
+    Public Property I(index As Integer) As Integer
+        Get
+            Return 0
+        End Get
+        Set
+        End Set
+    End Property
+
+    Public Sub New(p As Integer{|Navigation:)|}
+        Me.P = p
+    End Sub
+End Class",
+chosenSymbols:=Nothing)
+        End Function
+
+        <WorkItem(25690, "https://github.com/dotnet/roslyn/issues/25690")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)>
+        Public Async Function TestWithDialogNoIndexer() As Task
+            Await TestWithPickMembersDialogAsync(
+"
+Class Program
+    Public Property P() As Integer
+        Get
+            Return 0
+        End Get
+        Set
+        End Set
+    End Property
+    Default Public Property I(index As Integer) As Integer
+        Get
+            Return 0
+        End Get
+        Set
+        End Set
+    End Property
+    [||]
+End Class",
+"
+Class Program
+    Public Property P() As Integer
+        Get
+            Return 0
+        End Get
+        Set
+        End Set
+    End Property
+    Default Public Property I(index As Integer) As Integer
+        Get
+            Return 0
+        End Get
+        Set
+        End Set
+    End Property
+
+    Public Sub New(p As Integer{|Navigation:)|}
+        Me.P = p
+    End Sub
+End Class",
+chosenSymbols:=Nothing)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)>
+        Public Async Function TestWithDialogSetterOnlyProperty() As Task
+            Await TestWithPickMembersDialogAsync(
+"
+Class Program
+    Public Property P() As Integer
+        Get
+            Return 0
+        End Get
+        Set
+        End Set
+    End Property
+    Public WriteOnly Property S() As Integer
+        Set
+        End Set
+    End Property
+    [||]
+End Class",
+"
+Class Program
+    Public Property P() As Integer
+        Get
+            Return 0
+        End Get
+        Set
+        End Set
+    End Property
+    Public WriteOnly Property S() As Integer
+        Set
+        End Set
+    End Property
+
+    Public Sub New(p As Integer, s As Integer{|Navigation:)|}
+        Me.P = p
+        Me.S = s
+    End Sub
+End Class",
+chosenSymbols:=Nothing)
         End Function
     End Class
 End Namespace

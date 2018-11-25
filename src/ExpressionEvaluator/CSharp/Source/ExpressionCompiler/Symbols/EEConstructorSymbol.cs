@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         internal override void GenerateMethodBody(TypeCompilationState compilationState, DiagnosticBag diagnostics)
         {
             var noLocals = ImmutableArray<LocalSymbol>.Empty;
-            var initializerInvocation = MethodCompiler.BindConstructorInitializer(this, diagnostics, compilationState.Compilation);
+            var initializerInvocation = MethodCompiler.BindImplicitConstructorInitializer(this, diagnostics, compilationState.Compilation);
             var syntax = initializerInvocation.Syntax;
 
             compilationState.AddSynthesizedMethod(this,

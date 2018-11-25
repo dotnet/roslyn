@@ -964,7 +964,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 // - i.e assigns int value to a short local.
                 // in that case we should force lhs to be a real local.
                 Debug.Assert(
-                    node.Left.Type.Equals(node.Right.Type, TypeCompareKind.AllIgnoreOptions),
+                    node.Left.Type.Equals(node.Right.Type, TypeCompareKind.AllIgnoreOptions) ||
+                    IsFixedBufferAssignmentToRefLocal(node.Left, node.Right, node.IsRef),
                     @"type of the assignment value is not the same as the type of assignment target. 
                 This is not expected by the optimizer and is typically a result of a bug somewhere else.");
 
@@ -997,6 +998,19 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             return node.Update(left, right, node.IsRef, node.Type);
         }
+
+        /// <summary>
+        /// Fixed-sized buffers are lowered as field accesses with pointer type, but
+        /// we want to assign them to pinned ref locals before creating the pointer
+        /// type, so this results in an assignment with mismatched types (pointer to managed
+        /// ref). This is legal according to the CLR, but not how we usually represent things
+        /// in lowering.
+        /// </summary>
+        internal static bool IsFixedBufferAssignmentToRefLocal(BoundExpression left, BoundExpression right, bool isRef)
+            => isRef &&
+               right is BoundFieldAccess fieldAccess &&
+               fieldAccess.FieldSymbol.IsFixed &&
+               left.Type.Equals(((PointerTypeSymbol)right.Type).PointedAtType, TypeCompareKind.AllIgnoreOptions);
 
         // indirect assignment is assignment to a value referenced indirectly
         // it may only happen if 
@@ -1101,7 +1115,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
 
             MethodSymbol method = node.Method;
-            var rewrittenArguments = VisitArguments(node.Arguments, method.Parameters);
+            var rewrittenArguments = VisitArguments(node.Arguments, method.Parameters, node.ArgumentRefKindsOpt);
 
             return node.Update(receiver, method, rewrittenArguments);
         }
@@ -1134,7 +1148,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             return receiver;
         }
 
-        private ImmutableArray<BoundExpression> VisitArguments(ImmutableArray<BoundExpression> arguments, ImmutableArray<ParameterSymbol> parameters)
+        private ImmutableArray<BoundExpression> VisitArguments(ImmutableArray<BoundExpression> arguments, ImmutableArray<ParameterSymbol> parameters, ImmutableArray<RefKind> argRefKindsOpt)
         {
             Debug.Assert(!arguments.IsDefault);
             Debug.Assert(!parameters.IsDefault);
@@ -1144,26 +1158,46 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             ArrayBuilder<BoundExpression> rewrittenArguments = null;
             for (int i = 0; i < arguments.Length; i++)
             {
-                var arg = arguments[i];
-                BoundExpression rewrittenArg;
-
-                // Treat the __arglist() as a value parameter.
-                ExprContext context = (i == parameters.Length || parameters[i].RefKind == RefKind.None) ? ExprContext.Value : ExprContext.Address;
-
-                rewrittenArg = VisitExpression(arg, context);
-                if (rewrittenArguments == null && arg != rewrittenArg)
-                {
-                    rewrittenArguments = ArrayBuilder<BoundExpression>.GetInstance();
-                    rewrittenArguments.AddRange(arguments, i);
-                }
-
-                if (rewrittenArguments != null)
-                {
-                    rewrittenArguments.Add(rewrittenArg);
-                }
+                RefKind argRefKind = CodeGenerator.GetArgumentRefKind(arguments, parameters, argRefKindsOpt, i);
+                VisitArgument(arguments, ref rewrittenArguments, i, argRefKind);
             }
 
             return rewrittenArguments != null ? rewrittenArguments.ToImmutableAndFree() : arguments;
+        }
+
+        private void VisitArgument(ImmutableArray<BoundExpression> arguments, ref ArrayBuilder<BoundExpression> rewrittenArguments, int i, RefKind argRefKind)
+        {
+            ExprContext context = (argRefKind == RefKind.None) ? ExprContext.Value : ExprContext.Address;
+
+            var arg = arguments[i];
+            BoundExpression rewrittenArg = VisitExpression(arg, context);
+
+            if (rewrittenArguments == null && arg != rewrittenArg)
+            {
+                rewrittenArguments = ArrayBuilder<BoundExpression>.GetInstance();
+                rewrittenArguments.AddRange(arguments, i);
+            }
+
+            if (rewrittenArguments != null)
+            {
+                rewrittenArguments.Add(rewrittenArg);
+            }
+        }
+
+        public override BoundNode VisitArgListOperator(BoundArgListOperator node)
+        {
+
+            ArrayBuilder<BoundExpression> rewrittenArguments = null;
+            ImmutableArray<BoundExpression> arguments = node.Arguments;
+            ImmutableArray<RefKind> argRefKindsOpt = node.ArgumentRefKindsOpt;
+
+            for (int i = 0; i < arguments.Length; i++)
+            {
+                RefKind refKind = argRefKindsOpt.IsDefaultOrEmpty ? RefKind.None : argRefKindsOpt[i];
+                VisitArgument(arguments, ref rewrittenArguments, i, refKind);
+            }
+
+            return node.Update(rewrittenArguments?.ToImmutableAndFree() ?? arguments, argRefKindsOpt, node.Type);
         }
 
         public override BoundNode VisitMakeRefOperator(BoundMakeRefOperator node)
@@ -1178,7 +1212,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         public override BoundNode VisitObjectCreationExpression(BoundObjectCreationExpression node)
         {
             var constructor = node.Constructor;
-            var rewrittenArguments = VisitArguments(node.Arguments, constructor.Parameters);
+            var rewrittenArguments = VisitArguments(node.Arguments, constructor.Parameters, node.ArgumentRefKindsOpt);
             Debug.Assert(node.InitializerExpressionOpt == null);
 
             return node.Update(constructor, rewrittenArguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt,
@@ -1652,7 +1686,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         public override BoundNode VisitAddressOfOperator(BoundAddressOfOperator node)
         {
             BoundExpression visitedOperand = this.VisitExpression(node.Operand, ExprContext.Address);
-            return node.Update(visitedOperand, node.Type);
+            return node.Update(visitedOperand, node.IsManaged, node.Type);
         }
 
         public override BoundNode VisitReturnStatement(BoundReturnStatement node)

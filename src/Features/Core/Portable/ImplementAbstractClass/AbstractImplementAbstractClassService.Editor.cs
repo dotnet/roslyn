@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.ImplementAbstractClass
                 cancellationToken.ThrowIfCancellationRequested();
 
                 // Check if we need to add 'unsafe' to the signature we're generating.
-                var syntaxFacts = _document.Project.LanguageServices.GetService<ISyntaxFactsService>();
+                var syntaxFacts = _document.GetLanguageService<ISyntaxFactsService>();
                 var addUnsafe = member.IsUnsafe() && !syntaxFacts.IsUnsafeContext(_state.Location);
 
                 return GenerateMember(member, addUnsafe, propertyGenerationBehavior, cancellationToken);
@@ -108,8 +108,8 @@ namespace Microsoft.CodeAnalysis.ImplementAbstractClass
             private ISymbol GenerateMethod(
                 IMethodSymbol method, DeclarationModifiers modifiers, Accessibility accessibility, CancellationToken cancellationToken)
             {
-                var syntaxFacts = _document.Project.LanguageServices.GetService<ISyntaxFactsService>();
-                var syntaxFactory = _document.Project.LanguageServices.GetService<SyntaxGenerator>();
+                var syntaxFacts = _document.GetLanguageService<ISyntaxFactsService>();
+                var syntaxFactory = _document.GetLanguageService<SyntaxGenerator>();
                 var throwingBody = syntaxFactory.CreateThrowNotImplementedStatementBlock(
                     _model.Compilation);
 
@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.ImplementAbstractClass
                     propertyGenerationBehavior = ImplementTypePropertyGenerationBehavior.PreferThrowingProperties;
                 }
 
-                var syntaxFactory = _document.Project.LanguageServices.GetService<SyntaxGenerator>();
+                var syntaxFactory = _document.GetLanguageService<SyntaxGenerator>();
 
                 var accessorBody = propertyGenerationBehavior == ImplementTypePropertyGenerationBehavior.PreferAutoProperties
                     ? default

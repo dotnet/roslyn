@@ -2,23 +2,23 @@
 
 Imports System.Collections.Immutable
 Imports System.Threading
-Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor
 Imports Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
+Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
-Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
 Imports Microsoft.CodeAnalysis.SolutionCrawler
+Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text.Shared.Extensions
-Imports Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
 Imports Microsoft.VisualStudio.Text.Tagging
 Imports Roslyn.Test.Utilities
 Imports Roslyn.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
+    <[UseExportProvider]>
     Public Class DefaultDiagnosticUpdateSourceTests
         <WpfFact>
         Public Async Function TestMiscSquiggles() As Task
@@ -26,7 +26,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 class 123 { }
                        </code>
             Using workspace = TestWorkspace.CreateCSharp(code.Value)
-                Dim listenerProvider = New AsynchronousOperationListenerProvider()
+                Dim listenerProvider = workspace.ExportProvider.GetExportedValue(Of IAsynchronousOperationListenerProvider)
                 Dim diagnosticService = New DiagnosticService(listenerProvider)
 
                 Dim miscService = New DefaultDiagnosticAnalyzerService(diagnosticService)
@@ -36,9 +36,9 @@ class 123 { }
 
                 Dim buffer = workspace.Documents.First().GetTextBuffer()
 
-                WpfTestCase.RequireWpfFact("This test uses IForegroundNotificationService")
+                WpfTestRunner.RequireWpfFact($"This test uses {NameOf(IForegroundNotificationService)}")
                 Dim foregroundService = workspace.GetService(Of IForegroundNotificationService)()
-                Dim provider = New DiagnosticsSquiggleTaggerProvider(diagnosticService, foregroundService, listenerProvider)
+                Dim provider = New DiagnosticsSquiggleTaggerProvider(workspace.ExportProvider.GetExportedValue(Of IThreadingContext), diagnosticService, foregroundService, listenerProvider)
                 Dim tagger = provider.CreateTagger(Of IErrorTag)(buffer)
                 Using disposable = TryCast(tagger, IDisposable)
                     Dim analyzer = miscService.CreateIncrementalAnalyzer(workspace)
@@ -69,7 +69,7 @@ class A
                        </code>
 
             Using workspace = TestWorkspace.CreateCSharp(code.Value)
-                Dim listenerProvider = New AsynchronousOperationListenerProvider()
+                Dim listenerProvider = workspace.ExportProvider.GetExportedValue(Of IAsynchronousOperationListenerProvider)
                 Dim diagnosticService = New DiagnosticService(listenerProvider)
 
                 Dim miscService = New DefaultDiagnosticAnalyzerService(diagnosticService)
@@ -104,7 +104,7 @@ class A
                        </code>
 
             Using workspace = TestWorkspace.CreateCSharp(code.Value)
-                Dim listenerProvider = New AsynchronousOperationListenerProvider()
+                Dim listenerProvider = workspace.ExportProvider.GetExportedValue(Of IAsynchronousOperationListenerProvider)
                 Dim diagnosticService = New DiagnosticService(listenerProvider)
 
                 Dim miscService = New DefaultDiagnosticAnalyzerService(diagnosticService)
@@ -138,7 +138,7 @@ class A
                        </code>
 
             Using workspace = TestWorkspace.CreateCSharp(code.Value)
-                Dim listenerProvider = New AsynchronousOperationListenerProvider()
+                Dim listenerProvider = workspace.ExportProvider.GetExportedValue(Of IAsynchronousOperationListenerProvider)
                 Dim diagnosticService = New DiagnosticService(listenerProvider)
 
                 Dim miscService = New DefaultDiagnosticAnalyzerService(diagnosticService)
@@ -172,7 +172,7 @@ class A
                        </code>
 
             Using workspace = TestWorkspace.CreateCSharp(code.Value)
-                Dim listenerProvider = New AsynchronousOperationListenerProvider()
+                Dim listenerProvider = workspace.ExportProvider.GetExportedValue(Of IAsynchronousOperationListenerProvider)
                 Dim diagnosticService = New DiagnosticService(listenerProvider)
 
                 Dim miscService = New DefaultDiagnosticAnalyzerService(diagnosticService)

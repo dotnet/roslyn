@@ -99,6 +99,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             considerCustomModifiers: false); //shouldn't actually matter for source members
 
         /// <summary>
+        /// This instance is used to determine if a partial method implementation matches the definition.
+        /// It is the same as <see cref="DuplicateSourceComparer"/> except it considers ref kinds as well.
+        /// </summary>
+        public static readonly MemberSignatureComparer PartialMethodsComparer = new MemberSignatureComparer(
+            considerName: true,
+            considerExplicitlyImplementedInterfaces: true,
+            considerReturnType: false,
+            considerTypeConstraints: false,
+            considerCallingConvention: false,
+            considerRefKindDifferences: true,
+            considerCustomModifiers: false);
+
+        /// <summary>
         /// This instance is used to check whether one member overrides another, according to the C# definition.
         /// </summary>
         public static readonly MemberSignatureComparer CSharpOverrideComparer = new MemberSignatureComparer(
@@ -555,6 +568,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if ((typeParameter1.HasConstructorConstraint != typeParameter2.HasConstructorConstraint) ||
                 (typeParameter1.HasReferenceTypeConstraint != typeParameter2.HasReferenceTypeConstraint) ||
                 (typeParameter1.HasValueTypeConstraint != typeParameter2.HasValueTypeConstraint) ||
+                (typeParameter1.HasUnmanagedTypeConstraint != typeParameter2.HasUnmanagedTypeConstraint) ||
                 (typeParameter1.Variance != typeParameter2.Variance))
             {
                 return false;
@@ -714,11 +728,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// We'll look at the result of equality without tuple names (1) and with tuple names (2).
         /// The question is whether there is a change in tuple element names only (3).
         ///
-        /// member1                  vs. member2                   | (1) | (2) |    (3)    |
-        /// `(int a, int b) M()`     vs. `(int a, int b) M()`      | yes | yes |   match   |
-        /// `(int a, int b) M()`     vs. `(int x, int y) M()`      | yes | no  | different |
-        /// `void M((int a, int b))` vs. `void M((int x, int y))`  | yes | no  | different |
-        /// `int M()`                vs. `string M()`              | no  | no  |   match   |
+        /// member1                       vs. member2                        | (1) | (2) |    (3)    |
+        /// <c>(int a, int b) M()</c>     vs. <c>(int a, int b) M()</c>      | yes | yes |   match   |
+        /// <c>(int a, int b) M()</c>     vs. <c>(int x, int y) M()</c>      | yes | no  | different |
+        /// <c>void M((int a, int b))</c> vs. <c>void M((int x, int y))</c>  | yes | no  | different |
+        /// <c>int M()</c>                vs. <c>string M()</c>              | no  | no  |   match   |
         ///
         /// </summary>
         internal static bool ConsideringTupleNamesCreatesDifference(Symbol member1, Symbol member2)

@@ -2,7 +2,7 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.ImplementAbstractClass;
-using Roslyn.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ImplementAbstractClass
@@ -16,8 +16,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ImplementAbstractClass
         [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
         public async Task TestFixAllInDocument()
         {
-            var fixAllActionId = CSharpImplementAbstractClassCodeFixProvider.GetCodeActionId("Assembly1", "global::A1");
-
             var input = @"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
@@ -111,7 +109,7 @@ class B3 : A1
     </Project>
 </Workspace>";
 
-            await TestInRegularAndScriptAsync(input, expected, fixAllActionEquivalenceKey: fixAllActionId);
+            await TestInRegularAndScriptAsync(input, expected);
         }
 
         [Fact]
@@ -119,8 +117,6 @@ class B3 : A1
         [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
         public async Task TestFixAllInProject()
         {
-            var fixAllActionId = CSharpImplementAbstractClassCodeFixProvider.GetCodeActionId("Assembly1", "global::A1");
-
             var input = @"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
@@ -223,7 +219,7 @@ class B3 : A1
     </Project>
 </Workspace>";
 
-            await TestInRegularAndScriptAsync(input, expected, fixAllActionEquivalenceKey: fixAllActionId);
+            await TestInRegularAndScriptAsync(input, expected);
         }
 
         [Fact]
@@ -231,8 +227,6 @@ class B3 : A1
         [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
         public async Task TestFixAllInSolution()
         {
-            var fixAllActionId = CSharpImplementAbstractClassCodeFixProvider.GetCodeActionId("Assembly1", "global::A1");
-
             var input = @"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
@@ -346,7 +340,7 @@ class B3 : A1
     </Project>
 </Workspace>";
 
-            await TestInRegularAndScriptAsync(input, expected, fixAllActionEquivalenceKey: fixAllActionId);
+            await TestInRegularAndScriptAsync(input, expected);
         }
 
         [Fact]
@@ -354,8 +348,6 @@ class B3 : A1
         [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
         public async Task TestFixAllInSolution_DifferentAssemblyWithSameTypeName()
         {
-            var fixAllActionId = CSharpImplementAbstractClassCodeFixProvider.GetCodeActionId("Assembly1", "global::A1");
-
             var input = @"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
@@ -468,7 +460,7 @@ class B3 : A1
     </Project>
 </Workspace>";
 
-            await TestInRegularAndScriptAsync(input, expected, fixAllActionEquivalenceKey: fixAllActionId);
+            await TestInRegularAndScriptAsync(input, expected);
         }
 
         #endregion

@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -42,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.SimplifyTyp
                     var symbol = context.SemanticModel.GetSymbolInfo(node).Symbol;
                     if (symbol != null && symbol.Kind == SymbolKind.Field)
                     {
-                        var diagnostic = Diagnostic.Create(Descriptor, node.GetLocation());
+                        var diagnostic = CodeAnalysis.Diagnostic.Create(Descriptor, node.GetLocation());
                         context.ReportDiagnostic(diagnostic);
                     }
                 }

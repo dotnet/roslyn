@@ -609,9 +609,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             // Dynamify object type if necessary
             var returnType = paramInfo[0].Type.AsDynamicIfNoPia(_containingType);
 
-            // Check for tuple type
-            returnType = TupleTypeDecoder.DecodeTupleTypesIfApplicable(returnType, paramInfo[0].Handle, moduleSymbol);
-
             paramInfo[0].Type = returnType;
 
             var returnParam = PEParameterSymbol.Create(

@@ -56,13 +56,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     this.ProjectTracker.NotifyWorkspace(workspace => workspace.OnAnalyzerReferenceAdded(Id, existingReference.GetReference()));
                 }
 
-                GetAnalyzerDependencyCheckingService().CheckForConflictsAsync();
+                GetAnalyzerDependencyCheckingService().ReanalyzeSolutionForConflicts();
             }
 
             if (File.Exists(analyzerAssemblyFullPath))
             {
-                GetAnalyzerFileWatcherService().AddPath(analyzerAssemblyFullPath);
-                GetAnalyzerFileWatcherService().ErrorIfAnalyzerAlreadyLoaded(Id, analyzerAssemblyFullPath);
+                GetAnalyzerFileWatcherService().TrackFilePathAndReportErrorIfChanged(analyzerAssemblyFullPath, projectId: Id);
             }
             else
             {
@@ -96,7 +95,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 var analyzerReference = analyzer.GetReference();
                 this.ProjectTracker.NotifyWorkspace(workspace => workspace.OnAnalyzerReferenceRemoved(Id, analyzerReference));
 
-                GetAnalyzerDependencyCheckingService().CheckForConflictsAsync();
+                GetAnalyzerDependencyCheckingService().ReanalyzeSolutionForConflicts();
             }
 
             analyzer.Dispose();
@@ -111,7 +110,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 ruleSetFileFullPath = string.Empty;
             }
 
-            if (!ruleSetFileFullPath.Equals(string.Empty))
+            if (ruleSetFileFullPath.Length > 0)
             {
                 // This is already a full path, but run it through GetFullPath to clean it (e.g., remove
                 // extra backslashes).
@@ -119,7 +118,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
 
             if (this.RuleSetFile != null &&
-                this.RuleSetFile.FilePath.Equals(ruleSetFileFullPath, StringComparison.OrdinalIgnoreCase))
+                this.RuleSetFile.Target.FilePath.Equals(ruleSetFileFullPath, StringComparison.OrdinalIgnoreCase))
             {
                 return;
             }
@@ -135,7 +134,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 this,
                 filePath: additionalFilePath,
                 sourceCodeKind: SourceCodeKind.Regular,
-                getFolderNames: _ => SpecializedCollections.EmptyReadOnlyList<string>(),
+                folderNames: ImmutableArray<string>.Empty,
                 canUseTextBuffer: _ => true,
                 updatedOnDiskHandler: s_additionalDocumentUpdatedOnDiskEventHandler,
                 openedHandler: s_additionalDocumentOpenedEventHandler,
@@ -171,8 +170,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             if (ruleSetFileFullPath.Length != 0)
             {
-                this.RuleSetFile = this.ProjectTracker.RuleSetFileProvider.GetOrCreateRuleSet(ruleSetFileFullPath);
-                this.RuleSetFile.UpdatedOnDisk += OnRuleSetFileUpdateOnDisk;
+                this.RuleSetFile = this.ProjectTracker.RuleSetFileManager.GetOrCreateRuleSet(ruleSetFileFullPath);
+                this.RuleSetFile.Target.UpdatedOnDisk += OnRuleSetFileUpdateOnDisk;
             }
         }
 
@@ -180,7 +179,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             if (this.RuleSetFile != null)
             {
-                this.RuleSetFile.UpdatedOnDisk -= OnRuleSetFileUpdateOnDisk;
+                this.RuleSetFile.Target.UpdatedOnDisk -= OnRuleSetFileUpdateOnDisk;
+                this.RuleSetFile.Dispose();
                 this.RuleSetFile = null;
             }
         }
@@ -190,7 +190,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             AssertIsForeground();
 
-            var filePath = this.RuleSetFile.FilePath;
+            var filePath = this.RuleSetFile.Target.FilePath;
 
             ResetAnalyzerRuleSet(filePath);
         }

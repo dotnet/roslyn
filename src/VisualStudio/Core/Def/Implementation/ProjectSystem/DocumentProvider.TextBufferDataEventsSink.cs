@@ -11,7 +11,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             private readonly Action _onDocumentLoadCompleted;
 
-            private IComEventSink _sink;
+            private ComEventSink _sink;
 
             /// <summary>
             /// Helper method for creating and hooking up a <c>TextBufferDataEventsSink</c>.

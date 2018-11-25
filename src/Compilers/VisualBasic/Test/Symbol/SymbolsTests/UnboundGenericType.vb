@@ -16,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols
         <Fact>
         Public Sub UnboundGenericType1()
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="C">
     <file name="a.vb">
 Interface I1
@@ -245,7 +245,7 @@ End Class
         <WorkItem(3898, "https://github.com/dotnet/roslyn/issues/3898")>
         Public Sub UnboundGenericType_IsSerializable()
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="C">
     <file name="a.vb"><![CDATA[
 

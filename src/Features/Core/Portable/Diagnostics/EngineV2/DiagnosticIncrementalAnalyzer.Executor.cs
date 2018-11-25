@@ -3,13 +3,13 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics.Log;
 using Microsoft.CodeAnalysis.Diagnostics.Telemetry;
 using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.CodeAnalysis.Execution;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.Options;
 using Microsoft.CodeAnalysis.Text;
@@ -27,10 +27,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         private class Executor
         {
             private readonly DiagnosticIncrementalAnalyzer _owner;
+            private readonly InProcOrRemoteHostAnalyzerRunner _diagnosticAnalyzerRunner;
 
             public Executor(DiagnosticIncrementalAnalyzer owner)
             {
                 _owner = owner;
+                _diagnosticAnalyzerRunner = new InProcOrRemoteHostAnalyzerRunner(_owner.Owner, _owner.HostDiagnosticUpdateSource);
             }
 
             public IEnumerable<DiagnosticData> ConvertToLocalDiagnostics(Document targetDocument, IEnumerable<Diagnostic> diagnostics, TextSpan? span = null)
@@ -76,6 +78,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                         var nullFilterSpan = (TextSpan?)null;
                         var diagnostics = await ComputeDiagnosticsAsync(analyzerDriverOpt, document, stateSet.Analyzer, kind, nullFilterSpan, cancellationToken).ConfigureAwait(false);
+
+                        // this is no-op in product. only run in test environment
+                        Logger.Log(functionId, (t, d, a, ds) => $"{GetDocumentLogMessage(t, d, a)}, {string.Join(Environment.NewLine, ds)}",
+                            title, document, stateSet.Analyzer, diagnostics);
 
                         // we only care about local diagnostics
                         return new DocumentAnalysisData(version, existingData.Items, diagnostics.ToImmutableArrayOrEmpty());
@@ -329,10 +335,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                     // create result map
                     var version = await GetDiagnosticVersionAsync(project, cancellationToken).ConfigureAwait(false);
-                    var builder = new DiagnosticAnalysisResultBuilder(project, version);
 
                     foreach (var analyzer in ideAnalyzers)
                     {
+                        var builder = new DiagnosticAnalysisResultBuilder(project, version);
+
                         if (analyzer is DocumentDiagnosticAnalyzer documentAnalyzer)
                         {
                             foreach (var document in project.Documents)
@@ -452,6 +459,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 // quick optimization to reduce allocations.
                 if (analyzerDriverOpt == null || !_owner.SupportAnalysisKind(analyzer, document.Project.Language, kind))
                 {
+                    LogSyntaxInfo(analyzerDriverOpt, document, analyzer, kind);
                     return ImmutableArray<Diagnostic>.Empty;
                 }
 
@@ -468,14 +476,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     case AnalysisKind.Syntax:
                         var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
                         var diagnostics = await analyzerDriverOpt.GetAnalyzerSyntaxDiagnosticsAsync(tree, oneAnalyzers, cancellationToken).ConfigureAwait(false);
+                        LogSyntaxInfo(document, analyzer, diagnostics, tree);
 
-                        Contract.Requires(diagnostics.Count() == CompilationWithAnalyzers.GetEffectiveDiagnostics(diagnostics, analyzerDriverOpt.Compilation).Count());
+                        Debug.Assert(diagnostics.Count() == CompilationWithAnalyzers.GetEffectiveDiagnostics(diagnostics, analyzerDriverOpt.Compilation).Count());
                         return diagnostics.ToImmutableArrayOrEmpty();
                     case AnalysisKind.Semantic:
                         var model = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                         diagnostics = await analyzerDriverOpt.GetAnalyzerSemanticDiagnosticsAsync(model, spanOpt, oneAnalyzers, cancellationToken).ConfigureAwait(false);
 
-                        Contract.Requires(diagnostics.Count() == CompilationWithAnalyzers.GetEffectiveDiagnostics(diagnostics, analyzerDriverOpt.Compilation).Count());
+                        Debug.Assert(diagnostics.Count() == CompilationWithAnalyzers.GetEffectiveDiagnostics(diagnostics, analyzerDriverOpt.Compilation).Count());
                         return diagnostics.ToImmutableArrayOrEmpty();
                     default:
                         return Contract.FailWithReturn<ImmutableArray<Diagnostic>>("shouldn't reach here");
@@ -492,7 +501,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 var enabled = await document.Project.HasSuccessfullyLoadedAsync(cancellationToken).ConfigureAwait(false);
 
-                Logger.Log(FunctionId.Diagnostics_SemanticDiagnostic, (a, d, e) => $"{a.ToString()}, ({d.FilePath ?? d.Name}), Enabled:{e}", analyzer, document, enabled);
+                Logger.Log(FunctionId.Diagnostics_SemanticDiagnostic, (a, d, e) => $"{a.ToString()}, ({d.Id}, {d.Project.Id}), Enabled:{e}", analyzer, document, enabled);
 
                 return enabled;
             }
@@ -577,8 +586,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                         ImmutableDictionary<DiagnosticAnalyzer, AnalyzerTelemetryInfo>.Empty);
                 }
 
-                var executor = project.Solution.Workspace.Services.GetService<ICodeAnalysisDiagnosticAnalyzerExecutor>();
-                return await executor.AnalyzeAsync(analyzerDriver, project, forcedAnalysis, cancellationToken).ConfigureAwait(false);
+                return await _diagnosticAnalyzerRunner.AnalyzeAsync(analyzerDriver, project, forcedAnalysis, cancellationToken).ConfigureAwait(false);
             }
 
             private IEnumerable<DiagnosticData> ConvertToLocalDiagnosticsWithCompilation(Document targetDocument, IEnumerable<Diagnostic> diagnostics, TextSpan? span = null)
@@ -701,6 +709,28 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                         Contract.Fail("shouldn't reach here");
                         break;
                 }
+            }
+
+            private static void LogSyntaxInfo(Document document, DiagnosticAnalyzer analyzer, ImmutableArray<Diagnostic> diagnostics, SyntaxTree tree)
+            {
+                if (!diagnostics.IsDefaultOrEmpty)
+                {
+                    return;
+                }
+
+                Logger.Log(FunctionId.Diagnostics_SyntaxDiagnostic,
+                    (d, a, t) => $"{d.Id}, {d.Project.Id}, {a.ToString()}, {t.Length}", document, analyzer, tree);
+            }
+
+            private static void LogSyntaxInfo(CompilationWithAnalyzers analyzerDriverOpt, Document document, DiagnosticAnalyzer analyzer, AnalysisKind kind)
+            {
+                if (kind != AnalysisKind.Syntax)
+                {
+                    return;
+                }
+
+                Logger.Log(FunctionId.Diagnostics_SyntaxDiagnostic,
+                    (r, d, a, k) => $"Driver: {r != null}, {d.Id}, {d.Project.Id}, {a.ToString()}, {k}", analyzerDriverOpt, document, analyzer, kind);
             }
         }
     }

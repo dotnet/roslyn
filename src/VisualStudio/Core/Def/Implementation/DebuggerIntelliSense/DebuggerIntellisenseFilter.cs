@@ -4,6 +4,7 @@ using System;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService;
 using Microsoft.VisualStudio.OLE.Interop;
@@ -22,6 +23,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
         private readonly ICommandHandlerServiceFactory _commandFactory;
         private readonly IWpfTextView _wpfTextView;
         private AbstractDebuggerIntelliSenseContext _context;
+        private IOleCommandTarget _originalNextCommandFilter;
 
         internal bool Enabled { get; set; }
 
@@ -38,12 +40,41 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
 
         internal void SetNextFilter(IOleCommandTarget nextFilter)
         {
-            this.NextCommandTarget = nextFilter;
+            _originalNextCommandFilter = nextFilter;
+            SetNextFilterWorker();
+        }
+
+        private void SetNextFilterWorker()
+        {
+            // We have a new _originalNextCommandFilter or new _context, reset NextCommandTarget chain based on their values.
+            // The chain is formed like this: 
+            // this.CurrentHandlers (legacy command handlers) 
+            //     -> IVsCommandHandlerServiceAdapter (our command handlers migrated to the modern editor commanding)
+            //            -> original next command filter
+            var nextCommandFilter = _originalNextCommandFilter;
+            // The next filter is set in response to debugger calling IVsImmediateStatementCompletion2.InstallStatementCompletion(),
+            // followed IVsImmediateStatementCompletion2.SetCompletionContext() that sets the context.
+            // Check context in case debugger hasn't called IVsImmediateStatementCompletion2.SetCompletionContext() yet - before that
+            // we cannot set up command handling on correct view and buffer.
+            if (_context != null)
+            {
+                // Chain in editor command handler service. It will execute all our command handlers migrated to the modern editor commanding
+                // on the same text view and buffer as this.CurrentHandlers.
+                var componentModel = (IComponentModel)LanguageService.SystemServiceProvider.GetService(typeof(SComponentModel));
+                var vsCommandHandlerServiceAdapterFactory = componentModel.GetService<IVsCommandHandlerServiceAdapterFactory>();
+                var vsCommandHandlerServiceAdapter = vsCommandHandlerServiceAdapterFactory.Create(ConvertTextView(),
+                    GetSubjectBufferContainingCaret(), // our override doesn't actually check the caret and always returns _context.Buffer
+                    nextCommandFilter);
+                nextCommandFilter = vsCommandHandlerServiceAdapter;
+            }
+
+            this.NextCommandTarget = nextCommandFilter;
         }
 
         internal void SetCommandHandlers(ITextBuffer buffer)
         {
             this.CurrentHandlers = _commandFactory.GetService(buffer);
+            SetNextFilterWorker();
         }
 
         // If they haven't given us a context, or we aren't enabled, we should pass along to the next thing in the chain,
@@ -89,7 +120,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
                 // legacy stuff they interfaced with. That means we get SCROLLUP if the user
                 // types escape, so treat SCROLLUP like CANCEL. It's actually a CANCEL.
                 case VSConstants.VSStd2KCmdID.SCROLLUP:
-                    ExecuteCancel(subjectBuffer, contentType, executeNextCommandTarget);
+                    ExecuteCancel(subjectBuffer, contentType, () =>
+                    {
+                        // We cannot just pass executeNextCommandTarget becuase it would execute SCROLLUP
+                        var cancelCmdGroupId = VSConstants.VSStd2K;
+                        NextCommandTarget.Exec(ref cancelCmdGroupId, (uint)VSConstants.VSStd2KCmdID.CANCEL, executeInformation, pvaIn, pvaOut);
+                    });
                     break;
 
                 // If we see a RETURN, and we're in the immediate window, we'll want to rebuild
@@ -110,7 +146,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
                             // target isn't the one we want, because we've
                             // definitely remapped buffers. Ask our context for
                             // the real subject buffer.
-                            this.ExecuteInvokeCompletionList(_context.Buffer, _context.ContentType, executeNextCommandTarget);
+                            ExecuteInvokeCompletionList(_context.Buffer, _context.ContentType, () =>
+                            {
+                                // We cannot just pass executeNextCommandTarget becuase it would execute TYPECHAR
+                                var showMemberListCmdGroupId = VSConstants.VSStd2K;
+                                NextCommandTarget.Exec(ref showMemberListCmdGroupId, (uint)VSConstants.VSStd2KCmdID.SHOWMEMBERLIST, 
+                                    executeInformation, pvaIn, pvaOut);
+                            });
                         }
                     }
 

@@ -67,52 +67,12 @@ namespace Microsoft.VisualStudio.LanguageServices
                 throw new ArgumentException(ServicesVSResources.The_given_DocumentId_did_not_come_from_the_Visual_Studio_workspace, nameof(documentId));
             }
 
-            if (project is IProjectCodeModelProvider provider)
+            if (project.ProjectCodeModel != null)
             {
-                var projectCodeModel = provider.ProjectCodeModel;
-                if (projectCodeModel.CanCreateFileCodeModelThroughProject(document.FilePath))
-                {
-                    return (EnvDTE.FileCodeModel)projectCodeModel.CreateFileCodeModelThroughProject(document.FilePath);
-                }
+                return project.ProjectCodeModel.GetOrCreateFileCodeModel(document.FilePath);
             }
 
             return null;
-        }
-
-        internal override bool RenameFileCodeModelInstance(DocumentId documentId, string newFilePath)
-        {
-            if (documentId == null)
-            {
-                return false;
-            }
-
-            var project = DeferredState.ProjectTracker.GetProject(documentId.ProjectId);
-            if (project == null)
-            {
-                return false;
-            }
-
-            var document = project.GetDocumentOrAdditionalDocument(documentId);
-            if (document == null)
-            {
-                return false;
-            }
-
-            var codeModelProvider = project as IProjectCodeModelProvider;
-            if (codeModelProvider == null)
-            {
-                return false;
-            }
-
-            var codeModelCache = codeModelProvider.ProjectCodeModel.GetCodeModelCache();
-            if (codeModelCache == null)
-            {
-                return false;
-            }
-
-            codeModelCache.OnSourceFileRenaming(document.FilePath, newFilePath);
-
-            return true;
         }
 
         internal override IInvisibleEditor OpenInvisibleEditor(DocumentId documentId)

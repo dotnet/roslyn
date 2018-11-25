@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -11,7 +10,6 @@ using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SolutionCrawler;
@@ -19,6 +17,7 @@ using Microsoft.CodeAnalysis.Versions;
 using Microsoft.VisualStudio.Designer.Interfaces;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribute
@@ -42,9 +41,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
         private IVSMDDesignerService _dotNotAccessDirectlyDesigner;
 
         public DesignerAttributeIncrementalAnalyzer(
+            IThreadingContext threadingContext,
             IServiceProvider serviceProvider,
             IForegroundNotificationService notificationService,
             IAsynchronousOperationListenerProvider listenerProvider)
+            : base(threadingContext)
         {
             _serviceProvider = serviceProvider;
             Contract.ThrowIfNull(_serviceProvider);
@@ -142,7 +143,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
 
             // CPS projects do not support designer attributes.  So we just skip these projects entirely.
             var vsWorkspace = project.Solution.Workspace as VisualStudioWorkspaceImpl;
-            var cps = await Task.Factory.StartNew(() => vsWorkspace?.IsCPSProject(project) == true, cancellationToken, TaskCreationOptions.None, this.ForegroundTaskScheduler).ConfigureAwait(false);
+
+            await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, cancellationToken);
+            var cps = vsWorkspace?.IsCPSProject(project) == true;
+
+            // The remainder of this method does not need to execute on the UI thread, but it's pointless to force a
+            // context switch if the caller of this method is the UI thread.
+
             _cpsProjects.TryAdd(project.Id, cps);
 
             // project is either cps or not. it doesn't change for same project
@@ -266,27 +273,27 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
         #region unused
         public Task NewSolutionSnapshotAsync(Solution solution, CancellationToken cancellationToken)
         {
-            return SpecializedTasks.EmptyTask;
+            return Task.CompletedTask;
         }
 
         public Task DocumentOpenAsync(Document document, CancellationToken cancellationToken)
         {
-            return SpecializedTasks.EmptyTask;
+            return Task.CompletedTask;
         }
 
         public Task DocumentCloseAsync(Document document, CancellationToken cancellationToken)
         {
-            return SpecializedTasks.EmptyTask;
+            return Task.CompletedTask;
         }
 
         public Task AnalyzeSyntaxAsync(Document document, InvocationReasons reasons, CancellationToken cancellationToken)
         {
-            return SpecializedTasks.EmptyTask;
+            return Task.CompletedTask;
         }
 
         public Task AnalyzeProjectAsync(Project project, bool semanticsChanged, InvocationReasons reasons, CancellationToken cancellationToken)
         {
-            return SpecializedTasks.EmptyTask;
+            return Task.CompletedTask;
         }
         #endregion
     }

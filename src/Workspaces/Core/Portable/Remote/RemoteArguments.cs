@@ -12,6 +12,24 @@ namespace Microsoft.CodeAnalysis.Remote
 {
     #region FindReferences
 
+    internal class SerializableFindReferencesSearchOptions
+    {
+        public bool AssociatePropertyReferencesWithSpecificAccessor;
+
+        public static SerializableFindReferencesSearchOptions Dehydrate(FindReferencesSearchOptions options)
+        {
+            return new SerializableFindReferencesSearchOptions
+            {
+                AssociatePropertyReferencesWithSpecificAccessor = options.AssociatePropertyReferencesWithSpecificAccessor
+            };
+        }
+
+        public FindReferencesSearchOptions Rehydrate()
+        {
+            return new FindReferencesSearchOptions(AssociatePropertyReferencesWithSpecificAccessor);
+        }
+    }
+
     internal class SerializableSymbolAndProjectId : IEquatable<SerializableSymbolAndProjectId>
     {
         public string SymbolKeyData;

@@ -107,6 +107,11 @@
         <target state="translated">Validation de ligne</target>
         <note />
       </trans-unit>
+      <trans-unit id="Implement_Abstract_Class_Or_Interface">
+        <source>Implement Abstract Class Or Interface</source>
+        <target state="translated">Implémenter une interface ou une classe abstraite</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>

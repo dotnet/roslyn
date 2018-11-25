@@ -1,24 +1,29 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using Microsoft.CodeAnalysis.Editor.Commands;
+using Microsoft.VisualStudio.Commanding;
+using Microsoft.VisualStudio.LanguageServices.CSharp;
+using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
+using VSCommanding = Microsoft.VisualStudio.Commanding;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
 {
     internal partial class EventHookupCommandHandler :
-        ICommandHandler<EscapeKeyCommandArgs>
+        VSCommanding.ICommandHandler<EscapeKeyCommandArgs>
     {
-        public void ExecuteCommand(EscapeKeyCommandArgs args, Action nextHandler)
+        public string DisplayName => CSharpVSResources.Generate_Event_Subscription;
+
+        public bool ExecuteCommand(EscapeKeyCommandArgs args, CommandExecutionContext context)
         {
             AssertIsForeground();
             EventHookupSessionManager.CancelAndDismissExistingSessions();
-            nextHandler();
+            return false;
         }
 
-        public CommandState GetCommandState(EscapeKeyCommandArgs args, Func<CommandState> nextHandler)
+        public VSCommanding.CommandState GetCommandState(EscapeKeyCommandArgs args)
         {
             AssertIsForeground();
-            return nextHandler();
+            return VSCommanding.CommandState.Unspecified;
         }
     }
 }

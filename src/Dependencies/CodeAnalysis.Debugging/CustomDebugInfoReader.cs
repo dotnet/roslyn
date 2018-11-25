@@ -8,7 +8,7 @@ using System.Globalization;
 using System.Text;
 using Microsoft.CodeAnalysis.PooledObjects;
 
-#pragma warning disable RS0010 // Avoid using cref tags with a prefix
+#pragma warning disable CA1200 // Avoid using cref tags with a prefix
 
 namespace Microsoft.CodeAnalysis.Debugging
 {

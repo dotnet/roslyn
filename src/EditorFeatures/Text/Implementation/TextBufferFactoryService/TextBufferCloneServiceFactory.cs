@@ -16,9 +16,9 @@ namespace Microsoft.CodeAnalysis.Text.Implementation.TextBufferFactoryService
         [ImportingConstructor]
         public TextBufferCloneServiceFactory(
             ITextBufferFactoryService textBufferFactoryService,
-            IContentTypeRegistryService contentTypeRegistry)
+            IContentTypeRegistryService contentTypeRegistryService)
         {
-            _singleton = new TextBufferCloneService((ITextBufferFactoryService3)textBufferFactoryService, contentTypeRegistry.UnknownContentType);
+            _singleton = new TextBufferCloneService((ITextBufferFactoryService3)textBufferFactoryService, contentTypeRegistryService);
         }
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
@@ -26,15 +26,17 @@ namespace Microsoft.CodeAnalysis.Text.Implementation.TextBufferFactoryService
             return _singleton;
         }
 
+        [Export(typeof(ITextBufferCloneService)), Shared]
         private class TextBufferCloneService : ITextBufferCloneService
         {
             private readonly ITextBufferFactoryService3 _textBufferFactoryService;
             private readonly IContentType _unknownContentType;
 
-            public TextBufferCloneService(ITextBufferFactoryService3 textBufferFactoryService, IContentType unknownContentType)
+            [ImportingConstructor]
+            public TextBufferCloneService(ITextBufferFactoryService3 textBufferFactoryService, IContentTypeRegistryService contentTypeRegistryService)
             {
                 _textBufferFactoryService = textBufferFactoryService;
-                _unknownContentType = unknownContentType;
+                _unknownContentType = contentTypeRegistryService.UnknownContentType;
             }
 
             public ITextBuffer Clone(SnapshotSpan span)

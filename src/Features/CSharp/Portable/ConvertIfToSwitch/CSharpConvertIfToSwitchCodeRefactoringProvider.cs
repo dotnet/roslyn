@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertIfToSwitch
             {
             }
 
-            protected override string Title => CSharpFeaturesResources.Convert_if_to_switch;
+            protected override string Title => CSharpFeaturesResources.Convert_to_switch;
 
             protected override IPattern<CasePatternSwitchLabelSyntax> CreatePatternFromExpression(ExpressionSyntax operand)
             {

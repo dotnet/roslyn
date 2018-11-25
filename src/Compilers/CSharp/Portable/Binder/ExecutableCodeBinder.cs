@@ -67,8 +67,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 map = LocalBinderFactory.BuildMap(_memberSymbol, _root, this, methodsWithYield, _binderUpdatedHandler);
                 foreach (var methodWithYield in methodsWithYield)
                 {
-                    Binder binder;
-                    if (map.TryGetValue(methodWithYield, out binder))
+                    Binder binder = this;
+                    if (methodWithYield.Kind() != SyntaxKind.GlobalStatement &&
+                        (methodWithYield == _root || map.TryGetValue(methodWithYield, out binder)))
                     {
                         Symbol containing = binder.ContainingMemberOrLambda;
 

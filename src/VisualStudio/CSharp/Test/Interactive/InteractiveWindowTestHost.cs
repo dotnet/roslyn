@@ -3,13 +3,12 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
-using System.ComponentModel.Composition.Hosting;
-using System.ComponentModel.Composition.Primitives;
 using System.Linq;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.InteractiveWindow;
-using Microsoft.VisualStudio.Telemetry;
 using Microsoft.VisualStudio.Text.Utilities;
 using Microsoft.VisualStudio.Utilities;
 
@@ -20,18 +19,18 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Interactive
         internal readonly IInteractiveWindow Window;
         internal readonly TestInteractiveEvaluator Evaluator;
 
-        private readonly CompositionContainer _exportProvider;
+        private readonly System.ComponentModel.Composition.Hosting.ExportProvider _exportProvider;
 
-        private static readonly Lazy<AggregateCatalog> s_lazyCatalog = new Lazy<AggregateCatalog>(() =>
-        {
-            var assemblies = new[] 
-            {
-                typeof(TestWaitIndicator).Assembly,
-                typeof(TestInteractiveEvaluator).Assembly,
-                typeof(IInteractiveWindow).Assembly
-            }.Concat(MinimalTestExportProvider.GetEditorAssemblies());
-            return new AggregateCatalog(assemblies.Select(a => new AssemblyCatalog(a)));
-        });
+        internal static readonly IExportProviderFactory ExportProviderFactory = ExportProviderCache.GetOrCreateExportProviderFactory(
+            ExportProviderCache.GetOrCreateAssemblyCatalog(
+                new[]
+                {
+                    typeof(TestWaitIndicator).Assembly,
+                    typeof(TestInteractiveEvaluator).Assembly,
+                    typeof(IInteractiveWindow).Assembly
+                }
+                .Concat(TestExportProvider.GetCSharpAndVisualBasicAssemblies())
+                .Concat(MinimalTestExportProvider.GetEditorAssemblies())));
 
         // Provide an export of ILoggingServiceInternal to work around https://devdiv.visualstudio.com/DevDiv/_workitems/edit/570290
         [Export(typeof(ILoggingServiceInternal))]
@@ -53,11 +52,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Interactive
             {
             }
 
-            public void PostEvent(DataModelEventType eventType, string eventName, TelemetryResult result = TelemetryResult.Success, params (string name, object property)[] namesAndProperties)
+            public void PostEvent(TelemetryEventType eventType, string eventName, TelemetryResult result = TelemetryResult.Success, params (string name, object property)[] namesAndProperties)
             {
             }
 
-            public void PostEvent(DataModelEventType eventType, string eventName, TelemetryResult result, IReadOnlyList<(string name, object property)> namesAndProperties)
+            public void PostEvent(TelemetryEventType eventType, string eventName, TelemetryResult result, IReadOnlyList<(string name, object property)> namesAndProperties)
             {
             }
 
@@ -66,11 +65,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Interactive
             }
         }
 
-        internal InteractiveWindowTestHost()
+        internal InteractiveWindowTestHost(ExportProvider exportProvider)
         {
-            _exportProvider = new CompositionContainer(
-                s_lazyCatalog.Value,
-                CompositionOptions.DisableSilentRejection | CompositionOptions.IsThreadSafe);
+            _exportProvider = exportProvider.AsExportProvider();
 
             var contentTypeRegistryService = _exportProvider.GetExport<IContentTypeRegistryService>().Value;
             Evaluator = new TestInteractiveEvaluator();

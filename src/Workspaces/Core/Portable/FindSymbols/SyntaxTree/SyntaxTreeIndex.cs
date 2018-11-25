@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -35,7 +36,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         public static async Task PrecalculateAsync(Document document, CancellationToken cancellationToken)
         {
-            Contract.Requires(document.IsFromPrimaryBranch());
+            Debug.Assert(document.IsFromPrimaryBranch());
 
             var checksum = await GetChecksumAsync(document, cancellationToken).ConfigureAwait(false);
 

@@ -1,16 +1,19 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
 using System.Text;
+using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.PdbUtilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -19,8 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
     public class PDBSourceLinkTests : CSharpPDBTestBase
     {
         [Theory]
-        [InlineData(DebugInformationFormat.Pdb)]
-        [InlineData(DebugInformationFormat.PortablePdb)]
+        [MemberData(nameof(ExternalPdbFormats))]
         public void SourceLink(DebugInformationFormat format)
         {
             string source = @"
@@ -96,9 +98,7 @@ class C
         }
 
         [Theory]
-        [InlineData(DebugInformationFormat.Pdb)]
-        [InlineData(DebugInformationFormat.Embedded)]
-        [InlineData(DebugInformationFormat.PortablePdb)]
+        [MemberData(nameof(PdbFormats))]
         public void SourceLink_Errors(DebugInformationFormat format)
         {
             string source = @"
@@ -122,9 +122,46 @@ class C
                 Diagnostic(ErrorCode.FTL_DebugEmitFailure).WithArguments("Error!").WithLocation(1, 1));
         }
 
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        public void SourceLink_Errors_NotSupportedByPdbWriter()
+        {
+            string source = @"
+using System;
+
+class C
+{
+    public static void Main()
+    {
+        Console.WriteLine();
+    }
+}
+";
+            var c = CreateCompilation(Parse(source, "f:/build/goo.cs"), options: TestOptions.DebugDll);
+
+            var result = c.Emit(
+                peStream: new MemoryStream(),
+                metadataPEStream: null,
+                pdbStream: new MemoryStream(),
+                xmlDocumentationStream: null,
+                cancellationToken: default,
+                win32Resources: null,
+                manifestResources: null,
+                options: EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.Pdb),
+                debugEntryPoint: null,
+                sourceLinkStream: new MemoryStream(new byte[] { 1, 2, 3 }),
+                embeddedTexts: null,
+                testData: new CompilationTestData()
+                {
+                    SymWriterFactory = metadataProvider => new SymUnmanagedWriterWithoutSourceLinkSupport(metadataProvider)
+                });
+
+            result.Diagnostics.Verify(
+                // error CS0041: Unexpected error writing debug information -- 'Windows PDB writer doesn't support SourceLink feature: '<lib name>''
+                Diagnostic(ErrorCode.FTL_DebugEmitFailure).WithArguments(string.Format(CodeAnalysisResources.SymWriterDoesNotSupportSourceLink, "<lib name>")));
+        }
+
         [Theory]
-        [InlineData(DebugInformationFormat.Pdb)]
-        [InlineData(DebugInformationFormat.PortablePdb)]
+        [MemberData(nameof(ExternalPdbFormats))]
         public void SourceLink_Empty(DebugInformationFormat format)
         {
             string source = @"

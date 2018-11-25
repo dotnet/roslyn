@@ -1,11 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Composition;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -161,7 +159,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateVariable
 
                 var declarationStatement = SyntaxFactory.LocalDeclarationStatement(
                     SyntaxFactory.VariableDeclaration(
-                        GenerateTypeSyntax(type, options, assignExpression, semanticModel, cancellationToken),
+                        type.GenerateTypeSyntax(),
                         SyntaxFactory.SingletonSeparatedList(
                             SyntaxFactory.VariableDeclarator(token, null, SyntaxFactory.EqualsValueClause(
                                 assignExpression.OperatorToken, assignExpression.Right)))));
@@ -175,26 +173,6 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateVariable
 
             newRoot = null;
             return false;
-        }
-
-        private static TypeSyntax GenerateTypeSyntax(ITypeSymbol type, OptionSet options, ExpressionSyntax expression, SemanticModel semanticModel, CancellationToken cancellationToken)
-        {
-            // if there isn't a semantic model, we cannot perform further analysis.
-            if (semanticModel != null)
-            {
-                if (type.ContainsAnonymousType())
-                {
-                    return SyntaxFactory.IdentifierName("var");
-                }
-
-                if (type.TypeKind != TypeKind.Delegate &&
-                    TypeStyleHelper.IsImplicitTypePreferred(expression, semanticModel, options, cancellationToken))
-                {
-                    return SyntaxFactory.IdentifierName("var");
-                }
-            }
-
-            return type.GenerateTypeSyntax();
         }
     }
 }

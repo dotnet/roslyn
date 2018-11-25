@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
 
         public abstract bool CanOfferUseExpressionBody(OptionSet optionSet, SyntaxNode declaration, bool forAnalyzer);
         public abstract (bool canOffer, bool fixesError) CanOfferUseBlockBody(OptionSet optionSet, SyntaxNode declaration, bool forAnalyzer);
-        public abstract SyntaxNode Update(SyntaxNode declaration, OptionSet options, ParseOptions parseOptions, bool useExpressionBody);
+        public abstract SyntaxNode Update(SemanticModel semanticModel, SyntaxNode declaration, OptionSet options, ParseOptions parseOptions, bool useExpressionBody);
 
         public abstract Location GetDiagnosticLocation(SyntaxNode declaration);
 

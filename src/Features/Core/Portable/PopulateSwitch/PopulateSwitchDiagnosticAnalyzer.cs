@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
                     .Add(PopulateSwitchHelpers.MissingDefaultCase, missingDefaultCase.ToString());
 
                 var diagnostic = Diagnostic.Create(
-                    HiddenDescriptor,
+                    Descriptor,
                     switchBlock.GetFirstToken().GetLocation(),
                     properties: properties,
                     additionalLocations: new[] { switchBlock.GetLocation() });

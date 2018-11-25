@@ -324,9 +324,10 @@ class C
                 Diagnostic(ErrorCode.WRN_UnreferencedEvent, "d2").WithArguments("A.d2")
             });
 
-            var verifier = this.CompileAndVerifyOnWin8Only(
+            var verifier = this.CompileAndVerify(
                 src,
-                additionalRefs: new[] {
+                targetFramework: TargetFramework.Empty,
+                references: new[] {
                     MscorlibRef_v4_0_30316_17626,
                     SystemCoreRef_v4_0_30319_17929,
                     CSharpRef,
@@ -3288,7 +3289,7 @@ class C
     }
 }
 ";
-            CreateCompilation(source, WinRtRefs, TestOptions.ReleaseWinMD).VerifyDiagnostics(
+            CreateEmptyCompilation(source, WinRtRefs, TestOptions.ReleaseWinMD).VerifyDiagnostics(
                 // (9,17): error CS7084: A Windows Runtime event may not be passed as an out or ref parameter.
                 //         Ref(ref Instance);
                 Diagnostic(ErrorCode.ERR_WinRtEventPassedByRef, "Instance").WithArguments("C.Instance"),
@@ -3408,7 +3409,7 @@ namespace System.Runtime.InteropServices.WindowsRuntime
 }
 ";
 
-            var compilation = CreateCompilationWithILAndMscorlib40("", il, references: WinRtRefs);
+            var compilation = CreateCompilationWithIL("", il, targetFramework: TargetFramework.Empty, references: WinRtRefs);
 
             var type = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("Events");
             var instanceEvent = type.GetMember<EventSymbol>("Instance");

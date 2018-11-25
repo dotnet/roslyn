@@ -4,17 +4,16 @@ Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
 Imports Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
 Imports Microsoft.CodeAnalysis.PickMembers
-Imports Microsoft.CodeAnalysis.VisualBasic.GenerateEqualsAndGetHashCodeFromMembers
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.GenerateConstructorFromMembers
     Public Class GenerateEqualsAndGetHashCodeFromMembersTests
         Inherits AbstractVisualBasicCodeActionTest
 
-        Private Const GenerateOperatorsId = AbstractGenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider.GenerateOperatorsId
-        Private Const ImplementIEquatableId = AbstractGenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider.ImplementIEquatableId
+        Private Const GenerateOperatorsId = GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider.GenerateOperatorsId
+        Private Const ImplementIEquatableId = GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider.ImplementIEquatableId
 
         Protected Overrides Function CreateCodeRefactoringProvider(workspace As Workspace, parameters As TestParameters) As CodeRefactoringProvider
-            Return New VisualBasicGenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider(
+            Return New GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider(
                 DirectCast(parameters.fixProviderData, IPickMembersService))
         End Function
 
@@ -104,6 +103,146 @@ Partial Class c1(Of V As {New}, U)
                EqualityComparer(Of V).Default.Equals(x, c.x)
     End Function
 End Class")
+        End Function
+
+        <WorkItem(17643, "https://github.com/dotnet/roslyn/issues/17643")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)>
+        Public Async Function TestWithDialogNoBackingField() As Task
+            Await TestWithPickMembersDialogAsync(
+"
+Class Program
+    Public Property F() As Integer
+    [||]
+End Class",
+"
+Class Program
+    Public Property F() As Integer
+
+    Public Overrides Function Equals(obj As Object) As Boolean
+        Dim program = TryCast(obj, Program)
+        Return program IsNot Nothing AndAlso
+               F = program.F
+    End Function
+End Class",
+chosenSymbols:=Nothing)
+        End Function
+
+        <WorkItem(25690, "https://github.com/dotnet/roslyn/issues/25690")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)>
+        Public Async Function TestWithDialogNoParameterizedProperty() As Task
+            Await TestWithPickMembersDialogAsync(
+"
+Class Program
+    Public ReadOnly Property P() As Integer
+        Get
+            Return 0
+        End Get
+    End Property
+    Public ReadOnly Property I(index As Integer) As Integer
+        Get
+            Return 0
+        End Get
+    End Property
+    [||]
+End Class",
+"
+Class Program
+    Public ReadOnly Property P() As Integer
+        Get
+            Return 0
+        End Get
+    End Property
+    Public ReadOnly Property I(index As Integer) As Integer
+        Get
+            Return 0
+        End Get
+    End Property
+
+    Public Overrides Function Equals(obj As Object) As Boolean
+        Dim program = TryCast(obj, Program)
+        Return program IsNot Nothing AndAlso
+               P = program.P
+    End Function
+End Class",
+chosenSymbols:=Nothing)
+        End Function
+
+        <WorkItem(25690, "https://github.com/dotnet/roslyn/issues/25690")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)>
+        Public Async Function TestWithDialogNoIndexer() As Task
+            Await TestWithPickMembersDialogAsync(
+"
+Class Program
+    Public ReadOnly Property P() As Integer
+        Get
+            Return 0
+        End Get
+    End Property
+    Default Public ReadOnly Property I(index As Integer) As Integer
+        Get
+            Return 0
+        End Get
+    End Property
+    [||]
+End Class",
+"
+Class Program
+    Public ReadOnly Property P() As Integer
+        Get
+            Return 0
+        End Get
+    End Property
+    Default Public ReadOnly Property I(index As Integer) As Integer
+        Get
+            Return 0
+        End Get
+    End Property
+
+    Public Overrides Function Equals(obj As Object) As Boolean
+        Dim program = TryCast(obj, Program)
+        Return program IsNot Nothing AndAlso
+               P = program.P
+    End Function
+End Class",
+chosenSymbols:=Nothing)
+        End Function
+
+        <WorkItem(25707, "https://github.com/dotnet/roslyn/issues/25707")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)>
+        Public Async Function TestWithDialogNoSetterOnlyProperty() As Task
+            Await TestWithPickMembersDialogAsync(
+"
+Class Program
+    Public ReadOnly Property P() As Integer
+        Get
+            Return 0
+        End Get
+    End Property
+    Public WriteOnly Property S() As Integer
+        Set
+        End Set
+    End Property
+    [||]
+End Class",
+"
+Class Program
+    Public ReadOnly Property P() As Integer
+        Get
+            Return 0
+        End Get
+    End Property
+    Public WriteOnly Property S() As Integer
+        Set
+        End Set
+    End Property
+
+    Public Overrides Function Equals(obj As Object) As Boolean
+        Dim program = TryCast(obj, Program)
+        Return program IsNot Nothing AndAlso
+               P = program.P
+    End Function
+End Class",
+chosenSymbols:=Nothing)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)>

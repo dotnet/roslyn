@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Interop;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Input
@@ -193,7 +194,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Input
                 }
             }
 
-            _visualStudioInstance.WaitForApplicationIdle();
+            _visualStudioInstance.WaitForApplicationIdle(CancellationToken.None);
         }
     }
 }

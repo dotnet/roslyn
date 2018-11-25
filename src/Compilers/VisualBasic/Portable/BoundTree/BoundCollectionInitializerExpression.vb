@@ -12,7 +12,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Sub Validate()
             If Not Me.HasErrors Then
                 For Each initializer In Me.Initializers
-                    Debug.Assert(initializer.Kind = BoundKind.Call)
+                    Debug.Assert(initializer.Kind = BoundKind.Call OrElse initializer.Kind = BoundKind.LateInvocation)
                 Next
             End If
         End Sub

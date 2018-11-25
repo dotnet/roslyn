@@ -1,34 +1,33 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.CodeAnalysis.Text;
-using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Editing
 {
+    [UseExportProvider]
     public class SyntaxEditorTests
     {
-        private readonly Workspace _emptyWorkspace = new AdhocWorkspace();
+        private Workspace _emptyWorkspace;
+
+        private Workspace EmptyWorkspace
+            => _emptyWorkspace ?? (_emptyWorkspace = new AdhocWorkspace());
 
         private async Task VerifySyntaxAsync<TSyntax>(SyntaxNode node, string expectedText) where TSyntax : SyntaxNode
         {
             Assert.IsAssignableFrom(typeof(TSyntax), node);
-            var formatted = await Formatter.FormatAsync(node, _emptyWorkspace);
+            var formatted = await Formatter.FormatAsync(node, EmptyWorkspace);
             var actualText = formatted.ToFullString();
             Assert.Equal(expectedText, actualText);
         }
 
         private SyntaxEditor GetEditor(SyntaxNode root)
         {
-            return new SyntaxEditor(root, _emptyWorkspace);
+            return new SyntaxEditor(root, EmptyWorkspace);
         }
 
         [Fact]

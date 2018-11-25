@@ -4369,17 +4369,17 @@ public partial class D { }
 public partial class E { }
 ";
 
-            var tree1 = Parse(source1, options: TestOptions.RegularWithDocumentationComments.WithLanguageVersion(LanguageVersion.Latest));
-            var tree2 = Parse(source2, options: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            var tree1 = Parse(source1, options: TestOptions.Regular.WithDocumentationMode(DocumentationMode.Diagnose).WithLanguageVersion(LanguageVersion.Latest));
+            var tree2 = Parse(source2, options: TestOptions.Regular.WithDocumentationMode(DocumentationMode.None).WithLanguageVersion(LanguageVersion.Latest));
 
             // This scenario does not exist in dev11, but the diagnostics seem reasonable.
             CreateCompilation(new[] { tree1, tree2 }).VerifyDiagnostics(
                 // (5,22): warning CS1591: Missing XML comment for publicly visible type or member 'D'
                 // public partial class D { }
-                Diagnostic(ErrorCode.WRN_MissingXMLComment, "D").WithArguments("D"),
+                Diagnostic(ErrorCode.WRN_MissingXMLComment, "D").WithArguments("D").WithLocation(5, 22),
                 // (7,22): warning CS1591: Missing XML comment for publicly visible type or member 'E'
                 // public partial class E { }
-                Diagnostic(ErrorCode.WRN_MissingXMLComment, "E").WithArguments("E"));
+                Diagnostic(ErrorCode.WRN_MissingXMLComment, "E").WithArguments("E").WithLocation(7, 22));
         }
 
         [Fact]

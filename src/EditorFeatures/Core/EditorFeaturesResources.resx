@@ -631,7 +631,7 @@
     <value>Do you still want to proceed? it will generate broken code.</value>
   </data>
   <data name="We_can_fix_the_error_by_not_making_struct_out_ref_parameter_s_Do_you_want_to_proceed" xml:space="preserve">
-    <value>We can fix the error by not making struct "out/ref" parameter(s). 
+    <value>We can fix the error by not making struct "out/ref" parameter(s).
 Do you want to proceed?</value>
   </data>
   <data name="Change_Signature_colon" xml:space="preserve">
@@ -766,5 +766,65 @@ Do you want to proceed?</value>
   </data>
   <data name="Inline_Rename_Field_Text" xml:space="preserve">
     <value>Inline Rename Field Text</value>
+  </data>
+  <data name="Block_Comment_Editing" xml:space="preserve">
+    <value>Block Comment Editing</value>
+  </data>
+  <data name="Comment_Uncomment_Selection" xml:space="preserve">
+    <value>Comment/Uncomment Selection</value>
+  </data>
+  <data name="Code_Completion" xml:space="preserve">
+    <value>Code Completion</value>
+  </data>
+  <data name="Execute_In_Interactive" xml:space="preserve">
+    <value>Execute In Interactive</value>
+  </data>
+  <data name="Extract_Interface" xml:space="preserve">
+    <value>Extract Interface</value>
+  </data>
+  <data name="Go_To_Adjacent_Member" xml:space="preserve">
+    <value>Go To Adjacent Member</value>
+  </data>
+  <data name="Interactive" xml:space="preserve">
+    <value>Interactive</value>
+  </data>
+  <data name="Paste_in_Interactive" xml:space="preserve">
+    <value>Paste in Interactive</value>
+  </data>
+  <data name="Navigate_To_Highlight_Reference" xml:space="preserve">
+    <value>Navigate To Highlighted Reference</value>
+  </data>
+  <data name="Outlining" xml:space="preserve">
+    <value>Outlining</value>
+  </data>
+  <data name="Rename_Tracking_Cancellation" xml:space="preserve">
+    <value>Rename Tracking Cancellation</value>
+  </data>
+  <data name="Signature_Help" xml:space="preserve">
+    <value>Signature Help</value>
+  </data>
+  <data name="Smart_Token_Formatter" xml:space="preserve">
+    <value>Smart Token Formatter</value>
+  </data>
+  <data name="Code_cleanup_is_not_configured" xml:space="preserve">
+    <value>Code cleanup is not configured</value>
+  </data>
+  <data name="Format_document_performed_additional_cleanup" xml:space="preserve">
+    <value>Format Document performed additional cleanup</value>
+  </data>
+  <data name="Configure_it_now" xml:space="preserve">
+    <value>Configure it now</value>
+  </data>
+  <data name="Do_not_show_this_message_again" xml:space="preserve">
+    <value>Do not show this message again</value>
+  </data>
+  <data name="Applying_changes" xml:space="preserve">
+    <value>Applying changes</value>
+  </data>
+  <data name="String_Escape_Character" xml:space="preserve">
+    <value>String - Escape Character</value>
+  </data>
+  <data name="Change_configuration" xml:space="preserve">
+    <value>Change configuration</value>
   </data>
 </root>

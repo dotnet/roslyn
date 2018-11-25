@@ -816,7 +816,7 @@ dynamic x = 0;
                 source: source,
                 parseOptions: TestOptions.Script,
                 options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
-                references: new[] { SystemCoreRef, DesktopCSharpRef });
+                references: new[] { SystemCoreRef, CSharpDesktopRef });
 
             CompileAndVerify(comp, symbolValidator: module =>
             {

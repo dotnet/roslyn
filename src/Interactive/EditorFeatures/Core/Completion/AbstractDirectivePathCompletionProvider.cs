@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Scripting;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.Editor.Completion.FileSystem
 {
@@ -151,7 +152,7 @@ namespace Microsoft.CodeAnalysis.Editor.Completion.FileSystem
             if (!PathUtilities.IsAbsolute(result))
             {
                 result = environmentOpt?.BaseDirectory;
-                Contract.Requires(result == null || PathUtilities.IsAbsolute(result));
+                Debug.Assert(result == null || PathUtilities.IsAbsolute(result));
             }
 
             return result;

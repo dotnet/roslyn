@@ -1,17 +1,14 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
-using System.Diagnostics;
+using System.Collections.Immutable;
 using System.IO;
-using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Roslyn.Utilities;
-using VSLangProj;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.Legacy
 {
@@ -53,10 +50,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
             base.SetArguments(commandLine: string.Empty);
         }
 
-        /// <summary>
-        /// string (Guid) of the Hierarchy project type
-        /// </summary>
-        public string ProjectType => GetProjectType(Hierarchy);
+        protected LinkedFileUtilities LinkedFileUtilities
+            => ProjectTracker.LinkedFileUtilities;
 
         public override void Disconnect()
         {
@@ -69,7 +64,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
         protected void AddFile(string filename, SourceCodeKind sourceCodeKind)
         {
             bool getIsCurrentContext(IVisualStudioHostDocument document) => LinkedFileUtilities.IsCurrentContextHierarchy(document, RunningDocumentTable);
-            AddFile(filename, sourceCodeKind, getIsCurrentContext, GetFolderNamesFromHierarchy);
+            var itemid = Hierarchy?.TryGetItemId(filename) ?? VSConstants.VSITEMID_NIL;
+
+            var folderNames = ImmutableArray<string>.Empty;
+
+            if (itemid != VSConstants.VSITEMID_NIL)
+            {
+                folderNames = GetFolderNamesFromHierarchy(itemid);
+            }
+
+            AddFile(filename, sourceCodeKind, getIsCurrentContext, folderNames);
         }
 
         protected void SetOutputPathAndRelatedData(string objOutputPath)
@@ -126,22 +130,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
         internal static string GetProjectFilePath(IVsHierarchy hierarchy)
         {
             return ErrorHandler.Succeeded(((IVsProject3)hierarchy).GetMkDocument((uint)VSConstants.VSITEMID.Root, out var filePath)) ? filePath : null;
-        }
-
-        private static string GetProjectType(IVsHierarchy hierarchy)
-        {
-            var aggregatableProject = hierarchy as IVsAggregatableProject;
-            if (aggregatableProject == null)
-            {
-                return string.Empty;
-            }
-
-            if (ErrorHandler.Succeeded(aggregatableProject.GetAggregateProjectTypeGuids(out var projectType)))
-            {
-                return projectType;
-            }
-
-            return string.Empty;
         }
 
         private static Guid GetProjectIDGuid(IVsHierarchy hierarchy)

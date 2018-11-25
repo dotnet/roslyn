@@ -1,5 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+// Tests COM call into the CLR to compare identities
+#if NET46
+
 using System;
 using System.Globalization;
 using System.IO;
@@ -221,3 +224,5 @@ namespace Microsoft.CodeAnalysis.UnitTests.MetadataReferences
         }
     }
 }
+
+#endif

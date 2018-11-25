@@ -39,17 +39,16 @@ function Publish-NuGet([string]$packageDir, [string]$uploadUrl) {
     Push-Location $packageDir
     try {
         Write-Host "Publishing $(Split-Path -leaf $packageDir) to $uploadUrl"
-        $packages = [xml](Get-Content "$packageDir\myget_org-packages.config")
         $apiKey = Get-PublishKey $uploadUrl
-        foreach ($package in $packages.packages.package) {
-            $nupkg = $package.id + "." + $package.version + ".nupkg"
+        foreach ($package in Get-ChildItem *.nupkg) {
+            $nupkg = Split-Path -Leaf $package
             Write-Host "  Publishing $nupkg"
             if (-not (Test-Path $nupkg)) {
                 throw "$nupkg does not exist"
             }
 
             if (-not $test) {
-                Exec-Console $dotnet "nuget push $nupkg --source $uploadUrl --apiKey $apiKey -v q"
+                Exec-Console $dotnet "nuget push $nupkg --source $uploadUrl --api-key $apiKey"
             }
         }
     } 
@@ -97,9 +96,10 @@ function Publish-Channel([string]$packageDir, [string]$name) {
 function Test-Entry($publishData, [switch]$isBranch) { 
     if ($isBranch) { 
         if ($publishData.nuget -ne $null) { 
-            $kind = $publishData.nugetKind;
-            if ($kind -ne "PerBuildPreRelease") {
-                throw "Branches are only allowed to publish PerBuildPreRelease"
+            foreach ($nugetKind in $publishData.nugetKind) {
+                if ($kind -ne "PerBuildPreRelease" -and $kind -ne "Shipping" -and $kind -ne "NonShipping") {
+                     throw "Branches are only allowed to publish Shipping, NonShipping, or PerBuildPreRelease"
+                }
             }
         }
     }
@@ -108,12 +108,12 @@ function Test-Entry($publishData, [switch]$isBranch) {
 # Publish a given entry: branch or release. 
 function Publish-Entry($publishData, [switch]$isBranch) { 
     Test-Entry $publishData -isBranch:$isBranch
-    $packageDir = Join-Path $nugetDir $publishData.nugetKind
-
 
     # First publish the NuGet packages to the specified feeds
-    foreach ($url in $publishData.nuget) { 
-        Publish-NuGet $packageDir $url
+    foreach ($url in $publishData.nuget) {
+        foreach ($nugetKind in $publishData.nugetKind) {
+            Publish-NuGet (Join-Path $nugetDir $nugetKind) $url
+        }
     }
 
     # Next publish the VSIX to the specified feeds

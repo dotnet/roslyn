@@ -18,9 +18,8 @@
     <XUnitWpfArguments>"$(OutDir)\$(AssemblyName).dll"</XUnitWpfArguments>
 
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
-    <ForceGenerationOfBindingRedirects>true</ForceGenerationOfBindingRedirects>
 
-    <RuntimeIdentifier Condition="'$(TargetFramework)' == 'net461' AND '$(RuntimeIdentifier)' == '' AND '$(OS)' == 'Windows_NT'">$(RoslynDesktopRuntimeIdentifier)</RuntimeIdentifier>
+    <RuntimeIdentifier Condition="'$(TargetFramework)' == 'net46' AND '$(RuntimeIdentifier)' == '' AND '$(OS)' == 'Windows_NT'">$(RoslynDesktopRuntimeIdentifier)</RuntimeIdentifier>
   </PropertyGroup>
 
   <Target Name="Test" DependsOnTargets="Build">
