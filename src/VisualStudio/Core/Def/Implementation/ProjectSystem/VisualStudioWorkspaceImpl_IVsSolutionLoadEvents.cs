@@ -23,6 +23,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
     {
         int IVsSolutionLoadEvents.OnBeforeOpenSolution(string pszSolutionFilename)
         {
+            GetProjectTrackerAndInitializeIfNecessary(ServiceProvider.GlobalProvider).OnBeforeOpenSolution();
             return VSConstants.S_OK;
         }
 

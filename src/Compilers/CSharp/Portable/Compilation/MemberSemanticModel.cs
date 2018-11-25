@@ -1396,8 +1396,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     case SyntaxKind.ThisConstructorInitializer:
                     case SyntaxKind.BaseConstructorInitializer:
-                    case SyntaxKind.ArrowExpressionClause:
                         return current;
+                    case SyntaxKind.ArrowExpressionClause:
+                        // If this is an arrow expression on a local function statement, then our bindable root is actually our parent syntax as it's
+                        // a statement in a function. If this is returned directly in IOperation, we'll end up with a separate tree.
+                        if (current.Parent == null || current.Parent.Kind() != SyntaxKind.LocalFunctionStatement)
+                        {
+                            return current;
+                        }
+                        break;
                 }
             }
 

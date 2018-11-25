@@ -3,6 +3,7 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Roslyn.VisualStudio.IntegrationTests.Basic
@@ -29,7 +30,7 @@ End Structure";
         {
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.NavigationBar)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar)]
         public void VerifyNavBar()
         {
             VisualStudio.Editor.SetText(TestSource);
@@ -70,7 +71,7 @@ End Structure";
             VisualStudio.Editor.Verify.CurrentLineText("Public Property $$B As Integer", assertCaretPosition: true, trimWhitespace: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.NavigationBar)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar)]
         public void CodeSpit()
         {
             VisualStudio.Editor.SetText(TestSource);
@@ -88,7 +89,7 @@ End Structure";
             VisualStudio.Editor.Verify.CurrentLineText("$$", assertCaretPosition: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.NavigationBar)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar)]
         public void VerifyOption()
         {
             VisualStudio.Workspace.SetFeatureOption("NavigationBarOptions", "ShowNavigationBar", "Visual Basic", "False");

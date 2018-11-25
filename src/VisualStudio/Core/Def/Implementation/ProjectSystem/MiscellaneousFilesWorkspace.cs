@@ -129,13 +129,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 // 2) the old file was a different extension that we weren't tracking, which may have now changed
                 if (TryUntrackClosingDocument(docCookie, pszMkDocumentOld) || TryGetLanguageInformation(pszMkDocumentOld) == null)
                 {
-                    // Add the new one, if appropriate. 
+                    // Add the new one, if appropriate.
                     TrackOpenedDocument(docCookie, pszMkDocumentNew);
                 }
             }
 
-            // When starting a diff, the RDT doesn't call OnBeforeDocumentWindowShow, but it does call 
-            // OnAfterAttributeChangeEx for the temporary buffer. The native IDE used this even to 
+            // When starting a diff, the RDT doesn't call OnBeforeDocumentWindowShow, but it does call
+            // OnAfterAttributeChangeEx for the temporary buffer. The native IDE used this even to
             // add misc files, so we'll do the same.
             if ((grfAttribs & (uint)__VSRDTATTRIB.RDTA_DocDataReloaded) != 0)
             {
@@ -200,7 +200,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 return;
             }
 
-            // We don't want to realize the document here unless it's already initialized. Document initialization is watched in 
+            // We don't want to realize the document here unless it's already initialized. Document initialization is watched in
             // OnAfterAttributeChangeEx and will retrigger this if it wasn't already done.
             if (_runningDocumentTable.IsDocumentInitialized(docCookie) && !_docCookieToWorkspaceRegistration.ContainsKey(docCookie))
             {
@@ -353,7 +353,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             var languageServices = Services.GetLanguageServices(languageInformation.LanguageName);
             var compilationOptionsOpt = languageServices.GetService<ICompilationFactoryService>()?.GetDefaultCompilationOptions();
-            var parseOptionsOpt = languageServices.GetService<ISyntaxTreeFactoryService>()?.GetDefaultParseOptions();
+
+            // Use latest language version which is more permissive, as we cannot find out language version of the project which the file belongs to
+            // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/575761
+            var parseOptionsOpt = languageServices.GetService<ISyntaxTreeFactoryService>()?.GetDefaultParseOptionsWithLatestLanguageVersion();
 
             if (parseOptionsOpt != null &&
                 compilationOptionsOpt != null &&
@@ -369,7 +372,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
                 var baseDirectory = PathUtilities.GetDirectoryName(filePath);
 
-                // TODO (https://github.com/dotnet/roslyn/issues/5325, https://github.com/dotnet/roslyn/issues/13886): 
+                // TODO (https://github.com/dotnet/roslyn/issues/5325, https://github.com/dotnet/roslyn/issues/13886):
                 // - Need to have a way to specify these somewhere in VS options.
                 // - Use RuntimeMetadataReferenceResolver like in InteractiveEvaluator.CreateMetadataReferenceResolver
                 // - Add default namespace imports, default metadata references to match csi.rsp

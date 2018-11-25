@@ -12,6 +12,7 @@ using Xunit;
 
 namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
 {
+    [UseExportProvider]
     public class CSharpCompilerOptionsTests : TestBase
     {
         [WpfFact]

@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Extensions;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Roslyn.Utilities;
@@ -23,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EventHookup
         private Mutex _testSessionHookupMutex;
 
         public EventHookupTestState(XElement workspaceElement, IDictionary<OptionKey, object> options)
-            : base(workspaceElement, GetExtraParts(), false)
+            : base(workspaceElement, excludedTypes: null, GetExtraParts(), false)
         {
 #pragma warning disable CS0618 // IQuickInfo* is obsolete, tracked by https://github.com/dotnet/roslyn/issues/24094
             _commandHandler = new EventHookupCommandHandler(Workspace.GetService<IInlineRenameService>(), Workspace.GetService<IQuickInfoBroker>(),
@@ -37,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EventHookup
 
         private static ComposableCatalog GetExtraParts()
         {
-            return MinimalTestExportProvider.CreateTypeCatalog(new[] { typeof(EventHookupCommandHandler), typeof(EventHookupQuickInfoSourceProvider) });
+            return ExportProviderCache.CreateTypeCatalog(new[] { typeof(EventHookupCommandHandler), typeof(EventHookupQuickInfoSourceProvider) });
         }
 
         public static EventHookupTestState CreateTestState(string markup, IDictionary<OptionKey, object> options = null)

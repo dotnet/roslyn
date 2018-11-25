@@ -5534,7 +5534,7 @@ namespace ConsoleApplication24
             //FTL_NoMessagesDLL = 2018,
             FTL_InvalidTarget = 2019,
             //ERR_BadTargetForSecondInputSet = 2020,    Roslyn doesn't support building two binaries at once!
-            FTL_InputFileNameTooLong = 2021,
+            FTL_InvalidInputFileName = 2021,
             //ERR_NoSourcesInLastInputSet = 2022,       Roslyn doesn't support building two binaries at once!
             WRN_NoConfigNotOnCommandLine = 2023,
             ERR_BadFileAlignment = 2024,

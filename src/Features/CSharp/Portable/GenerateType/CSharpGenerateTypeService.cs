@@ -493,6 +493,15 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
                 state.NameOrMemberAccessExpression as TypeSyntax, cancellationToken);
         }
 
+        private bool AllContainingTypesArePublicOrProtected(
+            State state,
+            SemanticModel semanticModel,
+            CancellationToken cancellationToken)
+        {
+            return semanticModel.AllContainingTypesArePublicOrProtected(
+                state.NameOrMemberAccessExpression as TypeSyntax, cancellationToken);
+        }
+
         protected override ImmutableArray<ITypeParameterSymbol> GetTypeParameters(
             State state,
             SemanticModel semanticModel,
@@ -554,6 +563,14 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
                     accessibilityConstraint == Accessibility.Internal)
                 {
                     accessibility = accessibilityConstraint;
+                }
+                else if (accessibilityConstraint == Accessibility.Protected ||
+                         accessibilityConstraint == Accessibility.ProtectedOrInternal)
+                {
+                    // If nested type is declared in public type then we should generate public type instead of internal
+                    accessibility = AllContainingTypesArePublicOrProtected(state, semanticModel, cancellationToken)
+                        ? Accessibility.Public
+                        : Accessibility.Internal;
                 }
             }
 

@@ -11,6 +11,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.LegacyProject
 {
     using static CSharpHelpers;
 
+    [UseExportProvider]
     public class CSharpReferenceTests
     {
         [WpfFact]

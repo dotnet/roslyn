@@ -929,7 +929,7 @@ IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: 
                   Children(1):
                       IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'S')
                         Children(1):
-                            IInstanceReferenceOperation (OperationKind.InstanceReference, Type: Program, IsInvalid, IsImplicit) (Syntax: 'S')
+                            IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: Program, IsInvalid, IsImplicit) (Syntax: 'S')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -1236,6 +1236,34 @@ IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: 
               null
         Right: 
           ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "Test") (Syntax: '"Test"')
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of AnonymousObjectCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/27338")>
+        Public Sub AnonymousTypeCreation_MixedInitializers()
+            Dim source = <![CDATA[
+Module Program
+    Sub M(a As Integer, o As Object)
+        o = New With { a, .b = 1 }'BIND:"New With { a, .b = 1 }"
+    End Sub
+End Module]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: <anonymous type: a As System.Int32, b As System.Int32>) (Syntax: 'New With { a, .b = 1 }')
+  Initializers(2):
+      IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'a')
+      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: '.b = 1')
+        Left: 
+          IPropertyReferenceOperation: Property <anonymous type: a As System.Int32, b As System.Int32>.b As System.Int32 (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'b')
+            Instance Receiver: 
+              null
+        Right: 
+          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty

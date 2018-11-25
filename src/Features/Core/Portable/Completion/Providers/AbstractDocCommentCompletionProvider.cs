@@ -223,6 +223,15 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 {
                     items.Add(GetItem(ReturnsElementName));
                 }
+
+                if (symbol is INamedTypeSymbol namedType && namedType.IsDelegateType())
+                {
+                    var delegateInvokeMethod = namedType.DelegateInvokeMethod;
+                    if (delegateInvokeMethod != null)
+                    {
+                        items.AddRange(GetParameterItems(delegateInvokeMethod.GetParameters(), syntax, ParameterElementName));
+                    }
+                }
             }
 
             return items;

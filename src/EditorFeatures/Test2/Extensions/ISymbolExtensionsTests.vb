@@ -5,7 +5,7 @@ Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
-
+    <[UseExportProvider]>
     Public Class ISymbolExtensionsTests
         Inherits TestBase
 

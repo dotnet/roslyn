@@ -17,6 +17,7 @@ Imports Roslyn.Test.Utilities
 Imports Roslyn.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ChangeSignature
+    <[UseExportProvider]>
     Public Class ReorderParametersViewModelTests
 
         <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>

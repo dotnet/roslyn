@@ -20,9 +20,4 @@
       <Link>Syntax.xml</Link>
     </Content>
   </ItemGroup>
-  <ItemGroup>
-    <PackageReference Include="Microsoft.NETCore.App" Version="$(MicrosoftNETCoreAppVersion)" />
-    <PackageReference Include="System.Xml.XmlDocument" Version="$(SystemXmlXmlDocumentVersion)" />
-    <PackageReference Include="System.Xml.XmlSerializer" Version="$(SystemXmlXmlSerializerVersion)" />
-  </ItemGroup>
 </Project>

@@ -88,14 +88,14 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
 
         private static SyntaxNode GetExpansionTargetForLocationPerLanguage(SyntaxToken tokenOrNode, Document document)
         {
-            var renameRewriterService = document.Project.LanguageServices.GetService<IRenameRewriterLanguageService>();
+            var renameRewriterService = document.GetLanguageService<IRenameRewriterLanguageService>();
             var complexifiedTarget = renameRewriterService.GetExpansionTargetForLocation(tokenOrNode);
             return complexifiedTarget;
         }
 
         private static bool LocalVariableConflictPerLanguage(SyntaxToken tokenOrNode, Document document, IEnumerable<ISymbol> newReferencedSymbols)
         {
-            var renameRewriterService = document.Project.LanguageServices.GetService<IRenameRewriterLanguageService>();
+            var renameRewriterService = document.GetLanguageService<IRenameRewriterLanguageService>();
             var isConflict = renameRewriterService.LocalVariableConflict(tokenOrNode, newReferencedSymbols);
             return isConflict;
         }

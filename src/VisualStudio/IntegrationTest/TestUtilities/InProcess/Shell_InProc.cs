@@ -13,8 +13,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         public string GetActiveWindowCaption()
             => InvokeOnUIThread(() => GetDTE().ActiveWindow.Caption);
 
-        public int GetHWnd()
-            => GetDTE().MainWindow.HWnd;
+        public IntPtr GetHWnd()
+            => (IntPtr)GetDTE().MainWindow.HWnd;
 
         public bool IsActiveTabProvisional()
             => InvokeOnUIThread(() =>

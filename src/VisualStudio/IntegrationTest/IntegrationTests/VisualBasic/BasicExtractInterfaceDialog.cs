@@ -4,6 +4,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess;
+using Roslyn.Test.Utilities;
 using Xunit;
 using ProjectUtils = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils;
 
@@ -21,7 +22,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
         {
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractInterface)]
         public void CoreScenario()
         {
             SetUpEditor(@"Class C$$
@@ -54,7 +55,7 @@ End Class");
 End Interface");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractInterface)]
         public void CheckFileName()
         {
             SetUpEditor(@"Class C2$$

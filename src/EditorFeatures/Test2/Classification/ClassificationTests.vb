@@ -5,6 +5,7 @@ Imports System.Threading
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Classification
 Imports Microsoft.CodeAnalysis.Editor.Implementation.Classification
+Imports Microsoft.CodeAnalysis.Editor.Shared.Extensions
 Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Host.Mef
@@ -12,10 +13,12 @@ Imports Microsoft.CodeAnalysis.Notification
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.VisualStudio.Text
+Imports Microsoft.VisualStudio.Text.Classification
 Imports Microsoft.VisualStudio.Text.Tagging
 Imports Roslyn.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
+    <[UseExportProvider]>
     Public Class ClassificationTests
         <WpfFact, WorkItem(13753, "https://github.com/dotnet/roslyn/issues/13753")>
         Public Async Function TestSemanticClassificationWithoutSyntaxTree() As Task
@@ -28,12 +31,12 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
                 </Project>
             </Workspace>
 
-            Dim exportProvider = MinimalTestExportProvider.CreateExportProvider(
-                TestExportProvider.CreateAssemblyCatalogWithCSharpAndVisualBasic().WithParts(
-                    GetType(NoCompilationEditorClassificationService)))
+            Dim exportProvider = ExportProviderCache _
+                .GetOrCreateExportProviderFactory(TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic().WithParts(GetType(NoCompilationEditorClassificationService))) _
+                .CreateExportProvider()
 
             Using workspace = TestWorkspace.Create(workspaceDefinition, exportProvider:=exportProvider)
-                Dim listenerProvider = New AsynchronousOperationListenerProvider()
+                Dim listenerProvider = exportProvider.GetExportedValue(Of IAsynchronousOperationListenerProvider)
 
                 Dim provider = New SemanticClassificationViewTaggerProvider(
                     workspace.GetService(Of IForegroundNotificationService),
@@ -62,6 +65,22 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
                 End Using
             End Using
         End Function
+
+        <WpfFact>
+        Public Sub TestFailOverOfMissingClassificationType()
+            Dim exportProvider = ExportProviderCache _
+                .GetOrCreateExportProviderFactory(TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic()) _
+                .CreateExportProvider()
+
+
+            Dim typeMap = exportProvider.GetExportedValue(Of ClassificationTypeMap)
+            Dim formatMap = exportProvider.GetExportedValue(Of IClassificationFormatMapService).GetClassificationFormatMap("tooltip")
+
+            Dim classifiedText = New ClassifiedText("UnknownClassificationType", "dummy")
+            Dim run = classifiedText.ToRun(formatMap, typeMap)
+
+            Assert.NotNull(run)
+        End Sub
 
 #Disable Warning BC40000 ' Type or member is obsolete
         <ExportLanguageService(GetType(IEditorClassificationService), "NoCompilation"), [Shared]>

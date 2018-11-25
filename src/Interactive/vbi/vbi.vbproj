@@ -7,7 +7,7 @@
     <PlatformTarget>AnyCPU</PlatformTarget>
     <OutputType>Exe</OutputType>
     <StartupObject>Sub Main</StartupObject>
-    <TargetFrameworks>$(RoslynPortableTargetFrameworks46)</TargetFrameworks>
+    <TargetFrameworks>$(RoslynPortableTargetFrameworks)</TargetFrameworks>
     <RuntimeIdentifiers>$(RoslynPortableRuntimeIdentifiers)</RuntimeIdentifiers>
     <RootNamespace></RootNamespace>
   </PropertyGroup>
@@ -20,9 +20,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
   <ItemGroup>
-    <PackageReference Include="Microsoft.NETCore.App" Version="$(MicrosoftNETCoreAppVersion)" Condition="'$(TargetFramework)' == 'netcoreapp2.0'" />
     <PackageReference Include="System.ValueTuple" Version="$(SystemValueTupleVersion)" />
-    <PackageReference Include="System.Dynamic.Runtime" Version="$(SystemDynamicRuntimeVersion)" />
     <PackageReference Include="Microsoft.VisualBasic" Version="$(MicrosoftVisualBasicVersion)" />
   </ItemGroup>
   <ItemGroup>

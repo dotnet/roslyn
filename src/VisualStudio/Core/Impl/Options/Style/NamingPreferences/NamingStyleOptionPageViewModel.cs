@@ -16,7 +16,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style
     internal class NamingStyleOptionPageViewModel : AbstractNotifyPropertyChanged
     {
         public string ManageSpecificationsButtonText => ServicesVSResources.Manage_specifications;
-        public string ManageStylesButtonText => ServicesVSResources.Manage_styles;
+        public string ManageStylesButtonText => ServicesVSResources.Manage_naming_styles;
 
         private readonly NotificationOptionViewModel[] _notifications = new[]
         {
@@ -92,7 +92,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style
             var symbolSpecifications = viewModel.Items.Cast<SymbolSpecificationViewModel>().Select(n => new SymbolSpecification(
                 n.ID,
                 n.ItemName,
-                n.SymbolKindList.Where(s => s.IsChecked).Select(k => k.CreateSymbolKindOrTypeKind()).ToImmutableArray(),
+                n.SymbolKindList.Where(s => s.IsChecked).Select(k => k.CreateSymbolOrTypeOrMethodKind()).ToImmutableArray(),
                 n.AccessibilityList.Where(s => s.IsChecked).Select(a => a._accessibility).ToImmutableArray(),
                 n.ModifierList.Where(s => s.IsChecked).Select(m => new SymbolSpecification.ModifierKind(m._modifier)).ToImmutableArray()));
 

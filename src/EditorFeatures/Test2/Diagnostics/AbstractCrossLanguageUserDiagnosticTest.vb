@@ -16,6 +16,7 @@ Imports Microsoft.CodeAnalysis.UnitTests.Diagnostics
 Imports Roslyn.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
+    <[UseExportProvider]>
     Partial Public MustInherit Class AbstractCrossLanguageUserDiagnosticTest
         Protected Const DestinationDocument = "DestinationDocument"
 
@@ -142,7 +143,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
             Dim document = workspace.CurrentSolution.GetDocument(hostDocument.Id)
 
-            Dim syntaxFacts = document.Project.LanguageServices.GetService(Of ISyntaxFactsService)()
+            Dim syntaxFacts = document.GetLanguageService(Of ISyntaxFactsService)()
             Dim root = Await document.GetSyntaxRootAsync()
             Dim start = syntaxFacts.GetContainingMemberDeclaration(root, invocationPoint)
 

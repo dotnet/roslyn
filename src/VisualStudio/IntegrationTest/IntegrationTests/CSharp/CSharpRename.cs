@@ -26,7 +26,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         {
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Rename)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Rename)]
         public void VerifyLocalVariableRename()
         {
             var markup = @"
@@ -81,7 +81,7 @@ class Program
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Rename)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Rename)]
         public void VerifyLocalVariableRenameWithCommentsUpdated()
         {
             // "variable" is intentionally misspelled as "varixable" and "this" is misspelled as
@@ -152,7 +152,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Rename)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Rename)]
         public void VerifyLocalVariableRenameWithStringsUpdated()
         {
             var markup = @"
@@ -203,7 +203,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Rename)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Rename)]
         public void VerifyOverloadsUpdated()
         {
             var markup = @"
@@ -248,7 +248,7 @@ class B : I
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Rename)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Rename)]
         public void VerifyMultiFileRename()
         {
             SetUpEditor(@"
@@ -294,7 +294,7 @@ class y
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Rename)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Rename)]
         public void VerifyRenameCancellation()
         {
             SetUpEditor(@"
@@ -351,7 +351,7 @@ class SomeOtherClass
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Rename)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Rename)]
         public void VerifyCrossProjectRename()
         {
             SetUpEditor(@"
@@ -397,7 +397,7 @@ class RenameRocks
 public class y { static void Main(string [] args) { } }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Rename)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Rename)]
         public void VerifyRenameUndo()
         {
             VerifyCrossProjectRename();
@@ -419,7 +419,7 @@ class RenameRocks
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Rename)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Rename)]
         public void VerifyRenameInStandaloneFiles()
         {
             VisualStudio.SolutionExplorer.CloseSolution();

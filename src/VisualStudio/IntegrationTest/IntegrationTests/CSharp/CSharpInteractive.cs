@@ -3,6 +3,7 @@
 using System;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
@@ -15,35 +16,35 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         {
         }
 
-        [Fact]
+        [WpfFact]
         public void BclMathCall()
         {
             VisualStudio.InteractiveWindow.SubmitText("Math.Sin(1)");
             VisualStudio.InteractiveWindow.WaitForLastReplOutput("0.8414709848078965");
         }
 
-        [Fact]
+        [WpfFact]
         public void BclConsoleCall()
         {
             VisualStudio.InteractiveWindow.SubmitText(@"Console.WriteLine(""Hello, World!"");");
             VisualStudio.InteractiveWindow.WaitForLastReplOutput("Hello, World!");
         }
 
-        [Fact]
+        [WpfFact]
         public void ForStatement()
         {
             VisualStudio.InteractiveWindow.SubmitText("for (int i = 0; i < 10; i++) Console.WriteLine(i * i);");
             VisualStudio.InteractiveWindow.WaitForLastReplOutputContains($"{81}");
         }
 
-        [Fact]
+        [WpfFact]
         public void ForEachStatement()
         {
             VisualStudio.InteractiveWindow.SubmitText(@"foreach (var f in System.IO.Directory.GetFiles(@""c:\windows"")) Console.WriteLine($""{f}"".ToLower());");
             VisualStudio.InteractiveWindow.WaitForLastReplOutputContains(@"c:\windows\win.ini");
         }
 
-        [Fact]
+        [WpfFact]
         public void TopLevelMethod()
         {
             VisualStudio.InteractiveWindow.SubmitText(@"int Fac(int x)
@@ -54,7 +55,7 @@ Fac(4)");
             VisualStudio.InteractiveWindow.WaitForLastReplOutput($"{24}");
         }
 
-        [Fact]
+        [WpfFact]
         public async Task WpfInteractionAsync()
         {
             VisualStudio.InteractiveWindow.SubmitText(@"#r ""WindowsBase""
@@ -93,7 +94,7 @@ w.Content = g;");
             VisualStudio.InteractiveWindow.SubmitText("b = null; w.Close(); w = null;");
         }
 
-        [Fact]
+        [WpfFact]
         public void TypingHelpDirectiveWorks()
         {
             VisualStudio.Workspace.SetUseSuggestionMode(true);

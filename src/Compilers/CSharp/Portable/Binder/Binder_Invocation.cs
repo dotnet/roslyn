@@ -199,6 +199,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     Error(diagnostics, ErrorCode.ERR_CantUseVoidInArglist, argument.Syntax);
                 }
+
+                switch (analyzedArguments.RefKind(i))
+                {
+                    case RefKind.None:
+                    case RefKind.Ref:
+                        break;
+                    default:
+                        // Disallow "in" or "out" arguments
+                        Error(diagnostics, ErrorCode.ERR_CantUseInOrOutInArglist, argument.Syntax);
+                        break;
+                }
             }
 
             ImmutableArray<BoundExpression> arguments = analyzedArguments.Arguments.ToImmutable();

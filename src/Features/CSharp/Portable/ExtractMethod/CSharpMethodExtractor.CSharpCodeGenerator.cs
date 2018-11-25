@@ -85,9 +85,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 return (node.Parent is GlobalStatementSyntax) ? node.Parent : node;
             }
 
-            protected override async Task<OperationStatus<IMethodSymbol>> GenerateMethodDefinitionAsync(CancellationToken cancellationToken)
+            protected override OperationStatus<IMethodSymbol> GenerateMethodDefinition(CancellationToken cancellationToken)
             {
-                var result = await CreateMethodBodyAsync(cancellationToken).ConfigureAwait(false);
+                var result = CreateMethodBody(cancellationToken);
 
                 var methodSymbol = CodeGenerationSymbolFactory.CreateMethodSymbol(
                     attributes: ImmutableArray<AttributeData>.Empty,
@@ -149,9 +149,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 var postProcessor = new PostProcessor(semanticModel, context.SpanStart);
                 var statements = SpecializedCollections.EmptyEnumerable<StatementSyntax>();
 
-                statements = await AddSplitOrMoveDeclarationOutStatementsToCallSiteAsync(statements, cancellationToken).ConfigureAwait(false);
+                statements = AddSplitOrMoveDeclarationOutStatementsToCallSite(statements, cancellationToken);
                 statements = postProcessor.MergeDeclarationStatements(statements);
-                statements = await AddAssignmentStatementToCallSiteAsync(statements, cancellationToken).ConfigureAwait(false);
+                statements = AddAssignmentStatementToCallSite(statements, cancellationToken);
                 statements = await AddInvocationAtCallSiteAsync(statements, cancellationToken).ConfigureAwait(false);
                 statements = AddReturnIfUnreachable(statements, cancellationToken);
 
@@ -220,11 +220,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                                 SyntaxKind.OutKeyword : SyntaxKind.None;
             }
 
-            private async Task<OperationStatus<ImmutableArray<SyntaxNode>>> CreateMethodBodyAsync(CancellationToken cancellationToken)
+            private OperationStatus<ImmutableArray<SyntaxNode>> CreateMethodBody(CancellationToken cancellationToken)
             {
                 var statements = GetInitialStatementsForMethodDefinitions();
 
-                statements = await SplitOrMoveDeclarationIntoMethodDefinitionAsync(statements, cancellationToken).ConfigureAwait(false);
+                statements = SplitOrMoveDeclarationIntoMethodDefinition(statements, cancellationToken);
                 statements = MoveDeclarationOutFromMethodDefinition(statements, cancellationToken);
                 statements = AppendReturnStatementIfNeeded(statements);
                 statements = CleanupCode(statements);
@@ -402,10 +402,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             }
 
             /// <summary>
-            /// If the statement has an `out var` declaration expression for a variable which
-            /// needs to be removed, we need to turn it into a plain `out` parameter, so that
+            /// If the statement has an <c>out var</c> declaration expression for a variable which
+            /// needs to be removed, we need to turn it into a plain <c>out</c> parameter, so that
             /// it doesn't declare a duplicate variable.
-            /// If the statement has a pattern declaration (such as `3 is int i`) for a variable
+            /// If the statement has a pattern declaration (such as <c>3 is int i</c>) for a variable
             /// which needs to be removed, we will annotate it as a conflict, since we don't have
             /// a better refactoring.
             /// </summary>
@@ -521,7 +521,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 return identifier;
             }
 
-            private async Task<IEnumerable<StatementSyntax>> SplitOrMoveDeclarationIntoMethodDefinitionAsync(
+            private IEnumerable<StatementSyntax> SplitOrMoveDeclarationIntoMethodDefinition(
                 IEnumerable<StatementSyntax> statements,
                 CancellationToken cancellationToken)
             {
@@ -529,7 +529,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 var context = this.InsertionPoint.GetContext();
                 var postProcessor = new PostProcessor(semanticModel, context.SpanStart);
 
-                var declStatements = await CreateDeclarationStatementsAsync(AnalyzerResult.GetVariablesToSplitOrMoveIntoMethodDefinition(cancellationToken), cancellationToken).ConfigureAwait(false);
+                var declStatements = CreateDeclarationStatements(AnalyzerResult.GetVariablesToSplitOrMoveIntoMethodDefinition(cancellationToken), cancellationToken);
                 declStatements = postProcessor.MergeDeclarationStatements(declStatements);
 
                 return declStatements.Concat(statements);
@@ -613,21 +613,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 return SyntaxFactory.ExpressionStatement(CreateAssignmentExpression(identifier, rvalue));
             }
 
-            protected override async Task<StatementSyntax> CreateDeclarationStatementAsync(
+            protected override StatementSyntax CreateDeclarationStatement(
                 VariableInfo variable,
                 ExpressionSyntax initialValue,
                 CancellationToken cancellationToken)
             {
-                // Convert to 'var' if appropriate.  Note: because we're extracting out
-                // to a method, the initialValue will be a method-call.  Types are not
-                // apperant with method calls (i.e. as opposed to a 'new XXX()' expression,
-                // where the type is apperant).
-
-                var options = await SemanticDocument.Document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
                 var type = variable.GetVariableType(this.SemanticDocument);
-                var typeNode = initialValue == null
-                    ? type.GenerateTypeSyntax()
-                    : type.GenerateTypeSyntaxOrVar(options, typeIsApparent: false);
+                var typeNode = type.GenerateTypeSyntax();
 
                 var equalsValueClause = initialValue == null ? null : SyntaxFactory.EqualsValueClause(value: initialValue);
 
@@ -662,14 +654,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     return methodDefinition.ReplaceToken(
                             methodDefinition.Body.OpenBraceToken,
                             methodDefinition.Body.OpenBraceToken.WithAppendedTrailingTrivia(
-                                SpecializedCollections.SingletonEnumerable(SyntaxFactory.CarriageReturnLineFeed)));
+                                SpecializedCollections.SingletonEnumerable(SyntaxFactory.ElasticCarriageReturnLineFeed)));
                 }
                 else if (methodDefinition.ExpressionBody != null)
                 {
                     return methodDefinition.ReplaceToken(
                             methodDefinition.ExpressionBody.ArrowToken,
                             methodDefinition.ExpressionBody.ArrowToken.WithPrependedLeadingTrivia(
-                                SpecializedCollections.SingletonEnumerable(SyntaxFactory.CarriageReturnLineFeed)));
+                                SpecializedCollections.SingletonEnumerable(SyntaxFactory.ElasticCarriageReturnLineFeed)));
                 }
                 else
                 {

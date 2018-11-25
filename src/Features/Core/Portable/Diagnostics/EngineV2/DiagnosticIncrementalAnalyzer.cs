@@ -289,12 +289,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
         private static string GetDocumentLogMessage(string title, Document document, DiagnosticAnalyzer analyzer)
         {
-            return $"{title}: ({document.FilePath ?? document.Name}), ({analyzer.ToString()})";
+            return $"{title}: ({document.Id}, {document.Project.Id}), ({analyzer.ToString()})";
         }
 
         private static string GetProjectLogMessage(Project project, IEnumerable<StateSet> stateSets)
         {
-            return $"project: ({project.FilePath ?? project.Name}), ({string.Join(Environment.NewLine, stateSets.Select(s => s.Analyzer.ToString()))})";
+            return $"project: ({project.Id}), ({string.Join(Environment.NewLine, stateSets.Select(s => s.Analyzer.ToString()))})";
         }
 
         private static string GetResetLogMessage(Document document)

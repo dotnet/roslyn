@@ -9,6 +9,7 @@ Imports Microsoft.VisualStudio.LanguageServices.Implementation.Progression
 Imports Microsoft.VisualStudio.LanguageServices.Progression
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
+    <[UseExportProvider]>
     Public Class GraphNodeCreationTests
         Private Async Function AssertCreatedNodeIsAsync(code As String, expectedId As String, xml As XElement, Optional language As String = "C#") As Task
             Using testState = ProgressionTestState.Create(

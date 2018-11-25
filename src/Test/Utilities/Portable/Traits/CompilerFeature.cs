@@ -24,6 +24,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         DefaultLiteral,
         AsyncMain,
         IOperation,
+        Dataflow,
         NonTrailingNamedArgs,
         PrivateProtected,
         PEVerifyCompat,

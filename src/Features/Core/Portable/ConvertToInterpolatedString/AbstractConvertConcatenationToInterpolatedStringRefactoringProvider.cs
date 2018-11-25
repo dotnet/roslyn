@@ -118,7 +118,8 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
                 if (currentContentIsStringLiteral)
                 {
                     var text = piece.GetFirstToken().Text;
-                    var textWithoutQuotes = GetTextWithoutQuotes(text, isVerbatimStringLiteral);
+                    var textWithEscapedBraces = text.Replace("{", "{{").Replace("}", "}}");
+                    var textWithoutQuotes = GetTextWithoutQuotes(textWithEscapedBraces, isVerbatimStringLiteral);
                     if (previousContentWasStringLiteralExpression)
                     {
                         // Last part we added to the content list was also an interpolated-string-text-node.
@@ -190,9 +191,9 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
                 return false;
             }
 
-            var method = semanticModel.GetSymbolInfo(expression, cancellationToken).Symbol as IMethodSymbol;
-            return method?.MethodKind == MethodKind.BuiltinOperator &&
-                   method.ContainingType.SpecialType == SpecialType.System_String &&
+            return semanticModel.GetSymbolInfo(expression, cancellationToken).Symbol is IMethodSymbol method &&
+                   method.MethodKind == MethodKind.BuiltinOperator &&
+                   method.ContainingType?.SpecialType == SpecialType.System_String &&
                    (method.MetadataName == WellKnownMemberNames.AdditionOperatorName ||
                     method.MetadataName == WellKnownMemberNames.ConcatenateOperatorName);
         }

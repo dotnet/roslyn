@@ -2,18 +2,20 @@
 
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.QualifyMemberAccess;
 
 namespace Microsoft.CodeAnalysis.CSharp.QualifyMemberAccess
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    internal sealed class CSharpQualifyMemberAccessDiagnosticAnalyzer : AbstractQualifyMemberAccessDiagnosticAnalyzer<SyntaxKind>
+    internal sealed class CSharpQualifyMemberAccessDiagnosticAnalyzer 
+        : AbstractQualifyMemberAccessDiagnosticAnalyzer<SyntaxKind, ExpressionSyntax, SimpleNameSyntax>
     {
         protected override string GetLanguageName()
             => LanguageNames.CSharp;
 
-        protected override bool IsAlreadyQualifiedMemberAccess(SyntaxNode node)
+        protected override bool IsAlreadyQualifiedMemberAccess(ExpressionSyntax node)
             => node.IsKind(SyntaxKind.ThisExpression);
 
         // If the member is already qualified with `base.`,
@@ -37,5 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.QualifyMemberAccess
 
         private bool IsInFieldInitialization(SyntaxNode declarationSyntax, SyntaxNode node)
             => declarationSyntax.GetAncestorsOrThis(n => n.IsKind(SyntaxKind.FieldDeclaration) && n.Contains(node)).Any();
+
+        protected override Location GetLocation(IOperation operation) => operation.Syntax.GetLocation();
     }
 }

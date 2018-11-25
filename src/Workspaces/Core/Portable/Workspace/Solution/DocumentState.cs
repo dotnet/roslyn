@@ -298,6 +298,15 @@ namespace Microsoft.CodeAnalysis
                 || oldState.textAndVersionSource != this.textAndVersionSource;
         }
 
+        /// <summary>
+        /// True if the Text has changed
+        /// </summary>
+        public bool HasTextChanged(DocumentState oldState)
+        {
+            return (oldState.sourceTextOpt != this.sourceTextOpt
+                || oldState.textAndVersionSource != this.textAndVersionSource);
+        }
+
         public DocumentState UpdateParseOptions(ParseOptions options)
         {
             var originalSourceKind = this.SourceCodeKind;
@@ -442,8 +451,8 @@ namespace Microsoft.CodeAnalysis
                 ? CreateStrongText(newTextAndVersion)
                 : CreateRecoverableText(newTextAndVersion, this.solutionServices);
 
-            // always chain incremental parsing request, it will internally put 
-            // appropriate request such as full parsing request if there are too many pending 
+            // always chain incremental parsing request, it will internally put
+            // appropriate request such as full parsing request if there are too many pending
             // incremental parsing requests hanging around.
             //
             // However, don't bother with the chaining if this is a document that doesn't support
@@ -587,7 +596,7 @@ namespace Microsoft.CodeAnalysis
             }
             else
             {
-                // uses CachedWeakValueSource so the document and tree will return the same SourceText instance across multiple accesses as long 
+                // uses CachedWeakValueSource so the document and tree will return the same SourceText instance across multiple accesses as long
                 // as the text is referenced elsewhere.
                 lazyTextAndVersion = new TreeTextSource(
                     new CachedWeakValueSource<SourceText>(
@@ -645,7 +654,8 @@ namespace Microsoft.CodeAnalysis
             return false;
         }
 
-        public async Task<SyntaxTree> GetSyntaxTreeAsync(CancellationToken cancellationToken)
+        [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/23582", OftenCompletesSynchronously = true)]
+        public async ValueTask<SyntaxTree> GetSyntaxTreeAsync(CancellationToken cancellationToken)
         {
             var treeAndVersion = await _treeSource.GetValueAsync(cancellationToken).ConfigureAwait(false);
 

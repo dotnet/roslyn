@@ -5966,7 +5966,7 @@ OverflowException");
   IL_000f:  ret
 }").VerifyIL("C.HasLengthChecked", @"
 {
-  // Code size       49 (0x31)
+  // Code size       48 (0x30)
   .maxstack  2
   .locals init (int? V_0,
                 int V_1,
@@ -5987,12 +5987,11 @@ OverflowException");
   IL_001d:  ldloca.s   V_0
   IL_001f:  call       ""int int?.GetValueOrDefault()""
   IL_0024:  ldloc.1
-  IL_0025:  beq.s      IL_0029
-  IL_0027:  ldc.i4.0
-  IL_0028:  ret
-  IL_0029:  ldloca.s   V_0
-  IL_002b:  call       ""bool int?.HasValue.get""
-  IL_0030:  ret
+  IL_0025:  ceq
+  IL_0027:  ldloca.s   V_0
+  IL_0029:  call       ""bool int?.HasValue.get""
+  IL_002e:  and
+  IL_002f:  ret
 }");
         }
 
@@ -6103,7 +6102,7 @@ class C
 
             verifier.VerifyIL("C.NotHasLength", @"
 {
-  // Code size       43 (0x2b)
+  // Code size       42 (0x2a)
   .maxstack  2
   .locals init (int? V_0)
   IL_0000:  ldarg.0
@@ -6119,14 +6118,13 @@ class C
   IL_0014:  stloc.0
   IL_0015:  ldloca.s   V_0
   IL_0017:  call       ""int int?.GetValueOrDefault()""
-  IL_001c:  beq.s      IL_0020
-  IL_001e:  ldc.i4.1
-  IL_001f:  ret
-  IL_0020:  ldloca.s   V_0
-  IL_0022:  call       ""bool int?.HasValue.get""
-  IL_0027:  ldc.i4.0
-  IL_0028:  ceq
-  IL_002a:  ret
+  IL_001c:  ceq
+  IL_001e:  ldloca.s   V_0
+  IL_0020:  call       ""bool int?.HasValue.get""
+  IL_0025:  and
+  IL_0026:  ldc.i4.0
+  IL_0027:  ceq
+  IL_0029:  ret
 }");
         }
 
@@ -6816,7 +6814,7 @@ class C
 
             verifier.VerifyIL("C.NotHasLength", @"
 {
-  // Code size       58 (0x3a)
+  // Code size       57 (0x39)
   .maxstack  2
   .locals init (int? V_0,
                 int V_1)
@@ -6837,14 +6835,13 @@ class C
   IL_0023:  stloc.0
   IL_0024:  ldloca.s   V_0
   IL_0026:  call       ""int int?.GetValueOrDefault()""
-  IL_002b:  beq.s      IL_002f
-  IL_002d:  ldc.i4.1
-  IL_002e:  ret
-  IL_002f:  ldloca.s   V_0
-  IL_0031:  call       ""bool int?.HasValue.get""
-  IL_0036:  ldc.i4.0
-  IL_0037:  ceq
-  IL_0039:  ret
+  IL_002b:  ceq
+  IL_002d:  ldloca.s   V_0
+  IL_002f:  call       ""bool int?.HasValue.get""
+  IL_0034:  and
+  IL_0035:  ldc.i4.0
+  IL_0036:  ceq
+  IL_0038:  ret
 }");
         }
 

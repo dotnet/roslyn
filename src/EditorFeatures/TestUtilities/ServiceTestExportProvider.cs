@@ -3,6 +3,7 @@
 using System;
 using System.Linq;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Composition;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests
@@ -19,8 +20,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
     {
         public static ComposableCatalog CreateAssemblyCatalog()
         {
-            return MinimalTestExportProvider.CreateAssemblyCatalog(
-                GetLanguageNeutralTypes().Select(t => t.Assembly).Distinct().Concat(MinimalTestExportProvider.GetEditorAssemblies()), MinimalTestExportProvider.CreateResolver());
+            return ExportProviderCache.GetOrCreateAssemblyCatalog(
+                GetLanguageNeutralTypes().Select(t => t.Assembly).Distinct().Concat(MinimalTestExportProvider.GetEditorAssemblies()), ExportProviderCache.CreateResolver());
         }
 
         public static Type[] GetLanguageNeutralTypes()

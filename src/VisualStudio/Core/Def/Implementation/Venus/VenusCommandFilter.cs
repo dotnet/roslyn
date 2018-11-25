@@ -36,18 +36,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 
             _subjectBuffer = subjectBuffer;
             CurrentHandlers = commandHandlerServiceFactory.GetService(subjectBuffer);
-            // Setup all command handlers migrated to the modern editor commandig to be execited next
-            var componentModel = Shell.ServiceProvider.GlobalProvider.GetService(typeof(SComponentModel)) as IComponentModel;
-            var vsCommandHandlerServiceAdapterFactory = componentModel?.GetService<IVsCommandHandlerServiceAdapterFactory>();
-            if (vsCommandHandlerServiceAdapterFactory != null)
-            {
-                var vsCommandHandlerServiceAdapter = vsCommandHandlerServiceAdapterFactory.Create(wpfTextView, _subjectBuffer, nextCommandTarget);
-                NextCommandTarget = vsCommandHandlerServiceAdapter;
-            }
-            else
-            {
-                NextCommandTarget = nextCommandTarget;
-            }
+            // Chain in editor command handler service. It will execute all our command handlers migrated to the modern editor commanding.
+            var componentModel = (IComponentModel)languageService.SystemServiceProvider.GetService(typeof(SComponentModel));
+            var vsCommandHandlerServiceAdapterFactory = componentModel.GetService<IVsCommandHandlerServiceAdapterFactory>();
+            var vsCommandHandlerServiceAdapter = vsCommandHandlerServiceAdapterFactory.Create(wpfTextView, _subjectBuffer, nextCommandTarget);
+            NextCommandTarget = vsCommandHandlerServiceAdapter;
         }
 
         protected override ITextBuffer GetSubjectBufferContainingCaret()
@@ -90,7 +83,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                 // Next, we'll check to see if there is actually a DataTip for this candidate.
                 // If there is, we'll map this span back to the DataBuffer and return it.
                 pSpan[0] = candidateSpan.ToVsTextSpan();
-                int hr = base.GetDataTipTextImpl(pSpan, out pbstrText);
+                int hr = base.GetDataTipTextImpl(_subjectBuffer, pSpan, out pbstrText);
                 if (ErrorHandler.Succeeded(hr))
                 {
                     var subjectSpan = _subjectBuffer.CurrentSnapshot.GetSpan(pSpan[0]);

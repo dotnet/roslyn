@@ -15,6 +15,7 @@ Imports Roslyn.Utilities
 Imports Xunit.Abstractions
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
+    <[UseExportProvider]>
     Partial Public Class FindReferencesTests
         Private Const DefinitionKey As String = "Definition"
 

@@ -28,7 +28,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
                 Return Nothing
             End If
 
-            Dim documentationCommentFormattingService = document.Project.LanguageServices.GetService(Of IDocumentationCommentFormattingService)()
+            Dim documentationCommentFormattingService = document.GetLanguageService(Of IDocumentationCommentFormattingService)()
             Return accessibleConstructors.Select(
                 Function(c) ConvertNormalTypeConstructor(c, objectCreationExpression, semanticModel, symbolDisplayService, anonymousTypeDisplayService, documentationCommentFormattingService, cancellationToken)).ToList()
         End Function

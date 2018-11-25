@@ -11,6 +11,7 @@ Imports Roslyn.Test.Utilities
 Imports Roslyn.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
+    <[UseExportProvider]>
     Public Class SnippetCompletionProviderTests
         <WpfFact, Trait(Traits.Feature, Traits.Features.Snippets)>
         Public Async Function SnippetCompletion() As Task

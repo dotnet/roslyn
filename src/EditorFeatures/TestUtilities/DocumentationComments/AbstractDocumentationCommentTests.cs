@@ -2,12 +2,12 @@
 
 using System;
 using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
@@ -20,6 +20,7 @@ using VSCommanding = Microsoft.VisualStudio.Commanding;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.DocumentationComments
 {
+    [UseExportProvider]
     public abstract class AbstractDocumentationCommentTests
     {
         protected abstract char DocumentationCommentCharacter { get; }

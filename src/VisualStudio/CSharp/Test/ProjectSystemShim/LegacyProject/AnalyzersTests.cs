@@ -13,6 +13,7 @@ using Xunit;
 
 namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.LegacyProject
 {
+    [UseExportProvider]
     public class AnalyzersTests
     {
         private sealed class DisposableFile : IDisposable
@@ -173,7 +174,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.LegacyProject
 
                 var projectRuleSetFile = project.RuleSetFile;
 
-                Assert.Equal(expected: ruleSetFile.Path, actual: projectRuleSetFile.FilePath);
+                Assert.Equal(expected: ruleSetFile.Path, actual: projectRuleSetFile.Target.FilePath);
             }
         }
 

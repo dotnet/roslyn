@@ -4,6 +4,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess;
+using Roslyn.Test.Utilities;
 using Xunit;
 using ProjectUtils = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils;
 
@@ -21,7 +22,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         {
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void OpenAndCloseDialog()
         {
             SetUpEditor(@"class C
@@ -42,7 +43,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             GenerateTypeDialog.VerifyClosed();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void CSharpToBasic()
         {
             var vbProj = new ProjectUtils.Project("VBProj");

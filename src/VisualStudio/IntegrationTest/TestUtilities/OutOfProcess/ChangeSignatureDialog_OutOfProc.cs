@@ -1,11 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Windows.Automation;
-using Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess;
+using System.Threading;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
-using Roslyn.Test.Utilities;
+using UIAutomationClient;
 using Xunit;
+using AutomationElementIdentifiers = System.Windows.Automation.AutomationElementIdentifiers;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
 {
@@ -24,7 +24,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             DialogHelpers.FindDialogByAutomationId(GetMainWindowHWnd(), ChangeSignatureDialogAutomationId, isOpen: true);
 
             // Wait for application idle to ensure the dialog is fully initialized
-            VisualStudioInstance.WaitForApplicationIdle();
+            VisualStudioInstance.WaitForApplicationIdle(CancellationToken.None);
         }
   
         public void VerifyClosed()
@@ -70,32 +70,24 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         {
             var dialogAutomationElement = DialogHelpers.FindDialogByAutomationId(GetMainWindowHWnd(), ChangeSignatureDialogAutomationId, isOpen: true);
 
-            Condition propertyCondition = new PropertyCondition(AutomationElement.AutomationIdProperty, "MemberSelectionList");
-            var grid = dialogAutomationElement.FindFirst(TreeScope.Descendants, propertyCondition);
+            var propertyCondition = Helper.Automation.CreatePropertyCondition(AutomationElementIdentifiers.AutomationIdProperty.Id, "MemberSelectionList");
+            var grid = dialogAutomationElement.FindFirst(TreeScope.TreeScope_Descendants, propertyCondition);
 
-            var gridPattern = grid.GetCurrentPattern(GridPattern.Pattern) as GridPattern;
-            var rowCount = (int)grid.GetCurrentPropertyValue(GridPattern.RowCountProperty);
+            var gridPattern = grid.GetCurrentPattern<IUIAutomationGridPattern>(UIA_PatternIds.UIA_GridPatternId);
+            var rowCount = gridPattern.CurrentRowCount;
             var columnToSelect = 2;
             int i = 0;
             for (; i < rowCount; i++)
             {
                 // Modifier | Type | Parameter | Default
                 var item = gridPattern.GetItem(i, columnToSelect);
-                var name = item.GetCurrentPropertyValue(AutomationElement.NameProperty) as string;
+                var name = item.CurrentName;
                 if (name == parameterName)
                 {
                     // The parent of a cell is of DataItem control type, which support SelectionItemPattern.
-                    TreeWalker walker = TreeWalker.ControlViewWalker;
-                    var parent = walker.GetParent(item);
-                    if (parent.TryGetCurrentPattern(SelectionItemPattern.Pattern, out var pattern))
-                    {
-                        (pattern as SelectionItemPattern).Select();
-                    }
-                    else
-                    {
-                        Assert.True(false, "Unexpected error. Item's parent is expected to support SelectionItemPattern.");
-                    }
-
+                    var walker = Helper.Automation.ControlViewWalker;
+                    var parent = walker.GetParentElement(item);
+                    parent.Select();
                     return;
                 }
             }
@@ -106,7 +98,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             }
         }
 
-        private int GetMainWindowHWnd()
+        private IntPtr GetMainWindowHWnd()
             => VisualStudioInstance.Shell.GetHWnd();
     }
 }

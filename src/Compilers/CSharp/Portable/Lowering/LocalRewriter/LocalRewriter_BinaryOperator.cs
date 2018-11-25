@@ -874,25 +874,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             //
             // tempx = x; 
             // tempy = y;
-            // result = tempx.GetValueOrDefault() == tempy.GetValueOrDefault() ? 
-            //          tempx.HasValue == tempy.HasValue : 
-            //          false;
+            // result = (tempx.GetValueOrDefault() == tempy.GetValueOrDefault()) &
+            //          (tempx.HasValue == tempy.HasValue);
             //
             // and x != y as
             //
             // tempx = x; 
             // tempy = y;
-            // result = tempx.GetValueOrDefault() == tempy.GetValueOrDefault() ? 
-            //          tempx.HasValue != tempy.HasValue : 
-            //          true;
+            // result = !((tempx.GetValueOrDefault() == tempy.GetValueOrDefault()) &
+            //            (tempx.HasValue == tempy.HasValue));
             //
             // Otherwise, we rewrite x OP y as
             //
             // tempx = x;
             // tempy = y;
-            // result = tempx.GetValueOrDefault() OP tempy.GetValueOrDefault() ?
-            //          tempx.HasValue & tempy.HasValue :
-            //          false;
+            // result = (tempx.GetValueOrDefault() OP tempy.GetValueOrDefault()) &
+            //          (tempx.HasValue & tempy.HasValue);
+            //
             //
             // Note that there is no reason to generate "&&" over "&"; the cost of
             // the added code for the conditional branch would be about the same as simply doing 
@@ -908,79 +906,77 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression xNonNull = NullableAlwaysHasValue(loweredLeft);
             BoundExpression yNonNull = NullableAlwaysHasValue(loweredRight);
 
-            BoundAssignmentOperator tempAssignmentX;
-            BoundLocal boundTempX = _factory.StoreToTemp(xNonNull ?? loweredLeft, out tempAssignmentX);
-            BoundAssignmentOperator tempAssignmentY;
-            BoundLocal boundTempY = _factory.StoreToTemp(yNonNull ?? loweredRight, out tempAssignmentY);
+            BoundLocal boundTempX = _factory.StoreToTemp(xNonNull ?? loweredLeft, out BoundAssignmentOperator tempAssignmentX);
+            BoundLocal boundTempY = _factory.StoreToTemp(yNonNull ?? loweredRight, out BoundAssignmentOperator tempAssignmentY);
 
             BoundExpression callX_GetValueOrDefault = MakeOptimizedGetValueOrDefault(syntax, boundTempX);
             BoundExpression callY_GetValueOrDefault = MakeOptimizedGetValueOrDefault(syntax, boundTempY);
             BoundExpression callX_HasValue = MakeOptimizedHasValue(syntax, boundTempX);
             BoundExpression callY_HasValue = MakeOptimizedHasValue(syntax, boundTempY);
 
-            // tempx.GetValueOrDefault() == tempy.GetValueOrDefault()
+            BinaryOperatorKind leftOperator;
+            BinaryOperatorKind rightOperator;
+
             BinaryOperatorKind operatorKind = kind.Operator();
-            BinaryOperatorKind conditionOperator = operatorKind == BinaryOperatorKind.NotEqual ?
-                BinaryOperatorKind.Equal :
-                operatorKind;
+            switch (operatorKind)
+            {
+                case BinaryOperatorKind.Equal:
+                case BinaryOperatorKind.NotEqual:
+                    leftOperator = BinaryOperatorKind.Equal;
+                    rightOperator = BinaryOperatorKind.BoolEqual;
+                    break;
+                default:
+                    leftOperator = operatorKind;
+                    rightOperator = BinaryOperatorKind.BoolAnd;
+                    break;
+            }
+
             TypeSymbol boolType = _compilation.GetSpecialType(SpecialType.System_Boolean);
 
-            BoundExpression condition = MakeBinaryOperator(
+            // (tempx.GetValueOrDefault() OP tempy.GetValueOrDefault())
+            BoundExpression leftExpression = MakeBinaryOperator(
                 syntax: syntax,
-                operatorKind: conditionOperator.WithType(kind.OperandTypes()),
+                operatorKind: leftOperator.WithType(kind.OperandTypes()),
                 loweredLeft: callX_GetValueOrDefault,
                 loweredRight: callY_GetValueOrDefault,
                 type: boolType,
                 method: null);
 
-            BinaryOperatorKind consequenceOperator;
-            switch (operatorKind)
-            {
-                case BinaryOperatorKind.Equal:
-                    consequenceOperator = BinaryOperatorKind.BoolEqual;
-                    break;
-                case BinaryOperatorKind.NotEqual:
-                    consequenceOperator = BinaryOperatorKind.BoolNotEqual;
-                    break;
-                default:
-                    consequenceOperator = BinaryOperatorKind.BoolAnd;
-                    break;
-            }
-
-            // tempx.HasValue == tempy.HasValue
-            BoundExpression consequence = MakeBinaryOperator(
+            // (tempx.HasValue OP tempy.HasValue)
+            BoundExpression rightExpression = MakeBinaryOperator(
                 syntax: syntax,
-                operatorKind: consequenceOperator,
+                operatorKind: rightOperator,
                 loweredLeft: callX_HasValue,
                 loweredRight: callY_HasValue,
                 type: boolType,
                 method: null);
 
-            // false
-            BoundExpression alternative = this.MakeBooleanConstant(syntax, operatorKind == BinaryOperatorKind.NotEqual);
-
-            // tempx.GetValueOrDefault() == tempy.GetValueOrDefault() ? 
-            //          tempx.HasValue == tempy.HasValue : 
-            //          false;
-            BoundExpression conditionalExpression = RewriteConditionalOperator(
+            // result = (tempx.GetValueOrDefault() OP tempy.GetValueOrDefault()) &
+            //          (tempx.HasValue OP tempy.HasValue)
+            BoundExpression binaryExpression = MakeBinaryOperator(
                 syntax: syntax,
-                rewrittenCondition: condition,
-                rewrittenConsequence: consequence,
-                rewrittenAlternative: alternative,
-                constantValueOpt: null,
-                rewrittenType: boolType,
-                isRef: false);
+                operatorKind: BinaryOperatorKind.BoolAnd,
+                loweredLeft: leftExpression,
+                loweredRight: rightExpression,
+                type: boolType,
+                method: null);
+
+            // result = !((tempx.GetValueOrDefault() == tempy.GetValueOrDefault()) &
+            //            (tempx.HasValue == tempy.HasValue));
+            if (operatorKind == BinaryOperatorKind.NotEqual)
+            {
+                binaryExpression = _factory.Not(binaryExpression);
+            }
 
             // tempx = x; 
             // tempy = y;
-            // result = tempx.GetValueOrDefault() == tempy.GetValueOrDefault() ? 
-            //          tempx.HasValue == tempy.HasValue : 
-            //          false;
+            // result = (tempx.GetValueOrDefault() == tempy.GetValueOrDefault()) &
+            //          (tempx.HasValue == tempy.HasValue);
             return new BoundSequence(
                 syntax: syntax,
                 locals: ImmutableArray.Create<LocalSymbol>(boundTempX.LocalSymbol, boundTempY.LocalSymbol),
                 sideEffects: ImmutableArray.Create<BoundExpression>(tempAssignmentX, tempAssignmentY),
-                value: conditionalExpression,
+                value: binaryExpression,
                 type: boolType);
         }
 
@@ -1290,10 +1286,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression rightNeverNull = NullableAlwaysHasValue(loweredRight);
 
             BoundExpression boundTempX = leftNeverNull ?? loweredLeft;
-            boundTempX = CaptureNullableOperandInTempIfNeeded(boundTempX, sideeffects, locals);
+            boundTempX = CaptureExpressionInTempIfNeeded(boundTempX, sideeffects, locals);
 
             BoundExpression boundTempY = rightNeverNull ?? loweredRight;
-            boundTempY = CaptureNullableOperandInTempIfNeeded(boundTempY, sideeffects, locals);
+            boundTempY = CaptureExpressionInTempIfNeeded(boundTempY, sideeffects, locals);
 
             BoundExpression callX_GetValueOrDefault = MakeOptimizedGetValueOrDefault(syntax, boundTempX);
             BoundExpression callY_GetValueOrDefault = MakeOptimizedGetValueOrDefault(syntax, boundTempY);
@@ -1330,7 +1326,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 type: type);
         }
 
-        private BoundExpression CaptureNullableOperandInTempIfNeeded(BoundExpression operand, ArrayBuilder<BoundExpression> sideeffects, ArrayBuilder<LocalSymbol> locals)
+        private BoundExpression CaptureExpressionInTempIfNeeded(BoundExpression operand, ArrayBuilder<BoundExpression> sideeffects, ArrayBuilder<LocalSymbol> locals)
         {
             if (CanChangeValueBetweenReads(operand))
             {
@@ -1916,7 +1912,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Don't even call this method if the expression isn't nullable.
             Debug.Assert(
                 (object)exprType == null ||
-                exprType.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T ||
+                exprType.IsNullableType() ||
                 !exprType.IsValueType ||
                 exprType.IsPointerType());
 

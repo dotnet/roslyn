@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
                     return await IterateAllCodeCleanupProvidersAsync(document, document, r => ImmutableArray.Create(r.FullSpan), codeCleaners, cancellationToken).ConfigureAwait(false);
                 }
 
-                var syntaxFactsService = document.Project.LanguageServices.GetService<ISyntaxFactsService>();
+                var syntaxFactsService = document.GetLanguageService<ISyntaxFactsService>();
                 Contract.Requires(syntaxFactsService != null);
 
                 // We need to track spans between cleaners. Annotate the tree with the provided spans.

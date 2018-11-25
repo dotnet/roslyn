@@ -2,6 +2,7 @@
 
 Imports System.Runtime.CompilerServices
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.Extensions
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
@@ -369,12 +370,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                                 Return True
                             End If
 
-                            ' If both the expression and it's parent are binary expressions and their kinds
-                            ' are the same, check to see if they are commutative (e.g. + or *).
-                            If parentBinaryExpression.IsKind(SyntaxKind.AddExpression, SyntaxKind.MultiplyExpression) AndAlso
+                            ' If both the expression and its parent are binary expressions and their kinds
+                            ' are the same, and the parenthesized expression is on the right and the 
+                            ' operation is associative, it can sometimes be safe to remove these parens.
+                            '
+                            ' i.e. if you have "a AndAlso (b AndAlso c)" it can be converted to "a AndAlso b AndAlso c" 
+                            ' as that New interpretation "(a AndAlso b) AndAlso c" operates the exact same way at 
+                            ' runtime.
+                            '
+                            ' Specifically: 
+                            '  1) the operands are still executed in the same order a, b, then c.
+                            '     So even if they have side effects, it will Not matter.
+                            '  2) the same shortcircuiting happens.
+                            '  3) the result will always be the same (for logical operators, there are 
+                            '     additional conditions that are checked for non-logical operators).
+                            If IsAssociative(parentBinaryExpression.Kind) AndAlso
                                expression.Kind = parentExpression.Kind Then
 
-                                Return True
+                                Return node.IsSafeToChangeAssociativity(
+                                    node.Expression, parentBinaryExpression.Left,
+                                    parentBinaryExpression.Right, semanticModel)
                             End If
                         End If
 
@@ -515,5 +530,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             Return False
         End Function
 
+        Private Function IsAssociative(kind As SyntaxKind) As Boolean
+            Select Case kind
+                Case SyntaxKind.AddExpression,
+                     SyntaxKind.MultiplyExpression,
+                     SyntaxKind.AndExpression,
+                     SyntaxKind.AndAlsoExpression,
+                     SyntaxKind.OrExpression,
+                     SyntaxKind.ExclusiveOrExpression,
+                     SyntaxKind.OrElseExpression
+                    Return True
+            End Select
+
+            Return False
+        End Function
     End Module
 End Namespace

@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
         private readonly ICallHierarchyPresenter _presenter;
         private readonly CallHierarchyProvider _provider;
 
-        public string DisplayName => EditorFeaturesResources.View_Call_Hierarchy_Command_Handler;
+        public string DisplayName => EditorFeaturesResources.Call_Hierarchy;
 
         [ImportingConstructor]
         public CallHierarchyCommandHandler([ImportMany] IEnumerable<ICallHierarchyPresenter> presenters, CallHierarchyProvider provider)
@@ -43,9 +43,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
 
         private void AddRootNode(ViewCallHierarchyCommandArgs args, CommandExecutionContext context)
         {
-            using (var waitScope = context.WaitContext.AddScope(allowCancellation: true, EditorFeaturesResources.Computing_Call_Hierarchy_Information))
+            using (var waitScope = context.OperationContext.AddScope(allowCancellation: true, EditorFeaturesResources.Computing_Call_Hierarchy_Information))
             {
-                var cancellationToken = context.WaitContext.UserCancellationToken;
+                var cancellationToken = context.OperationContext.UserCancellationToken;
                 var document = args.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
                 if (document == null)
                 {

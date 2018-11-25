@@ -236,6 +236,33 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to In arithmetic operators:  ^   *   /   \   Mod   +   -   &amp;   &lt;&lt;   &gt;&gt;.
+        '''</summary>
+        Friend Shared ReadOnly Property In_arithmetic_binary_operators() As String
+            Get
+                Return ResourceManager.GetString("In_arithmetic_binary_operators", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to In other binary operators:  And   AndAlso   Or   OrElse.
+        '''</summary>
+        Friend Shared ReadOnly Property In_other_binary_operators() As String
+            Get
+                Return ResourceManager.GetString("In_other_binary_operators", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to In relational operators:  =   &lt;&gt;   &lt;   &gt;   &lt;=   &gt;=   Like   Is.
+        '''</summary>
+        Friend Shared ReadOnly Property In_relational_binary_operators() As String
+            Get
+                Return ResourceManager.GetString("In_relational_binary_operators", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Include snippets when ?-Tab is typed after an identifier.
         '''</summary>
         Friend Shared ReadOnly Property Include_snippets_when_Tab_is_typed_after_an_identifier() As String

@@ -73,7 +73,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
                 invocationExpression.Expression)
 
             ' get the regular signature help items
-            Dim symbolDisplayService = document.Project.LanguageServices.GetService(Of ISymbolDisplayService)()
+            Dim symbolDisplayService = document.GetLanguageService(Of ISymbolDisplayService)()
             Dim memberGroup = semanticModel.GetMemberGroup(targetExpression, cancellationToken).
                                             FilterToVisibleAndBrowsableSymbolsAndNotUnsafeSymbols(document.ShouldHideAdvancedMembers(), semanticModel.Compilation)
 
@@ -105,8 +105,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
                                  FilterToVisibleAndBrowsableSymbolsAndNotUnsafeSymbols(document.ShouldHideAdvancedMembers(), semanticModel.Compilation).
                                  Sort(symbolDisplayService, semanticModel, invocationExpression.SpanStart))
 
-            Dim anonymousTypeDisplayService = document.Project.LanguageServices.GetService(Of IAnonymousTypeDisplayService)()
-            Dim documentationCommentFormattingService = document.Project.LanguageServices.GetService(Of IDocumentationCommentFormattingService)()
+            Dim anonymousTypeDisplayService = document.GetLanguageService(Of IAnonymousTypeDisplayService)()
+            Dim documentationCommentFormattingService = document.GetLanguageService(Of IDocumentationCommentFormattingService)()
 
             Dim items = New List(Of SignatureHelpItem)
             If memberGroup.Count > 0 Then

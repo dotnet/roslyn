@@ -12,13 +12,13 @@ Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Shared.Options
 Imports Microsoft.CodeAnalysis.SolutionCrawler
-Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.UnitTests.Diagnostics
 Imports Roslyn.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
 
+    <[UseExportProvider]>
     Public Class DiagnosticServiceTests
 
         Private _assemblyLoader As IAnalyzerAssemblyLoader = New InMemoryAssemblyLoader()

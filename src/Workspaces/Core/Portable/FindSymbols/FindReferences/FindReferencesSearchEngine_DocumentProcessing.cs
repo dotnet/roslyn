@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     var symbol = symbolAndFinder.symbolAndProjectId;
                     var finder = symbolAndFinder.finder;
 
-                    await ProcessDocumentAsync(document, symbol, finder).ConfigureAwait(false);
+                    await ProcessDocumentAsync(document, model, symbol, finder).ConfigureAwait(false);
                 }
             }
             finally
@@ -49,6 +49,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         private async Task ProcessDocumentAsync(
             Document document,
+            SemanticModel semanticModel,
             SymbolAndProjectId symbolAndProjectId,
             IReferenceFinder finder)
         {
@@ -56,7 +57,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             {
                 try
                 {
-                    var references = await finder.FindReferencesInDocumentAsync(symbolAndProjectId, document, _cancellationToken).ConfigureAwait(false);
+                    var references = await finder.FindReferencesInDocumentAsync(symbolAndProjectId, document, semanticModel, _cancellationToken).ConfigureAwait(false);
                     foreach (var location in references)
                     {
                         await HandleLocationAsync(symbolAndProjectId, location).ConfigureAwait(false);

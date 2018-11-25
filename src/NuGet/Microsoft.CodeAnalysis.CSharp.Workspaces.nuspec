@@ -21,7 +21,7 @@
     <requireLicenseAcceptance>true</requireLicenseAcceptance>
     <version>$version$</version>
     <authors>$authors$</authors>
-    <licenseUrl>$licenseUrl$</licenseUrl>
+    <licenseUrl>$licenseUrlRedist$</licenseUrl>
     <projectUrl>$projectUrl$</projectUrl>
     <releaseNotes>$releaseNotes$</releaseNotes>
     <tags>$tags$</tags>
@@ -33,5 +33,8 @@
     <file src="Dlls\CSharpWorkspace\Microsoft.CodeAnalysis.CSharp.Workspaces.xml" target="lib\netstandard1.3" />
     <file src="Dlls\CSharpWorkspace\Microsoft.CodeAnalysis.CSharp.Workspaces.pdb*" target="lib\netstandard1.3" />
     <file src="$thirdPartyNoticesPath$" target="" />
+
+    <!-- Satellite assemblies -->
+    <file src="Dlls\CSharpWorkspace\**\Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll" target="lib\netstandard1.3" />
   </files>
 </package>

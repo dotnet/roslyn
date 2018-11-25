@@ -17,26 +17,24 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
 {
     internal abstract partial class AbstractInitializeParameterCodeRefactoringProvider<
         TParameterSyntax,
-        TMemberDeclarationSyntax,
         TStatementSyntax,
-        TExpressionSyntax,
-        TBinaryExpressionSyntax> : CodeRefactoringProvider
+        TExpressionSyntax> : CodeRefactoringProvider
         where TParameterSyntax : SyntaxNode
-        where TMemberDeclarationSyntax : SyntaxNode
         where TStatementSyntax : SyntaxNode
         where TExpressionSyntax : SyntaxNode
-        where TBinaryExpressionSyntax : TExpressionSyntax
     {
-        protected abstract SyntaxNode GetBody(TMemberDeclarationSyntax containingMember);
+        protected abstract bool IsFunctionDeclaration(SyntaxNode node);
+
+        protected abstract IBlockOperation GetBlockOperation(SyntaxNode functionDeclaration, SemanticModel semanticModel, CancellationToken cancellationToken);
         protected abstract bool IsImplicitConversion(Compilation compilation, ITypeSymbol source, ITypeSymbol destination);
         protected abstract SyntaxNode GetTypeBlock(SyntaxNode node);
 
         protected abstract void InsertStatement(
-            SyntaxEditor editor, TMemberDeclarationSyntax memberDeclaration,
+            SyntaxEditor editor, SyntaxNode functionDeclaration, IMethodSymbol method,
             SyntaxNode statementToAddAfterOpt, TStatementSyntax statement);
 
         protected abstract Task<ImmutableArray<CodeAction>> GetRefactoringsAsync(
-            Document document, IParameterSymbol parameter, TMemberDeclarationSyntax containingMember,
+            Document document, IParameterSymbol parameter, SyntaxNode functionDeclaration, IMethodSymbol method,
             IBlockOperation blockStatementOpt, CancellationToken cancellationToken);
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
@@ -61,8 +59,8 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                 return;
             }
 
-            var containingMember = parameterNode.FirstAncestorOrSelf<TMemberDeclarationSyntax>();
-            if (containingMember == null)
+            var functionDeclaration = parameterNode.FirstAncestorOrSelf<SyntaxNode>(IsFunctionDeclaration);
+            if (functionDeclaration == null)
             {
                 return;
             }
@@ -77,7 +75,16 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             }
 
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var method = (IMethodSymbol)semanticModel.GetDeclaredSymbol(containingMember, cancellationToken);
+
+            // we can't just call GetDeclaredSymbol on functionDeclaration because it could an anonymous function,
+            // so first we have to get the parameter symbol and then its containing method symbol
+            var parameter = (IParameterSymbol)semanticModel.GetDeclaredSymbol(parameterNode, cancellationToken);
+            if (parameter == null || parameter.Name == "")
+            {
+                return;
+            }
+
+            var method = (IMethodSymbol)parameter.ContainingSymbol;
             if (method.IsAbstract ||
                 method.IsExtern ||
                 method.PartialImplementationPart != null ||
@@ -86,37 +93,15 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                 return;
             }
 
-            var parameter = (IParameterSymbol)semanticModel.GetDeclaredSymbol(parameterNode, cancellationToken);
-            if (!method.Parameters.Contains(parameter))
-            {
-                return;
-            }
-
-            if (parameter.Name == "")
-            {
-                return;
-            }
-
-            // Only offered on method-like things that have a body (i.e. non-interface/non-abstract).
-            var bodyOpt = GetBody(containingMember);
-
             // We support initializing parameters, even when the containing member doesn't have a
             // body. This is useful for when the user is typing a new constructor and hasn't written
             // the body yet.
-            var blockStatementOpt = default(IBlockOperation);
-            if (bodyOpt != null)
-            {
-                blockStatementOpt = semanticModel.GetOperation(bodyOpt, cancellationToken) as IBlockOperation;
-                if (blockStatementOpt == null)
-                {
-                    return;
-                }
-            }
-
+            var blockStatementOpt = GetBlockOperation(functionDeclaration, semanticModel, cancellationToken);
+          
             // Ok.  Looks like a reasonable parameter to analyze.  Defer to subclass to 
             // actually determine if there are any viable refactorings here.
             context.RegisterRefactorings(await GetRefactoringsAsync(
-                document, parameter, containingMember, blockStatementOpt, cancellationToken).ConfigureAwait(false));
+                document, parameter, functionDeclaration, method, blockStatementOpt, cancellationToken).ConfigureAwait(false));
         }
 
         private TParameterSyntax GetParameterNode(SyntaxToken token, int position)

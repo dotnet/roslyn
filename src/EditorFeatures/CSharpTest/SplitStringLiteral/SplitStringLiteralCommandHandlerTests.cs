@@ -15,6 +15,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
 {
+    [UseExportProvider]
     public class SplitStringLiteralCommandHandlerTests
     {
         private void TestWorker(

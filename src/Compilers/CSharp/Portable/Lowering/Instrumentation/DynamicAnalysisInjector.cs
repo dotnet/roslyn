@@ -110,8 +110,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             _methodBodyFactory = methodBodyFactory;
 
             // Set the factory context to generate nodes for the current method
-            var oldMethod = methodBodyFactory.CurrentMethod;
-            methodBodyFactory.CurrentMethod = method;
+            var oldMethod = methodBodyFactory.CurrentFunction;
+            methodBodyFactory.CurrentFunction = method;
 
             _methodPayload = methodBodyFactory.SynthesizedLocal(_payloadType, kind: SynthesizedLocalKind.InstrumentationPayload, syntax: methodBody.Syntax);
             // The first point indicates entry into the method and has the span of the method definition.
@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // Restore context
-            methodBodyFactory.CurrentMethod = oldMethod;
+            methodBodyFactory.CurrentFunction = oldMethod;
         }
 
         private static bool IsExcludedFromCodeCoverage(MethodSymbol method)

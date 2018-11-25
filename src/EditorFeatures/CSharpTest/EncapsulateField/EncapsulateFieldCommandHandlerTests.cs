@@ -15,6 +15,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EncapsulateField
 {
+    [UseExportProvider]
     public class EncapsulateFieldCommandHandlerTests
     {
         [WpfFact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
@@ -191,8 +192,10 @@ class Program
         [Trait(Traits.Feature, Traits.Features.Interactive)]
         public void EncapsulateFieldCommandDisabledInSubmission()
         {
-            var exportProvider = MinimalTestExportProvider.CreateExportProvider(
-                TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(typeof(InteractiveDocumentSupportsFeatureService)));
+            var exportProvider = ExportProviderCache
+                .GetOrCreateExportProviderFactory(
+                    TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(typeof(InteractiveDocumentSupportsFeatureService)))
+                .CreateExportProvider();
 
             using (var workspace = TestWorkspace.Create(XElement.Parse(@"
                 <Workspace>

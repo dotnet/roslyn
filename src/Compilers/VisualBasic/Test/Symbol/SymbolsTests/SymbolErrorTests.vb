@@ -2883,7 +2883,7 @@ BC37204: Parameter of a method 'Private Sub Goo6(ParamArray x As Integer())' dif
             End Sub
         End Class
         ]]></file>
-    </compilation>, TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All))
+    </compilation>, options:=TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All))
 
             CompileAndVerify(compilation1,
                              symbolValidator:=Sub(m As ModuleSymbol)
@@ -2912,7 +2912,7 @@ BC37204: Parameter of a method 'Private Sub Goo6(ParamArray x As Integer())' dif
             End Sub
         End Class
         ]]></file>
-    </compilation>, TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All))
+    </compilation>, options:=TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All))
 
             CompileAndVerify(compilation1,
                              symbolValidator:=Sub(m As ModuleSymbol)
@@ -2941,7 +2941,7 @@ BC37204: Parameter of a method 'Private Sub Goo6(ParamArray x As Integer())' dif
             End Sub
         End Class
         ]]></file>
-    </compilation>, TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All))
+    </compilation>, options:=TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All))
 
             CompileAndVerify(compilation1,
                              symbolValidator:=Sub(m As ModuleSymbol)
@@ -2970,7 +2970,7 @@ BC37204: Parameter of a method 'Private Sub Goo6(ParamArray x As Integer())' dif
             End Sub
         End Class
         ]]></file>
-    </compilation>, TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All))
+    </compilation>, options:=TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All))
 
             CompileAndVerify(compilation1,
                              symbolValidator:=Sub(m As ModuleSymbol)
@@ -3020,7 +3020,7 @@ BC30663: Attribute 'ParamArrayAttribute' cannot be applied multiple times.
             End Sub
         End Class
         ]]></file>
-    </compilation>, TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All))
+    </compilation>, options:=TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All))
 
             CompileAndVerify(compilation1,
                              symbolValidator:=Sub(m As ModuleSymbol)
@@ -3049,7 +3049,7 @@ BC30663: Attribute 'ParamArrayAttribute' cannot be applied multiple times.
             End Sub
         End Class
         ]]></file>
-    </compilation>, TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All))
+    </compilation>, options:=TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All))
 
             CompileAndVerify(compilation1,
                              symbolValidator:=Sub(m As ModuleSymbol)
@@ -6011,7 +6011,7 @@ End Class
                 End Interface
             End Namespace
         ]]></file>
-    </compilation>, options)
+    </compilation>, options:=options)
 
             Dim expectedErrors1 = <errors><![CDATA[
 BC30561: 'I1' is ambiguous, imported from the namespaces or types 'N1, N2'.
@@ -9475,7 +9475,7 @@ BC31051: Namespace or type 'genclass(Of String)' has already been imported.
         Class C
         End Class
         ]]></file>
-    </compilation>, New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary).WithGlobalImports(
+    </compilation>, options:=New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary).WithGlobalImports(
                                 GlobalImport.Parse(
                                     {"System.Collections", "System.Collections"}
                                 )
@@ -9498,7 +9498,7 @@ BC31051: Namespace or type 'System.Collections' has already been imported.
         Class C
         End Class
         ]]></file>
-    </compilation>, New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary).WithGlobalImports(
+    </compilation>, options:=New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary).WithGlobalImports(
                                 GlobalImport.Parse(
                                     {"System.Collections", "System.Collections"}
                                 )
@@ -19105,7 +19105,7 @@ BC40039: Name '_B' in the root namespace 'A._B' is not CLS-compliant.
                 Inherits GenCompClass(Of UInteger)
             End Class
         ]]></file>
-    </compilation>, opt)
+    </compilation>, options:=opt)
             Dim expectedErrors1 = <errors><![CDATA[
 BC40041: Type 'UInteger' is not CLS-compliant.
             Public Class C(Of t)
@@ -19583,7 +19583,7 @@ End Namespace
             End Structure
         ]]></file>
     </compilation>,
-    options
+    options:=options
             )
             Dim expectedErrors1 = <errors><![CDATA[
 BC40056: Namespace or type specified in the Imports 'ns1.GenStruct' doesn't contain any public member or cannot be found. Make sure the namespace or the type is defined and contains at least one public member. Make sure the imported element name doesn't use any aliases.
@@ -19640,7 +19640,7 @@ BC40056: Namespace or type specified in the Imports 'Alias2' doesn't contain any
     <compilation name="UndefinedOrEmpyProjectNamespaceOrClass1">
         <file name="a.vb"><![CDATA[
         ]]></file>
-    </compilation>, options)
+    </compilation>, options:=options)
             Dim expectedErrors1 = <errors><![CDATA[
 BC40057: Namespace or type specified in the project-level Imports 'N12 = Alias2' doesn't contain any public member or cannot be found. Make sure the namespace or the type is defined and contains at least one public member. Make sure the imported element name doesn't use any aliases.
                  ]]></errors>
@@ -23438,7 +23438,7 @@ Public Class MyAttribute1
     Inherits System.Attribute
 End Class
         ]]></file>
-    </compilation>, TestOptions.ReleaseDll)
+    </compilation>, options:=TestOptions.ReleaseDll)
 
             Dim comp2 = CreateCompilationWithMscorlib40AndReferences(
     <compilation>
@@ -23696,7 +23696,7 @@ Class Account
     Property Status() As xEmailMsg
 End Class
         ]]></file>
-    </compilation>, options)
+    </compilation>, options:=options)
 
             CompileAndVerify(compilation).VerifyDiagnostics()
         End Sub
@@ -23722,7 +23722,7 @@ Class Account
     Property Status() As xEmailMsg
 End Class
         ]]></file>
-    </compilation>, TestOptions.ReleaseDll)
+    </compilation>, options:=TestOptions.ReleaseDll)
 
             compilation.AssertTheseDiagnostics(<expected>
 BC40008: 'GlobEnumsClass' is obsolete.

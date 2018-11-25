@@ -1,12 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.UseCollectionInitializer
 {
@@ -120,6 +118,23 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
             }
         }
 
+        protected override bool ShouldAnalyze()
+        {
+            var type = _semanticModel.GetTypeInfo(_objectCreationExpression, _cancellationToken).Type;
+            if (type == null)
+            {
+                return false;
+            }
+
+            var addMethods = _semanticModel.LookupSymbols(
+                _objectCreationExpression.SpanStart, 
+                container: type, 
+                name: WellKnownMemberNames.CollectionInitializerAddMethodName, 
+                includeReducedExtensionMethods: true);
+
+            return addMethods.Any(m => m is IMethodSymbol methodSymbol && methodSymbol.Parameters.Any());
+        }
+
         private bool TryAnalyzeIndexAssignment(
             TExpressionStatementSyntax statement,
             out SyntaxNode instance)
@@ -200,7 +215,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
             _syntaxFacts.GetPartsOfMemberAccessExpression(memberAccess, out var localInstance, out var memberName);
             _syntaxFacts.GetNameAndArityOfSimpleName(memberName, out var name, out var arity);
 
-            if (arity != 0 || !name.Equals(nameof(IList.Add)))
+            if (arity != 0 || !name.Equals(WellKnownMemberNames.CollectionInitializerAddMethodName))
             {
                 return false;
             }

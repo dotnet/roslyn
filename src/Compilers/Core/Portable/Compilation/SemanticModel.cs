@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
+using Microsoft.CodeAnalysis.FlowAnalysis;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 
@@ -88,11 +89,95 @@ namespace Microsoft.CodeAnalysis
         protected abstract IOperation GetOperationCore(SyntaxNode node, CancellationToken cancellationToken);
 
         /// <summary>
-        /// Deep Clone given IOperation
+        /// Gets a <see cref="ControlFlowGraph"/> for the given executable code block <paramref name="body"/>.
         /// </summary>
-        internal T CloneOperation<T>(T operation) where T : IOperation => (T)CloneOperationCore(operation);
+        /// <param name="body">Root operation block, which must have a null parent.</param>
+        public static ControlFlowGraph GetControlFlowGraph(Operations.IBlockOperation body)
+        {
+            return GetControlFlowGraphCore(body, nameof(body));
+        }
 
-        internal abstract IOperation CloneOperationCore(IOperation operation);
+        /// <summary>
+        /// Gets a <see cref="ControlFlowGraph"/> for the given executable code block <paramref name="initializer"/>.
+        /// </summary>
+        /// <param name="initializer">Root field initializer operation, which must have a null parent.</param>
+        public static ControlFlowGraph GetControlFlowGraph(Operations.IFieldInitializerOperation initializer)
+        {
+            return GetControlFlowGraphCore(initializer, nameof(initializer));
+        }
+
+        /// <summary>
+        /// Gets a <see cref="ControlFlowGraph"/> for the given executable code block <paramref name="initializer"/>.
+        /// </summary>
+        /// <param name="initializer">Root property initializer operation, which must have a null parent.</param>
+        public static ControlFlowGraph GetControlFlowGraph(Operations.IPropertyInitializerOperation initializer)
+        {
+            return GetControlFlowGraphCore(initializer, nameof(initializer));
+        }
+
+        /// <summary>
+        /// Gets a <see cref="ControlFlowGraph"/> for the given executable code block <paramref name="initializer"/>.
+        /// </summary>
+        /// <param name="initializer">Root parameter initializer operation, which must have a null parent.</param>
+        public static ControlFlowGraph GetControlFlowGraph(Operations.IParameterInitializerOperation initializer)
+        {
+            return GetControlFlowGraphCore(initializer, nameof(initializer));
+        }
+
+        /// <summary>
+        /// Gets a <see cref="ControlFlowGraph"/> for the given executable code block <paramref name="constructorBody"/>.
+        /// </summary>
+        /// <param name="constructorBody">Root constructor body operation, which must have a null parent.</param>
+        public static ControlFlowGraph GetControlFlowGraph(Operations.IConstructorBodyOperation constructorBody)
+        {
+            return GetControlFlowGraphCore(constructorBody, nameof(constructorBody));
+        }
+
+        /// <summary>
+        /// Gets a <see cref="ControlFlowGraph"/> for the given executable code block <paramref name="methodBody"/>.
+        /// </summary>
+        /// <param name="methodBody">Root method body operation, which must have a null parent.</param>
+        public static ControlFlowGraph GetControlFlowGraph(Operations.IMethodBodyOperation methodBody)
+        {
+            return GetControlFlowGraphCore(methodBody, nameof(methodBody));
+        }
+
+        private static ControlFlowGraph GetControlFlowGraphCore(IOperation operation, string argumentNameForException)
+        {
+            if (operation == null)
+            {
+                throw new ArgumentNullException(argumentNameForException);
+            }
+
+            if (operation.Parent != null)
+            {
+                throw new ArgumentException(CodeAnalysisResources.NotARootOperation, argumentNameForException);
+            }
+
+            if (((Operation)operation).SemanticModel == null)
+            {
+                throw new ArgumentException(CodeAnalysisResources.OperationHasNullSemanticModel, argumentNameForException);
+            }
+
+            if (!operation.Syntax.SyntaxTree.Options.Features.ContainsKey("flow-analysis"))
+            {
+                throw new InvalidOperationException(CodeAnalysisResources.FlowAnalysisFeatureDisabled);
+            }
+
+            try
+            {
+                ControlFlowGraph controlFlowGraph = ControlFlowGraphBuilder.Create(operation);
+                Debug.Assert(controlFlowGraph.OriginalOperation == operation);
+                return controlFlowGraph;
+            }
+            catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
+            {
+                // Log a Non-fatal-watson and then ignore the crash in the attempt of getting flow graph.
+                Debug.Assert(false, "\n" + e.ToString());
+            }
+
+            return default;
+        }
 
         /// <summary>
         /// Returns true if this is a SemanticModel that ignores accessibility rules when answering semantic questions.

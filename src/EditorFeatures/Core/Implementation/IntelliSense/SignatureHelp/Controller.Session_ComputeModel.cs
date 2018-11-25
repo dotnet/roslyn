@@ -178,7 +178,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
                 => p1.ToString() == p2.ToString();
 
             /// <summary>
-            /// Returns <code>null</code> if our work was preempted and we want to return the 
+            /// Returns <see langword="null"/> if our work was preempted and we want to return the 
             /// previous model we've computed.
             /// </summary>
             private async Task<(ISignatureHelpProvider provider, SignatureHelpItems items)?> ComputeItemsAsync(

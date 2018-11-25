@@ -1,9 +1,8 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Threading
 Imports Microsoft.CodeAnalysis.Editor.CSharp.GoToDefinition
-Imports Microsoft.CodeAnalysis.Editor.Host
 Imports Microsoft.CodeAnalysis.Editor.GoToDefinition
+Imports Microsoft.CodeAnalysis.Editor.Host
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities.GoToHelpers
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
@@ -13,6 +12,7 @@ Imports Roslyn.Utilities
 Imports Microsoft.VisualStudio.Commanding
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToDefinition
+    <[UseExportProvider]>
     Public Class GoToDefinitionCancellationTests
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
@@ -56,7 +56,7 @@ class C
 
             Using workspace = TestWorkspace.Create(
                     definition,
-                    exportProvider:=MinimalTestExportProvider.CreateExportProvider(GoToTestHelpers.Catalog.WithPart(GetType(CSharpGoToDefinitionService))))
+                    exportProvider:=ExportProviderCache.GetOrCreateExportProviderFactory(GoToTestHelpers.Catalog.WithPart(GetType(CSharpGoToDefinitionService))).CreateExportProvider())
 
                 Dim baseDocument = workspace.Documents.First(Function(d) Not d.IsLinkFile)
                 Dim linkDocument = workspace.Documents.First(Function(d) d.IsLinkFile)
@@ -88,7 +88,7 @@ class C
     </Project>
 </Workspace>
 
-            Using workspace = TestWorkspace.Create(definition, exportProvider:=GoToTestHelpers.ExportProvider)
+            Using workspace = TestWorkspace.Create(definition, exportProvider:=GoToTestHelpers.ExportProviderFactory.CreateExportProvider())
                 Dim cursorDocument = workspace.Documents.First(Function(d) d.CursorPosition.HasValue)
                 Dim cursorPosition = cursorDocument.CursorPosition.Value
 

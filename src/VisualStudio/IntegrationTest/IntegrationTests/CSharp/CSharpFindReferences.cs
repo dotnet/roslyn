@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Common;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
+using Roslyn.Test.Utilities;
 using Xunit;
 using ProjectUtils = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils;
 
@@ -21,7 +22,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         {
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.FindReferences)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)]
         public void FindReferencesToCtor()
         {
             SetUpEditor(@"
@@ -70,7 +71,7 @@ class SomeOtherClass
                 });
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.FindReferences)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)]
         public void FindReferencesToLocals()
         {
             using (var telemetry = VisualStudio.EnableTestTelemetryChannel())
@@ -116,7 +117,7 @@ class Program
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.FindReferences)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)]
         public void FindReferencesToString()
         {
             SetUpEditor(@"

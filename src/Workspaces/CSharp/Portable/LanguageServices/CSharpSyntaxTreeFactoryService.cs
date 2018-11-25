@@ -15,6 +15,8 @@ namespace Microsoft.CodeAnalysis.CSharp
     [ExportLanguageServiceFactory(typeof(ISyntaxTreeFactoryService), LanguageNames.CSharp), Shared]
     internal partial class CSharpSyntaxTreeFactoryServiceFactory : ILanguageServiceFactory
     {
+        private static readonly CSharpParseOptions _parseOptionWithLatestLanguageVersion = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Latest);
+
         public ILanguageService CreateLanguageService(HostLanguageServices provider)
         {
             return new CSharpSyntaxTreeFactoryService(provider);
@@ -29,6 +31,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             public override ParseOptions GetDefaultParseOptions()
             {
                 return CSharpParseOptions.Default;
+            }
+
+            public override ParseOptions GetDefaultParseOptionsWithLatestLanguageVersion()
+            {
+                return _parseOptionWithLatestLanguageVersion;
             }
 
             public override SyntaxTree CreateSyntaxTree(string fileName, ParseOptions options, Encoding encoding, SyntaxNode root)

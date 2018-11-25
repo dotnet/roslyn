@@ -7,6 +7,7 @@ Imports Microsoft.VisualStudio.LanguageServices.Implementation.Progression
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
 
+    <[UseExportProvider]>
     Public Class InheritedByGraphQueryTests
         <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
         Public Async Function TestInheritedByClassesCSharp() As Task

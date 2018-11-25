@@ -6,6 +6,7 @@ Imports Microsoft.VisualStudio.GraphModel
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Progression
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
+    <[UseExportProvider]>
     Public Class IsUsedByGraphQueryTests
         <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
         Public Async Function IsUsedByTests() As Task

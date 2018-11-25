@@ -8,7 +8,7 @@
     <OutputType>Library</OutputType>
     <RootNamespace>Roslyn.InteractiveHost.UnitTests</RootNamespace>
     <AssemblyName>Roslyn.InteractiveHost.UnitTests</AssemblyName>
-    <TargetFramework>net461</TargetFramework>
+    <TargetFramework>net46</TargetFramework>
     <RuntimeIdentifier>$(RoslynDesktopRuntimeIdentifierX86)</RuntimeIdentifier>
     <RoslynProjectType>UnitTest</RoslynProjectType>
   </PropertyGroup>

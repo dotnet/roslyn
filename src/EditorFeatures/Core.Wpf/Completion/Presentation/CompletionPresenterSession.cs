@@ -15,6 +15,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.Presentation
 {
+    using CompletionItem = Microsoft.CodeAnalysis.Completion.CompletionItem;
+
     internal sealed class CompletionPresenterSession : ForegroundThreadAffinitizedObject, ICompletionPresenterSession
     {
         internal static readonly object Key = new object();

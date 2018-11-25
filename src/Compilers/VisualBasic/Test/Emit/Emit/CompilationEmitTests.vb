@@ -2108,8 +2108,8 @@ Imports System
         ''' <summary>
         ''' Validate the contents of the DeclSecurity metadata table.
         ''' </summary>
-        Private Shared Sub ValidateDeclSecurity(compilation As VisualBasicCompilation, ParamArray expectedEntries As DeclSecurityEntry())
-            Dim metadataReader = ModuleMetadata.CreateFromImage(compilation.EmitToArray()).Module.GetMetadataReader()
+        Private Shared Sub ValidateDeclSecurity([module] As ModuleSymbol, ParamArray expectedEntries As DeclSecurityEntry())
+            Dim metadataReader = [module].GetMetadata().MetadataReader
             Assert.Equal(expectedEntries.Length, metadataReader.DeclarativeSecurityAttributes.Count)
 
             Dim i = 0
@@ -2220,36 +2220,39 @@ End Module
             Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source)
             compilation.VerifyDiagnostics()
 
-            ValidateDeclSecurity(compilation,
-                                 New DeclSecurityEntry() With {
-                                    .ActionFlags = DeclarativeSecurityAction.Demand,
-                                    .ParentKind = SymbolKind.NamedType,
-                                    .ParentNameOpt = "C",
-                                    .PermissionSet =
-                                        "." &
-                                        ChrW(1) &
-                                        ChrW(&H80) &
-                                        ChrW(&H85) &
-                                        "System.Security.Permissions.PrincipalPermissionAttribute, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" &
-                                        ChrW(&HE) &
-                                        ChrW(&H1) &
-                                        ChrW(&H54) &
-                                        ChrW(&HE) &
-                                        ChrW(&H4) &
-                                        "Role" &
-                                        ChrW(&H5) &
-                                        "User1"},
-                                    New DeclSecurityEntry() With {
-                                    .ActionFlags = DeclarativeSecurityAction.Assert,
-                                    .ParentKind = SymbolKind.NamedType,
-                                    .ParentNameOpt = "C",
-                                    .PermissionSet =
-                                        "." &
-                                        ChrW(1) &
-                                        ChrW(&H50) &
-                                        "MySecurityAttribute, Test, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null" &
-                                        ChrW(1) &
-                                        ChrW(0)})
+            CompileAndVerify(compilation, symbolValidator:=
+                             Sub([module] As ModuleSymbol)
+                                 ValidateDeclSecurity([module],
+                                                      New DeclSecurityEntry() With {
+                                                         .ActionFlags = DeclarativeSecurityAction.Demand,
+                                                         .ParentKind = SymbolKind.NamedType,
+                                                         .ParentNameOpt = "C",
+                                                         .PermissionSet =
+                                                             "." &
+                                                             ChrW(1) &
+                                                             ChrW(&H80) &
+                                                             ChrW(&H85) &
+                                                             "System.Security.Permissions.PrincipalPermissionAttribute, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" &
+                                                             ChrW(&HE) &
+                                                             ChrW(&H1) &
+                                                             ChrW(&H54) &
+                                                             ChrW(&HE) &
+                                                             ChrW(&H4) &
+                                                             "Role" &
+                                                             ChrW(&H5) &
+                                                             "User1"},
+                                                         New DeclSecurityEntry() With {
+                                                         .ActionFlags = DeclarativeSecurityAction.Assert,
+                                                         .ParentKind = SymbolKind.NamedType,
+                                                         .ParentNameOpt = "C",
+                                                         .PermissionSet =
+                                                             "." &
+                                                             ChrW(1) &
+                                                             ChrW(&H50) &
+                                                             "MySecurityAttribute, Test, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null" &
+                                                             ChrW(1) &
+                                                             ChrW(0)})
+                             End Sub)
         End Sub
 
         <Fact()>
@@ -2275,7 +2278,9 @@ End Module
             Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source)
             compilation.VerifyDiagnostics()
 
-            ValidateDeclSecurity(compilation,
+            CompileAndVerify(compilation, symbolValidator:=
+                             Sub([module] As ModuleSymbol)
+                                 ValidateDeclSecurity([module],
                                  New DeclSecurityEntry() With {
                                     .ActionFlags = DeclarativeSecurityAction.Demand,
                                     .ParentKind = SymbolKind.Method,
@@ -2294,6 +2299,7 @@ End Module
                                         "Role" &
                                         ChrW(&H5) &
                                         "User1"})
+                             End Sub)
         End Sub
 
         <Fact()>
@@ -2318,38 +2324,41 @@ End Module
             Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source)
             compilation.VerifyDiagnostics()
 
-            ValidateDeclSecurity(compilation,
-                                 New DeclSecurityEntry() With {
-                                    .ActionFlags = DeclarativeSecurityAction.Demand,
-                                    .ParentKind = SymbolKind.NamedType,
-                                    .ParentNameOpt = "C",
-                                    .PermissionSet =
-                                        "." &
-                                        ChrW(2) &
+            CompileAndVerify(compilation, symbolValidator:=
+                             Sub([module] As ModuleSymbol)
+                                 ValidateDeclSecurity([module],
+                                                      New DeclSecurityEntry() With {
+                                                         .ActionFlags = DeclarativeSecurityAction.Demand,
+                                                         .ParentKind = SymbolKind.NamedType,
+                                                         .ParentNameOpt = "C",
+                                                         .PermissionSet =
+                                                             "." &
+                                                             ChrW(2) &
  _
-                                        ChrW(&H80) &
-                                        ChrW(&H85) &
-                                        "System.Security.Permissions.PrincipalPermissionAttribute, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" &
-                                        ChrW(&HE) &
-                                        ChrW(&H1) &
-                                        ChrW(&H54) &
-                                        ChrW(&HE) &
-                                        ChrW(&H4) &
-                                        "Role" &
-                                        ChrW(&H5) &
-                                        "User1" &
+                                                             ChrW(&H80) &
+                                                             ChrW(&H85) &
+                                                             "System.Security.Permissions.PrincipalPermissionAttribute, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" &
+                                                             ChrW(&HE) &
+                                                             ChrW(&H1) &
+                                                             ChrW(&H54) &
+                                                             ChrW(&HE) &
+                                                             ChrW(&H4) &
+                                                             "Role" &
+                                                             ChrW(&H5) &
+                                                             "User1" &
  _
-                                        ChrW(&H80) &
-                                        ChrW(&H85) &
-                                        "System.Security.Permissions.PrincipalPermissionAttribute, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" &
-                                        ChrW(&HE) &
-                                        ChrW(&H1) &
-                                        ChrW(&H54) &
-                                        ChrW(&HE) &
-                                        ChrW(&H4) &
-                                        "Role" &
-                                        ChrW(&H5) &
-                                        "User1"})
+                                                             ChrW(&H80) &
+                                                             ChrW(&H85) &
+                                                             "System.Security.Permissions.PrincipalPermissionAttribute, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" &
+                                                             ChrW(&HE) &
+                                                             ChrW(&H1) &
+                                                             ChrW(&H54) &
+                                                             ChrW(&HE) &
+                                                             ChrW(&H4) &
+                                                             "Role" &
+                                                             ChrW(&H5) &
+                                                             "User1"})
+                             End Sub)
         End Sub
 
         <Fact()>
@@ -2376,38 +2385,41 @@ End Module
             Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source)
             compilation.VerifyDiagnostics()
 
-            ValidateDeclSecurity(compilation,
-                                 New DeclSecurityEntry() With {
-                                    .ActionFlags = DeclarativeSecurityAction.Demand,
-                                    .ParentKind = SymbolKind.Method,
-                                    .ParentNameOpt = "goo",
-                                    .PermissionSet =
-                                        "." &
-                                        ChrW(2) &
+            CompileAndVerify(compilation, symbolValidator:=
+                             Sub([module] As ModuleSymbol)
+                                 ValidateDeclSecurity([module],
+                                                      New DeclSecurityEntry() With {
+                                                         .ActionFlags = DeclarativeSecurityAction.Demand,
+                                                         .ParentKind = SymbolKind.Method,
+                                                         .ParentNameOpt = "goo",
+                                                         .PermissionSet =
+                                                             "." &
+                                                             ChrW(2) &
  _
-                                        ChrW(&H80) &
-                                        ChrW(&H85) &
-                                        "System.Security.Permissions.PrincipalPermissionAttribute, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" &
-                                        ChrW(&HE) &
-                                        ChrW(&H1) &
-                                        ChrW(&H54) &
-                                        ChrW(&HE) &
-                                        ChrW(&H4) &
-                                        "Role" &
-                                        ChrW(&H5) &
-                                        "User1" &
+                                                             ChrW(&H80) &
+                                                             ChrW(&H85) &
+                                                             "System.Security.Permissions.PrincipalPermissionAttribute, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" &
+                                                             ChrW(&HE) &
+                                                             ChrW(&H1) &
+                                                             ChrW(&H54) &
+                                                             ChrW(&HE) &
+                                                             ChrW(&H4) &
+                                                             "Role" &
+                                                             ChrW(&H5) &
+                                                             "User1" &
  _
-                                ChrW(&H80) &
-                                        ChrW(&H85) &
-                                        "System.Security.Permissions.PrincipalPermissionAttribute, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" &
-                                        ChrW(&HE) &
-                                        ChrW(&H1) &
-                                        ChrW(&H54) &
-                                        ChrW(&HE) &
-                                        ChrW(&H4) &
-                                        "Role" &
-                                        ChrW(&H5) &
-                                        "User1"})
+                                                     ChrW(&H80) &
+                                                             ChrW(&H85) &
+                                                             "System.Security.Permissions.PrincipalPermissionAttribute, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" &
+                                                             ChrW(&HE) &
+                                                             ChrW(&H1) &
+                                                             ChrW(&H54) &
+                                                             ChrW(&HE) &
+                                                             ChrW(&H4) &
+                                                             "Role" &
+                                                             ChrW(&H5) &
+                                                             "User1"})
+                             End Sub)
         End Sub
 
         <Fact()>
@@ -2432,7 +2444,9 @@ End Module
             Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source)
             compilation.VerifyDiagnostics()
 
-            ValidateDeclSecurity(compilation,
+            CompileAndVerify(compilation, symbolValidator:=
+                             Sub([module] As ModuleSymbol)
+                                 ValidateDeclSecurity([module],
                                  New DeclSecurityEntry() With {
                                     .ActionFlags = DeclarativeSecurityAction.Demand,
                                     .ParentKind = SymbolKind.NamedType,
@@ -2469,6 +2483,7 @@ End Module
                                         "Role" &
                                         ChrW(&H5) &
                                         "User2"})
+                             End Sub)
         End Sub
 
         <Fact()>
@@ -2495,7 +2510,9 @@ End Module
             Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source)
             compilation.VerifyDiagnostics()
 
-            ValidateDeclSecurity(compilation,
+            CompileAndVerify(compilation, symbolValidator:=
+                             Sub([module] As ModuleSymbol)
+                                 ValidateDeclSecurity([module],
                                  New DeclSecurityEntry() With {
                                     .ActionFlags = DeclarativeSecurityAction.Demand,
                                     .ParentKind = SymbolKind.Method,
@@ -2532,6 +2549,7 @@ End Module
                                         "Role" &
                                         ChrW(&H5) &
                                         "User2"})
+                             End Sub)
         End Sub
 
         <Fact()>
@@ -2564,7 +2582,9 @@ End Module
             Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source)
             compilation.VerifyDiagnostics()
 
-            ValidateDeclSecurity(compilation,
+            CompileAndVerify(compilation, symbolValidator:=
+                             Sub([module] As ModuleSymbol)
+                                 ValidateDeclSecurity([module],
                                  New DeclSecurityEntry() With {
                                     .ActionFlags = DeclarativeSecurityAction.Demand,
                                     .ParentKind = SymbolKind.Method,
@@ -2601,6 +2621,7 @@ End Module
                                         "Role" &
                                         ChrW(&H5) &
                                         "User1"})
+                             End Sub)
         End Sub
 
         <Fact()>
@@ -2628,43 +2649,46 @@ End Module
             Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source)
             compilation.VerifyDiagnostics()
 
-            ValidateDeclSecurity(compilation,
-                                 New DeclSecurityEntry() With {
-                                    .ActionFlags = DeclarativeSecurityAction.Demand,
-                                    .ParentKind = SymbolKind.NamedType,
-                                    .ParentNameOpt = "C1",
-                                    .PermissionSet =
-                                        "." &
-                                        ChrW(1) &
-                                        ChrW(&H80) &
-                                        ChrW(&H85) &
-                                        "System.Security.Permissions.PrincipalPermissionAttribute, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" &
-                                        ChrW(&HE) &
-                                        ChrW(&H1) &
-                                        ChrW(&H54) &
-                                        ChrW(&HE) &
-                                        ChrW(&H4) &
-                                        "Role" &
-                                        ChrW(&H5) &
-                                        "User1"},
-                                New DeclSecurityEntry() With {
-                                    .ActionFlags = DeclarativeSecurityAction.Demand,
-                                    .ParentKind = SymbolKind.NamedType,
-                                    .ParentNameOpt = "C2",
-                                    .PermissionSet =
-                                        "." &
-                                        ChrW(1) &
-                                        ChrW(&H80) &
-                                        ChrW(&H85) &
-                                        "System.Security.Permissions.PrincipalPermissionAttribute, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" &
-                                        ChrW(&HE) &
-                                        ChrW(&H1) &
-                                        ChrW(&H54) &
-                                        ChrW(&HE) &
-                                        ChrW(&H4) &
-                                        "Role" &
-                                        ChrW(&H5) &
-                                        "User1"})
+            CompileAndVerify(compilation, symbolValidator:=
+                             Sub([module] As ModuleSymbol)
+                                 ValidateDeclSecurity([module],
+                                                      New DeclSecurityEntry() With {
+                                                         .ActionFlags = DeclarativeSecurityAction.Demand,
+                                                         .ParentKind = SymbolKind.NamedType,
+                                                         .ParentNameOpt = "C1",
+                                                         .PermissionSet =
+                                                             "." &
+                                                             ChrW(1) &
+                                                             ChrW(&H80) &
+                                                             ChrW(&H85) &
+                                                             "System.Security.Permissions.PrincipalPermissionAttribute, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" &
+                                                             ChrW(&HE) &
+                                                             ChrW(&H1) &
+                                                             ChrW(&H54) &
+                                                             ChrW(&HE) &
+                                                             ChrW(&H4) &
+                                                             "Role" &
+                                                             ChrW(&H5) &
+                                                             "User1"},
+                                                     New DeclSecurityEntry() With {
+                                                         .ActionFlags = DeclarativeSecurityAction.Demand,
+                                                         .ParentKind = SymbolKind.NamedType,
+                                                         .ParentNameOpt = "C2",
+                                                         .PermissionSet =
+                                                             "." &
+                                                             ChrW(1) &
+                                                             ChrW(&H80) &
+                                                             ChrW(&H85) &
+                                                             "System.Security.Permissions.PrincipalPermissionAttribute, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" &
+                                                             ChrW(&HE) &
+                                                             ChrW(&H1) &
+                                                             ChrW(&H54) &
+                                                             ChrW(&HE) &
+                                                             ChrW(&H4) &
+                                                             "Role" &
+                                                             ChrW(&H5) &
+                                                             "User1"})
+                             End Sub)
         End Sub
 
         <Fact()>
@@ -2696,8 +2720,9 @@ End Module
                 Diagnostic(ERRID.WRN_UseOfObsoleteSymbol2, "SecurityAction.RequestOptional").WithArguments("RequestOptional", "Assembly level declarative security is obsolete and is no longer enforced by the CLR by default. See http://go.microsoft.com/fwlink/?LinkID=155570 for more information."),
                 Diagnostic(ERRID.WRN_UseOfObsoleteSymbol2, "SecurityAction.RequestMinimum").WithArguments("RequestMinimum", "Assembly level declarative security is obsolete and is no longer enforced by the CLR by default. See http://go.microsoft.com/fwlink/?LinkID=155570 for more information."))
 
-            ValidateDeclSecurity(compilation,
-                                 New DeclSecurityEntry() With {
+            CompileAndVerify(compilation, symbolValidator:=
+                             Sub([module] As ModuleSymbol)
+                                 ValidateDeclSecurity([module], New DeclSecurityEntry() With {
                                     .ActionFlags = DeclarativeSecurityAction.RequestOptional,
                                     .ParentKind = SymbolKind.Assembly,
                                     .PermissionSet =
@@ -2765,6 +2790,7 @@ End Module
                                         "Role" &
                                         ChrW(&H5) &
                                         "User2"})
+                             End Sub)
         End Sub
 
         <Fact()>
@@ -3143,8 +3169,9 @@ End Class
             Dim lengthHi = &H82
             Dim lengthLo = &H86
 
-            ValidateDeclSecurity(comp,
-                New DeclSecurityEntry() With {
+            CompileAndVerify(comp, symbolValidator:=
+                             Sub([module] As ModuleSymbol)
+                                 ValidateDeclSecurity([module], New DeclSecurityEntry() With {
                     .ActionFlags = DeclarativeSecurityAction.Deny,
                     .ParentKind = SymbolKind.NamedType,
                     .ParentNameOpt = "AClass",
@@ -3161,6 +3188,7 @@ End Class
                         "Hex" &
                         ChrW(lengthHi) & ChrW(lengthLo) &
                         hexFileContent})
+                             End Sub)
         End Sub
 
         <WorkItem(545084, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545084"), WorkItem(529492, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529492")>
@@ -3859,7 +3887,7 @@ End interface
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlib40(useSource, TestOptions.ReleaseDll)
+            Dim compilation = CreateCompilationWithMscorlib40(useSource, options:=TestOptions.ReleaseDll)
             Dim metadataReader = ModuleMetadata.CreateFromImage(compilation.EmitToArray()).Module.GetMetadataReader()
 
             Dim P1RVA = 0
@@ -3921,7 +3949,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlib40(source, TestOptions.ReleaseDll)
+            Dim compilation = CreateCompilationWithMscorlib40(source, options:=TestOptions.ReleaseDll)
             Using stream As Stream = compilation.EmitToStream()
                 Dim len As Integer = CType(stream.Length, Integer)
                 Dim bytes(len) As Byte
@@ -3966,7 +3994,7 @@ Class C6
 End Class
     </file>
 </compilation>
-            Dim compilation = CreateCompilationWithMscorlib40(source, TestOptions.ReleaseDll)
+            Dim compilation = CreateCompilationWithMscorlib40(source, options:=TestOptions.ReleaseDll)
             Dim bytes = compilation.EmitToArray()
             Using metadata = ModuleMetadata.CreateFromImage(bytes)
                 Dim reader = metadata.MetadataReader

@@ -8878,5 +8878,97 @@ class Test
                 // using static BothObsoleteParent.BothObsoleteChild;
                 Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "BothObsoleteParent.BothObsoleteChild").WithArguments("BothObsoleteParent.BothObsoleteChild").WithLocation(5, 14));
         }
+
+        [Fact, WorkItem(19394, "https://github.com/dotnet/roslyn/issues/19394")]
+        public void WellKnownTypeAsStruct_DefaultConstructor_DynamicAttribute()
+        {
+            var code = @"
+namespace System.Runtime.CompilerServices
+{
+    public struct DynamicAttribute
+    {
+        public DynamicAttribute(bool[] transformFlags)
+        {
+        }
+    }
+}
+class T
+{
+    void M(dynamic x) {}
+}";
+
+            CreateCompilation(code).VerifyDiagnostics().VerifyEmitDiagnostics(
+                // error CS0616: 'System.Runtime.CompilerServices.DynamicAttribute' is not an attribute class
+                Diagnostic(ErrorCode.ERR_NotAnAttributeClass).WithArguments("System.Runtime.CompilerServices.DynamicAttribute").WithLocation(1, 1));
+        }
+
+        [Fact, WorkItem(19394, "https://github.com/dotnet/roslyn/issues/19394")]
+        public void WellKnownTypeAsStruct_NonDefaultConstructor_DynamicAttribute_Array()
+        {
+            var compilation = CreateCompilationWithCSharp(@"
+using System;
+namespace System.Runtime.CompilerServices
+{
+    public struct DynamicAttribute
+    {
+        public DynamicAttribute(bool[] transformFlags)
+        {
+        }
+    }
+}
+public class Program
+{
+    public static void Test(dynamic[] x)
+    {
+        Console.WriteLine(x.Length);
+        foreach (var y in x)
+        {
+            Console.WriteLine(y);
+        }
+    }
+    public static void Main()
+    {
+        Test(new dynamic[] { ""first"", ""second"" });
+    }
+}", options: TestOptions.ReleaseExe);
+
+            CompileAndVerify(
+                compilation,
+                expectedOutput: @"
+2
+first
+second",
+                symbolValidator: module =>
+                {
+                    var attribute = module.ContainingAssembly.GetTypeByMetadataName("Program").GetMethod("Test").Parameters.Single().GetAttributes().Single();
+
+                    Assert.Equal("System.Runtime.CompilerServices.DynamicAttribute", attribute.AttributeClass.ToTestDisplayString());
+                    Assert.True(attribute.AttributeClass.IsStructType());
+                    Assert.Equal(module.ContainingAssembly, attribute.AttributeClass.ContainingAssembly);
+                    Assert.Equal("transformFlags", attribute.AttributeConstructor.Parameters.Single().Name);
+                });
+        }
+
+        [Fact, WorkItem(19394, "https://github.com/dotnet/roslyn/issues/19394")]
+        public void WellKnownTypeAsStruct_DefaultConstructor_IsReadOnlyAttribute()
+        {
+            var code = @"
+namespace System.Runtime.CompilerServices
+{
+    public struct IsReadOnlyAttribute
+    {
+    }
+}
+class Test
+{
+    void M(in int x)
+    {
+    }
+}";
+
+            CreateCompilation(code).VerifyDiagnostics().VerifyEmitDiagnostics(
+                // error CS0616: 'IsReadOnlyAttribute' is not an attribute class
+                Diagnostic(ErrorCode.ERR_NotAnAttributeClass).WithArguments("System.Runtime.CompilerServices.IsReadOnlyAttribute").WithLocation(1, 1));
+        }
     }
 }

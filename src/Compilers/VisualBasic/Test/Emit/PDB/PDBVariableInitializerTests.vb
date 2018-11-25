@@ -94,7 +94,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlib40(source, TestOptions.DebugDll)
+            Dim compilation = CreateCompilationWithMscorlib40(source, options:=TestOptions.DebugDll)
             compilation.VerifyDiagnostics()
 
             Dim actual = GetSequencePoints(GetPdbXml(compilation, "C..ctor"))
@@ -128,7 +128,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlib40(source, TestOptions.DebugDll)
+            Dim compilation = CreateCompilationWithMscorlib40(source, options:=TestOptions.DebugDll)
             compilation.VerifyDiagnostics()
 
             Dim actual = GetSequencePoints(GetPdbXml(compilation, "C..ctor"))
@@ -162,7 +162,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlib40(source, TestOptions.DebugDll)
+            Dim compilation = CreateCompilationWithMscorlib40(source, options:=TestOptions.DebugDll)
             compilation.VerifyDiagnostics()
 
             Dim actual = GetSequencePoints(GetPdbXml(compilation, "C..ctor"))
@@ -190,7 +190,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlib40(source, TestOptions.DebugDll)
+            Dim compilation = CreateCompilationWithMscorlib40(source, options:=TestOptions.DebugDll)
             compilation.VerifyDiagnostics()
 
             Dim actual = GetSequencePoints(GetPdbXml(compilation, "C..ctor"))
@@ -224,7 +224,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlib40(source, TestOptions.DebugDll)
+            Dim compilation = CreateCompilationWithMscorlib40(source, options:=TestOptions.DebugDll)
             compilation.VerifyDiagnostics()
 
             Dim actual = GetSequencePoints(GetPdbXml(compilation, "C.M"))
@@ -257,7 +257,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlib40(source, TestOptions.DebugDll)
+            Dim compilation = CreateCompilationWithMscorlib40(source, options:=TestOptions.DebugDll)
             compilation.VerifyDiagnostics()
 
             Dim actual = GetSequencePoints(GetPdbXml(compilation, "C..ctor"))
@@ -291,7 +291,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlib40(source, TestOptions.DebugDll)
+            Dim compilation = CreateCompilationWithMscorlib40(source, options:=TestOptions.DebugDll)
             compilation.VerifyDiagnostics()
 
             Dim actual = GetSequencePoints(GetPdbXml(compilation, "C.M"))
@@ -324,7 +324,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlib40(source, TestOptions.DebugDll)
+            Dim compilation = CreateCompilationWithMscorlib40(source, options:=TestOptions.DebugDll)
             compilation.VerifyDiagnostics()
 
             Dim actual = GetSequencePoints(GetPdbXml(compilation, "C..ctor"))
@@ -354,7 +354,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlib40(source, TestOptions.DebugDll)
+            Dim compilation = CreateCompilationWithMscorlib40(source, options:=TestOptions.DebugDll)
             compilation.VerifyDiagnostics()
 
             Dim actual = GetSequencePoints(GetPdbXml(compilation, "C.M"))
@@ -383,7 +383,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlib40(source, TestOptions.DebugDll)
+            Dim compilation = CreateCompilationWithMscorlib40(source, options:=TestOptions.DebugDll)
             compilation.VerifyDiagnostics()
 
             Dim actual = GetSequencePoints(GetPdbXml(compilation, "C..ctor"))
@@ -413,7 +413,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlib40(source, TestOptions.DebugDll)
+            Dim compilation = CreateCompilationWithMscorlib40(source, options:=TestOptions.DebugDll)
             compilation.VerifyDiagnostics()
 
             Dim actual = GetSequencePoints(GetPdbXml(compilation, "C.M"))

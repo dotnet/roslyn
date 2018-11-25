@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                 throw new ArgumentNullException(nameof(document));
             }
 
-            var service = document.Project.LanguageServices.GetService<ISyntaxFormattingService>();
+            var service = document.GetLanguageService<ISyntaxFormattingService>();
             if (service != null)
             {
                 return service.GetDefaultFormattingRules();

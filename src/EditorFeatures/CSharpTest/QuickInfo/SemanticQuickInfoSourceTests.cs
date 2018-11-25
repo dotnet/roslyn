@@ -5908,5 +5908,20 @@ class X
                 "delegate void $$D<T>() where T : unmanaged;",
                 MainDescription("delegate void D<T>() where T : unmanaged"));
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task UnmanagedConstraint_LocalFunction()
+        {
+            await TestAsync(
+@"
+class X
+{
+    void N()
+    {
+        void $$M<T>() where T : unmanaged { }
+    }
+}",
+                MainDescription("void M<T>() where T : unmanaged"));
+        }
     }
 }

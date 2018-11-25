@@ -23,7 +23,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         {
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
         public void Highlighting()
         {
             var markup = @"
@@ -42,7 +42,7 @@ class {|definition:C|}
             VerifyNone("void");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
         public void WrittenReference()
         {
             var markup = @"
@@ -62,7 +62,7 @@ class C
             VerifyNone("void");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
         public void Navigation()
         {
             var text = @"

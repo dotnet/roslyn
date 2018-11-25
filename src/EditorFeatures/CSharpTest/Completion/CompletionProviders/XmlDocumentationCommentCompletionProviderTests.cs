@@ -465,6 +465,16 @@ static void Goo(string str)
 ", "str");
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(26713, "https://github.com/dotnet/roslyn/issues/26713")]
+        public async Task DelegateParams()
+        {
+            await VerifyItemExistsAsync(@"
+/// $$
+delegate void D(object o);
+", "param name=\"o\"");
+        }
+
         [WorkItem(17872, "https://github.com/dotnet/roslyn/issues/17872")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TypeParamRefNamesInEmptyAttribute()

@@ -15,6 +15,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TextStructureNavigation
 {
+    [UseExportProvider]
     public class TextStructureNavigatorTests
     {
         [Fact, Trait(Traits.Feature, Traits.Features.TextStructureNavigator)]

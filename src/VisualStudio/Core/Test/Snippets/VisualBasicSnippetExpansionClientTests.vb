@@ -12,6 +12,7 @@ Imports Microsoft.VisualStudio.Text.Projection
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
+    <[UseExportProvider]>
     Public Class VisualBasicSnippetExpansionClientTests
         <WpfFact, Trait(Traits.Feature, Traits.Features.Snippets)>
         Public Async Function TestAddImport_EmptyDocument() As Task

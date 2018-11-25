@@ -943,6 +943,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
            expr As BoundExpression,
            diagnostics As DiagnosticBag
         ) As BoundExpression
+            If expr.Kind = BoundKind.ConditionalAccess AndAlso expr.Type Is Nothing Then
+                Dim conditionalAccess = DirectCast(expr, BoundConditionalAccess)
+                Dim access As BoundExpression = Me.MakeRValue(conditionalAccess.AccessExpression, diagnostics)
+
+                Dim resultType As TypeSymbol = access.Type
+
+                If Not resultType.IsErrorType() Then
+                    If resultType.IsValueType AndAlso Not resultType.IsRestrictedType Then
+                        If Not resultType.IsNullableType() Then
+                            resultType = GetSpecialType(SpecialType.System_Nullable_T, expr.Syntax, diagnostics).Construct(resultType)
+                        End If
+                    ElseIf Not resultType.IsReferenceType Then
+                        ' Access cannot have unconstrained generic type or a restricted type
+                        ReportDiagnostic(diagnostics, access.Syntax, ERRID.ERR_CannotBeMadeNullable1, resultType)
+                        resultType = ErrorTypeSymbol.UnknownResultType
+                    End If
+                End If
+
+                Return conditionalAccess.Update(conditionalAccess.Receiver, conditionalAccess.Placeholder, access, resultType)
+            End If
 
             If expr.HasErrors Then
                 Return expr
@@ -1116,6 +1136,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                      isLValue:=False,
                                                      receiverOpt:=access.ReceiverOpt,
                                                      arguments:=access.Arguments,
+                                                     defaultArguments:=access.DefaultArguments,
                                                      type:=access.Type,
                                                      hasErrors:=access.HasErrors)
 
@@ -1127,7 +1148,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case BoundKind.Call
                     Dim [call] = DirectCast(result, BoundCall)
                     result = New BoundCall(typeExpr.Syntax, [call].Method, [call].MethodGroupOpt, [call].ReceiverOpt, [call].Arguments,
-                                           [call].ConstantValueOpt,
+                                           [call].DefaultArguments, [call].ConstantValueOpt,
                                            isLValue:=False,
                                            suppressObjectClone:=[call].SuppressObjectClone,
                                            type:=[call].Type,
@@ -1200,25 +1221,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Dim enclosed As BoundExpression = MakeValue(parenthesized.Expression, diagnostics)
                     Return parenthesized.Update(enclosed, enclosed.Type)
                 End If
-            ElseIf expr.Kind = BoundKind.ConditionalAccess AndAlso expr.Type Is Nothing Then
-                Dim conditionalAccess = DirectCast(expr, BoundConditionalAccess)
-                Dim access As BoundExpression = Me.MakeRValue(conditionalAccess.AccessExpression, diagnostics)
-
-                Dim resultType As TypeSymbol = access.Type
-
-                If Not resultType.IsErrorType() Then
-                    If resultType.IsValueType AndAlso Not resultType.IsRestrictedType Then
-                        If Not resultType.IsNullableType() Then
-                            resultType = GetSpecialType(SpecialType.System_Nullable_T, expr.Syntax, diagnostics).Construct(resultType)
-                        End If
-                    ElseIf Not resultType.IsReferenceType Then
-                        ' Access cannot have unconstrained generic type or a restricted type
-                        ReportDiagnostic(diagnostics, access.Syntax, ERRID.ERR_CannotBeMadeNullable1, resultType)
-                        resultType = ErrorTypeSymbol.UnknownResultType
-                    End If
-                End If
-
-                Return conditionalAccess.Update(conditionalAccess.Receiver, conditionalAccess.Placeholder, access, resultType)
             End If
 
             expr = ReclassifyAsValue(expr, diagnostics)

@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 (!node.WasCompilerGenerated ||
                  (node.ExpressionOpt != null ?
                         IsLambdaOrExpressionBodiedMember :
-                        (node.Syntax.Kind() == SyntaxKind.Block && _factory.CurrentMethod?.IsAsync == false))))
+                        (node.Syntax.Kind() == SyntaxKind.Block && _factory.CurrentFunction?.IsAsync == false))))
             {
                 rewritten = _instrumenter.InstrumentReturnStatement(node, rewritten);
             }
@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                var method = _factory.CurrentMethod;
+                var method = _factory.CurrentFunction;
                 if (method is LambdaSymbol)
                 {
                     return true;

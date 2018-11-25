@@ -221,8 +221,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     var convertedInput = _factory.Convert(type, loweredInput);
                     var assignment = _factory.AssignmentExpression(loweredTarget, convertedInput);
+                    var objectType = _factory.SpecialType(SpecialType.System_Object);
                     return requiresNullTest
-                        ? _factory.ObjectNotEqual(assignment, _factory.Null(type))
+                        ? _factory.ObjectNotEqual(_factory.Convert(objectType, assignment), _factory.Null(objectType))
                         : _factory.MakeSequence(assignment, _factory.Literal(true));
                 }
             }

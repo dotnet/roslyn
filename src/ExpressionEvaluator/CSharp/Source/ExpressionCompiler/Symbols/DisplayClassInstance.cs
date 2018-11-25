@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         {
             Debug.Assert((object)parameter != null);
             Debug.Assert(parameter.Name.EndsWith("this", StringComparison.Ordinal) ||
-                parameter.Name.Equals("", StringComparison.Ordinal) || // unnamed
+                parameter.Name.Length == 0 || // unnamed
                 parameter.Name.Equals("value", StringComparison.Ordinal) || // display class instance passed to local function as parameter
                 GeneratedNames.GetKind(parameter.Name) == GeneratedNameKind.TransparentIdentifier);
             this.Parameter = parameter;

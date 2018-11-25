@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
         private readonly SignatureHelpCommandHandler _signatureHelpCommandHandler;
         private readonly QuickInfoCommandHandlerAndSourceProvider _quickInfoCommandHandler;
 
-        public string DisplayName => EditorFeaturesResources.IntelliSense_Command_Handler;
+        public string DisplayName => EditorFeaturesResources.IntelliSense;
 
         protected AbstractIntelliSenseCommandHandler(
             CompletionCommandHandler completionCommandHandler,

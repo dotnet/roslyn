@@ -599,10 +599,12 @@ class MyClass
             var impconv = model.GetConversion(expr1);
             Assert.Equal(Conversion.Identity, impconv);
             Conversion conv = model.ClassifyConversion(expr1, (TypeSymbol)info.ConvertedType);
+            CheckIsAssignableTo(model, expr1);
             Assert.Equal(impconv, conv);
             Assert.Equal("Identity", conv.ToString());
 
             conv = model.ClassifyConversion(expr2, (TypeSymbol)info.ConvertedType);
+            CheckIsAssignableTo(model, expr2);
             Assert.Equal(impconv, conv);
         }
 
@@ -629,9 +631,17 @@ class C {
             Assert.True(impconv.IsUserDefined);
 
             Conversion conv = model.ClassifyConversion(expr1, (TypeSymbol)info.ConvertedType);
+            CheckIsAssignableTo(model, expr1);
             Assert.Equal(impconv, conv);
             Assert.True(conv.IsImplicit);
             Assert.True(conv.IsUserDefined);
+        }
+
+        private void CheckIsAssignableTo(SemanticModel model, ExpressionSyntax syntax)
+        {
+            var info = model.GetTypeInfo(syntax);
+            var conversion = info.Type != null && info.ConvertedType != null ? model.Compilation.ClassifyConversion(info.Type, info.ConvertedType) : Conversion.NoConversion;
+            Assert.Equal(conversion.IsImplicit, model.Compilation.HasImplicitConversion(info.Type, info.ConvertedType));
         }
 
         [Fact, WorkItem(544151, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544151")]
@@ -833,6 +843,7 @@ class C {
 
             // NOT expect NoConversion
             Conversion act1 = semanticModel.ClassifyConversion(expr, (TypeSymbol)info.ConvertedType);
+            CheckIsAssignableTo(semanticModel, expr);
             Assert.Equal(ept1, act1.Kind);
             ValidateConversion(act1, ept1);
             ValidateConversion(act1, conv.Kind);
@@ -858,6 +869,7 @@ class C {
 
             // NOT expect NoConversion
             Conversion act1 = semanticModel.ClassifyConversion(expr, expsym);
+            CheckIsAssignableTo(semanticModel, expr);
             Assert.Equal(expkind, act1.Kind);
             ValidateConversion(act1, expkind);
         }
@@ -3320,6 +3332,7 @@ class Z
             Assert.NotNull(expr);
 
             var conversion = model.ClassifyConversion(expr, gNullableType);
+            CheckIsAssignableTo(model, expr);
 
             // Here we have a situation where Roslyn deliberately violates the specification in order
             // to be compatible with the native compiler. 
@@ -3385,6 +3398,7 @@ class Z
             Assert.NotNull(expr);
 
             var conversion = model.ClassifyConversion(expr, gNullableType);
+            CheckIsAssignableTo(model, expr);
 
             Assert.Equal(ConversionKind.ImplicitUserDefined, conversion.Kind);
 
@@ -3663,6 +3677,7 @@ class C
             Assert.Equal(ConversionKind.Identity, castConversion.Kind);
 
             Assert.Equal(ConversionKind.Boxing, model.ClassifyConversion(literal, (TypeSymbol)castTypeInfo.Type).Kind);
+            CheckIsAssignableTo(model, literal);
         }
 
         [Fact]
@@ -3699,6 +3714,7 @@ class C
 
             // Note that this reflects the hypothetical conversion, not the cast in the code.
             Assert.Equal(ConversionKind.ImplicitNumeric, model.ClassifyConversion(literal, (TypeSymbol)cast1TypeInfo.Type).Kind);
+            CheckIsAssignableTo(model, literal);
 
             var cast2 = (CastExpressionSyntax)cast1.Parent;
 
@@ -3709,6 +3725,7 @@ class C
             Assert.Equal(ConversionKind.Identity, cast2Conversion.Kind);
 
             Assert.Equal(ConversionKind.Boxing, model.ClassifyConversion(cast1, (TypeSymbol)cast2TypeInfo.Type).Kind);
+            CheckIsAssignableTo(model, cast1);
         }
 
         [WorkItem(545136, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545136")]
@@ -5517,6 +5534,7 @@ class Program
 
                 var otherFuncType = comp.GetWellKnownType(WellKnownType.System_Func_T).Construct(comp.GetSpecialType(SpecialType.System_Int32));
                 var conversion = model.ClassifyConversion(lambdaSyntax, otherFuncType);
+                CheckIsAssignableTo(model, lambdaSyntax);
 
                 var typeInfo = model.GetTypeInfo(lambdaSyntax);
                 Assert.Null(typeInfo.Type);
@@ -5564,6 +5582,7 @@ class C { }
             var typeC = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
 
             var conversion = model.ClassifyConversion(nullSyntax, typeC);
+            CheckIsAssignableTo(model, nullSyntax);
             Assert.Equal(ConversionKind.ImplicitReference, conversion.Kind);
         }
 
@@ -5602,6 +5621,7 @@ class B { }
             var typeFuncB = comp.GetWellKnownType(WellKnownType.System_Func_T).Construct(typeB);
 
             var conversion = model.ClassifyConversion(lambdaSyntax, typeFuncB);
+            CheckIsAssignableTo(model, lambdaSyntax);
             Assert.Equal(ConversionKind.AnonymousFunction, conversion.Kind);
         }
 
@@ -5648,6 +5668,7 @@ class C { }
             var typeFuncC = comp.GetWellKnownType(WellKnownType.System_Func_T).Construct(typeC);
 
             var conversion = model.ClassifyConversion(lambdaSyntax, typeFuncC);
+            CheckIsAssignableTo(model, lambdaSyntax);
             Assert.Equal(ConversionKind.AnonymousFunction, conversion.Kind);
         }
 
@@ -5708,6 +5729,7 @@ class C { }
             var typeFuncC = typeFunc.Construct(typeInt, typeC);
 
             var conversionA = model.ClassifyConversion(methodGroupSyntax, typeFuncA);
+            CheckIsAssignableTo(model, methodGroupSyntax);
             Assert.Equal(ConversionKind.MethodGroup, conversionA.Kind);
 
             var conversionB = model.ClassifyConversion(methodGroupSyntax, typeFuncB);

@@ -3252,5 +3252,144 @@ public class C
                 //     public static unsafe void Test(TestStruct[] ar)
                 Diagnostic(ErrorCode.ERR_ArrayElementCantBeRefAny, "TestStruct").WithArguments("TestStruct").WithLocation(8, 36));
         }
+
+        [Fact]
+        [WorkItem(25398, "https://github.com/dotnet/roslyn/issues/25398")]
+        public void AwaitRefStruct()
+        {
+            CreateCompilation(@"
+using System.Threading.Tasks;
+
+ref struct S { }
+
+class C
+{
+    async Task M(Task<S> t)
+    {
+        _ = await t;
+
+        var a = await t;
+
+        var r = t.Result;
+        M(await t, ref r);
+    }
+
+    void M(S t, ref S t1)
+    {
+    }
+}", options: TestOptions.ReleaseDll).VerifyDiagnostics(
+                // (8,26): error CS0306: The type 'S' may not be used as a type argument
+                //     async Task M(Task<S> t)
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "t").WithArguments("S").WithLocation(8, 26),
+                // (12,9): error CS4012: Parameters or locals of type 'S' cannot be declared in async methods or lambda expressions.
+                //         var a = await t;
+                Diagnostic(ErrorCode.ERR_BadSpecialByRefLocal, "var").WithArguments("S").WithLocation(12, 9),
+                // (14,9): error CS4012: Parameters or locals of type 'S' cannot be declared in async methods or lambda expressions.
+                //         var r = t.Result;
+                Diagnostic(ErrorCode.ERR_BadSpecialByRefLocal, "var").WithArguments("S").WithLocation(14, 9),
+                // (15,9): error CS8350: This combination of arguments to 'C.M(S, ref S)' is disallowed because it may expose variables referenced by parameter 't' outside of their declaration scope
+                //         M(await t, ref r);
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "M(await t, ref r)").WithArguments("C.M(S, ref S)", "t").WithLocation(15, 9)
+                );
+        }
+
+        [Fact]
+        [WorkItem(25398, "https://github.com/dotnet/roslyn/issues/25398")]
+        public void CoalesceRefStruct()
+        {
+            CreateCompilation(@"
+ref struct S { }
+
+class C
+{
+    void M()
+    {       
+        _ = (S?)null ?? default;
+
+        var a = (S?)null ?? default;
+    }
+}", options: TestOptions.ReleaseDll).VerifyDiagnostics(
+                // (8,14): error CS0306: The type 'S' may not be used as a type argument
+                //         _ = (S?)null ?? default;
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "S?").WithArguments("S").WithLocation(8, 14),
+                // (10,18): error CS0306: The type 'S' may not be used as a type argument
+                //         var a = (S?)null ?? default;
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "S?").WithArguments("S").WithLocation(10, 18)
+                );
+        }
+
+        [Fact]
+        [WorkItem(25398, "https://github.com/dotnet/roslyn/issues/25398")]
+        public void ArrayAccessRefStruct()
+        {
+            CreateCompilation(@"
+ref struct S { }
+
+class C
+{
+    void M()
+    {       
+        _ = ((S[])null)[0];
+
+        var a = ((S[])null)[0];
+    }
+}", options: TestOptions.ReleaseDll).VerifyDiagnostics(
+                // (8,15): error CS0611: Array elements cannot be of type 'S'
+                //         _ = ((S[])null)[0];
+                Diagnostic(ErrorCode.ERR_ArrayElementCantBeRefAny, "S").WithArguments("S").WithLocation(8, 15),
+                // (10,19): error CS0611: Array elements cannot be of type 'S'
+                //         var a = ((S[])null)[0];
+                Diagnostic(ErrorCode.ERR_ArrayElementCantBeRefAny, "S").WithArguments("S").WithLocation(10, 19)
+                );
+        }
+
+        [Fact]
+        [WorkItem(25398, "https://github.com/dotnet/roslyn/issues/25398")]
+        public void ConditionalRefStruct()
+        {
+            CreateCompilation(@"
+ref struct S { }
+
+class C
+{
+    void M()
+    {       
+        _ = ((C)null)?.Test();
+
+        var a = ((C)null)?.Test();
+    }
+    
+    S Test() => default;        
+}", options: TestOptions.ReleaseDll).VerifyDiagnostics(
+                // (8,22): error CS0023: Operator '?' cannot be applied to operand of type 'S'
+                //         _ = ((C)null)?.Test();
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "?").WithArguments("?", "S").WithLocation(8, 22),
+                // (10,26): error CS0023: Operator '?' cannot be applied to operand of type 'S'
+                //         var a = ((C)null)?.Test();
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "?").WithArguments("?", "S").WithLocation(10, 26)
+                );
+        }
+
+        [Fact]
+        [WorkItem(25485, "https://github.com/dotnet/roslyn/issues/25485")]
+        public void ArrayAccess_CrashesEscapeRules()
+        {
+            CreateCompilationWithMscorlibAndSpan(@"
+using System;
+public class Class1
+{
+    public void Foo(Span<Thing>[] first, Thing[] second)
+    {
+        var x = first[0];
+    }
+}
+public struct Thing
+{
+}
+").VerifyDiagnostics(
+                // (5,21): error CS0611: Array elements cannot be of type 'Span<Thing>'
+                //     public void Foo(Span<Thing>[] first, Thing[] second)
+                Diagnostic(ErrorCode.ERR_ArrayElementCantBeRefAny, "Span<Thing>").WithArguments("System.Span<Thing>").WithLocation(5, 21));
+        }
     }
 }

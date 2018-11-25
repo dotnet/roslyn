@@ -1,7 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
@@ -12,6 +14,11 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         public CSharpReplIdeFeatures(VisualStudioInstanceFactory instanceFactory)
             : base(instanceFactory)
         {
+        }
+
+        public override async Task InitializeAsync()
+        {
+            await base.InitializeAsync().ConfigureAwait(true);
             VisualStudio.Workspace.SetUseSuggestionMode(true);
         }
 
@@ -27,21 +34,21 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             base.Dispose(disposing);
         }
 
-        [Fact]
+        [WpfFact]
         public void VerifyDefaultUsingStatements()
         {
             VisualStudio.InteractiveWindow.SubmitText("Console.WriteLine(42);");
             VisualStudio.InteractiveWindow.WaitForLastReplOutput("42");
         }
 
-        [Fact]
+        [WpfFact]
         public void VerifyCodeActionsNotAvailableInPreviousSubmission()
         {
             VisualStudio.InteractiveWindow.InsertCode("Console.WriteLine(42);");
             VisualStudio.InteractiveWindow.Verify.CodeActionsNotShowing();
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/19914")]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/19914")]
         public void VerifyQuickInfoOnStringDocCommentsFromMetadata()
         {
             VisualStudio.InteractiveWindow.InsertCode("static void Goo(string[] args) { }");
@@ -51,7 +58,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             Assert.Equal("class‎ System‎.String", s);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/19914")]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/19914")]
         public void International()
         {
             VisualStudio.InteractiveWindow.InsertCode(@"delegate void العربية();
@@ -62,7 +69,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             Assert.Equal("‎(field‎)‎ العربية‎ func", s);
         }
 
-        [Fact]
+        [WpfFact]
         public void HighlightRefsSingleSubmissionVerifyRenameTagsShowUpWhenInvokedOnUnsubmittedText()
         {
             VisualStudio.InteractiveWindow.InsertCode("int someint; someint = 22; someint = 23;");
@@ -73,7 +80,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             VisualStudio.InteractiveWindow.VerifyTags(WellKnownTagNames.MarkerFormatDefinition_HighlightedDefinition, 1);
         }
 
-        [Fact]
+        [WpfFact]
         public void HighlightRefsSingleSubmissionVerifyRenameTagsGoAway()
         {
             VisualStudio.InteractiveWindow.InsertCode("int someint; someint = 22; someint = 23;");
@@ -88,7 +95,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             VisualStudio.InteractiveWindow.VerifyTags(WellKnownTagNames.MarkerFormatDefinition_HighlightedWrittenReference, 0);
         }
 
-        [Fact]
+        [WpfFact]
         public void HighlightRefsMultipleSubmisionsVerifyRenameTagsShowUpWhenInvokedOnSubmittedText()
         {
             VisualStudio.InteractiveWindow.SubmitText("class Goo { }");
@@ -100,7 +107,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             VisualStudio.InteractiveWindow.VerifyTags(WellKnownTagNames.MarkerFormatDefinition_HighlightedReference, 1);
         }
 
-        [Fact]
+        [WpfFact]
         public void HighlightRefsMultipleSubmisionsVerifyRenameTagsShowUpOnUnsubmittedText()
         {
             VisualStudio.InteractiveWindow.SubmitText("class Goo { }");
@@ -112,7 +119,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             VisualStudio.InteractiveWindow.VerifyTags(WellKnownTagNames.MarkerFormatDefinition_HighlightedReference, 1);
         }
 
-        [Fact]
+        [WpfFact]
         public void HighlightRefsMultipleSubmisionsVerifyRenameTagsShowUpOnTypesWhenInvokedOnSubmittedText()
         {
             VisualStudio.InteractiveWindow.SubmitText("class Goo { }");
@@ -124,7 +131,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             VisualStudio.InteractiveWindow.VerifyTags(WellKnownTagNames.MarkerFormatDefinition_HighlightedReference, 2);
         }
 
-        [Fact]
+        [WpfFact]
         public void HighlightRefsMultipleSubmisionsVerifyRenameTagsShowUpOnTypesWhenInvokedOnUnsubmittedText()
         {
             VisualStudio.InteractiveWindow.SubmitText("class Goo { }");
@@ -136,7 +143,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             VisualStudio.InteractiveWindow.VerifyTags(WellKnownTagNames.MarkerFormatDefinition_HighlightedReference, 2);
         }
 
-        [Fact]
+        [WpfFact]
         public void HighlightRefsMultipleSubmisionsVerifyRenameTagsGoAwayWhenInvokedOnUnsubmittedText()
         {
             VisualStudio.InteractiveWindow.SubmitText("class Goo { }");
@@ -148,7 +155,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             VisualStudio.InteractiveWindow.VerifyTags(WellKnownTagNames.MarkerFormatDefinition_HighlightedReference, 0);
         }
 
-        [Fact]
+        [WpfFact]
         public void HighlightRefsMultipleSubmisionsVerifyRenameTagsOnRedefinedVariable()
         {
             VisualStudio.InteractiveWindow.SubmitText("string abc = null;");
@@ -161,7 +168,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             VisualStudio.InteractiveWindow.VerifyTags(WellKnownTagNames.MarkerFormatDefinition_HighlightedReference, 0);
         }
 
-        [Fact]
+        [WpfFact]
         public void DisabledCommandsPart1()
         {
             VisualStudio.InteractiveWindow.InsertCode(@"public class Class
@@ -196,7 +203,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             Assert.False(VisualStudio.IsCommandAvailable(WellKnownCommandNames.Refactor_ReorderParameters));
         }
 
-        [Fact]
+        [WpfFact]
         public void AddUsing()
         {
             VisualStudio.InteractiveWindow.InsertCode("typeof(ArrayList)");
@@ -212,7 +219,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 typeof(ArrayList)");
         }
 
-        [Fact]
+        [WpfFact]
         public void QualifyName()
         {
             VisualStudio.InteractiveWindow.InsertCode("typeof(ArrayList)");

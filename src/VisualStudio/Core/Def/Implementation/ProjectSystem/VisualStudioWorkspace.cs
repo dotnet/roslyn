@@ -22,25 +22,19 @@ namespace Microsoft.VisualStudio.LanguageServices
         private BackgroundCompiler _backgroundCompiler;
         private readonly BackgroundParser _backgroundParser;
 
-        internal VisualStudioWorkspace(HostServices hostServices, WorkspaceBackgroundWork backgroundWork)
+        internal VisualStudioWorkspace(HostServices hostServices)
             : base(hostServices, WorkspaceKind.Host)
         {
-            if ((backgroundWork & WorkspaceBackgroundWork.Compile) != 0)
-            {
-                _backgroundCompiler = new BackgroundCompiler(this);
+            _backgroundCompiler = new BackgroundCompiler(this);
 
-                var cacheService = Services.GetService<IWorkspaceCacheService>();
-                if (cacheService != null)
-                {
-                    cacheService.CacheFlushRequested += OnCacheFlushRequested;
-                }
+            var cacheService = Services.GetService<IWorkspaceCacheService>();
+            if (cacheService != null)
+            {
+                cacheService.CacheFlushRequested += OnCacheFlushRequested;
             }
 
-            if ((backgroundWork & WorkspaceBackgroundWork.Parse) != 0)
-            {
-                _backgroundParser = new BackgroundParser(this);
-                _backgroundParser.Start();
-            }
+            _backgroundParser = new BackgroundParser(this);
+            _backgroundParser.Start();
         }
 
         private void OnCacheFlushRequested(object sender, EventArgs e)

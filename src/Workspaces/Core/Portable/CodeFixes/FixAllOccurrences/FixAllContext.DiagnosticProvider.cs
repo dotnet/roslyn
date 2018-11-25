@@ -15,7 +15,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CodeFixes
 {
     /// <summary>
-    /// Context for "Fix all occurrences" code fixes provided by an <see cref="FixAllProvider"/>.
+    /// Context for "Fix all occurrences" code fixes provided by a <see cref="FixAllProvider"/>.
     /// </summary>
     public partial class FixAllContext
     {

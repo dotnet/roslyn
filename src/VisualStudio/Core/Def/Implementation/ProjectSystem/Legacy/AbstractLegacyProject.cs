@@ -53,11 +53,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
             base.SetArguments(commandLine: string.Empty);
         }
 
-        /// <summary>
-        /// string (Guid) of the Hierarchy project type
-        /// </summary>
-        public string ProjectType => GetProjectType(Hierarchy);
-
         public override void Disconnect()
         {
             base.Disconnect();
@@ -126,22 +121,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
         internal static string GetProjectFilePath(IVsHierarchy hierarchy)
         {
             return ErrorHandler.Succeeded(((IVsProject3)hierarchy).GetMkDocument((uint)VSConstants.VSITEMID.Root, out var filePath)) ? filePath : null;
-        }
-
-        private static string GetProjectType(IVsHierarchy hierarchy)
-        {
-            var aggregatableProject = hierarchy as IVsAggregatableProject;
-            if (aggregatableProject == null)
-            {
-                return string.Empty;
-            }
-
-            if (ErrorHandler.Succeeded(aggregatableProject.GetAggregateProjectTypeGuids(out var projectType)))
-            {
-                return projectType;
-            }
-
-            return string.Empty;
         }
 
         private static Guid GetProjectIDGuid(IVsHierarchy hierarchy)

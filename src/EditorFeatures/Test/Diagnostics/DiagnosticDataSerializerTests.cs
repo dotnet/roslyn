@@ -11,18 +11,19 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Diagnostics.EngineV2;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
-using Traits = Microsoft.CodeAnalysis.Test.Utilities.Traits;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 {
+    [UseExportProvider]
     public class DiagnosticDataSerializerTests : TestBase
     {
         [Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
@@ -229,7 +230,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 {
                     private readonly Dictionary<object, Stream> _map = new Dictionary<object, Stream>();
 
-                    public Task<Stream> ReadStreamAsync(string name, CancellationToken cancellationToken = default(CancellationToken))
+                    public Task<Stream> ReadStreamAsync(string name, CancellationToken cancellationToken = default)
                     {
                         var stream = _map[name];
                         stream.Position = 0;
@@ -237,7 +238,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                         return Task.FromResult(stream);
                     }
 
-                    public Task<Stream> ReadStreamAsync(Project project, string name, CancellationToken cancellationToken = default(CancellationToken))
+                    public Task<Stream> ReadStreamAsync(Project project, string name, CancellationToken cancellationToken = default)
                     {
                         var stream = _map[Tuple.Create(project, name)];
                         stream.Position = 0;
@@ -245,7 +246,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                         return Task.FromResult(stream);
                     }
 
-                    public Task<Stream> ReadStreamAsync(Document document, string name, CancellationToken cancellationToken = default(CancellationToken))
+                    public Task<Stream> ReadStreamAsync(Document document, string name, CancellationToken cancellationToken = default)
                     {
                         var stream = _map[Tuple.Create(document, name)];
                         stream.Position = 0;
@@ -253,7 +254,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                         return Task.FromResult(stream);
                     }
 
-                    public Task<bool> WriteStreamAsync(string name, Stream stream, CancellationToken cancellationToken = default(CancellationToken))
+                    public Task<bool> WriteStreamAsync(string name, Stream stream, CancellationToken cancellationToken = default)
                     {
                         _map[name] = new MemoryStream();
                         stream.CopyTo(_map[name]);
@@ -261,7 +262,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                         return SpecializedTasks.True;
                     }
 
-                    public Task<bool> WriteStreamAsync(Project project, string name, Stream stream, CancellationToken cancellationToken = default(CancellationToken))
+                    public Task<bool> WriteStreamAsync(Project project, string name, Stream stream, CancellationToken cancellationToken = default)
                     {
                         _map[Tuple.Create(project, name)] = new MemoryStream();
                         stream.CopyTo(_map[Tuple.Create(project, name)]);
@@ -269,7 +270,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                         return SpecializedTasks.True;
                     }
 
-                    public Task<bool> WriteStreamAsync(Document document, string name, Stream stream, CancellationToken cancellationToken = default(CancellationToken))
+                    public Task<bool> WriteStreamAsync(Document document, string name, Stream stream, CancellationToken cancellationToken = default)
                     {
                         _map[Tuple.Create(document, name)] = new MemoryStream();
                         stream.CopyTo(_map[Tuple.Create(document, name)]);

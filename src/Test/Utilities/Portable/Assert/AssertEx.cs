@@ -4,13 +4,11 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
-using System.Xml.Linq;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
@@ -473,7 +471,7 @@ namespace Roslyn.Test.Utilities
                 }
                 else
                 {
-                    itemSeparator = ",\r\n";
+                    itemSeparator = "," + Environment.NewLine;
                 }
             }
 
@@ -487,7 +485,7 @@ namespace Roslyn.Test.Utilities
             message.AppendLine("Actual:");
             message.AppendLine(actualString);
             message.AppendLine("Differences:");
-            message.AppendLine(DiffUtil.DiffReport(expected, actual, comparer, itemInspector, itemSeparator));
+            message.AppendLine(DiffUtil.DiffReport(expected, actual, itemSeparator, comparer, itemInspector));
 
             if (TryGenerateExpectedSourceFileAndGetDiffLink(actualString, expected.Count(), expectedValueSourcePath, expectedValueSourceLine, out var link))
             {
@@ -560,6 +558,25 @@ namespace Roslyn.Test.Utilities
                 itemSeparator: Environment.NewLine,
                 expectedValueSourcePath: expectedValueSourcePath,
                 expectedValueSourceLine: expectedValueSourceLine);
+        }
+
+        public static void Throws<TException>(Action action, Action<TException> checker = null)
+            where TException : Exception
+        {
+            try
+            {
+                action();
+            }
+            catch (Exception e)
+            {
+                if (e is AggregateException agg && agg.InnerExceptions.Count == 1)
+                {
+                    e = agg.InnerExceptions[0];
+                }
+
+                Assert.Equal(typeof(TException), e.GetType());
+                checker?.Invoke((TException)e);
+            }
         }
     }
 }

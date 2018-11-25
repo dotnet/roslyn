@@ -1,6 +1,7 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
+Imports System.FormattableString
 Imports System.IO
 Imports System.Text
 Imports Microsoft.CodeAnalysis
@@ -9,9 +10,8 @@ Imports Microsoft.VisualStudio.LanguageServices.Implementation
 Imports Microsoft.Win32
 Imports Roslyn.Test.Utilities
 
-Imports System.FormattableString
-
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
+    <[UseExportProvider]>
     Public Class AnalyzerDependencyCheckerTests
         Inherits TestBase
 

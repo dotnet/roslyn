@@ -412,5 +412,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         AbstractProject_PushedToWorkspace,
         ExternalErrorDiagnosticUpdateSource_AddError,
         DiagnosticIncrementalAnalyzer_SynchronizeWithBuildAsync,
+        Completion_ExecuteCommand_TypeChar,
+        RemoteHostService_SynchronizeTextAsync,
     }
 }

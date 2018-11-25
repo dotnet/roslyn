@@ -197,7 +197,7 @@ BC30439: Constant expression not representable in type 'Byte'.
 </errors>)
 
 
-            comp = CompilationUtils.CreateCompilationWithMscorlib40(text, TestOptions.ReleaseDll.WithOptionStrict(OptionStrict.On))
+            comp = CompilationUtils.CreateCompilationWithMscorlib40(text, options:=TestOptions.ReleaseDll.WithOptionStrict(OptionStrict.On))
 
             CompilationUtils.AssertTheseDiagnostics(comp, <errors>
 BC30512: Option Strict On disallows implicit conversions from 'String' to 'Byte'.

@@ -5,6 +5,8 @@ using System.Linq;
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
 
+#pragma warning disable CA1819 // CA1819: Properties should not return arrays 
+
 namespace Roslyn.MSBuild.Util
 {
     /// <summary>

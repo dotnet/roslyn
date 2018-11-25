@@ -9,6 +9,7 @@ Imports Microsoft.VisualStudio.Text.Operations
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ExtractMethod
     Partial Public Class ExtractMethodTests
+        <[UseExportProvider]>
         Public Class LanguageInteraction
 
 #Region "Generics"
@@ -3365,8 +3366,9 @@ End Namespace"
             <Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             <Trait(Traits.Feature, Traits.Features.Interactive)>
             Public Sub TestExtractMethodCommandDisabledInSubmission()
-                Dim exportProvider = MinimalTestExportProvider.CreateExportProvider(
-                TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(GetType(InteractiveDocumentSupportsFeatureService)))
+                Dim exportProvider = ExportProviderCache _
+                    .GetOrCreateExportProviderFactory(TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(GetType(InteractiveDocumentSupportsFeatureService))) _
+                    .CreateExportProvider()
 
                 Using workspace = TestWorkspace.Create(
                 <Workspace>

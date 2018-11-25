@@ -2,6 +2,7 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.MakeMethodAsynchronous;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -22,9 +23,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.MakeMethodA
 @"using System;
 using System.Threading.Tasks;
 
-class Program 
+class Program
 {
-    public static void Test() 
+    public static void Test()
     {
         [|await Task.Delay(1);|]
     }
@@ -34,15 +35,80 @@ class Program
 @"using System;
 using System.Threading.Tasks;
 
-class Program 
+class Program
 {
-    public static async void TestAsync() 
+    public static async void TestAsync()
     {
         await Task.Delay(1);
     }
 }";
             await TestInRegularAndScriptAsync(initial, expected, index: 1);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)]
+        [WorkItem(26312, "https://github.com/dotnet/roslyn/issues/26312")]
+        public async Task AwaitInTaskMainMethodWithModifiers()
+        {
+            var initial =
+@"using System;
+using System.Threading.Tasks;
+
+class Program
+{
+    public static void Main()
+    {
+        [|await Task.Delay(1);|]
+    }
+}";
+
+            var expected =
+@"using System;
+using System.Threading.Tasks;
+
+class Program
+{
+    public static async Task Main()
+    {
+        await Task.Delay(1);
+    }
+}";
+            await TestAsync(initial, expected, parseOptions: CSharpParseOptions.Default,
+                compilationOptions: new CSharpCompilationOptions(OutputKind.ConsoleApplication));
+
+            // no option offered to keep void
+            await TestActionCountAsync(initial, count: 1, new TestParameters(compilationOptions: new CSharpCompilationOptions(OutputKind.ConsoleApplication)));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)]
+        [WorkItem(26312, "https://github.com/dotnet/roslyn/issues/26312")]
+        public async Task AwaitInVoidMainMethodWithModifiers_NotEntryPoint()
+        {
+            var initial =
+@"using System;
+using System.Threading.Tasks;
+
+class Program
+{
+    public void Main()
+    {
+        [|await Task.Delay(1);|]
+    }
+}";
+
+            var expected =
+@"using System;
+using System.Threading.Tasks;
+
+class Program
+{
+    public async void MainAsync()
+    {
+        await Task.Delay(1);
+    }
+}";
+            await TestInRegularAndScriptAsync(initial, expected, index: 1);
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)]
         public async Task AwaitInVoidMethodWithModifiers2()
         {

@@ -2456,31 +2456,34 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundLocalFunctionStatement : BoundStatement
     {
-        public BoundLocalFunctionStatement(SyntaxNode syntax, LocalFunctionSymbol symbol, BoundBlock body, bool hasErrors = false)
-            : base(BoundKind.LocalFunctionStatement, syntax, hasErrors || body.HasErrors())
+        public BoundLocalFunctionStatement(SyntaxNode syntax, LocalFunctionSymbol symbol, BoundBlock blockBody, BoundBlock expressionBody, bool hasErrors = false)
+            : base(BoundKind.LocalFunctionStatement, syntax, hasErrors || blockBody.HasErrors() || expressionBody.HasErrors())
         {
 
             Debug.Assert(symbol != null, "Field 'symbol' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
 
             this.Symbol = symbol;
-            this.Body = body;
+            this.BlockBody = blockBody;
+            this.ExpressionBody = expressionBody;
         }
 
 
         public LocalFunctionSymbol Symbol { get; }
 
-        public BoundBlock Body { get; }
+        public BoundBlock BlockBody { get; }
+
+        public BoundBlock ExpressionBody { get; }
 
         public override BoundNode Accept(BoundTreeVisitor visitor)
         {
             return visitor.VisitLocalFunctionStatement(this);
         }
 
-        public BoundLocalFunctionStatement Update(LocalFunctionSymbol symbol, BoundBlock body)
+        public BoundLocalFunctionStatement Update(LocalFunctionSymbol symbol, BoundBlock blockBody, BoundBlock expressionBody)
         {
-            if (symbol != this.Symbol || body != this.Body)
+            if (symbol != this.Symbol || blockBody != this.BlockBody || expressionBody != this.ExpressionBody)
             {
-                var result = new BoundLocalFunctionStatement(this.Syntax, symbol, body, this.HasErrors);
+                var result = new BoundLocalFunctionStatement(this.Syntax, symbol, blockBody, expressionBody, this.HasErrors);
                 result.WasCompilerGenerated = this.WasCompilerGenerated;
                 return result;
             }
@@ -2760,16 +2763,20 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundSwitchSection : BoundStatementList
     {
-        public BoundSwitchSection(SyntaxNode syntax, ImmutableArray<BoundSwitchLabel> switchLabels, ImmutableArray<BoundStatement> statements, bool hasErrors = false)
+        public BoundSwitchSection(SyntaxNode syntax, ImmutableArray<LocalSymbol> locals, ImmutableArray<BoundSwitchLabel> switchLabels, ImmutableArray<BoundStatement> statements, bool hasErrors = false)
             : base(BoundKind.SwitchSection, syntax, statements, hasErrors || switchLabels.HasErrors() || statements.HasErrors())
         {
 
+            Debug.Assert(!locals.IsDefault, "Field 'locals' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
             Debug.Assert(!switchLabels.IsDefault, "Field 'switchLabels' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
             Debug.Assert(!statements.IsDefault, "Field 'statements' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
 
+            this.Locals = locals;
             this.SwitchLabels = switchLabels;
         }
 
+
+        public ImmutableArray<LocalSymbol> Locals { get; }
 
         public ImmutableArray<BoundSwitchLabel> SwitchLabels { get; }
 
@@ -2778,11 +2785,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return visitor.VisitSwitchSection(this);
         }
 
-        public BoundSwitchSection Update(ImmutableArray<BoundSwitchLabel> switchLabels, ImmutableArray<BoundStatement> statements)
+        public BoundSwitchSection Update(ImmutableArray<LocalSymbol> locals, ImmutableArray<BoundSwitchLabel> switchLabels, ImmutableArray<BoundStatement> statements)
         {
-            if (switchLabels != this.SwitchLabels || statements != this.Statements)
+            if (locals != this.Locals || switchLabels != this.SwitchLabels || statements != this.Statements)
             {
-                var result = new BoundSwitchSection(this.Syntax, switchLabels, statements, this.HasErrors);
+                var result = new BoundSwitchSection(this.Syntax, locals, switchLabels, statements, this.HasErrors);
                 result.WasCompilerGenerated = this.WasCompilerGenerated;
                 return result;
             }
@@ -3246,8 +3253,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundForEachStatement : BoundLoopStatement
     {
-        public BoundForEachStatement(SyntaxNode syntax, ForEachEnumeratorInfo enumeratorInfoOpt, Conversion elementConversion, BoundTypeExpression iterationVariableType, ImmutableArray<LocalSymbol> iterationVariables, BoundExpression expression, BoundForEachDeconstructStep deconstructionOpt, BoundStatement body, bool @checked, GeneratedLabelSymbol breakLabel, GeneratedLabelSymbol continueLabel, bool hasErrors = false)
-            : base(BoundKind.ForEachStatement, syntax, breakLabel, continueLabel, hasErrors || iterationVariableType.HasErrors() || expression.HasErrors() || deconstructionOpt.HasErrors() || body.HasErrors())
+        public BoundForEachStatement(SyntaxNode syntax, ForEachEnumeratorInfo enumeratorInfoOpt, Conversion elementConversion, BoundTypeExpression iterationVariableType, ImmutableArray<LocalSymbol> iterationVariables, BoundExpression iterationErrorExpressionOpt, BoundExpression expression, BoundForEachDeconstructStep deconstructionOpt, BoundStatement body, bool @checked, GeneratedLabelSymbol breakLabel, GeneratedLabelSymbol continueLabel, bool hasErrors = false)
+            : base(BoundKind.ForEachStatement, syntax, breakLabel, continueLabel, hasErrors || iterationVariableType.HasErrors() || iterationErrorExpressionOpt.HasErrors() || expression.HasErrors() || deconstructionOpt.HasErrors() || body.HasErrors())
         {
 
             Debug.Assert(iterationVariableType != null, "Field 'iterationVariableType' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
@@ -3261,6 +3268,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.ElementConversion = elementConversion;
             this.IterationVariableType = iterationVariableType;
             this.IterationVariables = iterationVariables;
+            this.IterationErrorExpressionOpt = iterationErrorExpressionOpt;
             this.Expression = expression;
             this.DeconstructionOpt = deconstructionOpt;
             this.Body = body;
@@ -3276,6 +3284,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public ImmutableArray<LocalSymbol> IterationVariables { get; }
 
+        public BoundExpression IterationErrorExpressionOpt { get; }
+
         public BoundExpression Expression { get; }
 
         public BoundForEachDeconstructStep DeconstructionOpt { get; }
@@ -3289,11 +3299,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return visitor.VisitForEachStatement(this);
         }
 
-        public BoundForEachStatement Update(ForEachEnumeratorInfo enumeratorInfoOpt, Conversion elementConversion, BoundTypeExpression iterationVariableType, ImmutableArray<LocalSymbol> iterationVariables, BoundExpression expression, BoundForEachDeconstructStep deconstructionOpt, BoundStatement body, bool @checked, GeneratedLabelSymbol breakLabel, GeneratedLabelSymbol continueLabel)
+        public BoundForEachStatement Update(ForEachEnumeratorInfo enumeratorInfoOpt, Conversion elementConversion, BoundTypeExpression iterationVariableType, ImmutableArray<LocalSymbol> iterationVariables, BoundExpression iterationErrorExpressionOpt, BoundExpression expression, BoundForEachDeconstructStep deconstructionOpt, BoundStatement body, bool @checked, GeneratedLabelSymbol breakLabel, GeneratedLabelSymbol continueLabel)
         {
-            if (enumeratorInfoOpt != this.EnumeratorInfoOpt || elementConversion != this.ElementConversion || iterationVariableType != this.IterationVariableType || iterationVariables != this.IterationVariables || expression != this.Expression || deconstructionOpt != this.DeconstructionOpt || body != this.Body || @checked != this.Checked || breakLabel != this.BreakLabel || continueLabel != this.ContinueLabel)
+            if (enumeratorInfoOpt != this.EnumeratorInfoOpt || elementConversion != this.ElementConversion || iterationVariableType != this.IterationVariableType || iterationVariables != this.IterationVariables || iterationErrorExpressionOpt != this.IterationErrorExpressionOpt || expression != this.Expression || deconstructionOpt != this.DeconstructionOpt || body != this.Body || @checked != this.Checked || breakLabel != this.BreakLabel || continueLabel != this.ContinueLabel)
             {
-                var result = new BoundForEachStatement(this.Syntax, enumeratorInfoOpt, elementConversion, iterationVariableType, iterationVariables, expression, deconstructionOpt, body, @checked, breakLabel, continueLabel, this.HasErrors);
+                var result = new BoundForEachStatement(this.Syntax, enumeratorInfoOpt, elementConversion, iterationVariableType, iterationVariables, iterationErrorExpressionOpt, expression, deconstructionOpt, body, @checked, breakLabel, continueLabel, this.HasErrors);
                 result.WasCompilerGenerated = this.WasCompilerGenerated;
                 return result;
             }
@@ -4619,7 +4629,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundObjectCreationExpression : BoundExpression
     {
-        public BoundObjectCreationExpression(SyntaxNode syntax, MethodSymbol constructor, ImmutableArray<MethodSymbol> constructorsGroup, ImmutableArray<BoundExpression> arguments, ImmutableArray<string> argumentNamesOpt, ImmutableArray<RefKind> argumentRefKindsOpt, bool expanded, ImmutableArray<int> argsToParamsOpt, ConstantValue constantValueOpt, BoundExpression initializerExpressionOpt, Binder binderOpt, TypeSymbol type, bool hasErrors = false)
+        public BoundObjectCreationExpression(SyntaxNode syntax, MethodSymbol constructor, ImmutableArray<MethodSymbol> constructorsGroup, ImmutableArray<BoundExpression> arguments, ImmutableArray<string> argumentNamesOpt, ImmutableArray<RefKind> argumentRefKindsOpt, bool expanded, ImmutableArray<int> argsToParamsOpt, ConstantValue constantValueOpt, BoundObjectInitializerExpressionBase initializerExpressionOpt, Binder binderOpt, TypeSymbol type, bool hasErrors = false)
             : base(BoundKind.ObjectCreationExpression, syntax, type, hasErrors || arguments.HasErrors() || initializerExpressionOpt.HasErrors())
         {
 
@@ -4657,7 +4667,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public ConstantValue ConstantValueOpt { get; }
 
-        public BoundExpression InitializerExpressionOpt { get; }
+        public BoundObjectInitializerExpressionBase InitializerExpressionOpt { get; }
 
         public Binder BinderOpt { get; }
 
@@ -4666,7 +4676,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return visitor.VisitObjectCreationExpression(this);
         }
 
-        public BoundObjectCreationExpression Update(MethodSymbol constructor, ImmutableArray<MethodSymbol> constructorsGroup, ImmutableArray<BoundExpression> arguments, ImmutableArray<string> argumentNamesOpt, ImmutableArray<RefKind> argumentRefKindsOpt, bool expanded, ImmutableArray<int> argsToParamsOpt, ConstantValue constantValueOpt, BoundExpression initializerExpressionOpt, Binder binderOpt, TypeSymbol type)
+        public BoundObjectCreationExpression Update(MethodSymbol constructor, ImmutableArray<MethodSymbol> constructorsGroup, ImmutableArray<BoundExpression> arguments, ImmutableArray<string> argumentNamesOpt, ImmutableArray<RefKind> argumentRefKindsOpt, bool expanded, ImmutableArray<int> argsToParamsOpt, ConstantValue constantValueOpt, BoundObjectInitializerExpressionBase initializerExpressionOpt, Binder binderOpt, TypeSymbol type)
         {
             if (constructor != this.Constructor || constructorsGroup != this.ConstructorsGroup || arguments != this.Arguments || argumentNamesOpt != this.ArgumentNamesOpt || argumentRefKindsOpt != this.ArgumentRefKindsOpt || expanded != this.Expanded || argsToParamsOpt != this.ArgsToParamsOpt || constantValueOpt != this.ConstantValueOpt || initializerExpressionOpt != this.InitializerExpressionOpt || binderOpt != this.BinderOpt || type != this.Type)
             {
@@ -4761,7 +4771,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundDynamicObjectCreationExpression : BoundExpression
     {
-        public BoundDynamicObjectCreationExpression(SyntaxNode syntax, string name, ImmutableArray<BoundExpression> arguments, ImmutableArray<string> argumentNamesOpt, ImmutableArray<RefKind> argumentRefKindsOpt, BoundExpression initializerExpressionOpt, ImmutableArray<MethodSymbol> applicableMethods, TypeSymbol type, bool hasErrors = false)
+        public BoundDynamicObjectCreationExpression(SyntaxNode syntax, string name, ImmutableArray<BoundExpression> arguments, ImmutableArray<string> argumentNamesOpt, ImmutableArray<RefKind> argumentRefKindsOpt, BoundObjectInitializerExpressionBase initializerExpressionOpt, ImmutableArray<MethodSymbol> applicableMethods, TypeSymbol type, bool hasErrors = false)
             : base(BoundKind.DynamicObjectCreationExpression, syntax, type, hasErrors || arguments.HasErrors() || initializerExpressionOpt.HasErrors())
         {
 
@@ -4787,7 +4797,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public ImmutableArray<RefKind> ArgumentRefKindsOpt { get; }
 
-        public BoundExpression InitializerExpressionOpt { get; }
+        public BoundObjectInitializerExpressionBase InitializerExpressionOpt { get; }
 
         public ImmutableArray<MethodSymbol> ApplicableMethods { get; }
 
@@ -4796,7 +4806,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return visitor.VisitDynamicObjectCreationExpression(this);
         }
 
-        public BoundDynamicObjectCreationExpression Update(string name, ImmutableArray<BoundExpression> arguments, ImmutableArray<string> argumentNamesOpt, ImmutableArray<RefKind> argumentRefKindsOpt, BoundExpression initializerExpressionOpt, ImmutableArray<MethodSymbol> applicableMethods, TypeSymbol type)
+        public BoundDynamicObjectCreationExpression Update(string name, ImmutableArray<BoundExpression> arguments, ImmutableArray<string> argumentNamesOpt, ImmutableArray<RefKind> argumentRefKindsOpt, BoundObjectInitializerExpressionBase initializerExpressionOpt, ImmutableArray<MethodSymbol> applicableMethods, TypeSymbol type)
         {
             if (name != this.Name || arguments != this.Arguments || argumentNamesOpt != this.ArgumentNamesOpt || argumentRefKindsOpt != this.ArgumentRefKindsOpt || initializerExpressionOpt != this.InitializerExpressionOpt || applicableMethods != this.ApplicableMethods || type != this.Type)
             {
@@ -4810,7 +4820,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundNoPiaObjectCreationExpression : BoundExpression
     {
-        public BoundNoPiaObjectCreationExpression(SyntaxNode syntax, string guidString, BoundExpression initializerExpressionOpt, TypeSymbol type, bool hasErrors = false)
+        public BoundNoPiaObjectCreationExpression(SyntaxNode syntax, string guidString, BoundObjectInitializerExpressionBase initializerExpressionOpt, TypeSymbol type, bool hasErrors = false)
             : base(BoundKind.NoPiaObjectCreationExpression, syntax, type, hasErrors || initializerExpressionOpt.HasErrors())
         {
 
@@ -4823,14 +4833,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public string GuidString { get; }
 
-        public BoundExpression InitializerExpressionOpt { get; }
+        public BoundObjectInitializerExpressionBase InitializerExpressionOpt { get; }
 
         public override BoundNode Accept(BoundTreeVisitor visitor)
         {
             return visitor.VisitNoPiaObjectCreationExpression(this);
         }
 
-        public BoundNoPiaObjectCreationExpression Update(string guidString, BoundExpression initializerExpressionOpt, TypeSymbol type)
+        public BoundNoPiaObjectCreationExpression Update(string guidString, BoundObjectInitializerExpressionBase initializerExpressionOpt, TypeSymbol type)
         {
             if (guidString != this.GuidString || initializerExpressionOpt != this.InitializerExpressionOpt || type != this.Type)
             {
@@ -4842,10 +4852,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
-    internal sealed partial class BoundObjectInitializerExpression : BoundExpression
+    internal abstract partial class BoundObjectInitializerExpressionBase : BoundExpression
     {
-        public BoundObjectInitializerExpression(SyntaxNode syntax, ImmutableArray<BoundExpression> initializers, TypeSymbol type, bool hasErrors = false)
-            : base(BoundKind.ObjectInitializerExpression, syntax, type, hasErrors || initializers.HasErrors())
+        protected BoundObjectInitializerExpressionBase(BoundKind kind, SyntaxNode syntax, ImmutableArray<BoundExpression> initializers, TypeSymbol type, bool hasErrors = false)
+            : base(kind, syntax, type, hasErrors)
         {
 
             Debug.Assert(!initializers.IsDefault, "Field 'initializers' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
@@ -4856,6 +4866,19 @@ namespace Microsoft.CodeAnalysis.CSharp
 
 
         public ImmutableArray<BoundExpression> Initializers { get; }
+    }
+
+    internal sealed partial class BoundObjectInitializerExpression : BoundObjectInitializerExpressionBase
+    {
+        public BoundObjectInitializerExpression(SyntaxNode syntax, ImmutableArray<BoundExpression> initializers, TypeSymbol type, bool hasErrors = false)
+            : base(BoundKind.ObjectInitializerExpression, syntax, initializers, type, hasErrors || initializers.HasErrors())
+        {
+
+            Debug.Assert(!initializers.IsDefault, "Field 'initializers' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
+            Debug.Assert(type != null, "Field 'type' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
+
+        }
+
 
         public override BoundNode Accept(BoundTreeVisitor visitor)
         {
@@ -4934,39 +4957,45 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundDynamicObjectInitializerMember : BoundExpression
     {
-        public BoundDynamicObjectInitializerMember(SyntaxNode syntax, string memberName, TypeSymbol type, bool hasErrors)
+        public BoundDynamicObjectInitializerMember(SyntaxNode syntax, string memberName, TypeSymbol receiverType, TypeSymbol type, bool hasErrors)
             : base(BoundKind.DynamicObjectInitializerMember, syntax, type, hasErrors)
         {
 
             Debug.Assert(memberName != null, "Field 'memberName' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
+            Debug.Assert(receiverType != null, "Field 'receiverType' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
             Debug.Assert(type != null, "Field 'type' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
 
             this.MemberName = memberName;
+            this.ReceiverType = receiverType;
         }
 
-        public BoundDynamicObjectInitializerMember(SyntaxNode syntax, string memberName, TypeSymbol type)
+        public BoundDynamicObjectInitializerMember(SyntaxNode syntax, string memberName, TypeSymbol receiverType, TypeSymbol type)
             : base(BoundKind.DynamicObjectInitializerMember, syntax, type)
         {
 
             Debug.Assert(memberName != null, "Field 'memberName' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
+            Debug.Assert(receiverType != null, "Field 'receiverType' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
             Debug.Assert(type != null, "Field 'type' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
 
             this.MemberName = memberName;
+            this.ReceiverType = receiverType;
         }
 
 
         public string MemberName { get; }
+
+        public TypeSymbol ReceiverType { get; }
 
         public override BoundNode Accept(BoundTreeVisitor visitor)
         {
             return visitor.VisitDynamicObjectInitializerMember(this);
         }
 
-        public BoundDynamicObjectInitializerMember Update(string memberName, TypeSymbol type)
+        public BoundDynamicObjectInitializerMember Update(string memberName, TypeSymbol receiverType, TypeSymbol type)
         {
-            if (memberName != this.MemberName || type != this.Type)
+            if (memberName != this.MemberName || receiverType != this.ReceiverType || type != this.Type)
             {
-                var result = new BoundDynamicObjectInitializerMember(this.Syntax, memberName, type, this.HasErrors);
+                var result = new BoundDynamicObjectInitializerMember(this.Syntax, memberName, receiverType, type, this.HasErrors);
                 result.WasCompilerGenerated = this.WasCompilerGenerated;
                 return result;
             }
@@ -4974,20 +5003,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
-    internal sealed partial class BoundCollectionInitializerExpression : BoundExpression
+    internal sealed partial class BoundCollectionInitializerExpression : BoundObjectInitializerExpressionBase
     {
         public BoundCollectionInitializerExpression(SyntaxNode syntax, ImmutableArray<BoundExpression> initializers, TypeSymbol type, bool hasErrors = false)
-            : base(BoundKind.CollectionInitializerExpression, syntax, type, hasErrors || initializers.HasErrors())
+            : base(BoundKind.CollectionInitializerExpression, syntax, initializers, type, hasErrors || initializers.HasErrors())
         {
 
             Debug.Assert(!initializers.IsDefault, "Field 'initializers' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
             Debug.Assert(type != null, "Field 'type' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
 
-            this.Initializers = initializers;
         }
 
-
-        public ImmutableArray<BoundExpression> Initializers { get; }
 
         public override BoundNode Accept(BoundTreeVisitor visitor)
         {
@@ -5008,8 +5034,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundCollectionElementInitializer : BoundExpression
     {
-        public BoundCollectionElementInitializer(SyntaxNode syntax, MethodSymbol addMethod, ImmutableArray<BoundExpression> arguments, bool expanded, ImmutableArray<int> argsToParamsOpt, bool invokedAsExtensionMethod, LookupResultKind resultKind, TypeSymbol type, bool hasErrors = false)
-            : base(BoundKind.CollectionElementInitializer, syntax, type, hasErrors || arguments.HasErrors())
+        public BoundCollectionElementInitializer(SyntaxNode syntax, MethodSymbol addMethod, ImmutableArray<BoundExpression> arguments, BoundExpression implicitReceiverOpt, bool expanded, ImmutableArray<int> argsToParamsOpt, bool invokedAsExtensionMethod, LookupResultKind resultKind, Binder binderOpt, TypeSymbol type, bool hasErrors = false)
+            : base(BoundKind.CollectionElementInitializer, syntax, type, hasErrors || arguments.HasErrors() || implicitReceiverOpt.HasErrors())
         {
 
             Debug.Assert(addMethod != null, "Field 'addMethod' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
@@ -5018,16 +5044,20 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             this.AddMethod = addMethod;
             this.Arguments = arguments;
+            this.ImplicitReceiverOpt = implicitReceiverOpt;
             this.Expanded = expanded;
             this.ArgsToParamsOpt = argsToParamsOpt;
             this.InvokedAsExtensionMethod = invokedAsExtensionMethod;
             this._ResultKind = resultKind;
+            this.BinderOpt = binderOpt;
         }
 
 
         public MethodSymbol AddMethod { get; }
 
         public ImmutableArray<BoundExpression> Arguments { get; }
+
+        public BoundExpression ImplicitReceiverOpt { get; }
 
         public bool Expanded { get; }
 
@@ -5038,16 +5068,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly LookupResultKind _ResultKind;
         public override LookupResultKind ResultKind { get { return _ResultKind;} }
 
+        public Binder BinderOpt { get; }
+
         public override BoundNode Accept(BoundTreeVisitor visitor)
         {
             return visitor.VisitCollectionElementInitializer(this);
         }
 
-        public BoundCollectionElementInitializer Update(MethodSymbol addMethod, ImmutableArray<BoundExpression> arguments, bool expanded, ImmutableArray<int> argsToParamsOpt, bool invokedAsExtensionMethod, LookupResultKind resultKind, TypeSymbol type)
+        public BoundCollectionElementInitializer Update(MethodSymbol addMethod, ImmutableArray<BoundExpression> arguments, BoundExpression implicitReceiverOpt, bool expanded, ImmutableArray<int> argsToParamsOpt, bool invokedAsExtensionMethod, LookupResultKind resultKind, Binder binderOpt, TypeSymbol type)
         {
-            if (addMethod != this.AddMethod || arguments != this.Arguments || expanded != this.Expanded || argsToParamsOpt != this.ArgsToParamsOpt || invokedAsExtensionMethod != this.InvokedAsExtensionMethod || resultKind != this.ResultKind || type != this.Type)
+            if (addMethod != this.AddMethod || arguments != this.Arguments || implicitReceiverOpt != this.ImplicitReceiverOpt || expanded != this.Expanded || argsToParamsOpt != this.ArgsToParamsOpt || invokedAsExtensionMethod != this.InvokedAsExtensionMethod || resultKind != this.ResultKind || binderOpt != this.BinderOpt || type != this.Type)
             {
-                var result = new BoundCollectionElementInitializer(this.Syntax, addMethod, arguments, expanded, argsToParamsOpt, invokedAsExtensionMethod, resultKind, type, this.HasErrors);
+                var result = new BoundCollectionElementInitializer(this.Syntax, addMethod, arguments, implicitReceiverOpt, expanded, argsToParamsOpt, invokedAsExtensionMethod, resultKind, binderOpt, type, this.HasErrors);
                 result.WasCompilerGenerated = this.WasCompilerGenerated;
                 return result;
             }
@@ -5057,20 +5089,24 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundDynamicCollectionElementInitializer : BoundExpression
     {
-        public BoundDynamicCollectionElementInitializer(SyntaxNode syntax, ImmutableArray<BoundExpression> arguments, ImmutableArray<MethodSymbol> applicableMethods, TypeSymbol type, bool hasErrors = false)
-            : base(BoundKind.DynamicCollectionElementInitializer, syntax, type, hasErrors || arguments.HasErrors())
+        public BoundDynamicCollectionElementInitializer(SyntaxNode syntax, ImmutableArray<BoundExpression> arguments, BoundImplicitReceiver implicitReceiver, ImmutableArray<MethodSymbol> applicableMethods, TypeSymbol type, bool hasErrors = false)
+            : base(BoundKind.DynamicCollectionElementInitializer, syntax, type, hasErrors || arguments.HasErrors() || implicitReceiver.HasErrors())
         {
 
             Debug.Assert(!arguments.IsDefault, "Field 'arguments' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
+            Debug.Assert(implicitReceiver != null, "Field 'implicitReceiver' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
             Debug.Assert(!applicableMethods.IsDefault, "Field 'applicableMethods' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
             Debug.Assert(type != null, "Field 'type' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
 
             this.Arguments = arguments;
+            this.ImplicitReceiver = implicitReceiver;
             this.ApplicableMethods = applicableMethods;
         }
 
 
         public ImmutableArray<BoundExpression> Arguments { get; }
+
+        public BoundImplicitReceiver ImplicitReceiver { get; }
 
         public ImmutableArray<MethodSymbol> ApplicableMethods { get; }
 
@@ -5079,11 +5115,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return visitor.VisitDynamicCollectionElementInitializer(this);
         }
 
-        public BoundDynamicCollectionElementInitializer Update(ImmutableArray<BoundExpression> arguments, ImmutableArray<MethodSymbol> applicableMethods, TypeSymbol type)
+        public BoundDynamicCollectionElementInitializer Update(ImmutableArray<BoundExpression> arguments, BoundImplicitReceiver implicitReceiver, ImmutableArray<MethodSymbol> applicableMethods, TypeSymbol type)
         {
-            if (arguments != this.Arguments || applicableMethods != this.ApplicableMethods || type != this.Type)
+            if (arguments != this.Arguments || implicitReceiver != this.ImplicitReceiver || applicableMethods != this.ApplicableMethods || type != this.Type)
             {
-                var result = new BoundDynamicCollectionElementInitializer(this.Syntax, arguments, applicableMethods, type, this.HasErrors);
+                var result = new BoundDynamicCollectionElementInitializer(this.Syntax, arguments, implicitReceiver, applicableMethods, type, this.HasErrors);
                 result.WasCompilerGenerated = this.WasCompilerGenerated;
                 return result;
             }
@@ -5211,7 +5247,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundNewT : BoundExpression
     {
-        public BoundNewT(SyntaxNode syntax, BoundExpression initializerExpressionOpt, TypeSymbol type, bool hasErrors = false)
+        public BoundNewT(SyntaxNode syntax, BoundObjectInitializerExpressionBase initializerExpressionOpt, TypeSymbol type, bool hasErrors = false)
             : base(BoundKind.NewT, syntax, type, hasErrors || initializerExpressionOpt.HasErrors())
         {
 
@@ -5221,14 +5257,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
 
-        public BoundExpression InitializerExpressionOpt { get; }
+        public BoundObjectInitializerExpressionBase InitializerExpressionOpt { get; }
 
         public override BoundNode Accept(BoundTreeVisitor visitor)
         {
             return visitor.VisitNewT(this);
         }
 
-        public BoundNewT Update(BoundExpression initializerExpressionOpt, TypeSymbol type)
+        public BoundNewT Update(BoundObjectInitializerExpressionBase initializerExpressionOpt, TypeSymbol type)
         {
             if (initializerExpressionOpt != this.InitializerExpressionOpt || type != this.Type)
             {
@@ -5916,7 +5952,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundStringInsert : BoundExpression
     {
-        public BoundStringInsert(SyntaxNode syntax, BoundExpression value, BoundExpression alignment, BoundExpression format, TypeSymbol type, bool hasErrors = false)
+        public BoundStringInsert(SyntaxNode syntax, BoundExpression value, BoundExpression alignment, BoundLiteral format, TypeSymbol type, bool hasErrors = false)
             : base(BoundKind.StringInsert, syntax, type, hasErrors || value.HasErrors() || alignment.HasErrors() || format.HasErrors())
         {
 
@@ -5932,14 +5968,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundExpression Alignment { get; }
 
-        public BoundExpression Format { get; }
+        public BoundLiteral Format { get; }
 
         public override BoundNode Accept(BoundTreeVisitor visitor)
         {
             return visitor.VisitStringInsert(this);
         }
 
-        public BoundStringInsert Update(BoundExpression value, BoundExpression alignment, BoundExpression format, TypeSymbol type)
+        public BoundStringInsert Update(BoundExpression value, BoundExpression alignment, BoundLiteral format, TypeSymbol type)
         {
             if (value != this.Value || alignment != this.Alignment || format != this.Format || type != this.Type)
             {
@@ -8177,7 +8213,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
         public override BoundNode VisitLocalFunctionStatement(BoundLocalFunctionStatement node)
         {
-            this.Visit(node.Body);
+            this.Visit(node.BlockBody);
+            this.Visit(node.ExpressionBody);
             return null;
         }
         public override BoundNode VisitSequence(BoundSequence node)
@@ -8289,6 +8326,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitForEachStatement(BoundForEachStatement node)
         {
             this.Visit(node.IterationVariableType);
+            this.Visit(node.IterationErrorExpressionOpt);
             this.Visit(node.Expression);
             this.Visit(node.DeconstructionOpt);
             this.Visit(node.Body);
@@ -8510,11 +8548,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitCollectionElementInitializer(BoundCollectionElementInitializer node)
         {
             this.VisitList(node.Arguments);
+            this.Visit(node.ImplicitReceiverOpt);
             return null;
         }
         public override BoundNode VisitDynamicCollectionElementInitializer(BoundDynamicCollectionElementInitializer node)
         {
             this.VisitList(node.Arguments);
+            this.Visit(node.ImplicitReceiver);
             return null;
         }
         public override BoundNode VisitImplicitReceiver(BoundImplicitReceiver node)
@@ -9027,8 +9067,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
         public override BoundNode VisitLocalFunctionStatement(BoundLocalFunctionStatement node)
         {
-            BoundBlock body = (BoundBlock)this.Visit(node.Body);
-            return node.Update(node.Symbol, body);
+            BoundBlock blockBody = (BoundBlock)this.Visit(node.BlockBody);
+            BoundBlock expressionBody = (BoundBlock)this.Visit(node.ExpressionBody);
+            return node.Update(node.Symbol, blockBody, expressionBody);
         }
         public override BoundNode VisitSequence(BoundSequence node)
         {
@@ -9076,7 +9117,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             ImmutableArray<BoundSwitchLabel> switchLabels = (ImmutableArray<BoundSwitchLabel>)this.VisitList(node.SwitchLabels);
             ImmutableArray<BoundStatement> statements = (ImmutableArray<BoundStatement>)this.VisitList(node.Statements);
-            return node.Update(switchLabels, statements);
+            return node.Update(node.Locals, switchLabels, statements);
         }
         public override BoundNode VisitSwitchLabel(BoundSwitchLabel node)
         {
@@ -9140,10 +9181,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitForEachStatement(BoundForEachStatement node)
         {
             BoundTypeExpression iterationVariableType = (BoundTypeExpression)this.Visit(node.IterationVariableType);
+            BoundExpression iterationErrorExpressionOpt = (BoundExpression)this.Visit(node.IterationErrorExpressionOpt);
             BoundExpression expression = (BoundExpression)this.Visit(node.Expression);
             BoundForEachDeconstructStep deconstructionOpt = (BoundForEachDeconstructStep)this.Visit(node.DeconstructionOpt);
             BoundStatement body = (BoundStatement)this.Visit(node.Body);
-            return node.Update(node.EnumeratorInfoOpt, node.ElementConversion, iterationVariableType, node.IterationVariables, expression, deconstructionOpt, body, node.Checked, node.BreakLabel, node.ContinueLabel);
+            return node.Update(node.EnumeratorInfoOpt, node.ElementConversion, iterationVariableType, node.IterationVariables, iterationErrorExpressionOpt, expression, deconstructionOpt, body, node.Checked, node.BreakLabel, node.ContinueLabel);
         }
         public override BoundNode VisitForEachDeconstructStep(BoundForEachDeconstructStep node)
         {
@@ -9337,7 +9379,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitObjectCreationExpression(BoundObjectCreationExpression node)
         {
             ImmutableArray<BoundExpression> arguments = (ImmutableArray<BoundExpression>)this.VisitList(node.Arguments);
-            BoundExpression initializerExpressionOpt = (BoundExpression)this.Visit(node.InitializerExpressionOpt);
+            BoundObjectInitializerExpressionBase initializerExpressionOpt = (BoundObjectInitializerExpressionBase)this.Visit(node.InitializerExpressionOpt);
             TypeSymbol type = this.VisitType(node.Type);
             return node.Update(node.Constructor, node.ConstructorsGroup, arguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt, node.Expanded, node.ArgsToParamsOpt, node.ConstantValueOpt, initializerExpressionOpt, node.BinderOpt, type);
         }
@@ -9357,13 +9399,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitDynamicObjectCreationExpression(BoundDynamicObjectCreationExpression node)
         {
             ImmutableArray<BoundExpression> arguments = (ImmutableArray<BoundExpression>)this.VisitList(node.Arguments);
-            BoundExpression initializerExpressionOpt = (BoundExpression)this.Visit(node.InitializerExpressionOpt);
+            BoundObjectInitializerExpressionBase initializerExpressionOpt = (BoundObjectInitializerExpressionBase)this.Visit(node.InitializerExpressionOpt);
             TypeSymbol type = this.VisitType(node.Type);
             return node.Update(node.Name, arguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt, initializerExpressionOpt, node.ApplicableMethods, type);
         }
         public override BoundNode VisitNoPiaObjectCreationExpression(BoundNoPiaObjectCreationExpression node)
         {
-            BoundExpression initializerExpressionOpt = (BoundExpression)this.Visit(node.InitializerExpressionOpt);
+            BoundObjectInitializerExpressionBase initializerExpressionOpt = (BoundObjectInitializerExpressionBase)this.Visit(node.InitializerExpressionOpt);
             TypeSymbol type = this.VisitType(node.Type);
             return node.Update(node.GuidString, initializerExpressionOpt, type);
         }
@@ -9382,8 +9424,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
         public override BoundNode VisitDynamicObjectInitializerMember(BoundDynamicObjectInitializerMember node)
         {
+            TypeSymbol receiverType = this.VisitType(node.ReceiverType);
             TypeSymbol type = this.VisitType(node.Type);
-            return node.Update(node.MemberName, type);
+            return node.Update(node.MemberName, receiverType, type);
         }
         public override BoundNode VisitCollectionInitializerExpression(BoundCollectionInitializerExpression node)
         {
@@ -9394,14 +9437,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitCollectionElementInitializer(BoundCollectionElementInitializer node)
         {
             ImmutableArray<BoundExpression> arguments = (ImmutableArray<BoundExpression>)this.VisitList(node.Arguments);
+            BoundExpression implicitReceiverOpt = (BoundExpression)this.Visit(node.ImplicitReceiverOpt);
             TypeSymbol type = this.VisitType(node.Type);
-            return node.Update(node.AddMethod, arguments, node.Expanded, node.ArgsToParamsOpt, node.InvokedAsExtensionMethod, node.ResultKind, type);
+            return node.Update(node.AddMethod, arguments, implicitReceiverOpt, node.Expanded, node.ArgsToParamsOpt, node.InvokedAsExtensionMethod, node.ResultKind, node.BinderOpt, type);
         }
         public override BoundNode VisitDynamicCollectionElementInitializer(BoundDynamicCollectionElementInitializer node)
         {
             ImmutableArray<BoundExpression> arguments = (ImmutableArray<BoundExpression>)this.VisitList(node.Arguments);
+            BoundImplicitReceiver implicitReceiver = (BoundImplicitReceiver)this.Visit(node.ImplicitReceiver);
             TypeSymbol type = this.VisitType(node.Type);
-            return node.Update(arguments, node.ApplicableMethods, type);
+            return node.Update(arguments, implicitReceiver, node.ApplicableMethods, type);
         }
         public override BoundNode VisitImplicitReceiver(BoundImplicitReceiver node)
         {
@@ -9422,7 +9467,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
         public override BoundNode VisitNewT(BoundNewT node)
         {
-            BoundExpression initializerExpressionOpt = (BoundExpression)this.Visit(node.InitializerExpressionOpt);
+            BoundObjectInitializerExpressionBase initializerExpressionOpt = (BoundObjectInitializerExpressionBase)this.Visit(node.InitializerExpressionOpt);
             TypeSymbol type = this.VisitType(node.Type);
             return node.Update(initializerExpressionOpt, type);
         }
@@ -9536,7 +9581,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             BoundExpression value = (BoundExpression)this.Visit(node.Value);
             BoundExpression alignment = (BoundExpression)this.Visit(node.Alignment);
-            BoundExpression format = (BoundExpression)this.Visit(node.Format);
+            BoundLiteral format = (BoundLiteral)this.Visit(node.Format);
             TypeSymbol type = this.VisitType(node.Type);
             return node.Update(value, alignment, format, type);
         }
@@ -10199,7 +10244,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new TreeDumperNode("localFunctionStatement", null, new TreeDumperNode[]
             {
                 new TreeDumperNode("symbol", node.Symbol, null),
-                new TreeDumperNode("body", null, new TreeDumperNode[] { Visit(node.Body, null) })
+                new TreeDumperNode("blockBody", null, new TreeDumperNode[] { Visit(node.BlockBody, null) }),
+                new TreeDumperNode("expressionBody", null, new TreeDumperNode[] { Visit(node.ExpressionBody, null) })
             }
             );
         }
@@ -10279,6 +10325,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return new TreeDumperNode("switchSection", null, new TreeDumperNode[]
             {
+                new TreeDumperNode("locals", node.Locals, null),
                 new TreeDumperNode("switchLabels", null, from x in node.SwitchLabels select Visit(x, null)),
                 new TreeDumperNode("statements", null, from x in node.Statements select Visit(x, null))
             }
@@ -10404,6 +10451,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 new TreeDumperNode("elementConversion", node.ElementConversion, null),
                 new TreeDumperNode("iterationVariableType", null, new TreeDumperNode[] { Visit(node.IterationVariableType, null) }),
                 new TreeDumperNode("iterationVariables", node.IterationVariables, null),
+                new TreeDumperNode("iterationErrorExpressionOpt", null, new TreeDumperNode[] { Visit(node.IterationErrorExpressionOpt, null) }),
                 new TreeDumperNode("expression", null, new TreeDumperNode[] { Visit(node.Expression, null) }),
                 new TreeDumperNode("deconstructionOpt", null, new TreeDumperNode[] { Visit(node.DeconstructionOpt, null) }),
                 new TreeDumperNode("body", null, new TreeDumperNode[] { Visit(node.Body, null) }),
@@ -10846,6 +10894,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new TreeDumperNode("dynamicObjectInitializerMember", null, new TreeDumperNode[]
             {
                 new TreeDumperNode("memberName", node.MemberName, null),
+                new TreeDumperNode("receiverType", node.ReceiverType, null),
                 new TreeDumperNode("type", node.Type, null)
             }
             );
@@ -10865,10 +10914,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 new TreeDumperNode("addMethod", node.AddMethod, null),
                 new TreeDumperNode("arguments", null, from x in node.Arguments select Visit(x, null)),
+                new TreeDumperNode("implicitReceiverOpt", null, new TreeDumperNode[] { Visit(node.ImplicitReceiverOpt, null) }),
                 new TreeDumperNode("expanded", node.Expanded, null),
                 new TreeDumperNode("argsToParamsOpt", node.ArgsToParamsOpt, null),
                 new TreeDumperNode("invokedAsExtensionMethod", node.InvokedAsExtensionMethod, null),
                 new TreeDumperNode("resultKind", node.ResultKind, null),
+                new TreeDumperNode("binderOpt", node.BinderOpt, null),
                 new TreeDumperNode("type", node.Type, null)
             }
             );
@@ -10878,6 +10929,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new TreeDumperNode("dynamicCollectionElementInitializer", null, new TreeDumperNode[]
             {
                 new TreeDumperNode("arguments", null, from x in node.Arguments select Visit(x, null)),
+                new TreeDumperNode("implicitReceiver", null, new TreeDumperNode[] { Visit(node.ImplicitReceiver, null) }),
                 new TreeDumperNode("applicableMethods", node.ApplicableMethods, null),
                 new TreeDumperNode("type", node.Type, null)
             }

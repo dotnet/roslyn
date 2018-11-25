@@ -7,6 +7,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Execution;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -30,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Serialization
 
         private readonly ConcurrentDictionary<string, IOptionsSerializationService> _lazyLanguageSerializationService;
 
-        [Obsolete("This exported object must be obtained through the MEF export provider.", error: true)]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public SerializerService(HostWorkspaceServices workspaceServices)
         {
             _workspaceServices = workspaceServices;

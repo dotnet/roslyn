@@ -15,6 +15,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
 {
+    [UseExportProvider]
     public class DataTipInfoGetterTests
     {
         private async Task TestAsync(string markup, string expectedText = null)

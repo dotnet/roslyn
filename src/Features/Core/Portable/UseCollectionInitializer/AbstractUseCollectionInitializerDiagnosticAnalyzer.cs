@@ -31,7 +31,8 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
         where TVariableDeclaratorSyntax : SyntaxNode
     {
         public override bool OpenFileOnly(Workspace workspace) => false;
-        public override DiagnosticAnalyzerCategory GetAnalyzerCategory() => DiagnosticAnalyzerCategory.SemanticDocumentAnalysis;
+        public override DiagnosticAnalyzerCategory GetAnalyzerCategory() 
+            => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
         protected AbstractUseCollectionInitializerDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.UseCollectionInitializerDiagnosticId,

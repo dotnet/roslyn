@@ -1,9 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Linq;
 using System.Threading;
-using System.Windows.Threading;
 using Microsoft.CodeAnalysis.Editor.Shared.Threading;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -18,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Threading
 
         public AsynchronousWorkerTests()
         {
-            WpfTestCase.RequireWpfFact($"Tests are testing {nameof(AsynchronousSerialWorkQueue)} which is designed to run methods on the UI thread");
+            WpfTestRunner.RequireWpfFact($"Tests are testing {nameof(AsynchronousSerialWorkQueue)} which is designed to run methods on the UI thread");
             TestWorkspace.ResetThreadAffinity();
             _foregroundSyncContext = SynchronizationContext.Current;
             Assert.NotNull(_foregroundSyncContext);

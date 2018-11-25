@@ -5,6 +5,7 @@ Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.VisualStudio.Text.Projection
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
+    <[UseExportProvider]>
     Public Class VisualBasicCompletionCommandHandlerTests_Projections
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>

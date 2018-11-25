@@ -73,6 +73,33 @@ class Class
 }}");
                 }
 
+                [WorkItem(26015, "https://github.com/dotnet/roslyn/issues/26015")]
+                [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+                public async Task TestPragmaWarningDirectiveAroundMultiLineStatement()
+                {
+                    await TestAsync(
+        @"
+class Class
+{
+    void Method()
+    {
+        [|string x = @""multi
+line"";|]
+    }
+}",
+        $@"
+class Class
+{{
+    void Method()
+    {{
+#pragma warning disable CS0219 // {CSharpResources.WRN_UnreferencedVarAssg_Title}
+        string x = @""multi
+line"";
+#pragma warning restore CS0219 // {CSharpResources.WRN_UnreferencedVarAssg_Title}
+    }}
+}}");
+                }
+
                 [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
                 public async Task TestMultilineStatementPragmaWarningDirective()
                 {

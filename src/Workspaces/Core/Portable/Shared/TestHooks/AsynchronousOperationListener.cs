@@ -1,10 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Threading.Tasks;
 using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Shared.TestHooks
 {
@@ -109,6 +111,21 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
 
                     return source.Task;
                 }
+            }
+        }
+
+        public async Task WaitUntilConditionIsMetAsync(Func<IEnumerable<DiagnosticAsyncToken>, bool> condition)
+        {
+            Contract.ThrowIfFalse(TrackActiveTokens);
+
+            while (true)
+            {
+                if (condition(ActiveDiagnosticTokens))
+                {
+                    break;
+                }
+
+                await Task.Delay(TimeSpan.FromMilliseconds(10)).ConfigureAwait(false);
             }
         }
 

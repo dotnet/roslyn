@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private void VisitLeadingTrivia(SyntaxToken token)
+        private void VisitLeadingTrivia(in SyntaxToken token)
         {
             if (token.HasLeadingTrivia)
             {
@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private void VisitTrailingTrivia(SyntaxToken token)
+        private void VisitTrailingTrivia(in SyntaxToken token)
         {
             if (token.HasTrailingTrivia)
             {

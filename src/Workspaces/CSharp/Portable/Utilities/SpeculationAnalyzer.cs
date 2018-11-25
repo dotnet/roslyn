@@ -278,6 +278,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             Debug.Assert(previousOriginalNode == null || previousOriginalNode.Parent == currentOriginalNode);
             Debug.Assert(previousReplacedNode == null || previousReplacedNode.Parent == currentReplacedNode);
 
+            if (currentOriginalNode.IsKind(SyntaxKind.CaseSwitchLabel, SyntaxKind.ConstantPattern))
+            {
+                var expression = (ExpressionSyntax)currentReplacedNode.ChildNodes().First();
+                if (expression.WalkDownParentheses().IsKind(SyntaxKind.DefaultLiteralExpression))
+                {
+                    // We can't have a default literal inside a case label or constant pattern.
+                    return true;
+                }
+            }
+
             if (currentOriginalNode is BinaryExpressionSyntax binaryExpression)
             {
                 // If replacing the node will result in a broken binary expression, we won't remove it.
@@ -395,7 +405,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
 
                 var originalConversion = this.OriginalSemanticModel.ClassifyConversion(oldSwitchStatement.Expression, originalCaseType);
                 var newConversion = this.SpeculativeSemanticModel.ClassifyConversion(newSwitchStatement.Expression, newCaseType);
-                
+
                 // if conversion only exists for either original or new, then semantics changed.
                 if (originalConversion.Exists != newConversion.Exists)
                 {

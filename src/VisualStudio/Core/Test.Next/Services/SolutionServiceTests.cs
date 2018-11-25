@@ -18,6 +18,7 @@ using Xunit;
 
 namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 {
+    [UseExportProvider]
     public class SolutionServiceTests
     {
         [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
@@ -381,7 +382,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             var storage = new AssetStorage();
             var source = new TestAssetSource(storage, map);
             var remoteWorkspace = new RemoteWorkspace();
-            var service = new SolutionService(new AssetService(sessionId, storage, remoteWorkspace), remoteWorkspace);
+            var service = new SolutionService(new AssetService(sessionId, storage, remoteWorkspace));
 
             return service;
         }

@@ -521,7 +521,7 @@ End Module
 Class Test
 End Class
         </file>
-    </compilation>, TestOptions.ReleaseModule)
+    </compilation>, options:=TestOptions.ReleaseModule)
 
             Dim netModuleMetadata = ModuleMetadata.CreateFromImage(netModule.EmitToArray())
 

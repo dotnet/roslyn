@@ -12,6 +12,56 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
     public class CodeGenClosureLambdaTests : CSharpTestBase
     {
         [Fact]
+        public void LambdaInIndexerAndBinaryOperator()
+        {
+            var verifier = CompileAndVerify(@"
+using System;
+
+class C
+{
+    private static Func<int> _f1;
+    private static Func<int> _f2;
+
+    public static void Main() {
+        var c = new C();
+        c[() => 0] += 1;
+        Console.WriteLine(object.ReferenceEquals(_f1, _f2));
+    }
+
+    int this[Func<int> f] {
+        get { _f1 = f; return 0; }
+        set { _f2 = f; }
+    }
+}", expectedOutput: "True");
+        }
+
+        [Fact]
+        public void MethodGroupInIndexerAndBinaryOperator()
+        {
+            CompileAndVerify(@"
+using System;
+
+class C
+{
+    private static Func<int> _f1;
+    private static Func<int> _f2;
+
+    public static void Main() {
+        var c = new C();
+        c[F] += 1;
+        Console.WriteLine(object.ReferenceEquals(_f1, _f2));
+    }
+
+    static int F() => 0;
+    
+    public int this[Func<int> f] {
+        get { _f1 = f; return 0; }
+        set { _f2 = f; }
+    }
+}", expectedOutput: "True");
+        }
+
+        [Fact]
         public void EnvironmentChainContainsUnusedEnvironment()
         {
             CompileAndVerify(@"

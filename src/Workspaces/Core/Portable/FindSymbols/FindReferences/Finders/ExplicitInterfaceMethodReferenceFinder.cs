@@ -41,6 +41,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         protected override Task<ImmutableArray<ReferenceLocation>> FindReferencesInDocumentAsync(
             IMethodSymbol symbol,
             Document document,
+            SemanticModel semanticModel,
             CancellationToken cancellationToken)
         {
             // An explicit method can't be referenced anywhere.

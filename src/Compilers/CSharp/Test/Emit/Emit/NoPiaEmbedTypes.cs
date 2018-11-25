@@ -1,5 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
-#if NET461
+#if NET46
 
 using Microsoft.Cci;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -1991,7 +1991,7 @@ class UsePia
 
             verifier.VerifyIL("UsePia.Test", expected);
 
-            compilation = CreateCompilation(consumer,
+            compilation = CreateEmptyCompilation(consumer,
                                                         new MetadataReference[] { MscorlibRef_v4_0_30316_17626, piaCompilation.EmitToImageReference(embedInteropTypes: true) },
                                                         options: TestOptions.DebugExe);
 

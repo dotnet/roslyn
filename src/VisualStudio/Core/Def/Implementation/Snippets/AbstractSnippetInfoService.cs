@@ -158,14 +158,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
         /// eventually calls into the native CExpansionEnumeratorShim::Next method, which has the
         /// same contract of expecting a non-null rgelt that it can drop expansion data into. When
         /// we call from the UI thread, this transition from managed code to the
-        /// CExpansionEnumeratorShim` goes smoothly and everything works.
+        /// CExpansionEnumeratorShim goes smoothly and everything works.
         ///
         /// When we call from a background thread, the COM marshaller has to move execution to the
         /// UI thread, and as part of this process it uses the interface as defined in the idl to
         /// set up the appropriate arguments to pass. The same parameter from the idl is defined as
         ///    [out, size_is(celt), length_is(*pceltFetched)] VsExpansion **rgelt
         ///
-        /// Because rgelt is specified as an `out` parameter, the marshaller is discarding the
+        /// Because rgelt is specified as an <c>out</c> parameter, the marshaller is discarding the
         /// pointer we passed and substituting the null reference. This then causes a null
         /// reference exception in the shim. Calling from the UI thread avoids this marshaller.
         /// </remarks>

@@ -18,6 +18,7 @@ Imports Microsoft.VisualStudio.Text.Projection
 Imports Moq
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Formatting.Indentation
+    <[UseExportProvider]>
     Public Class SmartIndenterTests
         Private Shared s_htmlMarkup As String = <text>
 &lt;html&gt;
@@ -2952,7 +2953,7 @@ End Class
                             Return p
                         End Function)
 
-                WpfTestCase.RequireWpfFact("Test helper creates mocks of ITextView")
+                WpfTestRunner.RequireWpfFact($"Test helper creates mocks of {NameOf(ITextView)}")
 
                 Dim textView = New Mock(Of ITextView)(MockBehavior.Strict)
                 textView.Setup(Function(x) x.Options).Returns(TestEditorOptions.Instance)

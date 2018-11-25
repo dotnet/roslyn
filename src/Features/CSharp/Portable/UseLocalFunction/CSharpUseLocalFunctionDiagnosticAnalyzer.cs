@@ -359,6 +359,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
         }
 
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
-            => DiagnosticAnalyzerCategory.SemanticDocumentAnalysis;
+            => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
     }
 }

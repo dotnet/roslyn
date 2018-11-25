@@ -246,12 +246,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             // either should lower into addressof
             Debug.Assert(initializerExpr.Kind == BoundKind.AddressOfOperator);
 
+            TypeSymbol initializerType = ((PointerTypeSymbol)initializerExpr.Type).PointedAtType;
+
             // initializer expressions are bound/lowered right into addressof operators here
             // that is a bit too far
             // we need to pin the underlying field, and only then take the address.
             initializerExpr = ((BoundAddressOfOperator)initializerExpr).Operand;
- 
-            TypeSymbol initializerType = initializerExpr.Type;
 
             // intervening parens may have been skipped by the binder; find the declarator
             VariableDeclaratorSyntax declarator = fixedInitializer.Syntax.FirstAncestorOrSelf<VariableDeclaratorSyntax>();

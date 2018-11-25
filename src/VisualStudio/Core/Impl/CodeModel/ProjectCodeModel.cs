@@ -77,7 +77,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
             fileCodeModelHandle = handle != null
                 ? handle.Value
-                : default(ComHandle<EnvDTE80.FileCodeModel2, FileCodeModel>);
+                : default;
 
             return handle != null;
         }

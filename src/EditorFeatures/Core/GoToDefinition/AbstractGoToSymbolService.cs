@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
 {
+    // Ctrl+Click (GoToSymbol)
     internal abstract class AbstractGoToSymbolService : ForegroundThreadAffinitizedObject, IGoToSymbolService
     {
         public async Task GetSymbolsAsync(GoToSymbolContext context)
@@ -13,9 +14,12 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
             var document = context.Document;
             var position = context.Position;
             var cancellationToken = context.CancellationToken;
-
             var service = document.GetLanguageService<IGoToDefinitionSymbolService>();
-            var (symbol, span) = await service.GetSymbolAndBoundSpanAsync(document, position, cancellationToken).ConfigureAwait(false);
+
+            // [includeType: false]
+            // Enable Ctrl+Click on tokens with aliased, referenced or declared symbol.
+            // If the token has none of those but does have a type (mostly literals), we're not interested
+            var (symbol, span) = await service.GetSymbolAndBoundSpanAsync(document, position, includeType: false, cancellationToken).ConfigureAwait(false);
 
             if (symbol == null)
             {

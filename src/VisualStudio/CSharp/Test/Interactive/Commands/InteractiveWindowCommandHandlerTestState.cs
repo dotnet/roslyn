@@ -4,6 +4,7 @@ using System.Xml.Linq;
 using Microsoft.CodeAnalysis.Editor.Interactive;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
+using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
@@ -35,10 +36,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Interactive.Commands
 
         private VSCommanding.ICommandHandler<CopyToInteractiveCommandArgs> CopyToInteractiveCommandHandler => _commandHandler;
 
-        public InteractiveWindowCommandHandlerTestState(XElement workspaceElement)
-            : base(workspaceElement)
+        public InteractiveWindowCommandHandlerTestState(ExportProvider exportProvider, XElement workspaceElement)
+            : base(workspaceElement, exportProvider, workspaceKind: null)
         {
-            TestHost = new InteractiveWindowTestHost();
+            TestHost = new InteractiveWindowTestHost(exportProvider);
 
             _commandHandler = new TestInteractiveCommandHandler(
                 TestHost.Window,
@@ -48,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Interactive.Commands
                 TestWaitIndicator.Default);
         }
 
-        public static InteractiveWindowCommandHandlerTestState CreateTestState(string markup)
+        public static InteractiveWindowCommandHandlerTestState CreateTestState(ExportProvider exportProvider, string markup)
         {
             var workspaceXml = XElement.Parse($@"
                     <Workspace>
@@ -58,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Interactive.Commands
                     </Workspace>
                 ");
 
-            return new InteractiveWindowCommandHandlerTestState(workspaceXml);
+            return new InteractiveWindowCommandHandlerTestState(exportProvider, workspaceXml);
         }
 
         public void SendCopyToInteractive()

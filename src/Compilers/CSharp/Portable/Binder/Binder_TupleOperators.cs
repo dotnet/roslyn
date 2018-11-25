@@ -109,6 +109,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 ReportBinaryOperatorError(node, diagnostics, node.OperatorToken, left, right, resultKind);
             }
+            ReportDiagnosticsIfObsolete(diagnostics, analysisResult.LeftConversion, left.Syntax, hasBaseReceiver: false);
+            ReportDiagnosticsIfObsolete(diagnostics, analysisResult.RightConversion, right.Syntax, hasBaseReceiver: false);
 
             PrepareBoolConversionAndTruthOperator(signature.ReturnType, node, kind, diagnostics, out Conversion conversionIntoBoolOperator, out UnaryOperatorSignature boolOperator);
 
@@ -119,7 +121,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// If an element-wise binary operator returns a non-bool type, we will either:
         /// - prepare a conversion to bool if one exists
-        /// - prepare a truth operator: op_false in the case of an equality (`a == b` will be lowered to `!((a == b).op_false)) or op_true in the case of inequality,
+        /// - prepare a truth operator: op_false in the case of an equality (<c>a == b</c> will be lowered to <c>!((a == b).op_false)</c>) or op_true in the case of inequality,
         ///     with the conversion being used for its input.
         /// </summary>
         private void PrepareBoolConversionAndTruthOperator(TypeSymbol type, BinaryExpressionSyntax node, BinaryOperatorKind binaryOperator, DiagnosticBag diagnostics,
@@ -134,6 +136,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (conversion.IsImplicit)
             {
+                ReportDiagnosticsIfObsolete(diagnostics, conversion, node, hasBaseReceiver: false);
                 conversionForBool = conversion;
                 boolOperator = default;
                 return;

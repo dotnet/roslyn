@@ -63,6 +63,9 @@ namespace RunTests
         /// </summary>
         public TimeSpan? Timeout { get; set; }
 
+        /// <summary>
+        /// The directory which contains procdump.exe. 
+        /// </summary>
         public string ProcDumpDirectory { get; set; }
 
         public string XunitPath { get; set; }

@@ -186,7 +186,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
                                                .Single().Span.End;
 
             return document.Project.Solution.WithDocumentText(
-                formattedDocument.Id, formattedDocument.GetTextAsync(cancellationToken).WaitAndGetResult(cancellationToken));
+                formattedDocument.Id, formattedDocument.GetTextSynchronously(cancellationToken));
         }
 
         private Document AddMethodNameAndAnnotationsToSolution(
@@ -210,7 +210,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
 
             // Next, perform a textual insertion of the event handler method name.
             var textChange = new TextChange(new TextSpan(position, 0), textToInsert);
-            var newText = document.GetTextAsync(cancellationToken).WaitAndGetResult(cancellationToken).WithChanges(textChange);
+            var newText = document.GetTextSynchronously(cancellationToken).WithChanges(textChange);
             var documentWithNameAdded = document.WithText(newText);
 
             // Now find the event hookup again to add the appropriate annotations.
@@ -251,12 +251,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
         }
 
         private IMethodSymbol GetMethodSymbol(
-            SemanticDocument document,
+            SemanticDocument semanticDocument,
             string eventHandlerMethodName,
             AssignmentExpressionSyntax eventHookupExpression,
             CancellationToken cancellationToken)
         {
-            var semanticModel = document.SemanticModel as SemanticModel;
+            var semanticModel = semanticDocument.SemanticModel as SemanticModel;
             var symbolInfo = semanticModel.GetSymbolInfo(eventHookupExpression.Left, cancellationToken);
 
             var symbol = symbolInfo.Symbol;
@@ -265,27 +265,27 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
                 return null;
             }
 
-            var typeInference = document.Project.LanguageServices.GetService<ITypeInferenceService>();
+            var typeInference = semanticDocument.Document.GetLanguageService<ITypeInferenceService>();
             var delegateType = typeInference.InferDelegateType(semanticModel, eventHookupExpression.Right, cancellationToken);
             if (delegateType == null || delegateType.DelegateInvokeMethod == null)
             {
                 return null;
             }
 
-            var syntaxFactory = document.Project.LanguageServices.GetService<SyntaxGenerator>();
+            var syntaxFactory = semanticDocument.Document.GetLanguageService<SyntaxGenerator>();
 
             return CodeGenerationSymbolFactory.CreateMethodSymbol(
-                attributes: default(ImmutableArray<AttributeData>),
+                attributes: default,
                 accessibility: Accessibility.Private,
                 modifiers: new DeclarationModifiers(isStatic: eventHookupExpression.IsInStaticContext()),
                 returnType: delegateType.DelegateInvokeMethod.ReturnType,
                 refKind: delegateType.DelegateInvokeMethod.RefKind,
                 explicitInterfaceImplementations: default,
                 name: eventHandlerMethodName,
-                typeParameters: default(ImmutableArray<ITypeParameterSymbol>),
+                typeParameters: default,
                 parameters: delegateType.DelegateInvokeMethod.Parameters,
                 statements: ImmutableArray.Create(
-                    CodeGenerationHelpers.GenerateThrowStatement(syntaxFactory, document, "System.NotImplementedException", cancellationToken)));
+                    CodeGenerationHelpers.GenerateThrowStatement(syntaxFactory, semanticDocument, "System.NotImplementedException", cancellationToken)));
         }
 
         private void BeginInlineRename(Workspace workspace, ITextView textView, ITextBuffer subjectBuffer, int plusEqualTokenEndPosition, CancellationToken cancellationToken)

@@ -1564,5 +1564,88 @@ public class SpecialCases
     Diagnostic(ErrorCode.ERR_AmbigCall, "ArgListMethod").WithArguments("SpecialCases.ArgListMethod(__arglist)", "SpecialCases.ArgListMethod(__arglist)").WithLocation(10, 9)
                 );
         }
+
+        [Fact]
+        public void ArgListMayNotHaveAnOutArgument()
+        {
+            CreateCompilation(@"
+class Program
+{
+    static void Test(__arglist)
+    {
+        var a = 1;
+    	Test(__arglist(out a));
+    }
+}
+").VerifyDiagnostics(
+                // (7,25): error CS8378: __arglist cannot have an argument passed by 'in' or 'out'
+                //     	Test(__arglist(out a));
+                Diagnostic(ErrorCode.ERR_CantUseInOrOutInArglist, "a").WithLocation(7, 25));
+        }
+
+        [Fact]
+        public void ArgListMayNotHaveAnInArgument()
+        {
+            CreateCompilation(@"
+class Program
+{
+    static void Test(__arglist)
+    {
+        var a = 1;
+    	Test(__arglist(in a));
+    }
+}
+").VerifyDiagnostics(
+                // (7,24): error CS8378: __arglist cannot have an argument passed by 'in' or 'out'
+                //     	Test(__arglist(in a));
+                Diagnostic(ErrorCode.ERR_CantUseInOrOutInArglist, "a").WithLocation(7, 24));
+        }
+
+        [Fact]
+        public void ArgListMayHaveARefArgument()
+        {
+            CompileAndVerify(@"
+using System;
+class Program
+{
+    static void Test(__arglist)
+    {
+        var args = new ArgIterator(__arglist);
+        ref int a = ref __refvalue(args.GetNextArg(), int);
+        a = 5;
+    }
+    static void Main()
+    {
+        int a = 0;
+        Test(__arglist(ref a));
+        Console.WriteLine(a);
+    }
+}",
+                options: new CSharpCompilationOptions(OutputKind.ConsoleApplication, optimizationLevel: OptimizationLevel.Debug),
+                expectedOutput: "5");
+        }
+
+        [Fact]
+        public void ArgListMayHaveAByValArgument()
+        {
+            CompileAndVerify(@"
+using System;
+class Program
+{
+    static void Test(__arglist)
+    {
+        var args = new ArgIterator(__arglist);
+        int a = __refvalue(args.GetNextArg(), int);
+        Console.WriteLine(a);
+    }
+    static void Main()
+    {
+        int a = 5;
+        Test(__arglist(a));
+    }
+}",
+                options: new CSharpCompilationOptions(OutputKind.ConsoleApplication, optimizationLevel: OptimizationLevel.Debug),
+                expectedOutput: "5");
+        }
     }
 }

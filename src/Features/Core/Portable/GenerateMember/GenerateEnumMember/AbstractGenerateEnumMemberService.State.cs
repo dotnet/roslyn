@@ -81,12 +81,12 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateEnumMember
 
             private bool TryInitializeIdentifierName(
                 TService service,
-                SemanticDocument document,
+                SemanticDocument semanticDocument,
                 TSimpleNameSyntax identifierName,
                 CancellationToken cancellationToken)
             {
                 this.SimpleName = identifierName;
-                if (!service.TryInitializeIdentifierNameState(document, identifierName, cancellationToken,
+                if (!service.TryInitializeIdentifierNameState(semanticDocument, identifierName, cancellationToken,
                     out var identifierToken, out var simpleNameOrMemberAccessExpression))
                 {
                     return false;
@@ -95,9 +95,9 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateEnumMember
                 this.IdentifierToken = identifierToken;
                 this.SimpleNameOrMemberAccessExpression = simpleNameOrMemberAccessExpression;
 
-                var semanticModel = document.SemanticModel;
-                var semanticFacts = document.Project.LanguageServices.GetService<ISemanticFactsService>();
-                var syntaxFacts = document.Project.LanguageServices.GetService<ISyntaxFactsService>();
+                var semanticModel = semanticDocument.SemanticModel;
+                var semanticFacts = semanticDocument.Document.GetLanguageService<ISemanticFactsService>();
+                var syntaxFacts = semanticDocument.Document.GetLanguageService<ISyntaxFactsService>();
                 if (semanticFacts.IsWrittenTo(semanticModel, this.SimpleNameOrMemberAccessExpression, cancellationToken) ||
                     syntaxFacts.IsInNamespaceOrTypeContext(this.SimpleNameOrMemberAccessExpression))
                 {
@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateEnumMember
                 // to generate a method here.  Determine where the user wants to generate the method
                 // into, and if it's valid then proceed.
                 if (!service.TryDetermineTypeToGenerateIn(
-                    document, containingType, simpleNameOrMemberAccessExpression, cancellationToken,
+                    semanticDocument, containingType, simpleNameOrMemberAccessExpression, cancellationToken,
                     out var typeToGenerateIn, out var isStatic))
                 {
                     return false;

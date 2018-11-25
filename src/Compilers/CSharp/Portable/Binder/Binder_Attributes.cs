@@ -284,11 +284,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ArrayBuilder<BoundExpression> boundNamedArgumentsBuilder = null;
                 HashSet<string> boundNamedArgumentsSet = null;
 
-                // Avoid "cascading" errors for constructor arguments.
-                // We will still generate errors for each duplicate named attribute argument,
-                // matching Dev10 compiler behavior.
-                bool hadError = false;
-
                 // Only report the first "non-trailing named args required C# 7.2" error,
                 // so as to avoid "cascading" errors.
                 bool hadLangVersionError = false;
@@ -308,19 +303,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                         this.BindArgumentAndName(
                             boundConstructorArguments,
                             diagnostics,
-                            ref hadError,
                             ref hadLangVersionError,
                             argument,
                             BindArgumentExpression(diagnostics, argument.Expression, RefKind.None, allowArglist: false),
                             argument.NameColon,
                             refKind: RefKind.None);
-
-                        if (boundNamedArgumentsBuilder != null)
-                        {
-                            // Error CS1016: Named attribute argument expected
-                            // This has been reported by the parser.
-                            hadError = true;
-                        }
                     }
                     else
                     {
@@ -338,7 +325,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             // Duplicate named argument
                             Error(diagnostics, ErrorCode.ERR_DuplicateNamedAttributeArgument, argument, argumentName);
-                            hadError = true;
                         }
 
                         BoundExpression boundNamedArgument = BindNamedAttributeArgument(argument, attributeType, diagnostics);

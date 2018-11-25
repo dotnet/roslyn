@@ -776,5 +776,12 @@ public static class Extensions
     public void Extension(in $$ object obj, int x) { }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterRefExpression()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+@"ref int x = ref $$"));
+        }
     }
 }

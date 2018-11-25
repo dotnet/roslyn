@@ -4,6 +4,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess;
+using Roslyn.Test.Utilities;
 using Xunit;
 using ProjectUtils = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils;
 
@@ -21,7 +22,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         {
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         public void VerifyCodeRefactoringOffered()
         {
             SetUpEditor(@"
@@ -34,7 +35,7 @@ class C
             VisualStudio.Editor.Verify.CodeAction("Change signature...", applyFix: false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         public void VerifyRefactoringCancelled()
         {
             SetUpEditor(@"
@@ -55,7 +56,7 @@ class C
 }", actualText);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         public void VerifyReorderParameters()
         {
             SetUpEditor(@"
@@ -78,7 +79,7 @@ class C
 }", actuaText);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         public void VerifyRemoveParameter()
         {
             SetUpEditor(@"
@@ -122,7 +123,7 @@ class C
 }", actuaText);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         public void VerifyCrossLanguageGlobalUndo()
         {
             SetUpEditor(@"using VBProject;

@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.ConvertForToForEach;
 using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
@@ -15,15 +16,15 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertForToForEach
     [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = nameof(CSharpConvertForToForEachCodeRefactoringProvider)), Shared]
     internal class CSharpConvertForToForEachCodeRefactoringProvider :
         AbstractConvertForToForEachCodeRefactoringProvider<
-            StatementSyntax, 
-            ForStatementSyntax, 
+            StatementSyntax,
+            ForStatementSyntax,
             ExpressionSyntax,
             MemberAccessExpressionSyntax,
             TypeSyntax,
             VariableDeclaratorSyntax>
     {
         protected override string GetTitle()
-            => CSharpFeaturesResources.Convert_for_to_foreach;
+            => CSharpFeaturesResources.Convert_to_foreach;
 
         protected override bool IsValidCursorPosition(ForStatementSyntax forStatement, int cursorPos)
         {
@@ -44,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertForToForEach
         protected override bool TryGetForStatementComponents(
             ForStatementSyntax forStatement,
             out SyntaxToken iterationVariable, out ExpressionSyntax initializer,
-            out MemberAccessExpressionSyntax memberAccess, 
+            out MemberAccessExpressionSyntax memberAccess,
             out ExpressionSyntax stepValueExpressionOpt,
             CancellationToken cancellationToken)
         {
@@ -100,25 +101,25 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertForToForEach
             ExpressionSyntax operand;
             switch (incrementor.Kind())
             {
-            case SyntaxKind.PostIncrementExpression:
-                operand = ((PostfixUnaryExpressionSyntax)incrementor).Operand;
-                stepValue = default;
-                break;
+                case SyntaxKind.PostIncrementExpression:
+                    operand = ((PostfixUnaryExpressionSyntax)incrementor).Operand;
+                    stepValue = default;
+                    break;
 
-            case SyntaxKind.PreIncrementExpression:
-                operand = ((PrefixUnaryExpressionSyntax)incrementor).Operand;
-                stepValue = default;
-                break;
+                case SyntaxKind.PreIncrementExpression:
+                    operand = ((PrefixUnaryExpressionSyntax)incrementor).Operand;
+                    stepValue = default;
+                    break;
 
-            case SyntaxKind.AddAssignmentExpression:
-                var assignment = (AssignmentExpressionSyntax)incrementor;
-                operand = assignment.Left;
-                stepValue = assignment.Right;
-                break;
+                case SyntaxKind.AddAssignmentExpression:
+                    var assignment = (AssignmentExpressionSyntax)incrementor;
+                    operand = assignment.Left;
+                    stepValue = assignment.Right;
+                    break;
 
-            default:
-                stepValue = null;
-                return false;
+                default:
+                    stepValue = null;
+                    return false;
             }
 
             return operand is IdentifierNameSyntax identifierName &&
@@ -126,24 +127,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertForToForEach
         }
 
         protected override SyntaxNode ConvertForNode(
-            ForStatementSyntax forStatement, TypeSyntax typeNode, 
+            ForStatementSyntax forStatement, TypeSyntax typeNode,
             SyntaxToken foreachIdentifier, ExpressionSyntax collectionExpression,
             ITypeSymbol iterationVariableType, OptionSet optionSet)
         {
-            if (typeNode == null)
-            {
-                // types are not apparent in foreach statements.
-                var isBuiltInTypeContext = TypeStyleHelper.IsBuiltInType(iterationVariableType);
-                if (TypeStyleHelper.IsImplicitStylePreferred(
-                        optionSet, isBuiltInTypeContext, isTypeApparentContext: false))
-                {
-                    typeNode = SyntaxFactory.IdentifierName("var");
-                }
-                else
-                {
-                    typeNode = (TypeSyntax)CSharpSyntaxGenerator.Instance.TypeExpression(iterationVariableType);
-                }
-            }
+            typeNode = typeNode ?? iterationVariableType.GenerateTypeSyntax();
 
             return SyntaxFactory.ForEachStatement(
                 SyntaxFactory.Token(SyntaxKind.ForEachKeyword).WithTriviaFrom(forStatement.ForKeyword),

@@ -136,6 +136,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             var typeConstraintSyntax = (TypeConstraintSyntax)syntax;
                             var typeSyntax = typeConstraintSyntax.Type;
                             var typeSyntaxKind = typeSyntax.Kind();
+
+                            // For pointer types, don't report this error. It is already reported during binding typeSyntax below.
                             if (typeSyntaxKind != SyntaxKind.PredefinedType && typeSyntaxKind != SyntaxKind.PointerType && !SyntaxFacts.IsName(typeSyntax.Kind()))
                             {
                                 diagnostics.Add(ErrorCode.ERR_BadConstraintType, typeSyntax.GetLocation());

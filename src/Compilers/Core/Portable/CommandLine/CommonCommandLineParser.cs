@@ -238,7 +238,7 @@ namespace Microsoft.CodeAnalysis
             if (outputFileName == null ||
                 !MetadataHelpers.IsValidAssemblyOrModuleName(outputFileName))
             {
-                errors.Add(Diagnostic.Create(_messageProvider, _messageProvider.FTL_InputFileNameTooLong, invalidPath));
+                errors.Add(Diagnostic.Create(_messageProvider, _messageProvider.FTL_InvalidInputFileName, invalidPath));
                 outputFileName = null;
                 outputDirectory = baseDirectory;
             }
@@ -259,7 +259,7 @@ namespace Microsoft.CodeAnalysis
             if (outputFileName == null ||
                 PathUtilities.ChangeExtension(outputFileName, extension: null).Length == 0)
             {
-                errors.Add(Diagnostic.Create(_messageProvider, _messageProvider.FTL_InputFileNameTooLong, invalidPath));
+                errors.Add(Diagnostic.Create(_messageProvider, _messageProvider.FTL_InvalidInputFileName, invalidPath));
             }
             else
             {
@@ -285,7 +285,7 @@ namespace Microsoft.CodeAnalysis
             {
                 if (generateDiagnostic)
                 {
-                    errors.Add(Diagnostic.Create(_messageProvider, _messageProvider.FTL_InputFileNameTooLong, invalidPath));
+                    errors.Add(Diagnostic.Create(_messageProvider, _messageProvider.FTL_InvalidInputFileName, invalidPath));
                 }
             }
             else
@@ -375,7 +375,7 @@ namespace Microsoft.CodeAnalysis
                     }
                     else
                     {
-                        diagnostics.Add(Diagnostic.Create(_messageProvider, _messageProvider.FTL_InputFileNameTooLong, path));
+                        diagnostics.Add(Diagnostic.Create(_messageProvider, _messageProvider.FTL_InvalidInputFileName, path));
                     }
                 }
                 else
@@ -779,7 +779,7 @@ namespace Microsoft.CodeAnalysis
                 string resolvedPath = FileUtilities.ResolveRelativePath(path, baseDirectory);
                 if (resolvedPath == null)
                 {
-                    errors.Add(Diagnostic.Create(_messageProvider, _messageProvider.FTL_InputFileNameTooLong, path));
+                    errors.Add(Diagnostic.Create(_messageProvider, _messageProvider.FTL_InvalidInputFileName, path));
                 }
                 else
                 {
@@ -831,7 +831,7 @@ namespace Microsoft.CodeAnalysis
                 string resolvedPath = FileUtilities.ResolveRelativePath(path, baseDirectory);
                 if (resolvedPath == null)
                 {
-                    errors.Add(Diagnostic.Create(MessageProvider, (int)MessageProvider.FTL_InputFileNameTooLong, path));
+                    errors.Add(Diagnostic.Create(MessageProvider, (int)MessageProvider.FTL_InvalidInputFileName, path));
                 }
                 else
                 {
@@ -947,7 +947,7 @@ namespace Microsoft.CodeAnalysis
 
                         if (resolvedPath == null)
                         {
-                            errors.Add(Diagnostic.Create(MessageProvider, (int)MessageProvider.FTL_InputFileNameTooLong, path));
+                            errors.Add(Diagnostic.Create(MessageProvider, (int)MessageProvider.FTL_InvalidInputFileName, path));
                             break;
                         }
 

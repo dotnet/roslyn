@@ -5,7 +5,6 @@ Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Editor.Host
 Imports Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 Imports Microsoft.CodeAnalysis.Editor.Implementation.InlineRename.HighlightTags
-Imports Microsoft.CodeAnalysis.Editor.Shared.Tagging
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Text.Shared.Extensions
 Imports Microsoft.VisualStudio.Text
@@ -16,6 +15,7 @@ Imports Microsoft.VisualStudio.Text.Tagging
 Imports Roslyn.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
+    <[UseExportProvider]>
     Public Class RenameTagProducerTests
         Private Async Function VerifyEmptyTaggedSpans(tagType As TextMarkerTag, actualWorkspace As TestWorkspace, renameService As InlineRenameService) As Task
             Await VerifyTaggedSpansCore(tagType, actualWorkspace, renameService, SpecializedCollections.EmptyEnumerable(Of Span))

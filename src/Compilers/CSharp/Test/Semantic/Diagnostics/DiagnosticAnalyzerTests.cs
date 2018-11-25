@@ -2324,6 +2324,36 @@ internal class Derived : Base
                 Diagnostic("ID", "Field").WithArguments("Field", "0").WithLocation(11, 29));
         }
 
+        [Fact, WorkItem(26520, "https://github.com/dotnet/roslyn/issues/26520")]
+        public void TestFieldReferenceAnalyzer_InConstructorDestructorExpressionBody()
+        {
+            string source = @"
+internal class C
+{
+    public bool Flag;
+    public C() => Flag = true;
+    ~C() => Flag = false;
+}";
+
+            var tree = CSharpSyntaxTree.ParseText(source);
+            var compilation = CreateCompilationWithMscorlib45(new[] { tree });
+            compilation.VerifyDiagnostics();
+
+            // Test RegisterOperationBlockAction
+            TestFieldReferenceAnalyzer_InConstructorDestructorExpressionBody_Core(compilation, doOperationBlockAnalysis: true);
+
+            // Test RegisterOperationAction
+            TestFieldReferenceAnalyzer_InConstructorDestructorExpressionBody_Core(compilation, doOperationBlockAnalysis: false);
+        }
+
+        private static void TestFieldReferenceAnalyzer_InConstructorDestructorExpressionBody_Core(Compilation compilation, bool doOperationBlockAnalysis)
+        {
+            var analyzers = new DiagnosticAnalyzer[] { new FieldReferenceOperationAnalyzer(doOperationBlockAnalysis) };
+            compilation.VerifyAnalyzerDiagnostics(analyzers, null, null, true,
+                Diagnostic("ID", "Flag").WithArguments("Flag", "").WithLocation(5, 19),
+                Diagnostic("ID", "Flag").WithArguments("Flag", "").WithLocation(6, 13));
+        }
+
         [Fact, WorkItem(25167, "https://github.com/dotnet/roslyn/issues/25167")]
         public void TestMethodBodyOperationAnalyzer()
         {

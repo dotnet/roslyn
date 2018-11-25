@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         }
 
         public Task<ImmutableArray<ReferenceLocation>> FindReferencesInDocumentAsync(
-            SymbolAndProjectId symbolAndProjectId, Document document, CancellationToken cancellationToken = default)
+            SymbolAndProjectId symbolAndProjectId, Document document, SemanticModel semanticModel, CancellationToken cancellationToken = default)
         {
             return SpecializedTasks.EmptyImmutableArray<ReferenceLocation>();
         }

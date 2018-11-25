@@ -61,6 +61,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return GetConvertedLeftForNullCoalescingOperator(rewrittenLeft, leftConversion, rewrittenResultType);
             }
 
+            // string concatenation is never null.
+            // interpolated string lowering may introduce redundant null coalescing, which we have to remove.
+            if (IsStringConcat(rewrittenLeft))
+            {
+                return GetConvertedLeftForNullCoalescingOperator(rewrittenLeft, leftConversion, rewrittenResultType);
+            }
+
             // if left conversion is intrinsic implicit (always succeeds) and results in a reference type
             // we can apply conversion before doing the null check that allows for a more efficient IL emit.
             if (rewrittenLeft.Type.IsReferenceType &&
@@ -142,6 +149,35 @@ namespace Microsoft.CodeAnalysis.CSharp
                 sideEffects: ImmutableArray.Create<BoundExpression>(tempAssignment),
                 value: conditionalExpression,
                 type: rewrittenResultType);
+        }
+
+        private bool IsStringConcat(BoundExpression expression)
+        {
+            if  (expression.Kind != BoundKind.Call)
+            {
+                return false;
+            }
+
+            var boundCall = (BoundCall)expression;
+
+            var method = boundCall.Method;
+
+            if (method.IsStatic && method.ContainingType.SpecialType == SpecialType.System_String)
+            {
+                if ((object)method == (object)_compilation.GetSpecialTypeMember(SpecialMember.System_String__ConcatStringString) ||
+                    (object)method == (object)_compilation.GetSpecialTypeMember(SpecialMember.System_String__ConcatStringStringString) ||
+                    (object)method == (object)_compilation.GetSpecialTypeMember(SpecialMember.System_String__ConcatStringStringStringString) ||
+                    (object)method == (object)_compilation.GetSpecialTypeMember(SpecialMember.System_String__ConcatObject) ||
+                    (object)method == (object)_compilation.GetSpecialTypeMember(SpecialMember.System_String__ConcatObjectObject) ||
+                    (object)method == (object)_compilation.GetSpecialTypeMember(SpecialMember.System_String__ConcatObjectObjectObject) ||
+                    (object)method == (object)_compilation.GetSpecialTypeMember(SpecialMember.System_String__ConcatStringArray) ||
+                    (object)method == (object)_compilation.GetSpecialTypeMember(SpecialMember.System_String__ConcatObjectArray))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         private BoundExpression GetConvertedLeftForNullCoalescingOperator(BoundExpression rewrittenLeft, Conversion leftConversion, TypeSymbol rewrittenResultType)

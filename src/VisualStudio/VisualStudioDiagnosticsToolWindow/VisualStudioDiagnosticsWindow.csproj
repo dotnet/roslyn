@@ -17,7 +17,7 @@
     <VSSDKTargetPlatformRegRootSuffix>RoslynDev</VSSDKTargetPlatformRegRootSuffix>
     <ImportVSSDKTargets>true</ImportVSSDKTargets>
     <TargetVsixContainerName>Roslyn.VisualStudio.DiagnosticsWindow.vsix</TargetVsixContainerName>
-    <TargetFramework>net461</TargetFramework>
+    <TargetFramework>net46</TargetFramework>
     <RuntimeIdentifier>$(RoslynDesktopRuntimeIdentifier)</RuntimeIdentifier>
     <RoslynProjectType>Vsix</RoslynProjectType>
   </PropertyGroup>

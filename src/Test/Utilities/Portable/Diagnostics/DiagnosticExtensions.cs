@@ -369,5 +369,11 @@ namespace Microsoft.CodeAnalysis
             retVal = e.Severity.ToString() + " " + e.Id + ": " + e.GetMessage(CultureInfo.CurrentCulture);
             return retVal;
         }
+
+        public static string ToString(this Diagnostic d, IFormatProvider formatProvider)
+        {
+            IFormattable formattable = d;
+            return formattable.ToString(null, formatProvider);
+        }
     }
 }

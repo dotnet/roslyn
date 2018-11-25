@@ -109,7 +109,7 @@ namespace Roslyn.Test.Utilities
                 //Not mentioned in the adapter doc but pointed to from System.Runtime, so we'll put it here.
                 var system = AssemblyMetadata.CreateFromImage(TestResources.NetFX.v4_0_30319.System).GetReference(display: "System.dll");
 
-                var mscor = AssemblyMetadata.CreateFromImage(TestResources.NetFX.v4_0_30316_17626.mscorlib).GetReference(display: "mscorlib");
+                var mscor = AssemblyMetadata.CreateFromImage(TestResources.NetFX.v4_0_30319_17626.mscorlib).GetReference(display: "mscorlib");
 
                 return new MetadataReference[] { winmd, windowsruntime, runtime, objectModel, uixaml, interop, system, mscor };
             },
@@ -123,11 +123,6 @@ namespace Roslyn.Test.Utilities
             () => new MetadataReference[] { MscorlibPP7Ref, SystemRuntimePP7Ref },
             LazyThreadSafetyMode.PublicationOnly);
         public static MetadataReference[] PortableRefsMinimal => s_portableRefsMinimal.Value;
-
-        /// <summary>
-        /// Reference to an assembly that defines Expression Trees.
-        /// </summary>
-        public static MetadataReference ExpressionAssemblyRef => SystemCoreRef_v46;
 
         /// <summary>
         /// Reference to an assembly that defines LINQ operators.
@@ -208,7 +203,7 @@ namespace Roslyn.Test.Utilities
             LazyThreadSafetyMode.PublicationOnly);
         public static MetadataReference MscorlibRef_v20 => s_mscorlibRef_v20.Value;
 
-        public static MetadataReference MscorlibRef_v4_0_30316_17626 => TestReferences.NetFx.v4_0_30316_17626.mscorlib;
+        public static MetadataReference MscorlibRef_v4_0_30316_17626 => TestReferences.NetFx.v4_0_30319_17626.mscorlib;
 
         private static readonly Lazy<MetadataReference> s_mscorlibRef_v46 = new Lazy<MetadataReference>(
             () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.v4_6_1038_0.mscorlib).GetReference(display: "mscorlib.v4_6_1038_0.dll", filePath: @"Z:\FxReferenceAssembliesUri"),

@@ -15,6 +15,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CommentSelection
 {
+    [UseExportProvider]
     public class CSharpCommentSelectionTests
     {
         [WpfFact, Trait(Traits.Feature, Traits.Features.CommentSelection)]

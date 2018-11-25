@@ -22,19 +22,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
         }
 
         public ITagger<T> CreateTagger<T>(ITextBuffer buffer) where T : ITag
-        {
-            if (!Workspace.TryGetWorkspace(buffer.AsTextContainer(), out var workspace))
-            {
-                return null;
-            }
-
-            var trackingService = workspace.Services.GetService<IActiveStatementTrackingService>();
-            if (trackingService == null)
-            {
-                return null;
-            }
-
-            return new ActiveStatementTagger(trackingService, buffer) as ITagger<T>;
-        }
+            => new ActiveStatementTagger(buffer) as ITagger<T>;
     }
 }

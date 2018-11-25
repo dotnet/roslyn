@@ -69,9 +69,9 @@ Namespace Microsoft.CodeAnalysis.Operations
             Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundAssignment.ConstantValueOpt)
             Dim isImplicit As Boolean = boundAssignment.WasCompilerGenerated
 
-            Return New LazyVisualBasicCompoundAssignmentOperation(leftOperand, rightOperand, inConversion, outConversion, operatorInfo.OperatorKind,
-                                                                  operatorInfo.IsLifted, operatorInfo.IsChecked, operatorInfo.OperatorMethod,
-                                                                  _semanticModel, syntax, type, constantValue, isImplicit)
+            Return New LazyCompoundAssignmentOperation(leftOperand, rightOperand, inConversion, outConversion, operatorInfo.OperatorKind,
+                                                       operatorInfo.IsLifted, operatorInfo.IsChecked, operatorInfo.OperatorMethod,
+                                                       _semanticModel, syntax, type, constantValue, isImplicit)
         End Function
 
         Private Structure BinaryOperatorInfo
@@ -144,13 +144,13 @@ Namespace Microsoft.CodeAnalysis.Operations
             Return GetChildOfBadExpressionBoundNode([operator].UnderlyingExpression, index)
         End Function
 
-        Friend Function DeriveArguments(boundArguments As ImmutableArray(Of BoundExpression), parameters As ImmutableArray(Of VisualBasic.Symbols.ParameterSymbol), invocationWasCompilerGenerated As Boolean) As ImmutableArray(Of IArgumentOperation)
+        Friend Function DeriveArguments(boundArguments As ImmutableArray(Of BoundExpression), parameters As ImmutableArray(Of VisualBasic.Symbols.ParameterSymbol), ByRef defaultArguments As BitVector) As ImmutableArray(Of IArgumentOperation)
             Dim argumentsLength As Integer = boundArguments.Length
             Debug.Assert(argumentsLength = parameters.Length)
 
             Dim arguments As ArrayBuilder(Of IArgumentOperation) = ArrayBuilder(Of IArgumentOperation).GetInstance(argumentsLength)
             For index As Integer = 0 To argumentsLength - 1 Step 1
-                arguments.Add(DeriveArgument(index, boundArguments(index), parameters, invocationWasCompilerGenerated))
+                arguments.Add(DeriveArgument(index, boundArguments(index), parameters, defaultArguments(index)))
             Next
 
             Return arguments.ToImmutableAndFree()
@@ -160,7 +160,7 @@ Namespace Microsoft.CodeAnalysis.Operations
             index As Integer,
             argument As BoundExpression,
             parameters As ImmutableArray(Of VisualBasic.Symbols.ParameterSymbol),
-            invocationWasCompilerGenerated As Boolean
+            isDefault As Boolean
         ) As IArgumentOperation
             Dim isImplicit As Boolean = argument.WasCompilerGenerated AndAlso argument.Syntax.Kind <> SyntaxKind.OmittedArgument
             Select Case argument.Kind
@@ -180,22 +180,11 @@ Namespace Microsoft.CodeAnalysis.Operations
                     Dim lastParameterIndex = parameters.Length - 1
                     Dim kind As ArgumentKind = ArgumentKind.Explicit
 
-                    If argument.WasCompilerGenerated AndAlso Not invocationWasCompilerGenerated Then
-
-                        If index = lastParameterIndex AndAlso ParameterIsParamArray(parameters(lastParameterIndex)) Then
-                            ' TODO: figure out if this is true:
-                            '       a compiler generated argument for a ParamArray parameter is created iff
-                            '       a list of arguments (including 0 argument) is provided for ParamArray parameter in source
-                            '       https://github.com/dotnet/roslyn/issues/18550
-                            If argument.Kind = BoundKind.ArrayCreation Then
-                                kind = ArgumentKind.ParamArray
-                            End If
-                        Else
-                            ' TODO: figure our if this is true:
-                            '       a compiler generated argument for an Optional parameter is created iff
-                            '       the argument is omitted from the source
-                            '       https://github.com/dotnet/roslyn/issues/18550
+                    If argument.WasCompilerGenerated Then
+                        If isDefault Then
                             kind = ArgumentKind.DefaultValue
+                        ElseIf argument.Kind = BoundKind.ArrayCreation AndAlso DirectCast(argument, BoundArrayCreation).IsParamArrayArgument Then
+                            kind = ArgumentKind.ParamArray
                         End If
                     End If
 
@@ -222,15 +211,14 @@ Namespace Microsoft.CodeAnalysis.Operations
             Dim argument = If(value.Syntax.Kind = SyntaxKind.OmittedArgument, value.Syntax, TryCast(value.Syntax?.Parent, ArgumentSyntax))
 
             ' if argument syntax doesn't exist, then this operation is implicit
-            Return New VisualBasicArgument(
+            Return New ArgumentOperation(
+                value,
                 kind,
                 parameter,
-                value,
-                inConversion:=inConversion,
-                outConversion:=outConversion,
+                inConversion,
+                outConversion,
                 semanticModel:=_semanticModel,
                 syntax:=If(argument, value.Syntax),
-                constantValue:=Nothing,
                 isImplicit:=isImplicit OrElse argument Is Nothing)
         End Function
 
@@ -300,31 +288,27 @@ Namespace Microsoft.CodeAnalysis.Operations
             Return builder.ToImmutableAndFree()
         End Function
 
-        Private Shared Function GetSingleValueCaseClauseValue(clause As BoundSimpleCaseClause) As BoundExpression
-            If clause.ValueOpt IsNot Nothing Then
-                Return clause.ValueOpt
-            End If
-
-            If clause.ConditionOpt IsNot Nothing AndAlso clause.ConditionOpt.Kind = BoundKind.BinaryOperator Then
-                Dim value As BoundBinaryOperator = DirectCast(clause.ConditionOpt, BoundBinaryOperator)
-                If value.OperatorKind = VisualBasic.BinaryOperatorKind.Equals Then
-                    Return value.Right
-                End If
-            End If
-
-            Return Nothing
+        Private Shared Function GetSingleValueCaseClauseValue(clause As BoundSingleValueCaseClause) As BoundExpression
+            Return GetCaseClauseValue(clause.ValueOpt, clause.ConditionOpt)
         End Function
 
-        Private Shared Function GetRelationalCaseClauseValue(clause As BoundRelationalCaseClause) As BoundExpression
-            If clause.OperandOpt IsNot Nothing Then
-                Return clause.OperandOpt
+        Private Shared Function GetCaseClauseValue(valueOpt As BoundExpression, conditionOpt As BoundExpression) As BoundExpression
+            If valueOpt IsNot Nothing Then
+                Return valueOpt
             End If
 
-            If clause.ConditionOpt?.Kind = BoundKind.BinaryOperator Then
-                Return DirectCast(clause.ConditionOpt, BoundBinaryOperator).Right
-            End If
+            Select Case conditionOpt.Kind
+                Case BoundKind.BinaryOperator
+                    Dim binaryOp As BoundBinaryOperator = DirectCast(conditionOpt, BoundBinaryOperator)
+                    Return binaryOp.Right
 
-            Return Nothing
+                Case BoundKind.UserDefinedBinaryOperator
+                    Dim binaryOp As BoundUserDefinedBinaryOperator = DirectCast(conditionOpt, BoundUserDefinedBinaryOperator)
+                    Return GetUserDefinedBinaryOperatorChildBoundNode(binaryOp, 1)
+
+                Case Else
+                    Throw ExceptionUtilities.UnexpectedValue(conditionOpt.Kind)
+            End Select
         End Function
 
         Private Function GetVariableDeclarationStatementVariables(declarations As ImmutableArray(Of BoundLocalDeclarationBase)) As ImmutableArray(Of IVariableDeclarationOperation)
@@ -426,11 +410,11 @@ Namespace Microsoft.CodeAnalysis.Operations
         End Function
 
         Private Function GetAddRemoveHandlerStatementExpression(statement As BoundAddRemoveHandlerStatement) As IOperation
-            Dim eventAccess As BoundEventAccess = TryCast(statement.EventAccess, BoundEventAccess)
-            Dim eventReference = If(eventAccess Is Nothing, Nothing, CreateBoundEventAccessOperation(eventAccess))
+            Dim eventAccess As IOperation = Create(statement.EventAccess)
+            Dim handler As IOperation = Create(statement.Handler)
             Dim adds = statement.Kind = BoundKind.AddHandlerStatement
             Return New EventAssignmentOperation(
-                eventReference, Create(statement.Handler), adds:=adds, semanticModel:=_semanticModel, syntax:=statement.Syntax, type:=Nothing, constantValue:=Nothing, isImplicit:=True)
+                eventAccess, handler, adds:=adds, semanticModel:=_semanticModel, syntax:=statement.Syntax, type:=Nothing, constantValue:=Nothing, isImplicit:=True)
         End Function
 
 #Region "Conversions"

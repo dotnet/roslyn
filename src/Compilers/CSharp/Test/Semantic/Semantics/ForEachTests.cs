@@ -1898,7 +1898,7 @@ public class Test
                 // (6,18): error CS0103: The name 'i' does not exist in the current context
                 //     foreach(int; i < 5; i++)
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "i").WithArguments("i").WithLocation(6, 18),
-                // (6,18): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+                // (6,18): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
                 //     foreach(int; i < 5; i++)
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "i < 5").WithLocation(6, 18),
                 // (6,25): error CS0103: The name 'i' does not exist in the current context

@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Operations
         /// Individual variable declarations declared by this multiple declaration.
         /// </summary>
         /// <remarks>
-        /// All <see cref="IVariableDeclarationGroupOperation"/> will have at least 1 <code>IVariableDeclarationOpertion</code>,
+        /// All <see cref="IVariableDeclarationGroupOperation"/> will have at least 1 <see cref="IVariableDeclarationOperation"/>,
         /// even if the declaration group only declares 1 variable.
         /// </remarks>
         ImmutableArray<IVariableDeclaratorOperation> Declarators { get; }

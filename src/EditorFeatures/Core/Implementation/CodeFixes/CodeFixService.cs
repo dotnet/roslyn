@@ -140,16 +140,21 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             return null;
         }
 
-        public async Task<ImmutableArray<CodeFixCollection>> GetFixesAsync(Document document, TextSpan range, bool includeSuppressionFixes, CancellationToken cancellationToken)
+        public Task<ImmutableArray<CodeFixCollection>> GetFixesAsync(Document document, TextSpan range, bool includeSuppressionFixes, CancellationToken cancellationToken)
+        {
+            return GetFixesAsync(document, range, includeSuppressionFixes, diagnosticIdOpt: null, cancellationToken);
+        }
+
+        private async Task<ImmutableArray<CodeFixCollection>> GetFixesAsync(Document document, TextSpan range, bool includeSuppressionFixes, string diagnosticIdOpt, CancellationToken cancellationToken)
         {
             // REVIEW: this is the first and simplest design. basically, when ctrl+. is pressed, it asks diagnostic service to give back
-            // current diagnostics for the given span, and it will use that to get fixes. internally diagnostic service will either return cached information 
+            // current diagnostics for the given span, and it will use that to get fixes. internally diagnostic service will either return cached information
             // (if it is up-to-date) or synchronously do the work at the spot.
             //
             // this design's weakness is that each side don't have enough information to narrow down works to do. it will most likely always do more works than needed.
             // sometimes way more than it is needed. (compilation)
             Dictionary<TextSpan, List<DiagnosticData>> aggregatedDiagnostics = null;
-            foreach (var diagnostic in await _diagnosticService.GetDiagnosticsForSpanAsync(document, range, cancellationToken: cancellationToken).ConfigureAwait(false))
+            foreach (var diagnostic in await _diagnosticService.GetDiagnosticsForSpanAsync(document, range, includeSuppressionFixes, diagnosticIdOpt, cancellationToken).ConfigureAwait(false))
             {
                 if (diagnostic.IsSuppressed)
                 {
@@ -211,6 +216,15 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             }
 
             return result.ToImmutableAndFree();
+        }
+
+        public async Task<CodeFixCollection> GetFixesAsync(Document document, TextSpan range, string diagnosticId, CancellationToken cancellationToken)
+        {
+            var fixesCollectionArray = await GetFixesAsync(document, range, includeSuppressionFixes: false, diagnosticId, cancellationToken).ConfigureAwait(false);
+
+            // TODO: Just get the first fix for now until we have a way to config user's preferred fix
+            // https://github.com/dotnet/roslyn/issues/27066
+            return fixesCollectionArray.FirstOrDefault();
         }
 
         private async Task AppendFixesAsync(
@@ -352,8 +366,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 var codeFixProvider = (fixer as CodeFixProvider) ?? new WrapperCodeFixProvider((ISuppressionFixProvider)fixer, diagnostics.Select(d => d.Id));
                 fixAllState = CreateFixAllState(
                     fixAllProviderInfo.FixAllProvider,
-                    document, fixAllProviderInfo, codeFixProvider, diagnostics,
-                    this.GetDocumentDiagnosticsAsync, this.GetProjectDiagnosticsAsync);
+                    document, fixAllProviderInfo, codeFixProvider, diagnostics);
                 supportedScopes = fixAllProviderInfo.SupportedScopes;
             }
 
@@ -368,13 +381,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             Document document,
             FixAllProviderInfo fixAllProviderInfo,
             CodeFixProvider originalFixProvider,
-            IEnumerable<Diagnostic> originalFixDiagnostics,
-            Func<Document, ImmutableHashSet<string>, CancellationToken, Task<IEnumerable<Diagnostic>>> getDocumentDiagnosticsAsync,
-            Func<Project, bool, ImmutableHashSet<string>, CancellationToken, Task<IEnumerable<Diagnostic>>> getProjectDiagnosticsAsync)
+            IEnumerable<Diagnostic> originalFixDiagnostics)
         {
             var diagnosticIds = originalFixDiagnostics.Where(fixAllProviderInfo.CanBeFixed)
                                                       .Select(d => d.Id)
                                                       .ToImmutableHashSet();
+
             var diagnosticProvider = new FixAllDiagnosticProvider(this, diagnosticIds);
             return new FixAllState(
                 fixAllProvider: fixAllProvider,
@@ -524,7 +536,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
         private ImmutableArray<DiagnosticId> GetFixableDiagnosticIds(CodeFixProvider fixer, IExtensionManager extensionManager)
         {
-            // If we are passed a null extension manager it means we do not have access to a document so there is nothing to 
+            // If we are passed a null extension manager it means we do not have access to a document so there is nothing to
             // show the user.  In this case we will log any exceptions that occur, but the user will not see them.
             if (extensionManager != null)
             {

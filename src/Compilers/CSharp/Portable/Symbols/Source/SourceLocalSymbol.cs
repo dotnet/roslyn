@@ -241,7 +241,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal virtual void SetRefEscape(uint value)
         {
-            throw ExceptionUtilities.Unreachable;
+            _refEscapeScope = value;
         }
 
         internal virtual void SetValEscape(uint value)
@@ -630,7 +630,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         /// <summary>
         /// Symbol for a deconstruction local that might require type inference.
-        /// For instance, local `x` in `var (x, y) = ...` or `(var x, int y) = ...`.
+        /// For instance, local <c>x</c> in <c>var (x, y) = ...</c> or <c>(var x, int y) = ...</c>.
         /// </summary>
         private class DeconstructionLocalSymbol : SourceLocalSymbol
         {

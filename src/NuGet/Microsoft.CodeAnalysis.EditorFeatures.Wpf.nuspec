@@ -23,7 +23,7 @@
     <requireLicenseAcceptance>true</requireLicenseAcceptance>
     <version>$version$</version>
     <authors>$authors$</authors>
-    <licenseUrl>$licenseUrl$</licenseUrl>
+    <licenseUrl>$licenseUrlNonRedist$</licenseUrl>
     <projectUrl>$projectUrl$</projectUrl>
     <releaseNotes>$releaseNotes$</releaseNotes>
     <tags>$tags$</tags>
@@ -31,5 +31,8 @@
   <files>
     <file src="Dlls\EditorFeatures.Wpf\Microsoft.CodeAnalysis.EditorFeatures.Wpf.dll" target="lib\net46" />
     <file src="Dlls\EditorFeatures.Wpf\Microsoft.CodeAnalysis.EditorFeatures.Wpf.xml" target="lib\net46" />
+
+    <!-- Satellite assemblies -->
+    <file src="Dlls\EditorFeatures.Wpf\**\Microsoft.CodeAnalysis.EditorFeatures.Wpf.resources.dll" target="lib\net46" />
   </files>
 </package>

@@ -4,6 +4,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess;
+using Roslyn.Test.Utilities;
 using Xunit;
 using ProjectUtils = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils;
 
@@ -21,7 +22,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
         {
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void BasicToCSharp()
         {
             var csProj = new ProjectUtils.Project("CSProj");
@@ -68,7 +69,7 @@ End Class
 }", actualText);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void SameProject()
         {
             SetUpEditor(@"
@@ -107,7 +108,7 @@ End Class
 ", actualText);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void CheckFoldersPopulateComboBox()
         {
             var project = new ProjectUtils.Project(ProjectName);

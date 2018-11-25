@@ -686,6 +686,39 @@ namespace Roslyn.Utilities
             return filePath;
         }
 
+        /// <summary>
+        /// Unfortunatelly, we cannot depend on Path.GetInvalidPathChars() or Path.GetInvalidFileNameChars()
+        /// From MSDN: The array returned from this method is not guaranteed to contain the complete set of characters
+        /// that are invalid in file and directory names. The full set of invalid characters can vary by file system.
+        /// https://msdn.microsoft.com/en-us/library/system.io.path.getinvalidfilenamechars.aspx
+        /// 
+        /// Additionally, Path.GetInvalidPathChars() doesn't include "?" or "*" which are invalid characters,
+        /// and Path.GetInvalidFileNameChars() includes ":" and "\" which are valid characters.
+        /// 
+        /// The more accurate way is to let the framework parse the path and throw on any errors.
+        /// </summary>
+        /// <param name="path"></param>
+        /// <returns></returns>
+        public static bool IsValidFilePath(string path)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(path))
+                {
+                    return false;
+                }
+
+                var fileInfo = new FileInfo(path);
+                return !string.IsNullOrEmpty(fileInfo.Name);
+            }
+            catch (Exception ex) when (
+                ex is ArgumentException ||          // The file name is empty, contains only white spaces, or contains invalid characters.
+                ex is PathTooLongException ||       // The specified path, file name, or both exceed the system-defined maximum length.
+                ex is NotSupportedException)        // fileName contains a colon (:) in the middle of the string.
+            {
+                return false;
+            }
+        }
 
         public static readonly IEqualityComparer<string> Comparer = new PathComparer();
 

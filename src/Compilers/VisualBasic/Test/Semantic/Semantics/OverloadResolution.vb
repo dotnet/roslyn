@@ -4958,7 +4958,7 @@ End Class
                     </file>
                 </compilation>
 
-            Dim comp = CreateCompilationWithMscorlib40(source, TestOptions.ReleaseDll)
+            Dim comp = CreateCompilationWithMscorlib40(source, options:=TestOptions.ReleaseDll)
 
             Dim comp2 = CreateCompilationWithMscorlib40(source2, references:={comp.EmitToImageReference()})
             CompilationUtils.AssertTheseDiagnostics(comp2,

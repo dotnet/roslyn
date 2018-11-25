@@ -37,13 +37,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         protected override Task<ImmutableArray<ReferenceLocation>> FindReferencesInDocumentAsync(
             IParameterSymbol symbol,
             Document document,
+            SemanticModel semanticModel,
             CancellationToken cancellationToken)
         {
             var symbolsMatch = GetParameterSymbolsMatchFunction(
                 symbol, document.Project.Solution, cancellationToken);
 
             return FindReferencesInDocumentUsingIdentifierAsync(
-                symbol.Name, document, symbolsMatch, cancellationToken);
+                symbol.Name, document, semanticModel, symbolsMatch, cancellationToken);
         }
 
         private Func<SyntaxToken, SemanticModel, (bool matched, CandidateReason reason)> GetParameterSymbolsMatchFunction(

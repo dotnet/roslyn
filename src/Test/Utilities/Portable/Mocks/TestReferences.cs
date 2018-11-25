@@ -131,10 +131,13 @@ public static class TestReferences
             public static PortableExecutableReference SystemCore => s_systemCore.Value;
         }
 
+        /// <summary>
+        /// References here map to net40 RTM
+        /// </summary>
         public static class v4_0_30319
         {
             private static readonly Lazy<PortableExecutableReference> s_mscorlib = new Lazy<PortableExecutableReference>(
-        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.v4_0_21006.mscorlib).GetReference(filePath: @"R:\v4_0_30319\mscorlib.dll"),
+        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.v4_0_30319.mscorlib).GetReference(filePath: @"R:\v4_0_30319\mscorlib.dll"),
         LazyThreadSafetyMode.PublicationOnly);
             public static PortableExecutableReference mscorlib => s_mscorlib.Value;
 
@@ -212,10 +215,13 @@ public static class TestReferences
             public static PortableExecutableReference System_Runtime_Serialization => s_system_Runtime_Serialization.Value;
         }
 
-        public static class v4_0_30316_17626
+        /// <summary>
+        /// References here map to net45 beta.
+        /// </summary>
+        public static class v4_0_30319_17626
         {
             private static readonly Lazy<PortableExecutableReference> s_mscorlib = new Lazy<PortableExecutableReference>(
-        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.v4_0_30316_17626.mscorlib).GetReference(display: @"mscorlib.v4_0_30319_17626.dll", filePath: @"Z:\FxReferenceAssembliesUri"),
+        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.v4_0_30319_17626.mscorlib).GetReference(display: @"mscorlib.v4_0_30319_17626.dll", filePath: @"Z:\FxReferenceAssembliesUri"),
         LazyThreadSafetyMode.PublicationOnly);
             public static PortableExecutableReference mscorlib => s_mscorlib.Value;
         }
@@ -260,6 +266,11 @@ public static class TestReferences
         () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.netstandard20.Microsoft_CSharp).GetReference(display: "Microsoft.CSharp.dll (netstandard 2.0 ref)"),
         LazyThreadSafetyMode.PublicationOnly);
         public static PortableExecutableReference MicrosoftCSharpRef => s_microsoftCSharp.Value;
+
+        private static readonly Lazy<PortableExecutableReference> s_microsoftVisualBasic = new Lazy<PortableExecutableReference>(
+        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.netstandard20.Microsoft_VisualBasic).GetReference(display: "Microsoft.VisualBasic.dll (netstandard 2.0 ref)"),
+        LazyThreadSafetyMode.PublicationOnly);
+        public static PortableExecutableReference MicrosoftVisualBasicRef => s_microsoftVisualBasic.Value;
     }
 
     public static class DiagnosticTests

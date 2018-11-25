@@ -12,6 +12,7 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.FlowAnalysis;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Test.Extensions;
@@ -24,6 +25,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 {
     public static class CompilationExtensions
     {
+        internal static bool EnableVerifyIOperation { get; } = !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("ROSLYN_TEST_IOPERATION"));
+
         internal static ImmutableArray<byte> EmitToArray(
             this Compilation compilation,
             EmitOptions options = null,
@@ -255,7 +258,11 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         public static void ValidateIOperations(Func<Compilation> createCompilation)
         {
-#if TEST_IOPERATION_INTERFACE
+            if (!EnableVerifyIOperation)
+            {
+                return;
+            }
+
             var compilation = createCompilation();
             var roots = ArrayBuilder<IOperation>.GetInstance();
             var stopWatch = new Stopwatch();
@@ -266,8 +273,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             void checkTimeout()
             {
-                const int timeout = 10000;
-                Assert.False(stopWatch.ElapsedMilliseconds > timeout, "ValidateIOperations took too long");
+                const int timeout = 15000;
+                Assert.False(stopWatch.ElapsedMilliseconds > timeout, $"ValidateIOperations took too long: {stopWatch.ElapsedMilliseconds} ms");
             }
 
             foreach (var tree in compilation.SyntaxTrees)
@@ -296,7 +303,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
 
             var explictNodeMap = new Dictionary<SyntaxNode, IOperation>();
-            var visitor = TestOperationVisitor.GetInstance();
+            var visitor = TestOperationVisitor.Singleton;
 
             foreach (var root in roots)
             {
@@ -315,14 +322,48 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                             Assert.False(true, $"Duplicate explicit node for syntax ({operation.Syntax.RawKind}): {operation.Syntax.ToString()}");
                         }
                     }
-                    
+
                     visitor.Visit(operation);
                 }
+
+                stopWatch.Stop();
+                checkControlFlowGraph(root);
+                stopWatch.Start();
             }
 
             roots.Free();
             stopWatch.Stop();
-#endif
+            return;
+
+            void checkControlFlowGraph(IOperation root)
+            {
+                switch (root)
+                {
+                    case IBlockOperation blockOperation:
+                        // https://github.com/dotnet/roslyn/issues/27593 tracks adding ControlFlowGraph support in script code.
+                        if (blockOperation.Syntax.SyntaxTree.Options.Kind != SourceCodeKind.Script)
+                        {
+                            ControlFlowGraphVerifier.GetFlowGraph(compilation, ControlFlowGraphBuilder.Create(blockOperation));
+                        }
+
+                        break;
+
+                    case IMethodBodyOperation methodBody:
+                    case IConstructorBodyOperation constructorBody:
+                    case IFieldInitializerOperation fieldInitializerOperation:
+                    case IPropertyInitializerOperation propertyInitializerOperation:
+                        ControlFlowGraphVerifier.GetFlowGraph(compilation, ControlFlowGraphBuilder.Create(root));
+                        break;
+
+                    case IParameterInitializerOperation parameterInitializerOperation:
+                        // https://github.com/dotnet/roslyn/issues/27594 tracks adding support for getting ControlFlowGraph for parameter initializers for local functions.
+                        if ((parameterInitializerOperation.Parameter.ContainingSymbol as IMethodSymbol)?.MethodKind != MethodKind.LocalFunction)
+                        {
+                            ControlFlowGraphVerifier.GetFlowGraph(compilation, ControlFlowGraphBuilder.Create(root));
+                        }
+                        break;
+                }
+            }
         }
     }
 }

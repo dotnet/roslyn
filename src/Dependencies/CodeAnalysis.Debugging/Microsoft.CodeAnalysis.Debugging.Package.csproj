@@ -7,7 +7,6 @@
     <RoslynProjectType>SourcePackage</RoslynProjectType>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="System.Collections" Version="$(SystemCollectionsVersion)" />
     <PackageReference Include="System.Collections.Immutable" Version="$(SystemCollectionsImmutableVersion)" />
     <PackageReference Include="System.Reflection.Metadata" Version="$(SystemReflectionMetadataVersion)" />
     <PackageReference Include="System.ValueTuple" Version="$(SystemValueTupleVersion)" />

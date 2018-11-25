@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 return null;
             }
 
-            var symbolDisplayService = document.Project.LanguageServices.GetService<ISymbolDisplayService>();
+            var symbolDisplayService = document.GetLanguageService<ISymbolDisplayService>();
             var accessibleConstructors = attributeType.InstanceConstructors
                                                       .WhereAsArray(c => c.IsAccessibleWithin(within))
                                                       .FilterToVisibleAndBrowsableSymbols(document.ShouldHideAdvancedMembers(), semanticModel.Compilation)
@@ -89,8 +89,8 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 return null;
             }
 
-            var anonymousTypeDisplayService = document.Project.LanguageServices.GetService<IAnonymousTypeDisplayService>();
-            var documentationCommentFormatter = document.Project.LanguageServices.GetService<IDocumentationCommentFormattingService>();
+            var anonymousTypeDisplayService = document.GetLanguageService<IAnonymousTypeDisplayService>();
+            var documentationCommentFormatter = document.GetLanguageService<IDocumentationCommentFormattingService>();
             var textSpan = SignatureHelpUtilities.GetSignatureHelpSpan(attribute.ArgumentList);
 
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();

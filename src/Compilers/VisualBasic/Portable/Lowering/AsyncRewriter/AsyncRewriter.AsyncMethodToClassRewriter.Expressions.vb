@@ -106,6 +106,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                      rewritten.MethodGroupOpt,
                                                                      result.ReceiverOpt,
                                                                      result.Arguments,
+                                                                     rewritten.DefaultArguments,
                                                                      rewritten.ConstantValueOpt,
                                                                      isLValue:=rewritten.IsLValue,
                                                                      suppressObjectClone:=rewritten.SuppressObjectClone,
@@ -127,6 +128,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return builder.BuildSequenceAndFree(Me.F,
                                                     rewritten.Update(rewritten.ConstructorOpt,
                                                                      arguments,
+                                                                     rewritten.DefaultArguments,
                                                                      rewritten.InitializerOpt,
                                                                      rewritten.Type))
             End Function

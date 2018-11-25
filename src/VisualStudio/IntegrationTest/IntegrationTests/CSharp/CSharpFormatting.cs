@@ -5,6 +5,7 @@ using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
@@ -19,7 +20,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         {
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public void AlignOpenBraceWithMethodDeclaration()
         {
             using (var telemetry = VisualStudio.EnableTestTelemetryChannel())
@@ -44,7 +45,7 @@ class C
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public void FormatOnSemicolon()
         {
             SetUpEditor(@"
@@ -71,7 +72,7 @@ public class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public void FormatSelection()
         {
             SetUpEditor(@"
@@ -90,7 +91,7 @@ public class C {
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public void PasteCodeWithLambdaBody()
         {
             SetUpEditor(@"
@@ -153,7 +154,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public void PasteCodeWithLambdaBody2()
         {
             SetUpEditor(@"
@@ -196,7 +197,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public void PasteCodeWithLambdaBody3()
         {
             SetUpEditor(@"
@@ -239,7 +240,7 @@ class Program
 }");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/18065"),
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/18065"),
          Trait(Traits.Feature, Traits.Features.Formatting)]
         public void ShiftEnterWithIntelliSenseAndBraceMatching()
         {

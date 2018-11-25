@@ -7,6 +7,7 @@ Imports Microsoft.VisualStudio.Text
 Imports Microsoft.VisualStudio.Text.Editor.Commanding.Commands
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.LineCommit
+    <[UseExportProvider]>
     Public Class CommitWithViewTests
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>

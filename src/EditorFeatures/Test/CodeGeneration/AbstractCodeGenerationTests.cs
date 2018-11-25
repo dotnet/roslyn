@@ -5,11 +5,13 @@ using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Composition;
 using Roslyn.Test.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
 {
+    [UseExportProvider]
     public abstract class AbstractCodeGenerationTests
     {
         internal void Test(
@@ -43,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
         protected static ITypeSymbol CreateClass(string name)
         {
             return CodeGenerationSymbolFactory.CreateNamedTypeSymbol(
-                default(ImmutableArray<AttributeData>), default(Accessibility), default(DeclarationModifiers), TypeKind.Class, name);
+                attributes: default, accessibility: default, modifiers: default, TypeKind.Class, name);
         }
     }
 }

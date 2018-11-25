@@ -126,6 +126,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
                 }
             }
 
+#pragma warning disable CS0618 // MatchKind is obsolete
             private void ReportMatchResult(Project project, INavigateToSearchResult result)
             {
                 var matchedSpans = result.NameMatchSpans.SelectAsArray(t => t.ToSpan());
@@ -162,6 +163,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
                     default: throw ExceptionUtilities.UnexpectedValue(matchKind);
                 }
             }
+#pragma warning restore CS0618 // MatchKind is obsolete
 
             /// <summary>
             /// Returns the name for the language used by the old Navigate To providers.

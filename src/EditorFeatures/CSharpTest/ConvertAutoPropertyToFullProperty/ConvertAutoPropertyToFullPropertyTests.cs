@@ -1078,16 +1078,16 @@ partial class Program
             using (var testWorkspace = TestWorkspace.Create(xmlString))
             {
                 // refactor file1 and check
-                var actions = await GetCodeActionsAsync(testWorkspace, parameters: (default));
-                await TestActionsAsync(
+                var (_, action) = await GetCodeActionsAsync(testWorkspace, parameters: default);
+                await TestActionAsync(
                     testWorkspace,
                     file1AfterRefactor,
-                    index: 0,
-                    actions: actions,
+                    action,
                     conflictSpans: ImmutableArray<TextSpan>.Empty,
                     renameSpans: ImmutableArray<TextSpan>.Empty,
                     warningSpans: ImmutableArray<TextSpan>.Empty,
-                    navigationSpans: ImmutableArray<TextSpan>.Empty);
+                    navigationSpans: ImmutableArray<TextSpan>.Empty,
+                    parameters: default);
             }
         }
 
@@ -1124,16 +1124,16 @@ partial class Program
             using (var testWorkspace = TestWorkspace.Create(xmlString))
             {
                 // refactor file2 and check
-                var actions = await GetCodeActionsAsync(testWorkspace, parameters: (default));
-                await TestActionsAsync(
+                var (_, action) = await GetCodeActionsAsync(testWorkspace, parameters: default);
+                await TestActionAsync(
                     testWorkspace,
                     file2AfterRefactor,
-                    index: 0,
-                    actions: actions,
+                    action,
                     conflictSpans: ImmutableArray<TextSpan>.Empty,
                     renameSpans: ImmutableArray<TextSpan>.Empty,
                     warningSpans: ImmutableArray<TextSpan>.Empty,
-                    navigationSpans: ImmutableArray<TextSpan>.Empty);
+                    navigationSpans: ImmutableArray<TextSpan>.Empty,
+                    parameters: default);
             }
         }
 

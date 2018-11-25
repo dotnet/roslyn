@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -17,20 +18,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         /// </summary>
         private class StateSet
         {
-            private const string UserDiagnosticsPrefixTableName = "<UserDiagnostics2>";
-
             private readonly string _language;
             private readonly DiagnosticAnalyzer _analyzer;
             private readonly string _errorSourceName;
 
             // analyzer version this state belong to
             private readonly VersionStamp _analyzerVersion;
-
-            // name of each analysis kind persistent storage
-            private readonly string _stateName;
-            private readonly string _syntaxStateName;
-            private readonly string _semanticStateName;
-            private readonly string _nonLocalStateName;
+            private readonly AnalyzerTypeData _analyzerTypeData;
 
             private readonly ConcurrentDictionary<DocumentId, ActiveFileState> _activeFileStates;
             private readonly ConcurrentDictionary<ProjectId, ProjectState> _projectStates;
@@ -41,23 +35,19 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 _analyzer = analyzer;
                 _errorSourceName = errorSourceName;
 
-                var nameAndVersion = GetNameAndVersion(_analyzer);
-                _analyzerVersion = nameAndVersion.Item2;
-
-                _stateName = nameAndVersion.Item1;
-
-                _syntaxStateName = _stateName + ".Syntax";
-                _semanticStateName = _stateName + ".Semantic";
-                _nonLocalStateName = _stateName + ".NonLocal";
+                var (analyzerId, version) = _analyzer.GetAnalyzerIdAndVersion();
+                _analyzerVersion = version;
+                _analyzerTypeData = AnalyzerTypeData.ForType(_analyzer.GetType());
+                Debug.Assert(_analyzerTypeData.StateName == $"{AnalyzerTypeData.UserDiagnosticsPrefixTableName}_{analyzerId}", "Expected persistence information for analyzer instance to be derived from its type alone.");
 
                 _activeFileStates = new ConcurrentDictionary<DocumentId, ActiveFileState>(concurrencyLevel: 2, capacity: 10);
                 _projectStates = new ConcurrentDictionary<ProjectId, ProjectState>(concurrencyLevel: 2, capacity: 1);
             }
 
-            public string StateName => _stateName;
-            public string SyntaxStateName => _syntaxStateName;
-            public string SemanticStateName => _semanticStateName;
-            public string NonLocalStateName => _nonLocalStateName;
+            public string StateName => _analyzerTypeData.StateName;
+            public string SyntaxStateName => _analyzerTypeData.SyntaxStateName;
+            public string SemanticStateName => _analyzerTypeData.SemanticStateName;
+            public string NonLocalStateName => _analyzerTypeData.NonLocalStateName;
 
             public string Language => _language;
             public string ErrorSourceName => _errorSourceName;
@@ -265,19 +255,34 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 InMemoryStorage.DropCache(Analyzer);
             }
 
-            /// <summary>
-            /// Get the unique state name for the given analyzer.
-            /// Note that this name is used by the underlying persistence stream of the corresponding <see cref="ProjectState"/> to Read/Write diagnostic data into the stream.
-            /// If any two distinct analyzer have the same diagnostic state name, we will end up sharing the persistence stream between them, leading to duplicate/missing/incorrect diagnostic data.
-            /// </summary>
-            private static ValueTuple<string, VersionStamp> GetNameAndVersion(DiagnosticAnalyzer analyzer)
+            private sealed class AnalyzerTypeData
             {
-                Contract.ThrowIfNull(analyzer);
+                internal const string UserDiagnosticsPrefixTableName = "<UserDiagnostics2>";
+                private static readonly ConcurrentDictionary<Type, AnalyzerTypeData> s_analyzerTypeData
+                    = new ConcurrentDictionary<Type, AnalyzerTypeData>();
 
-                // Get the unique ID for given diagnostic analyzer.
-                // note that we also put version stamp so that we can detect changed analyzer.
-                var tuple = analyzer.GetAnalyzerIdAndVersion();
-                return ValueTuple.Create(UserDiagnosticsPrefixTableName + "_" + tuple.Item1, tuple.Item2);
+                private AnalyzerTypeData(Type type)
+                {
+                    StateName = UserDiagnosticsPrefixTableName + "_" + type.AssemblyQualifiedName;
+                    SyntaxStateName = StateName + ".Syntax";
+                    SemanticStateName = StateName + ".Semantic";
+                    NonLocalStateName = StateName + ".NonLocal";
+                }
+
+                /// <summary>
+                /// Get the unique state name for the given analyzer.
+                /// Note that this name is used by the underlying persistence stream of the corresponding <see cref="ProjectState"/> to Read/Write diagnostic data into the stream.
+                /// If any two distinct analyzer have the same diagnostic state name, we will end up sharing the persistence stream between them, leading to duplicate/missing/incorrect diagnostic data.
+                /// </summary>
+                public string StateName { get; }
+                public string SyntaxStateName { get; }
+                public string SemanticStateName { get; }
+                public string NonLocalStateName { get; }
+
+                public static AnalyzerTypeData ForType(Type type)
+                {
+                    return s_analyzerTypeData.GetOrAdd(type, t => new AnalyzerTypeData(t));
+                }
             }
         }
     }

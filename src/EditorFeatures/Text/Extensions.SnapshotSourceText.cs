@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.Text
 
                 if (!s_textSnapshotMap.TryGetValue(editorSnapshot, out var snapshot))
                 {
-                    // Avoid capturing `workspace` on the fast path
+                    // Avoid capturing `textBufferCloneServiceOpt` on the fast path
                     var tempTextBufferCloneServiceOpt = textBufferCloneServiceOpt;
                     snapshot = s_textSnapshotMap.GetValue(editorSnapshot, s => new SnapshotSourceText(tempTextBufferCloneServiceOpt, s));
                 }

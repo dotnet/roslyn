@@ -8,7 +8,6 @@
     <RootNamespace>Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator</RootNamespace>
     <AssemblyName>Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.ResultProvider</AssemblyName>
     <TargetFramework>netstandard1.3</TargetFramework>
-    <DisableImplicitFrameworkReferences>false</DisableImplicitFrameworkReferences>
   </PropertyGroup>
   <ItemGroup Label="Linked Files">
     <Compile Include="..\..\..\..\..\Compilers\Core\Portable\InternalUtilities\UnicodeCharacterUtilities.cs">

@@ -11,6 +11,7 @@ using Xunit;
 
 namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.LegacyProject
 {
+    [UseExportProvider]
     public class CSharpCompilerOptionsTests
     {
         [WpfFact]

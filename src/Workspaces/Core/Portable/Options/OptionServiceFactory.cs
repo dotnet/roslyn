@@ -154,25 +154,23 @@ namespace Microsoft.CodeAnalysis.Options
                     }
                 }
 
-                return new DocumentSpecificOptionSet(document, realizedDocumentOptions, optionSet);
+                return new DocumentSpecificOptionSet(realizedDocumentOptions, optionSet);
             }
 
             private class DocumentSpecificOptionSet : OptionSet
             {
-                private readonly Document _document;
                 private readonly OptionSet _underlyingOptions;
                 private readonly List<IDocumentOptions> _documentOptions;
                 private readonly object _gate = new object();
                 private ImmutableDictionary<OptionKey, object> _values;
 
-                public DocumentSpecificOptionSet(Document document, List<IDocumentOptions> documentOptions, OptionSet underlyingOptions)
-                    : this(document, documentOptions, underlyingOptions, ImmutableDictionary<OptionKey, object>.Empty)
+                public DocumentSpecificOptionSet(List<IDocumentOptions> documentOptions, OptionSet underlyingOptions)
+                    : this(documentOptions, underlyingOptions, ImmutableDictionary<OptionKey, object>.Empty)
                 {
                 }
 
-                public DocumentSpecificOptionSet(Document document, List<IDocumentOptions> documentOptions, OptionSet underlyingOptions, ImmutableDictionary<OptionKey, object> values)
+                public DocumentSpecificOptionSet(List<IDocumentOptions> documentOptions, OptionSet underlyingOptions, ImmutableDictionary<OptionKey, object> values)
                 {
-                    _document = document;
                     _documentOptions = documentOptions;
                     _underlyingOptions = underlyingOptions;
                     _values = values;
@@ -188,7 +186,7 @@ namespace Microsoft.CodeAnalysis.Options
 
                     foreach (var documentOptionSource in _documentOptions)
                     {
-                        if (documentOptionSource.TryGetDocumentOption(_document, optionKey, _underlyingOptions, out value))
+                        if (documentOptionSource.TryGetDocumentOption(optionKey, _underlyingOptions, out value))
                         {
                             // Cache and return
                             lock (_gate)
@@ -206,7 +204,7 @@ namespace Microsoft.CodeAnalysis.Options
 
                 public override OptionSet WithChangedOption(OptionKey optionAndLanguage, object value)
                 {
-                    return new DocumentSpecificOptionSet(_document, _documentOptions, _underlyingOptions, _values.Add(optionAndLanguage, value));
+                    return new DocumentSpecificOptionSet(_documentOptions, _underlyingOptions, _values.Add(optionAndLanguage, value));
                 }
 
                 internal override IEnumerable<OptionKey> GetChangedOptions(OptionSet optionSet)

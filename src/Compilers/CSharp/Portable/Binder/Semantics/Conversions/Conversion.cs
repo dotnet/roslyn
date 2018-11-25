@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// Summarizes whether a conversion is allowed, and if so, which kind of conversion (and in some cases, the
     /// associated symbol).
     /// </summary>
-    public struct Conversion : IEquatable<Conversion>
+    public struct Conversion : IEquatable<Conversion>, IConvertibleConversion
     {
         private readonly ConversionKind _kind;
         private readonly UncommonData _uncommonData;
@@ -881,7 +881,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // The MethodSymbol of CommonConversion only refers to UserDefined conversions, not method groups
             var methodSymbol = IsUserDefined ? MethodSymbol : null;
-            return new CommonConversion(Exists, IsIdentity, IsNumeric, IsReference, methodSymbol);
+            return new CommonConversion(Exists, IsIdentity, IsNumeric, IsReference, IsImplicit, methodSymbol);
         }
 
         /// <summary>

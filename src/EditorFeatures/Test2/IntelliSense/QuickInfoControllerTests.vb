@@ -18,6 +18,7 @@ Imports Moq
 #Disable Warning BC40000 ' IQuickInfo* is obsolete
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
+    <[UseExportProvider]>
     Public Class QuickInfoControllerTests
 
         Public Sub New()
@@ -152,20 +153,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             mockEditorSession.Verify(Sub(m) m.Recalculate(), Times.Never)
         End Sub
 
-        ' Create an empty document to use as a non-null parameter when needed
-        Private Shared ReadOnly s_document As Document =
-            (Function()
-                 Dim workspace = TestWorkspace.CreateWorkspace(
-                     <Workspace>
-                         <Project Language="C#">
-                             <Document>
-                             </Document>
-                         </Project>
-                     </Workspace>)
-                 Return workspace.CurrentSolution.GetDocument(workspace.Documents.Single().Id)
-             End Function)()
-        Private Shared ReadOnly s_bufferFactory As ITextBufferFactoryService = DirectCast(s_document.Project.Solution.Workspace, TestWorkspace).GetService(Of ITextBufferFactoryService)
-
         Private Shared ReadOnly s_controllerMocksMap As New ConditionalWeakTable(Of Controller, ControllerMocks)
         Private Shared Function GetMocks(controller As Controller) As ControllerMocks
             Dim result As ControllerMocks = Nothing
@@ -178,14 +165,27 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                                                  Optional provider As Mock(Of IQuickInfoProvider) = Nothing,
                                                  Optional triggerQuickInfo As Boolean = False,
                                                  Optional augmentSession As IQuickInfoSession = Nothing) As Controller
+            Dim document As Document =
+                (Function()
+                     Dim workspace = TestWorkspace.CreateWorkspace(
+                         <Workspace>
+                             <Project Language="C#">
+                                 <Document>
+                                 </Document>
+                             </Project>
+                         </Workspace>)
+                     Return workspace.CurrentSolution.GetDocument(workspace.Documents.Single().Id)
+                 End Function)()
+            Dim bufferFactory As ITextBufferFactoryService = DirectCast(document.Project.Solution.Workspace, TestWorkspace).GetService(Of ITextBufferFactoryService)
+
             Dim view = New Mock(Of ITextView) With {.DefaultValue = DefaultValue.Mock}
             Dim asyncListener = New Mock(Of IAsynchronousOperationListener)
-            Dim buffer = s_bufferFactory.CreateTextBuffer()
+            Dim buffer = bufferFactory.CreateTextBuffer()
 
             presenter = If(presenter, New Mock(Of IIntelliSensePresenter(Of IQuickInfoPresenterSession, IQuickInfoSession)) With {.DefaultValue = DefaultValue.Mock})
             If documentProvider Is Nothing Then
                 documentProvider = New Mock(Of IDocumentProvider)
-                documentProvider.Setup(Function(p) p.GetDocumentAsync(It.IsAny(Of ITextSnapshot), It.IsAny(Of CancellationToken))).Returns(Task.FromResult(s_document))
+                documentProvider.Setup(Function(p) p.GetDocumentAsync(It.IsAny(Of ITextSnapshot), It.IsAny(Of CancellationToken))).Returns(Task.FromResult(document))
             End If
 
             If provider Is Nothing Then

@@ -55,11 +55,18 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Threading
         public CancellationToken CancellationToken => _cancellationTokenSource.Token;
 
         public void CancelCurrentWork()
+            => CancelCurrentWork(remainCancelled: false);
+
+        public void CancelCurrentWork(bool remainCancelled)
         {
             lock (_gate)
             {
+                remainCancelled |= _cancellationTokenSource.IsCancellationRequested;
                 _cancellationTokenSource.Cancel();
-                _cancellationTokenSource = new CancellationTokenSource();
+                if (!remainCancelled)
+                {
+                    _cancellationTokenSource = new CancellationTokenSource();
+                }
             }
         }
 

@@ -1740,7 +1740,7 @@ End Class
 ]]></file>
                            </compilation>
 
-            Dim compilation0 = CreateCompilationWithMscorlib40(sources0, TestOptions.DebugDll)
+            Dim compilation0 = CreateCompilationWithMscorlib40(sources0, options:=TestOptions.DebugDll)
             Dim compilation1 = compilation0.WithSource(sources1)
             Dim compilation2 = compilation1.WithSource(sources2)
             Dim compilation3 = compilation2.WithSource(sources3)
@@ -1959,7 +1959,7 @@ End Class
 ]]></file>
                            </compilation>
 
-            Dim compilation0 = CreateCompilationWithMscorlib40(sources0, TestOptions.DebugDll)
+            Dim compilation0 = CreateCompilationWithMscorlib40(sources0, options:=TestOptions.DebugDll)
             Dim compilation1 = compilation0.WithSource(sources1)
             Dim compilation2 = compilation1.WithSource(sources2)
 
@@ -2044,7 +2044,7 @@ End Class
 ]]></file>
                            </compilation>
 
-            Dim compilation0 = CreateCompilationWithMscorlib40(sources0, TestOptions.DebugDll)
+            Dim compilation0 = CreateCompilationWithMscorlib40(sources0, options:=TestOptions.DebugDll)
             Dim compilation1 = compilation0.WithSource(sources1)
             Dim testData0 = New CompilationTestData()
             Dim bytes0 = compilation0.EmitToArray(testData:=testData0)
@@ -2170,7 +2170,7 @@ End Class
 ]]></file>
                            </compilation>
 
-            Dim compilation0 = CreateCompilationWithMscorlib40(sources0, TestOptions.DebugDll)
+            Dim compilation0 = CreateCompilationWithMscorlib40(sources0, options:=TestOptions.DebugDll)
             Dim compilation1 = compilation0.Clone()
 
             Dim testData0 = New CompilationTestData()
@@ -2271,7 +2271,7 @@ End Class
 ]]></file>
                            </compilation>
 
-            Dim compilation0 = CreateCompilationWithMscorlib40(sources0, TestOptions.DebugDll)
+            Dim compilation0 = CreateCompilationWithMscorlib40(sources0, options:=TestOptions.DebugDll)
             Dim compilation1 = compilation0.Clone()
 
             Dim testData0 = New CompilationTestData()
@@ -2358,7 +2358,7 @@ End Class
 ]]></file>
                            </compilation>
 
-            Dim compilation0 = CreateCompilationWithMscorlib40(sources0, TestOptions.DebugDll)
+            Dim compilation0 = CreateCompilationWithMscorlib40(sources0, options:=TestOptions.DebugDll)
             Dim compilation1 = compilation0.Clone()
 
             Dim testData0 = New CompilationTestData()
@@ -2444,7 +2444,7 @@ End Class
 ]]></file>
                            </compilation>
 
-            Dim compilation0 = CreateCompilationWithMscorlib40(sources0, TestOptions.DebugDll)
+            Dim compilation0 = CreateCompilationWithMscorlib40(sources0, options:=TestOptions.DebugDll)
             Dim compilation1 = compilation0.Clone()
 
             Dim testData0 = New CompilationTestData()
@@ -2626,7 +2626,7 @@ End Class
 ]]></file>
                            </compilation>
 
-            Dim compilation0 = CreateCompilationWithMscorlib40(sources0, TestOptions.DebugDll)
+            Dim compilation0 = CreateCompilationWithMscorlib40(sources0, options:=TestOptions.DebugDll)
             Dim compilation1 = compilation0.Clone()
 
             Dim testData0 = New CompilationTestData()
@@ -2806,7 +2806,7 @@ End Class
 ]]></file>
                            </compilation>
 
-            Dim compilation0 = CreateCompilationWithMscorlib40(sources0, TestOptions.DebugDll)
+            Dim compilation0 = CreateCompilationWithMscorlib40(sources0, options:=TestOptions.DebugDll)
             Dim compilation1 = compilation0.Clone()
 
             Dim testData0 = New CompilationTestData()
@@ -2986,7 +2986,7 @@ End Class
 ]]></file>
                            </compilation>
 
-            Dim compilation0 = CreateCompilationWithMscorlib40(sources0, TestOptions.DebugDll)
+            Dim compilation0 = CreateCompilationWithMscorlib40(sources0, options:=TestOptions.DebugDll)
             Dim compilation1 = compilation0.Clone()
 
             Dim testData0 = New CompilationTestData()
@@ -3199,7 +3199,7 @@ End Class
 ]]></file>
                            </compilation>
 
-            Dim compilation0 = CreateCompilationWithMscorlib40(sources0, TestOptions.DebugDll)
+            Dim compilation0 = CreateCompilationWithMscorlib40(sources0, options:=TestOptions.DebugDll)
             Dim compilation1 = compilation0.Clone()
 
             Dim testData0 = New CompilationTestData()
@@ -3300,7 +3300,7 @@ End Class
 ]]></file>
                            </compilation>
 
-            Dim compilation0 = CreateCompilationWithMscorlib40(sources0, TestOptions.DebugDll)
+            Dim compilation0 = CreateCompilationWithMscorlib40(sources0, options:=TestOptions.DebugDll)
             Dim compilation1 = compilation0.Clone()
 
             Dim testData0 = New CompilationTestData()
@@ -3806,7 +3806,7 @@ Namespace M
 End Namespace
 ]]></file>
                            </compilation>
-            Dim compilation0 = CreateCompilationWithMscorlib40(sources0, TestOptions.DebugDll)
+            Dim compilation0 = CreateCompilationWithMscorlib40(sources0, options:=TestOptions.DebugDll)
             Dim compilation1 = compilation0.WithSource(sources1)
 
             Dim testData0 = New CompilationTestData()
@@ -4102,7 +4102,7 @@ End Class
 ]]></file>
                            </compilation>
 
-            Dim compilation0 = CreateCompilationWithMscorlib40(sources0, TestOptions.DebugDll)
+            Dim compilation0 = CreateCompilationWithMscorlib40(sources0, options:=TestOptions.DebugDll)
             Dim compilation1 = compilation0.WithSource(sources1)
             Dim compilation2 = compilation1.WithSource(sources2)
             Dim compilation3 = compilation2.WithSource(sources3)
@@ -4178,7 +4178,7 @@ Class C
 End Class
 ]]></file>
                            </compilation>
-            Dim compilation0 = CreateCompilationWithMscorlib40(sources0, TestOptions.DebugDll)
+            Dim compilation0 = CreateCompilationWithMscorlib40(sources0, options:=TestOptions.DebugDll)
             Dim compilation1 = compilation0.WithSource(sources1)
             Dim testData0 = New CompilationTestData()
             Dim bytes0 = compilation0.EmitToArray(testData:=testData0)
@@ -4261,7 +4261,7 @@ Class C
 End Class
 ]]></file>
                            </compilation>
-            Dim compilation0 = CreateCompilationWithMscorlib40(sources0, TestOptions.DebugDll)
+            Dim compilation0 = CreateCompilationWithMscorlib40(sources0, options:=TestOptions.DebugDll)
             Dim compilation1 = compilation0.WithSource(sources1)
             Dim compilation2 = compilation1.WithSource(sources2)
             Dim testData0 = New CompilationTestData()
@@ -4782,7 +4782,7 @@ End Module
         End Class
 ]]></file>
 </compilation>
-            Dim compilation0 = CreateCompilationWithMscorlib40(source0, TestOptions.DebugDll)
+            Dim compilation0 = CreateCompilationWithMscorlib40(source0, options:=TestOptions.DebugDll)
             Dim compilation1 = compilation0.WithSource(source1)
 
             ' Verify full metadata contains expected rows.

@@ -10,7 +10,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UseInferredMemberName
     ''' <summary>
-    ''' Offers to simplify tuple expressions and anonymous types with redundant names, such as `(a:=a, b:=b)` or `New With {.a = a, .b = b}`
+    ''' Offers to simplify tuple expressions and anonymous types with redundant names, such as <c>(a:=a, b:=b)</c> or <c>New With {.a = a, .b = b}</c>
     ''' </summary>
     <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
     Friend Class VisualBasicUseInferredMemberNameDiagnosticAnalyzer

@@ -490,7 +490,42 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 }
             }
 
+            // Type constraint must be at least as accessible as the declaring member (class, interface, delegate, method)
+            if (type.IsParentKind(SyntaxKind.TypeConstraint))
+            {
+                return AllContainingTypesArePublicOrProtected(semanticModel, type, cancellationToken)
+                    ? Accessibility.Public
+                    : Accessibility.Internal;
+            }
+
             return Accessibility.Private;
+        }
+
+        public static bool AllContainingTypesArePublicOrProtected(
+            this SemanticModel semanticModel,
+            TypeSyntax type,
+            CancellationToken cancellationToken)
+        {
+            if (type == null)
+            {
+                return false;
+            }
+
+            var typeDeclarations = type.GetAncestors<TypeDeclarationSyntax>();
+
+            foreach (var typeDeclaration in typeDeclarations)
+            {
+                var symbol = semanticModel.GetDeclaredSymbol(typeDeclaration, cancellationToken);
+
+                if (symbol.DeclaredAccessibility == Accessibility.Private ||
+                    symbol.DeclaredAccessibility == Accessibility.ProtectedAndInternal ||
+                    symbol.DeclaredAccessibility == Accessibility.Internal)
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         private static TypeSyntax GetOutermostType(TypeSyntax type)

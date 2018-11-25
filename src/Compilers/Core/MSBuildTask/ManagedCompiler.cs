@@ -34,6 +34,10 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         public ManagedCompiler()
         {
             TaskResources = ErrorString.ResourceManager;
+
+            // If there is a crash, the runtime error is output to stderr and
+            // we want MSBuild to print it out regardless of verbosity.
+            LogStandardErrorAsError = true;
         }
 
         #region Properties

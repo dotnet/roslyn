@@ -13,6 +13,7 @@ Imports Roslyn.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.UnitTests.Debugging
 
+    <[UseExportProvider]>
     Public Class DataTipInfoGetterTests
 
         Private Async Function TestNoDataTipAsync(input As XElement) As Task

@@ -268,7 +268,7 @@ namespace Roslyn.Test.Utilities
 
                     if (dumpDirectory == null)
                     {
-                        dumpDirectory = Path.GetTempPath();
+                        dumpDirectory = TempRoot.Root;
                         try
                         {
                             Directory.CreateDirectory(dumpDirectory);

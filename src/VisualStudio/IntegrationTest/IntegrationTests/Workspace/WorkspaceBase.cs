@@ -1,7 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 using ProjectUtils = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils;
 
@@ -15,12 +17,17 @@ namespace Roslyn.VisualStudio.IntegrationTests.Workspace
             : base(instanceFactory, nameof(WorkspaceBase), projectTemplate)
         {
             DefaultProjectTemplate = projectTemplate;
-            VisualStudio.Workspace.SetFullSolutionAnalysis(true);
         }
 
         protected override string LanguageName => LanguageNames.CSharp;
 
         protected string DefaultProjectTemplate { get; }
+
+        public override async Task InitializeAsync()
+        {
+            await base.InitializeAsync().ConfigureAwait(true);
+            VisualStudio.Workspace.SetFullSolutionAnalysis(true);
+        }
 
         public virtual void OpenCSharpThenVBSolution()
         {
@@ -90,7 +97,7 @@ End Module");
             Assert.Equal("Sub‎ Program.M‎(p‎ As‎ Object‎)‎ ‎(‎+‎ 1‎ overload‎)", VisualStudio.Editor.GetQuickInfo());
         }
 
-        [Fact]
+        [WpfFact]
         public void RenamingOpenFiles()
         {
             var project = new ProjectUtils.Project(ProjectName);

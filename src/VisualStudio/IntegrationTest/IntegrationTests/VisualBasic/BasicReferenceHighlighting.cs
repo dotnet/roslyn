@@ -23,7 +23,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.Basic
         {
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
         public void Highlighting()
         {
             var markup = @"

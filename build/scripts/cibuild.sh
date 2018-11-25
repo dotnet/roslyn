@@ -24,4 +24,4 @@ export DOTNET_SKIP_FIRST_TIME_EXPERIENCE=1
 echo "Building this commit:"
 git show --no-patch --pretty=raw HEAD
 
-"${root_path}"/build.sh --restore --bootstrap --build --stop-vbcscompiler --test "$@"
+"${root_path}"/build.sh --restore --bootstrap --build --packall --stop-vbcscompiler --test "$@"

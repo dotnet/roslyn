@@ -302,12 +302,12 @@ Imports System.Diagnostics
             Dim parseOpts2 = VisualBasicParseOptions.Default.WithPreprocessorSymbols(preprocessorSymbolsSrcFile2)
 
             ' Different source files, same compilation
-            Dim comp = CreateCompilationWithMscorlib40({Parse(source1, parseOpts1), Parse(source2, parseOpts2)})
+            Dim comp = CreateCompilationWithMscorlib40({Parse(source1, parseOpts1), Parse(source2, parseOpts2)}, options:=TestOptions.ReleaseExe)
             CompileAndVerify(comp, sourceSymbolValidator:=_commonValidatorForCondAttrType(True), symbolValidator:=_commonValidatorForCondAttrType(False), expectedOutput:="")
 
             ' Different source files, different compilation
             Dim comp1 = CreateCompilationWithMscorlib40({Parse(source1, parseOpts1)}, options:=TestOptions.ReleaseDll)
-            Dim comp2 = VisualBasicCompilation.Create("comp2", {Parse(source2, parseOpts2)}, {MscorlibRef, New VisualBasicCompilationReference(comp1)})
+            Dim comp2 = VisualBasicCompilation.Create("comp2", {Parse(source2, parseOpts2)}, {MscorlibRef, New VisualBasicCompilationReference(comp1)}, options:=TestOptions.ReleaseExe)
             CompileAndVerify(comp2, sourceSymbolValidator:=_commonValidatorForCondAttrType(True), symbolValidator:=_commonValidatorForCondAttrType(False), expectedOutput:="")
         End Sub
 #End Region

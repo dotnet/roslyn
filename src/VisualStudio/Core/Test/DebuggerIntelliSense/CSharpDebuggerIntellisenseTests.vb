@@ -6,6 +6,7 @@ Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
 
+    <[UseExportProvider]>
     Public Class CSharpDebuggerIntellisenseTests
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.DebuggingIntelliSense)>

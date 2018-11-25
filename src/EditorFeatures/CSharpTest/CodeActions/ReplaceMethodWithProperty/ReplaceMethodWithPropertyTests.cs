@@ -1431,8 +1431,7 @@ index: 1);
         public async Task TupleWithDifferentNames_GetAndSet()
         {
             // Cannot refactor tuples with different names together
-            await Assert.ThrowsAsync<Xunit.Sdk.InRangeException>(() =>
-                TestWithAllCodeStyleOff(
+            await TestActionCountAsync(
 @"using System;
 
 class C
@@ -1445,8 +1444,7 @@ class C
     {
     }
 }",
-@"",
-index: 1));
+count: 1, new TestParameters(options: AllCodeStyleOff));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]

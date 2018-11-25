@@ -13,6 +13,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Interactive.Commands
 {
+    [UseExportProvider]
     public class ResetInteractiveTests
     {
         private string WorkspaceXmlStr =>
@@ -36,7 +37,7 @@ namespace ResetInteractiveTestsDocument
         [Trait(Traits.Feature, Traits.Features.Interactive)]
         public void TestResetREPLWithProjectContext()
         {
-            using (var workspace = TestWorkspace.Create(WorkspaceXmlStr))
+            using (var workspace = TestWorkspace.Create(WorkspaceXmlStr, exportProvider: InteractiveWindowTestHost.ExportProviderFactory.CreateExportProvider()))
             {
                 var project = workspace.CurrentSolution.Projects.FirstOrDefault(p => p.AssemblyName == "ResetInteractiveTestsAssembly");
                 var document = project.Documents.FirstOrDefault(d => d.FilePath == "ResetInteractiveTestsDocument");
@@ -64,7 +65,7 @@ namespace ResetInteractiveTestsDocument
             expectedReferences = expectedReferences ?? new List<string>();
             expectedUsings = expectedUsings ?? new List<string>();
 
-            InteractiveWindowTestHost testHost = new InteractiveWindowTestHost();
+            InteractiveWindowTestHost testHost = new InteractiveWindowTestHost(workspace.ExportProvider);
             List<string> executedSubmissionCalls = new List<string>();
             void ExecuteSubmission(object _, string code) { executedSubmissionCalls.Add(code); }
 

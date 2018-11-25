@@ -5,6 +5,7 @@ Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
 Namespace Microsoft.CodeAnalysis.Editor.Implementation.Compilation.UnitTests
 
+    <[UseExportProvider]>
     Public Class CompilationTests
         Private Function GetProject(snapshot As Solution, assemblyName As String) As Project
             Return snapshot.Projects.Single(Function(p) p.AssemblyName = assemblyName)

@@ -71,8 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public static bool IsNullableType(this TypeSymbol type)
         {
-            var original = (TypeSymbol)type.OriginalDefinition;
-            return original.SpecialType == SpecialType.System_Nullable_T;
+            return type.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T;
         }
 
         public static TypeSymbol GetNullableUnderlyingType(this TypeSymbol type)
@@ -938,13 +937,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return false;
         }
 
-#pragma warning disable RS0010
+#pragma warning disable CA1200 // Avoid using cref tags with a prefix
         /// <summary>
         /// Returns true if the type is one of the restricted types, namely: <see cref="T:System.TypedReference"/>, 
         /// <see cref="T:System.ArgIterator"/>, or <see cref="T:System.RuntimeArgumentHandle"/>.
         /// or a ref-like type.
         /// </summary>
-#pragma warning restore RS0010
+#pragma warning restore CA1200 // Avoid using cref tags with a prefix
         internal static bool IsRestrictedType(this TypeSymbol type,
                                                 bool ignoreSpanLikeTypes = false)
         {

@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 {
@@ -38,18 +39,20 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         protected override async Task<ImmutableArray<ReferenceLocation>> FindReferencesInDocumentAsync(
             INamespaceSymbol symbol,
             Document document,
+            SemanticModel semanticModel,
             CancellationToken cancellationToken)
         {
             var identifierName = GetNamespaceIdentifierName(symbol, document.Project);
-            var syntaxFactsService = document.Project.LanguageServices.GetService<ISyntaxFactsService>();
+            var syntaxFactsService = document.GetLanguageService<ISyntaxFactsService>();
 
             var nonAliasReferences = await FindReferencesInTokensAsync(symbol,
                 document,
-                await document.GetIdentifierOrGlobalNamespaceTokensWithTextAsync(identifierName, cancellationToken).ConfigureAwait(false),
+                semanticModel,
+                await document.GetIdentifierOrGlobalNamespaceTokensWithTextAsync(semanticModel, identifierName, cancellationToken).ConfigureAwait(false),
                 (SyntaxToken t) => syntaxFactsService.TextMatch(t.ValueText, identifierName),
                 cancellationToken).ConfigureAwait(false);
 
-            var aliasReferences = await FindAliasReferencesAsync(nonAliasReferences, symbol, document, cancellationToken).ConfigureAwait(false);
+            var aliasReferences = await FindAliasReferencesAsync(nonAliasReferences, symbol, document, semanticModel, cancellationToken).ConfigureAwait(false);
             return nonAliasReferences.Concat(aliasReferences);
         }
     }

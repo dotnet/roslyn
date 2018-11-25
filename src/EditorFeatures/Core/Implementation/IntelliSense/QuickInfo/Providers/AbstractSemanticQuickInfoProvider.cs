@@ -280,7 +280,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
             SyntaxToken token,
             CancellationToken cancellationToken)
         {
-            var syntaxFacts = document.Project.LanguageServices.GetService<ISyntaxFactsService>();
+            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var enclosingType = semanticModel.GetEnclosingNamedType(token.SpanStart, cancellationToken);
 

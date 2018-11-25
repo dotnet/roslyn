@@ -482,7 +482,7 @@ namespace Microsoft.CodeAnalysis
             internal override TextAndVersion LoadTextAndVersionSynchronously(Workspace workspace, DocumentId documentId, CancellationToken cancellationToken)
             {
                 var oldText = _oldDocumentState.GetTextSynchronously(cancellationToken);
-                var version = _oldDocumentState.GetVersionSynchronously(cancellationToken);
+                var version = _oldDocumentState.GetTextVersionSynchronously(cancellationToken);
 
                 return GetProperTextAndVersion(oldText, _newText, version, _oldDocumentState.FilePath);
             }
@@ -530,7 +530,7 @@ namespace Microsoft.CodeAnalysis
             {
                 var oldSolution = this.CurrentSolution;
                 var oldDocument = oldSolution.GetAdditionalDocument(documentId);
-                var oldText = oldDocument.GetTextAsync(CancellationToken.None).WaitAndGetResult_CanCallOnBackground(CancellationToken.None);
+                var oldText = oldDocument.GetTextSynchronously(CancellationToken.None);
 
                 // keep open document text alive by using PreserveIdentity
                 var newText = textContainer.CurrentText;
@@ -539,7 +539,7 @@ namespace Microsoft.CodeAnalysis
                 if (oldText == newText || oldText.ContentEquals(newText))
                 {
                     // if the supplied text is the same as the previous text, then also use same version
-                    var version = oldDocument.GetTextVersionAsync(CancellationToken.None).WaitAndGetResult_CanCallOnBackground(CancellationToken.None);
+                    var version = oldDocument.GetTextVersionSynchronously(CancellationToken.None);
                     var newTextAndVersion = TextAndVersion.Create(newText, version, oldDocument.FilePath);
                     currentSolution = oldSolution.WithAdditionalDocumentText(documentId, newTextAndVersion, PreservationMode.PreserveIdentity);
                 }

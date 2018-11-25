@@ -7,6 +7,7 @@ using Xunit;
 
 namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim
 {
+    [UseExportProvider]
     public class LifetimeTests
     {
         [WpfFact]

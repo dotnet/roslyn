@@ -182,12 +182,40 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         {
             switch (symbol)
             {
-                case IParameterSymbol parameter: return parameter.ContainingSymbol.OriginalDefinition.GetDocumentationComment(cancellationToken: cancellationToken).GetParameterText(symbol.Name);
+                case IParameterSymbol parameter: return GetParameterDocumentation(parameter, cancellationToken);
                 case ITypeParameterSymbol typeParam: return typeParam.ContainingSymbol.GetDocumentationComment(cancellationToken: cancellationToken).GetTypeParameterText(symbol.Name);
                 case IMethodSymbol method: return GetMethodDocumentation(method);
                 case IAliasSymbol alias: return alias.Target.GetDocumentationComment(cancellationToken: cancellationToken).SummaryText;
                 default: return symbol.GetDocumentationComment(cancellationToken: cancellationToken).SummaryText;
             }
+        }
+
+        private static string GetParameterDocumentation(IParameterSymbol parameter, CancellationToken cancellationToken)
+        {
+            var containingSymbol = parameter.ContainingSymbol;
+            if (containingSymbol.ContainingSymbol.IsDelegateType() && containingSymbol is IMethodSymbol methodSymbol)
+            {
+                // There are two ways to invoke a delegate that we care about here: the Invoke()/BeginInvoke() methods. (Direct invocation is equivalent to an Invoke() call.)
+                // DynamicInvoke() takes an object array, and EndInvoke() takes a System.IAsyncResult, so we can (and should) ignore those here.
+
+                var symbolName = methodSymbol.Name;
+                if (symbolName == WellKnownMemberNames.DelegateBeginInvokeName && parameter.Ordinal >= (methodSymbol.Parameters.Length - 2))
+                {
+                    // Return null (similar to DocumentationComment.GetParameterText()) for the last two implicit parameters (usually called "callback" and "@object").
+                    // We can't rely on those names because they might be renamed to avoid collision with a user-defined delegate parameter of the same name,
+                    // and we have to treat them separately, because a user might add e.g. a '<param name="callback">' tag to the delegate, which would be displayed in Signature Help for that implicit parameter.
+                    return null;
+                }
+
+                if (symbolName == WellKnownMemberNames.DelegateInvokeName || symbolName == WellKnownMemberNames.DelegateBeginInvokeName)
+                {
+                    // We know that containingSymbol is the [Begin]Invoke() method of a delegate type, so we need to go up a level and take the method's containing symbol (i.e. the delegate), which contains the documentation.
+                    containingSymbol = containingSymbol.ContainingSymbol;
+                }
+            }
+
+            // Get the comments from the original definition of the containing symbol.
+            return containingSymbol.OriginalDefinition.GetDocumentationComment(cancellationToken: cancellationToken).GetParameterText(parameter.Name);
         }
 
         public static Func<CancellationToken, IEnumerable<TaggedText>> GetDocumentationPartsFactory(

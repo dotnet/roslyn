@@ -1,6 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-#if NET461
+#if NET46
 
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -94,7 +94,9 @@ public class Base
     public int this[string x] { private protected set { } get { return 5; } }
     private protected Base() { Event1?.Invoke(); }
 }";
-            var baseCompilation = CreateCompilation(source1, parseOptions: TestOptions.Regular7_2, options: TestOptions.ReleaseDll.WithStrongNameProvider(s_defaultPortableProvider));
+            var baseCompilation = CreateCompilation(source1, parseOptions: TestOptions.Regular7_2,
+                options: TestOptions.ReleaseDll.WithStrongNameProvider(s_defaultPortableProvider),
+                assemblyName: "Paul");
             var bb = (INamedTypeSymbol)baseCompilation.GlobalNamespace.GetMember("Base");
             foreach (var member in bb.GetMembers())
             {
@@ -783,9 +785,9 @@ class Client
                 // (4,35): error CS1057: 'Extensions.SomeExtension(string)': static classes cannot contain protected members
                 //     static private protected void SomeExtension(this string s) { } // error: no pp in static class
                 Diagnostic(ErrorCode.ERR_ProtectedInStatic, "SomeExtension").WithArguments("Extensions.SomeExtension(string)").WithLocation(4, 35),
-                // (11,11): error CS0122: 'Extensions.SomeExtension(string)' is inaccessible due to its protection level
+                // (11,11): error CS1061: 'string' does not contain a definition for 'SomeExtension' and no accessible extension method 'SomeExtension' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
                 //         s.SomeExtension(); // error: no accessible SomeExtension
-                Diagnostic(ErrorCode.ERR_BadAccess, "SomeExtension").WithArguments("Extensions.SomeExtension(string)").WithLocation(11, 11)
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "SomeExtension").WithArguments("string", "SomeExtension").WithLocation(11, 11)
                 );
         }
     }

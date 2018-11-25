@@ -3,6 +3,7 @@
 Imports System.Threading.Tasks
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
+    <[UseExportProvider]>
     Public Class VisualBasicCompletionCommandHandlerTests_XmlDoc
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>

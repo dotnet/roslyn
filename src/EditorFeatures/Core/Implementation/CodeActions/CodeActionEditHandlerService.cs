@@ -312,7 +312,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
                             if (pathToRenameToken.TryResolve(openRoot, out resolvedRenameToken) &&
                                 resolvedRenameToken.IsToken)
                             {
-                                var snapshot = openDocument.GetTextAsync(cancellationToken).WaitAndGetResult(cancellationToken).FindCorrespondingEditorTextSnapshot();
+                                var snapshot = openDocument.GetTextSynchronously(cancellationToken).FindCorrespondingEditorTextSnapshot();
                                 if (snapshot != null)
                                 {
                                     _renameService.StartInlineSession(openDocument, resolvedRenameToken.AsToken().Span, cancellationToken);
