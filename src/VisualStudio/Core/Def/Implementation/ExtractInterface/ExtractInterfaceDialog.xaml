@@ -66,7 +66,8 @@
             <GroupBox x:Uid="DestinationSelectionGroupBox"
                       Margin="0, 9, 0, 0"
                       Header="{Binding ElementName=dialog, Path=SelectDestinationFile}">
-                <Grid>
+                <Grid
+                    Margin="9, 9, 9, 7">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
@@ -100,6 +101,7 @@
                              AutomationProperties.LabeledBy="{Binding ElementName=DestinationNewFileSelectionRadioButton}"
                              Text="{Binding FileName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
                              Padding="{StaticResource ResourceKey=textboxPadding}"
+                             Margin="2, 0, 0, 0"
                              Name="fileNameTextBox"
                              IsEnabled="{Binding FileNameEnabled, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"
                              GotFocus="SelectAllInTextBox"
