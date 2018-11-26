@@ -9,6 +9,26 @@ namespace Microsoft.CodeAnalysis
     {
         public static T GetOption<T>(this OptionSet analyzerConfigOptions, Option<T> option)
         {
+            if (!TryGetEditorConfigOption(analyzerConfigOptions, option, out T value))
+            {
+                value = option.DefaultValue;
+            }
+
+            return value;
+        }
+
+        public static T GetOption<T>(this OptionSet analyzerConfigOptions, PerLanguageOption<T> option, string language)
+        {
+            if (!TryGetEditorConfigOption(analyzerConfigOptions, option, out T value))
+            {
+                value = option.DefaultValue;
+            }
+
+            return value;
+        }
+
+        private static bool TryGetEditorConfigOption<T>(this OptionSet analyzerConfigOptions, IOption option, out T value)
+        {
             foreach (var storageLocation in option.StorageLocations)
             {
                 if (!(storageLocation is EditorConfigStorageLocation<T> editorConfigStorageLocation))
@@ -25,16 +45,15 @@ namespace Microsoft.CodeAnalysis
                     underlyingOption: null,
                     allRawConventions: new Dictionary<string, object> { { editorConfigStorageLocation.KeyName, stringValue } },
                     typeof(T),
-                    out var value))
+                    out var rawValue))
                 {
-                    return (T)value;
+                    value = (T)rawValue;
+                    return true;
                 }
             }
 
-            return option.DefaultValue;
+            value = default;
+            return false;
         }
-
-        public static T GetOption<T>(this OptionSet analyzerConfigOptions, Option<T> option, string language)
-            => analyzerConfigOptions.GetOption(option);
     }
 }

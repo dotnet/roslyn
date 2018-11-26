@@ -96,6 +96,7 @@
     <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\Engine\TriviaData.cs" Link="Formatting\Engine\TriviaData.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\Engine\TriviaDataWithList.cs" Link="Formatting\Engine\TriviaDataWithList.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\FormattingExtensions.cs" Link="Formatting\FormattingExtensions.cs" />
+    <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\FormattingOptions.cs" Link="Formatting\FormattingOptions.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\IFormattingResult.cs" Link="Formatting\IFormattingResult.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\ISyntaxFormattingService.cs" Link="Formatting\ISyntaxFormattingService.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\ListPool.cs" Link="Formatting\ListPool.cs" />
@@ -144,6 +145,7 @@
     <Compile Include="..\..\..\Workspaces\Core\Portable\Options\OptionKey.cs" Link="Options\OptionKey.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Options\OptionStorageLocation.cs" Link="Options\OptionStorageLocation.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Options\Option`1.cs" Link="Options\Option`1.cs" />
+    <Compile Include="..\..\..\Workspaces\Core\Portable\Options\PerLanguageOption.cs" Link="Options\PerLanguageOption.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Options\RoamingProfileStorageLocation.cs" Link="Options\RoamingProfileStorageLocation.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Shared\Collections\IIntervalIntrospector.cs" Link="Formatting\Context\IIntervalIntrospector.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Shared\Collections\IntervalTree`1.cs" Link="Formatting\Context\IntervalTree`1.cs" />

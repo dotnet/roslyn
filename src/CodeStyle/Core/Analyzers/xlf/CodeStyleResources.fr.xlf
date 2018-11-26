@@ -22,6 +22,16 @@
         <target state="new">Fix formatting</target>
         <note />
       </trans-unit>
+      <trans-unit id="Indentation_and_spacing">
+        <source>Indentation and spacing</source>
+        <target state="new">Indentation and spacing</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="New_line_preferences">
+        <source>New line preferences</source>
+        <target state="new">New line preferences</target>
+        <note />
+      </trans-unit>
       <trans-unit id="None">
         <source>None</source>
         <target state="new">None</target>

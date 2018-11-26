@@ -98,6 +98,24 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Indentation and spacing.
+        /// </summary>
+        internal static string Indentation_and_spacing {
+            get {
+                return ResourceManager.GetString("Indentation_and_spacing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to New line preferences.
+        /// </summary>
+        internal static string New_line_preferences {
+            get {
+                return ResourceManager.GetString("New_line_preferences", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to None.
         /// </summary>
         internal static string None {
