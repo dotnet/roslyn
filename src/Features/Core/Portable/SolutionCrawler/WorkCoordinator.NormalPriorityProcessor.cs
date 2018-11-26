@@ -232,7 +232,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         if (this.Processor._documentTracker != null)
                         {
                             // First the active document
-                            var activeDocumentId = this.Processor._documentTracker.GetActiveDocument();
+                            var activeDocumentId = this.Processor._documentTracker.TryGetActiveDocument();
                             if (activeDocumentId != null)
                             {
                                 yield return activeDocumentId;
