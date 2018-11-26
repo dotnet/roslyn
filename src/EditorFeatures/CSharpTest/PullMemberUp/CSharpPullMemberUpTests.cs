@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
+using System.Xml.Linq;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.CodeRefactorings.PullMemberUp;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
@@ -14,7 +15,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.PullMemberUp
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
         => new CSharpPullMemberUpCodeRefactoringProvider();
 
-        #region interface
+        private async Task TestNoRefactoringProvidedAsync(string initialMarkUp)
+        {
+            var workspace = CreateWorkspaceFromOptions(initialMarkUp, default);
+            var (codeActionArray, _) = await GetCodeActionsWorkerAsync(workspace, default);
+            Assert.True(codeActionArray.IsEmpty);
+        }
+
+        #region destination interface
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
         public async Task PullMethodUpToInterface()
         {
@@ -346,9 +354,9 @@ namespace PushUpTest
             await TestInRegularAndScriptAsync(testText, expected);
         }
 
-        #endregion interface
+        #endregion destination interface
 
-        #region class
+        #region destination class
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
         public async Task PullMethodToClass()
         {
@@ -676,6 +684,58 @@ namespace PushUpTest
 }";
             await TestInRegularAndScriptAsync(testText, expected);
         }
-        #endregion class
+        #endregion destination class
+
+        #region cross language
+
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        public async Task TestPullMethodUpToVBClass()
+        {
+            var input = new XElement("Workspace",
+                    new XElement("Project",
+                        new XAttribute("Language", "C#"),
+                        new XAttribute("AssemblyName", "CSAssembly"),
+                        new XAttribute("CommonReferences", "true"),
+                        new XElement("ProjectReferences", "VBAssembly"),
+                        new XElement("Document", @"
+public class TestClass : VBClass
+{
+    public int Bar[||]bar()
+    {
+        return 12345;
+    }
+}")),
+                    new XElement("Project",
+                        new XAttribute("Language", "Visual Basic"),
+                        new XAttribute("AssemblyName", "VBAssembly"),
+                        new XAttribute("CommonReferences", "true"),
+                        new XElement("Document", @"
+Public Class VBClass
+End Class
+"))).ToString();
+
+            await TestNoRefactoringProvidedAsync(input);
+        }
+
+        //[Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        //public async Task TestPullFieldUpToVBClass()
+        //{
+
+        //}
+
+        //[Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        //public async Task TestPullPropertyUpToVBClass()
+        //{
+
+        //}
+
+        //[Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        //public async Task TestPullEventUpToVBClass()
+        //{
+
+        //}
+        
+        #endregion cross language
     }
 }
