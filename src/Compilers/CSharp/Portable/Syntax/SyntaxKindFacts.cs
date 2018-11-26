@@ -39,18 +39,69 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public static bool IsControlKeyword(SyntaxKind kind)
         {
-            return kind == SyntaxKind.YieldKeyword
-                || kind == SyntaxKind.WhenKeyword
-                || kind == SyntaxKind.InKeyword
-                || (kind != SyntaxKind.LockKeyword 
-                    && kind >= SyntaxKind.IfKeyword 
-                    && kind <= SyntaxKind.ThrowKeyword);
+            switch (kind)
+            {
+                case SyntaxKind.IfKeyword:
+                case SyntaxKind.ElseKeyword:
+                case SyntaxKind.WhileKeyword:
+                case SyntaxKind.ForKeyword:
+                case SyntaxKind.ForEachKeyword:
+                case SyntaxKind.DoKeyword:
+                case SyntaxKind.SwitchKeyword:
+                case SyntaxKind.CaseKeyword:
+                case SyntaxKind.DefaultKeyword:
+                case SyntaxKind.TryKeyword:
+                case SyntaxKind.CatchKeyword:
+                case SyntaxKind.FinallyKeyword:
+                case SyntaxKind.LockKeyword:
+                case SyntaxKind.GotoKeyword:
+                case SyntaxKind.BreakKeyword:
+                case SyntaxKind.ContinueKeyword:
+                case SyntaxKind.ReturnKeyword:
+                case SyntaxKind.ThrowKeyword:
+                case SyntaxKind.YieldKeyword:
+                case SyntaxKind.WhenKeyword: // Include WhenKeyword as it can be part of a CatchFilterClause
+                case SyntaxKind.InKeyword: // Include InKeyword as it can be part of an ForEachStatement
+                    return true;
+                default:
+                    return false;
+            }
         }
 
         public static bool IsControlStatement(SyntaxKind kind)
         {
-            return (kind >= SyntaxKind.GotoStatement && kind <= SyntaxKind.ForEachStatement) // Jump Statements
-                || (kind >= SyntaxKind.IfStatement && kind <= SyntaxKind.FinallyClause); // Checked Statements
+            switch (kind)
+            {
+                // Jump Statements
+                case SyntaxKind.GotoStatement:
+                case SyntaxKind.GotoCaseStatement:
+                case SyntaxKind.GotoDefaultStatement:
+                case SyntaxKind.BreakStatement:
+                case SyntaxKind.ContinueStatement:
+                case SyntaxKind.ReturnStatement:
+                case SyntaxKind.YieldReturnStatement:
+                case SyntaxKind.YieldBreakStatement:
+                case SyntaxKind.ThrowStatement:
+                case SyntaxKind.WhileStatement:
+                case SyntaxKind.DoStatement:
+                case SyntaxKind.ForStatement:
+                case SyntaxKind.ForEachStatement:
+                // Checked Statements
+                case SyntaxKind.IfStatement:
+                case SyntaxKind.ElseClause:
+                case SyntaxKind.SwitchStatement:
+                case SyntaxKind.SwitchSection:
+                case SyntaxKind.CaseSwitchLabel:
+                case SyntaxKind.DefaultSwitchLabel:
+                case SyntaxKind.TryStatement:
+                case SyntaxKind.CatchClause:
+                case SyntaxKind.CatchDeclaration:
+                case SyntaxKind.CatchFilterClause:
+                case SyntaxKind.FinallyClause:
+                    return true;
+                default:
+                    return false;
+            }
         }
 
         public static bool IsAttributeTargetSpecifier(SyntaxKind kind)

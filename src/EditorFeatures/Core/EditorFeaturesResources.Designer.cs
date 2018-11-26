@@ -1927,101 +1927,101 @@ namespace Microsoft.CodeAnalysis.Editor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to User Symbols - Constant Name.
+        ///   Looks up a localized string similar to User Symbols - Constants.
         /// </summary>
-        internal static string User_Symbols_Constant_Name {
+        internal static string User_Symbols_Constants {
             get {
-                return ResourceManager.GetString("User_Symbols_Constant_Name", resourceCulture);
+                return ResourceManager.GetString("User_Symbols_Constants", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to User Symbols - Enum Member Name.
+        ///   Looks up a localized string similar to User Symbols - Enum Members.
         /// </summary>
-        internal static string User_Symbols_Enum_Member_Name {
+        internal static string User_Symbols_Enum_Members {
             get {
-                return ResourceManager.GetString("User_Symbols_Enum_Member_Name", resourceCulture);
+                return ResourceManager.GetString("User_Symbols_Enum_Members", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to User Symbols - Event Name.
+        ///   Looks up a localized string similar to User Symbols - Events.
         /// </summary>
-        internal static string User_Symbols_Event_Name {
+        internal static string User_Symbols_Events {
             get {
-                return ResourceManager.GetString("User_Symbols_Event_Name", resourceCulture);
+                return ResourceManager.GetString("User_Symbols_Events", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to User Symbols - Extension Method Name.
+        ///   Looks up a localized string similar to User Symbols - Extension Methods.
         /// </summary>
-        internal static string User_Symbols_Extension_Method_Name {
+        internal static string User_Symbols_Extension_Methods {
             get {
-                return ResourceManager.GetString("User_Symbols_Extension_Method_Name", resourceCulture);
+                return ResourceManager.GetString("User_Symbols_Extension_Methods", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to User Symbols - Field Name.
+        ///   Looks up a localized string similar to User Symbols - Fields.
         /// </summary>
-        internal static string User_Symbols_Field_Name {
+        internal static string User_Symbols_Fields {
             get {
-                return ResourceManager.GetString("User_Symbols_Field_Name", resourceCulture);
+                return ResourceManager.GetString("User_Symbols_Fields", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to User Symbols - Label Name.
+        ///   Looks up a localized string similar to User Symbols - Labels.
         /// </summary>
-        internal static string User_Symbols_Label_Name {
+        internal static string User_Symbols_Labels {
             get {
-                return ResourceManager.GetString("User_Symbols_Label_Name", resourceCulture);
+                return ResourceManager.GetString("User_Symbols_Labels", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to User Symbols - Local Name.
+        ///   Looks up a localized string similar to User Symbols - Locals.
         /// </summary>
-        internal static string User_Symbols_Local_Name {
+        internal static string User_Symbols_Locals {
             get {
-                return ResourceManager.GetString("User_Symbols_Local_Name", resourceCulture);
+                return ResourceManager.GetString("User_Symbols_Locals", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to User Symbols - Method Name.
+        ///   Looks up a localized string similar to User Symbols - Methods.
         /// </summary>
-        internal static string User_Symbols_Method_Name {
+        internal static string User_Symbols_Methods {
             get {
-                return ResourceManager.GetString("User_Symbols_Method_Name", resourceCulture);
+                return ResourceManager.GetString("User_Symbols_Methods", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to User Symbols - Namespace Name.
+        ///   Looks up a localized string similar to User Symbols - Namespaces.
         /// </summary>
-        internal static string User_Symbols_Namespace_Name {
+        internal static string User_Symbols_Namespaces {
             get {
-                return ResourceManager.GetString("User_Symbols_Namespace_Name", resourceCulture);
+                return ResourceManager.GetString("User_Symbols_Namespaces", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to User Symbols - Parameter Name.
+        ///   Looks up a localized string similar to User Symbols - Parameters.
         /// </summary>
-        internal static string User_Symbols_Parameter_Name {
+        internal static string User_Symbols_Parameters {
             get {
-                return ResourceManager.GetString("User_Symbols_Parameter_Name", resourceCulture);
+                return ResourceManager.GetString("User_Symbols_Parameters", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to User Symbols - Property Name.
+        ///   Looks up a localized string similar to User Symbols - Properties.
         /// </summary>
-        internal static string User_Symbols_Property_Name {
+        internal static string User_Symbols_Properties {
             get {
-                return ResourceManager.GetString("User_Symbols_Property_Name", resourceCulture);
+                return ResourceManager.GetString("User_Symbols_Properties", resourceCulture);
             }
         }
         

@@ -212,43 +212,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
 
         public static bool IsStaticallyDeclared(SyntaxToken token)
         {
-            if (token.Parent is BaseTypeDeclarationSyntax typeDeclaration && typeDeclaration.Identifier == token)
+            var parentNode = token.Parent;
+
+            if (parentNode.IsKind(SyntaxKind.EnumMemberDeclaration))
             {
-                return typeDeclaration.GetModifiers().Any(SyntaxKind.StaticKeyword);
+                return false; // TODO: Since Enum members are always static is it useful to classify them as static?
             }
-            else if (token.Parent is MethodDeclarationSyntax methodDeclaration && methodDeclaration.Identifier == token)
+            else if (parentNode.IsKind(SyntaxKind.VariableDeclarator))
             {
-                return methodDeclaration.GetModifiers().Any(SyntaxKind.StaticKeyword);
+                // The parent of a VariableDeclartor is a VariableDeclarationSyntax node.
+                // It's parent will be the declaration syntax node.
+                parentNode = parentNode.Parent.Parent;
             }
-            else if (token.Parent is PropertyDeclarationSyntax propertyDeclaration && propertyDeclaration.Identifier == token)
-            {
-                return propertyDeclaration.GetModifiers().Any(SyntaxKind.StaticKeyword);
-            }
-            else if (token.Parent is EnumMemberDeclarationSyntax enumMemberDeclaration && enumMemberDeclaration.Identifier == token)
-            {
-                return false;  // TODO: Since Enum members are always static is it useful to classify them as static?
-            }
-            else if (token.Parent is VariableDeclaratorSyntax variableDeclarator && variableDeclarator.Identifier == token)
-            {
-                var varDecl = variableDeclarator.Parent as VariableDeclarationSyntax;
-                switch (varDecl.Parent)
-                {
-                    case FieldDeclarationSyntax fieldDeclaration:
-                        return fieldDeclaration.GetModifiers().Any(
-                            modifier => modifier.Kind() == SyntaxKind.StaticKeyword || modifier.Kind() == SyntaxKind.ConstKeyword);
-                    case EventFieldDeclarationSyntax aventFieldDeclarationSyntax:
-                        return aventFieldDeclarationSyntax.GetModifiers().Any(SyntaxKind.StaticKeyword);
-                }
-                return false;
-            }
-            else if (token.Parent is EventDeclarationSyntax eventDeclarationSyntax && eventDeclarationSyntax.Identifier == token)
-            {
-                return eventDeclarationSyntax.GetModifiers().Any(SyntaxKind.StaticKeyword);
-            }
-            else
-            {
-                return false;
-            }
+
+            return parentNode.GetModifiers().Any(SyntaxKind.StaticKeyword);
         }
 
         private static bool IsExtensionMethod(MethodDeclarationSyntax methodDeclaration)

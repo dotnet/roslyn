@@ -23,29 +23,35 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
             if (symbolInfo.Symbol is IMethodSymbol methodSymbol
                 && methodSymbol.MethodKind == MethodKind.UserDefinedOperator)
             {
-                if (syntax is BinaryExpressionSyntax binaryExpression)
+                var operatorSpan = GetOperatorTokenSpan(syntax);
+                if (!operatorSpan.IsEmpty)
                 {
-                    result.Add(new ClassifiedSpan(binaryExpression.OperatorToken.Span, ClassificationTypeNames.OperatorOverload));
-                }
-                else if (syntax is PrefixUnaryExpressionSyntax prefixUnaryExpression)
-                {
-                    result.Add(new ClassifiedSpan(prefixUnaryExpression.OperatorToken.Span, ClassificationTypeNames.OperatorOverload));
-                }
-                else if (syntax is PostfixUnaryExpressionSyntax postfixUnaryExpression)
-                {
-                    result.Add(new ClassifiedSpan(postfixUnaryExpression.OperatorToken.Span, ClassificationTypeNames.OperatorOverload));
-                }
-                else if (syntax is ConditionalExpressionSyntax conditionalExpression)
-                {
-                    result.Add(new ClassifiedSpan(conditionalExpression.Condition.Span, ClassificationTypeNames.OperatorOverload));
+                    result.Add(new ClassifiedSpan(operatorSpan, ClassificationTypeNames.OperatorOverload));
                 }
             }
+        }
+
+        private static Text.TextSpan GetOperatorTokenSpan(SyntaxNode syntax)
+        {
+            if (syntax is BinaryExpressionSyntax binaryExpression)
+            {
+                return binaryExpression.OperatorToken.Span;
+            }
+            else if (syntax is PrefixUnaryExpressionSyntax prefixUnaryExpression)
+            {
+                return prefixUnaryExpression.OperatorToken.Span;
+            }
+            else if (syntax is PostfixUnaryExpressionSyntax postfixUnaryExpression)
+            {
+                return postfixUnaryExpression.OperatorToken.Span;
+            }
+
+            return default;
         }
 
         public override ImmutableArray<Type> SyntaxNodeTypes { get; } = ImmutableArray.Create(
             typeof(BinaryExpressionSyntax), 
             typeof(PrefixUnaryExpressionSyntax), 
-            typeof(PostfixUnaryExpressionSyntax),
-            typeof(ConditionalExpressionSyntax));
+            typeof(PostfixUnaryExpressionSyntax));
     }
 }

@@ -56,9 +56,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 SyntaxKind.GosubKeyword,
                 SyntaxKind.YieldKeyword
                     Return True
+                Case Else
+                    Return False
             End Select
 
-            Return False
         End Function
 
         ''' <summary>
@@ -110,9 +111,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 SyntaxKind.WhileStatement,
                 SyntaxKind.YieldStatement
                     Return True
+                Case Else
+                    Return False
             End Select
-
-            Return False
         End Function
 
         ''' <summary>

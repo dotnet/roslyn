@@ -137,13 +137,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [BaseDefinition(PredefinedClassificationTypeNames.Identifier)]
         internal readonly ClassificationTypeDefinition EventNameTypeDefinition;
         #endregion
-        #region Event Name
+        #region Namespace Name
         [Export]
         [Name(ClassificationTypeNames.NamespaceName)]
         [BaseDefinition(PredefinedClassificationTypeNames.Identifier)]
         internal readonly ClassificationTypeDefinition NamespaceNameTypeDefinition;
         #endregion
-        #region Event Name
+        #region Label Name
         [Export]
         [Name(ClassificationTypeNames.LabelName)]
         [BaseDefinition(PredefinedClassificationTypeNames.Identifier)]
@@ -328,7 +328,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         #region Static Symbol
         [Export]
         [Name(ClassificationTypeNames.StaticSymbol)]
-        [BaseDefinition(PredefinedClassificationTypeNames.FormalLanguage)]
+        [BaseDefinition(PredefinedClassificationTypeNames.Identifier)]
         internal readonly ClassificationTypeDefinition StaticSymbolTypeDefinition;
         #endregion
 

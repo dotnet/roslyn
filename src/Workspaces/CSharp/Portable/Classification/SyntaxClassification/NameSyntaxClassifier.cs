@@ -116,12 +116,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
             Text.TextSpan span,
             ArrayBuilder<ClassifiedSpan> result)
         {
-            if (symbol?.IsStatic == true
-                && (!symbol.IsKind(SymbolKind.Field) || symbol.ContainingType?.IsEnumType() == false) // TODO: Since Enum members are always static is it useful to classify them as static?
-                && !symbol.IsKind(SymbolKind.Namespace)) // TODO: Since Namespace are always static is it useful to classify them as static?
+            if (symbol is null || !symbol.IsStatic)
             {
-                result.Add(new ClassifiedSpan(span, ClassificationTypeNames.StaticSymbol));
+                return;
             }
+
+            var isEnumMember = symbol.IsKind(SymbolKind.Field) && symbol.ContainingType?.IsEnumType() == true;
+            if (isEnumMember) // TODO: Since Enum members are always static is it useful to classify them as static?
+            {
+                return;
+            }
+
+            var isNamespace = symbol.IsKind(SymbolKind.Namespace);
+            if (isNamespace) // TODO: Since Namespaces are always static is it useful to classify them as static?
+            {
+                return;
+            }
+
+            result.Add(new ClassifiedSpan(span, ClassificationTypeNames.StaticSymbol));
         }
 
         private bool TryClassifySymbol(
@@ -131,11 +143,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
             CancellationToken cancellationToken,
             out ClassifiedSpan classifiedSpan)
         {
-            if (symbol is INamespaceSymbol namespaceSymbol
-                && name is IdentifierNameSyntax identifierNameSyntax)
+            if (symbol is INamespaceSymbol namespaceSymbol)
             {
-                // Continue to classify the global:: namespace as a keyword
-                var isGlobalNamespace = namespaceSymbol.IsGlobalNamespace 
+                // Do not classify the global:: namespace. It is already classified as a keyword.
+                var isGlobalNamespace = namespaceSymbol.IsGlobalNamespace
+                    && name is IdentifierNameSyntax identifierNameSyntax
                     && identifierNameSyntax.Identifier.IsKind(SyntaxKind.GlobalKeyword);
                 if (isGlobalNamespace)
                 {
@@ -339,7 +351,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
         {
             if (name is IdentifierNameSyntax
                 && symbolInfo.Symbol == null
-                && IsNamespaceName(name))
+                && IsInNamespaceDeclarationOrUsingDirective(name))
             {
                 result.Add(new ClassifiedSpan(name.Span, ClassificationTypeNames.NamespaceName));
                 return true;
@@ -348,11 +360,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
             return false;
         }
 
-        private static bool IsNamespaceName(NameSyntax name)
+        private static bool IsInNamespaceDeclarationOrUsingDirective(NameSyntax name)
         {
-            while (name.Parent is NameSyntax)
+            while (name.Parent is NameSyntax parentName)
             {
-                name = (NameSyntax)name.Parent;
+                name = parentName;
             }
 
             // Because this check runs after the TryClassifySymbol we can assume

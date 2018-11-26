@@ -247,7 +247,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         }
         #endregion
 
-        #region User Symbols - Field Name 
+        #region User Members - Field Name 
         [Export(typeof(EditorFormatDefinition))]
         [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.FieldName)]
         [Name(ClassificationTypeNames.FieldName)]
@@ -260,7 +260,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         {
             private UserSymbolsFieldNameFormatDefinition()
             {
-                this.DisplayName = EditorFeaturesResources.User_Symbols_Field_Name;
+                this.DisplayName = EditorFeaturesResources.User_Symbols_Fields;
             }
         }
         #endregion
@@ -277,7 +277,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         {
             private UserSymbolsEnumMemberNameFormatDefinition()
             {
-                this.DisplayName = EditorFeaturesResources.User_Symbols_Enum_Member_Name;
+                this.DisplayName = EditorFeaturesResources.User_Symbols_Enum_Members;
             }
         }
         #endregion
@@ -294,7 +294,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         {
             private UserSymbolsConstantNameFormatDefinition()
             {
-                this.DisplayName = EditorFeaturesResources.User_Symbols_Constant_Name;
+                this.DisplayName = EditorFeaturesResources.User_Symbols_Constants;
             }
         }
         #endregion
@@ -311,7 +311,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         {
             private UserSymbolsLocalNameFormatDefinition()
             {
-                this.DisplayName = EditorFeaturesResources.User_Symbols_Local_Name;
+                this.DisplayName = EditorFeaturesResources.User_Symbols_Locals;
             }
         }
         #endregion
@@ -328,7 +328,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         {
             private UserSymbolsParameterNameFormatDefinition()
             {
-                this.DisplayName = EditorFeaturesResources.User_Symbols_Parameter_Name;
+                this.DisplayName = EditorFeaturesResources.User_Symbols_Parameters;
             }
         }
         #endregion
@@ -345,7 +345,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         {
             private UserSymbolsMethodNameFormatDefinition()
             {
-                this.DisplayName = EditorFeaturesResources.User_Symbols_Method_Name;
+                this.DisplayName = EditorFeaturesResources.User_Symbols_Methods;
             }
         }
         #endregion
@@ -362,7 +362,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         {
             private UserSymbolsExtensionMethodNameFormatDefinition()
             {
-                this.DisplayName = EditorFeaturesResources.User_Symbols_Extension_Method_Name;
+                this.DisplayName = EditorFeaturesResources.User_Symbols_Extension_Methods;
             }
         }
         #endregion
@@ -379,7 +379,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         {
             private UserSymbolsPropertyNameFormatDefinition()
             {
-                this.DisplayName = EditorFeaturesResources.User_Symbols_Property_Name;
+                this.DisplayName = EditorFeaturesResources.User_Symbols_Properties;
             }
         }
         #endregion
@@ -395,7 +395,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         {
             private UserSymbolsEventNameFormatDefinition()
             {
-                this.DisplayName = EditorFeaturesResources.User_Symbols_Event_Name;
+                this.DisplayName = EditorFeaturesResources.User_Symbols_Events;
             }
         }
         #endregion
@@ -411,7 +411,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         {
             private UserSymbolsNamespaceNameFormatDefinition()
             {
-                this.DisplayName = EditorFeaturesResources.User_Symbols_Namespace_Name;
+                this.DisplayName = EditorFeaturesResources.User_Symbols_Namespaces;
             }
         }
         #endregion
@@ -428,7 +428,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         {
             private UserSymbolsLabelNameFormatDefinition()
             {
-                this.DisplayName = EditorFeaturesResources.User_Symbols_Label_Name;
+                this.DisplayName = EditorFeaturesResources.User_Symbols_Labels;
             }
         }
         #endregion

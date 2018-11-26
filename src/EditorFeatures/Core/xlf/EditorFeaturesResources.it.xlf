@@ -82,64 +82,64 @@
         <target state="new">String - Escape Character</target>
         <note />
       </trans-unit>
-      <trans-unit id="User_Symbols_Constant_Name">
-        <source>User Symbols - Constant Name</source>
-        <target state="new">User Symbols - Constant Name</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="User_Symbols_Enum_Member_Name">
-        <source>User Symbols - Enum Member Name</source>
-        <target state="new">User Symbols - Enum Member Name</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="User_Symbols_Event_Name">
-        <source>User Symbols - Event Name</source>
-        <target state="new">User Symbols - Event Name</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="User_Symbols_Extension_Method_Name">
-        <source>User Symbols - Extension Method Name</source>
-        <target state="new">User Symbols - Extension Method Name</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="User_Symbols_Field_Name">
-        <source>User Symbols - Field Name</source>
-        <target state="new">User Symbols - Field Name</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="User_Symbols_Label_Name">
-        <source>User Symbols - Label Name</source>
-        <target state="new">User Symbols - Label Name</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="User_Symbols_Local_Name">
-        <source>User Symbols - Local Name</source>
-        <target state="new">User Symbols - Local Name</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="User_Symbols_Method_Name">
-        <source>User Symbols - Method Name</source>
-        <target state="new">User Symbols - Method Name</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="User_Symbols_Namespace_Name">
-        <source>User Symbols - Namespace Name</source>
-        <target state="new">User Symbols - Namespace Name</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="User_Symbols_Parameter_Name">
-        <source>User Symbols - Parameter Name</source>
-        <target state="new">User Symbols - Parameter Name</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="User_Symbols_Property_Name">
-        <source>User Symbols - Property Name</source>
-        <target state="new">User Symbols - Property Name</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Symbol_Static">
         <source>Symbol - Static</source>
         <target state="new">Symbol - Static</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Symbols_Constants">
+        <source>User Symbols - Constants</source>
+        <target state="new">User Symbols - Constants</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Symbols_Enum_Members">
+        <source>User Symbols - Enum Members</source>
+        <target state="new">User Symbols - Enum Members</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Symbols_Events">
+        <source>User Symbols - Events</source>
+        <target state="new">User Symbols - Events</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Symbols_Extension_Methods">
+        <source>User Symbols - Extension Methods</source>
+        <target state="new">User Symbols - Extension Methods</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Symbols_Fields">
+        <source>User Symbols - Fields</source>
+        <target state="new">User Symbols - Fields</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Symbols_Labels">
+        <source>User Symbols - Labels</source>
+        <target state="new">User Symbols - Labels</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Symbols_Locals">
+        <source>User Symbols - Locals</source>
+        <target state="new">User Symbols - Locals</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Symbols_Methods">
+        <source>User Symbols - Methods</source>
+        <target state="new">User Symbols - Methods</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Symbols_Namespaces">
+        <source>User Symbols - Namespaces</source>
+        <target state="new">User Symbols - Namespaces</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Symbols_Parameters">
+        <source>User Symbols - Parameters</source>
+        <target state="new">User Symbols - Parameters</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Symbols_Properties">
+        <source>User Symbols - Properties</source>
+        <target state="new">User Symbols - Properties</target>
         <note />
       </trans-unit>
       <trans-unit id="User_Types_Classes">

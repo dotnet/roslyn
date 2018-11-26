@@ -836,38 +836,38 @@ Do you want to proceed?</value>
   <data name="Invalid_characters_in_assembly_name" xml:space="preserve">
     <value>Invalid characters in assembly name</value>
   </data>
-  <data name="User_Symbols_Constant_Name" xml:space="preserve">
-    <value>User Symbols - Constant Name</value>
+  <data name="User_Symbols_Constants" xml:space="preserve">
+    <value>User Symbols - Constants</value>
   </data>
-  <data name="User_Symbols_Enum_Member_Name" xml:space="preserve">
-    <value>User Symbols - Enum Member Name</value>
+  <data name="User_Symbols_Enum_Members" xml:space="preserve">
+    <value>User Symbols - Enum Members</value>
   </data>
-  <data name="User_Symbols_Event_Name" xml:space="preserve">
-    <value>User Symbols - Event Name</value>
+  <data name="User_Symbols_Events" xml:space="preserve">
+    <value>User Symbols - Events</value>
   </data>
-  <data name="User_Symbols_Extension_Method_Name" xml:space="preserve">
-    <value>User Symbols - Extension Method Name</value>
+  <data name="User_Symbols_Extension_Methods" xml:space="preserve">
+    <value>User Symbols - Extension Methods</value>
   </data>
-  <data name="User_Symbols_Field_Name" xml:space="preserve">
-    <value>User Symbols - Field Name</value>
+  <data name="User_Symbols_Fields" xml:space="preserve">
+    <value>User Symbols - Fields</value>
   </data>
-  <data name="User_Symbols_Local_Name" xml:space="preserve">
-    <value>User Symbols - Local Name</value>
+  <data name="User_Symbols_Locals" xml:space="preserve">
+    <value>User Symbols - Locals</value>
   </data>
-  <data name="User_Symbols_Method_Name" xml:space="preserve">
-    <value>User Symbols - Method Name</value>
+  <data name="User_Symbols_Methods" xml:space="preserve">
+    <value>User Symbols - Methods</value>
   </data>
-  <data name="User_Symbols_Namespace_Name" xml:space="preserve">
-    <value>User Symbols - Namespace Name</value>
+  <data name="User_Symbols_Namespaces" xml:space="preserve">
+    <value>User Symbols - Namespaces</value>
   </data>
-  <data name="User_Symbols_Parameter_Name" xml:space="preserve">
-    <value>User Symbols - Parameter Name</value>
+  <data name="User_Symbols_Parameters" xml:space="preserve">
+    <value>User Symbols - Parameters</value>
   </data>
-  <data name="User_Symbols_Property_Name" xml:space="preserve">
-    <value>User Symbols - Property Name</value>
+  <data name="User_Symbols_Properties" xml:space="preserve">
+    <value>User Symbols - Properties</value>
   </data>
-  <data name="User_Symbols_Label_Name" xml:space="preserve">
-    <value>User Symbols - Label Name</value>
+  <data name="User_Symbols_Labels" xml:space="preserve">
+    <value>User Symbols - Labels</value>
   </data>
   <data name="Keyword_Control" xml:space="preserve">
     <value>Keyword - Control</value>
