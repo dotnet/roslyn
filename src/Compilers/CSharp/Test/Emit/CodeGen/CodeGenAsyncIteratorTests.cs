@@ -37,7 +37,7 @@ class C
     async System.Collections.Generic.IAsyncEnumerator<int> M() { await Task.CompletedTask; yield return 3; }
 }
 ";
-        private void VerifyMissingMember(WellKnownMember member, params DiagnosticDescription[] expected)
+        private static void VerifyMissingMember(WellKnownMember member, params DiagnosticDescription[] expected)
         {
             foreach (var source in new[] { _enumerable, _enumerator })
             {
@@ -54,7 +54,7 @@ class C
             comp.VerifyEmitDiagnostics(expected);
         }
 
-        private void VerifyMissingType(WellKnownType type, params DiagnosticDescription[] expected)
+        private static void VerifyMissingType(WellKnownType type, params DiagnosticDescription[] expected)
         {
             foreach (var source in new[] { _enumerable, _enumerator })
             {
@@ -649,7 +649,7 @@ public class C
             VerifyMissingMember(_enumerator, WellKnownMember.System_Collections_Generic_IAsyncEnumerable_T__GetAsyncEnumerator);
 
             VerifyMissingType(_enumerable, WellKnownType.System_Collections_Generic_IAsyncEnumerable_T,
-                // (5,60): error CS1983: The return type of an async method must be void, Task, Task<T>, a task-like type, or IAsyncEnumerable<T>
+                // (5,60): error CS1983: The return type of an async method must be void, Task, Task<T>, a task-like type, IAsyncEnumerable<T>, or IAsyncEnumerator<T>
                 //     async System.Collections.Generic.IAsyncEnumerable<int> M() { await Task.CompletedTask; yield return 3; }
                 Diagnostic(ErrorCode.ERR_BadAsyncReturn, "M").WithLocation(5, 60),
                 // (5,60): error CS1624: The body of 'C.M()' cannot be an iterator block because 'IAsyncEnumerable<int>' is not an iterator interface type
@@ -1022,36 +1022,38 @@ class C
 }";
             var comp = CreateCompilationWithAsyncIterator(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "Value:0 1 2 Value:3 4 Value:5 Done");
+            CompileAndVerify(comp, expectedOutput: "Value:0 1 2 Value:3 4 Value:5 Done", symbolValidator: verifyMembersAndInterfaces);
 
-            var comp2 = CreateCompilationWithTasksExtensions("", references: new[] { comp.EmitToImageReference() });
-            var type = (NamedTypeSymbol)comp2.GetMember("C.<M>d__0");
-            AssertEx.SetEqual(new[] {
-                "System.Threading.Tasks.ManualResetValueTaskSourceLogic<System.Boolean> C.<M>d__0.System.Runtime.CompilerServices.IStrongBox<System.Threading.Tasks.ManualResetValueTaskSourceLogic<System.Boolean>>.Value { get; }",
-                "System.Runtime.CompilerServices.AsyncVoidMethodBuilder C.<M>d__0.<>t__builder",
-                "System.Threading.Tasks.ManualResetValueTaskSourceLogic<System.Boolean> C.<M>d__0.<>v__promiseOfValueOrEnd",
-                "System.Int32 C.<M>d__0.value",
-                "C.<M>d__0..ctor(System.Int32 <>1__state)",
-                "void C.<M>d__0.MoveNext()",
-                "void C.<M>d__0.SetStateMachine(System.Runtime.CompilerServices.IAsyncStateMachine stateMachine)",
-                "System.Threading.Tasks.ValueTask<System.Boolean> C.<M>d__0.System.Collections.Generic.IAsyncEnumerator<System.Int32>.MoveNextAsync()",
-                "System.Int32 C.<M>d__0.System.Collections.Generic.IAsyncEnumerator<System.Int32>.Current.get",
-                "System.Boolean C.<M>d__0.System.Threading.Tasks.Sources.IValueTaskSource<System.Boolean>.GetResult(System.Int16 token)",
-                "System.Threading.Tasks.Sources.ValueTaskSourceStatus C.<M>d__0.System.Threading.Tasks.Sources.IValueTaskSource<System.Boolean>.GetStatus(System.Int16 token)",
-                "void C.<M>d__0.System.Threading.Tasks.Sources.IValueTaskSource<System.Boolean>.OnCompleted(System.Action<System.Object> continuation, System.Object state, System.Int16 token, System.Threading.Tasks.Sources.ValueTaskSourceOnCompletedFlags flags)",
-                "ref System.Threading.Tasks.ManualResetValueTaskSourceLogic<System.Boolean> C.<M>d__0.System.Runtime.CompilerServices.IStrongBox<System.Threading.Tasks.ManualResetValueTaskSourceLogic<System.Boolean>>.get_Value()",
-                "System.Threading.Tasks.ValueTask C.<M>d__0.System.IAsyncDisposable.DisposeAsync()",
-                "System.Int32 C.<M>d__0.System.Collections.Generic.IAsyncEnumerator<System.Int32>.Current { get; }",
-                "System.Int32 C.<M>d__0.<>1__state" },
-                type.GetMembersUnordered().Select(m => m.ToTestDisplayString()));
+            void verifyMembersAndInterfaces(ModuleSymbol module)
+            {
+                var type = (NamedTypeSymbol)module.GlobalNamespace.GetMember("C.<M>d__0");
+                AssertEx.SetEqual(new[] {
+                    "System.Threading.Tasks.ManualResetValueTaskSourceLogic<System.Boolean> C.<M>d__0.System.Runtime.CompilerServices.IStrongBox<System.Threading.Tasks.ManualResetValueTaskSourceLogic<System.Boolean>>.Value { get; }",
+                    "System.Runtime.CompilerServices.AsyncVoidMethodBuilder C.<M>d__0.<>t__builder",
+                    "System.Threading.Tasks.ManualResetValueTaskSourceLogic<System.Boolean> C.<M>d__0.<>v__promiseOfValueOrEnd",
+                    "System.Int32 C.<M>d__0.value",
+                    "C.<M>d__0..ctor(System.Int32 <>1__state)",
+                    "void C.<M>d__0.MoveNext()",
+                    "void C.<M>d__0.SetStateMachine(System.Runtime.CompilerServices.IAsyncStateMachine stateMachine)",
+                    "System.Threading.Tasks.ValueTask<System.Boolean> C.<M>d__0.System.Collections.Generic.IAsyncEnumerator<System.Int32>.MoveNextAsync()",
+                    "System.Int32 C.<M>d__0.System.Collections.Generic.IAsyncEnumerator<System.Int32>.Current.get",
+                    "System.Boolean C.<M>d__0.System.Threading.Tasks.Sources.IValueTaskSource<System.Boolean>.GetResult(System.Int16 token)",
+                    "System.Threading.Tasks.Sources.ValueTaskSourceStatus C.<M>d__0.System.Threading.Tasks.Sources.IValueTaskSource<System.Boolean>.GetStatus(System.Int16 token)",
+                    "void C.<M>d__0.System.Threading.Tasks.Sources.IValueTaskSource<System.Boolean>.OnCompleted(System.Action<System.Object> continuation, System.Object state, System.Int16 token, System.Threading.Tasks.Sources.ValueTaskSourceOnCompletedFlags flags)",
+                    "ref System.Threading.Tasks.ManualResetValueTaskSourceLogic<System.Boolean> C.<M>d__0.System.Runtime.CompilerServices.IStrongBox<System.Threading.Tasks.ManualResetValueTaskSourceLogic<System.Boolean>>.get_Value()",
+                    "System.Threading.Tasks.ValueTask C.<M>d__0.System.IAsyncDisposable.DisposeAsync()",
+                    "System.Int32 C.<M>d__0.System.Collections.Generic.IAsyncEnumerator<System.Int32>.Current { get; }",
+                    "System.Int32 C.<M>d__0.<>1__state" },
+                    type.GetMembersUnordered().Select(m => m.ToTestDisplayString()));
 
-            AssertEx.SetEqual(new[] {
-                "System.Runtime.CompilerServices.IStrongBox<System.Threading.Tasks.ManualResetValueTaskSourceLogic<System.Boolean>>",
-                "System.Runtime.CompilerServices.IAsyncStateMachine",
-                "System.IAsyncDisposable",
-                "System.Threading.Tasks.Sources.IValueTaskSource<System.Boolean>",
-                "System.Collections.Generic.IAsyncEnumerator<System.Int32>" },
-                type.InterfacesAndTheirBaseInterfacesNoUseSiteDiagnostics.Select(m => m.ToTestDisplayString()));
+                AssertEx.SetEqual(new[] {
+                    "System.Runtime.CompilerServices.IStrongBox<System.Threading.Tasks.ManualResetValueTaskSourceLogic<System.Boolean>>",
+                    "System.Runtime.CompilerServices.IAsyncStateMachine",
+                    "System.IAsyncDisposable",
+                    "System.Threading.Tasks.Sources.IValueTaskSource<System.Boolean>",
+                    "System.Collections.Generic.IAsyncEnumerator<System.Int32>" },
+                    type.InterfacesAndTheirBaseInterfacesNoUseSiteDiagnostics.Select(m => m.ToTestDisplayString()));
+            }
         }
 
         [ConditionalFact(typeof(WindowsDesktopOnly))]
@@ -1301,38 +1303,40 @@ class C
 }";
             var comp = CreateCompilationWithTasksExtensions(new[] { source, AsyncStreamsTypes }, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "1 2 Stream1:3 1 2 Stream2:3 4 2 4 2 Done");
+            CompileAndVerify(comp, expectedOutput: "1 2 Stream1:3 1 2 Stream2:3 4 2 4 2 Done", symbolValidator: verifyMembersAndInterfaces);
 
-            var comp2 = CreateCompilationWithTasksExtensions("", references: new[] { comp.EmitToImageReference() });
-            var type = (NamedTypeSymbol)comp2.GetMember("C.<M>d__0");
-            AssertEx.SetEqual(new[] {
-                "System.Threading.Tasks.ManualResetValueTaskSourceLogic<System.Boolean> C.<M>d__0.System.Runtime.CompilerServices.IStrongBox<System.Threading.Tasks.ManualResetValueTaskSourceLogic<System.Boolean>>.Value { get; }",
-                "System.Runtime.CompilerServices.AsyncVoidMethodBuilder C.<M>d__0.<>t__builder",
-                "System.Threading.Tasks.ManualResetValueTaskSourceLogic<System.Boolean> C.<M>d__0.<>v__promiseOfValueOrEnd",
-                "System.Int32 C.<M>d__0.<>3__value",
-                "C.<M>d__0..ctor(System.Int32 <>1__state)",
-                "void C.<M>d__0.MoveNext()",
-                "void C.<M>d__0.SetStateMachine(System.Runtime.CompilerServices.IAsyncStateMachine stateMachine)",
-                "System.Collections.Generic.IAsyncEnumerator<System.Int32> C.<M>d__0.System.Collections.Generic.IAsyncEnumerable<System.Int32>.GetAsyncEnumerator()",
-                "System.Threading.Tasks.ValueTask<System.Boolean> C.<M>d__0.System.Collections.Generic.IAsyncEnumerator<System.Int32>.MoveNextAsync()",
-                "System.Int32 C.<M>d__0.System.Collections.Generic.IAsyncEnumerator<System.Int32>.Current.get",
-                "System.Boolean C.<M>d__0.System.Threading.Tasks.Sources.IValueTaskSource<System.Boolean>.GetResult(System.Int16 token)",
-                "System.Threading.Tasks.Sources.ValueTaskSourceStatus C.<M>d__0.System.Threading.Tasks.Sources.IValueTaskSource<System.Boolean>.GetStatus(System.Int16 token)",
-                "void C.<M>d__0.System.Threading.Tasks.Sources.IValueTaskSource<System.Boolean>.OnCompleted(System.Action<System.Object> continuation, System.Object state, System.Int16 token, System.Threading.Tasks.Sources.ValueTaskSourceOnCompletedFlags flags)",
-                "ref System.Threading.Tasks.ManualResetValueTaskSourceLogic<System.Boolean> C.<M>d__0.System.Runtime.CompilerServices.IStrongBox<System.Threading.Tasks.ManualResetValueTaskSourceLogic<System.Boolean>>.get_Value()",
-                "System.Threading.Tasks.ValueTask C.<M>d__0.System.IAsyncDisposable.DisposeAsync()",
-                "System.Int32 C.<M>d__0.System.Collections.Generic.IAsyncEnumerator<System.Int32>.Current { get; }",
-                "System.Int32 C.<M>d__0.<>1__state" },
-                type.GetMembersUnordered().Select(m => m.ToTestDisplayString()));
+            void verifyMembersAndInterfaces(ModuleSymbol module)
+            {
+                var type = (NamedTypeSymbol)module.GlobalNamespace.GetMember("C.<M>d__0");
+                AssertEx.SetEqual(new[] {
+                    "System.Threading.Tasks.ManualResetValueTaskSourceLogic<System.Boolean> C.<M>d__0.System.Runtime.CompilerServices.IStrongBox<System.Threading.Tasks.ManualResetValueTaskSourceLogic<System.Boolean>>.Value { get; }",
+                    "System.Runtime.CompilerServices.AsyncVoidMethodBuilder C.<M>d__0.<>t__builder",
+                    "System.Threading.Tasks.ManualResetValueTaskSourceLogic<System.Boolean> C.<M>d__0.<>v__promiseOfValueOrEnd",
+                    "System.Int32 C.<M>d__0.<>3__value",
+                    "C.<M>d__0..ctor(System.Int32 <>1__state)",
+                    "void C.<M>d__0.MoveNext()",
+                    "void C.<M>d__0.SetStateMachine(System.Runtime.CompilerServices.IAsyncStateMachine stateMachine)",
+                    "System.Collections.Generic.IAsyncEnumerator<System.Int32> C.<M>d__0.System.Collections.Generic.IAsyncEnumerable<System.Int32>.GetAsyncEnumerator()",
+                    "System.Threading.Tasks.ValueTask<System.Boolean> C.<M>d__0.System.Collections.Generic.IAsyncEnumerator<System.Int32>.MoveNextAsync()",
+                    "System.Int32 C.<M>d__0.System.Collections.Generic.IAsyncEnumerator<System.Int32>.Current.get",
+                    "System.Boolean C.<M>d__0.System.Threading.Tasks.Sources.IValueTaskSource<System.Boolean>.GetResult(System.Int16 token)",
+                    "System.Threading.Tasks.Sources.ValueTaskSourceStatus C.<M>d__0.System.Threading.Tasks.Sources.IValueTaskSource<System.Boolean>.GetStatus(System.Int16 token)",
+                    "void C.<M>d__0.System.Threading.Tasks.Sources.IValueTaskSource<System.Boolean>.OnCompleted(System.Action<System.Object> continuation, System.Object state, System.Int16 token, System.Threading.Tasks.Sources.ValueTaskSourceOnCompletedFlags flags)",
+                    "ref System.Threading.Tasks.ManualResetValueTaskSourceLogic<System.Boolean> C.<M>d__0.System.Runtime.CompilerServices.IStrongBox<System.Threading.Tasks.ManualResetValueTaskSourceLogic<System.Boolean>>.get_Value()",
+                    "System.Threading.Tasks.ValueTask C.<M>d__0.System.IAsyncDisposable.DisposeAsync()",
+                    "System.Int32 C.<M>d__0.System.Collections.Generic.IAsyncEnumerator<System.Int32>.Current { get; }",
+                    "System.Int32 C.<M>d__0.<>1__state" },
+                    type.GetMembersUnordered().Select(m => m.ToTestDisplayString()));
 
-            AssertEx.SetEqual(new[] {
-                "System.Runtime.CompilerServices.IStrongBox<System.Threading.Tasks.ManualResetValueTaskSourceLogic<System.Boolean>>",
-                "System.Runtime.CompilerServices.IAsyncStateMachine",
-                "System.IAsyncDisposable",
-                "System.Threading.Tasks.Sources.IValueTaskSource<System.Boolean>",
-                "System.Collections.Generic.IAsyncEnumerable<System.Int32>",
-                "System.Collections.Generic.IAsyncEnumerator<System.Int32>" },
-                type.InterfacesAndTheirBaseInterfacesNoUseSiteDiagnostics.Select(m => m.ToTestDisplayString()));
+                AssertEx.SetEqual(new[] {
+                    "System.Runtime.CompilerServices.IStrongBox<System.Threading.Tasks.ManualResetValueTaskSourceLogic<System.Boolean>>",
+                    "System.Runtime.CompilerServices.IAsyncStateMachine",
+                    "System.IAsyncDisposable",
+                    "System.Threading.Tasks.Sources.IValueTaskSource<System.Boolean>",
+                    "System.Collections.Generic.IAsyncEnumerable<System.Int32>",
+                    "System.Collections.Generic.IAsyncEnumerator<System.Int32>" },
+                    type.InterfacesAndTheirBaseInterfacesNoUseSiteDiagnostics.Select(m => m.ToTestDisplayString()));
+            }
         }
 
         [ConditionalFact(typeof(WindowsDesktopOnly))]
