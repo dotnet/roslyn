@@ -31,7 +31,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\EnumerableExtensions.cs" Link="Formatting\EnumerableExtensions.cs" />
-    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\ExceptionUtilities.cs" Link="ExceptionUtilities.cs" />
+    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\ExceptionUtilities.cs" Link="InternalUtilities\ExceptionUtilities.cs" />
+    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\Hash.cs" Link="InternalUtilities\Hash.cs" />
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\IReadOnlySet.cs" Link="InternalUtilities\IReadOnlySet.cs" />
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\KeyValuePairUtil.cs" Link="InternalUtilities\KeyValuePairUtil.cs" />
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\SpecializedCollections.cs" Link="InternalUtilities\SpecializedCollections.cs" />
@@ -53,6 +54,11 @@
     <Compile Include="..\..\..\Compilers\Core\Portable\Syntax\SyntaxTreeExtensions.cs" Link="InternalUtilities\SyntaxTreeExtensions.cs" />
     <Compile Include="..\..\..\Features\Core\Portable\Diagnostics\Analyzers\IDEDiagnosticIds.cs" Link="IDEDiagnosticIds.cs" />
     <Compile Include="..\..\..\Features\Core\Portable\Diagnostics\DiagnosticCustomTags.cs" Link="DiagnosticCustomTags.cs" />
+    <Compile Include="..\..\..\Workspaces\Core\Portable\CodeStyle\CodeStyleHelpers.cs" Link="Options\CodeStyleHelpers.cs" />
+    <Compile Include="..\..\..\Workspaces\Core\Portable\CodeStyle\CodeStyleOption.cs" Link="Options\CodeStyleOption.cs" />
+    <Compile Include="..\..\..\Workspaces\Core\Portable\CodeStyle\NotificationOption.cs" Link="Options\NotificationOption.cs" />
+    <Compile Include="..\..\..\Workspaces\Core\Portable\Diagnostics\Extensions_SharedWithCodeStyle.cs" Link="Options\Extensions_SharedWithCodeStyle.cs" />
+    <Compile Include="..\..\..\Workspaces\Core\Portable\Extensions\NotificationOptionExtensions.cs" Link="Options\NotificationOptionExtensions.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\AbstractSyntaxFormattingService.cs" Link="Formatting\AbstractSyntaxFormattingService.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\BottomUpBaseIndentationFinder.cs" Link="Formatting\BottomUpBaseIndentationFinder.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\ContextIntervalTree.cs" Link="Formatting\ContextIntervalTree.cs" />
@@ -131,7 +137,13 @@
     <Compile Include="..\..\..\Workspaces\Core\Portable\Options\EditorConfig\EditorConfigStorageLocation`1.cs" Link="Options\EditorConfigStorageLocation`1.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Options\EditorConfig\IEditorConfigStorageLocation.cs" Link="Options\IEditorConfigStorageLocation.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Options\EditorConfig\IEditorConfigStorageLocation2.cs" Link="Options\IEditorConfigStorageLocation2.cs" />
+    <Compile Include="..\..\..\Workspaces\Core\Portable\Options\IOption.cs" Link="Options\IOption.cs" />
+    <Compile Include="..\..\..\Workspaces\Core\Portable\Options\IOptionWithGroup.cs" Link="Options\IOptionWithGroup.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Options\LocalUserProfileStorageLocation.cs" Link="Options\LocalUserProfileStorageLocation.cs" />
+    <Compile Include="..\..\..\Workspaces\Core\Portable\Options\OptionGroup.cs" Link="Options\OptionGroup.cs" />
+    <Compile Include="..\..\..\Workspaces\Core\Portable\Options\OptionKey.cs" Link="Options\OptionKey.cs" />
+    <Compile Include="..\..\..\Workspaces\Core\Portable\Options\OptionStorageLocation.cs" Link="Options\OptionStorageLocation.cs" />
+    <Compile Include="..\..\..\Workspaces\Core\Portable\Options\Option`1.cs" Link="Options\Option`1.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Options\RoamingProfileStorageLocation.cs" Link="Options\RoamingProfileStorageLocation.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Shared\Collections\IIntervalIntrospector.cs" Link="Formatting\Context\IIntervalIntrospector.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Shared\Collections\IntervalTree`1.cs" Link="Formatting\Context\IntervalTree`1.cs" />

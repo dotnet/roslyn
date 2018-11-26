@@ -13,13 +13,11 @@ namespace Microsoft.CodeAnalysis.Options
         public static EditorConfigStorageLocation<int> ForInt32Option(string keyName)
             => new EditorConfigStorageLocation<int>(keyName, s_parseInt32, s_getInt32EditorConfigStringForValue);
 
-#if !CODE_STYLE
         public static EditorConfigStorageLocation<CodeStyleOption<bool>> ForBoolCodeStyleOption(string keyName)
             => new EditorConfigStorageLocation<CodeStyleOption<bool>>(keyName, s_parseBoolCodeStyleOption, s_getBoolCodeStyleOptionEditorConfigStringForValue);
 
         public static EditorConfigStorageLocation<CodeStyleOption<string>> ForStringCodeStyleOption(string keyName)
             => new EditorConfigStorageLocation<CodeStyleOption<string>>(keyName, s_parseStringCodeStyleOption, s_getStringCodeStyleOptionEditorConfigStringForValue);
-#endif
 
         private static readonly Func<string, Optional<bool>> s_parseBool = ParseBool;
         private static Optional<bool> ParseBool(string str)
@@ -33,7 +31,6 @@ namespace Microsoft.CodeAnalysis.Options
         private static readonly Func<int, string> s_getInt32EditorConfigStringForValue = GetInt32EditorConfigStringForValue;
         private static string GetInt32EditorConfigStringForValue(int value) => value.ToString().ToLowerInvariant();
 
-#if !CODE_STYLE
         private static readonly Func<string, Optional<CodeStyleOption<bool>>> s_parseBoolCodeStyleOption = ParseBoolCodeStyleOption;
         private static Optional<CodeStyleOption<bool>> ParseBoolCodeStyleOption(string str)
             => CodeStyleHelpers.TryParseBoolEditorConfigCodeStyleOption(str, out var result) ? result : new Optional<CodeStyleOption<bool>>();
@@ -48,6 +45,5 @@ namespace Microsoft.CodeAnalysis.Options
             => CodeStyleHelpers.TryParseStringEditorConfigCodeStyleOption(str, out var result) ? result : new Optional<CodeStyleOption<string>>();
         private static readonly Func<CodeStyleOption<string>, string> s_getStringCodeStyleOptionEditorConfigStringForValue = GetStringCodeStyleOptionEditorConfigStringForValue;
         private static string GetStringCodeStyleOptionEditorConfigStringForValue(CodeStyleOption<string> value) => value.Value.ToLowerInvariant();
-#endif
     }
 }
