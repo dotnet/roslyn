@@ -226,7 +226,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                 Assert.False(CompletionItemsContainsAny({"ClassLibrary1"}))
             End If
 
-            Return Task.FromResult(0)
+            Return Task.CompletedTask
         End Function
 
 #End Region

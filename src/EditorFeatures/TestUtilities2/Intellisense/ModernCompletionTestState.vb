@@ -138,9 +138,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
             ' If completionItems cannot be calculated in 5 seconds, no session exists.
             If Not block Then
-                Dim task1 = New Task(Sub()
-                                         Task.Delay(5000)
-                                     End Sub)
+                Dim task1 = Task.Delay(5000)
                 task1.Start()
 
                 Dim task2 = New Task(Sub()

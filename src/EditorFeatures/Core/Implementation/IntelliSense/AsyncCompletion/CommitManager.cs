@@ -134,6 +134,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             string filterText,
             CancellationToken cancellationToken)
         {
+            AssertIsForeground();
+
             bool includesCommitCharacter;
             if (!subjectBuffer.CheckEditAccess())
             {
@@ -158,11 +160,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 var mappedSpan = triggerSnapshotSpan.TranslateTo(subjectBuffer.CurrentSnapshot, SpanTrackingMode.EdgeInclusive);
 
                 edit.Replace(mappedSpan.Span, change.TextChange.NewText);
-                var updatedCurrentSnapshot = edit.Apply();
 
+                // The edit updates the snapshot however other extensions may make changes there.
+                // Therefore, it is safe to consume subjectBuffer.CurrentSnapshot for further calculations.
+                edit.Apply();
+                
                 if (change.NewPosition.HasValue)
                 {
-                    view.TryMoveCaretToAndEnsureVisible(new SnapshotPoint(updatedCurrentSnapshot, change.NewPosition.Value));
+                    view.TryMoveCaretToAndEnsureVisible(new SnapshotPoint(subjectBuffer.CurrentSnapshot, change.NewPosition.Value));
                 }
 
                 includesCommitCharacter = change.IncludesCommitCharacter;
@@ -170,8 +175,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 if (roslynItem.Rules.FormatOnCommit)
                 {
                     // refresh the document
-                    document = updatedCurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
-                    var spanToFormat = triggerSnapshotSpan.TranslateTo(updatedCurrentSnapshot, SpanTrackingMode.EdgeInclusive);
+                    document = subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+                    var spanToFormat = triggerSnapshotSpan.TranslateTo(subjectBuffer.CurrentSnapshot, SpanTrackingMode.EdgeInclusive);
                     var formattingService = document?.GetLanguageService<IEditorFormattingService>();
 
                     if (formattingService != null)
@@ -243,7 +248,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             return false;
         }
 
-        internal static bool SendEnterThroughToEditor(CompletionRules rules, CompletionItem item, string textTypedSoFar)
+        internal static bool SendEnterThroughToEditor(CompletionRules rules, RoslynCompletionItem item, string textTypedSoFar)
         {
             var rule = item.Rules.EnterKeyRule;
             if (rule == EnterKeyRule.Default)

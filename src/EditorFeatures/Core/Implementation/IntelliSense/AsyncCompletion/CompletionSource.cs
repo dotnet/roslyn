@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             }
 
             var syntaxFactsOpt = document.GetLanguageService<ISyntaxFactsService>();
-            // Snippets are included if the user types: id?&lt;tab&gt;   
+            // Snippets are included if the user types: <quesiton><tab>
             // If at least one condition for snippets do not hold, bail out.
             if (syntaxFactsOpt == null ||
                 caretPoint < 3 ||
