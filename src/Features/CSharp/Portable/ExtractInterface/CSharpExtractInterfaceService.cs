@@ -70,9 +70,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractInterface
         }
 
         internal override Solution UpdateMembersWithExplicitImplementations(
-            Solution unformattedSolution, IReadOnlyList<DocumentId> _1, 
-            INamedTypeSymbol _2, INamedTypeSymbol _3, 
-            IEnumerable<ISymbol> _4, Dictionary<ISymbol, SyntaxAnnotation> _5, CancellationToken _6)
+            Solution unformattedSolution, IReadOnlyList<DocumentId> documentIds, 
+            INamedTypeSymbol extractedInterface, INamedTypeSymbol typeToExtractFrom, 
+            IEnumerable<ISymbol> includedMembers, Dictionary<ISymbol, SyntaxAnnotation> symbolToDeclarationMap, 
+            CancellationToken cancellationToken)
         {
             // In C#, member implementations do not always need
             // to be explicitly added. It's safe enough to return
