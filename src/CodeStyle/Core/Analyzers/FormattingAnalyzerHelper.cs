@@ -2,20 +2,26 @@
 
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
+
+#if CODE_STYLE
+using FormatterState = Microsoft.CodeAnalysis.Formatting.ISyntaxFormattingService;
+#else
+using Microsoft.CodeAnalysis.Options;
+using FormatterState = Microsoft.CodeAnalysis.Workspace;
+#endif
 
 namespace Microsoft.CodeAnalysis.CodeStyle
 {
     internal static class FormattingAnalyzerHelper
     {
-        internal static void AnalyzeSyntaxTree(SyntaxTreeAnalysisContext context, ISyntaxFormattingService syntaxFormattingService, DiagnosticDescriptor descriptor, OptionSet options)
+        internal static void AnalyzeSyntaxTree(SyntaxTreeAnalysisContext context, FormatterState formatterState, DiagnosticDescriptor descriptor, OptionSet options)
         {
             var tree = context.Tree;
             var cancellationToken = context.CancellationToken;
 
             var oldText = tree.GetText(cancellationToken);
-            var formattingChanges = Formatter.GetFormattedTextChanges(tree.GetRoot(cancellationToken), syntaxFormattingService, options, cancellationToken);
+            var formattingChanges = Formatter.GetFormattedTextChanges(tree.GetRoot(cancellationToken), formatterState, options, cancellationToken);
 
             // formattingChanges could include changes that impact a larger section of the original document than
             // necessary. Before reporting diagnostics, process the changes to minimize the span of individual
