@@ -344,7 +344,7 @@ $@"class C
     {
         if (p > 0)
         {
-            var unused = M2();
+            var unused1 = M2();
         }
         else
         {

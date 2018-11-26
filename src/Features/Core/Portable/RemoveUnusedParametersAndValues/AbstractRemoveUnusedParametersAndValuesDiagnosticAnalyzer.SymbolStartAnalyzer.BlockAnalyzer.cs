@@ -301,8 +301,8 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                         }
 
                         // Now perform the slower, precise, CFG based dataflow analysis to identify the actual unused symbol writes.
-                        var cfg = context.GetControlFlowGraph(operationBlock);
-                        var symbolUsageResult = SymbolUsageAnalysis.Run(cfg, context.OwningSymbol, context.CancellationToken);
+                        var controlFlowGraph = context.GetControlFlowGraph(operationBlock);
+                        var symbolUsageResult = SymbolUsageAnalysis.Run(controlFlowGraph, context.OwningSymbol, context.CancellationToken);
                         symbolUsageResultsBuilder.Add(symbolUsageResult);
 
                         foreach (var (symbol, unreadWriteOperation) in symbolUsageResult.GetUnreadSymbolWrites())

@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                 switch (preference)
                 {
                     case UnusedValuePreference.DiscardVariable:
-                        if (IsForEachIterationVariableDiagnostic(diagnostic, context.Document))
+                        if (IsForEachIterationVariableDiagnostic(diagnostic, context.Document, context.CancellationToken))
                         {
                             // Do not offer a fix to replace unused foreach iteration variable with discard.
                             // User should probably replace it with a for loop based on the collection length.
@@ -137,12 +137,12 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
             return Task.CompletedTask;
         }
 
-        private static bool IsForEachIterationVariableDiagnostic(Diagnostic diagnostic, Document document)
+        private static bool IsForEachIterationVariableDiagnostic(Diagnostic diagnostic, Document document, CancellationToken cancellationToken)
         {
             // Do not offer a fix to replace unused foreach iteration variable with discard.
             // User should probably replace it with a for loop based on the collection length.
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-            return syntaxFacts.IsForEachStatement(diagnostic.Location.FindNode(CancellationToken.None));
+            return syntaxFacts.IsForEachStatement(diagnostic.Location.FindNode(cancellationToken));
         }
 
         private static string GetEquivalenceKey(UnusedValuePreference preference, bool isRemovableAssignment)
@@ -167,10 +167,10 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
         private static bool NeedsToMoveNewLocalDeclarationsNearReference(string diagnosticId)
             => diagnosticId == IDEDiagnosticIds.ValueAssignedIsUnusedDiagnosticId;
 
-        protected override bool IncludeDiagnosticDuringFixAll(FixAllState fixAllState, Diagnostic diagnostic)
+        protected override bool IncludeDiagnosticDuringFixAll(FixAllState fixAllState, Diagnostic diagnostic, CancellationToken cancellationToken)
         {
             return fixAllState.CodeActionEquivalenceKey == GetEquivalenceKey(diagnostic) &&
-                !IsForEachIterationVariableDiagnostic(diagnostic, fixAllState.Document);
+                !IsForEachIterationVariableDiagnostic(diagnostic, fixAllState.Document, cancellationToken);
         }
 
         private IEnumerable<IGrouping<SyntaxNode, Diagnostic>> GetDiagnosticsGroupedByMember(
@@ -221,6 +221,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
             document = await PreprocessDocumentAsync(document, diagnostics, cancellationToken).ConfigureAwait(false);
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+            var semanticFacts = document.GetLanguageService<ISemanticFactsService>();
 
             var originalEditor = editor;
             editor = new SyntaxEditor(root, editor.Generator);
@@ -248,7 +249,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                 foreach (var diagnosticsToFix in diagnosticsGroupedByMember)
                 {
                     var orderedDiagnostics = diagnosticsToFix.OrderBy(d => d.Location.SourceSpan.Start);
-                    using (var nameGenerator = new UniqueVariableNameGenerator(semanticModel, syntaxFacts))
+                    using (var nameGenerator = new UniqueVariableNameGenerator(diagnosticsToFix.Key, semanticModel, semanticFacts, cancellationToken))
                     {
                         FixAll(diagnosticId, orderedDiagnostics, semanticModel, root, preference,
                             removeAssignments, nameGenerator, editor, syntaxFacts, cancellationToken);
@@ -439,10 +440,10 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                         // For example, "x = MethodCall();" is replaced with "_ = MethodCall();" or "var unused = MethodCall();"
 
                         // Replace the flagged variable's indentifier token with new named, based on user's preference.
-                        newLocalNameOpt = preference == UnusedValuePreference.DiscardVariable
-                            ? AbstractRemoveUnusedParametersAndValuesDiagnosticAnalyzer.DiscardVariableName
+                        var newNameToken = preference == UnusedValuePreference.DiscardVariable
+                            ? editor.Generator.Identifier(AbstractRemoveUnusedParametersAndValuesDiagnosticAnalyzer.DiscardVariableName)
                             : nameGenerator.GenerateUniqueNameAtSpanStart(node);
-                        var newNameToken = editor.Generator.Identifier(newLocalNameOpt);
+                        newLocalNameOpt = newNameToken.ValueText;
                         var newNameNode = TryUpdateNameForFlaggedNode(node, newNameToken);
                         if (newNameNode == null)
                         {
@@ -761,50 +762,31 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
 
         protected sealed class UniqueVariableNameGenerator: IDisposable
         {
+            private readonly SyntaxNode _memberDeclaration;
             private readonly SemanticModel _semanticModel;
-            private readonly ISyntaxFactsService _syntaxFacts;
+            private readonly ISemanticFactsService _semanticFacts;
+            private readonly CancellationToken _cancellationToken;
             private readonly PooledHashSet<string> _usedNames;
 
-            public UniqueVariableNameGenerator(SemanticModel semanticModel, ISyntaxFactsService syntaxFacts)
+            public UniqueVariableNameGenerator(
+                SyntaxNode memberDeclaration,
+                SemanticModel semanticModel,
+                ISemanticFactsService semanticFacts,
+                CancellationToken cancellationToken)
             {
+                _memberDeclaration = memberDeclaration;
                 _semanticModel = semanticModel;
-                _syntaxFacts = syntaxFacts;
+                _semanticFacts = semanticFacts;
+                _cancellationToken = cancellationToken;
+
                 _usedNames = PooledHashSet<string>.GetInstance();
             }
 
-            public string GenerateUniqueNameAtSpanStart(SyntaxNode node)
+            public SyntaxToken GenerateUniqueNameAtSpanStart(SyntaxNode node)
             {
-                var localsInNestedScope = PooledHashSet<string>.GetInstance();
-                try
-                {
-                    // Add local names for all variable declarations in nested scopes for this node.
-                    // This helps prevent name clashes with locals declared in nested block scopes.
-                    AddLocalsInNestedScope(node, localsInNestedScope);
-
-                    var name = NameGenerator.GenerateUniqueName("unused",
-                        n => !_usedNames.Contains(n) &&
-                             !localsInNestedScope.Contains(n) &&
-                             _semanticModel.LookupSymbols(node.SpanStart, name: n).IsEmpty);
-                    _usedNames.Add(name);
-                    return name;
-                }
-                finally
-                {
-                    localsInNestedScope.Free();
-                }
-            }
-
-            private void AddLocalsInNestedScope(SyntaxNode node, PooledHashSet<string> localsInNestedScope)
-            {
-                var blockAncestor = node.FirstAncestorOrSelf<SyntaxNode>(n => _syntaxFacts.IsExecutableBlock(n));
-                if (blockAncestor != null)
-                {
-                    foreach (var variableDeclarator in blockAncestor.DescendantNodes().OfType<TVariableDeclaratorSyntax>())
-                    {
-                        var name = _syntaxFacts.GetIdentifierOfVariableDeclarator(variableDeclarator).ValueText;
-                        localsInNestedScope.Add(name);
-                    }
-                }
+                var nameToken = _semanticFacts.GenerateUniqueName(_semanticModel, node, _memberDeclaration, "unused", _usedNames, _cancellationToken);
+                _usedNames.Add(nameToken.ValueText);
+                return nameToken;
             }
 
             public void Dispose() => _usedNames.Free();

@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 // Ensure that diagnostics for this document are always in document location
                 // order.  This provides a consistent and deterministic order for fixers
                 // that want to update a document.
-                var filteredDiagnostics = diagnostics.WhereAsArray(d => _codeFixProvider.IncludeDiagnosticDuringFixAll(fixAllState, d))
+                var filteredDiagnostics = diagnostics.WhereAsArray(d => _codeFixProvider.IncludeDiagnosticDuringFixAll(fixAllState, d, cancellationToken))
                                                      .Sort((d1, d2) => d1.Location.SourceSpan.Start - d2.Location.SourceSpan.Start);
                 return _codeFixProvider.FixAllAsync(document, filteredDiagnostics, cancellationToken);
             }
