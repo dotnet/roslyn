@@ -2032,8 +2032,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             method = VisitArguments(node, arguments, refKindsOpt, method.Parameters, node.ArgsToParamsOpt,
                 node.Expanded, node.InvokedAsExtensionMethod, conversions, method);
 
-            UpdateStateForCall(node);
-
             if (method.MethodKind == MethodKind.LocalFunction)
             {
                 var localFunc = (LocalFunctionSymbol)method.OriginalDefinition;
