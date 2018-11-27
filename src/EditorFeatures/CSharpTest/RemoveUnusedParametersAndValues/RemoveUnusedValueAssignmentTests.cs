@@ -271,6 +271,31 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedParametersA
         [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         [InlineData(nameof(PreferDiscard))]
         [InlineData(nameof(PreferUnusedLocal))]
+        public async Task Initialization_NonConstantValue_DefaultExpression(string optionName)
+        {
+            await TestInRegularAndScriptAsync(
+@"struct C
+{
+    C M()
+    {
+        C [|c|] = default(C);
+        c = new C();
+        return c;
+    }
+}",
+@"struct C
+{
+    C M()
+    {
+        C c = new C();
+        return c;
+    }
+}", optionName);
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        [InlineData(nameof(PreferDiscard))]
+        [InlineData(nameof(PreferUnusedLocal))]
         public async Task Initialization_NonConstantValue_FieldReferenceWithThisReceiver(string optionName)
         {
             await TestInRegularAndScriptAsync(

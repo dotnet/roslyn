@@ -405,16 +405,20 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
 
                             switch (assignment.Value.Kind)
                             {
-                                // Parameter/local references have no side effects and can be removed.
                                 case OperationKind.ParameterReference:
                                 case OperationKind.LocalReference:
+                                    // Parameter/local references have no side effects and can be removed.
                                     return true;
 
-                                // Field references with null instance (static fields) or 'this' or 'Me' instance can
-                                // have no side effects and can be removed.
                                 case OperationKind.FieldReference:
+                                    // Field references with null instance (static fields) or 'this' or 'Me' instance can
+                                    // have no side effects and can be removed.
                                     var fieldReference = (IFieldReferenceOperation)assignment.Value;
                                     return fieldReference.Instance == null || fieldReference.Instance.Kind == OperationKind.InstanceReference;
+
+                                case OperationKind.DefaultValue:
+                                    // default value expressions have no side-effects.
+                                    return true;
                             }
                         }
                         else if (unusedSymbolWriteOperation.Parent is IIncrementOrDecrementOperation)
