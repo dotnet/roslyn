@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.PullMemberUp.QuickAction
     {
         private static ClassPullerWithQuickAction s_puller;
 
-        internal static ClassPullerWithQuickAction GetInstance
+        internal static ClassPullerWithQuickAction Instance
         {
             get
             {

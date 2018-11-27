@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.  
 
 using System.Collections.Immutable;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -21,7 +20,7 @@ namespace Microsoft.CodeAnalysis.PullMemberUp.QuickAction
         /// </summary>
         protected abstract bool IsSelectedMemberDeclarationAlreadyInDestination(INamedTypeSymbol destination, ISymbol symbol);
 
-        internal async Task<CodeAction> TryComputeRefactoring(
+        internal CodeAction TryComputeRefactoring(
             Document document,
             ISymbol selectedMember,
             INamedTypeSymbol destinationType,
@@ -34,32 +33,23 @@ namespace Microsoft.CodeAnalysis.PullMemberUp.QuickAction
                 return default;
             }
 
-            return await TryGetCodeActionAsync(result, document, cancellationToken);
+            return TryGetCodeAction(result, document, cancellationToken);
         }
 
-        internal async Task<CodeAction> TryGetCodeActionAsync(
+        internal CodeAction TryGetCodeAction(
             PullMembersUpAnalysisResult result,
             Document contextDocument,
             CancellationToken cancellationToken)
         { 
-            var codeGenerationService = contextDocument.Project.LanguageServices.GetRequiredService<ICodeGenerationService>();
-            var destinationNodeSyntax = await codeGenerationService.FindMostRelevantNameSpaceOrTypeDeclarationAsync(
-                contextDocument.Project.Solution, result.Destination, default, cancellationToken).ConfigureAwait(false);
-
-            if (destinationNodeSyntax == null)
-            {
-                return null;
-            }
-
             if (result.Destination.TypeKind == TypeKind.Interface)
             {
-                return PullMembersIntoInterface(result, contextDocument, codeGenerationService);
+                return PullMembersIntoInterface(result, contextDocument);
             }
             else if (result.Destination.TypeKind == TypeKind.Class)
             {
                 return new SolutionChangeAction(
                     string.Format(FeaturesResources.Add_to_0, result.Destination),
-                    token => PullMembersUpAsync(result, contextDocument, destinationNodeSyntax, token));
+                    token => PullMembersUpAsync(result, contextDocument, token));
             }
             else
             {
@@ -70,12 +60,13 @@ namespace Microsoft.CodeAnalysis.PullMemberUp.QuickAction
         private async Task<Solution> PullMembersUpAsync(
             PullMembersUpAnalysisResult result,
             Document contextDocument,
-            SyntaxNode destinationNodeSyntax,
             CancellationToken cancellationToken)
         {
             var solution = contextDocument.Project.Solution;
             var solutionEditor = new SolutionEditor(solution);
             var codeGenerationService = contextDocument.Project.LanguageServices.GetRequiredService<ICodeGenerationService>();
+            var destinationNodeSyntax = await codeGenerationService.FindMostRelevantNameSpaceOrTypeDeclarationAsync(
+                contextDocument.Project.Solution, result.Destination, default, cancellationToken).ConfigureAwait(false);
             var (editorMap, syntaxMap) = await InitializeEditorMapsAndSyntaxMapAsync(result, destinationNodeSyntax, solutionEditor, solution, cancellationToken).ConfigureAwait(false);
             return PullMembersIntoClass(
                 result, codeGenerationService, destinationNodeSyntax,
@@ -84,9 +75,9 @@ namespace Microsoft.CodeAnalysis.PullMemberUp.QuickAction
 
         private CodeAction PullMembersIntoInterface(
             PullMembersUpAnalysisResult result,
-            Document contextDocument,
-            ICodeGenerationService codeGenerationService)
+            Document contextDocument)
         {
+            var codeGenerationService = contextDocument.Project.LanguageServices.GetRequiredService<ICodeGenerationService>();
             var symbolsToPullUp = result.MembersAnalysisResults.
                 SelectAsArray(analysisResult =>
                 {

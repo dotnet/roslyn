@@ -15,13 +15,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.PullMemberUp
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
         => new CSharpPullMemberUpCodeRefactoringProvider();
 
-        private async Task TestNoRefactoringProvidedAsync(string initialMarkUp)
-        {
-            var workspace = CreateWorkspaceFromOptions(initialMarkUp, default);
-            var (codeActionArray, _) = await GetCodeActionsWorkerAsync(workspace, default);
-            Assert.True(codeActionArray.IsEmpty);
-        }
-
         #region destination interface
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
         public async Task TestNoRefactoringProvidedWhenPullFieldToInterface()
@@ -39,7 +32,7 @@ namespace PushUpTest
     }
 }";
 
-            await TestNoRefactoringProvidedAsync(testText);
+            await TestMissingAsync(testText);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
@@ -105,10 +98,10 @@ namespace PushUpTest
         public event EventHandler Event1, Eve[||]nt2, Event3;
     }
 }";
-            await TestNoRefactoringProvidedAsync(methodTest);
-            await TestNoRefactoringProvidedAsync(propertyTest1);
-            await TestNoRefactoringProvidedAsync(propertyTest2);
-            await TestNoRefactoringProvidedAsync(eventTest);
+            await TestMissingAsync(methodTest);
+            await TestMissingAsync(propertyTest1);
+            await TestMissingAsync(propertyTest2);
+            await TestMissingAsync(eventTest);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
@@ -561,10 +554,10 @@ namespace PushUpTest
         public int y[||]ou = 10086;
     }
 }";
-            await TestNoRefactoringProvidedAsync(methodTest);
-            await TestNoRefactoringProvidedAsync(propertyTest);
-            await TestNoRefactoringProvidedAsync(eventTest);
-            await TestNoRefactoringProvidedAsync(fieldTest);
+            await TestMissingAsync(methodTest);
+            await TestMissingAsync(propertyTest);
+            await TestMissingAsync(eventTest);
+            await TestMissingAsync(fieldTest);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
@@ -925,7 +918,7 @@ Public Class VBClass
 End Class
 "))).ToString();
 
-            await TestNoRefactoringProvidedAsync(input);
+            await TestMissingAsync(input);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
@@ -954,7 +947,7 @@ Public Interface VBInterface
 End Interface
 "))).ToString();
 
-            await TestNoRefactoringProvidedAsync(input);
+            await TestMissingAsync(input);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
@@ -980,7 +973,7 @@ Public Class VBClass
 End Class
 "))).ToString();
 
-            await TestNoRefactoringProvidedAsync(input);
+            await TestMissingAsync(input);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
@@ -1010,7 +1003,7 @@ Public Class VBClass
 End Class
 "))).ToString();
 
-            await TestNoRefactoringProvidedAsync(input);
+            await TestMissingAsync(input);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
@@ -1040,7 +1033,7 @@ Public Interface VBInterface
 End Interface
 "))).ToString();
 
-            await TestNoRefactoringProvidedAsync(input);
+            await TestMissingAsync(input);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
@@ -1066,7 +1059,7 @@ Public Class VBClass
 End Class
 "))).ToString();
 
-            await TestNoRefactoringProvidedAsync(input);
+            await TestMissingAsync(input);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
@@ -1092,7 +1085,7 @@ Public Interface VBInterface
 End Interface
 "))).ToString();
 
-            await TestNoRefactoringProvidedAsync(input);
+            await TestMissingAsync(input);
         }
         
         #endregion cross language

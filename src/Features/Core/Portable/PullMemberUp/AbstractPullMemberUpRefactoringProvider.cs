@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
                 return;
             }
             
-            await PullMemberUpViaQuickAction(context, selectedMember, allDestinations);
+            PullMemberUpViaQuickAction(context, selectedMember, allDestinations);
         }
 
         private ImmutableArray<INamedTypeSymbol> FindAllValidDestinations(
@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
                 !solution.GetDocument(location.SourceTree).IsGeneratedCode(cancellationToken));
         }
 
-        private async Task PullMemberUpViaQuickAction(
+        private void PullMemberUpViaQuickAction(
             CodeRefactoringContext context,
             ISymbol selectedMember,
             ImmutableArray<INamedTypeSymbol> destinations)
@@ -97,9 +97,9 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
             foreach (var destination in destinations)
             {
                 var puller = destination.TypeKind == TypeKind.Interface
-                    ? InterfacePullerWithQuickAction.GetInstance as AbstractMemberPullerWithQuickAction
-                    : ClassPullerWithQuickAction.GetInstance;
-                var action = await puller.TryComputeRefactoring(context.Document, selectedMember, destination, context.CancellationToken);
+                    ? InterfacePullerWithQuickAction.Instance as AbstractMemberPullerWithQuickAction
+                    : ClassPullerWithQuickAction.Instance;
+                var action = puller.TryComputeRefactoring(context.Document, selectedMember, destination, context.CancellationToken);
                 if (action != null)
                 {
                     context.RegisterRefactoring(action);

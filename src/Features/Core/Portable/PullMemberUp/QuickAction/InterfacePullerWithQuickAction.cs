@@ -8,7 +8,7 @@ namespace Microsoft.CodeAnalysis.PullMemberUp.QuickAction
     {
         private static InterfacePullerWithQuickAction s_puller;
 
-        internal static InterfacePullerWithQuickAction GetInstance
+        internal static InterfacePullerWithQuickAction Instance
         {
             get
             {
