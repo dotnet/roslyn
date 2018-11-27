@@ -38,8 +38,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateEnumMember
                 var value = semanticFacts.LastEnumValueHasInitializer(_state.TypeToGenerateIn)
                     ? EnumValueUtilities.GetNextEnumValue(_state.TypeToGenerateIn, cancellationToken)
                     : null;
-
-                var syntaxTree = await _document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+                _ = await _document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
                 var result = await codeGenerator.AddFieldAsync(
                     _document.Project.Solution,
                     _state.TypeToGenerateIn,

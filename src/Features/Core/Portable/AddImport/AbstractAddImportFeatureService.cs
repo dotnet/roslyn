@@ -70,8 +70,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                     packageSources
                     },
                     cancellationToken).ConfigureAwait(false);
-
-                var documentOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+                _ = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
 
                 if (result != null)
                 {
@@ -544,7 +543,7 @@ namespace Microsoft.CodeAnalysis.AddImport
 
         private ITypeSymbol GetAwaitInfo(SemanticModel semanticModel, ISyntaxFactsService syntaxFactsService, SyntaxNode node, CancellationToken cancellationToken)
         {
-            var awaitExpression = FirstAwaitExpressionAncestor(syntaxFactsService, node);
+            _ = FirstAwaitExpressionAncestor(syntaxFactsService, node);
 
             var innerExpression = syntaxFactsService.GetExpressionOfAwaitExpression(node);
 

@@ -47,18 +47,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     return;
                 }
 
-                analyzerMap.TryRemove(key, out var entry);
+                analyzerMap.TryRemove(key, out var _);
 
                 if (analyzerMap.IsEmpty)
                 {
-                    s_map.TryRemove(analyzer, out analyzerMap);
+                    s_map.TryRemove(analyzer, out _);
                 }
             }
 
             public static void DropCache(DiagnosticAnalyzer analyzer)
             {
                 // drop any cache related to given analyzer
-                s_map.TryRemove(analyzer, out var analyzerMap);
+                s_map.TryRemove(analyzer, out var _);
             }
 
             // make sure key is either documentId or projectId

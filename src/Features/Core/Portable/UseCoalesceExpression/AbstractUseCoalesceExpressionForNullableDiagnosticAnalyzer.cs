@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.UseCoalesceExpression
             }
 
             syntaxFacts.GetPartsOfMemberAccessExpression(conditionMemberAccess, out var conditionExpression, out var conditionSimpleName);
-            syntaxFacts.GetNameAndArityOfSimpleName(conditionSimpleName, out var conditionName, out var unused);
+            syntaxFacts.GetNameAndArityOfSimpleName(conditionSimpleName, out var conditionName, out var _);
 
             if (conditionName != nameof(Nullable<int>.HasValue))
             {
@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.UseCoalesceExpression
             }
 
             syntaxFacts.GetPartsOfMemberAccessExpression(whenPartMemberAccess, out var whenPartExpression, out var whenPartSimpleName);
-            syntaxFacts.GetNameAndArityOfSimpleName(whenPartSimpleName, out var whenPartName, out unused);
+            syntaxFacts.GetNameAndArityOfSimpleName(whenPartSimpleName, out var whenPartName, out _);
 
             if (whenPartName != nameof(Nullable<int>.Value))
             {

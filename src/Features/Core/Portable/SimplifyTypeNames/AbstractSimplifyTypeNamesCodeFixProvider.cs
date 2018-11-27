@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.SimplifyTypeNames
             diagnosticId = null;
             if (!_analyzer.IsCandidate(node) ||
                 !_analyzer.CanSimplifyTypeNameExpression(
-                    model, node, optionSet, out var issueSpan, out diagnosticId, out var inDeclaration, cancellationToken))
+                    model, node, optionSet, out var issueSpan, out diagnosticId, out var _, cancellationToken))
             {
                 return false;
             }

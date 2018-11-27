@@ -264,7 +264,7 @@ namespace Microsoft.CodeAnalysis.Differencing
 
                     // start point
                     int yStart = currentV[kPrev];
-                    int xStart = yStart + kPrev;
+                    _ = yStart + kPrev;
 
                     // mid point
                     int yMid = right ? yStart : yStart + 1;

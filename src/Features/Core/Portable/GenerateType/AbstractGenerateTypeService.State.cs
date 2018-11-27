@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
 
                 this.SimpleName = (TSimpleNameSyntax)node;
                 var syntaxFacts = semanticDocument.Document.GetLanguageService<ISyntaxFactsService>();
-                syntaxFacts.GetNameAndArityOfSimpleName(this.SimpleName, out var name, out var arity);
+                syntaxFacts.GetNameAndArityOfSimpleName(this.SimpleName, out var name, out var _);
 
                 this.Name = name;
                 this.NameIsVerbatim = syntaxFacts.IsVerbatimIdentifier(this.SimpleName.GetFirstToken());

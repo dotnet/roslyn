@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 bool inNewFile,
                 bool isNested)
             {
-                var finalName = GetTypeName(state);
+                _ = GetTypeName(state);
 
                 if (inNewFile)
                 {
@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 {
                     if (_intoNamespace)
                     {
-                        var namespaceToGenerateIn = string.IsNullOrEmpty(_state.NamespaceToGenerateInOpt) ? FeaturesResources.Global_Namespace : _state.NamespaceToGenerateInOpt;
+                        _ = string.IsNullOrEmpty(_state.NamespaceToGenerateInOpt) ? FeaturesResources.Global_Namespace : _state.NamespaceToGenerateInOpt;
                         return FormatDisplayText(_state, _inNewFile, isNested: false);
                     }
                     else
@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                     return true;
                 }
 
-                TypeKindOptions typeKindValue = TypeKindOptions.None;
+                TypeKindOptions typeKindValue;
                 if (_service.TryGetBaseList(state.NameOrMemberAccessExpression, out typeKindValue) || _service.TryGetBaseList(state.SimpleName, out typeKindValue))
                 {
                     typeKindValueFinal = typeKindValue;

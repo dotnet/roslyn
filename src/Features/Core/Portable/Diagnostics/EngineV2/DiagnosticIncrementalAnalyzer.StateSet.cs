@@ -225,7 +225,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             {
                 // remove active file state for removed document
                 var removed = false;
-                if (_activeFileStates.TryRemove(id, out var activeFileState))
+                if (_activeFileStates.TryRemove(id, out var _))
                 {
                     removed = true;
                 }

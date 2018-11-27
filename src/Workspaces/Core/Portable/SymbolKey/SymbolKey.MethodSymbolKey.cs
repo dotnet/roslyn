@@ -148,8 +148,8 @@ namespace Microsoft.CodeAnalysis
                     // Push an null-method to our stack so that any method-type-parameters
                     // can at least be read (if not resolved) properly.
                     reader.PushMethod(methodOpt: null);
-                    var parameterTypeResolutions = reader.ReadSymbolKeyArray();
-                    var returnType = GetFirstSymbol<ITypeSymbol>(reader.ReadSymbolKey());
+                    _ = reader.ReadSymbolKeyArray();
+                    _ = GetFirstSymbol<ITypeSymbol>(reader.ReadSymbolKey());
                     reader.PopMethod(methodOpt: null);
                 }
 

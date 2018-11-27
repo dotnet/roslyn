@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.AddPackage
 
         public override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            var cancellationToken = context.CancellationToken;
+            _ = context.CancellationToken;
             var assemblyName = GetAssemblyName(context.Diagnostics[0].Id);
 
             if (assemblyName != null)

@@ -238,8 +238,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                 var provider = _document.Project.Solution.Workspace.Services.GetLanguageServices(_state.TypeToGenerateIn.Language);
                 var syntaxFactory = provider.GetService<SyntaxGenerator>();
                 var codeGenerationService = provider.GetService<ICodeGenerationService>();
-
-                var syntaxTree = _document.SyntaxTree;
+                _ = _document.SyntaxTree;
                 var (fields, constructor) = syntaxFactory.CreateFieldDelegatingConstructor(
                     _document.SemanticModel.Compilation, 
                     _state.TypeToGenerateIn.Name, 

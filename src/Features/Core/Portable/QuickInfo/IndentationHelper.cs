@@ -32,14 +32,12 @@ namespace Microsoft.CodeAnalysis.QuickInfo
                 // We need to figure out the shortest indentation level of the exposed lines.  We'll
                 // then remove that indentation from all lines.
                 var indentationColumn = DetermineIndentationColumn(text, classifiedSpans, tabSize);
-
-                string spanClassificationType = null;
                 var adjustedClassifiedSpans = new List<ClassifiedSpan>();
 
                 for (var i = 0; i < classifiedSpans.Length; i++)
                 {
                     var classifiedSpan = classifiedSpans[i];
-                    spanClassificationType = classifiedSpan.ClassificationType;
+                    var spanClassificationType = classifiedSpan.ClassificationType;
                     var span = classifiedSpan.TextSpan;
 
                     var startLineNumber = text.Lines.GetLineFromPosition(span.Start).LineNumber;

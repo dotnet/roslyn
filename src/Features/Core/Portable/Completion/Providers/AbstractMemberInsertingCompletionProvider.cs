@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             TextLine line,
             CancellationToken cancellationToken)
         {
-            var syntaxFactory = document.GetLanguageService<SyntaxGenerator>();
+            _ = document.GetLanguageService<SyntaxGenerator>();
             var codeGenService = document.GetLanguageService<ICodeGenerationService>();
 
             // Resolve member and type in our new, forked, solution

@@ -60,8 +60,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var uninitializedMembers = members.Where(m => !alreadyTypedMembers.Contains(m.Name));
 
             uninitializedMembers = uninitializedMembers.Where(m => m.IsEditorBrowsable(document.ShouldHideAdvancedMembers(), semanticModel.Compilation));
-
-            var text = await semanticModel.SyntaxTree.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            _ = await semanticModel.SyntaxTree.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
             foreach (var uninitializedMember in uninitializedMembers)
             {

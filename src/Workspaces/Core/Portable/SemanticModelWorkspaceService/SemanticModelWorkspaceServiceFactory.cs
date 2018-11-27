@@ -164,7 +164,7 @@ namespace Microsoft.CodeAnalysis.SemanticModelWorkspaceService
             {
                 var versionMap = GetVersionMapFromBranch(project.Solution.Workspace, project.Solution.BranchId);
                 if (!AlreadyHasLatestCompilationSet(versionMap, project.Id, version, out var compilationSet) ||
-                    !compilationSet.Compilation.TryGetValue(out var compilation))
+                    !compilationSet.Compilation.TryGetValue(out var _))
                 {
                     var newSet = await CompilationSet.CreateAsync(project, compilationSet ?? primarySet, cancellationToken).ConfigureAwait(false);
 

@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
         }
 
         protected static bool IsFieldOrPropertyAssignment(IOperation statement, INamedTypeSymbol containingType, out IAssignmentOperation assignmentExpression)
-            => IsFieldOrPropertyAssignment(statement, containingType, out assignmentExpression, out var fieldOrProperty);
+            => IsFieldOrPropertyAssignment(statement, containingType, out assignmentExpression, out var _);
 
         protected static bool IsFieldOrPropertyAssignment(
             IOperation statement, INamedTypeSymbol containingType, 
@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
         }
 
         protected static bool IsFieldOrPropertyReference(IOperation operation, INamedTypeSymbol containingType)
-            => IsFieldOrPropertyAssignment(operation, containingType, out var fieldOrProperty);
+            => IsFieldOrPropertyAssignment(operation, containingType, out var _);
 
         protected static bool IsFieldOrPropertyReference(
             IOperation operation, INamedTypeSymbol containingType, out ISymbol fieldOrProperty)

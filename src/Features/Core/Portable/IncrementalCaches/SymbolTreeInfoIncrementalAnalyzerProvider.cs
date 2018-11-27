@@ -285,7 +285,7 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
 
             public override void RemoveProject(ProjectId projectId)
             {
-                _projectToInfo.TryRemove(projectId, out var info);
+                _projectToInfo.TryRemove(projectId, out var _);
 
                 RemoveMetadataReferences(projectId);
             }

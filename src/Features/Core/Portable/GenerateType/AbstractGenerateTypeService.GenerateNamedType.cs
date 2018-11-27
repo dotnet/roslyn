@@ -203,7 +203,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 IList<TArgumentSyntax> argumentList, ArrayBuilder<ISymbol> members, GenerateTypeOptionsResult options = null)
             {
                 var factory = _semanticDocument.Document.GetLanguageService<SyntaxGenerator>();
-                var syntaxFactsService = _semanticDocument.Document.GetLanguageService<ISyntaxFactsService>();
+                _ = _semanticDocument.Document.GetLanguageService<ISyntaxFactsService>();
 
                 var availableTypeParameters = _service.GetAvailableTypeParameters(_state, _semanticDocument.SemanticModel, _intoNamespace, _cancellationToken);
                 var parameterTypes = GetArgumentTypes(argumentList);

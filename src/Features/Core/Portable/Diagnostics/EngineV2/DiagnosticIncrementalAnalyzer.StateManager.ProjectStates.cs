@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                         return;
                     }
 
-                    _stateMap.TryRemove(projectId, out var unused);
+                    _stateMap.TryRemove(projectId, out var _);
                 }
 
                 private ImmutableDictionary<DiagnosticAnalyzer, StateSet> GetOrUpdateAnalyzerMap(Project project)

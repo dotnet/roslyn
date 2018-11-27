@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                 var suppressionsDoc = await GetOrCreateSuppressionsDocumentAsync(cancellationToken).ConfigureAwait(false);
                 var workspace = suppressionsDoc.Project.Solution.Workspace;
                 var suppressionsRoot = await suppressionsDoc.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-                var semanticModel = await suppressionsDoc.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                _ = await suppressionsDoc.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                 suppressionsRoot = await Fixer.AddGlobalSuppressMessageAttributeAsync(suppressionsRoot, _targetSymbol, _diagnostic, workspace, cancellationToken).ConfigureAwait(false);
                 return suppressionsDoc.WithSyntaxRoot(suppressionsRoot);
             }

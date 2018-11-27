@@ -97,8 +97,8 @@ namespace Microsoft.CodeAnalysis.AddImport
                 }
 
                 var project = _document.Project;
-                var projectId = project.Id;
-                var workspace = project.Solution.Workspace;
+                _ = project.Id;
+                _ = project.Solution.Workspace;
 
                 foreach (var result in results)
                 {
@@ -128,8 +128,8 @@ namespace Microsoft.CodeAnalysis.AddImport
                 }
 
                 var project = _document.Project;
-                var projectId = project.Id;
-                var workspace = project.Solution.Workspace;
+                _ = project.Id;
+                _ = project.Solution.Workspace;
 
                 foreach (var result in results)
                 {

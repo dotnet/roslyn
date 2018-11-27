@@ -64,10 +64,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                 {
                     bool add = false;
                     bool toggle = false;
-
-                    int indexOfLeadingPragmaDisableToRemove = -1, indexOfTrailingPragmaEnableToRemove = -1;
+                    int indexOfTrailingPragmaEnableToRemove = -1;
+                    int indexOfLeadingPragmaDisableToRemove;
                     if (CanRemovePragmaTrivia(_suppressionTargetInfo.StartToken, _diagnostic, Fixer, isStartToken: true, indexOfTriviaToRemove: out indexOfLeadingPragmaDisableToRemove) &&
-                        CanRemovePragmaTrivia(_suppressionTargetInfo.EndToken, _diagnostic, Fixer, isStartToken: false, indexOfTriviaToRemove: out indexOfTrailingPragmaEnableToRemove))
+CanRemovePragmaTrivia(_suppressionTargetInfo.EndToken, _diagnostic, Fixer, isStartToken: false, indexOfTriviaToRemove: out indexOfTrailingPragmaEnableToRemove))
                     {
                         // Verify if there is no other trivia before the start token would again cause this diagnostic to be suppressed.
                         // If invalidated, then we just toggle existing pragma enable and disable directives before and start of the line.

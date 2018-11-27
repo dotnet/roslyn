@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Execution
         public void RemoveGlobalAsset(object value, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            _globalAssets.TryRemove(value, out var asset);
+            _globalAssets.TryRemove(value, out var _);
         }
 
         public Storage CreateStorage(SolutionState solutionState)
@@ -165,7 +165,7 @@ namespace Microsoft.CodeAnalysis.Execution
         public void UnregisterSnapshot(PinnedRemotableDataScope scope)
         {
             // calling it multiple times for same snapshot is not allowed.
-            if (!_storages.TryRemove(scope.SolutionInfo.ScopeId, out var dummy))
+            if (!_storages.TryRemove(scope.SolutionInfo.ScopeId, out var _))
             {
                 // this should make failure more explicit
                 FailFast.OnFatalException(new Exception("who is removing same snapshot?"));

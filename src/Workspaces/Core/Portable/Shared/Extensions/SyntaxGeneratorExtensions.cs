@@ -298,10 +298,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         {
             var getAccessibility = overriddenProperty.GetMethod.ComputeResultantAccessibility(containingType);
             var setAccessibility = overriddenProperty.SetMethod.ComputeResultantAccessibility(containingType);
-
-            SyntaxNode getBody = null;
-            SyntaxNode setBody = null;
-
+            SyntaxNode getBody;
+            SyntaxNode setBody;
             // Implement an abstract property by throwing not implemented in accessors.
             if (overriddenProperty.IsAbstract)
             {

@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
         private static string GetNodeName(Document document, SyntaxNode node)
         {
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-            syntaxFacts.GetNameAndArityOfSimpleName(node, out var name, out var arity);
+            syntaxFacts.GetNameAndArityOfSimpleName(node, out var name, out var _);
             return name;
         }
 

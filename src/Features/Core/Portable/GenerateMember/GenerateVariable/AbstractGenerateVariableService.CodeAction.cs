@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
             protected override Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
             {
                 var solution = _semanticDocument.Project.Solution;
-                var syntaxTree = _semanticDocument.SyntaxTree;
+                _ = _semanticDocument.SyntaxTree;
                 var generateUnsafe = _state.TypeMemberType.IsUnsafe() &&
                                      !_state.IsContainedInUnsafeType;
 

@@ -227,7 +227,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
 
                 foreach (var tuple in unimplementedMembers)
                 {
-                    var interfaceType = tuple.type;
+                    _ = tuple.type;
                     var unimplementedInterfaceMembers = tuple.members;
 
                     foreach (var unimplementedInterfaceMember in unimplementedInterfaceMembers)

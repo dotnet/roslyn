@@ -377,7 +377,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
 
             // No longer need the tmp array
-            tmp = null;
 
             var result = ArrayBuilder<Node>.GetInstance(unsortedNodes.Length);
             result.Count = unsortedNodes.Length;
@@ -510,7 +509,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             Debug.Assert(_inheritanceMap.Keys.Count == other._inheritanceMap.Keys.Count);
             var orderedKeys1 = this._inheritanceMap.Keys.Order().ToList();
-            var orderedKeys2 = other._inheritanceMap.Keys.Order().ToList();
+            _ = other._inheritanceMap.Keys.Order().ToList();
 
             for (int i = 0; i < orderedKeys1.Count; i++)
             {

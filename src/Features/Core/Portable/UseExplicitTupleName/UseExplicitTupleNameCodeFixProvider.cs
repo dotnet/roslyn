@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.UseExplicitTupleName
             Document document, ImmutableArray<Diagnostic> diagnostics,
             SyntaxEditor editor, CancellationToken cancellationToken)
         {
-            var root = editor.OriginalRoot;
+            _ = editor.OriginalRoot;
             var generator = editor.Generator;
 
             foreach (var diagnostic in diagnostics)

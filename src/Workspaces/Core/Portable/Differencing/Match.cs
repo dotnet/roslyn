@@ -31,8 +31,8 @@ namespace Microsoft.CodeAnalysis.Differencing
             _comparer = comparer;
 
             int labelCount = comparer.LabelCount;
-            CategorizeNodesByLabels(comparer, root1, labelCount, out var nodes1, out var count1);
-            CategorizeNodesByLabels(comparer, root2, labelCount, out var nodes2, out var count2);
+            CategorizeNodesByLabels(comparer, root1, labelCount, out var nodes1, out var _);
+            CategorizeNodesByLabels(comparer, root2, labelCount, out var nodes2, out var _);
 
             _oneToTwo = new Dictionary<TNode, TNode>();
             _twoToOne = new Dictionary<TNode, TNode>();

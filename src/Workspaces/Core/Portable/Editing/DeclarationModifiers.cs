@@ -47,8 +47,6 @@ namespace Microsoft.CodeAnalysis.Editing
         {
             var field = symbol as IFieldSymbol;
             var property = symbol as IPropertySymbol;
-            var method = symbol as IMethodSymbol;
-
             return new DeclarationModifiers(
                 isStatic: symbol.IsStatic,
                 isAbstract: symbol.IsAbstract,

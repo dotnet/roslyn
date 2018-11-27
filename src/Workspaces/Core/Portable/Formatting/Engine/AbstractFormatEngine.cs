@@ -490,7 +490,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                 return;
             }
 
-            var triviaInfo = tokenStream.GetTriviaData(operation.PairIndex);
+            _ = tokenStream.GetTriviaData(operation.PairIndex);
             var spanBetweenTokens = TextSpan.FromBounds(token1.Span.End, token2.SpanStart);
 
             if (operation.LineOperation != null)

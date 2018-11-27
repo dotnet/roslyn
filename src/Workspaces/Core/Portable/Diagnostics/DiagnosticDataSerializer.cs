@@ -277,7 +277,7 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
 
                 var start = reader.ReadInt32();
                 var length = reader.ReadInt32();
-                var textSpan = new TextSpan(start, length);
+                _ = new TextSpan(start, length);
 
                 var location = ReadLocation(project, reader, document);
                 var additionalLocations = ReadAdditionalLocations(project, reader);

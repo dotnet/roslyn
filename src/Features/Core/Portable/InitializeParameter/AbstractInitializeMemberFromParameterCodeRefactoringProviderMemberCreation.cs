@@ -358,7 +358,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
         }
 
         private IOperation TryFindFieldOrPropertyAssignmentStatement(IParameterSymbol parameter, IBlockOperation blockStatementOpt)
-            => TryFindFieldOrPropertyAssignmentStatement(parameter, blockStatementOpt, out var fieldOrProperty);
+            => TryFindFieldOrPropertyAssignmentStatement(parameter, blockStatementOpt, out var _);
 
         private IOperation TryFindFieldOrPropertyAssignmentStatement(
             IParameterSymbol parameter, IBlockOperation blockStatementOpt, out ISymbol fieldOrProperty)

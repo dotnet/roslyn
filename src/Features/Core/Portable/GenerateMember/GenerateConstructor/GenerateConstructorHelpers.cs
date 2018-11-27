@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
             }
 
             var compilation = semanticDocument.SemanticModel.Compilation;
-            var semanticFactsService = semanticDocument.Document.GetLanguageService<ISemanticFactsService>();
+            _ = semanticDocument.Document.GetLanguageService<ISemanticFactsService>();
 
             for (var i = 0; i < parameterTypes.Count; i++)
             {

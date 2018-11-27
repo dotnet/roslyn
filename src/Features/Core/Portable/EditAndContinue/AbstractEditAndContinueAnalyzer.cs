@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         private SyntaxNode FindStatement(SyntaxNode declarationBody, int position, out int statementPart)
         {
-            return FindStatementAndPartner(declarationBody, position, null, out var partner, out statementPart);
+            return FindStatementAndPartner(declarationBody, position, null, out var _, out statementPart);
         }
 
         /// <summary>
@@ -1019,7 +1019,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             for (int i = 0; i < activeNodes.Length; i++)
             {
                 int ordinal = start + i;
-                bool hasMatching = false;
                 bool isNonLeaf = oldActiveStatements[ordinal].IsNonLeaf;
                 bool isPartiallyExecuted = (oldActiveStatements[ordinal].Flags & ActiveStatementFlags.PartiallyExecuted) != 0;
                 int statementPart = activeNodes[i].StatementPart;
@@ -1031,7 +1030,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 TextSpan newSpan;
                 SyntaxNode newStatementSyntaxOpt;
                 Match<SyntaxNode> match;
-
+                bool hasMatching;
                 if (oldEnclosingLambdaBody == null)
                 {
                     match = bodyMatch;

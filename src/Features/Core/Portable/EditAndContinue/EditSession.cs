@@ -262,7 +262,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         internal bool HasProject(ProjectId id)
         {
-            return Projects.TryGetValue(id, out var reason);
+            return Projects.TryGetValue(id, out var _);
         }
 
         private List<(DocumentId, AsyncLazy<DocumentAnalysisResults>)> GetChangedDocumentsAnalyses(Project baseProject, Project project)

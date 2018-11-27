@@ -183,7 +183,6 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
             var compilation = semanticModel.Compilation;
             field = field.GetSymbolKey().Resolve(compilation, cancellationToken: cancellationToken).Symbol as IFieldSymbol;
 
-            var solutionNeedingProperty = solution;
 
             // We couldn't resolve field after annotating its declaration. Bail
             if (field == null)
@@ -191,7 +190,7 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
                 return null;
             }
 
-            solutionNeedingProperty = await UpdateReferencesAsync(
+            var solutionNeedingProperty = await UpdateReferencesAsync(
                 updateReferences, solution, document, field, finalFieldName, generatedPropertyName, cancellationToken).ConfigureAwait(false);
             document = solutionNeedingProperty.GetDocument(document.Id);
 
@@ -212,15 +211,14 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
             document = solution.GetDocument(document.Id);
 
             semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            compilation = semanticModel.Compilation;
+            _ = semanticModel.Compilation;
 
             var newRoot = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var newDeclaration = newRoot.GetAnnotatedNodes<SyntaxNode>(declarationAnnotation).First();
             field = semanticModel.GetDeclaredSymbol(newDeclaration, cancellationToken) as IFieldSymbol;
 
             var generatedProperty = GenerateProperty(generatedPropertyName, finalFieldName, originalField.DeclaredAccessibility, originalField, field.ContainingType, new SyntaxAnnotation(), document, cancellationToken);
-
-            var codeGenerationService = document.GetLanguageService<ICodeGenerationService>();
+            _ = document.GetLanguageService<ICodeGenerationService>();
             var solutionWithProperty = await AddPropertyAsync(
                 document, document.Project.Solution, field, generatedProperty, cancellationToken).ConfigureAwait(false);
 

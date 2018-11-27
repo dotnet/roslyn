@@ -74,14 +74,13 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
         private static IEnumerable<ISymbol> SymbolsForEnclosingInvocationExpressionWorker(SyntaxNode invocationExpression, SemanticModel semanticModel, CancellationToken cancellationToken)
         {
             var symbolInfo = semanticModel.GetSymbolInfo(invocationExpression, cancellationToken);
-            IEnumerable<ISymbol> symbols = null;
             if (symbolInfo.Symbol == null)
             {
                 return null;
             }
             else
             {
-                symbols = SpecializedCollections.SingletonEnumerable(symbolInfo.Symbol);
+                var symbols = SpecializedCollections.SingletonEnumerable(symbolInfo.Symbol);
                 return symbols;
             }
         }
@@ -369,9 +368,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             {
                 return true;
             }
-
-            var index = 0;
-            index = newMetadataName.IndexOf(replacementText, 0);
+            var index = newMetadataName.IndexOf(replacementText, 0);
             StringBuilder newMetadataNameBuilder = new StringBuilder();
 
             // Every loop updates the newMetadataName to resemble the oldMetadataName

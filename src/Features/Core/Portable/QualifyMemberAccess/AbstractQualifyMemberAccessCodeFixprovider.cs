@@ -35,8 +35,8 @@ namespace Microsoft.CodeAnalysis.QualifyMemberAccess
             Document document, ImmutableArray<Diagnostic> diagnostics, 
             SyntaxEditor editor, CancellationToken cancellationToken)
         {
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var model = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            _ = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            _ = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var generator = document.GetLanguageService<SyntaxGenerator>();
 
             foreach (var diagnostic in diagnostics)

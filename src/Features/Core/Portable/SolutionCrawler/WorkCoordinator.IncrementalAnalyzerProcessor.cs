@@ -261,13 +261,12 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                 internal ProjectId GetActiveProject()
                 {
-                    ProjectId activeProjectId = null;
                     if (_documentTracker != null)
                     {
                         var activeDocument = _documentTracker.TryGetActiveDocument();
                         if (activeDocument != null)
                         {
-                            activeProjectId = activeDocument.ProjectId;
+                            _ = activeDocument.ProjectId;
                         }
                     }
 
@@ -299,8 +298,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 internal void WaitUntilCompletion_ForTestingPurposesOnly(ImmutableArray<IIncrementalAnalyzer> analyzers, List<WorkItem> items)
                 {
                     _normalPriorityProcessor.WaitUntilCompletion_ForTestingPurposesOnly(analyzers, items);
-
-                    var projectItems = items.Select(i => i.With(null, i.ProjectId, EmptyAsyncToken.Instance));
+                    _ = items.Select(i => i.With(null, i.ProjectId, EmptyAsyncToken.Instance));
                     _lowPriorityProcessor.WaitUntilCompletion_ForTestingPurposesOnly(analyzers, items);
                 }
 

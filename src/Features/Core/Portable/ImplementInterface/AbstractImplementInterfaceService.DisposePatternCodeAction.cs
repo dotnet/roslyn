@@ -22,11 +22,10 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 var idisposableMembers = idisposable.GetMembers().ToArray();
 
                 // Get symbol for 'System.IDisposable.Dispose()'.
-                IMethodSymbol disposeMethod = null;
                 if ((idisposableMembers.Length == 1) && (idisposableMembers[0].Kind == SymbolKind.Method) &&
                     (idisposableMembers[0].Name == "Dispose"))
                 {
-                    disposeMethod = idisposableMembers[0] as IMethodSymbol;
+                    var disposeMethod = idisposableMembers[0] as IMethodSymbol;
                     if ((disposeMethod != null) && (!disposeMethod.IsStatic) && disposeMethod.ReturnsVoid &&
                         (disposeMethod.Arity == 0) && (disposeMethod.Parameters.Length == 0))
                     {
@@ -106,7 +105,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 CancellationToken cancellationToken)
             {
                 var result = document;
-                var compilation = await result.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+                _ = await result.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
 
                 // Add an annotation to the type declaration node so that we can find it again to append the dispose pattern implementation below.
                 result = await result.ReplaceNodeAsync(
@@ -115,7 +114,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                     cancellationToken).ConfigureAwait(false);
                 var root = await result.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
                 classOrStructDecl = root.GetAnnotatedNodes(s_implementingTypeAnnotation).Single();
-                compilation = await result.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+                var compilation = await result.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
                 classOrStructType = classOrStructType.GetSymbolKey().Resolve(compilation, cancellationToken: cancellationToken).Symbol as INamedTypeSymbol;
 
                 // Use the code generation service to generate all unimplemented members except those that are

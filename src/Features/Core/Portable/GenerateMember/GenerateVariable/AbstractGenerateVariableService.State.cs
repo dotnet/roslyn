@@ -287,7 +287,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                     if (assignmentStatement != null)
                     {
                         syntaxFacts.GetPartsOfAssignmentStatement(
-                            assignmentStatement, out var left, out var right);
+                            assignmentStatement, out var left, out var _);
 
                         if (left == simpleName)
                         {
@@ -327,7 +327,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                         if (syntaxFacts.IsSimpleAssignmentStatement(siblingNode))
                         {
                             syntaxFacts.GetPartsOfAssignmentStatement(
-                                siblingNode, out var left, out var right);
+                                siblingNode, out var left, out var _);
 
                             var symbol = semanticDocument.SemanticModel.GetSymbolInfo(left, cancellationToken).Symbol;
                             if (symbol?.Kind == symbolKind &&

@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 message = new LocalizableStringWithArguments(descriptor.MessageFormat, messageArgs);
             }
 
-            var warningLevel = effectiveSeverity.ToDiagnosticSeverity() ?? descriptor.DefaultSeverity;
+            _ = effectiveSeverity.ToDiagnosticSeverity() ?? descriptor.DefaultSeverity;
             return Diagnostic.Create(
                 descriptor.Id,
                 descriptor.Category,

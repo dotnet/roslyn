@@ -78,7 +78,7 @@ namespace Roslyn.Utilities
 
         public bool Contains(T value)
         {
-            return _map.TryGetValue(value, out var node);
+            return _map.TryGetValue(value, out var _);
         }
 
         public void Remove(T value)

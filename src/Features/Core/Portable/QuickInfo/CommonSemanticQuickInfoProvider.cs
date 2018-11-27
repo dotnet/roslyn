@@ -268,7 +268,7 @@ namespace Microsoft.CodeAnalysis.QuickInfo
             ISyntaxFactsService syntaxFactsService,
             CancellationToken cancellationToken)
         {
-            if (sections.TryGetValue(SymbolDescriptionGroups.Documentation, out var parts))
+            if (sections.TryGetValue(SymbolDescriptionGroups.Documentation, out var _))
             {
                 var documentationBuilder = new List<TaggedText>();
                 documentationBuilder.AddRange(sections[SymbolDescriptionGroups.Documentation]);

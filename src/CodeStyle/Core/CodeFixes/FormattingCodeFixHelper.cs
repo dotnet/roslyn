@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis
     {
         internal static async Task<Document> FixOneAsync(Document document, OptionSet options, Diagnostic diagnostic, CancellationToken cancellationToken)
         {
-            var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+            _ = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
 
             // The span to format is the full line(s) containing the diagnostic
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);

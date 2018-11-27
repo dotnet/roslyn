@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
             /// </remarks>
             internal override async Task<ImmutableArray<CodeActionOperation>> GetOperationsAsync()
             {
-                var solution = SemanticDocument.Document.Project.Solution;
+                _ = SemanticDocument.Document.Project.Solution;
 
                 // Fork, update and add as new document.
                 var projectToBeUpdated = SemanticDocument.Document.Project;

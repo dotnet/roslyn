@@ -305,8 +305,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             var position = GetDescriptionPosition(item);
             var supportedPlatforms = GetSupportedPlatforms(item, workspace);
-
-            var contextDocument = FindAppropriateDocumentForDescriptionContext(document, supportedPlatforms);
+            _ = FindAppropriateDocumentForDescriptionContext(document, supportedPlatforms);
 
             if (symbols.Length != 0)
             {

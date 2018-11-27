@@ -225,8 +225,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             CancellationToken cancellationToken)
         {
             var semanticFacts = document.GetLanguageService<ISemanticFactsService>();
-
-            var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+            _ = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
 
             var locations = ArrayBuilder<FinderLocation>.GetInstance();
             foreach (var token in tokens)

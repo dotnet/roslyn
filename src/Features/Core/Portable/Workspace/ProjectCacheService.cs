@@ -172,7 +172,7 @@ namespace Microsoft.CodeAnalysis.Host
 
             internal void CreateStrongReference(object key, object instance)
             {
-                if (!_cache.TryGetValue(key, out var o))
+                if (!_cache.TryGetValue(key, out var _))
                 {
                     _cache.Add(key, instance);
                 }

@@ -13,7 +13,6 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
             out ISimpleAssignmentOperation trueAssignment,
             out ISimpleAssignmentOperation falseAssignment)
         {
-            trueAssignment = null;
             falseAssignment = null;
 
             var trueStatement = ifOperation.WhenTrue;
