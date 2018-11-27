@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Options
 
             if (Language != null)
             {
-                hash = Hash.Combine(Language.GetHashCode(), hash);
+                hash = unchecked((hash * (int)0xA5555529) + Language.GetHashCode());
             }
 
             return hash;
