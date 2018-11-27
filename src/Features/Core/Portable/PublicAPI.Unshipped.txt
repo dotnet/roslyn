@@ -3,6 +3,9 @@ Microsoft.CodeAnalysis.Completion.CompletionItem.DisplayTextPrefix.get -> string
 Microsoft.CodeAnalysis.Completion.CompletionItem.DisplayTextSuffix.get -> string
 Microsoft.CodeAnalysis.Completion.CompletionItem.WithDisplayTextPrefix(string displayTextPrefix) -> Microsoft.CodeAnalysis.Completion.CompletionItem
 Microsoft.CodeAnalysis.Completion.CompletionItem.WithDisplayTextSuffix(string displayTextSuffix) -> Microsoft.CodeAnalysis.Completion.CompletionItem
+const Microsoft.CodeAnalysis.TextTags.Constant = "Constant" -> string
+const Microsoft.CodeAnalysis.TextTags.EnumMember = "EnumMember" -> string
+const Microsoft.CodeAnalysis.TextTags.ExtensionMethod = "ExtensionMethod" -> string
 static Microsoft.CodeAnalysis.Completion.CompletionItem.Create(string displayText, string filterText = null, string sortText = null, System.Collections.Immutable.ImmutableDictionary<string, string> properties = null, System.Collections.Immutable.ImmutableArray<string> tags = default(System.Collections.Immutable.ImmutableArray<string>), Microsoft.CodeAnalysis.Completion.CompletionItemRules rules = null, string displayTextPrefix = null, string displayTextSuffix = null) -> Microsoft.CodeAnalysis.Completion.CompletionItem
 static Microsoft.CodeAnalysis.Completion.CompletionItem.Create(string displayText, string filterText, string sortText, System.Collections.Immutable.ImmutableDictionary<string, string> properties, System.Collections.Immutable.ImmutableArray<string> tags, Microsoft.CodeAnalysis.Completion.CompletionItemRules rules) -> Microsoft.CodeAnalysis.Completion.CompletionItem
 const Microsoft.CodeAnalysis.QuickInfo.QuickInfoSectionKinds.AnonymousTypes = "AnonymousTypes" -> string
