@@ -2351,5 +2351,23 @@ class C
                 //         Span<byte>? s2 = null;
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "Span<byte>?").WithArguments("System.Span<byte>").WithLocation(9, 9));
         }
+
+        [Fact]
+        [WorkItem(32138, "https://github.com/dotnet/roslyn/issues/31238")]
+        public void ExpressionTreeNotAllowed()
+        {
+            CreateCompilation(@"
+using System;
+using System.Linq.Expressions;
+public class C {
+    public void M() {
+        String x = null;
+        Expression<Func<string>> e0 = () => x ??= null;
+    }
+}").VerifyDiagnostics(
+                // (7,45): error CS8642: An expression tree may not contain a null coalescing assignment
+                //         Expression<Func<string>> e0 = () => x ??= null;
+                Diagnostic(ErrorCode.ERR_ExpressionTreeCantContainNullCoalescingAssignment, "x ??= null").WithLocation(7, 45));
+        }
     }
 }
