@@ -292,7 +292,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
             {
                 base.VisitArgument(operation);
 
-                if (operation.Value.Type.IsDelegateType())
+                if (_currentAnalysisData.IsTrackingDelegateCreationTargets &&
+                    operation.Value.Type.IsDelegateType())
                 {
                     // Delegate argument might be captured and invoked multiple times.
                     // So, conservatively reset the state.

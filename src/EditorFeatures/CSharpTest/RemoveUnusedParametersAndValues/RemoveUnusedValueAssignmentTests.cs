@@ -3427,7 +3427,7 @@ class C
         M2(throwEx);
     }
 
-    void M2(Action a) { };
+    void M2(Action a) { }
 }", optionName);
         }
 
@@ -3456,8 +3456,53 @@ class C
     {
         a();
         a();
-    };
+    }
 }", optionName);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        public async Task UnusedValue_DelegateTypeOptionalParameter_PreferDiscard()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    void M()
+    {
+        var [|x|] = M2();
+    }
+
+    C M2(Action c = null) => null;
+}",
+@"using System;
+
+class C
+{
+    void M()
+    {
+        _ = M2();
+    }
+
+    C M2(Action c = null) => null;
+}", options: PreferDiscard);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        public async Task UnusedValue_DelegateTypeOptionalParameter_PreferUnusedLocal()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    void M()
+    {
+        var [|x|] = M2();
+    }
+
+    C M2(Action c = null) => null;
+}", options: PreferUnusedLocal);
         }
 
         [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
