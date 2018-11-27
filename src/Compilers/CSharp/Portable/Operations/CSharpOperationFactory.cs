@@ -414,7 +414,7 @@ namespace Microsoft.CodeAnalysis.Operations
             return new CSharpLazyInvocationOperation(this, boundCall, targetMethod, isVirtual, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
-        private IOperation CreateBoundLocalOperation(BoundLocal boundLocal)
+        internal IOperation CreateBoundLocalOperation(BoundLocal boundLocal, bool createDeclaration = true)
         {
             ILocalSymbol local = boundLocal.LocalSymbol;
             bool isDeclaration = boundLocal.DeclarationKind != BoundLocalDeclarationKind.None;
@@ -425,13 +425,15 @@ namespace Microsoft.CodeAnalysis.Operations
             if (isDeclaration && syntax is DeclarationExpressionSyntax declarationExpressionSyntax)
             {
                 syntax = declarationExpressionSyntax.Designation;
-                var localReference = new LocalReferenceOperation(local, isDeclaration, _semanticModel, syntax, type, constantValue, isImplicit);
-                return new DeclarationExpressionOperation(localReference, _semanticModel, declarationExpressionSyntax, type, constantValue: default, isImplicit: false);
+                if (createDeclaration)
+                {
+                    return new CSharpLazyDeclarationExpressionOperation(this, boundLocal, _semanticModel, declarationExpressionSyntax, type, constantValue: default, isImplicit: false);
+                }
             }
             return new LocalReferenceOperation(local, isDeclaration, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
-        private IOperation CreateBoundFieldAccessOperation(BoundFieldAccess boundFieldAccess)
+        internal IOperation CreateBoundFieldAccessOperation(BoundFieldAccess boundFieldAccess, bool createDeclaration = true)
         {
             IFieldSymbol field = boundFieldAccess.FieldSymbol;
             bool isDeclaration = boundFieldAccess.IsDeclaration;
@@ -443,8 +445,11 @@ namespace Microsoft.CodeAnalysis.Operations
             if (isDeclaration && syntax is DeclarationExpressionSyntax declarationExpressionSyntax)
             {
                 syntax = declarationExpressionSyntax.Designation;
-                var fieldReference = new CSharpLazyFieldReferenceOperation(this, instance, field, isDeclaration, _semanticModel, syntax, type, constantValue, isImplicit);
-                return new DeclarationExpressionOperation(fieldReference, _semanticModel, declarationExpressionSyntax, type, constantValue: default, isImplicit: false);
+
+                if (createDeclaration)
+                {
+                    return new CSharpLazyDeclarationExpressionOperation(this, boundFieldAccess, _semanticModel, declarationExpressionSyntax, type, constantValue: default, isImplicit: false);
+                }
             }
             return new CSharpLazyFieldReferenceOperation(this, instance, field, isDeclaration, _semanticModel, syntax, type, constantValue, isImplicit);
         }
@@ -520,7 +525,6 @@ namespace Microsoft.CodeAnalysis.Operations
                 return CreateInvalidExpressionForHasArgumentsExpression(boundIndexerAccess.ReceiverOpt, boundIndexerAccess.Arguments, null, syntax, type, constantValue, isImplicit);
             }
 
-            BoundNode instance = boundIndexerAccess.ReceiverOpt;
             return new CSharpLazyPropertyReferenceOperation(this, boundIndexerAccess, isObjectOrCollectionInitializer, property, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
@@ -696,11 +700,6 @@ namespace Microsoft.CodeAnalysis.Operations
         private IOperation CreateBoundObjectInitializerMemberOperation(BoundObjectInitializerMember boundObjectInitializerMember, bool isObjectOrCollectionInitializer = false)
         {
             Symbol memberSymbol = boundObjectInitializerMember.MemberSymbol;
-
-            IOperation instance = memberSymbol?.IsStatic == true ?
-                                            null :
-                                            CreateImplicitReciever(boundObjectInitializerMember.Syntax, boundObjectInitializerMember.ReceiverType);
-
             SyntaxNode syntax = boundObjectInitializerMember.Syntax;
             ITypeSymbol type = boundObjectInitializerMember.Type;
             Optional<object> constantValue = ConvertToOptional(boundObjectInitializerMember.ConstantValue);
@@ -720,10 +719,10 @@ namespace Microsoft.CodeAnalysis.Operations
                 case SymbolKind.Field:
                     var field = (FieldSymbol)memberSymbol;
                     bool isDeclaration = false;
-                    return new FieldReferenceOperation(field, isDeclaration, instance, _semanticModel, syntax, type, constantValue, isImplicit);
+                    return new FieldReferenceOperation(field, isDeclaration, createReceiver(), _semanticModel, syntax, type, constantValue, isImplicit);
                 case SymbolKind.Event:
                     var eventSymbol = (EventSymbol)memberSymbol;
-                    return new EventReferenceOperation(eventSymbol, instance, _semanticModel, syntax, type, constantValue, isImplicit);
+                    return new EventReferenceOperation(eventSymbol, createReceiver(), _semanticModel, syntax, type, constantValue, isImplicit);
                 case SymbolKind.Property:
                     var property = (PropertySymbol)memberSymbol;
                     if (boundObjectInitializerMember.Arguments.Any())
@@ -742,6 +741,10 @@ namespace Microsoft.CodeAnalysis.Operations
                 default:
                     throw ExceptionUtilities.Unreachable;
             }
+
+            IOperation createReceiver() => memberSymbol?.IsStatic == true ?
+                    null :
+                    CreateImplicitReciever(boundObjectInitializerMember.Syntax, boundObjectInitializerMember.ReceiverType);
         }
 
         private IOperation CreateBoundDynamicObjectInitializerMemberOperation(BoundDynamicObjectInitializerMember boundDynamicObjectInitializerMember)
@@ -1789,17 +1792,17 @@ namespace Microsoft.CodeAnalysis.Operations
             return new CSharpLazyExpressionStatementOperation(this, expression, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
-        private IOperation CreateBoundTupleLiteralOperation(BoundTupleLiteral boundTupleLiteral)
+        internal IOperation CreateBoundTupleLiteralOperation(BoundTupleLiteral boundTupleLiteral, bool createDeclaration = true)
         {
-            return CreateTupleOperation(boundTupleLiteral, boundTupleLiteral.Type);
+            return CreateTupleOperation(boundTupleLiteral, boundTupleLiteral.Type, createDeclaration);
         }
 
-        private IOperation CreateBoundConvertedTupleLiteralOperation(BoundConvertedTupleLiteral boundConvertedTupleLiteral)
+        internal IOperation CreateBoundConvertedTupleLiteralOperation(BoundConvertedTupleLiteral boundConvertedTupleLiteral, bool createDeclaration = true)
         {
-            return CreateTupleOperation(boundConvertedTupleLiteral, boundConvertedTupleLiteral.NaturalTypeOpt);
+            return CreateTupleOperation(boundConvertedTupleLiteral, boundConvertedTupleLiteral.NaturalTypeOpt, createDeclaration);
         }
 
-        private IOperation CreateTupleOperation(BoundTupleExpression boundTupleExpression, ITypeSymbol naturalType)
+        internal IOperation CreateTupleOperation(BoundTupleExpression boundTupleExpression, ITypeSymbol naturalType, bool createDeclaration)
         {
             SyntaxNode syntax = boundTupleExpression.Syntax;
             bool isImplicit = boundTupleExpression.WasCompilerGenerated;
@@ -1807,9 +1810,11 @@ namespace Microsoft.CodeAnalysis.Operations
             Optional<object> constantValue = default;
             if (syntax is DeclarationExpressionSyntax declarationExpressionSyntax)
             {
-                var tupleSyntax = declarationExpressionSyntax.Designation;
-                var tuple = new CSharpLazyTupleOperation(this, boundTupleExpression, _semanticModel, tupleSyntax, type, naturalType, constantValue, isImplicit);
-                return new DeclarationExpressionOperation(tuple, _semanticModel, declarationExpressionSyntax, type, constantValue: default, isImplicit: false);
+                syntax = declarationExpressionSyntax.Designation;
+                if (createDeclaration)
+                {
+                    return new CSharpLazyDeclarationExpressionOperation(this, boundTupleExpression, _semanticModel, declarationExpressionSyntax, type, constantValue: default, isImplicit: false);
+                }
             }
 
             return new CSharpLazyTupleOperation(this, boundTupleExpression, _semanticModel, syntax, type, naturalType, constantValue, isImplicit);

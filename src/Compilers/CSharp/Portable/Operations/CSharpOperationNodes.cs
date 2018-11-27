@@ -1,7 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
+using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Operations
 {
@@ -202,6 +205,42 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             // Skip the synthetic deconstruction conversion wrapping the right operand.
             return _operationFactory.Create(_deconstructionAssignment.Right.Operand);
+        }
+    }
+
+    internal sealed class CSharpLazyDeclarationExpressionOperation : LazyDeclarationExpressionOperation
+    {
+        private readonly CSharpOperationFactory _operationFactory;
+        private readonly BoundExpression _underlyingReference;
+
+        public CSharpLazyDeclarationExpressionOperation(CSharpOperationFactory operationFactory, BoundExpression underlyingReference, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(semanticModel, syntax, type, constantValue, isImplicit)
+        {
+            Debug.Assert(underlyingReference.Kind == BoundKind.Local ||
+                         underlyingReference.Kind == BoundKind.FieldAccess ||
+                         underlyingReference is BoundTupleExpression);
+
+            _operationFactory = operationFactory;
+            _underlyingReference = underlyingReference;
+        }
+
+        protected override IOperation CreateExpression()
+        {
+            SyntaxNode underlyingSyntax = ((DeclarationExpressionSyntax)_underlyingReference.Syntax).Designation;
+
+            switch (_underlyingReference)
+            {
+                case BoundLocal local:
+                    return _operationFactory.CreateBoundLocalOperation(local, createDeclaration: false);
+                case BoundTupleLiteral tupleLiteral:
+                    return _operationFactory.CreateBoundTupleLiteralOperation(tupleLiteral, createDeclaration: false);
+                case BoundConvertedTupleLiteral convertedTupleLiteral:
+                    return _operationFactory.CreateBoundConvertedTupleLiteralOperation(convertedTupleLiteral, createDeclaration: false);
+                case BoundFieldAccess fieldAccess:
+                    return _operationFactory.CreateBoundFieldAccessOperation(fieldAccess, createDeclaration: false);
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(_underlyingReference.Kind);
+            }
         }
     }
 
