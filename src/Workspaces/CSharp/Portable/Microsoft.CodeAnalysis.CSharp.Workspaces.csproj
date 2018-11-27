@@ -8,7 +8,8 @@
     <RootNamespace>Microsoft.CodeAnalysis.CSharp</RootNamespace>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <TargetFramework>netstandard2.0</TargetFramework>
-    
+    <ApplyNgenOptimizationData>true</ApplyNgenOptimizationData>
+
     <!-- NuGet -->
     <IsPackable>true</IsPackable>
     <PackageDescription>
