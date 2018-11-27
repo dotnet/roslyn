@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 return CommitResultUnhandled;
             }
 
-            // Commit with completion serivce assumes that null is provided is case of invoke. VS provides '\0' in the case.
+            // Commit with completion service assumes that null is provided is case of invoke. VS provides '\0' in the case.
             char? commitChar = typeChar == '\0' ? null : (char?)typeChar;
             var commitBehavior = Commit(
                 document, completionService, session.TextView, subjectBuffer, 
