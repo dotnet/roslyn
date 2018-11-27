@@ -62,6 +62,11 @@
         <target state="new">The given expression cannot be used in a fixed statement</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ExpressionTreeCantContainNullCoalescingAssignment">
+        <source>An expression tree may not contain a null coalescing assignment</source>
+        <target state="new">An expression tree may not contain a null coalescing assignment</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ExpressionTreeCantContainRefStruct">
         <source>Expression tree cannot contain value of ref struct or restricted type '{0}'.</source>
         <target state="new">Expression tree cannot contain value of ref struct or restricted type '{0}'.</target>
