@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // visit switch block
             VisitSwitchBlock(node);
-            IntersectWith(ref breakState, ref this.State);
+            Join(ref breakState, ref this.State);
             ResolveBreaks(breakState, node.BreakLabel);
             return null;
         }
@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 VisitSwitchSection(switchSections[iSection], iSection == iLastSection);
                 // Even though it is illegal for the end of a switch section to be reachable, in erroneous
                 // code it may be reachable.  We treat that as an implicit break (branch to afterSwitchState).
-                IntersectWith(ref afterSwitchState, ref this.State);
+                Join(ref afterSwitchState, ref this.State);
             }
 
             SetState(afterSwitchState);
@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // visit switch block
             VisitPatternSwitchBlock(node);
-            IntersectWith(ref breakState, ref this.State);
+            Join(ref breakState, ref this.State);
             ResolveBreaks(breakState, node.BreakLabel);
             return null;
         }
@@ -184,7 +184,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 VisitPatternSwitchSection(switchSections[iSection], node.Expression, iSection == iLastSection);
                 // Even though it is illegal for the end of a switch section to be reachable, in erroneous
                 // code it may be reachable.  We treat that as an implicit break (branch to afterSwitchState).
-                IntersectWith(ref afterSwitchState, ref this.State);
+                Join(ref afterSwitchState, ref this.State);
             }
 
             SetState(afterSwitchState);

@@ -180,7 +180,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             this.Diagnostics.Clear();
             ParameterSymbol methodThisParameter = MethodThisParameter;
-            this.State = ReachableState();                   // entry point is reachable
+            this.State = TopState();                   // entry point is reachable
             this.regionPlace = RegionPlace.Before;
             EnterParameters();                               // with parameters assigned
             if ((object)methodThisParameter != null)
@@ -819,7 +819,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        protected override LocalState ReachableState()
+        protected override LocalState TopState()
         {
             var state = new LocalState(reachable: true, BitVector.Create(nextVariableSlot), new ArrayBuilder<NullableAnnotation>(nextVariableSlot));
             Populate(ref state, start: 0);
@@ -831,7 +831,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new LocalState(reachable: false, BitVector.Empty, null);
         }
 
-        protected override LocalState AllBitsSet()
+        protected override LocalState ReachableBottomState()
         {
             // Create a reachable state in which all variables are known to be non-null.
             var builder = new ArrayBuilder<NullableAnnotation>(nextVariableSlot);
@@ -1686,7 +1686,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // https://github.com/dotnet/roslyn/issues/29955 For cases where the left operand determines
             // the type, we should unwrap the right conversion and re-apply.
             rightResult = VisitRvalueWithResult(rightOperand);
-            IntersectWith(ref this.State, ref leftState);
+            Join(ref this.State, ref leftState);
             TypeSymbol resultType;
             var leftResultType = leftResult.TypeSymbol;
             var rightResultType = rightResult.TypeSymbol;
@@ -1840,7 +1840,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             VisitRvalue(node.AccessExpression);
-            IntersectWith(ref this.State, ref receiverState);
+            Join(ref this.State, ref receiverState);
 
             // https://github.com/dotnet/roslyn/issues/29956 Use flow analysis type rather than node.Type
             // so that nested nullability is inferred from flow analysis. See VisitConditionalOperator.
@@ -1885,7 +1885,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Unsplit();
                 (alternative, alternativeConversion, alternativeResult) = visitConditionalOperand(alternativeState, node.Alternative);
                 Unsplit();
-                IntersectWith(ref this.State, ref consequenceState);
+                Join(ref this.State, ref consequenceState);
                 isNullableIfReferenceType = (getIsNullableIfReferenceType(consequence, consequenceResult) | getIsNullableIfReferenceType(alternative, alternativeResult));
             }
 
@@ -4636,7 +4636,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return string.Empty;
         }
 
-        protected override void UnionWith(ref LocalState self, ref LocalState other)
+        protected override void Meet(ref LocalState self, ref LocalState other)
         {
             if (self.Capacity != other.Capacity)
             {
@@ -4664,7 +4664,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        protected override bool IntersectWith(ref LocalState self, ref LocalState other)
+        protected override bool Join(ref LocalState self, ref LocalState other)
         {
             if (self.Reachable == other.Reachable)
             {

@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Now the writes
             if (writes)
             {
-                UnionWith(ref this.State, ref usages.WrittenVars);
+                Meet(ref this.State, ref usages.WrittenVars);
             }
 
             usages.LocalFuncVisited = true;
@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // all branches into the local function.
 
             var savedState = this.State;
-            this.State = this.ReachableState();
+            this.State = this.TopState();
 
             if (!localFunc.WasCompilerGenerated) EnterParameters(localFuncSymbol.Parameters);
 
@@ -183,7 +183,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                   branch?.Syntax,
                   branch?.WasCompilerGenerated == false ? null : location);
 
-                IntersectWith(ref stateAtReturn, ref this.State);
+                Join(ref stateAtReturn, ref this.State);
             }
 
             // Check for changes to the possibly unassigned and assigned sets
@@ -248,7 +248,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                        ref BitVector oldReads,
                                        ref BitVector newReads)
         {
-            bool anyChanged = IntersectWith(ref oldWrites, ref newWrites);
+            bool anyChanged = Join(ref oldWrites, ref newWrites);
 
             anyChanged |= RecordCapturedChanges(ref oldReads, ref newReads);
 

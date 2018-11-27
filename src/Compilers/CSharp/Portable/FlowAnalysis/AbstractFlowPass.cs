@@ -99,21 +99,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected TLocalState StateWhenFalse;
         protected bool IsConditionalState;
 
-        private readonly bool _trackUnassignments; // for the data flows out walker, we track unassignments as well as assignments
-
-        protected abstract void UnionWith(ref TLocalState self, ref TLocalState other);
-
-        /// <summary>
-        /// Nontrivial implementation is required for DataFlowsOutWalker or any flow analysis pass that "tracks
-        /// unassignments" like the nullable walker. The result should be a state, for each variable, that is
-        /// the strongest result possible (i.e. definitely assigned for the data flow passes, or not null for
-        /// the nullable analysis).  Slightly more formally, this should be a reachable state that won't affect
-        /// another reachable state when this is intersected with the other state.
-        /// </summary>
-        protected virtual TLocalState AllBitsSet()
-        {
-            return default(TLocalState);
-        }
+        private readonly bool _nonMonotonicTransfer; // for the data flows out walker, we track unassignments as well as assignments
 
         protected void SetConditionalState(TLocalState whenTrue, TLocalState whenFalse)
         {
@@ -144,7 +130,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(!_trackExceptions || PendingBranches[0].Branch == null);
             if (IsConditionalState)
             {
-                IntersectWith(ref StateWhenTrue, ref StateWhenFalse);
+                Join(ref StateWhenTrue, ref StateWhenFalse);
                 SetState(StateWhenTrue);
             }
         }
@@ -176,7 +162,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundNode lastInRegion = null,
             bool trackRegions = false,
             bool trackExceptions = false,
-            bool trackUnassignments = false)
+            bool nonMonotonicTransferFunction = false)
         {
             Debug.Assert(node != null);
 
@@ -208,7 +194,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _loopHeadState = new Dictionary<BoundLoopStatement, TLocalState>(ReferenceEqualityComparer.Instance);
             _trackRegions = trackRegions;
             _trackExceptions = trackExceptions;
-            _trackUnassignments = trackUnassignments;
+            _nonMonotonicTransfer = nonMonotonicTransferFunction;
         }
 
         protected abstract string Dump(TLocalState state);
@@ -368,9 +354,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        abstract protected TLocalState ReachableState();
-        abstract protected TLocalState UnreachableState();
-
         /// <summary>
         /// Perform a single pass of flow analysis.  Note that after this pass,
         /// this.backwardBranchChanged indicates if a further pass is required.
@@ -393,9 +376,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // the entry point of a method is assumed reachable
                 regionPlace = RegionPlace.Before;
-                this.State = ReachableState();
+                this.State = TopState();
                 PendingBranches.Clear();
-                if (_trackExceptions) PendingBranches.Add(new PendingBranch(null, ReachableState()));
+                if (_trackExceptions) PendingBranches.Add(new PendingBranch(null, TopState()));
                 this.stateChangedAfterUse = false;
                 this.Diagnostics.Clear();
                 returns = this.Scan(ref badRegion);
@@ -665,7 +648,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TLocalState previousState;
             if (_loopHeadState.TryGetValue(node, out previousState))
             {
-                IntersectWith(ref this.State, ref previousState);
+                Join(ref this.State, ref previousState);
             }
 
             _loopHeadState[node] = this.State.Clone();
@@ -677,7 +660,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void LoopTail(BoundLoopStatement node)
         {
             var oldState = _loopHeadState[node];
-            if (IntersectWith(ref oldState, ref this.State))
+            if (Join(ref oldState, ref this.State))
             {
                 _loopHeadState[node] = oldState;
                 this.stateChangedAfterUse = true;
@@ -701,7 +684,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var pending = pendingBranches[i];
                     if (pending.Label == label)
                     {
-                        IntersectWith(ref breakState, ref pending.State);
+                        Join(ref breakState, ref pending.State);
                     }
                     else
                     {
@@ -743,7 +726,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // and other forms of more precise analysis
                         // depend on continue statements appearing in the pending branch queue, so
                         // we process them from the queue here.
-                        IntersectWith(ref this.State, ref pending.State);
+                        Join(ref this.State, ref pending.State);
                     }
                     else
                     {
@@ -772,7 +755,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(_trackExceptions);
             Debug.Assert(!IsConditionalState);
-            IntersectWith(ref PendingBranches[0].State, ref this.State);
+            Join(ref PendingBranches[0].State, ref this.State);
         }
 
         /// <summary>
@@ -819,7 +802,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var state = LabelState(label);
             if (target != null) NoteBranch(pending, pending.Branch, target);
-            var changed = IntersectWith(ref state, ref pending.State);
+            var changed = Join(ref state, ref pending.State);
             if (changed)
             {
                 labelStateChanged = true;
@@ -913,7 +896,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Debug.Assert(oldPending.PendingBranches[0].Branch == null);
                 Debug.Assert(this.PendingBranches[0].Branch == null);
-                this.IntersectWith(ref oldPending.PendingBranches[0].State, ref this.PendingBranches[0].State);
+                this.Join(ref oldPending.PendingBranches[0].State, ref this.PendingBranches[0].State);
 
                 for (int i = 1, c = this.PendingBranches.Count; i < c; i++)
                 {
@@ -1505,7 +1488,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 VisitStatement(node.AlternativeOpt);
             }
 
-            IntersectWith(ref this.State, ref trueState);
+            Join(ref this.State, ref trueState);
             return null;
         }
 
@@ -1525,7 +1508,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 SetState(initialState.Clone());
                 VisitCatchBlockWithUnassignments(catchBlock, ref finallyState);
-                IntersectWith(ref endState, ref this.State);
+                Join(ref endState, ref this.State);
             }
 
             // Give a chance to branches internal to try/catch to resolve.
@@ -1549,21 +1532,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // capture tryAndCatchPending before going into finally
                 // we will need pending branches as they were before finally later
                 var tryAndCatchPending = SavePending();
-                var unsetInFinally = AllBitsSet();
+                var unsetInFinally = ReachableBottomState();
                 VisitFinallyBlockWithUnassignments(node.FinallyBlockOpt, ref unsetInFinally);                
                 foreach (var pend in tryAndCatchPending.PendingBranches)
                 {
                     if (pend.Branch == null) continue; // a tracked exception
                     if (pend.Branch.Kind != BoundKind.YieldReturnStatement)
                     {
-                        UnionWith(ref pend.State, ref this.State);
-                        if (_trackUnassignments) IntersectWith(ref pend.State, ref unsetInFinally);
+                        Meet(ref pend.State, ref this.State);
+                        if (_nonMonotonicTransfer) Join(ref pend.State, ref unsetInFinally);
                     }
                 }
 
                 RestorePending(tryAndCatchPending);
-                UnionWith(ref endState, ref this.State);
-                if (_trackUnassignments) IntersectWith(ref endState, ref unsetInFinally);
+                Meet(ref endState, ref this.State);
+                if (_nonMonotonicTransfer) Join(ref endState, ref unsetInFinally);
             }
 
             SetState(endState);
@@ -1575,17 +1558,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void VisitTryBlockWithUnassignments(BoundStatement tryBlock, BoundTryStatement node, ref TLocalState tryState)
         {
-            if (_trackUnassignments)
+            if (_nonMonotonicTransfer)
             {
                 Optional<TLocalState> oldTryState = _tryState;
-                _tryState = AllBitsSet();
+                _tryState = ReachableBottomState();
                 VisitTryBlock(tryBlock, node, ref tryState);
                 var tempTryStateValue = _tryState.Value;
-                IntersectWith(ref tryState, ref tempTryStateValue);
+                Join(ref tryState, ref tempTryStateValue);
                 if (oldTryState.HasValue)
                 {
                     var oldTryStateValue = oldTryState.Value;
-                    IntersectWith(ref oldTryStateValue, ref tempTryStateValue);
+                    Join(ref oldTryStateValue, ref tempTryStateValue);
                     oldTryState = oldTryStateValue;
                 }
 
@@ -1604,17 +1587,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void VisitCatchBlockWithUnassignments(BoundCatchBlock catchBlock, ref TLocalState finallyState)
         {
-            if (_trackUnassignments)
+            if (_nonMonotonicTransfer)
             {
                 Optional<TLocalState> oldTryState = _tryState;
-                _tryState = AllBitsSet();
+                _tryState = ReachableBottomState();
                 VisitCatchBlock(catchBlock, ref finallyState);
                 var tempTryStateValue = _tryState.Value;
-                IntersectWith(ref finallyState, ref tempTryStateValue);
+                Join(ref finallyState, ref tempTryStateValue);
                 if (oldTryState.HasValue)
                 {
                     var oldTryStateValue = oldTryState.Value;
-                    IntersectWith(ref oldTryStateValue, ref tempTryStateValue);
+                    Join(ref oldTryStateValue, ref tempTryStateValue);
                     oldTryState = oldTryStateValue;
                 }
 
@@ -1644,17 +1627,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void VisitFinallyBlockWithUnassignments(BoundStatement finallyBlock, ref TLocalState unsetInFinally)
         {
-            if (_trackUnassignments)
+            if (_nonMonotonicTransfer)
             {
                 Optional<TLocalState> oldTryState = _tryState;
-                _tryState = AllBitsSet();
+                _tryState = ReachableBottomState();
                 VisitFinallyBlock(finallyBlock, ref unsetInFinally);
                 var tempTryStateValue = _tryState.Value;
-                IntersectWith(ref unsetInFinally, ref tempTryStateValue);
+                Join(ref unsetInFinally, ref tempTryStateValue);
                 if (oldTryState.HasValue)
                 {
                     var oldTryStateValue = oldTryState.Value;
-                    IntersectWith(ref oldTryStateValue, ref tempTryStateValue);
+                    Join(ref oldTryStateValue, ref tempTryStateValue);
                     oldTryState = oldTryStateValue;
                 }
 
@@ -2109,11 +2092,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             var resultFalse = this.StateWhenFalse;
             if (isAnd)
             {
-                IntersectWith(ref resultFalse, ref leftFalse);
+                Join(ref resultFalse, ref leftFalse);
             }
             else
             {
-                IntersectWith(ref resultTrue, ref leftTrue);
+                Join(ref resultTrue, ref leftTrue);
             }
             SetConditionalState(resultTrue, resultFalse);
 
@@ -2384,7 +2367,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     SetUnreachable();
                 }
                 VisitRvalue(node.RightOperand);
-                IntersectWith(ref this.State, ref savedState);
+                Join(ref this.State, ref savedState);
             }
             return null;
         }
@@ -2406,7 +2389,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 VisitRvalue(node.AccessExpression);
-                IntersectWith(ref this.State, ref savedState);
+                Join(ref this.State, ref savedState);
             }
             return null;
         }
@@ -2418,13 +2401,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             var savedState = this.State.Clone();
 
             VisitRvalue(node.WhenNotNull);
-            IntersectWith(ref this.State, ref savedState);
+            Join(ref this.State, ref savedState);
 
             if (node.WhenNullOpt != null)
             {
                 savedState = this.State.Clone();
                 VisitRvalue(node.WhenNullOpt);
-                IntersectWith(ref this.State, ref savedState);
+                Join(ref this.State, ref savedState);
             }
 
             return null;
@@ -2440,11 +2423,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             var savedState = this.State.Clone();
 
             VisitRvalue(node.ValueTypeReceiver);
-            IntersectWith(ref this.State, ref savedState);
+            Join(ref this.State, ref savedState);
 
             savedState = this.State.Clone();
             VisitRvalue(node.ReferenceTypeReceiver);
-            IntersectWith(ref this.State, ref savedState);
+            Join(ref this.State, ref savedState);
 
             return null;
         }
@@ -2560,7 +2543,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 consequenceState = this.State;
                 VisitConditionalOperand(alternativeState, node.Alternative, isByRef);
                 Unsplit();
-                IntersectWith(ref this.State, ref consequenceState);
+                Join(ref this.State, ref consequenceState);
                 // it may not be a boolean state at this point (5.3.3.28)
             }
 
@@ -2615,7 +2598,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             node.AssertIsLabeledStatementWithLabel(label);
             ResolveBranches(label, node);
             var state = LabelState(label);
-            IntersectWith(ref this.State, ref state);
+            Join(ref this.State, ref state);
             _labels[label] = this.State.Clone();
             _labelsSeen.Add(node);
         }
@@ -3005,7 +2988,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     ConditionallyAssignNullCoalescingOperator(node);
 
-                    IntersectWith(ref this.State, ref savedState);
+                    Join(ref this.State, ref savedState);
                     return null;
                 }
             }
@@ -3016,7 +2999,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             VisitRvalue(node.RightOperand);
             ConditionallyAssignNullCoalescingOperator(node);
 
-            IntersectWith(ref this.State, ref savedState);
+            Join(ref this.State, ref savedState);
             return null;
         }
 
@@ -3053,7 +3036,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             SetState(initialState);
             Visit(expressionBody);
 
-            IntersectWith(ref this.State, ref afterBlock);
+            Join(ref this.State, ref afterBlock);
         }
         #endregion visitors
     }
