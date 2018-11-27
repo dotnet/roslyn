@@ -56770,7 +56770,7 @@ class B<[Nullable(0)]T01,
         }
 
         [Fact]
-        public void InheritNullabilityOfNotNullableMember()
+        public void InheritNullabilityOfNonNullableClassMember()
         {
             var source =
 @"#pragma warning disable 8618
@@ -56802,6 +56802,43 @@ class Program
                 Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "s").WithLocation(10, 40),
                 // (17,35): warning CS8601: Possible null reference assignment.
                 //         var a2 = new C<T>() { F = t };
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "t").WithLocation(17, 35));
+            comp.VerifyTypes();
+        }
+
+        [Fact]
+        public void InheritNullabilityOfNonNullableStructMember()
+        {
+            var source =
+@"#pragma warning disable 8618
+struct S<T>
+{
+    internal T F;
+}
+class Program
+{
+    static void F0(string? s)
+    {
+        var a1 = new S<string>() { F = s };
+        _ = a1.F/*T:string?*/;
+        var b1 = a1;
+        _ = b1.F/*T:string?*/;
+    }
+    static void F1<T>(T? t) where T : class
+    {
+        var a2 = new S<T>() { F = t };
+        _ = a2.F/*T:T?*/;
+        var b2 = a2;
+        _ = b2.F/*T:T?*/;
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (10,40): warning CS8601: Possible null reference assignment.
+                //         var a1 = new S<string>() { F = s };
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "s").WithLocation(10, 40),
+                // (17,35): warning CS8601: Possible null reference assignment.
+                //         var a2 = new S<T>() { F = t };
                 Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "t").WithLocation(17, 35));
             comp.VerifyTypes();
         }
