@@ -40,18 +40,35 @@ namespace Microsoft.CodeAnalysis.Operations
         internal IArgumentOperation CreateArgumentOperation(ArgumentKind kind, IParameterSymbol parameter, BoundExpression expression)
         {
             // put argument syntax to argument operation
-            var argument = expression.Syntax?.Parent as ArgumentSyntax;
 
-            // if argument syntax doesn't exist, this operation is implicit
-            return new CSharpLazyArgumentOperation(this,
-                expression,
-                kind,
-                s_boxedIdentityConversion,
-                s_boxedIdentityConversion,
-                parameter,
-                semanticModel: _semanticModel,
-                syntax: argument ?? expression.Syntax,
-                isImplicit: expression.WasCompilerGenerated || argument == null);
+            if (expression.Syntax?.Parent is ArgumentSyntax argument)
+            {
+                // if argument syntax doesn't exist, this operation is implicit
+                return new CSharpLazyArgumentOperation(this,
+                    expression,
+                    kind,
+                    s_boxedIdentityConversion,
+                    s_boxedIdentityConversion,
+                    parameter,
+                    semanticModel: _semanticModel,
+                    syntax: argument,
+                    isImplicit: expression.WasCompilerGenerated);
+            }
+            else
+            {
+                // We have to create the argument child eagerly here, as we need to use its syntax for this node, but the BoundExpression
+                // syntax may not be the correct syntax in certain scenarios (such as query clauses that need to be skipped).
+                IOperation value = Create(expression);
+                return new ArgumentOperation(
+                    value,
+                    kind,
+                    parameter,
+                    s_boxedIdentityConversion,
+                    s_boxedIdentityConversion,
+                    _semanticModel,
+                    value.Syntax,
+                    isImplicit: true);
+            }
         }
 
         internal IVariableInitializerOperation CreateVariableDeclaratorInitializer(BoundLocalDeclaration boundLocalDeclaration, SyntaxNode syntax)
