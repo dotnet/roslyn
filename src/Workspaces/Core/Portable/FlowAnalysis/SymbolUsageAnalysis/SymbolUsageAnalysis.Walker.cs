@@ -119,6 +119,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
                         _currentAnalysisData.IsLValueFlowCapture(flowCapture.Id))
                     {
                         OnLValueCaptureFound(symbol, operation, flowCapture.Id);
+
+                        // For compound assignments, the flow capture can be both an R-Value and an L-Value capture.
+                        if (_currentAnalysisData.IsRValueFlowCapture(flowCapture.Id))
+                        {
+                            OnReadReferenceFound(symbol);
+                        }
                     }
                     else
                     {

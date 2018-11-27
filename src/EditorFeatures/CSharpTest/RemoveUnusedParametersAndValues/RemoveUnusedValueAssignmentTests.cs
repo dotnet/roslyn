@@ -698,6 +698,43 @@ $@"class C
         }
 
         [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        [InlineData("true")]    // Constant
+        [InlineData("M2()")]    // Non-constant
+        public async Task CompoundLogicalOrOperator_ValueUsed_LaterStatement(string rightHandSide)
+        {
+            await TestMissingInRegularAndScriptWithAllOptionsAsync(
+$@"class C
+{{
+    bool M(bool x)
+    {{
+        [|x|] |= {rightHandSide} && {rightHandSide};
+        return x;
+    }}
+
+    bool M2() => true;
+}}");
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        [InlineData("true")]    // Constant
+        [InlineData("M2()")]    // Non-constant
+        public async Task CompoundLogicalOrOperator_ValueUsed_LaterStatement_02(string rightHandSide)
+        {
+            await TestMissingInRegularAndScriptWithAllOptionsAsync(
+$@"class C
+{{
+    bool M()
+    {{
+        bool [|x|] = false;
+        x |= {rightHandSide} && {rightHandSide};
+        return x;
+    }}
+
+    bool M2() => true;
+}}");
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         [InlineData(nameof(PreferDiscard))]
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task CompoundAssignmentOperator_ValueNotUsed_ConstantValue(string optionName)
