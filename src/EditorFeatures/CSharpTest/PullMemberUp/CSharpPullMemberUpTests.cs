@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.PullMemberUp
 
         #region destination interface
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
-        public async Task TestNoRefactoringProvideWhenPullFieldToInterface()
+        public async Task TestNoRefactoringProvidedWhenPullFieldToInterface()
         {
             var testText = @"
 namespace PushUpTest
@@ -40,6 +40,75 @@ namespace PushUpTest
 }";
 
             await TestNoRefactoringProvidedAsync(testText);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        public async Task TestNoRefactoringProvidedWhenDeclarationAlreadyExists()
+        {
+            var methodTest = @"
+namespace PushUpTest
+{
+    public interface ITestInterface
+    {
+        void TestMethod();
+    }
+
+    public class TestClass : ITestInterface
+    {
+        public void TestM[||]ethod()
+        {
+            System.Console.WriteLine(""Hello World"");
+        }
+    }
+}";
+            var propertyTest1 = @"
+using System;
+namespace PushUpTest
+{
+    interface IInterface
+    {
+        int TestProperty { get; }
+    }
+
+    public class TestClass : IInterface
+    {
+        public int TestPr[||]operty { get; private set; }
+    }
+}";
+
+            var propertyTest2 = @"
+using System;
+namespace PushUpTest
+{
+    interface IInterface
+    {
+        int TestProperty { get; set; }
+    }
+
+    public class TestClass : IInterface
+    {
+        public int TestPr[||]operty { get; set; }
+    }
+}";
+
+            var eventTest = @"
+using System;
+namespace PushUpTest
+{
+    interface IInterface
+    {
+        event EventHandler Event2;
+    }
+
+    public class TestClass : IInterface
+    {
+        public event EventHandler Event1, Eve[||]nt2, Event3;
+    }
+}";
+            await TestNoRefactoringProvidedAsync(methodTest);
+            await TestNoRefactoringProvidedAsync(propertyTest1);
+            await TestNoRefactoringProvidedAsync(propertyTest2);
+            await TestNoRefactoringProvidedAsync(eventTest);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
@@ -76,6 +145,38 @@ namespace PushUpTest
         {
             System.Console.WriteLine(""Hello World"");
         }
+    }
+}";
+            await TestInRegularAndScriptAsync(testText, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        public async Task TestPullAbstractMethodToInterface()
+        {
+            var testText = @"
+namespace PushUpTest
+{
+    public interface IInterface
+    {
+    }
+
+    public abstract class TestClass : IInterface
+    {
+        public abstract void TestMeth[||]od();
+    }
+}";
+
+            var expected = @"
+namespace PushUpTest
+{
+    public interface IInterface
+    {
+        void TestMethod();
+    }
+
+    public abstract class TestClass : IInterface
+    {
+        public abstract void TestMethod();
     }
 }";
             await TestInRegularAndScriptAsync(testText, expected);
@@ -376,8 +477,98 @@ namespace PushUpTest
         #endregion destination interface
 
         #region destination class
+
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
-        public async Task TestPullMethodToClass()
+        public async Task TestNoRefactoringProvidedWhenPullOverrideMethodUp()
+        {
+            var methodTest = @"
+namespace PushUpTest
+{
+    public class Base
+    {
+        public virtual void TestMethod() => System.Console.WriteLine(""foo bar bar foo"");
+    }
+
+    public class TestClass : Base
+    {
+        public override void TestMeth[||]od()
+        {
+            System.Console.WriteLine(""Hello World"");
+        }
+    }
+}";
+            var propertyTest = @"
+using System;
+namespace PushUpTest
+{
+    public class Base
+    {
+        public virtual int TestProperty { get => 111; private set; }
+    }
+
+    public class TestClass : Base
+    {
+        public override int TestPr[||]operty { get; private set; }
+    }
+}";
+            var eventTest = @"
+using System;
+
+namespace PushUpTest
+{
+    public class Base2
+    {
+        protected virtual event EventHandler Event3
+        {
+            add
+            {
+                System.Console.WriteLine(""Hello"");
+            }
+            remove
+            {
+                System.Console.WriteLine(""World"");
+            }
+        };
+    }
+
+    public class TestClass2 : Base2
+    {
+        protected override event EventHandler E[||]vent3
+        {
+            add
+            {
+                System.Console.WriteLine(""foo"");
+            }
+            remove
+            {
+                System.Console.WriteLine(""bar"");
+            }
+        };
+    }
+}";
+            // Fields share the same name will be thought as 'override', since it will cause error
+            // if two same name fields exist in one class
+            var fieldTest = @"
+namespace PushUpTest
+{
+    public class Base
+    {
+        public int you = -100000;
+    }
+
+    public class TestClass : Base
+    {
+        public int y[||]ou = 10086;
+    }
+}";
+            await TestNoRefactoringProvidedAsync(methodTest);
+            await TestNoRefactoringProvidedAsync(propertyTest);
+            await TestNoRefactoringProvidedAsync(eventTest);
+            await TestNoRefactoringProvidedAsync(fieldTest);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        public async Task TestPullMethodToOrdinaryClass()
         {
             var testText = @"
 namespace PushUpTest
