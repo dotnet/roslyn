@@ -296,6 +296,31 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedParametersA
         [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         [InlineData(nameof(PreferDiscard))]
         [InlineData(nameof(PreferUnusedLocal))]
+        public async Task Initialization_NonConstantValue_CastExpression(string optionName)
+        {
+            await TestInRegularAndScriptAsync(
+@"struct C
+{
+    C M(object obj)
+    {
+        C [|c|] = (C)obj;
+        c = new C();
+        return c;
+    }
+}",
+@"struct C
+{
+    C M(object obj)
+    {
+        C c = new C();
+        return c;
+    }
+}", optionName);
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        [InlineData(nameof(PreferDiscard))]
+        [InlineData(nameof(PreferUnusedLocal))]
         public async Task Initialization_NonConstantValue_FieldReferenceWithThisReceiver(string optionName)
         {
             await TestInRegularAndScriptAsync(
@@ -502,9 +527,9 @@ $@"class C
         }
 
         [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
-        [InlineData(nameof(PreferDiscard), "_")]
-        [InlineData(nameof(PreferUnusedLocal), "int unused")]
-        public async Task Assignment_NonConstantValue_ImplicitConversion(string optionName, string fix)
+        [InlineData(nameof(PreferDiscard))]
+        [InlineData(nameof(PreferUnusedLocal))]
+        public async Task Assignment_NonConstantValue_ImplicitConversion(string optionName)
         {
             await TestInRegularAndScriptAsync(
 @"class C
@@ -516,15 +541,14 @@ $@"class C
         return x;
     }
 }",
-$@"class C
-{{
+@"class C
+{
     int M(int x, short s)
-    {{
-        {fix} = s;
+    {
         x = 2;
         return x;
-    }}
-}}", optionName);
+    }
+}", optionName);
         }
 
         [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]

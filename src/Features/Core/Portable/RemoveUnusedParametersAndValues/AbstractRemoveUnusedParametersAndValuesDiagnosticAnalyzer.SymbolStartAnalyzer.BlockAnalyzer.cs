@@ -397,29 +397,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                         if (unusedSymbolWriteOperation.Parent is IAssignmentOperation assignment &&
                             assignment.Target == unusedSymbolWriteOperation)
                         {
-                            if (assignment.Value.ConstantValue.HasValue)
-                            {
-                                // Constant expressions have no side effects.
-                                return true;
-                            }
-
-                            switch (assignment.Value.Kind)
-                            {
-                                case OperationKind.ParameterReference:
-                                case OperationKind.LocalReference:
-                                    // Parameter/local references have no side effects and can be removed.
-                                    return true;
-
-                                case OperationKind.FieldReference:
-                                    // Field references with null instance (static fields) or 'this' or 'Me' instance can
-                                    // have no side effects and can be removed.
-                                    var fieldReference = (IFieldReferenceOperation)assignment.Value;
-                                    return fieldReference.Instance == null || fieldReference.Instance.Kind == OperationKind.InstanceReference;
-
-                                case OperationKind.DefaultValue:
-                                    // default value expressions have no side-effects.
-                                    return true;
-                            }
+                            return IsRemovableAssignmentValueWithoutSideEffects(assignment.Value);
                         }
                         else if (unusedSymbolWriteOperation.Parent is IIncrementOrDecrementOperation)
                         {
@@ -427,6 +405,43 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                             // it is safe to remove the entire increment/decrement operation,
                             // as it cannot have side effects on anything but the variable.
                             return true;
+                        }
+
+                        // Assume all other operations can have side effects, and cannot be removed.
+                        return false;
+                    }
+
+                    bool IsRemovableAssignmentValueWithoutSideEffects(IOperation assignmentValue)
+                    {
+                        if (assignmentValue.ConstantValue.HasValue)
+                        {
+                            // Constant expressions have no side effects.
+                            return true;
+                        }
+
+                        switch (assignmentValue.Kind)
+                        {
+                            case OperationKind.ParameterReference:
+                            case OperationKind.LocalReference:
+                                // Parameter/local references have no side effects and can be removed.
+                                return true;
+
+                            case OperationKind.FieldReference:
+                                // Field references with null instance (static fields) or 'this' or 'Me' instance can
+                                // have no side effects and can be removed.
+                                var fieldReference = (IFieldReferenceOperation)assignmentValue;
+                                return fieldReference.Instance == null || fieldReference.Instance.Kind == OperationKind.InstanceReference;
+
+                            case OperationKind.DefaultValue:
+                                // Default value expressions have no side-effects.
+                                return true;
+
+                            case OperationKind.Conversion:
+                                // Conversions can theoretically have side-effects as the conversion can throw exception(s).
+                                // However, for all practical purposes, we can assume that a conversion whose operand
+                                // has no side effects can be safely removed.
+                                var operand = ((IConversionOperation)assignmentValue).Operand;
+                                return IsRemovableAssignmentValueWithoutSideEffects(operand);
                         }
 
                         // Assume all other operations can have side effects, and cannot be removed.
