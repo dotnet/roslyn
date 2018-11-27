@@ -71,12 +71,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             return Create(workspaceElement, completed, openDocuments, exportProvider, workspaceKind);
         }
 
-        public static TestWorkspace Create(
+        internal static TestWorkspace Create(
             XElement workspaceElement,
             bool completed = true,
             bool openDocuments = true,
             ExportProvider exportProvider = null,
-            string workspaceKind = null)
+            string workspaceKind = null,
+            IDocumentServiceProvider documentServiceProvider = null)
         {
             if (workspaceElement.Name != WorkspaceElementName)
             {
@@ -103,6 +104,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                     workspace,
                     documentElementToFilePath,
                     filePathToTextBufferMap,
+                    documentServiceProvider,
                     ref projectIdentifier,
                     ref documentIdentifier);
                 Assert.False(projectNameToTestHostProject.ContainsKey(project.Name), $"The workspace XML already contains a project with name {project.Name}");
@@ -255,12 +257,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             TestWorkspace workspace,
             Dictionary<XElement, string> documentElementToFilePath,
             Dictionary<string, ITextBuffer> filePathToTextBufferMap,
+            IDocumentServiceProvider documentServiceProvider,
             ref int projectId,
             ref int documentId)
         {
             var language = GetLanguage(workspace, projectElement);
 
             var assemblyName = GetAssemblyName(workspace, projectElement, ref projectId);
+            var defaultNamespace = GetDefaultNamespace(workspace, projectElement);
 
             string filePath;
 
@@ -303,13 +307,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                     exportProvider,
                     languageServices,
                     filePathToTextBufferMap,
+                    documentServiceProvider,
                     ref documentId);
 
                 documents.Add(document);
                 documentElementToFilePath.Add(documentElement, document.FilePath);
             }
 
-            return new TestHostProject(languageServices, compilationOptions, parseOptions, assemblyName, projectName, references, documents, filePath: filePath, analyzerReferences: analyzers);
+            return new TestHostProject(languageServices, compilationOptions, parseOptions, assemblyName, projectName, references, documents, filePath: filePath, analyzerReferences: analyzers, defaultNamespace: defaultNamespace);
         }
 
         private static ParseOptions GetParseOptions(XElement projectElement, string language, HostLanguageServices languageServices)
@@ -443,6 +448,20 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             }
 
             return languageName;
+        }
+
+        private static string GetDefaultNamespace(TestWorkspace workspace, XElement projectElement)
+        {
+            // Default namespace is a C# only concept, for all other language, the value is set to null.
+            // The empty string returned in case no such property is define means global namespace.
+            var language = GetLanguage(workspace, projectElement);
+            if (language != LanguageNames.CSharp)
+            {
+                return null;
+            }
+
+            var defaultNamespaceAttribute = projectElement.Attribute(DefaultNamespaceAttributeName);
+            return defaultNamespaceAttribute?.Value ?? string.Empty;
         }
 
         private static CompilationOptions CreateCompilationOptions(
@@ -584,6 +603,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             ExportProvider exportProvider,
             HostLanguageServices languageServiceProvider,
             Dictionary<string, ITextBuffer> filePathToTextBufferMap,
+            IDocumentServiceProvider documentServiceProvider,
             ref int documentId)
         {
             string markupCode;
@@ -674,7 +694,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 filePathToTextBufferMap.Add(filePath, textBuffer);
             }
 
-            return new TestHostDocument(exportProvider, languageServiceProvider, textBuffer, filePath, cursorPosition, spans, codeKind, folders, isLinkFile);
+            return new TestHostDocument(
+                exportProvider, languageServiceProvider, textBuffer, filePath, cursorPosition, spans, codeKind, folders, isLinkFile, documentServiceProvider);
         }
 
         private static string GetFilePath(
@@ -702,7 +723,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 return null;
             }
 
-            var folderContainers = folderAttribute.Value.Split(new[] { '\\' }, StringSplitOptions.RemoveEmptyEntries);
+            var folderContainers = folderAttribute.Value.Split(new[] { PathUtilities.DirectorySeparatorChar }, StringSplitOptions.RemoveEmptyEntries);
             return new ReadOnlyCollection<string>(folderContainers.ToList());
         }
 

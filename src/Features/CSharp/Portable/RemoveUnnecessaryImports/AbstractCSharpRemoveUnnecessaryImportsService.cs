@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryImports
         AbstractRemoveUnnecessaryImportsService<UsingDirectiveSyntax>
     {
         public override async Task<Document> RemoveUnnecessaryImportsAsync(
-            Document document, 
+            Document document,
             Func<SyntaxNode, bool> predicate,
             CancellationToken cancellationToken)
         {

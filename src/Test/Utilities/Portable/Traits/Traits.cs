@@ -127,6 +127,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string CodeActionsSimplifyTypeNames = "CodeActions.SimplifyTypeNames";
             public const string CodeActionsSpellcheck = "CodeActions.Spellcheck";
             public const string CodeActionsSuppression = "CodeActions.Suppression";
+            public const string CodeActionsSyncNamespace = "CodeActions.SyncNamespace";
             public const string CodeActionsUseInterpolatedVerbatimString = "CodeActions.UseInterpolatedVerbatimString";
             public const string CodeActionsUseAutoProperty = "CodeActions.UseAutoProperty";
             public const string CodeActionsUseCoalesceExpression = "CodeActions.UseCoalesceExpression";
@@ -147,6 +148,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string CodeActionsUseLocalFunction = "CodeActions.UseLocalFunction";
             public const string CodeActionsUseNullPropagation = "CodeActions.UseNullPropagation";
             public const string CodeActionsUseNamedArguments = "CodeActions.UseNamedArguments";
+            public const string CodeActionsNameTupleElement = "CodeActions.NameTupleElement";
             public const string CodeActionsUseObjectInitializer = "CodeActions.UseObjectInitializer";
             public const string CodeActionsUseRangeOperator = "CodeActions.UseRangeOperator";
             public const string CodeActionsUseThrowExpression = "CodeActions.UseThrowExpression";

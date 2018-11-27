@@ -170,9 +170,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         public static bool IsErrorType(this ISymbol symbol)
-        {
-            return (symbol as ITypeSymbol)?.IsErrorType() == true;
-        }
+            => (symbol as ITypeSymbol)?.TypeKind == TypeKind.Error;
 
         public static bool IsModuleType(this ISymbol symbol)
         {

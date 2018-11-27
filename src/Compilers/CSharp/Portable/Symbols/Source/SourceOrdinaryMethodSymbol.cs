@@ -1044,7 +1044,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             ParameterHelpers.EnsureIsReadOnlyAttributeExists(Parameters, diagnostics, modifyCompilation: true);
 
-            if (ReturnType.ContainsNullableReferenceTypes())
+            if (ReturnType.NeedsNullableAttribute())
             {
                 this.DeclaringCompilation.EnsureNullableAttributeExists(diagnostics, location, modifyCompilation: true);
             }

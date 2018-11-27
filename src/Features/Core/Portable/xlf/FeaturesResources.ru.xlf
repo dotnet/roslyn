@@ -27,9 +27,24 @@
         <target state="translated">Действия не могут быть пустыми.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Add_tuple_element_name_0">
+        <source>Add tuple element name '{0}'</source>
+        <target state="new">Add tuple element name '{0}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Adding_method_with_explicit_interface_specifier_will_prevernt_the_debug_session_from_continuing">
         <source>Adding a method with an explicit interface specifier will prevent the debug session from continuing.</source>
         <target state="new">Adding a method with an explicit interface specifier will prevent the debug session from continuing.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Change_namespace_to_0">
+        <source>Change namespace to '{0}'</source>
+        <target state="new">Change namespace to '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Change_to_global_namespace">
+        <source>Change to global namespace</source>
+        <target state="new">Change to global namespace</target>
         <note />
       </trans-unit>
       <trans-unit id="Code_Quality">
@@ -92,6 +107,16 @@
         <target state="translated">Форматирование документа</target>
         <note />
       </trans-unit>
+      <trans-unit id="Move_file_to_0">
+        <source>Move file to '{0}'</source>
+        <target state="new">Move file to '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Move_file_to_project_root_folder">
+        <source>Move file to project root folder</source>
+        <target state="new">Move file to project root folder</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Indexing_can_be_simplified">
         <source>Indexing can be simplified</source>
         <target state="new">Indexing can be simplified</target>
@@ -129,7 +154,7 @@
       </trans-unit>
       <trans-unit id="Modifying_source_file_will_prevent_the_debug_session_from_continuing_due_to_internal_error">
         <source>Modifying source file {0} will prevent the debug session from continuing due to internal error: {1}.</source>
-        <target state="new">Modifying source file {0} will prevent the debug session from continuing due to internal error: {1}.</target>
+        <target state="translated">Изменение исходного файла {0} не позволит продолжить работу сеанса отладки из-за внутренней ошибки: {1}.</target>
         <note />
       </trans-unit>
       <trans-unit id="Invert_conditional">
@@ -225,6 +250,11 @@
       <trans-unit id="Use_interpolated_verbatim_string">
         <source>Use interpolated verbatim string</source>
         <target state="new">Use interpolated verbatim string</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Warning_colon_changing_namespace_may_produce_invalid_code_and_change_code_meaning">
+        <source>Warning: Changing namespace may produce invalid code and change code meaning.</source>
+        <target state="new">Warning: Changing namespace may produce invalid code and change code meaning.</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_range_operator">
