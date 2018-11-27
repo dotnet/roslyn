@@ -175,6 +175,45 @@ namespace PushUpTest
             await TestInRegularAndScriptAsync(testText, expected);
         }
 
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        public async Task TestPullGenericsUpToInterface()
+        {
+            var testText = @"
+using System;
+namespace PushUpTest
+{
+    public interface IInterface
+    {
+    }
+
+    public class TestClass : IInterface
+    {
+        public void TestMeth[||]od<T>() where T : IDisposable
+        {
+        }
+    }
+}";
+
+            var expected = @"
+using System;
+namespace PushUpTest
+{
+    public interface IInterface
+    {
+        void TestMethod<T>() where T : IDisposable;
+    }
+
+    public class TestClass : IInterface
+    {
+        public void TestMeth[||]od<T>() where T : IDisposable
+        {
+        }
+    }
+}";
+            await TestInRegularAndScriptAsync(testText, expected);
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
         public async Task TestPullSingleEventToInterface()
         {
@@ -622,6 +661,43 @@ namespace PushUpTest
     }
 
     public class TestClass : Base
+    {
+    }
+}";
+            await TestInRegularAndScriptAsync(testText, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        public async Task TestPullGenericsUpToClass()
+        {
+            var testText = @"
+using System;
+namespace PushUpTest
+{
+    public class BaseClass
+    {
+    }
+
+    public class TestClass : BaseClass
+    {
+        public void TestMeth[||]od<T>() where T : IDisposable
+        {
+        }
+    }
+}";
+
+            var expected = @"
+using System;
+namespace PushUpTest
+{
+    public class BaseClass
+    {
+        public void TestMethod<T>() where T : IDisposable
+        {
+        }
+    }
+
+    public class TestClass : BaseClass
     {
     }
 }";
