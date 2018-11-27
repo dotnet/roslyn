@@ -1020,7 +1020,7 @@ IBlockOperation (2 statements) (OperationKind.Block, Type: null, IsInvalid) (Syn
                 null
               Arguments(1):
                   IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: '!flag')
-                    IUnaryOperation (UnaryOperatorKind.Not) (OperationKind.UnaryOperator, Type: System.Boolean) (Syntax: '!flag')
+                    IUnaryOperation (UnaryOperatorKind.Not) (OperationKind.Unary, Type: System.Boolean) (Syntax: '!flag')
                       Operand: 
                         IParameterReferenceOperation: flag (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'flag')
                     InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
