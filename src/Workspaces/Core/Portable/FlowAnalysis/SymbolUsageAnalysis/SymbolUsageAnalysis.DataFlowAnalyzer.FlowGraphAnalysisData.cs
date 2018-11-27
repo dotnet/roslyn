@@ -85,6 +85,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
 
                     _lValueFlowCapturesMap = PooledDictionary<CaptureId, PooledHashSet<(ISymbol, IOperation)>>.GetInstance();
                     LValueFlowCapturesInGraph = LValueFlowCapturesProvider.CreateLValueFlowCaptures(controlFlowGraph);
+                    Debug.Assert(LValueFlowCapturesInGraph.Values.All(kind => kind == FlowCaptureKind.LValueCapture || kind == FlowCaptureKind.LValueAndRValueCapture));
+
                     _symbolWritesInsideBlockRangeMap = PooledDictionary<(int firstBlockOrdinal, int lastBlockOrdinal), PooledHashSet<(ISymbol, IOperation)>>.GetInstance();
                 }
 
@@ -149,7 +151,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
                 /// <summary>
                 /// Flow captures for l-value or address captures.
                 /// </summary>
-                public ImmutableHashSet<CaptureId> LValueFlowCapturesInGraph { get; }
+                public ImmutableDictionary<CaptureId, FlowCaptureKind> LValueFlowCapturesInGraph { get; }
 
                 public BasicBlockAnalysisData GetBlockAnalysisData(BasicBlock basicBlock)
                     => _analysisDataByBasicBlockMap[basicBlock];
@@ -310,7 +312,10 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
                 }
 
                 public override bool IsLValueFlowCapture(CaptureId captureId)
-                    => LValueFlowCapturesInGraph.Contains(captureId);
+                    => LValueFlowCapturesInGraph.ContainsKey(captureId);
+
+                public override bool IsRValueFlowCapture(CaptureId captureId)
+                    => !LValueFlowCapturesInGraph.TryGetValue(captureId, out var captureKind) || captureKind != FlowCaptureKind.LValueCapture;
 
                 public override void OnLValueCaptureFound(ISymbol symbol, IOperation operation, CaptureId captureId)
                 {

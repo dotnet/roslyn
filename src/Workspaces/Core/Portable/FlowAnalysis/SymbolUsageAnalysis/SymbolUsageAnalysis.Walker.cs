@@ -119,6 +119,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
                         _currentAnalysisData.IsLValueFlowCapture(flowCapture.Id))
                     {
                         OnLValueCaptureFound(symbol, operation, flowCapture.Id);
+
+                        // For compound assignments, the flow capture can be both an R-Value and an L-Value capture.
+                        if (_currentAnalysisData.IsRValueFlowCapture(flowCapture.Id))
+                        {
+                            OnReadReferenceFound(symbol);
+                        }
                     }
                     else
                     {
@@ -254,7 +260,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
                     case MethodKind.DelegateInvoke:
                         if (operation.Instance != null)
                         {
-                            AnalyzePossibleDelegateInvocation(operation.Instance, isInvocation: true);
+                            AnalyzePossibleDelegateInvocation(operation.Instance);
                         }
                         else
                         {
@@ -286,9 +292,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
             {
                 base.VisitArgument(operation);
 
-                if (operation.Value.Type.IsDelegateType())
+                if (_currentAnalysisData.IsTrackingDelegateCreationTargets &&
+                    operation.Value.Type.IsDelegateType())
                 {
-                    AnalyzePossibleDelegateInvocation(operation.Value, isInvocation: false);
+                    // Delegate argument might be captured and invoked multiple times.
+                    // So, conservatively reset the state.
+                    _currentAnalysisData.ResetState();
                 }
             }
 
@@ -416,7 +425,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
                 }
             }
 
-            private void AnalyzePossibleDelegateInvocation(IOperation operation, bool isInvocation)
+            private void AnalyzePossibleDelegateInvocation(IOperation operation)
             {
                 Debug.Assert(operation.Type.IsDelegateType());
 
@@ -443,23 +452,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
                         // Single target.
                         // If we know it is an explicit invocation that will certainly be invoked,
                         // analyze it explicitly and overwrite current state.
-                        // Otherise, this represents a potential invocation, so we need to merge the current
-                        // state with the state on the control flow path where invocation did happen.
-                        if (isInvocation)
-                        {
-                            AnalyzeDelegateInvocation(targets.Single());
-                        }
-                        else
-                        {
-                            // We have this logic in the default case.
-                            goto default;
-                        }
-
+                        AnalyzeDelegateInvocation(targets.Single());
                         break;
 
                     default:
-                        // Multiple potential lambda/local function targets OR we need to merge with current state.
-                        // Analyze each one and then merge the outputs from all.
+                        // Multiple potential lambda/local function targets.
+                        // Analyze each one, merging the outputs from all.
                         var savedCurrentAnalysisData = _currentAnalysisData.CreateBlockAnalysisData();
                         savedCurrentAnalysisData.SetAnalysisDataFrom(_currentAnalysisData.CurrentBlockAnalysisData);
 
@@ -470,14 +468,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
                             AnalyzeDelegateInvocation(target);
                             mergedAnalysisData = BasicBlockAnalysisData.Merge(mergedAnalysisData,
                                 _currentAnalysisData.CurrentBlockAnalysisData, _currentAnalysisData.CreateBlockAnalysisData);
-                        }
-
-                        if (!isInvocation)
-                        {
-                            // This represents a potential invocation, so we need to merge the current
-                            // state with the state on the control flow path where invocation did happen.
-                            mergedAnalysisData = BasicBlockAnalysisData.Merge(mergedAnalysisData,
-                                savedCurrentAnalysisData, _currentAnalysisData.CreateBlockAnalysisData);
                         }
 
                         _currentAnalysisData.SetCurrentBlockAnalysisDataFrom(mergedAnalysisData);

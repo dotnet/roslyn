@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
     /// </remarks>
     internal static class LValueFlowCapturesProvider
     {
-        public static ImmutableHashSet<CaptureId> CreateLValueFlowCaptures(ControlFlowGraph cfg)
+        public static ImmutableDictionary<CaptureId, FlowCaptureKind> CreateLValueFlowCaptures(ControlFlowGraph cfg)
         {
             // This method identifies flow capture reference operations that are target of an assignment
             // and marks them as lvalue flow captures.
@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             // the flow graph. The debug only asserts in this method ensure this invariant.
             // If these asserts fire, we should adjust this algorithm.
 
-            ImmutableHashSet<CaptureId>.Builder lvalueFlowCaptureIdBuilder = null;
+            ImmutableDictionary<CaptureId, FlowCaptureKind>.Builder lvalueFlowCaptureIdBuilder = null;
 #if DEBUG
             var rvalueFlowCaptureIds = new HashSet<CaptureId>();
 #endif
@@ -49,8 +49,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                     assignment.Target == flowCaptureReference ||
                     flowCaptureReference.IsInLeftOfDeconstructionAssignment(out _))
                 {
-                    lvalueFlowCaptureIdBuilder = lvalueFlowCaptureIdBuilder ?? ImmutableHashSet.CreateBuilder<CaptureId>();
-                    lvalueFlowCaptureIdBuilder.Add(flowCaptureReference.Id);
+                    lvalueFlowCaptureIdBuilder = lvalueFlowCaptureIdBuilder ?? ImmutableDictionary.CreateBuilder<CaptureId, FlowCaptureKind>();
+                    var captureKind = flowCaptureReference.Parent is ICompoundAssignmentOperation ? FlowCaptureKind.LValueAndRValueCapture : FlowCaptureKind.LValueCapture;
+                    lvalueFlowCaptureIdBuilder.Add(flowCaptureReference.Id, captureKind);
                 }
 #if DEBUG
                 else
@@ -63,14 +64,14 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
 #if DEBUG
             if (lvalueFlowCaptureIdBuilder != null)
             {
-                foreach (var captureId in lvalueFlowCaptureIdBuilder)
+                foreach (var captureId in lvalueFlowCaptureIdBuilder.Keys)
                 {
                     Debug.Assert(!rvalueFlowCaptureIds.Contains(captureId), "Flow capture used as both an r-value and an l-value?");
                 }
             }
 #endif
 
-            return lvalueFlowCaptureIdBuilder != null ? lvalueFlowCaptureIdBuilder.ToImmutable() : ImmutableHashSet<CaptureId>.Empty;
+            return lvalueFlowCaptureIdBuilder != null ? lvalueFlowCaptureIdBuilder.ToImmutable() : ImmutableDictionary<CaptureId, FlowCaptureKind>.Empty;
         }
     }
 }

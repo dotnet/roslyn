@@ -49,6 +49,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
 
             public override bool IsLValueFlowCapture(CaptureId captureId)
                 => throw ExceptionUtilities.Unreachable;
+            public override bool IsRValueFlowCapture(CaptureId captureId)
+                => throw ExceptionUtilities.Unreachable;
             public override void OnLValueCaptureFound(ISymbol symbol, IOperation operation, CaptureId captureId)
                 => throw ExceptionUtilities.Unreachable;
             public override void OnLValueDereferenceFound(CaptureId captureId)

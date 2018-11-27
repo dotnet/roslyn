@@ -114,6 +114,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
 
             // Methods specific to flow capture analysis for CFG based dataflow analysis.
             public abstract bool IsLValueFlowCapture(CaptureId captureId);
+            public abstract bool IsRValueFlowCapture(CaptureId captureId);
             public abstract void OnLValueCaptureFound(ISymbol symbol, IOperation operation, CaptureId captureId);
             public abstract void OnLValueDereferenceFound(CaptureId captureId);
 

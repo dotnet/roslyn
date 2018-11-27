@@ -1466,6 +1466,30 @@ This version used in: {2}</value>
   <data name="Failed_to_analyze_data_flow_for_0" xml:space="preserve">
     <value>Failed to analyze data-flow for: {0}</value>
   </data>
+  <data name="Expression_value_is_never_used" xml:space="preserve">
+    <value>Expression value is never used</value>
+  </data>
+  <data name="Value_assigned_to_0_is_never_used" xml:space="preserve">
+    <value>Value assigned to '{0}' is never used</value>
+  </data>
+  <data name="Value_assigned_to_symbol_is_never_used" xml:space="preserve">
+    <value>Value assigned to symbol is never used</value>
+  </data>
+  <data name="Use_discarded_local" xml:space="preserve">
+    <value>Use discarded local</value>
+  </data>
+  <data name="Use_discard_underscore" xml:space="preserve">
+    <value>Use discard '_'</value>
+  </data>
+  <data name="Remove_redundant_assignment" xml:space="preserve">
+    <value>Remove redundant assignment</value>
+  </data>
+  <data name="Remove_unused_parameter" xml:space="preserve">
+    <value>Remove unused parameter</value>
+  </data>
+  <data name="Remove_unused_parameter_0" xml:space="preserve">
+    <value>Remove unused parameter '{0}'</value>
+  </data>
   <data name="Fix_formatting" xml:space="preserve">
     <value>Fix formatting</value>
   </data>
@@ -1480,5 +1504,14 @@ This version used in: {2}</value>
   </data>
   <data name="_0_can_be_simplified" xml:space="preserve">
     <value>{0} can be simplified</value>
+  </data>
+  <data name="Remove_unused_parameter_0_if_it_is_not_part_of_a_shipped_public_API" xml:space="preserve">
+    <value>Remove unused parameter '{0}' if it is not part of a shipped public API</value>
+  </data>
+  <data name="Remove_unused_parameter_0_if_it_is_not_part_of_a_shipped_public_API_its_initial_value_is_never_used" xml:space="preserve">
+    <value>Remove unused parameter '{0}' if it is not part of a shipped public API, its initial value is never used</value>
+  </data>
+  <data name="Remove_unused_parameter_0_its_initial_value_is_never_used" xml:space="preserve">
+    <value>Remove unused parameter '{0}', its initial value is never used</value>
   </data>
 </root>

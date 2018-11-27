@@ -26,6 +26,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return symbol.ToDisplayString(SymbolDisplayFormats.SignatureFormat);
         }
 
+        public static bool HasPublicResultantVisibility(this ISymbol symbol)
+            => symbol.GetResultantVisibility() == SymbolVisibility.Public;
+
         public static SymbolVisibility GetResultantVisibility(this ISymbol symbol)
         {
             // Start by assuming it's visible.
@@ -101,13 +104,14 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
         }
 
-        public static ImmutableArray<T> ExplicitOrImplicitInterfaceImplementations<T>(this T symbol) where T : ISymbol
+        public static ImmutableArray<TSymbol> ExplicitOrImplicitInterfaceImplementations<TSymbol>(this TSymbol symbol)
+            where TSymbol : ISymbol
         {
             var containingType = symbol.ContainingType;
-            var allMembersInAllInterfaces = containingType.AllInterfaces.SelectMany(i => i.GetMembers(symbol.Name));
+            var allMembersInAllInterfaces = containingType.AllInterfaces.SelectMany(i => i.GetMembers().OfType<TSymbol>());
             var membersImplementingAnInterfaceMember = allMembersInAllInterfaces.Where(
                 memberInInterface => symbol.Equals(containingType.FindImplementationForInterfaceMember(memberInInterface)));
-            return membersImplementingAnInterfaceMember.Cast<T>().ToImmutableArrayOrEmpty();
+            return membersImplementingAnInterfaceMember.Cast<TSymbol>().ToImmutableArrayOrEmpty();
         }
 
         public static bool IsOverridable(this ISymbol symbol)

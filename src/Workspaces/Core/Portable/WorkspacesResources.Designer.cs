@@ -1224,6 +1224,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Parameter preferences.
+        /// </summary>
+        internal static string Parameter_preferences {
+            get {
+                return ResourceManager.GetString("Parameter_preferences", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Parentheses preferences.
         /// </summary>
         internal static string Parentheses_preferences {
