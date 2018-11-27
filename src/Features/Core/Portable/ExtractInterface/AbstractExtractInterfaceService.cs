@@ -168,7 +168,6 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
                         cancellationToken: cancellationToken).ConfigureAwait(false);
 
                 default: throw new InvalidOperationException($"Unable to extract interface for operation of type {extractInterfaceOptions.GetType()}");
-
             }
         }
 

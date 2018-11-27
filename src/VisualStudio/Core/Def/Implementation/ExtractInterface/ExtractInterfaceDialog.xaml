@@ -81,6 +81,7 @@
                                  GroupName="FileDestination"
                                  Grid.Row="0"
                                  Grid.ColumnSpan="2" 
+                                 Margin="0, 0, 0, 5"
                                  Content="{Binding ElementName=dialog, Path=SelectCurrentFileAsDestination}"
                                  Padding="{StaticResource ResourceKey=radioButtonPadding}"
                                  IsChecked="{Binding Destination, Converter={StaticResource enumBoolConverter}, ConverterParameter={x:Static dest:InterfaceDestination.CurrentFile}}"
