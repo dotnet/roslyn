@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>
         /// This is the absolute "bottom" state of the data flow lattice. C#
-        /// does not specify a difference beteween rechable states, so there
+        /// does not specify a difference beteween unreachable states, so there
         /// must only be one. This is state used for unreachable code, like
         /// statements after a "return" or "throw" statement.
         /// </summary>
