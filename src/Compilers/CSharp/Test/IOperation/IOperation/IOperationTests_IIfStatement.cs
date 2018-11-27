@@ -870,6 +870,359 @@ IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'if (true
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact, WorkItem(27866, "https://github.com/dotnet/roslyn/issues/27866")]
+        public void IIfstatementWithIfMissing()
+        {
+            string source = @"
+using System;
+
+class P
+{
+    private void M()
+    {
+        /*<bind>*/else
+        {
+            Console.WriteLine(new string('a', 5));
+        }
+/*</bind>*/    }
+}
+";
+            string expectedOperationTree = @"
+IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: '/*<bind>*/e ... }')
+  Condition: 
+    IInvalidOperation (OperationKind.Invalid, Type: null) (Syntax: '')
+      Children(0)
+  WhenTrue: 
+    IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: '')
+      Expression: 
+        IInvalidOperation (OperationKind.Invalid, Type: null) (Syntax: '')
+          Children(0)
+  WhenFalse: 
+    IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
+      IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'Console.Wri ... g('a', 5));')
+        Expression: 
+          IInvocationOperation (void System.Console.WriteLine(System.String value)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'Console.Wri ... ng('a', 5))')
+            Instance Receiver: 
+              null
+            Arguments(1):
+                IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: 'new string('a', 5)')
+                  IObjectCreationOperation (Constructor: System.String..ctor(System.Char c, System.Int32 count)) (OperationKind.ObjectCreation, Type: System.String) (Syntax: 'new string('a', 5)')
+                    Arguments(2):
+                        IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: c) (OperationKind.Argument, Type: null) (Syntax: ''a'')
+                          ILiteralOperation (OperationKind.Literal, Type: System.Char, Constant: a) (Syntax: ''a'')
+                          InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                          OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: count) (OperationKind.Argument, Type: null) (Syntax: '5')
+                          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 5) (Syntax: '5')
+                          InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                          OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    Initializer: 
+                      null
+                  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // file.cs(7,6): error CS8641: 'else' cannot start a statement.
+                //     {
+                Diagnostic(ErrorCode.ERR_ElseCannotStartStatement, "").WithLocation(7, 6),
+                // file.cs(7,6): error CS1003: Syntax error, '(' expected
+                //     {
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("(", "else").WithLocation(7, 6),
+                // file.cs(7,6): error CS1525: Invalid expression term 'else'
+                //     {
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("else").WithLocation(7, 6),
+                // file.cs(7,6): error CS1026: ) expected
+                //     {
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(7, 6),
+                // file.cs(7,6): error CS1525: Invalid expression term 'else'
+                //     {
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("else").WithLocation(7, 6),
+                // file.cs(7,6): error CS1002: ; expected
+                //     {
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(7, 6)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<IfStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact, WorkItem(27866, "https://github.com/dotnet/roslyn/issues/27866")]
+        public void IIfstatementWithDoubleElse()
+        {
+            string source = @"
+using System;
+
+class P
+{
+    private void Op()
+    {
+    }
+
+    private void M(bool flag)
+    {
+        /*<bind>*/{
+            if (flag)
+            {
+                Op();
+            }
+            else
+            {
+                Console.WriteLine(flag);
+            }
+            else 
+            {
+                Console.WriteLine(!flag);
+            }
+        }/*</bind>*/
+    }
+}
+";
+            string expectedOperationTree = @"
+IBlockOperation (2 statements) (OperationKind.Block, Type: null, IsInvalid) (Syntax: '{ ... }')
+  IConditionalOperation (OperationKind.Conditional, Type: null, IsInvalid) (Syntax: 'if (flag) ... }')
+    Condition: 
+      IParameterReferenceOperation: flag (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'flag')
+    WhenTrue: 
+      IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'Op();')
+          Expression: 
+            IInvocationOperation ( void P.Op()) (OperationKind.Invocation, Type: System.Void) (Syntax: 'Op()')
+              Instance Receiver: 
+                IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: P, IsImplicit) (Syntax: 'Op')
+              Arguments(0)
+    WhenFalse: 
+      IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsInvalid) (Syntax: '{ ... }')
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'Console.WriteLine(flag);')
+          Expression: 
+            IInvocationOperation (void System.Console.WriteLine(System.Boolean value)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'Console.WriteLine(flag)')
+              Instance Receiver: 
+                null
+              Arguments(1):
+                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: 'flag')
+                    IParameterReferenceOperation: flag (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'flag')
+                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'else ... }')
+    Condition: 
+      IInvalidOperation (OperationKind.Invalid, Type: null) (Syntax: '')
+        Children(0)
+    WhenTrue: 
+      IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: '')
+        Expression: 
+          IInvalidOperation (OperationKind.Invalid, Type: null) (Syntax: '')
+            Children(0)
+    WhenFalse: 
+      IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'Console.Wri ... ine(!flag);')
+          Expression: 
+            IInvocationOperation (void System.Console.WriteLine(System.Boolean value)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'Console.WriteLine(!flag)')
+              Instance Receiver: 
+                null
+              Arguments(1):
+                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: '!flag')
+                    IUnaryOperation (UnaryOperatorKind.Not) (OperationKind.UnaryOperator, Type: System.Boolean) (Syntax: '!flag')
+                      Operand: 
+                        IParameterReferenceOperation: flag (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'flag')
+                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // file.cs(20,14): error CS8641: 'else' cannot start a statement.
+                //             }
+                Diagnostic(ErrorCode.ERR_ElseCannotStartStatement, "").WithLocation(20, 14),
+                // file.cs(20,14): error CS1003: Syntax error, '(' expected
+                //             }
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("(", "else").WithLocation(20, 14),
+                // file.cs(20,14): error CS1525: Invalid expression term 'else'
+                //             }
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("else").WithLocation(20, 14),
+                // file.cs(20,14): error CS1026: ) expected
+                //             }
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(20, 14),
+                // file.cs(20,14): error CS1525: Invalid expression term 'else'
+                //             }
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("else").WithLocation(20, 14),
+                // file.cs(20,14): error CS1002: ; expected
+                //             }
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(20, 14)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<BlockSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact, WorkItem(27866, "https://github.com/dotnet/roslyn/issues/27866")]
+        public void IIfstatementWithElseKeywordPlacedAsIfEmbeddedStatement()
+        {
+            string source = @"
+using System;
+
+class P
+{
+    private void Op()
+    {
+    }
+
+    private void M(bool flag)
+    {
+        /*<bind>*/if (flag)
+        else
+        {
+            Op();
+        }
+/*</bind>*/    }
+}
+";
+            string expectedOperationTree = @"
+IConditionalOperation (OperationKind.Conditional, Type: null, IsInvalid) (Syntax: 'if (flag) ... }')
+  Condition: 
+    IParameterReferenceOperation: flag (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'flag')
+  WhenTrue: 
+    IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'else ... }')
+      Condition: 
+        IInvalidOperation (OperationKind.Invalid, Type: null) (Syntax: '')
+          Children(0)
+      WhenTrue: 
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: '')
+          Expression: 
+            IInvalidOperation (OperationKind.Invalid, Type: null) (Syntax: '')
+              Children(0)
+      WhenFalse: 
+        IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
+          IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'Op();')
+            Expression: 
+              IInvocationOperation ( void P.Op()) (OperationKind.Invocation, Type: System.Void) (Syntax: 'Op()')
+                Instance Receiver: 
+                  IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: P, IsImplicit) (Syntax: 'Op')
+                Arguments(0)
+  WhenFalse: 
+    null
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // file.cs(12,28): error CS8641: 'else' cannot start a statement.
+                //         /*<bind>*/if (flag)
+                Diagnostic(ErrorCode.ERR_ElseCannotStartStatement, "").WithLocation(12, 28),
+                // file.cs(12,28): error CS1003: Syntax error, '(' expected
+                //         /*<bind>*/if (flag)
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("(", "else").WithLocation(12, 28),
+                // file.cs(12,28): error CS1525: Invalid expression term 'else'
+                //         /*<bind>*/if (flag)
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("else").WithLocation(12, 28),
+                // file.cs(12,28): error CS1026: ) expected
+                //         /*<bind>*/if (flag)
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(12, 28),
+                // file.cs(12,28): error CS1525: Invalid expression term 'else'
+                //         /*<bind>*/if (flag)
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("else").WithLocation(12, 28),
+                // file.cs(12,28): error CS1002: ; expected
+                //         /*<bind>*/if (flag)
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(12, 28)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<IfStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact, WorkItem(27866, "https://github.com/dotnet/roslyn/issues/27866")]
+        public void IIfstatementWithIfKeywordMissingAndDoubleElseKeywordsPresent()
+        {
+            string source = @"
+using System;
+
+class P
+{
+    private void Op()
+    {
+    }
+
+    private void M()
+    {
+        /*<bind>*/{
+            else
+            {
+            }
+            else
+            {
+                Op();
+            }
+        }/*</bind>*/
+    }
+}
+";
+            string expectedOperationTree = @"
+IBlockOperation (2 statements) (OperationKind.Block, Type: null, IsInvalid) (Syntax: '{ ... }')
+  IConditionalOperation (OperationKind.Conditional, Type: null, IsInvalid) (Syntax: 'else ... }')
+    Condition: 
+      IInvalidOperation (OperationKind.Invalid, Type: null) (Syntax: '')
+        Children(0)
+    WhenTrue: 
+      IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: '')
+        Expression: 
+          IInvalidOperation (OperationKind.Invalid, Type: null) (Syntax: '')
+            Children(0)
+    WhenFalse: 
+      IBlockOperation (0 statements) (OperationKind.Block, Type: null, IsInvalid) (Syntax: '{ ... }')
+  IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'else ... }')
+    Condition: 
+      IInvalidOperation (OperationKind.Invalid, Type: null) (Syntax: '')
+        Children(0)
+    WhenTrue: 
+      IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: '')
+        Expression: 
+          IInvalidOperation (OperationKind.Invalid, Type: null) (Syntax: '')
+            Children(0)
+    WhenFalse: 
+      IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'Op();')
+          Expression: 
+            IInvocationOperation ( void P.Op()) (OperationKind.Invocation, Type: System.Void) (Syntax: 'Op()')
+              Instance Receiver: 
+                IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: P, IsImplicit) (Syntax: 'Op')
+              Arguments(0)
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // file.cs(12,20): error CS8641: 'else' cannot start a statement.
+                //         /*<bind>*/{
+                Diagnostic(ErrorCode.ERR_ElseCannotStartStatement, "").WithLocation(12, 20),
+                // file.cs(12,20): error CS1003: Syntax error, '(' expected
+                //         /*<bind>*/{
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("(", "else").WithLocation(12, 20),
+                // file.cs(12,20): error CS1525: Invalid expression term 'else'
+                //         /*<bind>*/{
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("else").WithLocation(12, 20),
+                // file.cs(12,20): error CS1026: ) expected
+                //         /*<bind>*/{
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(12, 20),
+                // file.cs(12,20): error CS1525: Invalid expression term 'else'
+                //         /*<bind>*/{
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("else").WithLocation(12, 20),
+                // file.cs(12,20): error CS1002: ; expected
+                //         /*<bind>*/{
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(12, 20),
+                // file.cs(15,14): error CS8641: 'else' cannot start a statement.
+                //             }
+                Diagnostic(ErrorCode.ERR_ElseCannotStartStatement, "").WithLocation(15, 14),
+                // file.cs(15,14): error CS1003: Syntax error, '(' expected
+                //             }
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("(", "else").WithLocation(15, 14),
+                // file.cs(15,14): error CS1525: Invalid expression term 'else'
+                //             }
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("else").WithLocation(15, 14),
+                // file.cs(15,14): error CS1026: ) expected
+                //             }
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(15, 14),
+                // file.cs(15,14): error CS1525: Invalid expression term 'else'
+                //             }
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("else").WithLocation(15, 14),
+                // file.cs(15,14): error CS1002: ; expected
+                //             }
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(15, 14)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<BlockSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17601, "https://github.com/dotnet/roslyn/issues/17601")]
         public void IIfstatementWithElseMissing()
         {
@@ -1015,27 +1368,46 @@ IConditionalOperation (OperationKind.Conditional, Type: null, IsInvalid) (Syntax
       Right: 
         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
   WhenTrue: 
-    IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: '')
-      Expression: 
+    IConditionalOperation (OperationKind.Conditional, Type: null, IsInvalid) (Syntax: '        else')
+      Condition: 
         IInvalidOperation (OperationKind.Invalid, Type: null) (Syntax: '')
           Children(0)
+      WhenTrue: 
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: '')
+          Expression: 
+            IInvalidOperation (OperationKind.Invalid, Type: null) (Syntax: '')
+              Children(0)
+      WhenFalse: 
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: '')
+          Expression: 
+            IInvalidOperation (OperationKind.Invalid, Type: null) (Syntax: '')
+              Children(0)
   WhenFalse: 
-    IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: '')
-      Expression: 
-        IInvalidOperation (OperationKind.Invalid, Type: null) (Syntax: '')
-          Children(0)
+    null
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
-                // CS1525: Invalid expression term 'else'
+                // file.cs(10,30): error CS8641: 'else' cannot start a statement.
+                //         /*<bind>*/if (a == 1)
+                Diagnostic(ErrorCode.ERR_ElseCannotStartStatement, "").WithLocation(10, 30),
+                // file.cs(10,30): error CS1003: Syntax error, '(' expected
+                //         /*<bind>*/if (a == 1)
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("(", "else").WithLocation(10, 30),
+                // file.cs(10,30): error CS1525: Invalid expression term 'else'
                 //         /*<bind>*/if (a == 1)
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("else").WithLocation(10, 30),
-                // CS1002: ; expected
+                // file.cs(10,30): error CS1026: ) expected
+                //         /*<bind>*/if (a == 1)
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(10, 30),
+                // file.cs(10,30): error CS1525: Invalid expression term 'else'
+                //         /*<bind>*/if (a == 1)
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("else").WithLocation(10, 30),
+                // file.cs(10,30): error CS1002: ; expected
                 //         /*<bind>*/if (a == 1)
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(10, 30),
-                // CS1525: Invalid expression term '}'
+                // file.cs(11,13): error CS1525: Invalid expression term '}'
                 //         else
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("}").WithLocation(11, 13),
-                // CS1002: ; expected
+                // file.cs(11,13): error CS1002: ; expected
                 //         else
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(11, 13)
             };

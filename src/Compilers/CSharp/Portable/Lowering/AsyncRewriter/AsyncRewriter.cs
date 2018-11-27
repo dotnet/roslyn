@@ -106,10 +106,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return Binder.GetWellKnownTypeMember(F.Compilation, member, bag, body.Syntax.Location);
         }
 
-        protected override bool PreserveInitialParameterValues
-        {
-            get { return false; }
-        }
+        // Should only be true for async-enumerables, not async-enumerators. Tracked by https://github.com/dotnet/roslyn/issues/31057
+        protected override bool PreserveInitialParameterValuesAndThreadId
+            => method.IsIterator;
 
         protected override void GenerateControlFields()
         {
@@ -158,6 +157,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // Constructor
+            GenerateConstructor();
+        }
+
+        protected virtual void GenerateConstructor()
+        {
             if (stateMachineType.TypeKind == TypeKind.Class)
             {
                 F.CurrentFunction = stateMachineType.Constructor;

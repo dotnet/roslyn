@@ -807,9 +807,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     builder.GetEnumeratorMethod = (MethodSymbol)GetSpecialTypeMember(SpecialMember.System_Collections_IEnumerable__GetEnumerator, diagnostics, errorLocationSyntax);
                     builder.CurrentPropertyGetter = (MethodSymbol)GetSpecialTypeMember(SpecialMember.System_Collections_IEnumerator__get_Current, diagnostics, errorLocationSyntax);
                     builder.MoveNextMethod = (MethodSymbol)GetSpecialTypeMember(SpecialMember.System_Collections_IEnumerator__MoveNext, diagnostics, errorLocationSyntax);
-                    builder.ElementType = TypeSymbolWithAnnotations.Create(
-                        GetSpecialType(SpecialType.System_Object, diagnostics, errorLocationSyntax),
-                        isNullableIfReferenceType: builder.CurrentPropertyGetter?.ReturnType.IsNullable);
+                    builder.ElementType = builder.CurrentPropertyGetter?.ReturnType ?? TypeSymbolWithAnnotations.Create(GetSpecialType(SpecialType.System_Object, diagnostics, errorLocationSyntax));
 
                     Debug.Assert((object)builder.GetEnumeratorMethod == null ||
                         builder.GetEnumeratorMethod.ReturnType.SpecialType == SpecialType.System_Collections_IEnumerator);
@@ -1033,10 +1031,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             overloadResolutionResult.Free();
-            if (arguments.Arguments.Count == 0)
-            {
-                arguments.Free();
-            }
+            arguments.Free();
             typeArguments.Free();
 
             return result;

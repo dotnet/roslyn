@@ -65,7 +65,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo
         internal async Task TestAsync(string content, Func<TestWorkspace, Task> body, bool outOfProcess)
         {
             await TestAsync(content, body, outOfProcess, null);
-            await TestAsync(content, body, outOfProcess, w => new FirstDocIsActiveDocumentTrackingService(w));
             await TestAsync(content, body, outOfProcess, w => new FirstDocIsVisibleDocumentTrackingService(w));
             await TestAsync(content, body, outOfProcess, w => new FirstDocIsActiveAndVisibleDocumentTrackingService(w));
         }
@@ -201,24 +200,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo
     }
 
 #pragma warning disable CS0067
-    public class FirstDocIsActiveDocumentTrackingService : IDocumentTrackingService
-    {
-        private readonly Workspace _workspace;
-
-        public FirstDocIsActiveDocumentTrackingService(Workspace workspace)
-        {
-            _workspace = workspace;
-        }
-
-        public event EventHandler<DocumentId> ActiveDocumentChanged;
-        public event EventHandler<EventArgs> NonRoslynBufferTextChanged;
-
-        public DocumentId GetActiveDocument()
-            => _workspace.CurrentSolution.Projects.First().DocumentIds.First();
-
-        public ImmutableArray<DocumentId> GetVisibleDocuments()
-            => ImmutableArray<DocumentId>.Empty;
-    }
 
     public class FirstDocIsVisibleDocumentTrackingService : IDocumentTrackingService
     {
@@ -232,7 +213,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo
         public event EventHandler<DocumentId> ActiveDocumentChanged;
         public event EventHandler<EventArgs> NonRoslynBufferTextChanged;
 
-        public DocumentId GetActiveDocument()
+        public DocumentId TryGetActiveDocument()
             => null;
 
         public ImmutableArray<DocumentId> GetVisibleDocuments()
@@ -251,7 +232,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo
         public event EventHandler<DocumentId> ActiveDocumentChanged;
         public event EventHandler<EventArgs> NonRoslynBufferTextChanged;
 
-        public DocumentId GetActiveDocument()
+        public DocumentId TryGetActiveDocument()
             => _workspace.CurrentSolution.Projects.First().DocumentIds.First();
 
         public ImmutableArray<DocumentId> GetVisibleDocuments()

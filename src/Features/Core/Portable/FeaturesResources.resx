@@ -1154,6 +1154,9 @@ This version used in: {2}</value>
   <data name="Add_argument_name_0" xml:space="preserve">
     <value>Add argument name '{0}'</value>
   </data>
+  <data name="Add_tuple_element_name_0" xml:space="preserve">
+    <value>Add tuple element name '{0}'</value>
+  </data>
   <data name="Take_0" xml:space="preserve">
     <value>Take '{0}'</value>
   </data>
@@ -1441,6 +1444,21 @@ This version used in: {2}</value>
   </data>
   <data name="Modifying_source_file_will_prevent_the_debug_session_from_continuing_due_to_internal_error" xml:space="preserve">
     <value>Modifying source file {0} will prevent the debug session from continuing due to internal error: {1}.</value>
+  </data>
+  <data name="Change_namespace_to_0" xml:space="preserve">
+    <value>Change namespace to '{0}'</value>
+  </data>
+  <data name="Move_file_to_0" xml:space="preserve">
+    <value>Move file to '{0}'</value>
+  </data>
+  <data name="Move_file_to_project_root_folder" xml:space="preserve">
+    <value>Move file to project root folder</value>
+  </data>
+  <data name="Change_to_global_namespace" xml:space="preserve">
+    <value>Change to global namespace</value>
+  </data>
+  <data name="Warning_colon_changing_namespace_may_produce_invalid_code_and_change_code_meaning" xml:space="preserve">
+    <value>Warning: Changing namespace may produce invalid code and change code meaning.</value>
   </data>
   <data name="Use_compound_assignment" xml:space="preserve">
     <value>Use compound assignment</value>

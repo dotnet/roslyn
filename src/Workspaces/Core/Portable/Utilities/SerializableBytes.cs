@@ -28,50 +28,6 @@ namespace Microsoft.CodeAnalysis
             return stream;
         }
 
-        internal static PooledStream CreateReadableStream(Stream stream, CancellationToken cancellationToken)
-        {
-            long length = stream.Length;
-
-            long chunkCount = (length + ChunkSize - 1) / ChunkSize;
-            byte[][] chunks = new byte[chunkCount][];
-
-            try
-            {
-                for (long i = 0, c = 0; i < length; i += ChunkSize, c++)
-                {
-                    int count = (int)Math.Min(ChunkSize, length - i);
-                    var chunk = SharedPools.ByteArray.Allocate();
-
-                    int chunkOffset = 0;
-                    while (count > 0)
-                    {
-                        cancellationToken.ThrowIfCancellationRequested();
-
-                        int bytesRead = stream.Read(chunk, chunkOffset, count);
-                        if (bytesRead > 0)
-                        {
-                            count = count - bytesRead;
-                            chunkOffset += bytesRead;
-                        }
-                        else
-                        {
-                            break;
-                        }
-                    }
-
-                    chunks[c] = chunk;
-                }
-
-                var result = new ReadStream(length, chunks);
-                chunks = null;
-                return result;
-            }
-            finally
-            {
-                BlowChunks(chunks);
-            }
-        }
-
         internal async static Task<PooledStream> CreateReadableStreamAsync(Stream stream, CancellationToken cancellationToken)
         {
             long length = stream.Length;
