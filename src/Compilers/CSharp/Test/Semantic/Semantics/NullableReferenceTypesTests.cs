@@ -56790,9 +56790,9 @@ class Program
     static void F2<T>(T? t) where T : class
     {
         var a2 = new C<T>() { F = t };
-        a2.F/*T:T?*/.ToString(); // 2
+        F(a2.F/*T:T?*/); // 2
         var b2 = a2;
-        b2.F/*T:T!*/.ToString();
+        F(b2.F/*T:T!*/);
     }
     static void F(object o)
     {
@@ -56810,9 +56810,9 @@ class Program
                 // (17,35): warning CS8601: Possible null reference assignment.
                 //         var a2 = new C<T>() { F = t };
                 Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "t").WithLocation(17, 35),
-                // (18,9): warning CS8602: Possible dereference of a null reference.
-                //         a2.F/*T:T?*/.ToString(); // 2
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "a2.F").WithLocation(18, 9));
+                // (18,11): warning CS8604: Possible null reference argument for parameter 'o' in 'void Program.F(object o)'.
+                //         F(a2.F/*T:T?*/); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "a2.F").WithArguments("o", "void Program.F(object o)").WithLocation(18, 11));
             comp.VerifyTypes();
         }
 
