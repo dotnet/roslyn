@@ -648,6 +648,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (targetType.IsReferenceType)
                 {
+                    // https://github.com/dotnet/roslyn/issues/31395,
                     // https://github.com/dotnet/roslyn/issues/29968 We should copy all tracked state from `value`,
                     // regardless of BoundNode type, but we'll need to handle cycles. (For instance, the
                     // assignment to C.F below. See also NullableReferenceTypesTests.Members_FieldCycle_01.)
