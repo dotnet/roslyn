@@ -5,7 +5,6 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
-using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -24,6 +23,11 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// analyses whose soundness would be affected (e.g. "data flows out"), we track "unassignments" to keep
     /// the analysis sound.
     /// </summary>
+    /// <remarks>
+    /// Formally, this is a fairly conventional lattice flow analysis (<see
+    /// href="https://en.wikipedia.org/wiki/Data-flow_analysis"/>) that moves upward through the <see cref="Join(ref
+    /// TLocalState, ref TLocalState)"/> operation.
+    /// </remarks>
     internal abstract partial class AbstractFlowPass<TLocalState> : BoundTreeVisitor
         where TLocalState : AbstractFlowPass<TLocalState>.ILocalState
     {
@@ -99,7 +103,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected TLocalState StateWhenFalse;
         protected bool IsConditionalState;
 
-        private readonly bool _nonMonotonicTransfer; // for the data flows out walker, we track unassignments as well as assignments
+        /// <summary>
+        /// Indicates that the transfer function for a particular node (the function mapping
+        /// the state before the node to after the node) may not always move the state in the
+        /// same direction on the lattice. Usually false.
+        /// </summary>
+        private readonly bool _nonMonotonicTransfer;
 
         protected void SetConditionalState(TLocalState whenTrue, TLocalState whenFalse)
         {
@@ -1501,7 +1510,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // use this state to resolve all the branches introduced and internal to try/catch
             var pendingBeforeTry = SavePending(); 
 
-            VisitTryBlockWithUnassignments(node.TryBlock, node, ref initialState);
+            VisitTryBlockWithAnyTransferFunction(node.TryBlock, node, ref initialState);
             var finallyState = initialState.Clone();
             var endState = this.State;
             foreach (var catchBlock in node.CatchBlocks)
@@ -1532,21 +1541,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // capture tryAndCatchPending before going into finally
                 // we will need pending branches as they were before finally later
                 var tryAndCatchPending = SavePending();
-                var unsetInFinally = ReachableBottomState();
-                VisitFinallyBlockWithUnassignments(node.FinallyBlockOpt, ref unsetInFinally);                
+                var stateMovedUpInFinally = ReachableBottomState();
+                VisitFinallyBlockWithAnyTransferFunction(node.FinallyBlockOpt, ref stateMovedUpInFinally);
                 foreach (var pend in tryAndCatchPending.PendingBranches)
                 {
                     if (pend.Branch == null) continue; // a tracked exception
                     if (pend.Branch.Kind != BoundKind.YieldReturnStatement)
                     {
                         Meet(ref pend.State, ref this.State);
-                        if (_nonMonotonicTransfer) Join(ref pend.State, ref unsetInFinally);
+                        if (_nonMonotonicTransfer) Join(ref pend.State, ref stateMovedUpInFinally);
                     }
                 }
 
                 RestorePending(tryAndCatchPending);
                 Meet(ref endState, ref this.State);
-                if (_nonMonotonicTransfer) Join(ref endState, ref unsetInFinally);
+                if (_nonMonotonicTransfer) Join(ref endState, ref stateMovedUpInFinally);
             }
 
             SetState(endState);
@@ -1556,7 +1565,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected Optional<TLocalState> _tryState;
 
-        private void VisitTryBlockWithUnassignments(BoundStatement tryBlock, BoundTryStatement node, ref TLocalState tryState)
+        private void VisitTryBlockWithAnyTransferFunction(BoundStatement tryBlock, BoundTryStatement node, ref TLocalState tryState)
         {
             if (_nonMonotonicTransfer)
             {
@@ -1625,15 +1634,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             VisitStatement(catchBlock.Body);
         }
 
-        private void VisitFinallyBlockWithUnassignments(BoundStatement finallyBlock, ref TLocalState unsetInFinally)
+        private void VisitFinallyBlockWithAnyTransferFunction(BoundStatement finallyBlock, ref TLocalState stateMovedUp)
         {
             if (_nonMonotonicTransfer)
             {
                 Optional<TLocalState> oldTryState = _tryState;
                 _tryState = ReachableBottomState();
-                VisitFinallyBlock(finallyBlock, ref unsetInFinally);
+                VisitFinallyBlock(finallyBlock, ref stateMovedUp);
                 var tempTryStateValue = _tryState.Value;
-                Join(ref unsetInFinally, ref tempTryStateValue);
+                Join(ref stateMovedUp, ref tempTryStateValue);
                 if (oldTryState.HasValue)
                 {
                     var oldTryStateValue = oldTryState.Value;
@@ -1645,11 +1654,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                VisitFinallyBlock(finallyBlock, ref unsetInFinally);
+                VisitFinallyBlock(finallyBlock, ref stateMovedUp);
             }
         }
 
-        protected virtual void VisitFinallyBlock(BoundStatement finallyBlock, ref TLocalState unsetInFinally)
+        protected virtual void VisitFinallyBlock(BoundStatement finallyBlock, ref TLocalState stateMovedUp)
         {
             VisitStatement(finallyBlock); // this should generate no pending branches
         }
