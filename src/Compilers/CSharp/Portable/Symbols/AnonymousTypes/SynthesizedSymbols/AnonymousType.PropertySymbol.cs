@@ -14,13 +14,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private sealed class AnonymousTypePropertySymbol : PropertySymbol
         {
             private readonly NamedTypeSymbol _containingType;
-            private readonly TypeSymbol _type;
+            private readonly TypeSymbolWithAnnotations _type;
             private readonly string _name;
             private readonly ImmutableArray<Location> _locations;
             private readonly AnonymousTypePropertyGetAccessorSymbol _getMethod;
             private readonly FieldSymbol _backingField;
 
-            internal AnonymousTypePropertySymbol(AnonymousTypeTemplateSymbol container, AnonymousTypeField field, TypeSymbol fieldTypeSymbol)
+            internal AnonymousTypePropertySymbol(AnonymousTypeTemplateSymbol container, AnonymousTypeField field, TypeSymbolWithAnnotations fieldTypeSymbol)
             {
                 _containingType = container;
                 _type = fieldTypeSymbol;
@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 get { return RefKind.None; }
             }
 
-            public override TypeSymbol Type
+            public override TypeSymbolWithAnnotations Type
             {
                 get { return _type; }
             }
@@ -121,11 +121,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             public override MethodSymbol SetMethod
             {
                 get { return null; }
-            }
-
-            public override ImmutableArray<CustomModifier> TypeCustomModifiers
-            {
-                get { return ImmutableArray<CustomModifier>.Empty; }
             }
 
             public override ImmutableArray<CustomModifier> RefCustomModifiers

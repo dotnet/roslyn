@@ -743,9 +743,10 @@ Class C
     End Sub
 End Class
 </text>
+            ' https://github.com/dotnet/roslyn/issues/29819 remove explicit language version when VB 16 is latest
             Dim compilation = CreateCompilationWithMscorlib40(
                 {VisualBasicSyntaxTree.ParseText(vbx.Value, options:=TestOptions.Script),
-                 VisualBasicSyntaxTree.ParseText(vb.Value, options:=TestOptions.Regular)}, options:=TestOptions.ReleaseExe.WithMainTypeName("C"))
+                 VisualBasicSyntaxTree.ParseText(vb.Value, options:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.Default))}, options:=TestOptions.ReleaseExe.WithMainTypeName("C"))
 
             ' TODO: compilation.VerifyDiagnostics(Diagnostic(ErrorCode.WRN_MainIgnored).WithArguments("C"))
         End Sub

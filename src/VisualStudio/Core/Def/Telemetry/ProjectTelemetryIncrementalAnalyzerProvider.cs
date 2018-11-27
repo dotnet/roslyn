@@ -15,7 +15,7 @@ using Microsoft.VisualStudio.LanguageServices;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Roslyn.Utilities;
 
-namespace Microsoft.VisualStudio.LangaugeServices.Telemetry
+namespace Microsoft.VisualStudio.LanguageServices.Telemetry
 {
     /// <summary>
     /// Creates an <see cref="IIncrementalAnalyzer"/> that collects basic information on <see cref="Project"/> inputs
@@ -163,11 +163,11 @@ namespace Microsoft.VisualStudio.LangaugeServices.Telemetry
                     try
                     {
                         var workspace = (VisualStudioWorkspaceImpl)project.Solution.Workspace;
-                        var vsProject = workspace.GetHostProject(projectId);
 
                         var telemetryEvent = TelemetryHelper.TelemetryService.CreateEvent(TelemetryEventPath);
                         telemetryEvent.SetStringProperty(TelemetryProjectIdName, projectId.Id.ToString());
-                        telemetryEvent.SetStringProperty(TelemetryProjectGuidName, vsProject?.Guid.ToString() ?? Guid.Empty.ToString());
+                        // TODO: reconnect project GUID
+                        telemetryEvent.SetStringProperty(TelemetryProjectGuidName, Guid.Empty.ToString());
                         telemetryEvent.SetStringProperty(TelemetryLanguageName, language);
                         telemetryEvent.SetIntProperty(TelemetryAnalyzerReferencesCountName, analyzerReferencesCount);
                         telemetryEvent.SetIntProperty(TelemetryProjectReferencesCountName, projectReferencesCount);

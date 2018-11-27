@@ -18,6 +18,8 @@ namespace Microsoft.VisualStudio.LanguageServices.ProjectSystem
         bool LastDesignTimeBuildSucceeded { get; set; }
         string BinOutputPath { get; set; }
 
+        ProjectId Id { get; }
+
         // Options.
         void SetOptions(string commandLineForOptions);
 
@@ -34,6 +36,11 @@ namespace Microsoft.VisualStudio.LanguageServices.ProjectSystem
         void RemoveSourceFile(string filePath);
         void AddAdditionalFile(string filePath, bool isInCurrentContext = true);
         void RemoveAdditionalFile(string filePath);
+        void AddDynamicFile(string filePath, IEnumerable<string> folderNames = null);
+        void RemoveDynamicFile(string filePath);
         void SetRuleSetFile(string filePath);
+
+        void StartBatch();
+        void EndBatch();
     }
 }

@@ -81,7 +81,7 @@
 
   <!-- Microsoft.VisualStudio.SDK.EmbedInteropTypes sets a bunch of EmbedInteropTypes attributes, but Roslyn is somewhat special
        and has to do things differently. After the NuGet package does its thing, do further changes. -->
-  <Target Name="FixVSSDKEmbeddableAssemblies" AfterTargets="LinkVSSDKEmbeddableAssemblies" >
+  <Target Name="FixVSSDKEmbeddableAssemblies" AfterTargets="LinkVSSDKEmbeddableAssemblies" BeforeTargets="FindReferenceAssembliesForReferences">
     <ItemGroup>
       <!-- The official NuGet package tries to embed EnvDTE, which is problematic because we implement the interfaces and use
            them in generic type parameters. Because of this, we can't embed them. -->
@@ -100,6 +100,10 @@
       <ReferencePath Condition="'%(FileName)' == 'Microsoft.VisualStudio.Shell.Interop.10.0'
                              or '%(FileName)' == 'Microsoft.VisualStudio.Shell.Interop.11.0'">
         <EmbedInteropTypes>false</EmbedInteropTypes>
+      </ReferencePath>
+
+      <ReferencePath Condition="'%(FileName)' == 'Microsoft.VisualStudio.Imaging.Interop.14.0.DesignTime'">
+        <EmbedInteropTypes>true</EmbedInteropTypes>
       </ReferencePath>
     </ItemGroup>
   </Target>

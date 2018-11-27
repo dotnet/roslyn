@@ -18,6 +18,12 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 {
     public class VisualStudioInstance
     {
+        /// <summary>
+        /// Used for creating unique IPC channel names each time a Visual Studio instance is created during tests.
+        /// </summary>
+        /// <seealso cref="GetIpcClientChannelName"/>
+        private static int s_connectionIndex = 0;
+
         private readonly IntegrationService _integrationService;
         private readonly IpcClientChannel _integrationServiceChannel;
         private readonly VisualStudio_InProc _inProc;
@@ -84,7 +90,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
             StartRemoteIntegrationService(dte);
 
-            _integrationServiceChannel = new IpcClientChannel($"IPC channel client for {HostProcess.Id}", sinkProvider: null);
+            _integrationServiceChannel = new IpcClientChannel(GetIpcClientChannelName(HostProcess), sinkProvider: null);
             ChannelServices.RegisterChannel(_integrationServiceChannel, ensureSecurity: true);
 
             // Connect to a 'well defined, shouldn't conflict' IPC channel
@@ -123,6 +129,19 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
             // Ensure we are in a known 'good' state by cleaning up anything changed by the previous instance
             CleanUp();
+        }
+
+        private static string GetIpcClientChannelName(Process hostProcess)
+        {
+            var index = Interlocked.Increment(ref s_connectionIndex) - 1;
+            if (index == 0)
+            {
+                return $"IPC channel client for {hostProcess.Id}";
+            }
+            else
+            {
+                return $"IPC channel client for {hostProcess.Id} ({index})";
+            }
         }
 
         public void ExecuteInHostProcess(Type type, string methodName)
@@ -185,12 +204,22 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         {
             if (!IsRunning)
             {
+                CloseRemotingService(allowInProcCalls: false);
                 return;
             }
 
-            CleanUp();
+            try
+            {
+                CleanUp();
+            }
+            catch
+            {
+                // A cleanup failure occurred, but we still need to close the communication channel from this side
+                CloseRemotingService(allowInProcCalls: false);
+                throw;
+            }
 
-            CloseRemotingService();
+            CloseRemotingService(allowInProcCalls: true);
 
             if (exitHostProcess)
             {
@@ -204,11 +233,14 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             IntegrationHelper.KillProcess(HostProcess);
         }
 
-        private void CloseRemotingService()
+        private void CloseRemotingService(bool allowInProcCalls)
         {
             try
             {
-                StopRemoteIntegrationService();
+                if (allowInProcCalls)
+                {
+                    StopRemoteIntegrationService();
+                }
             }
             finally
             {

@@ -192,7 +192,6 @@ namespace Microsoft.CodeAnalysis
         ConstructorBodyOperation = 0x59,
         /// <summary>Indicates an <see cref="IDiscardOperation"/>.</summary>
         Discard = 0x5A,
-
         /// <summary>Indicates an <see cref="IFlowCaptureOperation"/>.</summary>
         FlowCapture = 0x5B,
         /// <summary>Indicates an <see cref="IFlowCaptureReferenceOperation"/>.</summary>
@@ -205,6 +204,18 @@ namespace Microsoft.CodeAnalysis
         StaticLocalInitializationSemaphore = 0x5F,
         /// <summary>Indicates an <see cref="IFlowAnonymousFunctionOperation"/>.</summary>
         FlowAnonymousFunction = 0x60,
+        /// <summary>Indicates an <see cref="ICoalesceAssignmentOperation"/>.</summary>
+        CoalesceAssignment = 0x61,
+        /// <summary>Indicates an <see cref="ISuppressNullableWarningOperation"/>.</summary>
+        SuppressNullableWarning = 0x62,
+        /// <summary>Indicates an <see cref="IRangeOperation"/>.</summary>
+        Range = 0x63,
+        /// <summary>Indicates an <see cref="IFromEndIndexOperation"/>.</summary>
+        FromEndIndex = 0x64,
+        /// <summary>Indicates an <see cref="IReDimOperation"/>.</summary>
+        ReDim = 0x65,
+        /// <summary>Indicates an <see cref="IReDimClauseOperation"/>.</summary>
+        ReDimClause = 0x66,
 
         // /// <summary>Indicates an <see cref="IFixedOperation"/>.</summary>
         // https://github.com/dotnet/roslyn/issues/21281

@@ -96,6 +96,37 @@ namespace Microsoft.CodeAnalysis.CSharp
             return _lazyImports;
         }
 
+        /// <summary>
+        /// Look for a type forwarder for the given type in any referenced assemblies, checking any using namespaces in
+        /// the current imports.
+        /// </summary>
+        /// <param name="name">The metadata name of the (potentially) forwarded type, without qualifiers.</param>
+        /// <param name="qualifierOpt">Will be used to return the namespace of the found forwarder, 
+        /// if any.</param>
+        /// <param name="diagnostics">Will be used to report non-fatal errors during look up.</param>
+        /// <param name="location">Location to report errors on.</param>
+        /// <returns>Returns the Assembly to which the type is forwarded, or null if none is found.</returns>
+        /// <remarks>
+        /// Since this method is intended to be used for error reporting, it stops as soon as it finds
+        /// any type forwarder (or an error to report). It does not check other assemblies for consistency or better results.
+        /// </remarks>
+        protected override AssemblySymbol GetForwardedToAssemblyInUsingNamespaces(string name, ref NamespaceOrTypeSymbol qualifierOpt, DiagnosticBag diagnostics, Location location)
+        {
+            var imports = GetImports(basesBeingResolved: null);
+            foreach (var typeOrNamespace in imports.Usings)
+            {
+                var fullName = typeOrNamespace.NamespaceOrType + "." + name;
+                var result = GetForwardedToAssembly(fullName, diagnostics, location);
+                if (result != null)
+                {
+                    qualifierOpt = typeOrNamespace.NamespaceOrType;
+                    return result;
+                }
+            }
+
+            return base.GetForwardedToAssemblyInUsingNamespaces(name, ref qualifierOpt, diagnostics, location);
+        }
+
         internal override ImportChain ImportChain
         {
             get

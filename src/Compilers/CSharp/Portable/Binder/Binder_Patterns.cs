@@ -247,26 +247,26 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             bool isVar;
             AliasSymbol aliasOpt;
-            TypeSymbol declType = BindTypeOrVarKeyword(typeSyntax, diagnostics, out isVar, out aliasOpt);
+            TypeSymbolWithAnnotations declType = BindTypeOrVarKeyword(typeSyntax, diagnostics, out isVar, out aliasOpt);
             if (isVar)
             {
-                declType = operandType;
+                declType = TypeSymbolWithAnnotations.Create(NonNullTypesContext, operandType);
             }
 
-            if (declType == (object)null)
+            if (declType.IsNull)
             {
                 Debug.Assert(hasErrors);
-                declType = this.CreateErrorType("var");
+                declType = TypeSymbolWithAnnotations.Create(NonNullTypesContext, this.CreateErrorType("var"));
             }
 
-            var boundDeclType = new BoundTypeExpression(typeSyntax, aliasOpt, inferredType: isVar, type: declType);
+            var boundDeclType = new BoundTypeExpression(typeSyntax, aliasOpt, inferredType: isVar, type: declType.TypeSymbol);
             if (IsOperatorErrors(node, operandType, boundDeclType, diagnostics))
             {
                 hasErrors = true;
             }
             else
             {
-                hasErrors |= CheckValidPatternType(typeSyntax, operandType, declType,
+                hasErrors |= CheckValidPatternType(typeSyntax, operandType, declType.TypeSymbol,
                                                    isVar: isVar, patternTypeWasInSource: true, diagnostics: diagnostics);
             }
 
@@ -299,7 +299,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (!hasErrors)
                 {
-                    hasErrors = CheckRestrictedTypeInAsync(this.ContainingMemberOrLambda, declType, diagnostics, typeSyntax);
+                    hasErrors = CheckRestrictedTypeInAsync(this.ContainingMemberOrLambda, declType.TypeSymbol, diagnostics, typeSyntax);
                 }
 
                 return new BoundDeclarationPattern(node, localSymbol, boundDeclType, isVar, hasErrors);

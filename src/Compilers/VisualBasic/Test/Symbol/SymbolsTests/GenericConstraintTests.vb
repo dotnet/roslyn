@@ -3889,12 +3889,6 @@ End Class
                 </compilation>
             Dim compilation = CreateCompilationWithCustomILSource(vbSource, ilSource)
             compilation.AssertTheseDiagnostics(<errors><![CDATA[
-BC32078: 'Public Sub M2(Of U As Structure)()' cannot implement 'IB.Sub M2(Of U As {Structure, Object})()' because they differ by type parameter constraints.
-    Public Sub M2(Of U As Structure)() Implements IB.M2 ' Dev10 error
-                                                  ~~~~~
-BC32077: 'Public Overrides Sub M2(Of U As Structure)()' cannot override 'Public MustOverride Overrides Sub M2(Of U As {Structure, Object})()' because they differ by type parameter constraints.
-    Public Overrides Sub M2(Of U As Structure)() ' Dev10 error
-                         ~~
 BC32077: 'Public Overrides Sub M2(Of U As {Structure, ValueType})()' cannot override 'Public MustOverride Overrides Sub M2(Of U As Structure)()' because they differ by type parameter constraints.
     Public Overrides Sub M2(Of U As {Structure, System.ValueType})() ' Dev10 error
                          ~~

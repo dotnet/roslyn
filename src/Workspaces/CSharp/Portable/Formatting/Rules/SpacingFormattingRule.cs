@@ -278,7 +278,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 }
             }
 
-            // No space after $" and $@" at the start of an interpolated string
+            // No space after $" and $@" and @$" at the start of an interpolated string
             if (previousKind == SyntaxKind.InterpolatedStringStartToken ||
                 previousKind == SyntaxKind.InterpolatedVerbatimStringStartToken)
             {
@@ -323,6 +323,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             if (currentToken.IsOpenParenInVarDeconstructionDeclaration())
             {
                 return CreateAdjustSpacesOperation(1, AdjustSpacesOption.ForceSpaces);
+            }
+
+            // Index expressions
+            if (previousKind == SyntaxKind.CaretToken && previousParentKind == SyntaxKind.IndexExpression)
+            {
+                return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpaces);
+            }
+
+            // Right of Range expressions
+            if (previousKind == SyntaxKind.DotDotToken && previousParentKind == SyntaxKind.RangeExpression)
+            {
+                RangeExpressionSyntax rangeExpression = (RangeExpressionSyntax)previousToken.Parent;
+                if (rangeExpression.RightOperand != null)
+                {
+                    return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpaces);
+                }
+            }
+
+            // Left of Range expressions
+            if (currentKind == SyntaxKind.DotDotToken && currentParentKind == SyntaxKind.RangeExpression)
+            {
+                RangeExpressionSyntax rangeExpression = (RangeExpressionSyntax)currentToken.Parent;
+                if (rangeExpression.LeftOperand != null)
+                {
+                    return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpaces);
+                }
             }
 
             return nextOperation.Invoke();

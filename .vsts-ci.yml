@@ -11,6 +11,8 @@ queue:
 
 variables:
   BuildPlatform: 'Any CPU'
+  InsertTargetBranchFullName: 'lab/d16.0stg'
+  InsertTargetBranchShortName: 'd16.0stg'
 steps:
 - task: NuGetCommand@2
   inputs:
@@ -22,6 +24,11 @@ steps:
     signType: real
   condition: and(succeeded(), in(variables['PB_SignType'], 'test', 'real'))
 
+- task: ms-vseng.MicroBuildTasks.965C8DC6-1483-45C9-B384-5AC75DA1F1A4.MicroBuildOptProfPlugin@1
+  inputs:
+    skipRunOptimize: true
+  displayName: 'Install OptProf Plugin'
+
 - task: ms-vseng.MicroBuildTasks.32f78468-e895-4f47-962c-58a699361df8.MicroBuildSwixPlugin@1
   inputs:
     feedSource: 'https://devdiv-test.pkgs.visualstudio.com/_packaging/MicroBuildToolset/nuget/v3/index.json'
@@ -32,37 +39,85 @@ steps:
     feed: '8f470c7e-ac49-4afe-a6ee-cf784e438b93'
 
 - task: CmdLine@1
+  displayName: Create output directory
   inputs:
     filename: mkdir
     arguments: 'Binaries\$(BuildConfiguration)'
 
-- task: VSBuild@1
+- script: build\scripts\cibuild.cmd
+            -configuration $(BuildConfiguration) -official -testDesktop -procdump
+            /p:OfficialBuildId=$(BUILD.BUILDNUMBER)
+            /p:DotNetSignType=$(PB_SignType)
+            /p:DotNetSymbolServerTokenMsdl=$(microsoft-symbol-server-pat)
+            /p:DotNetSymbolServerTokenSymWeb=$(symweb-symbol-server-pat)
+  displayName: Build
+  condition: succeeded()
+
+- task: PowerShell@2
+  displayName: Publish Assets
   inputs:
-    solution: 'src/Tools/MicroBuild/Build.proj'
-    vsVersion: 15.0
-    msbuildArgs: >- 
-        /p:TreatWarningsAsErrors=true 
-        /p:DeployExtension=false 
-        /p:TrackFileAccess=false
-        /p:OfficialBuildId=$(BUILD.BUILDNUMBER)
-        /p:VisualStudioVersion=14.0 
-        /flp1:Summary;Verbosity=diagnostic;Encoding=UTF-8;LogFile=$(Build.SourcesDirectory)\Binaries\$(BuildConfiguration)\Roslyn.log 
-        /flp2:WarningsOnly;Verbosity=diagnostic;Encoding=UTF-8;LogFile=$(Build.SourcesDirectory)\Binaries\$(BuildConfiguration)\Roslyn.wrn 
-        /flp3:ErrorsOnly;Verbosity=diagnostic;Encoding=UTF-8;LogFile=$(Build.SourcesDirectory)\Binaries\$(BuildConfiguration)\Roslyn.err 
-        /p:RoslynMyGetApiKey=$(Roslyn.MyGetApiKey) 
-        /p:RoslynNuGetApiKey=$(Roslyn.NuGetApiKey) 
-        /p:RoslynGitHubEmail=$(Roslyn.GitHubEmail) 
-        /p:RoslynGitHubToken=$(Roslyn.GitHubToken) 
-        /p:RoslynGitHubUserName=$(Roslyn.GitHubUserName) 
-        /p:PB_PublishBlobFeedKey=$(PB_PublishBlobFeedKey) 
-        /p:PublishStableVersions=false 
-        /p:VersionStampToPublish=prerelease
-        /p:DotNetSymbolServerTokenMsdl=$(microsoft-symbol-server-pat)
-        /p:DotNetSymbolServerTokenSymWeb=$(symweb-symbol-server-pat)
-    platform: '$(BuildPlatform)'
-    configuration: '$(BuildConfiguration)'
-    maximumCpuCount: true
-    logProjectEvents: false
+    arguments: '-config $(BuildConfiguration) -branchName "$(Build.SourceBranch)" -mygetApiKey $(Roslyn.MyGetApiKey) -nugetApiKey $(Roslyn.NuGetApiKey) -gitHubUserName $(Roslyn.GitHubUserName) -gitHubToken $(Roslyn.GitHubToken) -gitHubEmail $(Roslyn.GitHubEmail)'
+    filePath: 'build\scripts\publish-assets.ps1'
+  condition: succeeded()
+
+### BEGIN OPTPROF TASKS ###
+
+# Publish optprof configuration files
+- task: ms-vscs-artifact.build-tasks.artifactDropTask-1.artifactDropTask@0
+  inputs:
+    dropServiceURI: 'https://devdiv.artifacts.visualstudio.com'
+    buildNumber: 'ProfilingInputs/DevDiv/$(Build.Repository.Name)/$(Build.SourceBranchName)/$(Build.BuildId)'
+    sourcePath: '$(Build.SourcesDirectory)\Binaries\$(BuildConfiguration)\DevDivInsertionFiles\OptProf'
+    toLowerCase: false
+    usePat: false
+  displayName: 'OPTPROF - Publish to Artifact Services - ProfilingInputs'
+  condition: succeededOrFailed()
+
+# Created a exe that will install visual studio with this version 
+- task: PowerShell@2
+  inputs:
+    filePath: build\scripts\setmanifestpaths.ps1
+    failOnStderr: true
+  displayName: 'OPTPROF - Set VSTS variables for vsman files'
+  condition: succeededOrFailed()
+
+- task: ms-vseng.MicroBuildTasks.0e9d0d4d-71ec-4e4e-ae40-db9896f1ae74.MicroBuildBuildVSBootstrapper@1
+  inputs:
+    vsMajorVersion: 16
+    channelName: int.$(InsertTargetBranchShortName)
+    manifests: $(SetupManifests)
+    outputFolder: '$(Build.SourcesDirectory)\Binaries\VSSetup\$(BuildConfiguration)\Insertion'
+  displayName: 'OPTPROF - Build VS bootstrapper'
+  condition: succeededOrFailed()
+
+# Publish run settings
+- task: PowerShell@2
+  inputs:
+    filePath: build\scripts\createrunsettings.ps1
+    arguments: -release
+    failOnStderr: true
+  displayName: 'OPTPROF - generate runsettings file'
+  condition: succeededOrFailed()
+
+# Publish bootstrapper info
+- task: PublishBuildArtifacts@1
+  inputs:
+    PathtoPublish: $(Build.StagingDirectory)\MicroBuild\Output
+    ArtifactName: MicroBuildOutputs
+    ArtifactType: Container
+  displayName: 'OPTPROF - Publish Artifact: MicroBuildOutputs'
+  condition: succeededOrFailed()
+
+# Publish scripts to get the branch of VS that this inserts into
+- task: PublishBuildArtifacts@1
+  inputs:
+    PathtoPublish: '$(Build.SourcesDirectory)\Binaries\$(BuildConfiguration)\DevDivInsertionFiles\BranchInfo'
+    ArtifactName: BranchInfo
+    ArtifactType: Container
+  displayName: 'OPTPROF - Publish Artifact: BranchInfo'
+  condition: succeededOrFailed()
+
+### END OPTPROF TASKS ###
 
 - task: PublishBuildArtifacts@1
   displayName: Publish Logs
@@ -86,7 +141,7 @@ steps:
   displayName: Upload VSTS Drop
   inputs:
     DropFolder: 'Binaries\VSSetup\$(BuildConfiguration)\Insertion'
-  condition: and(succeeded(), contains(variables['PB_PublishType'], 'vsts'))
+  condition: succeeded()
 
 - task: NuGetCommand@2
   displayName: NuGet CoreXT publish
@@ -96,19 +151,31 @@ steps:
     packagesToPush: '$(Build.SourcesDirectory)\Binaries\$(BuildConfiguration)\DevDivPackages\**\*.nupkg'
     publishVstsFeed: '97a41293-2972-4f48-8c0e-05493ae82010'
     allowPackageConflicts: true
-  condition: and(succeeded(), contains(variables['PB_PublishType'], 'vsts'))
+  condition: succeeded()
 
 # Publish VSTS artifact that the RoslynInsertionTool is able to find by its name.
 # The backing storage of the artifact is a file share.
+#
+# The bulk of the publish work is done by the Powershell task below. This exists to create
+# the proper entries in the build log so that the insertion tool can find the drop that 
+# needs to get published
 - task: PublishBuildArtifacts@1
   displayName: Publish Drop - Binaries
   inputs:
-    PathtoPublish: 'Binaries\$(BuildConfiguration)'
+    PathtoPublish: 'Binaries\$(BuildConfiguration)\DevDivInsertionFiles'
     ArtifactName: '$(Build.BuildNumber)'
     publishLocation: FilePath
     TargetPath: '$(DropRoot)\Roslyn-Signed\$(Build.SourceBranchName)\$(BuildConfiguration)'
     Parallel: true
     ParallelCount: 64
+  condition: succeededOrFailed()
+
+# Archive the files from the build necessary for future investigations
+- task: PowerShell@2
+  displayName: Publish Drop - Binaries Real
+  inputs:
+    arguments: '-Source Binaries\$(BuildConfiguration) -Target $(DropRoot)\Roslyn-Signed\$(Build.SourceBranchName)\$(BuildConfiguration)\$(Build.BuildNumber) -ParallelCount 8 -Exclude UnitTests,PerfTests'
+    filePath: 'build\scripts\vsts-robocopy.ps1'
   condition: succeededOrFailed()
 
 # Copy additional files to the drop directory
@@ -130,5 +197,5 @@ steps:
     ArtifactName: '$(Build.BuildNumber)'
     publishLocation: FilePath
     TargetPath: '$(DropRoot)\Roslyn-Signed\$(Build.SourceBranchName)\$(BuildConfiguration)'
-  condition: and(succeededOrFailed(), contains(variables['PB_PublishType'], 'vsts'))
+  condition: succeededOrFailed()
 

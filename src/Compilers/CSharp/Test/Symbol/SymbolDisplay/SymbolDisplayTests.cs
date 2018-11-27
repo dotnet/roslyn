@@ -2606,7 +2606,7 @@ class C1 {
 ";
 
             Func<NamespaceSymbol, Symbol> findSymbol = global =>
-                ((FieldSymbol)global.GetTypeMembers("C1").Single().GetMembers("goo").Single()).Type;
+                ((FieldSymbol)global.GetTypeMembers("C1").Single().GetMembers("goo").Single()).Type.TypeSymbol;
 
             var format = SymbolDisplayFormat.MinimallyQualifiedFormat;
 
@@ -3029,7 +3029,7 @@ class C1 {
             Func<NamespaceSymbol, Symbol> findSymbol = global =>
             {
                 var field = global.GetTypeMembers("Test", 0).Single().GetMembers("field").Single() as FieldSymbol;
-                return field.Type;
+                return field.Type.TypeSymbol;
             };
 
             var format =
@@ -3083,7 +3083,7 @@ class C1 {
             Func<NamespaceSymbol, Symbol> findSymbol = global =>
             {
                 var field = global.GetTypeMembers("Test", 0).Single().GetMembers("field").Single() as FieldSymbol;
-                return field.Type;
+                return field.Type.TypeSymbol;
             };
 
             var format =
@@ -3135,7 +3135,7 @@ class C1 {
             Func<NamespaceSymbol, Symbol> findSymbol = global =>
             {
                 var field = global.GetTypeMembers("Test", 0).Single().GetMembers("field2").Single() as FieldSymbol;
-                return field.Type;
+                return field.Type.TypeSymbol;
             };
 
             var format =
@@ -3978,7 +3978,7 @@ public class C
 }
 ";
             Func<NamespaceSymbol, Symbol> findSymbol = global =>
-                global.GetMember<NamedTypeSymbol>("C").GetMember<FieldSymbol>("F").Type;
+                global.GetMember<NamedTypeSymbol>("C").GetMember<FieldSymbol>("F").Type.TypeSymbol;
 
             var normalFormat = new SymbolDisplayFormat();
             var reverseFormat = new SymbolDisplayFormat(
@@ -5821,6 +5821,234 @@ class C
             position = methodDecl.Body.SpanStart;
             var description = symbol.ToMinimalDisplayParts(model, position, SymbolDisplayFormat.MinimallyQualifiedFormat);
             Verify(description, "A.B", SymbolDisplayPartKind.AliasName, SymbolDisplayPartKind.Punctuation, SymbolDisplayPartKind.ClassName);
+        }
+
+        [Fact]
+        public void NullableReferenceTypes()
+        {
+            var source = @"
+class A<T>
+{
+}
+class B
+{
+    static object F1(object? o) => null!;
+    static object?[] F2(object[]? o) => null;
+    static A<object>? F3(A<object?> o) => null;
+}";
+            var comp = CreateCompilation(new[] { source }, parseOptions: TestOptions.Regular8, options: WithNonNullTypesTrue());
+            var formatWithoutNonNullableModifier = new SymbolDisplayFormat(
+                memberOptions: SymbolDisplayMemberOptions.IncludeParameters | SymbolDisplayMemberOptions.IncludeType | SymbolDisplayMemberOptions.IncludeModifiers,
+                parameterOptions: SymbolDisplayParameterOptions.IncludeType | SymbolDisplayParameterOptions.IncludeName | SymbolDisplayParameterOptions.IncludeParamsRefOut,
+                genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
+                miscellaneousOptions: SymbolDisplayMiscellaneousOptions.UseSpecialTypes | SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier);
+
+            var formatWithNonNullableModifier = formatWithoutNonNullableModifier
+                .WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.IncludeNonNullableTypeModifier)
+                .AddMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier);
+
+            var method = comp.GetMember<MethodSymbol>("B.F1");
+            Verify(
+                SymbolDisplay.ToDisplayParts(method, formatWithoutNonNullableModifier),
+                "static object F1(object? o)",
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.MethodName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.ParameterName,
+                SymbolDisplayPartKind.Punctuation);
+            Verify(
+                SymbolDisplay.ToDisplayParts(method, formatWithNonNullableModifier),
+                "static object! F1(object? o)",
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.MethodName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.ParameterName,
+                SymbolDisplayPartKind.Punctuation);
+
+            method = comp.GetMember<MethodSymbol>("B.F2");
+            Verify(
+                SymbolDisplay.ToDisplayParts(method, formatWithoutNonNullableModifier),
+                "static object?[] F2(object[]? o)");
+            Verify(
+                SymbolDisplay.ToDisplayParts(method, formatWithNonNullableModifier),
+                "static object?[]! F2(object![]? o)");
+
+            method = comp.GetMember<MethodSymbol>("B.F3");
+            Verify(
+                SymbolDisplay.ToDisplayParts(method, formatWithoutNonNullableModifier),
+                "static A<object>? F3(A<object?> o)");
+            Verify(
+                SymbolDisplay.ToDisplayParts(method, formatWithNonNullableModifier),
+                "static A<object!>? F3(A<object?>! o)");
+        }
+
+        [Fact]
+        public void NullableReferenceTypes2()
+        {
+            var source =
+@"class A<T>
+{
+}
+class B
+{
+    static object F1(object? o) => null!;
+    static object?[] F2(object[]? o) => null;
+    static A<object>? F3(A<object?> o) => null;
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            var formatWithoutNullableModifier = new SymbolDisplayFormat(
+                memberOptions: SymbolDisplayMemberOptions.IncludeParameters | SymbolDisplayMemberOptions.IncludeType | SymbolDisplayMemberOptions.IncludeModifiers,
+                parameterOptions: SymbolDisplayParameterOptions.IncludeType | SymbolDisplayParameterOptions.IncludeName | SymbolDisplayParameterOptions.IncludeParamsRefOut,
+                genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
+                miscellaneousOptions: SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
+
+            var formatWithNullableModifier = formatWithoutNullableModifier
+                .AddMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier);
+
+            var method = comp.GetMember<MethodSymbol>("B.F1");
+            Verify(
+                SymbolDisplay.ToDisplayParts(method, formatWithoutNullableModifier),
+                "static object F1(object o)",
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.MethodName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.ParameterName,
+                SymbolDisplayPartKind.Punctuation);
+            Verify(
+                SymbolDisplay.ToDisplayParts(method, formatWithNullableModifier),
+                "static object F1(object? o)",
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.MethodName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.ParameterName,
+                SymbolDisplayPartKind.Punctuation);
+
+            method = comp.GetMember<MethodSymbol>("B.F2");
+            Verify(
+                SymbolDisplay.ToDisplayParts(method, formatWithoutNullableModifier),
+                "static object[] F2(object[] o)");
+            Verify(
+                SymbolDisplay.ToDisplayParts(method, formatWithNullableModifier),
+                "static object?[] F2(object[]? o)");
+
+            method = comp.GetMember<MethodSymbol>("B.F3");
+            Verify(
+                SymbolDisplay.ToDisplayParts(method, formatWithoutNullableModifier),
+                "static A<object> F3(A<object> o)");
+            Verify(
+                SymbolDisplay.ToDisplayParts(method, formatWithNullableModifier),
+                "static A<object>? F3(A<object?> o)");
+        }
+
+        [Fact]
+        public void UseLongHandValueTuple()
+        {
+            var source =
+@"
+class B
+{
+    static (int, (string, long)) F1((int, int)[] t) => throw null;
+}";
+            var comp = CreateCompilation(source);
+            var formatWithoutLongHandValueTuple = new SymbolDisplayFormat(
+                memberOptions: SymbolDisplayMemberOptions.IncludeParameters | SymbolDisplayMemberOptions.IncludeType | SymbolDisplayMemberOptions.IncludeModifiers,
+                parameterOptions: SymbolDisplayParameterOptions.IncludeType | SymbolDisplayParameterOptions.IncludeName | SymbolDisplayParameterOptions.IncludeParamsRefOut,
+                genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
+                miscellaneousOptions: SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
+
+            var formatWithLongHandValueTuple = formatWithoutLongHandValueTuple.WithCompilerInternalOptions(
+                SymbolDisplayCompilerInternalOptions.UseValueTuple);
+
+            var method = comp.GetMember<MethodSymbol>("B.F1");
+
+            Verify(
+                SymbolDisplay.ToDisplayParts(method, formatWithoutLongHandValueTuple),
+                "static (int, (string, long)) F1((int, int)[] t)",
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.MethodName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.ParameterName,
+                SymbolDisplayPartKind.Punctuation);
+
+            Verify(
+                SymbolDisplay.ToDisplayParts(method, formatWithLongHandValueTuple),
+                "static ValueTuple<int, ValueTuple<string, long>> F1(ValueTuple<int, int>[] t)",
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.StructName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.StructName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.MethodName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.StructName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.ParameterName,
+                SymbolDisplayPartKind.Punctuation);
         }
 
         [Fact]

@@ -26,6 +26,7 @@ Imports Microsoft.VisualStudio.Text.Operations
 Imports Roslyn.Utilities
 Imports CompletionItem = Microsoft.CodeAnalysis.Completion.CompletionItem
 Imports VSCommanding = Microsoft.VisualStudio.Commanding
+Imports Microsoft.CodeAnalysis.CSharp
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
@@ -138,10 +139,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                 Optional extraCompletionProviders As CompletionProvider() = Nothing,
                 Optional excludedTypes As List(Of Type) = Nothing,
                 Optional extraExportedTypes As List(Of Type) = Nothing,
-                Optional includeFormatCommandHandler As Boolean = False) As TestState
+                Optional includeFormatCommandHandler As Boolean = False,
+                Optional languageVersion As LanguageVersion = LanguageVersion.Default) As TestState
             Return New TestState(
                 <Workspace>
-                    <Project Language="C#" CommonReferences="true">
+                    <Project Language="C#" CommonReferences="true" LanguageVersion=<%= DirectCast(languageVersion, Int32) %>>
                         <Document>
                             <%= documentElement.Value %>
                         </Document>
@@ -404,6 +406,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                                Optional description As String = Nothing,
                                Optional isSoftSelected As Boolean? = Nothing,
                                Optional isHardSelected As Boolean? = Nothing,
+                               Optional displayTextSuffix As String = Nothing,
                                Optional shouldFormatOnCommit As Boolean? = Nothing) As Task Implements ITestState.AssertSelectedCompletionItem
 
             Await WaitForAsynchronousOperationsAsync()
@@ -417,6 +420,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
             If displayText IsNot Nothing Then
                 Assert.Equal(displayText, Me.CurrentCompletionPresenterSession.SelectedItem.DisplayText)
+            End If
+
+            If displayTextSuffix IsNot Nothing Then
+                Assert.Equal(displayTextSuffix, Me.CurrentCompletionPresenterSession.SelectedItem.DisplayTextSuffix)
             End If
 
             If shouldFormatOnCommit.HasValue Then
