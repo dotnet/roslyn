@@ -715,7 +715,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Otherwise, nothing special here.
             Debug.Assert((object)method != null);
-            Debug.Assert(method.ReturnType == type);
+            Debug.Assert(method.ReturnType.TypeSymbol == type);
             return BoundCall.Synthesized(syntax, null, method, loweredLeft, loweredRight);
         }
 
@@ -1863,7 +1863,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert((object)method != null);
             BoundExpression call = _inExpressionLambda
-                ? new BoundBinaryOperator(syntax, operatorKind, loweredLeft, loweredRight, null, method, default(LookupResultKind), method.ReturnType)
+                ? new BoundBinaryOperator(syntax, operatorKind, loweredLeft, loweredRight, null, method, default(LookupResultKind), method.ReturnType.TypeSymbol)
                 : (BoundExpression)BoundCall.Synthesized(syntax, null, method, loweredLeft, loweredRight);
             BoundExpression result = method.ReturnType.SpecialType == SpecialType.System_Delegate ?
                 MakeConversionNode(syntax, call, Conversion.ExplicitReference, type, @checked: false) :
@@ -2068,7 +2068,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private BoundExpression MakeSizeOfMultiplication(BoundExpression numericOperand, PointerTypeSymbol pointerType, bool isChecked)
         {
-            var sizeOfExpression = _factory.Sizeof(pointerType.PointedAtType);
+            var sizeOfExpression = _factory.Sizeof(pointerType.PointedAtType.TypeSymbol);
             Debug.Assert(sizeOfExpression.Type.SpecialType == SpecialType.System_Int32);
 
             // Common case: adding or subtracting one  (e.g. for ++)
@@ -2220,7 +2220,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(returnType.SpecialType == SpecialType.System_Int64);
 
             PointerTypeSymbol pointerType = (PointerTypeSymbol)loweredLeft.Type;
-            var sizeOfExpression = _factory.Sizeof(pointerType.PointedAtType);
+            var sizeOfExpression = _factory.Sizeof(pointerType.PointedAtType.TypeSymbol);
 
             // NOTE: to match dev10, the result of the subtraction is treated as an IntPtr
             // and then the result of the division is converted to long.

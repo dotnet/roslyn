@@ -3127,7 +3127,7 @@ class C
                 select edge.Key.Text + ": " + (node.Value != null ? node.Value.ToString() : "<null>"));
         }
 
-        private static string FormatTypeArgumentList(ImmutableArray<TypeSymbol>? arguments)
+        private static string FormatTypeArgumentList(ImmutableArray<TypeSymbolWithAnnotations>? arguments)
         {
             if (arguments == null || arguments.Value.IsEmpty)
             {
@@ -3141,7 +3141,7 @@ class C
                 {
                     s += ", ";
                 }
-                s += arguments.Value[i].ToString();
+                s += arguments.Value[i].TypeSymbol.ToString();
             }
 
             return s + ">";
@@ -3154,7 +3154,7 @@ class C
                 let node = edge.Value
                 where node.Text == "dynamicMemberAccess"
                 let name = node["name"]
-                let typeArguments = node["typeArgumentsOpt"].Value as ImmutableArray<TypeSymbol>?
+                let typeArguments = node["typeArgumentsOpt"].Value as ImmutableArray<TypeSymbolWithAnnotations>?
                 select name.Value.ToString() + FormatTypeArgumentList(typeArguments));
         }
 
@@ -5814,6 +5814,84 @@ class B : A
             CreateCompilation(text).VerifyDiagnostics(Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "b++").WithArguments("A", "B"));
         }
 
+        [Fact, WorkItem(30668, "https://github.com/dotnet/roslyn/issues/30668")]
+        public void TestTupleOperatorIncrement()
+        {
+            var text = @"
+namespace System
+{
+    struct ValueTuple<T1, T2>
+    {
+        public static (T1 fst, T2 snd) operator ++((T1 one, T2 two) tuple)
+        {
+            return tuple;
+        }
+    }
+}
+";
+            CreateCompilation(text).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(30668, "https://github.com/dotnet/roslyn/issues/30668")]
+        public void TestTupleOperatorConvert()
+        {
+            var text = @"
+namespace System
+{
+    struct ValueTuple<T1, T2>
+    {
+        public static explicit operator (T1 fst, T2 snd)((T1 one, T2 two) s)
+        {
+            return s;
+        }
+    }
+}
+";
+            CreateCompilation(text).VerifyDiagnostics(
+                // (6,41): error CS0555: User-defined operator cannot take an object of the enclosing type and convert to an object of the enclosing type
+                //         public static explicit operator (T1 fst, T2 snd)((T1 one, T2 two) s)
+                Diagnostic(ErrorCode.ERR_IdentityConversion, "(T1 fst, T2 snd)").WithLocation(6, 41));
+        }
+
+        [Fact, WorkItem(30668, "https://github.com/dotnet/roslyn/issues/30668")]
+        public void TestTupleOperatorConvertToBaseType()
+        {
+            var text = @"
+namespace System
+{
+    struct ValueTuple<T1, T2>
+    {
+        public static explicit operator ValueType(ValueTuple<T1, T2> s)
+        {
+            return s;
+        }
+    }
+}
+";
+            CreateCompilation(text).GetDiagnostics().Where(d => d.Severity == DiagnosticSeverity.Error).Verify(
+                // (6,41): error CS0553: 'ValueTuple<T1, T2>.explicit operator ValueType((T1, T2))': user-defined conversions to or from a base class are not allowed
+                //         public static explicit operator ValueType(ValueTuple<T1, T2> s)
+                Diagnostic(ErrorCode.ERR_ConversionWithBase, "ValueType").WithArguments("System.ValueTuple<T1, T2>.explicit operator System.ValueType((T1, T2))").WithLocation(6, 41));
+        }
+
+        [Fact, WorkItem(30668, "https://github.com/dotnet/roslyn/issues/30668")]
+        public void TestTupleBinaryOperator()
+        {
+            var text = @"
+namespace System
+{
+    struct ValueTuple<T1, T2>
+    {
+        public static ValueTuple<T1, T2> operator +((T1 fst, T2 snd) s1, (T1 one, T2 two) s2)
+        {
+            return s1;
+        }
+    }
+}
+";
+            CreateCompilation(text).GetDiagnostics().Where(d => d.Severity == DiagnosticSeverity.Error).Verify();
+        }
+
         [WorkItem(543431, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543431")]
         [Fact]
         public void TestEqualityOperator_DelegateTypes_01()
@@ -6448,7 +6526,7 @@ class Program
             comp.VerifyDiagnostics();
 
             var expectedOperator = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("S1").GetMembers(WellKnownMemberNames.EqualityOperatorName).
-                OfType<MethodSymbol>().Single(m => m.ParameterTypes[0] == m.ParameterTypes[1]);
+                OfType<MethodSymbol>().Single(m => m.ParameterTypes[0].Equals(m.ParameterTypes[1], TypeCompareKind.ConsiderEverything));
 
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
@@ -7055,7 +7133,7 @@ public class RubyTime
             Assert.False(symbol1.CanBeReferencedByName);
             Assert.Null(symbol1.DeclaringCompilation);
             Assert.Equal(symbol1.Name, symbol1.MetadataName);
-            Assert.Same(symbol1.ContainingSymbol, symbol1.Parameters[0].Type);
+            Assert.Same(symbol1.ContainingSymbol, symbol1.Parameters[0].Type.TypeSymbol);
             Assert.Equal(0, symbol1.Locations.Length);
             Assert.Null(symbol1.GetDocumentationCommentId());
             Assert.Equal("", symbol1.GetDocumentationCommentXml());
@@ -7129,7 +7207,7 @@ class Module1
             }
         }
 
-        [NoIOperationValidationFact]
+        [ConditionalFact(typeof(ClrOnly), typeof(NoIOperationValidation), Reason="https://github.com/mono/mono/issues/10917")]
         public void BinaryIntrinsicSymbols1()
         {
             BinaryOperatorKind[] operators =
@@ -7605,20 +7683,20 @@ class Module1
                 {
                     if (leftType.IsPointerType())
                     {
-                        signature = new BinaryOperatorSignature(op | BinaryOperatorKind.Pointer, leftType, symbol1.Parameters[1].Type, leftType);
-                        Assert.True(symbol1.Parameters[1].Type.IsIntegralType());
+                        signature = new BinaryOperatorSignature(op | BinaryOperatorKind.Pointer, leftType, symbol1.Parameters[1].Type.TypeSymbol, leftType);
+                        Assert.True(symbol1.Parameters[1].Type.TypeSymbol.IsIntegralType());
                     }
                     else
                     {
-                        signature = new BinaryOperatorSignature(op | BinaryOperatorKind.Pointer, symbol1.Parameters[0].Type, rightType, rightType);
-                        Assert.True(symbol1.Parameters[0].Type.IsIntegralType());
+                        signature = new BinaryOperatorSignature(op | BinaryOperatorKind.Pointer, symbol1.Parameters[0].Type.TypeSymbol, rightType, rightType);
+                        Assert.True(symbol1.Parameters[0].Type.TypeSymbol.IsIntegralType());
                     }
                 }
                 else if (op == BinaryOperatorKind.Subtraction &&
                     (leftType.IsPointerType() && (rightType.IsIntegralType() || rightType.IsCharType())))
                 {
-                    signature = new BinaryOperatorSignature(op | BinaryOperatorKind.String, leftType, symbol1.Parameters[1].Type, leftType);
-                    Assert.True(symbol1.Parameters[1].Type.IsIntegralType());
+                    signature = new BinaryOperatorSignature(op | BinaryOperatorKind.String, leftType, symbol1.Parameters[1].Type.TypeSymbol, leftType);
+                    Assert.True(symbol1.Parameters[1].Type.TypeSymbol.IsIntegralType());
                 }
                 else if (op == BinaryOperatorKind.Subtraction && leftType.IsPointerType() && leftType == rightType)
                 {
@@ -7824,20 +7902,20 @@ class Module1
             Assert.Null(symbol1.DeclaringCompilation);
             Assert.Equal(symbol1.Name, symbol1.MetadataName);
 
-            Assert.True(symbol1.ContainingSymbol == symbol1.Parameters[0].Type || symbol1.ContainingSymbol == symbol1.Parameters[1].Type);
+            Assert.True(symbol1.ContainingSymbol == symbol1.Parameters[0].Type.TypeSymbol || symbol1.ContainingSymbol == symbol1.Parameters[1].Type.TypeSymbol);
 
             int match = 0;
-            if (symbol1.ContainingSymbol == symbol1.ReturnType)
+            if (symbol1.ContainingSymbol == symbol1.ReturnType.TypeSymbol)
             {
                 match++;
             }
 
-            if (symbol1.ContainingSymbol == symbol1.Parameters[0].Type)
+            if (symbol1.ContainingSymbol == symbol1.Parameters[0].Type.TypeSymbol)
             {
                 match++;
             }
 
-            if (symbol1.ContainingSymbol == symbol1.Parameters[1].Type)
+            if (symbol1.ContainingSymbol == symbol1.Parameters[1].Type.TypeSymbol)
             {
                 match++;
             }

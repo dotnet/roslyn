@@ -69,15 +69,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return synthesizedGlobalMethod.ContainingPrivateImplementationDetailsType;
             }
 
-            if (!this.IsDefinition)
-            {
-                PEModuleBuilder moduleBeingBuilt = (PEModuleBuilder)context.Module;
-                return moduleBeingBuilt.Translate(this.ContainingType,
-                                                  syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt,
-                                                  diagnostics: context.Diagnostics);
-            }
+            NamedTypeSymbol containingType = this.ContainingType;
+            var moduleBeingBuilt = (PEModuleBuilder)context.Module;
 
-            return this.ContainingType;
+            return moduleBeingBuilt.Translate(containingType,
+                syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt,
+                diagnostics: context.Diagnostics,
+                needDeclaration: this.IsDefinition);
         }
 
         void Cci.IReference.Dispatch(Cci.MetadataVisitor visitor)
@@ -211,7 +209,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return this.ReturnTypeCustomModifiers.As<Cci.ICustomModifier>();
+                return this.ReturnType.CustomModifiers.As<Cci.ICustomModifier>();
             }
         }
 
@@ -233,7 +231,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         Cci.ITypeReference Cci.ISignature.GetType(EmitContext context)
         {
-            return ((PEModuleBuilder)context.Module).Translate(this.ReturnType,
+            return ((PEModuleBuilder)context.Module).Translate(this.ReturnType.TypeSymbol,
                 syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt,
                 diagnostics: context.Diagnostics);
         }
@@ -246,7 +244,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             foreach (var arg in this.TypeArguments)
             {
-                yield return moduleBeingBuilt.Translate(arg,
+                Debug.Assert(arg.CustomModifiers.IsEmpty);
+                yield return moduleBeingBuilt.Translate(arg.TypeSymbol,
                                                         syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt,
                                                         diagnostics: context.Diagnostics);
             }

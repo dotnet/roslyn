@@ -48,17 +48,21 @@ namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars
                     ? TryConvertVerbatimStringToVirtualChars(token, "@\"", "\"", escapeBraces: false)
                     : TryConvertStringToVirtualChars(token, "\"", "\"", escapeBraces: false);
             }
-            else if (token.Kind() == SyntaxKind.InterpolatedStringTextToken)
+
+            if (token.Kind() == SyntaxKind.InterpolatedStringTextToken)
             {
-                var interpolatedString = (InterpolatedStringExpressionSyntax)token.Parent.Parent;
-                return interpolatedString.StringStartToken.Kind() == SyntaxKind.InterpolatedVerbatimStringStartToken
-                    ? TryConvertVerbatimStringToVirtualChars(token, "", "", escapeBraces: true)
-                    : TryConvertStringToVirtualChars(token, "", "", escapeBraces: true);
+                // The sections between  `}` and `{` are InterpolatedStringTextToken *as are* the
+                // format specifiers in an interpolated string.  We only want to get the virtual
+                // chars for this first type.
+                if (token.Parent.Parent is InterpolatedStringExpressionSyntax interpolatedString)
+                {
+                    return interpolatedString.StringStartToken.Kind() == SyntaxKind.InterpolatedVerbatimStringStartToken
+                       ? TryConvertVerbatimStringToVirtualChars(token, "", "", escapeBraces: true)
+                       : TryConvertStringToVirtualChars(token, "", "", escapeBraces: true);
+                }
             }
-            else
-            {
-                return default;
-            }
+
+            return default;
         }
 
         private bool IsInDirective(SyntaxNode node)

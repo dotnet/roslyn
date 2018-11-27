@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.QualifyMemberAccess
         TLanguageKindEnum,
         TExpressionSyntax,
         TSimpleNameSyntax>
-        : AbstractCodeStyleDiagnosticAnalyzer
+        : AbstractBuiltInCodeStyleDiagnosticAnalyzer
         where TLanguageKindEnum : struct
         where TExpressionSyntax : SyntaxNode
         where TSimpleNameSyntax : TExpressionSyntax

@@ -81,26 +81,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 (SyntaxFacts.IsAssignmentExpressionOperatorToken(kind) && token.Parent is AssignmentExpressionSyntax);
         }
 
-        public bool IsKeyword(SyntaxToken token)
-        {
-            var kind = (SyntaxKind)token.RawKind;
-            return
-                SyntaxFacts.IsKeywordKind(kind); // both contextual and reserved keywords
-        }
+        public bool IsReservedKeyword(SyntaxToken token)
+            => SyntaxFacts.IsReservedKeyword(token.Kind());
 
         public bool IsContextualKeyword(SyntaxToken token)
-        {
-            var kind = (SyntaxKind)token.RawKind;
-            return
-                SyntaxFacts.IsContextualKeyword(kind);
-        }
+            => SyntaxFacts.IsContextualKeyword(token.Kind());
 
         public bool IsPreprocessorKeyword(SyntaxToken token)
-        {
-            var kind = (SyntaxKind)token.RawKind;
-            return
-                SyntaxFacts.IsPreprocessorKeyword(kind);
-        }
+            => SyntaxFacts.IsPreprocessorKeyword(token.Kind());
 
         public bool IsHashToken(SyntaxToken token)
         {
@@ -321,30 +309,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (token.Kind())
             {
                 case SyntaxKind.FromKeyword:
-                case SyntaxKind.GroupKeyword:
                 case SyntaxKind.JoinKeyword:
-                case SyntaxKind.IntoKeyword:
                 case SyntaxKind.LetKeyword:
-                case SyntaxKind.ByKeyword:
-                case SyntaxKind.SelectKeyword:
                 case SyntaxKind.OrderByKeyword:
+                case SyntaxKind.WhereKeyword:
                 case SyntaxKind.OnKeyword:
                 case SyntaxKind.EqualsKeyword:
+                case SyntaxKind.InKeyword:
+                    return token.Parent is QueryClauseSyntax;
+                case SyntaxKind.ByKeyword:
+                case SyntaxKind.GroupKeyword:
+                case SyntaxKind.SelectKeyword:
+                    return token.Parent is SelectOrGroupClauseSyntax;
                 case SyntaxKind.AscendingKeyword:
                 case SyntaxKind.DescendingKeyword:
-                    return true;
-                case SyntaxKind.InKeyword:
-                    switch (token.Parent.Kind())
-                    {
-                        case SyntaxKind.FromClause:
-                        case SyntaxKind.JoinClause:
-                        case SyntaxKind.JoinIntoClause:
-                            return true;
-                        default:
-                            return false;
-                    }
-                case SyntaxKind.WhereKeyword:
-                    return token.Parent.Kind() == SyntaxKind.WhereClause; // false for e.g. type parameter constraint
+                    return token.Parent is OrderingSyntax;
+                case SyntaxKind.IntoKeyword:
+                    return token.Parent.IsKind(SyntaxKind.JoinIntoClause, SyntaxKind.QueryContinuation);
                 default:
                     return false;
             }

@@ -266,7 +266,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // Need to represent the implicit conversion as a node in order to be able to produce correct diagnostics.
                 left = new BoundConversion(left.Syntax, left, node.LeftConversion, node.Operator.Kind.IsChecked(),
-                                           explicitCastInCode: false, constantValueOpt: null, type: node.Operator.LeftType);
+                                           explicitCastInCode: false, conversionGroupOpt: null, constantValueOpt: null, type: node.Operator.LeftType);
             }
 
             CheckForBitwiseOrSignExtend(node, node.Operator.Kind, left, node.Right);
@@ -340,7 +340,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     MethodSymbol op = sym as MethodSymbol;
                     if ((object)op == null || op.MethodKind != MethodKind.UserDefinedOperator) continue;
                     var parameters = op.GetParameters();
-                    if (parameters.Length == 2 && parameters[0].Type == t && parameters[1].Type == t)
+                    if (parameters.Length == 2 && parameters[0].Type.TypeSymbol == t && parameters[1].Type.TypeSymbol == t)
                     {
                         type = t;
                         return true;

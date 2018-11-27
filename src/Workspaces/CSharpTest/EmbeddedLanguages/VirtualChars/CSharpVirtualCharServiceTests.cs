@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.VirtualChars
             Test("$@\"{{\"", "['{',[3,5]]");
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/29172")]
         public void TestReverseInterpolatedVerbatimString()
         {
             // This will need to be fixed once @$ strings come online.

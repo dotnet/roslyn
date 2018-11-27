@@ -20,5 +20,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseCompoundAssignment
         Protected Overrides Function GetAnalysisKind() As SyntaxKind
             Return SyntaxKind.SimpleAssignmentStatement
         End Function
+
+        Protected Overrides Function IsSupported(assignmentKind As SyntaxKind, options As ParseOptions) As Boolean
+            Return True
+        End Function
     End Class
 End Namespace

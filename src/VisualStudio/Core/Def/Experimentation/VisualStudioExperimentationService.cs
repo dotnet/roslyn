@@ -20,20 +20,29 @@ namespace Microsoft.VisualStudio.LanguageServices.Experimentation
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public VisualStudioExperimentationService(IThreadingContext threadingContext, SVsServiceProvider serviceProvider)
-            : base(threadingContext, assertIsForeground: true)
+            : base(threadingContext)
         {
-            try
+            object experimentationServiceOpt = null;
+            MethodInfo isCachedFlightEnabledInfo = null;
+
+            threadingContext.JoinableTaskFactory.Run(async () =>
             {
-                _experimentationServiceOpt = serviceProvider.GetService(typeof(SVsExperimentationService));
-                if (_experimentationServiceOpt != null)
+                try
                 {
-                    _isCachedFlightEnabledInfo = _experimentationServiceOpt.GetType().GetMethod(
-                        "IsCachedFlightEnabled", BindingFlags.Public | BindingFlags.Instance);
+                    experimentationServiceOpt = await ((IAsyncServiceProvider)serviceProvider).GetServiceAsync(typeof(SVsExperimentationService));
+                    if (experimentationServiceOpt != null)
+                    {
+                        isCachedFlightEnabledInfo = experimentationServiceOpt.GetType().GetMethod(
+                            "IsCachedFlightEnabled", BindingFlags.Public | BindingFlags.Instance);
+                    }
                 }
-            }
-            catch
-            {
-            }
+                catch
+                {
+                }
+            });
+
+            _experimentationServiceOpt = experimentationServiceOpt;
+            _isCachedFlightEnabledInfo = isCachedFlightEnabledInfo;
         }
 
         public bool IsExperimentEnabled(string experimentName)

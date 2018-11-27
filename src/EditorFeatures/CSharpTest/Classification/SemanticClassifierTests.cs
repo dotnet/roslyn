@@ -3079,5 +3079,15 @@ class X
         {
             await TestInMethodAsync(@"#line 1 ""a\b""");
         }
+
+        [WorkItem(30378, "https://github.com/dotnet/roslyn/issues/30378")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestFormatSpecifierInInterpolation()
+        {
+            await TestInMethodAsync(@"var goo = $""goo{{1:0000}}bar"";",
+                Keyword("var"),
+                Escape(@"{{"),
+                Escape(@"}}"));
+        }
     }
 }

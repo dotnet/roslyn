@@ -576,5 +576,14 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
                 Return ResourceManager.GetString("Suggest_imports_for_types_in_reference_assemblies", resourceCulture)
             End Get
         End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to VB Coding Conventions.
+        '''</summary>
+        Friend Shared ReadOnly Property VB_Coding_Conventions() As String
+            Get
+                Return ResourceManager.GetString("VB_Coding_Conventions", resourceCulture)
+            End Get
+        End Property
     End Class
 End Namespace

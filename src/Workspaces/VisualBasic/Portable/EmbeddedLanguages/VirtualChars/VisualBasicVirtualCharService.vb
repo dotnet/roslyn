@@ -4,6 +4,7 @@ Imports System.Collections.Immutable
 Imports System.Composition
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
+Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.EmbeddedLanguages.VirtualChars
     <ExportLanguageService(GetType(IVirtualCharService), LanguageNames.VisualBasic), [Shared]>
@@ -21,7 +22,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EmbeddedLanguages.VirtualChars
 
             If token.Kind() = SyntaxKind.StringLiteralToken Then
                 Return TryConvertSimpleDoubleQuoteString(token, """", """", escapeBraces:=False)
-            ElseIf token.Kind() = SyntaxKind.InterpolatedStringTextToken Then
+            End If
+
+            If token.Kind() = SyntaxKind.InterpolatedStringTextToken AndAlso
+               TypeOf token.Parent.Parent Is InterpolatedStringExpressionSyntax Then
                 Return TryConvertSimpleDoubleQuoteString(token, "", "", escapeBraces:=True)
             End If
 

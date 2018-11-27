@@ -958,7 +958,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     sub.Add(new TreeDumperNode("method", self.Method.ToDisplayString(), null));
                 }
 
-                if ((object)self.DeconstructionInfo != null)
+                if (!self.DeconstructionInfo.IsDefault)
                 {
                     sub.Add(new TreeDumperNode("deconstructionInfo", null,
                         new[] { BoundTreeDumperNodeProducer.MakeTree(self.DeconstructionInfo.Invocation)}));

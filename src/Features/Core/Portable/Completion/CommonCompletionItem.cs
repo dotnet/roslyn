@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.Tags;
@@ -7,10 +8,28 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Completion
 {
-    internal static class CommonCompletionItem 
+    internal static class CommonCompletionItem
     {
+        [Obsolete("This is a compatibility shim for FSharp; please do not use it.", error: true)]
         public static CompletionItem Create(
             string displayText,
+            CompletionItemRules rules,
+            Glyph? glyph = null,
+            ImmutableArray<SymbolDisplayPart> description = default,
+            string sortText = null,
+            string filterText = null,
+            bool showsWarningIcon = false,
+            ImmutableDictionary<string, string> properties = null,
+            ImmutableArray<string> tags = default)
+        {
+            return Create(
+                displayText, displayTextSuffix: string.Empty, rules,
+                glyph, description, sortText, filterText, showsWarningIcon, properties, tags);
+        }
+
+        public static CompletionItem Create(
+            string displayText,
+            string displayTextSuffix,
             CompletionItemRules rules,
             Glyph? glyph = null,
             ImmutableArray<SymbolDisplayPart> description = default,
@@ -41,6 +60,7 @@ namespace Microsoft.CodeAnalysis.Completion
 
             return CompletionItem.Create(
                 displayText: displayText,
+                displayTextSuffix: displayTextSuffix,
                 filterText: filterText,
                 sortText: sortText,
                 properties: properties,
@@ -98,6 +118,6 @@ namespace Microsoft.CodeAnalysis.Completion
             }
 
             return CompletionDescription.Create(builder.ToImmutable());
-        } 
+        }
     }
 }

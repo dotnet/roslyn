@@ -81,13 +81,12 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             var syntaxFacts = generator.SyntaxFacts;
             syntaxFacts.GetPartsOfBinaryExpression(expressionNode, out var leftOperand, out var operatorToken, out var rightOperand);
 
-            var operation = semanticModel.GetOperation(expressionNode, cancellationToken);
-            if (operation.Kind == OperationKind.IsPattern)
+            var binaryOperation = semanticModel.GetOperation(expressionNode, cancellationToken) as IBinaryOperation;
+            if (binaryOperation == null)
             {
+                // Apply the logical not operator if it is not a binary operation.
                 return generator.LogicalNotExpression(expressionNode);
             }
-
-            var binaryOperation = (IBinaryOperation)operation;
 
             if (!s_negatedBinaryMap.TryGetValue(binaryOperation.OperatorKind, out var negatedKind))
             {

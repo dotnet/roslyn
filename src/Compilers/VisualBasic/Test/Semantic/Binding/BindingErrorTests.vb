@@ -16059,10 +16059,10 @@ BC33035: Type 'c2' must define operator 'IsTrue' to be used in a 'OrElse' expres
     </compilation>)
 
             Dim expectedErrors1 = <errors>
-BC33107: First operand in a binary 'If' expression must be nullable or a reference type.
+BC33107: First operand in a binary 'If' expression must be a nullable value type, a reference type, or an unconstrained generic type.
                 Console.WriteLine(If(choice1 &lt; choice2, 1))
                                      ~~~~~~~~~~~~~~~~~
-BC33107: First operand in a binary 'If' expression must be nullable or a reference type.
+BC33107: First operand in a binary 'If' expression must be a nullable value type, a reference type, or an unconstrained generic type.
                 Console.WriteLine(If(booleanVar, "Test returns True."))
                                      ~~~~~~~~~~
                  </errors>
@@ -24122,7 +24122,8 @@ End Sub
 End Module
 ]]>
 
-            compilation = compilation.AddSyntaxTrees(Parse(text))
+            ' https://github.com/dotnet/roslyn/issues/29819 remove explicit options when VB 16 is latest
+            compilation = compilation.AddSyntaxTrees(Parse(text, options:=TestOptions.Regular))
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>

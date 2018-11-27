@@ -8,9 +8,11 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
     internal class CSharpInteractiveWindow_InProc : InteractiveWindow_InProc
     {
         private const string ViewCommand = "View.C#Interactive";
-        private const string WindowTitle = "C# Interactive";
 
-        private CSharpInteractiveWindow_InProc(): base(ViewCommand, WindowTitle) { }
+        private CSharpInteractiveWindow_InProc()
+            : base(ViewCommand, CSharpVsInteractiveWindowPackage.Id)
+        {
+        }
 
         public static CSharpInteractiveWindow_InProc Create()
             => new CSharpInteractiveWindow_InProc();

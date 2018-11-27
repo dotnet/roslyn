@@ -30,6 +30,8 @@
   <ValueType Name="NoOpStatementFlavor"/>
   <ValueType Name="RefKind"/>
   <ValueType Name="BoundTypeOrValueData"/>
+  <ValueType Name="BoundLocalDeclarationKind"/>
+  <ValueType Name="NullableAnnotation"/>
 
   <AbstractNode Name="BoundInitializer" Base="BoundNode"/>
 
@@ -93,6 +95,13 @@
   -->
   <Node Name="BoundTupleOperandPlaceholder" Base="BoundValuePlaceholderBase">
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
+  </Node>
+
+  <!--
+  This node is used to represent an awaitable expression of a certain type, when binding an using-await statement.
+  It does not survive past initial binding.
+  -->
+  <Node Name="BoundAwaitableValuePlaceholder" Base="BoundValuePlaceholderBase">
   </Node>
 
   <!-- only used by codegen -->
@@ -249,7 +258,12 @@
     <Field Name="MethodOpt" Type="MethodSymbol" Null="allow"/>
     <Field Name="ResultKind" PropertyOverrides="true" Type="LookupResultKind"/>
   </Node>
-  
+
+  <Node Name="BoundSuppressNullableWarningExpression" Base="BoundExpression">
+    <Field Name="Type" Type="TypeSymbol" Override="true" Null="allow"/>
+    <Field Name="Expression" Type="BoundExpression"/>
+  </Node>
+
   <Node Name="BoundIncrementOperator" Base="BoundExpression">
     <!-- x++ might need a conversion from the type of x to the operand type
          of the ++ operator (that produces the incremented value) and a 
@@ -308,6 +322,23 @@
   <Node Name="BoundRefValueOperator" Base="BoundExpression">
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
     <Field Name="Operand" Type="BoundExpression"/>
+  </Node>
+
+  <Node Name="BoundFromEndIndexExpression" Base="BoundExpression">
+    <!-- Non-null type is required for this node kind -->
+    <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
+
+    <Field Name="Operand" Type="BoundExpression"/>
+    <Field Name="MethodOpt" Type="MethodSymbol" Null="allow"/>
+  </Node>
+
+  <Node Name="BoundRangeExpression" Base="BoundExpression">
+    <!-- Non-null type is required for this node kind -->
+    <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
+
+    <Field Name="LeftOperand" Type="BoundExpression" Null="allow"/>
+    <Field Name="RightOperand" Type="BoundExpression" Null="allow"/>
+    <Field Name="MethodOpt" Type="MethodSymbol" Null="allow"/>
   </Node>
 
   <Node Name="BoundBinaryOperator" Base="BoundExpression">
@@ -430,6 +461,12 @@
     <Field Name="LeftOperand" Type="BoundExpression"/>
     <Field Name="RightOperand" Type="BoundExpression"/>
     <Field Name="LeftConversion" Type="Conversion"/>
+    <Field Name="OperatorResultKind" Type="BoundNullCoalescingOperatorResultKind" Null="NotApplicable"/>
+  </Node>
+
+  <Node Name="BoundNullCoalescingAssignmentOperator" Base="BoundExpression">
+    <Field Name="LeftOperand" Type="BoundExpression" />
+    <Field Name="RightOperand" Type="BoundExpression" />
   </Node>
 
   <Node Name="BoundConditionalOperator" Base="BoundExpression">
@@ -471,9 +508,7 @@
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
 
     <Field Name="Expression" Type="BoundExpression"/>
-    <Field Name="GetAwaiter" Type="MethodSymbol" Null="allow"/>
-    <Field Name="IsCompleted" Type="PropertySymbol" Null="allow"/>
-    <Field Name="GetResult" Type="MethodSymbol" Null="allow"/>
+    <Field Name="AwaitableInfo" Type="AwaitableInfo" Null="disallow"/>
   </Node>
 
   <AbstractNode Name="BoundTypeOf" Base="BoundExpression">
@@ -588,9 +623,23 @@
     <Field Name="IsBaseConversion" Type="bool"/>
     <Field Name="Checked" Type="bool"/>
     <Field Name="ExplicitCastInCode" Type="bool"/>
-    
     <Field Name="ConstantValueOpt" Type="ConstantValue" Null="allow"/>
-  </Node>
+     <!--
+         A group instance common to all BoundConversions that represent a single Conversion. The
+         field is used in NullableWalker to identify the chained conversions in user-defined
+         conversions in particular. For instance, with the following declarations, an explicit conversion
+         from B to D: expr -> ImplicitReference conversion -> ExplicitUserDefined conversion ->
+         ExplicitReference conversion.
+            class A { public static explicit operator C(A a) => new D(); }
+            class B : A { }
+            class C { }
+            class D : C { }
+         ConversionGroupOpt also contains the target type specified in source in the case of
+         explicit conversions. ConversionGroupOpt may be null for implicit conversions if the
+         Conversion is represented by a single BoundConversion.
+         -->
+    <Field Name="ConversionGroupOpt" Type="ConversionGroup" Null="allow"/>
+</Node>
 
   <!--
   <Node Name="BoundRefValueOperator" Base="BoundExpression">
@@ -917,6 +966,7 @@
          boxing.  If this node has errors, then the conversion may not be present.-->
     <Field Name="Expression" Type="BoundExpression"/>
     <Field Name="DeconstructionOpt" Type="BoundForEachDeconstructStep" Null="allow"/>
+    <Field Name="AwaitOpt" Type="AwaitableInfo" Null="allow"/>
     <Field Name="Body" Type="BoundStatement"/>
   
     <Field Name="Checked" Type="bool"/>
@@ -935,6 +985,7 @@
     <Field Name="ExpressionOpt" Type="BoundExpression" Null="allow"/>
     <Field Name="IDisposableConversion" Type="Conversion" />
     <Field Name="Body" Type="BoundStatement"/>
+    <Field Name="AwaitOpt" Type="AwaitableInfo" Null="allow"/>
   </Node>
 
   <Node Name="BoundFixedStatement" Base="BoundStatement">
@@ -1040,8 +1091,10 @@
     <!-- Non-null type is required for this node kind -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
     <Field Name="LocalSymbol" Type="LocalSymbol"/>
-    <Field Name="IsDeclaration" Type="bool"/>
+    <Field Name="DeclarationKind" Type="BoundLocalDeclarationKind" Null="NotApplicable"/>
     <Field Name="ConstantValueOpt" Type="ConstantValue" Null="allow"/>
+    <!-- True if LocalSymbol.Type.IsNullable could not be inferred. -->
+    <Field Name="IsNullableUnknown" Type="bool"/>
   </Node>
 
   <Node Name="BoundPseudoVariable" Base="BoundExpression">
@@ -1062,7 +1115,7 @@
   <Node Name="BoundParameter" Base="BoundExpression">
     <!-- Non-null type is required for this node kind -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
-
+    
     <Field Name="ParameterSymbol" Type="ParameterSymbol"/>
   </Node>
 
@@ -1150,7 +1203,7 @@
     <!--Non-null type is required, and will always be "dynamic". -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
     <Field Name="Receiver" Type="BoundExpression"/>
-    <Field Name="TypeArgumentsOpt" Type="ImmutableArray&lt;TypeSymbol&gt;" Null="allow"/>
+    <Field Name="TypeArgumentsOpt" Type="ImmutableArray&lt;TypeSymbolWithAnnotations&gt;" Null="allow"/>
     <Field Name="Name" Type="string" Null="disallow"/>
   
     <!-- TODO (tomat): do we really need these flags here? it should be possible to infer them from the context -->
@@ -1214,7 +1267,7 @@
     <!-- SPEC: A method group is a set of overloaded methods resulting from a member lookup. 
          SPEC: A method group may have an associated instance expression and 
          SPEC: an associated type argument list. -->
-    <Field Name="TypeArgumentsOpt" Type="ImmutableArray&lt;TypeSymbol&gt;" Null="allow"/>
+    <Field Name="TypeArgumentsOpt" Type="ImmutableArray&lt;TypeSymbolWithAnnotations&gt;" Null="allow"/>
     <Field Name="Name" Type="string" Null="disallow"/>
     <Field Name="Methods" Type="ImmutableArray&lt;MethodSymbol&gt;" />
     <Field Name="LookupSymbolOpt" Type="Symbol" Null="allow"/>
@@ -1576,6 +1629,7 @@
   </Node>
 
   <Node Name="BoundLambda" Base="BoundExpression">
+    <Field Name="UnboundLambda" Type="UnboundLambda" Null="disallow" SkipInVisitor="true"/>
     <!-- LambdaSymbol may differ from Binder.MemberSymbol after rewriting. -->
     <Field Name="Symbol" Type="LambdaSymbol" Null="disallow"/>
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="allow"/>
@@ -1707,5 +1761,12 @@
   <Node Name="BoundConstructorMethodBody" Base="BoundMethodBodyBase">
     <Field Name="Locals" Type="ImmutableArray&lt;LocalSymbol&gt;"/>
     <Field Name="Initializer" Type="BoundExpressionStatement" Null="allow"/>
+  </Node>
+
+  <!-- Node only used during nullability flow analysis to represent an expression with an updated nullability -->
+  <Node Name="BoundExpressionWithNullability" Base="BoundExpression">
+    <Field Name="Expression" Type="BoundExpression" Null="disallow"/>
+    <Field Name="Type" Type="TypeSymbol" Override="true" Null="allow"/> <!-- We use null Type for placeholders representing out vars -->
+    <Field Name="NullableAnnotation" Type="NullableAnnotation"/>
   </Node>
 </Tree>

@@ -118,7 +118,7 @@ namespace Roslyn.Utilities
 
             if (text != null && localSlot.HashCode == hashCode)
             {
-                if (StringTable.TextEquals(text, chars, start, len))
+                if (StringTable.TextEquals(text, chars.AsSpan(start, len)))
                 {
                     return localSlot.Item;
                 }
@@ -155,7 +155,7 @@ namespace Roslyn.Utilities
 
                 if (e != null)
                 {
-                    if (hash == hashCode && StringTable.TextEquals(e.Text, chars, start, len))
+                    if (hash == hashCode && StringTable.TextEquals(e.Text, chars.AsSpan(start, len)))
                     {
                         break;
                     }
