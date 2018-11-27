@@ -22,8 +22,14 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
 
             private readonly INamedTypeSymbol _eventArgsTypeOpt;
             private readonly ImmutableHashSet<INamedTypeSymbol> _attributeSetForMethodsToIgnore;
-            private readonly ConcurrentDictionary<IParameterSymbol, bool> _unusedParameters;
             private readonly ConcurrentDictionary<IMethodSymbol, bool> _methodsUsedAsDelegates;
+
+            /// <summary>
+            /// Map from unused parameters to a boolean value indicating if the parameter has a read reference or not.
+            /// For example, a parameter whose initial value is overwritten before any reads
+            /// is an unused parameter with read reference(s).
+            /// </summary>
+            private readonly ConcurrentDictionary<IParameterSymbol, bool> _unusedParameters;
 
             public SymbolStartAnalyzer(
                 AbstractRemoveUnusedParametersAndValuesDiagnosticAnalyzer compilationAnalyzer,

@@ -3410,7 +3410,8 @@ class C
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task Lambda_WithNonReachableExit(string optionName)
         {
-            await TestInRegularAndScriptAsync(
+            // We bail out from analysis for delegate passed an argument.
+            await TestMissingInRegularAndScriptAsync(
 @"using System;
 
 class C
@@ -3427,21 +3428,35 @@ class C
     }
 
     void M2(Action a) { };
-}",
+}", optionName);
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        [InlineData(nameof(PreferDiscard))]
+        [InlineData(nameof(PreferUnusedLocal))]
+        public async Task Lambda_WithMultipleInvocations(string optionName)
+        {
+            await TestMissingInRegularAndScriptAsync(
 @"using System;
 
 class C
 {
     void M(object p)
     {
-        Action throwEx = () =>
+        Action lambda = () =>
         {
-            throw new Exception();
+            var x = p;
+            [|p|] = null;   // This write is read on next invocation of lambda.
         };
-        M2(throwEx);
+
+        M2(lambda);
     }
 
-    void M2(Action a) { };
+    void M2(Action a)
+    {
+        a();
+        a();
+    };
 }", optionName);
         }
 

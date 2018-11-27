@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
@@ -42,10 +43,16 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                 /// </summary>
                 private bool _hasConversionFromDelegateTypeToNonDelegateType;
 
+                /// <summary>
+                /// Parameters which have at least one read/write reference.
+                /// </summary>
+                private readonly ConcurrentDictionary<IParameterSymbol, bool> _referencedParameters;
+
                 private BlockAnalyzer(SymbolStartAnalyzer symbolStartAnalyzer, Options options)
                 {
                     _symbolStartAnalyzer = symbolStartAnalyzer;
                     _options = options;
+                    _referencedParameters = new ConcurrentDictionary<IParameterSymbol, bool>();
                 }
 
                 public static void Analyze(OperationBlockStartAnalysisContext context, SymbolStartAnalyzer symbolStartAnalyzer)
@@ -71,6 +78,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                     context.RegisterOperationAction(blockAnalyzer.AnalyzeDelegateCreationOrAnonymousFunction, OperationKind.DelegateCreation, OperationKind.AnonymousFunction);
                     context.RegisterOperationAction(blockAnalyzer.AnalyzeConversion, OperationKind.Conversion);
                     context.RegisterOperationAction(blockAnalyzer.AnalyzeFieldOrPropertyReference, OperationKind.FieldReference, OperationKind.PropertyReference);
+                    context.RegisterOperationAction(blockAnalyzer.AnalyzeParameterReference, OperationKind.ParameterReference);
                     context.RegisterOperationBlockEndAction(blockAnalyzer.AnalyzeOperationBlockEnd);
 
                     return;
@@ -166,6 +174,12 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                     {
                         _delegateAssignedToFieldOrProperty = true;
                     }
+                }
+
+                private void AnalyzeParameterReference(OperationAnalysisContext operationAnalysisContextContext)
+                {
+                    var parameter = ((IParameterReferenceOperation)operationAnalysisContextContext.Operation).Parameter;
+                    _referencedParameters.GetOrAdd(parameter, true);
                 }
 
                 /// <summary>
@@ -431,20 +445,32 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                         return;
                     }
 
-                    //  2. Bail out if we found a single operation block where all symbol writes were used.
+                    // 2. Report unused parameters only for method symbols.
+                    if (!(context.OwningSymbol is IMethodSymbol method))
+                    {
+                        return;
+                    }
+
+                    // Mark all unreferenced parameters as unused parameters with no read reference.
+                    // We do so prior to bail out cases 3. and 4. below
+                    // so that we flag unreferenced parameters even when we bail out from flow analysis.
+                    foreach (var parameter in method.Parameters)
+                    {
+                        if (!_referencedParameters.ContainsKey(parameter))
+                        {
+                            // Unused parameter without a reference.
+                            _symbolStartAnalyzer._unusedParameters[parameter] = false;
+                        }
+                    }
+
+                    // 3. Bail out if we found a single operation block where all symbol writes were used.
                     if (hasBlockWithAllUsedSymbolWrites)
                     {
                         return;
                     }
 
-                    // 3. Bail out if symbolUsageResultsBuilder is empty, indicating we skipped analysis for all operation blocks.
+                    // 4. Bail out if symbolUsageResultsBuilder is empty, indicating we skipped analysis for all operation blocks.
                     if (symbolUsageResultsBuilder.Count == 0)
-                    {
-                        return;
-                    }
-
-                    // 4. Report unused parameters only for method symbols.
-                    if (!(context.OwningSymbol is IMethodSymbol method))
                     {
                         return;
                     }
@@ -480,7 +506,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
 
                         if (!isUsed)
                         {
-                            _symbolStartAnalyzer._unusedParameters.GetOrAdd(parameter, isSymbolRead);
+                            _symbolStartAnalyzer._unusedParameters[parameter] = isSymbolRead;
                         }
                     }
                 }

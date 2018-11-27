@@ -347,6 +347,44 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)]
+        public async Task UnusedInLambda_ReturnsDelegate()
+        {
+            // We bail out from unused value analysis for method returning delegate types.
+            // We should still report unused parameters.
+            await TestDiagnosticsAsync(
+@"using System;
+
+class C
+{
+    private static Action M(object [|p|])
+    {
+        return () => { };
+    }
+}",
+    Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)]
+        public async Task UnusedInLambda_LambdaPassedAsArgument()
+        {
+            // We bail out from unused value analysis when lambda is passed as argument.
+            // We should still report unused parameters.
+            await TestDiagnosticsAsync(
+@"using System;
+
+class C
+{
+    private static void M(object [|p|])
+    {
+        M2(() => { });
+    }
+
+    private static void M2(Action a) { }
+}",
+    Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)]
         public async Task UsedInLambda_AssignedToField()
         {
             // Currently we bail out from analysis if we have a delegate creation that is not assigned
