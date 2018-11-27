@@ -12,9 +12,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.PullMemberUp
     [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = nameof(PredefinedCodeRefactoringProviderNames.PullMemberUp)), Shared]
     internal class CSharpPullMemberUpCodeRefactoringProvider : AbstractPullMemberUpRefactoringProvider
     {
-        protected override bool IsSelectionValid(TextSpan span, SyntaxNode userSelectedSyntax)
+        protected override bool IsSelectionValid(TextSpan span, SyntaxNode selectedNode)
         {
-            var identifier = GetIdentifier(userSelectedSyntax);
+            var identifier = GetIdentifier(selectedNode);
             if (identifier == default)
             {
                 return false;
@@ -35,9 +35,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.PullMemberUp
             }
         }
 
-        private SyntaxToken GetIdentifier(SyntaxNode userSelectedSyntax)
+        private SyntaxToken GetIdentifier(SyntaxNode selectedNode)
         {
-            switch (userSelectedSyntax)
+            switch (selectedNode)
             {
                 case MemberDeclarationSyntax memberDeclarationSyntax:
                     return memberDeclarationSyntax.GetNameToken();

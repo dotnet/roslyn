@@ -24,7 +24,26 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.PullMemberUp
 
         #region destination interface
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
-        public async Task PullMethodUpToInterface()
+        public async Task TestNoRefactoringProvideWhenPullFieldToInterface()
+        {
+            var testText = @"
+namespace PushUpTest
+{
+    public interface ITestInterface
+    {
+    }
+
+    public class TestClass : ITestInterface
+    {
+        public int yo[||]u = 10086;
+    }
+}";
+
+            await TestNoRefactoringProvidedAsync(testText);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        public async Task TestPullMethodUpToInterface()
         {
             var testText = @"
 using System;
@@ -63,7 +82,7 @@ namespace PushUpTest
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
-        public async Task PullSingleEventToInterface()
+        public async Task TestPullSingleEventToInterface()
         {
             var testText = @"
 using System;
@@ -117,7 +136,7 @@ namespace PushUpTest
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
-        public async Task PullOneEventFromMultipleEventsToInterface()
+        public async Task TestPullOneEventFromMultipleEventsToInterface()
         {
             var testText = @"
 using System;
@@ -151,7 +170,7 @@ namespace PushUpTest
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
-        public async Task PullPublicEventWithAccessorsToInterfaceViaDialog()
+        public async Task TestPullPublicEventWithAccessorsToInterfaceViaDialog()
         {
             var testText = @"
 using System;
@@ -205,7 +224,7 @@ namespace PushUpTest
         }
         
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
-        public async Task PullPropertyWithPrivateSetterToInterface()
+        public async Task TestPullPropertyWithPrivateSetterToInterface()
         {
             var testText = @"
 using System;
@@ -239,7 +258,7 @@ namespace PushUpTest
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
-        public async Task PullPropertyWithPrivateGetterToInterface()
+        public async Task TestPullPropertyWithPrivateGetterToInterface()
         {
             var testText = @"
 using System;
@@ -273,7 +292,7 @@ namespace PushUpTest
         }
         
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
-        public async Task PullIndexerWithOnlySetterToInterface()
+        public async Task TestPullIndexerWithOnlySetterToInterface()
         {
             var testText = @"
 using System;
@@ -314,7 +333,7 @@ namespace PushUpTest
         }
     
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
-        public async Task PullIndexerWithOnlyGetterToInterface()
+        public async Task TestPullIndexerWithOnlyGetterToInterface()
         {
             var testText = @"
 using System;
@@ -358,7 +377,7 @@ namespace PushUpTest
 
         #region destination class
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
-        public async Task PullMethodToClass()
+        public async Task TestPullMethodToClass()
         {
             var testText = @"
 namespace PushUpTest
@@ -395,7 +414,7 @@ namespace PushUpTest
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
-        public async Task PullOneFieldsToClass()
+        public async Task TestPullOneFieldsToClass()
         {
             var testText = @"
 namespace PushUpTest
@@ -426,7 +445,7 @@ namespace PushUpTest
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
-        public async Task PullOneFieldFromMultipleFieldsToClass()
+        public async Task TestPullOneFieldFromMultipleFieldsToClass()
         {
             var testText = @"
 namespace PushUpTest
@@ -458,7 +477,7 @@ namespace PushUpTest
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
-        public async Task PullMiddleFieldWithValueToClass()
+        public async Task TestPullMiddleFieldWithValueToClass()
         {
             var testText = @"
 namespace PushUpTest
@@ -489,7 +508,7 @@ namespace PushUpTest
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
-        public async Task PullOneEventFromMultipleToClass()
+        public async Task TestPullOneEventFromMultipleToClass()
         {
             var testText = @"
 using System;
@@ -524,7 +543,7 @@ namespace PushUpTest
         }
             
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
-        public async Task PullEventToClass()
+        public async Task TestPullEventToClass()
         {
             var testText = @"
 using System;
@@ -558,7 +577,7 @@ namespace PushUpTest
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
-        public async Task PullEventWithBodyToClass()
+        public async Task TestPullEventWithBodyToClass()
         {
             var testText = @"
 using System;
@@ -612,7 +631,7 @@ namespace PushUpTest
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
-        public async Task PullPropertyToClass()
+        public async Task TestPullPropertyToClass()
         {
             var testText = @"
 using System;
@@ -645,7 +664,7 @@ namespace PushUpTest
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
-        public async Task PullIndexerToClass()
+        public async Task TestPullIndexerToClass()
         {
             var testText = @"
 namespace PushUpTest
@@ -687,11 +706,11 @@ namespace PushUpTest
         #endregion destination class
 
         #region cross language
-
-
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
         public async Task TestPullMethodUpToVBClass()
         {
+            // Moving member from C# to Visual Basic is not supported currently since the FindMostRelevantDeclarationAsync method in 
+            // AbstractCodeGenerationService will return null.
             var input = new XElement("Workspace",
                     new XElement("Project",
                         new XAttribute("Language", "C#"),
@@ -718,23 +737,172 @@ End Class
             await TestNoRefactoringProvidedAsync(input);
         }
 
-        //[Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
-        //public async Task TestPullFieldUpToVBClass()
-        //{
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        public async Task TestPullMethodUpToVBInterface()
+        {
+            var input = new XElement("Workspace",
+                    new XElement("Project",
+                        new XAttribute("Language", "C#"),
+                        new XAttribute("AssemblyName", "CSAssembly"),
+                        new XAttribute("CommonReferences", "true"),
+                        new XElement("ProjectReferences", "VBAssembly"),
+                        new XElement("Document", @"
+public class TestClass : VBInterface
+{
+    public int Bar[||]bar()
+    {
+        return 12345;
+    }
+}")),
+                    new XElement("Project",
+                        new XAttribute("Language", "Visual Basic"),
+                        new XAttribute("AssemblyName", "VBAssembly"),
+                        new XAttribute("CommonReferences", "true"),
+                        new XElement("Document", @"
+Public Interface VBInterface
+End Interface
+"))).ToString();
 
-        //}
+            await TestNoRefactoringProvidedAsync(input);
+        }
 
-        //[Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
-        //public async Task TestPullPropertyUpToVBClass()
-        //{
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        public async Task TestPullFieldUpToVBClass()
+        {
+            var input = new XElement("Workspace",
+                    new XElement("Project",
+                        new XAttribute("Language", "C#"),
+                        new XAttribute("AssemblyName", "CSAssembly"),
+                        new XAttribute("CommonReferences", "true"),
+                        new XElement("ProjectReferences", "VBAssembly"),
+                        new XElement("Document", @"
+public class TestClass : VBClass
+{
+    public int fo[||]obar = 0;
+}")),
+                    new XElement("Project",
+                        new XAttribute("Language", "Visual Basic"),
+                        new XAttribute("AssemblyName", "VBAssembly"),
+                        new XAttribute("CommonReferences", "true"),
+                        new XElement("Document", @"
+Public Class VBClass
+End Class
+"))).ToString();
 
-        //}
+            await TestNoRefactoringProvidedAsync(input);
+        }
 
-        //[Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
-        //public async Task TestPullEventUpToVBClass()
-        //{
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        public async Task TestPullPropertyUpToVBClass()
+        {
+            var input = new XElement("Workspace",
+                    new XElement("Project",
+                        new XAttribute("Language", "C#"),
+                        new XAttribute("AssemblyName", "CSAssembly"),
+                        new XAttribute("CommonReferences", "true"),
+                        new XElement("ProjectReferences", "VBAssembly"),
+                        new XElement("Document", @"
+public class TestClass : VBClass
+{
+    public int foo[||]bar
+    {
+        get;
+        set;
+    }
+}")),
+                    new XElement("Project",
+                        new XAttribute("Language", "Visual Basic"),
+                        new XAttribute("AssemblyName", "VBAssembly"),
+                        new XAttribute("CommonReferences", "true"),
+                        new XElement("Document", @"
+Public Class VBClass
+End Class
+"))).ToString();
 
-        //}
+            await TestNoRefactoringProvidedAsync(input);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        public async Task TestPullPropertyUpToVBInterface()
+        {
+            var input = new XElement("Workspace",
+                    new XElement("Project",
+                        new XAttribute("Language", "C#"),
+                        new XAttribute("AssemblyName", "CSAssembly"),
+                        new XAttribute("CommonReferences", "true"),
+                        new XElement("ProjectReferences", "VBAssembly"),
+                        new XElement("Document", @"
+public class TestClass : VBInterface
+{
+    public int foo[||]bar
+    {
+        get;
+        set;
+    }
+}")),
+                    new XElement("Project",
+                        new XAttribute("Language", "Visual Basic"),
+                        new XAttribute("AssemblyName", "VBAssembly"),
+                        new XAttribute("CommonReferences", "true"),
+                        new XElement("Document", @"
+Public Interface VBInterface
+End Interface
+"))).ToString();
+
+            await TestNoRefactoringProvidedAsync(input);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        public async Task TestPullEventUpToVBClass()
+        {
+            var input = new XElement("Workspace",
+                    new XElement("Project",
+                        new XAttribute("Language", "C#"),
+                        new XAttribute("AssemblyName", "CSAssembly"),
+                        new XAttribute("CommonReferences", "true"),
+                        new XElement("ProjectReferences", "VBAssembly"),
+                        new XElement("Document", @"
+public class TestClass : VBClass
+{
+    public event EventHandler BarEve[||]nt;
+}")),
+                    new XElement("Project",
+                        new XAttribute("Language", "Visual Basic"),
+                        new XAttribute("AssemblyName", "VBAssembly"),
+                        new XAttribute("CommonReferences", "true"),
+                        new XElement("Document", @"
+Public Class VBClass
+End Class
+"))).ToString();
+
+            await TestNoRefactoringProvidedAsync(input);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        public async Task TestPullEventUpToVBInterface()
+        {
+            var input = new XElement("Workspace",
+                    new XElement("Project",
+                        new XAttribute("Language", "C#"),
+                        new XAttribute("AssemblyName", "CSAssembly"),
+                        new XAttribute("CommonReferences", "true"),
+                        new XElement("ProjectReferences", "VBAssembly"),
+                        new XElement("Document", @"
+public class TestClass : VBInterface
+{
+    public event EventHandler BarEve[||]nt;
+}")),
+                    new XElement("Project",
+                        new XAttribute("Language", "Visual Basic"),
+                        new XAttribute("AssemblyName", "VBAssembly"),
+                        new XAttribute("CommonReferences", "true"),
+                        new XElement("Document", @"
+Public Interface VBInterface
+End Interface
+"))).ToString();
+
+            await TestNoRefactoringProvidedAsync(input);
+        }
         
         #endregion cross language
     }

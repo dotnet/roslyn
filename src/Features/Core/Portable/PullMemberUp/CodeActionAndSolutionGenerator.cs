@@ -65,29 +65,29 @@ namespace Microsoft.CodeAnalysis.PullMemberUp
             Document contextDocument,
             ICodeGenerationService codeGenerationService)
         {
+            var symbolsToPullUp = result.MembersAnalysisResults.
+                Select(analysisResult =>
+                {
+                    if (analysisResult.Member is IPropertySymbol propertySymbol)
+                    {
+                        // When it is a property, it could have a public getter/setter
+                        // but other one is not public. In this scenario, only the public getter/setter
+                        // will be add to the destination interface
+                        return CodeGenerationSymbolFactory.CreatePropertySymbol(
+                            propertySymbol,
+                            getMethod: FilterGetterOrSetter(propertySymbol.GetMethod),
+                            setMethod: FilterGetterOrSetter(propertySymbol.SetMethod));
+                    }
+                    else
+                    {
+                        return analysisResult.Member;
+                    }
+                });
             return new DocumentChangeAction(
                 string.Format(FeaturesResources.Add_to_0, result.Destination),
                 cancellationToken =>
                 {
                     var options = new CodeGenerationOptions(generateMethodBodies: false, generateMembers: false);
-                    var symbolsToPullUp = result.MembersAnalysisResults.
-                        Select(analysisResult =>
-                        {
-                            if (analysisResult.Member is IPropertySymbol propertySymbol)
-                            {
-                                // When it is a property, it could have a public getter/setter
-                                // but other one is not public. In this scenario, only the public getter/setter
-                                // will be add to the destination interface
-                                return CodeGenerationSymbolFactory.CreatePropertySymbol(
-                                    propertySymbol,
-                                    getMethod: FilterGetterOrSetter(propertySymbol.GetMethod),
-                                    setMethod: FilterGetterOrSetter(propertySymbol.SetMethod));
-                            }
-                            else
-                            {
-                                return analysisResult.Member;
-                            }
-                        });
                     return codeGenerationService.AddMembersAsync(
                         contextDocument.Project.Solution, result.Destination, symbolsToPullUp, options: options, cancellationToken: cancellationToken);
                 });

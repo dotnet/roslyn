@@ -22,9 +22,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
                 }
                 else
                 {
-                    var changeOriginalToPublic = false;
-                    var changeOriginalToNonStatic = false;
-                    return new MemberAnalysisResult(member, changeOriginalToPublic, changeOriginalToNonStatic);
+                    return new MemberAnalysisResult(member, changeOriginalToPublic: false, changeOriginalToNonStatic: false);
                 }
             });
 

@@ -7,14 +7,14 @@ namespace Microsoft.CodeAnalysis.PullMemberUp.QuickAction
     internal class InterfacePullerWithQuickAction : AbstractMemberPullerWithQuickAction
     {
         protected override bool IsSelectedMemberDeclarationAlreadyInDestination(
-            INamedTypeSymbol destinationSymbol,
-            ISymbol userSelectedNodeSymbol)
+            INamedTypeSymbol destination,
+            ISymbol selectedNode)
         {
             var comparer = SymbolEquivalenceComparer.Instance;
-            foreach (var interfaceMember in destinationSymbol.GetMembers())
+            foreach (var interfaceMember in destination.GetMembers())
             {
-                var implementationOfMember = userSelectedNodeSymbol.ContainingType.FindImplementationForInterfaceMember(interfaceMember);
-                if (comparer.Equals(userSelectedNodeSymbol, implementationOfMember?.OriginalDefinition))
+                var implementationOfMember = selectedNode.ContainingType.FindImplementationForInterfaceMember(interfaceMember);
+                if (comparer.Equals(selectedNode, implementationOfMember?.OriginalDefinition))
                 {
                     return true;
                 }
