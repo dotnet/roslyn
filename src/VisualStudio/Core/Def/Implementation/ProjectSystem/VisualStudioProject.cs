@@ -93,7 +93,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private readonly Dictionary<string, CancellationTokenSource> _metadataReferenceRefreshCancellationTokenSources = new Dictionary<string, CancellationTokenSource>();
 
         /// <summary>
-        /// track whether we have been subscribed to <see cref="IDynamicFileInfoProvider.Updated"/> event
+        /// track whether we have been subscribed to <see cref="IDynamicFileInfoProvider.Reloaded"/> event
         /// </summary>
         private readonly HashSet<IDynamicFileInfoProvider> _eventSubscriptionTracker = new HashSet<IDynamicFileInfoProvider>();
 
@@ -624,16 +624,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 projectId: Id, projectFilePath: _filePath, filePath: dynamicFilePath, CancellationToken.None).Wait(CancellationToken.None);
         }
 
-        private void OnDynamicFileInfoUpdated(object sender, string dynamicFilePath)
+        private void OnDynamicFileInfoReloaded(object sender, DynamicFileInfo dynamicFileInfo)
         {
-            if (!_dynamicFilePathMaps.TryGetValue(dynamicFilePath, out var fileInfoPath))
-            {
-                // given file doesn't belong to this project. 
-                // this happen since the event this is handling is shared between all projects
-                return;
-            }
-
-            _sourceFiles.ProcessFileChange(dynamicFilePath, fileInfoPath);
+            _sourceFiles.ProcessFileChange(dynamicFileInfo.FilePath, dynamicFileInfo);
         }
 
         #endregion
@@ -1009,7 +1002,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 // clear tracking to external components
                 foreach (var provider in _eventSubscriptionTracker)
                 {
-                    provider.Updated -= OnDynamicFileInfoUpdated;
+                    provider.Reloaded -= OnDynamicFileInfoReloaded;
                 }
 
                 _eventSubscriptionTracker.Clear();
@@ -1260,7 +1253,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     if (_project._eventSubscriptionTracker.Add(fileInfoProvider))
                     {
                         // subscribe to the event when we use this provider the first time
-                        fileInfoProvider.Updated += _project.OnDynamicFileInfoUpdated;
+                        fileInfoProvider.Reloaded += _project.OnDynamicFileInfoReloaded;
                     }
 
                     if (_project._activeBatchScopes > 0)
@@ -1426,69 +1419,62 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             public void ProcessFileChange(string filePath)
             {
-                ProcessFileChange(filePath, filePath);
+                ProcessFileChange(filePath, dynamicFileInfoOpt: null);
             }
 
             /// <summary>
             /// Process file content changes
             /// </summary>
-            /// <param name="projectSystemFilePath">filepath given from project system</param>
             /// <param name="workspaceFilePath">filepath used in workspace. it might be different than projectSystemFilePath. ex) dynamic file</param>
-            public void ProcessFileChange(string projectSystemFilePath, string workspaceFilePath)
+            /// <param name="dynamicFileInfoOpt">dynamic file that has changed</param>
+            public void ProcessFileChange(string workspaceFilePath, DynamicFileInfo dynamicFileInfoOpt)
             {
                 lock (_project._gate)
                 {
-                    if (_documentPathsToDocumentIds.TryGetValue(workspaceFilePath, out var documentId))
+                    if (!_documentPathsToDocumentIds.TryGetValue(workspaceFilePath, out var documentId))
                     {
-                        // We create file watching prior to pushing the file to the workspace in batching, so it's
-                        // possible we might see a file change notification early. In this case, toss it out. Since
-                        // all adds/removals of documents for this project happen under our lock, it's safe to do this
-                        // check without taking the main workspace lock
+                        return;
+                    }
 
-                        if (_documentsAddedInBatch.Any(d => d.Id == documentId))
+                    // We create file watching prior to pushing the file to the workspace in batching, so it's
+                    // possible we might see a file change notification early. In this case, toss it out. Since
+                    // all adds/removals of documents for this project happen under our lock, it's safe to do this
+                    // check without taking the main workspace lock
+                    if (_documentsAddedInBatch.Any(d => d.Id == documentId))
+                    {
+                        return;
+                    }
+
+                    _project._workspace.ApplyChangeToWorkspace(w =>
+                    {
+                        if (w.IsDocumentOpen(documentId))
                         {
                             return;
                         }
 
-                        _documentIdToDynamicFileInfoProvider.TryGetValue(documentId, out var fileInfoProvider);
-
-                        _project._workspace.ApplyChangeToWorkspace(w =>
+                        if (dynamicFileInfoOpt == null)
                         {
-                            if (w.IsDocumentOpen(documentId))
-                            {
-                                return;
-                            }
+                            var textLoader = new FileTextLoader(workspaceFilePath, defaultEncoding: null);
+                            _documentTextLoaderChangedAction(w, documentId, textLoader);
+                        }
+                        else
+                        {
+                            // Right now we're only supporting dynamic files as actual source files, so it's OK to call GetDocument here
+                            var document = w.CurrentSolution.GetDocument(documentId);
 
-                            if (fileInfoProvider == null)
-                            {
-                                var textLoader = new FileTextLoader(projectSystemFilePath, defaultEncoding: null);
-                                _documentTextLoaderChangedAction(w, documentId, textLoader);
-                            }
-                            else
-                            {
-                                // we do not expect JTF to be used around this code path. and contract of fileInfoProvider is it being real free-threaded
-                                // meaning it can't use JTF to go back to UI thread.
-                                // so, it is okay for us to call regular ".Result" on a task here.
-                                var fileInfo = fileInfoProvider.GetDynamicFileInfoAsync(
-                                    _project.Id, _project._filePath, projectSystemFilePath, CancellationToken.None).WaitAndGetResult_CanCallOnBackground(CancellationToken.None);
+                            var documentInfo = DocumentInfo.Create(
+                                document.Id,
+                                document.Name,
+                                document.Folders,
+                                document.SourceCodeKind,
+                                loader: dynamicFileInfoOpt.TextLoader,
+                                document.FilePath,
+                                document.State.Attributes.IsGenerated,
+                                documentServiceProvider: dynamicFileInfoOpt.DocumentServiceProvider);
 
-                                // Right now we're only supporting dynamic files as actual source files, so it's OK to call GetDocument here
-                                var document = w.CurrentSolution.GetDocument(documentId);
-
-                                var documentInfo = DocumentInfo.Create(
-                                    document.Id,
-                                    document.Name,
-                                    document.Folders,
-                                    document.SourceCodeKind,
-                                    loader: fileInfo.TextLoader,
-                                    document.FilePath,
-                                    document.State.Attributes.IsGenerated,
-                                    documentServiceProvider: fileInfo.DocumentServiceProvider);
-
-                                w.OnDocumentReloaded(documentInfo);
-                            }
-                        });
-                    }
+                            w.OnDocumentReloaded(documentInfo);
+                        }
+                    });
                 }
             }
 

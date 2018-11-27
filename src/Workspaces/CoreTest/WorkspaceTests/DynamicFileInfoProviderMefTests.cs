@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -57,7 +58,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [PartNotDiscoverable]
         internal class TestDynamicFileInfoProvider : IDynamicFileInfoProvider
         {
-            public event EventHandler<string> Updated;
+            public event EventHandler<DynamicFileInfo> Reloaded;
 
             public Task<DynamicFileInfo> GetDynamicFileInfoAsync(ProjectId projectId, string projectFilePath, string filePath, CancellationToken cancellationToken)
             {
@@ -69,9 +70,14 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 return Task.CompletedTask;
             }
 
-            private void OnUpdate()
+            private void OnReload()
             {
-                Updated?.Invoke(this, "test");
+                Reloaded?.Invoke(this, 
+                    new DynamicFileInfo(
+                        "test", 
+                        SourceCodeKind.Regular, 
+                        TextLoader.From(TextAndVersion.Create(SourceText.From(""), VersionStamp.Create())),
+                        DefaultTextDocumentServiceProvider.Instance));
             }
         }
         #endregion

@@ -32,8 +32,8 @@ namespace Microsoft.CodeAnalysis.Host
         Task RemoveDynamicFileInfoAsync(ProjectId projectId, string projectFilePath, string filePath, CancellationToken cancellationToken);
 
         /// <summary>
-        /// indicate content of a file has updated. the event argument "string" should be same as "filepath" given to <see cref="GetDynamicFileInfoAsync(ProjectId, string, string, CancellationToken)"/>
+        /// indicate content of a file has reloaded.
         /// </summary>
-        event EventHandler<string> Updated;
+        event EventHandler<DynamicFileInfo> Reloaded;
     }
 }

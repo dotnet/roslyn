@@ -94,7 +94,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Venus
                 ' soon, contained document will be only used to support old venus and razor but not new razor
                 ' which will use thier own implementation of these services
                 Assert.True(documentOperations.CanApplyChange)
-                Assert.True(documentOperations.SupportDiagnostics)
+                Assert.True(documentOperations.SupportsDiagnostics)
             End Using
         End Sub
 
