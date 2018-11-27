@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Text
                 for (var info = this; info != null; info = info.Previous)
                 {
                     SourceText tmp;
-                    if (info.WeakOldText.TryGetTarget(out tmp))
+                    if (info.WeakOldText.TryGetTarget(out _))
                     {
                         lastInfo = info;
                     }

@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             SyntaxNode node;
             TextSpan? part;
-            GetBreakpointSpan(declaratorSyntax, out node, out part);
+            GetBreakpointSpan(declaratorSyntax, out _, out part);
             var result = BoundSequencePoint.Create(declaratorSyntax, part, rewrittenStatement);
             result.WasCompilerGenerated = rewrittenStatement.WasCompilerGenerated;
             return result;

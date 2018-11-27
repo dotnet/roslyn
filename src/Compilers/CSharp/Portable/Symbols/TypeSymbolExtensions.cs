@@ -1421,7 +1421,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return false;
             }
             object builderArgument;
-            return namedType.IsCustomTaskType(out builderArgument);
+            return namedType.IsCustomTaskType(out _);
         }
 
         internal static bool IsGenericTaskType(this TypeSymbol type, CSharpCompilation compilation)
@@ -1436,7 +1436,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return true;
             }
             object builderArgument;
-            return namedType.IsCustomTaskType(out builderArgument);
+            return namedType.IsCustomTaskType(out _);
         }
 
         internal static bool IsIAsyncEnumerableType(this TypeSymbol type, CSharpCompilation compilation)
@@ -1571,7 +1571,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             object builderArgument;
-            if (type.OriginalDefinition.IsCustomTaskType(out builderArgument))
+            if (type.OriginalDefinition.IsCustomTaskType(out _))
             {
                 int arity = type.Arity;
                 Debug.Assert(arity < 2);

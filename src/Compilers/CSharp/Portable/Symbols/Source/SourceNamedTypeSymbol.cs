@@ -172,7 +172,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     if (name == null)
                     {
                         name = typeParameterNames[i] = tp.Identifier.ValueText;
-                        varianceKind = typeParameterVarianceKeywords[i] = tp.VarianceKeyword.ValueText;
+                        _ = typeParameterVarianceKeywords[i] = tp.VarianceKeyword.ValueText;
                         for (int j = 0; j < i; j++)
                         {
                             if (name == typeParameterNames[j])
@@ -792,7 +792,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             foreach (SyntaxList<AttributeListSyntax> list in attributeLists)
             {
-                var syntaxTree = list.Node.SyntaxTree;
+                _ = list.Node.SyntaxTree;
                 QuickAttributeChecker checker = this.DeclaringCompilation.GetBinderFactory(list.Node.SyntaxTree).GetBinder(list.Node).QuickAttributeChecker;
 
                 foreach (AttributeListSyntax attrList in list)

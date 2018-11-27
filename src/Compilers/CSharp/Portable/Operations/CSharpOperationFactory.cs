@@ -815,7 +815,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
         private IDynamicInvocationOperation CreateBoundDynamicCollectionElementInitializerOperation(BoundDynamicCollectionElementInitializer boundCollectionElementInitializer)
         {
-            Lazy<IOperation> operation = new Lazy<IOperation>(() => Create(boundCollectionElementInitializer.ImplicitReceiver));
+            _ = new Lazy<IOperation>(() => Create(boundCollectionElementInitializer.ImplicitReceiver));
             Lazy<ImmutableArray<IOperation>> arguments = new Lazy<ImmutableArray<IOperation>>(() => boundCollectionElementInitializer.Arguments.SelectAsArray(n => Create(n)));
             SyntaxNode syntax = boundCollectionElementInitializer.Syntax;
             ITypeSymbol type = boundCollectionElementInitializer.Type;
@@ -1013,7 +1013,7 @@ namespace Microsoft.CodeAnalysis.Operations
             SyntaxNode bindingSyntax = boundMethodGroup.Syntax;
             ITypeSymbol bindingType = null;
             Optional<object> bindingConstantValue = ConvertToOptional(boundMethodGroup.ConstantValue);
-            bool isImplicit = boundMethodGroup.WasCompilerGenerated;
+            _ = boundMethodGroup.WasCompilerGenerated;
             return new LazyMethodReferenceExpression(methodSymbol, isVirtual, instance, _semanticModel, bindingSyntax, bindingType, bindingConstantValue, boundMethodGroup.WasCompilerGenerated);
         }
 

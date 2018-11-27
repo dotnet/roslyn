@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // string.Substring(start, end - start)
                     var rangeStartSymbol = (PropertySymbol)F.WellKnownMember(WellKnownMember.System_Range__Start);
                     var rangeEndSymbol = (PropertySymbol)F.WellKnownMember(WellKnownMember.System_Range__End);
-                    var arrayCopySymbol = F.WellKnownMethod(WellKnownMember.System_Array__Copy);
+                    _ = F.WellKnownMethod(WellKnownMember.System_Array__Copy);
 
                     var startLocal = F.StoreToTemp(
                         F.Conditional(

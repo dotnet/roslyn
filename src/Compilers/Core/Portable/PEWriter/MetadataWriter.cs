@@ -1135,7 +1135,7 @@ namespace Microsoft.Cci
         internal BlobHandle GetMethodSignatureHandle(IMethodReference methodReference)
         {
             ImmutableArray<byte> signatureBlob;
-            return GetMethodSignatureHandleAndBlob(methodReference, out signatureBlob);
+            return GetMethodSignatureHandleAndBlob(methodReference, out _);
         }
 
         internal byte[] GetMethodSignature(IMethodReference methodReference)
@@ -4113,7 +4113,7 @@ namespace Microsoft.Cci
                 Debug.Assert(!_writer._tableIndicesAreComplete);
 #if DEBUG
                 int i;
-                Debug.Assert(!this.TryGetValue(item, out i));
+                Debug.Assert(!this.TryGetValue(item, out _));
 #endif
                 int index = _firstRowId + _rows.Count;
                 this.AddItem(item, index);

@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // Input must be used no more than once in the result. If it is needed repeatedly store its value in a temp and use the temp.
         BoundExpression MakeIsPattern(BoundPattern loweredPattern, BoundExpression loweredInput)
         {
-            var syntax = _factory.Syntax = loweredPattern.Syntax;
+            _ = _factory.Syntax = loweredPattern.Syntax;
             switch (loweredPattern.Kind)
             {
                 case BoundKind.DeclarationPattern:

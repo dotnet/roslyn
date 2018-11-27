@@ -1367,7 +1367,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 else
                 {
                     // Compute duplicate source assembly attributes, i.e. attributes with same constructor and arguments, that must not be emitted.
-                    var unused = GetUniqueSourceAssemblyAttributes();
+                    _ = GetUniqueSourceAssemblyAttributes();
                 }
 
                 // Load type forwarders from modules
@@ -2207,7 +2207,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 Version dummy;
                 string verString = (string)attribute.CommonConstructorArguments[0].Value;
-                if (!VersionHelper.TryParse(verString, version: out dummy))
+                if (!VersionHelper.TryParse(verString, version: out _))
                 {
                     Location attributeArgumentSyntaxLocation = attribute.GetAttributeArgumentSyntaxLocation(0, arguments.AttributeSyntaxOpt);
                     arguments.Diagnostics.Add(ErrorCode.WRN_InvalidVersionFormat, attributeArgumentSyntaxLocation);
@@ -2259,7 +2259,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 Version dummy;
                 string verString = (string)attribute.CommonConstructorArguments[0].Value;
 
-                if (!VersionHelper.TryParseAssemblyVersion(verString, allowWildcard: false, version: out dummy))
+                if (!VersionHelper.TryParseAssemblyVersion(verString, allowWildcard: false, version: out _))
                 {
                     Location attributeArgumentSyntaxLocation = attribute.GetAttributeArgumentSyntaxLocation(0, arguments.AttributeSyntaxOpt);
                     arguments.Diagnostics.Add(ErrorCode.ERR_InvalidVersionFormat2, attributeArgumentSyntaxLocation);

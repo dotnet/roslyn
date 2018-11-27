@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundStatement BindUnsafeStatement(UnsafeStatementSyntax node, DiagnosticBag diagnostics)
         {
-            var unsafeBinder = this.GetBinder(node);
+            _ = this.GetBinder(node);
 
             if (!this.Compilation.Options.AllowUnsafe)
             {
@@ -2016,8 +2016,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.TupleLiteral:
                     {
                         var tuple = (BoundTupleLiteral)operand;
-                        var targetElementTypes = default(ImmutableArray<TypeSymbolWithAnnotations>);
-
+                        _ = default(ImmutableArray<TypeSymbolWithAnnotations>);
+                        ImmutableArray<TypeSymbolWithAnnotations> targetElementTypes;
                         // If target is a tuple or compatible type with the same number of elements,
                         // report errors for tuple arguments that failed to convert, which would be more useful.
                         if (targetType.TryGetElementTypesIfTupleOrCompatible(out targetElementTypes) &&
@@ -2107,7 +2107,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<BoundExpression> tupleArguments,
             ImmutableArray<TypeSymbolWithAnnotations> targetElementTypes)
         {
-            var argLength = tupleArguments.Length;
+            _ = tupleArguments.Length;
 
             // report all leaf elements of the tuple literal that failed to convert
             // NOTE: we are not responsible for reporting use site errors here, just the failed leaf conversions.
@@ -2695,7 +2695,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (!badAsyncReturnAlreadyReported)
                     {
                         RefKind unusedRefKind;
-                        if (IsGenericTaskReturningAsyncMethod() && argument.Type == this.GetCurrentReturnType(out unusedRefKind))
+                        if (IsGenericTaskReturningAsyncMethod() && argument.Type == this.GetCurrentReturnType(out _))
                         {
                             // Since this is an async method, the return expression must be of type '{0}' rather than 'Task<{0}>'
                             Error(diagnostics, ErrorCode.ERR_BadAsyncReturnExpression, argument.Syntax, returnType);

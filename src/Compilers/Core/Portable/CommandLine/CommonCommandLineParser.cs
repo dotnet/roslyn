@@ -229,11 +229,8 @@ namespace Microsoft.CodeAnalysis
             out string outputFileName,
             out string outputDirectory)
         {
-            outputFileName = null;
-            outputDirectory = null;
-            string invalidPath = null;
-
             string unquoted = RemoveQuotesAndSlashes(value);
+            string invalidPath;
             ParseAndNormalizeFile(unquoted, baseDirectory, out outputFileName, out outputDirectory, out invalidPath);
             if (outputFileName == null ||
                 !MetadataHelpers.IsValidAssemblyOrModuleName(outputFileName))
@@ -249,12 +246,11 @@ namespace Microsoft.CodeAnalysis
             IList<Diagnostic> errors,
             string baseDirectory)
         {
-            string outputFileName = null;
-            string outputDirectory = null;
             string pdbPath = null;
-            string invalidPath = null;
-
             string unquoted = RemoveQuotesAndSlashes(value);
+            string outputFileName;
+            string outputDirectory;
+            string invalidPath;
             ParseAndNormalizeFile(unquoted, baseDirectory, out outputFileName, out outputDirectory, out invalidPath);
             if (outputFileName == null ||
                 PathUtilities.ChangeExtension(outputFileName, extension: null).Length == 0)
@@ -275,11 +271,10 @@ namespace Microsoft.CodeAnalysis
             string baseDirectory,
             bool generateDiagnostic = true)
         {
-            string outputFileName = null;
-            string outputDirectory = null;
             string genericPath = null;
-            string invalidPath = null;
-
+            string outputFileName;
+            string outputDirectory;
+            string invalidPath;
             ParseAndNormalizeFile(unquoted, baseDirectory, out outputFileName, out outputDirectory, out invalidPath);
             if (string.IsNullOrWhiteSpace(outputFileName))
             {

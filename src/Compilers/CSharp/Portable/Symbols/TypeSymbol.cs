@@ -566,7 +566,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public bool IsTupleCompatible()
         {
             int countOfItems;
-            return IsTupleCompatible(out countOfItems);
+            return IsTupleCompatible(out _);
         }
 
         /// <summary>
@@ -1135,7 +1135,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (((CSharpParseOptions)implementingMember.Locations[0].SourceTree?.Options)?.IsFeatureEnabled(MessageID.IDS_FeatureNullableReferenceTypes) == true &&
                 !implementingMember.IsImplicitlyDeclared && !implementingMember.IsAccessor() &&
-                (compilation = implementingMember.DeclaringCompilation) != null)
+                (_ = implementingMember.DeclaringCompilation) != null)
             {
                 Symbol implementedMember;
                 MethodSymbol implementedMethod;

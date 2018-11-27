@@ -312,7 +312,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 this.LookupSymbolsWithFallback(result, plainName, 0, ref useSiteDiagnostics, null, LookupOptions.NamespaceAliasesOnly);
                 diagnostics.Add(node, useSiteDiagnostics);
 
-                Symbol bindingResult = ResultSymbol(result, plainName, 0, node, diagnostics, false, out wasError, options: LookupOptions.NamespaceAliasesOnly);
+                Symbol bindingResult = ResultSymbol(result, plainName, 0, node, diagnostics, false, out _, options: LookupOptions.NamespaceAliasesOnly);
                 result.Free();
 
                 return bindingResult;
@@ -753,7 +753,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 bool wasError;
 
-                bindingResult = ResultSymbol(result, identifierValueText, 0, node, diagnostics, suppressUseSiteDiagnostics, out wasError, qualifierOpt, options);
+                bindingResult = ResultSymbol(result, identifierValueText, 0, node, diagnostics, suppressUseSiteDiagnostics, out _, qualifierOpt, options);
                 if (bindingResult.Kind == SymbolKind.Alias)
                 {
                     var aliasTarget = ((AliasSymbol)bindingResult).GetAliasTarget(basesBeingResolved);
@@ -834,7 +834,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (symbol.IsAlias)
             {
                 AliasSymbol discarded;
-                return NamespaceOrTypeOrAliasSymbolWithAnnotations.CreateUnannotated(NonNullTypesContext, (NamespaceOrTypeSymbol)UnwrapAlias(symbol.Symbol, out discarded, diagnostics, syntax, basesBeingResolved));
+                return NamespaceOrTypeOrAliasSymbolWithAnnotations.CreateUnannotated(NonNullTypesContext, (NamespaceOrTypeSymbol)UnwrapAlias(symbol.Symbol, out _, diagnostics, syntax, basesBeingResolved));
             }
 
             return symbol;
@@ -854,7 +854,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private Symbol UnwrapAlias(Symbol symbol, DiagnosticBag diagnostics, SyntaxNode syntax, ConsList<Symbol> basesBeingResolved = null)
         {
             AliasSymbol discarded;
-            return UnwrapAlias(symbol, out discarded, diagnostics, syntax, basesBeingResolved);
+            return UnwrapAlias(symbol, out _, diagnostics, syntax, basesBeingResolved);
         }
 
         private Symbol UnwrapAlias(Symbol symbol, out AliasSymbol alias, DiagnosticBag diagnostics, SyntaxNode syntax, ConsList<Symbol> basesBeingResolved = null)
@@ -1019,7 +1019,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             diagnostics.Add(node, useSiteDiagnostics);
 
             bool wasError;
-            Symbol lookupResultSymbol = ResultSymbol(lookupResult, plainName, arity, node, diagnostics, (basesBeingResolved != null), out wasError, qualifierOpt, options);
+            Symbol lookupResultSymbol = ResultSymbol(lookupResult, plainName, arity, node, diagnostics, (basesBeingResolved != null), out _, qualifierOpt, options);
 
             // As we said in the method above, there are three cases here:
             //

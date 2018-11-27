@@ -312,7 +312,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (_typeSyntax.IsVar)
                 {
                     bool isVar;
-                    TypeSymbolWithAnnotations declType = this.TypeSyntaxBinder.BindTypeOrVarKeyword(_typeSyntax, new DiagnosticBag(), out isVar);
+                    _ = this.TypeSyntaxBinder.BindTypeOrVarKeyword(_typeSyntax, new DiagnosticBag(), out isVar);
                     return isVar;
                 }
 
@@ -328,7 +328,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             bool isVar;
             RefKind refKind;
-            TypeSymbolWithAnnotations declType = typeBinder.BindTypeOrVarKeyword(_typeSyntax.SkipRef(out refKind), diagnostics, out isVar);
+            TypeSymbolWithAnnotations declType = typeBinder.BindTypeOrVarKeyword(_typeSyntax.SkipRef(out _), diagnostics, out isVar);
 
             if (isVar)
             {
@@ -539,7 +539,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (this.IsConst && _constantTuple == null)
                 {
-                    var value = Microsoft.CodeAnalysis.ConstantValue.Bad;
+                    _ = Microsoft.CodeAnalysis.ConstantValue.Bad;
                     var initValueNodeLocation = _initializer.Value.Location;
                     var diagnostics = DiagnosticBag.GetInstance();
                     Debug.Assert(inProgress != this);
@@ -550,7 +550,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         boundInitValue = inProgressBinder.BindVariableOrAutoPropInitializerValue(_initializer, this.RefKind, type, diagnostics);
                     }
 
-                    value = ConstantValueUtils.GetAndValidateConstantValue(boundInitValue, this, type, initValueNodeLocation, diagnostics);
+                    ConstantValue value = ConstantValueUtils.GetAndValidateConstantValue(boundInitValue, this, type, initValueNodeLocation, diagnostics);
                     Interlocked.CompareExchange(ref _constantTuple, new EvaluatedConstant(value, diagnostics.ToReadOnlyAndFree()), null);
                 }
             }

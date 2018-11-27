@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             DiagnosticBag discardedDiagnostics = DiagnosticBag.GetInstance();
             TypeSymbol discardedExplicitInterfaceType;
             string discardedAliasOpt;
-            string methodName = GetMemberNameAndInterfaceSymbol(binder, explicitInterfaceSpecifierOpt, name, discardedDiagnostics, out discardedExplicitInterfaceType, out discardedAliasOpt);
+            string methodName = GetMemberNameAndInterfaceSymbol(binder, explicitInterfaceSpecifierOpt, name, discardedDiagnostics, out _, out _);
             discardedDiagnostics.Free();
 
             return methodName;

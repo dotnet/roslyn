@@ -934,7 +934,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
                         targetParamsBuilder.Add(
                             new SignatureOnlyParameterSymbol(
                                 translator.Retarget(param.Type, RetargetOptions.RetargetPrimitiveTypesByTypeCode),
-                                translator.RetargetModifiers(param.RefCustomModifiers, out modifiersHaveChanged_Ignored),
+                                translator.RetargetModifiers(param.RefCustomModifiers, out _),
                                 param.IsParams,
                                 param.RefKind));
                     }
@@ -952,7 +952,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
                         targetParamsBuilder.ToImmutableAndFree(),
                         method.RefKind,
                         translator.Retarget(method.ReturnType, RetargetOptions.RetargetPrimitiveTypesByTypeCode),
-                        translator.RetargetModifiers(method.RefCustomModifiers, out modifiersHaveChanged_Ignored),
+                        translator.RetargetModifiers(method.RefCustomModifiers, out _),
                         ImmutableArray<MethodSymbol>.Empty);
 
                     foreach (var retargetedMember in retargetedType.GetMembers(method.Name))
@@ -995,7 +995,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
                     targetParamsBuilder.Add(
                         new SignatureOnlyParameterSymbol(
                             Retarget(param.Type, RetargetOptions.RetargetPrimitiveTypesByTypeCode),
-                            RetargetModifiers(param.RefCustomModifiers, out modifiersHaveChanged_Ignored),
+                            RetargetModifiers(param.RefCustomModifiers, out _),
                             param.IsParams,
                             param.RefKind));
                 }
@@ -1006,7 +1006,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
                     targetParamsBuilder.ToImmutableAndFree(),
                     property.RefKind,
                     Retarget(property.Type, RetargetOptions.RetargetPrimitiveTypesByTypeCode),
-                    RetargetModifiers(property.RefCustomModifiers, out modifiersHaveChanged_Ignored),
+                    RetargetModifiers(property.RefCustomModifiers, out _),
                     property.IsStatic,
                     ImmutableArray<PropertySymbol>.Empty);
 
@@ -1051,7 +1051,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
                 if (lazyCustomModifiers.IsDefault)
                 {
                     bool modifiersHaveChanged;
-                    ImmutableArray<CustomModifier> newModifiers = this.RetargetModifiers(oldModifiers, out modifiersHaveChanged);
+                    ImmutableArray<CustomModifier> newModifiers = this.RetargetModifiers(oldModifiers, out _);
                     ImmutableInterlocked.InterlockedCompareExchange(ref lazyCustomModifiers, newModifiers, default(ImmutableArray<CustomModifier>));
                 }
 
@@ -1068,7 +1068,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
 #if DEBUG
                 SynthesizedAttributeData x = null;
                 SourceAttributeData y = x; // Code below relies on the fact that SynthesizedAttributeData derives from SourceAttributeData.
-                x = (SynthesizedAttributeData)y;
+                _ = (SynthesizedAttributeData)y;
 #endif
                 foreach (var attributeData in attributes)
                 {

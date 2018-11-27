@@ -1369,7 +1369,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal bool IsAccessible(Symbol symbol, ref HashSet<DiagnosticInfo> useSiteDiagnostics, TypeSymbol accessThroughType = null, ConsList<Symbol> basesBeingResolved = null)
         {
             bool failedThroughTypeCheck;
-            return IsAccessible(symbol, accessThroughType, out failedThroughTypeCheck, ref useSiteDiagnostics, basesBeingResolved);
+            return IsAccessible(symbol, accessThroughType, out _, ref useSiteDiagnostics, basesBeingResolved);
         }
 
         /// <summary>

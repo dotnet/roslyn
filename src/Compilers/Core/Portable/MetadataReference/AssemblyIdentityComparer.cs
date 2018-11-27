@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis
         public bool ReferenceMatchesDefinition(string referenceDisplayName, AssemblyIdentity definition)
         {
             bool unificationApplied;
-            return Compare(null, referenceDisplayName, definition, out unificationApplied, ignoreVersion: false) != ComparisonResult.NotEquivalent;
+            return Compare(null, referenceDisplayName, definition, out _, ignoreVersion: false) != ComparisonResult.NotEquivalent;
         }
 
         /// <summary>
@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis
         public bool ReferenceMatchesDefinition(AssemblyIdentity reference, AssemblyIdentity definition)
         {
             bool unificationApplied;
-            return Compare(reference, null, definition, out unificationApplied, ignoreVersion: false) != ComparisonResult.NotEquivalent;
+            return Compare(reference, null, definition, out _, ignoreVersion: false) != ComparisonResult.NotEquivalent;
         }
 
         /// <summary>
@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis
         public ComparisonResult Compare(AssemblyIdentity reference, AssemblyIdentity definition)
         {
             bool unificationApplied;
-            return Compare(reference, null, definition, out unificationApplied, ignoreVersion: true);
+            return Compare(reference, null, definition, out _, ignoreVersion: true);
         }
 
         // internal for testing

@@ -381,7 +381,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         {
                             if (member.IsOverride)
                             {
-                                CheckOverrideMember(method, method.OverriddenOrHiddenMembers, diagnostics, out suppressAccessors);
+                                CheckOverrideMember(method, method.OverriddenOrHiddenMembers, diagnostics, out _);
                             }
                             else
                             {
@@ -389,7 +389,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 if ((object)sourceMethod != null) // skip submission initializer
                                 {
                                     var isNew = sourceMethod.IsNew;
-                                    CheckNonOverrideMember(method, isNew, method.OverriddenOrHiddenMembers, diagnostics, out suppressAccessors);
+                                    CheckNonOverrideMember(method, isNew, method.OverriddenOrHiddenMembers, diagnostics, out _);
                                 }
                             }
                         }
@@ -425,11 +425,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             {
                                 if ((object)getMethod != null)
                                 {
-                                    CheckOverrideMember(getMethod, getMethod.OverriddenOrHiddenMembers, diagnostics, out suppressAccessors);
+                                    CheckOverrideMember(getMethod, getMethod.OverriddenOrHiddenMembers, diagnostics, out _);
                                 }
                                 if ((object)setMethod != null)
                                 {
-                                    CheckOverrideMember(setMethod, setMethod.OverriddenOrHiddenMembers, diagnostics, out suppressAccessors);
+                                    CheckOverrideMember(setMethod, setMethod.OverriddenOrHiddenMembers, diagnostics, out _);
                                 }
                             }
                         }
@@ -442,11 +442,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             {
                                 if ((object)getMethod != null)
                                 {
-                                    CheckNonOverrideMember(getMethod, isNewProperty, getMethod.OverriddenOrHiddenMembers, diagnostics, out suppressAccessors);
+                                    CheckNonOverrideMember(getMethod, isNewProperty, getMethod.OverriddenOrHiddenMembers, diagnostics, out _);
                                 }
                                 if ((object)setMethod != null)
                                 {
-                                    CheckNonOverrideMember(setMethod, isNewProperty, setMethod.OverriddenOrHiddenMembers, diagnostics, out suppressAccessors);
+                                    CheckNonOverrideMember(setMethod, isNewProperty, setMethod.OverriddenOrHiddenMembers, diagnostics, out _);
                                 }
                             }
                         }
@@ -466,11 +466,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             {
                                 if ((object)addMethod != null)
                                 {
-                                    CheckOverrideMember(addMethod, addMethod.OverriddenOrHiddenMembers, diagnostics, out suppressAccessors);
+                                    CheckOverrideMember(addMethod, addMethod.OverriddenOrHiddenMembers, diagnostics, out _);
                                 }
                                 if ((object)removeMethod != null)
                                 {
-                                    CheckOverrideMember(removeMethod, removeMethod.OverriddenOrHiddenMembers, diagnostics, out suppressAccessors);
+                                    CheckOverrideMember(removeMethod, removeMethod.OverriddenOrHiddenMembers, diagnostics, out _);
                                 }
                             }
                         }
@@ -483,11 +483,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             {
                                 if ((object)addMethod != null)
                                 {
-                                    CheckNonOverrideMember(addMethod, isNewEvent, addMethod.OverriddenOrHiddenMembers, diagnostics, out suppressAccessors);
+                                    CheckNonOverrideMember(addMethod, isNewEvent, addMethod.OverriddenOrHiddenMembers, diagnostics, out _);
                                 }
                                 if ((object)removeMethod != null)
                                 {
-                                    CheckNonOverrideMember(removeMethod, isNewEvent, removeMethod.OverriddenOrHiddenMembers, diagnostics, out suppressAccessors);
+                                    CheckNonOverrideMember(removeMethod, isNewEvent, removeMethod.OverriddenOrHiddenMembers, diagnostics, out _);
                                 }
                             }
                         }
@@ -728,7 +728,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 suppressAccessors = true; //we get really unhelpful errors from the accessor if the type is mismatched
                             }
                             else if (((CSharpParseOptions)overridingMemberLocation.SourceTree?.Options)?.IsFeatureEnabled(MessageID.IDS_FeatureNullableReferenceTypes) == true &&
-                                (compilation = overridingMember.DeclaringCompilation) != null &&
+                                (_ = overridingMember.DeclaringCompilation) != null &&
                                 !overridingMemberType.Equals(overriddenProperty.Type,
                                                              TypeCompareKind.AllIgnoreOptions & ~(TypeCompareKind.IgnoreNullableModifiersForReferenceTypes | TypeCompareKind.IgnoreInsignificantNullableModifiersDifference)))
                             {
@@ -772,7 +772,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 suppressAccessors = true; //we get really unhelpful errors from the accessor if the type is mismatched
                             }
                             else if (((CSharpParseOptions)overridingMemberLocation.SourceTree?.Options)?.IsFeatureEnabled(MessageID.IDS_FeatureNullableReferenceTypes) == true &&
-                                (compilation = overridingMember.DeclaringCompilation) != null &&
+                                (_ = overridingMember.DeclaringCompilation) != null &&
                                 !overridingMemberType.Equals(overriddenEvent.Type,
                                                              TypeCompareKind.AllIgnoreOptions & ~(TypeCompareKind.IgnoreNullableModifiersForReferenceTypes | TypeCompareKind.IgnoreInsignificantNullableModifiersDifference)))
                             {
@@ -807,7 +807,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             }
                             else if (((CSharpParseOptions)overridingMemberLocation.SourceTree?.Options)?.IsFeatureEnabled(MessageID.IDS_FeatureNullableReferenceTypes) == true &&
                                 !overridingMember.IsImplicitlyDeclared && !overridingMember.IsAccessor() &&
-                                (compilation = overridingMember.DeclaringCompilation) != null &&
+                                (_ = overridingMember.DeclaringCompilation) != null &&
                                 !overridingMethod.ReturnType.Equals(overriddenMethod.ReturnType,
                                                                     TypeCompareKind.AllIgnoreOptions & ~(TypeCompareKind.IgnoreNullableModifiersForReferenceTypes | TypeCompareKind.IgnoreInsignificantNullableModifiersDifference)))
                             {
@@ -817,7 +817,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                         if (((CSharpParseOptions)overridingMemberLocation.SourceTree?.Options)?.IsFeatureEnabled(MessageID.IDS_FeatureNullableReferenceTypes) == true &&
                             !overridingMember.IsImplicitlyDeclared && !overridingMember.IsAccessor() &&
-                            (compilation = overridingMember.DeclaringCompilation) != null)
+                            (_ = overridingMember.DeclaringCompilation) != null)
                         {
                             ImmutableArray<ParameterSymbol> overridingParameters = overridingMember.GetParameters();
                             ImmutableArray<ParameterSymbol> overriddenParameters;

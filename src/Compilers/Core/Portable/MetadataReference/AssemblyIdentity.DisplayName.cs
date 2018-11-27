@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             PooledStringBuilder sb = PooledStringBuilder.GetInstance();
-            StringBuilder builder = sb.Builder;
+            _ = sb.Builder;
             AppendKey(sb, key);
             return sb.ToStringAndFree();
         }
@@ -158,7 +158,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             AssemblyIdentityParts parts;
-            return TryParseDisplayName(displayName, out identity, out parts);
+            return TryParseDisplayName(displayName, out identity, out _);
         }
 
         /// <summary>

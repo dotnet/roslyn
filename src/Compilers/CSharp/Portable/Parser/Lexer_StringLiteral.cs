@@ -239,7 +239,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             SyntaxDiagnosticInfo error = null;
             bool closeQuoteMissing;
-            ScanInterpolatedStringLiteralTop(null, isVerbatim, ref info, ref error, out closeQuoteMissing);
+            ScanInterpolatedStringLiteralTop(null, isVerbatim, ref info, ref error, out _);
             this.AddError(error);
         }
 
@@ -430,7 +430,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
                             var escapeStart = lexer.TextWindow.Position;
                             char c2;
-                            char ch = lexer.ScanEscapeSequence(out c2);
+                            char ch = lexer.ScanEscapeSequence(out _);
                             if ((ch == '{' || ch == '}') && error == null)
                             {
                                 error = lexer.MakeError(escapeStart, lexer.TextWindow.Position - escapeStart, ErrorCode.ERR_EscapedCurly, ch);
@@ -457,7 +457,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         // normal string & char constants can have escapes
                         var pos = lexer.TextWindow.Position;
                         char c2;
-                        ch = lexer.ScanEscapeSequence(out c2);
+                        ch = lexer.ScanEscapeSequence(out _);
                         if ((ch == '{' || ch == '}') && error == null)
                         {
                             error = lexer.MakeError(pos, 1, ErrorCode.ERR_EscapedCurly, ch);

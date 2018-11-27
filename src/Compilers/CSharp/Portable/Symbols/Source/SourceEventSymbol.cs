@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             var isExplicitInterfaceImplementation = interfaceSpecifierSyntaxOpt != null;
             bool modifierErrors;
-            _modifiers = MakeModifiers(modifiers, isExplicitInterfaceImplementation, _location, diagnostics, out modifierErrors);
+            _modifiers = MakeModifiers(modifiers, isExplicitInterfaceImplementation, _location, diagnostics, out _);
             this.CheckAccessibility(_location, diagnostics);
         }
 

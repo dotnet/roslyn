@@ -228,7 +228,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private static bool IsDiagnosticAnalyzerAttribute(PEModule peModule, CustomAttributeHandle customAttrHandle)
         {
             EntityHandle ctor;
-            return peModule.IsTargetAttribute(customAttrHandle, s_diagnosticAnalyzerAttributeNamespace, nameof(DiagnosticAnalyzerAttribute), out ctor);
+            return peModule.IsTargetAttribute(customAttrHandle, s_diagnosticAnalyzerAttributeNamespace, nameof(DiagnosticAnalyzerAttribute), out _);
         }
 
         private static string GetFullyQualifiedTypeName(TypeDefinition typeDef, PEModule peModule)

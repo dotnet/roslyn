@@ -400,7 +400,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool isOptionalUse = false)
         {
             DiagnosticInfo diagnosticInfo;
-            var ctorSymbol = (MethodSymbol)Binder.GetWellKnownTypeMember(this, constructor, out diagnosticInfo, isOptional: true);
+            var ctorSymbol = (MethodSymbol)Binder.GetWellKnownTypeMember(this, constructor, out _, isOptional: true);
 
             if ((object)ctorSymbol == null)
             {
@@ -424,7 +424,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var builder = new ArrayBuilder<KeyValuePair<string, TypedConstant>>(namedArguments.Length);
                 foreach (var arg in namedArguments)
                 {
-                    var wellKnownMember = Binder.GetWellKnownTypeMember(this, arg.Key, out diagnosticInfo, isOptional: true);
+                    var wellKnownMember = Binder.GetWellKnownTypeMember(this, arg.Key, out _, isOptional: true);
                     if (wellKnownMember == null || wellKnownMember is ErrorTypeSymbol)
                     {
                         // if this assert fails, UseSiteErrors for "member" have not been checked before emitting ...

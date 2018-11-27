@@ -503,7 +503,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 suppressErrors, //don't cascade in these cases
                 diagnostics,
                 out memberResolutionResult,
-                out candidateConstructors,
+                out _,
                 allowProtectedConstructorsOfBaseType: true))
             {
                 resultKind = resultKind.WorseResultKind(

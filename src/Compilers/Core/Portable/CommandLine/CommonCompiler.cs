@@ -215,7 +215,7 @@ namespace Microsoft.CodeAnalysis
         internal SourceText TryReadFileContent(CommandLineSourceFile file, IList<DiagnosticInfo> diagnostics)
         {
             string discarded;
-            return TryReadFileContent(file, diagnostics, out discarded);
+            return TryReadFileContent(file, diagnostics, out _);
         }
 
         /// <summary>

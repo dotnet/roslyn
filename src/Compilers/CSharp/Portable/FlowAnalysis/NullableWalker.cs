@@ -3182,11 +3182,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         var lambda = (BoundLambda)operandOpt;
                         var delegateType = targetType.GetDelegateType();
-                        var methodSignatureOpt = lambda.UnboundLambda.HasExplicitlyTypedParameterList ? null : delegateType?.DelegateInvokeMethod;
+                        _ = lambda.UnboundLambda.HasExplicitlyTypedParameterList ? null : delegateType?.DelegateInvokeMethod;
                         var variableState = GetVariableState();
                         Analyze(compilation, lambda, Diagnostics, delegateInvokeMethod: delegateType?.DelegateInvokeMethod, returnTypes: null, initialState: variableState);
                         var unboundLambda = GetUnboundLambda(lambda, variableState);
-                        var boundLambda = unboundLambda.Bind(delegateType);
+                        _ = unboundLambda.Bind(delegateType);
                         if (!fromExplicitCast)
                         {
                             ReportNullabilityMismatchWithTargetDelegate(node.Syntax, delegateType, unboundLambda);
@@ -3210,7 +3210,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         // operand -> conversion "from" type
                         // May be distinct from method parameter type for Nullable<T>.
-                        operandType = ApplyConversion(
+                        _ = ApplyConversion(
                             node,
                             operandOpt,
                             conversion.UserDefinedFromConversion,
@@ -3232,7 +3232,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         operandType = ClassifyAndApplyConversion(operandOpt ?? node, parameter.Type, operandType, useLegacyWarnings, AssignmentKind.Argument, target: parameter);
 
                         // method parameter type -> method return type
-                        operandType = methodOpt.ReturnType;
+                        _ = methodOpt.ReturnType;
 
                         // method return type -> conversion "to" type
                         // May be distinct from method return type for Nullable<T>.
@@ -3981,8 +3981,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitUnaryOperator(BoundUnaryOperator node)
         {
             Debug.Assert(!IsConditionalState);
-
-            var result = base.VisitUnaryOperator(node);
+            _ = base.VisitUnaryOperator(node);
             TypeSymbolWithAnnotations resultType = default;
 
             // Update method based on inferred operand type: see https://github.com/dotnet/roslyn/issues/29605.
@@ -4377,7 +4376,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var @event = node.Event;
             if (!node.Event.IsStatic)
             {
-                @event = (EventSymbol)AsMemberOfResultType(_resultType, @event);
+                _ = (EventSymbol)AsMemberOfResultType(_resultType, @event);
                 // https://github.com/dotnet/roslyn/issues/30598: Mark receiver as not null
                 // after arguments have been visited, and only if the receiver has not changed.
                 CheckPossibleNullReceiver(receiverOpt);

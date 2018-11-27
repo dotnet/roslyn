@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bodyBinder = bodyBinder.WithAdditionalFlagsAndContainingMemberOrLambda(BinderFlags.SuppressConstraintChecks, this);
 
             bool modifierErrors;
-            _modifiers = MakeModifiers(modifiers, isExplicitInterfaceImplementation, isIndexer, location, diagnostics, out modifierErrors);
+            _modifiers = MakeModifiers(modifiers, isExplicitInterfaceImplementation, isIndexer, location, diagnostics, out _);
             this.CheckAccessibility(location, diagnostics);
 
             this.CheckModifiers(location, isIndexer, diagnostics);
@@ -502,7 +502,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 var syntax = (BasePropertyDeclarationSyntax)_syntaxRef.GetSyntax();
                 RefKind refKind;
-                var typeSyntax = syntax.Type.SkipRef(out refKind);
+                var typeSyntax = syntax.Type.SkipRef(out _);
                 return typeSyntax.Kind() == SyntaxKind.PointerType;
             }
         }
@@ -1451,7 +1451,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private TypeSymbolWithAnnotations ComputeType(Binder binder, BasePropertyDeclarationSyntax syntax, DiagnosticBag diagnostics)
         {
             RefKind refKind;
-            var typeSyntax = syntax.Type.SkipRef(out refKind);
+            var typeSyntax = syntax.Type.SkipRef(out _);
             var type = binder.BindType(typeSyntax, diagnostics);
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
 

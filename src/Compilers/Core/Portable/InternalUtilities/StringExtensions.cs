@@ -197,7 +197,7 @@ namespace Roslyn.Utilities
         /// </summary>
         internal static string Unquote(this string arg)
         {
-            return Unquote(arg, out var quoted);
+            return Unquote(arg, out var _);
         }
 
         internal static string Unquote(this string arg, out bool quoted)

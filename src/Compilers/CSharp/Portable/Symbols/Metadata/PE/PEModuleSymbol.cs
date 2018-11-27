@@ -271,7 +271,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             // Ignore whether or not extension attributes were found
             bool ignore;
-            var loadedCustomAttributes = GetCustomAttributesFilterExtensions(token, out ignore);
+            var loadedCustomAttributes = GetCustomAttributesFilterExtensions(token, out _);
             ImmutableInterlocked.InterlockedInitialize(ref customAttributes, loadedCustomAttributes);
         }
 
@@ -653,7 +653,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         internal (AssemblySymbol FirstSymbol, AssemblySymbol SecondSymbol) GetAssembliesForForwardedType(ref MetadataTypeName fullName)
         {
             string matchedName;
-            (int firstIndex, int secondIndex) = this.Module.GetAssemblyRefsForForwardedType(fullName.FullName, ignoreCase: false, matchedName: out matchedName);
+            (int firstIndex, int secondIndex) = this.Module.GetAssemblyRefsForForwardedType(fullName.FullName, ignoreCase: false, matchedName: out _);
 
             if (firstIndex < 0)
             {

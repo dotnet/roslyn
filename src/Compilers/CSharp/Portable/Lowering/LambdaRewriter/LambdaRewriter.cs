@@ -423,7 +423,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else if (closure.CapturedEnvironments.Count == 0 &&
                          _analysis.MethodsConvertedToDelegates.Contains(originalMethod))
                 {
-                    translatedLambdaContainer = containerAsFrame = GetStaticFrame(Diagnostics, syntax);
+                    translatedLambdaContainer = _ = GetStaticFrame(Diagnostics, syntax);
                     closureKind = ClosureKind.Singleton;
                     closureOrdinal = LambdaDebugInfo.StaticClosureOrdinal;
                 }
@@ -879,7 +879,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                        loweredSymbol.ClosureKind,
                                        ref method,
                                        out receiver,
-                                       out constructedFrame);
+                                       out _);
         }
 
         /// <summary>
@@ -1337,12 +1337,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             DebugId lambdaId;
             RewriteLambdaOrLocalFunction(
                 node,
-                out closureKind,
-                out translatedLambdaContainer,
-                out containerAsFrame,
-                out lambdaScope,
-                out topLevelMethodId,
-                out lambdaId);
+                out _,
+                out _,
+                out _,
+                out _,
+                out _,
+                out _);
 
             return new BoundNoOpStatement(node.Syntax, NoOpStatementFlavor.Default);
         }

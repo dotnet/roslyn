@@ -2796,7 +2796,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // whose condition is not true, then the call has no effect and it is ignored for the purposes of
                 // definite assignment analysis.
 
-                LocalState savedState = savedState = this.State.Clone();
+                LocalState savedState = _ = this.State.Clone();
                 SetUnreachable();
 
                 VisitArguments(node.Arguments, default(ImmutableArray<RefKind>), node.AddMethod);

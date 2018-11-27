@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             TypeSymbol explicitInterfaceType;
             string discardedAliasQualifier;
-            var name = ExplicitInterfaceHelpers.GetMemberNameAndInterfaceSymbol(bodyBinder, interfaceSpecifier, nameToken.ValueText, diagnostics, out explicitInterfaceType, out discardedAliasQualifier);
+            var name = ExplicitInterfaceHelpers.GetMemberNameAndInterfaceSymbol(bodyBinder, interfaceSpecifier, nameToken.ValueText, diagnostics, out explicitInterfaceType, out _);
             var location = new SourceLocation(nameToken);
 
             var methodKind = interfaceSpecifier == null
@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 firstParam.Modifiers.Any(SyntaxKind.ThisKeyword);
 
             bool modifierErrors;
-            var declarationModifiers = this.MakeModifiers(modifiers, methodKind, location, diagnostics, out modifierErrors);
+            var declarationModifiers = this.MakeModifiers(modifiers, methodKind, location, diagnostics, out _);
 
             var isMetadataVirtualIgnoringModifiers = (object)explicitInterfaceType != null; //explicit impls must be marked metadata virtual
 
@@ -175,7 +175,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             _lazyIsVararg = (arglistToken.Kind() == SyntaxKind.ArgListKeyword);
             RefKind refKind;
-            var returnTypeSyntax = syntax.ReturnType.SkipRef(out refKind);
+            var returnTypeSyntax = syntax.ReturnType.SkipRef(out _);
             _lazyReturnType = signatureBinder.BindType(returnTypeSyntax, diagnostics);
 
             // span-like types are returnable in general

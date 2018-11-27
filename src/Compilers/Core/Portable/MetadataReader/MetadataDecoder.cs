@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis
         internal TypeSymbol GetTypeOfToken(EntityHandle token)
         {
             bool isNoPiaLocalType;
-            return GetTypeOfToken(token, out isNoPiaLocalType);
+            return GetTypeOfToken(token, out _);
         }
 
         internal TypeSymbol GetTypeOfToken(EntityHandle token, out bool isNoPiaLocalType)
@@ -545,7 +545,7 @@ namespace Microsoft.CodeAnalysis
         private TypeSymbol GetTypeOfTypeDef(TypeDefinitionHandle typeDef)
         {
             bool isNoPiaLocalType;
-            return GetTypeOfTypeDef(typeDef, out isNoPiaLocalType, isContainingType: false);
+            return GetTypeOfTypeDef(typeDef, out _, isContainingType: false);
         }
 
         private TypeSymbol GetTypeOfTypeDef(TypeDefinitionHandle typeDef, out bool isNoPiaLocalType, bool isContainingType)
@@ -754,13 +754,13 @@ namespace Microsoft.CodeAnalysis
             switch (token.Kind)
             {
                 case HandleKind.TypeDefinition:
-                    type = GetTypeOfTypeDef((TypeDefinitionHandle)token, out isNoPiaLocalType, isContainingType: false);
+                    type = GetTypeOfTypeDef((TypeDefinitionHandle)token, out _, isContainingType: false);
                     // it is valid for a modifier to refer to an unconstructed type, we need to preserve this fact
                     type = SubstituteWithUnboundIfGeneric(type);
                     break;
 
                 case HandleKind.TypeReference:
-                    type = GetTypeOfTypeRef((TypeReferenceHandle)token, out isNoPiaLocalType);
+                    type = GetTypeOfTypeRef((TypeReferenceHandle)token, out _);
                     // it is valid for a modifier to refer to an unconstructed type, we need to preserve this fact
                     type = SubstituteWithUnboundIfGeneric(type);
                     break;
@@ -805,7 +805,7 @@ namespace Microsoft.CodeAnalysis
                             goto tryAgain;
 
                         case SignatureTypeCode.GenericTypeInstance:
-                            type = DecodeGenericTypeInstanceOrThrow(ref memoryReader, out refersToNoPiaLocalType);
+                            type = DecodeGenericTypeInstanceOrThrow(ref memoryReader, out _);
                             break;
 
                         default:
@@ -977,14 +977,13 @@ namespace Microsoft.CodeAnalysis
         internal void DecodeLocalConstantBlobOrThrow(ref BlobReader sigReader, out TypeSymbol type, out ConstantValue value)
         {
             SignatureTypeCode typeCode;
-
-            var customModifiers = DecodeModifiersOrThrow(ref sigReader, AllowedRequiredModifierType.None, out typeCode, out _);
+            _ = DecodeModifiersOrThrow(ref sigReader, AllowedRequiredModifierType.None, out typeCode, out _);
 
             if (typeCode == SignatureTypeCode.TypeHandle)
             {
                 // TypeDefOrRefOrSpec encoded
                 bool refersToNoPiaLocalType;
-                type = GetSymbolForTypeHandleOrThrow(sigReader.ReadTypeHandle(), out refersToNoPiaLocalType, allowTypeSpec: true, requireShortForm: true);
+                type = GetSymbolForTypeHandleOrThrow(sigReader.ReadTypeHandle(), out _, allowTypeSpec: true, requireShortForm: true);
 
                 if (type.SpecialType == SpecialType.System_Decimal)
                 {
@@ -1013,7 +1012,7 @@ namespace Microsoft.CodeAnalysis
                 if (isEnumTypeCode && sigReader.RemainingBytes > 0)
                 {
                     bool refersToNoPiaLocalType;
-                    type = GetSymbolForTypeHandleOrThrow(sigReader.ReadTypeHandle(), out refersToNoPiaLocalType, allowTypeSpec: true, requireShortForm: true);
+                    type = GetSymbolForTypeHandleOrThrow(sigReader.ReadTypeHandle(), out _, allowTypeSpec: true, requireShortForm: true);
 
                     if (GetEnumUnderlyingType(type)?.SpecialType != specialType)
                     {
@@ -1310,7 +1309,7 @@ namespace Microsoft.CodeAnalysis
 
                 SerializationTypeCode unusedElementTypeCode;
                 TypeSymbol unusedElementType;
-                DecodeCustomAttributeParameterTypeOrThrow(ref sigReader, out elementTypeCode, out elementType, out unusedElementTypeCode, out unusedElementType, isElementType: true);
+                DecodeCustomAttributeParameterTypeOrThrow(ref sigReader, out elementTypeCode, out elementType, out _, out _, isElementType: true);
                 type = GetSZArrayTypeSymbol(elementType, customModifiers: default(ImmutableArray<ModifierInfo<TypeSymbol>>));
                 typeCode = SerializationTypeCode.SZArray;
                 return;
@@ -1404,7 +1403,7 @@ namespace Microsoft.CodeAnalysis
 
                 SerializationTypeCode unusedElementTypeCode;
                 TypeSymbol unusedElementType;
-                DecodeCustomAttributeFieldOrPropTypeOrThrow(ref argReader, out elementTypeCode, out elementType, out unusedElementTypeCode, out unusedElementType, isElementType: true);
+                DecodeCustomAttributeFieldOrPropTypeOrThrow(ref argReader, out elementTypeCode, out elementType, out _, out _, isElementType: true);
                 type = GetSZArrayTypeSymbol(elementType, customModifiers: default(ImmutableArray<ModifierInfo<TypeSymbol>>));
                 return;
             }
@@ -1819,7 +1818,7 @@ namespace Microsoft.CodeAnalysis
             for (int i = 0; i < result.Length; i++)
             {
                 bool refersToNoPiaLocalType;
-                result[i] = DecodeTypeOrThrow(ref signatureReader, out refersToNoPiaLocalType);
+                result[i] = DecodeTypeOrThrow(ref signatureReader, out _);
             }
 
             return result;

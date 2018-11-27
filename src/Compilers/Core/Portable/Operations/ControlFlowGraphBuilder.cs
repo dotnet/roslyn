@@ -129,7 +129,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             }
 
             ControlFlowRegion region = root.ToImmutableRegionAndFree(blocks, localFunctions, localFunctionsMap, anonymousFunctionsMapOpt, enclosing);
-            root = null;
             MarkReachableBlocks(blocks);
 
             Debug.Assert(builder._evalStack.Count == 0);
@@ -3021,7 +3020,7 @@ oneMoreTime:
             while (true)
             {
                 testExpression = currentConditionalAccess.Operation;
-                SyntaxNode testExpressionSyntax = testExpression.Syntax;
+                _ = testExpression.Syntax;
                 ITypeSymbol testExpressionType = testExpression.Type;
 
                 PushOperand(Visit(testExpression));
@@ -3828,12 +3827,10 @@ oneMoreTime:
 
             EnterRegion(new RegionBuilder(ControlFlowRegionKind.TryAndFinally));
             EnterRegion(new RegionBuilder(ControlFlowRegionKind.Try));
-
-            IOperation lockTaken = null;
             if (!legacyMode)
             {
                 // Monitor.Enter($lock, ref $lockTaken);
-                lockTaken = new LocalReferenceExpression(baseLockStatement.LockTakenSymbol, isDeclaration: true, semanticModel: null, lockedValue.Syntax,
+                IOperation lockTaken = new LocalReferenceExpression(baseLockStatement.LockTakenSymbol, isDeclaration: true, semanticModel: null, lockedValue.Syntax,
                                                          baseLockStatement.LockTakenSymbol.Type, constantValue: default, isImplicit: true);
                 AddStatement(new InvocationExpression(enterMethod, instance: null, isVirtual: false,
                                                       ImmutableArray.Create<IArgumentOperation>(
@@ -4291,8 +4288,6 @@ oneMoreTime:
                 else
                 {
                     SpillEvalStack();
-                    RegionBuilder currentRegion = _currentRegion;
-
                     limitValueId = GetNextCaptureId(loopRegion);
                     VisitAndCapture(operation.LimitValue, limitValueId);
 
@@ -4566,11 +4561,9 @@ oneMoreTime:
                         return;
                     }
 
-                    IOperation eitherLimitOrControlVariableIsNull = null;
-
                     if (ITypeSymbolHelpers.IsNullableType(operation.LimitValue.Type))
                     {
-                        eitherLimitOrControlVariableIsNull = new BinaryOperatorExpression(BinaryOperatorKind.Or,
+                        IOperation eitherLimitOrControlVariableIsNull = new BinaryOperatorExpression(BinaryOperatorKind.Or,
                                                                                           MakeIsNullOperation(limitReference, booleanType),
                                                                                           MakeIsNullOperation(PopOperand(), booleanType),
                                                                                           isLifted: false,
@@ -5052,7 +5045,10 @@ oneMoreTime:
                         throw ExceptionUtilities.UnexpectedValue(relationalValueClause.Relation);
 
                     case CaseKind.Default:
-                        var defaultClause = (IDefaultCaseClauseOperation)caseClause;
+                        {
+                            _ = (IDefaultCaseClauseOperation)caseClause;
+                        }
+
                         if (defaultBody == null)
                         {
                             defaultBody = labeled;

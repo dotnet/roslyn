@@ -777,7 +777,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         break;
 
                     case CompletionPart.Type:
-                        var unusedType = this.ReturnType;
+                        {
+                            _ = this.ReturnType;
+                        }
+
                         state.NotePartComplete(CompletionPart.Type);
                         break;
 

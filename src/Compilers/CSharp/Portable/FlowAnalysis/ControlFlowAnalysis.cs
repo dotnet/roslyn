@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (_succeeded == null)
                 {
-                    var discarded = EntryPoints;
+                    _ = EntryPoints;
                 }
 
                 return _succeeded.Value;

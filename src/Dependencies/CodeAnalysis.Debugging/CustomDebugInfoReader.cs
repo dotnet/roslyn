@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Debugging
             }
 
             int offset = 0;
-            ReadGlobalHeader(customDebugInfo, ref offset, out var globalVersion, out var globalCount);
+            ReadGlobalHeader(customDebugInfo, ref offset, out var globalVersion, out var _);
 
             if (globalVersion != CustomDebugInfoConstants.Version)
             {

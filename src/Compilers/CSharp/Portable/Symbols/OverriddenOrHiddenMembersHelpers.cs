@@ -141,7 +141,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     containingType,
                     currType,
                     out bestMatch,
-                    out unused,
+                    out _,
                     out hiddenBuilder);
             }
 

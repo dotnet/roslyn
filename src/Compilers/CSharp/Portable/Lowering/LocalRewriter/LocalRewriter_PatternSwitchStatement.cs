@@ -291,7 +291,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             {
                                 // Unknown if the input is null. First test for null
                                 var notNullLabel = _factory.GenerateLabel("notNull");
-                                var inputExpression = byType.Expression;
+                                _ = byType.Expression;
                                 var objectType = _factory.SpecialType(SpecialType.System_Object);
                                 var nullValue = _factory.Null(objectType);
                                 BoundExpression notNull =

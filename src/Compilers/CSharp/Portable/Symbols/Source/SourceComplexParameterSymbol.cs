@@ -1040,7 +1040,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             base.ForceComplete(locationOpt, cancellationToken);
 
             // Force binding of default value.
-            var unused = this.ExplicitDefaultConstantValue;
+            _ = this.ExplicitDefaultConstantValue;
         }
     }
 

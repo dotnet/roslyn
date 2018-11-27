@@ -115,18 +115,15 @@ namespace Microsoft.CodeAnalysis.CodeGen
             DebugDocumentProvider documentProvider,
             ArrayBuilder<Cci.SequencePoint> builder)
         {
-            bool lastPathIsMapped = false;
-            string lastPath = null;
-            Cci.DebugSourceDocument lastDebugDocument = null;
-
             FileLinePositionSpan? firstReal = FindFirstRealSequencePoint();
             if (!firstReal.HasValue)
             {
                 return;
             }
-            lastPath = firstReal.Value.Path;
-            lastPathIsMapped = firstReal.Value.HasMappedPath;
-            lastDebugDocument = documentProvider(lastPath, basePath: lastPathIsMapped ? this._tree.FilePath : null);
+
+            string lastPath = firstReal.Value.Path;
+            bool lastPathIsMapped = firstReal.Value.HasMappedPath;
+            Cci.DebugSourceDocument lastDebugDocument = documentProvider(lastPath, basePath: lastPathIsMapped ? _tree.FilePath : null);
 
             SequencePointList current = this;
             while (current != null)

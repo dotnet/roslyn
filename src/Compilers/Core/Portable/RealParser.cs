@@ -342,9 +342,7 @@ namespace Microsoft.CodeAnalysis
                     int firstExponent = i;
                     int lastExponent = i;
                     while (i < source.Length && source[i] >= '0' && source[i] <= '9') lastExponent = ++i;
-
-                    int exponentMagnitude = 0;
-
+                    int exponentMagnitude;
                     if (int.TryParse(source.Substring(firstExponent, lastExponent - firstExponent), out exponentMagnitude) &&
                         exponentMagnitude <= MAX_EXP)
                     {
@@ -680,7 +678,7 @@ namespace Microsoft.CodeAnalysis
         private static uint CountSignificantBits(BigInteger data)
         {
             byte[] dataBytes;
-            return CountSignificantBits(data, out dataBytes);
+            return CountSignificantBits(data, out _);
         }
 
         /// <summary>

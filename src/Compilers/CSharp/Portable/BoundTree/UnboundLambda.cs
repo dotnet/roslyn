@@ -199,7 +199,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if ((object)delegateReturnType != null && delegateReturnType.SpecialType != SpecialType.System_Void)
             {
                 object builderType;
-                if (delegateReturnType.IsCustomTaskType(out builderType))
+                if (delegateReturnType.IsCustomTaskType(out _))
                 {
                     taskType = delegateReturnType.ConstructedFrom;
                 }
@@ -639,7 +639,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             private ReturnInferenceCacheKey(ImmutableArray<TypeSymbolWithAnnotations> parameterTypes, ImmutableArray<RefKind> parameterRefKinds, NamedTypeSymbol taskLikeReturnTypeOpt)
             {
                 Debug.Assert(parameterTypes.Length == parameterRefKinds.Length);
-                Debug.Assert((object)taskLikeReturnTypeOpt == null || ((object)taskLikeReturnTypeOpt == taskLikeReturnTypeOpt.ConstructedFrom && taskLikeReturnTypeOpt.IsCustomTaskType(out var builderArgument)));
+                Debug.Assert((object)taskLikeReturnTypeOpt == null || ((object)taskLikeReturnTypeOpt == taskLikeReturnTypeOpt.ConstructedFrom && taskLikeReturnTypeOpt.IsCustomTaskType(out var _)));
                 this.ParameterTypes = parameterTypes;
                 this.ParameterRefKinds = parameterRefKinds;
                 this.TaskLikeReturnTypeOpt = taskLikeReturnTypeOpt;
@@ -714,7 +714,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var delegateReturnType = invoke.ReturnType.TypeSymbol as NamedTypeSymbol;
                         if ((object)delegateReturnType != null && delegateReturnType.SpecialType != SpecialType.System_Void)
                         {
-                            if (delegateReturnType.IsCustomTaskType(out var builderType))
+                            if (delegateReturnType.IsCustomTaskType(out var _))
                             {
                                 taskLikeReturnTypeOpt = delegateReturnType.ConstructedFrom;
                             }

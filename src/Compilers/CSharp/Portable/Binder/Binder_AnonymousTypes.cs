@@ -40,8 +40,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 AnonymousObjectMemberDeclaratorSyntax fieldInitializer = initializers[i];
                 NameEqualsSyntax nameEquals = fieldInitializer.NameEquals;
                 ExpressionSyntax expression = fieldInitializer.Expression;
-
-                SyntaxToken nameToken = default(SyntaxToken);
+                _ = default(SyntaxToken);
+                SyntaxToken nameToken;
                 if (nameEquals != null)
                 {
                     nameToken = nameEquals.Name.Identifier;

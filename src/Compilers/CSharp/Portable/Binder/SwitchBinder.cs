@@ -235,14 +235,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var caseLabel = (CaseSwitchLabelSyntax)labelSyntax;
                         Debug.Assert(caseLabel.Value != null);
                         var boundLabelExpression = sectionBinder.BindValue(caseLabel.Value, tempDiagnosticBag, BindValueKind.RValue);
-                        boundLabelExpression = ConvertCaseExpression(labelSyntax, boundLabelExpression, sectionBinder, ref boundLabelConstantOpt, tempDiagnosticBag);
+                        _ = ConvertCaseExpression(labelSyntax, boundLabelExpression, sectionBinder, ref boundLabelConstantOpt, tempDiagnosticBag);
                         break;
 
                     case SyntaxKind.CasePatternSwitchLabel:
                         // bind the pattern, to cause its pattern variables to be inferred if necessary
                         var matchLabel = (CasePatternSwitchLabelSyntax)labelSyntax;
-                        var pattern = sectionBinder.BindPattern(
-                            SwitchGoverningExpression, matchLabel.Pattern, SwitchGoverningType, labelSyntax.HasErrors, tempDiagnosticBag);
+                        {
+                            _ = sectionBinder.BindPattern(
+      SwitchGoverningExpression, matchLabel.Pattern, SwitchGoverningType, labelSyntax.HasErrors, tempDiagnosticBag);
+                        }
+
                         break;
 
                     default:
@@ -592,7 +595,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundSwitchLabel BindSwitchSectionLabel(SwitchLabelSyntax node, Binder sectionBinder, LabelSymbol label, DiagnosticBag diagnostics)
         {
-            var switchGoverningType = SwitchGoverningType;
+            _ = SwitchGoverningType;
             BoundExpression boundLabelExpressionOpt = null;
             ConstantValue labelExpressionConstant = null;
 

@@ -334,7 +334,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         internal bool? ExpressionOfTypeMatchesPatternType(TypeSymbol expressionType, TypeSymbol patternType, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
-            return Binder.ExpressionOfTypeMatchesPatternType(this._conversions, expressionType, patternType, ref _useSiteDiagnostics, out Conversion conversion, null, false);
+            return Binder.ExpressionOfTypeMatchesPatternType(this._conversions, expressionType, patternType, ref _useSiteDiagnostics, out Conversion _, null, false);
         }
 
         private DecisionTree AddByType(DecisionTree decision, TypeSymbol type, DecisionMaker makeDecision)

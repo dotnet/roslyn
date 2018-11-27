@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             NamedTypeSymbol tokenType = _factory.WellKnownType(WellKnownType.System_Runtime_InteropServices_WindowsRuntime_EventRegistrationToken);
-            NamedTypeSymbol marshalType = _factory.WellKnownType(WellKnownType.System_Runtime_InteropServices_WindowsRuntime_WindowsRuntimeMarshal);
+            _ = _factory.WellKnownType(WellKnownType.System_Runtime_InteropServices_WindowsRuntime_WindowsRuntimeMarshal);
 
             NamedTypeSymbol actionType = _factory.WellKnownType(WellKnownType.System_Action_T).Construct(tokenType);
 

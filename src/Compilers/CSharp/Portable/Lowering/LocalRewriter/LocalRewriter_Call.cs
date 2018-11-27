@@ -1311,7 +1311,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundExpression memberNameLiteral = MakeLiteral(syntax, ConstantValue.Create(path), compilation.GetSpecialType(SpecialType.System_String), localRewriter);
                 defaultValue = MakeConversionNode(memberNameLiteral, parameterType, @checked: false);
             }
-            else if (parameter.IsCallerMemberName && ((callerSourceLocation = GetCallerLocation(syntax, enableCallerInfo)) != null))
+            else if (parameter.IsCallerMemberName && ((_ = GetCallerLocation(syntax, enableCallerInfo)) != null))
             {
                 string memberName;
 

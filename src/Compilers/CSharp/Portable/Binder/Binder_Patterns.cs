@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.ConstantPattern:
                     var constantPattern = (ConstantPatternSyntax)node;
                     return BindConstantPattern(
-                        constantPattern, operandType, constantPattern.Expression, hasErrors, diagnostics, out bool wasExpression);
+                        constantPattern, operandType, constantPattern.Expression, hasErrors, diagnostics, out bool _);
 
                 default:
                     throw ExceptionUtilities.UnexpectedValue(node.Kind());

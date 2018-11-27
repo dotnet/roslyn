@@ -382,7 +382,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             foreach (var typeParameter in typeParameters)
             {
                 // Invoke any method that forces constraints to be resolved.
-                var unused = typeParameter.GetConstraintTypes(ConsList<TypeParameterSymbol>.Empty, early);
+                _ = typeParameter.GetConstraintTypes(ConsList<TypeParameterSymbol>.Empty, early);
             }
         }
 

@@ -369,7 +369,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             RefKind refKind;
             TypeSymbolWithAnnotations returnType;
             ImmutableArray<CustomModifier> customModifiers_Ignored;
-            GetTypeOrReturnType(symbol, out refKind, out returnType, out customModifiers_Ignored);
+            GetTypeOrReturnType(symbol, out _, out returnType, out _);
             return returnType;
         }
 

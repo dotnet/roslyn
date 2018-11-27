@@ -68,13 +68,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert((object)disposableInterface != null);
             bool hasErrors = ReportUseSiteDiagnostics(disposableInterface, diagnostics, hasAwait ? _syntax.AwaitKeyword : _syntax.UsingKeyword);
-
-            Conversion iDisposableConversion = Conversion.NoConversion;
+            _ = Conversion.NoConversion;
             BoundMultipleLocalDeclarations declarationsOpt = null;
             BoundExpression expressionOpt = null;
             AwaitableInfo awaitOpt = null;
             TypeSymbol declarationTypeOpt = null;
-
+            Conversion iDisposableConversion;
             if (expressionSyntax != null)
             {
                 expressionOpt = this.BindTargetExpression(diagnostics, originalBinder);

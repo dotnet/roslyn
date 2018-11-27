@@ -351,8 +351,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             // Wait for all active tasks to complete.
             await WaitForActiveAnalysisTasksAsync(waitForTreeTasks: true, waitForCompilationOrNonConcurrentTask: true, cancellationToken: cancellationToken).ConfigureAwait(false);
-
-            var diagnostics = ImmutableArray<Diagnostic>.Empty;
             var analysisScope = new AnalysisScope(_compilation, analyzers, _analysisOptions.ConcurrentAnalysis, categorizeDiagnostics: true);
             Func<AsyncQueue<CompilationEvent>> getEventQueue = () =>
                GetPendingEvents(analyzers, includeSourceEvents: true, includeNonSourceEvents: true, cancellationToken);
@@ -790,12 +788,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             // Discard the returned diagnostics.
             if (analysisScope.FilterTreeOpt == null)
             {
-                var unused = _compilation.GetDiagnostics(cancellationToken);
+                _ = _compilation.GetDiagnostics(cancellationToken);
             }
             else if (!analysisScope.IsSyntaxOnlyTreeAnalysis)
             {
                 var mappedModel = _compilationData.GetOrCreateCachedSemanticModel(analysisScope.FilterTreeOpt, _compilation, cancellationToken);
-                var unused = mappedModel.GetDiagnostics(cancellationToken: cancellationToken);
+                _ = mappedModel.GetDiagnostics(cancellationToken: cancellationToken);
             }
         }
 
@@ -1120,7 +1118,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             if (eventQueue.Count > 0)
             {
                 CompilationEvent discarded;
-                while (eventQueue.TryDequeue(out discarded)) ;
+                while (eventQueue.TryDequeue(out _)) ;
             }
 
             if (!eventQueue.IsCompleted)

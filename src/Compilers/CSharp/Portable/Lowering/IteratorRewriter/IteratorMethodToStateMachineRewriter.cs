@@ -84,8 +84,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             F.CurrentFunction = moveNextMethod;
             int initialState;
             GeneratedLabelSymbol initialLabel;
-            AddState(out initialState, out initialLabel);
-            var newBody = (BoundStatement)Visit(body);
+            AddState(out _, out initialLabel);
+            _ = (BoundStatement)Visit(body);
 
             // switch(cachedState) {
             //    case 0: goto state_0;
@@ -97,8 +97,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // state = -1;
             // [optional: cachedThis = capturedThis;] 
             // [[rewritten body]]
-            newBody = F.Block((object)cachedThis == null?
-                                ImmutableArray.Create(cachedState):
+            BoundStatement newBody = F.Block((object)cachedThis == null ?
+                                ImmutableArray.Create(cachedState) :
                                 ImmutableArray.Create(cachedState, cachedThis),
 
                     F.HiddenSequencePoint(),
@@ -379,7 +379,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // rewrite finally block into a Finally method.
             F.CurrentFunction = finallyMethod;
-            var rewrittenHandler = (BoundStatement)this.Visit(node.FinallyBlockOpt);
+            _ = (BoundStatement)this.Visit(node.FinallyBlockOpt);
 
             _tryNestingLevel--;
             PopFrame();
@@ -390,8 +390,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             //      return;
             // }
             Debug.Assert(frame.parent.finalizeState == _currentFinallyFrame.finalizeState);
-            rewrittenHandler = F.Block((object)this.cachedThis != null?
-                                            ImmutableArray.Create(this.cachedThis):
+            BoundStatement rewrittenHandler = F.Block((object)cachedThis != null ?
+                                            ImmutableArray.Create(cachedThis) :
                                             ImmutableArray<LocalSymbol>.Empty,
                                 F.Assignment(F.Field(F.This(), stateField), F.Literal(frame.parent.finalizeState)),
                                 CacheThisIfNeeded(),

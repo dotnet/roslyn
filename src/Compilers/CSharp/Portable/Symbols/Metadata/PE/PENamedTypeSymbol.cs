@@ -171,7 +171,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             if (arity == 0)
             {
-                result = new PENamedTypeSymbolNonGeneric(moduleSymbol, containingNamespace, handle, emittedNamespaceName, out mangleName);
+                result = new PENamedTypeSymbolNonGeneric(moduleSymbol, containingNamespace, handle, emittedNamespaceName, out _);
             }
             else
             {
@@ -182,7 +182,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     emittedNamespaceName,
                     genericParameterHandles,
                     arity,
-                    out mangleName);
+                    out _);
             }
 
             if (mrEx != null)
@@ -233,7 +233,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             if (metadataArity == 0)
             {
-                result = new PENamedTypeSymbolNonGeneric(moduleSymbol, containingType, handle, null, out mangleName);
+                result = new PENamedTypeSymbolNonGeneric(moduleSymbol, containingType, handle, null, out _);
             }
             else
             {
@@ -244,7 +244,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     null,
                     genericParameterHandles,
                     arity,
-                    out mangleName);
+                    out _);
             }
 
             if (mrEx != null || metadataArity < containerMetadataArity)

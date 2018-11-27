@@ -68,7 +68,8 @@ namespace Microsoft.CodeAnalysis
                 {
                     var position = text.Lines.GetLinePosition(index);
                     var line = text.Lines[position.Line];
-                    var allText = text.ToString(); // Entire document as string to allow inspecting the text in the debugger.
+                    string allText;
+                    _ = text.ToString(); // Entire document as string to allow inspecting the text in the debugger.
                     message = $"Unexpected difference at offset {index}: Line {position.Line + 1}, Column {position.Character + 1} \"{line.ToString()}\"  (Found: [{found}] Expected: [{expected}])";
                 }
                 else

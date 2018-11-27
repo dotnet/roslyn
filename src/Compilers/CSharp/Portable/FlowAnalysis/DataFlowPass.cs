@@ -387,7 +387,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         protected void Analyze(ref bool badRegion, DiagnosticBag diagnostics)
         {
-            ImmutableArray<PendingBranch> returns = Analyze(ref badRegion);
+            _ = Analyze(ref badRegion);
             if (diagnostics != null)
             {
                 foreach (Symbol captured in _capturedVariables)
@@ -1639,7 +1639,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitLocalDeclaration(BoundLocalDeclaration node)
         {
-            int slot = GetOrCreateSlot(node.LocalSymbol); // not initially assigned
+            _ = GetOrCreateSlot(node.LocalSymbol); // not initially assigned
             if (initiallyAssignedVariables?.Contains(node.LocalSymbol) == true)
             {
                 // When data flow analysis determines that the variable is sometimes
@@ -1867,7 +1867,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected void CheckAssigned(BoundExpression expr, SyntaxNode node)
         {
             if (!this.State.Reachable) return;
-            int slot = MakeSlot(expr);
+            _ = MakeSlot(expr);
             switch (expr.Kind)
             {
                 case BoundKind.Local:

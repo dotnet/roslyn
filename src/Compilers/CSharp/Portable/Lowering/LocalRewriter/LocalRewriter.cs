@@ -544,7 +544,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return base.VisitArrayAccess(node);
             }
 
-            var syntax = node.Syntax;
+            _ = node.Syntax;
             var F = _factory;
             var indexLocal = F.StoreToTemp(
                 VisitExpression(node.Indices[0]),

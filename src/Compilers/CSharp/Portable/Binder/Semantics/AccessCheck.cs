@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             bool failedThroughTypeCheck;
-            return IsSymbolAccessibleCore(symbol, within, null, out failedThroughTypeCheck, within.DeclaringCompilation, ref useSiteDiagnostics);
+            return IsSymbolAccessibleCore(symbol, within, null, out _, within.DeclaringCompilation, ref useSiteDiagnostics);
         }
 
         /// <summary>
@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol throughTypeOpt = null)
         {
             bool failedThroughTypeCheck;
-            return IsSymbolAccessibleCore(symbol, within, throughTypeOpt, out failedThroughTypeCheck, within.DeclaringCompilation, ref useSiteDiagnostics);
+            return IsSymbolAccessibleCore(symbol, within, throughTypeOpt, out _, within.DeclaringCompilation, ref useSiteDiagnostics);
         }
 
         /// <summary>
@@ -164,7 +164,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // type parameters are always accessible, so don't check those (so common it's
                     // worth optimizing this).
-                    if (typeArg.Kind != SymbolKind.TypeParameter && !IsSymbolAccessibleCore(typeArg.TypeSymbol, within, null, out unused, compilation, ref useSiteDiagnostics, basesBeingResolved))
+                    if (typeArg.Kind != SymbolKind.TypeParameter && !IsSymbolAccessibleCore(typeArg.TypeSymbol, within, null, out _, compilation, ref useSiteDiagnostics, basesBeingResolved))
                     {
                         return false;
                     }
@@ -174,7 +174,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var containingType = type.ContainingType;
             return (object)containingType == null
                 ? IsNonNestedTypeAccessible(type.ContainingAssembly, type.DeclaredAccessibility, within)
-                : IsMemberAccessible(containingType, type.DeclaredAccessibility, within, null, out unused, compilation, ref useSiteDiagnostics, basesBeingResolved);
+                : IsMemberAccessible(containingType, type.DeclaredAccessibility, within, null, out _, compilation, ref useSiteDiagnostics, basesBeingResolved);
         }
 
         /// <summary>

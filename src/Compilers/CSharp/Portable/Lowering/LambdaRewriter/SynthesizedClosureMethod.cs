@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         originalMethod,
                         this,
                         out typeParameters,
-                        out constructedFromTypeParameters,
+                        out _,
                         lambdaFrame.OriginalContainingMethodOpt);
                     break;
                 case ClosureKind.ThisOnly: // all type parameters on method
@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         originalMethod,
                         this,
                         out typeParameters,
-                        out constructedFromTypeParameters,
+                        out _,
                         stopAt: null);
                     break;
                 default:

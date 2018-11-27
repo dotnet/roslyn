@@ -210,7 +210,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         var caseLabelSyntax = (CaseSwitchLabelSyntax)node;
                         var pattern = sectionBinder.BindConstantAsPattern(
-                            node, SwitchGoverningType, caseLabelSyntax.Value, node.HasErrors, diagnostics, out bool wasExpression);
+                            node, SwitchGoverningType, caseLabelSyntax.Value, node.HasErrors, diagnostics, out bool _);
                         bool hasErrors = pattern.HasErrors;
                         SyntaxNode innerValueSyntax = caseLabelSyntax.Value.SkipParens();
                         if (innerValueSyntax.Kind() == SyntaxKind.DefaultLiteralExpression)
@@ -238,7 +238,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case SyntaxKind.DefaultSwitchLabel:
                     {
-                        var defaultLabelSyntax = (DefaultSwitchLabelSyntax)node;
+                        _ = (DefaultSwitchLabelSyntax)node;
                         var pattern = new BoundWildcardPattern(node);
                         bool hasErrors = pattern.HasErrors;
                         if (defaultLabel != null)

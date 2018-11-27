@@ -468,12 +468,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         break;
 
                     case CompletionPart.EnumUnderlyingType:
-                        var discarded = this.EnumUnderlyingType;
+                        {
+                            _ = this.EnumUnderlyingType;
+                        }
+
                         break;
 
                     case CompletionPart.TypeArguments:
                         {
-                            var tmp = this.TypeArgumentsNoUseSiteDiagnostics; // force type arguments
+                            _ = this.TypeArgumentsNoUseSiteDiagnostics; // force type arguments
                         }
                         break;
 
@@ -1396,8 +1399,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             CheckSpecialMemberErrors(diagnostics);
             CheckTypeParameterNameConflicts(diagnostics);
             CheckAccessorNameConflicts(diagnostics);
-
-            bool unused = KnownCircularStruct;
+            _ = KnownCircularStruct;
 
             CheckSequentialOnPartialType(diagnostics);
             CheckForProtectedInStaticClass(diagnostics);
@@ -1750,7 +1752,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             PropertySymbol prevIndexerBySignature;
-            if (indexersBySignature.TryGetValue(indexer, out prevIndexerBySignature))
+            if (indexersBySignature.TryGetValue(indexer, out _))
             {
                 // Type '{1}' already defines a member called '{0}' with the same parameter types
                 // NOTE: Dev10 prints "this" as the name of the indexer.

@@ -1026,8 +1026,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private SmallDictionary<Symbol, Symbol> ComputeDefinitionToMemberMap()
         {
             var map = new SmallDictionary<Symbol, Symbol>(ReferenceEqualityComparer.Instance);
-
-            var underlyingDefinition = _underlyingType.OriginalDefinition;
+            _ = _underlyingType.OriginalDefinition;
             var members = GetMembers();
 
             // Go in reverse because we want members with default name, which precede the ones with

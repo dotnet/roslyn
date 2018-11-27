@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Operations
                                                             ImmutableArray<IOperation>.Empty :
                                                             boundLocalDeclaration.ArgumentsOpt.SelectAsArray(arg => Create(arg));
             ILocalSymbol symbol = boundLocalDeclaration.LocalSymbol;
-            SyntaxNode syntaxNode = boundLocalDeclaration.Syntax;
+            _ = boundLocalDeclaration.Syntax;
             ITypeSymbol type = null;
             Optional<object> constantValue = default;
             bool isImplicit = false;

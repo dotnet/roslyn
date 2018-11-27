@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.Text
 
                 int startLineBreak;
                 int lineBreakLength;
-                TextUtilities.GetStartAndLengthOfLineBreakEndingAt(_text, _endIncludingBreaks - 1, out startLineBreak, out lineBreakLength);
+                TextUtilities.GetStartAndLengthOfLineBreakEndingAt(_text, _endIncludingBreaks - 1, out _, out lineBreakLength);
                 return lineBreakLength;
             }
         }

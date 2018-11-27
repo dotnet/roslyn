@@ -245,7 +245,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         break;
 
                     case CompletionPart.FixedSize:
-                        int discarded = this.FixedSize;
+                        {
+                            _ = this.FixedSize;
+                        }
+
                         break;
 
                     case CompletionPart.ConstantValue:

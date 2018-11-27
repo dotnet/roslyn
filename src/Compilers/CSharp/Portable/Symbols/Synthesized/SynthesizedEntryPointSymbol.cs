@@ -337,7 +337,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 // The diagnostics that would be produced here will already have been captured and returned.
                 var droppedBag = DiagnosticBag.GetInstance();
-                var success = binder.GetAwaitableExpressionInfo(userMainInvocation, out _, out _, out _, out _getAwaiterGetResultCall, _userMainReturnTypeSyntax, droppedBag);
+                _ = binder.GetAwaitableExpressionInfo(userMainInvocation, out _, out _, out _, out _getAwaiterGetResultCall, _userMainReturnTypeSyntax, droppedBag);
                 droppedBag.Free();
 
                 Debug.Assert(

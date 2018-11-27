@@ -312,7 +312,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var unusedDiagnostics = DiagnosticBag.GetInstance();
             Symbol unusedAmbiguityWinner;
-            var symbols = binder.BindCref(crefSyntax, out unusedAmbiguityWinner, unusedDiagnostics);
+            var symbols = binder.BindCref(crefSyntax, out _, unusedDiagnostics);
             unusedDiagnostics.Free();
             return symbols;
         }
@@ -400,7 +400,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var diagnostics = DiagnosticBag.GetInstance();
             AliasSymbol aliasOpt; // not needed.
-            NamedTypeSymbol attributeType = (NamedTypeSymbol)binder.BindType(attribute.Name, diagnostics, out aliasOpt).TypeSymbol;
+            NamedTypeSymbol attributeType = (NamedTypeSymbol)binder.BindType(attribute.Name, diagnostics, out _).TypeSymbol;
             var boundNode = new ExecutableCodeBinder(attribute, binder.ContainingMemberOrLambda, binder).BindAttribute(attribute, attributeType, diagnostics);
             diagnostics.Free();
 
@@ -926,7 +926,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Binder binder;
             ImmutableArray<Symbol> crefSymbols;
-            BoundNode boundNode = GetSpeculativelyBoundExpression(position, expression, bindingOption, out binder, out crefSymbols); //calls CheckAndAdjustPosition
+            BoundNode boundNode = GetSpeculativelyBoundExpression(position, expression, bindingOption, out _, out crefSymbols); //calls CheckAndAdjustPosition
             Debug.Assert(boundNode == null || crefSymbols.IsDefault);
             if (boundNode == null)
             {
@@ -1143,7 +1143,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected int CheckAndAdjustPosition(int position)
         {
             SyntaxToken unused;
-            return CheckAndAdjustPosition(position, out unused);
+            return CheckAndAdjustPosition(position, out _);
         }
 
         protected int CheckAndAdjustPosition(int position, out SyntaxToken token)
@@ -1760,14 +1760,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             LookupResultKind resultKind;
             bool isDynamic;
             ImmutableArray<Symbol> unusedMemberGroup;
-            var symbols = GetSemanticSymbols(boundExpr, boundNodeForSyntacticParent, binderOpt, options, out isDynamic, out resultKind, out unusedMemberGroup);
+            var symbols = GetSemanticSymbols(boundExpr, boundNodeForSyntacticParent, binderOpt, options, out isDynamic, out resultKind, out _);
 
             if (highestBoundNode is BoundExpression highestBoundExpr)
             {
                 LookupResultKind highestResultKind;
                 bool highestIsDynamic;
                 ImmutableArray<Symbol> unusedHighestMemberGroup;
-                ImmutableArray<Symbol> highestSymbols = GetSemanticSymbols(highestBoundExpr, boundNodeForSyntacticParent, binderOpt, options, out highestIsDynamic, out highestResultKind, out unusedHighestMemberGroup);
+                ImmutableArray<Symbol> highestSymbols = GetSemanticSymbols(highestBoundExpr, boundNodeForSyntacticParent, binderOpt, options, out highestIsDynamic, out highestResultKind, out _);
 
                 if ((symbols.Length != 1 || resultKind == LookupResultKind.OverloadResolutionFailure) && highestSymbols.Length > 0)
                 {
@@ -2028,7 +2028,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 LookupResultKind resultKind;
                 ImmutableArray<Symbol> memberGroup;
                 bool isDynamic;
-                GetSemanticSymbols(boundExpr, boundNodeForSyntacticParent, binderOpt, options, out isDynamic, out resultKind, out memberGroup);
+                GetSemanticSymbols(boundExpr, boundNodeForSyntacticParent, binderOpt, options, out _, out _, out memberGroup);
 
                 return memberGroup;
             }

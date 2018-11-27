@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                               options.WarningLevel,
                                                               options.GeneralDiagnosticOption,
                                                               options.SpecificDiagnosticOptions,
-                                                              out hasPragmaSuppression);
+                                                              out _);
         }
 
         public override int ERR_FailedToCreateTempFile => (int)ErrorCode.ERR_CantMakeTempFile;

@@ -285,7 +285,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Conversion nestedConversion;
                 if (variable.HasNestedVariables)
                 {
-                    var elementSyntax = syntax.Kind() == SyntaxKind.TupleExpression ? ((TupleExpressionSyntax)syntax).Arguments[i] : syntax;
+                    _ = syntax.Kind() == SyntaxKind.TupleExpression ? ((TupleExpressionSyntax)syntax).Arguments[i] : syntax;
 
                     hasErrors |= !MakeDeconstructionConversion(tupleOrDeconstructedTypes[i], syntax, rightSyntax, diagnostics,
                         variable.NestedVariables, out nestedConversion);
@@ -724,7 +724,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         bool isVar;
                         bool isConst = false;
                         AliasSymbol alias;
-                        var declType = BindVariableType(component.Designation, diagnostics, component.Type, ref isConst, out isVar, out alias);
+                        var declType = BindVariableType(component.Designation, diagnostics, component.Type, ref isConst, out isVar, out _);
                         Debug.Assert(isVar == declType.IsNull);
                         if (component.Designation.Kind() == SyntaxKind.ParenthesizedVariableDesignation && !isVar)
                         {
@@ -777,7 +777,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 case SyntaxKind.DiscardDesignation:
                     {
-                        var discarded = (DiscardDesignationSyntax)node;
+                        _ = (DiscardDesignationSyntax)node;
                         return new DeconstructionVariable(BindDiscardExpression(syntax, declType), syntax);
                     }
                 case SyntaxKind.ParenthesizedVariableDesignation:
