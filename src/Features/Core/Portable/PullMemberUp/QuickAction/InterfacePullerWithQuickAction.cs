@@ -6,6 +6,24 @@ namespace Microsoft.CodeAnalysis.PullMemberUp.QuickAction
 {
     internal class InterfacePullerWithQuickAction : AbstractMemberPullerWithQuickAction
     {
+        private static InterfacePullerWithQuickAction s_puller;
+
+        internal static InterfacePullerWithQuickAction GetInstance
+        {
+            get
+            {
+                if (s_puller == null)
+                {
+                    s_puller = new InterfacePullerWithQuickAction();
+                }
+                return s_puller;
+            }
+        }
+
+        private InterfacePullerWithQuickAction()
+        {
+        }
+
         protected override bool IsSelectedMemberDeclarationAlreadyInDestination(
             INamedTypeSymbol destination,
             ISymbol selectedNode)

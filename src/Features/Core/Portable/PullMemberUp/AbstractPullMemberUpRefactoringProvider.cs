@@ -97,8 +97,8 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
             foreach (var destination in destinations)
             {
                 var puller = destination.TypeKind == TypeKind.Interface
-                    ? new InterfacePullerWithQuickAction() as AbstractMemberPullerWithQuickAction
-                    : new ClassPullerWithQuickAction();
+                    ? InterfacePullerWithQuickAction.GetInstance as AbstractMemberPullerWithQuickAction
+                    : ClassPullerWithQuickAction.GetInstance;
                 var action = await puller.TryComputeRefactoring(context.Document, selectedMember, destination, context.CancellationToken);
                 if (action != null)
                 {

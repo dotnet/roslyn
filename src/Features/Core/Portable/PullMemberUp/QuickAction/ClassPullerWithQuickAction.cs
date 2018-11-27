@@ -9,6 +9,24 @@ namespace Microsoft.CodeAnalysis.PullMemberUp.QuickAction
 {
     internal class ClassPullerWithQuickAction : AbstractMemberPullerWithQuickAction
     {
+        private static ClassPullerWithQuickAction s_puller;
+
+        internal static ClassPullerWithQuickAction GetInstance
+        {
+            get
+            {
+                if (s_puller == null)
+                {
+                    s_puller = new ClassPullerWithQuickAction();
+                }
+                return s_puller;
+            }
+        }
+
+        private ClassPullerWithQuickAction()
+        {
+        }
+
         protected override bool IsSelectedMemberDeclarationAlreadyInDestination(INamedTypeSymbol destination, ISymbol selectedMember)
         {
             if (selectedMember is IFieldSymbol fieldSymbol)
