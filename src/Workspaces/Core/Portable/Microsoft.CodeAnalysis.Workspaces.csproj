@@ -9,6 +9,7 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <TargetFramework>netstandard2.0</TargetFramework>
     <DefineConstants>$(DefineConstants);WORKSPACE</DefineConstants>
+    <ApplyNgenOptimizationData>true</ApplyNgenOptimizationData>
 
     <!-- NuGet -->
     <IsPackable>true</IsPackable>

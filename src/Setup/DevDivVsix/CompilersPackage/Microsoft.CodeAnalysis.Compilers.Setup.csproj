@@ -30,14 +30,9 @@
           DependsOnTargets="InitializeCompilerArtifacts">
 
     <ItemGroup>
-      <CompilerArtifact Condition="'%(CompilerArtifact.OverwriteOptimizationData)' == 'true'">
+      <CompilerArtifact Condition="'%(CompilerArtifact.OverwriteNgenOptimizationData)' == 'true'">
         <_PreviousOptimizedFile>$([System.IO.Path]::Combine($(IbcOptimizationDataDir), '$([System.IO.Path]::GetFileNameWithoutExtension(%(CompilerArtifact.Identity))).pgo'))</_PreviousOptimizedFile>
         <_OptimizeAssembly>$(IntermediateOutputPath)optimized\$([System.IO.Path]::GetFileName(%(CompilerArtifact.Identity)))</_OptimizeAssembly>
-      </CompilerArtifact>
-
-      <CompilerArtifact Condition="!Exists(%(CompilerArtifact._PreviousOptimizedFile))">
-        <_PreviousOptimizedFile/>
-        <_OptimizeAssembly/>
       </CompilerArtifact>
 
       <OptimizeAssembly Include="@(CompilerArtifact->'%(_OptimizeAssembly)')"

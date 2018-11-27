@@ -12,6 +12,7 @@
     <GeneratePkgDefFile>true</GeneratePkgDefFile>
     <DeployExtension>false</DeployExtension>
     <ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>None</ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>
+    <ApplyNgenOptimizationData>true</ApplyNgenOptimizationData>
 
     <!-- NuGet -->
     <IsPackable>true</IsPackable>
