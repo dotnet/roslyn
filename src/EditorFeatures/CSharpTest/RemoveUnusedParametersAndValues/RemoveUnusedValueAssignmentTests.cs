@@ -163,6 +163,69 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedParametersA
         [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         [InlineData(nameof(PreferDiscard))]
         [InlineData(nameof(PreferUnusedLocal))]
+        public async Task Assignment_ConstantValue_NoReads(string optionName)
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M()
+    {
+        int x;
+        [|x|] = 1;
+    }
+}",
+@"class C
+{
+    void M()
+    {
+    }
+}", optionName);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        public async Task Assignment_NonConstantValue_NoReads_PreferDiscard()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M()
+    {
+        int x;
+        [|x|] = M2();
+    }
+
+    int M2() => 0;
+}",
+@"class C
+{
+    void M()
+    {
+        _ = M2();
+    }
+
+    int M2() => 0;
+}", options: PreferDiscard);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        public async Task Assignment_NonConstantValue_NoReads_PreferUnusedLocal()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    void M()
+    {
+        int x;
+        [|x|] = M2();
+    }
+
+    int M2() => 0;
+}", options: PreferUnusedLocal);
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        [InlineData(nameof(PreferDiscard))]
+        [InlineData(nameof(PreferUnusedLocal))]
         public async Task Initialization_NonConstantValue_ParameterReference(string optionName)
         {
             await TestInRegularAndScriptAsync(
@@ -1443,6 +1506,53 @@ $@"class C
         M2(out unused);
         x = 1;
         return x;
+    }
+
+    void M2(out int x) => x = 0;
+}", options: PreferUnusedLocal);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        public async Task OutArgument_NoReads_PreferDiscard()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M()
+    {
+        int x;
+        M2(out [|x|]);
+
+        // Unrelated, unused local should not be removed.
+        int unused;
+    }
+
+    void M2(out int x) => x = 0;
+}",
+@"class C
+{
+    void M()
+    {
+        M2(out _);
+
+        // Unrelated, unused local should not be removed.
+        int unused;
+    }
+
+    void M2(out int x) => x = 0;
+}", options: PreferDiscard);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        public async Task OutArgument_NoReads_PreferUnusedLocal()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    void M()
+    {
+        int x;
+        M2(out [|x|]);
     }
 
     void M2(out int x) => x = 0;

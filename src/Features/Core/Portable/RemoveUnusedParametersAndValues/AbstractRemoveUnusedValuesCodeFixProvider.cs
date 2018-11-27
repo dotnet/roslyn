@@ -56,6 +56,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
         private static readonly SyntaxAnnotation s_memberAnnotation = new SyntaxAnnotation();
         private static readonly SyntaxAnnotation s_newLocalDeclarationStatementAnnotation = new SyntaxAnnotation();
         private static readonly SyntaxAnnotation s_unusedLocalDeclarationAnnotation = new SyntaxAnnotation();
+        private static readonly SyntaxAnnotation s_existingLocalDeclarationWithoutInitializerAnnotation = new SyntaxAnnotation();
 
         public sealed override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(IDEDiagnosticIds.ExpressionValueIsUnusedDiagnosticId,
                                                                                                     IDEDiagnosticIds.ValueAssignedIsUnusedDiagnosticId);
@@ -249,10 +250,11 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                 foreach (var diagnosticsToFix in diagnosticsGroupedByMember)
                 {
                     var orderedDiagnostics = diagnosticsToFix.OrderBy(d => d.Location.SourceSpan.Start);
-                    using (var nameGenerator = new UniqueVariableNameGenerator(diagnosticsToFix.Key, semanticModel, semanticFacts, cancellationToken))
+                    var containingMemberDeclaration = diagnosticsToFix.Key;
+                    using (var nameGenerator = new UniqueVariableNameGenerator(containingMemberDeclaration, semanticModel, semanticFacts, cancellationToken))
                     {
-                        FixAll(diagnosticId, orderedDiagnostics, semanticModel, root, preference,
-                            removeAssignments, nameGenerator, editor, syntaxFacts, cancellationToken);
+                        await FixAllAsync(diagnosticId, orderedDiagnostics, document, semanticModel, root, containingMemberDeclaration, preference,
+                            removeAssignments, nameGenerator, editor, syntaxFacts, cancellationToken).ConfigureAwait(false);
                     }
                 }
 
@@ -271,11 +273,13 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
             }
         }
 
-        private void FixAll(
+        private async Task FixAllAsync(
             string diagnosticId,
             IOrderedEnumerable<Diagnostic> diagnostics,
+            Document document,
             SemanticModel semanticModel,
             SyntaxNode root,
+            SyntaxNode containingMemberDeclaration,
             UnusedValuePreference preference,
             bool removeAssignments,
             UniqueVariableNameGenerator nameGenerator,
@@ -291,8 +295,8 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                     break;
 
                 case IDEDiagnosticIds.ValueAssignedIsUnusedDiagnosticId:
-                    FixAllValueAssignedIsUnusedDiagnostics(diagnostics, semanticModel, root,
-                        preference, removeAssignments, nameGenerator, editor, syntaxFacts, cancellationToken);
+                    await FixAllValueAssignedIsUnusedDiagnosticsAsync(diagnostics, document, semanticModel, root, containingMemberDeclaration,
+                        preference, removeAssignments, nameGenerator, editor, syntaxFacts, cancellationToken).ConfigureAwait(false);
                     break;
 
                 default:
@@ -348,10 +352,12 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
             }
         }
 
-        private void FixAllValueAssignedIsUnusedDiagnostics(
+        private async Task FixAllValueAssignedIsUnusedDiagnosticsAsync(
             IOrderedEnumerable<Diagnostic> diagnostics,
+            Document document,
             SemanticModel semanticModel,
             SyntaxNode root,
+            SyntaxNode containingMemberDeclaration,
             UnusedValuePreference preference,
             bool removeAssignments,
             UniqueVariableNameGenerator nameGenerator,
@@ -375,11 +381,14 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
             var nodeReplacementMap = PooledDictionary<SyntaxNode, SyntaxNode>.GetInstance();
             var nodesToRemove = PooledHashSet<SyntaxNode>.GetInstance();
             var candidateDeclarationStatementsForRemoval = PooledHashSet<TLocalDeclarationStatementSyntax>.GetInstance();
+            var hasAnyUnusedLocalAssignment = false;
 
             try
             {
                 foreach (var (node, isUnusedLocalAssignment) in GetNodesToFix())
                 {
+                    hasAnyUnusedLocalAssignment |= isUnusedLocalAssignment;
+
                     var declaredLocal = semanticModel.GetDeclaredSymbol(node, cancellationToken) as ILocalSymbol;
                     if (declaredLocal == null && node.Parent is TCatchStatementSyntax)
                     {
@@ -505,6 +514,24 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                     }
                 }
 
+                if (hasAnyUnusedLocalAssignment)
+                {
+                    // Local declaration statements with no initializer, but non-zero references are candidates for removal
+                    // if the code fix removes all these references.
+                    // We annotate such declaration statements with no initializer abd non-zero references here
+                    // and remove them in post process document pass later, if the code fix did remove all these references.
+                    foreach (var localDeclarationStatement in containingMemberDeclaration.DescendantNodes().OfType<TLocalDeclarationStatementSyntax>())
+                    {
+                        var variables = syntaxFacts.GetVariablesOfLocalDeclarationStatement(localDeclarationStatement);
+                        if (variables.Count == 1 &&
+                            syntaxFacts.GetInitializerOfVariableDeclarator(variables[0]) == null &&
+                            !(await IsLocalDeclarationWithNoReferencesAsync(localDeclarationStatement, document, cancellationToken).ConfigureAwait(false)))
+                        {
+                            nodeReplacementMap.Add(localDeclarationStatement, localDeclarationStatement.WithAdditionalAnnotations(s_existingLocalDeclarationWithoutInitializerAnnotation));
+                        }
+                    }
+                }
+
                 foreach (var node in nodesToRemove)
                 {
                     editor.RemoveNode(node, SyntaxGenerator.DefaultRemoveOptions | SyntaxRemoveOptions.KeepLeadingTrivia);
@@ -600,7 +627,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
             if (NeedsToMoveNewLocalDeclarationsNearReference(diagnosticId))
             {
                 currentRoot = await PostProcessDocumentCoreAsync(
-                    MoveNewLocalDeclarationsNearReferenceAsync, currentRoot, document, cancellationToken).ConfigureAwait(false);
+                    AdjustLocalDeclarationsAsync, currentRoot, document, cancellationToken).ConfigureAwait(false);
             }
 
             return currentRoot;
@@ -655,21 +682,25 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
         }
 
         /// <summary>
-        /// Returns an updated <paramref name="memberDeclaration"/> with all the
+        /// Returns an updated <paramref name="memberDeclaration"/> with all the new
         /// local declaration statements annotated with <see cref="s_newLocalDeclarationStatementAnnotation"/>
-        /// moved closer to first reference.
+        /// moved closer to first reference and all the existing
+        /// local declaration statements annotated with <see cref="s_existingLocalDeclarationWithoutInitializerAnnotation"/>
+        /// whose declared local is no longer used removed.
         /// </summary>
-        private async Task<SyntaxNode> MoveNewLocalDeclarationsNearReferenceAsync(
+        private async Task<SyntaxNode> AdjustLocalDeclarationsAsync(
             SyntaxNode memberDeclaration,
             Document document,
             CancellationToken cancellationToken)
         {
             var service = document.GetLanguageService<IMoveDeclarationNearReferenceService>();
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-            var originalDeclStatementsToMove = memberDeclaration.DescendantNodes()
-                                                                .Where(n => n.HasAnnotation(s_newLocalDeclarationStatementAnnotation))
+            var originalDocument = document;
+            var originalDeclStatementsToMoveOrRemove = memberDeclaration.DescendantNodes()
+                                                                .Where(n => n.HasAnnotation(s_newLocalDeclarationStatementAnnotation) ||
+                                                                            n.HasAnnotation(s_existingLocalDeclarationWithoutInitializerAnnotation))
                                                                 .ToImmutableArray();
-            if (originalDeclStatementsToMove.IsEmpty)
+            if (originalDeclStatementsToMoveOrRemove.IsEmpty)
             {
                 return memberDeclaration;
             }
@@ -679,27 +710,27 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
             // the root, document, editor and memberDeclaration for every edit.
             // Finally, we apply replace the memberDeclaration in the originalEditor as a single edit.
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var rootWithTrackedNodes = root.TrackNodes(originalDeclStatementsToMove);
+            var rootWithTrackedNodes = root.TrackNodes(originalDeclStatementsToMoveOrRemove);
 
             // Run formatter prior to invoking IMoveDeclarationNearReferenceService.
-            rootWithTrackedNodes = Formatter.Format(rootWithTrackedNodes, originalDeclStatementsToMove.Select(s => s.Span), document.Project.Solution.Workspace, cancellationToken: cancellationToken);
+            rootWithTrackedNodes = Formatter.Format(rootWithTrackedNodes, originalDeclStatementsToMoveOrRemove.Select(s => s.Span), document.Project.Solution.Workspace, cancellationToken: cancellationToken);
 
             document = document.WithSyntaxRoot(rootWithTrackedNodes);
             await OnDocumentUpdatedAsync().ConfigureAwait(false);
 
-            foreach (TLocalDeclarationStatementSyntax originalDeclStatement in originalDeclStatementsToMove)
+            foreach (TLocalDeclarationStatementSyntax originalDeclStatement in originalDeclStatementsToMoveOrRemove)
             {
                 // Get the current declaration statement.
                 var declStatement = memberDeclaration.GetCurrentNode(originalDeclStatement);
 
                 var documentUpdated = false;
 
-                // Check if the new variable declaration is unused after all the fixes, and hence can be removed.
-                if (await TryRemoveUnusedLocalAsync(declStatement).ConfigureAwait(false))
+                // Check if the variable declaration is unused after all the fixes, and hence can be removed.
+                if (await TryRemoveUnusedLocalAsync(declStatement, originalDeclStatement).ConfigureAwait(false))
                 {
                     documentUpdated = true;
                 }
-                else
+                else if (declStatement.HasAnnotation(s_newLocalDeclarationStatementAnnotation))
                 {
                     // Otherwise, move the declaration closer to the first reference if possible.
                     if (await service.CanMoveDeclarationNearReferenceAsync(document, declStatement, cancellationToken).ConfigureAwait(false))
@@ -724,32 +755,43 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                 memberDeclaration = syntaxFacts.GetContainingMemberDeclaration(root, memberDeclaration.SpanStart);
             }
 
-            async Task<bool> TryRemoveUnusedLocalAsync(TLocalDeclarationStatementSyntax newDecl)
+            async Task<bool> TryRemoveUnusedLocalAsync(TLocalDeclarationStatementSyntax newDecl, TLocalDeclarationStatementSyntax originalDecl)
             {
                 // If we introduced this new local declaration statement while computing the code fix,
                 // but all it's existing references were removed as part of FixAll, then we
                 // can remove the unncessary local declaration statement.
+                // Additionally, if this is an existing local declaration without an initializer,
+                // such that the local has no references anymore, we can remove it.
 
-                // Check if we introduced this local declaration statement.
-                if (newDecl.HasAnnotation(s_unusedLocalDeclarationAnnotation))
+                if (newDecl.HasAnnotation(s_unusedLocalDeclarationAnnotation) ||
+                    newDecl.HasAnnotation(s_existingLocalDeclarationWithoutInitializerAnnotation))
                 {
-                    var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-                    var localDeclarationOperation = semanticModel.GetOperation(newDecl, cancellationToken) as IVariableDeclarationGroupOperation;
-                    var local = localDeclarationOperation?.GetDeclaredVariables().Single();
-
-                    // Check if the declared variable has no references in fixed code.
-                    var referencedSymbols = await SymbolFinder.FindReferencesAsync(local, document.Project.Solution, cancellationToken).ConfigureAwait(false);
-                    if (referencedSymbols.Count() == 1 &&
-                        referencedSymbols.Single().Locations.IsEmpty())
+                    // Check if we have no references to local in fixed code.
+                    if (await IsLocalDeclarationWithNoReferencesAsync(newDecl, document, cancellationToken).ConfigureAwait(false))
                     {
                         document = document.WithSyntaxRoot(
-                            root.RemoveNode(newDecl, SyntaxGenerator.DefaultRemoveOptions));
+                        root.RemoveNode(newDecl, SyntaxGenerator.DefaultRemoveOptions));
                         return true;
                     }
                 }
 
                 return false;
             }
+        }
+
+        private static async Task<bool> IsLocalDeclarationWithNoReferencesAsync(
+            TLocalDeclarationStatementSyntax declStatement,
+            Document document,
+            CancellationToken cancellationToken)
+        {
+            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var localDeclarationOperation = semanticModel.GetOperation(declStatement, cancellationToken) as IVariableDeclarationGroupOperation;
+            var local = localDeclarationOperation?.GetDeclaredVariables().Single();
+
+            // Check if the declared variable has no references in fixed code.
+            var referencedSymbols = await SymbolFinder.FindReferencesAsync(local, document.Project.Solution, cancellationToken).ConfigureAwait(false);
+            return referencedSymbols.Count() == 1 &&
+                referencedSymbols.Single().Locations.IsEmpty();
         }
 
         private sealed class MyCodeAction : CodeAction.DocumentChangeAction
