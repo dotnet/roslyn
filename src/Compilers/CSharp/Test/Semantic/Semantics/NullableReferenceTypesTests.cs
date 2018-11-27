@@ -56769,6 +56769,105 @@ class B<[Nullable(0)]T01,
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(object)x").WithLocation(8, 13));
         }
 
+        [Fact]
+        public void InheritNullabilityOfNonNullableClassMember()
+        {
+            var source =
+@"#pragma warning disable 8618
+class C<T>
+{
+    internal T F;
+}
+class Program
+{
+    static void F1(string? s)
+    {
+        var a1 = new C<string>() { F = s };
+        F(a1.F/*T:string?*/); // 1
+        var b1 = a1;
+        F(b1.F/*T:string!*/);
+    }
+    static void F2<T>(T? t) where T : class
+    {
+        var a2 = new C<T>() { F = t };
+        F(a2.F/*T:T?*/); // 2
+        var b2 = a2;
+        F(b2.F/*T:T!*/);
+    }
+    static void F(object o)
+    {
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            // https://github.com/dotnet/roslyn/issues/31395: Nullability of class members should be copied on assignment.
+            comp.VerifyDiagnostics(
+                // (10,40): warning CS8601: Possible null reference assignment.
+                //         var a1 = new C<string>() { F = s };
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "s").WithLocation(10, 40),
+                // (11,11): warning CS8604: Possible null reference argument for parameter 'o' in 'void Program.F(object o)'.
+                //         F(a1.F/*T:string?*/); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "a1.F").WithArguments("o", "void Program.F(object o)").WithLocation(11, 11),
+                // (17,35): warning CS8601: Possible null reference assignment.
+                //         var a2 = new C<T>() { F = t };
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "t").WithLocation(17, 35),
+                // (18,11): warning CS8604: Possible null reference argument for parameter 'o' in 'void Program.F(object o)'.
+                //         F(a2.F/*T:T?*/); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "a2.F").WithArguments("o", "void Program.F(object o)").WithLocation(18, 11));
+            comp.VerifyTypes();
+        }
+
+        [Fact]
+        public void InheritNullabilityOfNonNullableStructMember()
+        {
+            var source =
+@"#pragma warning disable 8618
+struct S<T>
+{
+    internal T F;
+}
+class Program
+{
+    static void F1(string? s)
+    {
+        var a1 = new S<string>() { F = s };
+        F(a1.F/*T:string?*/); // 1
+        var b1 = a1;
+        F(b1.F/*T:string?*/); // 2
+    }
+    static void F2<T>(T? t) where T : class
+    {
+        var a2 = new S<T>() { F = t };
+        F(a2.F/*T:T?*/); // 3
+        var b2 = a2;
+        F(b2.F/*T:T?*/); // 4
+    }
+    static void F(object o)
+    {
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (10,40): warning CS8601: Possible null reference assignment.
+                //         var a1 = new S<string>() { F = s };
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "s").WithLocation(10, 40),
+                // (11,11): warning CS8604: Possible null reference argument for parameter 'o' in 'void Program.F(object o)'.
+                //         F(a1.F/*T:string?*/); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "a1.F").WithArguments("o", "void Program.F(object o)").WithLocation(11, 11),
+                // (13,11): warning CS8604: Possible null reference argument for parameter 'o' in 'void Program.F(object o)'.
+                //         F(b1.F/*T:string?*/); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "b1.F").WithArguments("o", "void Program.F(object o)").WithLocation(13, 11),
+                // (17,35): warning CS8601: Possible null reference assignment.
+                //         var a2 = new S<T>() { F = t };
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "t").WithLocation(17, 35),
+                // (18,11): warning CS8604: Possible null reference argument for parameter 'o' in 'void Program.F(object o)'.
+                //         F(a2.F/*T:T?*/); // 3
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "a2.F").WithArguments("o", "void Program.F(object o)").WithLocation(18, 11),
+                // (20,11): warning CS8604: Possible null reference argument for parameter 'o' in 'void Program.F(object o)'.
+                //         F(b2.F/*T:T?*/); // 4
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "b2.F").WithArguments("o", "void Program.F(object o)").WithLocation(20, 11));
+            comp.VerifyTypes();
+        }
+
         private readonly static NullableAnnotation[] s_AllNullableAnnotations = (NullableAnnotation[])Enum.GetValues(typeof(NullableAnnotation));
 
         [Fact]
