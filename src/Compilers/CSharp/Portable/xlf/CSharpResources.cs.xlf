@@ -129,7 +129,7 @@
       </trans-unit>
       <trans-unit id="ERR_NullableDirectiveQualifierExpected">
         <source>Expected enable or disable</source>
-        <target state="translated">Očekává se zapnutí nebo vypnutí.</target>
+        <target state="translated">Očekávána hodnota enable nebo disable.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NullableOptionNotAvailable">

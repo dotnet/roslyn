@@ -129,7 +129,7 @@
       </trans-unit>
       <trans-unit id="ERR_NullableDirectiveQualifierExpected">
         <source>Expected enable or disable</source>
-        <target state="translated">Activation ou désactivation attendue</target>
+        <target state="translated">enable ou disable attend</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NullableOptionNotAvailable">

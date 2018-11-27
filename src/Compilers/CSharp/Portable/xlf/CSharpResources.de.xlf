@@ -34,7 +34,7 @@
       </trans-unit>
       <trans-unit id="ERR_BadDynamicAwaitForEach">
         <source>Cannot use a collection of dynamic type in an asynchronous foreach</source>
-        <target state="translated">In einer asynchronen foreach-Schleife kann keine Sammlung vom Typ "Dynamisch" verwendet werden.</target>
+        <target state="translated">In einer asynchronen foreach-Schleife kann keine Sammlung vom Typ "dynamic" verwendet werden.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CantUseInOrOutInArglist">
@@ -129,7 +129,7 @@
       </trans-unit>
       <trans-unit id="ERR_NullableDirectiveQualifierExpected">
         <source>Expected enable or disable</source>
-        <target state="translated">Aktivierung oder Deaktivierung erwartet.</target>
+        <target state="translated">"enable" oder "disable" erwartet.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NullableOptionNotAvailable">
@@ -1949,7 +1949,7 @@
       </trans-unit>
       <trans-unit id="ERR_IllegalStatement">
         <source>Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement</source>
-        <target state="translated">Nur assignment-, call-, increment-, decrement- und new object-Ausdrücke können als Anweisung verwendet werden.</target>
+        <target state="translated">Nur assignment-, call-, increment-, decrement-, await- und new object-Ausdrücke können als Anweisung verwendet werden.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadGetEnumerator">
@@ -5247,7 +5247,7 @@ Ein catch()-Block nach einem catch (System.Exception e)-Block kann nicht-CLS-Aus
       </trans-unit>
       <trans-unit id="ERR_BadAsyncReturnExpression">
         <source>Since this is an async method, the return expression must be of type '{0}' rather than 'Task&lt;{0}&gt;'</source>
-        <target state="translated">Da es sich um eine asynchrone Methode handelt, muss der Rückgabeausdruck vom Typ "{0}" anstelle von "Task&lt;{0}&gt;" sein.</target>
+        <target state="translated">Der Rückgabetyp einer async-Methode muss "void", "Task", "Task&lt;T&gt;", ein taskähnlicher Typ oder "IAsyncEnumerable&lt;T&gt;" sein.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CantConvAsyncAnonFuncReturns">

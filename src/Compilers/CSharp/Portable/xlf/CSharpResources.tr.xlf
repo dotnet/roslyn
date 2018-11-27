@@ -129,7 +129,7 @@
       </trans-unit>
       <trans-unit id="ERR_NullableDirectiveQualifierExpected">
         <source>Expected enable or disable</source>
-        <target state="translated">Etkinleştirme veya devre dışı bırakma bekleniyordu</target>
+        <target state="translated">enable veya disable bekleniyor</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NullableOptionNotAvailable">
