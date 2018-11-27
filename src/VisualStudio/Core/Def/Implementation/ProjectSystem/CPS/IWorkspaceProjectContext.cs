@@ -23,6 +23,9 @@ namespace Microsoft.VisualStudio.LanguageServices.ProjectSystem
         // Options.
         void SetOptions(string commandLineForOptions);
 
+        // Other project properties.
+        void SetProperty(string name, string value);
+
         // References.
         void AddMetadataReference(string referencePath, MetadataReferenceProperties properties);
         void RemoveMetadataReference(string referencePath);

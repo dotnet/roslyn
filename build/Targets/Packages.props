@@ -244,7 +244,6 @@
     <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.Debugger.Metadata-implementation"/>
     <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.Debugger.UI.Interfaces"/>
     <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.Designer.Interfaces"/>
-    <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.Diagnostics.PerformanceProvider"/>
     <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.Editor"/>
     <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.GraphModel"/>
     <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.InteractiveWindow"/>
