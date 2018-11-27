@@ -1559,6 +1559,22 @@ $@"class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        public async Task OutVarArgument_ExpressionBody_PreferDiscard()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M() => M2(out var [|x|]);
+    void M2(out int x) => x = 0;
+}",
+@"class C
+{
+    void M() => M2(out var _);
+    void M2(out int x) => x = 0;
+}", options: PreferDiscard);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         public async Task OutArgument_NoReads_PreferDiscard()
         {
             await TestInRegularAndScriptAsync(

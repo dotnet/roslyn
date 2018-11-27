@@ -580,9 +580,8 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                 {
                     InsertAtStartOfSwitchCaseBlockForDeclarationInCaseLabelOrClause(insertionNode.GetAncestor<TSwitchCaseBlockSyntax>(), editor, declarationStatement);
                 }
-                else
+                else if (insertionNode is TStatementSyntax)
                 {
-                    Debug.Assert(insertionNode is TStatementSyntax);
                     editor.InsertBefore(insertionNode, declarationStatement);
                 }
             }
