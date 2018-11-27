@@ -35,9 +35,12 @@ Today ```using(null){ }``` is valid syntax and the using is elided completely.  
 For extension method ```Dispose``` implementations the second rule is _not_ followed. Today if you call an extension method on a null valued receiver, the method is still called with the ```this``` parameter set to null. Pattern-based dispose follows this behavior, meaning an extension method ```Dispose``` will always be called but with a ```null``` this parameter if type in the dispose is null-valued.
 
 ### Nullable value type behavior
-For nullable value types the behavior today is to call ```Dispose``` on the _underlying_ type if and only if the type has a value (i.e. ```if(t.HasValue){ t.GetValueOrDefault().Dispose() }``` ). For pattern-based instance ```Dispose``` methods this behavior is preserved. 
+For nullable value types the behavior today is to call ```Dispose``` on the _underlying_ type if and only if the type has a value (i.e. ```if(t.HasValue){ t.GetValueOrDefault().Dispose() }``` ). This allows lifted types to be used as if they were the underlying type, and dipose is only called in the case they are not null.
 
-For extension methods, this behavior is _not_ followed. If an extension method with a ```this``` parameter of ```x?``` can be found, it will be called, regardless of whether the nullable value has a value or not, that is it may be called with a null value if ```HasValue``` returns false.  An extension method with a ```this``` parameter of ```x``` does _not_ make the type disposable. That is, an extension method on the underlying type is not enough to make a nullable-value type disposable. This is consistent with the behavior of extension methods today and the concept of calling ```x.Dispose()```: an extension method on the underlying type is not callable on the nullable value type.
+For pattern-based instance  ```Dispose``` methods this behavior is _not_ preserved. Lifted types are treated as a seperate type from their underlying type. This is consistent with the rules of generalized pattern lookup: manually calling ```Dispose()``` on the lifted type would result in an ```error CS1061: 'Type?' does not contain a defintion for 'Dispose'```. 
+
+Similarly for extension based ```Dispose``` methods, there must be an explicit extension method for the lifted type for it to be considered disposable: an extension method ```Dispose``` on the underlying type is not enough to satisfy the pattern. This is consistent with the behavior of extension methods today and the concept of calling ```x.Dispose()```: an extension method on the underlying type is not callable on the lifted type. As with extension methods for null reference values, the extension method will be called with a null ```this``` parameter in the case that there is an explicit lifted extension method, and the lifted value type does not have a value.
+
 
 ### Lowering
 The lowered forms of a using statement thus depend on how ```Dispose``` was implemented, and the type which is being disposed.
@@ -70,8 +73,8 @@ Reference type | Instance pattern method | ```if (x != null) x.Dispose();```
 Reference type | Extension method | ```ExtensionStaticClass.Dispose(x);```
 Value type | All implementations | ```x.Dispose();```
 Nullable value type | IDisposable | ``` if(x.HasValue) ((IDisposable)x.GetValueOrDefault()).Dispose();```
-Nullable value type | Instance pattern method |  ``` if(x.HasValue) x.GetValueOrDefault().Dispose();```
-Nullable value type | Extension method | ``` ExtensionStaticClass.Dispose(x) ```
+Nullable value type | Instance pattern method | _Error_. Implement via extension method on ```x?``` if required
+Nullable value type | Extension method | ``` ExtensionStaticClass.Dispose(x?) ```
 
 ## Using Declarations
 
