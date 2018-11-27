@@ -438,10 +438,11 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
 
                             case OperationKind.Conversion:
                                 // Conversions can theoretically have side-effects as the conversion can throw exception(s).
-                                // However, for all practical purposes, we can assume that a conversion whose operand
+                                // However, for all practical purposes, we can assume that a non-user defined conversion whose operand
                                 // has no side effects can be safely removed.
-                                var operand = ((IConversionOperation)assignmentValue).Operand;
-                                return IsRemovableAssignmentValueWithoutSideEffects(operand);
+                                var conversion = (IConversionOperation)assignmentValue;
+                                return conversion.OperatorMethod == null &&
+                                    IsRemovableAssignmentValueWithoutSideEffects(conversion.Operand);
                         }
 
                         // Assume all other operations can have side effects, and cannot be removed.

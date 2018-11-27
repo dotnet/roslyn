@@ -615,6 +615,52 @@ $@"class C
         }
 
         [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        [InlineData(nameof(PreferDiscard), "_")]
+        [InlineData(nameof(PreferUnusedLocal), "int unused")]
+        public async Task Assignment_NonConstantValue_UserDefinedConversion(string optionName, string fix)
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    int M(int x, C c)
+    {
+        [|x|] = (int)c;
+        x = 2;
+        return x;
+    }
+
+    public static explicit operator int(C c)
+    {
+        return 0;
+    }
+
+    public static explicit operator C(int i)
+    {
+        return default(C);
+    }
+}",
+$@"class C
+{{
+    int M(int x, C c)
+    {{
+        {fix} = (int)c;
+        x = 2;
+        return x;
+    }}
+
+    public static explicit operator int(C c)
+    {{
+        return 0;
+    }}
+
+    public static explicit operator C(int i)
+    {{
+        return default(C);
+    }}
+}}", optionName);
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         [InlineData(nameof(PreferDiscard))]
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task NestedAssignment_ConstantValue(string optionName)
