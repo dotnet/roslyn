@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
 
             public override int GetHashCode()
             {
-                return HashUtilities.Combine(_hazardousParameterUsageBuilderOpt?.GetHashCode() ?? 0, base.GetHashCode());
+                return HashUtilities.Combine(_hazardousParameterUsageBuilderOpt.GetHashCodeOrDefault(), base.GetHashCode());
             }
 
             public ImmutableDictionary<IParameterSymbol, SyntaxNode> HazardousParameterUsages

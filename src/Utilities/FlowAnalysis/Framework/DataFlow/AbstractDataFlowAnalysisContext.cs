@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using Analyzer.Utilities;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis;
@@ -99,19 +100,20 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             }
         }
 
-        protected abstract int GetHashCode(int hashCode);
+        protected abstract void ComputeHashCodePartsSpecific(ImmutableArray<int>.Builder builder);
 
-        protected sealed override int ComputeHashCode()
+        protected sealed override void ComputeHashCodeParts(ImmutableArray<int>.Builder builder)
         {
-            var hashCode = HashUtilities.Combine(ValueDomain.GetHashCode(),
-                HashUtilities.Combine(OwningSymbol.GetHashCode(),
-                HashUtilities.Combine(ControlFlowGraph.OriginalOperation.GetHashCode(),
-                HashUtilities.Combine(InterproceduralAnalysisKind.GetHashCode(),
-                HashUtilities.Combine(PessimisticAnalysis.GetHashCode(),
-                HashUtilities.Combine(PredicateAnalysis.GetHashCode(),
-                HashUtilities.Combine(CopyAnalysisResultOpt?.GetHashCode() ?? 0,
-                HashUtilities.Combine(PointsToAnalysisResultOpt?.GetHashCode() ?? 0, InterproceduralAnalysisDataOpt?.GetHashCode() ?? 0))))))));
-            return GetHashCode(hashCode);
+            builder.Add(ValueDomain.GetHashCode());
+            builder.Add(OwningSymbol.GetHashCode());
+            builder.Add(ControlFlowGraph.OriginalOperation.GetHashCode());
+            builder.Add(InterproceduralAnalysisKind.GetHashCode());
+            builder.Add(PessimisticAnalysis.GetHashCode());
+            builder.Add(PredicateAnalysis.GetHashCode());
+            builder.Add(CopyAnalysisResultOpt.GetHashCodeOrDefault());
+            builder.Add(PointsToAnalysisResultOpt.GetHashCodeOrDefault());
+            builder.Add(InterproceduralAnalysisDataOpt.GetHashCodeOrDefault());
+            ComputeHashCodePartsSpecific(builder);
         }
     }
 }

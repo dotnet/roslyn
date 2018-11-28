@@ -68,13 +68,16 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         public bool IsNull => ReferenceEquals(this, Null);
         public bool IsNoLocation => ReferenceEquals(this, NoLocation);
 
-        protected override int ComputeHashCode()
-            => HashUtilities.Combine(CreationOpt?.GetHashCode() ?? 0,
-               HashUtilities.Combine(CreationCallStack,
-               HashUtilities.Combine(SymbolOpt?.GetHashCode() ?? 0,
-               HashUtilities.Combine(AnalysisEntityOpt?.GetHashCode() ?? 0,
-               HashUtilities.Combine(LocationTypeOpt?.GetHashCode() ?? 0,
-               HashUtilities.Combine(_isSpecialSingleton.GetHashCode(), IsNull.GetHashCode()))))));
+        protected override void ComputeHashCodeParts(ImmutableArray<int>.Builder builder)
+        {
+            builder.Add(CreationOpt.GetHashCodeOrDefault());
+            builder.Add(HashUtilities.Combine(CreationCallStack));
+            builder.Add(SymbolOpt.GetHashCodeOrDefault());
+            builder.Add(AnalysisEntityOpt.GetHashCodeOrDefault());
+            builder.Add(LocationTypeOpt.GetHashCodeOrDefault());
+            builder.Add(_isSpecialSingleton.GetHashCode());
+            builder.Add(IsNull.GetHashCode());
+        }
 
         public SyntaxNode GetNodeToReportDiagnostic(PointsToAnalysisResult pointsToAnalysisResultOpt)
         {

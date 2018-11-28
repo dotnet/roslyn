@@ -31,6 +31,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
     /// </summary>
     internal sealed class AnalysisEntity : CacheBasedEquatable<AnalysisEntity>
     {
+        private readonly Lazy<ImmutableArray<int>> _lazyIgnoringLocationHashCodeParts;
         private readonly Lazy<int> _lazyIgnoringLocationHashCode;
 
         private AnalysisEntity(
@@ -58,6 +59,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             ParentOpt = parentOpt;
             IsThisOrMeInstance = isThisOrMeInstance;
 
+            _lazyIgnoringLocationHashCodeParts = new Lazy<ImmutableArray<int>>(ComputeIgnoringLocationHashCodeParts);
             _lazyIgnoringLocationHashCode = new Lazy<int>(ComputeIgnoringLocationHashCode);
         }
 
@@ -183,17 +185,51 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
         public bool HasUnknownInstanceLocation => InstanceLocation.Kind == PointsToAbstractValueKind.Unknown;
 
-        public bool EqualsIgnoringInstanceLocation(AnalysisEntity other) => _lazyIgnoringLocationHashCode.Value == other?._lazyIgnoringLocationHashCode.Value;
+        public bool EqualsIgnoringInstanceLocation(AnalysisEntity other)
+        {
+            // Perform fast equality checks first.
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other == null ||
+                _lazyIgnoringLocationHashCode.Value != other._lazyIgnoringLocationHashCode.Value)
+            {
+                return false;
+            }
+
+            // Now perform slow check that compares individual hash code parts sequences.
+            return _lazyIgnoringLocationHashCodeParts.Value.SequenceEqual(other._lazyIgnoringLocationHashCodeParts.Value);
+        }
+
         public int EqualsIgnoringInstanceLocationId => _lazyIgnoringLocationHashCode.Value;
 
-        protected override int ComputeHashCode() => HashUtilities.Combine(InstanceLocation.GetHashCode(), _lazyIgnoringLocationHashCode.Value);
-        private int ComputeIgnoringLocationHashCode()
-            => HashUtilities.Combine(SymbolOpt?.GetHashCode() ?? 0,
-               HashUtilities.Combine(Indices,
-               HashUtilities.Combine(InstanceReferenceOperationSyntaxOpt?.GetHashCode() ?? 0,
-               HashUtilities.Combine(CaptureIdOpt?.GetHashCode() ?? 0,
-               HashUtilities.Combine(Type.GetHashCode(),
-               HashUtilities.Combine(ParentOpt?.GetHashCode() ?? 0, IsThisOrMeInstance.GetHashCode()))))));
+        protected override void ComputeHashCodeParts(ImmutableArray<int>.Builder builder)
+        {
+            builder.Add(InstanceLocation.GetHashCode());
+            ComputeHashCodePartsIgnoringLocation(builder);
+        }
+
+        private void ComputeHashCodePartsIgnoringLocation(ImmutableArray<int>.Builder builder)
+        {
+            builder.Add(SymbolOpt.GetHashCodeOrDefault());
+            builder.Add(HashUtilities.Combine(Indices));
+            builder.Add(InstanceReferenceOperationSyntaxOpt.GetHashCodeOrDefault());
+            builder.Add(CaptureIdOpt.GetHashCodeOrDefault());
+            builder.Add(Type.GetHashCode());
+            builder.Add(ParentOpt.GetHashCodeOrDefault());
+            builder.Add(IsThisOrMeInstance.GetHashCode());
+        }
+
+        private int ComputeIgnoringLocationHashCode() => HashUtilities.Combine(_lazyIgnoringLocationHashCodeParts.Value);
+
+        private ImmutableArray<int> ComputeIgnoringLocationHashCodeParts()
+        {
+            var builder = ImmutableArray.CreateBuilder<int>();
+            ComputeHashCodePartsIgnoringLocation(builder);
+            return builder.ToImmutable();
+        }
 
         public bool HasAncestor(AnalysisEntity ancestor)
         {

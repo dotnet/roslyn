@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis;
@@ -121,12 +122,11 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         /// </summary>
         public TaintedDataSymbolMap<SinkInfo> SinkInfos { get; }
 
-        protected override int GetHashCode(int hashCode)
+        protected override void ComputeHashCodePartsSpecific(ImmutableArray<int>.Builder builder)
         {
-            return HashUtilities.Combine(this.SourceInfos.GetHashCode(),
-                HashUtilities.Combine(this.SanitizerInfos.GetHashCode(),
-                HashUtilities.Combine(this.SinkInfos.GetHashCode(),
-                hashCode)));
+            builder.Add(SourceInfos.GetHashCode());
+            builder.Add(SanitizerInfos.GetHashCode());
+            builder.Add(SinkInfos.GetHashCode());
         }
     }
 }
