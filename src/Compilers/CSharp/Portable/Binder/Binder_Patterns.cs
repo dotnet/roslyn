@@ -236,7 +236,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // input value among many constant tests.
                         convertedExpression = operand;
                     }
-                    else if (conversion.ConversionKind == ConversionKind.NoConversion && convertedExpression.Type?.IsErrorType() == true)
+                    else if (conversion.ConversionKind == ConversionKind.NullToPointer ||
+                        (conversion.ConversionKind == ConversionKind.NoConversion && convertedExpression.Type?.IsErrorType() == true))
                     {
                         convertedExpression = operand;
                     }
@@ -509,6 +510,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundPattern BindRecursivePattern(RecursivePatternSyntax node, TypeSymbol inputType, uint inputValEscape, bool hasErrors, DiagnosticBag diagnostics)
         {
+            if (inputType.IsPointerType())
+            {
+                diagnostics.Add(ErrorCode.ERR_PointerTypeInPatternMatching, node.Location);
+                hasErrors = true;
+                inputType = CreateErrorType();
+            }
+
             TypeSyntax typeSyntax = node.Type;
             TypeSymbol declType = BindRecursivePatternType(typeSyntax, inputType, diagnostics, ref hasErrors, out BoundTypeExpression boundDeclType);
             inputValEscape = GetValEscape(declType, inputValEscape);
@@ -825,6 +833,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundPattern BindVarPattern(VarPatternSyntax node, TypeSymbol inputType, uint inputValEscape, bool hasErrors, DiagnosticBag diagnostics)
         {
+            if (inputType.IsPointerType() && node.Designation.Kind() == SyntaxKind.ParenthesizedVariableDesignation)
+            {
+                diagnostics.Add(ErrorCode.ERR_PointerTypeInPatternMatching, node.Location);
+                hasErrors = true;
+                inputType = CreateErrorType();
+            }
+
             TypeSymbol declType = inputType;
             Symbol foundSymbol = BindTypeOrAliasOrKeyword(node.VarKeyword, node, diagnostics, out bool isVar);
             if (!isVar)
