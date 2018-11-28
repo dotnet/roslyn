@@ -426,20 +426,6 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
                 cancellationToken);
 
             var formattedSolution = GetFormattedSolution(updatedUnformattedSolution, documentIds, cancellationToken);
-
-            foreach (var docId in documentIds)
-            {
-                var document = formattedSolution.GetDocument(docId);
-                var formattedNode = Formatter.Format(
-                    document.GetSyntaxRootSynchronously(cancellationToken),
-                    Formatter.Annotation,
-                    document.Project.Solution.Workspace,
-                    cancellationToken: cancellationToken);
-
-                var formattedDoc = document.WithSyntaxRoot(formattedNode);
-                formattedSolution = formattedDoc.Project.Solution;
-            }
-
             return formattedSolution;
         }
 
