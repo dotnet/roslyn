@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             }
 
             var workspace = workspaceAnalyzerOptions.Services.Workspace;
-            FormattingAnalyzerHelper.AnalyzeSyntaxTree(context, Descriptor, workspace, options);
+            FormattingAnalyzerHelper.AnalyzeSyntaxTree(context, workspace, Descriptor, options);
         }
     }
 }

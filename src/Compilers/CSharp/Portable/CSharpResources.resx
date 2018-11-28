@@ -3630,7 +3630,7 @@ Give the compiler some way to differentiate the methods. For example, you can gi
     <value>Since '{0}' is an async method that returns 'Task', a return keyword must not be followed by an object expression. Did you intend to return 'Task&lt;T&gt;'?</value>
   </data>
   <data name="ERR_BadAsyncReturn" xml:space="preserve">
-    <value>The return type of an async method must be void, Task, Task&lt;T&gt;, a task-like type, or IAsyncEnumerable&lt;T&gt;</value>
+    <value>The return type of an async method must be void, Task, Task&lt;T&gt;, a task-like type, IAsyncEnumerable&lt;T&gt;, or IAsyncEnumerator&lt;T&gt;</value>
   </data>
   <data name="ERR_CantReturnVoid" xml:space="preserve">
     <value>Cannot return an expression of type 'void'</value>
@@ -5634,5 +5634,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_ElseCannotStartStatement" xml:space="preserve">
     <value>'else' cannot start a statement.</value>
+  </data>
+  <data name="ERR_ExpressionTreeCantContainNullCoalescingAssignment" xml:space="preserve">
+    <value>An expression tree may not contain a null coalescing assignment</value>
   </data>
 </root>

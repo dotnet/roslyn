@@ -214,7 +214,7 @@ function Make-BootstrapBuild() {
 
     Run-MSBuild $projectPath "/t:Pack /p:DotNetUseShippingVersions=true /p:InitialDefineConstants=BOOTSTRAP /p:PackageOutputPath=$dir" -logFileName "Bootstrap" -useDotnetBuild:$buildCoreClr
     $packageFile = Get-ChildItem -Path $dir -Filter "$packageName.*.nupkg"    
-    Unzip-File "$dir\$packageFile" $dir
+    Unzip "$dir\$packageFile" $dir
 
     Write-Host "Cleaning Bootstrap compiler artifacts"
     Run-MSBuild $projectPath "/t:Clean" -logFileName "BootstrapClean"
@@ -426,9 +426,16 @@ function Test-XUnit() {
 function Deploy-VsixViaTool() { 
     $vsixDir = Get-PackageDir "RoslynTools.VSIXExpInstaller"
     $vsixExe = Join-Path $vsixDir "tools\VsixExpInstaller.exe"
-    $both = Get-VisualStudioDirAndId
-    $vsDir = $both[0].Trim("\")
-    $vsId = $both[1]
+    
+    $vsInfo = LocateVisualStudio
+    if ($vsInfo -eq $null) {
+        throw "Unable to locate required Visual Studio installation"
+    }
+
+    $vsDir = $vsInfo.installationPath.TrimEnd("\")
+    $vsId = $vsInfo.instanceId
+    $vsMajorVersion = $vsInfo.installationVersion.Split('.')[0]
+
     $hive = "RoslynDev"
     Write-Host "Using VS Instance $vsId at `"$vsDir`""
     $baseArgs = "/rootSuffix:$hive /vsInstallDir:`"$vsDir`""
@@ -437,7 +444,7 @@ function Deploy-VsixViaTool() {
 
     # Actual uninstall is failing at the moment using the uninstall options. Temporarily using
     # wildfire to uninstall our VSIX extensions
-    $extDir = Join-Path ${env:USERPROFILE} "AppData\Local\Microsoft\VisualStudio\15.0_$($vsid)$($hive)"
+    $extDir = Join-Path ${env:USERPROFILE} "AppData\Local\Microsoft\VisualStudio\$vsMajorVersion.0_$vsid$hive"
     if (Test-Path $extDir) {
         foreach ($dir in Get-ChildItem -Directory $extDir) {
             $name = Split-Path -leaf $dir
@@ -593,8 +600,7 @@ try {
     }
 
     if ($launch) {
-        $devenvExe = Get-VisualStudioDir
-        $devenvExe = Join-Path $devenvExe 'Common7\IDE\devenv.exe'
+        $devenvExe = Join-Path $env:VSINSTALLDIR 'Common7\IDE\devenv.exe'
         &$devenvExe /rootSuffix RoslynDev
     }
 

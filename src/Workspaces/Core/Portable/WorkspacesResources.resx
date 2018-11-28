@@ -804,4 +804,7 @@
   <data name="ValueUsageInfo_Write" xml:space="preserve">
     <value>Write</value>
   </data>
+  <data name="Parameter_preferences" xml:space="preserve">
+    <value>Parameter preferences</value>
+  </data>
 </root>
