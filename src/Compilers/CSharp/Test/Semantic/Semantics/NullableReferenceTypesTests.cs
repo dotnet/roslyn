@@ -55797,22 +55797,6 @@ class C<T> where T : class?
         }
 
         [Fact]
-        public void NullabilityOfTypeParameters_152()
-        {
-            var source =
-@"
-class C<T> where T : class?
-{
-    void F(bool b, T x0, T y0)
-    {
-        T z0 = b ? x0 : y0;
-    }
-}";
-            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
-            comp.VerifyDiagnostics();
-        }
-
-        [Fact]
         public void NullabilityOfTypeParameters_153()
         {
             var source = @"

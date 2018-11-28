@@ -1840,7 +1840,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             TypeSymbol type = node.Type;
             NullableAnnotation resultAnnotation;
-            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+
+            // If receiver or the access can produce nullable value, the result can be nullable.
+            // Otherwise, result is not nullable.
 
             if (type.SpecialType == SpecialType.System_Void || type.IsErrorType() || _resultType.IsNull)
             {
@@ -1850,6 +1852,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Debug.Assert(_resultType.TypeSymbol == type);
                 Conversion conversion;
+                HashSet<DiagnosticInfo> useSiteDiagnostics = null;
 
                 if (!receiverType.GetValueNullableAnnotation().IsAnyNullable())
                 {
@@ -1860,16 +1863,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                     !conversion.IsUserDefined)
                 {
                     // where T : U
-                    // T ?? U or U ?? T
+                    // T?.U or U?.T
 
-                    // T ?? U
+                    // T?.U
                     // If T is nullable, U is also nullable - result is nullable
                     // If T is not nullable - result is nullable if U is nullable
                     // If U is nullable - result is nullable
                     // If U is not nullable, T is also not nullable - result is not nullable
                     // So, nullability of the result can be inferred from nullability of U, and the type of the result is U.   
 
-                    // U ?? T
+                    // U ?. T
                     // If U is nullable - result is nullable
                     // If U is not nullable, T is also not nullable - result is not nullable
                     // If T is nullable, U is also nullable - result is nullable
@@ -1878,8 +1881,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // At the moment we don't have a way to represent this correlation, result type is one type parameter, but
                     // nullability comes from another. 
                     // Ideally, we would want to have the following behavior:
-                    //     U x = U ?? T - no warning
-                    //     T y = U ?? T - a warning
+                    //     U x = U?.T - no warning
+                    //     T y = U?.T - a warning
                     // But we can track the state only in the way when either both produce a warning, or none.
                     // It feels like it is reasonable to prefer the latter approach, i.e. produce no warnings 
                     // for both scenarios - no false diagnostics.
