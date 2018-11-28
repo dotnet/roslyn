@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -2859,6 +2860,12 @@ public class C
 }");
             VerifySyntax<ClassDeclarationSyntax>(
                 Generator.ReplaceNode(declC, declX, Generator.WithName(declX, "Q")),
+@"public class C
+{
+    public static int Q, Y, Z;
+}");
+            VerifySyntax<ClassDeclarationSyntax>(
+                Generator.ReplaceNode(declC, declX.GetAncestorOrThis<VariableDeclaratorSyntax>(), SyntaxFactory.VariableDeclarator("Q")),
 @"public class C
 {
     public static int Q, Y, Z;

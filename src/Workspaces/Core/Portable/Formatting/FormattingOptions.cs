@@ -5,6 +5,10 @@ using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Options;
 using Roslyn.Utilities;
 
+#if CODE_STYLE
+using WorkspacesResources = Microsoft.CodeAnalysis.CodeStyleResources;
+#endif
+
 namespace Microsoft.CodeAnalysis.Formatting
 {
     public static class FormattingOptions
@@ -78,10 +82,6 @@ namespace Microsoft.CodeAnalysis.Formatting
 
         private static string GetEndOfLineEditorConfigString(string option)
             => s_parenthesesPreferenceMap.TryGetKey(option, out var editorConfigString) ? editorConfigString : null;
-
-        internal static PerLanguageOption<bool> DebugMode { get; } = CreatePerLanguageOption(OptionGroup.Default, nameof(DebugMode), defaultValue: false);
-
-        internal static Option<bool> AllowConcurrent { get; } = new Option<bool>(nameof(FormattingOptions), nameof(AllowConcurrent), defaultValue: true);
 
         internal static Option<bool> AllowDisjointSpanMerging { get; } = CreateOption(OptionGroup.Default, nameof(AllowDisjointSpanMerging), defaultValue: false);
 
