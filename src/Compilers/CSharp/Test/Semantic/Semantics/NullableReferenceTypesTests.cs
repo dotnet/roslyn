@@ -28086,7 +28086,7 @@ class C
                 );
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/31057"), CompilerTrait(CompilerFeature.AsyncStreams)]
+        [Fact, CompilerTrait(CompilerFeature.AsyncStreams)]
         public void Yield_IAsyncEnumerator()
         {
             var source = @"
@@ -28125,7 +28125,8 @@ class C
         }
     }
 }";
-            CreateCompilationWithTasksExtensions(new[] { source, AsyncStreamsTypes }, options: WithNonNullTypesTrue()).VerifyDiagnostics(
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, AsyncStreamsTypes }, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
                 // (8,22): warning CS8603: Possible null reference return.
                 //         yield return null; // 1
                 Diagnostic(ErrorCode.WRN_NullReferenceReturn, "null").WithLocation(8, 22),
