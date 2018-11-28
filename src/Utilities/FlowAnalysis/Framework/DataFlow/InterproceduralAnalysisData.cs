@@ -64,21 +64,21 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         public Func<IOperation, TAbstractAnalysisValue> GetCachedAbstractValueFromCaller { get; }
         public Func<IMethodSymbol, ControlFlowGraph> GetInterproceduralControlFlowGraph { get; }
 
-        protected sealed override int ComputeHashCode()
+        protected override void ComputeHashCodeParts(ImmutableArray<int>.Builder builder)
         {
-            var hashCode = InitialAnalysisData?.GetHashCode() ?? 0;
+            builder.Add(InitialAnalysisData.GetHashCodeOrDefault());
 
             if (InvocationInstanceOpt.HasValue)
             {
-                hashCode = HashUtilities.Combine(InvocationInstanceOpt.Value.Instance.GetHashCode(),
-                           HashUtilities.Combine(InvocationInstanceOpt.Value.PointsToValue.GetHashCode(), hashCode));
+                builder.Add(InvocationInstanceOpt.Value.Instance.GetHashCode());
+                builder.Add(InvocationInstanceOpt.Value.PointsToValue.GetHashCode());
             }
 
-            return HashUtilities.Combine(Arguments,
-                   HashUtilities.Combine(CapturedVariablesMap,
-                   HashUtilities.Combine(AddressSharedEntities,
-                   HashUtilities.Combine(CallStack,
-                   HashUtilities.Combine(MethodsBeingAnalyzed, hashCode)))));
+            builder.Add(HashUtilities.Combine(Arguments));
+            builder.Add(HashUtilities.Combine(CapturedVariablesMap));
+            builder.Add(HashUtilities.Combine(AddressSharedEntities));
+            builder.Add(HashUtilities.Combine(CallStack));
+            builder.Add(HashUtilities.Combine(MethodsBeingAnalyzed));
         }
     }
 }

@@ -130,8 +130,11 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
         /// </summary>
         public ImmutableHashSet<object> LiteralValues { get; }
 
-        protected override int ComputeHashCode()
-            => HashUtilities.Combine(LiteralValues, NonLiteralState.GetHashCode());
+        protected override void ComputeHashCodeParts(ImmutableArray<int>.Builder builder)
+        {
+            builder.Add(HashUtilities.Combine(LiteralValues));
+            builder.Add(NonLiteralState.GetHashCode());
+        }
 
         /// <summary>
         /// Performs the union of this state and the other state 

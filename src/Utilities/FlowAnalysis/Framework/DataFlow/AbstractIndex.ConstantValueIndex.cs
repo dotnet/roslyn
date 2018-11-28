@@ -1,6 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using Analyzer.Utilities;
+using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 {
@@ -16,7 +16,11 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             public int Index { get; }
 
 #pragma warning disable CA1307 // Specify StringComparison - string.GetHashCode(StringComparison) not available in all projects that reference this shared project
-            protected override int ComputeHashCode() => HashUtilities.Combine(Index.GetHashCode(), nameof(ConstantValueIndex).GetHashCode());
+            protected override void ComputeHashCodeParts(ImmutableArray<int>.Builder builder)
+            {
+                builder.Add(Index.GetHashCode());
+                builder.Add(nameof(ConstantValueIndex).GetHashCode());
+            }
 #pragma warning restore CA1307 // Specify StringComparison
         }
     }

@@ -50,6 +50,13 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
                 foreach (AnalysisEntity key2 in equivalentKeys2)
                 {
+                    // Confirm that key2 and key1 are indeed EqualsIgnoringInstanceLocation
+                    // This ensures that we handle hash code clashes of EqualsIgnoringInstanceLocationId.
+                    if (!key1.EqualsIgnoringInstanceLocation(key2))
+                    {
+                        continue;
+                    }
+
                     TValue value2 = map2[key2];
                     TValue mergedValue = ValueDomain.Merge(value1, value2);
                     Debug.Assert(ValueDomain.Compare(value1, mergedValue) <= 0);

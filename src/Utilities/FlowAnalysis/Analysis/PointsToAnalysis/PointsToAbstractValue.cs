@@ -183,9 +183,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
         public PointsToAbstractValueKind Kind { get; }
         public NullAbstractValue NullState { get; }
 
-        protected override int ComputeHashCode()
-            => HashUtilities.Combine(Locations,
-               HashUtilities.Combine(LValueCapturedOperations,
-               HashUtilities.Combine(Kind.GetHashCode(), NullState.GetHashCode())));
+        protected override void ComputeHashCodeParts(ImmutableArray<int>.Builder builder)
+        {
+            builder.Add(HashUtilities.Combine(Locations));
+            builder.Add(HashUtilities.Combine(LValueCapturedOperations));
+            builder.Add(Kind.GetHashCode());
+            builder.Add(NullState.GetHashCode());
+        }
     }
 }

@@ -1,6 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
+using System.Collections.Immutable;
 using Analyzer.Utilities;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis;
 
@@ -29,9 +29,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         public PointsToAbstractValue InstanceLocation { get; }
         public TAbstractAnalysisValue Value { get; }
 
-        protected override int ComputeHashCode()
-            => HashUtilities.Combine(Operation.GetHashCode(),
-               HashUtilities.Combine(AnalysisEntityOpt?.GetHashCode() ?? 0,
-               HashUtilities.Combine(InstanceLocation.GetHashCode(), Value.GetHashCode())));
+        protected override void ComputeHashCodeParts(ImmutableArray<int>.Builder builder)
+        {
+            builder.Add(Operation.GetHashCode());
+            builder.Add(AnalysisEntityOpt.GetHashCodeOrDefault());
+            builder.Add(InstanceLocation.GetHashCode());
+            builder.Add(Value.GetHashCode());
+        }
     }
 }

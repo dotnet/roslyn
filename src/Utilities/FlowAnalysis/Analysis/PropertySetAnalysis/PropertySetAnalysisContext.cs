@@ -134,13 +134,14 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
         public ImmutableHashSet<string> MethodNamesToCheckForFlaggedUsage { get; }
 
 #pragma warning disable CA1307 // Specify StringComparison - string.GetHashCode(StringComparison) not available in all projects that reference this shared project
-        protected override int GetHashCode(int hashCode) =>
-            HashUtilities.Combine(this.TypeToTrackMetadataName.GetHashCode(),
-                HashUtilities.Combine(this.IsNewInstanceFlagged.GetHashCode(),
-                    HashUtilities.Combine(this.PropertyToSetFlag.GetHashCode(),
-                        HashUtilities.Combine(this.IsNullPropertyFlagged.GetHashCode(),
-                            HashUtilities.Combine(this.MethodNamesToCheckForFlaggedUsage,
-                                hashCode)))));
+        protected override void ComputeHashCodePartsSpecific(ImmutableArray<int>.Builder builder)
+        {
+            builder.Add(TypeToTrackMetadataName.GetHashCode());
+            builder.Add(IsNewInstanceFlagged.GetHashCode());
+            builder.Add(PropertyToSetFlag.GetHashCode());
+            builder.Add(IsNullPropertyFlagged.GetHashCode());
+            builder.Add(HashUtilities.Combine(MethodNamesToCheckForFlaggedUsage));
+        }
 #pragma warning restore CA1307 // Specify StringComparison
     }
 }
