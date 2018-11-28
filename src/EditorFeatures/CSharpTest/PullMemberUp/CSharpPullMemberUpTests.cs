@@ -96,6 +96,29 @@ namespace PushUpTest
             await TestMissingAsync(eventTest);
         }
 
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        public async Task TestNoRefactoringProvidedInNestedTypes()
+        {
+            var input = @"
+namespace PushUpTest
+{
+    public interface ITestInterface
+    {
+        void Foobar();
+    }
+
+    public class TestClass : ITestInterface
+    {
+        public class N[||]estedClass
+        {
+        }
+    }
+}";
+
+            await TestMissingAsync(input);
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
         public async Task TestPullMethodUpToInterface()
         {
@@ -223,11 +246,11 @@ namespace PushUpTest
         {
             add
             {
-                System.Console.Writeln(""This is add"");
+                System.Console.Writeline(""This is add"");
             }
             remove
             {
-                System.Console.Writeln(""This is remove"");
+                System.Console.Writeline(""This is remove"");
             }
         }
     }
@@ -248,11 +271,11 @@ namespace PushUpTest
         {
             add
             {
-                System.Console.Writeln(""This is add"");
+                System.Console.Writeline(""This is add"");
             }
             remove
             {
-                System.Console.Writeln(""This is remove"");
+                System.Console.Writeline(""This is remove"");
             }
         }
     }

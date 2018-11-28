@@ -19,9 +19,9 @@ namespace Microsoft.CodeAnalysis.PullMemberUp.QuickAction
         {
             if (selectedMember is IFieldSymbol fieldSymbol)
             {
-                // If there is a field with same name in destination, pull the selected field will cause error,
+                // If there is a member with same name in destination, pull the selected field will cause error,
                 // so don't provide refactoring under this scenario
-                return destination.GetMembers(fieldSymbol.Name).Any(member => member.IsKind(SymbolKind.Field));
+                return destination.GetMembers(fieldSymbol.Name).Any();
             }
             else
             {

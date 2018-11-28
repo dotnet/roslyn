@@ -73,10 +73,10 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
             Solution solution,
             CancellationToken cancellationToken)
         {
-            var containType = selectedMember.ContainingType;
+            var containingType = selectedMember.ContainingType;
             var allDestinations = selectedMember.IsKind(SymbolKind.Field)
-                ? containType.GetBaseTypes().ToImmutableArray()
-                : containType.AllInterfaces.Concat(containType.GetBaseTypes()).ToImmutableArray();
+                ? containingType.GetBaseTypes().ToImmutableArray()
+                : containingType.AllInterfaces.Concat(containingType.GetBaseTypes()).ToImmutableArray();
 
             return allDestinations.WhereAsArray(baseType => baseType != null &&
                 baseType.DeclaringSyntaxReferences.Length > 0 &&
@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
                 var puller = destination.TypeKind == TypeKind.Interface
                     ? InterfacePullerWithQuickAction.Instance as AbstractMemberPullerWithQuickAction
                     : ClassPullerWithQuickAction.Instance;
-                var action = puller.TryComputeRefactoring(context.Document, selectedMember, destination, context.CancellationToken);
+                var action = puller.TryComputeRefactoring(context.Document, selectedMember, destination);
                 if (action != null)
                 {
                     context.RegisterRefactoring(action);

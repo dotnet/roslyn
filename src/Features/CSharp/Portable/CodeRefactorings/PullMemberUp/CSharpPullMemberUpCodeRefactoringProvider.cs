@@ -40,6 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.PullMemberUp
             switch (selectedNode)
             {
                 case MemberDeclarationSyntax memberDeclarationSyntax:
+                    // Nested type is checked in before this method is called.
                     return memberDeclarationSyntax.GetNameToken();
                 case VariableDeclaratorSyntax variableDeclaratorSyntax:
                     // It handles multiple fields or events declared in one line

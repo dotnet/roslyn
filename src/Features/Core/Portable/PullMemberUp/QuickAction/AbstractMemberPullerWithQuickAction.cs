@@ -9,6 +9,8 @@ using Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp;
 using Microsoft.CodeAnalysis.Editing;
 using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.CodeActions.CodeAction;
+using EditorMap = System.Collections.Immutable.ImmutableDictionary<Microsoft.CodeAnalysis.SyntaxTree, Microsoft.CodeAnalysis.Editing.DocumentEditor>;
+using SyntaxMap = System.Collections.Immutable.ImmutableDictionary<Microsoft.CodeAnalysis.ISymbol, Microsoft.CodeAnalysis.SyntaxNode[]>;
 
 namespace Microsoft.CodeAnalysis.PullMemberUp.QuickAction
 {
@@ -23,8 +25,7 @@ namespace Microsoft.CodeAnalysis.PullMemberUp.QuickAction
         internal CodeAction TryComputeRefactoring(
             Document document,
             ISymbol selectedMember,
-            INamedTypeSymbol destinationType,
-            CancellationToken cancellationToken)
+            INamedTypeSymbol destinationType)
         {
             var result = PullMembersUpAnalysisBuilder.BuildAnalysisResult(destinationType, ImmutableArray.Create(selectedMember));
             if (result.PullUpOperationCausesError ||
@@ -33,25 +34,24 @@ namespace Microsoft.CodeAnalysis.PullMemberUp.QuickAction
                 return default;
             }
 
-            return TryGetCodeAction(result, document, cancellationToken);
+            return TryGetCodeAction(result, document);
         }
 
         internal CodeAction TryGetCodeAction(
             PullMembersUpAnalysisResult result,
-            Document contextDocument,
-            CancellationToken cancellationToken)
+            Document contextDocument)
         { 
             if (result.Destination.TypeKind == TypeKind.Interface)
             {
                 return new DocumentChangeAction(
                     string.Format(FeaturesResources.Add_to_0, result.Destination),
-                    token => PullMembersIntoInterfaceAsync(result, contextDocument, token));
+                    cancellationToken => PullMembersIntoInterfaceAsync(result, contextDocument, cancellationToken));
             }
             else if (result.Destination.TypeKind == TypeKind.Class)
             {
                 return new SolutionChangeAction(
                     string.Format(FeaturesResources.Add_to_0, result.Destination),
-                    token => PullMembersUpAsync(result, contextDocument, token));
+                    cancellationToken => PullMembersUpAsync(result, contextDocument, cancellationToken));
             }
             else
             {
@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.PullMemberUp.QuickAction
             Document contextDocument,
             CancellationToken cancellationToken)
         {
-            var symbolsToPullUp = result.MembersAnalysisResults.
+            var symbolsToPullUp = result.MemberAnalysisResults.
                 SelectAsArray(analysisResult =>
                 {
                     if (analysisResult.Member is IPropertySymbol propertySymbol)
@@ -112,21 +112,21 @@ namespace Microsoft.CodeAnalysis.PullMemberUp.QuickAction
         private Solution PullMembersIntoClass(
             PullMembersUpAnalysisResult result,
             ICodeGenerationService codeGenerationService,
-            SyntaxNode destinationNodeSyntax,
+            SyntaxNode destinationSyntaxNode,
             SolutionEditor solutionEditor,
             Solution solution,
             ImmutableDictionary<SyntaxTree, DocumentEditor> editorMap,
-            ImmutableDictionary<ISymbol, ImmutableArray<SyntaxNode>> syntaxMap)
+            ImmutableDictionary<ISymbol, SyntaxNode[]> syntaxMap)
         {
             // Add members to destination
-            var pullUpMembersSymbols = result.MembersAnalysisResults.SelectAsArray(memberResult => memberResult.Member);
+            var pullUpMembersSymbols = result.MemberAnalysisResults.SelectAsArray(memberResult => memberResult.Member);
             var options = new CodeGenerationOptions(reuseSyntax: true, generateMethodBodies: false);
-            var membersAddedNode = codeGenerationService.AddMembers(destinationNodeSyntax, pullUpMembersSymbols, options: options);
-            var destinationEditor = editorMap[destinationNodeSyntax.SyntaxTree];
-            destinationEditor.ReplaceNode(destinationNodeSyntax, (syntaxNode, generator) => membersAddedNode);
+            var membersAddedNode = codeGenerationService.AddMembers(destinationSyntaxNode, pullUpMembersSymbols, options: options);
+            var destinationEditor = editorMap[destinationSyntaxNode.SyntaxTree];
+            destinationEditor.ReplaceNode(destinationSyntaxNode, (syntaxNode, generator) => membersAddedNode);
 
             // Remove the original members since we are pulling members into class
-            foreach (var analysisResult in result.MembersAnalysisResults)
+            foreach (var analysisResult in result.MemberAnalysisResults)
             {
                 foreach (var syntax in syntaxMap[analysisResult.Member])
                 {
@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis.PullMemberUp.QuickAction
             return solutionEditor.GetChangedSolution();
         }
 
-        private async Task<(ImmutableDictionary<SyntaxTree, DocumentEditor> editorMap, ImmutableDictionary<ISymbol, ImmutableArray<SyntaxNode>> syntaxMap)> InitializeEditorMapsAndSyntaxMapAsync(
+        private async Task<(EditorMap editorMap, SyntaxMap syntaxMap)> InitializeEditorMapsAndSyntaxMapAsync(
             PullMembersUpAnalysisResult result,
             SyntaxNode destinationSyntaxNode,
             SolutionEditor solutionEditor,
@@ -150,19 +150,19 @@ namespace Microsoft.CodeAnalysis.PullMemberUp.QuickAction
             var editorMapBuilder = ImmutableDictionary.CreateBuilder<SyntaxTree, DocumentEditor>();
             // One member may have multiple syntaxNodes (e.g partial method).
             // SyntaxMap is used to find the syntaxNodes need to be changed more easily.
-            var syntaxMapBuilder = ImmutableDictionary.CreateBuilder<ISymbol, ImmutableArray<SyntaxNode>>();
+            var syntaxMapBuilder = ImmutableDictionary.CreateBuilder<ISymbol, SyntaxNode[]>();
 
-            foreach (var memberAnalysisResult in result.MembersAnalysisResults)
+            foreach (var memberAnalysisResult in result.MemberAnalysisResults)
             {
                 var tasks = memberAnalysisResult.Member.DeclaringSyntaxReferences.SelectAsArray(@ref => @ref.GetSyntaxAsync(cancellationToken));
                 var allSyntaxes = await Task.WhenAll(tasks).ConfigureAwait(false);
-                await AddEditorsToEditorMapBuilderAsync(editorMapBuilder, allSyntaxes.ToImmutableArray(), solutionEditor, solution);
-                syntaxMapBuilder.Add(memberAnalysisResult.Member, allSyntaxes.ToImmutableArray());
+                await AddEditorsToEditorMapBuilderAsync(editorMapBuilder, allSyntaxes, solutionEditor, solution);
+                syntaxMapBuilder.Add(memberAnalysisResult.Member, allSyntaxes);
             }
 
             await AddEditorsToEditorMapBuilderAsync(
                 editorMapBuilder,
-                ImmutableArray.Create(destinationSyntaxNode),
+                new[] { destinationSyntaxNode },
                 solutionEditor,
                 solution);
             return (editorMapBuilder.ToImmutableDictionary(), syntaxMapBuilder.ToImmutableDictionary());
@@ -170,7 +170,7 @@ namespace Microsoft.CodeAnalysis.PullMemberUp.QuickAction
 
         private async Task AddEditorsToEditorMapBuilderAsync(
             ImmutableDictionary<SyntaxTree, DocumentEditor>.Builder mapBuilder,
-            ImmutableArray<SyntaxNode> syntaxNodes,
+            SyntaxNode[] syntaxNodes,
             SolutionEditor solutionEditor,
             Solution solution)
         {

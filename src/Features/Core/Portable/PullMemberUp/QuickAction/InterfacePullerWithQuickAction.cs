@@ -16,11 +16,10 @@ namespace Microsoft.CodeAnalysis.PullMemberUp.QuickAction
             INamedTypeSymbol destination,
             ISymbol selectedNode)
         {
-            var comparer = SymbolEquivalenceComparer.Instance;
             foreach (var interfaceMember in destination.GetMembers())
             {
                 var implementationOfMember = selectedNode.ContainingType.FindImplementationForInterfaceMember(interfaceMember);
-                if (comparer.Equals(selectedNode, implementationOfMember?.OriginalDefinition))
+                if (SymbolEquivalenceComparer.Instance.Equals(selectedNode, implementationOfMember?.OriginalDefinition))
                 {
                     return true;
                 }
