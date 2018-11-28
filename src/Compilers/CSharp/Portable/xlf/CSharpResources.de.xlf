@@ -5247,7 +5247,7 @@ Ein catch()-Block nach einem catch (System.Exception e)-Block kann nicht-CLS-Aus
       </trans-unit>
       <trans-unit id="ERR_BadAsyncReturnExpression">
         <source>Since this is an async method, the return expression must be of type '{0}' rather than 'Task&lt;{0}&gt;'</source>
-        <target state="translated">Der Rückgabetyp einer async-Methode muss "void", "Task", "Task&lt;T&gt;", ein taskähnlicher Typ oder "IAsyncEnumerable&lt;T&gt;" sein.</target>
+        <target state="translated">Da es sich um eine asynchrone Methode handelt, muss der Rückgabeausdruck vom Typ "{0}" anstelle von "Task&lt;{0}&gt;" sein.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CantConvAsyncAnonFuncReturns">
@@ -6415,7 +6415,7 @@ Unterstützen Sie den Compiler bei der Unterscheidung zwischen den Methoden. Daz
       </trans-unit>
       <trans-unit id="ERR_BadAsyncReturn">
         <source>The return type of an async method must be void, Task, Task&lt;T&gt;, a task-like type, or IAsyncEnumerable&lt;T&gt;</source>
-        <target state="translated">Der Rückgabetyp einer Async-Methode muss "void", "Task" oder "Task&lt;T&gt;" sein</target>
+        <target state="translated">Der Rückgabetyp einer async-Methode muss "void", "Task", "Task&lt;T&gt;", ein taskähnlicher Typ oder "IAsyncEnumerable&lt;T&gt;" sein.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CantReturnVoid">
