@@ -1451,7 +1451,7 @@ Block[B3] - Exit
         }
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/28634")]
+        [Fact]
         public void SwitchFlow_15()
         {
             string source = @"
@@ -1936,7 +1936,7 @@ Block[B3] - Exit
         }
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/28634")]
+        [Fact]
         public void SwitchFlow_22()
         {
             string source = @"
@@ -2002,6 +2002,52 @@ Block[B3] - Exit
     Statements (0)
 ";
             VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void SwitchIOperation_022()
+        {
+            string source = @"
+public sealed class MyClass
+{
+    void M(bool result, dynamic input)
+    {
+        /*<bind>*/switch (input)
+        {
+            case 1:
+                result = false;
+                break;
+        }/*</bind>*/
+    }
+}
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedOperationTree =
+@"ISwitchOperation (1 cases, Exit Label Id: 0) (OperationKind.Switch, Type: null) (Syntax: 'switch (inp ... }')
+  Switch expression: 
+    IParameterReferenceOperation: input (OperationKind.ParameterReference, Type: dynamic) (Syntax: 'input')
+  Sections:
+      ISwitchCaseOperation (1 case clauses, 2 statements) (OperationKind.SwitchCase, Type: null) (Syntax: 'case 1: ... break;')
+          Clauses:
+              IPatternCaseClauseOperation (Label Id: 1) (CaseKind.Pattern) (OperationKind.CaseClause, Type: null) (Syntax: 'case 1:')
+                Pattern: 
+                  IConstantPatternOperation (OperationKind.ConstantPattern, Type: null, IsImplicit) (Syntax: 'case 1:')
+                    Value: 
+                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+                Guard Expression: 
+                  null
+          Body:
+              IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = false;')
+                Expression: 
+                  ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean) (Syntax: 'result = false')
+                    Left: 
+                      IParameterReferenceOperation: result (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'result')
+                    Right: 
+                      ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False) (Syntax: 'false')
+              IBranchOperation (BranchKind.Break, Label Id: 0) (OperationKind.Branch, Type: null) (Syntax: 'break;')
+";
+            VerifyOperationTreeAndDiagnosticsForTest<SwitchStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
@@ -2388,7 +2434,7 @@ Block[B4] - Exit
         }
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/28634")]
+        [Fact]
         public void SwitchFlow_27()
         {
             string source = @"
@@ -2762,7 +2808,7 @@ Block[B7] - Exit
         }
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/28634")]
+        [Fact]
         public void SwitchFlow_31()
         {
             string source = @"
