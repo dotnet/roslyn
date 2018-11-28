@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
             {
                 if (!ShouldBeTracked(analysisEntity))
                 {
-                    Debug.Assert(!CurrentAnalysisData.HasAbstractValue(analysisEntity));
+                    Debug.Assert(!CurrentAnalysisData.TryGetValue(analysisEntity, out var existingValue) || existingValue == PointsToAbstractValue.NoLocation);
                     return PointsToAbstractValue.NoLocation;
                 }
 
