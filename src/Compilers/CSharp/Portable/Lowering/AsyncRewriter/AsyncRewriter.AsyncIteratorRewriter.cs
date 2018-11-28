@@ -18,6 +18,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             private FieldSymbol _promiseOfValueOrEndField; // this struct implements the IValueTaskSource logic
             private FieldSymbol _currentField; // stores the current/yielded value
 
+            // true if the iterator implements IAsyncEnumerable<T>,
+            // false if it implements IAsyncEnumerator<T>
+            private readonly bool _isEnumerable;
+
             internal AsyncIteratorRewriter(
                 BoundStatement body,
                 MethodSymbol method,
@@ -29,14 +33,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                 : base(body, method, methodOrdinal, stateMachineType, slotAllocatorOpt, compilationState, diagnostics)
             {
                 Debug.Assert(method.IteratorElementType != null);
+
+                _isEnumerable = method.IsIAsyncEnumerableReturningAsync(method.DeclaringCompilation);
             }
 
             protected override void VerifyPresenceOfRequiredAPIs(DiagnosticBag bag)
             {
                 base.VerifyPresenceOfRequiredAPIs(bag);
-                EnsureWellKnownMember(WellKnownMember.System_Collections_Generic_IAsyncEnumerable_T__GetAsyncEnumerator, bag);
+
+                if (_isEnumerable)
+                {
+                    EnsureWellKnownMember(WellKnownMember.System_Collections_Generic_IAsyncEnumerable_T__GetAsyncEnumerator, bag);
+                }
                 EnsureWellKnownMember(WellKnownMember.System_Collections_Generic_IAsyncEnumerator_T__MoveNextAsync, bag);
                 EnsureWellKnownMember(WellKnownMember.System_Collections_Generic_IAsyncEnumerator_T__get_Current, bag);
+
                 EnsureWellKnownMember(WellKnownMember.System_IAsyncDisposable__DisposeAsync, bag);
                 EnsureWellKnownMember(WellKnownMember.System_Threading_Tasks_ValueTask_T__ctor, bag);
 
@@ -62,8 +73,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // IAsyncStateMachine methods and constructor
                 base.GenerateMethodImplementations();
 
-                // IAsyncEnumerable
-                GenerateIAsyncEnumerableImplementation_GetAsyncEnumerator();
+                if (_isEnumerable)
+                {
+                    // IAsyncEnumerable
+                    GenerateIAsyncEnumerableImplementation_GetAsyncEnumerator();
+                }
 
                 // IAsyncEnumerator
                 GenerateIAsyncEnumeratorImplementation_MoveNextAsync();
@@ -80,6 +94,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // IAsyncDisposable
                 GenerateIAsyncDisposable_DisposeAsync();
             }
+
+            protected override bool PreserveInitialParameterValuesAndThreadId
+                => _isEnumerable;
 
             protected override void GenerateControlFields()
             {
@@ -153,8 +170,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             protected override void InitializeStateMachine(ArrayBuilder<BoundStatement> bodyBuilder, NamedTypeSymbol frameType, LocalSymbol stateMachineLocal)
             {
-                // var stateMachineLocal = new {StateMachineType}(FinishedStateMachine)
-                int initialState = StateMachineStates.FinishedStateMachine;
+                // var stateMachineLocal = new {StateMachineType}({initialState})
+                int initialState = _isEnumerable ? StateMachineStates.FinishedStateMachine : StateMachineStates.NotStartedStateMachine;
                 bodyBuilder.Add(
                     F.Assignment(
                         F.Local(stateMachineLocal),
