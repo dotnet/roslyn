@@ -95,21 +95,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 if (requiresNewLine)
                 {
-                    var eol = GetEndOfLine(trivia);
-                    if (eol.HasValue)
-                    {
-                        this.AddEndOfLine(eol.Value);
-                    }
+                    this.AddEndOfLine(GetEndOfLine(trivia));
                 }
 
                 _residualTrivia.Add(trivia);
             }
 
-            private void AddEndOfLine(SyntaxTrivia eolTrivia)
+            private void AddEndOfLine(SyntaxTrivia? eolTrivia)
             {
+                if (!eolTrivia.HasValue)
+                {
+                    return;
+                }
+
                 if (_residualTrivia.Count == 0 || !IsEndOfLine(_residualTrivia[_residualTrivia.Count - 1]))
                 {
-                    _residualTrivia.Add(eolTrivia);
+                    _residualTrivia.Add(eolTrivia.Value);
                 }
             }
 
@@ -298,11 +299,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 }
                 else if ((_options & SyntaxRemoveOptions.KeepEndOfLine) != 0)
                 {
-                    var eol = GetEndOfLine(node.GetLeadingTrivia());
-                    if (eol.HasValue)
-                    {
-                        this.AddEndOfLine(eol.Value);
-                    }
+                    this.AddEndOfLine(GetEndOfLine(node.GetLeadingTrivia()));
                 }
 
                 if ((_options & (SyntaxRemoveOptions.KeepDirectives | SyntaxRemoveOptions.KeepUnbalancedDirectives)) != 0)
@@ -316,11 +313,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 }
                 else if ((_options & SyntaxRemoveOptions.KeepEndOfLine) != 0)
                 {
-                    var eol = GetEndOfLine(node.GetTrailingTrivia());
-                    if (eol.HasValue)
-                    {
-                        this.AddEndOfLine(eol.Value);
-                    }
+                    this.AddEndOfLine(GetEndOfLine(node.GetTrailingTrivia()));
                 }
 
                 if ((_options & SyntaxRemoveOptions.AddElasticMarker) != 0)
@@ -342,10 +335,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                     var eol = GetEndOfLine(token.LeadingTrivia) ??
                               GetEndOfLine(token.TrailingTrivia) ??
                               GetEndOfLine(node.GetLeadingTrivia());
-                    if (eol.HasValue)
-                    {
-                        this.AddEndOfLine(eol.Value);
-                    }
+                    this.AddEndOfLine(eol);
                 }
 
                 if ((_options & (SyntaxRemoveOptions.KeepDirectives | SyntaxRemoveOptions.KeepUnbalancedDirectives)) != 0)
@@ -361,11 +351,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 }
                 else if ((_options & SyntaxRemoveOptions.KeepEndOfLine) != 0)
                 {
-                    var eol = GetEndOfLine(node.GetTrailingTrivia());
-                    if (eol.HasValue)
-                    {
-                        this.AddEndOfLine(eol.Value);
-                    }
+                    this.AddEndOfLine(GetEndOfLine(node.GetTrailingTrivia()));
                 }
 
                 if ((_options & SyntaxRemoveOptions.AddElasticMarker) != 0)
@@ -382,11 +368,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 }
                 else if ((_options & SyntaxRemoveOptions.KeepEndOfLine) != 0)
                 {
-                    var eol = GetEndOfLine(node.GetLeadingTrivia());
-                    if (eol.HasValue)
-                    {
-                        this.AddEndOfLine(eol.Value);
-                    }
+                    this.AddEndOfLine(GetEndOfLine(node.GetLeadingTrivia()));
                 }
 
                 if ((_options & (SyntaxRemoveOptions.KeepDirectives | SyntaxRemoveOptions.KeepUnbalancedDirectives)) != 0)
@@ -407,10 +389,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                     var eol = GetEndOfLine(node.GetTrailingTrivia()) ??
                               GetEndOfLine(token.LeadingTrivia) ??
                               GetEndOfLine(token.TrailingTrivia);
-                    if (eol.HasValue)
-                    {
-                        this.AddEndOfLine(eol.Value);
-                    }
+                    this.AddEndOfLine(eol);
                 }
 
                 if ((_options & SyntaxRemoveOptions.AddElasticMarker) != 0)
