@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
             AssertValidCopyAnalysisData(coreAnalysisData);
         }
 
-        public override void Reset(CopyAbstractValue resetValue)
+        public override void Reset(CopyAbstractValue resetValue, Func<AnalysisEntity, bool> shouldResetOpt = null)
         {
             throw new NotImplementedException("Use the other overload of Reset");
         }

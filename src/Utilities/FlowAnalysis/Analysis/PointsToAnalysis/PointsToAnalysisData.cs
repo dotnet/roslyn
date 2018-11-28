@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 
@@ -65,7 +66,13 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
 
         public override void SetAbstractValue(AnalysisEntity key, PointsToAbstractValue value)
         {
+            throw new NotImplementedException("Use the other overload of Reset");
+        }
+
+        public void SetAbstractValue(AnalysisEntity key, PointsToAbstractValue value, Func<AnalysisEntity, bool> isLValueFlowCaptureEntity)
+        {
             Debug.Assert(value.Kind != PointsToAbstractValueKind.Undefined);
+            Debug.Assert(!isLValueFlowCaptureEntity(key) || value.Kind == PointsToAbstractValueKind.KnownLValueCaptures);
             base.SetAbstractValue(key, value);
         }
 

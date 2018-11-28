@@ -121,6 +121,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         protected bool IsInsideAnonymousObjectInitializer { get; private set; }
 
         protected bool IsLValueFlowCapture(CaptureId captureId) => _lValueFlowCaptures.Contains(captureId);
+        protected bool IsLValueFlowCaptureEntity(AnalysisEntity analysisEntity)
+            => analysisEntity.CaptureIdOpt != null && IsLValueFlowCapture(analysisEntity.CaptureIdOpt.Value.Id);
 
         protected virtual int GetAllowedInterproceduralCallChain() => MaxInterproceduralCallChain;
 

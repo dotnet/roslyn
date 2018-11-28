@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                 // Ensure PointsTo value is set for the "this" or "Me" instance.
                 if (input != null && !HasAbstractValue(AnalysisEntityFactory.ThisOrMeInstance))
                 {
-                    input.SetAbstractValue(AnalysisEntityFactory.ThisOrMeInstance, ThisOrMePointsToAbstractValue);
+                    input.SetAbstractValue(AnalysisEntityFactory.ThisOrMeInstance, ThisOrMePointsToAbstractValue, IsLValueFlowCaptureEntity);
                 }
 
                 var output = base.Flow(statement, block, input);
@@ -59,8 +59,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
 
             private static bool ShouldBeTracked(ITypeSymbol typeSymbol) => typeSymbol.IsReferenceTypeOrNullableValueType();
 
-            private bool ShouldBeTracked(AnalysisEntity analysisEntity) => ShouldBeTracked(analysisEntity.Type) ||
-                analysisEntity.CaptureIdOpt.HasValue && IsLValueFlowCapture(analysisEntity.CaptureIdOpt.Value.Id);
+            private bool ShouldBeTracked(AnalysisEntity analysisEntity) => ShouldBeTracked(analysisEntity.Type) || IsLValueFlowCaptureEntity(analysisEntity);
 
             protected override void AddTrackedEntities(ImmutableArray<AnalysisEntity>.Builder builder)
             {
@@ -123,7 +122,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                         return;
                     }
 
-                    CurrentAnalysisData.SetAbstractValue(analysisEntity, value);
+                    CurrentAnalysisData.SetAbstractValue(analysisEntity, value, IsLValueFlowCaptureEntity);
                 }
             }
 
@@ -134,7 +133,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                 DefaultPointsToValueGenerator defaultPointsToValueGenerator,
                 PointsToAnalysisData sourceAnalysisData,
                 PointsToAnalysisData targetAnalysisData,
-                PointsToAnalysisContext analysisContext)
+                PointsToAnalysisContext analysisContext,
+                Func<AnalysisEntity, bool> isLValueFlowCaptureEntity)
             {
                 AssertValidPointsToAnalysisData(sourceAnalysisData);
                 AssertValidPointsToAnalysisData(targetAnalysisData);
@@ -165,7 +165,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                         throw new InvalidProgramException();
                 }
 
-                targetAnalysisData.SetAbstractValue(analysisEntity, newPointsToValue);
+                targetAnalysisData.SetAbstractValue(analysisEntity, newPointsToValue, isLValueFlowCaptureEntity);
                 AssertValidPointsToAnalysisData(targetAnalysisData);
             }
 
@@ -182,7 +182,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                 // Do not escape the PointsTo value for parameter at exit.
             }
 
-            protected override void ResetCurrentAnalysisData() => CurrentAnalysisData.Reset(ValueDomain.UnknownOrMayBeValue);
+            protected override void ResetCurrentAnalysisData() => CurrentAnalysisData.Reset(ValueDomain.UnknownOrMayBeValue, ShouldReset);
+            private bool ShouldReset(AnalysisEntity analysisEntity)
+            {
+                Debug.Assert(CurrentAnalysisData.HasAbstractValue(analysisEntity));
+                return !IsLValueFlowCaptureEntity(analysisEntity);
+            }
 
             protected override PointsToAbstractValue ComputeAnalysisValueForReferenceOperation(IOperation operation, PointsToAbstractValue defaultValue)
             {
@@ -298,7 +303,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                             SetValueFromPredicate(analysisEntity, value, equals, inferInTargetAnalysisData,
                                 target, ref predicateValueKind, _defaultPointsToValueGenerator,
                                 sourceAnalysisData: CurrentAnalysisData, targetAnalysisData: targetAnalysisData,
-                                analysisContext: DataFlowAnalysisContext);
+                                analysisContext: DataFlowAnalysisContext,
+                                isLValueFlowCaptureEntity: IsLValueFlowCaptureEntity);
                         }
                     }
                     else
@@ -306,7 +312,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                         SetValueFromPredicate(targetEntity, value, equals, inferInTargetAnalysisData,
                             target, ref predicateValueKind, _defaultPointsToValueGenerator,
                             sourceAnalysisData: CurrentAnalysisData, targetAnalysisData: targetAnalysisData,
-                            analysisContext: DataFlowAnalysisContext);
+                            analysisContext: DataFlowAnalysisContext,
+                            isLValueFlowCaptureEntity: IsLValueFlowCaptureEntity);
                     }
 
                     return true;
@@ -325,7 +332,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                 DefaultPointsToValueGenerator defaultPointsToValueGenerator,
                 PointsToAnalysisData sourceAnalysisData,
                 PointsToAnalysisData targetAnalysisData,
-                PointsToAnalysisContext analysisContext)
+                PointsToAnalysisContext analysisContext,
+                Func<AnalysisEntity, bool> isLValueFlowCaptureEntity)
             {
                 // Compute the negated value.
                 NullAbstractValue negatedValue = NegatePredicateValue(value);
@@ -370,7 +378,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                 if (inferInTargetAnalysisData)
                 {
                     // Set value for the CurrentAnalysisData.
-                    SetAbstractValueFromPredicate(key, target, value, defaultPointsToValueGenerator, sourceAnalysisData, targetAnalysisData, analysisContext);
+                    SetAbstractValueFromPredicate(key, target, value, defaultPointsToValueGenerator,
+                        sourceAnalysisData, targetAnalysisData, analysisContext, isLValueFlowCaptureEntity);
                 }
             }
 
