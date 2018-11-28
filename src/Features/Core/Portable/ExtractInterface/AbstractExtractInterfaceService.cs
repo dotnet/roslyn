@@ -362,7 +362,8 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
             foreach (var documentId in documentIds)
             {
                 var document = formattedSolution.GetDocument(documentId);
-                var formattedRoot = Formatter.Format(document.GetSyntaxRootSynchronously(cancellationToken), 
+                var formattedRoot = Formatter.Format(document.GetSyntaxRootSynchronously(cancellationToken),
+                    Formatter.Annotation,
                     document.Project.Solution.Workspace, 
                     cancellationToken: cancellationToken);
 
@@ -414,6 +415,10 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
                 editor.ReplaceNode(typeDeclaration, unformattedTypeDeclaration);
 
                 unformattedSolution = document.WithSyntaxRoot(editor.GetChangedRoot()).Project.Solution;
+
+                // Only update the first instance of the typedeclaration,
+                // since it's not needed in all declarations
+                break;
             }
 
             var updatedUnformattedSolution = UpdateMembersWithExplicitImplementations(
