@@ -182,7 +182,7 @@ steps:
 - task: PowerShell@2
   displayName: Publish Drop - VSSetup
   inputs:
-    arguments: '-Source Binaries\VSSetup\$(BuildConfiguration)\Insertion -Target $(DropRoot)\Roslyn-Signed\$(Build.SourceBranchName)\$(BuildConfiguration)\$(Build.BuildNumber)\Insertion -ParallelCount 8'
+    arguments: '-Source Binaries\VSSetup\$(BuildConfiguration) -Target $(DropRoot)\Roslyn-Signed\$(Build.SourceBranchName)\$(BuildConfiguration)\$(Build.BuildNumber)\VSSetup -ParallelCount 8'
     filePath: 'build\scripts\vsts-robocopy.ps1'
   condition: succeededOrFailed()
 
