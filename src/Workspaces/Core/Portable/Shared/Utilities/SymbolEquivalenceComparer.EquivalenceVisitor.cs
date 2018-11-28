@@ -272,6 +272,13 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                     return true;
                 }
 
+                // User-defined and Built-in operators are comparable
+                if ((kind1 == MethodKind.BuiltinOperator && kind2 == MethodKind.UserDefinedOperator) ||
+                    (kind1 == MethodKind.UserDefinedOperator && kind2 == MethodKind.BuiltinOperator))
+                {
+                    return true;
+                }
+
                 return false;
             }
 

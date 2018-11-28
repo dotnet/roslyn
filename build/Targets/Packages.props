@@ -11,7 +11,7 @@
   -->
   <PropertyGroup>
     <VersionPrefix>2.11.0</VersionPrefix>
-    <PreReleaseVersionLabel>beta3</PreReleaseVersionLabel>
+    <PreReleaseVersionLabel>beta2</PreReleaseVersionLabel>
     <SemanticVersioningV1>true</SemanticVersioningV1>
 
     <!-- 
@@ -184,6 +184,7 @@
     <SystemIOFileSystemVersion>4.3.0</SystemIOFileSystemVersion>
     <SystemIOFileSystemPrimitivesVersion>4.3.0</SystemIOFileSystemPrimitivesVersion>
     <SystemIOPipesAccessControlVersion>4.3.0</SystemIOPipesAccessControlVersion>
+    <SystemMemoryVersion>4.5.1</SystemMemoryVersion>
     <SystemReflectionMetadataVersion>1.6.0</SystemReflectionMetadataVersion>
     <SystemRuntimeCompilerServicesUnsafeVersion>4.5.0</SystemRuntimeCompilerServicesUnsafeVersion>
     <SystemTextEncodingCodePagesVersion>4.5.0</SystemTextEncodingCodePagesVersion>
@@ -240,7 +241,6 @@
     <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.Debugger.Engine"/>
     <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.Debugger.UI.Interfaces"/>
     <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.Designer.Interfaces"/>
-    <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.Diagnostics.PerformanceProvider"/>
     <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.Editor"/>
     <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.GraphModel"/>
     <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.InteractiveWindow"/>

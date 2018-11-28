@@ -1438,6 +1438,9 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   <data name="Visual_Basic_files" xml:space="preserve">
     <value>Visual Basic files</value>
   </data>
+  <data name="Changing_document_0_is_not_supported" xml:space="preserve">
+    <value>Changing document '{0}' is not supported.</value>
+  </data>
   <data name="ValueUsageInfo_NameOnly" xml:space="preserve">
     <value>NameOnly</value>
   </data>
@@ -1449,5 +1452,8 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   </data>
   <data name="ValueUsageInfo_Write" xml:space="preserve">
     <value>Write</value>
+  </data>
+  <data name="Parameter_preferences" xml:space="preserve">
+    <value>Parameter preferences</value>
   </data>
 </root>

@@ -25,6 +25,7 @@
 
   <Target Name="InitializeCompilerArtifacts">
     <ItemGroup>
+      
       <!-- The Roslyn built binaries must be taken from these locations because this is the location where signing occurs -->
       <CompilerArtifact Include="$(_Dlls)Microsoft.CodeAnalysis\Microsoft.CodeAnalysis.dll" NgenArchitecture="all" NgenApplication="VBCSCompiler.exe"/>
       <CompilerArtifact Include="$(_Dlls)Microsoft.CodeAnalysis\Microsoft.DiaSymReader.Native.amd64.dll"/>
@@ -54,10 +55,16 @@
         This assembly is signed by Open key in CoreFX and MicroBuild does not support this key.
         Arcade SignTool doesn't support signing directly at this point either.
         https://github.com/dotnet/arcade/issues/1204
+        
+        We don't currently collect optimization data for the following assemblies.
       -->
-      <CompilerArtifact Include="$(_Exes)csi\net472\System.*.dll" Exclude="$(_Exes)csi\net472\System.Threading.Tasks.Extensions.dll" NgenArchitecture="all"  NgenApplication="VBCSCompiler.exe" OverwriteOptimizationData="true"/>
-
-      <CompilerArtifact Include="$(_Exes)csi\net472\System.Threading.Tasks.Extensions.dll" NgenArchitecture="all" NgenApplication="VBCSCompiler.exe" OverwriteOptimizationData="false"/>
+      <_NoOptimizationData Include="$(_Exes)csi\net472\System.Threading.Tasks.Extensions.dll"/>
+      <_NoOptimizationData Include="$(_Exes)csi\net472\System.Buffers.dll"/>
+      <_NoOptimizationData Include="$(_Exes)csi\net472\System.Memory.dll"/>
+      <_NoOptimizationData Include="$(_Exes)csi\net472\System.Numerics.Vectors.dll"/>
+      
+      <CompilerArtifact Include="$(_Exes)csi\net472\System.*.dll" Exclude="@(_NoOptimizationData)" NgenArchitecture="all" NgenApplication="VBCSCompiler.exe" OverwriteNgenOptimizationData="true"/>
+      <CompilerArtifact Include="@(_NoOptimizationData)" NgenArchitecture="all" NgenApplication="VBCSCompiler.exe" OverwriteNgenOptimizationData="false"/>
     </ItemGroup>
   </Target>
 </Project>

@@ -106,10 +106,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             return Binder.GetWellKnownTypeMember(F.Compilation, member, bag, body.Syntax.Location);
         }
 
-        protected override bool PreserveInitialParameterValues
-        {
-            get { return false; }
-        }
+        protected override bool PreserveInitialParameterValuesAndThreadId
+            => false;
 
         protected override void GenerateControlFields()
         {
@@ -158,6 +156,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // Constructor
+            GenerateConstructor();
+        }
+
+        protected virtual void GenerateConstructor()
+        {
             if (stateMachineType.TypeKind == TypeKind.Class)
             {
                 F.CurrentFunction = stateMachineType.Constructor;

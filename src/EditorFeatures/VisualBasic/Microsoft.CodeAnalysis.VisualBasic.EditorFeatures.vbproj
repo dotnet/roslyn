@@ -7,7 +7,8 @@
     <OutputType>Library</OutputType>
     <TargetFramework>net472</TargetFramework>
     <RootNamespace></RootNamespace>
-    
+    <ApplyNgenOptimizationData>true</ApplyNgenOptimizationData>
+
     <!-- NuGet -->
     <IsPackable>true</IsPackable>
     <PackageDescription>

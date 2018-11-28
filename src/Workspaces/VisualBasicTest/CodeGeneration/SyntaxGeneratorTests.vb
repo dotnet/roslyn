@@ -2,6 +2,7 @@
 
 Imports System.Globalization
 Imports Microsoft.CodeAnalysis.Editing
+Imports Microsoft.CodeAnalysis.Shared.Extensions
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
@@ -253,8 +254,8 @@ End Class
             VerifySyntax(Of TupleElementSyntax)(Generator.TupleElementExpression(intType), "System.Int32")
             VerifySyntax(Of TupleElementSyntax)(Generator.TupleElementExpression(intType, "y"), "y As System.Int32")
             VerifySyntax(Of TypeSyntax)(Generator.TupleTypeExpression(Generator.TupleElementExpression(Generator.IdentifierName("x")), Generator.TupleElementExpression(Generator.IdentifierName("y"))), "(x, y)")
-            VerifySyntax(Of TypeSyntax)(Generator.TupleTypeExpression(new ITypeSymbol() { intType, intType }), "(System.Int32, System.Int32)")
-            VerifySyntax(Of TypeSyntax)(Generator.TupleTypeExpression(new ITypeSymbol() { intType, intType }, New String() { "x", "y" }), "(x As System.Int32, y As System.Int32)")
+            VerifySyntax(Of TypeSyntax)(Generator.TupleTypeExpression(New ITypeSymbol() {intType, intType}), "(System.Int32, System.Int32)")
+            VerifySyntax(Of TypeSyntax)(Generator.TupleTypeExpression(New ITypeSymbol() {intType, intType}, New String() {"x", "y"}), "(x As System.Int32, y As System.Int32)")
         End Sub
 
         <Fact>
@@ -3362,6 +3363,14 @@ End Class")
 
             VerifySyntax(Of ClassBlockSyntax)(
                 Generator.ReplaceNode(declC, declX, Generator.WithName(declX, "Q")),
+"' Comment
+Public Class C
+
+    Public Shared Q, Y, Z As Integer
+End Class")
+
+            VerifySyntax(Of ClassBlockSyntax)(
+                Generator.ReplaceNode(declC, declX.GetAncestorOrThis(Of ModifiedIdentifierSyntax), SyntaxFactory.ModifiedIdentifier("Q")),
 "' Comment
 Public Class C
 

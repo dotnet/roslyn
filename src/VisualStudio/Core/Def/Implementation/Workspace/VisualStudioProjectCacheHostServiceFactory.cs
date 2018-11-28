@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Workspaces
                 if (documentTrackingService != null)
                 {
                     documentTrackingService.ActiveDocumentChanged += UpdateCache;
-                    UpdateCache(null, documentTrackingService.GetActiveDocument());
+                    UpdateCache(null, documentTrackingService.TryGetActiveDocument());
                 }
             }
 

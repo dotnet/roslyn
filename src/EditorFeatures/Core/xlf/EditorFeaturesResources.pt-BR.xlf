@@ -42,6 +42,16 @@
         <target state="translated">A formatação de documento realizou uma limpeza adicional</target>
         <note />
       </trans-unit>
+      <trans-unit id="Invalid_assembly_name">
+        <source>Invalid assembly name</source>
+        <target state="new">Invalid assembly name</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Invalid_characters_in_assembly_name">
+        <source>Invalid characters in assembly name</source>
+        <target state="new">Invalid characters in assembly name</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Paste_Tracking">
         <source>Paste Tracking</source>
         <target state="new">Paste Tracking</target>
