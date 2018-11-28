@@ -524,7 +524,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundKind.ThisReference:
                 case BoundKind.BaseReference:
-                    // no need for it to be previously assigned: it is on the left.
                     break;
 
                 case BoundKind.PropertyAccess:
@@ -577,7 +576,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected virtual void VisitLvalue(BoundLocal node)
         {
-            // no need for it to be previously assigned: it is on the left.
         }
 
         /// <summary>
@@ -1494,7 +1492,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             foreach (var catchBlock in node.CatchBlocks)
             {
                 SetState(initialState.Clone());
-                VisitCatchBlockWithUnassignments(catchBlock, ref finallyState);
+                VisitCatchBlockWithAnyTransferFunction(catchBlock, ref finallyState);
                 Join(ref endState, ref this.State);
             }
 
@@ -1582,7 +1580,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             VisitStatement(tryBlock);
         }
 
-        private void VisitCatchBlockWithUnassignments(BoundCatchBlock catchBlock, ref TLocalState finallyState)
+        private void VisitCatchBlockWithAnyTransferFunction(BoundCatchBlock catchBlock, ref TLocalState finallyState)
         {
             if (_nonMonotonicTransfer)
             {
@@ -1906,7 +1904,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitRangeVariable(BoundRangeVariable node)
         {
-            // query variables are always definitely assigned; no need to analyze
             return null;
         }
 
@@ -2484,8 +2481,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitContinueStatement(BoundContinueStatement node)
         {
-            // While continue statements do no affect definite assignment, subclasses
-            // such as region flow analysis depend on their presence as pending branches.
             Debug.Assert(!this.IsConditionalState);
             PendingBranches.Add(new PendingBranch(node, this.State));
             SetUnreachable();
@@ -2542,7 +2537,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitBaseReference(BoundBaseReference node)
         {
-            // TODO: in a struct constructor, "this" is not initially assigned.
             return null;
         }
 
@@ -2704,10 +2698,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        /// <summary>
-        /// If the operand is definitely assigned, we may want to perform a read (in addition to
-        /// a write) so that the operand can show up as ReadInside/DataFlowsIn.
-        /// </summary>
         protected void VisitAddressOfOperand(BoundExpression operand, bool shouldReadOperand)
         {
             if (shouldReadOperand)
@@ -2843,7 +2833,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // If the underlying add method is a partial method without a definition, or is a conditional method
                 // whose condition is not true, then the call has no effect and it is ignored for the purposes of
-                // definite assignment analysis.
+                // flow analysis.
 
                 TLocalState savedState = savedState = this.State.Clone();
                 SetUnreachable();
@@ -2931,46 +2921,45 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitNullCoalescingAssignmentOperator(BoundNullCoalescingAssignmentOperator node)
         {
             TLocalState savedState;
-            if (RegularPropertyAccess(node.LeftOperand))
+            if (RegularPropertyAccess(node.LeftOperand) &&
+                (BoundPropertyAccess)node.LeftOperand is var left &&
+                left.PropertySymbol is var property &&
+                property.RefKind == RefKind.None)
             {
-                var left = (BoundPropertyAccess)node.LeftOperand;
-                var property = left.PropertySymbol;
-                if (property.RefKind == RefKind.None)
-                {
-                    var readMethod = property.GetOwnOrInheritedGetMethod();
-                    var writeMethod = property.GetOwnOrInheritedSetMethod();
+                var readMethod = property.GetOwnOrInheritedGetMethod();
 
-                    Debug.Assert(node.HasAnyErrors || (object)readMethod != (object)writeMethod);
+                VisitReceiverBeforeCall(left.ReceiverOpt, readMethod);
+                VisitReceiverAfterCall(left.ReceiverOpt, readMethod);
 
-                    VisitReceiverBeforeCall(left.ReceiverOpt, readMethod);
-                    VisitReceiverAfterCall(left.ReceiverOpt, readMethod);
-
-                    savedState = this.State.Clone();
-
-                    VisitRvalue(node.RightOperand);
-                    PropertySetter(node, left.ReceiverOpt, writeMethod);
-
-                    ConditionallyAssignNullCoalescingOperator(node);
-
-                    Join(ref this.State, ref savedState);
-                    return null;
-                }
+                savedState = this.State.Clone();
+                VisitAssignmentOfNullCoalescingAssignment(node, left);
             }
-
-            VisitRvalue(node.LeftOperand);
-            savedState = this.State.Clone();
-
-            VisitRvalue(node.RightOperand);
-            ConditionallyAssignNullCoalescingOperator(node);
+            else
+            {
+                VisitRvalue(node.LeftOperand);
+                savedState = this.State.Clone();
+                VisitAssignmentOfNullCoalescingAssignment(node, propertyAccessOpt: null);
+            }
 
             Join(ref this.State, ref savedState);
             return null;
         }
 
-        protected virtual void ConditionallyAssignNullCoalescingOperator(BoundNullCoalescingAssignmentOperator node)
+        /// <summary>
+        /// This visitor represents just the assignment part of the null coalescing assignment
+        /// operator.
+        /// </summary>
+        protected virtual void VisitAssignmentOfNullCoalescingAssignment(
+            BoundNullCoalescingAssignmentOperator node,
+            BoundPropertyAccess propertyAccessOpt)
         {
-            // No assignments are recorded in the PreciseAbstractFlowPass; this is overridden in implementors that need
-            // to track this
+            VisitRvalue(node.RightOperand);
+            if (propertyAccessOpt != null)
+            {
+                var symbol = propertyAccessOpt.PropertySymbol;
+                var writeMethod = symbol.GetOwnOrInheritedSetMethod();
+                PropertySetter(node, propertyAccessOpt.ReceiverOpt, writeMethod);
+            }
         }
 
         private void VisitMethodBodies(BoundBlock blockBody, BoundBlock expressionBody)
