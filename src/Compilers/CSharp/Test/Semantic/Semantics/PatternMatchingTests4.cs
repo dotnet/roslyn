@@ -1758,8 +1758,8 @@ interface IA : ITuple
 class A: IA, ITuple
 {
     void IA.Deconstruct(out int X, out int Y) => (X, Y) = (3, 4);
-    int ITuple.Length => 2;
-    object ITuple.this[int i] => i + 5;
+    int ITuple.Length => throw null;
+    object ITuple.this[int i] => throw null;
 }
 ";
             var compilation = CreatePatternCompilation(source);
@@ -1795,8 +1795,8 @@ interface IA : ITuple
 class A: IA, ITuple
 {
     void IA.Deconstruct(out int X, out int Y) => (X, Y) = (3, 4);
-    int ITuple.Length => 2;
-    object ITuple.this[int i] => i + 5;
+    int ITuple.Length => throw null;
+    object ITuple.this[int i] => throw null;
 }
 ";
             var compilation = CreatePatternCompilation(source);
@@ -1815,7 +1815,7 @@ class A: IA, ITuple
             // Here we test the relative priority of steps 2 and 3.
             // - Found more than one applicable Deconstruct method (even though the type implements ITuple): error
 
-            // case 1: var pattern with tuple designator
+            // var pattern with tuple designator
             var source = @"using System;
 using System.Runtime.CompilerServices;
 class Program
@@ -1861,7 +1861,7 @@ class A: IA, I1, I2, ITuple
             // Here we test the relative priority of steps 2 and 3.
             // - Found more than one applicable Deconstruct method (even though the type implements ITuple): error
 
-            // case 1: tuple pattern with var subpatterns
+            // tuple pattern with var subpatterns
             var source = @"using System;
 using System.Runtime.CompilerServices;
 class Program
@@ -1922,7 +1922,7 @@ interface IA : ITuple
 }
 class A: IA, ITuple
 {
-    void IA.Deconstruct(out int X, out int Y, out int Z) => (X, Y, Z) = (3, 4, 5);
+    void IA.Deconstruct(out int X, out int Y, out int Z) => throw null;
     int ITuple.Length => 2;
     object ITuple.this[int i] => i + 5;
 }
@@ -1958,7 +1958,7 @@ interface IA : ITuple
 }
 class A: IA, ITuple
 {
-    void IA.Deconstruct(out int X, out int Y, out int Z) => (X, Y, Z) = (3, 4, 5);
+    void IA.Deconstruct(out int X, out int Y, out int Z) => throw null;
     int ITuple.Length => 2;
     object ITuple.this[int i] => i + 5;
 }
