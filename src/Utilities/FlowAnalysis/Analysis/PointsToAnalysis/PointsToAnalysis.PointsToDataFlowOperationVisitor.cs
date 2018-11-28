@@ -219,7 +219,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                     operation.Parameter.RefKind != RefKind.None &&
                     AnalysisEntityFactory.TryCreate(operation, out var analysisEntity))
                 {
-                    Debug.Assert(HasAbstractValue(analysisEntity));
                     CacheAbstractValue(operation, GetAbstractValue(analysisEntity));
                 }
             }
