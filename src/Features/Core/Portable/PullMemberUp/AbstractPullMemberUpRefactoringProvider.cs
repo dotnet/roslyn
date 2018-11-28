@@ -74,9 +74,9 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
             CancellationToken cancellationToken)
         {
             var containType = selectedMember.ContainingType;
-            var allDestinations = selectedMember.IsKind(SymbolKind.Field) ?
-                containType.GetBaseTypes().ToImmutableArray():
-                containType.AllInterfaces.Concat(containType.GetBaseTypes()).ToImmutableArray();
+            var allDestinations = selectedMember.IsKind(SymbolKind.Field)
+                ? containType.GetBaseTypes().ToImmutableArray()
+                : containType.AllInterfaces.Concat(containType.GetBaseTypes()).ToImmutableArray();
 
             return allDestinations.WhereAsArray(baseType => baseType != null &&
                 baseType.DeclaringSyntaxReferences.Length > 0 &&

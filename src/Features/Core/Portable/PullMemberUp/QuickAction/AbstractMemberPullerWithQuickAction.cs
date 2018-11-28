@@ -43,7 +43,9 @@ namespace Microsoft.CodeAnalysis.PullMemberUp.QuickAction
         { 
             if (result.Destination.TypeKind == TypeKind.Interface)
             {
-                return PullMembersIntoInterface(result, contextDocument);
+                return new DocumentChangeAction(
+                    string.Format(FeaturesResources.Add_to_0, result.Destination),
+                    token => PullMembersIntoInterfaceAsync(result, contextDocument, token));
             }
             else if (result.Destination.TypeKind == TypeKind.Class)
             {
@@ -73,11 +75,16 @@ namespace Microsoft.CodeAnalysis.PullMemberUp.QuickAction
                 solutionEditor, solution, editorMap, syntaxMap);
         }
 
-        private CodeAction PullMembersIntoInterface(
-            PullMembersUpAnalysisResult result,
-            Document contextDocument)
+        private IMethodSymbol FilterGetterOrSetter(IMethodSymbol getterOrSetter)
         {
-            var codeGenerationService = contextDocument.Project.LanguageServices.GetRequiredService<ICodeGenerationService>();
+            return getterOrSetter?.DeclaredAccessibility == Accessibility.Public ? getterOrSetter : null;
+        }
+
+        private async Task<Document> PullMembersIntoInterfaceAsync(
+            PullMembersUpAnalysisResult result,
+            Document contextDocument,
+            CancellationToken cancellationToken)
+        {
             var symbolsToPullUp = result.MembersAnalysisResults.
                 SelectAsArray(analysisResult =>
                 {
@@ -96,19 +103,10 @@ namespace Microsoft.CodeAnalysis.PullMemberUp.QuickAction
                         return analysisResult.Member;
                     }
                 });
-            return new DocumentChangeAction(
-                string.Format(FeaturesResources.Add_to_0, result.Destination),
-                cancellationToken =>
-                {
-                    var options = new CodeGenerationOptions(generateMethodBodies: false, generateMembers: false);
-                    return codeGenerationService.AddMembersAsync(
-                        contextDocument.Project.Solution, result.Destination, symbolsToPullUp, options: options, cancellationToken: cancellationToken);
-                });
-        }
-
-        private IMethodSymbol FilterGetterOrSetter(IMethodSymbol getterOrSetter)
-        {
-            return getterOrSetter?.DeclaredAccessibility == Accessibility.Public ? getterOrSetter : null;
+            var codeGenerationService = contextDocument.Project.LanguageServices.GetRequiredService<ICodeGenerationService>();
+            var options = new CodeGenerationOptions(generateMethodBodies: false, generateMembers: false);
+            return await codeGenerationService.AddMembersAsync(
+                contextDocument.Project.Solution, result.Destination, symbolsToPullUp, options: options, cancellationToken: cancellationToken);
         }
 
         private Solution PullMembersIntoClass(
