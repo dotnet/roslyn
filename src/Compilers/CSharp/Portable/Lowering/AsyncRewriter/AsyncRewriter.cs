@@ -106,9 +106,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             return Binder.GetWellKnownTypeMember(F.Compilation, member, bag, body.Syntax.Location);
         }
 
-        // Should only be true for async-enumerables, not async-enumerators. Tracked by https://github.com/dotnet/roslyn/issues/31057
         protected override bool PreserveInitialParameterValuesAndThreadId
-            => method.IsIterator;
+            => false;
 
         protected override void GenerateControlFields()
         {

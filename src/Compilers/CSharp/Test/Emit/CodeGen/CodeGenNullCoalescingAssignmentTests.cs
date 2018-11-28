@@ -2369,5 +2369,21 @@ public class C {
                 //         Expression<Func<string>> e0 = () => x ??= null;
                 Diagnostic(ErrorCode.ERR_ExpressionTreeCantContainNullCoalescingAssignment, "x ??= null").WithLocation(7, 45));
         }
+
+        [Fact]
+        public void PointersDisallowed()
+        {
+            CreateCompilation(@"
+class C
+{
+    unsafe void M(int* i1, int* i2)
+    {
+        i1 ??= i2;
+    }
+}", options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+                // (6,9): error CS0019: Operator '??=' cannot be applied to operands of type 'int*' and 'int*'
+                //         i1 ??= i2;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "i1 ??= i2").WithArguments("??=", "int*", "int*").WithLocation(6, 9));
+        }
     }
 }

@@ -171,7 +171,6 @@ namespace Roslyn.Utilities
             return hashCode;
         }
 
-#if !CODE_STYLE
         /// <summary>
         /// Compute the FNV-1a hash of a sequence of bytes and determines if the byte
         /// sequence is valid ASCII and hence the hash code matches a char sequence
@@ -197,7 +196,6 @@ namespace Roslyn.Utilities
             isAscii = (asciiMask & 0x80) == 0;
             return hashCode;
         }
-#endif
 
         /// <summary>
         /// Compute the FNV-1a hash of a sequence of bytes
