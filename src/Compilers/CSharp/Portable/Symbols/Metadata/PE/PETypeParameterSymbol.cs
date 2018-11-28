@@ -290,9 +290,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 {
                     switch ((NullableAnnotation)transformFlag)
                     {
-                        case NullableAnnotation.Nullable:
+                        case NullableAnnotation.Annotated:
                             return true;
-                        case NullableAnnotation.NotNullable:
+                        case NullableAnnotation.NotAnnotated:
                             return false;
                     }
                 }

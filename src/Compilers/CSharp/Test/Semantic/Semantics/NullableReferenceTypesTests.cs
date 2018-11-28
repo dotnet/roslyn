@@ -1618,36 +1618,36 @@ namespace System
             comp0.VerifyDiagnostics();
             compRefs0 = new MetadataReference[] { new CSharpCompilationReference(comp0) };
             metadataRefs0 = new[] { comp0.EmitToImageReference() };
-            Assert.Equal(NullableAnnotation.NotNullable, getParameterType(comp0).NullableAnnotation);
+            Assert.Equal(NullableAnnotation.NotAnnotated, getParameterType(comp0).NullableAnnotation);
 
             // ... used in 7.0.
             comp1 = CreateCompilation(source1, references: compRefs0, parseOptions: TestOptions.Regular7);
             comp1.VerifyDiagnostics();
-            Assert.Equal(NullableAnnotation.NotNullable, getParameterType(comp1).NullableAnnotation);
+            Assert.Equal(NullableAnnotation.NotAnnotated, getParameterType(comp1).NullableAnnotation);
             comp1 = CreateCompilation(source1, references: metadataRefs0, parseOptions: TestOptions.Regular7);
             comp1.VerifyDiagnostics();
-            Assert.Equal(NullableAnnotation.NotNullable, getParameterType(comp1).NullableAnnotation);
+            Assert.Equal(NullableAnnotation.NotAnnotated, getParameterType(comp1).NullableAnnotation);
 
             // ... used in 8.0.
             comp1 = CreateCompilation(source1, references: compRefs0);
             comp1.VerifyDiagnostics();
-            Assert.Equal(NullableAnnotation.NotNullable, getParameterType(comp1).NullableAnnotation);
+            Assert.Equal(NullableAnnotation.NotAnnotated, getParameterType(comp1).NullableAnnotation);
             comp1 = CreateCompilation(source1, references: metadataRefs0);
             comp1.VerifyDiagnostics();
-            Assert.Equal(NullableAnnotation.NotNullable, getParameterType(comp1).NullableAnnotation);
+            Assert.Equal(NullableAnnotation.NotAnnotated, getParameterType(comp1).NullableAnnotation);
 
             comp1 = CreateCompilation(new[] { source1 }, options: WithNonNullTypesTrue(), references: compRefs0);
             comp1.VerifyDiagnostics(
                 // (6,13): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
                 //         A.F(null);
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(6, 13));
-            Assert.Equal(NullableAnnotation.NotNullable, getParameterType(comp1).NullableAnnotation);
+            Assert.Equal(NullableAnnotation.NotAnnotated, getParameterType(comp1).NullableAnnotation);
             comp1 = CreateCompilation(new[] { source1 }, options: WithNonNullTypesTrue(), references: metadataRefs0);
             comp1.VerifyDiagnostics(
                 // (6,13): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
                 //         A.F(null);
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(6, 13));
-            Assert.Equal(NullableAnnotation.NotNullable, getParameterType(comp1).NullableAnnotation);
+            Assert.Equal(NullableAnnotation.NotAnnotated, getParameterType(comp1).NullableAnnotation);
         }
 
         [Fact]
@@ -3003,7 +3003,7 @@ class E
         {
             Assert.Equal(expectNonNullTypes, method.NonNullTypes);
 
-            if (method.ReturnType.NullableAnnotation != NullableAnnotation.Nullable)
+            if (method.ReturnType.NullableAnnotation != NullableAnnotation.Annotated)
             {
                 if (method is SynthesizedInstanceConstructor)
                 {
@@ -4039,20 +4039,20 @@ class C3
                 );
 
             verify("C1.F1", "System.String", NullableAnnotation.Unknown);
-            verify("C1.F2", "System.String?", NullableAnnotation.Nullable);
+            verify("C1.F2", "System.String?", NullableAnnotation.Annotated);
             verify("C1.F3", "System.Int32", NullableAnnotation.Unknown);
-            verify("C1.F4", "System.Int32?", NullableAnnotation.Nullable);
-            verify("C1.F5", "System.Int32?", NullableAnnotation.Nullable);
+            verify("C1.F4", "System.Int32?", NullableAnnotation.Annotated);
+            verify("C1.F5", "System.Int32?", NullableAnnotation.Annotated);
             verify("C2.F1", "System.String", NullableAnnotation.Unknown);
-            verify("C2.F2", "System.String?", NullableAnnotation.Nullable);
+            verify("C2.F2", "System.String?", NullableAnnotation.Annotated);
             verify("C2.F3", "System.Int32", NullableAnnotation.Unknown);
-            verify("C2.F4", "System.Int32?", NullableAnnotation.Nullable);
-            verify("C2.F5", "System.Int32?", NullableAnnotation.Nullable);
-            verify("C3.F1", "System.String!", NullableAnnotation.NotNullable);
-            verify("C3.F2", "System.String?", NullableAnnotation.Nullable);
-            verify("C3.F3", "System.Int32", NullableAnnotation.NotNullable);
-            verify("C3.F4", "System.Int32?", NullableAnnotation.Nullable);
-            verify("C3.F5", "System.Int32?", NullableAnnotation.Nullable);
+            verify("C2.F4", "System.Int32?", NullableAnnotation.Annotated);
+            verify("C2.F5", "System.Int32?", NullableAnnotation.Annotated);
+            verify("C3.F1", "System.String!", NullableAnnotation.NotAnnotated);
+            verify("C3.F2", "System.String?", NullableAnnotation.Annotated);
+            verify("C3.F3", "System.Int32", NullableAnnotation.NotAnnotated);
+            verify("C3.F4", "System.Int32?", NullableAnnotation.Annotated);
+            verify("C3.F5", "System.Int32?", NullableAnnotation.Annotated);
 
             // https://github.com/dotnet/roslyn/issues/29845: Test nested nullability.
 
@@ -4135,26 +4135,26 @@ class C3
             );
 
             verify("C1.F1", "T", NullableAnnotation.Unknown);
-            verify("C1.F2", "T?", NullableAnnotation.Nullable);
+            verify("C1.F2", "T?", NullableAnnotation.Annotated);
             verify("C1.F3", "T", NullableAnnotation.Unknown);
-            verify("C1.F4", "T?", NullableAnnotation.Nullable);
+            verify("C1.F4", "T?", NullableAnnotation.Annotated);
             verify("C1.F5", "T", NullableAnnotation.Unknown);
-            verify("C1.F6", "T?", NullableAnnotation.Nullable);
-            verify("C1.F7", "T?", NullableAnnotation.Nullable);
+            verify("C1.F6", "T?", NullableAnnotation.Annotated);
+            verify("C1.F7", "T?", NullableAnnotation.Annotated);
             verify("C2.F1", "T", NullableAnnotation.Unknown);
-            verify("C2.F2", "T?", NullableAnnotation.Nullable);
+            verify("C2.F2", "T?", NullableAnnotation.Annotated);
             verify("C2.F3", "T", NullableAnnotation.Unknown);
-            verify("C2.F4", "T?", NullableAnnotation.Nullable);
+            verify("C2.F4", "T?", NullableAnnotation.Annotated);
             verify("C2.F5", "T", NullableAnnotation.Unknown);
-            verify("C2.F6", "T?", NullableAnnotation.Nullable);
-            verify("C2.F7", "T?", NullableAnnotation.Nullable);
-            verify("C3.F1", "T", NullableAnnotation.NotNullable);
-            verify("C3.F2", "T?", NullableAnnotation.Nullable);
-            verify("C3.F3", "T!", NullableAnnotation.NotNullable);
-            verify("C3.F4", "T?", NullableAnnotation.Nullable);
-            verify("C3.F5", "T", NullableAnnotation.NotNullable);
-            verify("C3.F6", "T?", NullableAnnotation.Nullable);
-            verify("C3.F7", "T?", NullableAnnotation.Nullable);
+            verify("C2.F6", "T?", NullableAnnotation.Annotated);
+            verify("C2.F7", "T?", NullableAnnotation.Annotated);
+            verify("C3.F1", "T", NullableAnnotation.NotAnnotated);
+            verify("C3.F2", "T?", NullableAnnotation.Annotated);
+            verify("C3.F3", "T!", NullableAnnotation.NotAnnotated);
+            verify("C3.F4", "T?", NullableAnnotation.Annotated);
+            verify("C3.F5", "T", NullableAnnotation.NotAnnotated);
+            verify("C3.F6", "T?", NullableAnnotation.Annotated);
+            verify("C3.F7", "T?", NullableAnnotation.Annotated);
 
             // https://github.com/dotnet/roslyn/issues/29845: Test nested nullability.
             // https://github.com/dotnet/roslyn/issues/29845: Test all combinations of overrides.
@@ -4353,13 +4353,13 @@ class B : A
             var b = compilation.GetTypeByMetadataName("B");
             var m1 = b.GetMember<MethodSymbol>("M1");
             Assert.False(m1.Parameters[0].Type.IsNullableType());
-            Assert.Equal(NullableAnnotation.Nullable, m1.Parameters[0].Type.NullableAnnotation);
+            Assert.Equal(NullableAnnotation.Annotated, m1.Parameters[0].Type.NullableAnnotation);
             Assert.True(m1.Parameters[0].Type.IsReferenceType);
             Assert.False(m1.OverriddenMethod.Parameters[0].Type.IsNullableType());
 
             var m2 = b.GetMember<MethodSymbol>("M2");
             Assert.False(m2.ReturnType.IsNullableType());
-            Assert.Equal(NullableAnnotation.Nullable, m2.ReturnType.NullableAnnotation);
+            Assert.Equal(NullableAnnotation.Annotated, m2.ReturnType.NullableAnnotation);
             Assert.True(m2.ReturnType.IsReferenceType);
             Assert.False(m2.OverriddenMethod.ReturnType.IsNullableType());
         }
@@ -4956,7 +4956,7 @@ class B : A
             var b = compilation.GetTypeByMetadataName("B");
             var m1 = b.GetMember<MethodSymbol>("M1");
             Assert.False(m1.Parameters[0].Type.IsNullableType());
-            Assert.Equal(NullableAnnotation.Nullable, m1.Parameters[0].Type.NullableAnnotation);
+            Assert.Equal(NullableAnnotation.Annotated, m1.Parameters[0].Type.NullableAnnotation);
             Assert.True(m1.Parameters[0].Type.IsReferenceType);
             Assert.False(m1.OverriddenMethod.Parameters[0].Type.IsNullableType());
 
@@ -17211,7 +17211,7 @@ class CL1
             var declarator = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().First();
             var symbol = (LocalSymbol)model.GetDeclaredSymbol(declarator);
             Assert.Equal("System.String", symbol.Type.ToTestDisplayString());
-            Assert.Equal(NullableAnnotation.NotNullable, symbol.Type.NullableAnnotation);
+            Assert.Equal(NullableAnnotation.NotAnnotated, symbol.Type.NullableAnnotation);
         }
 
         [Fact]
@@ -17267,7 +17267,7 @@ class CL1
             var declarator = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().First();
             var symbol = (LocalSymbol)model.GetDeclaredSymbol(declarator);
             Assert.Equal("System.String?", symbol.Type.ToTestDisplayString());
-            Assert.Equal(NullableAnnotation.Nullable, symbol.Type.NullableAnnotation);
+            Assert.Equal(NullableAnnotation.Annotated, symbol.Type.NullableAnnotation);
         }
 
         [Fact]
@@ -17298,7 +17298,7 @@ class CL1
             var declarator = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().First();
             var symbol = (LocalSymbol)model.GetDeclaredSymbol(declarator);
             Assert.Equal("System.String?", symbol.Type.ToTestDisplayString());
-            Assert.Equal(NullableAnnotation.Nullable, symbol.Type.NullableAnnotation);
+            Assert.Equal(NullableAnnotation.Annotated, symbol.Type.NullableAnnotation);
         }
 
         [Fact]
@@ -17332,7 +17332,7 @@ class CL1
             // https://github.com/dotnet/roslyn/issues/29856: Type should be `string!`.
             Assert.Equal("System.String?", symbol.Type.ToTestDisplayString());
             // https://github.com/dotnet/roslyn/issues/29856: IsNullable should be inferred nullable state: false.
-            Assert.Equal(NullableAnnotation.Nullable, symbol.Type.NullableAnnotation);
+            Assert.Equal(NullableAnnotation.Annotated, symbol.Type.NullableAnnotation);
         }
 
         [Fact]
@@ -17365,7 +17365,7 @@ class CL1
             var declarator = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().First();
             var symbol = (LocalSymbol)model.GetDeclaredSymbol(declarator);
             Assert.Equal("System.String?", symbol.Type.ToTestDisplayString());
-            Assert.Equal(NullableAnnotation.Nullable, symbol.Type.NullableAnnotation);
+            Assert.Equal(NullableAnnotation.Annotated, symbol.Type.NullableAnnotation);
         }
 
         [Fact]
@@ -17397,7 +17397,7 @@ class CL1
             var declarator = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().First();
             var symbol = (LocalSymbol)model.GetDeclaredSymbol(declarator);
             Assert.Equal("System.String?", symbol.Type.ToTestDisplayString());
-            Assert.Equal(NullableAnnotation.Nullable, symbol.Type.NullableAnnotation);
+            Assert.Equal(NullableAnnotation.Annotated, symbol.Type.NullableAnnotation);
         }
 
         [Fact]
@@ -17430,7 +17430,7 @@ class CL1
             var declarator = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().First();
             var symbol = (LocalSymbol)model.GetDeclaredSymbol(declarator);
             Assert.Equal("System.String?", symbol.Type.ToTestDisplayString());
-            Assert.Equal(NullableAnnotation.Nullable, symbol.Type.NullableAnnotation);
+            Assert.Equal(NullableAnnotation.Annotated, symbol.Type.NullableAnnotation);
         }
 
         [Fact]
@@ -17464,7 +17464,7 @@ class CL1
             var declarator = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().First();
             var symbol = (LocalSymbol)model.GetDeclaredSymbol(declarator);
             Assert.Equal("System.String?", symbol.Type.ToTestDisplayString());
-            Assert.Equal(NullableAnnotation.Nullable, symbol.Type.NullableAnnotation);
+            Assert.Equal(NullableAnnotation.Annotated, symbol.Type.NullableAnnotation);
         }
 
         [Fact]
@@ -23924,7 +23924,7 @@ class C
             Assert.True(symbol.Type.NullableAnnotation.IsAnyNullable());
             symbol = (LocalSymbol)model.GetDeclaredSymbol(declarators[1]);
             Assert.Equal("System.Int32?", symbol.Type.ToTestDisplayString(true));
-            Assert.Equal(NullableAnnotation.Nullable, symbol.Type.NullableAnnotation);
+            Assert.Equal(NullableAnnotation.Annotated, symbol.Type.NullableAnnotation);
         }
 
         [Fact]
@@ -24036,10 +24036,10 @@ class C
             var declarators = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().ToArray();
             var symbol = (LocalSymbol)model.GetDeclaredSymbol(declarators[0]);
             Assert.Equal("System.String!", symbol.Type.ToTestDisplayString(true));
-            Assert.Equal(NullableAnnotation.NotNullable, symbol.Type.NullableAnnotation);
+            Assert.Equal(NullableAnnotation.NotAnnotated, symbol.Type.NullableAnnotation);
             symbol = (LocalSymbol)model.GetDeclaredSymbol(declarators[1]);
             Assert.Equal("System.Int32", symbol.Type.ToTestDisplayString(true));
-            Assert.Equal(NullableAnnotation.NotNullable, symbol.Type.NullableAnnotation);
+            Assert.Equal(NullableAnnotation.NotAnnotated, symbol.Type.NullableAnnotation);
         }
 
         [Fact]
@@ -24070,10 +24070,10 @@ class C
             var declarators = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().ToArray();
             var symbol = (LocalSymbol)model.GetDeclaredSymbol(declarators[0]);
             Assert.Equal("System.String?", symbol.Type.ToTestDisplayString(true));
-            Assert.Equal(NullableAnnotation.Nullable, symbol.Type.NullableAnnotation);
+            Assert.Equal(NullableAnnotation.Annotated, symbol.Type.NullableAnnotation);
             symbol = (LocalSymbol)model.GetDeclaredSymbol(declarators[1]);
             Assert.Equal("System.Int32?", symbol.Type.ToTestDisplayString(true));
-            Assert.Equal(NullableAnnotation.Nullable, symbol.Type.NullableAnnotation);
+            Assert.Equal(NullableAnnotation.Annotated, symbol.Type.NullableAnnotation);
         }
 
         [Fact]
@@ -24106,7 +24106,7 @@ class C
             var declarators = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().ToArray();
             var symbol = (LocalSymbol)model.GetDeclaredSymbol(declarators[0]);
             Assert.Equal("T", symbol.Type.ToTestDisplayString(true));
-            Assert.Equal(NullableAnnotation.NotNullable, symbol.Type.NullableAnnotation);
+            Assert.Equal(NullableAnnotation.NotAnnotated, symbol.Type.NullableAnnotation);
         }
 
         [Fact]
@@ -24143,10 +24143,10 @@ class C
             var declarators = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().ToArray();
             var symbol = (LocalSymbol)model.GetDeclaredSymbol(declarators[0]);
             Assert.Equal("T!", symbol.Type.ToTestDisplayString(true));
-            Assert.Equal(NullableAnnotation.NotNullable, symbol.Type.NullableAnnotation);
+            Assert.Equal(NullableAnnotation.NotAnnotated, symbol.Type.NullableAnnotation);
             symbol = (LocalSymbol)model.GetDeclaredSymbol(declarators[1]);
             Assert.Equal("T?", symbol.Type.ToTestDisplayString(true));
-            Assert.Equal(NullableAnnotation.Nullable, symbol.Type.NullableAnnotation);
+            Assert.Equal(NullableAnnotation.Annotated, symbol.Type.NullableAnnotation);
         }
 
         // https://github.com/dotnet/roslyn/issues/29618: Track nullability through deconstruction assignment.
