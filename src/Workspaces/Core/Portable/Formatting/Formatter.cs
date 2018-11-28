@@ -161,7 +161,6 @@ namespace Microsoft.CodeAnalysis.Formatting
         public static SyntaxNode Format(SyntaxNode node, SyntaxAnnotation annotation, Workspace workspace, OptionSet options = null, CancellationToken cancellationToken = default)
         {
             options = options ?? workspace.Options;
-            options = options.WithChangedOption(FormattingOptions.AllowConcurrent, false);
             var resultTask = FormatAsync(node, annotation, workspace, options, cancellationToken);
             Debug.Assert(resultTask.IsCompleted);
             return resultTask.WaitAndGetResult_CanCallOnBackground(cancellationToken);
@@ -205,7 +204,6 @@ namespace Microsoft.CodeAnalysis.Formatting
         public static SyntaxNode Format(SyntaxNode node, Workspace workspace, OptionSet options = null, CancellationToken cancellationToken = default)
         {
             options = options ?? workspace.Options;
-            options = options.WithChangedOption(FormattingOptions.AllowConcurrent, false);
             var resultTask = FormatAsync(node, workspace, options, cancellationToken);
             Debug.Assert(resultTask.IsCompleted);
             return resultTask.WaitAndGetResult_CanCallOnBackground(cancellationToken);
@@ -226,7 +224,6 @@ namespace Microsoft.CodeAnalysis.Formatting
         public static SyntaxNode Format(SyntaxNode node, TextSpan span, Workspace workspace, OptionSet options = null, CancellationToken cancellationToken = default)
         {
             options = options ?? workspace.Options;
-            options = options.WithChangedOption(FormattingOptions.AllowConcurrent, false);
             var resultTask = FormatAsync(node, span, workspace, options, cancellationToken);
             Debug.Assert(resultTask.IsCompleted);
             return resultTask.WaitAndGetResult_CanCallOnBackground(cancellationToken);
@@ -247,7 +244,6 @@ namespace Microsoft.CodeAnalysis.Formatting
         public static SyntaxNode Format(SyntaxNode node, IEnumerable<TextSpan> spans, Workspace workspace, OptionSet options = null, CancellationToken cancellationToken = default)
         {
             options = options ?? workspace.Options;
-            options = options.WithChangedOption(FormattingOptions.AllowConcurrent, false);
             var resultTask = FormatAsync(node, spans, workspace, options, cancellationToken);
             Debug.Assert(resultTask.IsCompleted);
             return resultTask.WaitAndGetResult_CanCallOnBackground(cancellationToken);
@@ -259,7 +255,6 @@ namespace Microsoft.CodeAnalysis.Formatting
         internal static SyntaxNode Format(SyntaxNode node, IEnumerable<TextSpan> spans, Workspace workspace, OptionSet options, IEnumerable<IFormattingRule> rules, CancellationToken cancellationToken)
         {
             options = options ?? workspace.Options;
-            options = options.WithChangedOption(FormattingOptions.AllowConcurrent, false);
             var resultTask = FormatAsync(node, spans, workspace, options, rules, cancellationToken);
             Debug.Assert(resultTask.IsCompleted);
             return resultTask.WaitAndGetResult_CanCallOnBackground(cancellationToken);
@@ -300,7 +295,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             options = options ?? workspace.Options;
             rules = rules ?? GetDefaultFormattingRules(workspace, node.Language);
             spans = spans ?? SpecializedCollections.SingletonEnumerable(node.FullSpan);
-            return languageFormatter.FormatAsync(node, spans, options, rules, cancellationToken);
+            return Task.FromResult(languageFormatter.Format(node, spans, options, rules, cancellationToken));
         }
 
         /// <summary>
@@ -314,7 +309,6 @@ namespace Microsoft.CodeAnalysis.Formatting
         public static IList<TextChange> GetFormattedTextChanges(SyntaxNode node, Workspace workspace, OptionSet options = null, CancellationToken cancellationToken = default)
         {
             options = options ?? workspace.Options;
-            options = options.WithChangedOption(FormattingOptions.AllowConcurrent, false);
             var resultTask = GetFormattedTextChangesAsync(node, workspace, options, cancellationToken);
             Debug.Assert(resultTask.IsCompleted);
             return resultTask.WaitAndGetResult_CanCallOnBackground(cancellationToken);
@@ -335,7 +329,6 @@ namespace Microsoft.CodeAnalysis.Formatting
         public static IList<TextChange> GetFormattedTextChanges(SyntaxNode node, TextSpan span, Workspace workspace, OptionSet options = null, CancellationToken cancellationToken = default)
         {
             options = options ?? workspace.Options;
-            options = options.WithChangedOption(FormattingOptions.AllowConcurrent, false);
             var resultTask = GetFormattedTextChangesAsync(node, span, workspace, options, cancellationToken);
             Debug.Assert(resultTask.IsCompleted);
             return resultTask.WaitAndGetResult_CanCallOnBackground(cancellationToken);
@@ -356,7 +349,6 @@ namespace Microsoft.CodeAnalysis.Formatting
         public static IList<TextChange> GetFormattedTextChanges(SyntaxNode node, IEnumerable<TextSpan> spans, Workspace workspace, OptionSet options = null, CancellationToken cancellationToken = default)
         {
             options = options ?? workspace.Options;
-            options = options.WithChangedOption(FormattingOptions.AllowConcurrent, false);
             var resultTask = GetFormattedTextChangesAsync(node, spans, workspace, options, cancellationToken);
             Debug.Assert(resultTask.IsCompleted);
             return resultTask.WaitAndGetResult_CanCallOnBackground(cancellationToken);
@@ -368,7 +360,6 @@ namespace Microsoft.CodeAnalysis.Formatting
         internal static IList<TextChange> GetFormattedTextChanges(SyntaxNode node, IEnumerable<TextSpan> spans, Workspace workspace, OptionSet options, IEnumerable<IFormattingRule> rules, CancellationToken cancellationToken)
         {
             options = options ?? workspace.Options;
-            options = options.WithChangedOption(FormattingOptions.AllowConcurrent, false);
             var resultTask = GetFormattedTextChangesAsync(node, spans, workspace, options, rules, cancellationToken);
             Debug.Assert(resultTask.IsCompleted);
             return resultTask.WaitAndGetResult_CanCallOnBackground(cancellationToken);

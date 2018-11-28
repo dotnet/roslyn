@@ -648,6 +648,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (targetType.IsReferenceType)
                 {
+                    // https://github.com/dotnet/roslyn/issues/31395,
                     // https://github.com/dotnet/roslyn/issues/29968 We should copy all tracked state from `value`,
                     // regardless of BoundNode type, but we'll need to handle cycles. (For instance, the
                     // assignment to C.F below. See also NullableReferenceTypesTests.Members_FieldCycle_01.)
@@ -730,36 +731,30 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (fieldOrPropertyType.IsReferenceType)
             {
-                // If statically declared as not-nullable, no need to adjust the tracking info. 
-                // Declaration information takes priority.
-                if (fieldOrPropertyType.IsNullable != false)
+                int targetMemberSlot = GetOrCreateSlot(member, targetContainerSlot);
+                NullableAnnotation value = fieldOrPropertyType.NullableAnnotation;
+                // https://github.com/dotnet/roslyn/issues/29968 Remove isByRefTarget check?
+                if (isByRefTarget)
                 {
-                    int targetMemberSlot = GetOrCreateSlot(member, targetContainerSlot);
-                    NullableAnnotation value = fieldOrPropertyType.NullableAnnotation;
-                    // https://github.com/dotnet/roslyn/issues/29968 Remove isByRefTarget check?
-                    if (isByRefTarget)
-                    {
-                        // This is a member access through a by ref entity and it isn't considered declared as not-nullable. 
-                        // Since reference can point to the heap, we cannot assume the member doesn't have null value
-                        // after this assignment, regardless of what value is being assigned.
-                    }
-                    else if (valueContainerSlot > 0)
-                    {
-                        int valueMemberSlot = VariableSlot(member, valueContainerSlot);
-                        value = valueMemberSlot > 0 && valueMemberSlot < this.State.Capacity ?
-                            this.State[valueMemberSlot] :
-                            NullableAnnotation.Unknown;
-                    }
-
-                    this.State[targetMemberSlot] = value;
+                    // This is a member access through a by ref entity and it isn't considered declared as not-nullable. 
+                    // Since reference can point to the heap, we cannot assume the member doesn't have null value
+                    // after this assignment, regardless of what value is being assigned.
                 }
+                else if (valueContainerSlot > 0)
+                {
+                    int valueMemberSlot = VariableSlot(member, valueContainerSlot);
+                    value = valueMemberSlot > 0 && valueMemberSlot < this.State.Capacity ?
+                        this.State[valueMemberSlot] :
+                        NullableAnnotation.Unknown;
+                }
+
+                this.State[targetMemberSlot] = value;
 
                 if (valueContainerSlot > 0)
                 {
                     int valueMemberSlot = VariableSlot(member, valueContainerSlot);
                     if (valueMemberSlot > 0 && valueMemberSlot <= slotWatermark)
                     {
-                        int targetMemberSlot = GetOrCreateSlot(member, targetContainerSlot);
                         InheritNullableStateOfTrackableType(targetMemberSlot, valueMemberSlot, isByRefTarget, slotWatermark);
                     }
                 }
