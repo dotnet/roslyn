@@ -1705,7 +1705,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public static bool IsBadAsyncReturn(this TypeSymbol returnType, CSharpCompilation declaringCompilation)
         {
             // Note: we're passing the return type explicitly (rather than using `method.ReturnType`) to avoid cycles
-            return returnType.SpecialType != SpecialType.System_Void &&
+            return !returnType.IsErrorType() &&
+                returnType.SpecialType != SpecialType.System_Void &&
                 !returnType.IsNonGenericTaskType(declaringCompilation) &&
                 !returnType.IsGenericTaskType(declaringCompilation) &&
                 !returnType.IsIAsyncEnumerableType(declaringCompilation) &&
