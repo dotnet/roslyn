@@ -902,6 +902,7 @@ namespace PushUpTest
                         new XAttribute("CommonReferences", "true"),
                         new XElement("ProjectReferences", "VBAssembly"),
                         new XElement("Document", @"
+using VBAssembly;
 public class TestClass : VBClass
 {
     public int Bar[||]bar()
@@ -931,6 +932,7 @@ End Class
                         new XAttribute("CommonReferences", "true"),
                         new XElement("ProjectReferences", "VBAssembly"),
                         new XElement("Document", @"
+using VBAssembly;
 public class TestClass : VBInterface
 {
     public int Bar[||]bar()
@@ -960,6 +962,7 @@ End Interface
                         new XAttribute("CommonReferences", "true"),
                         new XElement("ProjectReferences", "VBAssembly"),
                         new XElement("Document", @"
+using VBAssembly;
 public class TestClass : VBClass
 {
     public int fo[||]obar = 0;
@@ -986,6 +989,7 @@ End Class
                         new XAttribute("CommonReferences", "true"),
                         new XElement("ProjectReferences", "VBAssembly"),
                         new XElement("Document", @"
+using VBAssembly;
 public class TestClass : VBClass
 {
     public int foo[||]bar
@@ -1016,6 +1020,7 @@ End Class
                         new XAttribute("CommonReferences", "true"),
                         new XElement("ProjectReferences", "VBAssembly"),
                         new XElement("Document", @"
+using VBAssembly;
 public class TestClass : VBInterface
 {
     public int foo[||]bar
@@ -1046,6 +1051,7 @@ End Interface
                         new XAttribute("CommonReferences", "true"),
                         new XElement("ProjectReferences", "VBAssembly"),
                         new XElement("Document", @"
+using VBAssembly;
 public class TestClass : VBClass
 {
     public event EventHandler BarEve[||]nt;
@@ -1072,6 +1078,7 @@ End Class
                         new XAttribute("CommonReferences", "true"),
                         new XElement("ProjectReferences", "VBAssembly"),
                         new XElement("Document", @"
+using VBAssembly;
 public class TestClass : VBInterface
 {
     public event EventHandler BarEve[||]nt;
