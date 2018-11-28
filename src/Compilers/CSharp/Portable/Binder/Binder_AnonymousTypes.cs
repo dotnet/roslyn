@@ -89,11 +89,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 switch (((CSharpParseOptions)node.SyntaxTree?.Options)?.IsFeatureEnabled(MessageID.IDS_FeatureNullableReferenceTypes))
                 {
                     case true:
-                        nullableAnnotation = fieldType.IsReferenceType ? NullableAnnotation.Nullable : NullableAnnotation.NotNullable;
+                        nullableAnnotation = fieldType.IsReferenceType ? NullableAnnotation.Annotated : NullableAnnotation.NotAnnotated;
                         break;
 
                     case false:
-                        nullableAnnotation = NullableAnnotation.NotNullable;
+                        nullableAnnotation = NullableAnnotation.NotAnnotated;
                         break;
 
                     default:

@@ -1497,14 +1497,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             type.AddNullableTransforms(flagsBuilder);
 
             Debug.Assert(flagsBuilder.Any());
-            Debug.Assert(flagsBuilder.Contains((byte)NullableAnnotation.NotNullable) || flagsBuilder.Contains((byte)NullableAnnotation.Nullable));
+            Debug.Assert(flagsBuilder.Contains((byte)NullableAnnotation.NotAnnotated) || flagsBuilder.Contains((byte)NullableAnnotation.Annotated));
 
             WellKnownMember constructor;
             ImmutableArray<TypedConstant> arguments;
             NamedTypeSymbol byteType = Compilation.GetSpecialType(SpecialType.System_Byte);
             Debug.Assert((object)byteType != null);
 
-            if (flagsBuilder.All(flag => flag == (byte)NullableAnnotation.NotNullable) || flagsBuilder.All(flag => flag == (byte)NullableAnnotation.Nullable))
+            if (flagsBuilder.All(flag => flag == (byte)NullableAnnotation.NotAnnotated) || flagsBuilder.All(flag => flag == (byte)NullableAnnotation.Annotated))
             {
                 constructor = WellKnownMember.System_Runtime_CompilerServices_NullableAttribute__ctorByte;
                 arguments = ImmutableArray.Create(new TypedConstant(byteType, TypedConstantKind.Primitive, flagsBuilder[0]));
@@ -1515,7 +1515,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
                 foreach (byte flag in flagsBuilder)
                 {
-                    Debug.Assert(flag == (byte)NullableAnnotation.Unknown || flag == (byte)NullableAnnotation.NotNullable || flag == (byte)NullableAnnotation.Nullable);
+                    Debug.Assert(flag == (byte)NullableAnnotation.Unknown || flag == (byte)NullableAnnotation.NotAnnotated || flag == (byte)NullableAnnotation.Annotated);
                     constantsBuilder.Add(new TypedConstant(byteType, TypedConstantKind.Primitive, flag));
                 }
 
