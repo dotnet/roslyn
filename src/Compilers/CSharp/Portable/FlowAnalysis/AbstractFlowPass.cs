@@ -3,7 +3,6 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -213,9 +212,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool first = true;
             foreach (var key in _labels.Keys)
             {
-                if (!first) result.Append(", ");
+                if (!first)
+                {
+                    result.Append(", ");
+                }
+
                 string name = key.Name;
-                if (string.IsNullOrEmpty(name)) name = "<Label>" + key.GetHashCode();
+                if (string.IsNullOrEmpty(name))
+                {
+                    name = "<Label>" + key.GetHashCode();
+                }
+
                 result.Append(name).Append(": ").Append(this.Dump(_labels[key]));
                 first = false;
             }
@@ -278,9 +285,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (_trackRegions)
                 {
-                    if (node == this.firstInRegion && this.regionPlace == RegionPlace.Before) EnterRegion();
+                    if (node == this.firstInRegion && this.regionPlace == RegionPlace.Before)
+                    {
+                        EnterRegion();
+                    }
+
                     result = VisitWithStackGuard(node);
-                    if (node == this.lastInRegion && this.regionPlace == RegionPlace.Inside) LeaveRegion();
+                    if (node == this.lastInRegion && this.regionPlace == RegionPlace.Inside)
+                    {
+                        LeaveRegion();
+                    }
                 }
                 else
                 {
@@ -333,7 +347,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 get
                 {
-                    if (Branch == null) return null;
+                    if (Branch == null)
+                    {
+                        return null;
+                    }
+
                     switch (Branch.Kind)
                     {
                         case BoundKind.GotoStatement: return ((BoundGotoStatement)Branch).Label;
@@ -363,7 +381,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             Visit(methodMainNode);
             this.Unsplit();
             RestorePending(oldPending);
-            if (_trackRegions && regionPlace != RegionPlace.After) badRegion = true;
+            if (_trackRegions && regionPlace != RegionPlace.After)
+            {
+                badRegion = true;
+            }
+
             ImmutableArray<PendingBranch> result = RemoveReturns();
             return result;
         }
@@ -485,7 +507,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected void VisitLvalue(BoundExpression node)
         {
-            if (_trackRegions && node == this.firstInRegion && this.regionPlace == RegionPlace.Before) EnterRegion();
+            if (_trackRegions && node == this.firstInRegion && this.regionPlace == RegionPlace.Before)
+            {
+                EnterRegion();
+            }
+
             switch (node?.Kind)
             {
                 case BoundKind.Parameter:
@@ -517,18 +543,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                     goto default;
 
                 case BoundKind.FieldAccess:
-                    {
-                        BoundFieldAccess node1 = (BoundFieldAccess)node;
-                        VisitFieldAccessInternal(node1.ReceiverOpt, node1.FieldSymbol);
-                        break;
-                    }
+                {
+                    BoundFieldAccess node1 = (BoundFieldAccess)node;
+                    VisitFieldAccessInternal(node1.ReceiverOpt, node1.FieldSymbol);
+                    break;
+                }
 
                 case BoundKind.EventAccess:
-                    {
-                        BoundEventAccess node1 = (BoundEventAccess)node;
-                        VisitFieldAccessInternal(node1.ReceiverOpt, node1.EventSymbol.AssociatedField);
-                        break;
-                    }
+                {
+                    BoundEventAccess node1 = (BoundEventAccess)node;
+                    VisitFieldAccessInternal(node1.ReceiverOpt, node1.EventSymbol.AssociatedField);
+                    break;
+                }
 
                 case BoundKind.TupleLiteral:
                     ((BoundTupleExpression)node).VisitAllElements((x, self) => self.VisitLvalue(x), this);
@@ -543,7 +569,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
             }
 
-            if (_trackRegions && node == this.lastInRegion && this.regionPlace == RegionPlace.Inside) LeaveRegion();
+            if (_trackRegions && node == this.lastInRegion && this.regionPlace == RegionPlace.Inside)
+            {
+                LeaveRegion();
+            }
         }
 
         protected virtual void VisitLvalue(BoundLocal node)
@@ -774,7 +803,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected virtual void ResolveBranch(PendingBranch pending, LabelSymbol label, BoundStatement target, ref bool labelStateChanged)
         {
             var state = LabelState(label);
-            if (target != null) NoteBranch(pending, pending.Branch, target);
+            if (target != null)
+            {
+                NoteBranch(pending, pending.Branch, target);
+            }
+
             var changed = Join(ref state, ref pending.State);
             if (changed)
             {
@@ -825,35 +858,35 @@ namespace Microsoft.CodeAnalysis.CSharp
                 switch (node.Kind)
                 {
                     case BoundKind.LabeledStatement:
-                        {
-                            var label = (BoundLabeledStatement)node;
-                            stateChangedAfterUse |= ResolveBranches(label.Label, label);
-                        }
-                        break;
+                    {
+                        var label = (BoundLabeledStatement)node;
+                        stateChangedAfterUse |= ResolveBranches(label.Label, label);
+                    }
+                    break;
                     case BoundKind.LabelStatement:
-                        {
-                            var label = (BoundLabelStatement)node;
-                            stateChangedAfterUse |= ResolveBranches(label.Label, label);
-                        }
-                        break;
+                    {
+                        var label = (BoundLabelStatement)node;
+                        stateChangedAfterUse |= ResolveBranches(label.Label, label);
+                    }
+                    break;
                     case BoundKind.SwitchSection:
+                    {
+                        var sec = (BoundSwitchSection)node;
+                        foreach (var label in sec.SwitchLabels)
                         {
-                            var sec = (BoundSwitchSection)node;
-                            foreach (var label in sec.SwitchLabels)
-                            {
-                                stateChangedAfterUse |= ResolveBranches(label.Label, sec);
-                            }
+                            stateChangedAfterUse |= ResolveBranches(label.Label, sec);
                         }
-                        break;
+                    }
+                    break;
                     case BoundKind.PatternSwitchSection:
+                    {
+                        var sec = (BoundPatternSwitchSection)node;
+                        foreach (var label in sec.SwitchLabels)
                         {
-                            var sec = (BoundPatternSwitchSection)node;
-                            foreach (var label in sec.SwitchLabels)
-                            {
-                                stateChangedAfterUse |= ResolveBranches(label.Label, sec);
-                            }
+                            stateChangedAfterUse |= ResolveBranches(label.Label, sec);
                         }
-                        break;
+                    }
+                    break;
                     default:
                         // there are no other kinds of labels
                         throw ExceptionUtilities.UnexpectedValue(node.Kind);
@@ -949,27 +982,31 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (pattern.Kind)
             {
                 case BoundKind.DeclarationPattern:
+                {
+                    var declPattern = (BoundDeclarationPattern)pattern;
+                    if (declPattern.IsVar || // var pattern always matches
+                        declPattern.DeclaredType?.Type?.IsValueType == true && declPattern.DeclaredType.Type == (object)expression.Type) // exact match
                     {
-                        var declPattern = (BoundDeclarationPattern)pattern;
-                        if (declPattern.IsVar || // var pattern always matches
-                            declPattern.DeclaredType?.Type?.IsValueType == true && declPattern.DeclaredType.Type == (object)expression.Type) // exact match
-                        {
-                            return true;
-                        }
-                        Debug.Assert(!declPattern.IsVar);
-                        switch (expression.ConstantValue?.IsNull)
-                        {
-                            case true: return false;
-                            case false: return true;
-                            default: return null;
-                        }
+                        return true;
                     }
+                    Debug.Assert(!declPattern.IsVar);
+                    switch (expression.ConstantValue?.IsNull)
+                    {
+                        case true: return false;
+                        case false: return true;
+                        default: return null;
+                    }
+                }
                 case BoundKind.ConstantPattern:
+                {
+                    var constPattern = (BoundConstantPattern)pattern;
+                    if (expression.ConstantValue == null || constPattern.ConstantValue == null)
                     {
-                        var constPattern = (BoundConstantPattern)pattern;
-                        if (expression.ConstantValue == null || constPattern.ConstantValue == null) return null;
-                        return Equals(expression.ConstantValue.Value, constPattern.ConstantValue.Value);
+                        return null;
                     }
+
+                    return Equals(expression.ConstantValue.Value, constPattern.ConstantValue.Value);
+                }
             }
 
             return null;
@@ -1037,8 +1074,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitStringInsert(BoundStringInsert node)
         {
             VisitRvalue(node.Value);
-            if (node.Alignment != null) VisitRvalue(node.Alignment);
-            if (node.Format != null) VisitRvalue(node.Format);
+            if (node.Alignment != null)
+            {
+                VisitRvalue(node.Alignment);
+            }
+
+            if (node.Format != null)
+            {
+                VisitRvalue(node.Format);
+            }
+
             return null;
         }
 
@@ -1209,7 +1254,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             var method = GetReadMethod(node.Indexer);
             VisitReceiverBeforeCall(node.ReceiverOpt, method);
             VisitArguments(node.Arguments, node.ArgumentRefKindsOpt, method);
-            if ((object)method != null) VisitReceiverAfterCall(node.ReceiverOpt, method);
+            if ((object)method != null)
+            {
+                VisitReceiverAfterCall(node.ReceiverOpt, method);
+            }
+
             return null;
         }
 
@@ -1303,9 +1352,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (_trackRegions)
                     {
-                        if (methodGroup == this.firstInRegion && this.regionPlace == RegionPlace.Before) EnterRegion();
+                        if (methodGroup == this.firstInRegion && this.regionPlace == RegionPlace.Before)
+                        {
+                            EnterRegion();
+                        }
+
                         VisitRvalue(methodGroup.ReceiverOpt);
-                        if (methodGroup == this.lastInRegion && IsInside) LeaveRegion();
+                        if (methodGroup == this.lastInRegion && IsInside)
+                        {
+                            LeaveRegion();
+                        }
                     }
                     else
                     {
@@ -1379,9 +1435,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // A method group's "implicit this" is only used for instance methods.
                     if (_trackRegions)
                     {
-                        if (node.Operand == this.firstInRegion && this.regionPlace == RegionPlace.Before) EnterRegion();
+                        if (node.Operand == this.firstInRegion && this.regionPlace == RegionPlace.Before)
+                        {
+                            EnterRegion();
+                        }
+
                         VisitRvalue(receiver);
-                        if (node.Operand == this.lastInRegion && IsInside) LeaveRegion();
+                        if (node.Operand == this.lastInRegion && IsInside)
+                        {
+                            LeaveRegion();
+                        }
                     }
                     else
                     {
@@ -1423,7 +1486,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var initialState = this.State.Clone();
 
             // use this state to resolve all the branches introduced and internal to try/catch
-            var pendingBeforeTry = SavePending(); 
+            var pendingBeforeTry = SavePending();
 
             VisitTryBlockWithAnyTransferFunction(node.TryBlock, node, ref initialState);
             var finallyState = initialState.Clone();
@@ -1460,17 +1523,27 @@ namespace Microsoft.CodeAnalysis.CSharp
                 VisitFinallyBlockWithAnyTransferFunction(node.FinallyBlockOpt, ref stateMovedUpInFinally);
                 foreach (var pend in tryAndCatchPending.PendingBranches)
                 {
-                    if (pend.Branch == null) continue; // a tracked exception
+                    if (pend.Branch == null)
+                    {
+                        continue; // a tracked exception
+                    }
+
                     if (pend.Branch.Kind != BoundKind.YieldReturnStatement)
                     {
                         Meet(ref pend.State, ref this.State);
-                        if (_nonMonotonicTransfer) Join(ref pend.State, ref stateMovedUpInFinally);
+                        if (_nonMonotonicTransfer)
+                        {
+                            Join(ref pend.State, ref stateMovedUpInFinally);
+                        }
                     }
                 }
 
                 RestorePending(tryAndCatchPending);
                 Meet(ref endState, ref this.State);
-                if (_nonMonotonicTransfer) Join(ref endState, ref stateMovedUpInFinally);
+                if (_nonMonotonicTransfer)
+                {
+                    Join(ref endState, ref stateMovedUpInFinally);
+                }
             }
 
             SetState(endState);
@@ -1846,7 +1919,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitMultipleLocalDeclarations(BoundMultipleLocalDeclarations node)
         {
             foreach (var v in node.LocalDeclarations)
+            {
                 Visit(v);
+            }
+
             return null;
         }
 
