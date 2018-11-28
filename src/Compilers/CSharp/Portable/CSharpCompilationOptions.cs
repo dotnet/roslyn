@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Whether Nullable Reference Types feature is enabled globally.
         /// </summary>
-        public bool? Nullable { get; private set; }
+        public bool Nullable { get; private set; }
 
         // Defaults correspond to the compiler's defaults or indicate that the user did not specify when that is significant.
         // That's significant when one option depends on another's setting. SubsystemVersion depends on Platform and Target.
@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             StrongNameProvider strongNameProvider = null,
             bool publicSign = false,
             MetadataImportOptions metadataImportOptions = MetadataImportOptions.Public,
-            bool? nullable = null)
+            bool nullable = false)
             : this(outputKind, reportSuppressedDiagnostics, moduleName, mainTypeName, scriptClassName,
                    usings, optimizationLevel, checkOverflow, allowUnsafe,
                    cryptoKeyContainer, cryptoKeyFile, cryptoPublicKey, delaySign, platform,
@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                    strongNameProvider,
                    publicSign,
                    metadataImportOptions,
-                   nullable: null)
+                   nullable: false)
         {
         }
 
@@ -209,7 +209,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool referencesSupersedeLowerVersions,
             bool publicSign,
             BinderFlags topLevelBinderFlags,
-            bool? nullable)
+            bool nullable)
             : base(outputKind, reportSuppressedDiagnostics, moduleName, mainTypeName, scriptClassName,
                    cryptoKeyContainer, cryptoKeyFile, cryptoPublicKey, delaySign, publicSign, optimizationLevel, checkOverflow,
                    platform, generalDiagnosticOption, warningLevel, specificDiagnosticOptions.ToImmutableDictionaryOrEmpty(),
@@ -392,7 +392,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new CSharpCompilationOptions(this) { CheckOverflow = enabled };
         }
 
-        public CSharpCompilationOptions WithNullable(bool? enabled)
+        public CSharpCompilationOptions WithNullable(bool enabled)
         {
             if (enabled == this.Nullable)
             {
@@ -906,7 +906,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                    referencesSupersedeLowerVersions: false,
                    publicSign: false,
                    topLevelBinderFlags: BinderFlags.None,
-                   nullable: null)
+                   nullable: false)
         {
         }
     }
