@@ -53,15 +53,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected readonly BoundNode methodMainNode;
 
         /// <summary>
-        /// The flow analysis state at each label, computed by merging the state from branches to
-        /// that label with the state when we fall into the label.  Entries are created when the
-        /// label is encountered.  One case deserves special attention: when the destination of the
-        /// branch is a label earlier in the code, it is possible (though rarely occurs in practice)
-        /// that we are changing the state at a label that we've already analyzed. In that case we
-        /// run another pass of the analysis to allow those changes to propagate. This repeats until
-        /// no further changes to the state of these labels occurs.  This can result in quadratic
-        /// performance in unlikely but possible code such as this: "int x; if (cond) goto l1; x =
-        /// 3; l5: print x; l4: goto l5; l3: goto l4; l2: goto l3; l1: goto l2;"
+        /// The flow analysis state at each label, computed by calling <see cref="Join(ref
+        /// TLocalState, ref TLocalState)"/> on the state from branches to that label with the state
+        /// when we fall into the label.  Entries are created when the label is encountered. One
+        /// case deserves special attention: when the destination of the branch is a label earlier
+        /// in the code, it is possible (though rarely occurs in practice) that we are changing the
+        /// state at a label that we've already analyzed. In that case we run another pass of the
+        /// analysis to allow those changes to propagate. This repeats until no further changes to
+        /// the state of these labels occurs.  This can result in quadratic performance in unlikely
+        /// but possible code such as this: "int x; if (cond) goto l1; x = 3; l5: print x; l4: goto
+        /// l5; l3: goto l4; l2: goto l3; l1: goto l2;"
         /// </summary>
         private readonly PooledDictionary<LabelSymbol, TLocalState> _labels;
 
