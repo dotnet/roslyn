@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             Debug.Assert(symbolOpt != null || !indices.IsEmpty || instanceReferenceOperationSyntaxOpt != null || captureIdOpt.HasValue);
             Debug.Assert(location != null);
             Debug.Assert(type != null);
-            Debug.Assert(parentOpt == null || parentOpt.Type.HasValueCopySemantics());
+            Debug.Assert(parentOpt == null || parentOpt.Type.HasValueCopySemantics() || !indices.IsEmpty);
 
             SymbolOpt = symbolOpt;
             Indices = indices;
