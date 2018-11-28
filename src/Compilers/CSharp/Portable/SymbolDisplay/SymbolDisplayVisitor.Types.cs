@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else if (format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.IncludeNonNullableTypeModifier) &&
                 !typeOpt.IsValueType &&
-                typeOpt.IsNullable == false && !typeOpt.TypeSymbol.IsUnconstrainedTypeParameter())
+                typeOpt.NullableAnnotation.IsAnyNotNullable() && !typeOpt.TypeSymbol.IsUnconstrainedTypeParameter())
             {
                 AddPunctuation(SyntaxKind.ExclamationToken);
             }

@@ -104,7 +104,7 @@
     <ItemGroup>
       <_Dependency>
         <_AssemblyName>$([MSBuild]::ValueOrDefault('%(_Dependency.FusionName)', '').Split(',')[0])</_AssemblyName>
-        <_AssemblyVersion>$([MSBuild]::ValueOrDefault('%(_Dependency.FusionName)', '').Split(',')[1]).Split('=')[1]</_AssemblyVersion>
+        <_AssemblyVersion>$([MSBuild]::ValueOrDefault('%(_Dependency.FusionName)', '').Split(',')[1].Split('=')[1])</_AssemblyVersion>
         <_NuGetPackageFileName>%(_Dependency.NuGetPackageId).%(_Dependency.NuGetPackageVersion).nupkg</_NuGetPackageFileName>
         <_NuGetPackageDir>$(NuGetPackageRoot)$([MSBuild]::ValueOrDefault('%(_Dependency.NuGetPackageId)', '').ToLower())\%(_Dependency.NuGetPackageVersion)\</_NuGetPackageDir>
       </_Dependency>

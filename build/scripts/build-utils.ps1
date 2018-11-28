@@ -31,8 +31,6 @@ function Exec-Block([scriptblock]$cmd) {
 # This will exec a process using the console and return it's exit code. This will not 
 # throw when the process fails.
 function Exec-Process([string]$command, [string]$commandArgs) {
-    Write-Host $command $commandArgs
-
     $startInfo = New-Object System.Diagnostics.ProcessStartInfo
     $startInfo.FileName = $command
     $startInfo.Arguments = $commandArgs
@@ -69,8 +67,6 @@ function Exec-CommandCore([string]$command, [string]$commandArgs, [switch]$useCo
         }
         return
     }
-
-    Write-Host $command $commandArgs
 
     $startInfo = New-Object System.Diagnostics.ProcessStartInfo
     $startInfo.FileName = $command

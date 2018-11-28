@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return NullableAnnotation.Nullable;
             }
 
-            // If nullability on both sides matches - result is that nullability (trivial cases like these are handled before the switch)
+            // If nullability on both sides matches - result is that nullability (trivial cases like these are handled above)
             // If either candidate is nullable - result is nullable
             // Otherwise - result is "oblivious". 
 
@@ -149,7 +149,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return NullableAnnotation.Nullable;
             }
 
-            // If nullability on both sides matches - result is that nullability (trivial cases like these are handled before the switch)
+            // If nullability on both sides matches - result is that nullability (trivial cases like these are handled above)
             // If either candidate is not nullable - result is not nullable
             // Otherwise - result is "oblivious". 
 
@@ -211,7 +211,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return NullableAnnotation.Nullable;
             }
 
-            // If nullability on both sides matches - result is that nullability (trivial cases like these are handled before the switch)
+            // If nullability on both sides matches - result is that nullability (trivial cases like these are handled above)
             // If either candidate is "oblivious" - result is the nullability of the other candidate
             // Otherwise - we declare a mismatch and result is not nullable. 
 
@@ -419,43 +419,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        // https://github.com/dotnet/roslyn/issues/30050: Check we are not using this method on type references in
-        // member signatures visible outside the assembly. Consider overriding, implementing, NoPIA embedding, etc.
-
-        public static TypeSymbolWithAnnotations Create(TypeSymbol typeSymbol, bool? isNullableIfReferenceType, ImmutableArray<CustomModifier> customModifiers = default, bool fromDeclaration = false)
-        {
-            if (typeSymbol is null)
-            {
-                return default;
-            }
-
-            NullableAnnotation nullableAnnotation;
-
-            if (typeSymbol.IsValueType)
-            {
-                nullableAnnotation = typeSymbol.IsNullableType() ?
-                    NullableAnnotation.Nullable :
-                    isNullableIfReferenceType == null ? NullableAnnotation.Unknown : NullableAnnotation.NotNullable;
-            }
-            else
-            {
-                switch (isNullableIfReferenceType)
-                {
-                    case true:
-                        nullableAnnotation = fromDeclaration ? NullableAnnotation.Nullable : NullableAnnotation.NullableBasedOnAnalysis;
-                        break;
-                    case false:
-                        nullableAnnotation = fromDeclaration ? NullableAnnotation.NotNullable : NullableAnnotation.NotNullableBasedOnAnalysis;
-                        break;
-                    default:
-                        nullableAnnotation = NullableAnnotation.Unknown;
-                        break;
-                }
-            }
-
-            return Create(typeSymbol, nullableAnnotation, customModifiers.NullToEmpty());
-        }
-
         private static bool IsIndexedTypeParameter(TypeSymbol typeSymbol)
         {
             return typeSymbol is IndexedTypeParameterSymbol ||
@@ -546,56 +509,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public TypeSymbol TypeSymbol => _extensions?.GetResolvedType(_defaultType);
         public TypeSymbol NullableUnderlyingTypeOrSelf => _extensions.GetNullableUnderlyingTypeOrSelf(_defaultType);
 
-        // https://github.com/dotnet/roslyn/issues/30051: IsNullable depends on IsValueType which
-        // can lead to cycles when IsNullable is queried early. Replace this property with
-        // the Annotation property that depends on IsAnnotated and NonNullTypes only.
-        // Should review all the usages of IsNullable outside of NullableWalker.
-
-        /// <summary>
-        /// Returns:
-        /// true if this is a nullable reference or value type;
-        /// false if this is an unannotated reference type and [NonNullTypes(true)],
-        /// or a value type regardless of [NonNullTypes]; and
-        /// null if an unannotated reference type and [NonNullTypes(false)].
-        /// If this is a nullable value type, <see cref="TypeSymbol"/>
-        /// returns symbol for constructed System.Nullable`1 type.
-        /// If this is a nullable reference type, <see cref="TypeSymbol"/>
-        /// simply returns a symbol for the reference type.
-        /// </summary>
-        public bool? IsNullable
-        {
-            get
-            {
-                if (_defaultType is null)
-                {
-                    return null;
-                }
-
-                switch (NullableAnnotation)
-                {
-                    case NullableAnnotation.Unknown:
-                        Debug.Assert(!TypeSymbol.IsNullableType());
-                        if (TypeSymbol.IsValueType)
-                        {
-                            return false;
-                        }
-
-                        return null;
-
-                    case NullableAnnotation.Nullable:
-                    case NullableAnnotation.NullableBasedOnAnalysis:
-                        return true;
-
-                    case NullableAnnotation.NotNullableBasedOnAnalysis:
-                    case NullableAnnotation.NotNullable:
-                        return false;
-
-                    default:
-                        throw ExceptionUtilities.UnexpectedValue(NullableAnnotation);
-                }
-            }
-        }
-
         /// <summary>
         /// Is this System.Nullable`1 type, or its substitution.
         /// </summary>
@@ -647,7 +560,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
                 else if (format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.IncludeNonNullableTypeModifier) &&
                     !IsValueType &&
-                    IsNullable == false && !TypeSymbol.IsUnconstrainedTypeParameter())
+                    NullableAnnotation.IsAnyNotNullable() && !TypeSymbol.IsUnconstrainedTypeParameter())
                 {
                     return str + "!";
                 }
@@ -997,7 +910,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             var typeSymbol = TypeSymbol;
 
-            if (IsNullable.HasValue)
+            if (NullableAnnotation != NullableAnnotation.Unknown)
             {
                 if (!typeSymbol.IsValueType)
                 {
