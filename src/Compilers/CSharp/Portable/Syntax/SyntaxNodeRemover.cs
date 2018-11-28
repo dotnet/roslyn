@@ -33,6 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
             var residualTrivia = remover.ResidualTrivia;
 
+            // the result of the SyntaxRemover will be null when the root node is removed.
             if (result != null && residualTrivia.Count > 0)
             {
                 result = result.WithTrailingTrivia(result.GetTrailingTrivia().Concat(residualTrivia));
@@ -140,13 +141,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
                     if (trivia.IsDirective && trivia.GetStructure() is DirectiveTriviaSyntax directive)
                     {
-                        foreach (var directiveTrivia in directive.EndOfDirectiveToken.TrailingTrivia)
-                        {
-                            if (directiveTrivia.Kind() == SyntaxKind.EndOfLineTrivia)
-                            {
-                                return directiveTrivia;
-                            }
-                        }
+                        return GetEndOfLine(directive.EndOfDirectiveToken.TrailingTrivia);
                     }
                 }
 
