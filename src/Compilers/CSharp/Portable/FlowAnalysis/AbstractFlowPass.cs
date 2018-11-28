@@ -98,8 +98,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>
         /// Indicates that the transfer function for a particular node (the function mapping the
-        /// state before the node to the state after the node) may not always move the state in the
-        /// same direction on the lattice. Usually false.
+        /// state before the node to the state after the node) is not monotonic, in the sense that
+        /// it can change the state in either direction in the lattice. If the transfer function is
+        /// monotonic, the transfer function can only change the state toward the <see
+        /// cref="ReachableBottomState"/>. Reachability and definite assignment are monotonic, and
+        /// permit a more efficient analysis. Region analysis and nullable analysis are not
+        /// monotonic. This is just an optimization; we could treat all of them as nonmonotonic
+        /// without much loss of performance. In fact, this only affects the analysis of (relatively
+        /// rare) try statements, and is only a slight optimization.
         /// </summary>
         private readonly bool _nonMonotonicTransfer;
 
@@ -323,21 +329,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override bool ConvertInsufficientExecutionStackExceptionToCancelledByStackGuardException()
         {
-            return false; // just let the original exception to bubble up.
+            return false; // just let the original exception bubble up.
         }
 
         /// <summary>
         /// A pending branch.  These are created for a return, break, continue, goto statement,
-        /// yield return, yield break, await expression, await foreach/using, and if PreciseAbstractFlowPass._trackExceptions
-        /// is true for other
-        /// constructs that can cause an exception to be raised such as a throw statement or method
-        /// invocation.
-        /// The idea is that we don't know if the branch will eventually reach its destination
-        /// because of an intervening finally block that cannot complete normally.  So we store them
-        /// up and handle them as we complete processing each construct.  At the end of a block, if
-        /// there are any pending branches to a label in that block we process the branch.  Otherwise
-        /// we relay it up to the enclosing construct as a pending branch of the enclosing
-        /// construct.
+        /// yield return, yield break, await expression, and await foreach/using. The idea is that
+        /// we don't know if the branch will eventually reach its destination because of an
+        /// intervening finally block that cannot complete normally.  So we store them up and handle
+        /// them as we complete processing each construct.  At the end of a block, if there are any
+        /// pending branches to a label in that block we process the branch.  Otherwise we relay it
+        /// up to the enclosing construct as a pending branch of the enclosing construct.
         /// </summary>
         internal class PendingBranch
         {
@@ -1476,7 +1478,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             Join(ref this.State, ref trueState);
             return null;
         }
-
 
         public override BoundNode VisitTryStatement(BoundTryStatement node)
         {
