@@ -6122,8 +6122,8 @@ namespace Microsoft.CodeAnalysis.Operations
     /// </summary>
     internal abstract partial class BaseConstantPattern : Operation, IConstantPatternOperation
     {
-        protected BaseConstantPattern(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(OperationKind.ConstantPattern, semanticModel, syntax, type, constantValue, isImplicit)
+        protected BaseConstantPattern(SemanticModel semanticModel, SyntaxNode syntax, bool isImplicit) :
+            base(OperationKind.ConstantPattern, semanticModel, syntax, type: null, constantValue: default, isImplicit)
         {
         }
 
@@ -6156,8 +6156,8 @@ namespace Microsoft.CodeAnalysis.Operations
     /// </summary>
     internal sealed partial class ConstantPattern : BaseConstantPattern, IConstantPatternOperation
     {
-        public ConstantPattern(IOperation value, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(semanticModel, syntax, type, constantValue, isImplicit)
+        public ConstantPattern(IOperation value, SemanticModel semanticModel, SyntaxNode syntax, bool isImplicit) :
+            base(semanticModel, syntax, isImplicit)
         {
             Value = SetParentOperation(value, this);
         }
@@ -6172,8 +6172,8 @@ namespace Microsoft.CodeAnalysis.Operations
     {
         private readonly Lazy<IOperation> _lazyValue;
 
-        public LazyConstantPattern(Lazy<IOperation> value, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(semanticModel, syntax, type, constantValue, isImplicit)
+        public LazyConstantPattern(Lazy<IOperation> value, SemanticModel semanticModel, SyntaxNode syntax, bool isImplicit) :
+            base(semanticModel, syntax, isImplicit)
         {
             _lazyValue = value ?? throw new System.ArgumentNullException(nameof(value));
         }
