@@ -327,9 +327,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 }
                 else if ((_options & SyntaxRemoveOptions.KeepEndOfLine) != 0)
                 {
+                    // For retrieving an EOL we don't need to check the node leading trivia as
+                    // it can be always retrieved from the token trailing trivia, if one exists.
                     var eol = GetEndOfLine(token.LeadingTrivia) ??
-                              GetEndOfLine(token.TrailingTrivia) ??
-                              GetEndOfLine(node.GetLeadingTrivia());
+                              GetEndOfLine(token.TrailingTrivia);
                     this.AddEndOfLine(eol);
                 }
 
@@ -381,8 +382,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 }
                 else if ((_options & SyntaxRemoveOptions.KeepEndOfLine) != 0)
                 {
+                    // For retrieving an EOL we don't need to check the token leading trivia as
+                    // it can be always retrieved from the node trailing trivia, if one exists.
                     var eol = GetEndOfLine(node.GetTrailingTrivia()) ??
-                              GetEndOfLine(token.LeadingTrivia) ??
                               GetEndOfLine(token.TrailingTrivia);
                     this.AddEndOfLine(eol);
                 }

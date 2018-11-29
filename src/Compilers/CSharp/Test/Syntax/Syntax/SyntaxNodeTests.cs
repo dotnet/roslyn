@@ -2616,8 +2616,9 @@ class A
 
         [Fact]
         [WorkItem(22924, "https://github.com/dotnet/roslyn/issues/22924")]
-        public void TestRemoveFirstParameter_KeepEndOfLine()
+        public void TestRemoveFirstParameterEOLCommaTokenTrailingTrivia_KeepEndOfLine()
         {
+            // EOL should be found on CommaToken TrailingTrivia
             var cu = SyntaxFactory.ParseCompilationUnit(@"
 class C
 {
@@ -2627,7 +2628,7 @@ int a,
 // after a
 // before b
 int b
-// after b)
+/* after b*/)
 {
 }
 }");
@@ -2640,7 +2641,7 @@ void M(
 // after a
 // before b
 int b
-// after b)
+/* after b*/)
 {
 }
 }";
@@ -2657,28 +2658,150 @@ int b
 
         [Fact]
         [WorkItem(22924, "https://github.com/dotnet/roslyn/issues/22924")]
-        public void TestRemoveLastParameter_KeepEndOfLine()
+        public void TestRemoveFirstParameterEOLParameterSyntaxTrailingTrivia_KeepEndOfLine()
+        {
+                // EOL should be found on ParameterSyntax TrailingTrivia
+                var cu = SyntaxFactory.ParseCompilationUnit(@"
+class C
+{
+void M(
+// before a
+int a
+, /* after comma */ int b
+/* after b*/)
+{
+}
+}");
+
+            var expectedText = @"
+class C
+{
+void M(
+
+int b
+/* after b*/)
+{
+}
+}";
+
+            var m = cu.DescendantNodes().OfType<ParameterSyntax>().FirstOrDefault();
+            Assert.NotNull(m);
+
+            var cu2 = cu.RemoveNode(m, SyntaxRemoveOptions.KeepEndOfLine);
+
+            var text = cu2.ToFullString();
+
+            Assert.Equal(expectedText, text);
+        }
+
+        [Fact]
+        [WorkItem(22924, "https://github.com/dotnet/roslyn/issues/22924")]
+        public void TestRemoveFirstParameterEOLCommaTokenLeadingTrivia_KeepEndOfLine()
+        {
+            // EOL should be found on CommaToken LeadingTrivia and also on ParameterSyntax TrailingTrivia
+            // but only one will be added
+            var cu = SyntaxFactory.ParseCompilationUnit(@"
+class C
+{
+void M(
+// before a
+int a
+
+// before b
+, /* after comma */ int b
+/* after b*/)
+{
+}
+}");
+
+            var expectedText = @"
+class C
+{
+void M(
+
+int b
+/* after b*/)
+{
+}
+}";
+
+            var m = cu.DescendantNodes().OfType<ParameterSyntax>().FirstOrDefault();
+            Assert.NotNull(m);
+
+            var cu2 = cu.RemoveNode(m, SyntaxRemoveOptions.KeepEndOfLine);
+
+            var text = cu2.ToFullString();
+
+            Assert.Equal(expectedText, text);
+        }
+
+        [Fact]
+        [WorkItem(22924, "https://github.com/dotnet/roslyn/issues/22924")]
+        public void TestRemoveFirstParameter_KeepTrailingTrivia()
         {
             var cu = SyntaxFactory.ParseCompilationUnit(@"
 class C
 {
 void M(
 // before a
-int a,
-// after a
+int a
+
 // before b
-int b
-// after b)
+, /* after comma */ int b
+/* after b*/)
 {
 }
 }");
+
+            var expectedText = @"
+class C
+{
+void M(
+
+
+// before b
+ /* after comma */ int b
+/* after b*/)
+{
+}
+}";
+
+            var m = cu.DescendantNodes().OfType<ParameterSyntax>().FirstOrDefault();
+            Assert.NotNull(m);
+
+            var cu2 = cu.RemoveNode(m, SyntaxRemoveOptions.KeepTrailingTrivia);
+
+            var text = cu2.ToFullString();
+
+            Assert.Equal(expectedText, text);
+        }
+
+        [Fact]
+        [WorkItem(22924, "https://github.com/dotnet/roslyn/issues/22924")]
+        public void TestRemoveLastParameterEOLCommaTokenLeadingTrivia_KeepEndOfLine()
+        {
+            // EOL should be found on CommaToken LeadingTrivia
+            var cu = SyntaxFactory.ParseCompilationUnit(@"
+class C
+{
+void M(
+// before a
+int a
+
+// after a
+, /* after comma*/ int b /* after b*/)
+{
+}
+}");
+
             var expectedText = @"
 class C
 {
 void M(
 // before a
 int a
-// after b)
+
+)
 {
 }
 }";
@@ -2687,6 +2810,145 @@ int a
             Assert.NotNull(m);
 
             var cu2 = cu.RemoveNode(m, SyntaxRemoveOptions.KeepEndOfLine);
+
+            var text = cu2.ToFullString();
+
+            Assert.Equal(expectedText, text);
+        }
+
+        [Fact]
+        [WorkItem(22924, "https://github.com/dotnet/roslyn/issues/22924")]
+        public void TestRemoveLastParameterEOLCommaTokenTrailingTrivia_KeepEndOfLine()
+        {
+            // EOL should be found on CommaToken TrailingTrivia
+            var cu = SyntaxFactory.ParseCompilationUnit(@"
+class C
+{
+void M(
+// before a
+int a, /* after comma*/ 
+int b /* after b*/)
+{
+}
+}");
+
+            var expectedText = @"
+class C
+{
+void M(
+// before a
+int a
+)
+{
+}
+}";
+
+            var m = cu.DescendantNodes().OfType<ParameterSyntax>().LastOrDefault();
+            Assert.NotNull(m);
+
+            var cu2 = cu.RemoveNode(m, SyntaxRemoveOptions.KeepEndOfLine);
+
+            var text = cu2.ToFullString();
+
+            Assert.Equal(expectedText, text);
+        }
+
+        [Fact]
+        [WorkItem(22924, "https://github.com/dotnet/roslyn/issues/22924")]
+        public void TestRemoveLastParameterEOLParameterSyntaxLeadingTrivia_KeepEndOfLine()
+        {
+            // EOL should be found on ParameterSyntax LeadingTrivia and also on CommaToken TrailingTrivia
+            // but only one will be added
+            var cu = SyntaxFactory.ParseCompilationUnit(@"
+class C
+{
+void M(
+// before a
+int a, /* after comma */ 
+
+// before b
+int b /* after b*/)
+{
+}
+}");
+
+            var expectedText = @"
+class C
+{
+void M(
+// before a
+int a
+)
+{
+}
+}";
+
+            var m = cu.DescendantNodes().OfType<ParameterSyntax>().LastOrDefault();
+            Assert.NotNull(m);
+
+            var cu2 = cu.RemoveNode(m, SyntaxRemoveOptions.KeepEndOfLine);
+
+            var text = cu2.ToFullString();
+
+            Assert.Equal(expectedText, text);
+        }
+
+        [Fact]
+        [WorkItem(22924, "https://github.com/dotnet/roslyn/issues/22924")]
+        public void TestRemoveLastParameter_KeepLeadingTrivia()
+        {
+            var cu = SyntaxFactory.ParseCompilationUnit(@"
+class C
+{
+void M(
+// before a
+int a, /* after comma */ 
+
+// before b
+int b /* after b*/)
+{
+}
+}");
+
+            var expectedText = @"
+class C
+{
+void M(
+// before a
+int a /* after comma */ 
+
+// before b
+)
+{
+}
+}";
+
+            var m = cu.DescendantNodes().OfType<ParameterSyntax>().LastOrDefault();
+            Assert.NotNull(m);
+
+            var cu2 = cu.RemoveNode(m, SyntaxRemoveOptions.KeepLeadingTrivia);
+
+            var text = cu2.ToFullString();
+
+            Assert.Equal(expectedText, text);
+        }
+
+        [Fact]
+        [WorkItem(22924, "https://github.com/dotnet/roslyn/issues/22924")]
+        public void TestRemoveClassWithEndRegionDirectiveWithoutEOL_KeepEndOfLine_KeepDirectives()
+        {
+            var cu = SyntaxFactory.ParseCompilationUnit(@"
+#region A
+class A { } #endregion");
+
+            var expectedText = @"
+#region A
+#endregion";
+
+            var m = cu.DescendantNodes().OfType<TypeDeclarationSyntax>().FirstOrDefault();
+            Assert.NotNull(m);
+
+            var cu2 = cu.RemoveNode(m, SyntaxRemoveOptions.KeepEndOfLine | SyntaxRemoveOptions.KeepDirectives);
 
             var text = cu2.ToFullString();
 
