@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
             // add *and* the user was explicitly invoking completion, then just add the entire set
             // of suggestions to help the user out.
             var count = context.Items.Count;
-            ProvideCompletionsAfterInsertion(context, tree, stringToken);
+            ProvideCompletionsAfterInsertion(context, tree);
 
             if (count != context.Items.Count)
             {
@@ -165,13 +165,13 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
             // items we can to help them out.
             var inCharacterClass = DetermineIfInCharacterClass(tree, context.Position);
 
-            ProvideEscapeCompletions(context, stringToken, inCharacterClass, parentOpt: null);
+            ProvideEscapeCompletions(context, inCharacterClass, parentOpt: null);
 
             if (!inCharacterClass)
             {
-                ProvideTopLevelCompletions(context, stringToken);
-                ProvideCharacterClassCompletions(context, stringToken, parentOpt: null);
-                ProvideGroupingCompletions(context, stringToken, parentOpt: null);
+                ProvideTopLevelCompletions(context);
+                ProvideCharacterClassCompletions(context, parentOpt: null);
+                ProvideGroupingCompletions(context, parentOpt: null);
             }
         }
 
@@ -188,8 +188,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
             return inCharacterClass;
         }
 
-        private void ProvideTopLevelCompletions(
-            EmbeddedCompletionContext context, SyntaxToken stringToken)
+        private void ProvideTopLevelCompletions(EmbeddedCompletionContext context)
         {
             context.AddIfMissing("|", regex_alternation_short, regex_alternation_long, parentOpt: null);
             context.AddIfMissing("^", regex_start_of_string_or_line_short, regex_start_of_string_or_line_long, parentOpt: null);
@@ -217,8 +216,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
             context.AddIfMissing("#", regex_end_of_line_comment_short, regex_end_of_line_comment_long, parentOpt: null);
         }
 
-        private void ProvideCompletionsAfterInsertion(
-            EmbeddedCompletionContext context, RegexTree tree, SyntaxToken stringToken)
+        private void ProvideCompletionsAfterInsertion(EmbeddedCompletionContext context, RegexTree tree)
         {
             var position = context.Position;
             var previousVirtualCharOpt = tree.Text.FirstOrNullable(vc => vc.Span.Contains(position - 1));
@@ -239,7 +237,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
 
             if (token.Kind == RegexKind.BackslashToken)
             {
-                ProvideEscapeCompletions(context, stringToken, inCharacterClass, parent);
+                ProvideEscapeCompletions(context, inCharacterClass, parent);
                 return;
             }
 
@@ -259,10 +257,10 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
             switch (token.Kind)
             {
                 case RegexKind.OpenBracketToken:
-                    ProvideCharacterClassCompletions(context, stringToken, parent);
+                    ProvideCharacterClassCompletions(context, parent);
                     return;
                 case RegexKind.OpenParenToken:
-                    ProvideGroupingCompletions(context, stringToken, parent);
+                    ProvideGroupingCompletions(context, parent);
                     return;
             }
         }
@@ -293,8 +291,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
             return;
         }
 
-        private void ProvideGroupingCompletions(
-            EmbeddedCompletionContext context, SyntaxToken stringToken, RegexNode parentOpt)
+        private void ProvideGroupingCompletions(EmbeddedCompletionContext context, RegexNode parentOpt)
         {
             if (parentOpt != null && !(parentOpt is RegexGroupingNode))
             {
@@ -319,8 +316,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
             context.AddIfMissing($"(?imnsx-imnsx:  {regex_subexpression}  )", regex_group_options_short, regex_group_options_long, parentOpt, positionOffset: "(?".Length, insertionText: "(?:)");
         }
 
-        private void ProvideCharacterClassCompletions(
-            EmbeddedCompletionContext context, SyntaxToken stringToken, RegexNode parentOpt)
+        private void ProvideCharacterClassCompletions(EmbeddedCompletionContext context, RegexNode parentOpt)
         {
             context.AddIfMissing($"[  {regex_character_group}  ]", regex_positive_character_group_short, regex_positive_character_group_long, parentOpt, positionOffset: "[".Length, insertionText: "[]");
             context.AddIfMissing($"[  firstCharacter-lastCharacter  ]", regex_positive_character_range_short, regex_positive_character_range_long, parentOpt, positionOffset: "[".Length, insertionText: "[-]");
@@ -351,8 +347,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
         }
 
         private void ProvideEscapeCompletions(
-            EmbeddedCompletionContext context, SyntaxToken stringToken,
-            bool inCharacterClass, RegexNode parentOpt)
+            EmbeddedCompletionContext context, bool inCharacterClass, RegexNode parentOpt)
         {
             if (parentOpt != null && !(parentOpt is RegexEscapeNode))
             {
