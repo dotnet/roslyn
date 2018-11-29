@@ -1569,7 +1569,7 @@ $@"class C
 }",
 @"class C
 {
-    void M() => M2(out var _);
+    void M() => M2(out _);
     void M2(out int x) => x = 0;
 }", options: PreferDiscard);
         }
@@ -1623,7 +1623,7 @@ $@"class C
 
         [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         [InlineData(nameof(PreferDiscard), "_")]
-        [InlineData(nameof(PreferUnusedLocal), "unused")]
+        [InlineData(nameof(PreferUnusedLocal), "var unused")]
         public async Task OutDeclarationExpressionArgument(string optionName, string fix)
         {
             await TestInRegularAndScriptAsync(
@@ -1642,7 +1642,7 @@ $@"class C
 {{
     int M()
     {{
-        M2(out var {fix});
+        M2(out {fix});
         int x = 1;
         return x;
     }}
@@ -1787,7 +1787,7 @@ $@"class C
 
         [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         [InlineData(nameof(PreferDiscard), "_")]
-        [InlineData(nameof(PreferUnusedLocal), "unused")]
+        [InlineData(nameof(PreferUnusedLocal), "var unused")]
         public async Task TupleExpressionWithDeclarationExpressions(string optionName, string fix)
         {
             await TestInRegularAndScriptAsync(
@@ -1804,7 +1804,7 @@ $@"class C
 {{
     int M()
     {{
-        (var {fix}, var y) = (1, 1);
+        ({fix}, var y) = (1, 1);
         int x = 1;
         return x;
     }}
@@ -4235,7 +4235,7 @@ class C
     void M(bool flag)
     {
         int x;
-        if (M2(out var _))
+        if (M2(out _))
         {
             x = 2;
         }
@@ -5690,6 +5690,92 @@ class C
         return true;
     }
 }", optionName);
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        [InlineData("var")]
+        [InlineData("int")]
+        public async Task UnusedOutVariableDeclaration_PreferDiscard(string typeName)
+        {
+            await TestInRegularAndScriptAsync(
+$@"class C
+{{
+    void M()
+    {{
+        if (M2(out {typeName} [|x|]))
+        {{
+        }}
+    }}
+
+    bool M2(out int x)
+    {{
+        x = 0;
+        return true;
+    }}
+}}",
+@"class C
+{
+    void M()
+    {
+        if (M2(out _))
+        {
+        }
+    }
+
+    bool M2(out int x)
+    {
+        x = 0;
+        return true;
+    }
+}", options: PreferDiscard);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        public async Task UnusedOutVariableDeclaration_MethodOverloads_PreferDiscard()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M()
+    {
+        if (M2(out int [|x|]))
+        {
+        }
+    }
+
+    bool M2(out int x)
+    {
+        x = 0;
+        return true;
+    }
+
+    bool M2(out char x)
+    {
+        x = 'c';
+        return true;
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        if (M2(out int _))
+        {
+        }
+    }
+
+    bool M2(out int x)
+    {
+        x = 0;
+        return true;
+    }
+
+    bool M2(out char x)
+    {
+        x = 'c';
+        return true;
+    }
+}", options: PreferDiscard);
         }
     }
 }

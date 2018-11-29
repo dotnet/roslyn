@@ -677,7 +677,8 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                 return memberDeclaration;
             }
 
-            return await service.ReplaceAsync(memberDeclaration, cancellationToken).ConfigureAwait(false);
+            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            return await service.ReplaceAsync(memberDeclaration, semanticModel, cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>
