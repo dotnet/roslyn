@@ -78,7 +78,10 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
                 ? containingType.GetBaseTypes().ToImmutableArray()
                 : containingType.AllInterfaces.Concat(containingType.GetBaseTypes()).ToImmutableArray();
 
-            return allDestinations.WhereAsArray(baseType => baseType != null &&
+            return allDestinations.WhereAsArray(baseType =>
+                baseType != null &&
+                // It could be ErrorType if there is syntax error on the baseType
+                (baseType.TypeKind == TypeKind.Interface || baseType.TypeKind == TypeKind.Class) &&
                 baseType.DeclaringSyntaxReferences.Length > 0 &&
                 IsLocationValid(baseType, solution, cancellationToken));
         }
