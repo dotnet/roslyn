@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Threading;
@@ -64,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Tools.CodeFormatter
                 logger.LogTrace(Resources.Workspace_loaded_in_0_ms, workspaceStopwatch.ElapsedMilliseconds);
                 workspaceStopwatch.Restart();
 
-                exitCode = await FormatFilesInSolutionAsync(logger, workspace.CurrentSolution, projectPath, codingConventionsManager, cancellationToken).ConfigureAwait(false);
+                exitCode = await FormatFilesInWorkspaceAsync(logger, workspace, projectPath, codingConventionsManager, cancellationToken).ConfigureAwait(false);
 
                 logger.LogDebug(Resources.Format_complete_in_0_ms, workspaceStopwatch.ElapsedMilliseconds);
             }
@@ -74,14 +75,14 @@ namespace Microsoft.CodeAnalysis.Tools.CodeFormatter
             return exitCode;
         }
 
-        private static async Task<int> FormatFilesInSolutionAsync(ILogger logger, Solution solution, string projectPath, ICodingConventionsManager codingConventionsManager, CancellationToken cancellationToken)
+        private static async Task<int> FormatFilesInWorkspaceAsync(ILogger logger, Workspace workspace, string projectPath, ICodingConventionsManager codingConventionsManager, CancellationToken cancellationToken)
         {
-            var formattedSolution = solution;
+            var projectIds = workspace.CurrentSolution.ProjectIds.ToImmutableArray();
             var optionsApplier = new EditorConfigOptionsApplier();
 
-            foreach (var projectId in formattedSolution.ProjectIds)
+            foreach (var projectId in projectIds)
             {
-                var project = formattedSolution.GetProject(projectId);
+                var project = workspace.CurrentSolution.GetProject(projectId);
                 if (!string.IsNullOrEmpty(projectPath) && !project.FilePath.Equals(projectPath, StringComparison.OrdinalIgnoreCase))
                 {
                     logger.LogDebug(Resources.Skipping_referenced_project_0, project.Name);
@@ -96,13 +97,12 @@ namespace Microsoft.CodeAnalysis.Tools.CodeFormatter
 
                 logger.LogInformation(Resources.Formatting_code_files_in_project_0, project.Name);
 
-                formattedSolution = await FormatFilesInProjectAsync(logger, project, codingConventionsManager, optionsApplier, cancellationToken).ConfigureAwait(false);
-            }
-
-            if (!solution.Workspace.TryApplyChanges(formattedSolution))
-            {
-                logger.LogError(Resources.Failed_to_save_formatting_changes);
-                return 1;
+                var formattedSolution = await FormatFilesInProjectAsync(logger, project, codingConventionsManager, optionsApplier, cancellationToken).ConfigureAwait(false);
+                if (!workspace.TryApplyChanges(formattedSolution))
+                {
+                    logger.LogError(Resources.Failed_to_save_formatting_changes);
+                    return 1;
+                }
             }
 
             return 0;
