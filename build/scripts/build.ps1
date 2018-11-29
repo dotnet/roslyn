@@ -395,7 +395,7 @@ function Test-XUnit() {
 
     if ($cibuild) {
         # Use a 75 minute timeout on CI
-        $args += " -xml -timeout:45"
+        $args += " -xml -timeout:65"
     }
 
     if ($procdump) {
