@@ -117,7 +117,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             private OperatorOverloadFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesResources.Operator_Overload;
-                this.IsBold = true;
             }
         }
         #endregion
@@ -946,7 +945,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             private SymbolStaticFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesResources.Symbol_Static;
-                this.IsBold = true;
+                this.BackgroundCustomizable = false;
+                this.ForegroundCustomizable = false;
             }
         }
         #endregion
