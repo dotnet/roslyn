@@ -151,12 +151,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 public override BoundNode VisitCall(BoundCall node)
                 {
-                    _mightAssignSomething =
+                    bool mightMutate =
                         // might be a call to a local function that assigns something
                         node.Method.MethodKind == MethodKind.LocalFunction ||
                         // or perhaps we are passing a variable by ref and mutating it that way
                         !node.ArgumentRefKindsOpt.IsDefault;
-                    return base.VisitCall(node);
+
+                    if (mightMutate)
+                        _mightAssignSomething = true;
+                    else
+                        base.VisitCall(node);
+
+                    return null;
                 }
 
                 public override BoundNode VisitAssignmentOperator(BoundAssignmentOperator node)
@@ -186,41 +192,65 @@ namespace Microsoft.CodeAnalysis.CSharp
                 public override BoundNode VisitDynamicInvocation(BoundDynamicInvocation node)
                 {
                     // perhaps we are passing a variable by ref and mutating it that way
-                    _mightAssignSomething = !node.ArgumentRefKindsOpt.IsDefault;
-                    return base.VisitDynamicInvocation(node);
+                    if (!node.ArgumentRefKindsOpt.IsDefault)
+                        _mightAssignSomething = true;
+                    else
+                        base.VisitDynamicInvocation(node);
+
+                    return null;
                 }
 
                 public override BoundNode VisitObjectCreationExpression(BoundObjectCreationExpression node)
                 {
                     // perhaps we are passing a variable by ref and mutating it that way
-                    _mightAssignSomething = !node.ArgumentRefKindsOpt.IsDefault;
-                    return base.VisitObjectCreationExpression(node);
+                    if (!node.ArgumentRefKindsOpt.IsDefault)
+                        _mightAssignSomething = true;
+                    else
+                        base.VisitObjectCreationExpression(node);
+
+                    return null;
                 }
 
                 public override BoundNode VisitDynamicObjectCreationExpression(BoundDynamicObjectCreationExpression node)
                 {
-                    _mightAssignSomething = !node.ArgumentRefKindsOpt.IsDefault;
-                    return base.VisitDynamicObjectCreationExpression(node);
+                    if (!node.ArgumentRefKindsOpt.IsDefault)
+                        _mightAssignSomething = true;
+                    else
+                        base.VisitDynamicObjectCreationExpression(node);
+
+                    return null;
                 }
 
                 public override BoundNode VisitObjectInitializerMember(BoundObjectInitializerMember node)
                 {
                     // Although ref indexers are not declarable in C#, they may be usable
-                    _mightAssignSomething = !node.ArgumentRefKindsOpt.IsDefault;
-                    return base.VisitObjectInitializerMember(node);
+                    if (!node.ArgumentRefKindsOpt.IsDefault)
+                        _mightAssignSomething = true;
+                    else
+                        base.VisitObjectInitializerMember(node);
+
+                    return null;
                 }
 
                 public override BoundNode VisitIndexerAccess(BoundIndexerAccess node)
                 {
                     // Although property arguments with ref indexers are not declarable in C#, they may be usable
-                    _mightAssignSomething = !node.ArgumentRefKindsOpt.IsDefault;
-                    return base.VisitIndexerAccess(node);
+                    if (!node.ArgumentRefKindsOpt.IsDefault)
+                        _mightAssignSomething = true;
+                    else
+                        base.VisitIndexerAccess(node);
+
+                    return null;
                 }
 
                 public override BoundNode VisitDynamicIndexerAccess(BoundDynamicIndexerAccess node)
                 {
-                    _mightAssignSomething = !node.ArgumentRefKindsOpt.IsDefault;
-                    return base.VisitDynamicIndexerAccess(node);
+                    if (!node.ArgumentRefKindsOpt.IsDefault)
+                        _mightAssignSomething = true;
+                    else
+                        base.VisitDynamicIndexerAccess(node);
+
+                    return null;
                 }
             }
 

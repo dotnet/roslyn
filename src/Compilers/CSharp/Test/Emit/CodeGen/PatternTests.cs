@@ -1985,6 +1985,9 @@ class Program
         Console.Write(M4(1));
         Console.Write(M5(1));
         Console.Write(M6(1));
+        Console.Write(M7(1));
+        Console.Write(M8(1));
+        Console.Write(M9(1));
     }
     public static int M1(int x)
     {
@@ -2013,6 +2016,19 @@ class Program
         dynamic d = x;
         return x switch { _ when new Program(d, ref x).P => 1, 1 => 2, _ => 3 };
     }
+    public static int M7(int x)
+    {
+        return x switch { _ when new Program(ref x).P && new Program().P => 1, 1 => 2, _ => 3 };
+    }
+    public static int M8(int x)
+    {
+        dynamic d = x;
+        return x switch { _ when new Program(d, ref x).P && new Program().P => 1, 1 => 2, _ => 3 };
+    }
+    public static int M9(int x)
+    {
+        return x switch { _ when (x=100) == 1 => 1, 1 => 2, _ => 3 };
+    }
     Program() { }
     Program(ref int x) { x = 100; }
     Program(int a, ref int x) { x = 100; }
@@ -2021,7 +2037,7 @@ class Program
 ";
             var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe, references: new[] { CSharpRef });
             compilation.VerifyDiagnostics();
-            var expectedOutput = @"222222";
+            var expectedOutput = @"222222222";
             var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
