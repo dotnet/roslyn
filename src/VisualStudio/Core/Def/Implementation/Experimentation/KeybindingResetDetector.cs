@@ -69,13 +69,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
         private OleComponent _oleComponent;
         private uint _priorityCommandTargetCookie = VSConstants.VSCOOKIE_NIL;
 
-        private CancellationTokenSource _cancellationTokenSource;
+        private CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
         /// <summary>
         /// If false, ReSharper is either not installed, or has been disabled in the extension manager.
         /// If true, the ReSharper extension is enabled. ReSharper's internal status could be either suspended or enabled.
         /// </summary>
         private bool _resharperExtensionInstalled = false;
         private bool _infoBarOpen = false;
+        private bool _isFirstRun = true;
+
+        /// <summary>
+        /// Chain all update tasks so that task runs serially
+        /// </summary>
+        private Task _lastTask = Task.CompletedTask;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -138,26 +144,37 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
                 _oleComponent.ModalStateChanged += OnModalStateChanged;
             }
 
-            UpdateStateMachine();
+            // run it from background and fire and forget
+            StartUpdateStateMachine(pollForStatus:true);
         }
 
-        private void UpdateStateMachine()
+        private void StartUpdateStateMachine(bool pollForStatus)
         {
-            ThreadHelper.JoinableTaskFactory.RunAsync(async delegate
+            // cancel previous state machine update request
+            _cancellationTokenSource.Cancel();
+            _cancellationTokenSource = new CancellationTokenSource();
+
+            var cancellationToken = _cancellationTokenSource.Token;
+
+            // make sure all state machine change work is serialized so that cancellation
+            // doesn't mess the state up.   
+            _lastTask = _lastTask.ContinueWith(async _ =>
             {
-                await UpdateStateMachineAsync();
-            });
+                await UpdateStateMachineWorkerAsync(pollForStatus, cancellationToken).ConfigureAwait(false);
+            }, cancellationToken, TaskContinuationOptions.LazyCancellation, TaskScheduler.Default).Unwrap();
         }
 
-        private async Task UpdateStateMachineAsync()
+        private async Task UpdateStateMachineWorkerAsync(bool pollForStatus, CancellationToken cancellationToken)
         {
-            AssertIsForeground();
-
             var options = _workspace.Options;
-            ReSharperStatus lastStatus = options.GetOption(KeybindingResetOptions.ReSharperStatus);
-            var currentStatus = await IsReSharperRunningAsync(lastStatus).ConfigureAwait(false);
-            if (currentStatus == lastStatus)
+            var lastStatus = options.GetOption(KeybindingResetOptions.ReSharperStatus);
+
+            var currentStatus = await IsReSharperRunningAsync(lastStatus, pollForStatus, cancellationToken).ConfigureAwait(false);
+
+            if (!StatusChanged(currentStatus, lastStatus))
+            {
                 return;
+            }
 
             options = options.WithChangedOption(KeybindingResetOptions.ReSharperStatus, currentStatus);
 
@@ -174,6 +191,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
                     // the extension, then reenables the extension. We will show the gold bar after the switch
                     // if there is still a pending show.
 
+                    // If ReSharper was suspended and the user closed and reopened VS, we want to reset the gold bar
+                    if (currentStatus == ReSharperStatus.Suspended && _isFirstRun)
+                    { 
+                        options = options.WithChangedOption(KeybindingResetOptions.NeedsReset, true);
+                    }
+                    
                     break;
                 case ReSharperStatus.Enabled:
                     if (currentStatus != ReSharperStatus.Enabled)
@@ -187,17 +210,30 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
             }
 
             _workspace.Options = options;
-
             if (options.GetOption(KeybindingResetOptions.NeedsReset))
             {
                 ShowGoldBar();
+            }
+
+            _isFirstRun = false;
+
+            bool StatusChanged(ReSharperStatus current, ReSharperStatus last)
+            {
+                // if ReSharper was suspended and user closed and restarted Visual Studio, 
+                // consider that a status change so we reset the gold bar
+                if (current == ReSharperStatus.Suspended && last == ReSharperStatus.Suspended && _isFirstRun)
+                {
+                    return true;
+                }
+                else
+                {
+                    return current != last;
+                }
             }
         }
 
         private void ShowGoldBar()
         {
-            AssertIsForeground();
-
             // If the gold bar is already open, do not show
             if (_infoBarOpen)
             {
@@ -209,7 +245,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
             Debug.Assert(_experimentationService.IsExperimentEnabled(InternalFlightName) ||
                          _experimentationService.IsExperimentEnabled(ExternalFlightName));
 
-            string message = ServicesVSResources.We_notice_you_suspended_0_Reset_keymappings_to_continue_to_navigate_and_refactor;
+            var message = ServicesVSResources.We_notice_you_suspended_0_Reset_keymappings_to_continue_to_navigate_and_refactor;
             KeybindingsResetLogger.Log("InfoBarShown");
             var infoBarService = _workspace.Services.GetRequiredService<IInfoBarService>();
             infoBarService.ShowInfoBarInGlobalView(
@@ -230,60 +266,67 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
                               action: InfoBarClose));
         }
 
-        private async Task<ReSharperStatus> IsReSharperRunningAsync(ReSharperStatus lastStatus)
+        private async Task<ReSharperStatus> IsReSharperRunningAsync(ReSharperStatus lastStatus, 
+            bool pollForStatus, CancellationToken cancellationToken)
         {
-            AssertIsForeground();
-
             // Quick exit if resharper is either uninstalled or not enabled
             if (!_resharperExtensionInstalled)
             {
                 return ReSharperStatus.NotInstalledOrDisabled;
             }
 
-            if (_oleCommandTarget == null)
-            {
-                _oleCommandTarget = _serviceProvider.GetService<IOleCommandTarget, SUIHostCommandDispatcher>();
-            }
+            await EnsureOleCommandTargetAsync().ConfigureAwait(false);
 
             var cmds = new OLECMD[1];
             cmds[0].cmdID = ResumeId;
             cmds[0].cmdf = 0;
 
-            for (var count = 0; count < 10; count++)
+            var numberOfIterations = pollForStatus ? 10 : 1;
+            for (var count = 0; count < numberOfIterations; count++)
             {
-                var hr = _oleCommandTarget.QueryStatus(ReSharperCommandGroup, (uint)cmds.Length, cmds, IntPtr.Zero);
+                var hr = await QueryStatusOnUIThreadAsync().ConfigureAwait(false);
                 if (ErrorHandler.Failed(hr))
                 {
                     // In the case of an error when attempting to get the status, pretend that ReSharper isn't enabled. We also
                     // shut down monitoring so we don't keep hitting this.
                     FatalError.ReportWithoutCrash(Marshal.GetExceptionForHR(hr));
-                    Shutdown();
+                    await ShutdownAsync().ConfigureAwait(false);
+
                     return ReSharperStatus.NotInstalledOrDisabled;
                 }
 
                 // When ReSharper is suspended, the ReSharper_Resume command has the Enabled | Supported flags. 
-                if (((OLECMDF) cmds[0].cmdf).HasFlag(OLECMDF.OLECMDF_ENABLED))
+                if (((OLECMDF)cmds[0].cmdf).HasFlag(OLECMDF.OLECMDF_ENABLED))
                 {
                     return ReSharperStatus.Suspended;
                 }
 
+
                 //otherwise sleep for a bit and check again
-                _cancellationTokenSource = new CancellationTokenSource();
-                await Task.Factory.SafeStartNew(WaitTwoSeconds, _cancellationTokenSource.Token, TaskScheduler.Default);
-                if (_cancellationTokenSource.IsCancellationRequested)
-                {
-                    // if user cancels, return the last status
-                    return lastStatus;
-                }
+                await Task.Delay(TimeSpan.FromSeconds(2), cancellationToken).ConfigureAwait(false);
             }
 
-            // If resume doesn't become active within a reasonable amount of time, assume ReSharper is Enabled
+            // If resume button doesn't become active within a reasonable amount of time, assume ReSharper is Enabled
             return ReSharperStatus.Enabled;
-        }
 
-        private async Task WaitTwoSeconds()
-        { 
-            await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
+            async Task<int> QueryStatusOnUIThreadAsync()
+            {
+                await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+                return _oleCommandTarget.QueryStatus(ReSharperCommandGroup, (uint)cmds.Length, cmds, IntPtr.Zero);
+            }
+
+            async Task EnsureOleCommandTargetAsync()
+            {
+                if (_oleCommandTarget != null)
+                {
+                    return;
+                }
+
+                await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+                _oleCommandTarget = _serviceProvider.GetService<IOleCommandTarget, SUIHostCommandDispatcher>();
+            }
         }
 
         private void RestoreVsKeybindings()
@@ -331,7 +374,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
             KeybindingsResetLogger.Log("NeverShowAgain");
 
             // The only external references to this object are as callbacks, which are removed by the Shutdown method.
-            Shutdown();
+            ThreadingContext.JoinableTaskFactory.Run(ShutdownAsync);
         }
 
         private void InfoBarClose()
@@ -355,7 +398,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
             if (pguidCmdGroup == ReSharperCommandGroup && nCmdID >= ResumeId && nCmdID <= ToggleSuspendId)
             {
                 // Don't delay command processing to update resharper status
-                Task.Run(() => InvokeBelowInputPriorityAsync(UpdateStateMachine));
+                StartUpdateStateMachine(pollForStatus: false);
             }
 
             // No matter the command, we never actually want to respond to it, so always return not supported. We're just monitoring.
@@ -371,20 +414,24 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
             // extra QueryStatus.
             if (args.TransitionType == StateTransitionType.Exit)
             {
-                _cancellationTokenSource.Cancel();
-                InvokeBelowInputPriorityAsync(UpdateStateMachine);
+                StartUpdateStateMachine(pollForStatus: false);
             }
         }
 
-        public void Shutdown()
+        private async Task ShutdownAsync()
         {
-            AssertIsForeground();
+            // we are shutting down, cancel any pending work.
+            _cancellationTokenSource.Cancel();
+
+            await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
+
             if (_priorityCommandTargetCookie != VSConstants.VSCOOKIE_NIL)
             {
                 var priorityCommandTargetRegistrar = _serviceProvider.GetService<IVsRegisterPriorityCommandTarget, SVsRegisterPriorityCommandTarget>();
                 var cookie = _priorityCommandTargetCookie;
                 _priorityCommandTargetCookie = VSConstants.VSCOOKIE_NIL;
                 var hr = priorityCommandTargetRegistrar.UnregisterPriorityCommandTarget(cookie);
+
                 if (ErrorHandler.Failed(hr))
                 {
                     FatalError.ReportWithoutCrash(Marshal.GetExceptionForHR(hr));
