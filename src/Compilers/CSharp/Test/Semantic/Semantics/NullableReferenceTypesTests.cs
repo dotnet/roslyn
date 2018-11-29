@@ -812,11 +812,7 @@ class C
 }
 ";
             var c = CreateCompilation(new[] { source });
-            c.VerifyDiagnostics(
-                // (6,10): warning CS8629: The suppression operator (!) should be used in code within a '#nullable' context.
-                //         t!.ToString();
-                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContext, "!").WithLocation(6, 10)
-                );
+            c.VerifyDiagnostics();
 
             c = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             c.VerifyDiagnostics();
@@ -838,21 +834,9 @@ class C
 ";
             var c = CreateCompilation(source);
             c.VerifyEmitDiagnostics(
-                // (2,26): warning CS8629: The suppression operator (!) should be used in code within a '#nullable' context.
-                // [System.Obsolete("", true!)] // 1, 2
-                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContext, "!").WithLocation(2, 26),
                 // (2,22): error CS8624: The suppression operator (!) can only be applied to reference types.
                 // [System.Obsolete("", true!)] // 1, 2
                 Diagnostic(ErrorCode.WRN_SuppressionOperatorNotReferenceType, "true!").WithLocation(2, 22),
-                // (6,37): warning CS8629: The suppression operator (!) should be used in code within a '#nullable' context.
-                //     static void Main(string z = null!) // 5
-                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContext, "!").WithLocation(6, 37),
-                // (5,20): warning CS8629: The suppression operator (!) should be used in code within a '#nullable' context.
-                //     string x = null!; // 3, 4
-                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContext, "!").WithLocation(5, 20),
-                // (8,24): warning CS8629: The suppression operator (!) should be used in code within a '#nullable' context.
-                //         string y = null!; // 6, 7
-                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContext, "!").WithLocation(8, 24),
                 // (8,16): warning CS0219: The variable 'y' is assigned but its value is never used
                 //         string y = null!; // 6, 7
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "y").WithArguments("y").WithLocation(8, 16),
@@ -1286,10 +1270,7 @@ class C4 { }";
         public void Nullable_False_InCSharp7()
         {
             var comp = CreateCompilation("", options: WithNonNullTypesFalse(), parseOptions: TestOptions.Regular7);
-            comp.VerifyDiagnostics(
-                // error CS8630: Invalid 'Nullable' value: 'False' for C# 7.0. Please use language version 8.0 or greater.
-                Diagnostic(ErrorCode.ERR_NullableOptionNotAvailable).WithArguments("Nullable", "False", "7.0", "8.0").WithLocation(1, 1)
-                );
+            comp.VerifyDiagnostics();
 
             Assert.False(comp.SourceModule.NonNullTypes);
         }
@@ -1618,36 +1599,36 @@ namespace System
             comp0.VerifyDiagnostics();
             compRefs0 = new MetadataReference[] { new CSharpCompilationReference(comp0) };
             metadataRefs0 = new[] { comp0.EmitToImageReference() };
-            Assert.Equal(NullableAnnotation.NotNullable, getParameterType(comp0).NullableAnnotation);
+            Assert.Equal(NullableAnnotation.NotAnnotated, getParameterType(comp0).NullableAnnotation);
 
             // ... used in 7.0.
             comp1 = CreateCompilation(source1, references: compRefs0, parseOptions: TestOptions.Regular7);
             comp1.VerifyDiagnostics();
-            Assert.Equal(NullableAnnotation.NotNullable, getParameterType(comp1).NullableAnnotation);
+            Assert.Equal(NullableAnnotation.NotAnnotated, getParameterType(comp1).NullableAnnotation);
             comp1 = CreateCompilation(source1, references: metadataRefs0, parseOptions: TestOptions.Regular7);
             comp1.VerifyDiagnostics();
-            Assert.Equal(NullableAnnotation.NotNullable, getParameterType(comp1).NullableAnnotation);
+            Assert.Equal(NullableAnnotation.NotAnnotated, getParameterType(comp1).NullableAnnotation);
 
             // ... used in 8.0.
             comp1 = CreateCompilation(source1, references: compRefs0);
             comp1.VerifyDiagnostics();
-            Assert.Equal(NullableAnnotation.NotNullable, getParameterType(comp1).NullableAnnotation);
+            Assert.Equal(NullableAnnotation.NotAnnotated, getParameterType(comp1).NullableAnnotation);
             comp1 = CreateCompilation(source1, references: metadataRefs0);
             comp1.VerifyDiagnostics();
-            Assert.Equal(NullableAnnotation.NotNullable, getParameterType(comp1).NullableAnnotation);
+            Assert.Equal(NullableAnnotation.NotAnnotated, getParameterType(comp1).NullableAnnotation);
 
             comp1 = CreateCompilation(new[] { source1 }, options: WithNonNullTypesTrue(), references: compRefs0);
             comp1.VerifyDiagnostics(
                 // (6,13): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
                 //         A.F(null);
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(6, 13));
-            Assert.Equal(NullableAnnotation.NotNullable, getParameterType(comp1).NullableAnnotation);
+            Assert.Equal(NullableAnnotation.NotAnnotated, getParameterType(comp1).NullableAnnotation);
             comp1 = CreateCompilation(new[] { source1 }, options: WithNonNullTypesTrue(), references: metadataRefs0);
             comp1.VerifyDiagnostics(
                 // (6,13): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
                 //         A.F(null);
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(6, 13));
-            Assert.Equal(NullableAnnotation.NotNullable, getParameterType(comp1).NullableAnnotation);
+            Assert.Equal(NullableAnnotation.NotAnnotated, getParameterType(comp1).NullableAnnotation);
         }
 
         [Fact]
@@ -2839,7 +2820,7 @@ public class Oblivious
 
             var obliviousComp = CreateCompilation(obliviousLib, parseOptions: TestOptions.Regular7);
             obliviousComp.VerifyDiagnostics();
-            VerifyNonNullTypes(obliviousComp.GetMember("Oblivious"), expectNonNullTypes: null);
+            VerifyNonNullTypes(obliviousComp.GetMember("Oblivious"), expectNonNullTypes: false);
 
             var lib = @"
 public class External
@@ -3003,7 +2984,7 @@ class E
         {
             Assert.Equal(expectNonNullTypes, method.NonNullTypes);
 
-            if (method.ReturnType.NullableAnnotation != NullableAnnotation.Nullable)
+            if (method.ReturnType.NullableAnnotation != NullableAnnotation.Annotated)
             {
                 if (method is SynthesizedInstanceConstructor)
                 {
@@ -3032,7 +3013,7 @@ public class Oblivious
 ";
 
             var obliviousComp = CreateCompilation(obliviousLib, parseOptions: TestOptions.Regular7);
-            VerifyNonNullTypes((NamedTypeSymbol)obliviousComp.GetMember("Oblivious"), expectNonNullTypes: null);
+            VerifyNonNullTypes((NamedTypeSymbol)obliviousComp.GetMember("Oblivious"), expectNonNullTypes: false);
 
             var lib = @"
 public class External
@@ -4039,20 +4020,20 @@ class C3
                 );
 
             verify("C1.F1", "System.String", NullableAnnotation.Unknown);
-            verify("C1.F2", "System.String?", NullableAnnotation.Nullable);
+            verify("C1.F2", "System.String?", NullableAnnotation.Annotated);
             verify("C1.F3", "System.Int32", NullableAnnotation.Unknown);
-            verify("C1.F4", "System.Int32?", NullableAnnotation.Nullable);
-            verify("C1.F5", "System.Int32?", NullableAnnotation.Nullable);
+            verify("C1.F4", "System.Int32?", NullableAnnotation.Annotated);
+            verify("C1.F5", "System.Int32?", NullableAnnotation.Annotated);
             verify("C2.F1", "System.String", NullableAnnotation.Unknown);
-            verify("C2.F2", "System.String?", NullableAnnotation.Nullable);
+            verify("C2.F2", "System.String?", NullableAnnotation.Annotated);
             verify("C2.F3", "System.Int32", NullableAnnotation.Unknown);
-            verify("C2.F4", "System.Int32?", NullableAnnotation.Nullable);
-            verify("C2.F5", "System.Int32?", NullableAnnotation.Nullable);
-            verify("C3.F1", "System.String!", NullableAnnotation.NotNullable);
-            verify("C3.F2", "System.String?", NullableAnnotation.Nullable);
-            verify("C3.F3", "System.Int32", NullableAnnotation.NotNullable);
-            verify("C3.F4", "System.Int32?", NullableAnnotation.Nullable);
-            verify("C3.F5", "System.Int32?", NullableAnnotation.Nullable);
+            verify("C2.F4", "System.Int32?", NullableAnnotation.Annotated);
+            verify("C2.F5", "System.Int32?", NullableAnnotation.Annotated);
+            verify("C3.F1", "System.String!", NullableAnnotation.NotAnnotated);
+            verify("C3.F2", "System.String?", NullableAnnotation.Annotated);
+            verify("C3.F3", "System.Int32", NullableAnnotation.NotAnnotated);
+            verify("C3.F4", "System.Int32?", NullableAnnotation.Annotated);
+            verify("C3.F5", "System.Int32?", NullableAnnotation.Annotated);
 
             // https://github.com/dotnet/roslyn/issues/29845: Test nested nullability.
 
@@ -4135,26 +4116,26 @@ class C3
             );
 
             verify("C1.F1", "T", NullableAnnotation.Unknown);
-            verify("C1.F2", "T?", NullableAnnotation.Nullable);
+            verify("C1.F2", "T?", NullableAnnotation.Annotated);
             verify("C1.F3", "T", NullableAnnotation.Unknown);
-            verify("C1.F4", "T?", NullableAnnotation.Nullable);
+            verify("C1.F4", "T?", NullableAnnotation.Annotated);
             verify("C1.F5", "T", NullableAnnotation.Unknown);
-            verify("C1.F6", "T?", NullableAnnotation.Nullable);
-            verify("C1.F7", "T?", NullableAnnotation.Nullable);
+            verify("C1.F6", "T?", NullableAnnotation.Annotated);
+            verify("C1.F7", "T?", NullableAnnotation.Annotated);
             verify("C2.F1", "T", NullableAnnotation.Unknown);
-            verify("C2.F2", "T?", NullableAnnotation.Nullable);
+            verify("C2.F2", "T?", NullableAnnotation.Annotated);
             verify("C2.F3", "T", NullableAnnotation.Unknown);
-            verify("C2.F4", "T?", NullableAnnotation.Nullable);
+            verify("C2.F4", "T?", NullableAnnotation.Annotated);
             verify("C2.F5", "T", NullableAnnotation.Unknown);
-            verify("C2.F6", "T?", NullableAnnotation.Nullable);
-            verify("C2.F7", "T?", NullableAnnotation.Nullable);
-            verify("C3.F1", "T", NullableAnnotation.NotNullable);
-            verify("C3.F2", "T?", NullableAnnotation.Nullable);
-            verify("C3.F3", "T!", NullableAnnotation.NotNullable);
-            verify("C3.F4", "T?", NullableAnnotation.Nullable);
-            verify("C3.F5", "T", NullableAnnotation.NotNullable);
-            verify("C3.F6", "T?", NullableAnnotation.Nullable);
-            verify("C3.F7", "T?", NullableAnnotation.Nullable);
+            verify("C2.F6", "T?", NullableAnnotation.Annotated);
+            verify("C2.F7", "T?", NullableAnnotation.Annotated);
+            verify("C3.F1", "T", NullableAnnotation.NotAnnotated);
+            verify("C3.F2", "T?", NullableAnnotation.Annotated);
+            verify("C3.F3", "T!", NullableAnnotation.NotAnnotated);
+            verify("C3.F4", "T?", NullableAnnotation.Annotated);
+            verify("C3.F5", "T", NullableAnnotation.NotAnnotated);
+            verify("C3.F6", "T?", NullableAnnotation.Annotated);
+            verify("C3.F7", "T?", NullableAnnotation.Annotated);
 
             // https://github.com/dotnet/roslyn/issues/29845: Test nested nullability.
             // https://github.com/dotnet/roslyn/issues/29845: Test all combinations of overrides.
@@ -4353,13 +4334,13 @@ class B : A
             var b = compilation.GetTypeByMetadataName("B");
             var m1 = b.GetMember<MethodSymbol>("M1");
             Assert.False(m1.Parameters[0].Type.IsNullableType());
-            Assert.Equal(NullableAnnotation.Nullable, m1.Parameters[0].Type.NullableAnnotation);
+            Assert.Equal(NullableAnnotation.Annotated, m1.Parameters[0].Type.NullableAnnotation);
             Assert.True(m1.Parameters[0].Type.IsReferenceType);
             Assert.False(m1.OverriddenMethod.Parameters[0].Type.IsNullableType());
 
             var m2 = b.GetMember<MethodSymbol>("M2");
             Assert.False(m2.ReturnType.IsNullableType());
-            Assert.Equal(NullableAnnotation.Nullable, m2.ReturnType.NullableAnnotation);
+            Assert.Equal(NullableAnnotation.Annotated, m2.ReturnType.NullableAnnotation);
             Assert.True(m2.ReturnType.IsReferenceType);
             Assert.False(m2.OverriddenMethod.ReturnType.IsNullableType());
         }
@@ -4956,7 +4937,7 @@ class B : A
             var b = compilation.GetTypeByMetadataName("B");
             var m1 = b.GetMember<MethodSymbol>("M1");
             Assert.False(m1.Parameters[0].Type.IsNullableType());
-            Assert.Equal(NullableAnnotation.Nullable, m1.Parameters[0].Type.NullableAnnotation);
+            Assert.Equal(NullableAnnotation.Annotated, m1.Parameters[0].Type.NullableAnnotation);
             Assert.True(m1.Parameters[0].Type.IsReferenceType);
             Assert.False(m1.OverriddenMethod.Parameters[0].Type.IsNullableType());
 
@@ -17211,7 +17192,7 @@ class CL1
             var declarator = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().First();
             var symbol = (LocalSymbol)model.GetDeclaredSymbol(declarator);
             Assert.Equal("System.String", symbol.Type.ToTestDisplayString());
-            Assert.Equal(NullableAnnotation.NotNullable, symbol.Type.NullableAnnotation);
+            Assert.Equal(NullableAnnotation.NotAnnotated, symbol.Type.NullableAnnotation);
         }
 
         [Fact]
@@ -17267,7 +17248,7 @@ class CL1
             var declarator = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().First();
             var symbol = (LocalSymbol)model.GetDeclaredSymbol(declarator);
             Assert.Equal("System.String?", symbol.Type.ToTestDisplayString());
-            Assert.Equal(NullableAnnotation.Nullable, symbol.Type.NullableAnnotation);
+            Assert.Equal(NullableAnnotation.Annotated, symbol.Type.NullableAnnotation);
         }
 
         [Fact]
@@ -17298,7 +17279,7 @@ class CL1
             var declarator = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().First();
             var symbol = (LocalSymbol)model.GetDeclaredSymbol(declarator);
             Assert.Equal("System.String?", symbol.Type.ToTestDisplayString());
-            Assert.Equal(NullableAnnotation.Nullable, symbol.Type.NullableAnnotation);
+            Assert.Equal(NullableAnnotation.Annotated, symbol.Type.NullableAnnotation);
         }
 
         [Fact]
@@ -17332,7 +17313,7 @@ class CL1
             // https://github.com/dotnet/roslyn/issues/29856: Type should be `string!`.
             Assert.Equal("System.String?", symbol.Type.ToTestDisplayString());
             // https://github.com/dotnet/roslyn/issues/29856: IsNullable should be inferred nullable state: false.
-            Assert.Equal(NullableAnnotation.Nullable, symbol.Type.NullableAnnotation);
+            Assert.Equal(NullableAnnotation.Annotated, symbol.Type.NullableAnnotation);
         }
 
         [Fact]
@@ -17365,7 +17346,7 @@ class CL1
             var declarator = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().First();
             var symbol = (LocalSymbol)model.GetDeclaredSymbol(declarator);
             Assert.Equal("System.String?", symbol.Type.ToTestDisplayString());
-            Assert.Equal(NullableAnnotation.Nullable, symbol.Type.NullableAnnotation);
+            Assert.Equal(NullableAnnotation.Annotated, symbol.Type.NullableAnnotation);
         }
 
         [Fact]
@@ -17397,7 +17378,7 @@ class CL1
             var declarator = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().First();
             var symbol = (LocalSymbol)model.GetDeclaredSymbol(declarator);
             Assert.Equal("System.String?", symbol.Type.ToTestDisplayString());
-            Assert.Equal(NullableAnnotation.Nullable, symbol.Type.NullableAnnotation);
+            Assert.Equal(NullableAnnotation.Annotated, symbol.Type.NullableAnnotation);
         }
 
         [Fact]
@@ -17430,7 +17411,7 @@ class CL1
             var declarator = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().First();
             var symbol = (LocalSymbol)model.GetDeclaredSymbol(declarator);
             Assert.Equal("System.String?", symbol.Type.ToTestDisplayString());
-            Assert.Equal(NullableAnnotation.Nullable, symbol.Type.NullableAnnotation);
+            Assert.Equal(NullableAnnotation.Annotated, symbol.Type.NullableAnnotation);
         }
 
         [Fact]
@@ -17464,7 +17445,7 @@ class CL1
             var declarator = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().First();
             var symbol = (LocalSymbol)model.GetDeclaredSymbol(declarator);
             Assert.Equal("System.String?", symbol.Type.ToTestDisplayString());
-            Assert.Equal(NullableAnnotation.Nullable, symbol.Type.NullableAnnotation);
+            Assert.Equal(NullableAnnotation.Annotated, symbol.Type.NullableAnnotation);
         }
 
         [Fact]
@@ -23924,7 +23905,7 @@ class C
             Assert.True(symbol.Type.NullableAnnotation.IsAnyNullable());
             symbol = (LocalSymbol)model.GetDeclaredSymbol(declarators[1]);
             Assert.Equal("System.Int32?", symbol.Type.ToTestDisplayString(true));
-            Assert.Equal(NullableAnnotation.Nullable, symbol.Type.NullableAnnotation);
+            Assert.Equal(NullableAnnotation.Annotated, symbol.Type.NullableAnnotation);
         }
 
         [Fact]
@@ -24036,10 +24017,10 @@ class C
             var declarators = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().ToArray();
             var symbol = (LocalSymbol)model.GetDeclaredSymbol(declarators[0]);
             Assert.Equal("System.String!", symbol.Type.ToTestDisplayString(true));
-            Assert.Equal(NullableAnnotation.NotNullable, symbol.Type.NullableAnnotation);
+            Assert.Equal(NullableAnnotation.NotAnnotated, symbol.Type.NullableAnnotation);
             symbol = (LocalSymbol)model.GetDeclaredSymbol(declarators[1]);
             Assert.Equal("System.Int32", symbol.Type.ToTestDisplayString(true));
-            Assert.Equal(NullableAnnotation.NotNullable, symbol.Type.NullableAnnotation);
+            Assert.Equal(NullableAnnotation.NotAnnotated, symbol.Type.NullableAnnotation);
         }
 
         [Fact]
@@ -24070,10 +24051,10 @@ class C
             var declarators = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().ToArray();
             var symbol = (LocalSymbol)model.GetDeclaredSymbol(declarators[0]);
             Assert.Equal("System.String?", symbol.Type.ToTestDisplayString(true));
-            Assert.Equal(NullableAnnotation.Nullable, symbol.Type.NullableAnnotation);
+            Assert.Equal(NullableAnnotation.Annotated, symbol.Type.NullableAnnotation);
             symbol = (LocalSymbol)model.GetDeclaredSymbol(declarators[1]);
             Assert.Equal("System.Int32?", symbol.Type.ToTestDisplayString(true));
-            Assert.Equal(NullableAnnotation.Nullable, symbol.Type.NullableAnnotation);
+            Assert.Equal(NullableAnnotation.Annotated, symbol.Type.NullableAnnotation);
         }
 
         [Fact]
@@ -24106,7 +24087,7 @@ class C
             var declarators = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().ToArray();
             var symbol = (LocalSymbol)model.GetDeclaredSymbol(declarators[0]);
             Assert.Equal("T", symbol.Type.ToTestDisplayString(true));
-            Assert.Equal(NullableAnnotation.NotNullable, symbol.Type.NullableAnnotation);
+            Assert.Equal(NullableAnnotation.NotAnnotated, symbol.Type.NullableAnnotation);
         }
 
         [Fact]
@@ -24143,10 +24124,10 @@ class C
             var declarators = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().ToArray();
             var symbol = (LocalSymbol)model.GetDeclaredSymbol(declarators[0]);
             Assert.Equal("T!", symbol.Type.ToTestDisplayString(true));
-            Assert.Equal(NullableAnnotation.NotNullable, symbol.Type.NullableAnnotation);
+            Assert.Equal(NullableAnnotation.NotAnnotated, symbol.Type.NullableAnnotation);
             symbol = (LocalSymbol)model.GetDeclaredSymbol(declarators[1]);
             Assert.Equal("T?", symbol.Type.ToTestDisplayString(true));
-            Assert.Equal(NullableAnnotation.Nullable, symbol.Type.NullableAnnotation);
+            Assert.Equal(NullableAnnotation.Annotated, symbol.Type.NullableAnnotation);
         }
 
         // https://github.com/dotnet/roslyn/issues/29618: Track nullability through deconstruction assignment.
@@ -31887,22 +31868,8 @@ class Program
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "s!").WithArguments("nullable reference types", "8.0").WithLocation(9, 11),
                 // (3,25): error CS8107: Feature 'nullable reference types' is not available in C# 7.0. Please use language version 8.0 or greater.
                 //     static void F(string? s) // 1
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "?").WithArguments("nullable reference types", "8.0").WithLocation(3, 25),
-                // (5,15): warning CS8629: The suppression operator (!) should be used in code within a '#nullable' context.
-                //         G(null!); // 2, 3
-                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContext, "!").WithLocation(5, 15),
-                // (6,27): warning CS8629: The suppression operator (!) should be used in code within a '#nullable' context.
-                //         G((null as string)!); // 4, 5
-                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContext, "!").WithLocation(6, 27),
-                // (7,26): warning CS8629: The suppression operator (!) should be used in code within a '#nullable' context.
-                //         G(default(string)!); // 6, 7
-                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContext, "!").WithLocation(7, 26),
-                // (8,18): warning CS8629: The suppression operator (!) should be used in code within a '#nullable' context.
-                //         G(default!); // 8, 9, 10
-                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContext, "!").WithLocation(8, 18),
-                // (9,12): warning CS8629: The suppression operator (!) should be used in code within a '#nullable' context.
-                //         G(s!); // 11, 12
-                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContext, "!").WithLocation(9, 12));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "?").WithArguments("nullable reference types", "8.0").WithLocation(3, 25)
+                );
 
             comp = CreateCompilation(
                 new[] { source }, options: WithNonNullTypesTrue(),
@@ -33004,27 +32971,15 @@ struct S2<T>
                 new[] { source },
                 parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
-                // (5,12): warning CS8629: The suppression operator (!) should be used in code within a '#nullable' context.
-                //         G(1!);
-                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContext, "!").WithLocation(5, 12),
                 // (5,11): error CS8624: The suppression operator (!) can only be applied to reference types.
                 //         G(1!);
                 Diagnostic(ErrorCode.WRN_SuppressionOperatorNotReferenceType, "1!").WithLocation(5, 11),
-                // (6,23): warning CS8629: The suppression operator (!) should be used in code within a '#nullable' context.
-                //         G(((int?)null)!);
-                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContext, "!").WithLocation(6, 23),
                 // (6,11): error CS8624: The suppression operator (!) can only be applied to reference types.
                 //         G(((int?)null)!);
                 Diagnostic(ErrorCode.WRN_SuppressionOperatorNotReferenceType, "((int?)null)!").WithLocation(6, 11),
-                // (7,21): warning CS8629: The suppression operator (!) should be used in code within a '#nullable' context.
-                //         G(default(S)!);
-                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContext, "!").WithLocation(7, 21),
                 // (7,11): error CS8624: The suppression operator (!) can only be applied to reference types.
                 //         G(default(S)!);
                 Diagnostic(ErrorCode.WRN_SuppressionOperatorNotReferenceType, "default(S)!").WithLocation(7, 11),
-                // (8,29): warning CS8629: The suppression operator (!) should be used in code within a '#nullable' context.
-                //         _ = new S2<object>()!;
-                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContext, "!").WithLocation(8, 29),
                 // (8,13): error CS8624: The suppression operator (!) can only be applied to reference types.
                 //         _ = new S2<object>()!;
                 Diagnostic(ErrorCode.WRN_SuppressionOperatorNotReferenceType, "new S2<object>()!").WithLocation(8, 13));
@@ -33046,27 +33001,15 @@ struct S2<T>
                 // (8,13): error CS8107: Feature 'nullable reference types' is not available in C# 7.0. Please use language version 8.0 or greater.
                 //         _ = new S2<object>()!;
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "new S2<object>()!").WithArguments("nullable reference types", "8.0").WithLocation(8, 13),
-                // (5,12): warning CS8629: The suppression operator (!) should be used in code within a '#nullable' context.
-                //         G(1!);
-                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContext, "!").WithLocation(5, 12),
                 // (5,11): warning CS8624: The suppression operator (!) can only be applied to reference types.
                 //         G(1!);
                 Diagnostic(ErrorCode.WRN_SuppressionOperatorNotReferenceType, "1!").WithLocation(5, 11),
-                // (6,23): warning CS8629: The suppression operator (!) should be used in code within a '#nullable' context.
-                //         G(((int?)null)!);
-                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContext, "!").WithLocation(6, 23),
                 // (6,11): warning CS8624: The suppression operator (!) can only be applied to reference types.
                 //         G(((int?)null)!);
                 Diagnostic(ErrorCode.WRN_SuppressionOperatorNotReferenceType, "((int?)null)!").WithLocation(6, 11),
-                // (7,21): warning CS8629: The suppression operator (!) should be used in code within a '#nullable' context.
-                //         G(default(S)!);
-                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContext, "!").WithLocation(7, 21),
                 // (7,11): warning CS8624: The suppression operator (!) can only be applied to reference types.
                 //         G(default(S)!);
                 Diagnostic(ErrorCode.WRN_SuppressionOperatorNotReferenceType, "default(S)!").WithLocation(7, 11),
-                // (8,29): warning CS8629: The suppression operator (!) should be used in code within a '#nullable' context.
-                //         _ = new S2<object>()!;
-                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContext, "!").WithLocation(8, 29),
                 // (8,13): warning CS8624: The suppression operator (!) can only be applied to reference types.
                 //         _ = new S2<object>()!;
                 Diagnostic(ErrorCode.WRN_SuppressionOperatorNotReferenceType, "new S2<object>()!").WithLocation(8, 13));
@@ -33118,18 +33061,10 @@ struct S2<T>
             // Feature disabled.
             comp = CreateCompilation(new[] { source }, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
-                // (6,20): warning CS8629: The suppression operator (!) should be used in code within a '#nullable' context.
-                //         _ = tStruct!;
-                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContext, "!").WithLocation(6, 20),
                 // (6,13): error CS8624: The suppression operator (!) can only be applied to reference types.
                 //         _ = tStruct!;
-                Diagnostic(ErrorCode.WRN_SuppressionOperatorNotReferenceType, "tStruct!").WithLocation(6, 13),
-                // (7,17): warning CS8629: The suppression operator (!) should be used in code within a '#nullable' context.
-                //         _ = tRef!;
-                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContext, "!").WithLocation(7, 17),
-                // (8,27): warning CS8629: The suppression operator (!) should be used in code within a '#nullable' context.
-                //         _ = tUnconstrained!;
-                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContext, "!").WithLocation(8, 27));
+                Diagnostic(ErrorCode.WRN_SuppressionOperatorNotReferenceType, "tStruct!").WithLocation(6, 13)
+                );
 
             // Feature disabled (C# 7).
             comp = CreateCompilation(new[] { source }, parseOptions: TestOptions.Regular7);
@@ -33143,18 +33078,10 @@ struct S2<T>
                 // (8,13): error CS8107: Feature 'nullable reference types' is not available in C# 7.0. Please use language version 8.0 or greater.
                 //         _ = tUnconstrained!;
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "tUnconstrained!").WithArguments("nullable reference types", "8.0").WithLocation(8, 13),
-                // (6,20): warning CS8629: The suppression operator (!) should be used in code within a '#nullable' context.
-                //         _ = tStruct!;
-                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContext, "!").WithLocation(6, 20),
                 // (6,13): warning CS8624: The suppression operator (!) can only be applied to reference types.
                 //         _ = tStruct!;
-                Diagnostic(ErrorCode.WRN_SuppressionOperatorNotReferenceType, "tStruct!").WithLocation(6, 13),
-                // (7,17): warning CS8629: The suppression operator (!) should be used in code within a '#nullable' context.
-                //         _ = tRef!;
-                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContext, "!").WithLocation(7, 17),
-                // (8,27): warning CS8629: The suppression operator (!) should be used in code within a '#nullable' context.
-                //         _ = tUnconstrained!;
-                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContext, "!").WithLocation(8, 27));
+                Diagnostic(ErrorCode.WRN_SuppressionOperatorNotReferenceType, "tStruct!").WithLocation(6, 13)
+                );
         }
 
         [Fact]
@@ -33878,10 +33805,8 @@ F(v).ToString();";
             comp.VerifyDiagnostics(
                 // (8,13): error CS8197: Cannot infer the type of implicitly-typed out variable 'v'.
                 // d.F(out var v);
-                Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedOutVariable, "v").WithArguments("v").WithLocation(8, 13),
-                // (7,17): warning CS8629: The suppression operator (!) should be used in code within a '#nullable' context.
-                // dynamic d = null!;
-                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContext, "!").WithLocation(7, 17));
+                Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedOutVariable, "v").WithArguments("v").WithLocation(8, 13)
+                );
         }
 
         /// <summary>
@@ -49459,10 +49384,7 @@ class C
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(9, 14),
                 // (9,13): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
                 //             T? x = t; // warn 2
-                Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "T?").WithLocation(9, 13),
-                // (10,14): warning CS8629: The suppression operator (!) should be used in code within a '#nullable' context.
-                //             x!.ToString(); // warn 3
-                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContext, "!").WithLocation(10, 14)
+                Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "T?").WithLocation(9, 13)
                 );
             var tree = comp.SyntaxTrees.First();
             var model = comp.GetSemanticModel(tree);
@@ -50383,11 +50305,7 @@ class A<T1, T2> where T1 : class where T2 : class
 }
 ";
             var comp = CreateCompilation(new[] { source });
-            // https://github.com/dotnet/roslyn/issues/30177 Unexpected warning CS8618: Non-nullable field 'F' is uninitialized.
             comp.VerifyDiagnostics(
-                // (5,7): warning CS8618: Non-nullable field 'F' is uninitialized.
-                // class A<T1, T2> where T1 : class where T2 : class
-                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "A").WithArguments("field", "F").WithLocation(5, 7),
                 // (8,8): warning CS0414: The field 'A<T1, T2>.F' is assigned but its value is never used
                 //     T1 F;
                 Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "F").WithArguments("A<T1, T2>.F").WithLocation(8, 8),
@@ -50587,11 +50505,7 @@ class A<T1, T2> where T1 : class where T2 : class
 }
 ";
             var comp = CreateCompilation(new[] { source });
-            // https://github.com/dotnet/roslyn/issues/30177 Unexpected warning CS8618: Non-nullable field 'F' is uninitialized.
             comp.VerifyDiagnostics(
-                // (5,7): warning CS8618: Non-nullable field 'F' is uninitialized.
-                // class A<T1, T2> where T1 : class where T2 : class
-                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "A").WithArguments("field", "F").WithLocation(5, 7),
                 // (7,8): warning CS0414: The field 'A<T1, T2>.F' is assigned but its value is never used
                 //     T1 F;
                 Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "F").WithArguments("A<T1, T2>.F").WithLocation(7, 8),

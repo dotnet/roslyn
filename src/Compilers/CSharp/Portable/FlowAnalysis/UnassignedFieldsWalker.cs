@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(method.MethodKind == MethodKind.Constructor);
 
-            if (method.NonNullTypes == null)
+            if (method.NonNullTypes != true)
             {
                 return;
             }
