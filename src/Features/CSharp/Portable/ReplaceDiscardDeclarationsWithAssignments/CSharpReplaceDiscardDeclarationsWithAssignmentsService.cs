@@ -73,6 +73,21 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplaceDiscardDeclarationsWithAssignment
                         }
 
                         break;
+
+                    case DeclarationPatternSyntax declarationPattern:
+                        if (declarationPattern.Designation is DiscardDesignationSyntax discardDesignationSyntax &&
+                            declarationPattern.Parent is IsPatternExpressionSyntax isPatternExpression)
+                        {
+                            // "x is int _" => "x is int"
+                            var replacementNode = SyntaxFactory.BinaryExpression(
+                                kind: SyntaxKind.IsExpression,
+                                left: isPatternExpression.Expression,
+                                operatorToken: isPatternExpression.IsKeyword,
+                                right: declarationPattern.Type.WithTrailingTrivia(declarationPattern.GetTrailingTrivia()));
+                            editor.ReplaceNode(isPatternExpression, replacementNode);
+                        }
+
+                        break;
                 }
             }
 

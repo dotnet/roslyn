@@ -1877,7 +1877,7 @@ $@"class C
 {
     void M(object p)
     {
-        if (p is C _)
+        if (p is C)
         {
         }
     }
@@ -1909,7 +1909,7 @@ $@"class C
     {
         if (p is C [|x|])
         {
-            C x = null;
+            x = null;
         }
     }
 }",
@@ -1917,7 +1917,7 @@ $@"class C
 {
     void M(object p)
     {
-        if (p is C _)
+        if (p is C)
         {
             C x = null;
         }
@@ -1942,8 +1942,8 @@ $@"class C
         }
 
         [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
-        [InlineData(nameof(PreferDiscard), "_")]
-        [InlineData(nameof(PreferUnusedLocal), "unused")]
+        [InlineData(nameof(PreferDiscard), "C")]
+        [InlineData(nameof(PreferUnusedLocal), "C unused")]
         public async Task DeclarationPatternInIsPattern_WithReadAndWriteReference(string optionName, string fix)
         {
             await TestInRegularAndScriptAsync(
@@ -1962,7 +1962,7 @@ $@"class C
 {{
     void M(object p)
     {{
-        if (p is C {fix})
+        if (p is {fix})
         {{
             C x = null;
             p = x;
