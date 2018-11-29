@@ -95,7 +95,6 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
                 return;
             }
 
-            var index = 0;
             foreach (var embeddedItem in embeddedContext.Items)
             {
                 var change = embeddedItem.Change;
@@ -114,17 +113,14 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
                 }
 
                 // Keep everything sorted in the order we just produced the items in.
-                var sortText = index.ToString("0000");
+                var sortText = context.Items.Count.ToString("0000");
 
-                var item = CompletionItem.Create(
+                context.AddItem(CompletionItem.Create(
                     displayText: embeddedItem.DisplayText,
                     sortText: sortText,
                     properties: properties.ToImmutable(),
                     rules: s_rules,
-                    inlineDescription: "    " + embeddedItem.InlineDescription);
-
-                context.AddItem(item);
-                index++;
+                    inlineDescription: "    " + embeddedItem.InlineDescription));
             }
 
             context.IsExclusive = true;
