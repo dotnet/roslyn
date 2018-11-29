@@ -144,20 +144,7 @@ function Exec-Script([string]$script, [string]$scriptArgs = "") {
 
 # Ensure the proper .NET Core SDK is available. Returns the location to the dotnet.exe.
 function Ensure-DotnetSdk() {
-  if (-not (Test-Path global:_dotNetExe)) {
-    $global:_dotNetExe = Join-Path (InitializeDotNetCli -install:$true) "dotnet.exe"
-  }
-
-  return $global:_dotNetExe
-}
-
-# Ensure the proper VS msbuild is available. Returns the locaqtion of the msbuild.exe.
-function Ensure-MSBuild() {
-  if (-not (Test-Path global:_msbuildExe)) {
-    $global:_msbuildExe = InitializeVisualStudioMSBuild
-  }
-
-  return $global:_msbuildExe
+  return Join-Path (InitializeDotNetCli -install:$true) "dotnet.exe"
 }
 
 function Get-VersionCore([string]$name, [string]$versionFile) {
@@ -230,6 +217,7 @@ function Restore-Project([string]$projectFileName, [string]$logFilePath = "") {
         $logArg = " /bl:$logFilePath"
     }
 
-    Exec-Console (Ensure-DotNetSdk) "restore --verbosity quiet $projectFilePath $logArg"
+    $buildTool = InitializeBuildTool
+    Exec-Console $buildTool.Path "$($buildTool.Command) `"$projectFilePath`" /t:Restore /m /nologo /clp:None /v:quiet /nr:false /warnaserror $logArg $args"
 }
 

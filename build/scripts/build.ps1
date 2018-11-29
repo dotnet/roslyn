@@ -17,13 +17,13 @@
 [CmdletBinding(PositionalBinding=$false)]
 param (
     [string]$configuration = "Debug",
+    [string]$msbuildEngine = "vs",
 
     # Configuration
     [switch]$restore = $false,
     [switch]$official = $false,
     [switch]$cibuild = $false,
     [switch]$build = $false,
-    [switch]$buildCoreClr = $false,
     [switch]$bootstrap = $false,
     [switch]$sign = $false,
     [switch]$pack = $false,
@@ -53,7 +53,8 @@ $ErrorActionPreference = "Stop"
 
 function Print-Usage() {
     Write-Host "Usage: build.ps1"
-    Write-Host "  -configuration            Build configuration ('Debug' or 'Release')"
+    Write-Host "  -configuration <value>    Build configuration ('Debug' or 'Release')"
+    Write-Host "  -msbuildEngine <value>    Msbuild engine to use to run build ('dotnet', 'vs', or unspecified)."
     Write-Host "  -restore                  Restore packages"
     Write-Host "  -build                    Build Roslyn.sln"
     Write-Host "  -official                 Perform an official build"
@@ -83,7 +84,7 @@ function Print-Usage() {
 # specified.
 #
 # In this function it's okay to use two arguments to extend the effect of another. For
-# example it's okay to look at $buildCoreClr and infer $build. It's not okay though to infer
+# example it's okay to look at $anyVsi and infer $skipAnalyzers. It's not okay though to infer
 # $build based on say $testDesktop. It's possible the developer wanted only for testing
 # to execute, not any build.
 function Process-Arguments() {
@@ -114,14 +115,10 @@ function Process-Arguments() {
         exit 1
     }
 
-    if ($buildCoreClr) {
-        $script:build = $true
-    }
-
     $script:test32 = -not $test64
 }
 
-function Run-MSBuild([string]$projectFilePath, [string]$buildArgs = "", [string]$logFileName = "", [switch]$parallel = $true, [switch]$useDotnetBuild = $false, [switch]$summary = $true, [switch]$warnAsError = $true) {
+function Run-MSBuild([string]$projectFilePath, [string]$buildArgs = "", [string]$logFileName = "", [switch]$parallel = $true, [switch]$summary = $true, [switch]$warnAsError = $true) {
     # Because we override the C#/VB toolset to build against our LKG package, it is important
     # that we do not reuse MSBuild nodes from other jobs/builds on the machine. Otherwise,
     # we'll run into issues such as https://github.com/dotnet/roslyn/issues/6211.
@@ -171,19 +168,12 @@ function Run-MSBuild([string]$projectFilePath, [string]$buildArgs = "", [string]
     $args += " $projectFilePath"
     $args += " $properties"
 
-    if ($useDotnetBuild) {
-        $args = " msbuild $args"
-        Exec-Console $dotnet $args
-    }
-    else {
-        Exec-Console $msbuild $args
-    }
+    $buildTool = InitializeBuildTool
+    Exec-Console $buildTool.Path "$($buildTool.Command) $args"
 }
 
 # Restore all of the projects that the repo consumes
 function Restore-Packages() {
-    Write-Host "Restore using dotnet at $dotnet"
-
     Write-Host "Restoring Roslyn Toolset"
     $logFilePath = if ($binaryLog) { Join-Path $logsDir "Restore-RoslynToolset.binlog" } else { "" }
     Restore-Project "build\ToolsetPackages\RoslynToolset.csproj" $logFilePath
@@ -209,10 +199,10 @@ function Make-BootstrapBuild() {
     Remove-Item -re $dir -ErrorAction SilentlyContinue
     Create-Directory $dir
 
-    $packageName = if ($buildCoreClr) { "Microsoft.NETCore.Compilers" } else { "Microsoft.Net.Compilers" }
+    $packageName = if ($msbuildEngine -eq 'dotnet') { "Microsoft.NETCore.Compilers" } else { "Microsoft.Net.Compilers" }
     $projectPath = "src\NuGet\$packageName\$packageName.Package.csproj"
 
-    Run-MSBuild $projectPath "/t:Pack /p:DotNetUseShippingVersions=true /p:InitialDefineConstants=BOOTSTRAP /p:PackageOutputPath=$dir" -logFileName "Bootstrap" -useDotnetBuild:$buildCoreClr
+    Run-MSBuild $projectPath "/t:Pack /p:DotNetUseShippingVersions=true /p:InitialDefineConstants=BOOTSTRAP /p:PackageOutputPath=$dir" -logFileName "Bootstrap"
     $packageFile = Get-ChildItem -Path $dir -Filter "$packageName.*.nupkg"    
     Unzip "$dir\$packageFile" $dir
 
@@ -227,11 +217,11 @@ function Build-Artifacts() {
     if ($pack) { $args += " /t:Pack" }    
     if (-not $deployExtensions) { $args += " /p:DeployExtension=false" }
 
-    if ($buildCoreClr) {
-        Run-MSBuild "Compilers.sln" $args -useDotnetBuild
-    }
-    elseif ($build) {
-        Run-MSBuild "Roslyn.sln" $args
+    # Roslyn.sln can't be built with dotnet due to WPF and VSIX build task dependencies
+    $solution = if ($msbuildEngine -eq 'dotnet') { "Compilers.sln" } else { "Roslyn.sln" }
+
+    if ($build) {
+        Run-MSBuild $solution $args
     }
 
     if ($pack) {
@@ -247,13 +237,11 @@ function Build-Artifacts() {
     }
 
     if ($pack -and $cibuild) {
-        Run-MSBuild "Roslyn.sln" "/t:DeployToSymStore" -logFileName "RoslynDeployToSymStore"
+        Run-MSBuild $solution "/t:DeployToSymStore" -logFileName "RoslynDeployToSymStore"
     }
 
-    if ($build -and $pack -and (-not $buildCoreClr)) {
-        if ($official){
-            Build-OptProfData
-        }
+    if ($build -and $pack -and $official) {
+        Build-OptProfData
     }
 
     if ($cibuild) {
@@ -300,6 +288,7 @@ function Test-XUnitCoreClr() {
     Create-Directory $xunitResultDir
     $xunitConsole = Join-Path (Get-PackageDir "xunit.runner.console") "tools\netcoreapp2.0\xunit.console.dll"
     $runtimeVersion = Get-ToolVersion "dotnetRuntime"
+    $dotnet = Ensure-DotnetSdk
 
     $dlls = @()
     $allGood = $true
@@ -340,8 +329,8 @@ function Test-XUnitCoreClr() {
 # Core function for running our unit / integration tests tests
 function Test-XUnit() {
 
-    # Used by tests to locate dotnet CLI
-    $env:DOTNET_INSTALL_DIR = Split-Path $dotnet -Parent
+    # Tests need to locate .NET Core SDK
+    InitializeDotNetCli
 
     if ($testCoreClr) {
         Test-XUnitCoreClr
@@ -555,8 +544,6 @@ try {
     Write-Host "Repo Dir $RepoRoot"
     Write-Host "Binaries Dir $binariesDir"
 
-    $msbuild = Ensure-MSBuild
-    $dotnet = Ensure-DotnetSdk
     $configDir = Join-Path $binariesDir $configuration
     $vsSetupDir = Join-Path $binariesDir (Join-Path "VSSetup" $configuration)
     $logsDir = Join-Path $configDir "Logs"
