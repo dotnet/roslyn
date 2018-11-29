@@ -317,7 +317,7 @@ namespace PushUpTest
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
-        public async Task TestPullPublicEventWithAccessorsToInterfaceViaDialog()
+        public async Task TestPullPublicEventWithAccessorsToInterface()
         {
             var testText = @"
 using System;
