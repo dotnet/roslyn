@@ -43,8 +43,8 @@ function Run-Build([string]$rootDir, [string]$logFile = $null) {
             $args += " /bl:$logFile"
         }
 
-        Write-Host "Building the Solution"
-        Exec-Console $msbuild $args
+        $buildTool = InitializeBuildTool
+        Exec-Console $buildTool.Path "$($buildTool.Command) $args"
     }
     finally {
         Pop-Location
@@ -238,8 +238,6 @@ try {
     Create-Directory $errorDirLeft
     Create-Directory $errorDirRight
 
-    $dotnet = Ensure-DotnetSdk
-    $msbuild = Ensure-MSBuild
     if (($bootstrapDir -eq "") -or (-not ([IO.Path]::IsPathRooted($script:bootstrapDir)))) {
         Write-Host "The bootstrap build path must be absolute"
         exit 1
