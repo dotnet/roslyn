@@ -32,6 +32,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         public const string UseExplicitType = "Use Explicit Type Code Action Provider";
         public const string UseImplicitType = "Use Implicit Type Code Action Provider";
         public const string UseExpressionBody = "Use Expression Body Code Action Provider";
+        public const string PullMemberUp = "Pull Member Up Code Action Provider";
         public const string SyncNamespace = "Sync Namespace and Folder Name Code Action Provider";
     }
 }
