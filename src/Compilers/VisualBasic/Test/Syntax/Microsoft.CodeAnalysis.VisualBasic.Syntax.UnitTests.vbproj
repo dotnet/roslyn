@@ -20,7 +20,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
   <PropertyGroup>
-    <RootNamespace>Microsoft.CodeAnalysis.VisualBasic.UnitTests</RootNamespace>
+    <RootNamespace></RootNamespace>
   </PropertyGroup>
   <ItemGroup>
     <Compile Update="Resource.Designer.vb">
