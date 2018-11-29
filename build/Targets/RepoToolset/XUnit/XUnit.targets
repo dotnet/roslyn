@@ -62,8 +62,6 @@
       <_TestRunner Condition="'$(_TestRuntime)' != 'Mono'">$(_XUnitConsoleExePath)</_TestRunner>
     </PropertyGroup>
 
-    <Error Text="File not found: '$(_TestRunner)'" Condition="!Exists('$(_TestRunner)')"/>
-
     <PropertyGroup>
       <_TestRunnerCommand>"$(_TestRunner)" $(_TestRunnerArgs)</_TestRunnerCommand>
 
