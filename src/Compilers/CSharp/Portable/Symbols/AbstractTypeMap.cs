@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     break;
             }
 
-            return TypeSymbolWithAnnotations.Create(NonNullTypesNullContext.Instance, result);
+            return TypeSymbolWithAnnotations.Create(result);
         }
 
         internal TypeSymbolWithAnnotations SubstituteType(TypeSymbolWithAnnotations previous)
@@ -197,7 +197,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected virtual TypeSymbolWithAnnotations SubstituteTypeParameter(TypeParameterSymbol typeParameter)
         {
-            return TypeSymbolWithAnnotations.Create(NonNullTypesNullContext.Instance, typeParameter);
+            return TypeSymbolWithAnnotations.Create(typeParameter);
         }
 
         private ArrayTypeSymbol SubstituteArrayType(ArrayTypeSymbol t)

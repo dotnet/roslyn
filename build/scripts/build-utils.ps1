@@ -142,8 +142,7 @@ function Exec-Script([string]$script, [string]$scriptArgs = "") {
     Exec-Command "powershell" "-noprofile -executionPolicy RemoteSigned -file `"$script`" $scriptArgs"
 }
 
-# Ensure the proper SDK in installed in our %PATH%. This is how MSBuild locates the 
-# SDK. Returns the location to the dotnet exe
+# Ensure the proper .NET Core SDK is available. Returns the location to the dotnet.exe.
 function Ensure-DotnetSdk() {
   if (-not (Test-Path global:_dotNetExe)) {
     $global:_dotNetExe = Join-Path (InitializeDotNetCli -install:$true) "dotnet.exe"
@@ -151,57 +150,14 @@ function Ensure-DotnetSdk() {
 
   return $global:_dotNetExe
 }
-# Ensure a basic tool used for building our Repo is installed and 
-# return the path to it.
-function Ensure-BasicTool([string]$name, [string]$version = "") {
-    if ($version -eq "") { 
-        $version = Get-PackageVersion $name
-    }
 
-    $p = Join-Path (Get-PackagesDir) "$($name)\$($version)"
-    if (-not (Test-Path $p)) {
-        $toolsetProject = Join-Path $RepoRoot "build\ToolsetPackages\RoslynToolset.csproj"
-        Write-Host "Downloading $name"
-        Restore-Project $toolsetProject
-    }
-    
-    return $p
-}
+# Ensure the proper VS msbuild is available. Returns the locaqtion of the msbuild.exe.
+function Ensure-MSBuild() {
+  if (-not (Test-Path global:_msbuildExe)) {
+    $global:_msbuildExe = InitializeVisualStudioMSBuild
+  }
 
-# Ensure that MSBuild is installed and return the path to the
-# executable to use.
-function Ensure-MSBuild([switch]$xcopy = $false) {
-    $both = Get-MSBuildKindAndDir -xcopy:$xcopy
-    $msbuildDir = $both[1]
-    switch ($both[0]) {
-        "xcopy" { break; }
-        "vscmd" { break; }
-        "vsinstall" { break; }
-        default {
-            throw "Unknown MSBuild installation type $($both[0])"
-        }
-    }
-
-    return Join-Path $msbuildDir "msbuild.exe"
-}
-
-# Returns the msbuild exe path and directory as a single return. This makes it easy 
-# to do one line MSBuild configuration in scripts
-#   $msbuild, $msbuildDir = Ensure-MSBuildAndDir
-function Ensure-MSBuildAndDir([string]$msbuildDir) {
-    if ($msbuildDir -eq "") {
-        $msbuild = Ensure-MSBuild
-        $msbuildDir = Split-Path -parent $msbuild
-    }
-    else {
-        $msbuild = Join-Path $msbuildDir "msbuild.exe"
-    }
-
-    return $msbuild, $msbuildDir
-}
-
-function Create-Directory([string]$dir) {
-    New-Item $dir -ItemType Directory -ErrorAction SilentlyContinue | Out-Null
+  return $global:_msbuildExe
 }
 
 function Get-VersionCore([string]$name, [string]$versionFile) {
@@ -256,121 +212,6 @@ function Get-PackageDir([string]$name, [string]$version = "") {
     return $p
 }
 
-# The intent of this script is to locate and return the path to the MSBuild directory that
-# we should use for bulid operations.  The preference order for MSBuild to use is as 
-# follows:
-#
-#   1. MSBuild from an active VS command prompt
-#   2. MSBuild from a compatible VS installation
-#   3. MSBuild from the xcopy toolset 
-#
-# This function will return two values: the kind of MSBuild chosen and the MSBuild directory.
-function Get-MSBuildKindAndDir([switch]$xcopy = $false) {
-
-    if ($xcopy) { 
-        Write-Output "xcopy"
-        Write-Output (Get-MSBuildDirXCopy)
-        return
-    }
-
-    # MSBuild from an active VS command prompt. Use the MSBuild here so long as it's from a 
-    # compatible Visual Studio. If not though throw and error out. Given the number of 
-    # environment variable changes in a developer command prompt it's hard to make guarantees
-    # about subbing in a new MSBuild instance
-    if (${env:VSINSTALLDIR} -ne $null) {
-        $command = (Get-Command msbuild -ErrorAction SilentlyContinue)
-        if ((Test-SupportedVisualStudioVersion ${env:VSCMD_VER}) -and ($command -ne $null) ) {
-            $p = Split-Path -parent $command.Path
-            Write-Output "vscmd"
-            Write-Output $p
-            return
-        }
-        else {
-            $vsMinimumVersion = Get-ToolVersion "vsMinimum"
-            throw "Developer Command Prompt for VS $(${env:VSCMD_VER}) is not recent enough. Please upgrade to {$vsMinimumVersion} or build from a normal CMD window"
-        }
-    }
-
-    # Look for a valid VS installation
-    try {
-        $p = Get-VisualStudioDir
-        $p = Join-Path $p "MSBuild\15.0\Bin"
-        Write-Output "vsinstall"
-        Write-Output $p
-        return
-    }
-    catch { 
-        # Failures are expected here when no VS installation is present on the 
-        # machine.
-    }
-
-    Write-Output "xcopy"
-    Write-Output (Get-MSBuildDirXCopy)
-    return
-}
-
-# Locate the xcopy version of MSBuild
-function Get-MSBuildDirXCopy() {
-    $p = Ensure-BasicTool "RoslynTools.MSBuild"
-    $p = Join-Path $p "tools\MSBuild\15.0\Bin"
-    return $p
-}
-
-function Get-MSBuildDir([switch]$xcopy = $false) {
-    $both = Get-MSBuildKindAndDir -xcopy:$xcopy
-    return $both[1]
-}
-
-
-# Dose this version of Visual Studio meet our minimum requirements for building.
-function Test-SupportedVisualStudioVersion([string]$version) { 
-    # This regex allows us to strip off any pre-release info that gets attached 
-    # to the version string. VS uses NuGet style pre-release by suffing version
-    # with -<pre-release info>
-    if (-not ($version -match "^([\d.]+)(\+|-)?.*$")) { 
-        return $false
-    }
-
-    $vsMinimumVersion = Get-ToolVersion "vsMinimum"
-    $V = New-Object System.Version $matches[1]
-    $min = New-Object System.Version $vsMinimumVersion
-    return $v -ge $min;
-}
-
-# Get the directory and instance ID of the first Visual Studio version which 
-# meets our minimal requirements for the Roslyn repo.
-function Get-VisualStudioDirAndId() {
-    $vswhere = Join-Path (Ensure-BasicTool "vswhere") "tools\vswhere.exe"
-    $output = Exec-Command $vswhere "-prerelease -requires Microsoft.Component.MSBuild -format json" | Out-String
-    $j = ConvertFrom-Json $output
-    foreach ($obj in $j) { 
-
-        # Need to be using at least Visual Studio 15.2 in order to have the appropriate
-        # set of SDK fixes. Parsing the installationName is the only place where this is 
-        # recorded in that form.
-        $name = $obj.installationName
-        if ($name -match "VisualStudio(Preview)?/(.*)") { 
-            if (Test-SupportedVisualStudioVersion $matches[2]) {
-                Write-Output $obj.installationPath
-                Write-Output $obj.instanceId
-                return
-            }
-        }
-        else {
-            Write-Host "Unrecognized installationName format $name"
-        }
-    }
-
-    throw "Could not find a suitable Visual Studio Version"
-}
-
-# Get the directory of the first Visual Studio which meets our minimal 
-# requirements for the Roslyn repo
-function Get-VisualStudioDir() {
-    $both = Get-VisualStudioDirAndId
-    return $both[0]
-}
-
 # Clear out the NuGet package cache
 function Clear-PackageCache() {
     $dotnet = Ensure-DotnetSdk
@@ -390,10 +231,5 @@ function Restore-Project([string]$projectFileName, [string]$logFilePath = "") {
     }
 
     Exec-Console (Ensure-DotNetSdk) "restore --verbosity quiet $projectFilePath $logArg"
-}
-
-function Unzip-File([string]$zipFilePath, [string]$outputDir) {
-    Add-Type -AssemblyName System.IO.Compression.FileSystem | Out-Null
-    [System.IO.Compression.ZipFile]::ExtractToDirectory($zipFilePath, $outputDir)
 }
 

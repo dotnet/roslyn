@@ -10,7 +10,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
 {
-    public class SmartTokenFormatterFormatTokenTests : FormatterTestsBase
+    public class SmartTokenFormatterFormatTokenTests : CSharpFormatterTestsBase
     {
         [Fact]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]

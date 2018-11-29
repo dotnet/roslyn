@@ -165,15 +165,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 Logger.Log(FunctionId.Diagnostics_ProjectDiagnostic, p => $"Failed to Load Successfully ({p.FilePath ?? p.Name})", project);
 
                 // get rid of any result except syntax from compiler analyzer result
-                var newCompilerAnalysisResult = new DiagnosticAnalysisResult(
-                    analysisResult.ProjectId,
-                    analysisResult.Version,
-                    analysisResult.SyntaxLocals,
-                    semanticLocals: ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Empty,
-                    nonLocals: ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Empty,
-                    others: ImmutableArray<DiagnosticData>.Empty,
-                    documentIds: null,
-                    fromBuild: false);
+                var newCompilerAnalysisResult = analysisResult.DropExceptSyntax();
 
                 // return new result
                 return result.SetItem(compilerAnalyzer, newCompilerAnalysisResult);
@@ -366,7 +358,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                         // merge the result to existing one.
                         // there can be existing one from compiler driver with empty set. overwrite it with
                         // ide one.
-                        result = result.SetItem(analyzer, new DiagnosticAnalysisResult(builder));
+                        result = result.SetItem(analyzer, DiagnosticAnalysisResult.CreateFromBuilder(builder));
                     }
 
                     return result;

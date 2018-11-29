@@ -291,12 +291,10 @@ public class LocalTypes3
             Assert.Same(assemblies[2], LocalTypes1.Assembly.CorLibrary);
             Assert.Same(assemblies[2], LocalTypes2.Assembly.CorLibrary);
 
-            Assert.Equal(4, localTypes1.GlobalNamespace.GetMembers().Length);
-            Assert.Equal(4, localTypes1.GlobalNamespace.GetMembersUnordered().Length);
+            Assert.Equal(2, localTypes1.GlobalNamespace.GetMembers().Length);
+            Assert.Equal(2, localTypes1.GlobalNamespace.GetMembersUnordered().Length);
             Assert.Equal(0, localTypes1.GlobalNamespace.GetMembers("I1").Length);
             Assert.Equal(0, localTypes1.GlobalNamespace.GetMembers("S1").Length);
-            Assert.Equal(1, localTypes1.GlobalNamespace.GetMembers("System").Length);
-            Assert.Equal(1, localTypes1.GlobalNamespace.GetMembers("Microsoft").Length);
             Assert.Equal(1, localTypes1.GlobalNamespace.GetTypeMembers().Length);
             Assert.Equal(0, localTypes1.GlobalNamespace.GetTypeMembers("I1").Length);
             Assert.Equal(0, localTypes1.GlobalNamespace.GetTypeMembers("S1").Length);
@@ -305,12 +303,10 @@ public class LocalTypes3
             Assert.Equal(0, localTypes1.GlobalNamespace.GetMembers("NS1").OfType<NamespaceSymbol>().Single().
                                         GetTypeMembers().Length);
 
-            Assert.Equal(4, localTypes2.GlobalNamespace.GetMembers().Length);
-            Assert.Equal(4, localTypes2.GlobalNamespace.GetMembersUnordered().Length);
+            Assert.Equal(2, localTypes2.GlobalNamespace.GetMembers().Length);
+            Assert.Equal(2, localTypes2.GlobalNamespace.GetMembersUnordered().Length);
             Assert.Equal(0, localTypes2.GlobalNamespace.GetMembers("I1").Length);
             Assert.Equal(0, localTypes2.GlobalNamespace.GetMembers("S1").Length);
-            Assert.Equal(1, localTypes2.GlobalNamespace.GetMembers("System").Length);
-            Assert.Equal(1, localTypes2.GlobalNamespace.GetMembers("Microsoft").Length);
             Assert.Equal(1, localTypes2.GlobalNamespace.GetTypeMembers().Length);
             Assert.Equal(0, localTypes2.GlobalNamespace.GetTypeMembers("I1").Length);
             Assert.Equal(0, localTypes2.GlobalNamespace.GetTypeMembers("S1").Length);

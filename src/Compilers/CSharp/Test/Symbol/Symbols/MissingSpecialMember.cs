@@ -564,7 +564,6 @@ namespace System
                     case WellKnownType.System_Span_T:
                     case WellKnownType.System_ReadOnlySpan_T:
                     case WellKnownType.System_Runtime_CompilerServices_IsUnmanagedAttribute:
-                    case WellKnownType.System_Runtime_CompilerServices_NonNullTypesAttribute:
                     case WellKnownType.System_Index:
                     case WellKnownType.System_Range:
                     case WellKnownType.System_IAsyncDisposable:
@@ -875,7 +874,7 @@ namespace System
                         // C# can't embed VB core.
                         continue;
                     case WellKnownMember.System_Array__Empty:
-                    case WellKnownMember.System_Runtime_CompilerServices_NullableAttribute__ctor:
+                    case WellKnownMember.System_Runtime_CompilerServices_NullableAttribute__ctorByte:
                     case WellKnownMember.System_Runtime_CompilerServices_NullableAttribute__ctorTransformFlags:
                     case WellKnownMember.System_Span_T__ctor:
                     case WellKnownMember.System_Span_T__get_Item:
