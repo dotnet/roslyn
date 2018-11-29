@@ -71,8 +71,24 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
 
         public override async Task ProvideCompletionsAsync(CompletionContext context)
         {
-            var embeddedContext = new EmbeddedCompletionContext(this, context);
-            await ProvideCompletionsAsync(embeddedContext).ConfigureAwait(false);
+            if (!context.Options.GetOption(RegularExpressionsOptions.ProvideRegexCompletions, context.Document.Project.Language))
+            {
+                return;
+            }
+
+            if (context.Trigger.Kind != CompletionTriggerKind.Invoke &&
+                context.Trigger.Kind != CompletionTriggerKind.InvokeAndCommitIfUnique &&
+                context.Trigger.Kind != CompletionTriggerKind.Insertion)
+            {
+                return;
+            }
+
+            var position = context.Position;
+            var (tree, stringToken) = await _language.TryGetTreeAndTokenAtPositionAsync(
+                context.Document, position, context.CancellationToken).ConfigureAwait(false);
+
+            var embeddedContext = new EmbeddedCompletionContext(this, context, tree, stringToken);
+            ProvideCompletions(embeddedContext);
 
             if (embeddedContext.Items.Count == 0)
             {
@@ -114,25 +130,12 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
             context.IsExclusive = true;
         }
 
-        private async Task ProvideCompletionsAsync(EmbeddedCompletionContext context)
+        private void ProvideCompletions(EmbeddedCompletionContext context)
         {
-            if (!context.Options.GetOption(RegularExpressionsOptions.ProvideRegexCompletions, context.Document.Project.Language))
-            {
-                return;
-            }
-
-            if (context.Trigger.Kind != CompletionTriggerKind.Invoke &&
-                context.Trigger.Kind != CompletionTriggerKind.InvokeAndCommitIfUnique &&
-                context.Trigger.Kind != CompletionTriggerKind.Insertion)
-            {
-                return;
-            }
-
             var position = context.Position;
-            var (tree, stringToken) = await _language.TryGetTreeAndTokenAtPositionAsync(
-                context.Document, position, context.CancellationToken).ConfigureAwait(false);
-            context.StringToken = stringToken;
 
+            var tree = context.Tree;
+            var stringToken = context.StringToken;
             if (tree == null ||
                 position <= stringToken.SpanStart ||
                 position >= stringToken.Span.End)
@@ -146,7 +149,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
             // add *and* the user was explicitly invoking completion, then just add the entire set
             // of suggestions to help the user out.
             var count = context.Items.Count;
-            ProvideCompletionsAfterInsertion(context, tree);
+            ProvideCompletionsAfterInsertion(context);
 
             if (count != context.Items.Count)
             {
@@ -216,8 +219,9 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
             context.AddIfMissing("#", regex_end_of_line_comment_short, regex_end_of_line_comment_long, parentOpt: null);
         }
 
-        private void ProvideCompletionsAfterInsertion(EmbeddedCompletionContext context, RegexTree tree)
+        private void ProvideCompletionsAfterInsertion(EmbeddedCompletionContext context)
         {
+            var tree = context.Tree;
             var position = context.Position;
             var previousVirtualCharOpt = tree.Text.FirstOrNullable(vc => vc.Span.Contains(position - 1));
             if (previousVirtualCharOpt == null)
@@ -504,12 +508,19 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
         public readonly List<RegexItem> Items = new List<RegexItem>();
         public readonly HashSet<string> Names = new HashSet<string>();
 
-        public SyntaxToken StringToken;
+        public readonly RegexTree Tree;
+        public readonly SyntaxToken StringToken;
 
-        public EmbeddedCompletionContext(RegexEmbeddedCompletionProvider provider, CompletionContext context)
+        public EmbeddedCompletionContext(
+            RegexEmbeddedCompletionProvider provider, 
+            CompletionContext context, 
+            RegexTree tree,
+            SyntaxToken stringToken)
         {
             _provider = provider;
             _context = context;
+            Tree = tree;
+            StringToken = stringToken;
         }
 
         public int Position => _context.Position;
