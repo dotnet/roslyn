@@ -326,7 +326,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private TypeSymbolWithAnnotations(TypeSymbol defaultType, NullableAnnotation nullableAnnotation, Extensions extensions)
         {
             Debug.Assert((object)defaultType != null);
-            Debug.Assert(!defaultType.IsNullableType() || nullableAnnotation.IsAnyNullable());
             Debug.Assert(extensions != null);
             _defaultType = defaultType;
 
@@ -373,10 +372,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return default;
             }
 
-            if (!nullableAnnotation.IsAnyNullable() && typeSymbol.IsNullableType())
+            switch (nullableAnnotation)
             {
-                // int?, T? where T : struct (add annotation)
-                nullableAnnotation = NullableAnnotation.Annotated;
+                case NullableAnnotation.Unknown:
+                case NullableAnnotation.NotAnnotated:
+                    if (typeSymbol.IsNullableType())
+                    {
+                        // int?, T? where T : struct (add annotation)
+                        nullableAnnotation = NullableAnnotation.Annotated;
+                    }
+                    break;
             }
 
             return CreateNonLazyType(typeSymbol, nullableAnnotation, customModifiers.NullToEmpty());

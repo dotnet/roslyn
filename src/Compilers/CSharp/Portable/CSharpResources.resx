@@ -5401,6 +5401,12 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_AnnotationDisallowedInObjectCreation" xml:space="preserve">
     <value>Cannot use a nullable reference type in object creation.</value>
   </data>
+  <data name="WRN_NullableValueTypeMayBeNull" xml:space="preserve">
+    <value>Nullable value type may be null.</value>
+  </data>
+  <data name="WRN_NullableValueTypeMayBeNull_Title" xml:space="preserve">
+    <value>Nullable value type may be null.</value>
+  </data>
   <data name="WRN_NullabilityMismatchInTypeParameterConstraint" xml:space="preserve">
     <value>The type '{3}' cannot be used as type parameter '{2}' in the generic type or method '{0}'. Nullability of type argument '{3}' doesn't match constraint type '{1}'.</value>
   </data>

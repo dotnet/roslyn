@@ -380,7 +380,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         // Remove this and populate struct members lazily to match classes.
         private Symbol GetBackingFieldIfStructProperty(Symbol symbol)
         {
-            if (symbol.Kind == SymbolKind.Property)
+            if (symbol.Kind == SymbolKind.Property &&
+                symbol.ContainingType.OriginalDefinition.SpecialType != SpecialType.System_Nullable_T)
             {
                 var property = (PropertySymbol)symbol;
                 var containingType = property.ContainingType;
@@ -411,6 +412,20 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             switch (node.Kind)
             {
+                case BoundKind.Conversion:
+                    {
+                        var conv = (BoundConversion)node;
+                        var operand = conv.Operand;
+                        if (conv.Conversion.Kind == ConversionKind.ExplicitNullable &&
+                            operand.Type?.IsNullableType() == true &&
+                            conv.Type?.IsNullableType() == false)
+                        {
+                            // Explicit conversion of Nullable<T> to T is equivalent to Nullable<T>.Value.
+                            int containingSlot = MakeSlot(operand);
+                            return containingSlot < 0 ? -1 : GetNullableOfTValueSlot(operand.Type, containingSlot);
+                        }
+                    }
+                    break;
                 case BoundKind.ObjectCreationExpression:
                 case BoundKind.DynamicObjectCreationExpression:
                 case BoundKind.AnonymousObjectCreationExpression:
@@ -812,6 +827,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(member.Kind == SymbolKind.Field || member.Kind == SymbolKind.Property || member.Kind == SymbolKind.Event);
                 InheritNullableStateOfMember(targetSlot, valueSlot, member, isByRefTarget, slotWatermark);
             }
+        }
+
+        private TypeSymbol GetSlotType(int slot)
+        {
+            return variableBySlot[slot].Symbol.GetTypeOrReturnType().TypeSymbol;
         }
 
         protected override LocalState TopState()
@@ -1571,13 +1591,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 // If we got a slot we must have processed the previous conditional receiver.
                                 Debug.Assert(_lastConditionalAccessSlot == -1);
 
-                                // We need to continue the walk regardless of whether the receiver is a value
-                                // type, but we only want to update the slots of reference types
-                                if (shouldUpdateType(conditional.Receiver.Type))
+                                // We need to continue the walk regardless of whether the receiver should be updated.
+                                var receiverType = conditional.Receiver.Type;
+                                if (shouldUpdateType(receiverType))
                                 {
                                     slotBuilder.Add(slot);
                                 }
 
+                                if (receiverType.IsNullableType())
+                                {
+                                    slot = GetNullableOfTValueSlot(receiverType, slot);
+                                }
+                            }
+
+                            if (slot > 0)
+                            {
                                 // When MakeSlot is called on the nested AccessExpression, it will recurse through receivers
                                 // until it gets to the BoundConditionalReceiver associated with this node. In our override,
                                 // we substitute this slot when we encounter a BoundConditionalReceiver, and reset the
@@ -1617,7 +1645,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 } while (true);
 
                 bool shouldUpdateType(TypeSymbol operandType) =>
-                    !(operandType is null) && !operandType.IsValueType;
+                    !(operandType is null) && (!operandType.IsValueType || operandType.IsNullableType());
             }
         }
 
@@ -3377,9 +3405,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ConversionKind.Boxing:
                     if (!operandType.IsNull && operandType.IsValueType)
                     {
-                        // https://github.com/dotnet/roslyn/issues/29959 Should we worry about a pathological case of boxing nullable value known to be not null?
-                        //       For example, new int?(0)
-                        resultAnnotation = operandType.IsNullableType() ? NullableAnnotation.Nullable : NullableAnnotation.NotNullable;
+                        resultAnnotation = operandType.NullableAnnotation.IsAnyNullable() ? NullableAnnotation.Nullable : NullableAnnotation.NotNullable;
                     }
                     else if (!operandType.IsNull && IsUnconstrainedTypeParameter(operandType.TypeSymbol))
                     {
@@ -3507,7 +3533,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Need to report all warnings that apply since the warnings can be suppressed individually.
                 if (reportTopLevelWarnings)
                 {
-                    ReportNullableAssignmentIfNecessary(node, targetTypeWithNullability, resultType, useLegacyWarnings: useLegacyWarnings, assignmentKind, target);
+                    if (conversion.Kind == ConversionKind.ExplicitNullable &&
+                        operandType.TypeSymbol?.IsNullableType() == true &&
+                        !targetType.IsNullableType())
+                    {
+                        if (operandType.NullableAnnotation.IsAnyNullable())
+                        {
+                            ReportPossibleNullValue(node.Syntax, operandOpt ?? node, isValueType: true);
+                        }
+                    }
+                    else
+                    {
+                        ReportNullableAssignmentIfNecessary(node, targetTypeWithNullability, resultType, useLegacyWarnings: useLegacyWarnings, assignmentKind, target);
+                    }
                 }
                 if (reportNestedWarnings && !canConvertNestedNullability)
                 {
@@ -3987,12 +4025,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 VisitRvalue(receiverOpt);
 
+                NullableOfTMember nullableOfTMember = NullableOfTMember.None;
                 if (!member.IsStatic)
                 {
                     member = AsMemberOfResultType(_resultType, member);
+                    nullableOfTMember = GetNullableOfTMember(compilation, member);
                     // https://github.com/dotnet/roslyn/issues/30598: For l-values, mark receiver as not null
                     // after RHS has been visited, and only if the receiver has not changed.
-                    CheckPossibleNullReceiver(receiverOpt);
+                    CheckPossibleNullReceiver(receiverOpt, allowValueType: nullableOfTMember == NullableOfTMember.Value);
                 }
 
                 var resultType = member.GetTypeOrReturnType();
@@ -4001,9 +4041,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // We are supposed to track information for the node. Use whatever we managed to
                     // accumulate so far.
-                    if (!resultType.IsValueType)
+                    if (!resultType.IsValueType || resultType.IsNullableType())
                     {
-                        int containingSlot = (receiverOpt is null) ? -1 : MakeSlot(receiverOpt);
+                        int containingSlot = getReceiverSlot();
                         int slot = (containingSlot < 0) ? -1 : GetOrCreateSlot(member, containingSlot);
                         if (slot > 0 && slot < this.State.Capacity)
                         {
@@ -4014,10 +4054,61 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
                         }
                     }
+
+                    Debug.Assert(!IsConditionalState);
+                    if (nullableOfTMember == NullableOfTMember.HasValue)
+                    {
+                        int containingSlot = getReceiverSlot();
+                        if (containingSlot > 0)
+                        {
+                            Split();
+                            this.StateWhenTrue[containingSlot] = NullableAnnotation.NotNullable;
+                            this.StateWhenFalse[containingSlot] = NullableAnnotation.Nullable;
+                        }
+                    }
                 }
 
                 _resultType = resultType;
             }
+
+            int getReceiverSlot() => (receiverOpt is null) ? -1 : MakeSlot(receiverOpt);
+        }
+
+        private enum NullableOfTMember
+        {
+            None,
+            Value,
+            HasValue
+        }
+
+        private static NullableOfTMember GetNullableOfTMember(CSharpCompilation compilation, Symbol member)
+        {
+            if (member.Kind == SymbolKind.Property)
+            {
+                var getMethod = ((PropertySymbol)member.OriginalDefinition).GetMethod;
+                if ((object)getMethod != null && getMethod.ContainingType.SpecialType == SpecialType.System_Nullable_T)
+                {
+                    if (getMethod == compilation.GetSpecialTypeMember(SpecialMember.System_Nullable_T_get_Value))
+                    {
+                        return NullableOfTMember.Value;
+                    }
+                    if (getMethod == compilation.GetSpecialTypeMember(SpecialMember.System_Nullable_T_get_HasValue))
+                    {
+                        return NullableOfTMember.HasValue;
+                    }
+                }
+            }
+            return NullableOfTMember.None;
+        }
+
+        private int GetNullableOfTValueSlot(TypeSymbol containingType, int containingSlot)
+        {
+            Debug.Assert(containingType.IsNullableType());
+            Debug.Assert(GetSlotType(containingSlot) == containingType);
+
+            var getValue = (MethodSymbol)compilation.GetSpecialTypeMember(SpecialMember.System_Nullable_T_get_Value);
+            var member = getValue?.AsMember((NamedTypeSymbol)containingType)?.AssociatedSymbol;
+            return (member is null) ? -1 : GetOrCreateSlot(member, containingSlot);
         }
 
         protected override void VisitForEachExpression(BoundForEachStatement node)
@@ -4652,7 +4743,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        private void CheckPossibleNullReceiver(BoundExpression receiverOpt)
+        private void CheckPossibleNullReceiver(BoundExpression receiverOpt, bool allowValueType = false)
         {
             Debug.Assert(!this.IsConditionalState);
             if (receiverOpt != null && this.State.Reachable)
@@ -4662,16 +4753,26 @@ namespace Microsoft.CodeAnalysis.CSharp
 #endif
                 var resultType = _resultType.TypeSymbol;
                 if ((object)resultType != null &&
-                    _resultType.GetValueNullableAnnotation().IsAnyNullable() &&
-                    !resultType.IsValueType)
+                    _resultType.GetValueNullableAnnotation().IsAnyNullable())
                 {
-                    ReportDiagnostic(ErrorCode.WRN_NullReferenceReceiver, receiverOpt.Syntax);
-                    int slot = MakeSlot(receiverOpt);
-                    if (slot > 0)
+                    bool isValueType = resultType.IsValueType;
+                    if (isValueType && !allowValueType)
                     {
-                        this.State[slot] = NullableAnnotation.NotNullable;
+                        return;
                     }
+                    ReportPossibleNullValue(receiverOpt.Syntax, receiverOpt, isValueType);
                 }
+            }
+        }
+
+        private void ReportPossibleNullValue(SyntaxNode syntax, BoundExpression expr, bool isValueType)
+        {
+            Debug.Assert(!this.IsConditionalState);
+            ReportDiagnostic(isValueType ? ErrorCode.WRN_NullableValueTypeMayBeNull : ErrorCode.WRN_NullReferenceReceiver, syntax);
+            int slot = MakeSlot(expr);
+            if (slot > 0)
+            {
+                this.State[slot] = NullableAnnotation.NotNullable;
             }
         }
 
