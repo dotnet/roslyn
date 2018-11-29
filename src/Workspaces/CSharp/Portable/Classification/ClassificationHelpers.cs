@@ -67,6 +67,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
                 return false;
             }
 
+            if (token.Parent is null)
+            {
+                return true;
+            }
+
             if (token.IsKind(SyntaxKind.DefaultKeyword))
             {
                 return token.Parent.IsKind(SyntaxKind.DefaultSwitchLabel);

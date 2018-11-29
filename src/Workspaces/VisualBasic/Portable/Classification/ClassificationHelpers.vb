@@ -55,7 +55,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
 
         Private Function IsControlKeyword(token As SyntaxToken) As Boolean
             If (token.Parent Is Nothing) Then
-                Return False
+                Return SyntaxFacts.IsControlKeyword(token.Kind)
             End If
 
             ' For Exit Statments classify everything as a control keyword
