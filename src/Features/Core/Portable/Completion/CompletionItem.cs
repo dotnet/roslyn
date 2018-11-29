@@ -45,13 +45,6 @@ namespace Microsoft.CodeAnalysis.Completion
         public string SortText { get; }
 
         /// <summary>
-        /// Descriptive text to place after <see cref="DisplayText"/> in the display layer.  Should
-        /// be short as it will show up in the UI.  Display will present this in a way to distinguish
-        /// this from the normal text (for example, by fading out and right-aligning).
-        /// </summary>
-        internal string InlineDescription { get; }
-
-        /// <summary>
         /// The span of the syntax element associated with this item.
         /// 
         /// The span identifies the text in the document that is used to filter the initial list presented to the user,
@@ -92,22 +85,19 @@ namespace Microsoft.CodeAnalysis.Completion
             ImmutableArray<string> tags,
             CompletionItemRules rules,
             string displayTextPrefix,
-            string displayTextSuffix,
-            string inlineDescription)
+            string displayTextSuffix)
         {
             this.DisplayText = displayText ?? "";
             this.DisplayTextPrefix = displayTextPrefix ?? "";
             this.DisplayTextSuffix = displayTextSuffix ?? "";
             this.FilterText = filterText ?? this.DisplayText;
             this.SortText = sortText ?? this.DisplayText;
-            this.InlineDescription = inlineDescription ?? "";
             this.Span = span;
             this.Properties = properties ?? ImmutableDictionary<string, string>.Empty;
             this.Tags = tags.NullToEmpty();
             this.Rules = rules ?? CompletionItemRules.Default;
         }
 
-        // binary back compat overload
         public static CompletionItem Create(
             string displayText,
             string filterText,
@@ -119,20 +109,6 @@ namespace Microsoft.CodeAnalysis.Completion
             return Create(displayText, filterText, sortText, properties, tags, rules, displayTextPrefix: null, displayTextSuffix: null);
         }
 
-        // binary back compat overload
-        public static CompletionItem Create(
-            string displayText,
-            string filterText,
-            string sortText,
-            ImmutableDictionary<string, string> properties,
-            ImmutableArray<string> tags,
-            CompletionItemRules rules,
-            string displayTextPrefix,
-            string displayTextSuffix)
-        {
-            return Create(displayText, filterText, sortText, properties, tags, rules, displayTextPrefix, displayTextSuffix, inlineDescription: null);
-        }
-
         public static CompletionItem Create(
             string displayText,
             string filterText = null,
@@ -141,8 +117,7 @@ namespace Microsoft.CodeAnalysis.Completion
             ImmutableArray<string> tags = default,
             CompletionItemRules rules = null,
             string displayTextPrefix = null,
-            string displayTextSuffix = null,
-            string inlineDescription = null)
+            string displayTextSuffix = null)
         {
             return new CompletionItem(
                 span: default,
@@ -153,8 +128,7 @@ namespace Microsoft.CodeAnalysis.Completion
                 tags: tags,
                 rules: rules,
                 displayTextPrefix: displayTextPrefix,
-                displayTextSuffix: displayTextSuffix,
-                inlineDescription: inlineDescription);
+                displayTextSuffix: displayTextSuffix);
         }
 
         /// <summary>
@@ -187,8 +161,7 @@ namespace Microsoft.CodeAnalysis.Completion
                 tags: tags,
                 rules: rules,
                 displayTextPrefix: null,
-                displayTextSuffix: null,
-                inlineDescription: null);
+                displayTextSuffix: null);
         }
 
         private CompletionItem With(
@@ -200,14 +173,12 @@ namespace Microsoft.CodeAnalysis.Completion
             Optional<ImmutableArray<string>> tags = default,
             Optional<CompletionItemRules> rules = default,
             Optional<string> displayTextPrefix = default,
-            Optional<string> displayTextSuffix = default,
-            Optional<string> inlineDescription = default)
+            Optional<string> displayTextSuffix = default)
         {
             var newSpan = span.HasValue ? span.Value : this.Span;
             var newDisplayText = displayText.HasValue ? displayText.Value : this.DisplayText;
             var newFilterText = filterText.HasValue ? filterText.Value : this.FilterText;
             var newSortText = sortText.HasValue ? sortText.Value : this.SortText;
-            var newInlineDescription = inlineDescription.HasValue ? inlineDescription.Value : this.InlineDescription;
             var newProperties = properties.HasValue ? properties.Value : this.Properties;
             var newTags = tags.HasValue ? tags.Value : this.Tags;
             var newRules = rules.HasValue ? rules.Value : this.Rules;
@@ -222,8 +193,7 @@ namespace Microsoft.CodeAnalysis.Completion
                 newTags == this.Tags &&
                 newRules == this.Rules &&
                 newDisplayTextPrefix == this.DisplayTextPrefix &&
-                newDisplayTextSuffix == this.DisplayTextSuffix &&
-                newInlineDescription == this.InlineDescription)
+                newDisplayTextSuffix == this.DisplayTextSuffix)
             {
                 return this;
             }
@@ -237,8 +207,7 @@ namespace Microsoft.CodeAnalysis.Completion
                 tags: newTags,
                 rules: newRules,
                 displayTextPrefix: newDisplayTextPrefix,
-                displayTextSuffix: newDisplayTextSuffix,
-                inlineDescription: newInlineDescription);
+                displayTextSuffix: newDisplayTextSuffix);
         }
 
         /// <summary>
