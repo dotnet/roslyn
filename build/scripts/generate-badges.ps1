@@ -9,36 +9,21 @@ $branchNames = @(
     'dev16.0-preview2',
     'dev16.0-preview2-vs-deps')
 
-function Get-AzureBadge($branchName, $jobName, $configName) {
-    $template = "[![Build Status](https://dev.azure.com/dnceng/public/_apis/build/status/dotnet/roslyn/roslyn-CI?label=build&branchname=$branchName&jobname=$jobName&configuration=$configName)]"
-    $template += "(https://dev.azure.com/dnceng/public/_build/latest?definitionId=15&branchname=$branchName)"
+function Get-AzureBadge($branchName, $jobName, $configName, [switch]$integration = $false) {
+    $name = if ($integration) { "roslyn-integration-CI" } else { "roslyn-CI" }
+    $template = "[![Build Status](https://dev.azure.com/dnceng/public/_apis/build/status/dotnet/roslyn/$($name)?label=build&branchname=$branchName&jobname=$jobName&configuration=$configName)]"
+    $template += "(https://dev.azure.com/dnceng/public/_build/latest?definitionId=15&branchname=$branchName&view=logs)"
     return $template
 }
 
-function Get-AzureLine($branchName, $jobNames) {
+function Get-AzureLine($branchName, $jobNames, [switch]$integration = $false) {
     $line = "**$branchName**|"
     foreach ($jobName in $jobNames) {
         $i = $jobName.IndexOf('#')
         $configName = $jobName.SubString($i + 1)
         $jobName = $jobName.Substring(0, $i)
 
-        $line += Get-AzureBadge $branchName $jobName $configName
-        $line += "|"
-    }
-
-    return $line + [Environment]::NewLine
-}
-
-function Get-JenkinsBadge($branchName, $jobName) {
-    $template = "[![Build Status](https://ci.dot.net/buildStatus/icon?job=dotnet_roslyn/$branchName/$jobName)]"
-    $template += "(https://ci.dot.net/job/dotnet_roslyn/job/$branchName/job/$jobName/)"
-    return $template
-}
-
-function Get-JenkinsLine($branchName, $jobNames) {
-    $line = "**$branchName**|"
-    foreach ($jobName in $jobNames) {
-        $line += Get-JenkinsBadge $branchName $jobName
+        $line += Get-AzureBadge $branchName $jobName $configName -integration:$integration
         $line += "|"
     }
 
@@ -83,15 +68,15 @@ function Get-CoreClrTable() {
 '@
 
     foreach ($branchName in $branchNames) {
-        $table += Get-AzureLine $branchName $jobNames
+        $table += Get-AzureLine $branchName $jobNames 
     }
     return $table
 }
 
 function Get-IntegrationTable() {
     $jobNames = @(
-        'windows_debug_vs-integration',
-        'windows_release_vs-integration'
+        'Windows_VisualStudio_Integration_Tests#debug',
+        'Windows_VisualStudio_Integration_Tests#release'
     )
 
     $table = @'
@@ -102,7 +87,7 @@ function Get-IntegrationTable() {
 '@
 
     foreach ($branchName in $branchNames) {
-        $table += Get-JenkinsLine $branchName $jobNames
+        $table += Get-AzureLine $branchName $jobNames -integration:$true
     }
     return $table
 
