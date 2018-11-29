@@ -4654,6 +4654,158 @@ $@"class C
 }", optionName);
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        public async Task SwitchCase_UnusedValueWithOnlyWrite_PreferDiscard()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    int M(int flag)
+    {
+        switch(flag)
+        {
+            case 0:
+                int [|x|] = M2();
+                return 0;
+
+            default:
+                return flag;
+        }
+    }
+
+    int M2() => 0;
+}",
+@"class C
+{
+    int M(int flag)
+    {
+        switch(flag)
+        {
+            case 0:
+                _ = M2();
+                return 0;
+
+            default:
+                return flag;
+        }
+    }
+
+    int M2() => 0;
+}", options: PreferDiscard);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        public async Task SwitchCase_UnusedValueWithOnlyWrite_PreferUnusedLocal()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    int M(int flag)
+    {
+        switch(flag)
+        {
+            case 0:
+                int [|x|] = M2();
+                return 0;
+
+            default:
+                return flag;
+        }
+    }
+
+    int M2() => 0;
+}", options: PreferUnusedLocal);
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        [InlineData(nameof(PreferDiscard))]
+        [InlineData(nameof(PreferUnusedLocal))]
+        public async Task SwitchCase_UnusedConstantValue_WithReadsAndWrites(string optionName)
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    int M(int flag)
+    {
+        switch(flag)
+        {
+            case 0:
+                int [|x|] = 0;
+                x = 1;
+                return x;
+
+            default:
+                return flag;
+        }
+    }
+
+    int M2() => 0;
+}",
+@"class C
+{
+    int M(int flag)
+    {
+        switch(flag)
+        {
+            case 0:
+                int x;
+                x = 1;
+                return x;
+
+            default:
+                return flag;
+        }
+    }
+
+    int M2() => 0;
+}", optionName);
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        [InlineData(nameof(PreferDiscard), "_")]
+        [InlineData(nameof(PreferUnusedLocal), "int unused")]
+        public async Task SwitchCase_UnusedNonConstantValue_WithReadsAndWrites(string optionName, string fix)
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    int M(int flag)
+    {
+        switch(flag)
+        {
+            case 0:
+                int [|x|] = M2();
+                x = 1;
+                return x;
+
+            default:
+                return flag;
+        }
+    }
+
+    int M2() => 0;
+}",
+$@"class C
+{{
+    int M(int flag)
+    {{
+        switch(flag)
+        {{
+            case 0:
+                int x;
+                {fix} = M2();
+                x = 1;
+                return x;
+
+            default:
+                return flag;
+        }}
+    }}
+
+    int M2() => 0;
+}}", optionName);
+        }
+
         [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         // For loop, assignment in body, read on back edge.
         [InlineData("for(i = 1; i < 10; i--)",
