@@ -2,7 +2,7 @@
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    interface IBoundConditional
+    internal interface IBoundConditional
     {
         BoundNode Condition { get; }
         BoundNode Consequence { get; }

@@ -524,16 +524,16 @@ _operationFactory.CreateFromArray(Of BoundExpression, IOperation)(_boundForToLoo
         Inherits LazyInvalidOperation
 
         Private ReadOnly _operationFactory As VisualBasicOperationFactory
-        Private ReadOnly _originalNode As IBoundNodeWithIOperationChildren
+        Private ReadOnly _originalNode As IBoundInvalidNode
 
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, originalNode As IBoundNodeWithIOperationChildren, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As [Optional](Of Object), isImplicit As Boolean)
+        Friend Sub New(operationFactory As VisualBasicOperationFactory, originalNode As IBoundInvalidNode, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As [Optional](Of Object), isImplicit As Boolean)
             MyBase.New(semanticModel, syntax, type, constantValue, isImplicit)
             _operationFactory = operationFactory
             _originalNode = originalNode
         End Sub
 
         Protected Overrides Function CreateChildren() As ImmutableArray(Of IOperation)
-            Return _operationFactory.CreateFromArray(Of BoundNode, IOperation)(_originalNode.Children)
+            Return _operationFactory.CreateFromArray(Of BoundNode, IOperation)(_originalNode.InvalidNodeChildren)
         End Function
     End Class
 
@@ -541,20 +541,41 @@ _operationFactory.CreateFromArray(Of BoundExpression, IOperation)(_boundForToLoo
         Inherits LazyInvocationOperation
 
         Private ReadOnly _operationFactory As VisualBasicOperationFactory
-        Private ReadOnly _invocable As IBoundInvocable
+        Private ReadOnly _invocable As BoundExpression
 
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, invocable As IBoundInvocable, targetMethod As IMethodSymbol, isVirtual As Boolean, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As [Optional](Of Object), isImplicit As Boolean)
+        Friend Sub New(operationFactory As VisualBasicOperationFactory, invocable As BoundCall, targetMethod As IMethodSymbol, isVirtual As Boolean, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As [Optional](Of Object), isImplicit As Boolean)
+            Me.New(operationFactory, DirectCast(invocable, BoundExpression), targetMethod, isVirtual, semanticModel, syntax, type, constantValue, isImplicit)
+        End Sub
+
+        Friend Sub New(operationFactory As VisualBasicOperationFactory, invocable As BoundNullableIsTrueOperator, targetMethod As IMethodSymbol, isVirtual As Boolean, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As [Optional](Of Object), isImplicit As Boolean)
+            Me.New(operationFactory, DirectCast(invocable, BoundExpression), targetMethod, isVirtual, semanticModel, syntax, type, constantValue, isImplicit)
+        End Sub
+
+        Private Sub New(operationFactory As VisualBasicOperationFactory, invocable As BoundExpression, targetMethod As IMethodSymbol, isVirtual As Boolean, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As [Optional](Of Object), isImplicit As Boolean)
             MyBase.New(targetMethod, isVirtual, semanticModel, syntax, type, constantValue, isImplicit)
             _operationFactory = operationFactory
             _invocable = invocable
         End Sub
 
         Protected Overrides Function CreateInstance() As IOperation
-            Return _operationFactory.CreateReceiverOperation(_invocable.InstanceOpt, TargetMethod)
+            Dim receiver As BoundExpression
+            Select Case _invocable.Kind
+                Case BoundKind.Call
+                    Dim [call] = DirectCast(_invocable, BoundCall)
+                    receiver = If([call].ReceiverOpt, [call].MethodGroupOpt?.ReceiverOpt)
+                Case BoundKind.NullableIsTrueOperator
+                    receiver = DirectCast(_invocable, BoundNullableIsTrueOperator).Operand
+                Case Else
+                    Throw ExceptionUtilities.UnexpectedValue(_invocable.Kind)
+            End Select
+            Return _operationFactory.CreateReceiverOperation(receiver, TargetMethod)
         End Function
 
         Protected Overrides Function CreateArguments() As ImmutableArray(Of IArgumentOperation)
-            Return If(_invocable.CallOpt IsNot Nothing, _operationFactory.DeriveArguments(_invocable.CallOpt), ImmutableArray(Of IArgumentOperation).Empty)
+            If _invocable.Kind = BoundKind.NullableIsTrueOperator Then
+                Return ImmutableArray(Of IArgumentOperation).Empty
+            End If
+            Return _operationFactory.DeriveArguments(_invocable)
         End Function
     End Class
 

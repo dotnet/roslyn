@@ -407,7 +407,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
             if (!boundCall.OriginalMethodsOpt.IsDefault || IsMethodInvalid(boundCall.ResultKind, targetMethod))
             {
-                return CreateInvalidExpressionForHasArgumentsExpression(boundCall.ReceiverOpt, boundCall.Arguments, null, syntax, type, constantValue, isImplicit);
+                return new CSharpLazyInvalidOperation(this, boundCall, _semanticModel, syntax, type, constantValue, isImplicit);
             }
 
             bool isVirtual = IsCallVirtual(targetMethod, boundCall.ReceiverOpt);
@@ -522,7 +522,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
             if (!boundIndexerAccess.OriginalIndexersOpt.IsDefault || boundIndexerAccess.ResultKind == LookupResultKind.OverloadResolutionFailure || accessor == null || accessor.OriginalDefinition is ErrorMethodSymbol)
             {
-                return CreateInvalidExpressionForHasArgumentsExpression(boundIndexerAccess.ReceiverOpt, boundIndexerAccess.Arguments, null, syntax, type, constantValue, isImplicit);
+                return new CSharpLazyInvalidOperation(this, boundIndexerAccess, _semanticModel, syntax, type, constantValue, isImplicit);
             }
 
             return new CSharpLazyPropertyReferenceOperation(this, boundIndexerAccess, isObjectOrCollectionInitializer, property, _semanticModel, syntax, type, constantValue, isImplicit);
@@ -587,7 +587,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
             if (boundObjectCreationExpression.ResultKind == LookupResultKind.OverloadResolutionFailure || constructor == null || constructor.OriginalDefinition is ErrorMethodSymbol)
             {
-                return CreateInvalidExpressionForHasArgumentsExpression(null, boundObjectCreationExpression.Arguments, boundObjectCreationExpression.InitializerExpressionOpt, syntax, type, constantValue, isImplicit);
+                return new CSharpLazyInvalidOperation(this, boundObjectCreationExpression, _semanticModel, syntax, type, constantValue, isImplicit);
             }
             else if (boundObjectCreationExpression.Type.IsAnonymousType)
             {
@@ -732,8 +732,7 @@ namespace Microsoft.CodeAnalysis.Operations
                         MethodSymbol accessor = isObjectOrCollectionInitializer ? property.GetOwnOrInheritedGetMethod() : property.GetOwnOrInheritedSetMethod();
                         if (accessor == null || boundObjectInitializerMember.ResultKind == LookupResultKind.OverloadResolutionFailure || accessor.OriginalDefinition is ErrorMethodSymbol)
                         {
-                            ImmutableArray<BoundNode> children = boundObjectInitializerMember.Arguments.CastArray<BoundNode>();
-                            return new CSharpLazyInvalidOperation(this, children, _semanticModel, syntax, type, constantValue, isImplicit);
+                            return new CSharpLazyInvalidOperation(this, boundObjectInitializerMember, _semanticModel, syntax, type, constantValue, isImplicit);
                         }
                     }
 
@@ -771,7 +770,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
             if (IsMethodInvalid(boundCollectionElementInitializer.ResultKind, addMethod))
             {
-                return CreateInvalidExpressionForHasArgumentsExpression(boundCollectionElementInitializer.ImplicitReceiverOpt, boundCollectionElementInitializer.Arguments, null, syntax, type, constantValue, isImplicit);
+                return new CSharpLazyInvalidOperation(this, boundCollectionElementInitializer, _semanticModel, syntax, type, constantValue, isImplicit);
             }
 
             bool isVirtual = IsCallVirtual(addMethod, boundCollectionElementInitializer.ImplicitReceiverOpt);
@@ -1122,7 +1121,6 @@ namespace Microsoft.CodeAnalysis.Operations
 
         private IInvalidOperation CreateBoundBadExpressionOperation(BoundBadExpression boundBadExpression)
         {
-            ImmutableArray<BoundNode> children = boundBadExpression.ChildBoundNodes.CastArray<BoundNode>();
             SyntaxNode syntax = boundBadExpression.Syntax;
             // We match semantic model here: if the expression IsMissing, we have a null type, rather than the ErrorType of the bound node.
             ITypeSymbol type = syntax.IsMissing ? null : boundBadExpression.Type;
@@ -1130,7 +1128,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
             // if child has syntax node point to same syntax node as bad expression, then this invalid expression is implicit
             bool isImplicit = boundBadExpression.WasCompilerGenerated || boundBadExpression.ChildBoundNodes.Any(e => e?.Syntax == boundBadExpression.Syntax);
-            return new CSharpLazyInvalidOperation(this, children, _semanticModel, syntax, type, constantValue, isImplicit);
+            return new CSharpLazyInvalidOperation(this, boundBadExpression, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private ITypeParameterObjectCreationOperation CreateBoundNewTOperation(BoundNewT boundNewT)
@@ -1582,7 +1580,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
         private ISwitchCaseOperation CreateBoundSwitchSectionOperation(BoundSwitchSection boundSwitchSection)
         {
-            ImmutableArray<ILocalSymbol> locals = boundSwitchSection.Locals.CastArray<ILocalSymbol>();
+            ImmutableArray<ILocalSymbol> locals = StaticCast<ILocalSymbol>.From(boundSwitchSection.Locals);
 
             return new CSharpLazySwitchCaseOperation(this, boundSwitchSection, locals, _semanticModel, boundSwitchSection.Syntax, type: null, constantValue: default, isImplicit: boundSwitchSection.WasCompilerGenerated);
         }
@@ -1676,14 +1674,13 @@ namespace Microsoft.CodeAnalysis.Operations
 
         private IInvalidOperation CreateBoundBadStatementOperation(BoundBadStatement boundBadStatement)
         {
-            ImmutableArray<BoundNode> children = boundBadStatement.ChildBoundNodes;
             SyntaxNode syntax = boundBadStatement.Syntax;
             ITypeSymbol type = null;
             Optional<object> constantValue = default(Optional<object>);
 
             // if child has syntax node point to same syntax node as bad statement, then this invalid statement is implicit
             bool isImplicit = boundBadStatement.WasCompilerGenerated || boundBadStatement.ChildBoundNodes.Any(e => e?.Syntax == boundBadStatement.Syntax);
-            return new CSharpLazyInvalidOperation(this, children, _semanticModel, syntax, type, constantValue, isImplicit);
+            return new CSharpLazyInvalidOperation(this, boundBadStatement, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private IOperation CreateBoundLocalDeclarationOperation(BoundLocalDeclaration boundLocalDeclaration)
@@ -1902,7 +1899,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
         private ISwitchCaseOperation CreateBoundPatternSwitchSectionOperation(BoundPatternSwitchSection boundPatternSwitchSection)
         {
-            ImmutableArray<ILocalSymbol> locals = boundPatternSwitchSection.Locals.CastArray<ILocalSymbol>();
+            ImmutableArray<ILocalSymbol> locals = StaticCast<ILocalSymbol>.From(boundPatternSwitchSection.Locals);
 
             return new CSharpLazySwitchCaseOperation(this, boundPatternSwitchSection, locals, _semanticModel, boundPatternSwitchSection.Syntax, type: null, constantValue: default, isImplicit: boundPatternSwitchSection.WasCompilerGenerated);
         }

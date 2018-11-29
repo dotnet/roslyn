@@ -346,7 +346,7 @@ namespace Microsoft.CodeAnalysis.Operations
                  invokedAsExtensionMethod: invokedAsExtensionMethod);
         }
 
-        private IInvalidOperation CreateInvalidExpressionForHasArgumentsExpression(BoundNode receiverOpt, ImmutableArray<BoundExpression> arguments, BoundExpression additionalNodeOpt, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit)
+        internal static ImmutableArray<BoundNode> CreateInvalidChildrenFromArgumentsExpression(BoundNode receiverOpt, ImmutableArray<BoundExpression> arguments, BoundExpression additionalNodeOpt = null)
         {
             var builder = ArrayBuilder<BoundNode>.GetInstance();
 
@@ -359,22 +359,21 @@ namespace Microsoft.CodeAnalysis.Operations
                 builder.Add(receiverOpt);
             }
 
-            builder.AddRange(arguments.CastArray<BoundNode>());
+            builder.AddRange(StaticCast<BoundNode>.From(arguments));
 
             builder.AddIfNotNull(additionalNodeOpt);
 
-            return new CSharpLazyInvalidOperation(this, builder.ToImmutableAndFree(), _semanticModel, syntax, type, constantValue, isImplicit);
+            return builder.ToImmutableAndFree();
         }
 
         internal ImmutableArray<IOperation> GetAnonymousObjectCreationInitializers(
-            IBoundAnonymousObjectCreation anonymousObjectCreation,
+            ImmutableArray<BoundExpression> arguments,
+            ImmutableArray<BoundAnonymousPropertyDeclaration> declarations,
             SyntaxNode syntax,
             ITypeSymbol type,
             bool isImplicit)
         {
             // For error cases and non-assignment initializers, the binder generates only the argument.
-            ImmutableArray<BoundExpression> arguments = anonymousObjectCreation.Arguments;
-            ImmutableArray<BoundAnonymousPropertyDeclaration> declarations = anonymousObjectCreation.PropertyDeclarationsOpt;
             Debug.Assert(arguments.Length >= declarations.Length);
 
             var builder = ArrayBuilder<IOperation>.GetInstance(arguments.Length);
@@ -436,19 +435,6 @@ namespace Microsoft.CodeAnalysis.Operations
 
             Debug.Assert(currentDeclarationIndex == declarations.Length);
             return builder.ToImmutableAndFree();
-        }
-
-        private ImmutableArray<ISwitchCaseOperation> GetPatternSwitchStatementCases(BoundPatternSwitchStatement statement)
-        {
-            return statement.SwitchSections.SelectAsArray(switchSection =>
-            {
-                var clauses = switchSection.SwitchLabels.SelectAsArray(s => (ICaseClauseOperation)Create(s));
-                var body = switchSection.Statements.SelectAsArray(s => Create(s));
-                ImmutableArray<ILocalSymbol> locals = switchSection.Locals.CastArray<ILocalSymbol>();
-
-                return (ISwitchCaseOperation)new SwitchCaseOperation(locals, condition: null, clauses, body, _semanticModel, switchSection.Syntax,
-                                                            type: null, constantValue: default(Optional<object>), isImplicit: switchSection.WasCompilerGenerated);
-            });
         }
 
         internal class Helper

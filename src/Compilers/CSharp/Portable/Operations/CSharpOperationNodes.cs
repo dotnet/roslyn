@@ -738,27 +738,37 @@ namespace Microsoft.CodeAnalysis.Operations
     internal sealed class CSharpLazyInvalidOperation : LazyInvalidOperation
     {
         private readonly CSharpOperationFactory _operationFactory;
-        private readonly ImmutableArray<BoundNode> _children;
+        private readonly IBoundInvalidNode _node;
 
-        internal CSharpLazyInvalidOperation(CSharpOperationFactory operationFactory, ImmutableArray<BoundNode> children, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+        internal CSharpLazyInvalidOperation(CSharpOperationFactory operationFactory, IBoundInvalidNode node, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
 			base(semanticModel, syntax, type, constantValue, isImplicit)
         {
             _operationFactory = operationFactory;
-            _children = children;
+            _node = node;
         }
 
         protected override ImmutableArray<IOperation> CreateChildren()
         {
-            return _operationFactory.CreateFromArray<BoundNode, IOperation>(_children);
+            return _operationFactory.CreateFromArray<BoundNode, IOperation>(_node.InvalidNodeChildren);
         }
     }
 
     internal sealed class CSharpLazyInvocationOperation : LazyInvocationOperation
     {
         private readonly CSharpOperationFactory _operationFactory;
-        private readonly IBoundInvocableExpression _invocableExpression;
+        private readonly BoundExpression _invocableExpression;
 
-        internal CSharpLazyInvocationOperation(CSharpOperationFactory operationFactory, IBoundInvocableExpression invocableExpression, IMethodSymbol targetMethod, bool isVirtual, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+        internal CSharpLazyInvocationOperation(CSharpOperationFactory operationFactory, BoundCall invocableExpression, IMethodSymbol targetMethod, bool isVirtual, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            this(operationFactory, (BoundExpression)invocableExpression, targetMethod, isVirtual, semanticModel, syntax, type, constantValue, isImplicit)
+        {
+        }
+
+        internal CSharpLazyInvocationOperation(CSharpOperationFactory operationFactory, BoundCollectionElementInitializer invocableExpression, IMethodSymbol targetMethod, bool isVirtual, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            this(operationFactory, (BoundExpression)invocableExpression, targetMethod, isVirtual, semanticModel, syntax, type, constantValue, isImplicit)
+        {
+        }
+
+        private CSharpLazyInvocationOperation(CSharpOperationFactory operationFactory, BoundExpression invocableExpression, IMethodSymbol targetMethod, bool isVirtual, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
 			base(targetMethod, isVirtual, semanticModel, syntax, type, constantValue, isImplicit)
         {
             _operationFactory = operationFactory;
@@ -767,12 +777,24 @@ namespace Microsoft.CodeAnalysis.Operations
 
         protected override IOperation CreateInstance()
         {
-            return _operationFactory.CreateReceiverOperation(_invocableExpression.ReceiverOpt, TargetMethod);
+            BoundExpression receiver;
+            switch (_invocableExpression)
+            {
+                case BoundCall call:
+                    receiver = call.ReceiverOpt;
+                    break;
+                case BoundCollectionElementInitializer initializer:
+                    receiver = initializer.ImplicitReceiverOpt;
+                    break;
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(_invocableExpression.Kind);
+            }
+            return _operationFactory.CreateReceiverOperation(receiver, TargetMethod);
         }
 
         protected override ImmutableArray<IArgumentOperation> CreateArguments()
         {
-            return _operationFactory.DeriveArguments(_invocableExpression.GetAsBoundNode());
+            return _operationFactory.DeriveArguments(_invocableExpression);
         }
     }
 
@@ -979,9 +1001,19 @@ namespace Microsoft.CodeAnalysis.Operations
     internal sealed class CSharpLazyAnonymousObjectCreationOperation : LazyAnonymousObjectCreationOperation
     {
         private readonly CSharpOperationFactory _operationFactory;
-        private readonly IBoundAnonymousObjectCreation _anonymousObjectCreation;
+        private readonly BoundExpression _anonymousObjectCreation;
 
-        internal CSharpLazyAnonymousObjectCreationOperation(CSharpOperationFactory operationFactory, IBoundAnonymousObjectCreation anonymousObjectCreation, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+        internal CSharpLazyAnonymousObjectCreationOperation(CSharpOperationFactory operationFactory, BoundAnonymousObjectCreationExpression anonymousObjectCreation, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            this(operationFactory, (BoundExpression)anonymousObjectCreation, semanticModel, syntax, type, constantValue, isImplicit)
+        {
+        }
+
+        internal CSharpLazyAnonymousObjectCreationOperation(CSharpOperationFactory operationFactory, BoundObjectCreationExpression anonymousObjectCreation, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            this(operationFactory, (BoundExpression)anonymousObjectCreation, semanticModel, syntax, type, constantValue, isImplicit)
+        {
+        }
+
+        private CSharpLazyAnonymousObjectCreationOperation(CSharpOperationFactory operationFactory, BoundExpression anonymousObjectCreation, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
 			base(semanticModel, syntax, type, constantValue, isImplicit)
         {
             _operationFactory = operationFactory;
@@ -990,7 +1022,24 @@ namespace Microsoft.CodeAnalysis.Operations
 
         protected override ImmutableArray<IOperation> CreateInitializers()
         {
-            return _operationFactory.GetAnonymousObjectCreationInitializers(_anonymousObjectCreation, Syntax, Type, IsImplicit);
+            ImmutableArray<BoundExpression> arguments;
+            ImmutableArray<BoundAnonymousPropertyDeclaration> declarations;
+
+            switch(_anonymousObjectCreation)
+            {
+                case BoundAnonymousObjectCreationExpression anonymousObjectCreationExpression:
+                    arguments = anonymousObjectCreationExpression.Arguments;
+                    declarations = anonymousObjectCreationExpression.Declarations;
+                    break;
+                case BoundObjectCreationExpression objectCreationExpression:
+                    arguments = objectCreationExpression.Arguments;
+                    declarations = ImmutableArray<BoundAnonymousPropertyDeclaration>.Empty;
+                    break;
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(_anonymousObjectCreation.Kind);
+            }
+
+            return _operationFactory.GetAnonymousObjectCreationInitializers(arguments, declarations, Syntax, Type, IsImplicit);
         }
     }
 

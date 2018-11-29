@@ -6,7 +6,6 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
     Partial Friend Class BoundCall
-        Implements IBoundInvocable
 
         Public Sub New(
             syntax As SyntaxNode,
@@ -65,18 +64,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Overrides ReadOnly Property ExpressionSymbol As Symbol
             Get
                 Return Me.Method
-            End Get
-        End Property
-
-        Private ReadOnly Property IBoundInvocable_Call As BoundCall Implements IBoundInvocable.CallOpt
-            Get
-                Return Me
-            End Get
-        End Property
-
-        Private ReadOnly Property IBoundInvocable_InstanceOpt As BoundExpression Implements IBoundInvocable.InstanceOpt
-            Get
-                Return If(ReceiverOpt, MethodGroupOpt?.ReceiverOpt)
             End Get
         End Property
 

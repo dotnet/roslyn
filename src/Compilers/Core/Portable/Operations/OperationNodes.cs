@@ -1150,8 +1150,7 @@ namespace Microsoft.CodeAnalysis.Operations
     /// </summary>
     internal abstract class BaseTupleBinaryOperation : Operation, ITupleBinaryOperation
     {
-        public BaseTupleBinaryOperation(BinaryOperatorKind operatorKind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit)
-            :
+        public BaseTupleBinaryOperation(BinaryOperatorKind operatorKind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
 			base(OperationKind.TupleBinary, semanticModel, syntax, type, constantValue, isImplicit)
         {
             OperatorKind = operatorKind;
@@ -1200,8 +1199,7 @@ namespace Microsoft.CodeAnalysis.Operations
     /// </summary>
     internal sealed class TupleBinaryOperation : BaseTupleBinaryOperation, ITupleBinaryOperation
     {
-        public TupleBinaryOperation(BinaryOperatorKind operatorKind, IOperation leftOperand, IOperation rightOperand, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit)
-            :
+        public TupleBinaryOperation(BinaryOperatorKind operatorKind, IOperation leftOperand, IOperation rightOperand, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
 			base(operatorKind, semanticModel, syntax, type, constantValue, isImplicit)
         {
             LeftOperand = SetParentOperation(leftOperand, this);

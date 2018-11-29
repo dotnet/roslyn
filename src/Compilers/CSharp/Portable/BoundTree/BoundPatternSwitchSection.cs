@@ -6,7 +6,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal partial class BoundPatternSwitchSection : IBoundSwitchSection
     {
-        ImmutableArray<BoundNode> IBoundSwitchSection.SwitchLabels => this.SwitchLabels.CastArray<BoundNode>();
+        ImmutableArray<BoundNode> IBoundSwitchSection.SwitchLabels => StaticCast<BoundNode>.From(this.SwitchLabels);
         ImmutableArray<BoundStatement> IBoundSwitchSection.Statements => this.Statements;
     }
 }

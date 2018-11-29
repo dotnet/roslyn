@@ -151,7 +151,7 @@ Namespace Microsoft.CodeAnalysis.Operations
                 Return Create(child)
             End If
             Dim isImplicit As Boolean = [operator].UnderlyingExpression.WasCompilerGenerated
-            Return OperationFactory.CreateInvalidExpression(_semanticModel, [operator].UnderlyingExpression.Syntax, ImmutableArray(Of IOperation).Empty, isImplicit)
+            Return OperationFactory.CreateInvalidOperation(_semanticModel, [operator].UnderlyingExpression.Syntax, ImmutableArray(Of IOperation).Empty, isImplicit)
         End Function
 
         Private Shared Function GetUserDefinedBinaryOperatorChildBoundNode([operator] As BoundUserDefinedBinaryOperator, index As Integer) As BoundExpression
@@ -181,7 +181,7 @@ Namespace Microsoft.CodeAnalysis.Operations
                     Return If(boundCreation.ConstructorOpt Is Nothing, ImmutableArray(Of IArgumentOperation).Empty, DeriveArguments(boundCreation.Arguments, boundCreation.ConstructorOpt.Parameters, boundCreation.DefaultArguments))
                 Case BoundKind.PropertyAccess
                     Dim boundProperty = DirectCast(boundNode, BoundPropertyAccess)
-                    Return DeriveArguments(boundProperty.Arguments, boundProperty.PropertySymbol.Parameters, boundProperty.DefaultArguments)
+                    Return If(boundProperty.Arguments.Length = 0, ImmutableArray(Of IArgumentOperation).Empty, DeriveArguments(boundProperty.Arguments, boundProperty.PropertySymbol.Parameters, boundProperty.DefaultArguments))
                 Case BoundKind.RaiseEventStatement
                     Dim boundRaiseEvent = DirectCast(boundNode, BoundRaiseEventStatement)
                     Return DeriveArguments(DirectCast(boundRaiseEvent.EventInvocation, BoundCall))
@@ -312,7 +312,7 @@ Namespace Microsoft.CodeAnalysis.Operations
                 Return child
             End If
             Dim isImplicit As Boolean = parent.WasCompilerGenerated
-            Return OperationFactory.CreateInvalidExpression(_semanticModel, parent.Syntax, ImmutableArray(Of IOperation).Empty, isImplicit)
+            Return OperationFactory.CreateInvalidOperation(_semanticModel, parent.Syntax, ImmutableArray(Of IOperation).Empty, isImplicit)
         End Function
 
         Private Shared Function GetChildOfBadExpressionBoundNode(parent As BoundNode, index As Integer) As BoundExpression
