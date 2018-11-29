@@ -12,22 +12,16 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
     /// </summary>
     internal sealed class DefaultPointsToValueGenerator
     {
-        private readonly ControlFlowGraph _controlFlowGraph;
         private readonly ImmutableDictionary<AnalysisEntity, PointsToAbstractValue>.Builder _defaultPointsToValueMapBuilder;
         private ImmutableDictionary<AnalysisEntity, PointsToAbstractValue> _lazyDefaultPointsToValueMap;
 
-        public DefaultPointsToValueGenerator(ControlFlowGraph controlFlowGraph)
+        public DefaultPointsToValueGenerator()
         {
-            _controlFlowGraph = controlFlowGraph;
             _defaultPointsToValueMapBuilder = ImmutableDictionary.CreateBuilder<AnalysisEntity, PointsToAbstractValue>();
         }
 
         public PointsToAbstractValue GetOrCreateDefaultValue(AnalysisEntity analysisEntity)
         {
-            // Must be a reference type, a nullable value type or an lvalue capture of a non-nullable value type.
-            Debug.Assert(analysisEntity.Type.IsReferenceTypeOrNullableValueType() ||
-                         (analysisEntity.CaptureIdOpt != null &&
-                          LValueFlowCapturesProvider.GetOrCreateLValueFlowCaptures(_controlFlowGraph).Contains(analysisEntity.CaptureIdOpt.Value)));
             Debug.Assert(_lazyDefaultPointsToValueMap == null);
 
             if (!_defaultPointsToValueMapBuilder.TryGetValue(analysisEntity, out PointsToAbstractValue value))
@@ -37,6 +31,10 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                     analysisEntity.CaptureIdOpt != null)
                 {
                     return PointsToAbstractValue.Undefined;
+                }
+                else if (!analysisEntity.Type.IsReferenceTypeOrNullableValueType())
+                {
+                    return PointsToAbstractValue.NoLocation;
                 }
 
                 value = PointsToAbstractValue.Create(AbstractLocation.CreateAnalysisEntityDefaultLocation(analysisEntity), mayBeNull: true);

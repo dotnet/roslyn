@@ -2,8 +2,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
-using Analyzer.Utilities;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis;
 
@@ -83,7 +83,10 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
                 InterproceduralAnalysisDataOpt, trackHazardousParameterUsages: true);
 
         public bool TrackHazardousParameterUsages { get; }
-        protected override int GetHashCode(int hashCode)
-            => HashUtilities.Combine(TrackHazardousParameterUsages.GetHashCode(), hashCode);
+
+        protected override void ComputeHashCodePartsSpecific(ImmutableArray<int>.Builder builder)
+        {
+            builder.Add(TrackHazardousParameterUsages.GetHashCode());
+        }
     }
 }

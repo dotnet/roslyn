@@ -32,9 +32,10 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         /// </summary>
         public ImmutableHashSet<SymbolAccess> SourceOrigins { get; }
 
-        protected override int ComputeHashCode()
+        protected override void ComputeHashCodeParts(ImmutableArray<int>.Builder builder)
         {
-            return HashUtilities.Combine(this.SourceOrigins, this.Kind.GetHashCode());
+            builder.Add(HashUtilities.Combine(SourceOrigins));
+            builder.Add(Kind.GetHashCode());
         }
 
         /// <summary>

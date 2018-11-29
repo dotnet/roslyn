@@ -62,6 +62,10 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
         public ImmutableHashSet<AnalysisEntity> AnalysisEntities { get; }
         public CopyAbstractValueKind Kind { get; }
 
-        protected override int ComputeHashCode() => HashUtilities.Combine(AnalysisEntities, Kind.GetHashCode());
+        protected override void ComputeHashCodeParts(ImmutableArray<int>.Builder builder)
+        {
+            builder.Add(HashUtilities.Combine(AnalysisEntities));
+            builder.Add(Kind.GetHashCode());
+        }
     }
 }

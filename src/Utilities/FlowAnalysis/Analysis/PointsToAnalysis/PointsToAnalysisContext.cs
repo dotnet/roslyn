@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis;
 
@@ -62,6 +63,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                 PessimisticAnalysis, copyAnalysisResultOpt, GetOrComputeAnalysisResult, ControlFlowGraph, interproceduralAnalysisData);
         }
 
-        protected override int GetHashCode(int hashCode) => hashCode;
+        protected override void ComputeHashCodePartsSpecific(ImmutableArray<int>.Builder builder)
+        {
+        }
     }
 }

@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow;
 
@@ -46,11 +47,11 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         /// </summary>
         public ISymbol AccessingMethod { get; }
 
-        protected override int ComputeHashCode()
+        protected override void ComputeHashCodeParts(ImmutableArray<int>.Builder builder)
         {
-            return HashUtilities.Combine(this.Location.GetHashCode(),
-                HashUtilities.Combine(this.Symbol.GetHashCode(),
-                this.AccessingMethod.GetHashCode()));
+            builder.Add(Location.GetHashCode());
+            builder.Add(Symbol.GetHashCode());
+            builder.Add(AccessingMethod.GetHashCode());
         }
     }
 }

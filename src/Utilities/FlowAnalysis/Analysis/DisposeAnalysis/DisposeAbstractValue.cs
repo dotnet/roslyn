@@ -71,7 +71,10 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
         public ImmutableHashSet<IOperation> DisposingOrEscapingOperations { get; }
         public DisposeAbstractValueKind Kind { get; }
 
-        protected override int ComputeHashCode()
-            => HashUtilities.Combine(DisposingOrEscapingOperations, Kind.GetHashCode());
+        protected override void ComputeHashCodeParts(ImmutableArray<int>.Builder builder)
+        {
+            builder.Add(HashUtilities.Combine(DisposingOrEscapingOperations));
+            builder.Add(Kind.GetHashCode());
+        }
     }
 }
