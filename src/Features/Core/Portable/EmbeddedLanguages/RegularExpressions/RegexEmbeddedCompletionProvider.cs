@@ -114,7 +114,6 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
 
                 // Keep everything sorted in the order we just produced the items in.
                 var sortText = context.Items.Count.ToString("0000");
-                ProvideCompletionsIfInUnicodeCategory
                 context.AddItem(CompletionItem.Create(
                     displayText: embeddedItem.DisplayText,
                     sortText: sortText,
