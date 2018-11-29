@@ -40,8 +40,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion
             New CompletionListTagCompletionProvider(),
             New OverrideCompletionProvider(),
             New XmlDocCommentCompletionProvider(),
-            New InternalsVisibleToCompletionProvider()
-        )
+            New InternalsVisibleToCompletionProvider())
 
         Private ReadOnly _workspace As Workspace
 
