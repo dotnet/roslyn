@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -10,6 +11,7 @@ using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.MSBuild;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.CodingConventions;
 using Roslyn.Utilities;
@@ -108,38 +110,54 @@ namespace Microsoft.CodeAnalysis.Tools.CodeFormatter
 
         private static async Task<Solution> FormatFilesInProjectAsync(ILogger logger, Project project, ICodingConventionsManager codingConventionsManager, EditorConfigOptionsApplier optionsApplier, CancellationToken cancellationToken)
         {
-            var formattedSolution = project.Solution;
-
             var isCommentTrivia = project.Language == LanguageNames.CSharp
                 ? IsCSharpCommentTrivia
                 : IsVisualBasicCommentTrivia;
 
+            var formattedDocuments = new List<(DocumentId documentId, Task<SourceText> formatTask)>();
             foreach (var documentId in project.DocumentIds)
             {
-                var document = formattedSolution.GetDocument(documentId);
+                var document = project.Solution.GetDocument(documentId);
                 if (!document.SupportsSyntaxTree)
                 {
                     continue;
                 }
 
-                var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-                if (GeneratedCodeUtilities.IsGeneratedCode(syntaxTree, isCommentTrivia, cancellationToken))
+                var formatTask = Task.Run(async () =>
+                {
+                    var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+                    if (GeneratedCodeUtilities.IsGeneratedCode(syntaxTree, isCommentTrivia, cancellationToken))
+                    {
+                        return null;
+                    }
+
+                    logger.LogTrace(Resources.Formatting_code_file_0, Path.GetFileName(document.FilePath));
+
+                    OptionSet documentOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+
+                    var codingConventionsContext = await codingConventionsManager.GetConventionContextAsync(document.FilePath, cancellationToken).ConfigureAwait(false);
+                    if (codingConventionsContext?.CurrentConventions != null)
+                    {
+                        documentOptions = optionsApplier.ApplyConventions(documentOptions, codingConventionsContext.CurrentConventions, project.Language);
+                    }
+
+                    var formattedDocument = await Formatter.FormatAsync(document, documentOptions, cancellationToken).ConfigureAwait(false);
+                    return await formattedDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                }, cancellationToken);
+
+                formattedDocuments.Add((documentId, formatTask));
+            }
+
+            var formattedSolution = project.Solution;
+            foreach (var (documentId, formatTask) in formattedDocuments)
+            {
+                var text = await formatTask.ConfigureAwait(false);
+                if (text is null)
                 {
                     continue;
                 }
 
-                logger.LogTrace(Resources.Formatting_code_file_0, Path.GetFileName(document.FilePath));
-
-                OptionSet documentOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-
-                var codingConventionsContext = await codingConventionsManager.GetConventionContextAsync(document.FilePath, cancellationToken).ConfigureAwait(false);
-                if (codingConventionsContext?.CurrentConventions != null)
-                {
-                    documentOptions = optionsApplier.ApplyConventions(documentOptions, codingConventionsContext.CurrentConventions, project.Language);
-                }
-
-                var formattedDocument = await Formatter.FormatAsync(document, documentOptions, cancellationToken).ConfigureAwait(false);
-                formattedSolution = formattedDocument.Project.Solution;
+                formattedSolution = formattedSolution.WithDocumentText(documentId, text);
             }
 
             return formattedSolution;
