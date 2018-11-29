@@ -2,9 +2,11 @@
 
 Imports System.Collections.Immutable
 Imports System.Composition
+Imports System.Threading
 Imports Microsoft.CodeAnalysis.ChangeNamespace
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.LanguageServices
+Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeNamespace
@@ -36,13 +38,28 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeNamespace
             End If
         End Function
 
-        ' This is only reachable when called from a VB refacoring provider, which is not implemented yet.
+        ' TODO: Implement the service for VB
+        Protected Overrides Function CanChangeNamespaceWorkerAsync(document As Document, container As SyntaxNode, cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of (DocumentId, SyntaxNode)))
+            Return Task.FromResult(CType(Nothing, ImmutableArray(Of (DocumentId, SyntaxNode))))
+        End Function
+
+        ' This is only reachable when called from a VB service, which is not implemented yet.
         Protected Overrides Function ChangeNamespaceDeclaration(root As CompilationUnitSyntax, declaredNamespaceParts As ImmutableArray(Of String), targetNamespaceParts As ImmutableArray(Of String)) As CompilationUnitSyntax
             Throw ExceptionUtilities.Unreachable
         End Function
 
-        ' This is only reachable when called from a VB refacoring provider, which is not implemented yet.
+        ' This is only reachable when called from a VB service, which is not implemented yet.
         Protected Overrides Function GetMemberDeclarationsInContainer(compilationUnitOrNamespaceDecl As SyntaxNode) As SyntaxList(Of StatementSyntax)
+            Throw ExceptionUtilities.Unreachable
+        End Function
+
+        ' This is only reachable when called from a VB service, which is not implemented yet.
+        Protected Overrides Function TryGetApplicableContainerFromSpanAsync(document As Document, span As TextSpan, cancellationToken As CancellationToken) As Task(Of SyntaxNode)
+            Throw ExceptionUtilities.Unreachable
+        End Function
+
+        ' This is only reachable when called from a VB service, which is not implemented yet.
+        Protected Overrides Function GetDeclaredNamespace(node As SyntaxNode) As String
             Throw ExceptionUtilities.Unreachable
         End Function
 
