@@ -784,8 +784,8 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
             CancellationToken cancellationToken)
         {
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var localDeclarationOperation = semanticModel.GetOperation(declStatement, cancellationToken) as IVariableDeclarationGroupOperation;
-            var local = localDeclarationOperation?.GetDeclaredVariables().Single();
+            var localDeclarationOperation = (IVariableDeclarationGroupOperation)semanticModel.GetOperation(declStatement, cancellationToken);
+            var local = localDeclarationOperation.GetDeclaredVariables().Single();
 
             // Check if the declared variable has no references in fixed code.
             var referencedSymbols = await SymbolFinder.FindReferencesAsync(local, document.Project.Solution, cancellationToken).ConfigureAwait(false);
