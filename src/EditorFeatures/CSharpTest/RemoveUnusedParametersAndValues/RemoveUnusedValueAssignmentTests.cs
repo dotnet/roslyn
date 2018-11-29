@@ -5628,5 +5628,68 @@ class C
     int M2() => 0;
 }", options: PreferDiscard);
         }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        [InlineData(nameof(PreferDiscard))]
+        [InlineData(nameof(PreferUnusedLocal))]
+        public async Task ValueOverwrittenByOutVar_ConditionalAndExpression(string optionName)
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    void M()
+    {
+        int {|FixAllInDocument:x1|} = -1, x2 = -1;
+        if (M2(x: out x1) &&
+            M2(x: out x2))
+        {
+            x1 = 0;
+            x2 = 0;
+        }
+        else
+        {
+            Console.WriteLine(x1);
+        }
+
+        Console.WriteLine(x1 + x2);
+    }
+
+    bool M2(out int x)
+    {
+        x = 0;
+        return true;
+    }
+}",
+@"using System;
+
+class C
+{
+    void M()
+    {
+        int x2 = -1;
+        int x1;
+        if (M2(x: out x1) &&
+            M2(x: out x2))
+        {
+            x1 = 0;
+            x2 = 0;
+        }
+        else
+        {
+            Console.WriteLine(x1);
+        }
+
+        Console.WriteLine(x1 + x2);
+    }
+
+    bool M2(out int x)
+    {
+        x = 0;
+        return true;
+    }
+}", optionName);
+        }
     }
 }
