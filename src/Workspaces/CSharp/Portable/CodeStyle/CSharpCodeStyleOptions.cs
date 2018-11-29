@@ -15,11 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
         internal static ImmutableArray<IOption> AllOptions { get; }
 
         private static Option<T> CreateOption<T>(OptionGroup group, string name, T defaultValue, params OptionStorageLocation[] storageLocations)
-        {
-            var option = new Option<T>(nameof(CSharpCodeStyleOptions), group, name, defaultValue, storageLocations);
-            s_allOptionsBuilder.Add(option);
-            return option;
-        }
+            => CodeStyleHelpers.CreateOption(group, nameof(CSharpCodeStyleOptions), name, defaultValue, s_allOptionsBuilder, storageLocations);
 
         public static readonly Option<CodeStyleOption<bool>> UseImplicitTypeForIntrinsicTypes = CreateOption(
             CSharpCodeStyleOptionGroups.VarPreferences, nameof(UseImplicitTypeForIntrinsicTypes),
@@ -60,6 +56,20 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
             storageLocations: new OptionStorageLocation[] {
                 EditorConfigStorageLocation.ForBoolCodeStyleOption("csharp_style_pattern_matching_over_is_with_cast_check"),
                 new RoamingProfileStorageLocation($"TextEditor.CSharp.Specific.{nameof(PreferPatternMatchingOverIsWithCastCheck)}")});
+
+        public static readonly Option<CodeStyleOption<bool>> PreferIndexOperator = CreateOption(
+            CSharpCodeStyleOptionGroups.ExpressionLevelPreferences, nameof(PreferIndexOperator),
+            defaultValue: CodeStyleOptions.TrueWithSuggestionEnforcement,
+            storageLocations: new OptionStorageLocation[] {
+                EditorConfigStorageLocation.ForBoolCodeStyleOption("csharp_style_prefer_index_operator"),
+                new RoamingProfileStorageLocation("TextEditor.CSharp.Specific.PreferIndexOperator")});
+
+        public static readonly Option<CodeStyleOption<bool>> PreferRangeOperator = CreateOption(
+            CSharpCodeStyleOptionGroups.ExpressionLevelPreferences, nameof(PreferRangeOperator),
+            defaultValue: CodeStyleOptions.TrueWithSuggestionEnforcement,
+            storageLocations: new OptionStorageLocation[] {
+                EditorConfigStorageLocation.ForBoolCodeStyleOption("csharp_style_prefer_range_operator"),
+                new RoamingProfileStorageLocation("TextEditor.CSharp.Specific.PreferRangeOperator")});
 
         public static readonly CodeStyleOption<ExpressionBodyPreference> NeverWithSilentEnforcement =
             new CodeStyleOption<ExpressionBodyPreference>(ExpressionBodyPreference.Never, NotificationOption.Silent);
@@ -187,6 +197,24 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
                 EditorConfigStorageLocation.ForBoolCodeStyleOption("csharp_style_pattern_local_over_anonymous_function"),
                 new RoamingProfileStorageLocation($"TextEditor.CSharp.Specific.{nameof(PreferLocalOverAnonymousFunction)}")});
 
+        internal static readonly Option<CodeStyleOption<UnusedValuePreference>> UnusedValueExpressionStatement =
+            CodeStyleHelpers.CreateUnusedExpressionAssignmentOption(
+                CSharpCodeStyleOptionGroups.ExpressionLevelPreferences,
+                feature: nameof(CSharpCodeStyleOptions),
+                name: nameof(UnusedValueExpressionStatement),
+                editorConfigName: "csharp_style_unused_value_expression_statement_preference",
+                defaultValue: new CodeStyleOption<UnusedValuePreference>(UnusedValuePreference.DiscardVariable, NotificationOption.Silent),
+                s_allOptionsBuilder);
+
+        internal static readonly Option<CodeStyleOption<UnusedValuePreference>> UnusedValueAssignment =
+            CodeStyleHelpers.CreateUnusedExpressionAssignmentOption(
+                CSharpCodeStyleOptionGroups.ExpressionLevelPreferences,
+                feature: nameof(CSharpCodeStyleOptions),
+                name: nameof(UnusedValueAssignment),
+                editorConfigName: "csharp_style_unused_value_assignment_preference",
+                defaultValue: new CodeStyleOption<UnusedValuePreference>(UnusedValuePreference.DiscardVariable, NotificationOption.Suggestion),
+                s_allOptionsBuilder);
+
         static CSharpCodeStyleOptions()
         {
             // Note that the static constructor executes after all the static field initializers for the options have executed,
@@ -205,6 +233,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
             yield return PreferBraces;
             yield return PreferSimpleDefaultExpression;
             yield return PreferLocalOverAnonymousFunction;
+            yield return PreferIndexOperator;
+            yield return PreferRangeOperator;
         }
 
         public static IEnumerable<Option<CodeStyleOption<ExpressionBodyPreference>>> GetExpressionBodyOptions()

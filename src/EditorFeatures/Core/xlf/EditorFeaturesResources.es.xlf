@@ -9,7 +9,7 @@
       </trans-unit>
       <trans-unit id="Change_configuration">
         <source>Change configuration</source>
-        <target state="new">Change configuration</target>
+        <target state="translated">Cambiar configuración</target>
         <note />
       </trans-unit>
       <trans-unit id="Code_cleanup_is_not_configured">
@@ -27,9 +27,29 @@
         <target state="translated">No volver a mostrar este mensaje</target>
         <note />
       </trans-unit>
+      <trans-unit id="Do_you_still_want_to_proceed_This_may_produce_broken_code">
+        <source>Do you still want to proceed? This may produce broken code.</source>
+        <target state="new">Do you still want to proceed? This may produce broken code.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Extract_method_encountered_the_following_issues">
+        <source>Extract method encountered the following issues:</source>
+        <target state="new">Extract method encountered the following issues:</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Format_document_performed_additional_cleanup">
         <source>Format Document performed additional cleanup</source>
-        <target state="new">Format Document performed additional cleanup</target>
+        <target state="translated">Dar formato al documento realiza una limpieza adicional</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Invalid_assembly_name">
+        <source>Invalid assembly name</source>
+        <target state="new">Invalid assembly name</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Invalid_characters_in_assembly_name">
+        <source>Invalid characters in assembly name</source>
+        <target state="new">Invalid characters in assembly name</target>
         <note />
       </trans-unit>
       <trans-unit id="Paste_Tracking">
@@ -224,42 +244,42 @@
       </trans-unit>
       <trans-unit id="Adding_0_to_1_with_content_colon">
         <source>Adding '{0}' to '{1}' with content:</source>
-        <target state="translated">Agregando '{0}' a '{1}' con contenido:</target>
+        <target state="translated">Agregando "{0}" a "{1}" con contenido:</target>
         <note />
       </trans-unit>
       <trans-unit id="Adding_project_0">
         <source>Adding project '{0}'</source>
-        <target state="translated">Agregando proyecto '{0}'</target>
+        <target state="translated">Agregando proyecto "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="Removing_project_0">
         <source>Removing project '{0}'</source>
-        <target state="translated">Quitando el proyecto '{0}'</target>
+        <target state="translated">Quitando el proyecto "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="Changing_project_references_for_0">
         <source>Changing project references for '{0}'</source>
-        <target state="translated">Cambiando referencias del proyecto a '{0}'</target>
+        <target state="translated">Cambiando referencias del proyecto a "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="Adding_reference_0_to_1">
         <source>Adding reference '{0}' to '{1}'</source>
-        <target state="translated">Agregando referencia '{0}' a '{1}'</target>
+        <target state="translated">Agregando referencia "{0}" a "{1}"</target>
         <note />
       </trans-unit>
       <trans-unit id="Removing_reference_0_from_1">
         <source>Removing reference '{0}' from '{1}'</source>
-        <target state="translated">Quitando la referencia '{0}' de '{1}'</target>
+        <target state="translated">Quitando la referencia "{0}" de "{1}"</target>
         <note />
       </trans-unit>
       <trans-unit id="Adding_analyzer_reference_0_to_1">
         <source>Adding analyzer reference '{0}' to '{1}'</source>
-        <target state="translated">Agregando referencia de analizador '{0}' a '{1}'</target>
+        <target state="translated">Agregando referencia de analizador "{0}" a "{1}"</target>
         <note />
       </trans-unit>
       <trans-unit id="Removing_analyzer_reference_0_from_1">
         <source>Removing analyzer reference '{0}' from '{1}'</source>
-        <target state="translated">Quitando la referencia de analizador '{0}' de '{1}'</target>
+        <target state="translated">Quitando la referencia de analizador "{0}" de "{1}"</target>
         <note />
       </trans-unit>
       <trans-unit id="XML_End_Tag_Completion">
@@ -449,7 +469,7 @@
       </trans-unit>
       <trans-unit id="Rename_0_to_1">
         <source>Rename '{0}' to '{1}'</source>
-        <target state="translated">Cambiar el nombre de '{0}' a '{1}'</target>
+        <target state="translated">Cambiar el nombre de "{0}" a "{1}"</target>
         <note />
       </trans-unit>
       <trans-unit id="Preview_Warning">
@@ -759,7 +779,7 @@
       </trans-unit>
       <trans-unit id="Unexpected_text_colon_0">
         <source>Unexpected text: '{0}'</source>
-        <target state="translated">Texto inesperado: '{0}'</target>
+        <target state="translated">Texto inesperado: "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="The_triggerSpan_is_not_included_in_the_given_workspace">
@@ -819,7 +839,7 @@
       </trans-unit>
       <trans-unit id="symbol_cannot_be_a_namespace">
         <source>'symbol' cannot be a namespace.</source>
-        <target state="translated">'símbolo' no puede ser un espacio de nombres.</target>
+        <target state="translated">"símbolo" no puede ser un espacio de nombres.</target>
         <note />
       </trans-unit>
       <trans-unit id="Apply1">
@@ -887,16 +907,6 @@
         <target state="translated">Formato automático</target>
         <note />
       </trans-unit>
-      <trans-unit id="Extract_method_failed_with_following_reasons_colon">
-        <source>Extract method failed with following reasons :</source>
-        <target state="translated">Extraer método ha fallado por los siguientes motivos:</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Do_you_still_want_to_proceed_it_will_generate_broken_code">
-        <source>Do you still want to proceed? it will generate broken code.</source>
-        <target state="translated">¿Todavía quiere continuar? Se generará código roto.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="We_can_fix_the_error_by_not_making_struct_out_ref_parameter_s_Do_you_want_to_proceed">
         <source>We can fix the error by not making struct "out/ref" parameter(s).
 Do you want to proceed?</source>
@@ -911,7 +921,7 @@ Do you want to proceed?</source>
       </trans-unit>
       <trans-unit id="Rename_0_to_1_colon">
         <source>Rename '{0}' to '{1}':</source>
-        <target state="translated">Cambiar el nombre de '{0}' a '{1}':</target>
+        <target state="translated">Cambiar el nombre de "{0}" a "{1}":</target>
         <note />
       </trans-unit>
       <trans-unit id="Encapsulate_Field_colon">
@@ -926,17 +936,17 @@ Do you want to proceed?</source>
       </trans-unit>
       <trans-unit id="Calls_To_0">
         <source>Calls To '{0}'</source>
-        <target state="translated">Llamadas a '{0}'</target>
+        <target state="translated">Llamadas a "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="Calls_To_Base_Member_0">
         <source>Calls To Base Member '{0}'</source>
-        <target state="translated">Llamadas al miembro base '{0}'</target>
+        <target state="translated">Llamadas al miembro base "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="Calls_To_Interface_Implementation_0">
         <source>Calls To Interface Implementation '{0}'</source>
-        <target state="translated">Llamadas a la implementación de interfaz '{0}'</target>
+        <target state="translated">Llamadas a la implementación de interfaz "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="Computing_Call_Hierarchy_Information">
@@ -946,7 +956,7 @@ Do you want to proceed?</source>
       </trans-unit>
       <trans-unit id="Implements_0">
         <source>Implements '{0}'</source>
-        <target state="translated">Implementa '{0}'</target>
+        <target state="translated">Implementa "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="Initializers">
@@ -956,7 +966,7 @@ Do you want to proceed?</source>
       </trans-unit>
       <trans-unit id="References_To_Field_0">
         <source>References To Field '{0}'</source>
-        <target state="translated">Referencias al campo '{0}'</target>
+        <target state="translated">Referencias al campo "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="Calls_To_Overrides">
@@ -1011,7 +1021,7 @@ Do you want to proceed?</source>
       </trans-unit>
       <trans-unit id="_0_does_not_support_the_1_operation_However_it_may_contain_nested_2_s_see_2_3_that_support_this_operation">
         <source>'{0}' does not support the '{1}' operation. However, it may contain nested '{2}'s (see '{2}.{3}') that support this operation.</source>
-        <target state="translated">'{0}' no admite la operación '{1}'. Sin embargo, puede contener '{2}' anidados (véase '{2}.{3}') que admitan esta operación.</target>
+        <target state="translated">"{0}" no admite la operación "{1}". Sin embargo, puede contener "{2}" anidados (véase "{2}.{3}") que admitan esta operación.</target>
         <note />
       </trans-unit>
       <trans-unit id="Brace_Completion">
@@ -1091,17 +1101,17 @@ Do you want to proceed?</source>
       </trans-unit>
       <trans-unit id="_0_references">
         <source>'{0}' references</source>
-        <target state="translated">'Referencias de "{0}"</target>
+        <target state="translated">"Referencias de "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_implementations">
         <source>'{0}' implementations</source>
-        <target state="translated">'Implementaciones de "{0}"</target>
+        <target state="translated">"Implementaciones de "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_declarations">
         <source>'{0}' declarations</source>
-        <target state="translated">'Declaraciones de "{0}"</target>
+        <target state="translated">"Declaraciones de "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="An_inline_rename_session_is_active">

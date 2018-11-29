@@ -428,7 +428,7 @@ namespace Microsoft.CodeAnalysis
             foreach (var newState in newStateMap)
             {
                 foreach (var projectReference in newState.Value.ProjectReferences)
-                { 
+                {
                     if (projectReference.ProjectId == projectId)
                     {
                         newDependencyGraph = newDependencyGraph.WithAdditionalProjectReferences(newState.Key, ImmutableArray.Create(projectId));
@@ -436,7 +436,7 @@ namespace Microsoft.CodeAnalysis
                     }
                 }
             }
-            
+
             var newTrackerMap = CreateCompilationTrackerMap(projectId, newDependencyGraph);
             var newLinkedFilesMap = CreateLinkedFilesMapWithAddedProject(newStateMap[projectId]);
 
@@ -647,6 +647,29 @@ namespace Microsoft.CodeAnalysis
 
             var oldProjectState = this.GetProjectState(projectId);
             var newProjectState = oldProjectState.UpdateOutputRefFilePath(outputRefFilePath);
+
+            if (oldProjectState == newProjectState)
+            {
+                return this;
+            }
+
+            return this.ForkProject(newProjectState);
+        }
+
+        /// <summary>
+        /// Creates a new solution instance with the project specified updated to have the default namespace.
+        /// </summary>
+        public SolutionState WithProjectDefaultNamespace(ProjectId projectId, string defaultNamespace)
+        {
+            if (projectId == null)
+            {
+                throw new ArgumentNullException(nameof(projectId));
+            }
+
+            CheckContainsProject(projectId);
+
+            var oldProjectState = this.GetProjectState(projectId);
+            var newProjectState = oldProjectState.UpdateDefaultNamespace(defaultNamespace);
 
             if (oldProjectState == newProjectState)
             {
@@ -1110,7 +1133,7 @@ namespace Microsoft.CodeAnalysis
 
                 var newProjectState = oldProject.AddDocuments(newDocumentStatesForProject);
 
-                newSolutionState = newSolutionState.ForkProject(newProjectState, 
+                newSolutionState = newSolutionState.ForkProject(newProjectState,
                     CompilationTranslationAction.AddDocuments(newDocumentStatesForProject),
                     newLinkedFilesMap: CreateLinkedFilesMapWithAddedDocuments(newProjectState, documentInfosInProject.Select(d => d.Id)));
             }

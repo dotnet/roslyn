@@ -93,11 +93,14 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     {
                         var methodSymbol = (IMethodSymbol)symbol;
 
-                        if (methodSymbol.MethodKind == MethodKind.UserDefinedOperator || methodSymbol.MethodKind == MethodKind.Conversion)
+                        if (methodSymbol.MethodKind == MethodKind.UserDefinedOperator ||
+                            methodSymbol.MethodKind == MethodKind.Conversion ||
+                            methodSymbol.MethodKind == MethodKind.BuiltinOperator)
                         {
                             return Glyph.Operator;
                         }
-                        else if (methodSymbol.IsExtensionMethod || methodSymbol.MethodKind == MethodKind.ReducedExtension)
+                        else if (methodSymbol.IsExtensionMethod ||
+                                 methodSymbol.MethodKind == MethodKind.ReducedExtension)
                         {
                             publicIcon = Glyph.ExtensionMethodPublic;
                         }
@@ -246,7 +249,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 case MethodKind.EventRemove:
                 case MethodKind.PropertyGet:
                 case MethodKind.PropertySet:
-                    return method.ContainingSymbol.GetDocumentationComment().SummaryText;
+                    return method.AssociatedSymbol.GetDocumentationComment().SummaryText;
                 default:
                     return method.GetDocumentationComment().SummaryText;
             }

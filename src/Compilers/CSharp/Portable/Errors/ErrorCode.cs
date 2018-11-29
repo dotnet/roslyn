@@ -1592,6 +1592,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_ForEachMissingMemberWrongAsync = 8414,
         ERR_AwaitForEachMissingMemberWrongAsync = 8415,
         ERR_BadDynamicAwaitForEach = 8416,
+        ERR_NoConvToIAsyncDispWrongAsync = 8417,
+        ERR_NoConvToIDispWrongAsync = 8418,
 
         WRN_ConvertingNullableToNonNullable = 8600,
         WRN_NullReferenceAssignment = 8601,
@@ -1629,10 +1631,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_NullabilityMismatchInConstraintsOnImplicitImplementation = 8633,
         WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint = 8634,
         ERR_TripleDotNotAllowed = 8635,
-        ERR_ExplicitNonNullTypesAttribute = 8636,
+        // Available -> 8636,
         ERR_NullableDirectiveQualifierExpected = 8637,
         WRN_CantInferNullabilityOfMethodTypeArgs = 8638,
         WRN_NoBestNullabilityArrayElements = 8639,
+        ERR_ExpressionTreeCantContainRefStruct = 8640,
+        ERR_ElseCannotStartStatement = 8641,
+        ERR_ExpressionTreeCantContainNullCoalescingAssignment = 8642,
 
         ERR_MultipleAnalyzerConfigsInSameDir = 8700,
 

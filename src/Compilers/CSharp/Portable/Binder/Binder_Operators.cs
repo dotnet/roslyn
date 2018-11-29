@@ -2263,7 +2263,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             // is not a fixed size buffer expression, or if the expression is a fixed size buffer
                             // member_access of the form E.I and E is a fixed variable
                             BoundExpression underlyingExpr = ((BoundPointerElementAccess)expr).Expression;
-                            if (underlyingExpr is BoundFieldAccess fieldAccess && fieldAccess.FieldSymbol.IsFixed)
+                            if (underlyingExpr is BoundFieldAccess fieldAccess && fieldAccess.FieldSymbol.IsFixedSizeBuffer)
                             {
                                 expr = fieldAccess.ReceiverOpt;
                                 continue;

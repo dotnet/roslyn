@@ -393,6 +393,24 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
         }
 
         [Fact]
+        [WorkItem(29252, "https://github.com/dotnet/roslyn/issues/29252")]
+        public void SdkPath()
+        {
+            var vbc = new Vbc();
+            vbc.SdkPath = @"path\to\sdk";
+            Assert.Equal(@"/optionstrict:custom /sdkpath:path\to\sdk", vbc.GenerateResponseFileContents());
+        }
+
+        [Fact]
+        [WorkItem(29252, "https://github.com/dotnet/roslyn/issues/29252")]
+        public void DisableSdkPath()
+        {
+            var vbc = new Vbc();
+            vbc.DisableSdkPath = true;
+            Assert.Equal(@"/optionstrict:custom /nosdkpath", vbc.GenerateResponseFileContents());
+        }
+
+        [Fact]
         public void EditorConfig()
         {
             var vbc = new Vbc();

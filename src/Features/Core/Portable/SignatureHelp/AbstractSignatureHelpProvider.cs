@@ -34,6 +34,15 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
 
         protected abstract Task<SignatureHelpItems> GetItemsWorkerAsync(Document document, int position, SignatureHelpTriggerInfo triggerInfo, CancellationToken cancellationToken);
 
+        /// <remarks>
+        /// This overload is required for compatibility with existing extensions.
+        /// </remarks>
+        protected static SignatureHelpItems CreateSignatureHelpItems(
+            IList<SignatureHelpItem> items, TextSpan applicableSpan, SignatureHelpState state)
+        {
+            return CreateSignatureHelpItems(items, applicableSpan, state, selectedItem: null);
+        }
+
         protected static SignatureHelpItems CreateSignatureHelpItems(
             IList<SignatureHelpItem> items, TextSpan applicableSpan, SignatureHelpState state, int? selectedItem)
         {

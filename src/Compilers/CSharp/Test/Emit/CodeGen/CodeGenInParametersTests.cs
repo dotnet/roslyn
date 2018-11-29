@@ -2493,7 +2493,7 @@ public readonly struct S1
 ");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/10834")]
         public void InParamGenericReadonly()
         {
             var text = @"
@@ -2557,7 +2557,7 @@ public readonly struct S1
 }");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/10834")]
         public void InParamGenericReadonlyROstruct()
         {
             var text = @"

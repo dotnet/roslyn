@@ -16,9 +16,10 @@
 
 [CmdletBinding(PositionalBinding=$false)]
 param (
+    [string]$configuration = "Debug",
+
     # Configuration
     [switch]$restore = $false,
-    [switch]$release = $false,
     [switch]$official = $false,
     [switch]$cibuild = $false,
     [switch]$build = $false,
@@ -30,7 +31,6 @@ param (
     [switch]$deployExtensions = $false,
     [switch]$launch = $false,
     [switch]$procdump = $false,
-    [string]$signType = "",
     [switch]$skipAnalyzers = $false,
     [switch]$checkLoc = $false,
 
@@ -46,20 +46,19 @@ param (
     # Special test options
     [switch]$testDeterminism = $false,
 
-    [parameter(ValueFromRemainingArguments=$true)] $badArgs)
+    [parameter(ValueFromRemainingArguments=$true)][string[]]$properties)
 
 Set-StrictMode -version 2.0
 $ErrorActionPreference = "Stop"
 
 function Print-Usage() {
     Write-Host "Usage: build.ps1"
-    Write-Host "  -release                  Perform release build (default is debug)"
+    Write-Host "  -configuration            Build configuration ('Debug' or 'Release')"
     Write-Host "  -restore                  Restore packages"
     Write-Host "  -build                    Build Roslyn.sln"
     Write-Host "  -official                 Perform an official build"
     Write-Host "  -bootstrap                Build using a bootstrap Roslyn"
     Write-Host "  -sign                     Sign our binaries"
-    Write-Host "  -signType                 Type of sign: real, test, verify"
     Write-Host "  -pack                     Build NuGet packages, VS insertion manifests and installer"
     Write-Host "  -deployExtensions         Deploy built vsixes"
     Write-Host "  -binaryLog                Create binary log for every MSBuild invocation"
@@ -88,12 +87,6 @@ function Print-Usage() {
 # $build based on say $testDesktop. It's possible the developer wanted only for testing
 # to execute, not any build.
 function Process-Arguments() {
-    if ($badArgs -ne $null) {
-        Write-Host "Unsupported argument $badArgs"
-        Print-Usage
-        exit 1
-    }
-
     if ($test32 -and $test64) {
         Write-Host "Cannot combine -test32 and -test64"
         exit 1
@@ -126,15 +119,18 @@ function Process-Arguments() {
     }
 
     $script:test32 = -not $test64
-    $script:debug = -not $release
 }
 
-function Run-MSBuild([string]$projectFilePath, [string]$buildArgs = "", [string]$logFileName = "", [switch]$parallel = $true, [switch]$useDotnetBuild = $false, [switch]$summary = $true) {
+function Run-MSBuild([string]$projectFilePath, [string]$buildArgs = "", [string]$logFileName = "", [switch]$parallel = $true, [switch]$useDotnetBuild = $false, [switch]$summary = $true, [switch]$warnAsError = $true) {
     # Because we override the C#/VB toolset to build against our LKG package, it is important
     # that we do not reuse MSBuild nodes from other jobs/builds on the machine. Otherwise,
     # we'll run into issues such as https://github.com/dotnet/roslyn/issues/6211.
     # MSBuildAdditionalCommandLineArgs=
-    $args = "/p:TreatWarningsAsErrors=true /warnaserror /nologo /nodeReuse:false /p:Configuration=$buildConfiguration";
+    $args = "/p:TreatWarningsAsErrors=true /nologo /nodeReuse:false /p:Configuration=$configuration ";
+
+    if ($warnAsError) {
+        $args += " /warnaserror"
+    }
 
     if ($summary) {
         $args += " /consoleloggerparameters:Verbosity=minimal;summary"
@@ -173,6 +169,7 @@ function Run-MSBuild([string]$projectFilePath, [string]$buildArgs = "", [string]
 
     $args += " $buildArgs"
     $args += " $projectFilePath"
+    $args += " $properties"
 
     if ($useDotnetBuild) {
         $args = " msbuild $args"
@@ -189,7 +186,7 @@ function Restore-Packages() {
 
     Write-Host "Restoring Roslyn Toolset"
     $logFilePath = if ($binaryLog) { Join-Path $logsDir "Restore-RoslynToolset.binlog" } else { "" }
-    Restore-Project $dotnet "build\ToolsetPackages\RoslynToolset.csproj" $logFilePath
+    Restore-Project "build\ToolsetPackages\RoslynToolset.csproj" $logFilePath
 
     Write-Host "Restoring RepoToolset"
     $logFilePath = if ($binaryLog) { Join-Path $logsDir "Restore-RepoToolset.binlog" } else { "" }
@@ -197,7 +194,7 @@ function Restore-Packages() {
 
     Write-Host "Restoring Roslyn"
     $logFilePath = if ($binaryLog) { Join-Path $logsDir "Restore-Roslyn.binlog" } else { "" }
-    Restore-Project $dotnet "Roslyn.sln" $logFilePath
+    Restore-Project "Roslyn.sln" $logFilePath
 }
 
 # Create a bootstrap build of the compiler.  Returns the directory where the bootstrap build
@@ -217,7 +214,7 @@ function Make-BootstrapBuild() {
 
     Run-MSBuild $projectPath "/t:Pack /p:DotNetUseShippingVersions=true /p:InitialDefineConstants=BOOTSTRAP /p:PackageOutputPath=$dir" -logFileName "Bootstrap" -useDotnetBuild:$buildCoreClr
     $packageFile = Get-ChildItem -Path $dir -Filter "$packageName.*.nupkg"    
-    Unzip-File "$dir\$packageFile" $dir
+    Unzip "$dir\$packageFile" $dir
 
     Write-Host "Cleaning Bootstrap compiler artifacts"
     Run-MSBuild $projectPath "/t:Clean" -logFileName "BootstrapClean"
@@ -242,7 +239,7 @@ function Build-Artifacts() {
     }
 
     if ($sign) {
-        Run-MSBuild "build\Targets\RepoToolset\Sign.proj" "/p:DotNetSignType=$signType"
+        Run-MSBuild "build\Targets\RepoToolset\Sign.proj"
     }
 
     if ($pack) {
@@ -250,79 +247,38 @@ function Build-Artifacts() {
     }
 
     if ($pack -and $cibuild) {
-        Build-DeployToSymStore
+        Run-MSBuild "Roslyn.sln" "/t:DeployToSymStore" -logFileName "RoslynDeployToSymStore"
     }
 
     if ($build -and $pack -and (-not $buildCoreClr)) {
-        Build-InsertionItems
-        Build-Installer
+        if ($official){
+            Build-OptProfData
+        }
+    }
+
+    if ($cibuild) {
+        # Symbol Uploader currently reports a warning for some files (https://github.com/dotnet/symstore/issues/76)
+        Run-MSBuild "build\Targets\RepoToolset\Publish.proj" "/t:Publish" -warnAsError:$false
     }
 }
 
-function Build-InsertionItems() {
+function Build-OptProfData() {
+    $optProfToolDir = Get-PackageDir "RoslynTools.OptProf"
+    $optProfToolExe = Join-Path $optProfToolDir "tools\roslyn.optprof.exe"
+    $configFile = Join-Path $RepoRoot "build\config\optprof.json"
+    $insertionFolder = Join-Path $vsSetupDir "Insertion"
+    $outputFolder = Join-Path $configDir "DevDivInsertionFiles\OptProf"
+    Write-Host "Generating optprof data using '$configFile' into '$outputFolder'"
+    $optProfArgs = "--configFile $configFile --insertionFolder $insertionFolder --outputFolder $outputFolder"
+    Exec-Console $optProfToolExe $optProfArgs
 
-    $setupDir = Join-Path $repoDir "src\Setup"
-    Push-Location $setupDir
-    try {
-        Write-Host "Building VS Insertion artifacts"
-        Exec-Console (Join-Path $configDir "Exes\Roslyn.BuildDevDivInsertionFiles\Roslyn.BuildDevDivInsertionFiles.exe") "$configDir $(Get-PackagesDir)"
-    }
-    finally {
-        Pop-Location
-    }
-}
-
-function Build-Installer () {
-    ## Copying Artifacts
-    $installerDir = Join-Path $configDir "Installer"
-    if (Test-Path $installerDir) {
-        Remove-Item -Path $installerDir -Recurse -Force
-    }
-    Create-Directory $installerDir
-
-    $intermidateDirectory = Join-Path $env:TEMP "InstallerTemp"
-    if (Test-Path $intermidateDirectory) {
-        Remove-Item -Path $intermidateDirectory -Recurse -Force
-    }
-    Create-Directory $intermidateDirectory
-
-    ## Copying VsixExpInstaller.exe
-    $vsixExpInstallerDir = Get-PackageDir "RoslynTools.VSIXExpInstaller"
-    $vsixExpInstallerExe = Join-Path $vsixExpInstallerDir "tools\*"
-    $vsixExpInstallerExeDestination = Join-Path $intermidateDirectory "tools\vsixexpinstaller"
-    Create-Directory $vsixExpInstallerExeDestination
-    Copy-Item $vsixExpInstallerExe -Destination $vsixExpInstallerExeDestination -Recurse
-
-    ## Copying VsWhere.exe
-    $vswhere = Join-Path (Ensure-BasicTool "vswhere") "tools\*"
-    $vswhereDestination = Join-Path $intermidateDirectory "tools\vswhere"
-    Create-Directory $vswhereDestination
-    Copy-Item $vswhere -Destination $vswhereDestination -Recurse
-
-    ## Copying scripts
-    $installerScriptsFolder = Join-Path $repoDir "src\Setup\InstallerScripts\*.bat"
-    Copy-Item $installerScriptsFolder -Destination $intermidateDirectory -Recurse
-
-    $installerScriptsFolder = Join-Path $repoDir "src\Setup\InstallerScripts\tools\*.ps1"
-    $intermidatePowershellScriptsDirectory = Join-Path $intermidateDirectory "tools"
-    Copy-Item $installerScriptsFolder -Destination $intermidatePowershellScriptsDirectory -Recurse
-
-    ## Copying VSIXes
-    $vsixDirDestination = Join-Path $intermidateDirectory "vsix"
-    if (-not (Test-Path $vsixDirDestination)) {
-        New-Item -ItemType Directory -Force -Path $vsixDirDestination
-    }
-    $RoslynDeploymentVsix = Join-Path $vsSetupDir "RoslynDeployment.vsix"
-    Copy-Item $RoslynDeploymentVsix -Destination $vsixDirDestination
-
-    #  Zip Folder
-    $installerZip = Join-Path $installerDir "Roslyn_Preview"
-    $intermidateDirectory = Join-Path $intermidateDirectory "*"
-    Compress-Archive -Path $intermidateDirectory -DestinationPath $installerZip
-}
-
-function Build-DeployToSymStore() {
-    Run-MSBuild "Roslyn.sln" "/t:DeployToSymStore" -logFileName "RoslynDeployToSymStore"
+    # Write Out Branch we are inserting into
+    $vsBranchFolder = Join-Path $configDir "DevDivInsertionFiles\BranchInfo"
+    New-Item -ItemType Directory -Force -Path $vsBranchFolder
+    $vsBranchText = Join-Path $vsBranchFolder "vsbranch.txt"
+    # InsertTargetBranchFullName is defined in .vsts-ci.yml
+    $vsBranch = $Env:InsertTargetBranchFullName
+    $vsBranch >> $vsBranchText
 }
 
 function Build-CheckLocStatus() {
@@ -338,16 +294,12 @@ function Test-Determinism() {
 }
 
 function Test-XUnitCoreClr() {
-    Write-Host "Publishing ILAsm.csproj"
-    $toolsDir = Join-Path $binariesDir "Tools"
-    $ilasmDir = Join-Path $toolsDir "ILAsm"
-    Exec-Console $dotnet "publish src\Tools\ILAsm --no-restore --runtime win-x64 --self-contained -o $ilasmDir"
-
     $unitDir = Join-Path $configDir "UnitTests"
-    $tf = "netcoreapp2.0"
+    $tf = "netcoreapp2.1"
     $xunitResultDir = Join-Path $unitDir "xUnitResults"
     Create-Directory $xunitResultDir
-    $xunitConsole = Join-Path (Get-PackageDir "xunit.runner.console") "tools\$tf\xunit.console.dll"
+    $xunitConsole = Join-Path (Get-PackageDir "xunit.runner.console") "tools\netcoreapp2.0\xunit.console.dll"
+    $runtimeVersion = Get-ToolVersion "dotnetRuntime"
 
     $dlls = @()
     $allGood = $true
@@ -358,6 +310,7 @@ function Test-XUnitCoreClr() {
             $dllPath = Join-Path $testDir $dllName
 
             $args = "exec"
+            $args += " --fx-version $runtimeVersion"
             $args += " --depsfile " + [IO.Path]::ChangeExtension($dllPath, ".deps.json")
             $args += " --runtimeconfig " + [IO.Path]::ChangeExtension($dllPath, ".runtimeconfig.json")
             $args += " $xunitConsole"
@@ -405,7 +358,7 @@ function Test-XUnit() {
 
     $unitDir = Join-Path $configDir "UnitTests"
     $runTests = Join-Path $configDir "Exes\RunTests\RunTests.exe"
-    $xunitDir = Join-Path (Get-PackageDir "xunit.runner.console") "tools\net452"
+    $xunitDir = Join-Path (Get-PackageDir "xunit.runner.console") "tools\net472"
     $args = "$xunitDir"
     $args += " -logpath:$logsDir"
     $args += " -nocache"
@@ -473,9 +426,16 @@ function Test-XUnit() {
 function Deploy-VsixViaTool() { 
     $vsixDir = Get-PackageDir "RoslynTools.VSIXExpInstaller"
     $vsixExe = Join-Path $vsixDir "tools\VsixExpInstaller.exe"
-    $both = Get-VisualStudioDirAndId
-    $vsDir = $both[0].Trim("\")
-    $vsId = $both[1]
+    
+    $vsInfo = LocateVisualStudio
+    if ($vsInfo -eq $null) {
+        throw "Unable to locate required Visual Studio installation"
+    }
+
+    $vsDir = $vsInfo.installationPath.TrimEnd("\")
+    $vsId = $vsInfo.instanceId
+    $vsMajorVersion = $vsInfo.installationVersion.Split('.')[0]
+
     $hive = "RoslynDev"
     Write-Host "Using VS Instance $vsId at `"$vsDir`""
     $baseArgs = "/rootSuffix:$hive /vsInstallDir:`"$vsDir`""
@@ -484,7 +444,7 @@ function Deploy-VsixViaTool() {
 
     # Actual uninstall is failing at the moment using the uninstall options. Temporarily using
     # wildfire to uninstall our VSIX extensions
-    $extDir = Join-Path ${env:USERPROFILE} "AppData\Local\Microsoft\VisualStudio\15.0_$($vsid)$($hive)"
+    $extDir = Join-Path ${env:USERPROFILE} "AppData\Local\Microsoft\VisualStudio\$vsMajorVersion.0_$vsid$hive"
     if (Test-Path $extDir) {
         foreach ($dir in Get-ChildItem -Directory $extDir) {
             $name = Split-Path -leaf $dir
@@ -545,11 +505,11 @@ function Ensure-ProcDump() {
 function Redirect-Temp() {
     $temp = Join-Path $binariesDir "Temp"
     Create-Directory $temp
-    Copy-Item (Join-Path $repoDir "src\Workspaces\CoreTestUtilities\Resources\.editorconfig") $temp
-    Copy-Item (Join-Path $repoDir "src\Workspaces\CoreTestUtilities\Resources\Directory.Build.props") $temp
-    Copy-Item (Join-Path $repoDir "src\Workspaces\CoreTestUtilities\Resources\Directory.Build.targets") $temp
-    Copy-Item (Join-Path $repoDir "src\Workspaces\CoreTestUtilities\Resources\Directory.Build.rsp") $temp
-    Copy-Item (Join-Path $repoDir "src\Workspaces\CoreTestUtilities\Resources\NuGet.Config") $temp
+    Copy-Item (Join-Path $RepoRoot "src\Workspaces\CoreTestUtilities\Resources\.editorconfig") $temp
+    Copy-Item (Join-Path $RepoRoot "src\Workspaces\CoreTestUtilities\Resources\Directory.Build.props") $temp
+    Copy-Item (Join-Path $RepoRoot "src\Workspaces\CoreTestUtilities\Resources\Directory.Build.targets") $temp
+    Copy-Item (Join-Path $RepoRoot "src\Workspaces\CoreTestUtilities\Resources\Directory.Build.rsp") $temp
+    Copy-Item (Join-Path $RepoRoot "src\Workspaces\CoreTestUtilities\Resources\NuGet.Config") $temp
     ${env:TEMP} = $temp
     ${env:TMP} = $temp
 }
@@ -586,19 +546,19 @@ function Stop-VSProcesses() {
 }
 
 try {
-    . (Join-Path $PSScriptRoot "build-utils.ps1")
-    Push-Location $repoDir
-
-    Write-Host "Repo Dir $repoDir"
-    Write-Host "Binaries Dir $binariesDir"
-
     Process-Arguments
+
+   . (Join-Path $PSScriptRoot "build-utils.ps1")
+
+    Push-Location $RepoRoot
+
+    Write-Host "Repo Dir $RepoRoot"
+    Write-Host "Binaries Dir $binariesDir"
 
     $msbuild = Ensure-MSBuild
     $dotnet = Ensure-DotnetSdk
-    $buildConfiguration = if ($release) { "Release" } else { "Debug" }
-    $configDir = Join-Path $binariesDir $buildConfiguration
-    $vsSetupDir = Join-Path $binariesDir (Join-Path "VSSetup" $buildConfiguration)
+    $configDir = Join-Path $binariesDir $configuration
+    $vsSetupDir = Join-Path $binariesDir (Join-Path "VSSetup" $configuration)
     $logsDir = Join-Path $configDir "Logs"
     $bootstrapDir = ""
 
@@ -640,8 +600,7 @@ try {
     }
 
     if ($launch) {
-        $devenvExe = Get-VisualStudioDir
-        $devenvExe = Join-Path $devenvExe 'Common7\IDE\devenv.exe'
+        $devenvExe = Join-Path $env:VSINSTALLDIR 'Common7\IDE\devenv.exe'
         &$devenvExe /rootSuffix RoslynDev
     }
 

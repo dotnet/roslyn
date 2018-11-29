@@ -81,26 +81,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 (SyntaxFacts.IsAssignmentExpressionOperatorToken(kind) && token.Parent is AssignmentExpressionSyntax);
         }
 
-        public bool IsKeyword(SyntaxToken token)
-        {
-            var kind = (SyntaxKind)token.RawKind;
-            return
-                SyntaxFacts.IsKeywordKind(kind); // both contextual and reserved keywords
-        }
+        public bool IsReservedKeyword(SyntaxToken token)
+            => SyntaxFacts.IsReservedKeyword(token.Kind());
 
         public bool IsContextualKeyword(SyntaxToken token)
-        {
-            var kind = (SyntaxKind)token.RawKind;
-            return
-                SyntaxFacts.IsContextualKeyword(kind);
-        }
+            => SyntaxFacts.IsContextualKeyword(token.Kind());
 
         public bool IsPreprocessorKeyword(SyntaxToken token)
-        {
-            var kind = (SyntaxKind)token.RawKind;
-            return
-                SyntaxFacts.IsPreprocessorKeyword(kind);
-        }
+            => SyntaxFacts.IsPreprocessorKeyword(token.Kind());
 
         public bool IsHashToken(SyntaxToken token)
         {
@@ -321,30 +309,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (token.Kind())
             {
                 case SyntaxKind.FromKeyword:
-                case SyntaxKind.GroupKeyword:
                 case SyntaxKind.JoinKeyword:
-                case SyntaxKind.IntoKeyword:
                 case SyntaxKind.LetKeyword:
-                case SyntaxKind.ByKeyword:
-                case SyntaxKind.SelectKeyword:
                 case SyntaxKind.OrderByKeyword:
+                case SyntaxKind.WhereKeyword:
                 case SyntaxKind.OnKeyword:
                 case SyntaxKind.EqualsKeyword:
+                case SyntaxKind.InKeyword:
+                    return token.Parent is QueryClauseSyntax;
+                case SyntaxKind.ByKeyword:
+                case SyntaxKind.GroupKeyword:
+                case SyntaxKind.SelectKeyword:
+                    return token.Parent is SelectOrGroupClauseSyntax;
                 case SyntaxKind.AscendingKeyword:
                 case SyntaxKind.DescendingKeyword:
-                    return true;
-                case SyntaxKind.InKeyword:
-                    switch (token.Parent.Kind())
-                    {
-                        case SyntaxKind.FromClause:
-                        case SyntaxKind.JoinClause:
-                        case SyntaxKind.JoinIntoClause:
-                            return true;
-                        default:
-                            return false;
-                    }
-                case SyntaxKind.WhereKeyword:
-                    return token.Parent.Kind() == SyntaxKind.WhereClause; // false for e.g. type parameter constraint
+                    return token.Parent is OrderingSyntax;
+                case SyntaxKind.IntoKeyword:
+                    return token.Parent.IsKind(SyntaxKind.JoinIntoClause, SyntaxKind.QueryContinuation);
                 default:
                     return false;
             }
@@ -632,8 +613,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         public bool IsSimpleMemberAccessExpression(SyntaxNode node)
             => (node as MemberAccessExpressionSyntax)?.Kind() == SyntaxKind.SimpleMemberAccessExpression;
 
-        public bool IsConditionalMemberAccessExpression(SyntaxNode node)
+        public bool IsConditionalAccessExpression(SyntaxNode node)
             => node is ConditionalAccessExpressionSyntax;
+
+        public void GetPartsOfConditionalAccessExpression(
+            SyntaxNode node, out SyntaxNode expression, out SyntaxNode whenNotNull)
+        {
+            var conditionalAccess = (ConditionalAccessExpressionSyntax)node;
+            expression = conditionalAccess.Expression;
+            whenNotNull = conditionalAccess.WhenNotNull;
+        }
 
         public bool IsPointerMemberAccessExpression(SyntaxNode node)
             => (node as MemberAccessExpressionSyntax)?.Kind() == SyntaxKind.PointerMemberAccessExpression;
@@ -659,9 +648,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public SyntaxNode GetExpressionOfMemberAccessExpression(SyntaxNode node, bool allowImplicitTarget)
             => (node as MemberAccessExpressionSyntax)?.Expression;
-
-        public SyntaxNode GetExpressionOfConditionalAccessExpression(SyntaxNode node)
-            => (node as ConditionalAccessExpressionSyntax)?.Expression;
 
         public void GetPartsOfElementAccessExpression(SyntaxNode node, out SyntaxNode expression, out SyntaxNode argumentList)
         {
@@ -1537,7 +1523,20 @@ namespace Microsoft.CodeAnalysis.CSharp
         public void GetPartsOfAssignmentStatement(
             SyntaxNode statement, out SyntaxNode left, out SyntaxToken operatorToken, out SyntaxNode right)
         {
-            var assignment = (AssignmentExpressionSyntax)((ExpressionStatementSyntax)statement).Expression;
+            GetPartsOfAssignmentExpressionOrStatement(
+                ((ExpressionStatementSyntax)statement).Expression, out left, out operatorToken, out right);
+        }
+
+        public void GetPartsOfAssignmentExpressionOrStatement(
+            SyntaxNode statement, out SyntaxNode left, out SyntaxToken operatorToken, out SyntaxNode right)
+        {
+            var expression = statement;
+            if (statement is ExpressionStatementSyntax expressionStatement)
+            {
+                expression = expressionStatement.Expression;
+            }
+
+            var assignment = (AssignmentExpressionSyntax)expression;
             left = assignment.Left;
             operatorToken = assignment.OperatorToken;
             right = assignment.Right;
@@ -1858,6 +1857,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public bool IsLiteralExpression(SyntaxNode node)
             => node is LiteralExpressionSyntax;
+
+        public bool IsThisExpression(SyntaxNode node)
+            => node.IsKind(SyntaxKind.ThisExpression);
+
+        public bool IsBaseExpression(SyntaxNode node)
+            => node.IsKind(SyntaxKind.BaseExpression);
 
         public bool IsFalseLiteralExpression(SyntaxNode expression)
             => expression.IsKind(SyntaxKind.FalseLiteralExpression);

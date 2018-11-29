@@ -360,7 +360,7 @@ public class Program
         }
 
         [WorkItem(542828, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542828")]
-        [ConditionalFact(typeof(DesktopOnly))]
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
         public void BaseTypeHasNonVirtualFinalize()
         {
             var text = @"
@@ -416,7 +416,7 @@ public class Program
         }
 
         [WorkItem(542828, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542828")]
-        [ConditionalFact(typeof(DesktopOnly))]
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
         public void GenericBaseTypeHasNonVirtualFinalize()
         {
             var text = @"
@@ -454,6 +454,7 @@ public class Program
     }
 }
 ";
+
             var validator = GetDestructorValidator("Derived");
             var compVerifier = CompileAndVerify(text,
                 sourceSymbolValidator: validator,

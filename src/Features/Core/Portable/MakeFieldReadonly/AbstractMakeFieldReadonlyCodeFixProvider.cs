@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
                 var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
                 var diagnosticSpan = diagnostic.Location.SourceSpan;
 
-                declarators.Add(root.FindNode(diagnosticSpan).FirstAncestorOrSelf<TSymbolSyntax>());
+                declarators.Add(root.FindNode(diagnosticSpan, getInnermostNodeForTie: true).FirstAncestorOrSelf<TSymbolSyntax>());
             }
 
             await MakeFieldReadonlyAsync(document, editor, declarators).ConfigureAwait(false);

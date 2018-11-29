@@ -596,7 +596,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     foreach (var member in _lazyMembersAndInitializers.NonTypeNonIndexerMembers)
                     {
                         FieldSymbol field;
-                        if (!member.IsFieldOrFieldLikeEvent(out field) || field.IsConst || field.IsFixed)
+                        if (!member.IsFieldOrFieldLikeEvent(out field) || field.IsConst || field.IsFixedSizeBuffer)
                         {
                             continue;
                         }
@@ -1417,8 +1417,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // https://github.com/dotnet/roslyn/issues/30080: Report diagnostics for base type and interfaces at more specific locations.
             var baseType = BaseTypeNoUseSiteDiagnostics;
             var interfaces = InterfacesNoUseSiteDiagnostics();
-            if (baseType?.ContainsNullableReferenceTypes() == true ||
-                interfaces.Any(t => t.ContainsNullableReferenceTypes()))
+            if (baseType?.NeedsNullableAttribute() == true ||
+                interfaces.Any(t => t.NeedsNullableAttribute()))
             {
                 this.DeclaringCompilation.EnsureNullableAttributeExists(diagnostics, location, modifyCompilation: true);
             }

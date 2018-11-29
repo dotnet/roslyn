@@ -411,7 +411,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
 
                         var receiver = ((BoundPointerElementAccess)expr).Expression;
-                        if (receiver is BoundFieldAccess fieldAccess && fieldAccess.FieldSymbol.IsFixed)
+                        if (receiver is BoundFieldAccess fieldAccess && fieldAccess.FieldSymbol.IsFixedSizeBuffer)
                         {
                             return CheckValueKind(node, fieldAccess.ReceiverOpt, valueKind, checkingReceiver: true, diagnostics);
                         }
@@ -458,6 +458,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return false;
                     }
 
+                    return true;
+
+                case BoundKind.ImplicitReceiver:
+                    Debug.Assert(!RequiresRefAssignableVariable(valueKind));
                     return true;
 
                 case BoundKind.Call:
@@ -688,7 +692,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
-                if (fieldSymbol.IsFixed)
+                if (fieldSymbol.IsFixedSizeBuffer)
                 {
                     Error(diagnostics, GetStandardLvalueError(valueKind), node);
                     return false;
@@ -2213,6 +2217,12 @@ moreArguments:
                     return Math.Max(consEscape,
                                     GetValEscape(conditional.Alternative, scopeOfTheContainingExpression));
 
+                case BoundKind.NullCoalescingOperator:
+                    var coalescingOp = (BoundNullCoalescingOperator)expr;
+
+                    return Math.Max(GetValEscape(coalescingOp.LeftOperand, scopeOfTheContainingExpression),
+                                    GetValEscape(coalescingOp.RightOperand, scopeOfTheContainingExpression));
+
                 case BoundKind.FieldAccess:
                     var fieldAccess = (BoundFieldAccess)expr;
                     var fieldSymbol = fieldAccess.FieldSymbol;
@@ -2359,7 +2369,6 @@ moreArguments:
                 case BoundKind.AsOperator:
                 case BoundKind.AwaitExpression:
                 case BoundKind.ConditionalAccess:
-                case BoundKind.NullCoalescingOperator:
                 case BoundKind.ArrayAccess:
                     // only possible in error cases (if possible at all)
                     return scopeOfTheContainingExpression;
@@ -2515,6 +2524,11 @@ moreArguments:
                     }
 
                     return CheckValEscape(conditional.Alternative.Syntax, conditional.Alternative, escapeFrom, escapeTo, checkingReceiver: false, diagnostics: diagnostics);
+
+                case BoundKind.NullCoalescingOperator:
+                    var coalescingOp = (BoundNullCoalescingOperator)expr;
+                    return CheckValEscape(coalescingOp.LeftOperand.Syntax, coalescingOp.LeftOperand, escapeFrom, escapeTo, checkingReceiver, diagnostics) &&
+                            CheckValEscape(coalescingOp.RightOperand.Syntax, coalescingOp.RightOperand, escapeFrom, escapeTo, checkingReceiver, diagnostics);
 
                 case BoundKind.FieldAccess:
                     var fieldAccess = (BoundFieldAccess)expr;
@@ -2686,7 +2700,6 @@ moreArguments:
                 case BoundKind.AsOperator:
                 case BoundKind.AwaitExpression:
                 case BoundKind.ConditionalAccess:
-                case BoundKind.NullCoalescingOperator:
                 case BoundKind.ArrayAccess:
                     // only possible in error cases (if possible at all)
                     return false;

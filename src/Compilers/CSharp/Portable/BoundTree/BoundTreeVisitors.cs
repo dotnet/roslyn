@@ -224,7 +224,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return VisitExpressionWithoutStackGuard(node);
             }
-            catch (Exception ex) when (StackGuard.IsInsufficientExecutionStackException(ex))
+            catch (InsufficientExecutionStackException ex)
             {
                 throw new CancelledByStackGuardException(ex, node);
             }

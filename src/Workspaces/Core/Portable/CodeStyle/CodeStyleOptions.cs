@@ -200,6 +200,32 @@ namespace Microsoft.CodeAnalysis.CodeStyle
                 EditorConfigStorageLocation.ForBoolCodeStyleOption("dotnet_style_prefer_conditional_expression_over_return"),
                 new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.PreferConditionalExpressionOverReturn")});
 
+        internal static readonly PerLanguageOption<CodeStyleOption<bool>> PreferCompoundAssignment = CreateOption(
+            CodeStyleOptionGroups.ExpressionLevelPreferences,
+            nameof(PreferCompoundAssignment),
+            defaultValue: TrueWithSuggestionEnforcement,
+            storageLocations: new OptionStorageLocation[]{
+                EditorConfigStorageLocation.ForBoolCodeStyleOption("dotnet_style_prefer_compound_assignment"),
+                new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.PreferCompoundAssignment") });
+
+        private static readonly CodeStyleOption<UnusedParametersPreference> s_preferNoneUnusedParametersPreference =
+            new CodeStyleOption<UnusedParametersPreference>(default(UnusedParametersPreference), NotificationOption.None);
+        private static readonly CodeStyleOption<UnusedParametersPreference> s_preferAllMethodsUnusedParametersPreference =
+            new CodeStyleOption<UnusedParametersPreference>(UnusedParametersPreference.AllMethods, NotificationOption.Suggestion);
+
+        // TODO: https://github.com/dotnet/roslyn/issues/31225 tracks adding CodeQualityOption<T> and CodeQualityOptions
+        // and moving this option to CodeQualityOptions.
+        internal static readonly PerLanguageOption<CodeStyleOption<UnusedParametersPreference>> UnusedParameters = CreateOption(
+            CodeStyleOptionGroups.Parameter,
+            nameof(UnusedParameters),
+            defaultValue: s_preferAllMethodsUnusedParametersPreference,
+            storageLocations: new OptionStorageLocation[]{
+                new EditorConfigStorageLocation<CodeStyleOption<UnusedParametersPreference>>(
+                        "dotnet_code_quality_unused_parameters",
+                        ParseUnusedParametersPreference,
+                        o => GetUnusedParametersPreferenceEditorConfigString(o, s_preferAllMethodsUnusedParametersPreference.Value)),
+                new RoamingProfileStorageLocation($"TextEditor.%LANGUAGE%.Specific.{nameof(UnusedParameters)}Preference") });
+
         private static readonly CodeStyleOption<AccessibilityModifiersRequired> s_requireAccessibilityModifiersDefault =
             new CodeStyleOption<AccessibilityModifiersRequired>(AccessibilityModifiersRequired.ForNonInterfaceMembers, NotificationOption.Silent);
 
@@ -315,6 +341,12 @@ namespace Microsoft.CodeAnalysis.CodeStyle
                 KeyValuePairUtil.Create("never_if_unnecessary", ParenthesesPreference.NeverIfUnnecessary),
             });
 
+        private static readonly BidirectionalMap<string, UnusedParametersPreference> s_unusedParametersPreferenceMap =
+            new BidirectionalMap<string, UnusedParametersPreference>(new[]
+            {
+                KeyValuePairUtil.Create("non_public", UnusedParametersPreference.NonPublicMethods),
+                KeyValuePairUtil.Create("all", UnusedParametersPreference.AllMethods),
+            });
 
         static CodeStyleOptions()
         {
@@ -343,6 +375,25 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             var value = s_parenthesesPreferenceMap.GetKeyOrDefault(option.Value) ?? s_parenthesesPreferenceMap.GetKeyOrDefault(ParenthesesPreference.AlwaysForClarity);
             return option.Notification == null ? value : $"{value}:{option.Notification.ToEditorConfigString()}";
         }
+
+        private static Optional<CodeStyleOption<UnusedParametersPreference>> ParseUnusedParametersPreference(string optionString)
+        {
+            if (TryGetCodeStyleValueAndOptionalNotification(optionString,
+                out var value, out var notificationOpt))
+            {
+                return new CodeStyleOption<UnusedParametersPreference>(
+                    s_unusedParametersPreferenceMap.GetValueOrDefault(value), notificationOpt ?? NotificationOption.Suggestion);
+            }
+
+            return s_preferNoneUnusedParametersPreference;
+        }
+
+        private static string GetUnusedParametersPreferenceEditorConfigString(CodeStyleOption<UnusedParametersPreference> option, UnusedParametersPreference defaultPreference)
+        {
+            Debug.Assert(s_unusedParametersPreferenceMap.ContainsValue(option.Value));
+            var value = s_unusedParametersPreferenceMap.GetKeyOrDefault(option.Value) ?? s_unusedParametersPreferenceMap.GetKeyOrDefault(defaultPreference);
+            return option.Notification == null ? value : $"{value}:{option.Notification.ToEditorConfigString()}";
+        }
     }
 
     internal static class CodeStyleOptionGroups
@@ -354,5 +405,6 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         public static readonly OptionGroup Modifier = new OptionGroup(WorkspacesResources.Modifier_preferences, priority: 5);
         public static readonly OptionGroup ExpressionLevelPreferences = new OptionGroup(WorkspacesResources.Expression_level_preferences, priority: 6);
         public static readonly OptionGroup Field = new OptionGroup(WorkspacesResources.Field_preferences, priority: 7);
+        public static readonly OptionGroup Parameter = new OptionGroup(WorkspacesResources.Parameter_preferences, priority: 8);
     }
 }

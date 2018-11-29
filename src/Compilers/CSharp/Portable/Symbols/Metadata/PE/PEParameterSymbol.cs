@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             bool isContainingSymbolVirtual,
             int ordinal,
             ParamInfo<TypeSymbol> parameterInfo,
-            ImmutableArray<bool> extraAnnotations,
+            ImmutableArray<byte> extraAnnotations,
             bool isReturn,
             out bool isBad)
         {
@@ -176,7 +176,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             int ordinal,
             ParameterHandle handle,
             ParamInfo<TypeSymbol> parameterInfo,
-            ImmutableArray<bool> extraAnnotations,
+            ImmutableArray<byte> extraAnnotations,
             out bool isBad)
         {
             return Create(
@@ -191,7 +191,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             int ordinal,
             bool isByRef,
             TypeSymbolWithAnnotations type,
-            ImmutableArray<bool> extraAnnotations,
+            ImmutableArray<byte> extraAnnotations,
             ParameterHandle handle,
             int countOfCustomModifiers,
             out bool isBad)
@@ -219,8 +219,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     type;
                 if (!extraAnnotations.IsDefault)
                 {
-                    // https://github.com/dotnet/roslyn/issues/29821 any external annotation is taken to imply a `[NonNullTypes(true)]` context
-                    type =  NullableTypeDecoder.TransformType(type, extraAnnotations).WithNonNullTypesContext(NonNullTypesTrueContext.Instance);
+                    type =  NullableTypeDecoder.TransformType(type, defaultTransformFlag: 0, extraAnnotations);
                 }
 
                 _lazyCustomAttributes = ImmutableArray<CSharpAttributeData>.Empty;
@@ -297,14 +296,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             bool isByRef,
             ImmutableArray<ModifierInfo<TypeSymbol>> refCustomModifiers,
             TypeSymbol type,
-            ImmutableArray<bool> extraAnnotations,
+            ImmutableArray<byte> extraAnnotations,
             ParameterHandle handle,
             ImmutableArray<ModifierInfo<TypeSymbol>> customModifiers,
             bool isReturn,
             out bool isBad)
         {
             // We start without annotation (they will be decoded below)
-            var typeWithModifiers = TypeSymbolWithAnnotations.Create(containingSymbol, type, customModifiers: CSharpCustomModifier.Convert(customModifiers));
+            var typeWithModifiers = TypeSymbolWithAnnotations.Create(type, customModifiers: CSharpCustomModifier.Convert(customModifiers));
 
             PEParameterSymbol parameter = customModifiers.IsDefaultOrEmpty && refCustomModifiers.IsDefaultOrEmpty
                 ? new PEParameterSymbol(moduleSymbol, containingSymbol, ordinal, isByRef, typeWithModifiers, extraAnnotations, handle, 0, out isBad)
@@ -342,7 +341,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 bool isByRef,
                 ImmutableArray<ModifierInfo<TypeSymbol>> refCustomModifiers,
                 TypeSymbolWithAnnotations type,
-                ImmutableArray<bool> extraAnnotations,
+                ImmutableArray<byte> extraAnnotations,
                 ParameterHandle handle,
                 out bool isBad) :
                     base(moduleSymbol, containingSymbol, ordinal, isByRef, type, extraAnnotations, handle,

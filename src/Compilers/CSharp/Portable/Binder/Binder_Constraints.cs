@@ -222,7 +222,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // Ignore nullability when comparing constraints.
-            if (constraintTypes.Contains(c => type.Equals(c, TypeCompareKind.ConsiderEverything)))
+            if (constraintTypes.Contains(c => type.Equals(c, TypeCompareKind.IgnoreNullableModifiersForReferenceTypes)))
             {
                 // "Duplicate constraint '{0}' for type parameter '{1}'"
                 Error(diagnostics, ErrorCode.ERR_DuplicateBound, syntax, type.TypeSymbol.SetUnknownNullabilityForReferenceTypes(), typeParameterName);
@@ -297,7 +297,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
 
                 case SpecialType.System_Object:
-                    if (typeWithAnnotations.IsAnnotated)
+                    if (typeWithAnnotations.NullableAnnotation == NullableAnnotation.Annotated)
                     {
                         // "Constraint cannot be special class '{0}'"
                         Error(diagnostics, ErrorCode.ERR_SpecialTypeAsBound, syntax, typeWithAnnotations);

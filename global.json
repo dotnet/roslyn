@@ -1,5 +1,9 @@
 {
-  "sdk": {
-    "version": "2.1.401"
+  "tools": {
+    "dotnet": "2.1.401",
+    "vs": {
+      "version": "15.8"
+    },
+    "xcopy-msbuild": "15.9.0-alpha"
   }
 }

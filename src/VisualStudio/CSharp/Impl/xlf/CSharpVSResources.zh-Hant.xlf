@@ -22,6 +22,11 @@
         <target state="new">C# Formatting Rules</target>
         <note />
       </trans-unit>
+      <trans-unit id="Discard">
+        <source>Discard</source>
+        <target state="new">Discard</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Format_document_settings">
         <source>Format Document Settings (Experiment) </source>
         <target state="translated">格式化文件設定 (實驗) </target>
@@ -365,6 +370,11 @@
       <trans-unit id="New_line_options_for_keywords">
         <source>New line options for keywords</source>
         <target state="translated">關鍵字的新行選項</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unused_local">
+        <source>Unused local</source>
+        <target state="new">Unused local</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_var_when_generating_locals">
@@ -732,7 +742,7 @@
         <target state="translated">顯示名稱建議(_U)</target>
         <note />
       </trans-unit>
-      <trans-unit id="Generate Event Subscription">
+      <trans-unit id="Generate_Event_Subscription">
         <source>Generate Event Subscription</source>
         <target state="translated">產生事件訂閱</target>
         <note />

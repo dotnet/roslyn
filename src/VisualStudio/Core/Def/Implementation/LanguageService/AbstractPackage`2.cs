@@ -2,10 +2,8 @@
 
 using System;
 using System.Collections.Generic;
-using System.ComponentModel.Design;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Packaging;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.SymbolSearch;
@@ -118,7 +116,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         {
             get
             {
-                ForegroundObject.AssertIsForeground();
+                ThreadHelper.ThrowIfNotOnUIThread();
 
                 return (IComponentModel)GetService(typeof(SComponentModel));
             }

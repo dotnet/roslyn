@@ -441,7 +441,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                             if (a.QuestionToken.IsKind(SyntaxKind.QuestionToken))
                             {
-                                type = TypeSymbolWithAnnotations.Create(array, isNullableIfReferenceType: true);
+                                type = TypeSymbolWithAnnotations.Create(array, NullableAnnotation.Annotated);
                                 reportNullableReferenceTypesIfNeeded(a.QuestionToken);
                             }
                             else
@@ -1494,28 +1494,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var srcSymbol = symbols[best.Index];
                         var mdSymbol = symbols[secondBest.Index];
 
+                        object arg0;
+
+                        if (best.IsFromSourceModule)
+                        {
+                            arg0 = srcSymbol.Locations.First().SourceTree.FilePath;
+                        }
+                        else
+                        {
+                            Debug.Assert(best.IsFromAddedModule);
+                            arg0 = srcSymbol.ContainingModule;
+                        }
+
                         //if names match, arities match, and containing symbols match (recursively), ...
                         if (srcSymbol.ToDisplayString(SymbolDisplayFormat.QualifiedNameArityFormat) ==
                             mdSymbol.ToDisplayString(SymbolDisplayFormat.QualifiedNameArityFormat))
                         {
-                            if (srcSymbol.Equals(Compilation.GetWellKnownType(WellKnownType.System_Runtime_CompilerServices_NonNullTypesAttribute)))
-                            {
-                                // Silently prefer the injected symbol
-                                return originalSymbols[best.Index];
-                            }
-
-                            object arg0;
-                            if (best.IsFromSourceModule)
-                            {
-                                SyntaxTree tree = srcSymbol.Locations.FirstOrNone().SourceTree;
-                                arg0 = tree != null ? (object)tree.FilePath : MessageID.IDS_InjectedDeclaration.Localize();
-                            }
-                            else
-                            {
-                                Debug.Assert(best.IsFromAddedModule);
-                                arg0 = srcSymbol.ContainingModule;
-                            }
-
                             if (srcSymbol.Kind == SymbolKind.Namespace && mdSymbol.Kind == SymbolKind.NamedType)
                             {
                                 // ErrorCode.WRN_SameFullNameThisNsAgg: The namespace '{1}' in '{0}' conflicts with the imported type '{3}' in '{2}'. Using the namespace defined in '{0}'.
@@ -2054,7 +2048,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             // as a type forwarder.  We'll look for type forwarders in the containing and
             // referenced assemblies and report more specific diagnostics if they are found.
             AssemblySymbol forwardedToAssembly;
-            string fullName;
 
             // for attributes, suggest both, but not for verbatim name
             if (options.IsAttributeTypeLookup() && !options.IsVerbatimNameAttributeTypeLookup())
@@ -2079,17 +2072,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     Debug.Assert(qualifierOpt.IsNamespace);
 
-                    bool qualifierIsCompilationGlobalNamespace = ReferenceEquals(qualifierOpt, Compilation.GlobalNamespace);
-
-                    fullName = MetadataHelpers.ComposeAritySuffixedMetadataName(simpleName, arity);
-                    if (!qualifierIsCompilationGlobalNamespace)
-                    {
-                        fullName = qualifierOpt.ToDisplayString(SymbolDisplayFormat.QualifiedNameOnlyFormat) + "." + fullName;
-                    }
-
-                    forwardedToAssembly = GetForwardedToAssembly(fullName, arity, diagnostics, location);
-
-                    if (qualifierIsCompilationGlobalNamespace)
+                    forwardedToAssembly = GetForwardedToAssembly(simpleName, arity, ref qualifierOpt, diagnostics, location);
+                    
+                    if (ReferenceEquals(qualifierOpt, Compilation.GlobalNamespace))
                     {
                         Debug.Assert(aliasOpt == null || aliasOpt == SyntaxFacts.GetText(SyntaxKind.GlobalKeyword));
                         return (object)forwardedToAssembly == null
@@ -2125,31 +2110,73 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return diagnostics.Add(code, location);
             }
 
-            fullName = MetadataHelpers.ComposeAritySuffixedMetadataName(simpleName, arity);
-            forwardedToAssembly = GetForwardedToAssembly(fullName, arity, diagnostics, location);
+            forwardedToAssembly = GetForwardedToAssembly(simpleName, arity, ref qualifierOpt, diagnostics, location);
 
-            return (object)forwardedToAssembly == null
-                ? diagnostics.Add(ErrorCode.ERR_SingleTypeNameNotFound, location, whereText)
-                : diagnostics.Add(ErrorCode.ERR_SingleTypeNameNotFoundFwd, location, whereText, forwardedToAssembly);
+            if ((object)forwardedToAssembly != null)
+            {
+                return qualifierOpt == null
+                    ? diagnostics.Add(ErrorCode.ERR_SingleTypeNameNotFoundFwd, location, whereText, forwardedToAssembly)
+                    : diagnostics.Add(ErrorCode.ERR_DottedTypeNameNotFoundInNSFwd, location, whereText, qualifierOpt, forwardedToAssembly);
+            }
+
+            return diagnostics.Add(ErrorCode.ERR_SingleTypeNameNotFound, location, whereText);
+        }
+
+        protected virtual AssemblySymbol GetForwardedToAssemblyInUsingNamespaces(string metadataName, ref NamespaceOrTypeSymbol qualifierOpt, DiagnosticBag diagnostics, Location location)
+        {
+            return Next?.GetForwardedToAssemblyInUsingNamespaces(metadataName, ref qualifierOpt, diagnostics, location);
+        }
+
+        protected AssemblySymbol GetForwardedToAssembly(string fullName, DiagnosticBag diagnostics, Location location)
+        {
+            var metadataName = MetadataTypeName.FromFullName(fullName);
+            foreach (var referencedAssembly in
+                Compilation.Assembly.Modules[0].GetReferencedAssemblySymbols())
+            {
+                var forwardedType =
+                    referencedAssembly.TryLookupForwardedMetadataType(ref metadataName);
+                if ((object)forwardedType != null)
+                {
+                    if (forwardedType.Kind == SymbolKind.ErrorType)
+                    {
+                        DiagnosticInfo diagInfo = ((ErrorTypeSymbol)forwardedType).ErrorInfo;
+
+                        if (diagInfo.Code == (int)ErrorCode.ERR_CycleInTypeForwarder)
+                        {
+                            Debug.Assert((object)forwardedType.ContainingAssembly != null, "How did we find a cycle if there was no forwarding?");
+                            diagnostics.Add(ErrorCode.ERR_CycleInTypeForwarder, location, fullName, forwardedType.ContainingAssembly.Name);
+                        }
+                        else if (diagInfo.Code == (int)ErrorCode.ERR_TypeForwardedToMultipleAssemblies)
+                        {
+                            diagnostics.Add(diagInfo, location);
+                            return null; // Cannot determine a suitable forwarding assembly
+                        }
+                    }
+
+                    return forwardedType.ContainingAssembly;
+                }
+            }
+
+            return null;
         }
 
         /// <summary>
         /// Look for a type forwarder for the given type in the containing assembly and any referenced assemblies.
-        /// If one is found, search again in the target assembly.  Return the last assembly in the chain.
         /// </summary>
-        /// <param name="fullName">The metadata name of the (potentially) forwarded type, including the arity (if non-zero).</param>
+        /// <param name="name">The name of the (potentially) forwarded type.</param>
         /// <param name="arity">The arity of the forwarded type.</param>
+        /// <param name="qualifierOpt">The namespace of the potentially forwarded type. If none is provided, will
+        /// try Usings of the current import for eligible namespaces and return the namespace of the found forwarder, 
+        /// if any.</param>
         /// <param name="diagnostics">Will be used to report non-fatal errors during look up.</param>
         /// <param name="location">Location to report errors on.</param>
-        /// <returns></returns>
+        /// <returns>Returns the Assembly to which the type is forwarded, or null if none is found.</returns>
         /// <remarks>
         /// Since this method is intended to be used for error reporting, it stops as soon as it finds
         /// any type forwarder (or an error to report). It does not check other assemblies for consistency or better results.
         /// </remarks>
-        private AssemblySymbol GetForwardedToAssembly(string fullName, int arity, DiagnosticBag diagnostics, Location location)
+        protected AssemblySymbol GetForwardedToAssembly(string name, int arity, ref NamespaceOrTypeSymbol qualifierOpt, DiagnosticBag diagnostics, Location location)
         {
-            Debug.Assert(arity == 0 || fullName.EndsWith("`" + arity, StringComparison.Ordinal));
-            
             // If we are in the process of binding assembly level attributes, we might get into an infinite cycle
             // if any of the referenced assemblies forwards type to this assembly. Since forwarded types
             // are specified through assembly level attributes, an attempt to resolve the forwarded type
@@ -2182,41 +2209,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // NOTE: This won't work if the type isn't using CLS-style generic naming (i.e. `arity), but this code is
             // only intended to improve diagnostic messages, so false negatives in corner cases aren't a big deal.
-            var metadataName = MetadataTypeName.FromFullName(fullName, useCLSCompliantNameArityEncoding: true, forcedArity: arity);
-
-            var containingAssembly = this.Compilation.Assembly;
-
-            // This method is only called after lookup has failed, so the containing (source!) assembly can't
-            // have a forwarder to another assembly.
-            NamedTypeSymbol forwardedType = null;
-            foreach (var referencedAssembly in containingAssembly.Modules[0].GetReferencedAssemblySymbols())
+            var metadataName = MetadataHelpers.ComposeAritySuffixedMetadataName(name, arity);
+            var fullMetadataName = MetadataHelpers.BuildQualifiedName(qualifierOpt?.ToDisplayString(SymbolDisplayFormat.QualifiedNameOnlyFormat), metadataName);
+            var result = GetForwardedToAssembly(fullMetadataName, diagnostics, location);
+            if ((object)result != null)
             {
-                forwardedType = referencedAssembly.TryLookupForwardedMetadataType(ref metadataName);
-                if ((object)forwardedType != null)
-                {
-                    break;
-                }
+                return result;
             }
 
-            if ((object)forwardedType != null)
+            if ((object)qualifierOpt == null)
             {
-                if (forwardedType.Kind == SymbolKind.ErrorType)
-                {
-                    DiagnosticInfo diagInfo = ((ErrorTypeSymbol)forwardedType).ErrorInfo;
-
-                    if (diagInfo.Code == (int)ErrorCode.ERR_CycleInTypeForwarder)
-                    {
-                        Debug.Assert((object)forwardedType.ContainingAssembly != null, "How did we find a cycle if there was no forwarding?");
-                        diagnostics.Add(ErrorCode.ERR_CycleInTypeForwarder, location, fullName, forwardedType.ContainingAssembly.Name);
-                    }
-                    else if (diagInfo.Code == (int)ErrorCode.ERR_TypeForwardedToMultipleAssemblies)
-                    {
-                        diagnostics.Add(diagInfo, location);
-                        return null; // Cannot determine a suitable forwarding assembly
-                    }
-                }
-
-                return forwardedType.ContainingAssembly;
+                return GetForwardedToAssemblyInUsingNamespaces(metadataName, ref qualifierOpt, diagnostics, location);
             }
 
             return null;

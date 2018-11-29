@@ -41,10 +41,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         public const string MoveToTopOfFile = nameof(MoveToTopOfFile);
         public const string PopulateSwitch = nameof(PopulateSwitch);
         public const string QualifyMemberAccess = nameof(QualifyMemberAccess);
+        public const string ReplaceDefaultLiteral = nameof(ReplaceDefaultLiteral);
         public const string RemoveUnnecessaryCast = nameof(RemoveUnnecessaryCast);
         public const string DeclareAsNullable = nameof(DeclareAsNullable);
         public const string RemoveUnnecessaryImports = nameof(RemoveUnnecessaryImports);
         public const string RemoveUnreachableCode = nameof(RemoveUnreachableCode);
+        public const string RemoveUnusedValues = nameof(RemoveUnusedValues);
         public const string RemoveUnusedLocalFunction = nameof(RemoveUnusedLocalFunction);
         public const string RemoveUnusedMembers = nameof(RemoveUnusedMembers);
         public const string RemoveUnusedVariable = nameof(RemoveUnusedVariable);
@@ -57,6 +59,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         public const string AddNew = nameof(AddNew);
         public const string UseImplicitType = nameof(UseImplicitType);
         public const string UseExplicitType = nameof(UseExplicitType);
+        public const string UseExplicitTypeForConst = nameof(UseExplicitTypeForConst);
         public const string UseCollectionInitializer = nameof(UseCollectionInitializer);
         public const string UseObjectInitializer = nameof(UseObjectInitializer);
         public const string UseThrowExpression = nameof(UseThrowExpression);

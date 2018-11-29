@@ -701,7 +701,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             get
             {
-                return _module.HasNonNullTypesAttribute(EntityHandle.ModuleDefinition, out bool nonNullTypes) ? (bool?)nonNullTypes : null;
+                throw ExceptionUtilities.Unreachable;
             }
         }
     }

@@ -125,7 +125,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     break;
             }
 
-            // https://github.com/dotnet/roslyn/issues/30072: we're dropping annotation and context
             return TypeSymbolWithAnnotations.Create(result);
         }
 
