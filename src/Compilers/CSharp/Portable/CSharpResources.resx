@@ -5586,8 +5586,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_SwitchExpressionNoBestType" xml:space="preserve">
     <value>No best type was found for the switch expression.</value>
   </data>
-  <data name="ERR_SingleElementPositionalPatternRequiresType" xml:space="preserve">
-    <value>A single-element deconstruct pattern requires a type before the open parenthesis.</value>
+  <data name="ERR_SingleElementPositionalPatternRequiresDisambiguation" xml:space="preserve">
+    <value>A single-element deconstruct pattern requires some other syntax for disambiguation. It is recommended to add a discard designator '_' after the close paren ')'.</value>
   </data>
   <data name="ERR_VarMayNotBindToType" xml:space="preserve">
     <value>The syntax 'var' for a pattern is not permitted to refer to a type, but '{0}' is in scope here.</value>

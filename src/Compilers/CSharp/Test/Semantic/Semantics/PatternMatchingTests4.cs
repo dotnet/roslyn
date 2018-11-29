@@ -226,7 +226,7 @@ False";
         [Fact]
         public void ITuple_02()
         {
-            // - should not match when input type extends ITuple and has Deconstruct (struct)
+            // - should match when input type extends ITuple and has inapplicable Deconstruct (struct)
             var source =
 @"using System;
 using System.Runtime.CompilerServices;
@@ -246,32 +246,13 @@ public struct C : ITuple
 }
 ";
             var compilation = CreatePatternCompilation(source);
-            compilation.VerifyDiagnostics(
-                // (10,32): error CS1501: No overload for method 'Deconstruct' takes 2 arguments
-                //         Console.WriteLine(t is (3, 4)); // false
-                Diagnostic(ErrorCode.ERR_BadArgCount, "(3, 4)").WithArguments("Deconstruct", "2").WithLocation(10, 32),
-                // (10,32): error CS8129: No suitable Deconstruct instance or extension method was found for type 'C', with 2 out parameters and a void return type.
-                //         Console.WriteLine(t is (3, 4)); // false
-                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(3, 4)").WithArguments("C", "2").WithLocation(10, 32),
-                // (11,32): error CS1501: No overload for method 'Deconstruct' takes 3 arguments
-                //         Console.WriteLine(t is (3, 4, 5)); // TRUE
-                Diagnostic(ErrorCode.ERR_BadArgCount, "(3, 4, 5)").WithArguments("Deconstruct", "3").WithLocation(11, 32),
-                // (11,32): error CS8129: No suitable Deconstruct instance or extension method was found for type 'C', with 3 out parameters and a void return type.
-                //         Console.WriteLine(t is (3, 4, 5)); // TRUE
-                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(3, 4, 5)").WithArguments("C", "3").WithLocation(11, 32),
-                // (12,32): error CS1501: No overload for method 'Deconstruct' takes 3 arguments
-                //         Console.WriteLine(t is (3, 0, 5)); // false
-                Diagnostic(ErrorCode.ERR_BadArgCount, "(3, 0, 5)").WithArguments("Deconstruct", "3").WithLocation(12, 32),
-                // (12,32): error CS8129: No suitable Deconstruct instance or extension method was found for type 'C', with 3 out parameters and a void return type.
-                //         Console.WriteLine(t is (3, 0, 5)); // false
-                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(3, 0, 5)").WithArguments("C", "3").WithLocation(12, 32),
-                // (13,32): error CS1501: No overload for method 'Deconstruct' takes 4 arguments
-                //         Console.WriteLine(t is (3, 4, 5, 6)); // false
-                Diagnostic(ErrorCode.ERR_BadArgCount, "(3, 4, 5, 6)").WithArguments("Deconstruct", "4").WithLocation(13, 32),
-                // (13,32): error CS8129: No suitable Deconstruct instance or extension method was found for type 'C', with 4 out parameters and a void return type.
-                //         Console.WriteLine(t is (3, 4, 5, 6)); // false
-                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(3, 4, 5, 6)").WithArguments("C", "4").WithLocation(13, 32)
-                );
+            compilation.VerifyDiagnostics();
+            var expectedOutput =
+@"False
+True
+False
+False";
+            var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -308,7 +289,7 @@ False";
         [Fact]
         public void ITuple_04()
         {
-            // - should not match when input type extends ITuple and has Deconstruct (class)
+            // - should match when input type extends ITuple and has inapplicable Deconstruct (class)
             var source =
 @"using System;
 using System.Runtime.CompilerServices;
@@ -328,32 +309,13 @@ public class C : ITuple
 }
 ";
             var compilation = CreatePatternCompilation(source);
-            compilation.VerifyDiagnostics(
-                // (10,32): error CS1501: No overload for method 'Deconstruct' takes 2 arguments
-                //         Console.WriteLine(t is (3, 4)); // false
-                Diagnostic(ErrorCode.ERR_BadArgCount, "(3, 4)").WithArguments("Deconstruct", "2").WithLocation(10, 32),
-                // (10,32): error CS8129: No suitable Deconstruct instance or extension method was found for type 'C', with 2 out parameters and a void return type.
-                //         Console.WriteLine(t is (3, 4)); // false
-                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(3, 4)").WithArguments("C", "2").WithLocation(10, 32),
-                // (11,32): error CS1501: No overload for method 'Deconstruct' takes 3 arguments
-                //         Console.WriteLine(t is (3, 4, 5)); // TRUE
-                Diagnostic(ErrorCode.ERR_BadArgCount, "(3, 4, 5)").WithArguments("Deconstruct", "3").WithLocation(11, 32),
-                // (11,32): error CS8129: No suitable Deconstruct instance or extension method was found for type 'C', with 3 out parameters and a void return type.
-                //         Console.WriteLine(t is (3, 4, 5)); // TRUE
-                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(3, 4, 5)").WithArguments("C", "3").WithLocation(11, 32),
-                // (12,32): error CS1501: No overload for method 'Deconstruct' takes 3 arguments
-                //         Console.WriteLine(t is (3, 0, 5)); // false
-                Diagnostic(ErrorCode.ERR_BadArgCount, "(3, 0, 5)").WithArguments("Deconstruct", "3").WithLocation(12, 32),
-                // (12,32): error CS8129: No suitable Deconstruct instance or extension method was found for type 'C', with 3 out parameters and a void return type.
-                //         Console.WriteLine(t is (3, 0, 5)); // false
-                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(3, 0, 5)").WithArguments("C", "3").WithLocation(12, 32),
-                // (13,32): error CS1501: No overload for method 'Deconstruct' takes 4 arguments
-                //         Console.WriteLine(t is (3, 4, 5, 6)); // false
-                Diagnostic(ErrorCode.ERR_BadArgCount, "(3, 4, 5, 6)").WithArguments("Deconstruct", "4").WithLocation(13, 32),
-                // (13,32): error CS8129: No suitable Deconstruct instance or extension method was found for type 'C', with 4 out parameters and a void return type.
-                //         Console.WriteLine(t is (3, 4, 5, 6)); // false
-                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(3, 4, 5, 6)").WithArguments("C", "4").WithLocation(13, 32)
-                );
+            compilation.VerifyDiagnostics();
+            var expectedOutput =
+@"False
+True
+False
+False";
+            var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -480,7 +442,7 @@ public class C : ITuple
         [Fact]
         public void ITuple_06()
         {
-            // - should not match when input type extends ITuple and has Deconstruct (type parameter)
+            // - should match when input type extends ITuple and has inapplicable Deconstruct (type parameter)
             var source =
 @"using System;
 using System.Runtime.CompilerServices;
@@ -503,38 +465,18 @@ public class C : ITuple
 }
 ";
             var compilation = CreatePatternCompilation(source);
-            compilation.VerifyDiagnostics(
-                // (13,32): error CS1501: No overload for method 'Deconstruct' takes 2 arguments
-                //         Console.WriteLine(t is (3, 4)); // false
-                Diagnostic(ErrorCode.ERR_BadArgCount, "(3, 4)").WithArguments("Deconstruct", "2").WithLocation(13, 32),
-                // (13,32): error CS8129: No suitable Deconstruct instance or extension method was found for type 'T', with 2 out parameters and a void return type.
-                //         Console.WriteLine(t is (3, 4)); // false
-                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(3, 4)").WithArguments("T", "2").WithLocation(13, 32),
-                // (14,32): error CS1501: No overload for method 'Deconstruct' takes 3 arguments
-                //         Console.WriteLine(t is (3, 4, 5)); // TRUE
-                Diagnostic(ErrorCode.ERR_BadArgCount, "(3, 4, 5)").WithArguments("Deconstruct", "3").WithLocation(14, 32),
-                // (14,32): error CS8129: No suitable Deconstruct instance or extension method was found for type 'T', with 3 out parameters and a void return type.
-                //         Console.WriteLine(t is (3, 4, 5)); // TRUE
-                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(3, 4, 5)").WithArguments("T", "3").WithLocation(14, 32),
-                // (15,32): error CS1501: No overload for method 'Deconstruct' takes 3 arguments
-                //         Console.WriteLine(t is (3, 0, 5)); // false
-                Diagnostic(ErrorCode.ERR_BadArgCount, "(3, 0, 5)").WithArguments("Deconstruct", "3").WithLocation(15, 32),
-                // (15,32): error CS8129: No suitable Deconstruct instance or extension method was found for type 'T', with 3 out parameters and a void return type.
-                //         Console.WriteLine(t is (3, 0, 5)); // false
-                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(3, 0, 5)").WithArguments("T", "3").WithLocation(15, 32),
-                // (16,32): error CS1501: No overload for method 'Deconstruct' takes 4 arguments
-                //         Console.WriteLine(t is (3, 4, 5, 6)); // false
-                Diagnostic(ErrorCode.ERR_BadArgCount, "(3, 4, 5, 6)").WithArguments("Deconstruct", "4").WithLocation(16, 32),
-                // (16,32): error CS8129: No suitable Deconstruct instance or extension method was found for type 'T', with 4 out parameters and a void return type.
-                //         Console.WriteLine(t is (3, 4, 5, 6)); // false
-                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(3, 4, 5, 6)").WithArguments("T", "4").WithLocation(16, 32)
-                );
+            compilation.VerifyDiagnostics();
+            var expectedOutput =
+@"False
+True
+False
+False";
+            var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
         [Fact]
         public void ITuple_12()
         {
-            // - should not match when input type extends ITuple and has Deconstruct (type parameter)
             var source =
 @"using System;
 using System.Runtime.CompilerServices;
@@ -548,8 +490,8 @@ public class C : ITuple
     }
     public static void M<T>(T t) where T: C
     {
-        Console.WriteLine(t is (3, 4)); // false
-        Console.WriteLine(t is (3, 4, 5)); // TRUE
+        Console.WriteLine(t is (3, 4)); // false via ITuple
+        Console.WriteLine(t is (3, 4, 5)); // true via ITuple
         Console.WriteLine(t is (3, 0, 5)); // false
         Console.WriteLine(t is (3, 4, 5, 6)); // false
     }
@@ -557,38 +499,48 @@ public class C : ITuple
 }
 ";
             var compilation = CreatePatternCompilation(source);
+            compilation.VerifyDiagnostics();
+            var expectedOutput =
+@"False
+True
+False
+False";
+            var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
+
+        [Fact]
+        public void ITuple_12b()
+        {
+            var source =
+@"using System;
+using System.Runtime.CompilerServices;
+public class C : ITuple
+{
+    int ITuple.Length => 3;
+    object ITuple.this[int i] => i + 3;
+    public static void Main()
+    {
+        M(new C());
+    }
+    public static void M<T>(T t) where T: C
+    {
+        Console.WriteLine(t is ());
+    }
+    public int Deconstruct() => 0; // this is applicable, so prevents ITuple, but it has the wrong return type
+}
+";
+            var compilation = CreatePatternCompilation(source);
             compilation.VerifyDiagnostics(
-                // (13,32): error CS1501: No overload for method 'Deconstruct' takes 2 arguments
-                //         Console.WriteLine(t is (3, 4)); // false
-                Diagnostic(ErrorCode.ERR_BadArgCount, "(3, 4)").WithArguments("Deconstruct", "2").WithLocation(13, 32),
-                // (13,32): error CS8129: No suitable Deconstruct instance or extension method was found for type 'T', with 2 out parameters and a void return type.
-                //         Console.WriteLine(t is (3, 4)); // false
-                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(3, 4)").WithArguments("T", "2").WithLocation(13, 32),
-                // (14,32): error CS1501: No overload for method 'Deconstruct' takes 3 arguments
-                //         Console.WriteLine(t is (3, 4, 5)); // TRUE
-                Diagnostic(ErrorCode.ERR_BadArgCount, "(3, 4, 5)").WithArguments("Deconstruct", "3").WithLocation(14, 32),
-                // (14,32): error CS8129: No suitable Deconstruct instance or extension method was found for type 'T', with 3 out parameters and a void return type.
-                //         Console.WriteLine(t is (3, 4, 5)); // TRUE
-                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(3, 4, 5)").WithArguments("T", "3").WithLocation(14, 32),
-                // (15,32): error CS1501: No overload for method 'Deconstruct' takes 3 arguments
-                //         Console.WriteLine(t is (3, 0, 5)); // false
-                Diagnostic(ErrorCode.ERR_BadArgCount, "(3, 0, 5)").WithArguments("Deconstruct", "3").WithLocation(15, 32),
-                // (15,32): error CS8129: No suitable Deconstruct instance or extension method was found for type 'T', with 3 out parameters and a void return type.
-                //         Console.WriteLine(t is (3, 0, 5)); // false
-                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(3, 0, 5)").WithArguments("T", "3").WithLocation(15, 32),
-                // (16,32): error CS1501: No overload for method 'Deconstruct' takes 4 arguments
-                //         Console.WriteLine(t is (3, 4, 5, 6)); // false
-                Diagnostic(ErrorCode.ERR_BadArgCount, "(3, 4, 5, 6)").WithArguments("Deconstruct", "4").WithLocation(16, 32),
-                // (16,32): error CS8129: No suitable Deconstruct instance or extension method was found for type 'T', with 4 out parameters and a void return type.
-                //         Console.WriteLine(t is (3, 4, 5, 6)); // false
-                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(3, 4, 5, 6)").WithArguments("T", "4").WithLocation(16, 32)
+                // (13,32): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'T', with 0 out parameters and a void return type.
+                //         Console.WriteLine(t is ());
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "()").WithArguments("T", "0").WithLocation(13, 32)
                 );
         }
 
         [Fact]
         public void ITuple_07()
         {
-            // - should not match when input type extends ITuple and has Deconstruct (inherited)
+            // - should match when input type extends ITuple and has inapplicable Deconstruct (inherited)
             var source =
 @"using System;
 using System.Runtime.CompilerServices;
@@ -614,38 +566,19 @@ public class C : B, ITuple
 }
 ";
             var compilation = CreatePatternCompilation(source);
-            compilation.VerifyDiagnostics(
-                // (17,32): error CS1501: No overload for method 'Deconstruct' takes 2 arguments
-                //         Console.WriteLine(t is (3, 4)); // false
-                Diagnostic(ErrorCode.ERR_BadArgCount, "(3, 4)").WithArguments("Deconstruct", "2").WithLocation(17, 32),
-                // (17,32): error CS8129: No suitable Deconstruct instance or extension method was found for type 'T', with 2 out parameters and a void return type.
-                //         Console.WriteLine(t is (3, 4)); // false
-                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(3, 4)").WithArguments("T", "2").WithLocation(17, 32),
-                // (18,32): error CS1501: No overload for method 'Deconstruct' takes 3 arguments
-                //         Console.WriteLine(t is (3, 4, 5)); // TRUE
-                Diagnostic(ErrorCode.ERR_BadArgCount, "(3, 4, 5)").WithArguments("Deconstruct", "3").WithLocation(18, 32),
-                // (18,32): error CS8129: No suitable Deconstruct instance or extension method was found for type 'T', with 3 out parameters and a void return type.
-                //         Console.WriteLine(t is (3, 4, 5)); // TRUE
-                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(3, 4, 5)").WithArguments("T", "3").WithLocation(18, 32),
-                // (19,32): error CS1501: No overload for method 'Deconstruct' takes 3 arguments
-                //         Console.WriteLine(t is (3, 0, 5)); // false
-                Diagnostic(ErrorCode.ERR_BadArgCount, "(3, 0, 5)").WithArguments("Deconstruct", "3").WithLocation(19, 32),
-                // (19,32): error CS8129: No suitable Deconstruct instance or extension method was found for type 'T', with 3 out parameters and a void return type.
-                //         Console.WriteLine(t is (3, 0, 5)); // false
-                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(3, 0, 5)").WithArguments("T", "3").WithLocation(19, 32),
-                // (20,32): error CS1501: No overload for method 'Deconstruct' takes 4 arguments
-                //         Console.WriteLine(t is (3, 4, 5, 6)); // false
-                Diagnostic(ErrorCode.ERR_BadArgCount, "(3, 4, 5, 6)").WithArguments("Deconstruct", "4").WithLocation(20, 32),
-                // (20,32): error CS8129: No suitable Deconstruct instance or extension method was found for type 'T', with 4 out parameters and a void return type.
-                //         Console.WriteLine(t is (3, 4, 5, 6)); // false
-                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(3, 4, 5, 6)").WithArguments("T", "4").WithLocation(20, 32)
-                );
+            compilation.VerifyDiagnostics();
+            var expectedOutput =
+@"False
+True
+False
+False";
+            var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
         [Fact]
         public void ITuple_08()
         {
-            // - should not match when input type extends ITuple and has Deconstruct (static)
+            // - should match when input type extends ITuple and has an inapplicable Deconstruct (static)
             var source =
 @"using System;
 using System.Runtime.CompilerServices;
@@ -671,38 +604,19 @@ public class C : B, ITuple
 }
 ";
             var compilation = CreatePatternCompilation(source);
-            compilation.VerifyDiagnostics(
-                // (17,32): error CS1501: No overload for method 'Deconstruct' takes 2 arguments
-                //         Console.WriteLine(t is (3, 4)); // false
-                Diagnostic(ErrorCode.ERR_BadArgCount, "(3, 4)").WithArguments("Deconstruct", "2").WithLocation(17, 32),
-                // (17,32): error CS8129: No suitable Deconstruct instance or extension method was found for type 'T', with 2 out parameters and a void return type.
-                //         Console.WriteLine(t is (3, 4)); // false
-                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(3, 4)").WithArguments("T", "2").WithLocation(17, 32),
-                // (18,32): error CS1501: No overload for method 'Deconstruct' takes 3 arguments
-                //         Console.WriteLine(t is (3, 4, 5)); // TRUE
-                Diagnostic(ErrorCode.ERR_BadArgCount, "(3, 4, 5)").WithArguments("Deconstruct", "3").WithLocation(18, 32),
-                // (18,32): error CS8129: No suitable Deconstruct instance or extension method was found for type 'T', with 3 out parameters and a void return type.
-                //         Console.WriteLine(t is (3, 4, 5)); // TRUE
-                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(3, 4, 5)").WithArguments("T", "3").WithLocation(18, 32),
-                // (19,32): error CS1501: No overload for method 'Deconstruct' takes 3 arguments
-                //         Console.WriteLine(t is (3, 0, 5)); // false
-                Diagnostic(ErrorCode.ERR_BadArgCount, "(3, 0, 5)").WithArguments("Deconstruct", "3").WithLocation(19, 32),
-                // (19,32): error CS8129: No suitable Deconstruct instance or extension method was found for type 'T', with 3 out parameters and a void return type.
-                //         Console.WriteLine(t is (3, 0, 5)); // false
-                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(3, 0, 5)").WithArguments("T", "3").WithLocation(19, 32),
-                // (20,32): error CS1501: No overload for method 'Deconstruct' takes 4 arguments
-                //         Console.WriteLine(t is (3, 4, 5, 6)); // false
-                Diagnostic(ErrorCode.ERR_BadArgCount, "(3, 4, 5, 6)").WithArguments("Deconstruct", "4").WithLocation(20, 32),
-                // (20,32): error CS8129: No suitable Deconstruct instance or extension method was found for type 'T', with 4 out parameters and a void return type.
-                //         Console.WriteLine(t is (3, 4, 5, 6)); // false
-                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(3, 4, 5, 6)").WithArguments("T", "4").WithLocation(20, 32)
-                );
+            compilation.VerifyDiagnostics();
+            var expectedOutput =
+@"False
+True
+False
+False";
+            var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
         [Fact]
         public void ITuple_09()
         {
-            // - should match when input type extends ITuple and has only an extension Deconstruct
+            // - should match when input type extends ITuple and has an extension Deconstruct
             var source =
 @"using System;
 using System.Runtime.CompilerServices;
@@ -713,24 +627,60 @@ public class C : ITuple
     public static void Main()
     {
         var t = new C();
-        Console.WriteLine(t is (3, 4)); // false
-        Console.WriteLine(t is (3, 4, 5)); // TRUE
+        Console.WriteLine(t is (7, 8)); // true (Extensions.Deconstruct)
+        Console.WriteLine(t is (3, 4, 5)); // true via ITuple
         Console.WriteLine(t is (3, 0, 5)); // false
         Console.WriteLine(t is (3, 4, 5, 6)); // false
     }
 }
 static class Extensions
 {
-    public static void Deconstruct(this C c, out int X, out int Y) => (X, Y) = (3, 4);
+    public static void Deconstruct(this C c, out int X, out int Y) => (X, Y) = (7, 8);
 }
 ";
             var compilation = CreatePatternCompilation(source);
             compilation.VerifyDiagnostics();
             var expectedOutput =
-@"False
+@"True
 True
 False
 False";
+            var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
+
+        [Fact]
+        public void ITuple_09b()
+        {
+            // - An extension Deconstruct hides ITuple
+            var source =
+@"using System;
+using System.Runtime.CompilerServices;
+public class C : ITuple
+{
+    int ITuple.Length => 4;
+    object ITuple.this[int i] => i + 3;
+    public static void Main()
+    {
+        var t = new C();
+        Console.WriteLine(t is (7, 8)); // true (Extensions.Deconstruct)
+        Console.WriteLine(t is (3, 4, 5)); // false (ITuple hidden by extension method)
+        Console.WriteLine(t is (1, 2, 3)); // true via extension Deconstruct
+        Console.WriteLine(t is (3, 4, 5, 6)); // true (via ITuple)
+    }
+}
+static class Extensions
+{
+    public static void Deconstruct(this C c, out int X, out int Y) => (X, Y) = (7, 8);
+    public static void Deconstruct(this ITuple c, out int X, out int Y, out int Z) => (X, Y, Z) = (1, 2, 3);
+}
+";
+            var compilation = CreatePatternCompilation(source);
+            compilation.VerifyDiagnostics();
+            var expectedOutput =
+@"True
+False
+True
+True";
             var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
@@ -921,6 +871,298 @@ class C1
                 Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
                 Assert.Empty(symbolInfo.CandidateSymbols);
             }
+        }
+
+        [Fact]
+        [WorkItem(30906, "https://github.com/dotnet/roslyn/issues/30906")]
+        public void NullableTupleWithTuplePattern_01()
+        {
+            var source = @"using System;
+class C
+{
+    static (int, int)? Get(int i)
+    {
+        switch (i)
+        {
+            case 1:
+                return (1, 2);
+            case 2:
+                return (3, 4);
+            default:
+                return null;
+        }
+    }
+
+    static void Main()
+    {
+        for (int i = 0; i < 6; i++)
+        {
+            if (Get(i) is var (x, y))
+                Console.Write($""{i} {x} {y}; "");
+        }
+    }
+}";
+            var compilation = CreatePatternCompilation(source);
+            compilation.VerifyDiagnostics();
+            var expectedOutput = @"1 1 2; 2 3 4; ";
+            var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
+
+        [Fact]
+        [WorkItem(30906, "https://github.com/dotnet/roslyn/issues/30906")]
+        public void NullableTupleWithTuplePattern_01b()
+        {
+            var source = @"using System;
+class C
+{
+    static ((int, int)?, int) Get(int i)
+    {
+        switch (i)
+        {
+            case 1:
+                return ((1, 2), 1);
+            case 2:
+                return ((3, 4), 1);
+            default:
+                return (null, 1);
+        }
+    }
+
+    static void Main()
+    {
+        for (int i = 0; i < 6; i++)
+        {
+            if (Get(i) is var ((x, y), z))
+                Console.Write($""{i} {x} {y}; "");
+        }
+    }
+}";
+            var compilation = CreatePatternCompilation(source);
+            compilation.VerifyDiagnostics();
+            var expectedOutput = @"1 1 2; 2 3 4; ";
+            var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
+
+        [Fact]
+        [WorkItem(30906, "https://github.com/dotnet/roslyn/issues/30906")]
+        public void NullableTupleWithTuplePattern_02()
+        {
+            var source = @"using System;
+class C
+{
+    static object Get(int i)
+    {
+        switch (i)
+        {
+            case 0:
+                return ('a', 'b');
+            case 1:
+                return (1, 2);
+            case 2:
+                return (3, 4);
+            case 3:
+                return new object();
+            default:
+                return null;
+        }
+    }
+
+    static void Main()
+    {
+        for (int i = 0; i < 6; i++)
+        {
+            if (Get(i) is var (x, y))
+                Console.Write($""{i} {x} {y}; "");
+        }
+    }
+}
+
+// Provide a ValueTuple that implements ITuple
+namespace System
+{
+    using ITuple = System.Runtime.CompilerServices.ITuple;
+    public struct ValueTuple<T1, T2>: ITuple
+    {
+        public T1 Item1;
+        public T2 Item2;
+        public ValueTuple(T1 item1, T2 item2) => (Item1, Item2) = (item1, item2);
+        int ITuple.Length => 2;
+        object ITuple.this[int index]
+        {
+            get
+            {
+                switch (index)
+                {
+                    case 0: return Item1;
+                    case 1: return Item2;
+                    default: throw new System.ArgumentException(""index"");
+                }
+            }
+        }
+    }
+}
+";
+            var compilation = CreatePatternCompilation(source);
+            compilation.VerifyDiagnostics();
+            var expectedOutput =
+@"0 a b; 1 1 2; 2 3 4; ";
+            var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
+
+        [Fact]
+        [WorkItem(30906, "https://github.com/dotnet/roslyn/issues/30906")]
+        public void NullableTupleWithTuplePattern_02b()
+        {
+            var source = @"using System;
+class C
+{
+    static object Get(int i)
+    {
+        switch (i)
+        {
+            case 0:
+                return (('a', 'b'), 1);
+            case 1:
+                return ((1, 2), 1);
+            case 2:
+                return ((3, 4), 1);
+            case 3:
+                return new object();
+            default:
+                return null;
+        }
+    }
+
+    static void Main()
+    {
+        for (int i = 0; i < 6; i++)
+        {
+            if (Get(i) is var ((x, y), z))
+                Console.Write($""{i} {x} {y}; "");
+        }
+    }
+}
+
+// Provide a ValueTuple that implements ITuple
+namespace System
+{
+    using ITuple = System.Runtime.CompilerServices.ITuple;
+    public struct ValueTuple<T1, T2>: ITuple
+    {
+        public T1 Item1;
+        public T2 Item2;
+        public ValueTuple(T1 item1, T2 item2) => (Item1, Item2) = (item1, item2);
+        int ITuple.Length => 2;
+        object ITuple.this[int index]
+        {
+            get
+            {
+                switch (index)
+                {
+                    case 0: return Item1;
+                    case 1: return Item2;
+                    default: throw new System.ArgumentException(""index"");
+                }
+            }
+        }
+    }
+}
+";
+            var compilation = CreatePatternCompilation(source);
+            compilation.VerifyDiagnostics();
+            var expectedOutput = @"0 a b; 1 1 2; 2 3 4; ";
+            var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
+
+        [Fact]
+        [WorkItem(30906, "https://github.com/dotnet/roslyn/issues/30906")]
+        public void NullableTupleWithTuplePattern_03()
+        {
+            var source = @"using System;
+class C
+{
+    static object Get(int i)
+    {
+        switch (i)
+        {
+            case 0:
+                return ('a', 'b');
+            case 1:
+                return (1, 2);
+            case 2:
+                return (3, 4);
+            case 3:
+                return new object();
+            default:
+                return null;
+        }
+    }
+
+    static void Main()
+    {
+        for (int i = 0; i < 6; i++)
+        {
+            if (Get(i) is var (x, y))
+                Console.WriteLine($""{i} {x} {y}"");
+        }
+    }
+}
+
+// Provide a ValueTuple that DOES NOT implements ITuple or have a Deconstruct method
+namespace System
+{
+    public struct ValueTuple<T1, T2>
+    {
+        public T1 Item1;
+        public T2 Item2;
+        public ValueTuple(T1 item1, T2 item2) => (Item1, Item2) = (item1, item2);
+    }
+}
+";
+            var compilation = CreatePatternCompilation(source);
+            compilation.VerifyDiagnostics();
+            var expectedOutput = @"";
+            var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
+
+        [Fact]
+        [WorkItem(30906, "https://github.com/dotnet/roslyn/issues/30906")]
+        public void NullableTupleWithTuplePattern_04()
+        {
+            var source = @"using System;
+struct C
+{
+    static C? Get(int i)
+    {
+        switch (i)
+        {
+            case 1:
+                return new C(1, 2);
+            case 2:
+                return new C(3, 4);
+            default:
+                return null;
+        }
+    }
+
+    static void Main()
+    {
+        for (int i = 0; i < 6; i++)
+        {
+            if (Get(i) is var (x, y))
+                Console.Write($""{i} {x} {y}; "");
+        }
+    }
+
+    public int Item1;
+    public int Item2;
+    public C(int item1, int item2) => (Item1, Item2) = (item1, item2);
+    public void Deconstruct(out int Item1, out int Item2) => (Item1, Item2) = (this.Item1, this.Item2);
+}";
+            var compilation = CreatePatternCompilation(source);
+            compilation.VerifyDiagnostics();
+            var expectedOutput = @"1 1 2; 2 3 4; ";
+            var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -1487,6 +1729,557 @@ class _
                 //             (null, true) => 6
                 Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "(null, true)").WithLocation(13, 13)
                 );
+        }
+
+        [Fact]
+        public void DeconstructVsITuple_01()
+        {
+            // From LDM 2018-11-05:
+            // 1. If the type is a tuple type (any arity >= 0; see below), then use the tuple semantics
+            // 2. If "binding" a Deconstruct invocation would find one or more applicable methods, use Deconstruct.
+            // 3. If the type satisfies the ITuple deconstruct constraints, use ITuple semantics
+            // Here we test the relative priority of steps 2 and 3.
+            // - Found one applicable Deconstruct method (even though the type implements ITuple): use it
+            var source = @"using System;
+using System.Runtime.CompilerServices;
+class Program
+{
+    static void Main()
+    {
+        IA a = new A();
+        if (a is (var x, var y))  // tuple pattern containing var patterns
+            Console.Write($""{x} {y}"");
+    }
+}
+interface IA : ITuple
+{
+    void Deconstruct(out int X, out int Y);
+}
+class A: IA, ITuple
+{
+    void IA.Deconstruct(out int X, out int Y) => (X, Y) = (3, 4);
+    int ITuple.Length => throw null;
+    object ITuple.this[int i] => throw null;
+}
+";
+            var compilation = CreatePatternCompilation(source);
+            compilation.VerifyDiagnostics(
+                );
+            CompileAndVerify(compilation, expectedOutput: "3 4");
+        }
+
+        [Fact]
+        public void DeconstructVsITuple_01b()
+        {
+            // From LDM 2018-11-05:
+            // 1. If the type is a tuple type (any arity >= 0; see below), then use the tuple semantics
+            // 2. If "binding" a Deconstruct invocation would find one or more applicable methods, use Deconstruct.
+            // 3. If the type satisfies the ITuple deconstruct constraints, use ITuple semantics
+            // Here we test the relative priority of steps 2 and 3.
+            // - Found one applicable Deconstruct method (even though the type implements ITuple): use it
+            var source = @"using System;
+using System.Runtime.CompilerServices;
+class Program
+{
+    static void Main()
+    {
+        IA a = new A();
+        if (a is var (x, y))  // var pattern containing tuple designator
+            Console.Write($""{x} {y}"");
+    }
+}
+interface IA : ITuple
+{
+    void Deconstruct(out int X, out int Y);
+}
+class A: IA, ITuple
+{
+    void IA.Deconstruct(out int X, out int Y) => (X, Y) = (3, 4);
+    int ITuple.Length => throw null;
+    object ITuple.this[int i] => throw null;
+}
+";
+            var compilation = CreatePatternCompilation(source);
+            compilation.VerifyDiagnostics(
+                );
+            CompileAndVerify(compilation, expectedOutput: "3 4");
+        }
+
+        [Fact]
+        public void DeconstructVsITuple_02()
+        {
+            // From LDM 2018-11-05:
+            // 1. If the type is a tuple type (any arity >= 0; see below), then use the tuple semantics
+            // 2. If "binding" a Deconstruct invocation would find one or more applicable methods, use Deconstruct.
+            // 3. If the type satisfies the ITuple deconstruct constraints, use ITuple semantics
+            // Here we test the relative priority of steps 2 and 3.
+            // - Found more than one applicable Deconstruct method (even though the type implements ITuple): error
+
+            // var pattern with tuple designator
+            var source = @"using System;
+using System.Runtime.CompilerServices;
+class Program
+{
+    static void Main()
+    {
+        IA a = new A();
+        if (a is var (x, y)) Console.Write($""{x} {y}"");
+    }
+}
+interface I1
+{
+    void Deconstruct(out int X, out int Y);
+}
+interface I2
+{
+    void Deconstruct(out int X, out int Y);
+}
+interface IA: I1, I2 {}
+class A: IA, I1, I2, ITuple
+{
+    void I1.Deconstruct(out int X, out int Y) => (X, Y) = (3, 4);
+    void I2.Deconstruct(out int X, out int Y) => (X, Y) = (7, 8);
+    int ITuple.Length => 2;
+    object ITuple.this[int i] => i + 5;
+}
+";
+            var compilation = CreatePatternCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (8,22): error CS0121: The call is ambiguous between the following methods or properties: 'I1.Deconstruct(out int, out int)' and 'I2.Deconstruct(out int, out int)'
+                //         if (a is var (x, y)) Console.Write($"{x} {y}");
+                Diagnostic(ErrorCode.ERR_AmbigCall, "(x, y)").WithArguments("I1.Deconstruct(out int, out int)", "I2.Deconstruct(out int, out int)").WithLocation(8, 22)
+                );
+        }
+
+        [Fact]
+        public void DeconstructVsITuple_02b()
+        {
+            // From LDM 2018-11-05:
+            // 1. If the type is a tuple type (any arity >= 0; see below), then use the tuple semantics
+            // 2. If "binding" a Deconstruct invocation would find one or more applicable methods, use Deconstruct.
+            // 3. If the type satisfies the ITuple deconstruct constraints, use ITuple semantics
+            // Here we test the relative priority of steps 2 and 3.
+            // - Found more than one applicable Deconstruct method (even though the type implements ITuple): error
+
+            // tuple pattern with var subpatterns
+            var source = @"using System;
+using System.Runtime.CompilerServices;
+class Program
+{
+    static void Main()
+    {
+        IA a = new A();
+        if (a is (var x, var y)) Console.Write($""{x} {y}"");
+    }
+}
+interface I1
+{
+    void Deconstruct(out int X, out int Y);
+}
+interface I2
+{
+    void Deconstruct(out int X, out int Y);
+}
+interface IA: I1, I2 {}
+class A: IA, I1, I2, ITuple
+{
+    void I1.Deconstruct(out int X, out int Y) => (X, Y) = (3, 4);
+    void I2.Deconstruct(out int X, out int Y) => (X, Y) = (7, 8);
+    int ITuple.Length => 2;
+    object ITuple.this[int i] => i + 5;
+}
+";
+            var compilation = CreatePatternCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (8,18): error CS0121: The call is ambiguous between the following methods or properties: 'I1.Deconstruct(out int, out int)' and 'I2.Deconstruct(out int, out int)'
+                //         if (a is (var x, var y)) Console.Write($"{x} {y}");
+                Diagnostic(ErrorCode.ERR_AmbigCall, "(var x, var y)").WithArguments("I1.Deconstruct(out int, out int)", "I2.Deconstruct(out int, out int)").WithLocation(8, 18)
+                );
+        }
+
+        [Fact]
+        public void DeconstructVsITuple_03()
+        {
+            // From LDM 2018-11-05:
+            // 1. If the type is a tuple type (any arity >= 0; see below), then use the tuple semantics
+            // 2. If "binding" a Deconstruct invocation would find one or more applicable methods, use Deconstruct.
+            // 3. If the type satisfies the ITuple deconstruct constraints, use ITuple semantics
+            // Here we test the relative priority of steps 2 and 3.
+            // - Found inapplicable Deconstruct method; use ITuple
+            var source = @"using System;
+using System.Runtime.CompilerServices;
+class Program
+{
+    static void Main()
+    {
+        IA a = new A();
+        if (a is (var x, var y)) Console.Write($""{x} {y}"");
+    }
+}
+interface IA : ITuple
+{
+    void Deconstruct(out int X, out int Y, out int Z);
+}
+class A: IA, ITuple
+{
+    void IA.Deconstruct(out int X, out int Y, out int Z) => throw null;
+    int ITuple.Length => 2;
+    object ITuple.this[int i] => i + 5;
+}
+";
+            var compilation = CreatePatternCompilation(source);
+            compilation.VerifyDiagnostics(
+                );
+            CompileAndVerify(compilation, expectedOutput: "5 6");
+        }
+
+        [Fact]
+        public void DeconstructVsITuple_03b()
+        {
+            // From LDM 2018-11-05:
+            // 1. If the type is a tuple type (any arity >= 0; see below), then use the tuple semantics
+            // 2. If "binding" a Deconstruct invocation would find one or more applicable methods, use Deconstruct.
+            // 3. If the type satisfies the ITuple deconstruct constraints, use ITuple semantics
+            // Here we test the relative priority of steps 2 and 3.
+            // - Found inapplicable Deconstruct method; use ITuple
+            var source = @"using System;
+using System.Runtime.CompilerServices;
+class Program
+{
+    static void Main()
+    {
+        IA a = new A();
+        if (a is var (x, y)) Console.Write($""{x} {y}"");
+    }
+}
+interface IA : ITuple
+{
+    void Deconstruct(out int X, out int Y, out int Z);
+}
+class A: IA, ITuple
+{
+    void IA.Deconstruct(out int X, out int Y, out int Z) => throw null;
+    int ITuple.Length => 2;
+    object ITuple.this[int i] => i + 5;
+}
+";
+            var compilation = CreatePatternCompilation(source);
+            compilation.VerifyDiagnostics(
+                );
+            CompileAndVerify(compilation, expectedOutput: "5 6");
+        }
+
+        [Fact]
+        public void ShortTuplePattern_01()
+        {
+            // test 0-element tuple pattern via ITuple
+            var source = @"using System;
+using System.Runtime.CompilerServices;
+
+class Program
+{
+    static void Main()
+    {
+#pragma warning disable CS0436
+        var data = new object[] { null, new ValueTuple(), new C(), new object() };
+        for (int i = 0; i < data.Length; i++)
+        {
+            var datum = data[i];
+            if (datum is ()) Console.Write(i);
+        }
+    }
+}
+
+public class C : ITuple
+{
+    int ITuple.Length => 0;
+    object ITuple.this[int i] => throw new NotImplementedException();
+}
+namespace System
+{
+    struct ValueTuple : ITuple
+    {
+        int ITuple.Length => 0;
+        object ITuple.this[int i] => throw new NotImplementedException();
+    }
+}
+";
+            var compilation = CreatePatternCompilation(source);
+            compilation.VerifyDiagnostics(
+                );
+            CompileAndVerify(compilation, expectedOutput: "12");
+        }
+
+        [Fact]
+        public void ShortTuplePattern_02()
+        {
+            // test 1-element tuple pattern via ITuple
+            var source = @"using System;
+using System.Runtime.CompilerServices;
+
+class Program
+{
+    static void Main()
+    {
+#pragma warning disable CS0436
+        var data = new object[] { null, new ValueTuple<char>('a'), new C(), new object() };
+        for (int i = 0; i < data.Length; i++)
+        {
+            var datum = data[i];
+            if (datum is (var x) _) Console.Write($""{i} {x} "");
+        }
+    }
+}
+
+public class C : ITuple
+{
+    int ITuple.Length => 1;
+    object ITuple.this[int i] => 'b';
+}
+namespace System
+{
+    struct ValueTuple<TItem1> : ITuple
+    {
+        public TItem1 Item1;
+        public ValueTuple(TItem1 item1) => this.Item1 = item1;
+        int ITuple.Length => 1;
+        object ITuple.this[int i] => this.Item1;
+    }
+}
+";
+            var compilation = CreatePatternCompilation(source);
+            compilation.VerifyDiagnostics(
+                );
+            CompileAndVerify(compilation, expectedOutput: "1 a 2 b");
+        }
+
+        [Fact]
+        public void ShortTuplePattern_03()
+        {
+            // test 0-element tuple pattern via Deconstruct
+            var source = @"using System;
+
+class Program
+{
+    static void Main()
+    {
+        var data = new C[] { null, new C() };
+        for (int i = 0; i < data.Length; i++)
+        {
+            var datum = data[i];
+            if (datum is ()) Console.Write(i);
+        }
+    }
+}
+
+public class C
+{
+    public void Deconstruct() {}
+}
+";
+            var compilation = CreatePatternCompilation(source);
+            compilation.VerifyDiagnostics(
+                );
+            CompileAndVerify(compilation, expectedOutput: "1");
+        }
+
+        [Fact]
+        public void ShortTuplePattern_03b()
+        {
+            // test 0-element tuple pattern via extension Deconstruct
+            var source = @"using System;
+
+class Program
+{
+    static void Main()
+    {
+        var data = new C[] { null, new C() };
+        for (int i = 0; i < data.Length; i++)
+        {
+            var datum = data[i];
+            if (datum is ()) Console.Write(i);
+        }
+    }
+}
+
+public class C
+{
+}
+public static class Extension
+{
+    public static void Deconstruct(this C self) {}
+}
+";
+            var compilation = CreatePatternCompilation(source);
+            compilation.VerifyDiagnostics(
+                );
+            CompileAndVerify(compilation, expectedOutput: "1");
+        }
+
+        [Fact]
+        public void ShortTuplePattern_04()
+        {
+            // test 1-element tuple pattern via Deconstruct
+            var source = @"using System;
+
+class Program
+{
+    static void Main()
+    {
+        var data = new C[] { null, new C() };
+        for (int i = 0; i < data.Length; i++)
+        {
+            var datum = data[i];
+            if (datum is (var x) _) Console.Write($""{i} {x} "");
+        }
+    }
+}
+
+public class C
+{
+    public void Deconstruct(out char a) => a = 'a';
+}
+";
+            var compilation = CreatePatternCompilation(source);
+            compilation.VerifyDiagnostics(
+                );
+            CompileAndVerify(compilation, expectedOutput: "1 a");
+        }
+
+        [Fact]
+        public void ShortTuplePattern_04b()
+        {
+            // test 1-element tuple pattern via extension Deconstruct
+            var source = @"using System;
+
+class Program
+{
+    static void Main()
+    {
+        var data = new C[] { null, new C() };
+        for (int i = 0; i < data.Length; i++)
+        {
+            var datum = data[i];
+            if (datum is (var x) _) Console.Write($""{i} {x} "");
+        }
+    }
+}
+
+public class C
+{
+}
+public static class Extension
+{
+    public static void Deconstruct(this C self, out char a) => a = 'a';
+}
+";
+            var compilation = CreatePatternCompilation(source);
+            compilation.VerifyDiagnostics(
+                );
+            CompileAndVerify(compilation, expectedOutput: "1 a");
+        }
+
+        [Fact]
+        public void ShortTuplePattern_05()
+        {
+            // test 0-element tuple pattern via System.ValueTuple
+            var source = @"using System;
+
+class Program
+{
+    static void Main()
+    {
+#pragma warning disable CS0436
+        var data = new ValueTuple[] { new ValueTuple() };
+        for (int i = 0; i < data.Length; i++)
+        {
+            var datum = data[i];
+            if (datum is ()) Console.Write(i);
+        }
+    }
+}
+
+namespace System
+{
+    struct ValueTuple
+    {
+    }
+}
+";
+            var compilation = CreatePatternCompilation(source);
+            compilation.VerifyDiagnostics(
+                );
+            CompileAndVerify(compilation, expectedOutput: "0");
+        }
+
+        [Fact]
+        public void ShortTuplePattern_06()
+        {
+            // test 1-element tuple pattern via System.ValueTuple
+            var source = @"using System;
+
+class Program
+{
+    static void Main()
+    {
+#pragma warning disable CS0436
+        var data = new ValueTuple<char>[] { new ValueTuple<char>('a') };
+        for (int i = 0; i < data.Length; i++)
+        {
+            var datum = data[i];
+            if (datum is (var x) _) Console.Write($""{i} {x} "");
+        }
+    }
+}
+
+namespace System
+{
+    struct ValueTuple<TItem1>
+    {
+        public TItem1 Item1;
+        public ValueTuple(TItem1 item1) => this.Item1 = item1;
+    }
+}
+";
+            var compilation = CreatePatternCompilation(source);
+            compilation.VerifyDiagnostics(
+                );
+            CompileAndVerify(compilation, expectedOutput: "0 a");
+        }
+
+        [Fact]
+        public void ShortTuplePattern_06b()
+        {
+            // test 1-element tuple pattern via System.ValueTuple
+            var source = @"using System;
+
+class Program
+{
+    static void Main()
+    {
+#pragma warning disable CS0436
+        var data = new ValueTuple<char>[] { new ValueTuple<char>('a') };
+        for (int i = 0; i < data.Length; i++)
+        {
+            var datum = data[i];
+            if (datum is var (x)) Console.Write($""{i} {x} "");
+        }
+    }
+}
+
+namespace System
+{
+    struct ValueTuple<TItem1>
+    {
+        public TItem1 Item1;
+        public ValueTuple(TItem1 item1) => this.Item1 = item1;
+    }
+}
+";
+            var compilation = CreatePatternCompilation(source);
+            compilation.VerifyDiagnostics(
+                );
+            CompileAndVerify(compilation, expectedOutput: "0 a");
         }
 
         [Fact, WorkItem(31167, "https://github.com/dotnet/roslyn/issues/31167")]

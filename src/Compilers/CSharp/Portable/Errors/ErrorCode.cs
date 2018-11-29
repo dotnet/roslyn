@@ -1601,7 +1601,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_MissingPattern = 8504,
         ERR_DefaultPattern = 8505,
         ERR_SwitchExpressionNoBestType = 8506,
-        ERR_SingleElementPositionalPatternRequiresType = 8507,
+        ERR_SingleElementPositionalPatternRequiresDisambiguation = 8507,
         ERR_VarMayNotBindToType = 8508,
         WRN_SwitchExpressionNotExhaustive = 8509,
         ERR_SwitchArmSubsumed = 8510,

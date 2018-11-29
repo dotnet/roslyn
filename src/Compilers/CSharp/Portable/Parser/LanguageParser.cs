@@ -8385,30 +8385,42 @@ tryAgain:
             }
         }
 
-        private VariableDesignationSyntax ParseDesignation()
+        private VariableDesignationSyntax ParseDesignation(bool forPattern)
         {
             // the two forms of designation are
             // (1) identifier
             // (2) ( designation ... )
+            // for pattern-matching, we permit the designation list to be empty
             VariableDesignationSyntax result;
             if (this.CurrentToken.Kind == SyntaxKind.OpenParenToken)
             {
                 var openParen = this.EatToken(SyntaxKind.OpenParenToken);
                 var listOfDesignations = _pool.AllocateSeparated<VariableDesignationSyntax>();
 
-                listOfDesignations.Add(ParseDesignation());
-                listOfDesignations.AddSeparator(this.EatToken(SyntaxKind.CommaToken));
-
-                while (true)
+                bool done = false;
+                if (forPattern)
                 {
-                    listOfDesignations.Add(ParseDesignation());
-                    if (this.CurrentToken.Kind == SyntaxKind.CommaToken)
+                    done = (this.CurrentToken.Kind == SyntaxKind.CloseParenToken);
+                }
+                else
+                {
+                    listOfDesignations.Add(ParseDesignation(forPattern));
+                    listOfDesignations.AddSeparator(EatToken(SyntaxKind.CommaToken));
+                }
+
+                if (!done)
+                {
+                    while (true)
                     {
-                        listOfDesignations.AddSeparator(this.EatToken(SyntaxKind.CommaToken));
-                    }
-                    else
-                    {
-                        break;
+                        listOfDesignations.Add(ParseDesignation(forPattern));
+                        if (this.CurrentToken.Kind == SyntaxKind.CommaToken)
+                        {
+                            listOfDesignations.AddSeparator(this.EatToken(SyntaxKind.CommaToken));
+                        }
+                        else
+                        {
+                            break;
+                        }
                     }
                 }
 
@@ -9304,7 +9316,7 @@ tryAgain:
         private ExpressionSyntax ParseDeclarationExpression(ParseTypeMode mode, MessageID feature)
         {
             TypeSyntax type = this.ParseType(mode);
-            var designation = ParseDesignation();
+            var designation = ParseDesignation(forPattern: false);
             if (feature != MessageID.None)
             {
                 designation = CheckFeatureAvailability(designation, feature);

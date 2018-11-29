@@ -698,9 +698,9 @@ class Program
         if (t is (int x)) { }                           // error 1
         switch (t) { case (_): break; }                 // error 2
         var u = t switch { (int y) => y, _ => 2 };      // error 3
-        if (t is (int z1) _) { }                        // error 4
-        if (t is (Item1: int z2)) { }                   // error 5
-        if (t is (int z3) { }) { }                      // error 6
+        if (t is (int z1) _) { }                        // ok
+        if (t is (Item1: int z2)) { }                   // ok
+        if (t is (int z3) { }) { }                      // ok
         if (t is ValueTuple<int>(int z4)) { }           // ok
     }
     private static bool Check<T>(T expected, T actual)
@@ -711,25 +711,16 @@ class Program
 }";
             var compilation = CreatePatternCompilation(source);
             compilation.VerifyDiagnostics(
-                // (8,18): error CS8407: A single-element deconstruct pattern requires a type before the open parenthesis.
+                // (8,18): error CS8507: A single-element deconstruct pattern requires some other syntax for disambiguation. It is recommended to add a discard designator '_' after the close paren ')'.
                 //         if (t is (int x)) { }                           // error 1
-                Diagnostic(ErrorCode.ERR_SingleElementPositionalPatternRequiresType, "(int x)").WithLocation(8, 18),
-                // (9,27): error CS8407: A single-element deconstruct pattern requires a type before the open parenthesis.
+                Diagnostic(ErrorCode.ERR_SingleElementPositionalPatternRequiresDisambiguation, "(int x)").WithLocation(8, 18),
+                // (9,27): error CS8507: A single-element deconstruct pattern requires some other syntax for disambiguation. It is recommended to add a discard designator '_' after the close paren ')'.
                 //         switch (t) { case (_): break; }                 // error 2
-                Diagnostic(ErrorCode.ERR_SingleElementPositionalPatternRequiresType, "(_)").WithLocation(9, 27),
-                // (10,28): error CS8407: A single-element deconstruct pattern requires a type before the open parenthesis.
+                Diagnostic(ErrorCode.ERR_SingleElementPositionalPatternRequiresDisambiguation, "(_)").WithLocation(9, 27),
+                // (10,28): error CS8507: A single-element deconstruct pattern requires some other syntax for disambiguation. It is recommended to add a discard designator '_' after the close paren ')'.
                 //         var u = t switch { (int y) => y, _ => 2 };      // error 3
-                Diagnostic(ErrorCode.ERR_SingleElementPositionalPatternRequiresType, "(int y)").WithLocation(10, 28),
-                // (11,18): error CS8407: A single-element deconstruct pattern requires a type before the open parenthesis.
-                //         if (t is (int z1) _) { }                        // error 4
-                Diagnostic(ErrorCode.ERR_SingleElementPositionalPatternRequiresType, "(int z1) _").WithLocation(11, 18),
-                // (12,18): error CS8407: A single-element deconstruct pattern requires a type before the open parenthesis.
-                //         if (t is (Item1: int z2)) { }                   // error 5
-                Diagnostic(ErrorCode.ERR_SingleElementPositionalPatternRequiresType, "(Item1: int z2)").WithLocation(12, 18),
-                // (13,18): error CS8407: A single-element deconstruct pattern requires a type before the open parenthesis.
-                //         if (t is (int z3) { }) { }                      // error 6
-                Diagnostic(ErrorCode.ERR_SingleElementPositionalPatternRequiresType, "(int z3) { }").WithLocation(13, 18),
-                // (10,42): error CS8410: The pattern has already been handled by a previous arm of the switch expression.
+                Diagnostic(ErrorCode.ERR_SingleElementPositionalPatternRequiresDisambiguation, "(int y)").WithLocation(10, 28),
+                // (10,42): error CS8510: The pattern has already been handled by a previous arm of the switch expression.
                 //         var u = t switch { (int y) => y, _ => 2 };      // error 3
                 Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "_").WithLocation(10, 42)
                 );
@@ -796,21 +787,21 @@ namespace N
                 // (10,32): error CS8508: The syntax 'var' for a pattern is not permitted to refer to a type, but 'N.var' is in scope here.
                 //             { Check(true, t is var (x, y) && x == 1 && y == 2); }  // error 1
                 Diagnostic(ErrorCode.ERR_VarMayNotBindToType, "var").WithArguments("N.var").WithLocation(10, 32),
-                // (10,32): error CS1061: 'var' does not contain a definition for 'Deconstruct' and no accessible extension method 'Deconstruct' accepting a first argument of type 'var' could be found (are you missing a using directive or an assembly reference?)
+                // (10,36): error CS1061: 'var' does not contain a definition for 'Deconstruct' and no accessible extension method 'Deconstruct' accepting a first argument of type 'var' could be found (are you missing a using directive or an assembly reference?)
                 //             { Check(true, t is var (x, y) && x == 1 && y == 2); }  // error 1
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "var (x, y)").WithArguments("N.var", "Deconstruct").WithLocation(10, 32),
-                // (10,32): error CS8129: No suitable Deconstruct instance or extension method was found for type 'var', with 2 out parameters and a void return type.
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "(x, y)").WithArguments("N.var", "Deconstruct").WithLocation(10, 36),
+                // (10,36): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'var', with 2 out parameters and a void return type.
                 //             { Check(true, t is var (x, y) && x == 1 && y == 2); }  // error 1
-                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "var (x, y)").WithArguments("N.var", "2").WithLocation(10, 32),
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(x, y)").WithArguments("N.var", "2").WithLocation(10, 36),
                 // (11,33): error CS8508: The syntax 'var' for a pattern is not permitted to refer to a type, but 'N.var' is in scope here.
                 //             { Check(false, t is var (x, y) && x == 1 && y == 3); } // error 2
                 Diagnostic(ErrorCode.ERR_VarMayNotBindToType, "var").WithArguments("N.var").WithLocation(11, 33),
-                // (11,33): error CS1061: 'var' does not contain a definition for 'Deconstruct' and no accessible extension method 'Deconstruct' accepting a first argument of type 'var' could be found (are you missing a using directive or an assembly reference?)
+                // (11,37): error CS1061: 'var' does not contain a definition for 'Deconstruct' and no accessible extension method 'Deconstruct' accepting a first argument of type 'var' could be found (are you missing a using directive or an assembly reference?)
                 //             { Check(false, t is var (x, y) && x == 1 && y == 3); } // error 2
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "var (x, y)").WithArguments("N.var", "Deconstruct").WithLocation(11, 33),
-                // (11,33): error CS8129: No suitable Deconstruct instance or extension method was found for type 'var', with 2 out parameters and a void return type.
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "(x, y)").WithArguments("N.var", "Deconstruct").WithLocation(11, 37),
+                // (11,37): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'var', with 2 out parameters and a void return type.
                 //             { Check(false, t is var (x, y) && x == 1 && y == 3); } // error 2
-                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "var (x, y)").WithArguments("N.var", "2").WithLocation(11, 33),
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(x, y)").WithArguments("N.var", "2").WithLocation(11, 37),
                 // (12,32): error CS8508: The syntax 'var' for a pattern is not permitted to refer to a type, but 'N.var' is in scope here.
                 //             { Check(true, t is var x); }                           // error 3
                 Diagnostic(ErrorCode.ERR_VarMayNotBindToType, "var").WithArguments("N.var").WithLocation(12, 32)
@@ -2112,13 +2103,10 @@ public class C {
 ";
             var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll);
             compilation.VerifyDiagnostics(
-                // (4,21): error CS8407: A single-element deconstruct pattern requires a type before the open parenthesis.
-                //         _ = this is (a: 1);
-                Diagnostic(ErrorCode.ERR_SingleElementPositionalPatternRequiresType, "(a: 1)").WithLocation(4, 21),
-                // (4,21): error CS1061: 'C' does not contain a definition for 'Deconstruct' and no extension method 'Deconstruct' accepting a first argument of type 'C' could be found (are you missing a using directive or an assembly reference?)
+                // (4,21): error CS1061: 'C' does not contain a definition for 'Deconstruct' and no accessible extension method 'Deconstruct' accepting a first argument of type 'C' could be found (are you missing a using directive or an assembly reference?)
                 //         _ = this is (a: 1);
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "(a: 1)").WithArguments("C", "Deconstruct").WithLocation(4, 21),
-                // (4,21): error CS8129: No suitable Deconstruct instance or extension method was found for type 'C', with 1 out parameters and a void return type.
+                // (4,21): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'C', with 1 out parameters and a void return type.
                 //         _ = this is (a: 1);
                 Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(a: 1)").WithArguments("C", "1").WithLocation(4, 21)
                 );

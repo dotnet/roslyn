@@ -419,7 +419,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 {
                     // we have a "var" pattern; "var" is not permitted to be a stand-in for a type (or a constant) in a pattern.
                     var varToken = ConvertToKeyword(typeIdentifierToken);
-                    var varDesignation = ParseDesignation();
+                    var varDesignation = ParseDesignation(forPattern: true);
                     return _syntaxFactory.VarPattern(varToken, varDesignation);
                 }
             }
@@ -456,11 +456,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 var deconstructionPatternClause = _syntaxFactory.DeconstructionPatternClause(openParenToken, subPatterns, closeParenToken);
                 var result = _syntaxFactory.RecursivePattern(type, deconstructionPatternClause, propertyPatternClause0, designation0);
 
-                // 2017-11-20 LDM decision is to disallow a deconstruction pattern that contains just a
-                // single subpattern but for which the type is omitted.
-                // This keeps the design space open for using parentheses for grouping patterns in the future, e.g. if we introduce `or` and
-                // `and` patterns. We may add other ways to disambiguate later (e.g. a property subpattern or a trailing comma inside the parens).
-                return (type == null && subPatterns.Count == 1) ? this.AddError(result, ErrorCode.ERR_SingleElementPositionalPatternRequiresType) : result;
+                bool singleElementPattern =
+                    type == null &&
+                    subPatterns.Count == 1 &&
+                    propertyPatternClause0 == null &&
+                    designation0 == null &&
+                    subPatterns[0].NameColon == null;
+                // A single-element parenthesized pattern requires some other syntax to disambiguate it from a merely parenthesized pattern,
+                // thus leaving open the possibility that we can use parentheses for grouping patterns in the future, e.g. if we introduce `or` and
+                // `and` patterns.
+                return singleElementPattern ? this.AddError(result, ErrorCode.ERR_SingleElementPositionalPatternRequiresDisambiguation) : result;
             }
 
             if (parsePropertyPatternClause(out PropertyPatternClauseSyntax propertyPatternClause))

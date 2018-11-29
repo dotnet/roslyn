@@ -459,6 +459,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                         MakeTestsAndBindings(output, pattern, tests, bindings);
                     }
                 }
+                else if (Binder.IsZeroElementTupleType(inputType))
+                {
+                    // Work around https://github.com/dotnet/roslyn/issues/20648: The compiler's internal APIs such as `declType.IsTupleType`
+                    // do not correctly treat the non-generic struct `System.ValueTuple` as a tuple type.  We explicitly perform the tests
+                    // required to identify it.  When that bug is fixed we should be able to remove this if statement.
+
+                    // nothing to do, as there are no tests for the zero elements of this tuple
+                }
                 else if (inputType.IsTupleType)
                 {
                     ImmutableArray<FieldSymbol> elements = inputType.TupleElements;
