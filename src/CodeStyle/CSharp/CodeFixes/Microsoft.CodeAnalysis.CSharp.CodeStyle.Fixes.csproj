@@ -7,7 +7,7 @@
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.CSharp</RootNamespace>
     <TargetFramework>netstandard1.3</TargetFramework>
-    <CopyLocalLockFileDependencies>true</CopyLocalLockFileDependencies>
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
 
     <!-- NuGet -->
     <IsPackable>true</IsPackable>
@@ -29,6 +29,9 @@
       <_File Include="$(ArtifactsConfigurationDir)Dlls\Microsoft.CodeAnalysis.CSharp.CodeStyle.Fixes\**\Microsoft.CodeAnalysis.CSharp.CodeStyle.Fixes.resources.dll"/>
       <_File Include="$(ArtifactsConfigurationDir)Dlls\Microsoft.CodeAnalysis.CodeStyle\**\Microsoft.CodeAnalysis.CodeStyle.resources.dll"/>
       <_File Include="$(ArtifactsConfigurationDir)Dlls\Microsoft.CodeAnalysis.CodeStyle.Fixes\**\Microsoft.CodeAnalysis.CodeStyle.Fixes.resources.dll"/>
+
+      <!-- .editorconfig support prior to new support in the compiler -->
+      <_File Include="$(ArtifactsConfigurationDir)Dlls\Microsoft.CodeAnalysis.CSharp.CodeStyle.Fixes\Microsoft.VisualStudio.CodingConventions.dll"/>
 
       <TfmSpecificPackageFile Include="@(_File)" PackagePath="analyzers/dotnet/cs/%(_File.RecursiveDir)%(_File.FileName)%(_File.Extension)" />
     </ItemGroup>

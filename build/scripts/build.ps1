@@ -100,7 +100,9 @@ function Process-Arguments() {
     }
 
     if ($cibuild -and -not $official -and $anyVsi) {
-        # Avoid spending time in analyzers when requested, and also in the slowest integration test builds
+        # Integration tests are our longest test leg. We skip analyzers and bootstrapping here 
+        # to reduce the overall runtime here. There is sufficient coverage in other legs to make
+        # it safe to skip on these legs.
         $script:skipAnalyzers = $true
         $script:bootstrap = $false
     }
@@ -394,13 +396,13 @@ function Test-XUnit() {
     $dlls = $dlls | ?{ -not ($_.FullName -match ".*/ref/.*") }
 
     if ($cibuild) {
-        # Use a 75 minute timeout on CI
         $args += " -xml -timeout:65"
     }
 
+    $procdumpPath = Ensure-ProcDump
+    $args += " -procdumppath:$procDumpPath"
     if ($procdump) {
-        $procdumpPath = Ensure-ProcDump
-        $args += " -procdumppath:$procDumpPath"
+        $args += " -useprocdump";
     }
 
     if ($test64) {
