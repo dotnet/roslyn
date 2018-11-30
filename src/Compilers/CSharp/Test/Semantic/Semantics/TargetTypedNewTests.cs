@@ -2132,7 +2132,6 @@ class C
             default:
                 return 2;
         }
-
     }
     static void Main()
     {
