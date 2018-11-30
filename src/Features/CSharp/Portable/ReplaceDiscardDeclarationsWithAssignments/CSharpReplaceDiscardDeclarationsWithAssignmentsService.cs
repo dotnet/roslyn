@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplaceDiscardDeclarationsWithAssignment
                             // then the replacement "M(out int _)" => "M(out _)" will cause overload resolution error.
                             // Bail out if replacement changes semantics.
                             var speculationAnalyzer = new SpeculationAnalyzer(declarationExpression,
-                                replacementNode, semanticModel, cancellationToken, skipVerificationForReplacedNode: true);
+                                replacementNode, semanticModel, cancellationToken);
                             if (!speculationAnalyzer.ReplacementChangesSemantics())
                             {
                                 editor.ReplaceNode(declarationExpression, replacementNode);
