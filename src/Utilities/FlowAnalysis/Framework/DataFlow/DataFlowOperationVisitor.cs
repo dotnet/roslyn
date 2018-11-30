@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
         protected bool IsLValueFlowCapture(CaptureId captureId) => _lValueFlowCaptures.Contains(captureId);
         protected bool IsLValueFlowCaptureEntity(AnalysisEntity analysisEntity)
-            => analysisEntity.CaptureIdOpt != null && IsLValueFlowCapture(analysisEntity.CaptureIdOpt.Value.Id);
+            => analysisEntity.CaptureIdOpt != null && analysisEntity.CaptureIdOpt.Value.IsLValueFlowCapture;
 
         protected virtual int GetAllowedInterproceduralCallChain() => MaxInterproceduralCallChain;
 
@@ -181,6 +181,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                     GetPointsToAbstractValue :
                     (Func<IOperation, PointsToAbstractValue>)null,
                 getIsInsideAnonymousObjectInitializer: () => IsInsideAnonymousObjectInitializer,
+                getIsLValueFlowCapture: IsLValueFlowCapture,
                 containingTypeSymbol: analysisContext.OwningSymbol.ContainingType,
                 thisOrMeInstanceFromCalleeOpt: thisOrMeInstanceFromCalleeOpt,
                 interproceduralCallStackOpt: analysisContext.InterproceduralAnalysisDataOpt?.CallStack,

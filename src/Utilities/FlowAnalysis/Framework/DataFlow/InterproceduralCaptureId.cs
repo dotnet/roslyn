@@ -12,14 +12,16 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
     /// </summary>
     internal struct InterproceduralCaptureId : IEquatable<InterproceduralCaptureId>
     {
-        public InterproceduralCaptureId(CaptureId captureId, ControlFlowGraph controlFlowGraph)
+        public InterproceduralCaptureId(CaptureId captureId, ControlFlowGraph controlFlowGraph, bool isLValueFlowCapture)
         {
             Id = captureId;
             ControlFlowGraph = controlFlowGraph;
+            IsLValueFlowCapture = isLValueFlowCapture;
         }
 
         public CaptureId Id { get; }
         public ControlFlowGraph ControlFlowGraph { get; }
+        public bool IsLValueFlowCapture { get; }
 
         public bool Equals(InterproceduralCaptureId other)
             => Id.Equals(other.Id) && ControlFlowGraph == other.ControlFlowGraph;

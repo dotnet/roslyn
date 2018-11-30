@@ -107,19 +107,25 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             return new AnalysisEntity(instanceReferenceOperation, instanceLocation);
         }
 
-        public static AnalysisEntity Create(IFlowCaptureOperation flowCaptureOperation, ControlFlowGraph controlFlowGraph)
+        public static AnalysisEntity Create(
+            IFlowCaptureOperation flowCaptureOperation,
+            ControlFlowGraph controlFlowGraph,
+            Func<CaptureId, bool> getIsLValueFlowCapture)
         {
             Debug.Assert(flowCaptureOperation != null);
 
-            var captureId = new InterproceduralCaptureId(flowCaptureOperation.Id, controlFlowGraph);
+            var captureId = new InterproceduralCaptureId(flowCaptureOperation.Id, controlFlowGraph, getIsLValueFlowCapture(flowCaptureOperation.Id));
             return new AnalysisEntity(captureId, flowCaptureOperation.Value.Type);
         }
 
-        public static AnalysisEntity Create(IFlowCaptureReferenceOperation flowCaptureReferenceOperation, ControlFlowGraph controlFlowGraph)
+        public static AnalysisEntity Create(
+            IFlowCaptureReferenceOperation flowCaptureReferenceOperation,
+            ControlFlowGraph controlFlowGraph,
+            Func<CaptureId, bool> getIsLValueFlowCapture)
         {
             Debug.Assert(flowCaptureReferenceOperation != null);
 
-            var captureId = new InterproceduralCaptureId(flowCaptureReferenceOperation.Id, controlFlowGraph);
+            var captureId = new InterproceduralCaptureId(flowCaptureReferenceOperation.Id, controlFlowGraph, getIsLValueFlowCapture(flowCaptureReferenceOperation.Id));
             return new AnalysisEntity(captureId, flowCaptureReferenceOperation.Type);
         }
 
