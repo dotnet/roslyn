@@ -48,31 +48,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// Generalized function for loading/creating/persisting data.  Used as the common core
         /// code for serialization of SymbolTreeInfos and SpellCheckers.
         /// </summary>
-        private static Task<T> TryLoadOrCreateAsync<T>(
-            Solution solution,
-            Checksum checksum,
-            bool loadOnly,
-            Func<Task<T>> createAsync,
-            string keySuffix,
-            Func<ObjectReader, T> tryReadObject,
-            CancellationToken cancellationToken) where T : class, IObjectWritable, IChecksummedObject
-        {
-            Func<Task<T>> wrappedTask = async () =>
-            {
-                using (Logger.LogBlock(FunctionId.SymbolTreeInfo_Create, cancellationToken))
-                {
-                    return await createAsync().ConfigureAwait(false);
-                }
-            };
-
-            return TryLoadOrCreateWorkerAsync(solution, checksum, loadOnly, wrappedTask, keySuffix, tryReadObject, cancellationToken);
-        }
-
-        /// <summary>
-        /// Generalized function for loading/creating/persisting data.  Used as the common core
-        /// code for serialization of SymbolTreeInfos and SpellCheckers.
-        /// </summary>
-        private static async Task<T> TryLoadOrCreateWorkerAsync<T>(
+        private static async Task<T> TryLoadOrCreateAsync<T>(
             Solution solution,
             Checksum checksum,
             bool loadOnly,
@@ -85,7 +61,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             {
                 if (checksum == null)
                 {
-                    return loadOnly ? null : await createAsync().ConfigureAwait(false);
+                    return loadOnly ? null : await CreateWithLoggingAsync().ConfigureAwait(false);
                 }
 
                 // Ok, we can use persistence.  First try to load from the persistence service.
@@ -123,7 +99,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     }
 
                     // Now, try to create a new instance and write it to the persistence service.
-                    result = await createAsync().ConfigureAwait(false);
+                    result = await CreateWithLoggingAsync().ConfigureAwait(false);
                     Contract.ThrowIfNull(result);
 
                     using (var stream = SerializableBytes.CreateWritableStream())
@@ -138,6 +114,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
                 return result;
             }
+
+            async Task<T> CreateWithLoggingAsync()
+            {
+                using (Logger.LogBlock(FunctionId.SymbolTreeInfo_Create, cancellationToken))
+                {
+                    return await createAsync().ConfigureAwait(false);
+                }
+            };
         }
 
         bool IObjectWritable.ShouldReuseInSerialization => true;
