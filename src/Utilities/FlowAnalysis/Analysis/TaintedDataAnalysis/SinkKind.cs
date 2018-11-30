@@ -5,5 +5,6 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
     public enum SinkKind
     {
         Sql,
+        Dll,
     }
 }

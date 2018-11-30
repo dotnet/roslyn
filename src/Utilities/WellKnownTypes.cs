@@ -127,6 +127,8 @@ namespace Analyzer.Utilities
         public const string SystemCollectionsGenericIReadOnlyCollection1 = "System.Collections.Generic.IReadOnlyCollection`1";
         public const string SystemRuntimeSerializationFormattersBinaryBinaryFormatter = "System.Runtime.Serialization.Formatters.Binary.BinaryFormatter";
         public const string SystemWebUILosFormatter = "System.Web.UI.LosFormatter";
+        public const string SystemReflectionAssembly = "System.Reflection.Assembly";
+        public const string SystemAppDomain = "System.AppDomain";
 
         public static INamedTypeSymbol ICollection(Compilation compilation)
         {

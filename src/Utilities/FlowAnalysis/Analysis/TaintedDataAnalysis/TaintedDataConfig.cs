@@ -166,6 +166,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             switch (sinkKind)
             {
                 case SinkKind.Sql:
+                case SinkKind.Dll:
                     return WebInputSources.SourceInfos;
                     
                 default:
@@ -181,6 +182,9 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 case SinkKind.Sql:
                     return PrimitiveTypeConverterSanitizers.SanitizerInfos;
 
+                case SinkKind.Dll:
+                    return ImmutableHashSet<SanitizerInfo>.Empty;
+
                 default:
                     Debug.Fail($"Unhandled SinkKind {sinkKind}");
                     return ImmutableHashSet<SanitizerInfo>.Empty;
@@ -193,6 +197,9 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             {
                 case SinkKind.Sql:
                     return SqlSinks.SinkInfos;
+
+                case SinkKind.Dll:
+                    return DllSinks.SinkInfos;
 
                 default:
                     Debug.Fail($"Unhandled SinkKind {sinkKind}");
