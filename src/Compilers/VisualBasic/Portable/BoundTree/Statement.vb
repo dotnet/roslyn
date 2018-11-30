@@ -70,11 +70,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
     Partial Friend Class BoundRaiseEventStatement
         Implements IBoundInvalidNode
-        Protected Overrides ReadOnly Property Children As ImmutableArray(Of BoundNode)
-            Get
-                Return ImmutableArray.Create(Of BoundNode)(Me.EventInvocation)
-            End Get
-        End Property
 
         Private ReadOnly Property IBoundInvalidNode_InvalidNodeChildren As ImmutableArray(Of BoundNode) Implements IBoundInvalidNode.InvalidNodeChildren
             Get

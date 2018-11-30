@@ -271,7 +271,7 @@ Namespace Microsoft.CodeAnalysis.Operations
                     syntax:=value.Syntax,
                     isImplicit:=True)
             Else
-                Debug.Assert(argument IsNot valueNode.Syntax OrElse valueNode.Syntax Is CreateInternal(valueNode).Syntax)
+                Debug.Assert(argument IsNot valueNode.Syntax OrElse valueNode.Syntax Is Create(valueNode).Syntax)
                 Return New VisualBasicLazyArgumentOperation(
                     Me,
                     valueNode,
