@@ -256,7 +256,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol inputType,
             TypeSymbol patternType,
             bool patternTypeWasInSource,
-            bool isVar,
             DiagnosticBag diagnostics)
         {
             Debug.Assert((object)inputType != null);
@@ -272,7 +271,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 diagnostics.Add(ErrorCode.ERR_PointerTypeInPatternMatching, typeSyntax.Location);
                 return true;
             }
-            else if (patternType.IsNullableType() && !isVar && patternTypeWasInSource)
+            else if (patternType.IsNullableType() && patternTypeWasInSource)
             {
                 // It is an error to use pattern-matching with a nullable type, because you'll never get null. Use the underlying type.
                 Error(diagnostics, ErrorCode.ERR_PatternNullableType, typeSyntax, patternType, patternType.GetNullableUnderlyingType());
@@ -283,7 +282,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Error(diagnostics, ErrorCode.ERR_VarDeclIsStaticClass, typeSyntax, patternType);
                 return true;
             }
-            else if (!isVar)
+            else
             {
                 if (patternType.IsDynamic())
                 {
@@ -360,9 +359,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             DiagnosticBag diagnostics)
         {
             TypeSyntax typeSyntax = node.Type;
-            BoundTypeExpression boundDeclType = BindPatternType(typeSyntax, inputType, diagnostics, ref hasErrors, out bool isVar);
-            Debug.Assert(!typeSyntax.IsVar); // if the syntax had `var`, it would have been parsed as a var pattern.
-            Debug.Assert(!isVar);
+            BoundTypeExpression boundDeclType = BindPatternType(typeSyntax, inputType, diagnostics, ref hasErrors);
             TypeSymbol declType = boundDeclType.Type;
             inputValEscape = GetValEscape(declType, inputValEscape);
             BindPatternDesignation(
@@ -375,25 +372,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSyntax typeSyntax,
             TypeSymbol inputType,
             DiagnosticBag diagnostics,
-            ref bool hasErrors,
-            out bool isVar)
+            ref bool hasErrors)
         {
             Debug.Assert(inputType != (object)null);
-
-            AliasSymbol aliasOpt;
-            TypeSymbolWithAnnotations declType = BindTypeOrVarKeyword(typeSyntax, diagnostics, out isVar, out aliasOpt);
-            if (isVar)
-                declType = TypeSymbolWithAnnotations.Create(NonNullTypesContext, inputType);
-
-            if (declType.IsNull)
-            {
-                Debug.Assert(hasErrors);
-                declType = TypeSymbolWithAnnotations.Create(NonNullTypesContext, this.CreateErrorType("var"));
-            }
-
-            BoundTypeExpression boundDeclType = new BoundTypeExpression(typeSyntax, aliasOpt, inferredType: isVar, type: declType.TypeSymbol);
-            hasErrors |= CheckValidPatternType(typeSyntax, inputType, declType.TypeSymbol,
-                                               isVar: isVar, patternTypeWasInSource: true, diagnostics: diagnostics);
+            Debug.Assert(!typeSyntax.IsVar); // if the syntax had `var`, it would have been parsed as a var pattern.
+            TypeSymbolWithAnnotations declType = BindType(typeSyntax, diagnostics, out AliasSymbol aliasOpt);
+            Debug.Assert(!declType.IsNull);
+            BoundTypeExpression boundDeclType = new BoundTypeExpression(typeSyntax, aliasOpt, inferredType: false, type: declType.TypeSymbol);
+            hasErrors |= CheckValidPatternType(typeSyntax, inputType, declType.TypeSymbol, patternTypeWasInSource: true, diagnostics: diagnostics);
             return boundDeclType;
         }
 
@@ -476,19 +462,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (typeSyntax != null)
             {
-                boundDeclType = BindPatternType(typeSyntax, inputType, diagnostics, ref hasErrors, out bool isVar);
-                if (isVar)
-                {
-                    // The type `var` is not permitted in recursive patterns. If you want the type inferred, just omit it.
-                    if (!hasErrors)
-                    {
-                        diagnostics.Add(ErrorCode.ERR_InferredRecursivePatternType, typeSyntax.Location);
-                        hasErrors = true;
-                    }
-
-                    boundDeclType = new BoundTypeExpression(typeSyntax, aliasOpt: null, inferredType: true, type: inputType.StrippedType(), hasErrors: hasErrors);
-                }
-
+                boundDeclType = BindPatternType(typeSyntax, inputType, diagnostics, ref hasErrors);
                 return boundDeclType.Type;
             }
             else
@@ -620,10 +594,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                             diagnostics.Add(ErrorCode.ERR_DeconstructParameterNameMismatch, subPattern.NameColon.Name.Location, name, parameterName);
                         }
                     }
-                    else
-                    {
-                        Debug.Assert(deconstructMethod is ErrorMethodSymbol);
-                    }
                 }
 
                 var boundSubpattern = new BoundSubpattern(
@@ -740,6 +710,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (node.DeconstructionPatternClause == null)
             {
                 // ITuple matching only applies if there is a deconstruction pattern part.
+                // This can only occur as a result of syntax error recovery, if at all.
                 return false;
             }
 
@@ -941,7 +912,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             if (elementTypes.Length != tupleDesignation.Variables.Count && !hasErrors)
                             {
                                 diagnostics.Add(ErrorCode.ERR_WrongNumberOfSubpatterns, tupleDesignation.Location,
-                                    strippedInputType.TupleElementTypes, elementTypes.Length, tupleDesignation.Variables.Count);
+                                    strippedInputType, elementTypes.Length, tupleDesignation.Variables.Count);
                                 hasErrors = true;
                             }
                             for (int i = 0; i < tupleDesignation.Variables.Count; i++)

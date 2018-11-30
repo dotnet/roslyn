@@ -129,13 +129,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// </summary>
             protected class WhenClauseMightAssignWalker : BoundTreeWalkerWithStackGuardWithoutRecursionOnTheLeftOfBinaryOperator
             {
-                private readonly bool _isSwitchStatement;
                 private bool _mightAssignSomething;
-
-                internal WhenClauseMightAssignWalker(bool isSwitchStatement)
-                {
-                    this._isSwitchStatement = isSwitchStatement;
-                }
 
                 public bool MightAssignSomething(BoundExpression expr)
                 {
@@ -149,14 +143,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return this._mightAssignSomething;
                 }
 
+                public override BoundNode Visit(BoundNode node)
+                {
+                    // Stop visiting once we determine something might get assigned
+                    return this._mightAssignSomething ? null : base.Visit(node);
+                }
+
                 public override BoundNode VisitCall(BoundCall node)
                 {
-                    _mightAssignSomething =
+                    bool mightMutate =
                         // might be a call to a local function that assigns something
                         node.Method.MethodKind == MethodKind.LocalFunction ||
                         // or perhaps we are passing a variable by ref and mutating it that way
                         !node.ArgumentRefKindsOpt.IsDefault;
-                    return base.VisitCall(node);
+
+                    if (mightMutate)
+                        _mightAssignSomething = true;
+                    else
+                        base.VisitCall(node);
+
+                    return null;
                 }
 
                 public override BoundNode VisitAssignmentOperator(BoundAssignmentOperator node)
@@ -177,42 +183,74 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return null;
                 }
 
+                public override BoundNode VisitIncrementOperator(BoundIncrementOperator node)
+                {
+                    _mightAssignSomething = true;
+                    return null;
+                }
+
                 public override BoundNode VisitDynamicInvocation(BoundDynamicInvocation node)
                 {
                     // perhaps we are passing a variable by ref and mutating it that way
-                    _mightAssignSomething = !node.ArgumentRefKindsOpt.IsDefault;
-                    return base.VisitDynamicInvocation(node);
+                    if (!node.ArgumentRefKindsOpt.IsDefault)
+                        _mightAssignSomething = true;
+                    else
+                        base.VisitDynamicInvocation(node);
+
+                    return null;
                 }
 
                 public override BoundNode VisitObjectCreationExpression(BoundObjectCreationExpression node)
                 {
                     // perhaps we are passing a variable by ref and mutating it that way
-                    _mightAssignSomething = !node.ArgumentRefKindsOpt.IsDefault;
-                    return base.VisitObjectCreationExpression(node);
+                    if (!node.ArgumentRefKindsOpt.IsDefault)
+                        _mightAssignSomething = true;
+                    else
+                        base.VisitObjectCreationExpression(node);
+
+                    return null;
                 }
 
                 public override BoundNode VisitDynamicObjectCreationExpression(BoundDynamicObjectCreationExpression node)
                 {
-                    _mightAssignSomething = !node.ArgumentRefKindsOpt.IsDefault;
-                    return base.VisitDynamicObjectCreationExpression(node);
+                    if (!node.ArgumentRefKindsOpt.IsDefault)
+                        _mightAssignSomething = true;
+                    else
+                        base.VisitDynamicObjectCreationExpression(node);
+
+                    return null;
                 }
 
                 public override BoundNode VisitObjectInitializerMember(BoundObjectInitializerMember node)
                 {
-                    _mightAssignSomething = !node.ArgumentRefKindsOpt.IsDefault;
-                    return base.VisitObjectInitializerMember(node);
+                    // Although ref indexers are not declarable in C#, they may be usable
+                    if (!node.ArgumentRefKindsOpt.IsDefault)
+                        _mightAssignSomething = true;
+                    else
+                        base.VisitObjectInitializerMember(node);
+
+                    return null;
                 }
 
                 public override BoundNode VisitIndexerAccess(BoundIndexerAccess node)
                 {
-                    _mightAssignSomething = !node.ArgumentRefKindsOpt.IsDefault;
-                    return base.VisitIndexerAccess(node);
+                    // Although property arguments with ref indexers are not declarable in C#, they may be usable
+                    if (!node.ArgumentRefKindsOpt.IsDefault)
+                        _mightAssignSomething = true;
+                    else
+                        base.VisitIndexerAccess(node);
+
+                    return null;
                 }
 
                 public override BoundNode VisitDynamicIndexerAccess(BoundDynamicIndexerAccess node)
                 {
-                    _mightAssignSomething = !node.ArgumentRefKindsOpt.IsDefault;
-                    return base.VisitDynamicIndexerAccess(node);
+                    if (!node.ArgumentRefKindsOpt.IsDefault)
+                        _mightAssignSomething = true;
+                    else
+                        base.VisitDynamicIndexerAccess(node);
+
+                    return null;
                 }
             }
 
@@ -227,7 +265,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // in a different section via the use of a local function), so we need to analyze all
                 // of the when clauses to see if they are all simple enough to conclude that they do
                 // not mutate pattern variables.
-                var mightAssignWalker = new WhenClauseMightAssignWalker(isSwitchStatement: this._isSwitchStatement);
+                var mightAssignWalker = new WhenClauseMightAssignWalker();
                 bool canShareTemps =
                     !decisionDag.TopologicallySortedNodes
                     .Any(node => node is BoundWhenDecisionDagNode w && mightAssignWalker.MightAssignSomething(w.WhenExpression));
@@ -458,6 +496,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var module = _localRewriter.EmitModule;
                 if (module == null)
                 {
+                    // we're not generating code, so we don't need the hash function
                     return;
                 }
 
@@ -513,22 +552,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 LabelSymbol labelToSectionScope = GetDagNodeLabel(whenClause);
 
                 // We need the section syntax to get the section builder from the map. Unfortunately this is a bit awkward
-                SyntaxNode sectionSyntax;
-                switch (whenClause.Syntax)
-                {
-                    case WhenClauseSyntax w:
-                        sectionSyntax = w.Parent.Parent;
-                        break;
-                    case SwitchLabelSyntax l:
-                        sectionSyntax = l.Parent;
-                        break;
-                    case SwitchExpressionArmSyntax a:
-                        sectionSyntax = a;
-                        break;
-                    default:
-                        throw ExceptionUtilities.UnexpectedValue(whenClause.Syntax.Kind());
-                }
-
+                SyntaxNode sectionSyntax = whenClause.Syntax is SwitchLabelSyntax l ? l.Parent : whenClause.Syntax;
                 bool foundSectionBuilder = _switchArms.TryGetValue(sectionSyntax, out ArrayBuilder<BoundStatement> sectionBuilder);
                 Debug.Assert(foundSectionBuilder);
                 sectionBuilder.Add(_factory.Label(labelToSectionScope));
