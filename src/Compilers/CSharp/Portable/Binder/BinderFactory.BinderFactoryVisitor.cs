@@ -643,8 +643,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // we are visiting type declarations fairly frequently
                 // and position is more likely to be in the body, so lets check for "inBody" first.
-                if (LookupPosition.IsBetweenTokens(_position, parent.OpenBraceToken, parent.CloseBraceToken) ||
-                    LookupPosition.IsInAttributeSpecification(_position, parent.AttributeLists))
+                if (parent.OpenBraceToken != default &&
+                    parent.CloseBraceToken != default &&
+                    (LookupPosition.IsBetweenTokens(_position, parent.OpenBraceToken, parent.CloseBraceToken) ||
+                     LookupPosition.IsInAttributeSpecification(_position, parent.AttributeLists)))
                 {
                     extraInfo = NodeUsage.NamedTypeBodyOrTypeParameters;
                 }
@@ -654,7 +656,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else if (LookupPosition.IsBetweenTokens(_position, parent.Keyword, parent.OpenBraceToken))
                 {
-                    extraInfo = NodeUsage.NamedTypeBaseList;
+                    extraInfo = NodeUsage.NamedTypeBaseListOrParameterList;
                 }
 
                 return VisitTypeDeclarationCore(parent, extraInfo);
@@ -679,7 +681,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         var typeSymbol = ((NamespaceOrTypeSymbol)resultBinder.ContainingMemberOrLambda).GetSourceTypeMember(parent);
 
-                        if (extraInfo == NodeUsage.NamedTypeBaseList)
+                        if (extraInfo == NodeUsage.NamedTypeBaseListOrParameterList)
                         {
                             // even though there could be no type parameter, we need this binder 
                             // for its "IsAccessible"

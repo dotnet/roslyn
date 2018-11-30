@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             OperatorBody = 1 << 0,
 
             NamedTypeBodyOrTypeParameters = 1 << 0,
-            NamedTypeBaseList = 1 << 1,
+            NamedTypeBaseListOrParameterList = 1 << 1,
 
             NamespaceBody = 1 << 0,
             NamespaceUsings = 1 << 1,
