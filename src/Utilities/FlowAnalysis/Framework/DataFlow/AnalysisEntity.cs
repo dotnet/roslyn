@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             Debug.Assert(symbolOpt != null || !indices.IsEmpty || instanceReferenceOperationSyntaxOpt != null || captureIdOpt.HasValue);
             Debug.Assert(location != null);
             Debug.Assert(type != null);
-            Debug.Assert(parentOpt == null || parentOpt.Type.HasValueCopySemantics());
+            Debug.Assert(parentOpt == null || parentOpt.Type.HasValueCopySemantics() || !indices.IsEmpty);
 
             SymbolOpt = symbolOpt;
             Indices = indices;
@@ -183,7 +183,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         public AnalysisEntity ParentOpt { get; }
         public bool IsThisOrMeInstance { get; }
 
-        public bool HasUnknownInstanceLocation => InstanceLocation.Kind == PointsToAbstractValueKind.Unknown;
+        public bool HasUnknownInstanceLocationWithEmptyLocations => InstanceLocation == PointsToAbstractValue.Unknown;
 
         public bool EqualsIgnoringInstanceLocation(AnalysisEntity other)
         {

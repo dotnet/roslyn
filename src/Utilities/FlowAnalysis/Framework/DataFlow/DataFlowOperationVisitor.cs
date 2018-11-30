@@ -121,6 +121,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         protected bool IsInsideAnonymousObjectInitializer { get; private set; }
 
         protected bool IsLValueFlowCapture(CaptureId captureId) => _lValueFlowCaptures.Contains(captureId);
+        protected bool IsLValueFlowCaptureEntity(AnalysisEntity analysisEntity)
+            => analysisEntity.CaptureIdOpt != null && IsLValueFlowCapture(analysisEntity.CaptureIdOpt.Value.Id);
 
         protected virtual int GetAllowedInterproceduralCallChain() => MaxInterproceduralCallChain;
 
@@ -254,7 +256,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 {
                     IParameterSymbol parameter = parameters[i];
                     PointsToAbstractValue instanceLocation = interproceduralAnalysisData.Arguments[i].InstanceLocation;
-                    if (parameter.RefKind != RefKind.None && instanceLocation.Kind != PointsToAbstractValueKind.Unknown)
+                    if (parameter.RefKind != RefKind.None && instanceLocation != PointsToAbstractValue.Unknown)
                     {
                         yield return new KeyValuePair<ISymbol, PointsToAbstractValue>(parameter, instanceLocation);
                     }

@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
                 Debug.Assert(ReferenceEquals(sourceCopyAnalysisData, targetCopyAnalysisData) || fromPredicate);
 
                 // Don't track entities if do not know about it's instance location.
-                if (analysisEntity.HasUnknownInstanceLocation)
+                if (analysisEntity.HasUnknownInstanceLocationWithEmptyLocations)
                 {
                     return;
                 }
@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
                         value = fixedUpValue;
                     }
 
-                    var validEntities = value.AnalysisEntities.Where(entity => !entity.HasUnknownInstanceLocation).ToImmutableHashSet();
+                    var validEntities = value.AnalysisEntities.Where(entity => !entity.HasUnknownInstanceLocationWithEmptyLocations).ToImmutableHashSet();
                     if (validEntities.Count < value.AnalysisEntities.Count)
                     {
                         value = validEntities.Count > 0 ? new CopyAbstractValue(validEntities) : CopyAbstractValue.Unknown;
@@ -195,7 +195,10 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
 
             private CopyAbstractValue GetDefaultCopyValue(AnalysisEntity analysisEntity)
                 => TryGetAddressSharedCopyValue(analysisEntity) ?? new CopyAbstractValue(analysisEntity);
-            protected override void ResetCurrentAnalysisData() => CurrentAnalysisData.Reset(GetDefaultCopyValue);
+
+            private CopyAbstractValue GetResetValue(AnalysisEntity analysisEntity, CopyAbstractValue currentValue)
+                => currentValue.AnalysisEntities.Count > 1 ? GetDefaultCopyValue(analysisEntity) : currentValue;
+            protected override void ResetCurrentAnalysisData() => CurrentAnalysisData.Reset(GetResetValue);
 
             protected override CopyAbstractValue ComputeAnalysisValueForReferenceOperation(IOperation operation, CopyAbstractValue defaultValue)
             {
