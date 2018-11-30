@@ -912,7 +912,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             if (elementTypes.Length != tupleDesignation.Variables.Count && !hasErrors)
                             {
                                 diagnostics.Add(ErrorCode.ERR_WrongNumberOfSubpatterns, tupleDesignation.Location,
-                                    strippedInputType.TupleElementTypes, elementTypes.Length, tupleDesignation.Variables.Count);
+                                    strippedInputType, elementTypes.Length, tupleDesignation.Variables.Count);
                                 hasErrors = true;
                             }
                             for (int i = 0; i < tupleDesignation.Variables.Count; i++)
