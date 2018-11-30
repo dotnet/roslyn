@@ -178,8 +178,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             diagnostics);
                         break;
 
-                    default:
-                        throw ExceptionUtilities.UnexpectedValue(type.Kind);
+                    case var value:
+                        throw ExceptionUtilities.UnexpectedValue(value);
                 }
 
                 if (destination.IsNullableType())
