@@ -344,7 +344,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 return parseFunc();
             }
-            catch (Exception ex) when (StackGuard.IsInsufficientExecutionStackException(ex))
+            catch (InsufficientExecutionStackException)
             {
                 return CreateForGlobalFailure(lexer.TextWindow.Position, createEmptyNodeFunc());
             }
@@ -364,6 +364,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
 
         private NamespaceDeclarationSyntax ParseNamespaceDeclaration()
+        {
+            _recursionDepth++;
+            StackGuard.EnsureSufficientExecutionStack(_recursionDepth);
+            var result = ParseNamespaceDeclarationCore();
+            _recursionDepth--;
+            return result;
+        }
+
+        private NamespaceDeclarationSyntax ParseNamespaceDeclarationCore()
         {
             if (this.IsIncrementalAndFactoryContextMatches && this.CurrentNodeKind == SyntaxKind.NamespaceDeclaration)
             {
@@ -2027,8 +2036,38 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
         }
 
+        public MemberDeclarationSyntax ParseMemberDeclaration()
+        {
+            // Use a parent kind that causes inclusion of only member declarations that could appear in a struct
+            // e.g. including fixed member declarations, but not statements.
+            const SyntaxKind parentKind = SyntaxKind.StructDeclaration;
+            return ParseWithStackGuard(
+                () => this.ParseMemberDeclarationOrStatement(parentKind),
+                () => createEmptyNodeFunc());
+
+            // Creates a dummy declaration node to which we can attach a stack overflow message
+            MemberDeclarationSyntax createEmptyNodeFunc()
+            {
+                return _syntaxFactory.IncompleteMember(
+                    new SyntaxList<AttributeListSyntax>(),
+                    new SyntaxList<SyntaxToken>(),
+                    CreateMissingIdentifierName()
+                    );
+            }
+        }
+
         // Returns null if we can't parse anything (even partially).
-        private MemberDeclarationSyntax ParseMemberDeclarationOrStatement(SyntaxKind parentKind)
+        internal MemberDeclarationSyntax ParseMemberDeclarationOrStatement(SyntaxKind parentKind)
+        {
+            _recursionDepth++;
+            StackGuard.EnsureSufficientExecutionStack(_recursionDepth);
+            var result = ParseMemberDeclarationOrStatementCore(parentKind);
+            _recursionDepth--;
+            return result;
+        }
+
+        // Returns null if we can't parse anything (even partially).
+        private MemberDeclarationSyntax ParseMemberDeclarationOrStatementCore(SyntaxKind parentKind)
         {
             // "top-level" expressions and statements should never occur inside an asynchronous context
             Debug.Assert(!IsInAsync);
@@ -4485,7 +4524,7 @@ tryAgain:
                 case SyntaxKind.OpenBracketToken:
                     bool sawNonOmittedSize;
                     _termState |= TerminatorState.IsPossibleEndOfVariableDeclaration;
-                    var specifier = this.ParseArrayRankSpecifier(isArrayCreation: false, expectSizes: flags == VariableFlags.Fixed, allowQuestionToken: false, sawNonOmittedSize: out sawNonOmittedSize);
+                    var specifier = this.ParseArrayRankSpecifier(isArrayCreation: false, expectSizes: flags == VariableFlags.Fixed, questionTokenModeOpt: null, sawNonOmittedSize: out sawNonOmittedSize);
                     _termState = saveTerm;
                     var open = specifier.OpenBracketToken;
                     var sizes = specifier.Sizes;
@@ -6175,7 +6214,6 @@ tryAgain:
             ParseTypeMode mode,
             bool expectSizes)
         {
-            var isOrAs = mode == ParseTypeMode.AsExpression || mode == ParseTypeMode.AfterIs;
             NameOptions nameOptions;
             switch (mode)
             {
@@ -6205,30 +6243,14 @@ tryAgain:
             }
 
             var type = this.ParseUnderlyingType(parentIsParameter: mode == ParseTypeMode.Parameter, options: nameOptions);
+            Debug.Assert(type != null);
 
-            if (this.CurrentToken.Kind == SyntaxKind.QuestionToken &&
-                // we do not permit nullable types in a declaration pattern
-                (mode != ParseTypeMode.AfterIs && mode != ParseTypeMode.AfterCase || !IsTrueIdentifier(this.PeekToken(1))))
+            if (this.CurrentToken.Kind == SyntaxKind.QuestionToken)
             {
-                var resetPoint = this.GetResetPoint();
-                try
+                var question = EatNullableQualifierIfApplicable(mode);
+                if (question != null)
                 {
-                    var question = this.EatToken();
-
-                    if (isOrAs && (IsTerm() || IsPredefinedType(this.CurrentToken.Kind) || SyntaxFacts.IsAnyUnaryExpression(this.CurrentToken.Kind)))
-                    {
-                        this.Reset(ref resetPoint);
-
-                        Debug.Assert(type != null);
-                        return type;
-                    }
-
-                    question = CheckFeatureAvailability(question, MessageID.IDS_FeatureNullable);
                     type = _syntaxFactory.NullableType(type, question);
-                }
-                finally
-                {
-                    this.Release(ref resetPoint);
                 }
             }
 
@@ -6262,7 +6284,7 @@ tryAgain:
                     while (this.IsPossibleRankAndDimensionSpecifier())
                     {
                         bool unused;
-                        var rank = this.ParseArrayRankSpecifier(mode == ParseTypeMode.ArrayCreation, expectSizes, allowQuestionToken: true, out unused);
+                        var rank = this.ParseArrayRankSpecifier(mode == ParseTypeMode.ArrayCreation, expectSizes, questionTokenModeOpt: mode, out unused);
                         ranks.Add(rank);
                         expectSizes = false;
                     }
@@ -6277,6 +6299,36 @@ tryAgain:
 
             Debug.Assert(type != null);
             return type;
+        }
+
+        private SyntaxToken EatNullableQualifierIfApplicable(ParseTypeMode mode)
+        {
+            Debug.Assert(this.CurrentToken.Kind == SyntaxKind.QuestionToken);
+
+            // we do not permit nullable types in a declaration pattern
+            if (mode != ParseTypeMode.AfterIs && mode != ParseTypeMode.AfterCase || !IsTrueIdentifier(this.PeekToken(1)))
+            {
+                var resetPoint = this.GetResetPoint();
+                try
+                {
+                    var question = this.EatToken();
+
+                    var isOrAs = mode == ParseTypeMode.AsExpression || mode == ParseTypeMode.AfterIs;
+                    if (isOrAs && (IsTerm() || IsPredefinedType(this.CurrentToken.Kind) || SyntaxFacts.IsAnyUnaryExpression(this.CurrentToken.Kind)))
+                    {
+                        this.Reset(ref resetPoint);
+                        return null;
+                    }
+
+                    return CheckFeatureAvailability(question, MessageID.IDS_FeatureNullable);
+                }
+                finally
+                {
+                    this.Release(ref resetPoint);
+                }
+            }
+
+            return null;
         }
 
         private bool PointerTypeModsFollowedByRankAndDimensionSpecifier()
@@ -6301,7 +6353,7 @@ tryAgain:
             return this.CurrentToken.Kind == SyntaxKind.OpenBracketToken;
         }
 
-        private ArrayRankSpecifierSyntax ParseArrayRankSpecifier(bool isArrayCreation, bool expectSizes, bool allowQuestionToken, out bool sawNonOmittedSize)
+        private ArrayRankSpecifierSyntax ParseArrayRankSpecifier(bool isArrayCreation, bool expectSizes, ParseTypeMode? questionTokenModeOpt, out bool sawNonOmittedSize)
         {
             sawNonOmittedSize = false;
             bool sawOmittedSize = false;
@@ -6368,9 +6420,9 @@ tryAgain:
                 var close = this.EatToken(SyntaxKind.CloseBracketToken);
 
                 SyntaxToken questionToken = null;
-                if (allowQuestionToken && this.CurrentToken.Kind == SyntaxKind.QuestionToken)
+                if (questionTokenModeOpt != null && this.CurrentToken.Kind == SyntaxKind.QuestionToken)
                 {
-                    questionToken = this.EatToken();
+                    questionToken = EatNullableQualifierIfApplicable(questionTokenModeOpt.GetValueOrDefault());
                 }
 
                 return _syntaxFactory.ArrayRankSpecifier(open, list, close, questionToken);
@@ -6639,6 +6691,7 @@ tryAgain:
                 case SyntaxKind.GotoKeyword:
                     return this.ParseGotoStatement();
                 case SyntaxKind.IfKeyword:
+                case SyntaxKind.ElseKeyword: // Including 'else' keyword to handle 'else without if' error cases 
                     return this.ParseIfStatement();
                 case SyntaxKind.LockKeyword:
                     return this.ParseLockStatement();
@@ -7299,6 +7352,7 @@ tryAgain:
                 case SyntaxKind.ForEachKeyword:
                 case SyntaxKind.GotoKeyword:
                 case SyntaxKind.IfKeyword:
+                case SyntaxKind.ElseKeyword:
                 case SyntaxKind.LockKeyword:
                 case SyntaxKind.ReturnKeyword:
                 case SyntaxKind.SwitchKeyword:
@@ -7894,14 +7948,18 @@ tryAgain:
 
         private IfStatementSyntax ParseIfStatement()
         {
-            Debug.Assert(this.CurrentToken.Kind == SyntaxKind.IfKeyword);
-            var @if = this.EatToken(SyntaxKind.IfKeyword);
+            Debug.Assert(this.CurrentToken.Kind == SyntaxKind.IfKeyword || this.CurrentToken.Kind == SyntaxKind.ElseKeyword);
+
+            bool firstTokenIsElse = this.CurrentToken.Kind == SyntaxKind.ElseKeyword;
+            var @if = firstTokenIsElse
+                ? this.EatToken(SyntaxKind.IfKeyword, ErrorCode.ERR_ElseCannotStartStatement)
+                : this.EatToken(SyntaxKind.IfKeyword);
             var openParen = this.EatToken(SyntaxKind.OpenParenToken);
             var condition = this.ParseExpressionCore();
             var closeParen = this.EatToken(SyntaxKind.CloseParenToken);
-            var statement = this.ParseEmbeddedStatement();
-            var elseClause = ParseElseClauseOpt();
-
+            var statement = firstTokenIsElse ? this.ParseExpressionStatement() : this.ParseEmbeddedStatement();
+            var elseClause = this.ParseElseClauseOpt();
+            
             return _syntaxFactory.IfStatement(@if, openParen, condition, closeParen, statement, elseClause);
         }
 
@@ -8736,6 +8794,7 @@ tryAgain:
                 case SyntaxKind.ForEachKeyword:
                 case SyntaxKind.GotoKeyword:
                 case SyntaxKind.IfKeyword:
+                case SyntaxKind.ElseKeyword:
                 case SyntaxKind.LockKeyword:
                 case SyntaxKind.ReturnKeyword:
                 case SyntaxKind.SwitchKeyword:

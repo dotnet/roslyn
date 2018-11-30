@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             return _forceImplicit || operation.IsImplicit;
         }
 
-        public static ControlFlowGraph Create(IOperation body, ControlFlowRegion enclosing = null, CaptureIdDispenser captureIdDispenser = null, in Context context = default)
+        public static ControlFlowGraph Create(IOperation body, ControlFlowGraph parent = null, ControlFlowRegion enclosing = null, CaptureIdDispenser captureIdDispenser = null, in Context context = default)
         {
             Debug.Assert(body != null);
             Debug.Assert(((Operation)body).OwningSemanticModel != null);
@@ -71,10 +71,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                     body.Kind == OperationKind.PropertyInitializer ||
                     body.Kind == OperationKind.ParameterInitializer,
                     $"Unexpected root operation kind: {body.Kind}");
+                Debug.Assert(parent == null);
             }
             else
             {
                 Debug.Assert(body.Kind == OperationKind.LocalFunction || body.Kind == OperationKind.AnonymousFunction);
+                Debug.Assert(parent != null);
             }
 #endif
 
@@ -135,7 +137,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             builder._regionMap.Free();
             builder._labeledBlocks?.Free();
 
-            return new ControlFlowGraph(body, builder._captureIdDispenser, ToImmutableBlocks(blocks), region, 
+            return new ControlFlowGraph(body, parent, builder._captureIdDispenser, ToImmutableBlocks(blocks), region, 
                                         localFunctions.ToImmutableAndFree(), localFunctionsMap.ToImmutable(),
                                         anonymousFunctionsMapOpt?.ToImmutable() ?? ImmutableDictionary<IFlowAnonymousFunctionOperation, (ControlFlowRegion, int)>.Empty);
         }
@@ -193,6 +195,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
 
         private static void MarkReachableBlocks(ArrayBuilder<BasicBlockBuilder> blocks)
         {
+            // NOTE: This flow graph walking algorithm has been forked into Workspaces layer's
+            //       implementation of "CustomDataFlowAnalysis",
+            //       we should keep them in sync as much as possible.
             var continueDispatchAfterFinally = PooledDictionary<ControlFlowRegion, bool>.GetInstance();
             var dispatchedExceptionsFromRegions = PooledHashSet<ControlFlowRegion>.GetInstance();
             MarkReachableBlocks(blocks, firstBlockOrdinal: 0, lastBlockOrdinal: blocks.Count - 1,

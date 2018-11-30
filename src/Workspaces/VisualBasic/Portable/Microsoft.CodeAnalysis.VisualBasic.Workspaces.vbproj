@@ -5,8 +5,9 @@
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <PlatformTarget>AnyCPU</PlatformTarget>
     <OutputType>Library</OutputType>
-    <TargetFramework>netstandard1.3</TargetFramework>
+    <TargetFramework>netstandard2.0</TargetFramework>
     <RootNamespace></RootNamespace>
+    <ApplyNgenOptimizationData>true</ApplyNgenOptimizationData>
 
     <!-- NuGet -->
     <IsPackable>true</IsPackable>

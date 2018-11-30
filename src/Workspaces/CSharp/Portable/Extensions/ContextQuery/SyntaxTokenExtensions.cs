@@ -9,7 +9,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 {
-    internal static class SyntaxTokenExtensions
+    internal static partial class SyntaxTokenExtensions
     {
         public static bool IsUsingOrExternKeyword(this SyntaxToken token)
         {
@@ -266,13 +266,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             }
 
             return false;
-        }
-
-        public static bool IsLastTokenOfNode<T>(this SyntaxToken token)
-            where T : SyntaxNode
-        {
-            var node = token.GetAncestor<T>();
-            return node != null && token == node.GetLastToken(includeZeroWidth: true);
         }
 
         public static bool IsLastTokenOfQueryClause(this SyntaxToken token)

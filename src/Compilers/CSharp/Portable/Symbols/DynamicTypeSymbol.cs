@@ -217,11 +217,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return false;
         }
 
-        internal override void AddNullableTransforms(ArrayBuilder<bool> transforms)
+        internal override void AddNullableTransforms(ArrayBuilder<byte> transforms)
         {
         }
 
-        internal override bool ApplyNullableTransforms(ImmutableArray<bool> transforms, INonNullTypesContext nonNullTypesContext, ref int position, out TypeSymbol result)
+        internal override bool ApplyNullableTransforms(byte defaultTransformFlag, ImmutableArray<byte> transforms, ref int position, out TypeSymbol result)
         {
             result = this;
             return true;
@@ -234,7 +234,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override TypeSymbol MergeNullability(TypeSymbol other, VarianceKind variance, out bool hadNullabilityMismatch)
         {
-            Debug.Assert(this.Equals(other, TypeCompareKind.IgnoreDynamicAndTupleNames));
+            Debug.Assert(this.Equals(other, TypeCompareKind.IgnoreDynamicAndTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes));
             hadNullabilityMismatch = false;
             return this;
         }

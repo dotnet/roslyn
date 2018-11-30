@@ -64,6 +64,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             Hierarchy = hierarchy;
             Guid = projectGuid;
             Language = language;
+            ProjectTracker = projectTracker;
             _visualStudioWorkspace = workspace;
 
             this.DisplayName = hierarchy != null && hierarchy.TryGetName(out var name) ? name : projectSystemName;
@@ -112,9 +113,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         internal HostDiagnosticUpdateSource HostDiagnosticUpdateSource { get; }
 
-        public virtual ProjectId Id => VisualStudioProject.Id;
+        public virtual ProjectId Id => VisualStudioProject?.Id ?? ExplicitId;
+
+        internal ProjectId ExplicitId { get; set; }
 
         public string Language { get; }
+        public VisualStudioProjectTracker ProjectTracker { get; }
 
         /// <summary>
         /// The <see cref="IVsHierarchy"/> for this project.  NOTE: May be null in Deferred Project Load cases.

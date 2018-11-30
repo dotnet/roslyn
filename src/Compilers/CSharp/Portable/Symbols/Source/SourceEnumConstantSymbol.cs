@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         break;
 
                     case CompletionPart.FixedSize:
-                        Debug.Assert(!this.IsFixed);
+                        Debug.Assert(!this.IsFixedSizeBuffer);
                         state.NotePartComplete(CompletionPart.FixedSize);
                         break;
 

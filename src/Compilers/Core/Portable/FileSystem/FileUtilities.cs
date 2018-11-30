@@ -405,13 +405,12 @@ namespace Roslyn.Utilities
             {
                 throw;
             }
-            catch (IOException e)
+            catch (DirectoryNotFoundException e)
             {
-                if (e.GetType().Name == "DirectoryNotFoundException")
-                {
-                    throw new FileNotFoundException(e.Message, path, e);
-                }
-
+                throw new FileNotFoundException(e.Message, path, e);
+            }
+            catch (IOException)
+            {
                 throw;
             }
             catch (Exception e)

@@ -6,7 +6,8 @@
     <PlatformTarget>AnyCPU</PlatformTarget>
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.CSharp</RootNamespace>
-    <TargetFramework>netstandard1.3</TargetFramework>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <ApplyNgenOptimizationData>true</ApplyNgenOptimizationData>
 
     <!-- NuGet -->
     <IsPackable>true</IsPackable>
@@ -65,7 +66,6 @@
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="System.ValueTuple" Version="$(SystemValueTupleVersion)" />
     <PackageReference Include="Humanizer.Core" Version="$(HumanizerCoreVersion)" PrivateAssets="all" />
   </ItemGroup>
   <Import Project="..\..\..\Compilers\CSharp\CSharpAnalyzerDriver\CSharpAnalyzerDriver.projitems" Label="Shared" />

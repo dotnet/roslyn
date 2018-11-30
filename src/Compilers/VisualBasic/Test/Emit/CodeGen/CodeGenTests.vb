@@ -3254,7 +3254,7 @@ End Module</file>
         End Sub
 
         <Fact()>
-        public Sub TestNullCoalesce_NullableWithDefault_Optimization()
+        Public Sub TestNullCoalesce_NullableWithDefault_Optimization()
             CompileAndVerify(
 <compilation>
     <file name="a.vb">
@@ -3368,7 +3368,7 @@ End Module</file>
         End Sub
 
         <Fact()>
-        public Sub TestNullCoalesce_NullableWithConvertedDefault_Optimization()
+        Public Sub TestNullCoalesce_NullableWithConvertedDefault_Optimization()
             CompileAndVerify(
 <compilation>
     <file name="a.vb">
@@ -13632,12 +13632,13 @@ End Class
         <NoIOperationValidationFact>
         <WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")>
         Public Sub EmitSequenceOfBinaryExpressions_04()
+            Dim size = 8192
             Dim source =
 $"
 Class Test
     Shared Sub Main()
-        Dim f = new Single?(4096-1) {{}}
-        for i As Integer = 0 To 4095
+        Dim f = new Single?({size}-1) {{}}
+        for i As Integer = 0 To ({size} - 1)
             f(i) = 4096 - i
         Next
 
@@ -13645,7 +13646,7 @@ Class Test
     End Sub
 
     Shared Function Calculate(f As Single?()) As Double?
-        Return {BuildSequenceOfBinaryExpressions_01()}
+        Return {BuildSequenceOfBinaryExpressions_01(size)}
     End Function
 End Class
 "
@@ -14753,6 +14754,36 @@ End Module
   IL_0014:  call       "Function String.Concat(String, String) As String"
   IL_0019:  ret
 }
+]]>)
+        End Sub
+
+        Public Sub NormalizedNaN()
+            CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Class Program
+    Shared Sub Main()
+        CheckNaN(Double.NaN)
+        CheckNaN(Single.NaN)
+        CheckNaN(0.0 / 0.0)
+        CheckNaN(0.0 / -0.0)
+        Dim inf As Double = 1.0 / 0.0
+        CheckNaN(inf + Double.NaN)
+        CheckNaN(inf - Double.NaN)
+        CheckNaN(-Double.NaN)
+    End Sub
+
+    Shared Sub CheckNaN(nan As Double)
+        Dim expected As Long = &amp;HFFF8000000000000
+        Dim actual As Long = System.BitConverter.DoubleToInt64Bits(nan)
+        If expected &lt;> actual Then
+            Throw New System.Exception($"expected=0X{expected: X} actual=0X{actual:X}")
+        End If
+    End Sub
+End Class
+    </file>
+</compilation>,
+expectedOutput:=<![CDATA[
 ]]>)
         End Sub
 

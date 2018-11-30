@@ -538,7 +538,7 @@
   <data name="Show_name_suggestions" xml:space="preserve">
     <value>Show name s_uggestions</value>
   </data>
-  <data name="Generate Event Subscription" xml:space="preserve">
+  <data name="Generate_Event_Subscription" xml:space="preserve">
     <value>Generate Event Subscription</value>
   </data>
   <data name="Remove_unnecessary_usings" xml:space="preserve">
@@ -564,5 +564,11 @@
   </data>
   <data name="CSharp_Formatting_Rules" xml:space="preserve">
     <value>C# Formatting Rules</value>
+  </data>
+  <data name="Discard" xml:space="preserve">
+    <value>Discard</value>
+  </data>
+  <data name="Unused_local" xml:space="preserve">
+    <value>Unused local</value>
   </data>
 </root>

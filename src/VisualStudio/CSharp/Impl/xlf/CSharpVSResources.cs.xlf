@@ -22,6 +22,11 @@
         <target state="new">C# Formatting Rules</target>
         <note />
       </trans-unit>
+      <trans-unit id="Discard">
+        <source>Discard</source>
+        <target state="new">Discard</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Format_document_settings">
         <source>Format Document Settings (Experiment) </source>
         <target state="translated">Nastavení formátování dokumentu (experiment) </target>
@@ -365,6 +370,11 @@
       <trans-unit id="New_line_options_for_keywords">
         <source>New line options for keywords</source>
         <target state="translated">Možnosti nových řádků pro klíčová slova</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unused_local">
+        <source>Unused local</source>
+        <target state="new">Unused local</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_var_when_generating_locals">
@@ -732,7 +742,7 @@
         <target state="translated">Zobrazovat návr_hy názvů</target>
         <note />
       </trans-unit>
-      <trans-unit id="Generate Event Subscription">
+      <trans-unit id="Generate_Event_Subscription">
         <source>Generate Event Subscription</source>
         <target state="translated">Generovat odběr událostí</target>
         <note />

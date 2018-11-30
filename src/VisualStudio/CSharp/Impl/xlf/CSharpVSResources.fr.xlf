@@ -22,6 +22,11 @@
         <target state="new">C# Formatting Rules</target>
         <note />
       </trans-unit>
+      <trans-unit id="Discard">
+        <source>Discard</source>
+        <target state="new">Discard</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Format_document_settings">
         <source>Format Document Settings (Experiment) </source>
         <target state="translated">Paramètres de mise en forme du document (essai) </target>
@@ -365,6 +370,11 @@
       <trans-unit id="New_line_options_for_keywords">
         <source>New line options for keywords</source>
         <target state="translated">Nouvelles options de ligne pour les mots clés</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unused_local">
+        <source>Unused local</source>
+        <target state="new">Unused local</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_var_when_generating_locals">
@@ -732,7 +742,7 @@
         <target state="translated">Afficher les s_uggestions de nom</target>
         <note />
       </trans-unit>
-      <trans-unit id="Generate Event Subscription">
+      <trans-unit id="Generate_Event_Subscription">
         <source>Generate Event Subscription</source>
         <target state="translated">Générer un abonnement à des événements</target>
         <note />

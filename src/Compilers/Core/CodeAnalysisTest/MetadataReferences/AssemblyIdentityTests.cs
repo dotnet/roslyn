@@ -1,8 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-// Tests COM call into the CLR to compare identities
-#if NET46
-
 using System;
 using System.Collections.Immutable;
 using System.Globalization;
@@ -341,7 +338,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly), Reason = ConditionalSkipReason.TestExecutionNeedsDesktopTypes)]
         public void ToAssemblyName_Errors()
         {
             var ai = new AssemblyIdentity("goo", cultureName: "*");
@@ -361,7 +358,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             AssertEx.Equal(PublicKeyToken1, aiPkt);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.TestExecutionNeedsFusion)]
         public void FullKeyAndToken()
         {
             string displayPkt = "Goo, Version=1.0.0.0, Culture=neutral, PublicKeyToken=" + StrPublicKeyToken1;
@@ -384,4 +381,3 @@ namespace Microsoft.CodeAnalysis.UnitTests
     }
 }
 
-#endif

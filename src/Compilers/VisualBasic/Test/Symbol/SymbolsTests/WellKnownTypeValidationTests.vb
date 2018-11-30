@@ -528,10 +528,6 @@ End Namespace
                          WellKnownType.System_Runtime_CompilerServices_IsUnmanagedAttribute
                         ' Not always available.
                         Continue For
-                    Case WellKnownType.System_Runtime_CompilerServices_NonNullTypesAttribute,
-                         WellKnownType.Microsoft_CodeAnalysis_EmbeddedAttribute
-                        ' Injected type
-                        Continue For
                 End Select
 
                 Dim symbol = comp.GetWellKnownType(wkt)
@@ -586,10 +582,6 @@ End Namespace
                          WellKnownType.System_Runtime_CompilerServices_IsUnmanagedAttribute
                         ' Not always available.
                         Continue For
-                    Case WellKnownType.System_Runtime_CompilerServices_NonNullTypesAttribute,
-                         WellKnownType.Microsoft_CodeAnalysis_EmbeddedAttribute
-                        ' Injected type
-                        Continue For
                 End Select
 
                 Dim symbol = comp.GetWellKnownType(wkt)
@@ -623,9 +615,8 @@ End Namespace
                         ' Not a real value.
                         Continue For
                     Case WellKnownMember.System_Array__Empty,
-                         WellKnownMember.System_Runtime_CompilerServices_NullableAttribute__ctor,
+                         WellKnownMember.System_Runtime_CompilerServices_NullableAttribute__ctorByte,
                          WellKnownMember.System_Runtime_CompilerServices_NullableAttribute__ctorTransformFlags,
-                         WellKnownMember.System_Runtime_CompilerServices_NonNullTypesAttribute__ctor,
                          WellKnownMember.System_Span_T__ctor,
                          WellKnownMember.System_Span_T__get_Item,
                          WellKnownMember.System_Span_T__get_Length,
@@ -667,9 +658,6 @@ End Namespace
                          WellKnownMember.System_Range__FromStart,
                          WellKnownMember.System_Range__ToEnd
                         ' Not always available.
-                        Continue For
-                    Case WellKnownMember.Microsoft_CodeAnalysis_EmbeddedAttribute__ctor
-                        ' Injected type available in VB.
                         Continue For
                 End Select
 
@@ -750,9 +738,8 @@ End Namespace
                         ' The type is not embedded, so the member is not available.
                         Continue For
                     Case WellKnownMember.System_Array__Empty,
-                         WellKnownMember.System_Runtime_CompilerServices_NullableAttribute__ctor,
+                         WellKnownMember.System_Runtime_CompilerServices_NullableAttribute__ctorByte,
                          WellKnownMember.System_Runtime_CompilerServices_NullableAttribute__ctorTransformFlags,
-                         WellKnownMember.System_Runtime_CompilerServices_NonNullTypesAttribute__ctor,
                          WellKnownMember.System_Span_T__ctor,
                          WellKnownMember.System_Span_T__get_Item,
                          WellKnownMember.System_Span_T__get_Length,
@@ -794,9 +781,6 @@ End Namespace
                          WellKnownMember.System_Range__FromStart,
                          WellKnownMember.System_Range__ToEnd
                         ' Not always available.
-                        Continue For
-                    Case WellKnownMember.Microsoft_CodeAnalysis_EmbeddedAttribute__ctor
-                        ' Injected type available in VB.
                         Continue For
                 End Select
 

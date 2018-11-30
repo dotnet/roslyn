@@ -28,6 +28,7 @@ End Class");
         {
             VisualStudio.Editor.SetText(@"Class A
       Sub S(b as Bar)
+        Console.WriteLine(b)
       End Sub
 End Class");
             VisualStudio.Editor.Verify.ErrorTags("Microsoft.VisualStudio.Text.Tagging.ErrorTag:'Bar'[26-29]");

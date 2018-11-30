@@ -42,7 +42,7 @@ class Class
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
-        public async Task TestDeconstructionDeclaration_TypeParamters()
+        public async Task TestDeconstructionDeclaration_TypeParameters()
         {
             await TestInRegularAndScriptAsync(
 @"class Class<T>

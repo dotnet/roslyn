@@ -166,14 +166,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    // Well-known types that are injected cannot be referenced from another assembly
-                    bool includeReferences = type != WellKnownType.System_Runtime_CompilerServices_NonNullTypesAttribute &&
-                        type != WellKnownType.Microsoft_CodeAnalysis_EmbeddedAttribute;
-
                     // well-known types introduced before CSharp7 allow lookup ambiguity and report a warning
                     DiagnosticBag legacyWarnings = (type <= WellKnownType.CSharp7Sentinel) ? warnings : null;
                     result = this.Assembly.GetTypeByMetadataName(
-                        mdName, includeReferences: includeReferences, useCLSCompliantNameArityEncoding: true, isWellKnownType: true, conflicts: out conflicts,
+                        mdName, includeReferences: true, useCLSCompliantNameArityEncoding: true, isWellKnownType: true, conflicts: out conflicts,
                         warnings: legacyWarnings, ignoreCorLibraryDuplicatedTypes: ignoreCorLibraryDuplicatedTypes);
                 }
 
@@ -447,13 +443,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new SynthesizedAttributeData(ctorSymbol, arguments, namedStringArguments);
         }
 
-        internal SynthesizedAttributeData TrySynthesizeNonNullTypesAttribute(bool value)
-        {
-            return TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_NonNullTypesAttribute__ctor,
-                                          ImmutableArray.Create(new TypedConstant(GetSpecialType(SpecialType.System_Boolean), TypedConstantKind.Primitive, value)),
-                                          isOptionalUse: true);
-        }
-
         internal SynthesizedAttributeData SynthesizeDecimalConstantAttribute(decimal value)
         {
             bool isNegative;
@@ -583,7 +572,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 diagnosticsOpt,
                 locationOpt,
                 WellKnownType.System_Runtime_CompilerServices_NullableAttribute,
-                WellKnownMember.System_Runtime_CompilerServices_NullableAttribute__ctor,
+                WellKnownMember.System_Runtime_CompilerServices_NullableAttribute__ctorByte,
                 WellKnownMember.System_Runtime_CompilerServices_NullableAttribute__ctorTransformFlags);
         }
 
@@ -1069,7 +1058,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             protected override bool MatchTypeToTypeId(TypeSymbol type, int typeId)
             {
-                return (int)type.SpecialType == typeId;
+                if ((int)type.OriginalDefinition.SpecialType == typeId)
+                {
+                    if (type.IsDefinition)
+                    {
+                        return true;
+                    }
+
+                    return type.Equals(type.OriginalDefinition, TypeCompareKind.IgnoreNullableModifiersForReferenceTypes);
+                }
+
+                return false;
             }
         }
 
@@ -1087,7 +1086,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 WellKnownType wellKnownId = (WellKnownType)typeId;
                 if (wellKnownId.IsWellKnownType())
                 {
-                    return (type == _compilation.GetWellKnownType(wellKnownId));
+                    return type.Equals(_compilation.GetWellKnownType(wellKnownId), TypeCompareKind.IgnoreNullableModifiersForReferenceTypes);
                 }
 
                 return base.MatchTypeToTypeId(type, typeId);

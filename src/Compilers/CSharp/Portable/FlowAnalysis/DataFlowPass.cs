@@ -28,12 +28,6 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-#if REFERENCE_STATE
-    using OptionalState = Optional<DataFlowPass.LocalState>;
-#else
-    using OptionalState = Nullable<DataFlowPass.LocalState>;
-#endif
-
     /// <summary>
     /// Implement C# data flow analysis (definite assignment).
     /// </summary>
@@ -375,7 +369,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 walker.Free();
             }
 
-            if (member.NonNullTypes != null &&
+            if (member.NonNullTypes == true &&
                 compilation.LanguageVersion >= MessageID.IDS_FeatureNullableReferenceTypes.RequiredVersion())
             {
                 NullableWalker.Analyze(compilation, member, node, diagnostics);
@@ -771,7 +765,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         var fieldAccess = (BoundFieldAccess)expr;
                         var fieldSymbol = fieldAccess.FieldSymbol;
-                        if (fieldSymbol.IsStatic || fieldSymbol.IsFixed)
+                        if (fieldSymbol.IsStatic || fieldSymbol.IsFixedSizeBuffer)
                         {
                             return false;
                         }
@@ -827,7 +821,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 (object)fieldSymbol != null && //simplifies calling pattern for events
                 receiverOpt != null &&
                 !fieldSymbol.IsStatic &&
-                !fieldSymbol.IsFixed &&
+                !fieldSymbol.IsFixedSizeBuffer &&
                 receiverOpt.Kind != BoundKind.TypeExpression &&
                 MayRequireTrackingReceiverType(receiverOpt.Type) &&
                 !receiverOpt.Type.IsPrimitiveRecursiveStruct();
@@ -1332,7 +1326,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected override LocalState AllBitsSet()
         {
             var result = new LocalState(BitVector.AllSet(nextVariableSlot));
-            result.Assigned[0] = false;
+            result.Assigned[0] = false; // make the state reachable
             return result;
         }
 
@@ -1885,7 +1879,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.FieldAccess:
                     var field = (BoundFieldAccess)expr;
                     var symbol = field.FieldSymbol;
-                    if (!symbol.IsFixed && MayRequireTracking(field.ReceiverOpt, symbol))
+                    if (!symbol.IsFixedSizeBuffer && MayRequireTracking(field.ReceiverOpt, symbol))
                     {
                         CheckAssigned(expr, symbol, node);
                     }
@@ -1952,56 +1946,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-#region TryStatements
-        private OptionalState _tryState;
-
-        protected override void VisitTryBlock(BoundStatement tryBlock, BoundTryStatement node, ref LocalState tryState)
-        {
-            if (trackUnassignments)
-            {
-                OptionalState oldTryState = _tryState;
-                _tryState = AllBitsSet();
-                base.VisitTryBlock(tryBlock, node, ref tryState);
-                var tts = _tryState.Value;
-                IntersectWith(ref tryState, ref tts);
-                if (oldTryState.HasValue)
-                {
-                    var ots = oldTryState.Value;
-                    IntersectWith(ref ots, ref tts);
-                    oldTryState = ots;
-                }
-                _tryState = oldTryState;
-            }
-            else
-            {
-                base.VisitTryBlock(tryBlock, node, ref tryState);
-            }
-        }
-
         protected override void VisitCatchBlock(BoundCatchBlock catchBlock, ref LocalState finallyState)
-        {
-            if (trackUnassignments)
-            {
-                OptionalState oldTryState = _tryState;
-                _tryState = AllBitsSet();
-                VisitCatchBlockInternal(catchBlock, ref finallyState);
-                var tts = _tryState.Value;
-                IntersectWith(ref finallyState, ref tts);
-                if (oldTryState.HasValue)
-                {
-                    var ots = oldTryState.Value;
-                    IntersectWith(ref ots, ref tts);
-                    oldTryState = ots;
-                }
-                _tryState = oldTryState;
-            }
-            else
-            {
-                VisitCatchBlockInternal(catchBlock, ref finallyState);
-            }
-        }
-
-        private void VisitCatchBlockInternal(BoundCatchBlock catchBlock, ref LocalState finallyState)
         {
             DeclareVariables(catchBlock.Locals);
 
@@ -2019,38 +1964,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        protected override void VisitFinallyBlock(BoundStatement finallyBlock, ref LocalState unsetInFinally)
-        {
-            if (trackUnassignments)
-            {
-                OptionalState oldTryState = _tryState;
-                _tryState = AllBitsSet();
-                base.VisitFinallyBlock(finallyBlock, ref unsetInFinally);
-                var tts = _tryState.Value;
-                IntersectWith(ref unsetInFinally, ref tts);
-                if (oldTryState.HasValue)
-                {
-                    var ots = oldTryState.Value;
-                    IntersectWith(ref ots, ref tts);
-                    oldTryState = ots;
-                }
-
-                _tryState = oldTryState;
-            }
-            else
-            {
-                base.VisitFinallyBlock(finallyBlock, ref unsetInFinally);
-            }
-        }
-
-#endregion TryStatements
-
         public override BoundNode VisitFieldAccess(BoundFieldAccess node)
         {
             var result = base.VisitFieldAccess(node);
             NoteRead(node.FieldSymbol);
 
-            if (node.FieldSymbol.IsFixed && node.Syntax != null && !SyntaxFacts.IsFixedStatementExpression(node.Syntax))
+            if (node.FieldSymbol.IsFixedSizeBuffer && node.Syntax != null && !SyntaxFacts.IsFixedStatementExpression(node.Syntax))
             {
                 Symbol receiver = UseNonFieldSymbolUnsafely(node.ReceiverOpt);
                 if ((object)receiver != null)

@@ -105,11 +105,11 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                     return new ConnectionData(CompletionReason.CompilationNotStarted);
                 }
                 
-                if(request.ProtocolVersion != BuildProtocolConstants.ProtocolVersion)
+                if (request.ProtocolVersion != BuildProtocolConstants.ProtocolVersion)
                 {
                     return await HandleMismatchedVersionRequest(cancellationToken).ConfigureAwait(false);
                 }
-                else if(!string.Equals(request.CompilerHash, BuildProtocolConstants.GetCommitHash(), StringComparison.OrdinalIgnoreCase))
+                else if (!string.Equals(request.CompilerHash, BuildProtocolConstants.GetCommitHash(), StringComparison.OrdinalIgnoreCase))
                 {
                     return await HandleIncorrectHashRequest(cancellationToken).ConfigureAwait(false);
                 }

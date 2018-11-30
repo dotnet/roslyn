@@ -1572,11 +1572,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        protected virtual LocalState AllBitsSet() // required for DataFlowsOutWalker
-        {
-            return default(LocalState);
-        }
-
         public sealed override BoundNode VisitReturnStatement(BoundReturnStatement node)
         {
             var result = VisitReturnStatementNoAdjust(node);
@@ -1775,7 +1770,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void VisitFieldAccessInternal(BoundExpression receiverOpt, FieldSymbol fieldSymbol)
         {
             bool asLvalue = (object)fieldSymbol != null &&
-                (fieldSymbol.IsFixed ||
+                (fieldSymbol.IsFixedSizeBuffer ||
                 !fieldSymbol.IsStatic &&
                 fieldSymbol.ContainingType.TypeKind == TypeKind.Struct &&
                 receiverOpt != null &&

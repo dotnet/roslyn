@@ -9,7 +9,7 @@
       </trans-unit>
       <trans-unit id="Change_configuration">
         <source>Change configuration</source>
-        <target state="new">Change configuration</target>
+        <target state="translated">Zmień konfigurację</target>
         <note />
       </trans-unit>
       <trans-unit id="Code_cleanup_is_not_configured">
@@ -27,9 +27,29 @@
         <target state="translated">Nie pokazuj tego komunikatu ponownie</target>
         <note />
       </trans-unit>
+      <trans-unit id="Do_you_still_want_to_proceed_This_may_produce_broken_code">
+        <source>Do you still want to proceed? This may produce broken code.</source>
+        <target state="new">Do you still want to proceed? This may produce broken code.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Extract_method_encountered_the_following_issues">
+        <source>Extract method encountered the following issues:</source>
+        <target state="new">Extract method encountered the following issues:</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Format_document_performed_additional_cleanup">
         <source>Format Document performed additional cleanup</source>
-        <target state="new">Format Document performed additional cleanup</target>
+        <target state="translated">Funkcja formatowania dokumentu wykonała dodatkowe czyszczenie</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Invalid_assembly_name">
+        <source>Invalid assembly name</source>
+        <target state="new">Invalid assembly name</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Invalid_characters_in_assembly_name">
+        <source>Invalid characters in assembly name</source>
+        <target state="new">Invalid characters in assembly name</target>
         <note />
       </trans-unit>
       <trans-unit id="Paste_Tracking">
@@ -885,16 +905,6 @@
       <trans-unit id="Automatic_Formatting">
         <source>Automatic Formatting</source>
         <target state="translated">Formatowanie automatyczne</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Extract_method_failed_with_following_reasons_colon">
-        <source>Extract method failed with following reasons :</source>
-        <target state="translated">Wyodrębnienie metody nie powiodło się z następujących przyczyn:</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Do_you_still_want_to_proceed_it_will_generate_broken_code">
-        <source>Do you still want to proceed? it will generate broken code.</source>
-        <target state="translated">Czy nadal chcesz kontynuować? Zostanie wygenerowany uszkodzony kod.</target>
         <note />
       </trans-unit>
       <trans-unit id="We_can_fix_the_error_by_not_making_struct_out_ref_parameter_s_Do_you_want_to_proceed">

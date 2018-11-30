@@ -159,15 +159,21 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         /// <exception cref="BadImageFormatException">The PE image format is invalid.</exception>
         /// <exception cref="IOException">IO error reading the metadata.</exception>
+        [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/30449")]
         private static ImmutableDictionary<string, ImmutableHashSet<string>> GetAnalyzerTypeNameMap(string fullPath, AttributePredicate attributePredicate)
         {
             using (var assembly = AssemblyMetadata.CreateFromFile(fullPath))
             {
+                // This is longer than strictly necessary to avoid thrashing the GC with string allocations
+                // in the call to GetFullyQualifiedTypeNames. Specifically, this checks for the presence of
+                // supported languages prior to creating the type names.
                 var typeNameMap = from module in assembly.GetModules()
                                   from typeDefHandle in module.MetadataReader.TypeDefinitions
                                   let typeDef = module.MetadataReader.GetTypeDefinition(typeDefHandle)
+                                  let supportedLanguages = GetSupportedLanguages(typeDef, module.Module, attributePredicate)
+                                  where supportedLanguages.Any()
                                   let typeName = GetFullyQualifiedTypeName(typeDef, module.Module)
-                                  from supportedLanguage in GetSupportedLanguages(typeDef, module.Module, attributePredicate)
+                                  from supportedLanguage in supportedLanguages
                                   group typeName by supportedLanguage;
 
                 return typeNameMap.ToImmutableDictionary(g => g.Key, g => g.ToImmutableHashSet());

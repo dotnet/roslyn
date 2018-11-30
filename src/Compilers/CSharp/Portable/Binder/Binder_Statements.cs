@@ -1105,7 +1105,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundKind.FieldAccess:
                     var fa = (BoundFieldAccess)initializerOpt;
-                    if (fa.FieldSymbol.IsFixed)
+                    if (fa.FieldSymbol.IsFixedSizeBuffer)
                     {
                         elementType = ((PointerTypeSymbol)fa.Type).PointedAtType.TypeSymbol;
                         break;
@@ -1517,6 +1517,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static bool AccessingAutoPropertyFromConstructor(BoundExpression receiver, PropertySymbol propertySymbol, Symbol fromMember)
         {
+            if (!propertySymbol.IsDefinition && propertySymbol.ContainingType.Equals(propertySymbol.ContainingType.OriginalDefinition, TypeCompareKind.IgnoreNullableModifiersForReferenceTypes))
+            {
+                propertySymbol = propertySymbol.OriginalDefinition;
+            }
+
             var sourceProperty = propertySymbol as SourcePropertySymbol;
             var propertyIsStatic = propertySymbol.IsStatic;
 
@@ -1599,7 +1604,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         internal virtual uint LocalScopeDepth => Next.LocalScopeDepth;
 
-        internal BoundBlock BindEmbeddedBlock(BlockSyntax node, DiagnosticBag diagnostics)
+        internal virtual BoundBlock BindEmbeddedBlock(BlockSyntax node, DiagnosticBag diagnostics)
         {
             return BindBlock(node, diagnostics);
         }
@@ -2477,10 +2482,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             return symbol?.Kind == SymbolKind.Method && ((MethodSymbol)symbol).IsGenericTaskReturningAsync(this.Compilation);
         }
 
-        protected bool IsIAsyncEnumerableReturningAsyncMethod()
+        protected bool IsIAsyncEnumerableOrIAsyncEnumeratorReturningAsyncMethod()
         {
             var symbol = this.ContainingMemberOrLambda;
-            return symbol?.Kind == SymbolKind.Method && ((MethodSymbol)symbol).IsIAsyncEnumerableReturningAsync(this.Compilation);
+            if (symbol?.Kind == SymbolKind.Method)
+            {
+                var method = (MethodSymbol)symbol;
+                return method.IsIAsyncEnumerableReturningAsync(this.Compilation) ||
+                    method.IsIAsyncEnumeratorReturningAsync(this.Compilation);
+            }
+            return false;
         }
 
         protected virtual TypeSymbol GetCurrentReturnType(out RefKind refKind)
@@ -2542,7 +2553,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     diagnostics.Add(ErrorCode.ERR_MustNotHaveRefReturn, syntax.ReturnKeyword.GetLocation());
                     hasErrors = true;
                 }
-                else if (IsIAsyncEnumerableReturningAsyncMethod())
+                else if (IsIAsyncEnumerableOrIAsyncEnumeratorReturningAsyncMethod())
                 {
                     diagnostics.Add(ErrorCode.ERR_ReturnInIterator, syntax.ReturnKeyword.GetLocation());
                     hasErrors = true;

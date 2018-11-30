@@ -19,7 +19,7 @@
       </trans-unit>
       <trans-unit id="Csc_InvalidParameterWarning">
         <source>MSB3052: The parameter to the compiler is invalid, '{0}{1}' will be ignored.</source>
-        <target state="translated">MSB3052: El parámetro del compilador no es válido; '{0}{1}' se omitirá.</target>
+        <target state="translated">MSB3052: El parámetro del compilador no es válido; "{0}{1}" se omitirá.</target>
         <note>{StrBegin="MSB3052: "}</note>
       </trans-unit>
       <trans-unit id="General_CannotConvertStringToBool">

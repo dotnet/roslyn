@@ -505,7 +505,10 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     !object.Equals(oldProject.CompilationOptions, newProject.CompilationOptions) ||
                     !object.Equals(oldProject.AssemblyName, newProject.AssemblyName) ||
                     !object.Equals(oldProject.Name, newProject.Name) ||
-                    !object.Equals(oldProject.AnalyzerOptions, newProject.AnalyzerOptions))
+                    !object.Equals(oldProject.AnalyzerOptions, newProject.AnalyzerOptions) ||
+                    !object.Equals(oldProject.DefaultNamespace, newProject.DefaultNamespace) ||
+                    !object.Equals(oldProject.OutputFilePath, newProject.OutputFilePath) ||
+                    !object.Equals(oldProject.OutputRefFilePath, newProject.OutputRefFilePath))
                 {
                     projectConfigurationChange = projectConfigurationChange.With(InvocationReasons.ProjectConfigurationChanged);
                 }
