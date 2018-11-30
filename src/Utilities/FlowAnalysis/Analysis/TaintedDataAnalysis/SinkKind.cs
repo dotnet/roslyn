@@ -2,7 +2,7 @@
 
 namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 {
-    internal enum SinkKind
+    public enum SinkKind
     {
         Sql,
     }
