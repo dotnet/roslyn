@@ -10315,12 +10315,14 @@ tryAgain:
             TypeSyntax type = null;
             InitializerExpressionSyntax initializer = null;
 
-            if (this.IsTargetTypedNew(out bool isPossibleArrayCreation))
+            var kind = ScanNewExpression();
+            if (kind == ScanNewExpressionKind.TargetTypedNew)
             {
                 @new = CheckFeatureAvailability(@new, MessageID.IDS_FeatureTargetTypedNew);
             }
             else
             {
+                bool isPossibleArrayCreation = (kind == ScanNewExpressionKind.ArrayCreation);
                 type = this.ParseType(
                     isPossibleArrayCreation
                         ? ParseTypeMode.ArrayCreation
@@ -10384,7 +10386,14 @@ tryAgain:
             return result;
         }
 
-        private bool IsTargetTypedNew(out bool isPossibleArrayCreation)
+        private enum ScanNewExpressionKind
+        {
+            Normal,
+            TargetTypedNew,
+            ArrayCreation
+        }
+
+        private ScanNewExpressionKind ScanNewExpression()
         {
             // previous token should be NewKeyword
 
@@ -10403,14 +10412,21 @@ tryAgain:
                 this.Release(ref resetPoint);
             }
 
-            isPossibleArrayCreation =
-                scanTypeFlags != ScanTypeFlags.NotType && tokenAfterType == SyntaxKind.OpenBracketToken;
+            if (scanTypeFlags != ScanTypeFlags.NotType && tokenAfterType == SyntaxKind.OpenBracketToken)
+            {
+                return ScanNewExpressionKind.ArrayCreation;
+            }
 
-            return !isPossibleArrayCreation && this.CurrentToken.Kind == SyntaxKind.OpenParenToken &&
+            if (this.CurrentToken.Kind == SyntaxKind.OpenParenToken &&
                 // Allow parsing of nullable tuple creation e.g. new(a, b)?()
                 scanTypeFlags != ScanTypeFlags.NullableType &&
                 // Allow parsing of erroneous tuple creation e.g. new(a, b)() for better error recovery
-                (scanTypeFlags != ScanTypeFlags.TupleType || tokenAfterType != SyntaxKind.OpenParenToken);
+                (scanTypeFlags != ScanTypeFlags.TupleType || tokenAfterType != SyntaxKind.OpenParenToken))
+            {
+                return ScanNewExpressionKind.TargetTypedNew;
+            }
+
+            return ScanNewExpressionKind.Normal;
         }
 
         private InitializerExpressionSyntax ParseObjectOrCollectionInitializer()
