@@ -18,7 +18,6 @@
     <Serviceable>true</Serviceable>
     <DevelopmentDependency>false</DevelopmentDependency>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
-    <PackageLicenseUrl>http://go.microsoft.com/fwlink/?LinkId=529443</PackageLicenseUrl>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
 
     <!-- Disable the message indicating we are using a preview SDK. That is understood and by design -->

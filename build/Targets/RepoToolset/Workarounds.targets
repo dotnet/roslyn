@@ -98,7 +98,6 @@
       <NuspecProperty Include="Serviceable=$(Serviceable)"/>
       <NuspecProperty Include="DevelopmentDependency=$(DevelopmentDependency)"/>
       <NuspecProperty Include="RequireLicenseAcceptance=$(PackageRequireLicenseAcceptance)"/>
-      <NuspecProperty Include="PackageLicenseUrl=$(PackageLicenseUrl)"/>
       <NuspecProperty Include="PackageProjectUrl=$(PackageProjectUrl)"/>
       <NuspecProperty Include="PackageIconUrl=$(PackageIconUrl)" Condition="'$(PackageIconUrl)' != ''" />
       <NuspecProperty Include="PackageReleaseNotes=$(PackageReleaseNotes)" Condition="'$(PackageReleaseNotes)' != ''" />

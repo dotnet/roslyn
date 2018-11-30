@@ -216,6 +216,13 @@
   </ItemGroup>
 
   <!--
+    Add licens to packable projects 
+  -->
+  <ItemGroup Condition="'$(IsPackable)' == 'true'">
+    <None Include="$(LicenseFilePath)" PackagePath="License.txt" Visible="false" Pack="true"/>
+  </ItemGroup>
+
+  <!--
     Append common text to package specific PackageDescription.
   -->
   <Target Name="_AppendCommonPackageDescription" 

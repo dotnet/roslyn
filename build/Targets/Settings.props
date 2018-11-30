@@ -8,12 +8,12 @@
   
   <PropertyGroup>
     <RepositoryUrl>https://github.com/dotnet/roslyn</RepositoryUrl>
-    <PackageLicenseUrl>$(RepositoryUrl)/blob/master/License.txt</PackageLicenseUrl>
+    <PackageLicenseFile>License.txt</PackageLicenseFile>
+    <LicenseFilePath>$(MSBuildThisFileDirectory)..\..\License.txt</LicenseFilePath>
     <RepositoryRawUrl>https://raw.githubusercontent.com/dotnet/roslyn</RepositoryRawUrl>
-    <PackageProjectUrl>https://github.com/dotnet/roslyn</PackageProjectUrl>
+    <!-- <PackageProjectUrl>https://github.com/dotnet/roslyn</PackageProjectUrl> -->
     <PackageTags>Roslyn CodeAnalysis Compiler CSharp VB VisualBasic Parser Scanner Lexer Emit CodeGeneration Metadata IL Compilation Scripting Syntax Semantics</PackageTags>
     <VSSDKTargetPlatformRegRootSuffix>RoslynDev</VSSDKTargetPlatformRegRootSuffix>
-    <NoWarn>$(NoWarn);NU5125</NoWarn>
   </PropertyGroup>
 
   <Import Project="RepoToolset\ProjectLayout.props" />
@@ -147,6 +147,8 @@
     <PackageReference Include="Microsoft.NetCore.Analyzers" Version="$(MicrosoftNetCoreAnalyzersVersion)" PrivateAssets="all" />
     <PackageReference Include="Roslyn.Diagnostics.Analyzers" Version="$(RoslynDiagnosticsAnalyzersVersion)" PrivateAssets="all" />
     <PackageReference Include="Microsoft.VisualStudio.Threading.Analyzers" Version="$(MicrosoftVisualStudioThreadingAnalyzersVersion)" PrivateAssets="all" />
+
+    <Content Include="$(MSBuildThisFileDirectory)..\..\License.txt" CopyToPublishDirectory="PreserveNewest" />
   </ItemGroup>
 
   <!--

@@ -6,7 +6,6 @@
     <version>$Version$</version>
     <authors>$Authors$</authors>
     <requireLicenseAcceptance>$RequireLicenseAcceptance$</requireLicenseAcceptance>
-    <licenseUrl>$PackageLicenseUrl$</licenseUrl>
     <projectUrl>$PackageProjectUrl$</projectUrl>
     <copyright>$Copyright$</copyright>
     <developmentDependency>$DevelopmentDependency$</developmentDependency>
