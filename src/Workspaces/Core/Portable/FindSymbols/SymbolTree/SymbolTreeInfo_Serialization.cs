@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// Generalized function for loading/creating/persisting data.  Used as the common core
         /// code for serialization of SymbolTreeInfos and SpellCheckers.
         /// </summary>
-        private static async Task<T> TryLoadOrCreateAsync<T>(
+        private static Task<T> TryLoadOrCreateAsync<T>(
             Solution solution,
             Checksum checksum,
             bool loadOnly,
@@ -57,60 +57,87 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             Func<ObjectReader, T> tryReadObject,
             CancellationToken cancellationToken) where T : class, IObjectWritable, IChecksummedObject
         {
-            if (checksum == null) 
+            Func<Task<T>> wrappedTask = async () =>
             {
-                return loadOnly ? null : await createAsync().ConfigureAwait(false);
-            }
-
-            // Ok, we can use persistence.  First try to load from the persistence service.
-            var persistentStorageService = (IPersistentStorageService2)solution.Workspace.Services.GetService<IPersistentStorageService>();
-
-            T result;
-            using (var storage = persistentStorageService.GetStorage(solution, checkBranchId: false))
-            {
-                // Get the unique key to identify our data.
-                var key = PrefixMetadataSymbolTreeInfo + keySuffix;
-                using (var stream = await storage.ReadStreamAsync(key, cancellationToken).ConfigureAwait(false))
-                using (var reader = ObjectReader.TryGetReader(stream))
+                using (Logger.LogBlock(FunctionId.SymbolTreeInfo_Create, cancellationToken))
                 {
-                    if (reader != null)
+                    return await createAsync().ConfigureAwait(false);
+                }
+            };
+
+            return TryLoadOrCreateWorkerAsync(solution, checksum, loadOnly, wrappedTask, keySuffix, tryReadObject, cancellationToken);
+        }
+
+        /// <summary>
+        /// Generalized function for loading/creating/persisting data.  Used as the common core
+        /// code for serialization of SymbolTreeInfos and SpellCheckers.
+        /// </summary>
+        private static async Task<T> TryLoadOrCreateWorkerAsync<T>(
+            Solution solution,
+            Checksum checksum,
+            bool loadOnly,
+            Func<Task<T>> createAsync,
+            string keySuffix,
+            Func<ObjectReader, T> tryReadObject,
+            CancellationToken cancellationToken) where T : class, IObjectWritable, IChecksummedObject
+        {
+            using (Logger.LogBlock(FunctionId.SymbolTreeInfo_TryLoadOrCreate, cancellationToken))
+            {
+                if (checksum == null)
+                {
+                    return loadOnly ? null : await createAsync().ConfigureAwait(false);
+                }
+
+                // Ok, we can use persistence.  First try to load from the persistence service.
+                var persistentStorageService = (IPersistentStorageService2)solution.Workspace.Services.GetService<IPersistentStorageService>();
+
+                T result;
+                using (var storage = persistentStorageService.GetStorage(solution, checkBranchId: false))
+                {
+                    // Get the unique key to identify our data.
+                    var key = PrefixMetadataSymbolTreeInfo + keySuffix;
+                    using (var stream = await storage.ReadStreamAsync(key, cancellationToken).ConfigureAwait(false))
+                    using (var reader = ObjectReader.TryGetReader(stream))
                     {
-                        // We have some previously persisted data.  Attempt to read it back.  
-                        // If we're able to, and the version of the persisted data matches
-                        // our version, then we can reuse this instance.
-                        result = tryReadObject(reader);
-                        if (result?.Checksum == checksum)
+                        if (reader != null)
                         {
-                            return result;
+                            // We have some previously persisted data.  Attempt to read it back.  
+                            // If we're able to, and the version of the persisted data matches
+                            // our version, then we can reuse this instance.
+                            result = tryReadObject(reader);
+                            if (result?.Checksum == checksum)
+                            {
+                                return result;
+                            }
                         }
+                    }
+
+                    cancellationToken.ThrowIfCancellationRequested();
+
+                    // Couldn't read from the persistence service.  If we've been asked to only load
+                    // data and not create new instances in their absence, then there's nothing left
+                    // to do at this point.
+                    if (loadOnly)
+                    {
+                        return null;
+                    }
+
+                    // Now, try to create a new instance and write it to the persistence service.
+                    result = await createAsync().ConfigureAwait(false);
+                    Contract.ThrowIfNull(result);
+
+                    using (var stream = SerializableBytes.CreateWritableStream())
+                    using (var writer = new ObjectWriter(stream, cancellationToken: cancellationToken))
+                    {
+                        result.WriteTo(writer);
+                        stream.Position = 0;
+
+                        await storage.WriteStreamAsync(key, stream, cancellationToken).ConfigureAwait(false);
                     }
                 }
 
-                cancellationToken.ThrowIfCancellationRequested();
-
-                // Couldn't read from the persistence service.  If we've been asked to only load
-                // data and not create new instances in their absence, then there's nothing left
-                // to do at this point.
-                if (loadOnly)
-                {
-                    return null;
-                }
-
-                // Now, try to create a new instance and write it to the persistence service.
-                result = await createAsync().ConfigureAwait(false);
-                Contract.ThrowIfNull(result);
-
-                using (var stream = SerializableBytes.CreateWritableStream())
-                using (var writer = new ObjectWriter(stream, cancellationToken: cancellationToken))
-                {
-                    result.WriteTo(writer);
-                    stream.Position = 0;
-
-                    await storage.WriteStreamAsync(key, stream, cancellationToken).ConfigureAwait(false);
-                }
+                return result;
             }
-
-            return result;
         }
 
         bool IObjectWritable.ShouldReuseInSerialization => true;
@@ -146,7 +173,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         internal static SymbolTreeInfo ReadSymbolTreeInfo_ForTestingPurposesOnly(
             ObjectReader reader, Checksum checksum)
         {
-            return TryReadSymbolTreeInfo(reader, 
+            return TryReadSymbolTreeInfo(reader,
                 (names, nodes) => Task.FromResult(
                     new SpellChecker(checksum, nodes.Select(n => new StringSlice(names, n.NameSpan)))));
         }

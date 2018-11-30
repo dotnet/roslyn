@@ -433,5 +433,9 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         Workspace_Events,
 
         Refactoring_ExtractMethod_UnknownMatrixItem,
+        SyntaxTreeIndex_Precalculate,
+        SyntaxTreeIndex_Precalculate_Create,
+        SymbolTreeInfo_Create,
+        SymbolTreeInfo_TryLoadOrCreate,
     }
 }
