@@ -178,7 +178,7 @@ namespace RunTests
                 }
                 else if (comparer.Equals(current, "-procdump"))
                 {
-                    opt.UseProcDump = false;
+                    opt.UseProcDump = true;
                     index++;
                 }
                 else
