@@ -10,7 +10,7 @@ $branchNames = @(
 function Get-AzureBadge($branchName, $jobName, $configName, [switch]$integration = $false) {
     $name = if ($integration) { "roslyn-integration-CI" } else { "roslyn-CI" }
     $id = if ($integration) { 245 } else { 15 }
-    $template = "[![Build Status](https://dev.azure.com/dnceng/public/_apis/build/status/dotnet/roslyn/$($name)?label=build&branchname=$branchName&jobname=$jobName&configuration=$configName)]"
+    $template = "[![Build Status](https://dev.azure.com/dnceng/public/_apis/build/status/dotnet/roslyn/$($name)?branchname=$branchName&jobname=$jobName&configuration=$configName)]"
     $template += "(https://dev.azure.com/dnceng/public/_build/latest?definitionId=$($id)&branchname=$branchName&view=logs)"
     return $template
 }
@@ -35,15 +35,12 @@ function Get-DesktopTable() {
         'Windows_Desktop_Unit_Tests#debug_64'
         'Windows_Desktop_Unit_Tests#release_32'
         'Windows_Desktop_Unit_Tests#release_64'
-        'Windows_Desktop_Spanish_Unit_Tests#',
-        'Windows_Determinism_Test#',
-        'Windows_Correctness_Test#'
     )
 
     $table = @'
 ### Desktop Unit Tests
-|Branch|Debug x86|Debug x64|Release x86|Release x64|Spanish|
-|:--:|:--:|:--:|:--:|:--:|:--:|
+|Branch|Debug x86|Debug x64|Release x86|Release x64|
+|:--:|:--:|:--:|:--:|:--:|
 
 '@
     foreach ($branchName in $branchNames) {
@@ -96,13 +93,14 @@ function Get-MiscTable() {
     $jobNames = @(
         'Windows_Determinism_Test#',
         'Windows_Correctness_Test#',
+        'Windows_Desktop_Spanish_Unit_Tests#',
         'Linux_Test#mono'
     )
 
     $table = @'
 ### Misc Tests
-|Branch|Determinism|Build Correctness|Mono|
-|:--:|:--:|:--:|:--:|
+|Branch|Determinism|Build Correctness|Mono|Spanish|
+|:--:|:--:|:--:|:--:|:--:|
 
 '@
 
