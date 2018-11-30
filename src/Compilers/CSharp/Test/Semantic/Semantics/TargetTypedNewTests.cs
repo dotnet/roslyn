@@ -2115,6 +2115,39 @@ class C
         }
 
         [Fact]
+        public void InGoToCase()
+        {
+            string source = @"
+using System;
+class C
+{
+    static int Get(int i)
+    {
+        switch (i)
+        {
+            case new():
+                return 1;
+            case 1:
+                goto case new();
+            default:
+                return 2;
+        }
+
+    }
+    static void Main()
+    {
+        Console.Write(Get(0));
+        Console.Write(Get(1));
+        Console.Write(Get(2));
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "112");
+        }
+
+        [Fact]
         public void InCatchFilter()
         {
             string source = @"
