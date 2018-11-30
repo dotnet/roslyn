@@ -1,7 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 
 namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
 {
@@ -91,11 +91,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                 {
                     result = value1;
                 }
-                else if (value1.Kind == PointsToAbstractValueKind.Unknown ||
-                    value2.Kind == PointsToAbstractValueKind.Unknown)
-                {
-                    result = PointsToAbstractValue.Unknown;
-                }
                 else if (value1.Kind == PointsToAbstractValueKind.KnownLValueCaptures)
                 {
                     Debug.Assert(value2.Kind == PointsToAbstractValueKind.KnownLValueCaptures);
@@ -104,10 +99,26 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                 }
                 else
                 {
-                    Debug.Assert(value2.Kind == PointsToAbstractValueKind.KnownLocations);
+                    Debug.Assert(value1.Kind == PointsToAbstractValueKind.KnownLocations || value1.Kind == PointsToAbstractValueKind.Unknown);
+                    Debug.Assert(value2.Kind == PointsToAbstractValueKind.KnownLocations || value2.Kind == PointsToAbstractValueKind.Unknown);
                     var mergedLocations = _locationsDomain.Merge(value1.Locations, value2.Locations);
-                    var mergedNullState = NullAbstractValueDomain.Default.Merge(value1.NullState, value2.NullState);
-                    result = PointsToAbstractValue.Create(mergedLocations, mergedNullState);
+                    if (mergedLocations.Count == 0)
+                    {
+                        Debug.Assert(ReferenceEquals(value1, PointsToAbstractValue.Unknown));
+                        Debug.Assert(ReferenceEquals(value2, PointsToAbstractValue.Unknown));
+                        result = PointsToAbstractValue.Unknown;
+                    }
+                    else if (value1.Kind != value2.Kind &&
+                        !mergedLocations.Any(l => l.IsAnalysisEntityDefaultLocation))
+                    {
+                        Debug.Assert(ReferenceEquals(value1, PointsToAbstractValue.Unknown) || ReferenceEquals(value2, PointsToAbstractValue.Unknown));
+                        result = PointsToAbstractValue.Unknown;
+                    }
+                    else
+                    {
+                        var mergedNullState = NullAbstractValueDomain.Default.Merge(value1.NullState, value2.NullState);
+                        result = PointsToAbstractValue.Create(mergedLocations, mergedNullState);
+                    }
                 }
 
                 Debug.Assert(Compare(value1, result) <= 0);

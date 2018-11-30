@@ -43,5 +43,10 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         {
             return new TaintedDataAnalysisData(this, (TaintedDataAnalysisData) data, coreDataAnalysisDomain);
         }
+
+        public void Reset(TaintedDataAbstractValue resetValue)
+        {
+            base.Reset((analysisEntity, currentValue) => resetValue);
+        }
     }
 }

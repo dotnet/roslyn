@@ -54,7 +54,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         {
             var resultBuilder = new DataFlowAnalysisResultBuilder<TAnalysisData>();
             var uniqueSuccessors = new HashSet<BasicBlock>();
-            var ordinalToBlockMap = new Dictionary<int, BasicBlock>();
             var finallyBlockSuccessorsMap = new Dictionary<int, List<BranchWithInfo>>();
             var catchBlockInputDataMap = new Dictionary<ControlFlowRegion, TAnalysisData>();
             var inputDataFromInfeasibleBranchesMap = new Dictionary<int, TAnalysisData>();
@@ -65,15 +64,14 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             foreach (var block in cfg.Blocks)
             {
                 resultBuilder.Add(block);
-                ordinalToBlockMap.Add(block.Ordinal, block);
                 if (!block.IsReachable)
                 {
                     unreachableBlocks.Add(block.Ordinal);
                 }
             }
 
-            var worklist = new Queue<BasicBlock>();
-            var pendingBlocksNeedingAtLeastOnePass = new HashSet<BasicBlock>(cfg.Blocks);
+            var worklist = new SortedSet<int>();
+            var pendingBlocksNeedingAtLeastOnePass = new SortedSet<int>(cfg.Blocks.Select(b => b.Ordinal));
             var entry = cfg.GetEntry();
 
             // Initialize the input of the entry block.
@@ -83,7 +81,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             UpdateInput(resultBuilder, entry, initialAnalysisData);
 
             // Add the block to the worklist.
-            worklist.Enqueue(entry);
+            worklist.Add(entry.Ordinal);
 
             while (worklist.Count > 0 || pendingBlocksNeedingAtLeastOnePass.Count > 0)
             {
@@ -91,7 +89,18 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
                 // Get the next block to process from the worklist.
                 // If worklist is empty, get any one of the pendingBlocksNeedingAtLeastOnePass, which must be unreachable from Entry block.
-                var block = worklist.Count > 0 ? worklist.Dequeue() : pendingBlocksNeedingAtLeastOnePass.ElementAt(0);
+                int blockOrdinal;
+                if (worklist.Count > 0)
+                {
+                    blockOrdinal = worklist.Min;
+                    worklist.Remove(blockOrdinal);
+                }
+                else
+                {
+                    blockOrdinal = pendingBlocksNeedingAtLeastOnePass.Min;
+                }
+
+                var block = cfg.Blocks[blockOrdinal];
 
                 // Optimization: We process the block only if all its predecessor blocks have been processed once.
                 if (HasUnprocessedPredecessorBlock(block))
@@ -99,7 +108,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                     continue;
                 }
 
-                var needsAtLeastOnePass = pendingBlocksNeedingAtLeastOnePass.Remove(block);
+                var needsAtLeastOnePass = pendingBlocksNeedingAtLeastOnePass.Remove(blockOrdinal);
                 var isUnreachableBlock = unreachableBlocks.Contains(block.Ordinal);
 
                 // Get the input data for the block.
@@ -250,7 +259,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
                     if (uniqueSuccessors.Add(successorBlockOpt))
                     {
-                        worklist.Enqueue(successorBlockOpt);
+                        worklist.Add(successorBlockOpt.Ordinal);
                     }
                 }
 
@@ -266,9 +275,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             {
                 if (worklist.Count == 0)
                 {
-                    foreach (var block in pendingBlocksNeedingAtLeastOnePass)
+                    foreach (var blockOrdinal in pendingBlocksNeedingAtLeastOnePass)
                     {
-                        unreachableBlocks.Add(block.Ordinal);
+                        unreachableBlocks.Add(blockOrdinal);
                     }
                 }
             }
@@ -319,8 +328,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                     return true;
                 }
 
-                foreach (var block in worklist.Concat(pendingBlocksNeedingAtLeastOnePass))
+                foreach (var blockOrdinal in worklist.Concat(pendingBlocksNeedingAtLeastOnePass))
                 {
+                    var block = cfg.Blocks[blockOrdinal];
                     if (block.Predecessors.IsEmpty || !HasUnprocessedPredecessorBlock(block))
                     {
                         return true;
@@ -332,10 +342,10 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
             bool HasUnprocessedPredecessorBlock(BasicBlock block)
             {
-                var predecessorsWithBranches = block.GetPredecessorsWithBranches(ordinalToBlockMap);
+                var predecessorsWithBranches = block.GetPredecessorsWithBranches(cfg);
                 return predecessorsWithBranches.Any(predecessorWithBranch =>
                     predecessorWithBranch.predecessorBlock.Ordinal < block.Ordinal &&
-                    pendingBlocksNeedingAtLeastOnePass.Contains(predecessorWithBranch.predecessorBlock));
+                    pendingBlocksNeedingAtLeastOnePass.Contains(predecessorWithBranch.predecessorBlock.Ordinal));
             }
 
             // If this block starts a catch/filter region, return the enclosing TryAndCatch region.
@@ -400,7 +410,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 if (branch.FinallyRegions.Length > 0)
                 {
                     var firstFinally = branch.FinallyRegions[0];
-                    var destination = ordinalToBlockMap[firstFinally.FirstBlockOrdinal];
+                    var destination = cfg.Blocks[firstFinally.FirstBlockOrdinal];
                     return branch.With(destination, enteringRegions: ImmutableArray<ControlFlowRegion>.Empty,
                         leavingRegions: ImmutableArray<ControlFlowRegion>.Empty, finallyRegions: ImmutableArray<ControlFlowRegion>.Empty);
                 }
@@ -422,7 +432,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                     {
                         ControlFlowRegion finallyRegion = branch.FinallyRegions[i];
                         UpdateFinallySuccessor(finallyRegion, successor);
-                        successor = new BranchWithInfo(destination: ordinalToBlockMap[finallyRegion.FirstBlockOrdinal]);
+                        successor = new BranchWithInfo(destination: cfg.Blocks[finallyRegion.FirstBlockOrdinal]);
                     }
                 }
 
@@ -435,7 +445,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                         if (catchRegion != null)
                         {   
                             // We also need to enqueue the catch block into the worklist as there is no direct branch into catch.
-                            worklist.Enqueue(ordinalToBlockMap[catchRegion.FirstBlockOrdinal]);
+                            worklist.Add(catchRegion.FirstBlockOrdinal);
                         }
                     }
                 }

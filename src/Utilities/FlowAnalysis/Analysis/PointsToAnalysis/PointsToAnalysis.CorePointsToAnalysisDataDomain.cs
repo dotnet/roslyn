@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
 
             protected override PointsToAbstractValue GetDefaultValue(AnalysisEntity analysisEntity) => DefaultPointsToValueGenerator.GetOrCreateDefaultValue(analysisEntity);
             protected override bool CanSkipNewEntry(AnalysisEntity analysisEntity, PointsToAbstractValue value)
-                => value.Kind == PointsToAbstractValueKind.Unknown ||
+                => value == PointsToAbstractValue.Unknown ||
                     !DefaultPointsToValueGenerator.IsTrackedEntity(analysisEntity) ||
                     value == GetDefaultValue(analysisEntity);
 
@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                         void stopTrackingAnalysisDataForKeyAndChildren()
                         {
                             stopTrackingAnalysisDataForChildren();
-                            forwardEdgeAnalysisData[key] = PointsToAbstractValue.Unknown;
+                            stopTrackingAnalysisDataForEntity(key);
                         }
 
                         void stopTrackingAnalysisDataForChildren()
@@ -80,8 +80,25 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                                 .Union(getChildAnalysisEntities(backEdgeValue));
                             foreach (var childEntity in childEntities)
                             {
-                                forwardEdgeAnalysisData[childEntity] = PointsToAbstractValue.Unknown;
+                                stopTrackingAnalysisDataForEntity(childEntity);
                             }
+                        }
+
+                        void stopTrackingAnalysisDataForEntity(AnalysisEntity entity)
+                        {
+                            var mergedValue = PointsToAbstractValue.Unknown;
+                            if (forwardEdgeAnalysisData.TryGetValue(entity, out var currentValue))
+                            {
+                                mergedValue = ValueDomain.Merge(mergedValue, currentValue);
+                            }
+
+                            if (backEdgeAnalysisData.TryGetValue(entity, out currentValue))
+                            {
+                                mergedValue = ValueDomain.Merge(mergedValue, currentValue);
+                            }
+
+                            Debug.Assert(mergedValue.Kind == PointsToAbstractValueKind.Unknown);
+                            forwardEdgeAnalysisData[entity] = mergedValue;
                         }
                     }
                 }

@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -105,7 +106,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 EqualsHelper(CoreAnalysisData, other.CoreAnalysisData);
         }
 
-        public virtual void Reset(TValue resetValue)
+        public virtual void Reset(Func<AnalysisEntity, TValue, TValue> getResetValue)
         {
             // Reset the current analysis data, while ensuring that we don't violate the monotonicity, i.e. we cannot remove any existing key from currentAnalysisData.
             // Just set the values for existing keys to ValueDomain.UnknownOrMayBeValue.
@@ -114,7 +115,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 var keys = CoreAnalysisData.Keys.ToImmutableArray();
                 foreach (var key in keys)
                 {
-                    CoreAnalysisData[key] = resetValue;
+                    CoreAnalysisData[key] = getResetValue(key, CoreAnalysisData[key]);
                 }
             }
 
