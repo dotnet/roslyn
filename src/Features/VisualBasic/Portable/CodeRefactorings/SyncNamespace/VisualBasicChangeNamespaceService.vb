@@ -49,7 +49,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeNamespace
         End Function
 
         ' This is only reachable when called from a VB service, which is not implemented yet.
-        Protected Overrides Function GetMemberDeclarationsInContainer(compilationUnitOrNamespaceDecl As SyntaxNode) As SyntaxList(Of StatementSyntax)
+        Protected Overrides Function GetMemberDeclarationsInContainer(container As SyntaxNode) As SyntaxList(Of StatementSyntax)
             Throw ExceptionUtilities.Unreachable
         End Function
 
@@ -59,11 +59,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeNamespace
         End Function
 
         ' This is only reachable when called from a VB service, which is not implemented yet.
-        Protected Overrides Function GetDeclaredNamespace(node As SyntaxNode) As String
+        Protected Overrides Function GetDeclaredNamespace(container As SyntaxNode) As String
             Throw ExceptionUtilities.Unreachable
         End Function
 
-        Private Function CreateNameSyntax(namespaceParts As ImmutableArray(Of String), index As Integer) As NameSyntax
+        Private Shared Function CreateNameSyntax(namespaceParts As ImmutableArray(Of String), index As Integer) As NameSyntax
             Dim part = namespaceParts(index).EscapeIdentifier()
             Dim namePiece = SyntaxFactory.IdentifierName(part)
 

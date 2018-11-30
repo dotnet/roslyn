@@ -91,7 +91,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.SyncNamespa
                     }
 
                     Assert.True(expectedFolderPaths.Count() == actualFolderPaths.Count, "Number of available \"Move file\" actions are not equal.");
-
                     foreach (var expected in expectedFolderPaths)
                     {
                         Assert.True(actualFolderPaths.Contains(expected));

@@ -25,9 +25,9 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
     /// </summary>
     internal abstract class AbstractChangeNamespaceService : IChangeNamespaceService
     {
-        public abstract Task<bool> CanChangeNamespaceAsync(Document document, SyntaxNode node, CancellationToken cancellationToken);
+        public abstract Task<bool> CanChangeNamespaceAsync(Document document, SyntaxNode container, CancellationToken cancellationToken);
 
-        public abstract Task<Solution> ChangeNamespaceAsync(Document document, SyntaxNode node, string targetNamespace, CancellationToken cancellationToken);
+        public abstract Task<Solution> ChangeNamespaceAsync(Document document, SyntaxNode container, string targetNamespace, CancellationToken cancellationToken);
 
         /// <summary>
         /// Try to get a new node to replace given node, which is a reference to a top-level type declared inside the 
@@ -53,9 +53,9 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
         private static readonly char[] s_dotSeparator = new[] { '.' };
 
         /// <summary>
-        /// The annotation used to mark applicable container in each document to be fixed.
+        /// The annotation used to track applicable container in each document to be fixed.
         /// </summary>
-        protected static SyntaxAnnotation[] s_containerAnnotation { get; } = new[] { new SyntaxAnnotation() };
+        protected static SyntaxAnnotation[] ContainerAnnotation { get; } = new[] { new SyntaxAnnotation() };
 
         protected static SyntaxAnnotation WarningAnnotation { get; }
             = CodeActions.WarningAnnotation.Create(
@@ -68,131 +68,16 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
 
         protected abstract Task<SyntaxNode> TryGetApplicableContainerFromSpanAsync(Document document, TextSpan span, CancellationToken cancellationToken);
 
-        protected abstract string GetDeclaredNamespace(SyntaxNode node);
+        protected abstract string GetDeclaredNamespace(SyntaxNode container);
 
-        protected abstract Task<ImmutableArray<(DocumentId id, SyntaxNode container)>> CanChangeNamespaceWorkerAsync(Document document, SyntaxNode node, CancellationToken cancellationToken);
+        protected abstract Task<ImmutableArray<(DocumentId id, SyntaxNode container)>> CanChangeNamespaceWorkerAsync(Document document, SyntaxNode container, CancellationToken cancellationToken);
 
-        public override async Task<bool> CanChangeNamespaceAsync(Document document, SyntaxNode node, CancellationToken cancellationToken)
+        public override async Task<bool> CanChangeNamespaceAsync(Document document, SyntaxNode container, CancellationToken cancellationToken)
         {
-            var applicableContainers = await CanChangeNamespaceWorkerAsync(document, node, cancellationToken).ConfigureAwait(false);
+            var applicableContainers = await CanChangeNamespaceWorkerAsync(document, container, cancellationToken).ConfigureAwait(false);
             return !applicableContainers.IsDefault;
         }
 
-        protected async Task<ImmutableArray<(DocumentId, SyntaxNode)>> TryGetApplicableContainersFromAllDocumentsAsync(
-            Solution solution,
-            ImmutableArray<DocumentId> ids,
-            TextSpan span,
-            CancellationToken cancellationToken)
-        {
-            // If the node selected doesn't meet the requirement for changing namespace in any of the documents 
-            // (See `TryGetApplicableContainerFromSpanAsync`), or we are getting different namespace declarations among 
-            // those documents, then we know we can't make a proper code change. We will return null and the check 
-            // will return false. We use span of namespace declaration found in each document to decide if they are identical.            
-
-            var documents = ids.SelectAsArray(id => solution.GetDocument(id));
-            var containers = ArrayBuilder<(DocumentId, SyntaxNode)>.GetInstance(ids.Length);
-            var spanForContainers = PooledHashSet<TextSpan>.GetInstance();
-
-            try
-            {
-                foreach (var document in documents)
-                {
-                    var container = await TryGetApplicableContainerFromSpanAsync(document, span, cancellationToken).ConfigureAwait(false);
-                    containers.Add((document.Id, container));
-
-                    if (container is TNamespaceDeclarationSyntax)
-                    {
-                        spanForContainers.Add(container.Span);
-                    }
-                    else if (container is TCompilationUnitSyntax)
-                    {
-                        // In case there's no namespace declaration in the document, we used an empty span as key, 
-                        // since a valid namespace declaration node can't have zero length.
-                        spanForContainers.Add(default);
-                    }
-                    else
-                    {
-                        return default;
-                    }
-                }
-
-                return spanForContainers.Count == 1 ? containers.ToImmutable() : default;
-            }
-            finally
-            {
-                containers.Free();
-                spanForContainers.Free();
-            }
-        }
-
-        protected async Task<Solution> AnnotateContainersAsync(Solution solution, ImmutableArray<(DocumentId, SyntaxNode)> containers, CancellationToken cancellationToken)
-        {
-            var solutionEditor = new SolutionEditor(solution);
-            foreach (var (id, container) in containers)
-            {
-                var documentEditor = await solutionEditor.GetDocumentEditorAsync(id, cancellationToken).ConfigureAwait(false);
-                documentEditor.ReplaceNode(container, container.WithAdditionalAnnotations(s_containerAnnotation));
-            }
-            return solutionEditor.GetChangedSolution();
-        }
-
-        protected async Task<bool> ContainsPartialTypeWithMultipleDeclarationsAsync(
-            Document document, SyntaxNode container, CancellationToken cancellationToken)
-        {
-            var memberDecls = GetMemberDeclarationsInContainer(container);
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var semanticFacts = document.GetLanguageService<ISemanticFactsService>();
-
-            foreach (var memberDecl in memberDecls)
-            {
-                var memberSymbol = semanticModel.GetDeclaredSymbol(memberDecl, cancellationToken);
-
-                // Simplify the check by assuming no multiple partial declarations in one document
-                if (memberSymbol is ITypeSymbol typeSymbol
-                    && typeSymbol.DeclaringSyntaxReferences.Length > 1
-                    && semanticFacts.IsPartial(typeSymbol, cancellationToken))
-                {
-                    return true;
-                }
-            }
-            return false;
-        }
-
-        protected static bool IsSupportedLinkedDocument(Document document, out ImmutableArray<DocumentId> allDocumentIds)
-        {
-            var solution = document.Project.Solution;
-            var linkedDocumentIds = document.GetLinkedDocumentIds();
-
-            // TODO: figure out how to properly determine if and how a document is linked using project system.
-
-            // If we found a linked document which is part of a project with differenct project file,
-            // then it's an actual linked file (i.e. not a multi-targeting project). We don't support that for now.
-            if (linkedDocumentIds.Any(id =>
-                    !PathUtilities.PathsEqual(solution.GetDocument(id).Project.FilePath, document.Project.FilePath)))
-            {
-                allDocumentIds = default;
-                return false;
-            }
-
-            allDocumentIds = linkedDocumentIds.Add(document.Id);
-            return true;
-        }
-
-        /// <summary>
-        /// This code action tries to change the name of the namespace declaration to 
-        /// match the folder hierarchy of the document. The new namespace is constructed 
-        /// by concatenating the default namespace of the project and all the folders in 
-        /// the file path up to the project root.
-        /// 
-        /// For example, if he default namespace is `A.B.C`, file path is 
-        /// "[project root dir]\D\E\F\Class1.cs" and declared namespace in the file is
-        /// `Foo.Bar.Baz`, then this action will change the namespace declaration
-        /// to `A.B.C.D.E.F`. 
-        /// 
-        /// Note that it also handles the case where the target namespace or declared namespace 
-        /// is global namespace, i.e. default namespace is "" and the file is located at project 
-        /// root directory, and no namespace declaration in the document, respectively.
-        /// </summary>
         public override async Task<Solution> ChangeNamespaceAsync(
             Document document,
             SyntaxNode container,
@@ -201,6 +86,7 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
         {
             var solution = document.Project.Solution;
 
+            // Make sure given namespace name is valid, "" means global namespace.
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
             if (targetNamespace == null 
                 || (targetNamespace.Length > 0 && !targetNamespace.Split(s_dotSeparator).All(syntaxFacts.IsValidIdentifier)))
@@ -210,6 +96,13 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
 
             var containersFromAllDocuments = await CanChangeNamespaceWorkerAsync(document, container, cancellationToken).ConfigureAwait(false);
             if (containersFromAllDocuments.IsDefault)
+            {
+                return solution;
+            }
+
+            // No action required if declared namespace already matches target.
+            var declaredNamespace = GetDeclaredNamespace(container);
+            if (syntaxFacts.StringComparer.Equals(targetNamespace, declaredNamespace))
             {
                 return solution;
             }
@@ -225,7 +118,6 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
             // The reason for doing explicit diff merge twice is so merging after remove unnecessary imports can be correctly handled.
 
             var ids = containersFromAllDocuments.SelectAsArray(pair => pair.id);
-            var declaredNamespace = GetDeclaredNamespace(container);
             var solutionAfterNamespaceChange = annotatedSolution;
             var referenceDocuments = PooledHashSet<DocumentId>.GetInstance();
 
@@ -277,6 +169,109 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
             {
                 referenceDocuments.Free();
             }
+        }
+
+        protected async Task<ImmutableArray<(DocumentId, SyntaxNode)>> TryGetApplicableContainersFromAllDocumentsAsync(
+            Solution solution,
+            ImmutableArray<DocumentId> ids,
+            TextSpan span,
+            CancellationToken cancellationToken)
+        {
+            // If the node specified by span doesn't meet the requirement to be an applicable container in any of the documents 
+            // (See `TryGetApplicableContainerFromSpanAsync`), or we are getting different namespace declarations among 
+            // those documents, then we know we can't make a proper code change. We will return null and the check 
+            // will return false. We use span of namespace declaration found in each document to decide if they are identical.            
+
+            var documents = ids.SelectAsArray(id => solution.GetDocument(id));
+            var containers = ArrayBuilder<(DocumentId, SyntaxNode)>.GetInstance(ids.Length);
+            var spanForContainers = PooledHashSet<TextSpan>.GetInstance();
+
+            try
+            {
+                foreach (var document in documents)
+                {
+                    var container = await TryGetApplicableContainerFromSpanAsync(document, span, cancellationToken).ConfigureAwait(false);
+                    containers.Add((document.Id, container));
+
+                    if (container is TNamespaceDeclarationSyntax)
+                    {
+                        spanForContainers.Add(container.Span);
+                    }
+                    else if (container is TCompilationUnitSyntax)
+                    {
+                        // In case there's no namespace declaration in the document, we used an empty span as key, 
+                        // since a valid namespace declaration node can't have zero length.
+                        spanForContainers.Add(default);
+                    }
+                    else
+                    {
+                        return default;
+                    }
+                }
+
+                return spanForContainers.Count == 1 ? containers.ToImmutable() : default;
+            }
+            finally
+            {
+                containers.Free();
+                spanForContainers.Free();
+            }
+        }
+
+        /// <summary>
+        /// Mark container nodes with our annotation so we can keep track of them across syntax modifications.
+        /// </summary>
+        protected async Task<Solution> AnnotateContainersAsync(Solution solution, ImmutableArray<(DocumentId, SyntaxNode)> containers, CancellationToken cancellationToken)
+        {
+            var solutionEditor = new SolutionEditor(solution);
+            foreach (var (id, container) in containers)
+            {
+                var documentEditor = await solutionEditor.GetDocumentEditorAsync(id, cancellationToken).ConfigureAwait(false);
+                documentEditor.ReplaceNode(container, container.WithAdditionalAnnotations(ContainerAnnotation));
+            }
+            return solutionEditor.GetChangedSolution();
+        }
+
+        protected async Task<bool> ContainsPartialTypeWithMultipleDeclarationsAsync(
+            Document document, SyntaxNode container, CancellationToken cancellationToken)
+        {
+            var memberDecls = GetMemberDeclarationsInContainer(container);
+            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var semanticFacts = document.GetLanguageService<ISemanticFactsService>();
+
+            foreach (var memberDecl in memberDecls)
+            {
+                var memberSymbol = semanticModel.GetDeclaredSymbol(memberDecl, cancellationToken);
+
+                // Simplify the check by assuming no multiple partial declarations in one document
+                if (memberSymbol is ITypeSymbol typeSymbol
+                    && typeSymbol.DeclaringSyntaxReferences.Length > 1
+                    && semanticFacts.IsPartial(typeSymbol, cancellationToken))
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        protected static bool IsSupportedLinkedDocument(Document document, out ImmutableArray<DocumentId> allDocumentIds)
+        {
+            var solution = document.Project.Solution;
+            var linkedDocumentIds = document.GetLinkedDocumentIds();
+
+            // TODO: figure out how to properly determine if and how a document is linked using project system.
+
+            // If we found a linked document which is part of a project with differenct project file,
+            // then it's an actual linked file (i.e. not a multi-targeting project). We don't support that for now.
+            if (linkedDocumentIds.Any(id =>
+                    !PathUtilities.PathsEqual(solution.GetDocument(id).Project.FilePath, document.Project.FilePath)))
+            {
+                allDocumentIds = default;
+                return false;
+            }
+
+            allDocumentIds = linkedDocumentIds.Add(document.Id);
+            return true;
         }
 
         private async Task<ImmutableArray<ISymbol>> GetDeclaredSymbolsInContainerAsync(
@@ -350,7 +345,7 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
         {
             var document = solution.GetDocument(id);
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var container = root.GetAnnotatedNodes(s_containerAnnotation[0]).Single();
+            var container = root.GetAnnotatedNodes(ContainerAnnotation[0]).Single();
 
             // Get types declared in the changing namespace, because we need to fix all references to them, 
             // e.g. change the namespace for qualified name, add imports to proper containers, etc.

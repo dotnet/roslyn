@@ -192,7 +192,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeNamespace
         }
 
         /// <summary>
-        /// Try to change the namespace declaration based on the follwing rules:
+        /// Try to change the namespace declaration based on the following rules:
         ///     - if neither declared nor target namespace are "" (i.e. global namespace),
         ///     then we try to change the name of the namespace.
         ///     - if declared namespace is "", then we try to move all types declared 
@@ -206,11 +206,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeNamespace
             ImmutableArray<string> targetNamespaceParts)
         {
             Debug.Assert(!declaredNamespaceParts.IsDefault && !targetNamespaceParts.IsDefault);
-            var container = root.GetAnnotatedNodes(s_containerAnnotation[0]).Single();
+            var container = root.GetAnnotatedNodes(ContainerAnnotation[0]).Single();
 
             // Move everything from global namespace to a namespace declaration
             if (container is CompilationUnitSyntax compilationUnit)
             {
+                Debug.Assert(!compilationUnit.Members.Any(m => m is NamespaceDeclarationSyntax));
                 Debug.Assert(IsGlobalNamespace(declaredNamespaceParts));
 
                 var targetNamespaceDecl = SyntaxFactory.NamespaceDeclaration(
@@ -220,7 +221,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeNamespace
                     usings: default,
                     members: compilationUnit.Members);
                 return compilationUnit.WithMembers(new SyntaxList<MemberDeclarationSyntax>(targetNamespaceDecl))
-                    .WithoutAnnotations(s_containerAnnotation);
+                    .WithoutAnnotations(ContainerAnnotation);
             }
 
             if (container is NamespaceDeclarationSyntax namespaceDecl)
@@ -278,10 +279,76 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeNamespace
                     namespaceDecl.WithName(
                         CreateNameSyntax(targetNamespaceParts, aliasQualifier: null, targetNamespaceParts.Length - 1)
                         .WithTriviaFrom(namespaceDecl.Name).WithAdditionalAnnotations(WarningAnnotation))
-                        .WithoutAnnotations(s_containerAnnotation));
+                        .WithoutAnnotations(ContainerAnnotation));
             }
 
             throw ExceptionUtilities.Unreachable;
+        }
+
+        /// <summary>
+        /// For the node specified by <paramref name="span"/> to be applicable container, it must be a namespace 
+        /// declaration or a compilation unit, contain no partial declarations and meet the following additional
+        /// requirements:
+        /// 
+        /// - If a namespace declaration:
+        ///    1. It doesn't contain or is nested in other namespace declarations
+        ///    2. The name of the namespace is valid (i.e. no errors)
+        ///
+        /// - If a compilation unit (i.e. <paramref name="span"/> is empty), there must be no namespace declaration
+        ///   inside (i.e. all members are declared in global namespace)
+        /// </summary>
+        protected override async Task<SyntaxNode> TryGetApplicableContainerFromSpanAsync(Document document, TextSpan span, CancellationToken cancellationToken)
+        {
+            var compilationUnit = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false) as CompilationUnitSyntax;
+            SyntaxNode container = null;
+
+            // Empty span means that user wants to move all types declared in the document to a new namespace.
+            // This action is only supported when everything in the document is declared in global namespace,
+            // which we use the number of namespace declaration nodes to decide.
+            if (span.IsEmpty)
+            {
+                var hasNamespaceDecl = compilationUnit.DescendantNodes(IsCompilationUnitOrNamespaceDeclaration)
+                    .OfType<NamespaceDeclarationSyntax>().Any();
+
+                if (hasNamespaceDecl)
+                {
+                    return null;
+                }
+
+                container = compilationUnit;
+            }
+            else
+            {
+                // Otherwise, the span should contain a namespace declaration node, which must be the only one
+                // in the entire syntax spine to enable the change namespace operation.
+                var node = compilationUnit.FindNode(span, getInnermostNodeForTie: true);
+
+                var namespaceDecl = node.AncestorsAndSelf().OfType<NamespaceDeclarationSyntax>().SingleOrDefault();
+                if (namespaceDecl?.Name.GetDiagnostics().All(diag => diag.DefaultSeverity != DiagnosticSeverity.Error) != true)
+                {
+                    return null;
+                }
+
+                if (node.DescendantNodes(IsCompilationUnitOrNamespaceDeclaration).OfType<NamespaceDeclarationSyntax>().Any())
+                {
+                    return null;
+                }
+
+                container = namespaceDecl;
+            }
+
+            var containsPartial = 
+                await ContainsPartialTypeWithMultipleDeclarationsAsync(document, container, cancellationToken).ConfigureAwait(false);
+
+            if (containsPartial)
+            {
+                return null;
+            }
+
+            return container;
+
+            bool IsCompilationUnitOrNamespaceDeclaration(SyntaxNode n)
+                => n is CompilationUnitSyntax || n is NamespaceDeclarationSyntax;
         }
 
         private static bool IsGlobalNamespace(ImmutableArray<string> parts)
@@ -326,7 +393,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeNamespace
         /// Leading trivia of the node and trivia around opening brace, as well as
         /// trivia around closing brace are concatenated together respectively.
         /// </summary>
-        private static (ImmutableArray<SyntaxTrivia> openingTrivia, ImmutableArray<SyntaxTrivia> closingTrivia) 
+        private static (ImmutableArray<SyntaxTrivia> openingTrivia, ImmutableArray<SyntaxTrivia> closingTrivia)
             GetOpeningAndClosingTriviaOfNamespaceDeclaration(NamespaceDeclarationSyntax namespaceDeclaration)
         {
             var openingBuilder = ArrayBuilder<SyntaxTrivia>.GetInstance();
@@ -339,71 +406,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeNamespace
             closingBuilder.AddRange(namespaceDeclaration.CloseBraceToken.TrailingTrivia);
 
             return (openingBuilder.ToImmutableAndFree(), closingBuilder.ToImmutableAndFree());
-        }
-
-        protected override async Task<SyntaxNode> TryGetApplicableContainerFromSpanAsync(Document document, TextSpan span, CancellationToken cancellationToken)
-        {
-            var container = await TryGetApplicableContainerWorkerAsync(document, span, cancellationToken);
-            if (container != null)
-            {
-                var containsPartial = await ContainsPartialTypeWithMultipleDeclarationsAsync(document, container, cancellationToken)
-                    .ConfigureAwait(false);
-
-                if (!containsPartial)
-                {
-                    return container;
-                }
-            }
-
-            return default;
-        }
-
-        /// <summary>
-        /// To be applicable, the node specified by <paramref name="span"/> must be a namespace declaration or
-        /// a compilation unit, and meet the following requirements:
-        /// 
-        /// - If a namespace declaration:
-        ///    1. It doesn't contain or is nested in other namespace declarations
-        ///    2. The name of the namespace is valid (i.e. no errors)
-        ///
-        /// - If a compilation unit, there must be no namespace declaration and all types in the document are 
-        ///   declared in global namespace
-        /// </summary>
-        private static async Task<SyntaxNode> TryGetApplicableContainerWorkerAsync(Document document, TextSpan span, CancellationToken cancellationToken)
-        {
-            var compilationUnit = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false) as CompilationUnitSyntax;
-
-            // Empty span means that user wants to move all types declared in the document to a new namespace.
-            // This action is only supported when everything in the document is declared in global namespace,
-            // which we use the number of namespace declaration nodes as the indication.
-            if (span.IsEmpty)
-            {
-                var hasNamespaceDecl = compilationUnit.DescendantNodes(IsCompilationUnitOrNamespaceDeclaration)
-                    .OfType<NamespaceDeclarationSyntax>().Any();
-
-                return hasNamespaceDecl ? null : compilationUnit;
-            }
-
-            // Otherwise, the span should contain a namespace declaration node, which must be the only one
-            // in the entire syntax spine to enable the change namespace operation.
-            var node = compilationUnit.FindNode(span, getInnermostNodeForTie: true);
-
-            var namespaceDecl = node.AncestorsAndSelf().OfType<NamespaceDeclarationSyntax>().SingleOrDefault();
-            if (namespaceDecl?.Name.GetDiagnostics().All(diag => diag.DefaultSeverity != DiagnosticSeverity.Error) != true)
-            {
-                return null;
-            }
-
-            if (node.DescendantNodes(IsCompilationUnitOrNamespaceDeclaration)
-                    .OfType<NamespaceDeclarationSyntax>().Any())
-            {
-                return null;
-            }
-
-            return namespaceDecl;
-
-            bool IsCompilationUnitOrNamespaceDeclaration(SyntaxNode n)
-                => n is CompilationUnitSyntax || n is NamespaceDeclarationSyntax;
         }
     }
 }
