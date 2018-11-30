@@ -398,9 +398,10 @@ function Test-XUnit() {
         $args += " -xml -timeout:65"
     }
 
+    $procdumpPath = Ensure-ProcDump
+    $args += " -procdumppath:$procDumpPath"
     if ($procdump) {
-        $procdumpPath = Ensure-ProcDump
-        $args += " -procdumppath:$procDumpPath"
+        $args += " -useprocdump";
     }
 
     if ($test64) {
