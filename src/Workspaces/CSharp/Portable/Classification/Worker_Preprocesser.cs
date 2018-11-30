@@ -263,6 +263,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
             AddClassification(node.WarningKeyword, ClassificationTypeNames.PreprocessorKeyword);
             AddClassification(node.DisableOrRestoreKeyword, ClassificationTypeNames.PreprocessorKeyword);
 
+            // Comments after a "#pragma warning" directive without any error codes are trailing trivia of the "disable"/"restore" token.
+            foreach (var syntaxTrivia in node.DisableOrRestoreKeyword.TrailingTrivia)
+            {
+                if (syntaxTrivia.Kind() == SyntaxKind.WhitespaceTrivia)
+                {
+                    // Skip the initial whitespace
+                    continue;
+                }
+                ClassifyToken(syntaxTrivia.Token);
+            }
+
             foreach (var nodeOrToken in node.ErrorCodes.GetWithSeparators())
             {
                 ClassifyNodeOrToken(nodeOrToken);
