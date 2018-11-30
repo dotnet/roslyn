@@ -6,10 +6,18 @@ $ErrorActionPreference="Stop"
 # Import Arcade functions
 . (Join-Path $PSScriptRoot "tools.ps1")
 
-[string]$binariesDir = Join-Path $RepoRoot "Binaries"
+$BinariesConfigDir = Join-Path $ArtifactsDir $configuration # TODO: remove
+$VSSetupDir = Join-Path $ArtifactsDir (Join-Path "VSSetup" $configuration)
+$bootstrapDir = ""
+
+$binaryLog = if (Test-Path variable:binaryLog) { $binaryLog } else { $false }
+$official = if (Test-Path variable:official) { $official } else { $false }
+$cibuild = if (Test-Path variable:cibuild) { $cibuild } else { $false }
+$bootstrapDir = if (Test-Path variable:bootstrapDir) { $bootstrapDir } else { "" }
+$properties = if (Test-Path variable:properties) { $properties } else { @() }
 
 # Handy function for executing a command in powershell and throwing if it 
-# fails.  
+# fails.
 #
 # Use this when the full command is known at script authoring time and 
 # doesn't require any dynamic argument build up.  Example:
@@ -221,3 +229,81 @@ function Restore-Project([string]$projectFileName, [string]$logFilePath = "") {
     Exec-Console $buildTool.Path "$($buildTool.Command) `"$projectFilePath`" /t:Restore /m /nologo /clp:None /v:quiet /nr:false /warnaserror $logArg $args"
 }
 
+function Run-MSBuild([string]$projectFilePath, [string]$buildArgs = "", [string]$logFileName = "", [switch]$parallel = $true, [switch]$summary = $true, [switch]$warnAsError = $true) {
+    # Because we override the C#/VB toolset to build against our LKG package, it is important
+    # that we do not reuse MSBuild nodes from other jobs/builds on the machine. Otherwise,
+    # we'll run into issues such as https://github.com/dotnet/roslyn/issues/6211.
+    # MSBuildAdditionalCommandLineArgs=
+    $args = "/p:TreatWarningsAsErrors=true /nologo /nodeReuse:false /p:Configuration=$configuration ";
+
+    if ($warnAsError) {
+        $args += " /warnaserror"
+    }
+
+    if ($summary) {
+        $args += " /consoleloggerparameters:Verbosity=minimal;summary"
+    } else {        
+        $args += " /consoleloggerparameters:Verbosity=minimal"
+    }
+
+    if ($parallel) {
+        $args += " /m"
+    }
+
+    if ($skipAnalyzers) {
+        $args += " /p:UseRoslynAnalyzers=false"
+    }
+
+    if ($binaryLog) {
+        if ($logFileName -eq "") {
+            $logFileName = [IO.Path]::GetFileNameWithoutExtension($projectFilePath)
+        }
+        $logFileName = [IO.Path]::ChangeExtension($logFileName, ".binlog")
+        $logFilePath = Join-Path $LogDir $logFileName
+        $args += " /bl:$logFilePath"
+    }
+
+    if ($official) {
+        $args += " /p:OfficialBuildId=" + $env:BUILD_BUILDNUMBER
+    }
+
+    if ($cibuild) {
+        $args += " /p:ContinuousIntegrationBuild=true"
+    }
+
+    if ($bootstrapDir -ne "") {
+        $args += " /p:BootstrapBuildPath=$bootstrapDir"
+    }
+
+    $args += " $buildArgs"
+    $args += " $projectFilePath"
+    $args += " $properties"
+
+    $buildTool = InitializeBuildTool
+    Exec-Console $buildTool.Path "$($buildTool.Command) $args"
+}
+
+# Create a bootstrap build of the compiler.  Returns the directory where the bootstrap build
+# is located.
+#
+# Important to not set $script:bootstrapDir here yet as we're actually in the process of
+# building the bootstrap.
+function Make-BootstrapBuild() {
+    Write-Host "Building bootstrap compiler"
+
+    $dir = Join-Path $ArtifactsDir "Bootstrap"
+    Remove-Item -re $dir -ErrorAction SilentlyContinue
+    Create-Directory $dir
+
+    $packageName = if ($msbuildEngine -eq 'dotnet') { "Microsoft.NETCore.Compilers" } else { "Microsoft.Net.Compilers" }
+    $projectPath = "src\NuGet\$packageName\$packageName.Package.csproj"
+
+    Run-MSBuild $projectPath "/t:Pack /p:DotNetUseShippingVersions=true /p:InitialDefineConstants=BOOTSTRAP /p:PackageOutputPath=$dir" -logFileName "Bootstrap"
+    $packageFile = Get-ChildItem -Path $dir -Filter "$packageName.*.nupkg"    
+    Unzip "$dir\$packageFile" $dir
+
+    Write-Host "Cleaning Bootstrap compiler artifacts"
+    Run-MSBuild $projectPath "/t:Clean" -logFileName "BootstrapClean"
+
+    return $dir
+}

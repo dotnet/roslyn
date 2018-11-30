@@ -198,16 +198,6 @@
     <SourceControlInformationFeatureSupported>true</SourceControlInformationFeatureSupported>
   </PropertyGroup>
 
-  <!--
-    Triggered from Jenkins localization validation leg.
-    Delegates to XliffTasks to validate that all localizable resources have been translated.
-    We can't use EnsureAllResoucesTranslated directly because the XliffTasks package is only pulled in by projects that
-    produce shipping binaries.
-  -->
-  <Target Name="CheckLocStatus"
-          DependsOnTargets="EnsureAllResourcesTranslated"
-          Condition="'$(IsShipping)' == 'true'" />
-
   <!-- 
     Add ThirdPartyNotices.rtf to all shipping NuGet packages.
   -->

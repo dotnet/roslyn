@@ -99,7 +99,7 @@ phases:
     name: dotnet-external-temp
     timeoutInMinutes: 90
   steps:
-    - script: build/scripts/cibuild.cmd -testDeterminism
+    - script: build/scripts/test-determinism.cmd -configuration Debug
       displayName: Build - Validate determinism
 
     - task: PublishBuildArtifacts@1
@@ -115,7 +115,7 @@ phases:
     name: dotnet-external-temp
     timeoutInMinutes: 90
   steps:
-    - script: build/scripts/test-build-correctness.cmd -configuration Release -cibuild
+    - script: build/scripts/test-build-correctness.cmd -configuration Release
       displayName: Build - Validate correctness
 
     - task: PublishBuildArtifacts@1

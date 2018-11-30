@@ -285,8 +285,11 @@ function ExitWithExitCode([int] $exitCode) {
 }
 
 try {
-  $RepoRoot = Resolve-Path (Join-Path $PSScriptRoot "..\..")
+  $RepoRoot = Resolve-Path (Join-Path $PSScriptRoot "..\..") 
+  $ArtifactsDir = Join-Path $RepoRoot "Binaries"                      # TODO: update layout
   $ToolsDir = Join-Path $RepoRoot ".tools"
+  $LogDir = Join-Path (Join-Path $ArtifactsDir $configuration) "Logs" # TODO: update layout
+  $TempDir = Join-Path (Join-Path $ArtifactsDir "tmp") $configuration
   $GlobalJson = Get-Content -Raw -Path (Join-Path $RepoRoot "global.json") | ConvertFrom-Json
 }
 catch {
