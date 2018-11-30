@@ -10,14 +10,14 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         /// <summary>
         /// <see cref="SourceInfo"/>s for web input tainted data sources.
         /// </summary>
-        public static ImmutableList<SourceInfo> SourceInfos { get; }
+        public static ImmutableHashSet<SourceInfo> SourceInfos { get; }
 
         /// <summary>
         /// Statically constructs.
         /// </summary>
         static WebInputSources()
         {
-            ImmutableList<SourceInfo>.Builder sourceInfosBuilder = ImmutableList.CreateBuilder<SourceInfo>();
+            ImmutableHashSet<SourceInfo>.Builder sourceInfosBuilder = ImmutableHashSet.CreateBuilder<SourceInfo>();
 
             AddConcreteSource(
                 sourceInfosBuilder,
@@ -689,7 +689,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         }
 
         private static void AddConcreteSource(
-            ImmutableList<SourceInfo>.Builder builder, 
+            ImmutableHashSet<SourceInfo>.Builder builder, 
             string fullTypeName, 
             string[] taintedProperties,
             string[] taintedMethods)
@@ -698,7 +698,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         }
 
         private static void AddInterfaceSource(
-            ImmutableList<SourceInfo>.Builder builder,
+            ImmutableHashSet<SourceInfo>.Builder builder,
             string fullTypeName,
             string[] taintedProperties,
             string[] taintedMethods)
@@ -707,7 +707,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         }
 
         private static void AddSource(
-            ImmutableList<SourceInfo>.Builder builder,
+            ImmutableHashSet<SourceInfo>.Builder builder,
             string fullTypeName,
             bool isInterface,
             string[] taintedProperties,

@@ -15,11 +15,11 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         /// <summary>
         /// <see cref="SinkInfo"/>s for tainted data SQL sinks.
         /// </summary>
-        public static ImmutableList<SinkInfo> SinkInfos { get; }
+        public static ImmutableHashSet<SinkInfo> SinkInfos { get; }
 
         static SqlSinks()
         {
-            ImmutableList<SinkInfo>.Builder sinkInfosBuilder = ImmutableList.CreateBuilder<SinkInfo>();
+            ImmutableHashSet<SinkInfo>.Builder sinkInfosBuilder = ImmutableHashSet.CreateBuilder<SinkInfo>();
 
             AddSink(
                 sinkInfosBuilder,
@@ -57,7 +57,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         }
 
         private static void AddSink(
-            ImmutableList<SinkInfo>.Builder builder,
+            ImmutableHashSet<SinkInfo>.Builder builder,
             string fullTypeName,
             bool isInterface,
             bool isAnyStringParameterInConstructorASink,
@@ -66,6 +66,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         {
             SinkInfo sinkInfo = new SinkInfo(
                 fullTypeName,
+                SinkKind.Sql,
                 isInterface,
                 isAnyStringParameterInConstructorASink,
                 sinkProperties:
