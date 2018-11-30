@@ -59,7 +59,6 @@ environment variable that writes a diagnostic log file:
 (Windows CMD, using file path): setx RoslynCommandLineLogFile="C:\path\to\log\file.log"
 ```
 
-
 This file contains diagnostic logging for both the client and server,
 which you can distinguish using the `PID` tag for each diagnostic line.
 Sample output should look something like this:
