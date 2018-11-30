@@ -2471,7 +2471,7 @@ class C
         [Fact]
         public void TestRemove_KeepUnbalancedDirectives()
         {
-            var cu = SyntaxFactory.ParseCompilationUnit(@"
+            var inputText = @"
 class C
 {
 // before
@@ -2481,7 +2481,7 @@ void M()
 {
 } // after
 #endregion
-}");
+}";
 
             var expectedText = @"
 class C
@@ -2491,20 +2491,23 @@ class C
 #endregion
 }";
 
-            var m = cu.DescendantNodes().OfType<MethodDeclarationSyntax>().FirstOrDefault();
-            Assert.NotNull(m);
+            TestWithWindowsAndUnixEndOfLines(inputText, expectedText, (cu, expected) =>
+            {
+                var m = cu.DescendantNodes().OfType<MethodDeclarationSyntax>().FirstOrDefault();
+                Assert.NotNull(m);
 
-            var cu2 = cu.RemoveNode(m, SyntaxRemoveOptions.KeepUnbalancedDirectives);
+                var cu2 = cu.RemoveNode(m, SyntaxRemoveOptions.KeepUnbalancedDirectives);
 
-            var text = cu2.ToFullString();
+                var text = cu2.ToFullString();
 
-            Assert.Equal(expectedText, text);
+                Assert.Equal(expected, text);
+            });
         }
 
         [Fact]
         public void TestRemove_KeepDirectives()
         {
-            var cu = SyntaxFactory.ParseCompilationUnit(@"
+            var inputText = @"
 class C
 {
 // before
@@ -2516,7 +2519,7 @@ void M()
 #endif
 } // after
 #endregion
-}");
+}";
 
             var expectedText = @"
 class C
@@ -2528,28 +2531,31 @@ class C
 #endregion
 }";
 
-            var m = cu.DescendantNodes().OfType<MethodDeclarationSyntax>().FirstOrDefault();
-            Assert.NotNull(m);
+            TestWithWindowsAndUnixEndOfLines(inputText, expectedText, (cu, expected) =>
+            {
+                var m = cu.DescendantNodes().OfType<MethodDeclarationSyntax>().FirstOrDefault();
+                Assert.NotNull(m);
 
-            var cu2 = cu.RemoveNode(m, SyntaxRemoveOptions.KeepDirectives);
+                var cu2 = cu.RemoveNode(m, SyntaxRemoveOptions.KeepDirectives);
 
-            var text = cu2.ToFullString();
+                var text = cu2.ToFullString();
 
-            Assert.Equal(expectedText, text);
+                Assert.Equal(expected, text);
+            });
         }
 
         [Fact]
         [WorkItem(22924, "https://github.com/dotnet/roslyn/issues/22924")]
         public void TestRemove_KeepEndOfLine()
         {
-            var cu = SyntaxFactory.ParseCompilationUnit(@"
+            var inputText = @"
 class C
 {
 // before
 void M()
 {
 } // after
-}");
+}";
 
             var expectedText = @"
 class C
@@ -2557,14 +2563,17 @@ class C
 
 }";
 
-            var m = cu.DescendantNodes().OfType<MethodDeclarationSyntax>().FirstOrDefault();
-            Assert.NotNull(m);
+            TestWithWindowsAndUnixEndOfLines(inputText, expectedText, (cu, expected) =>
+            {
+                var m = cu.DescendantNodes().OfType<MethodDeclarationSyntax>().FirstOrDefault();
+                Assert.NotNull(m);
 
-            var cu2 = cu.RemoveNode(m, SyntaxRemoveOptions.KeepEndOfLine);
+                var cu2 = cu.RemoveNode(m, SyntaxRemoveOptions.KeepEndOfLine);
 
-            var text = cu2.ToFullString();
+                var text = cu2.ToFullString();
 
-            Assert.Equal(expectedText, text);
+                Assert.Equal(expected, text);
+            });
         }
 
         [Fact]
@@ -2619,7 +2628,7 @@ class A
         public void TestRemoveFirstParameterEOLCommaTokenTrailingTrivia_KeepEndOfLine()
         {
             // EOL should be found on CommaToken TrailingTrivia
-            var cu = SyntaxFactory.ParseCompilationUnit(@"
+            var inputText = @"
 class C
 {
 void M(
@@ -2631,7 +2640,7 @@ int b
 /* after b*/)
 {
 }
-}");
+}";
 
             var expectedText = @"
 class C
@@ -2646,14 +2655,17 @@ int b
 }
 }";
 
-            var m = cu.DescendantNodes().OfType<ParameterSyntax>().FirstOrDefault();
-            Assert.NotNull(m);
+            TestWithWindowsAndUnixEndOfLines(inputText, expectedText, (cu, expected) =>
+            {
+                var m = cu.DescendantNodes().OfType<ParameterSyntax>().FirstOrDefault();
+                Assert.NotNull(m);
 
-            var cu2 = cu.RemoveNode(m, SyntaxRemoveOptions.KeepEndOfLine);
+                var cu2 = cu.RemoveNode(m, SyntaxRemoveOptions.KeepEndOfLine);
 
-            var text = cu2.ToFullString();
+                var text = cu2.ToFullString();
 
-            Assert.Equal(expectedText, text);
+                Assert.Equal(expected, text);
+            });
         }
 
         [Fact]
@@ -2661,7 +2673,7 @@ int b
         public void TestRemoveFirstParameterEOLParameterSyntaxTrailingTrivia_KeepEndOfLine()
         {
                 // EOL should be found on ParameterSyntax TrailingTrivia
-                var cu = SyntaxFactory.ParseCompilationUnit(@"
+                var inputText = @"
 class C
 {
 void M(
@@ -2671,7 +2683,7 @@ int a
 /* after b*/)
 {
 }
-}");
+}";
 
             var expectedText = @"
 class C
@@ -2684,14 +2696,17 @@ int b
 }
 }";
 
-            var m = cu.DescendantNodes().OfType<ParameterSyntax>().FirstOrDefault();
-            Assert.NotNull(m);
+            TestWithWindowsAndUnixEndOfLines(inputText, expectedText, (cu, expected) =>
+            {
+                var m = cu.DescendantNodes().OfType<ParameterSyntax>().FirstOrDefault();
+                Assert.NotNull(m);
 
-            var cu2 = cu.RemoveNode(m, SyntaxRemoveOptions.KeepEndOfLine);
+                var cu2 = cu.RemoveNode(m, SyntaxRemoveOptions.KeepEndOfLine);
 
-            var text = cu2.ToFullString();
+                var text = cu2.ToFullString();
 
-            Assert.Equal(expectedText, text);
+                Assert.Equal(expected, text);
+            });
         }
 
         [Fact]
@@ -2700,7 +2715,7 @@ int b
         {
             // EOL should be found on CommaToken LeadingTrivia and also on ParameterSyntax TrailingTrivia
             // but only one will be added
-            var cu = SyntaxFactory.ParseCompilationUnit(@"
+            var inputText = @"
 class C
 {
 void M(
@@ -2712,7 +2727,7 @@ int a
 /* after b*/)
 {
 }
-}");
+}";
 
             var expectedText = @"
 class C
@@ -2725,14 +2740,17 @@ int b
 }
 }";
 
-            var m = cu.DescendantNodes().OfType<ParameterSyntax>().FirstOrDefault();
-            Assert.NotNull(m);
+            TestWithWindowsAndUnixEndOfLines(inputText, expectedText, (cu, expected) =>
+            {
+                var m = cu.DescendantNodes().OfType<ParameterSyntax>().FirstOrDefault();
+                Assert.NotNull(m);
 
-            var cu2 = cu.RemoveNode(m, SyntaxRemoveOptions.KeepEndOfLine);
+                var cu2 = cu.RemoveNode(m, SyntaxRemoveOptions.KeepEndOfLine);
 
-            var text = cu2.ToFullString();
+                var text = cu2.ToFullString();
 
-            Assert.Equal(expectedText, text);
+                Assert.Equal(expected, text);
+            });
         }
 
         [Fact]
@@ -2781,7 +2799,7 @@ void M(
         public void TestRemoveLastParameterEOLCommaTokenLeadingTrivia_KeepEndOfLine()
         {
             // EOL should be found on CommaToken LeadingTrivia
-            var cu = SyntaxFactory.ParseCompilationUnit(@"
+            var inputText = @"
 class C
 {
 void M(
@@ -2792,7 +2810,7 @@ int a
 , /* after comma*/ int b /* after b*/)
 {
 }
-}");
+}";
 
             var expectedText = @"
 class C
@@ -2806,14 +2824,17 @@ int a
 }
 }";
 
-            var m = cu.DescendantNodes().OfType<ParameterSyntax>().LastOrDefault();
-            Assert.NotNull(m);
+            TestWithWindowsAndUnixEndOfLines(inputText, expectedText, (cu, expected) =>
+            {
+                var m = cu.DescendantNodes().OfType<ParameterSyntax>().LastOrDefault();
+                Assert.NotNull(m);
 
-            var cu2 = cu.RemoveNode(m, SyntaxRemoveOptions.KeepEndOfLine);
+                var cu2 = cu.RemoveNode(m, SyntaxRemoveOptions.KeepEndOfLine);
 
-            var text = cu2.ToFullString();
+                var text = cu2.ToFullString();
 
-            Assert.Equal(expectedText, text);
+                Assert.Equal(expected, text);
+            });
         }
 
         [Fact]
@@ -2821,7 +2842,7 @@ int a
         public void TestRemoveLastParameterEOLCommaTokenTrailingTrivia_KeepEndOfLine()
         {
             // EOL should be found on CommaToken TrailingTrivia
-            var cu = SyntaxFactory.ParseCompilationUnit(@"
+            var inputText = @"
 class C
 {
 void M(
@@ -2830,7 +2851,7 @@ int a, /* after comma*/
 int b /* after b*/)
 {
 }
-}");
+}";
 
             var expectedText = @"
 class C
@@ -2843,14 +2864,17 @@ int a
 }
 }";
 
-            var m = cu.DescendantNodes().OfType<ParameterSyntax>().LastOrDefault();
-            Assert.NotNull(m);
+            TestWithWindowsAndUnixEndOfLines(inputText, expectedText, (cu, expected) =>
+            {
+                var m = cu.DescendantNodes().OfType<ParameterSyntax>().LastOrDefault();
+                Assert.NotNull(m);
 
-            var cu2 = cu.RemoveNode(m, SyntaxRemoveOptions.KeepEndOfLine);
+                var cu2 = cu.RemoveNode(m, SyntaxRemoveOptions.KeepEndOfLine);
 
-            var text = cu2.ToFullString();
+                var text = cu2.ToFullString();
 
-            Assert.Equal(expectedText, text);
+                Assert.Equal(expected, text);
+            });
         }
 
         [Fact]
@@ -2859,7 +2883,7 @@ int a
         {
             // EOL should be found on ParameterSyntax LeadingTrivia and also on CommaToken TrailingTrivia
             // but only one will be added
-            var cu = SyntaxFactory.ParseCompilationUnit(@"
+            var inputText = @"
 class C
 {
 void M(
@@ -2870,7 +2894,7 @@ int a, /* after comma */
 int b /* after b*/)
 {
 }
-}");
+}";
 
             var expectedText = @"
 class C
@@ -2883,14 +2907,17 @@ int a
 }
 }";
 
-            var m = cu.DescendantNodes().OfType<ParameterSyntax>().LastOrDefault();
-            Assert.NotNull(m);
+            TestWithWindowsAndUnixEndOfLines(inputText, expectedText, (cu, expected) =>
+            {
+                var m = cu.DescendantNodes().OfType<ParameterSyntax>().LastOrDefault();
+                Assert.NotNull(m);
 
-            var cu2 = cu.RemoveNode(m, SyntaxRemoveOptions.KeepEndOfLine);
+                var cu2 = cu.RemoveNode(m, SyntaxRemoveOptions.KeepEndOfLine);
 
-            var text = cu2.ToFullString();
+                var text = cu2.ToFullString();
 
-            Assert.Equal(expectedText, text);
+                Assert.Equal(expected, text);
+            });
         }
 
         [Fact]
@@ -2937,22 +2964,25 @@ int a /* after comma */
         [WorkItem(22924, "https://github.com/dotnet/roslyn/issues/22924")]
         public void TestRemoveClassWithEndRegionDirectiveWithoutEOL_KeepEndOfLine_KeepDirectives()
         {
-            var cu = SyntaxFactory.ParseCompilationUnit(@"
+            var inputText = @"
 #region A
-class A { } #endregion");
+class A { } #endregion";
 
             var expectedText = @"
 #region A
 #endregion";
 
-            var m = cu.DescendantNodes().OfType<TypeDeclarationSyntax>().FirstOrDefault();
-            Assert.NotNull(m);
+            TestWithWindowsAndUnixEndOfLines(inputText, expectedText, (cu, expected) =>
+            {
+                var m = cu.DescendantNodes().OfType<TypeDeclarationSyntax>().FirstOrDefault();
+                Assert.NotNull(m);
 
-            var cu2 = cu.RemoveNode(m, SyntaxRemoveOptions.KeepEndOfLine | SyntaxRemoveOptions.KeepDirectives);
+                var cu2 = cu.RemoveNode(m, SyntaxRemoveOptions.KeepEndOfLine | SyntaxRemoveOptions.KeepDirectives);
 
-            var text = cu2.ToFullString();
+                var text = cu2.ToFullString();
 
-            Assert.Equal(expectedText, text);
+                Assert.Equal(expected, text);
+            });
         }
 
         [Fact]
@@ -3532,6 +3562,23 @@ namespace HelloWorld
 
             Assert.False(firstParens.Contains(a));  // fixing #8625 allows this to return quicker
             Assert.True(firstParens.Contains(e));
+        }
+
+        private static void TestWithWindowsAndUnixEndOfLines(string inputText, string expectedText, Action<CompilationUnitSyntax, string> action)
+        {
+            inputText = inputText.NormalizeLineEndings();
+            expectedText = expectedText.NormalizeLineEndings();
+
+            var tests = new Dictionary<string, string>
+            {
+                {inputText, expectedText}, // Test CRLF (Windows)
+                {inputText.Replace("\r", ""), expectedText.Replace("\r", "")}, // Test LF (Unix)
+            };
+
+            foreach (var test in tests)
+            {
+                action(SyntaxFactory.ParseCompilationUnit(test.Key), test.Value);
+            }
         }
     }
 }
