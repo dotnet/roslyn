@@ -160,27 +160,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
             AssertValidCopyAnalysisData(coreAnalysisData);
         }
 
-        public override void Reset(CopyAbstractValue resetValue, Func<AnalysisEntity, bool> shouldResetOpt = null)
+        public override void Reset(Func<AnalysisEntity, CopyAbstractValue, CopyAbstractValue> getResetValue)
         {
-            throw new NotImplementedException("Use the other overload of Reset");
-        }
-
-        public void Reset(Func<AnalysisEntity, CopyAbstractValue> getDefaultCopyValue)
-        {
-            if (CoreAnalysisData.Count > 0)
-            {
-                var keys = CoreAnalysisData.Keys.ToImmutableArray();
-                foreach (var key in keys)
-                {
-                    if (CoreAnalysisData[key].AnalysisEntities.Count > 1)
-                    {
-                        CoreAnalysisData[key] = getDefaultCopyValue(key);
-                    }
-                }
-            }
-
-            ResetPredicatedData();
-
+            base.Reset(getResetValue);
             this.AssertValidCopyAnalysisData();
         }
 
@@ -209,7 +191,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
         [Conditional("DEBUG")]
         private static void AssertValidCopyAnalysisEntity(AnalysisEntity analysisEntity)
         {
-            Debug.Assert(!analysisEntity.HasUnknownInstanceLocation, "Don't track entities if do not know about it's instance location");
+            Debug.Assert(!analysisEntity.HasUnknownInstanceLocationWithEmptyLocations, "Don't track entities if do not know about it's instance location");
         }
     }
 }

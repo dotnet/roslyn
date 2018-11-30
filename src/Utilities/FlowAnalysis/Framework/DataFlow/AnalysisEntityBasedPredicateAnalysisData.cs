@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 EqualsHelper(CoreAnalysisData, other.CoreAnalysisData);
         }
 
-        public virtual void Reset(TValue resetValue, Func<AnalysisEntity, bool> shouldResetOpt = null)
+        public virtual void Reset(Func<AnalysisEntity, TValue, TValue> getResetValue)
         {
             // Reset the current analysis data, while ensuring that we don't violate the monotonicity, i.e. we cannot remove any existing key from currentAnalysisData.
             // Just set the values for existing keys to ValueDomain.UnknownOrMayBeValue.
@@ -115,10 +115,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 var keys = CoreAnalysisData.Keys.ToImmutableArray();
                 foreach (var key in keys)
                 {
-                    if (shouldResetOpt == null || shouldResetOpt(key))
-                    {
-                        CoreAnalysisData[key] = resetValue;
-                    }
+                    CoreAnalysisData[key] = getResetValue(key, CoreAnalysisData[key]);
                 }
             }
 

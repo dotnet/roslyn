@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
     /// Abstract PointsTo value for an <see cref="AnalysisEntity"/>/<see cref="IOperation"/> tracked by <see cref="PointsToAnalysis"/>.
     /// It contains the set of possible <see cref="AbstractLocation"/>s that the entity or the operation can point to and the <see cref="Kind"/> of the location(s).
     /// </summary>
-    internal class PointsToAbstractValue: CacheBasedEquatable<PointsToAbstractValue>
+    internal class PointsToAbstractValue : CacheBasedEquatable<PointsToAbstractValue>
     {
         public static PointsToAbstractValue Undefined = new PointsToAbstractValue(PointsToAbstractValueKind.Undefined, NullAbstractValue.Undefined);
         public static PointsToAbstractValue Invalid = new PointsToAbstractValue(PointsToAbstractValueKind.Invalid, NullAbstractValue.Invalid);
@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
 
             Locations = locations;
             LValueCapturedOperations = ImmutableHashSet<IOperation>.Empty;
-            Kind = PointsToAbstractValueKind.KnownLocations;
+            Kind = locations.Any(l => l.IsAnalysisEntityDefaultLocation) ? PointsToAbstractValueKind.Unknown : PointsToAbstractValueKind.KnownLocations;
             NullState = nullState;
         }
 
@@ -103,12 +103,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                 return this;
             }
 
-            if (Kind != PointsToAbstractValueKind.KnownLocations)
+            if (Locations.IsEmpty)
             {
                 var location = analysisEntityForOperationOpt != null ?
                     AbstractLocation.CreateAnalysisEntityDefaultLocation(analysisEntityForOperationOpt) :
                     AbstractLocation.CreateAllocationLocation(operation, operation.Type, analysisContext);
-                return Create(location, mayBeNull: false);
+                return Create(location, mayBeNull: analysisEntityForOperationOpt != null);
             }
 
             var locations = Locations.Where(location => !location.IsNull).ToImmutableHashSet();
@@ -129,12 +129,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                 return this;
             }
 
-            return MakeNull(Kind, Locations, analysisEntityForOperationOpt);
+            return MakeNull(Locations, analysisEntityForOperationOpt);
         }
 
-        private static PointsToAbstractValue MakeNull(PointsToAbstractValueKind kind, ImmutableHashSet<AbstractLocation> locations, AnalysisEntity analysisEntityForOperationOpt)
+        private static PointsToAbstractValue MakeNull(ImmutableHashSet<AbstractLocation> locations, AnalysisEntity analysisEntityForOperationOpt)
         {
-            if (kind != PointsToAbstractValueKind.KnownLocations)
+            if (locations.IsEmpty)
             {
                 if (analysisEntityForOperationOpt == null)
                 {

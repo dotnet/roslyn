@@ -50,5 +50,10 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
 
         public override AnalysisEntityBasedPredicateAnalysisData<ValueContentAbstractValue> WithMergedData(AnalysisEntityBasedPredicateAnalysisData<ValueContentAbstractValue> data, MapAbstractDomain<AnalysisEntity, ValueContentAbstractValue> coreDataAnalysisDomain)
             => new ValueContentAnalysisData(this, (ValueContentAnalysisData)data, coreDataAnalysisDomain);
+
+        public void Reset(ValueContentAbstractValue resetValue)
+        {
+            base.Reset((analysisEntity, currentValue) => resetValue);
+        }
     }
 }

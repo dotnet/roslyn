@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                 // Ensure PointsTo value is set for the "this" or "Me" instance.
                 if (input != null && !HasAbstractValue(AnalysisEntityFactory.ThisOrMeInstance))
                 {
-                    input.SetAbstractValue(AnalysisEntityFactory.ThisOrMeInstance, ThisOrMePointsToAbstractValue, IsLValueFlowCaptureEntity);
+                    input.SetAbstractValue(AnalysisEntityFactory.ThisOrMeInstance, ThisOrMePointsToAbstractValue, PointsToAbstractValueDomainInstance, IsLValueFlowCaptureEntity);
                 }
 
                 var output = base.Flow(statement, block, input);
@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                         return;
                     }
 
-                    CurrentAnalysisData.SetAbstractValue(analysisEntity, value, IsLValueFlowCaptureEntity);
+                    CurrentAnalysisData.SetAbstractValue(analysisEntity, value, PointsToAbstractValueDomainInstance, IsLValueFlowCaptureEntity);
                 }
             }
 
@@ -165,7 +165,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                         throw new InvalidProgramException();
                 }
 
-                targetAnalysisData.SetAbstractValue(analysisEntity, newPointsToValue, isLValueFlowCaptureEntity);
+                targetAnalysisData.SetAbstractValue(analysisEntity, newPointsToValue, PointsToAbstractValueDomainInstance, isLValueFlowCaptureEntity);
                 AssertValidPointsToAnalysisData(targetAnalysisData);
             }
 
@@ -182,12 +182,28 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                 // Do not escape the PointsTo value for parameter at exit.
             }
 
-            protected override void ResetCurrentAnalysisData() => CurrentAnalysisData.Reset(ValueDomain.UnknownOrMayBeValue, ShouldReset);
-            private bool ShouldReset(AnalysisEntity analysisEntity)
+            private PointsToAbstractValue GetResetValue(AnalysisEntity analysisEntity, PointsToAbstractValue currentValue)
             {
-                Debug.Assert(CurrentAnalysisData.HasAbstractValue(analysisEntity));
-                return !IsLValueFlowCaptureEntity(analysisEntity);
+                Debug.Assert(CurrentAnalysisData[analysisEntity] == currentValue);
+
+                if (IsLValueFlowCaptureEntity(analysisEntity))
+                {
+                    // LValue flow capture PointsToAbstractValue can never change.
+                    return currentValue;
+                }
+
+                var resetValue = PointsToAbstractValue.Unknown;
+                if (currentValue.Kind == PointsToAbstractValueKind.Unknown &&
+                    currentValue != PointsToAbstractValue.Unknown)
+                {
+                    // Ensure that we don't exclude the locations from existing Unknown value.
+                    resetValue = ValueDomain.Merge(resetValue, currentValue);
+                }
+
+                return resetValue;
             }
+
+            protected override void ResetCurrentAnalysisData() => CurrentAnalysisData.Reset(GetResetValue);
 
             protected override PointsToAbstractValue ComputeAnalysisValueForReferenceOperation(IOperation operation, PointsToAbstractValue defaultValue)
             {

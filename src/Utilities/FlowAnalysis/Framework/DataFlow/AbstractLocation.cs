@@ -67,6 +67,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         public ITypeSymbol LocationTypeOpt { get; }
         public bool IsNull => ReferenceEquals(this, Null);
         public bool IsNoLocation => ReferenceEquals(this, NoLocation);
+        public bool IsAnalysisEntityDefaultLocation => AnalysisEntityOpt != null;
 
         protected override void ComputeHashCodeParts(ImmutableArray<int>.Builder builder)
         {

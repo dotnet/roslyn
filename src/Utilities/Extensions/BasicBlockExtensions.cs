@@ -10,7 +10,7 @@ namespace Analyzer.Utilities.Extensions
 {
     internal static class BasicBlockExtensions
     {
-        public static IEnumerable<(BasicBlock predecessorBlock, BranchWithInfo branchWithInfo)> GetPredecessorsWithBranches(this BasicBlock basicBlock, Dictionary<int, BasicBlock> ordinalToBlockMap)
+        public static IEnumerable<(BasicBlock predecessorBlock, BranchWithInfo branchWithInfo)> GetPredecessorsWithBranches(this BasicBlock basicBlock, ControlFlowGraph cfg)
         {
             foreach (ControlFlowBranch predecessorBranch in basicBlock.Predecessors)
             {
@@ -18,7 +18,7 @@ namespace Analyzer.Utilities.Extensions
                 if (predecessorBranch.FinallyRegions.Length > 0)
                 {
                     var lastFinally = predecessorBranch.FinallyRegions[predecessorBranch.FinallyRegions.Length - 1];
-                    yield return (predecessorBlock: ordinalToBlockMap[lastFinally.LastBlockOrdinal], branchWithInfo);
+                    yield return (predecessorBlock: cfg.Blocks[lastFinally.LastBlockOrdinal], branchWithInfo);
                 }
                 else
                 {
