@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.CSharp.Utilities;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -21,21 +22,72 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplaceDiscardDeclarationsWithAssignment
     [ExportLanguageService(typeof(IReplaceDiscardDeclarationsWithAssignmentsService), LanguageNames.CSharp), Shared]
     internal sealed class CSharpReplaceDiscardDeclarationsWithAssignmentsService : IReplaceDiscardDeclarationsWithAssignmentsService
     {
-        public Task<SyntaxNode> ReplaceAsync(SyntaxNode memberDeclaration, CancellationToken cancellationToken)
+        public Task<SyntaxNode> ReplaceAsync(SyntaxNode memberDeclaration, SemanticModel semanticModel, CancellationToken cancellationToken)
         {
             var editor = new SyntaxEditor(memberDeclaration, CSharpSyntaxGenerator.Instance);
             foreach (var child in memberDeclaration.DescendantNodes())
             {
-                if (child is LocalDeclarationStatementSyntax localDeclarationStatement &&
-                    localDeclarationStatement.Declaration.Variables.Any(IsDiscardDeclaration))
+                switch (child)
                 {
-                    RemoveDiscardHelper.ProcessDeclarationStatement(localDeclarationStatement, editor);
-                }
-                else if (child is CatchDeclarationSyntax catchDeclaration &&
-                    IsDiscardDeclaration(catchDeclaration))
-                {
-                    // "catch (Exception _)" => "catch (Exception)"
-                    editor.ReplaceNode(catchDeclaration, catchDeclaration.WithIdentifier(default));
+                    case LocalDeclarationStatementSyntax localDeclarationStatement:
+                        if (localDeclarationStatement.Declaration.Variables.Any(IsDiscardDeclaration))
+                        {
+                            RemoveDiscardHelper.ProcessDeclarationStatement(localDeclarationStatement, editor);
+                        }
+
+                        break;
+
+                    case CatchDeclarationSyntax catchDeclaration:
+                        if (IsDiscardDeclaration(catchDeclaration))
+                        {
+                            // "catch (Exception _)" => "catch (Exception)"
+                            editor.ReplaceNode(catchDeclaration, catchDeclaration.WithIdentifier(default));
+                        }
+
+                        break;
+
+                    case DeclarationExpressionSyntax declarationExpression:
+                        if (declarationExpression.Designation is DiscardDesignationSyntax discardSyntax)
+                        {
+                            // "M(out var _)" => "M(out _)"
+                            // "M(out int _)" => "M(out _)"
+
+                            var discardToken = SyntaxFactory.Identifier(
+                                leading: declarationExpression.GetLeadingTrivia(),
+                                contextualKind: SyntaxKind.UnderscoreToken,
+                                text: discardSyntax.UnderscoreToken.Text,
+                                valueText: discardSyntax.UnderscoreToken.ValueText,
+                                trailing: declarationExpression.GetTrailingTrivia());
+                            var replacementNode = SyntaxFactory.IdentifierName(discardToken);
+
+                            // Removing explicit type is possible only if there are no overloads of the method with same parameter.
+                            // For example, if method "M" had overloads with signature "void M(int x)" and "void M(char x)",
+                            // then the replacement "M(out int _)" => "M(out _)" will cause overload resolution error.
+                            // Bail out if replacement changes semantics.
+                            var speculationAnalyzer = new SpeculationAnalyzer(declarationExpression,
+                                replacementNode, semanticModel, cancellationToken);
+                            if (!speculationAnalyzer.ReplacementChangesSemantics())
+                            {
+                                editor.ReplaceNode(declarationExpression, replacementNode);
+                            }
+                        }
+
+                        break;
+
+                    case DeclarationPatternSyntax declarationPattern:
+                        if (declarationPattern.Designation is DiscardDesignationSyntax discardDesignationSyntax &&
+                            declarationPattern.Parent is IsPatternExpressionSyntax isPatternExpression)
+                        {
+                            // "x is int _" => "x is int"
+                            var replacementNode = SyntaxFactory.BinaryExpression(
+                                kind: SyntaxKind.IsExpression,
+                                left: isPatternExpression.Expression,
+                                operatorToken: isPatternExpression.IsKeyword,
+                                right: declarationPattern.Type.WithTrailingTrivia(declarationPattern.GetTrailingTrivia()));
+                            editor.ReplaceNode(isPatternExpression, replacementNode);
+                        }
+
+                        break;
                 }
             }
 
@@ -135,9 +187,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplaceDiscardDeclarationsWithAssignment
 
                 // Replace the original local declaration statement with new statement list
                 // from _statementsBuilder.
-                if (_localDeclarationStatement.Parent is BlockSyntax)
+                if (_localDeclarationStatement.Parent is BlockSyntax || _localDeclarationStatement.Parent is SwitchSectionSyntax)
                 {
-                    _editor.InsertAfter(_localDeclarationStatement, _statementsBuilder.Skip(1));
+                    if (_statementsBuilder.Count > 1)
+                    {
+                        _editor.InsertAfter(_localDeclarationStatement, _statementsBuilder.Skip(1));
+                    }
+
                     _editor.ReplaceNode(_localDeclarationStatement, _statementsBuilder[0]);
                 }
                 else
