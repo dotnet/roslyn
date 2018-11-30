@@ -386,7 +386,7 @@ public class C
                 new SpanResult(60, 8, 60, 17, "return a"));
         }
 
-        [Fact(Skip = "PROTOTYPE(patterns2): We do not properly instrument the when clause of a pattern switch")]
+        [Fact]
         public void TestPatternSpans()
         {
             string source = @"

@@ -1595,7 +1595,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_NoConvToIDispWrongAsync = 8418,
 
         #region diagnostics introduced for recursive patterns
-        ERR_InferredRecursivePatternType = 8501,
+        // 8501, // available
         ERR_WrongNumberOfSubpatterns = 8502,
         ERR_PropertyPatternNameMissing = 8503,
         ERR_MissingPattern = 8504,
@@ -1605,7 +1605,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_VarMayNotBindToType = 8508,
         WRN_SwitchExpressionNotExhaustive = 8509,
         ERR_SwitchArmSubsumed = 8510,
-        // ERR_UnderscoreDeclaredAndDiscardPattern = 8511, // unused
+        // 8511, // available
         WRN_CaseConstantNamedUnderscore = 8512,
         WRN_IsTypeNamedUnderscore = 8513,
         ERR_ExpressionTreeContainsSwitchExpression = 8514,

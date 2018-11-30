@@ -1969,5 +1969,134 @@ static class Program
   IL_0016:  ret
 }");
         }
+
+        [Fact]
+        public void DoNotShareInputForMutatingWhenClause()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void Main()
+    {
+        Console.Write(M1(1));
+        Console.Write(M2(1));
+        Console.Write(M3(1));
+        Console.Write(M4(1));
+        Console.Write(M5(1));
+        Console.Write(M6(1));
+        Console.Write(M7(1));
+        Console.Write(M8(1));
+        Console.Write(M9(1));
+    }
+    public static int M1(int x)
+    {
+        return x switch { _ when (++x) == 5 => 1, 1 => 2, _ => 3 };
+    }
+    public static int M2(int x)
+    {
+        return x switch { _ when (x+=1) == 5 => 1, 1 => 2, _ => 3 };
+    }
+    public static int M3(int x)
+    {
+        return x switch { _ when ((x, _) = (5, 6)) == (0, 0) => 1, 1 => 2, _ => 3 };
+    }
+    public static int M4(int x)
+    {
+        dynamic d = new Program();
+        return x switch { _ when d.M(ref x) => 1, 1 => 2, _ => 3 };
+    }
+    bool M(ref int x) { x = 100; return false; }
+    public static int M5(int x)
+    {
+        return x switch { _ when new Program(ref x).P => 1, 1 => 2, _ => 3 };
+    }
+    public static int M6(int x)
+    {
+        dynamic d = x;
+        return x switch { _ when new Program(d, ref x).P => 1, 1 => 2, _ => 3 };
+    }
+    public static int M7(int x)
+    {
+        return x switch { _ when new Program(ref x).P && new Program().P => 1, 1 => 2, _ => 3 };
+    }
+    public static int M8(int x)
+    {
+        dynamic d = x;
+        return x switch { _ when new Program(d, ref x).P && new Program().P => 1, 1 => 2, _ => 3 };
+    }
+    public static int M9(int x)
+    {
+        return x switch { _ when (x=100) == 1 => 1, 1 => 2, _ => 3 };
+    }
+    Program() { }
+    Program(ref int x) { x = 100; }
+    Program(int a, ref int x) { x = 100; }
+    bool P => false;
+}
+";
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe, references: new[] { CSharpRef });
+            compilation.VerifyDiagnostics();
+            var expectedOutput = @"222222222";
+            var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
+
+        [Fact]
+        public void GenerateStringHashOnlyOnce()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void Main()
+    {
+        Console.Write(M1(string.Empty));
+        Console.Write(M2(string.Empty));
+    }
+    public static int M1(string s)
+    {
+        return s switch { ""a""=>1, ""b""=>2, ""c""=>3, ""d""=>4, ""e""=>5, ""f""=>6, ""g""=>7, ""h""=>8, _ => 9 };
+    }
+    public static int M2(string s)
+    {
+        return s switch { ""a""=>1, ""b""=>2, ""c""=>3, ""d""=>4, ""e""=>5, ""f""=>6, ""g""=>7, ""h""=>8, _ => 9 };
+    }
+}
+";
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics();
+            var expectedOutput = @"99";
+            var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
+
+        [Fact]
+        public void BindVariablesInWhenClause()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void Main()
+    {
+        var t = (1, 2);
+        switch (t)
+        {
+            case var (x, y) when x+1 == y:
+                Console.Write(1);
+                break;
+        }
+        Console.Write(t switch
+        {
+            var (x, y) when x+1 == y => 1,
+            _ => 2
+        });
+    }
+}
+";
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics();
+            var expectedOutput = @"11";
+            var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
     }
 }
