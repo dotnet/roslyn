@@ -2605,7 +2605,7 @@ class C
 
             var text = cu2.ToFullString();
 
-            Assert.Equal("class A { } #endregion", text);
+            Assert.Equal("class A { } \r\n#endregion", text);
         }
 
         [Fact]
