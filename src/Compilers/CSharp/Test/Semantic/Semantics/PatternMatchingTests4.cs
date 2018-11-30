@@ -2635,5 +2635,48 @@ class Program
                 Diagnostic(ErrorCode.ERR_PointerTypeInPatternMatching, "var (x, y)").WithLocation(7, 18)
                 );
         }
+
+        [Fact]
+        public void UnmatchedInput_06()
+        {
+            var source =
+@"using System;
+public class C
+{
+    static void Main()
+    {
+        Console.WriteLine(M(1, 2));
+        try
+        {
+            Console.WriteLine(M(1, 3));
+        }
+        catch (MatchFailureException ex)
+        {
+            Console.WriteLine($""{ex.GetType().Name}({ex.UnmatchedValue})"");
+        }
+    }
+    public static int M(int x, int y) {
+        return (x, y) switch { (1, 2) => 3 };
+    }
+}
+namespace System
+{
+    public class MatchFailureException : InvalidOperationException
+    {
+        public MatchFailureException() {}
+        public MatchFailureException(object unmatchedValue) => UnmatchedValue = unmatchedValue;
+        public object UnmatchedValue { get; }
+    }
+}
+";
+            var compilation = CreatePatternCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (17,23): warning CS8509: The switch expression does not handle all possible inputs (it is not exhaustive).
+                //         return (x, y) switch { (1, 2) => 3 };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithLocation(17, 23)
+                );
+            CompileAndVerify(compilation, expectedOutput: @"3
+MatchFailureException()");
+        }
     }
 }
