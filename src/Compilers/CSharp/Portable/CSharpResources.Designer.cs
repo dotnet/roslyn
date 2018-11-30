@@ -9304,11 +9304,11 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to A single-element deconstruct pattern requires a type before the open parenthesis..
+        ///   Looks up a localized string similar to A single-element deconstruct pattern requires some other syntax for disambiguation. It is recommended to add a discard designator &apos;_&apos; after the close paren &apos;)&apos;..
         /// </summary>
-        internal static string ERR_SingleElementPositionalPatternRequiresType {
+        internal static string ERR_SingleElementPositionalPatternRequiresDisambiguation {
             get {
-                return ResourceManager.GetString("ERR_SingleElementPositionalPatternRequiresType", resourceCulture);
+                return ResourceManager.GetString("ERR_SingleElementPositionalPatternRequiresDisambiguation", resourceCulture);
             }
         }
         
