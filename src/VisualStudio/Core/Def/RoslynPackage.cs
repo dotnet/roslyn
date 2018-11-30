@@ -196,7 +196,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
 
         private void ReportSessionWideTelemetry()
         {
-            PersistedVersionStampLogger.LogSummary();
+            PersistedVersionStampLogger.ReportTelemetry();
             LinkedFileDiffMergingLogger.ReportTelemetry();
         }
 
