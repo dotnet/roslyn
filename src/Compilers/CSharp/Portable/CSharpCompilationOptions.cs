@@ -739,7 +739,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal override Diagnostic FilterDiagnostic(Diagnostic diagnostic)
         {
-            return CSharpDiagnosticFilter.Filter(diagnostic, WarningLevel, GeneralDiagnosticOption, SpecificDiagnosticOptions);
+            return CSharpDiagnosticFilter.Filter(diagnostic, WarningLevel, Nullable, GeneralDiagnosticOption, SpecificDiagnosticOptions);
         }
 
         protected override CompilationOptions CommonWithModuleName(string moduleName)
