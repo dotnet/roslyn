@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -166,11 +167,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                             throw ExceptionUtilities.UnexpectedValue(currentNullableDirective.SettingToken.Kind());
                     }
 
+                    // Update the state of this error code with the current directive state
+                    var builder = ArrayBuilder<KeyValuePair<string, PragmaWarningState>>.GetInstance(ErrorFacts.NullableFlowAnalysisWarnings.Count); 
+
                     foreach (string id in ErrorFacts.NullableFlowAnalysisWarnings)
                     {
-                        // Update the state of this error code with the current directive state
-                        accumulatedSpecificWarningState = accumulatedSpecificWarningState.SetItem(id, directiveState);
+                        builder.Add(new KeyValuePair<string, PragmaWarningState>(id, directiveState));
                     }
+
+                    accumulatedSpecificWarningState = accumulatedSpecificWarningState.SetItems(builder);
+                    builder.Free();
                 }
 
                 current = new WarningStateMapEntry(currentDirective.Location.SourceSpan.End, accumulatedGeneralWarningState, accumulatedSpecificWarningState);

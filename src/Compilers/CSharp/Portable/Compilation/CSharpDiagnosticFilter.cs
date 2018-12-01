@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="d">The input diagnostic</param>
         /// <param name="warningLevelOption">The maximum warning level to allow. Diagnostics with a higher warning level will be filtered out.</param>
         /// <param name="generalDiagnosticOption">How warning diagnostics should be reported</param>
-        /// <param name="nullableOption">Nullable option</param>
+        /// <param name="nullableOption">Whether Nullable Reference Types feature is enabled globally</param>
         /// <param name="specificDiagnosticOptions">How specific diagnostics should be reported</param>
         /// <returns>A diagnostic updated to reflect the options, or null if it has been filtered out</returns>
         public static Diagnostic Filter(Diagnostic d, int warningLevelOption, bool nullableOption, ReportDiagnostic generalDiagnosticOption, IDictionary<string, ReportDiagnostic> specificDiagnosticOptions)
@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 reportAction = GetDiagnosticReport(d.Severity, d.IsEnabledByDefault, d.Id, d.WarningLevel, d.Location as Location,
-                    d.Category, warningLevelOption, nullableOption , generalDiagnosticOption, specificDiagnosticOptions, out hasPragmaSuppression);
+                    d.Category, warningLevelOption, nullableOption, generalDiagnosticOption, specificDiagnosticOptions, out hasPragmaSuppression);
             }
 
             if (hasPragmaSuppression)
@@ -211,6 +211,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool promoteToAnError()
             {
                 Debug.Assert(report == ReportDiagnostic.Default);
+                Debug.Assert(generalDiagnosticOption == ReportDiagnostic.Error);
 
                 // If we've been asked to do warn-as-error then don't raise severity for anything below warning (info or hidden).
                 return severity == DiagnosticSeverity.Warning &&

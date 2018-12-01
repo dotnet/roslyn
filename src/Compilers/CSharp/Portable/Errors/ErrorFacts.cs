@@ -20,27 +20,32 @@ namespace Microsoft.CodeAnalysis.CSharp
         static ErrorFacts()
         {
             ImmutableHashSet<string>.Builder builder = ImmutableHashSet.CreateBuilder<string>();
-            builder.Add(MessageProvider.Instance.GetIdForErrorCode((int)ErrorCode.WRN_ConvertingNullableToNonNullable));
-            builder.Add(MessageProvider.Instance.GetIdForErrorCode((int)ErrorCode.WRN_NullReferenceAssignment));
-            builder.Add(MessageProvider.Instance.GetIdForErrorCode((int)ErrorCode.WRN_NullReferenceReceiver));
-            builder.Add(MessageProvider.Instance.GetIdForErrorCode((int)ErrorCode.WRN_NullReferenceReturn));
-            builder.Add(MessageProvider.Instance.GetIdForErrorCode((int)ErrorCode.WRN_NullReferenceArgument));
-            builder.Add(MessageProvider.Instance.GetIdForErrorCode((int)ErrorCode.WRN_UninitializedNonNullableField));
-            builder.Add(MessageProvider.Instance.GetIdForErrorCode((int)ErrorCode.WRN_NullabilityMismatchInAssignment));
-            builder.Add(MessageProvider.Instance.GetIdForErrorCode((int)ErrorCode.WRN_NullabilityMismatchInArgument));
-            builder.Add(MessageProvider.Instance.GetIdForErrorCode((int)ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate));
-            builder.Add(MessageProvider.Instance.GetIdForErrorCode((int)ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate));
-            builder.Add(MessageProvider.Instance.GetIdForErrorCode((int)ErrorCode.WRN_NullAsNonNullable));
-            builder.Add(MessageProvider.Instance.GetIdForErrorCode((int)ErrorCode.WRN_NoBestNullabilityConditionalExpression));
-            builder.Add(MessageProvider.Instance.GetIdForErrorCode((int)ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint));
-            builder.Add(MessageProvider.Instance.GetIdForErrorCode((int)ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint));
-            builder.Add(MessageProvider.Instance.GetIdForErrorCode((int)ErrorCode.WRN_CantInferNullabilityOfMethodTypeArgs));
-            builder.Add(MessageProvider.Instance.GetIdForErrorCode((int)ErrorCode.WRN_NoBestNullabilityArrayElements));
-            builder.Add(MessageProvider.Instance.GetIdForErrorCode((int)ErrorCode.HDN_NullCheckIsProbablyAlwaysFalse));
-            builder.Add(MessageProvider.Instance.GetIdForErrorCode((int)ErrorCode.HDN_NullCheckIsProbablyAlwaysTrue));
-            builder.Add(MessageProvider.Instance.GetIdForErrorCode((int)ErrorCode.HDN_ExpressionIsProbablyNeverNull));
+            builder.Add(getId(ErrorCode.WRN_ConvertingNullableToNonNullable));
+            builder.Add(getId(ErrorCode.WRN_NullReferenceAssignment));
+            builder.Add(getId(ErrorCode.WRN_NullReferenceReceiver));
+            builder.Add(getId(ErrorCode.WRN_NullReferenceReturn));
+            builder.Add(getId(ErrorCode.WRN_NullReferenceArgument));
+            builder.Add(getId(ErrorCode.WRN_UninitializedNonNullableField));
+            builder.Add(getId(ErrorCode.WRN_NullabilityMismatchInAssignment));
+            builder.Add(getId(ErrorCode.WRN_NullabilityMismatchInArgument));
+            builder.Add(getId(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate));
+            builder.Add(getId(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate));
+            builder.Add(getId(ErrorCode.WRN_NullAsNonNullable));
+            builder.Add(getId(ErrorCode.WRN_NoBestNullabilityConditionalExpression));
+            builder.Add(getId(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint));
+            builder.Add(getId(ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint));
+            builder.Add(getId(ErrorCode.WRN_CantInferNullabilityOfMethodTypeArgs));
+            builder.Add(getId(ErrorCode.WRN_NoBestNullabilityArrayElements));
+            builder.Add(getId(ErrorCode.HDN_NullCheckIsProbablyAlwaysFalse));
+            builder.Add(getId(ErrorCode.HDN_NullCheckIsProbablyAlwaysTrue));
+            builder.Add(getId(ErrorCode.HDN_ExpressionIsProbablyNeverNull));
 
             NullableFlowAnalysisWarnings = builder.ToImmutable();
+
+            string getId(ErrorCode errorCode)
+            {
+                return MessageProvider.Instance.GetIdForErrorCode((int)errorCode);
+            }
         }
 
         private static ImmutableDictionary<ErrorCode, string> CreateHelpLinks()
