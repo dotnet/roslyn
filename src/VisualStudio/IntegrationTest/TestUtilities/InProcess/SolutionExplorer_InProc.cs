@@ -4,16 +4,13 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Threading;
-using System.Xml.Linq;
 using EnvDTE80;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.ProjectSystem.Properties;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.TextManager.Interop;
 using NuGet.SolutionRestoreManager;
 using Roslyn.Hosting.Diagnostics.Waiters;
@@ -26,43 +23,10 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         private Solution2 _solution;
         private string _fileName;
 
-        private static readonly IDictionary<string, string> _csharpProjectTemplates = InitializeCSharpProjectTemplates();
-        private static readonly IDictionary<string, string> _visualBasicProjectTemplates = InitializeVisualBasicProjectTemplates();
-
         private SolutionExplorer_InProc() { }
 
         public static SolutionExplorer_InProc Create()
             => new SolutionExplorer_InProc();
-
-        private static IDictionary<string, string> InitializeCSharpProjectTemplates()
-        {
-            var localeID = GetDTE().LocaleID;
-
-            return new Dictionary<string, string>
-            {
-                [WellKnownProjectTemplates.ClassLibrary] = $@"Windows\{localeID}\ClassLibrary.zip",
-                [WellKnownProjectTemplates.ConsoleApplication] = "Microsoft.CSharp.ConsoleApplication",
-                [WellKnownProjectTemplates.Website] = "EmptyWeb.zip",
-                [WellKnownProjectTemplates.WinFormsApplication] = "WindowsApplication.zip",
-                [WellKnownProjectTemplates.WpfApplication] = "WpfApplication.zip",
-                [WellKnownProjectTemplates.WebApplication] = "WebApplicationProject40"
-            };
-        }
-
-        private static IDictionary<string, string> InitializeVisualBasicProjectTemplates()
-        {
-            var localeID = GetDTE().LocaleID;
-
-            return new Dictionary<string, string>
-            {
-                [WellKnownProjectTemplates.ClassLibrary] = $@"Windows\{localeID}\ClassLibrary.zip",
-                [WellKnownProjectTemplates.ConsoleApplication] = "Microsoft.VisualBasic.Windows.ConsoleApplication",
-                [WellKnownProjectTemplates.Website] = "EmptyWeb.zip",
-                [WellKnownProjectTemplates.WinFormsApplication] = "WindowsApplication.zip",
-                [WellKnownProjectTemplates.WpfApplication] = "WpfApplication.zip",
-                [WellKnownProjectTemplates.WebApplication] = "WebApplicationProject40"
-            };
-        }
 
         public void AddMetadataReference(string assemblyName, string projectName)
         {
@@ -92,6 +56,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             }
         }
 
+<<<<<<< HEAD
         public void CloseSolution(bool saveFirst = false)
             => GetDTE().Solution.Close(saveFirst);
 
@@ -120,6 +85,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             _fileName = Path.Combine(solutionPath, solutionFileName);
         }
 
+=======
+>>>>>>> iteration 2
         public string[] GetAssemblyReferences(string projectName)
         {
             var project = GetProject(projectName);
@@ -159,68 +126,11 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             return references;
         }
 
-        public void CreateSolution(string solutionName, string solutionElementString)
-        {
-            var solutionElement = XElement.Parse(solutionElementString);
-            if (solutionElement.Name != "Solution")
-            {
-                throw new ArgumentException(nameof(solutionElementString));
-            }
-            CreateSolution(solutionName);
-
-            foreach (var projectElement in solutionElement.Elements("Project"))
-            {
-                CreateProject(projectElement);
-            }
-
-            foreach (var projectElement in solutionElement.Elements("Project"))
-            {
-                var projectReferences = projectElement.Attribute("ProjectReferences")?.Value;
-                if (projectReferences != null)
-                {
-                    var projectName = projectElement.Attribute("ProjectName").Value;
-                    foreach (var projectReference in projectReferences.Split(';'))
-                    {
-                        AddProjectReference(projectName, projectReference);
-                    }
-                }
-            }
-        }
-
-        private void CreateProject(XElement projectElement)
-        {
-            const string language = "Language";
-            const string name = "ProjectName";
-            const string template = "ProjectTemplate";
-            var languageName = projectElement.Attribute(language)?.Value
-                ?? throw new ArgumentException($"You must specify an attribute called '{language}' on a project element.");
-            var projectName = projectElement.Attribute(name)?.Value
-                ?? throw new ArgumentException($"You must specify an attribute called '{name}' on a project element.");
-            var projectTemplate = projectElement.Attribute(template)?.Value
-                ?? throw new ArgumentException($"You must specify an attribute called '{template}' on a project element.");
-
-            var projectPath = Path.Combine(DirectoryName, projectName);
-            var projectTemplatePath = GetProjectTemplatePath(projectTemplate, ConvertLanguageName(languageName));
-
-            _solution.AddFromTemplate(projectTemplatePath, projectPath, projectName, Exclusive: false);
-            foreach (var documentElement in projectElement.Elements("Document"))
-            {
-                var fileName = documentElement.Attribute("FileName").Value;
-                UpdateOrAddFile(projectName, fileName, contents: documentElement.Value);
-            }
-        }
-
         public void AddProjectReference(string projectName, string projectToReferenceName)
         {
             var project = GetProject(projectName);
             var projectToReference = GetProject(projectToReferenceName);
             ((VSProject)project.Object).References.AddProject(projectToReference);
-        }
-
-        public void AddReference(string projectName, string fullyQualifiedAssemblyName)
-        {
-            var project = GetProject(projectName);
-            ((VSProject)project.Object).References.Add(fullyQualifiedAssemblyName);
         }
 
         public void AddPackageReference(string projectName, string packageName, string version)
@@ -275,63 +185,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 throw new ArgumentException($"reference to project {projectReferenceName} not found, references: '{string.Join(", ", projectReference)}'");
             }
             reference.Remove();
-        }
-
-        public void OpenSolution(string path, bool saveExistingSolutionIfExists = false)
-        {
-            var dte = GetDTE();
-
-            if (dte.Solution.IsOpen)
-            {
-                CloseSolution(saveExistingSolutionIfExists);
-            }
-            dte.Solution.Open(path);
-
-            _solution = (EnvDTE80.Solution2)dte.Solution;
-            _fileName = path;
-        }
-
-        private static string ConvertLanguageName(string languageName)
-        {
-            const string CSharp = nameof(CSharp);
-            const string VisualBasic = nameof(VisualBasic);
-
-            switch (languageName)
-            {
-                case LanguageNames.CSharp:
-                    return CSharp;
-                case LanguageNames.VisualBasic:
-                    return VisualBasic;
-                default:
-                    throw new ArgumentException($"{languageName} is not supported.", nameof(languageName));
-            }
-        }
-
-        public void AddProject(string projectName, string projectTemplate, string languageName)
-        {
-            var projectPath = Path.Combine(DirectoryName, projectName);
-
-            var projectTemplatePath = GetProjectTemplatePath(projectTemplate, ConvertLanguageName(languageName));
-
-            _solution.AddFromTemplate(projectTemplatePath, projectPath, projectName, Exclusive: false);
-        }
-
-        // TODO: Adjust language name based on whether we are using a web template
-        private string GetProjectTemplatePath(string projectTemplate, string languageName)
-        {
-            if (languageName.Equals("csharp", StringComparison.OrdinalIgnoreCase) &&
-               _csharpProjectTemplates.TryGetValue(projectTemplate, out var csharpProjectTemplate))
-            {
-                return _solution.GetProjectTemplate(csharpProjectTemplate, languageName);
-            }
-
-            if (languageName.Equals("visualbasic", StringComparison.OrdinalIgnoreCase) &&
-               _visualBasicProjectTemplates.TryGetValue(projectTemplate, out var visualBasicProjectTemplate))
-            {
-                return _solution.GetProjectTemplate(visualBasicProjectTemplate, languageName);
-            }
-
-            return _solution.GetProjectTemplate(projectTemplate, languageName);
         }
 
         public void CleanUpOpenSolution()
@@ -481,99 +334,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 => string.Compare(p.FileName, nameOrFileName, StringComparison.OrdinalIgnoreCase) == 0
                 || string.Compare(p.Name, nameOrFileName, StringComparison.OrdinalIgnoreCase) == 0);
 
-        /// <summary>
-        /// Update the given file if it already exists in the project, otherwise add a new file to the project.
-        /// </summary>
-        /// <param name="projectName">The project that contains the file.</param>
-        /// <param name="fileName">The name of the file to update or add.</param>
-        /// <param name="contents">The contents of the file to overwrite if the file already exists or set if the file it created. Empty string is used if null is passed.</param>
-        /// <param name="open">Whether to open the file after it has been updated/created.</param>
-        public void UpdateOrAddFile(string projectName, string fileName, string contents = null, bool open = false)
-        {
-            var project = GetProject(projectName);
-            if (project.ProjectItems.Cast<EnvDTE.ProjectItem>().Any(x => x.Name == fileName))
-            {
-                UpdateFile(projectName, fileName, contents, open);
-            }
-            else
-            {
-                AddFile(projectName, fileName, contents, open);
-            }
-        }
-
-        /// <summary>
-        /// Update the given file to have the contents given.
-        /// </summary>
-        /// <param name="projectName">The project that contains the file.</param>
-        /// <param name="fileName">The name of the file to update or add.</param>
-        /// <param name="contents">The contents of the file to overwrite. Empty string is used if null is passed.</param>
-        /// <param name="open">Whether to open the file after it has been updated.</param>
-        public void UpdateFile(string projectName, string fileName, string contents = null, bool open = false)
-        {
-            void SetText(string text)
-            {
-                InvokeOnUIThread(() =>
-                {
-                    // The active text view might not have finished composing yet, waiting for the application to 'idle'
-                    // means that it is done pumping messages (including WM_PAINT) and the window should return the correct text view
-                    WaitForApplicationIdle();
-
-                    var vsTextManager = GetGlobalService<SVsTextManager, IVsTextManager>();
-                    var hresult = vsTextManager.GetActiveView(fMustHaveFocus: 1, pBuffer: null, ppView: out var vsTextView);
-                    Marshal.ThrowExceptionForHR(hresult);
-                    var activeVsTextView = (IVsUserData)vsTextView;
-
-                    var editorGuid = new Guid("8C40265E-9FDB-4F54-A0FD-EBB72B7D0476");
-                    hresult = activeVsTextView.GetData(editorGuid, out var wpfTextViewHost);
-                    Marshal.ThrowExceptionForHR(hresult);
-
-                    var view = ((IWpfTextViewHost)wpfTextViewHost).TextView;
-                    var textSnapshot = view.TextSnapshot;
-                    var replacementSpan = new Text.SnapshotSpan(textSnapshot, 0, textSnapshot.Length);
-                    view.TextBuffer.Replace(replacementSpan, text);
-                });
-            }
-
-            OpenFile(projectName, fileName);
-            SetText(contents ?? string.Empty);
-            CloseFile(projectName, fileName, saveFile: true);
-            if (open)
-            {
-                OpenFile(projectName, fileName);
-            }
-        }
-
-        /// <summary>
-        /// Add new file to project.
-        /// </summary>
-        /// <param name="projectName">The project that contains the file.</param>
-        /// <param name="fileName">The name of the file to add.</param>
-        /// <param name="contents">The contents of the file to overwrite. An empty file is create if null is passed.</param>
-        /// <param name="open">Whether to open the file after it has been updated.</param>
-        public void AddFile(string projectName, string fileName, string contents = null, bool open = false)
-        {
-            var project = GetProject(projectName);
-            var projectDirectory = Path.GetDirectoryName(project.FullName);
-            var filePath = Path.Combine(projectDirectory, fileName);
-            var directoryPath = Path.GetDirectoryName(filePath);
-            Directory.CreateDirectory(directoryPath);
-
-            if (contents != null)
-            {
-                File.WriteAllText(filePath, contents);
-            }
-            else if (!File.Exists(filePath))
-            {
-                File.Create(filePath).Dispose();
-            }
-
-            var projectItem = project.ProjectItems.AddFromFile(filePath);
-
-            if (open)
-            {
-                OpenFile(projectName, fileName);
-            }
-        }
 
         /// <summary>
         /// Adds a new standalone file to the Miscellaneous Files workspace.
