@@ -1508,11 +1508,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        protected virtual LocalState AllBitsSet() // required for DataFlowsOutWalker
-        {
-            return default(LocalState);
-        }
-
         public sealed override BoundNode VisitReturnStatement(BoundReturnStatement node)
         {
             var result = VisitReturnStatementNoAdjust(node);

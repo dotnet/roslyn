@@ -193,7 +193,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Function VisitExpressionWithStackGuard(node As BoundExpression) As BoundExpression
             Try
                 Return VisitExpressionWithoutStackGuard(node)
-            Catch ex As Exception When StackGuard.IsInsufficientExecutionStackException(ex)
+            Catch ex As InsufficientExecutionStackException
                 Throw New CancelledByStackGuardException(ex, node)
             End Try
         End Function

@@ -7,9 +7,9 @@ $ErrorActionPreference = "Stop"
 
 try {
     . (Join-Path $PSScriptRoot "build-utils.ps1")
-    Push-Location $repoDir
+    Push-Location $RepoRoot
     
-    Write-Host "Repo Dir $repoDir"
+    Write-Host "Repo Dir $RepoRoot"
     Write-Host "Binaries Dir $binariesDir"
     
     $buildConfiguration = if ($release) { "Release" } else { "Debug" }
@@ -17,9 +17,9 @@ try {
     
     $optProfToolDir = Get-PackageDir "Roslyn.OptProf.RunSettings.Generator"
     $optProfToolExe = Join-Path $optProfToolDir "tools\roslyn.optprof.runsettings.generator.exe"
-    $configFile = Join-Path $repoDir "build\config\optprof.json"
+    $configFile = Join-Path $RepoRoot "build\config\optprof.json"
     $outputFolder = Join-Path $configDir "Insertion\RunSettings"
-    $optProfArgs = "--configFile $configFile --outputFolder $outputFolder --buildNumber 28302.01 "
+    $optProfArgs = "--configFile $configFile --outputFolder $outputFolder --buildNumber 28320.3001 "
     
     Exec-Console $optProfToolExe $optProfArgs
     exit 0

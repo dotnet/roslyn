@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(method.MethodKind == MethodKind.Constructor);
 
-            if (method.NonNullTypes == null)
+            if (method.NonNullTypes != true)
             {
                 return;
             }
@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     continue;
                 }
-                if (fieldType.IsNullable != false && !fieldType.TypeSymbol.IsUnconstrainedTypeParameter())
+                if (!fieldType.NullableAnnotation.IsAnyNotNullable() && !fieldType.TypeSymbol.IsUnconstrainedTypeParameter())
                 {
                     continue;
                 }

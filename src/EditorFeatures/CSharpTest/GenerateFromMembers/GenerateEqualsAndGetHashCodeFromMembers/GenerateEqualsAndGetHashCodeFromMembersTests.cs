@@ -1343,7 +1343,7 @@ public class Class1
 {
     int i;
 
-    public override System.Boolean Equals(System.Object obj)
+    public override global::System.Boolean Equals(global::System.Object obj)
     {
         var @class = obj as Class1;
         return @class != null;
@@ -1353,7 +1353,7 @@ public class Class1
     {
     }
 
-    public override System.Int32 GetHashCode()
+    public override global::System.Int32 GetHashCode()
     {
         return 0;
     }

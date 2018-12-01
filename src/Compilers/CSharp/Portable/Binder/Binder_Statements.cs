@@ -2483,10 +2483,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             return symbol?.Kind == SymbolKind.Method && ((MethodSymbol)symbol).IsGenericTaskReturningAsync(this.Compilation);
         }
 
-        protected bool IsIAsyncEnumerableReturningAsyncMethod()
+        protected bool IsIAsyncEnumerableOrIAsyncEnumeratorReturningAsyncMethod()
         {
             var symbol = this.ContainingMemberOrLambda;
-            return symbol?.Kind == SymbolKind.Method && ((MethodSymbol)symbol).IsIAsyncEnumerableReturningAsync(this.Compilation);
+            if (symbol?.Kind == SymbolKind.Method)
+            {
+                var method = (MethodSymbol)symbol;
+                return method.IsIAsyncEnumerableReturningAsync(this.Compilation) ||
+                    method.IsIAsyncEnumeratorReturningAsync(this.Compilation);
+            }
+            return false;
         }
 
         protected virtual TypeSymbol GetCurrentReturnType(out RefKind refKind)
@@ -2548,7 +2554,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     diagnostics.Add(ErrorCode.ERR_MustNotHaveRefReturn, syntax.ReturnKeyword.GetLocation());
                     hasErrors = true;
                 }
-                else if (IsIAsyncEnumerableReturningAsyncMethod())
+                else if (IsIAsyncEnumerableOrIAsyncEnumeratorReturningAsyncMethod())
                 {
                     diagnostics.Add(ErrorCode.ERR_ReturnInIterator, syntax.ReturnKeyword.GetLocation());
                     hasErrors = true;

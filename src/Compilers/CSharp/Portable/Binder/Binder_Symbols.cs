@@ -446,7 +446,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                             if (a.QuestionToken.IsKind(SyntaxKind.QuestionToken))
                             {
-                                type = TypeSymbolWithAnnotations.Create(array, isNullableIfReferenceType: true, fromDeclaration: true);
+                                type = TypeSymbolWithAnnotations.Create(array, NullableAnnotation.Annotated);
                                 reportNullableReferenceTypesIfNeeded(a.QuestionToken);
                             }
                             else
@@ -1499,28 +1499,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var srcSymbol = symbols[best.Index];
                         var mdSymbol = symbols[secondBest.Index];
 
+                        object arg0;
+
+                        if (best.IsFromSourceModule)
+                        {
+                            arg0 = srcSymbol.Locations.First().SourceTree.FilePath;
+                        }
+                        else
+                        {
+                            Debug.Assert(best.IsFromAddedModule);
+                            arg0 = srcSymbol.ContainingModule;
+                        }
+
                         //if names match, arities match, and containing symbols match (recursively), ...
                         if (srcSymbol.ToDisplayString(SymbolDisplayFormat.QualifiedNameArityFormat) ==
                             mdSymbol.ToDisplayString(SymbolDisplayFormat.QualifiedNameArityFormat))
                         {
-                            if (srcSymbol.Equals(Compilation.GetWellKnownType(WellKnownType.System_Runtime_CompilerServices_NonNullTypesAttribute)))
-                            {
-                                // Silently prefer the injected symbol
-                                return originalSymbols[best.Index];
-                            }
-
-                            object arg0;
-                            if (best.IsFromSourceModule)
-                            {
-                                SyntaxTree tree = srcSymbol.Locations.FirstOrNone().SourceTree;
-                                arg0 = tree != null ? (object)tree.FilePath : MessageID.IDS_InjectedDeclaration.Localize();
-                            }
-                            else
-                            {
-                                Debug.Assert(best.IsFromAddedModule);
-                                arg0 = srcSymbol.ContainingModule;
-                            }
-
                             if (srcSymbol.Kind == SymbolKind.Namespace && mdSymbol.Kind == SymbolKind.NamedType)
                             {
                                 // ErrorCode.WRN_SameFullNameThisNsAgg: The namespace '{1}' in '{0}' conflicts with the imported type '{3}' in '{2}'. Using the namespace defined in '{0}'.

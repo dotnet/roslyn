@@ -27,9 +27,24 @@
         <target state="translated">Akce nemůžou zůstat prázdné.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Add_tuple_element_name_0">
+        <source>Add tuple element name '{0}'</source>
+        <target state="new">Add tuple element name '{0}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Adding_method_with_explicit_interface_specifier_will_prevernt_the_debug_session_from_continuing">
         <source>Adding a method with an explicit interface specifier will prevent the debug session from continuing.</source>
         <target state="new">Adding a method with an explicit interface specifier will prevent the debug session from continuing.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Change_namespace_to_0">
+        <source>Change namespace to '{0}'</source>
+        <target state="new">Change namespace to '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Change_to_global_namespace">
+        <source>Change to global namespace</source>
+        <target state="new">Change to global namespace</target>
         <note />
       </trans-unit>
       <trans-unit id="Code_Quality">
@@ -72,6 +87,11 @@
         <target state="new">Failed to analyze data-flow for: {0}</target>
         <note />
       </trans-unit>
+      <trans-unit id="Expression_value_is_never_used">
+        <source>Expression value is never used</source>
+        <target state="new">Expression value is never used</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Fix_formatting">
         <source>Fix formatting</source>
         <target state="new">Fix formatting</target>
@@ -85,6 +105,16 @@
       <trans-unit id="Formatting_document">
         <source>Formatting document</source>
         <target state="translated">Formátuje se dokument.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Move_file_to_0">
+        <source>Move file to '{0}'</source>
+        <target state="new">Move file to '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Move_file_to_project_root_folder">
+        <source>Move file to project root folder</source>
+        <target state="new">Move file to project root folder</target>
         <note />
       </trans-unit>
       <trans-unit id="Indexing_can_be_simplified">
@@ -137,6 +167,11 @@
         <target state="translated">Podpisy souvisejících metod nalezené v metadatech se nebudou aktualizovat.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Remove_redundant_assignment">
+        <source>Remove redundant assignment</source>
+        <target state="new">Remove redundant assignment</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Remove_unread_private_members">
         <source>Remove unread private members</source>
         <target state="new">Remove unread private members</target>
@@ -145,6 +180,31 @@
       <trans-unit id="Remove_unused_member">
         <source>Remove unused member</source>
         <target state="new">Remove unused member</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_unused_parameter">
+        <source>Remove unused parameter</source>
+        <target state="new">Remove unused parameter</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_unused_parameter_0">
+        <source>Remove unused parameter '{0}'</source>
+        <target state="new">Remove unused parameter '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_unused_parameter_0_if_it_is_not_part_of_a_shipped_public_API">
+        <source>Remove unused parameter '{0}' if it is not part of a shipped public API</source>
+        <target state="new">Remove unused parameter '{0}' if it is not part of a shipped public API</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_unused_parameter_0_if_it_is_not_part_of_a_shipped_public_API_its_initial_value_is_never_used">
+        <source>Remove unused parameter '{0}' if it is not part of a shipped public API, its initial value is never used</source>
+        <target state="new">Remove unused parameter '{0}' if it is not part of a shipped public API, its initial value is never used</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_unused_parameter_0_its_initial_value_is_never_used">
+        <source>Remove unused parameter '{0}', its initial value is never used</source>
+        <target state="new">Remove unused parameter '{0}', its initial value is never used</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_unused_private_members">
@@ -167,6 +227,16 @@
         <target state="new">Use compound assignment</target>
         <note />
       </trans-unit>
+      <trans-unit id="Use_discard_underscore">
+        <source>Use discard '_'</source>
+        <target state="new">Use discard '_'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_discarded_local">
+        <source>Use discarded local</source>
+        <target state="new">Use discarded local</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Use_expression_body_for_lambda_expressions">
         <source>Use expression body for lambda expressions</source>
         <target state="new">Use expression body for lambda expressions</target>
@@ -182,6 +252,11 @@
         <target state="new">Use interpolated verbatim string</target>
         <note />
       </trans-unit>
+      <trans-unit id="Warning_colon_changing_namespace_may_produce_invalid_code_and_change_code_meaning">
+        <source>Warning: Changing namespace may produce invalid code and change code meaning.</source>
+        <target state="new">Warning: Changing namespace may produce invalid code and change code meaning.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Use_range_operator">
         <source>Use range operator</source>
         <target state="new">Use range operator</target>
@@ -190,6 +265,16 @@
       <trans-unit id="_0_can_be_simplified">
         <source>{0} can be simplified</source>
         <target state="new">{0} can be simplified</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Value_assigned_to_0_is_never_used">
+        <source>Value assigned to '{0}' is never used</source>
+        <target state="new">Value assigned to '{0}' is never used</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Value_assigned_to_symbol_is_never_used">
+        <source>Value assigned to symbol is never used</source>
+        <target state="new">Value assigned to symbol is never used</target>
         <note />
       </trans-unit>
       <trans-unit id="generic_overload">

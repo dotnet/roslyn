@@ -100,8 +100,11 @@ function Process-Arguments() {
     }
 
     if ($cibuild -and -not $official -and $anyVsi) {
-        # Avoid spending time in analyzers when requested, and also in the slowest integration test builds
+        # Integration tests are our longest test leg. We skip analyzers and bootstrapping here 
+        # to reduce the overall runtime here. There is sufficient coverage in other legs to make
+        # it safe to skip on these legs.
         $script:skipAnalyzers = $true
+        $script:bootstrap = $false
     }
 
     if ($testDeterminism -and ($anyUnit -or $anyVsi)) {
@@ -214,7 +217,7 @@ function Make-BootstrapBuild() {
 
     Run-MSBuild $projectPath "/t:Pack /p:DotNetUseShippingVersions=true /p:InitialDefineConstants=BOOTSTRAP /p:PackageOutputPath=$dir" -logFileName "Bootstrap" -useDotnetBuild:$buildCoreClr
     $packageFile = Get-ChildItem -Path $dir -Filter "$packageName.*.nupkg"    
-    Unzip-File "$dir\$packageFile" $dir
+    Unzip "$dir\$packageFile" $dir
 
     Write-Host "Cleaning Bootstrap compiler artifacts"
     Run-MSBuild $projectPath "/t:Clean" -logFileName "BootstrapClean"
@@ -393,13 +396,13 @@ function Test-XUnit() {
     $dlls = $dlls | ?{ -not ($_.FullName -match ".*/ref/.*") }
 
     if ($cibuild) {
-        # Use a 75 minute timeout on CI
-        $args += " -xml -timeout:75"
+        $args += " -xml -timeout:65"
     }
 
+    $procdumpPath = Ensure-ProcDump
+    $args += " -procdumppath:$procDumpPath"
     if ($procdump) {
-        $procdumpPath = Ensure-ProcDump
-        $args += " -procdumppath:$procDumpPath"
+        $args += " -useprocdump";
     }
 
     if ($test64) {
@@ -426,9 +429,16 @@ function Test-XUnit() {
 function Deploy-VsixViaTool() { 
     $vsixDir = Get-PackageDir "RoslynTools.VSIXExpInstaller"
     $vsixExe = Join-Path $vsixDir "tools\VsixExpInstaller.exe"
-    $both = Get-VisualStudioDirAndId
-    $vsDir = $both[0].Trim("\")
-    $vsId = $both[1]
+    
+    $vsInfo = LocateVisualStudio
+    if ($vsInfo -eq $null) {
+        throw "Unable to locate required Visual Studio installation"
+    }
+
+    $vsDir = $vsInfo.installationPath.TrimEnd("\")
+    $vsId = $vsInfo.instanceId
+    $vsMajorVersion = $vsInfo.installationVersion.Split('.')[0]
+
     $hive = "RoslynDev"
     Write-Host "Using VS Instance $vsId at `"$vsDir`""
     $baseArgs = "/rootSuffix:$hive /vsInstallDir:`"$vsDir`""
@@ -437,7 +447,7 @@ function Deploy-VsixViaTool() {
 
     # Actual uninstall is failing at the moment using the uninstall options. Temporarily using
     # wildfire to uninstall our VSIX extensions
-    $extDir = Join-Path ${env:USERPROFILE} "AppData\Local\Microsoft\VisualStudio\15.0_$($vsid)$($hive)"
+    $extDir = Join-Path ${env:USERPROFILE} "AppData\Local\Microsoft\VisualStudio\$vsMajorVersion.0_$vsid$hive"
     if (Test-Path $extDir) {
         foreach ($dir in Get-ChildItem -Directory $extDir) {
             $name = Split-Path -leaf $dir
@@ -593,8 +603,7 @@ try {
     }
 
     if ($launch) {
-        $devenvExe = Get-VisualStudioDir
-        $devenvExe = Join-Path $devenvExe 'Common7\IDE\devenv.exe'
+        $devenvExe = Join-Path $env:VSINSTALLDIR 'Common7\IDE\devenv.exe'
         &$devenvExe /rootSuffix RoslynDev
     }
 

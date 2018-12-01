@@ -565,9 +565,6 @@ namespace Microsoft.CodeAnalysis
             "System.Runtime.CompilerServices.IsUnmanagedAttribute",
 
             "Microsoft.VisualBasic.Conversion",
-            "System.Runtime.CompilerServices.NonNullTypesAttribute",
-            "System.AttributeTargets",
-            "Microsoft.CodeAnalysis.EmbeddedAttribute",
 
             "System.Runtime.CompilerServices.ITuple",
 

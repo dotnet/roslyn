@@ -305,8 +305,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private void CheckNullableAnnotationsInConstraints(DiagnosticBag diagnostics)
         {
-            if (this.ReferenceTypeConstraintIsNullable == true ||
-                this.ConstraintTypesNoUseSiteDiagnostics.Any(c => c.ContainsNullableReferenceTypes()))
+            if ((this.HasReferenceTypeConstraint && this.ReferenceTypeConstraintIsNullable != null) ||
+                this.ConstraintTypesNoUseSiteDiagnostics.Any(c => c.NeedsNullableAttribute()))
             {
                 DeclaringCompilation.EnsureNullableAttributeExists(diagnostics, this.GetNonNullSyntaxNode().Location, ModifyCompilationForAttributeEmbedding());
             }
@@ -361,11 +361,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeIsUnmanagedAttribute(this));
             }
 
-            if (this.ReferenceTypeConstraintIsNullable == true)
+            if (this.HasReferenceTypeConstraint && this.ReferenceTypeConstraintIsNullable != null)
             {
+                NamedTypeSymbol byteType = DeclaringCompilation.GetSpecialType(SpecialType.System_Byte);
+                Debug.Assert((object)byteType != null);
+
                 AddSynthesizedAttribute(
                     ref attributes,
-                    moduleBuilder.SynthesizeNullableAttribute(WellKnownMember.System_Runtime_CompilerServices_NullableAttribute__ctor, ImmutableArray<TypedConstant>.Empty));
+                    moduleBuilder.SynthesizeNullableAttribute(WellKnownMember.System_Runtime_CompilerServices_NullableAttribute__ctorByte,
+                                                              ImmutableArray.Create(new TypedConstant(byteType, TypedConstantKind.Primitive,
+                                                                                                      (byte)(this.ReferenceTypeConstraintIsNullable == true ? 
+                                                                                                                 NullableAnnotation.Annotated : 
+                                                                                                                 NullableAnnotation.NotAnnotated)))));
             }
         }
 

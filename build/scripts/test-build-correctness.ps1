@@ -36,7 +36,30 @@ try {
     # Verify the state of our generated syntax files
     Write-Host "Checking generated compiler files"
     Exec-Block { & (Join-Path $PSScriptRoot "generate-compiler-code.ps1") -test }
+    Write-Host ""
+    
+    # Verfiy the state of creating run settings for optprof
+    Write-Host "Checking run generation for optprof"
 
+    # set environment variables
+    if (-not (Test-Path env:SYSTEM_TEAMPROJECT)) { $env:SYSTEM_TEAMPROJECT = "DevDiv" }
+    if (-not (Test-Path env:BUILD_REPOSITORY_NAME)) { $env:BUILD_REPOSITORY_NAME = "dotnet/roslyn" }
+    if (-not (Test-Path env:BUILD_SOURCEBRANCHNAME)) { $env:BUILD_SOURCEBRANCHNAME = "test" }
+    if (-not (Test-Path env:BUILD_BUILDID)) { $env:BUILD_BUILDID = "42.42.42.42" }
+    if (-not (Test-Path env:BUILD_SOURCESDIRECTORY)) { $env:BUILD_SOURCESDIRECTORY = $RepoRoot }
+    if (-not (Test-Path env:BUILD_STAGINGDIRECTORY)) { $env:BUILD_STAGINGDIRECTORY = $configDir }
+
+    # create a fake BootstrapperInfo.json file
+    $bootstrapperInfoFolder = Join-Path $configDir "MicroBuild\Output"
+    Create-Directory $bootstrapperInfoFolder
+    
+    $bootstrapperInfoPath = Join-Path $bootstrapperInfoFolder "BootstrapperInfo.json"
+    $bootstrapperInfoContent = "[{""VSBuildVersion"":  ""42.42.42424.42""}]"
+    $bootstrapperInfoContent >> $bootstrapperInfoPath
+
+    # generate run settings
+    Exec-Block { & (Join-Path $PSScriptRoot "createrunsettings.ps1") }
+    
     exit 0
 }
 catch [exception] {
