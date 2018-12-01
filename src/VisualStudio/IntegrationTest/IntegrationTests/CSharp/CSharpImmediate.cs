@@ -7,7 +7,6 @@ using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Common;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Roslyn.Test.Utilities;
 
 using ProjectUtils = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils;
 
@@ -18,14 +17,12 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
     {
         protected override string LanguageName => LanguageNames.CSharp;
 
-        public CSharpImmediate( )
-            : base()
-        {
-        }
+        public CSharpImmediate() : base() { }
 
-        public override void Initialize()
+        [TestInitialize]
+        public override async Task InitializeAsync()
         {
-            base.Initialize();
+            await base.InitializeAsync().ConfigureAwait(true);
 
             VisualStudioInstance.SolutionExplorer.CreateSolution(nameof(CSharpInteractive));
             var testProj = new ProjectUtils.Project("TestProj");

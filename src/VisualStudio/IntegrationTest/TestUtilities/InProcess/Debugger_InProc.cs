@@ -3,8 +3,7 @@
 using System;
 using System.Globalization;
 using System.Runtime.InteropServices;
-using Microsoft.Test.Apex.VisualStudio;
-using Microsoft.Test.Apex.VisualStudio.Debugger;
+using EnvDTE;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 {
@@ -25,30 +24,33 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         /// </summary>
         private static readonly TimeSpan DefaultPollingInterCallSleep = TimeSpan.FromMilliseconds(250);
 
-        private readonly DebuggerService _debugger;
+        private readonly EnvDTE.Debugger _debugger;
 
-        public Debugger_InProc(VisualStudioHost visualStudioHost) : base(visualStudioHost)
+        private Debugger_InProc()
         {
-            _debugger =  visualStudioHost.ObjectModel.Debugger;
+            _debugger = GetDTE().Debugger;
         }
+
+        public static Debugger_InProc Create()
+            => new Debugger_InProc();
 
         public void SetBreakPoint(string fileName, int lineNumber, int columnIndex)
         {
             // Need to increment the line number because editor line numbers starts from 0 but the debugger ones starts from 1.
-            _debugger.AddBreakpoint(fileName: fileName, fileLine: lineNumber + 1, fileColumn: columnIndex);
+            _debugger.Breakpoints.Add(File: fileName, Line: lineNumber + 1, Column: columnIndex);
         }
 
-        public void Go(bool waitForBreakMode) => _visualStudioHost.Dte.Debugger.Go(waitForBreakMode);
+        public void Go(bool waitForBreakMode) => _debugger.Go(waitForBreakMode);
 
         public void StepOver(bool waitForBreakOrEnd) => this.WaitForRaiseDebuggerDteCommand(() => _debugger.StepOver(waitForBreakOrEnd));
 
-        public void Stop(bool waitForDesignMode) => _visualStudioHost.Dte.Debugger.Stop(WaitForDesignMode: waitForDesignMode);
+        public void Stop(bool waitForDesignMode) => _debugger.Stop(WaitForDesignMode: waitForDesignMode);
 
         public void SetNextStatement() => _debugger.SetNextStatement();
 
-        public void ExecuteStatement(string statement) => _debugger.ExecuteCommand(statement);
+        public void ExecuteStatement(string statement) => _debugger.ExecuteStatement(statement);
 
-        public Common.Expression GetExpression(string expressionText) => new Common.Expression(_visualStudioHost.Dte.Debugger.GetExpression(expressionText));
+        public Common.Expression GetExpression(string expressionText) => new Common.Expression(_debugger.GetExpression(expressionText));
 
         /// <summary>
         /// Executes the specified action delegate and retries if Operation Not Supported is thrown.

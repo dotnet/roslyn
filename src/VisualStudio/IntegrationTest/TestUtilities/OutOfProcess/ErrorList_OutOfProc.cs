@@ -15,7 +15,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             : base(visualStudioInstance)
         {
             _instance = visualStudioInstance;
-            _inProc = new ErrorList_InProc(visualStudioInstance.VisualStudioHost);
+            _inProc = CreateInProcComponent<ErrorList_InProc>(visualStudioInstance);
             Verify = new Verifier(this, _instance);
         }
 

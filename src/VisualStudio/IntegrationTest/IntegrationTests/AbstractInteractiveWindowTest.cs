@@ -2,6 +2,7 @@
 
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Roslyn.VisualStudio.IntegrationTests
 {
@@ -9,9 +10,10 @@ namespace Roslyn.VisualStudio.IntegrationTests
     {
         protected AbstractInteractiveWindowTest() : base() { }
 
-        public override void Initialize()
+        [TestInitialize]
+        public override async Task InitializeAsync()
         {
-            base.Initialize();
+            await base.InitializeAsync().ConfigureAwait(true);
             ClearInteractiveWindow();
         }
 

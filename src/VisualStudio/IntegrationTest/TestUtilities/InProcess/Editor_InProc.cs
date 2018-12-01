@@ -14,7 +14,6 @@ using System.Windows.Forms;
 using System.Windows.Media;
 using Microsoft.CodeAnalysis.Editor.Implementation.Highlighting;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
-using Microsoft.Test.Apex.VisualStudio;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Common;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -35,12 +34,15 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
     {
         private static readonly Guid IWpfTextViewId = new Guid("8C40265E-9FDB-4F54-A0FD-EBB72B7D0476");
 
-        public Editor_InProc(VisualStudioHost visualStudioHost) : base(visualStudioHost)  { }
+        private Editor_InProc() { }
+
+        public static Editor_InProc Create()
+            => new Editor_InProc();
 
         protected override IWpfTextView GetActiveTextView()
             => GetActiveTextViewHost().TextView;
 
-        private IVsTextView GetActiveVsTextView()
+        private static IVsTextView GetActiveVsTextView()
         {
             var vsTextManager = GetGlobalService<SVsTextManager, IVsTextManager>();
 
@@ -50,7 +52,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             return vsTextView;
         }
 
-        private IWpfTextViewHost GetActiveTextViewHost()
+        private static IWpfTextViewHost GetActiveTextViewHost()
         {
             // The active text view might not have finished composing yet, waiting for the application to 'idle'
             // means that it is done pumping messages (including WM_PAINT) and the window should return the correct text view
@@ -398,7 +400,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 delay: TimeSpan.FromMilliseconds(250));
         }
 
-        private IUIAutomationElement FindDialogWorker(string dialogAutomationName)
+        private static IUIAutomationElement FindDialogWorker(string dialogAutomationName)
         {
             var vsAutomationElement = Helper.Automation.ElementFromHandle((IntPtr)GetDTE().MainWindow.HWnd);
 
@@ -412,7 +414,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             return vsAutomationElement.FindFirst(TreeScope.TreeScope_Descendants, elementCondition);
         }
 
-        private IUIAutomationElement FindNavigateTo()
+        private static IUIAutomationElement FindNavigateTo()
         {
             var vsAutomationElement = Helper.Automation.ElementFromHandle((IntPtr)GetDTE().MainWindow.HWnd);
             return vsAutomationElement.FindDescendantByAutomationId("PART_SearchBox");

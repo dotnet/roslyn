@@ -2,7 +2,6 @@
 
 using System;
 using System.Threading;
-using Microsoft.Test.Apex.VisualStudio;
 using Microsoft.VisualStudio.InteractiveWindow;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
@@ -28,7 +27,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         private int _timeoutInMilliseconds;
         private IInteractiveWindow _interactiveWindow;
 
-        public InteractiveWindow_InProc(string viewCommand, Guid windowId, VisualStudioHost visualStudioHost) : base(visualStudioHost)
+        protected InteractiveWindow_InProc(string viewCommand, Guid windowId)
         {
             _viewCommand = viewCommand;
             _windowId = windowId;

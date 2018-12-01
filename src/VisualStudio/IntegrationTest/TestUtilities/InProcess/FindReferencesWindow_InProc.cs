@@ -3,7 +3,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using EnvDTE80;
-using Microsoft.Test.Apex.VisualStudio;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Common;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.TableControl;
@@ -13,7 +12,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 {
     internal class FindReferencesWindow_InProc : InProcComponent
     {
-        public FindReferencesWindow_InProc(VisualStudioHost visualStudioHost) : base(visualStudioHost) { }
+        public static FindReferencesWindow_InProc Create() => new FindReferencesWindow_InProc();
 
         public Reference[] GetContents(string windowCaption)
         {

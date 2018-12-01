@@ -34,7 +34,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         }
 
         internal override TextViewWindow_InProc CreateInProcComponent(VisualStudioInstance visualStudioInstance)
-            => new Editor_InProc(visualStudioInstance.VisualStudioHost);
+            => CreateInProcComponent<Editor_InProc>(visualStudioInstance);
 
         public void Activate()
             => _editorInProc.Activate();

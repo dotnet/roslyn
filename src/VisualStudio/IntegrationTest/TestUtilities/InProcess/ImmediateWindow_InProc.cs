@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using Microsoft.Test.Apex.VisualStudio;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TextManager.Interop;
@@ -10,7 +9,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 {
     internal class ImmediateWindow_InProc : InProcComponent
     {
-        public ImmediateWindow_InProc(VisualStudioHost visualStudioHost) : base(visualStudioHost) { }
+        public static ImmediateWindow_InProc Create() => new ImmediateWindow_InProc();
 
         public void ShowImmediateWindow() => ExecuteCommand("Debug.Immediate");
 

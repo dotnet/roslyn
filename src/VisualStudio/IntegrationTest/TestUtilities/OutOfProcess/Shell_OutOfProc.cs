@@ -12,7 +12,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         public Shell_OutOfProc(VisualStudioInstance visualStudioInstance)
             : base(visualStudioInstance)
         {
-            _inProc = new Shell_InProc(visualStudioInstance.VisualStudioHost);
+            _inProc = CreateInProcComponent<Shell_InProc>(visualStudioInstance);
         }
 
         public string GetActiveWindowCaption()

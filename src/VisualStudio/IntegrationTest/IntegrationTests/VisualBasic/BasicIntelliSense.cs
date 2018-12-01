@@ -6,7 +6,6 @@ using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Common;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Roslyn.Test.Utilities;
 
 namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
 {

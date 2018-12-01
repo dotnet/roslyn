@@ -5,7 +5,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Roslyn.Test.Utilities;
 
 using ProjectUtils = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils;
 
@@ -14,14 +13,12 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
     [TestClass]
     public class BasicBuild : AbstractIntegrationTest
     {
-        public BasicBuild( )
-            : base()
-        {
-        }
+        public BasicBuild() : base() { }
 
-        public override void Initialize()
+        [TestInitialize]
+        public override async Task InitializeAsync()
         {
-            base.Initialize();
+            await base.InitializeAsync().ConfigureAwait(true);
             VisualStudioInstance.SolutionExplorer.CreateSolution(nameof(BasicBuild));
             var testProj = new ProjectUtils.Project("TestProj");
             VisualStudioInstance.SolutionExplorer.AddProject(testProj, WellKnownProjectTemplates.ConsoleApplication, LanguageNames.VisualBasic);

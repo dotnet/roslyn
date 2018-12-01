@@ -17,14 +17,12 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
     {
         protected override string LanguageName => LanguageNames.VisualBasic;
 
-        public BasicImmediate( )
-            : base()
-        {
-        }
+        public BasicImmediate() : base() { }
 
-        public override void Initialize()
+        [TestInitialize]
+        public override async Task InitializeAsync()
         {
-            base.Initialize();
+            await base.InitializeAsync().ConfigureAwait(true);
 
             VisualStudioInstance.SolutionExplorer.CreateSolution(nameof(BasicImmediate));
             var testProj = new ProjectUtils.Project("TestProj");

@@ -8,7 +8,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Editor.Implementation.Suggestions;
-using Microsoft.Test.Apex.VisualStudio;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
@@ -16,6 +15,7 @@ using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.Text.Tagging;
+using Roslyn.Utilities;
 using OLECMDEXECOPT = Microsoft.VisualStudio.OLE.Interop.OLECMDEXECOPT;
 using ThreadHelper = Microsoft.VisualStudio.Shell.ThreadHelper;
 
@@ -23,8 +23,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 {
     internal abstract class TextViewWindow_InProc : InProcComponent
     {
-        protected TextViewWindow_InProc(VisualStudioHost visualStudioHost) : base(visualStudioHost) { }
-
         /// <remarks>
         /// This method does not wait for async operations before
         /// querying the editor
@@ -241,21 +239,21 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         public void VerifyTags(string tagTypeName, int expectedCount)
             => ExecuteOnActiveView(view =>
-        {
-            Type type = WellKnownTagNames.GetTagTypeByName(tagTypeName);
-            bool filterTag(IMappingTagSpan<ITag> tag) { return tag.Tag.GetType().Equals(type); }
-            var service = GetComponentModelService<IViewTagAggregatorFactoryService>();
-            var aggregator = service.CreateTagAggregator<ITag>(view);
-            var allTags = aggregator.GetTags(new SnapshotSpan(view.TextSnapshot, 0, view.TextSnapshot.Length));
-            var tags = allTags.Where(filterTag).Cast<IMappingTagSpan<ITag>>();
-            var actualCount = tags.Count();
-
-            if (expectedCount != actualCount)
             {
-                var tagsTypesString = string.Join(",", allTags.Select(tag => tag.Tag.ToString()));
-                throw new Exception($"Failed to verify {tagTypeName} tags. Expected count: {expectedCount}, Actual count: {actualCount}. All tags: {tagsTypesString}");
-            }
-        });
+                Type type = WellKnownTagNames.GetTagTypeByName(tagTypeName);
+                bool filterTag(IMappingTagSpan<ITag> tag) { return tag.Tag.GetType().Equals(type); }
+                var service = GetComponentModelService<IViewTagAggregatorFactoryService>();
+                var aggregator = service.CreateTagAggregator<ITag>(view);
+                var allTags = aggregator.GetTags(new SnapshotSpan(view.TextSnapshot, 0, view.TextSnapshot.Length));
+                var tags = allTags.Where(filterTag).Cast<IMappingTagSpan<ITag>>();
+                var actualCount = tags.Count();
+
+                if (expectedCount != actualCount)
+                {
+                    var tagsTypesString = string.Join(",", allTags.Select(tag => tag.Tag.ToString()));
+                    throw new Exception($"Failed to verify {tagTypeName} tags. Expected count: {expectedCount}, Actual count: {actualCount}. All tags: {tagsTypesString}");
+                }
+            });
 
         public bool IsLightBulbSessionExpanded()
        => ExecuteOnActiveView(view =>

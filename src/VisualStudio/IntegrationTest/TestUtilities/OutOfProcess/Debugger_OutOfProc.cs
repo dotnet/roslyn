@@ -16,7 +16,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         public Debugger_OutOfProc(VisualStudioInstance visualStudioInstance) : base(visualStudioInstance)
         {
             _instance = visualStudioInstance;
-            _debuggerInProc = new Debugger_InProc(visualStudioInstance.VisualStudioHost);
+            _debuggerInProc = CreateInProcComponent<Debugger_InProc>(visualStudioInstance);
         }
 
         public void SetBreakPoint(string fileName, int lineNumber, int columnIndex) =>

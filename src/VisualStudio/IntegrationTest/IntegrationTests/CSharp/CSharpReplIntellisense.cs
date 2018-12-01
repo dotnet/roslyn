@@ -5,21 +5,18 @@ using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Roslyn.Test.Utilities;
- 
+
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 {
     [TestClass]
     public class CSharpReplIntellisense : AbstractInteractiveWindowTest
     {
-        public CSharpReplIntellisense( )
-            : base()
-        {
-        }
+        public CSharpReplIntellisense() : base() { }
 
-        public override void Initialize()
+        [TestInitialize]
+        public override async Task InitializeAsync()
         {
-            base.Initialize();
+            await base.InitializeAsync().ConfigureAwait(true);
             VisualStudioInstance.Workspace.SetUseSuggestionMode(true);
         }
 

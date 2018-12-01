@@ -1,16 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using Microsoft.Test.Apex.VisualStudio;
 using Microsoft.VisualStudio.Shell.Interop;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 {
     internal class ObjectBrowserWindow_InProc : InProcComponent
     {
-        public ObjectBrowserWindow_InProc(VisualStudioHost visualStudioHost) : base(visualStudioHost)
-        {
-        }
+        public static ObjectBrowserWindow_InProc Create() => new ObjectBrowserWindow_InProc();
 
         public bool CloseWindow()
         {

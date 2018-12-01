@@ -4,21 +4,18 @@ using System.Threading.Tasks;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Roslyn.Test.Utilities;
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 {
     [TestClass]
     public class CSharpInteractiveBoxSelection : AbstractInteractiveWindowTest
     {
-        public CSharpInteractiveBoxSelection( )
-            : base()
-        {
-        }
+        public CSharpInteractiveBoxSelection() : base() { }
 
-        public override void Initialize()
+        [TestInitialize]
+        public override async Task InitializeAsync()
         {
-            base.Initialize();
+            await base.InitializeAsync().ConfigureAwait(true);
             VisualStudioInstance.InteractiveWindow.SubmitText("#cls");
         }
 

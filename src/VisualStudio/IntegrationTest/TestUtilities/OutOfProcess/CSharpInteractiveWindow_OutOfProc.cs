@@ -10,6 +10,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             : base(visualStudioInstance) { }
 
         internal override TextViewWindow_InProc CreateInProcComponent(VisualStudioInstance visualStudioInstance)
-            => new CSharpInteractiveWindow_InProc(visualStudioInstance.VisualStudioHost);
+            => CreateInProcComponent<CSharpInteractiveWindow_InProc>(visualStudioInstance);
     }
 }
