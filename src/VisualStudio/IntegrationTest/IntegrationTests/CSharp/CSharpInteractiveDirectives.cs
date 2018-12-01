@@ -2,27 +2,27 @@
 
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Roslyn.Test.Utilities;
-using Xunit;
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 {
-    [Collection(nameof(SharedIntegrationHostFixture))]
+    [TestClass]
     public class CSharpInteractiveDirectives : AbstractInteractiveWindowTest
     {
-        public CSharpInteractiveDirectives(VisualStudioInstanceFactory instanceFactory)
-            : base(instanceFactory)
+        public CSharpInteractiveDirectives( )
+            : base()
         {
         }
 
-        [WpfFact]
+        [TestMethod]
         public void VerifyHostCommandsCompletionList()
         {
-            VisualStudio.Workspace.SetUseSuggestionMode(true);
-            VisualStudio.InteractiveWindow.InsertCode("#");
-            VisualStudio.InteractiveWindow.InvokeCompletionList();
+            VisualStudioInstance.Workspace.SetUseSuggestionMode(true);
+            VisualStudioInstance.InteractiveWindow.InsertCode("#");
+            VisualStudioInstance.InteractiveWindow.InvokeCompletionList();
 
-            VisualStudio.InteractiveWindow.Verify.CompletionItemsExist("cls",
+            VisualStudioInstance.InteractiveWindow.Verify.CompletionItemsExist("cls",
                 "help",
                 "load",
                 "r",
@@ -39,14 +39,14 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
                 "region",
                 "undef",
                 "warning");
-            VisualStudio.InteractiveWindow.Verify.CompletionItemsDoNotExist("int", "return", "System");
+            VisualStudioInstance.InteractiveWindow.Verify.CompletionItemsDoNotExist("int", "return", "System");
 
-            VisualStudio.InteractiveWindow.ClearReplText();
-            VisualStudio.InteractiveWindow.InsertCode(@"int x = 1; //
+            VisualStudioInstance.InteractiveWindow.ClearReplText();
+            VisualStudioInstance.InteractiveWindow.InsertCode(@"int x = 1; //
 #");
-            VisualStudio.InteractiveWindow.InvokeCompletionList();
+            VisualStudioInstance.InteractiveWindow.InvokeCompletionList();
 
-            VisualStudio.InteractiveWindow.Verify.CompletionItemsExist(
+            VisualStudioInstance.InteractiveWindow.Verify.CompletionItemsExist(
                 "elif",
                 "else",
                 "endif",
@@ -58,7 +58,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
                 "region",
                 "warning");
 
-            VisualStudio.InteractiveWindow.Verify.CompletionItemsDoNotExist("cls",
+            VisualStudioInstance.InteractiveWindow.Verify.CompletionItemsDoNotExist("cls",
                 "help",
                 "load",
                 "prompt",
@@ -67,55 +67,55 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
                 "define");
         }
 
-        [WpfFact]
+        [TestMethod]
         public void VerifyHashRDirective()
         {
-            VisualStudio.InteractiveWindow.SubmitText("#r \"System.Numerics\"");
-            VisualStudio.InteractiveWindow.SubmitText(@"using System.Numerics;
+            VisualStudioInstance.InteractiveWindow.SubmitText("#r \"System.Numerics\"");
+            VisualStudioInstance.InteractiveWindow.SubmitText(@"using System.Numerics;
 var bigInt = new BigInteger();
 bigInt");
 
-            VisualStudio.InteractiveWindow.WaitForLastReplOutput("[0]");
+            VisualStudioInstance.InteractiveWindow.WaitForLastReplOutput("[0]");
         }
 
-        [WpfFact]
+        [TestMethod]
         public void VerifyLocalDeclarationWithTheSameNameHidesImportedMembersFromHashR()
         {
-            VisualStudio.InteractiveWindow.SubmitText("#r \"System.Numerics\"");
-            VisualStudio.InteractiveWindow.SubmitText(@"using System.Numerics;
+            VisualStudioInstance.InteractiveWindow.SubmitText("#r \"System.Numerics\"");
+            VisualStudioInstance.InteractiveWindow.SubmitText(@"using System.Numerics;
 class Complex { public int goo() { return 4; } }
 var comp = new Complex();
 comp.goo()");
 
-            VisualStudio.InteractiveWindow.WaitForLastReplOutput("4");
+            VisualStudioInstance.InteractiveWindow.WaitForLastReplOutput("4");
         }
 
-        [WpfFact]
+        [TestMethod]
         public void VerifyLocalDeclarationInCsxFileWithTheSameNameHidesImportedMembersFromHashR()
         {
-            VisualStudio.InteractiveWindow.SubmitText("#r \"System.Numerics\"");
-            VisualStudio.InteractiveWindow.SubmitText("using System.Numerics;");
+            VisualStudioInstance.InteractiveWindow.SubmitText("#r \"System.Numerics\"");
+            VisualStudioInstance.InteractiveWindow.SubmitText("using System.Numerics;");
             using (var temporaryTextFile = new TemporaryTextFile(
                 "directivesScenario4.csx",
                 "class Complex { public int goo() { return 4; } }"))
             {
                 temporaryTextFile.Create();
-                VisualStudio.InteractiveWindow.SubmitText(string.Format("#load \"{0}\"", temporaryTextFile.FullName));
-                VisualStudio.InteractiveWindow.SubmitText(@"var comp = new Complex();
+                VisualStudioInstance.InteractiveWindow.SubmitText(string.Format("#load \"{0}\"", temporaryTextFile.FullName));
+                VisualStudioInstance.InteractiveWindow.SubmitText(@"var comp = new Complex();
 comp.goo()");
-                VisualStudio.InteractiveWindow.WaitForLastReplOutput("4");
+                VisualStudioInstance.InteractiveWindow.WaitForLastReplOutput("4");
             }
         }
 
-        [WpfFact]
+        [TestMethod]
         public void VerifyAssembliesReferencedByDefault()
         {
-            VisualStudio.InteractiveWindow.SubmitText(@"using System.Diagnostics;
+            VisualStudioInstance.InteractiveWindow.SubmitText(@"using System.Diagnostics;
 Process.GetCurrentProcess().ProcessName");
-            VisualStudio.InteractiveWindow.WaitForLastReplOutput("\"InteractiveHost64\"");
+            VisualStudioInstance.InteractiveWindow.WaitForLastReplOutput("\"InteractiveHost64\"");
         }
 
-        [WpfFact]
+        [TestMethod]
         public void VerifyHashLoadDirective()
         {
             using (var temporaryTextFile = new TemporaryTextFile(
@@ -123,33 +123,33 @@ Process.GetCurrentProcess().ProcessName");
                 "System.Console.WriteLine(2);"))
             {
                 temporaryTextFile.Create();
-                VisualStudio.InteractiveWindow.SubmitText(string.Format("#load \"{0}\"", temporaryTextFile.FullName));
-                VisualStudio.InteractiveWindow.WaitForLastReplOutput("2");
-                VisualStudio.InteractiveWindow.SubmitText("#load text");
-                VisualStudio.InteractiveWindow.WaitForLastReplOutput("CS7010: Quoted file name expected");
+                VisualStudioInstance.InteractiveWindow.SubmitText(string.Format("#load \"{0}\"", temporaryTextFile.FullName));
+                VisualStudioInstance.InteractiveWindow.WaitForLastReplOutput("2");
+                VisualStudioInstance.InteractiveWindow.SubmitText("#load text");
+                VisualStudioInstance.InteractiveWindow.WaitForLastReplOutput("CS7010: Quoted file name expected");
             }
         }
 
-        [WpfFact]
+        [TestMethod]
         public void VerifySquiggleAndErrorMessageUnderIncorrectDirective()
         {
-            VisualStudio.InteractiveWindow.SubmitText("#goo");
-            VisualStudio.InteractiveWindow.WaitForLastReplOutput("(1,2): error CS1024: Preprocessor directive expected");
+            VisualStudioInstance.InteractiveWindow.SubmitText("#goo");
+            VisualStudioInstance.InteractiveWindow.WaitForLastReplOutput("(1,2): error CS1024: Preprocessor directive expected");
             // TODO implement GetErrorListErrorCount: https://github.com/dotnet/roslyn/issues/18035
             // VerifyErrorCount(1);
-            VisualStudio.InteractiveWindow.SubmitText("#reset");
+            VisualStudioInstance.InteractiveWindow.SubmitText("#reset");
 
-            VisualStudio.InteractiveWindow.SubmitText("#bar");
-            VisualStudio.InteractiveWindow.WaitForLastReplOutput("(1,2): error CS1024: Preprocessor directive expected");
+            VisualStudioInstance.InteractiveWindow.SubmitText("#bar");
+            VisualStudioInstance.InteractiveWindow.WaitForLastReplOutput("(1,2): error CS1024: Preprocessor directive expected");
             // TODO implement GetErrorListErrorCount: https://github.com/dotnet/roslyn/issues/18035
             // VerifyErrorCount(2);
         }
 
-        [WpfFact]
+        [TestMethod]
         public void VerifyHashHelpDirectiveOutputNoSquigglesUnderHashHelp()
         {
-            VisualStudio.InteractiveWindow.SubmitText("#help");
-            VisualStudio.InteractiveWindow.WaitForLastReplOutput(@"Keyboard shortcuts:
+            VisualStudioInstance.InteractiveWindow.SubmitText("#help");
+            VisualStudioInstance.InteractiveWindow.WaitForLastReplOutput(@"Keyboard shortcuts:
   Enter                If the current submission appears to be complete, evaluate it.  Otherwise, insert a new line.
   Ctrl-Enter           Within the current submission, evaluate the current submission.
                        Within a previous submission, append the previous submission to the current submission.
@@ -174,42 +174,42 @@ Script directives:
             // VerifyErrorCount(0);
         }
 
-        [WpfFact]
+        [TestMethod]
         public void VerifyHashCls()
         {
-            VisualStudio.InteractiveWindow.SubmitText("#cls");
+            VisualStudioInstance.InteractiveWindow.SubmitText("#cls");
             // TODO implement GetErrorListErrorCount: https://github.com/dotnet/roslyn/issues/18035
             // VerifyErrorCount(0);
         }
 
-        [WpfFact]
+        [TestMethod]
         public void VerifyHashReset()
         {
-            VisualStudio.InteractiveWindow.SubmitText("1+1");
-            VisualStudio.InteractiveWindow.WaitForLastReplOutput("2");
-            VisualStudio.InteractiveWindow.SubmitText("#reset");
-            VisualStudio.InteractiveWindow.WaitForLastReplOutput(@"Resetting execution engine.
+            VisualStudioInstance.InteractiveWindow.SubmitText("1+1");
+            VisualStudioInstance.InteractiveWindow.WaitForLastReplOutput("2");
+            VisualStudioInstance.InteractiveWindow.SubmitText("#reset");
+            VisualStudioInstance.InteractiveWindow.WaitForLastReplOutput(@"Resetting execution engine.
 Loading context from");
             // TODO implement GetErrorListErrorCount: https://github.com/dotnet/roslyn/issues/18035
             // VerifyErrorCount(0);
         }
 
-        [WpfFact]
+        [TestMethod]
         public void VerifyDisplayCommandUsageOutputNoSquigglesUnderSlashHelp()
         {
-            VisualStudio.InteractiveWindow.SubmitText("#reset /help");
-            VisualStudio.InteractiveWindow.WaitForLastReplOutputContains(@"Usage:
+            VisualStudioInstance.InteractiveWindow.SubmitText("#reset /help");
+            VisualStudioInstance.InteractiveWindow.WaitForLastReplOutputContains(@"Usage:
   #reset [noconfig]");
             // TODO implement GetErrorListErrorCount: https://github.com/dotnet/roslyn/issues/18035
             // VerifyErrorCount(0);
-            VisualStudio.InteractiveWindow.SubmitText("#load /help");
-            VisualStudio.InteractiveWindow.WaitForLastReplOutputContains("CS7010: Quoted file name expected");
+            VisualStudioInstance.InteractiveWindow.SubmitText("#load /help");
+            VisualStudioInstance.InteractiveWindow.WaitForLastReplOutputContains("CS7010: Quoted file name expected");
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/8281")]
+        [TestMethod, Ignore("https://github.com/dotnet/roslyn/issues/8281")]
         public void VerifyNoSquigglesErrorMessagesAndIntellisenseFeaturesContinueWorkingAfterReset()
         {
-            VisualStudio.InteractiveWindow.SubmitText(@"using static System.Console;
+            VisualStudioInstance.InteractiveWindow.SubmitText(@"using static System.Console;
 /// <summary>innertext
 /// </summary>
 /// --><!--comment--><!--
@@ -219,65 +219,65 @@ public static void Main(string[] args)
 {
     WriteLine(""Hello World"");
 }");
-            VisualStudio.InteractiveWindow.SubmitText("#reset");
-            VisualStudio.InteractiveWindow.PlaceCaret("using");
-            VisualStudio.InteractiveWindow.Verify.CurrentTokenType(tokenType: "keyword");
-            VisualStudio.InteractiveWindow.PlaceCaret("{");
-            VisualStudio.InteractiveWindow.Verify.CurrentTokenType(tokenType: "punctuation");
-            VisualStudio.InteractiveWindow.PlaceCaret("Main");
-            VisualStudio.InteractiveWindow.Verify.CurrentTokenType(tokenType: "identifier");
-            VisualStudio.InteractiveWindow.PlaceCaret("Hello");
-            VisualStudio.InteractiveWindow.Verify.CurrentTokenType(tokenType: "string");
-            VisualStudio.InteractiveWindow.PlaceCaret("<summary", charsOffset: -1);
-            VisualStudio.SendKeys.Send(Alt(VirtualKey.Right));
-            VisualStudio.InteractiveWindow.Verify.CurrentTokenType(tokenType: "xml doc comment - delimiter");
-            VisualStudio.InteractiveWindow.PlaceCaret("summary");
-            VisualStudio.InteractiveWindow.Verify.CurrentTokenType(tokenType: "xml doc comment - name");
-            VisualStudio.InteractiveWindow.PlaceCaret("innertext");
-            VisualStudio.InteractiveWindow.Verify.CurrentTokenType(tokenType: "xml doc comment - text");
-            VisualStudio.InteractiveWindow.PlaceCaret("--");
-            VisualStudio.InteractiveWindow.Verify.CurrentTokenType(tokenType: "xml doc comment - text");
-            VisualStudio.InteractiveWindow.PlaceCaret("comment");
-            VisualStudio.InteractiveWindow.Verify.CurrentTokenType(tokenType: "xml doc comment - comment");
-            VisualStudio.InteractiveWindow.PlaceCaret("CDATA");
-            VisualStudio.InteractiveWindow.Verify.CurrentTokenType(tokenType: "xml doc comment - delimiter");
-            VisualStudio.InteractiveWindow.PlaceCaret("cdata");
-            VisualStudio.InteractiveWindow.Verify.CurrentTokenType(tokenType: "xml doc comment - cdata section");
-            VisualStudio.InteractiveWindow.PlaceCaret("attribute");
-            VisualStudio.InteractiveWindow.Verify.CurrentTokenType(tokenType: "identifier");
-            VisualStudio.InteractiveWindow.PlaceCaret("Environment");
-            VisualStudio.InteractiveWindow.Verify.CurrentTokenType(tokenType: "class name");
+            VisualStudioInstance.InteractiveWindow.SubmitText("#reset");
+            VisualStudioInstance.InteractiveWindow.PlaceCaret("using");
+            VisualStudioInstance.InteractiveWindow.Verify.CurrentTokenType(tokenType: "keyword");
+            VisualStudioInstance.InteractiveWindow.PlaceCaret("{");
+            VisualStudioInstance.InteractiveWindow.Verify.CurrentTokenType(tokenType: "punctuation");
+            VisualStudioInstance.InteractiveWindow.PlaceCaret("Main");
+            VisualStudioInstance.InteractiveWindow.Verify.CurrentTokenType(tokenType: "identifier");
+            VisualStudioInstance.InteractiveWindow.PlaceCaret("Hello");
+            VisualStudioInstance.InteractiveWindow.Verify.CurrentTokenType(tokenType: "string");
+            VisualStudioInstance.InteractiveWindow.PlaceCaret("<summary", charsOffset: -1);
+            VisualStudioInstance.SendKeys.Send(Alt(VirtualKey.Right));
+            VisualStudioInstance.InteractiveWindow.Verify.CurrentTokenType(tokenType: "xml doc comment - delimiter");
+            VisualStudioInstance.InteractiveWindow.PlaceCaret("summary");
+            VisualStudioInstance.InteractiveWindow.Verify.CurrentTokenType(tokenType: "xml doc comment - name");
+            VisualStudioInstance.InteractiveWindow.PlaceCaret("innertext");
+            VisualStudioInstance.InteractiveWindow.Verify.CurrentTokenType(tokenType: "xml doc comment - text");
+            VisualStudioInstance.InteractiveWindow.PlaceCaret("--");
+            VisualStudioInstance.InteractiveWindow.Verify.CurrentTokenType(tokenType: "xml doc comment - text");
+            VisualStudioInstance.InteractiveWindow.PlaceCaret("comment");
+            VisualStudioInstance.InteractiveWindow.Verify.CurrentTokenType(tokenType: "xml doc comment - comment");
+            VisualStudioInstance.InteractiveWindow.PlaceCaret("CDATA");
+            VisualStudioInstance.InteractiveWindow.Verify.CurrentTokenType(tokenType: "xml doc comment - delimiter");
+            VisualStudioInstance.InteractiveWindow.PlaceCaret("cdata");
+            VisualStudioInstance.InteractiveWindow.Verify.CurrentTokenType(tokenType: "xml doc comment - cdata section");
+            VisualStudioInstance.InteractiveWindow.PlaceCaret("attribute");
+            VisualStudioInstance.InteractiveWindow.Verify.CurrentTokenType(tokenType: "identifier");
+            VisualStudioInstance.InteractiveWindow.PlaceCaret("Environment");
+            VisualStudioInstance.InteractiveWindow.Verify.CurrentTokenType(tokenType: "class name");
             // TODO implement GetErrorListErrorCount: https://github.com/dotnet/roslyn/issues/18035
             // VerifyErrorCount(0);
         }
 
-        [WpfFact]
+        [TestMethod]
         public void WorkspaceClearedAfterReset()
         {
-            VisualStudio.InteractiveWindow.SubmitText("double M() { return 13.1; }");
-            VisualStudio.InteractiveWindow.SubmitText("M()");
-            VisualStudio.InteractiveWindow.WaitForLastReplOutput("13.1");
-            VisualStudio.InteractiveWindow.SubmitText("double M() { return M(); }");
-            VisualStudio.InteractiveWindow.SubmitText("M()");
-            VisualStudio.InteractiveWindow.WaitForLastReplOutputContains("Process is terminated due to StackOverflowException.");
-            VisualStudio.InteractiveWindow.SubmitText("M()");
-            VisualStudio.InteractiveWindow.WaitForLastReplOutputContains("CS0103");
-            VisualStudio.InteractiveWindow.SubmitText("double M() { return M(); }");
-            VisualStudio.InteractiveWindow.SubmitText("M()");
-            VisualStudio.InteractiveWindow.WaitForLastReplOutputContains("Process is terminated due to StackOverflowException.");
-            VisualStudio.InteractiveWindow.SubmitText("double M() { return 13.2; }");
-            VisualStudio.InteractiveWindow.SubmitText("M()");
-            VisualStudio.InteractiveWindow.WaitForLastReplOutput("13.2");
+            VisualStudioInstance.InteractiveWindow.SubmitText("double M() { return 13.1; }");
+            VisualStudioInstance.InteractiveWindow.SubmitText("M()");
+            VisualStudioInstance.InteractiveWindow.WaitForLastReplOutput("13.1");
+            VisualStudioInstance.InteractiveWindow.SubmitText("double M() { return M(); }");
+            VisualStudioInstance.InteractiveWindow.SubmitText("M()");
+            VisualStudioInstance.InteractiveWindow.WaitForLastReplOutputContains("Process is terminated due to StackOverflowException.");
+            VisualStudioInstance.InteractiveWindow.SubmitText("M()");
+            VisualStudioInstance.InteractiveWindow.WaitForLastReplOutputContains("CS0103");
+            VisualStudioInstance.InteractiveWindow.SubmitText("double M() { return M(); }");
+            VisualStudioInstance.InteractiveWindow.SubmitText("M()");
+            VisualStudioInstance.InteractiveWindow.WaitForLastReplOutputContains("Process is terminated due to StackOverflowException.");
+            VisualStudioInstance.InteractiveWindow.SubmitText("double M() { return 13.2; }");
+            VisualStudioInstance.InteractiveWindow.SubmitText("M()");
+            VisualStudioInstance.InteractiveWindow.WaitForLastReplOutput("13.2");
         }
 
-        [WpfFact]
+        [TestMethod]
         public void InitializationAfterReset()
         {
-            VisualStudio.InteractiveWindow.SubmitText("#reset");
-            VisualStudio.InteractiveWindow.WaitForLastReplOutput(@"Resetting execution engine.
+            VisualStudioInstance.InteractiveWindow.SubmitText("#reset");
+            VisualStudioInstance.InteractiveWindow.WaitForLastReplOutput(@"Resetting execution engine.
 Loading context from 'CSharpInteractive.rsp'.");
-            VisualStudio.InteractiveWindow.SubmitText("#reset noconfig");
-            VisualStudio.InteractiveWindow.WaitForLastReplOutput("Resetting execution engine.");
+            VisualStudioInstance.InteractiveWindow.SubmitText("#reset noconfig");
+            VisualStudioInstance.InteractiveWindow.WaitForLastReplOutput("Resetting execution engine.");
         }
     }
 }

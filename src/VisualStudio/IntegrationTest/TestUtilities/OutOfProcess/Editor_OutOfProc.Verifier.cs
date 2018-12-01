@@ -3,7 +3,7 @@
 using System;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Common;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
 {
@@ -37,7 +37,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
                         lineText = lineText.Trim();
                     }
 
-                    Assert.Equal(expectedText, lineText);
+                    Assert.AreEqual(expectedText, lineText);
                 }
             }
 
@@ -84,9 +84,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
                     ? lineText.Substring(caretStartIndex)
                     : string.Empty;
 
-                Assert.Equal(expectedTextBeforeCaret, lineTextBeforeCaret);
-                Assert.Equal(expectedTextAfterCaret, lineTextAfterCaret);
-                Assert.Equal(expectedTextBeforeCaret.Length + expectedTextAfterCaret.Length, lineText.Length);
+                Assert.AreEqual(expectedTextBeforeCaret, lineTextBeforeCaret);
+                Assert.AreEqual(expectedTextAfterCaret, lineTextAfterCaret);
+                Assert.AreEqual(expectedTextBeforeCaret.Length + expectedTextAfterCaret.Length, lineText.Length);
             }
 
             public void TextContains(
@@ -100,7 +100,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
                 else
                 {
                     var editorText = _textViewWindow.GetText();
-                    Assert.Contains(expectedText, editorText);
+                    ExtendedAssert.Contains(expectedText, editorText);
                 }
             }
 
@@ -121,12 +121,12 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
                 var expectedTextWithoutCaret = expectedTextBeforeCaret + expectedTextAfterCaret;
 
                 var editorText = _textViewWindow.GetText();
-                Assert.Contains(expectedTextWithoutCaret, editorText);
+                ExtendedAssert.Contains(expectedTextWithoutCaret, editorText);
 
                 var index = editorText.IndexOf(expectedTextWithoutCaret);
 
                 var caretPosition = _textViewWindow.GetCaretPosition();
-                Assert.Equal(caretStartIndex + index, caretPosition);
+                Assert.AreEqual(caretStartIndex + index, caretPosition);
             }
 
             public void CompletionItemDoNotExist(
@@ -135,7 +135,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
                 var completionItems = _textViewWindow.GetCompletionItems();
                 foreach (var expectedItem in expectedItems)
                 {
-                    Assert.DoesNotContain(expectedItem, completionItems);
+                    ExtendedAssert.DoesNotContain(expectedItem, completionItems);
                 }
             }
 
@@ -143,20 +143,20 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
                 string expectedItem)
             {
                 var currentItem = _textViewWindow.GetCurrentCompletionItem();
-                Assert.Equal(expectedItem, currentItem);
+                Assert.AreEqual(expectedItem, currentItem);
             }
 
             public void VerifyCurrentSignature(
                 Signature expectedSignature)
             {
                 var currentSignature = _textViewWindow.GetCurrentSignature();
-                Assert.Equal(expectedSignature, currentSignature);
+                Assert.AreEqual(expectedSignature, currentSignature);
             }
 
             public void CurrentSignature(string content)
             {
                 var currentSignature = _textViewWindow.GetCurrentSignature();
-                Assert.Equal(content, currentSignature.Content);
+                Assert.AreEqual(content, currentSignature.Content);
             }
 
             public void CurrentParameter(
@@ -164,8 +164,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
                 string documentation)
             {
                 var currentParameter = _textViewWindow.GetCurrentSignature().CurrentParameter;
-                Assert.Equal(name, currentParameter.Name);
-                Assert.Equal(documentation, currentParameter.Documentation);
+                Assert.AreEqual(name, currentParameter.Name);
+                Assert.AreEqual(documentation, currentParameter.Documentation);
             }
 
             public void Parameters(
@@ -175,8 +175,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
                 for (var i = 0; i < parameters.Length; i++)
                 {
                     var (expectedName, expectedDocumentation) = parameters[i];
-                    Assert.Equal(expectedName, currentParameters[i].Name);
-                    Assert.Equal(expectedDocumentation, currentParameters[i].Documentation);
+                    Assert.AreEqual(expectedName, currentParameters[i].Name);
+                    Assert.AreEqual(expectedDocumentation, currentParameters[i].Documentation);
                 }
             }
 
@@ -192,12 +192,12 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
                 _instance.Workspace.WaitForAsyncOperations(FeatureAttribute.SolutionCrawler);
                 _instance.Workspace.WaitForAsyncOperations(FeatureAttribute.DiagnosticService);
                 var actualTags = _textViewWindow.GetErrorTags();
-                Assert.Equal(expectedTags, actualTags);
+                Assert.AreEqual(expectedTags, actualTags);
             }
 
             public void IsProjectItemDirty(bool expectedValue)
             {
-                Assert.Equal(expectedValue, _textViewWindow._editorInProc.IsProjectItemDirty());
+                Assert.AreEqual(expectedValue, _textViewWindow._editorInProc.IsProjectItemDirty());
             }
         }
     }

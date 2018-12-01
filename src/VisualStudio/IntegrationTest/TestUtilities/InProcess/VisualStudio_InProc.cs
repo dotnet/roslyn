@@ -5,15 +5,13 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using EnvDTE;
 using EnvDTE80;
+using Microsoft.Test.Apex.VisualStudio;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 {
     internal partial class VisualStudio_InProc : InProcComponent
     {
-        private VisualStudio_InProc() { }
-
-        public static VisualStudio_InProc Create()
-            => new VisualStudio_InProc();
+        public VisualStudio_InProc(VisualStudioHost visualStudioHost) : base(visualStudioHost) { }
 
         new public void WaitForApplicationIdle()
             => InProcComponent.WaitForApplicationIdle();
@@ -22,10 +20,10 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             => InProcComponent.WaitForSystemIdle();
 
         new public bool IsCommandAvailable(string commandName)
-            => InProcComponent.IsCommandAvailable(commandName);
+            => base.IsCommandAvailable(commandName);
 
         new public void ExecuteCommand(string commandName, string args = "")
-            => InProcComponent.ExecuteCommand(commandName, args);
+            => base.ExecuteCommand(commandName, args);
 
         public string[] GetAvailableCommands()
         {

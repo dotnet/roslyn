@@ -3,25 +3,24 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
-using Roslyn.Test.Utilities;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
 {
-    [Collection(nameof(SharedIntegrationHostFixture))]
+    [TestClass]
     public class BasicClassification : AbstractEditorTest
     {
         protected override string LanguageName => LanguageNames.VisualBasic;
 
-        public BasicClassification(VisualStudioInstanceFactory instanceFactory)
-            : base(instanceFactory, nameof(BasicClassification))
+        public BasicClassification( )
+            : base( nameof(BasicClassification))
         {
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [TestMethod, TestCategory(Traits.Features.Classification)]
         public void Verify_Color_Of_Some_Tokens()
         {
-            VisualStudio.Editor.SetText(@"Imports System
+            VisualStudioInstance.Editor.SetText(@"Imports System
 Imports MathAlias = System.Math
 Namespace Acme
     ''' <summary>innertext
@@ -36,46 +35,46 @@ Namespace Acme
     End Class
 End Namespace");
 
-            VisualStudio.Editor.PlaceCaret("MathAlias");
-            VisualStudio.Editor.Verify.CurrentTokenType(tokenType: "identifier");
-            VisualStudio.Editor.PlaceCaret("Namespace");
-            VisualStudio.Editor.Verify.CurrentTokenType(tokenType: "keyword");
-            VisualStudio.Editor.PlaceCaret("summary");
-            VisualStudio.Editor.Verify.CurrentTokenType(tokenType: "xml doc comment - name");
-            VisualStudio.Editor.PlaceCaret("innertext");
-            VisualStudio.Editor.Verify.CurrentTokenType(tokenType: "xml doc comment - text");
-            VisualStudio.Editor.PlaceCaret("!--");
-            VisualStudio.Editor.Verify.CurrentTokenType(tokenType: "xml doc comment - delimiter");
-            VisualStudio.Editor.PlaceCaret("comment");
-            VisualStudio.Editor.Verify.CurrentTokenType(tokenType: "xml doc comment - comment");
-            VisualStudio.Editor.PlaceCaret("CDATA");
-            VisualStudio.Editor.Verify.CurrentTokenType(tokenType: "xml doc comment - delimiter");
-            VisualStudio.Editor.PlaceCaret("cdata");
-            VisualStudio.Editor.Verify.CurrentTokenType(tokenType: "xml doc comment - cdata section");
-            VisualStudio.Editor.PlaceCaret("attribute");
-            VisualStudio.Editor.Verify.CurrentTokenType(tokenType: "identifier");
-            VisualStudio.Editor.PlaceCaret("Class");
-            VisualStudio.Editor.Verify.CurrentTokenType(tokenType: "keyword");
-            VisualStudio.Editor.PlaceCaret("Program");
-            VisualStudio.Editor.Verify.CurrentTokenType(tokenType: "class name");
-            VisualStudio.Editor.PlaceCaret("Hello");
-            VisualStudio.Editor.Verify.CurrentTokenType(tokenType: "string");
-            VisualStudio.Editor.PlaceCaret("comment");
-            VisualStudio.Editor.Verify.CurrentTokenType(tokenType: "comment");
+            VisualStudioInstance.Editor.PlaceCaret("MathAlias");
+            VisualStudioInstance.Editor.Verify.CurrentTokenType(tokenType: "identifier");
+            VisualStudioInstance.Editor.PlaceCaret("Namespace");
+            VisualStudioInstance.Editor.Verify.CurrentTokenType(tokenType: "keyword");
+            VisualStudioInstance.Editor.PlaceCaret("summary");
+            VisualStudioInstance.Editor.Verify.CurrentTokenType(tokenType: "xml doc comment - name");
+            VisualStudioInstance.Editor.PlaceCaret("innertext");
+            VisualStudioInstance.Editor.Verify.CurrentTokenType(tokenType: "xml doc comment - text");
+            VisualStudioInstance.Editor.PlaceCaret("!--");
+            VisualStudioInstance.Editor.Verify.CurrentTokenType(tokenType: "xml doc comment - delimiter");
+            VisualStudioInstance.Editor.PlaceCaret("comment");
+            VisualStudioInstance.Editor.Verify.CurrentTokenType(tokenType: "xml doc comment - comment");
+            VisualStudioInstance.Editor.PlaceCaret("CDATA");
+            VisualStudioInstance.Editor.Verify.CurrentTokenType(tokenType: "xml doc comment - delimiter");
+            VisualStudioInstance.Editor.PlaceCaret("cdata");
+            VisualStudioInstance.Editor.Verify.CurrentTokenType(tokenType: "xml doc comment - cdata section");
+            VisualStudioInstance.Editor.PlaceCaret("attribute");
+            VisualStudioInstance.Editor.Verify.CurrentTokenType(tokenType: "identifier");
+            VisualStudioInstance.Editor.PlaceCaret("Class");
+            VisualStudioInstance.Editor.Verify.CurrentTokenType(tokenType: "keyword");
+            VisualStudioInstance.Editor.PlaceCaret("Program");
+            VisualStudioInstance.Editor.Verify.CurrentTokenType(tokenType: "class name");
+            VisualStudioInstance.Editor.PlaceCaret("Hello");
+            VisualStudioInstance.Editor.Verify.CurrentTokenType(tokenType: "string");
+            VisualStudioInstance.Editor.PlaceCaret("comment");
+            VisualStudioInstance.Editor.Verify.CurrentTokenType(tokenType: "comment");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [TestMethod, TestCategory(Traits.Features.Classification)]
         public void Semantic_Classification()
         {
-            VisualStudio.Editor.SetText(@"
+            VisualStudioInstance.Editor.SetText(@"
 Imports System
 Class Goo
     Inherits Attribute
 End Class");
-            VisualStudio.Editor.PlaceCaret("Goo");
-            VisualStudio.Editor.Verify.CurrentTokenType(tokenType: "class name");
-            VisualStudio.Editor.PlaceCaret("Attribute");
-            VisualStudio.Editor.Verify.CurrentTokenType(tokenType: "class name");
+            VisualStudioInstance.Editor.PlaceCaret("Goo");
+            VisualStudioInstance.Editor.Verify.CurrentTokenType(tokenType: "class name");
+            VisualStudioInstance.Editor.PlaceCaret("Attribute");
+            VisualStudioInstance.Editor.Verify.CurrentTokenType(tokenType: "class name");
         }
     }
 }

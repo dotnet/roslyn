@@ -3,23 +3,24 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Roslyn.Test.Utilities;
-using Xunit;
+
 using ProjectUtils = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils;
 
 namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
 {
-    [Collection(nameof(SharedIntegrationHostFixture))]
+    [TestClass]
     public class BasicGenerateFromUsage : AbstractEditorTest
     {
         protected override string LanguageName => LanguageNames.VisualBasic;
 
-        public BasicGenerateFromUsage(VisualStudioInstanceFactory instanceFactory)
-            : base(instanceFactory, nameof(BasicGenerateFromUsage))
+        public BasicGenerateFromUsage( )
+            : base( nameof(BasicGenerateFromUsage))
         {
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateLocal)]
+        [TestMethod, TestCategory(Traits.Features.CodeActionsGenerateLocal)]
         public void GenerateLocal()
         {
             SetUpEditor(
@@ -28,8 +29,8 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
         Dim x As String = $$xyz
     End Sub
 End Module");
-            VisualStudio.Editor.Verify.CodeAction("Generate local 'xyz'", applyFix: true);
-            VisualStudio.Editor.Verify.TextContains(
+            VisualStudioInstance.Editor.Verify.CodeAction("Generate local 'xyz'", applyFix: true);
+            VisualStudioInstance.Editor.Verify.TextContains(
 @"Module Program
     Sub Main(args As String())
         Dim xyz As String = Nothing
@@ -38,7 +39,7 @@ End Module");
 End Module");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [TestMethod, TestCategory(Traits.Features.CodeActionsGenerateType)]
         public void GenerateTypeInNewFile()
         {
             SetUpEditor(
@@ -47,9 +48,9 @@ End Module");
         Dim x As New $$ClassInNewFile()
     End Sub
 End Module");
-            VisualStudio.Editor.Verify.CodeAction("Generate class 'ClassInNewFile' in new file", applyFix: true);
-            VisualStudio.SolutionExplorer.OpenFile(new ProjectUtils.Project(ProjectName), "ClassInNewFile.vb");
-            VisualStudio.Editor.Verify.TextContains(
+            VisualStudioInstance.Editor.Verify.CodeAction("Generate class 'ClassInNewFile' in new file", applyFix: true);
+            VisualStudioInstance.SolutionExplorer.OpenFile(new ProjectUtils.Project(ProjectName), "ClassInNewFile.vb");
+            VisualStudioInstance.Editor.Verify.TextContains(
 @"Friend Class ClassInNewFile
     Public Sub New()
     End Sub

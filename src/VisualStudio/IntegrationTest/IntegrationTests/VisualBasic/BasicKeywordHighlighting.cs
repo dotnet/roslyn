@@ -4,25 +4,24 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Roslyn.Test.Utilities;
-using Xunit;
 
 namespace Roslyn.VisualStudio.IntegrationTests.Basic
 {
-    [Collection(nameof(SharedIntegrationHostFixture))]
+    [TestClass]
     public class BasicKeywordHighlighting : AbstractEditorTest
     {
         protected override string LanguageName => LanguageNames.VisualBasic;
 
-        public BasicKeywordHighlighting(VisualStudioInstanceFactory instanceFactory)
-            : base(instanceFactory, nameof(BasicKeywordHighlighting))
+        public BasicKeywordHighlighting() : base(nameof(BasicKeywordHighlighting))
         {
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [TestMethod, TestCategory(Traits.Features.Classification)]
         public void NavigationBetweenKeywords()
         {
-            VisualStudio.Editor.SetText(@"
+            VisualStudioInstance.Editor.SetText(@"
 Class C
     Sub Main()
         For a = 0 To 1 Step 1
@@ -31,22 +30,23 @@ Class C
     End Sub
 End Class");
 
-            Verify("To", 3);
-            VisualStudio.ExecuteCommand("Edit.NextHighlightedReference");
-            VisualStudio.Editor.Verify.CurrentLineText("For a = 0 To 1 Step$$ 1", assertCaretPosition: true, trimWhitespace: true);
+            KeywordHighlightTagCount("To", 3);
+            VisualStudioInstance.ExecuteCommand("Edit.NextHighlightedReference");
+            VisualStudioInstance.Editor.Verify.CurrentLineText("For a = 0 To 1 Step$$ 1", assertCaretPosition: true, trimWhitespace: true);
         }
 
-        private void Verify(string marker, int expectedCount)
+        private void KeywordHighlightTagCount(string marker, int expectedCount)
         {
-            VisualStudio.Editor.PlaceCaret(marker, charsOffset: -1);
-            VisualStudio.Workspace.WaitForAllAsyncOperations(
+            VisualStudioInstance.Editor.PlaceCaret(marker, charsOffset: -1);
+            VisualStudioInstance.Workspace.WaitForAllAsyncOperations(
                 FeatureAttribute.Workspace,
                 FeatureAttribute.SolutionCrawler,
                 FeatureAttribute.DiagnosticService,
                 FeatureAttribute.Classification,
                 FeatureAttribute.KeywordHighlighting);
 
-            // Assert.Equal(expectedCount, VisualStudio.Editor.GetKeywordHighlightTagCount());
+            // Assert.AreEqual(expectedCount, VisualStudio.Editor.GetKeywordHighlightTagCount());
+            // TODO
         }
     }
 }

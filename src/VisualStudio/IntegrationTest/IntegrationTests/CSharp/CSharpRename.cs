@@ -8,25 +8,27 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Roslyn.Test.Utilities;
-using Xunit;
+
 using ProjectUtils = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils;
+using WorkItemAttribute = Roslyn.Test.Utilities.WorkItemAttribute;
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 {
-    [Collection(nameof(SharedIntegrationHostFixture))]
+    [TestClass]
     public class CSharpRename : AbstractEditorTest
     {
         protected override string LanguageName => LanguageNames.CSharp;
 
-        private InlineRenameDialog_OutOfProc InlineRenameDialog => VisualStudio.InlineRenameDialog;
+        private InlineRenameDialog_OutOfProc InlineRenameDialog => VisualStudioInstance.InlineRenameDialog;
 
-        public CSharpRename(VisualStudioInstanceFactory instanceFactory)
-            : base(instanceFactory, nameof(CSharpRename))
+        public CSharpRename( )
+            : base( nameof(CSharpRename))
         {
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Rename)]
+        [TestMethod, TestCategory(Traits.Features.Rename)]
         public void VerifyLocalVariableRename()
         {
             var markup = @"
@@ -48,17 +50,17 @@ class Program
 
     }
 }";
-            using (var telemetry = VisualStudio.EnableTestTelemetryChannel())
+            using (var telemetry = VisualStudioInstance.EnableTestTelemetryChannel())
             {
                 SetUpEditor(markup);
                 InlineRenameDialog.Invoke();
 
                 MarkupTestFile.GetSpans(markup, out var _, out ImmutableArray<TextSpan> renameSpans);
-                var tags = VisualStudio.Editor.GetTagSpans(InlineRenameDialog.ValidRenameTag);
+                var tags = VisualStudioInstance.Editor.GetTagSpans(InlineRenameDialog.ValidRenameTag);
                 AssertEx.SetEqual(renameSpans, tags);
 
-                VisualStudio.Editor.SendKeys(VirtualKey.Y, VirtualKey.Enter);
-                VisualStudio.Editor.Verify.TextContains(@"
+                VisualStudioInstance.Editor.SendKeys(VirtualKey.Y, VirtualKey.Enter);
+                VisualStudioInstance.Editor.Verify.TextContains(@"
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -81,7 +83,7 @@ class Program
             }
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Rename)]
+        [TestMethod, TestCategory(Traits.Features.Rename)]
         [WorkItem(21657, "https://github.com/dotnet/roslyn/issues/21657")]
         public void VerifyAttributeRename()
         {
@@ -96,11 +98,11 @@ class [|$$ustom|]Attribute : Attribute
             InlineRenameDialog.Invoke();
 
             MarkupTestFile.GetSpans(markup, out var _, out ImmutableArray<TextSpan> renameSpans);
-            var tags = VisualStudio.Editor.GetTagSpans(InlineRenameDialog.ValidRenameTag);
+            var tags = VisualStudioInstance.Editor.GetTagSpans(InlineRenameDialog.ValidRenameTag);
             AssertEx.SetEqual(renameSpans, tags);
 
-            VisualStudio.Editor.SendKeys("Custom", VirtualKey.Enter);
-            VisualStudio.Editor.Verify.TextContains(@"
+            VisualStudioInstance.Editor.SendKeys("Custom", VirtualKey.Enter);
+            VisualStudioInstance.Editor.Verify.TextContains(@"
 using System;
 
 class CustomAttribute : Attribute
@@ -108,7 +110,7 @@ class CustomAttribute : Attribute
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Rename)]
+        [TestMethod, TestCategory(Traits.Features.Rename)]
         [WorkItem(21657, "https://github.com/dotnet/roslyn/issues/21657")]
         public void VerifyAttributeRenameWhileRenameClasss()
         {
@@ -123,11 +125,11 @@ class [|$$stom|]Attribute : Attribute
             InlineRenameDialog.Invoke();
 
             MarkupTestFile.GetSpans(markup, out var _, out ImmutableArray<TextSpan> renameSpans);
-            var tags = VisualStudio.Editor.GetTagSpans(InlineRenameDialog.ValidRenameTag);
+            var tags = VisualStudioInstance.Editor.GetTagSpans(InlineRenameDialog.ValidRenameTag);
             AssertEx.SetEqual(renameSpans, tags);
 
-            VisualStudio.Editor.SendKeys("Custom");
-            VisualStudio.Editor.Verify.TextContains(@"
+            VisualStudioInstance.Editor.SendKeys("Custom");
+            VisualStudioInstance.Editor.Verify.TextContains(@"
 using System;
 
 class Custom$$Attribute : Attribute
@@ -136,7 +138,7 @@ class Custom$$Attribute : Attribute
 ", true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Rename)]
+        [TestMethod, TestCategory(Traits.Features.Rename)]
         [WorkItem(21657, "https://github.com/dotnet/roslyn/issues/21657")]
         public void VerifyAttributeRenameWhileRenameAttribute()
         {
@@ -156,10 +158,10 @@ class stomAttribute : Attribute
             InlineRenameDialog.Invoke();
 
             MarkupTestFile.GetSpans(markup, out var _, out ImmutableArray<TextSpan> renameSpans);
-            var tags = VisualStudio.Editor.GetTagSpans(InlineRenameDialog.ValidRenameTag);
+            var tags = VisualStudioInstance.Editor.GetTagSpans(InlineRenameDialog.ValidRenameTag);
 
-            VisualStudio.Editor.SendKeys("Custom");
-            VisualStudio.Editor.Verify.TextContains(@"
+            VisualStudioInstance.Editor.SendKeys("Custom");
+            VisualStudioInstance.Editor.Verify.TextContains(@"
 using System;
 
 [Custom$$]
@@ -173,7 +175,7 @@ class CustomAttribute : Attribute
 ", true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Rename)]
+        [TestMethod, TestCategory(Traits.Features.Rename)]
         [WorkItem(21657, "https://github.com/dotnet/roslyn/issues/21657")]
         public void VerifyAttributeRenameWhileRenameAttributeClass()
         {
@@ -193,10 +195,10 @@ class [|$$stom|]Attribute : Attribute
             InlineRenameDialog.Invoke();
 
             MarkupTestFile.GetSpans(markup, out var _, out ImmutableArray<TextSpan> renameSpans);
-            var tags = VisualStudio.Editor.GetTagSpans(InlineRenameDialog.ValidRenameTag);
+            var tags = VisualStudioInstance.Editor.GetTagSpans(InlineRenameDialog.ValidRenameTag);
 
-            VisualStudio.Editor.SendKeys("Custom");
-            VisualStudio.Editor.Verify.TextContains(@"
+            VisualStudioInstance.Editor.SendKeys("Custom");
+            VisualStudioInstance.Editor.Verify.TextContains(@"
 using System;
 
 [Custom]
@@ -210,7 +212,7 @@ class Custom$$Attribute : Attribute
 ", true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Rename)]
+        [TestMethod, TestCategory(Traits.Features.Rename)]
         public void VerifyLocalVariableRenameWithCommentsUpdated()
         {
             // "variable" is intentionally misspelled as "varixable" and "this" is misspelled as
@@ -248,11 +250,11 @@ class Program
             InlineRenameDialog.ToggleIncludeComments();
 
             MarkupTestFile.GetSpans(markup, out var _, out ImmutableArray<TextSpan> renameSpans);
-            var tags = VisualStudio.Editor.GetTagSpans(InlineRenameDialog.ValidRenameTag);
+            var tags = VisualStudioInstance.Editor.GetTagSpans(InlineRenameDialog.ValidRenameTag);
             AssertEx.SetEqual(renameSpans, tags);
 
-            VisualStudio.Editor.SendKeys(VirtualKey.Y, VirtualKey.Enter);
-            VisualStudio.Editor.Verify.TextContains(@"
+            VisualStudioInstance.Editor.SendKeys(VirtualKey.Y, VirtualKey.Enter);
+            VisualStudioInstance.Editor.Verify.TextContains(@"
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -281,7 +283,7 @@ class Program
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Rename)]
+        [TestMethod, TestCategory(Traits.Features.Rename)]
         public void VerifyLocalVariableRenameWithStringsUpdated()
         {
             var markup = @"
@@ -308,11 +310,11 @@ class Program
             InlineRenameDialog.ToggleIncludeStrings();
 
             MarkupTestFile.GetSpans(markup, out var _, out ImmutableArray<TextSpan> renameSpans);
-            var tags = VisualStudio.Editor.GetTagSpans(InlineRenameDialog.ValidRenameTag);
+            var tags = VisualStudioInstance.Editor.GetTagSpans(InlineRenameDialog.ValidRenameTag);
             AssertEx.SetEqual(renameSpans, tags);
 
-            VisualStudio.Editor.SendKeys(VirtualKey.Y, VirtualKey.Enter);
-            VisualStudio.Editor.Verify.TextContains(@"
+            VisualStudioInstance.Editor.SendKeys(VirtualKey.Y, VirtualKey.Enter);
+            VisualStudioInstance.Editor.Verify.TextContains(@"
 class Program
 {
     static void Main(string[] args)
@@ -332,7 +334,7 @@ class Program
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Rename)]
+        [TestMethod, TestCategory(Traits.Features.Rename)]
         public void VerifyOverloadsUpdated()
         {
             var markup = @"
@@ -356,11 +358,11 @@ class B : I
             InlineRenameDialog.ToggleIncludeOverloads();
 
             MarkupTestFile.GetSpans(markup, out var _, out ImmutableArray<TextSpan> renameSpans);
-            var tags = VisualStudio.Editor.GetTagSpans(InlineRenameDialog.ValidRenameTag);
+            var tags = VisualStudioInstance.Editor.GetTagSpans(InlineRenameDialog.ValidRenameTag);
             AssertEx.SetEqual(renameSpans, tags);
 
-            VisualStudio.Editor.SendKeys(VirtualKey.Y, VirtualKey.Enter);
-            VisualStudio.Editor.Verify.TextContains(@"
+            VisualStudioInstance.Editor.SendKeys(VirtualKey.Y, VirtualKey.Enter);
+            VisualStudioInstance.Editor.Verify.TextContains(@"
 interface I
 {
     void y(int y);
@@ -377,7 +379,7 @@ class B : I
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Rename)]
+        [TestMethod, TestCategory(Traits.Features.Rename)]
         public void VerifyMultiFileRename()
         {
             SetUpEditor(@"
@@ -385,8 +387,8 @@ class $$Program
 {
 }");
             var project = new ProjectUtils.Project(ProjectName);
-            VisualStudio.SolutionExplorer.AddFile(project, "Class2.cs", @"");
-            VisualStudio.SolutionExplorer.OpenFile(project, "Class2.cs");
+            VisualStudioInstance.SolutionExplorer.AddFile(project, "Class2.cs", @"");
+            VisualStudioInstance.SolutionExplorer.OpenFile(project, "Class2.cs");
 
             const string class2Markup = @"
 class SomeOtherClass
@@ -398,16 +400,16 @@ class SomeOtherClass
 }";
             MarkupTestFile.GetSpans(class2Markup, out var code, out ImmutableArray<TextSpan> renameSpans);
 
-            VisualStudio.Editor.SetText(code);
-            VisualStudio.Editor.PlaceCaret("Program");
+            VisualStudioInstance.Editor.SetText(code);
+            VisualStudioInstance.Editor.PlaceCaret("Program");
 
             InlineRenameDialog.Invoke();
 
-            var tags = VisualStudio.Editor.GetTagSpans(InlineRenameDialog.ValidRenameTag);
+            var tags = VisualStudioInstance.Editor.GetTagSpans(InlineRenameDialog.ValidRenameTag);
             AssertEx.SetEqual(renameSpans, tags);
 
-            VisualStudio.Editor.SendKeys(VirtualKey.Y, VirtualKey.Enter);
-            VisualStudio.Editor.Verify.TextContains(@"
+            VisualStudioInstance.Editor.SendKeys(VirtualKey.Y, VirtualKey.Enter);
+            VisualStudioInstance.Editor.Verify.TextContains(@"
 class SomeOtherClass
 {
     void M()
@@ -416,14 +418,14 @@ class SomeOtherClass
     }
 }");
 
-            VisualStudio.SolutionExplorer.OpenFile(project, "Class1.cs");
-            VisualStudio.Editor.Verify.TextContains(@"
+            VisualStudioInstance.SolutionExplorer.OpenFile(project, "Class1.cs");
+            VisualStudioInstance.Editor.Verify.TextContains(@"
 class y
 {
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Rename)]
+        [TestMethod, TestCategory(Traits.Features.Rename)]
         public void VerifyRenameCancellation()
         {
             SetUpEditor(@"
@@ -432,9 +434,9 @@ class $$Program
 }");
 
             var project = new ProjectUtils.Project(ProjectName);
-            VisualStudio.SolutionExplorer.AddFile(project, "Class2.cs", @"");
-            VisualStudio.SolutionExplorer.OpenFile(project, "Class2.cs");
-            VisualStudio.Editor.SetText(@"
+            VisualStudioInstance.SolutionExplorer.AddFile(project, "Class2.cs", @"");
+            VisualStudioInstance.SolutionExplorer.OpenFile(project, "Class2.cs");
+            VisualStudioInstance.Editor.SetText(@"
 class SomeOtherClass
 {
     void M()
@@ -442,12 +444,12 @@ class SomeOtherClass
         Program p = new Program();
     }
 }");
-            VisualStudio.Editor.PlaceCaret("Program");
+            VisualStudioInstance.Editor.PlaceCaret("Program");
 
             InlineRenameDialog.Invoke();
 
-            VisualStudio.Editor.SendKeys(VirtualKey.Y);
-            VisualStudio.Editor.Verify.TextContains(@"class SomeOtherClass
+            VisualStudioInstance.Editor.SendKeys(VirtualKey.Y);
+            VisualStudioInstance.Editor.Verify.TextContains(@"class SomeOtherClass
 {
     void M()
     {
@@ -455,22 +457,22 @@ class SomeOtherClass
     }
 }");
 
-            VisualStudio.SolutionExplorer.OpenFile(project, "Class1.cs");
-            VisualStudio.Editor.Verify.TextContains(@"
+            VisualStudioInstance.SolutionExplorer.OpenFile(project, "Class1.cs");
+            VisualStudioInstance.Editor.Verify.TextContains(@"
 class y
 {
 }");
 
-            VisualStudio.Editor.SendKeys(VirtualKey.Escape);
-            VisualStudio.Workspace.WaitForAsyncOperations(FeatureAttribute.Rename);
+            VisualStudioInstance.Editor.SendKeys(VirtualKey.Escape);
+            VisualStudioInstance.Workspace.WaitForAsyncOperations(FeatureAttribute.Rename);
 
-            VisualStudio.Editor.Verify.TextContains(@"
+            VisualStudioInstance.Editor.Verify.TextContains(@"
 class Program
 {
 }");
 
-            VisualStudio.SolutionExplorer.OpenFile(project, "Class2.cs");
-            VisualStudio.Editor.Verify.TextContains(@"
+            VisualStudioInstance.SolutionExplorer.OpenFile(project, "Class2.cs");
+            VisualStudioInstance.Editor.Verify.TextContains(@"
 class SomeOtherClass
 {
     void M()
@@ -480,7 +482,7 @@ class SomeOtherClass
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Rename)]
+        [TestMethod, TestCategory(Traits.Features.Rename)]
         public void VerifyCrossProjectRename()
         {
             SetUpEditor(@"
@@ -495,23 +497,23 @@ $$class RenameRocks
             var project1 = new ProjectUtils.Project(ProjectName);
             var project2 = new ProjectUtils.Project("Project2");
 
-            VisualStudio.SolutionExplorer.AddProject(project2, WellKnownProjectTemplates.ClassLibrary, LanguageName);
-            VisualStudio.SolutionExplorer.AddProjectReference(fromProjectName: project1, toProjectName: new ProjectUtils.ProjectReference("Project2"));
+            VisualStudioInstance.SolutionExplorer.AddProject(project2, WellKnownProjectTemplates.ClassLibrary, LanguageName);
+            VisualStudioInstance.SolutionExplorer.AddProjectReference(fromProjectName: project1, toProjectName: new ProjectUtils.ProjectReference("Project2"));
 
-            VisualStudio.SolutionExplorer.AddFile(project2, "Class2.cs", @"");
-            VisualStudio.SolutionExplorer.OpenFile(project2, "Class2.cs");
+            VisualStudioInstance.SolutionExplorer.AddFile(project2, "Class2.cs", @"");
+            VisualStudioInstance.SolutionExplorer.OpenFile(project2, "Class2.cs");
 
 
-            VisualStudio.Editor.SetText(@"
+            VisualStudioInstance.Editor.SetText(@"
 public class Class2 { static void Main(string [] args) { } }");
 
-            VisualStudio.SolutionExplorer.OpenFile(project1, "Class1.cs");
-            VisualStudio.Editor.PlaceCaret("Class2");
+            VisualStudioInstance.SolutionExplorer.OpenFile(project1, "Class1.cs");
+            VisualStudioInstance.Editor.PlaceCaret("Class2");
 
             InlineRenameDialog.Invoke();
-            VisualStudio.Editor.SendKeys(VirtualKey.Y, VirtualKey.Enter);
+            VisualStudioInstance.Editor.SendKeys(VirtualKey.Y, VirtualKey.Enter);
 
-            VisualStudio.Editor.Verify.TextContains(@"
+            VisualStudioInstance.Editor.Verify.TextContains(@"
 class RenameRocks 
 {
     static void Main(string[] args)
@@ -521,23 +523,23 @@ class RenameRocks
     }
 }");
 
-            VisualStudio.SolutionExplorer.OpenFile(project2, "Class2.cs");
-            VisualStudio.Editor.Verify.TextContains(@"
+            VisualStudioInstance.SolutionExplorer.OpenFile(project2, "Class2.cs");
+            VisualStudioInstance.Editor.Verify.TextContains(@"
 public class y { static void Main(string [] args) { } }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Rename)]
+        [TestMethod, TestCategory(Traits.Features.Rename)]
         public void VerifyRenameUndo()
         {
             VerifyCrossProjectRename();
 
-            VisualStudio.Editor.SendKeys(Ctrl(VirtualKey.Z));
+            VisualStudioInstance.Editor.SendKeys(Ctrl(VirtualKey.Z));
 
-            VisualStudio.Editor.Verify.TextContains(@"
+            VisualStudioInstance.Editor.Verify.TextContains(@"
 public class Class2 { static void Main(string [] args) { } }");
 
-            VisualStudio.SolutionExplorer.OpenFile(new ProjectUtils.Project(ProjectName), "Class1.cs");
-            VisualStudio.Editor.Verify.TextContains(@"
+            VisualStudioInstance.SolutionExplorer.OpenFile(new ProjectUtils.Project(ProjectName), "Class1.cs");
+            VisualStudioInstance.Editor.Verify.TextContains(@"
 class RenameRocks 
 {
     static void Main(string[] args)
@@ -548,12 +550,12 @@ class RenameRocks
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Rename)]
+        [TestMethod, TestCategory(Traits.Features.Rename)]
         public void VerifyRenameInStandaloneFiles()
         {
-            VisualStudio.SolutionExplorer.CloseSolution();
-            VisualStudio.SolutionExplorer.AddStandaloneFile("StandaloneFile1.cs");
-            VisualStudio.Editor.SetText(@"
+            VisualStudioInstance.SolutionExplorer.CloseSolution();
+            VisualStudioInstance.SolutionExplorer.AddStandaloneFile("StandaloneFile1.cs");
+            VisualStudioInstance.Editor.SetText(@"
 class Program
 {
     void Goo()
@@ -562,13 +564,13 @@ class Program
         ids = 2;
     }
 }");
-            VisualStudio.Editor.PlaceCaret("ids");
+            VisualStudioInstance.Editor.PlaceCaret("ids");
 
             InlineRenameDialog.Invoke();
 
-            VisualStudio.Editor.SendKeys(VirtualKey.Y, VirtualKey.Enter);
+            VisualStudioInstance.Editor.SendKeys(VirtualKey.Y, VirtualKey.Enter);
 
-            VisualStudio.Editor.Verify.TextContains(@"
+            VisualStudioInstance.Editor.Verify.TextContains(@"
 class Program
 {
     void Goo()

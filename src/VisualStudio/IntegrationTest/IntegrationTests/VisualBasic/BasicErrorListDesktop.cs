@@ -2,26 +2,25 @@
 
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
-using Roslyn.Test.Utilities;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
 {
-    [Collection(nameof(SharedIntegrationHostFixture))]
+    [TestClass]
     public class BasicErrorListDesktop : BasicErrorListCommon
     {
-        public BasicErrorListDesktop(VisualStudioInstanceFactory instanceFactory)
-            : base(instanceFactory, WellKnownProjectTemplates.ClassLibrary)
+        public BasicErrorListDesktop( )
+            : base( WellKnownProjectTemplates.ClassLibrary)
         {
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ErrorList)]
+        [TestMethod, TestCategory(Traits.Features.ErrorList)]
         public override void ErrorList()
         {
             base.ErrorList();
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ErrorList)]
+        [TestMethod, TestCategory(Traits.Features.ErrorList)]
         public override void ErrorsDuringMethodBodyEditing()
         {
             base.ErrorsDuringMethodBodyEditing();

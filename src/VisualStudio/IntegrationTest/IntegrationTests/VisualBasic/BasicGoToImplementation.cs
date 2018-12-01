@@ -3,41 +3,41 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
-using Roslyn.Test.Utilities;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+
 using ProjectUtils = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils;
 
 namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
 {
-    [Collection(nameof(SharedIntegrationHostFixture))]
+    [TestClass]
     public class BasicGoToImplementation : AbstractEditorTest
     {
         protected override string LanguageName => LanguageNames.VisualBasic;
 
-        public BasicGoToImplementation(VisualStudioInstanceFactory instanceFactory)
-                    : base(instanceFactory, nameof(BasicGoToImplementation))
+        public BasicGoToImplementation( )
+                    : base( nameof(BasicGoToImplementation))
         {
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.GoToImplementation)]
+        [TestMethod, TestCategory(Traits.Features.GoToImplementation)]
         public void SimpleGoToImplementation()
         {
             var project = new ProjectUtils.Project(ProjectName);
-            VisualStudio.SolutionExplorer.AddFile(project, "FileImplementation.vb");
-            VisualStudio.SolutionExplorer.OpenFile(project, "FileImplementation.vb");
-            VisualStudio.Editor.SetText(
+            VisualStudioInstance.SolutionExplorer.AddFile(project, "FileImplementation.vb");
+            VisualStudioInstance.SolutionExplorer.OpenFile(project, "FileImplementation.vb");
+            VisualStudioInstance.Editor.SetText(
 @"Class Implementation
   Implements IGoo
 End Class");
-            VisualStudio.SolutionExplorer.AddFile(project, "FileInterface.vb");
-            VisualStudio.SolutionExplorer.OpenFile(project, "FileInterface.vb");
-            VisualStudio.Editor.SetText(
+            VisualStudioInstance.SolutionExplorer.AddFile(project, "FileInterface.vb");
+            VisualStudioInstance.SolutionExplorer.OpenFile(project, "FileInterface.vb");
+            VisualStudioInstance.Editor.SetText(
 @"Interface IGoo 
 End Interface");
-            VisualStudio.Editor.PlaceCaret("Interface IGoo");
-            VisualStudio.Editor.GoToImplementation();
-            VisualStudio.Editor.Verify.TextContains(@"Class Implementation$$", assertCaretPosition: true);
-            Assert.False(VisualStudio.Shell.IsActiveTabProvisional());
+            VisualStudioInstance.Editor.PlaceCaret("Interface IGoo");
+            VisualStudioInstance.Editor.GoToImplementation();
+            VisualStudioInstance.Editor.Verify.TextContains(@"Class Implementation$$", assertCaretPosition: true);
+            Assert.IsFalse(VisualStudioInstance.Shell.IsActiveTabProvisional());
         }
     }
 }

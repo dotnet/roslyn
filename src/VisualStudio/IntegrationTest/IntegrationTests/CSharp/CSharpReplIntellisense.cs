@@ -4,87 +4,87 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Roslyn.Test.Utilities;
-using Xunit;
-
+ 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 {
-    [Collection(nameof(SharedIntegrationHostFixture))]
+    [TestClass]
     public class CSharpReplIntellisense : AbstractInteractiveWindowTest
     {
-        public CSharpReplIntellisense(VisualStudioInstanceFactory instanceFactory)
-            : base(instanceFactory)
+        public CSharpReplIntellisense( )
+            : base()
         {
         }
 
-        public override async Task InitializeAsync()
+        public override void Initialize()
         {
-            await base.InitializeAsync().ConfigureAwait(true);
-            VisualStudio.Workspace.SetUseSuggestionMode(true);
+            base.Initialize();
+            VisualStudioInstance.Workspace.SetUseSuggestionMode(true);
         }
 
-        [WpfFact]
+        [TestMethod]
         public void VerifyCompletionListOnEmptyTextAtTopLevel()
         {
-            VisualStudio.InteractiveWindow.InvokeCompletionList();
-            VisualStudio.InteractiveWindow.Verify.CompletionItemsExist("var", "public", "readonly", "goto");
+            VisualStudioInstance.InteractiveWindow.InvokeCompletionList();
+            VisualStudioInstance.InteractiveWindow.Verify.CompletionItemsExist("var", "public", "readonly", "goto");
         }
 
-        [WpfFact]
+        [TestMethod]
         public void VerifySharpRCompletionList()
         {
-            VisualStudio.InteractiveWindow.InsertCode("#r \"");
-            VisualStudio.InteractiveWindow.InvokeCompletionList();
-            VisualStudio.InteractiveWindow.Verify.CompletionItemsExist("System");
+            VisualStudioInstance.InteractiveWindow.InsertCode("#r \"");
+            VisualStudioInstance.InteractiveWindow.InvokeCompletionList();
+            VisualStudioInstance.InteractiveWindow.Verify.CompletionItemsExist("System");
         }
 
-        [WpfFact]
+        [TestMethod]
         public void VerifyCommitCompletionOnTopLevel()
         {
-            VisualStudio.InteractiveWindow.InsertCode("pub");
-            VisualStudio.InteractiveWindow.InvokeCompletionList();
-            VisualStudio.InteractiveWindow.Verify.CompletionItemsExist("public");
-            VisualStudio.SendKeys.Send(VirtualKey.Tab);
-            VisualStudio.InteractiveWindow.Verify.LastReplInput("public");
-            VisualStudio.SendKeys.Send(VirtualKey.Escape);
+            VisualStudioInstance.InteractiveWindow.InsertCode("pub");
+            VisualStudioInstance.InteractiveWindow.InvokeCompletionList();
+            VisualStudioInstance.InteractiveWindow.Verify.CompletionItemsExist("public");
+            VisualStudioInstance.SendKeys.Send(VirtualKey.Tab);
+            VisualStudioInstance.InteractiveWindow.Verify.LastReplInput("public");
+            VisualStudioInstance.SendKeys.Send(VirtualKey.Escape);
         }
 
-        [WpfFact]
+        [TestMethod]
         public void VerifyCompletionListForAmbiguousParsingCases()
         {
-            VisualStudio.InteractiveWindow.InsertCode(@"class C { }
+            VisualStudioInstance.InteractiveWindow.InsertCode(@"class C { }
 public delegate R Del<T, R>(T arg);
 Del<C, System");
-            VisualStudio.SendKeys.Send(VirtualKey.Period);
-            VisualStudio.Workspace.WaitForAsyncOperations(FeatureAttribute.CompletionSet);
-            VisualStudio.InteractiveWindow.Verify.CompletionItemsExist("ArgumentException");
+            VisualStudioInstance.SendKeys.Send(VirtualKey.Period);
+            VisualStudioInstance.Workspace.WaitForAsyncOperations(FeatureAttribute.CompletionSet);
+            VisualStudioInstance.InteractiveWindow.Verify.CompletionItemsExist("ArgumentException");
         }
 
-        [WpfFact]
+        [TestMethod]
         public void VerifySharpLoadCompletionList()
         {
-            VisualStudio.InteractiveWindow.InsertCode("#load \"");
-            VisualStudio.InteractiveWindow.InvokeCompletionList();
-            VisualStudio.InteractiveWindow.Verify.CompletionItemsExist("C:");
+            VisualStudioInstance.InteractiveWindow.InsertCode("#load \"");
+            VisualStudioInstance.InteractiveWindow.InvokeCompletionList();
+            VisualStudioInstance.InteractiveWindow.Verify.CompletionItemsExist("C:");
         }
 
-        [WpfFact]
+        [TestMethod]
         public void VerifyNoCrashOnEnter()
         {
-            VisualStudio.Workspace.SetUseSuggestionMode(false);
-            VisualStudio.SendKeys.Send("#help", VirtualKey.Enter, VirtualKey.Enter);
+            VisualStudioInstance.Workspace.SetUseSuggestionMode(false);
+            VisualStudioInstance.SendKeys.Send("#help", VirtualKey.Enter, VirtualKey.Enter);
         }
 
-        [WpfFact]
+        [TestMethod]
         public void VerifyCorrectIntellisenseSelectionOnEnter()
         {
-            VisualStudio.Workspace.SetUseSuggestionMode(false);
-            VisualStudio.SendKeys.Send("TimeSpan.FromMin");
-            VisualStudio.SendKeys.Send(VirtualKey.Enter, "(0d)", VirtualKey.Enter);
-            VisualStudio.InteractiveWindow.WaitForReplOutput("[00:00:00]");
+            VisualStudioInstance.Workspace.SetUseSuggestionMode(false);
+            VisualStudioInstance.SendKeys.Send("TimeSpan.FromMin");
+            VisualStudioInstance.SendKeys.Send(VirtualKey.Enter, "(0d)", VirtualKey.Enter);
+            VisualStudioInstance.InteractiveWindow.WaitForReplOutput("[00:00:00]");
         }
 
-        [WpfFact]
+        [TestMethod]
         public void VerifyCompletionListForLoadMembers()
         {
             using (var temporaryTextFile = new TemporaryTextFile(
@@ -92,10 +92,10 @@ Del<C, System");
                 "int x = 2; class Complex { public int goo() { return 4; } }"))
             {
                 temporaryTextFile.Create();
-                VisualStudio.InteractiveWindow.SubmitText(string.Format("#load \"{0}\"", temporaryTextFile.FullName));
-                VisualStudio.InteractiveWindow.InvokeCompletionList();
-                VisualStudio.InteractiveWindow.Verify.CompletionItemsExist("x", "Complex");
-                VisualStudio.SendKeys.Send(VirtualKey.Escape);
+                VisualStudioInstance.InteractiveWindow.SubmitText(string.Format("#load \"{0}\"", temporaryTextFile.FullName));
+                VisualStudioInstance.InteractiveWindow.InvokeCompletionList();
+                VisualStudioInstance.InteractiveWindow.Verify.CompletionItemsExist("x", "Complex");
+                VisualStudioInstance.SendKeys.Send(VirtualKey.Escape);
             }
         }
     }

@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using Microsoft.Test.Apex.VisualStudio;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 
@@ -8,7 +9,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 {
     internal class Shell_InProc : InProcComponent
     {
-        public static Shell_InProc Create() => new Shell_InProc();
+        public Shell_InProc(VisualStudioHost visualStudioHost) : base(visualStudioHost) { }
 
         public string GetActiveWindowCaption()
             => InvokeOnUIThread(() => GetDTE().ActiveWindow.Caption);

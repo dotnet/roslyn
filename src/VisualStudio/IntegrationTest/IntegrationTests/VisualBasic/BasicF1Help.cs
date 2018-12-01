@@ -3,22 +3,21 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
-using Roslyn.Test.Utilities;
-using Xunit;
+using Microsoft.VisualStudio.IntegrationTest.Utilities.Common;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Roslyn.VisualStudio.IntegrationTests.Basic
 {
-    [Collection(nameof(SharedIntegrationHostFixture))]
+    [TestClass]
     public class BasicF1Help : AbstractEditorTest
     {
         protected override string LanguageName => LanguageNames.VisualBasic;
 
-        public BasicF1Help(VisualStudioInstanceFactory instanceFactory)
-            : base(instanceFactory, nameof(BasicF1Help))
+        public BasicF1Help() : base(nameof(BasicF1Help))
         {
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        [TestMethod, TestCategory(Traits.Features.F1Help)]
         void F1Help()
         {
             var text = @"
@@ -39,19 +38,19 @@ Module Program$$
 End Module";
 
             SetUpEditor(text);
-            Verify("Linq", "System.Linq");
-            Verify("String", "vb.String");
-            Verify("Any", "System.Linq.Enumerable.Any");
-            Verify("From", "vb.QueryFrom");
-            Verify("+=", "vb.+=");
-            Verify("Nothing", "vb.Nothing");
+            VerifyF1Keyword("Linq", "System.Linq");
+            VerifyF1Keyword("String", "vb.String");
+            VerifyF1Keyword("Any", "System.Linq.Enumerable.Any");
+            VerifyF1Keyword("From", "vb.QueryFrom");
+            VerifyF1Keyword("+=", "vb.+=");
+            VerifyF1Keyword("Nothing", "vb.Nothing");
 
         }
 
-        private void Verify(string word, string expectedKeyword)
+        private void VerifyF1Keyword(string word, string expectedKeyword)
         {
-            VisualStudio.Editor.PlaceCaret(word, charsOffset: -1);
-            Assert.Contains(expectedKeyword, VisualStudio.Editor.GetF1Keyword());
+            VisualStudioInstance.Editor.PlaceCaret(word, charsOffset: -1);
+            ExtendedAssert.Contains(expectedKeyword, VisualStudioInstance.Editor.GetF1Keyword().ToArray());
         }
     }
 }

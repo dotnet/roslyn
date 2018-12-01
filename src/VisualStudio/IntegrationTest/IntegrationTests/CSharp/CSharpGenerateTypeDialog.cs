@@ -3,26 +3,28 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
+using Microsoft.VisualStudio.IntegrationTest.Utilities.Common;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Roslyn.Test.Utilities;
-using Xunit;
+
 using ProjectUtils = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils;
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 {
-    [Collection(nameof(SharedIntegrationHostFixture))]
+    [TestClass]
     public class CSharpGenerateTypeDialog : AbstractEditorTest
     {
         protected override string LanguageName => LanguageNames.CSharp;
 
-        private GenerateTypeDialog_OutOfProc GenerateTypeDialog => VisualStudio.GenerateTypeDialog;
+        private GenerateTypeDialog_OutOfProc GenerateTypeDialog => VisualStudioInstance.GenerateTypeDialog;
 
-        public CSharpGenerateTypeDialog(VisualStudioInstanceFactory instanceFactory)
-                    : base(instanceFactory, nameof(CSharpGenerateTypeDialog))
+        public CSharpGenerateTypeDialog( )
+                    : base( nameof(CSharpGenerateTypeDialog))
         {
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [TestMethod, TestCategory(Traits.Features.CodeActionsGenerateType)]
         public void OpenAndCloseDialog()
         {
             SetUpEditor(@"class C
@@ -34,7 +36,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 }
 ");
 
-            VisualStudio.Editor.Verify.CodeAction("Generate new type...",
+            VisualStudioInstance.Editor.Verify.CodeAction("Generate new type...",
                 applyFix: true,
                 blockUntilComplete: false);
 
@@ -43,14 +45,14 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             GenerateTypeDialog.VerifyClosed();
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [TestMethod, TestCategory(Traits.Features.CodeActionsGenerateType)]
         public void CSharpToBasic()
         {
             var vbProj = new ProjectUtils.Project("VBProj");
-            VisualStudio.SolutionExplorer.AddProject(vbProj, WellKnownProjectTemplates.ClassLibrary, LanguageNames.VisualBasic);
+            VisualStudioInstance.SolutionExplorer.AddProject(vbProj, WellKnownProjectTemplates.ClassLibrary, LanguageNames.VisualBasic);
 
             var project = new ProjectUtils.Project(ProjectName);
-            VisualStudio.SolutionExplorer.OpenFile(project, "Class1.cs");
+            VisualStudioInstance.SolutionExplorer.OpenFile(project, "Class1.cs");
 
             SetUpEditor(@"class C
 {
@@ -61,7 +63,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 }
 ");
 
-            VisualStudio.Editor.Verify.CodeAction("Generate new type...",
+            VisualStudioInstance.Editor.Verify.CodeAction("Generate new type...",
                 applyFix: true,
                 blockUntilComplete: false);
 
@@ -73,15 +75,15 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             GenerateTypeDialog.ClickOK();
             GenerateTypeDialog.VerifyClosed();
 
-            VisualStudio.SolutionExplorer.OpenFile(vbProj, "GenerateTypeTest.vb");
-            var actualText = VisualStudio.Editor.GetText();
-            Assert.Contains(@"Public Interface A
+            VisualStudioInstance.SolutionExplorer.OpenFile(vbProj, "GenerateTypeTest.vb");
+            var actualText = VisualStudioInstance.Editor.GetText();
+            ExtendedAssert.Contains(@"Public Interface A
 End Interface
 ", actualText);
 
-            VisualStudio.SolutionExplorer.OpenFile(project, "Class1.cs");
-            actualText = VisualStudio.Editor.GetText();
-            Assert.Contains(@"using VBProj;
+            VisualStudioInstance.SolutionExplorer.OpenFile(project, "Class1.cs");
+            actualText = VisualStudioInstance.Editor.GetText();
+            ExtendedAssert.Contains(@"using VBProj;
 
 class C
 {

@@ -1,7 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using Xunit;
+using Microsoft.VisualStudio.IntegrationTest.Utilities.Common;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
 {
@@ -22,7 +23,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             public void LastReplInput(string expectedReplInput)
             {
                 var lastReplInput = _textViewWindow.GetLastReplInput();
-                Assert.Equal(expectedReplInput, lastReplInput);
+                Assert.AreEqual(expectedReplInput, lastReplInput);
             }
 
             public void ReplPromptConsistency(string prompt, string output)
@@ -38,19 +39,19 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
                     }
 
                     // The prompt must be at the beginning of the line
-                    Assert.StartsWith(prompt, replTextLine);
+                    ExtendedAssert.StartsWith(prompt, replTextLine);
 
                     var promptIndex = replTextLine.IndexOf(prompt, prompt.Length);
 
                     // A 'subsequent' prompt is only allowed on a line containing #prompt
                     if (promptIndex >= 0)
                     {
-                        Assert.StartsWith(prompt + "#prompt", replTextLine);
-                        Assert.False(replTextLine.IndexOf(prompt, promptIndex + prompt.Length) >= 0);
+                        ExtendedAssert.StartsWith(prompt + "#prompt", replTextLine);
+                        Assert.IsFalse(replTextLine.IndexOf(prompt, promptIndex + prompt.Length) >= 0);
                     }
 
                     // There must be no output on a prompt line.
-                    Assert.DoesNotContain(output, replTextLine);
+                    ExtendedAssert.DoesNotContain(output, replTextLine);
                 }
             }
         }

@@ -2,10 +2,10 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
+using Microsoft.Test.Apex.VisualStudio;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Common;
 using Microsoft.VisualStudio.Shell.Interop;
 
@@ -13,8 +13,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 {
     internal class ErrorList_InProc : InProcComponent
     {
-        public static ErrorList_InProc Create()
-            => new ErrorList_InProc();
+        public ErrorList_InProc(VisualStudioHost visualStudioHost) : base(visualStudioHost) { }
 
         public void ShowErrorList()
             => ExecuteCommand("View.ErrorList");

@@ -4,22 +4,21 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
-using Roslyn.Test.Utilities;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
 {
-    [Collection(nameof(SharedIntegrationHostFixture))]
+    [TestClass]
     public class BasicEndConstruct : AbstractEditorTest
     {
         protected override string LanguageName => LanguageNames.VisualBasic;
 
-        public BasicEndConstruct(VisualStudioInstanceFactory instanceFactory)
-            : base(instanceFactory, nameof(BasicEndConstruct))
+        public BasicEndConstruct( )
+            : base( nameof(BasicEndConstruct))
         {
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)]
+        [TestMethod, TestCategory(Traits.Features.EndConstructGeneration)]
         public void EndConstruct()
         {
             SetUpEditor(@"
@@ -29,8 +28,8 @@ Class Program
     End Sub
 End Class");
             // Send a space to convert virtual whitespace into real whitespace
-            VisualStudio.Editor.SendKeys(VirtualKey.Enter, " ");
-            VisualStudio.Editor.Verify.TextContains(@"
+            VisualStudioInstance.Editor.SendKeys(VirtualKey.Enter, " ");
+            VisualStudioInstance.Editor.Verify.TextContains(@"
 Class Program
     Sub Main()
         If True Then
@@ -40,7 +39,7 @@ Class Program
 End Class", assertCaretPosition: true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)]
+        [TestMethod, TestCategory(Traits.Features.EndConstructGeneration)]
         public void IntelliSenseCompletedWhile()
         {
             SetUpEditor(@"
@@ -50,8 +49,8 @@ Class Program
     End Sub
 End Class");
             // Send a space to convert virtual whitespace into real whitespace
-            VisualStudio.Editor.SendKeys("While True", VirtualKey.Enter, " ");
-            VisualStudio.Editor.Verify.TextContains(@"
+            VisualStudioInstance.Editor.SendKeys("While True", VirtualKey.Enter, " ");
+            VisualStudioInstance.Editor.Verify.TextContains(@"
 Class Program
     Sub Main()
         While True
@@ -61,21 +60,21 @@ Class Program
 End Class", assertCaretPosition: true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)]
+        [TestMethod, TestCategory(Traits.Features.EndConstructGeneration)]
         public void InterfaceToClassFixup()
         {
             SetUpEditor(@"
 Interface$$ C
 End Interface");
 
-            VisualStudio.Editor.SendKeys(new KeyPress(VirtualKey.Backspace, ShiftState.Ctrl));
-            VisualStudio.Editor.SendKeys("Class", VirtualKey.Tab);
-            VisualStudio.Editor.Verify.TextContains(@"
+            VisualStudioInstance.Editor.SendKeys(new KeyPress(VirtualKey.Backspace, ShiftState.Ctrl));
+            VisualStudioInstance.Editor.SendKeys("Class", VirtualKey.Tab);
+            VisualStudioInstance.Editor.Verify.TextContains(@"
 Class C
 End Class");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)]
+        [TestMethod, TestCategory(Traits.Features.EndConstructGeneration)]
         public void CaseInsensitveSubToFunction()
         {
             SetUpEditor(@"
@@ -84,9 +83,9 @@ Class C
     End Sub
 End Class");
 
-            VisualStudio.Editor.SendKeys(new KeyPress(VirtualKey.Backspace, ShiftState.Ctrl));
-            VisualStudio.Editor.SendKeys("fu", VirtualKey.Tab);
-            VisualStudio.Editor.Verify.TextContains(@"
+            VisualStudioInstance.Editor.SendKeys(new KeyPress(VirtualKey.Backspace, ShiftState.Ctrl));
+            VisualStudioInstance.Editor.SendKeys("fu", VirtualKey.Tab);
+            VisualStudioInstance.Editor.Verify.TextContains(@"
 Class C
     Public Function Goo()
     End Function

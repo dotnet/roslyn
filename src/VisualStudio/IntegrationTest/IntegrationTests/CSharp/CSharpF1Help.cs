@@ -3,22 +3,22 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
+using Microsoft.VisualStudio.IntegrationTest.Utilities.Common;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Roslyn.Test.Utilities;
-using Xunit;
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 {
-    [Collection(nameof(SharedIntegrationHostFixture))]
+    [TestClass]
     public class CSharpF1Help : AbstractEditorTest
     {
         protected override string LanguageName => LanguageNames.CSharp;
 
-        public CSharpF1Help(VisualStudioInstanceFactory instanceFactory)
-            : base(instanceFactory, nameof(CSharpF1Help))
+        public CSharpF1Help() : base(nameof(CSharpF1Help))
         {
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        [TestMethod, TestCategory(Traits.Features.F1Help)]
         void F1Help()
         {
             var text = @"
@@ -65,16 +65,16 @@ namespace F1TestNamespace
 }";
 
             SetUpEditor(text);
-            Verify("abstract", "abstract_CSharpKeyword");
-            Verify("ascending", "ascending_CSharpKeyword");
-            Verify("from", "from_CSharpKeyword");
-            Verify("First();", "System.Linq.Enumerable.First``1");
+            VerifyF1Keyword("abstract", "abstract_CSharpKeyword");
+            VerifyF1Keyword("ascending", "ascending_CSharpKeyword");
+            VerifyF1Keyword("from", "from_CSharpKeyword");
+            VerifyF1Keyword("First();", "System.Linq.Enumerable.First``1");
         }
 
-        private void Verify(string word, string expectedKeyword)
+        private void VerifyF1Keyword(string word, string expectedKeyword)
         {
-            VisualStudio.Editor.PlaceCaret(word, charsOffset: -1);
-            Assert.Contains(expectedKeyword, VisualStudio.Editor.GetF1Keyword());
+            VisualStudioInstance.Editor.PlaceCaret(word, charsOffset: -1);
+            ExtendedAssert.Contains(expectedKeyword, VisualStudioInstance.Editor.GetF1Keyword().ToArray());
         }
     }
 }

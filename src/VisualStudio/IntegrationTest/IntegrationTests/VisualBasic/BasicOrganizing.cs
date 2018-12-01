@@ -3,22 +3,22 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Roslyn.Test.Utilities;
-using Xunit;
 
 namespace Roslyn.VisualStudio.IntegrationTests.Basic
 {
-    [Collection(nameof(SharedIntegrationHostFixture))]
+    [TestClass]
     public class BasicOrganizing : AbstractEditorTest
     {
         protected override string LanguageName => LanguageNames.VisualBasic;
 
-        public BasicOrganizing(VisualStudioInstanceFactory instanceFactory)
-            : base(instanceFactory, nameof(BasicOrganizing))
+        public BasicOrganizing( )
+            : base( nameof(BasicOrganizing))
         {
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        [TestMethod, TestCategory(Traits.Features.Organizing)]
         public void RemoveAndSort()
         {
             SetUpEditor(@"Imports System.Linq$$
@@ -30,8 +30,8 @@ Class Test
         Dim data As COMException
     End Sub
 End Class");
-            VisualStudio.ExecuteCommand("Edit.RemoveAndSort");
-            VisualStudio.Editor.Verify.TextContains(@"Imports System.Runtime.CompilerServices
+            VisualStudioInstance.ExecuteCommand("Edit.RemoveAndSort");
+            VisualStudioInstance.Editor.Verify.TextContains(@"Imports System.Runtime.CompilerServices
 Imports System.Runtime.InteropServices
 Class Test
     Sub Method(<CallerMemberName> Optional str As String = Nothing)

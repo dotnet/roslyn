@@ -7,22 +7,22 @@ using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Roslyn.Test.Utilities;
-using Xunit;
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 {
-    [Collection(nameof(SharedIntegrationHostFixture))]
+    [TestClass]
     public class CSharpKeywordHighlighting : AbstractEditorTest
     {
         protected override string LanguageName => LanguageNames.CSharp;
 
-        public CSharpKeywordHighlighting(VisualStudioInstanceFactory instanceFactory)
-            : base(instanceFactory, nameof(CSharpKeywordHighlighting))
+        public CSharpKeywordHighlighting( )
+            : base( nameof(CSharpKeywordHighlighting))
         {
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [TestMethod, TestCategory(Traits.Features.Classification)]
         public void Foreach()
         {
             var input = @"class C
@@ -35,15 +35,15 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 
             Roslyn.Test.Utilities.MarkupTestFile.GetSpans(input, out var text, out ImmutableArray<TextSpan> spans);
 
-            VisualStudio.Editor.SetText(text);
+            VisualStudioInstance.Editor.SetText(text);
 
-            Verify("foreach", spans);
-            Verify("break", spans);
-            Verify("continue", spans);
-            Verify("in", ImmutableArray.Create<TextSpan>());
+            VerifyKeywordHighlightTags("foreach", spans);
+            VerifyKeywordHighlightTags("break", spans);
+            VerifyKeywordHighlightTags("continue", spans);
+            VerifyKeywordHighlightTags("in", ImmutableArray.Create<TextSpan>());
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [TestMethod, TestCategory(Traits.Features.Classification)]
         public void PreprocessorConditionals()
         {
             var input = @"
@@ -69,14 +69,14 @@ class PurchaseTransaction
                 out IDictionary<string, ImmutableArray<TextSpan>> spans);
 
 
-            VisualStudio.Editor.SetText(text);
+            VisualStudioInstance.Editor.SetText(text);
 
-            Verify("#if", spans["if"]);
-            Verify("#else", spans["else"]);
-            Verify("#endif", spans["else"]);
+            VerifyKeywordHighlightTags("#if", spans["if"]);
+            VerifyKeywordHighlightTags("#else", spans["else"]);
+            VerifyKeywordHighlightTags("#endif", spans["else"]);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [TestMethod, TestCategory(Traits.Features.Classification)]
         public void PreprocessorRegions()
         {
             var input = @"
@@ -94,23 +94,23 @@ class C
                 out var text,
                 out ImmutableArray<TextSpan> spans);
 
-            VisualStudio.Editor.SetText(text);
+            VisualStudioInstance.Editor.SetText(text);
 
-            Verify("#region", spans);
-            Verify("#endregion", spans);
+            VerifyKeywordHighlightTags("#region", spans);
+            VerifyKeywordHighlightTags("#endregion", spans);
         }
 
-        private void Verify(string marker, ImmutableArray<TextSpan> expectedCount)
+        private void VerifyKeywordHighlightTags(string marker, ImmutableArray<TextSpan> expectedCount)
         {
-            VisualStudio.Editor.PlaceCaret(marker, charsOffset: -1);
-            VisualStudio.Workspace.WaitForAllAsyncOperations(
+            VisualStudioInstance.Editor.PlaceCaret(marker, charsOffset: -1);
+            VisualStudioInstance.Workspace.WaitForAllAsyncOperations(
                 FeatureAttribute.Workspace,
                 FeatureAttribute.SolutionCrawler,
                 FeatureAttribute.DiagnosticService,
                 FeatureAttribute.Classification,
                 FeatureAttribute.KeywordHighlighting);
 
-            Assert.Equal(expectedCount, VisualStudio.Editor.GetKeywordHighlightTags());
+            Assert.AreEqual(expectedCount, VisualStudioInstance.Editor.GetKeywordHighlightTags());
         }
     }
 }

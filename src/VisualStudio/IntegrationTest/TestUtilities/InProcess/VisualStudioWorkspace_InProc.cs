@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.Test.Apex.VisualStudio;
 using Microsoft.VisualStudio.LanguageServices;
 using Microsoft.VisualStudio.Shell.Interop;
 using Roslyn.Hosting.Diagnostics.Waiters;
@@ -21,16 +22,19 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         private static readonly Guid RoslynPackageId = new Guid("6cf2e545-6109-4730-8883-cf43d7aec3e1");
         private readonly VisualStudioWorkspace _visualStudioWorkspace;
 
-        private VisualStudioWorkspace_InProc()
+        public VisualStudioWorkspace_InProc(VisualStudioHost visualStudioHost) : base(visualStudioHost)
         {
             // we need to enable waiting service before we create workspace
-            GetWaitingService().Enable(true);
+//            GetWaitingService().Enable(true);
 
             _visualStudioWorkspace = GetComponentModelService<VisualStudioWorkspace>();
         }
-
-        public static VisualStudioWorkspace_InProc Create()
-            => new VisualStudioWorkspace_InProc();
+        public void test()
+        {
+            var editor = _visualStudioHost.ObjectModel.Settings.Debugging.EditAndContinue.
+                ..Solution.Projects[0]["doc.cs"].pro.GetDocumentAsTextEditor().Editor;
+            editor.Selecti
+        }
 
         public void SetOptionInfer(string projectName, bool value)
             => InvokeOnUIThread(() =>
@@ -117,16 +121,16 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             return option;
         }
 
-        private static TestingOnly_WaitingService GetWaitingService()
-            => GetComponentModel().DefaultExportProvider.GetExport<TestingOnly_WaitingService>().Value;
+        //private TestingOnly_WaitingService GetWaitingService()
+        //    => _visualStudioHost.ServiceProvider.GetService(TestingOnly_WaitingService);
 
-        public void WaitForAsyncOperations(string featuresToWaitFor, bool waitForWorkspaceFirst = true)
-            => GetWaitingService().WaitForAsyncOperations(featuresToWaitFor, waitForWorkspaceFirst);
+        //public void WaitForAsyncOperations(string featuresToWaitFor, bool waitForWorkspaceFirst = true)
+        //    => GetWaitingService().WaitForAsyncOperations(featuresToWaitFor, waitForWorkspaceFirst);
 
-        public void WaitForAllAsyncOperations(params string[] featureNames)
-            => GetWaitingService().WaitForAllAsyncOperations(featureNames);
+        //public void WaitForAllAsyncOperations(params string[] featureNames)
+        //    => GetWaitingService().WaitForAllAsyncOperations(featureNames);
 
-        private static void LoadRoslynPackage()
+        private void LoadRoslynPackage()
         {
             var roslynPackageGuid = RoslynPackageId;
             var vsShell = GetGlobalService<SVsShell, IVsShell>();
@@ -142,18 +146,18 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 _visualStudioWorkspace.TestHookPartialSolutionsDisabled = true;
             });
 
-        public void CleanUpWaitingService()
-            => InvokeOnUIThread(() =>
-            {
-                var provider = GetComponentModel().DefaultExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>();
+//        public void CleanUpWaitingService()
+//            => InvokeOnUIThread(() =>
+//            {
+//                var provider = GetComponentModel().DefaultExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>();
 
-                if (provider == null)
-                {
-                    throw new InvalidOperationException("The test waiting service could not be located.");
-                }
+//                if (provider == null)
+//                {
+//                    throw new InvalidOperationException("The test waiting service could not be located.");
+//                }
 
-                GetWaitingService().EnableActiveTokenTracking(true);
-            });
+////                GetWaitingService().EnableActiveTokenTracking(true);
+//            });
 
         public void SetFeatureOption(string feature, string optionName, string language, string valueString)
             => InvokeOnUIThread(() =>

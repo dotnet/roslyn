@@ -4,36 +4,37 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
+using Microsoft.VisualStudio.IntegrationTest.Utilities.Common;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
-using Roslyn.Test.Utilities;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+
 using ProjectUtils = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils;
 
 namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
 {
-    [Collection(nameof(SharedIntegrationHostFixture))]
+    [TestClass]
     public class BasicImmediate : AbstractEditorTest
     {
         protected override string LanguageName => LanguageNames.VisualBasic;
 
-        public BasicImmediate(VisualStudioInstanceFactory instanceFactory)
-            : base(instanceFactory)
+        public BasicImmediate( )
+            : base()
         {
         }
 
-        public override async Task InitializeAsync()
+        public override void Initialize()
         {
-            await base.InitializeAsync().ConfigureAwait(true);
+            base.Initialize();
 
-            VisualStudio.SolutionExplorer.CreateSolution(nameof(BasicImmediate));
+            VisualStudioInstance.SolutionExplorer.CreateSolution(nameof(BasicImmediate));
             var testProj = new ProjectUtils.Project("TestProj");
-            VisualStudio.SolutionExplorer.AddProject(testProj, WellKnownProjectTemplates.ConsoleApplication, LanguageNames.VisualBasic);
+            VisualStudioInstance.SolutionExplorer.AddProject(testProj, WellKnownProjectTemplates.ConsoleApplication, LanguageNames.VisualBasic);
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/25814")]
+        [TestMethod, Ignore("https://github.com/dotnet/roslyn/issues/25814")]
         public void DumpLocalVariableValue()
         {
-            VisualStudio.Editor.SetText(@"
+            VisualStudioInstance.Editor.SetText(@"
 Module Module1
     Sub Main()
         Dim n1Var As Integer = 42
@@ -42,14 +43,14 @@ Module Module1
 End Module
 ");
 
-            VisualStudio.Workspace.WaitForAsyncOperations(FeatureAttribute.Workspace);
-            VisualStudio.Debugger.SetBreakPoint("Module1.vb", "End Sub");
-            VisualStudio.Debugger.Go(waitForBreakMode: true);
-            VisualStudio.ImmediateWindow.ShowImmediateWindow(clearAll: true);
-            VisualStudio.SendKeys.Send("?");
-            VisualStudio.Workspace.WaitForAsyncOperations(FeatureAttribute.CompletionSet);
-            VisualStudio.SendKeys.Send("n1", VirtualKey.Tab, VirtualKey.Enter);
-            Assert.Contains("?n1Var\r\n42", VisualStudio.ImmediateWindow.GetText());
+            VisualStudioInstance.Workspace.WaitForAsyncOperations(FeatureAttribute.Workspace);
+            VisualStudioInstance.Debugger.SetBreakPoint("Module1.vb", "End Sub");
+            VisualStudioInstance.Debugger.Go(waitForBreakMode: true);
+            VisualStudioInstance.ImmediateWindow.ShowImmediateWindow(clearAll: true);
+            VisualStudioInstance.SendKeys.Send("?");
+            VisualStudioInstance.Workspace.WaitForAsyncOperations(FeatureAttribute.CompletionSet);
+            VisualStudioInstance.SendKeys.Send("n1", VirtualKey.Tab, VirtualKey.Enter);
+            ExtendedAssert.Contains("?n1Var\r\n42", VisualStudioInstance.ImmediateWindow.GetText());
         }
     }
 }

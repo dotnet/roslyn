@@ -3,7 +3,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
-    <PlatformTarget>AnyCPU</PlatformTarget>
+    <PlatformTarget>x86</PlatformTarget>
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.VisualStudio.IntegrationTest.Utilities</RootNamespace>
     <TargetFramework>net472</TargetFramework>
@@ -15,8 +15,8 @@
       Utility methods used to run Visual Studio integration tests.
     </PackageDescription>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x86'" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x86'" />
   <ItemGroup>
     <None Include="app.config" />
     <None Include="Settings.settings">
@@ -29,6 +29,7 @@
       <AutoGen>True</AutoGen>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
       <DependentUpon>Settings.settings</DependentUpon>
+      <DesignTime>True</DesignTime>
     </Compile>
   </ItemGroup>
   <ItemGroup>
@@ -63,6 +64,8 @@
     <PackageReference Include="Microsoft.VisualStudio.ComponentModelHost" Version="$(MicrosoftVisualStudioComponentModelHostVersion)" />
     <PackageReference Include="NuGet.SolutionRestoreManager.Interop" Version="$(NuGetSolutionRestoreManagerInteropVersion)" />
     <PackageReference Include="System.Collections.Immutable" Version="$(SystemCollectionsImmutableVersion)" />
+    <PackageReference Include="Microsoft.Test.Apex.VisualStudio" Version="$(MicrosoftTestApexVisualStudioVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Settings.15.0" Version="$(MicrosoftVisualStudioSettings150Version)" />
     
     <!-- 
       Required to avoid double write of System.Threading.Tasks.Dataflow.dll caused by both 

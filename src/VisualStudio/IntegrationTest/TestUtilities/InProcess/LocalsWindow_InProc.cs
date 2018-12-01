@@ -4,12 +4,15 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using EnvDTE80;
+using Microsoft.Test.Apex.VisualStudio;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 {
     internal class LocalsWindow_InProc : InProcComponent
     {
-        public static LocalsWindow_InProc Create() => new LocalsWindow_InProc();
+        public LocalsWindow_InProc(VisualStudioHost visualStudioHost) : base(visualStudioHost)
+        {
+        }
 
         public int GetCount()
         {

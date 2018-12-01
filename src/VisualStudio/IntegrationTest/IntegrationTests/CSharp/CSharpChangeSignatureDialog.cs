@@ -3,26 +3,28 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
+using Microsoft.VisualStudio.IntegrationTest.Utilities.Common;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Roslyn.Test.Utilities;
-using Xunit;
+
 using ProjectUtils = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils;
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 {
-    [Collection(nameof(SharedIntegrationHostFixture))]
+    [TestClass]
     public class CSharpChangeSignatureDialog : AbstractEditorTest
     {
         protected override string LanguageName => LanguageNames.CSharp;
 
-        private ChangeSignatureDialog_OutOfProc ChangeSignatureDialog => VisualStudio.ChangeSignatureDialog;
+        private ChangeSignatureDialog_OutOfProc ChangeSignatureDialog => VisualStudioInstance.ChangeSignatureDialog;
 
-        public CSharpChangeSignatureDialog(VisualStudioInstanceFactory instanceFactory)
-            : base(instanceFactory, nameof(CSharpChangeSignatureDialog))
+        public CSharpChangeSignatureDialog( )
+            : base( nameof(CSharpChangeSignatureDialog))
         {
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [TestMethod, TestCategory(Traits.Features.ChangeSignature)]
         public void VerifyCodeRefactoringOffered()
         {
             SetUpEditor(@"
@@ -31,11 +33,11 @@ class C
     public void Method$$(int a, string b) { }
 }");
 
-            VisualStudio.Editor.InvokeCodeActionList();
-            VisualStudio.Editor.Verify.CodeAction("Change signature...", applyFix: false);
+            VisualStudioInstance.Editor.InvokeCodeActionList();
+            VisualStudioInstance.Editor.Verify.CodeAction("Change signature...", applyFix: false);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [TestMethod, TestCategory(Traits.Features.ChangeSignature)]
         public void VerifyRefactoringCancelled()
         {
             SetUpEditor(@"
@@ -48,15 +50,15 @@ class C
             ChangeSignatureDialog.VerifyOpen();
             ChangeSignatureDialog.ClickCancel();
             ChangeSignatureDialog.VerifyClosed();
-            var actualText = VisualStudio.Editor.GetText();
-            Assert.Contains(@"
+            var actualText = VisualStudioInstance.Editor.GetText();
+            ExtendedAssert.Contains(@"
 class C
 {
     public void Method(int a, string b) { }
 }", actualText);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [TestMethod, TestCategory(Traits.Features.ChangeSignature)]
         public void VerifyReorderParameters()
         {
             SetUpEditor(@"
@@ -71,15 +73,15 @@ class C
             ChangeSignatureDialog.ClickDownButton();
             ChangeSignatureDialog.ClickOK();
             ChangeSignatureDialog.VerifyClosed();
-            var actualText = VisualStudio.Editor.GetText();
-            Assert.Contains(@"
+            var actualText = VisualStudioInstance.Editor.GetText();
+            ExtendedAssert.Contains(@"
 class C
 {
     public void Method(string b, int a) { }
 }", actualText);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [TestMethod, TestCategory(Traits.Features.ChangeSignature)]
         public void VerifyRemoveParameter()
         {
             SetUpEditor(@"
@@ -105,8 +107,8 @@ class C
             ChangeSignatureDialog.ClickRemoveButton();
             ChangeSignatureDialog.ClickOK();
             ChangeSignatureDialog.VerifyClosed();
-            var actualText = VisualStudio.Editor.GetText();
-            Assert.Contains(@"
+            var actualText = VisualStudioInstance.Editor.GetText();
+            ExtendedAssert.Contains(@"
 class C
 {
     /// <summary>
@@ -123,7 +125,7 @@ class C
 }", actualText);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [TestMethod, TestCategory(Traits.Features.ChangeSignature)]
         public void VerifyCrossLanguageGlobalUndo()
         {
             SetUpEditor(@"using VBProject;
@@ -141,16 +143,16 @@ class Program
             var vbProject = new ProjectUtils.Project("VBProject");
             var vbProjectReference = new ProjectUtils.ProjectReference(vbProject.Name);
             var project = new ProjectUtils.Project(ProjectName);
-            VisualStudio.SolutionExplorer.AddProject(vbProject, WellKnownProjectTemplates.ClassLibrary, LanguageNames.VisualBasic);
-            VisualStudio.Editor.SetText(@"
+            VisualStudioInstance.SolutionExplorer.AddProject(vbProject, WellKnownProjectTemplates.ClassLibrary, LanguageNames.VisualBasic);
+            VisualStudioInstance.Editor.SetText(@"
 Public Class VBClass
     Public Sub Method(x As Integer, y As String)
     End Sub
 End Class");
 
-            VisualStudio.SolutionExplorer.SaveAll();
-            VisualStudio.SolutionExplorer.AddProjectReference(fromProjectName: project, toProjectName: vbProjectReference);
-            VisualStudio.SolutionExplorer.OpenFile(project, "Class1.cs");
+            VisualStudioInstance.SolutionExplorer.SaveAll();
+            VisualStudioInstance.SolutionExplorer.AddProjectReference(fromProjectName: project, toProjectName: vbProjectReference);
+            VisualStudioInstance.SolutionExplorer.OpenFile(project, "Class1.cs");
 
             ChangeSignatureDialog.Invoke();
             ChangeSignatureDialog.VerifyOpen();
@@ -158,20 +160,20 @@ End Class");
             ChangeSignatureDialog.ClickUpButton();
             ChangeSignatureDialog.ClickOK();
             ChangeSignatureDialog.VerifyClosed();
-            var actualText = VisualStudio.Editor.GetText();
-            Assert.Contains(@"vb.Method(y: ""hello"", x: 1);", actualText);
+            var actualText = VisualStudioInstance.Editor.GetText();
+            ExtendedAssert.Contains(@"vb.Method(y: ""hello"", x: 1);", actualText);
 
-            VisualStudio.SolutionExplorer.OpenFile(vbProject, "Class1.vb");
-            actualText = VisualStudio.Editor.GetText();
-            Assert.Contains(@"Public Sub Method(y As String, x As Integer)", actualText);
+            VisualStudioInstance.SolutionExplorer.OpenFile(vbProject, "Class1.vb");
+            actualText = VisualStudioInstance.Editor.GetText();
+            ExtendedAssert.Contains(@"Public Sub Method(y As String, x As Integer)", actualText);
 
-            VisualStudio.Editor.Undo();
-            actualText = VisualStudio.Editor.GetText();
-            Assert.Contains(@"Public Sub Method(x As Integer, y As String)", actualText);
+            VisualStudioInstance.Editor.Undo();
+            actualText = VisualStudioInstance.Editor.GetText();
+            ExtendedAssert.Contains(@"Public Sub Method(x As Integer, y As String)", actualText);
 
-            VisualStudio.SolutionExplorer.OpenFile(project, "Class1.cs");
-            actualText = VisualStudio.Editor.GetText();
-            Assert.Contains(@"vb.Method(2, ""world"");", actualText);
+            VisualStudioInstance.SolutionExplorer.OpenFile(project, "Class1.cs");
+            actualText = VisualStudioInstance.Editor.GetText();
+            ExtendedAssert.Contains(@"vb.Method(2, ""world"");", actualText);
         }
     }
 }

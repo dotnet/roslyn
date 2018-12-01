@@ -4,29 +4,30 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Roslyn.Test.Utilities;
-using Xunit;
+
 using ProjectUtils = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils;
 
 namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
 {
-    [Collection(nameof(SharedIntegrationHostFixture))]
+    [TestClass]
     public class BasicBuild : AbstractIntegrationTest
     {
-        public BasicBuild(VisualStudioInstanceFactory instanceFactory)
-            : base(instanceFactory)
+        public BasicBuild( )
+            : base()
         {
         }
 
-        public override async Task InitializeAsync()
+        public override void Initialize()
         {
-            await base.InitializeAsync().ConfigureAwait(true);
-            VisualStudio.SolutionExplorer.CreateSolution(nameof(BasicBuild));
+            base.Initialize();
+            VisualStudioInstance.SolutionExplorer.CreateSolution(nameof(BasicBuild));
             var testProj = new ProjectUtils.Project("TestProj");
-            VisualStudio.SolutionExplorer.AddProject(testProj, WellKnownProjectTemplates.ConsoleApplication, LanguageNames.VisualBasic);
+            VisualStudioInstance.SolutionExplorer.AddProject(testProj, WellKnownProjectTemplates.ConsoleApplication, LanguageNames.VisualBasic);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Build)]
+        [TestMethod, TestCategory(Traits.Features.Build)]
         public void BuildProject()
         {
             var editorText = @"Module Program
@@ -37,7 +38,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
 
 End Module";
 
-            VisualStudio.Editor.SetText(editorText);
+            VisualStudioInstance.Editor.SetText(editorText);
 
             // TODO: Validate build works as expected
         }

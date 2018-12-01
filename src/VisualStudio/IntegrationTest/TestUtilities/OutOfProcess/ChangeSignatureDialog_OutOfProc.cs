@@ -3,8 +3,8 @@
 using System;
 using System.Threading;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using UIAutomationClient;
-using Xunit;
 using AutomationElementIdentifiers = System.Windows.Automation.AutomationElementIdentifiers;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
@@ -94,7 +94,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
 
             if (i == rowCount)
             {
-                Assert.True(false, $"Unable to find the parameter {parameterName}");
+                Assert.IsTrue(false, $"Unable to find the parameter {parameterName}");
             }
         }
 

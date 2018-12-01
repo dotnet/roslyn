@@ -4,24 +4,25 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
+using Microsoft.VisualStudio.IntegrationTest.Utilities.Common;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Roslyn.Test.Utilities;
-using Xunit;
 
 namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
 {
-    [Collection(nameof(SharedIntegrationHostFixture))]
+    [TestClass]
     public class BasicGenerateConstructorDialog : AbstractEditorTest
     {
         private const string DialogName = "PickMembersDialog";
 
         protected override string LanguageName => LanguageNames.VisualBasic;
 
-        public BasicGenerateConstructorDialog(VisualStudioInstanceFactory instanceFactory)
-            : base(instanceFactory, nameof(BasicGenerateConstructorDialog))
+        public BasicGenerateConstructorDialog( )
+            : base(nameof(BasicGenerateConstructorDialog))
         {
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        [TestMethod, TestCategory(Traits.Features.CodeActionsGenerateConstructorFromMembers)]
         public void VerifyCodeRefactoringOfferedAndCanceled()
         {
             SetUpEditor(@"
@@ -33,12 +34,12 @@ Class C
 $$
 End Class");
 
-            VisualStudio.Editor.InvokeCodeActionList();
-            VisualStudio.Editor.Verify.CodeAction("Generate constructor...", applyFix: true, blockUntilComplete: false);
+            VisualStudioInstance.Editor.InvokeCodeActionList();
+            VisualStudioInstance.Editor.Verify.CodeAction("Generate constructor...", applyFix: true, blockUntilComplete: false);
             VerifyDialog(isOpen: true);
             Dialog_ClickCancel();
-            var actualText = VisualStudio.Editor.GetText();
-            Assert.Contains(
+            var actualText = VisualStudioInstance.Editor.GetText();
+            ExtendedAssert.Contains(
 @"
 Class C
     Dim i as Integer
@@ -49,7 +50,7 @@ Class C
 End Class", actualText);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        [TestMethod, TestCategory(Traits.Features.CodeActionsGenerateConstructorFromMembers)]
         public void VerifyCodeRefactoringOfferedAndAccepted()
         {
             SetUpEditor(
@@ -62,13 +63,13 @@ Class C
 $$
 End Class");
 
-            VisualStudio.Editor.InvokeCodeActionList();
-            VisualStudio.Editor.Verify.CodeAction("Generate constructor...", applyFix: true, blockUntilComplete: false);
+            VisualStudioInstance.Editor.InvokeCodeActionList();
+            VisualStudioInstance.Editor.Verify.CodeAction("Generate constructor...", applyFix: true, blockUntilComplete: false);
             VerifyDialog(isOpen: true);
             Dialog_ClickOk();
-            VisualStudio.Workspace.WaitForAsyncOperations(FeatureAttribute.LightBulb);
-            var actualText = VisualStudio.Editor.GetText();
-            Assert.Contains(
+            VisualStudioInstance.Workspace.WaitForAsyncOperations(FeatureAttribute.LightBulb);
+            var actualText = VisualStudioInstance.Editor.GetText();
+            ExtendedAssert.Contains(
 @"
 Class C
     Dim i as Integer
@@ -83,7 +84,7 @@ Class C
 End Class", actualText);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        [TestMethod, TestCategory(Traits.Features.CodeActionsGenerateConstructorFromMembers)]
         public void VerifyReordering()
         {
             SetUpEditor(
@@ -96,15 +97,15 @@ Class C
 $$
 End Class");
 
-            VisualStudio.Editor.InvokeCodeActionList();
-            VisualStudio.Editor.Verify.CodeAction("Generate constructor...", applyFix: true, blockUntilComplete: false);
+            VisualStudioInstance.Editor.InvokeCodeActionList();
+            VisualStudioInstance.Editor.Verify.CodeAction("Generate constructor...", applyFix: true, blockUntilComplete: false);
             VerifyDialog(isOpen: true);
-            VisualStudio.Editor.DialogSendKeys(DialogName, "{TAB}");
-            VisualStudio.Editor.PressDialogButton(DialogName, "Down");
+            VisualStudioInstance.Editor.DialogSendKeys(DialogName, "{TAB}");
+            VisualStudioInstance.Editor.PressDialogButton(DialogName, "Down");
             Dialog_ClickOk();
-            VisualStudio.Workspace.WaitForAsyncOperations(FeatureAttribute.LightBulb);
-            var actualText = VisualStudio.Editor.GetText();
-            Assert.Contains(
+            VisualStudioInstance.Workspace.WaitForAsyncOperations(FeatureAttribute.LightBulb);
+            var actualText = VisualStudioInstance.Editor.GetText();
+            ExtendedAssert.Contains(
 @"
 Class C
     Dim i as Integer
@@ -119,7 +120,7 @@ Class C
 End Class", actualText);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        [TestMethod, TestCategory(Traits.Features.CodeActionsGenerateConstructorFromMembers)]
         public void VerifyDeselect()
         {
             SetUpEditor(
@@ -132,15 +133,15 @@ Class C
 $$
 End Class");
 
-            VisualStudio.Editor.InvokeCodeActionList();
-            VisualStudio.Editor.Verify.CodeAction("Generate constructor...", applyFix: true, blockUntilComplete: false);
+            VisualStudioInstance.Editor.InvokeCodeActionList();
+            VisualStudioInstance.Editor.Verify.CodeAction("Generate constructor...", applyFix: true, blockUntilComplete: false);
             VerifyDialog(isOpen: true);
-            VisualStudio.Editor.DialogSendKeys(DialogName, "{TAB}");
-            VisualStudio.Editor.DialogSendKeys(DialogName, " ");
+            VisualStudioInstance.Editor.DialogSendKeys(DialogName, "{TAB}");
+            VisualStudioInstance.Editor.DialogSendKeys(DialogName, " ");
             Dialog_ClickOk();
-            VisualStudio.Workspace.WaitForAsyncOperations(FeatureAttribute.LightBulb);
-            var actualText = VisualStudio.Editor.GetText();
-            Assert.Contains(
+            VisualStudioInstance.Workspace.WaitForAsyncOperations(FeatureAttribute.LightBulb);
+            var actualText = VisualStudioInstance.Editor.GetText();
+            ExtendedAssert.Contains(
 @"
 Class C
     Dim i as Integer
@@ -155,12 +156,12 @@ End Class", actualText);
         }
 
         private void VerifyDialog(bool isOpen)
-            => VisualStudio.Editor.Verify.Dialog(DialogName, isOpen);
+            => VisualStudioInstance.Editor.Verify.Dialog(DialogName, isOpen);
 
         private void Dialog_ClickCancel()
-            => VisualStudio.Editor.PressDialogButton(DialogName, "CancelButton");
+            => VisualStudioInstance.Editor.PressDialogButton(DialogName, "CancelButton");
 
         private void Dialog_ClickOk()
-            => VisualStudio.Editor.PressDialogButton(DialogName, "OkButton");
+            => VisualStudioInstance.Editor.PressDialogButton(DialogName, "OkButton");
     }
 }

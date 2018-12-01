@@ -4,16 +4,16 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Roslyn.Test.Utilities;
-using Xunit;
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 {
-    [Collection(nameof(SharedIntegrationHostFixture))]
+    [TestClass]
     public class CSharpEncapsulateField : AbstractEditorTest
     {
-        public CSharpEncapsulateField(VisualStudioInstanceFactory instanceFactory)
-            : base(instanceFactory, nameof(CSharpEncapsulateField))
+        public CSharpEncapsulateField( )
+            : base( nameof(CSharpEncapsulateField))
         {
         }
 
@@ -32,13 +32,13 @@ namespace myNamespace
     }
 }";
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/19816")]
-        [Trait(Traits.Feature, Traits.Features.EncapsulateField)]
+        [TestMethod, Ignore("https://github.com/dotnet/roslyn/issues/19816")]
+        [TestCategory(Traits.Features.EncapsulateField)]
         public void EncapsulateThroughCommand()
         {
             SetUpEditor(TestSource);
-            var encapsulateField = VisualStudio.EncapsulateField;
-            var dialog = VisualStudio.PreviewChangesDialog;
+            var encapsulateField = VisualStudioInstance.EncapsulateField;
+            var dialog = VisualStudioInstance.PreviewChangesDialog;
             encapsulateField.Invoke();
             dialog.VerifyOpen(encapsulateField.DialogName, timeout: Helper.HangMitigatingTimeout);
             dialog.ClickCancel(encapsulateField.DialogName);
@@ -46,16 +46,16 @@ namespace myNamespace
             encapsulateField.Invoke();
             dialog.VerifyOpen(encapsulateField.DialogName, timeout: Helper.HangMitigatingTimeout);
             dialog.ClickApplyAndWaitForFeature(encapsulateField.DialogName, FeatureAttribute.EncapsulateField);
-            VisualStudio.Editor.Verify.TextContains("public static int? Param { get => param; set => param = value; }");
+            VisualStudioInstance.Editor.Verify.TextContains("public static int? Param { get => param; set => param = value; }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
+        [TestMethod, TestCategory(Traits.Features.EncapsulateField)]
         public void EncapsulateThroughLightbulbIncludingReferences()
         {
             SetUpEditor(TestSource);
-            VisualStudio.Editor.InvokeCodeActionList();
-            VisualStudio.Editor.Verify.CodeAction("Encapsulate field: 'param' (and use property)", applyFix: true, blockUntilComplete: true);
-            VisualStudio.Editor.Verify.TextContains(@"
+            VisualStudioInstance.Editor.InvokeCodeActionList();
+            VisualStudioInstance.Editor.Verify.CodeAction("Encapsulate field: 'param' (and use property)", applyFix: true, blockUntilComplete: true);
+            VisualStudioInstance.Editor.Verify.TextContains(@"
 namespace myNamespace
 {
     class Program
@@ -72,13 +72,13 @@ namespace myNamespace
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
+        [TestMethod, TestCategory(Traits.Features.EncapsulateField)]
         public void EncapsulateThroughLightbulbDefinitionsOnly()
         {
             SetUpEditor(TestSource);
-            VisualStudio.Editor.InvokeCodeActionList();
-            VisualStudio.Editor.Verify.CodeAction("Encapsulate field: 'param' (but still use field)", applyFix: true, blockUntilComplete: true);
-            VisualStudio.Editor.Verify.TextContains(@"
+            VisualStudioInstance.Editor.InvokeCodeActionList();
+            VisualStudioInstance.Editor.Verify.CodeAction("Encapsulate field: 'param' (but still use field)", applyFix: true, blockUntilComplete: true);
+            VisualStudioInstance.Editor.Verify.TextContains(@"
 namespace myNamespace
 {
     class Program

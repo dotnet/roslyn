@@ -3,22 +3,22 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Roslyn.Test.Utilities;
-using Xunit;
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 {
-    [Collection(nameof(SharedIntegrationHostFixture))]
+    [TestClass]
     public class CSharpGenerateFromUsage : AbstractEditorTest
     {
         protected override string LanguageName => LanguageNames.CSharp;
 
-        public CSharpGenerateFromUsage(VisualStudioInstanceFactory instanceFactory)
-            : base(instanceFactory, nameof(CSharpGenerateFromUsage))
+        public CSharpGenerateFromUsage( )
+            : base( nameof(CSharpGenerateFromUsage))
         {
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateLocal)]
+        [TestMethod, TestCategory(Traits.Features.CodeActionsGenerateLocal)]
         public void GenerateLocal()
         {
             SetUpEditor(
@@ -29,8 +29,8 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         string s = $$xyz;
     }
 }");
-            VisualStudio.Editor.Verify.CodeAction("Generate local 'xyz'", applyFix: true);
-            VisualStudio.Editor.Verify.TextContains(
+            VisualStudioInstance.Editor.Verify.CodeAction("Generate local 'xyz'", applyFix: true);
+            VisualStudioInstance.Editor.Verify.TextContains(
 @"class Program
 {
     static void Main(string[] args)

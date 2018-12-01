@@ -3,22 +3,19 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Roslyn.Test.Utilities;
-using Xunit;
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 {
-    [Collection(nameof(SharedIntegrationHostFixture))]
+    [TestClass]
     public class CSharpOrganizing : AbstractEditorTest
     {
         protected override string LanguageName => LanguageNames.CSharp;
 
-        public CSharpOrganizing(VisualStudioInstanceFactory instanceFactory)
-            : base(instanceFactory, nameof(CSharpOrganizing))
-        {
-        }
+        public CSharpOrganizing() : base(nameof(CSharpOrganizing)) { }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        [TestMethod, TestCategory(Traits.Features.Organizing)]
         public void RemoveAndSort()
         {
             SetUpEditor(@"$$
@@ -34,8 +31,8 @@ class Test
 namespace A { public class CA { } }
 namespace B { public class CB { } }
 namespace C { public class CC { } }");
-            VisualStudio.ExecuteCommand("Edit.RemoveAndSort");
-            VisualStudio.Editor.Verify.TextContains(@"
+            VisualStudioInstance.ExecuteCommand("Edit.RemoveAndSort");
+            VisualStudioInstance.Editor.Verify.TextContains(@"
 using A;
 using C;
 

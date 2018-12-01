@@ -5,7 +5,8 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
-using Xunit;
+using Microsoft.VisualStudio.IntegrationTest.Utilities.Common;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
 {
@@ -96,9 +97,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
                 _instance.Workspace.WaitForAsyncOperations(FeatureAttribute.DiagnosticService);
                 _instance.Workspace.WaitForAsyncOperations(FeatureAttribute.Classification);
                 var actualTokenTypes = _textViewWindow.GetCurrentClassifications();
-                Assert.Equal(actualTokenTypes.Length, 1);
-                Assert.Contains(tokenType, actualTokenTypes[0]);
-                Assert.NotEqual("text", tokenType);
+                Assert.AreEqual(actualTokenTypes.Length, 1);
+                ExtendedAssert.Contains(tokenType, actualTokenTypes[0]);
+                Assert.AreNotEqual("text", tokenType);
             }
 
             public void CompletionItemsExist(params string[] expectedItems)
@@ -106,7 +107,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
                 var completionItems = _textViewWindow.GetCompletionItems();
                 foreach (var expectedItem in expectedItems)
                 {
-                    Assert.Contains(expectedItem, completionItems);
+                    ExtendedAssert.Contains(expectedItem, completionItems);
                 }
             }
 
@@ -115,14 +116,14 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
                 var completionItems = _textViewWindow.GetCompletionItems();
                 foreach (var unexpectedItem in unexpectedItems)
                 {
-                    Assert.DoesNotContain(unexpectedItem, completionItems);
+                    ExtendedAssert.DoesNotContain(unexpectedItem, completionItems);
                 }
             }
 
             public void CaretPosition(int expectedCaretPosition)
             {
                 var position = _textViewWindow.GetCaretPosition();
-                Assert.Equal(expectedCaretPosition, position);
+                Assert.AreEqual(expectedCaretPosition, position);
             }
         }
     }

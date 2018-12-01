@@ -4,24 +4,25 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
+using Microsoft.VisualStudio.IntegrationTest.Utilities.Common;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Roslyn.Test.Utilities;
-using Xunit;
 
 namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
 {
-    [Collection(nameof(SharedIntegrationHostFixture))]
+    [TestClass]
     public class BasicGenerateEqualsAndGetHashCodeDialog : AbstractEditorTest
     {
         private const string DialogName = "PickMembersDialog";
 
         protected override string LanguageName => LanguageNames.VisualBasic;
 
-        public BasicGenerateEqualsAndGetHashCodeDialog(VisualStudioInstanceFactory instanceFactory)
-            : base(instanceFactory, nameof(BasicGenerateEqualsAndGetHashCodeDialog))
+        public BasicGenerateEqualsAndGetHashCodeDialog( )
+            : base( nameof(BasicGenerateEqualsAndGetHashCodeDialog))
         {
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        [TestMethod, TestCategory(Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
         public void VerifyCodeRefactoringOfferedAndCanceled()
         {
             SetUpEditor(@"
@@ -33,11 +34,11 @@ Class C
 $$
 End Class");
 
-            VisualStudio.Editor.InvokeCodeActionList();
-            VisualStudio.Editor.Verify.CodeAction("Generate Equals(object)...", applyFix: true, blockUntilComplete: false);
+            VisualStudioInstance.Editor.InvokeCodeActionList();
+            VisualStudioInstance.Editor.Verify.CodeAction("Generate Equals(object)...", applyFix: true, blockUntilComplete: false);
             VerifyDialog(isOpen: true);
             Dialog_ClickCancel();
-            var actualText = VisualStudio.Editor.GetText();
+            var actualText = VisualStudioInstance.Editor.GetText();
             var expectedText = @"
 Class C
     Dim i as Integer
@@ -46,10 +47,10 @@ Class C
 
 
 End Class";
-            Assert.Contains(expectedText, actualText);
+            ExtendedAssert.Contains(expectedText, actualText);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        [TestMethod, TestCategory(Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
         public void VerifyCodeRefactoringOfferedAndAccepted()
         {
             SetUpEditor(@"
@@ -63,12 +64,12 @@ Class C
 $$
 End Class");
 
-            VisualStudio.Editor.InvokeCodeActionList();
-            VisualStudio.Editor.Verify.CodeAction("Generate Equals(object)...", applyFix: true, blockUntilComplete: false);
+            VisualStudioInstance.Editor.InvokeCodeActionList();
+            VisualStudioInstance.Editor.Verify.CodeAction("Generate Equals(object)...", applyFix: true, blockUntilComplete: false);
             VerifyDialog(isOpen: true);
             Dialog_ClickOk();
-            VisualStudio.Workspace.WaitForAsyncOperations(FeatureAttribute.LightBulb);
-            var actualText = VisualStudio.Editor.GetText();
+            VisualStudioInstance.Workspace.WaitForAsyncOperations(FeatureAttribute.LightBulb);
+            var actualText = VisualStudioInstance.Editor.GetText();
             var expectedText = @"
 Imports TestProj
 
@@ -85,16 +86,16 @@ Class C
                k = c.k
     End Function
 End Class";
-            Assert.Contains(expectedText, actualText);
+            ExtendedAssert.Contains(expectedText, actualText);
         }
 
         private void VerifyDialog(bool isOpen)
-            => VisualStudio.Editor.Verify.Dialog(DialogName, isOpen);
+            => VisualStudioInstance.Editor.Verify.Dialog(DialogName, isOpen);
 
         private void Dialog_ClickCancel()
-            => VisualStudio.Editor.PressDialogButton(DialogName, "CancelButton");
+            => VisualStudioInstance.Editor.PressDialogButton(DialogName, "CancelButton");
 
         private void Dialog_ClickOk()
-            => VisualStudio.Editor.PressDialogButton(DialogName, "OkButton");
+            => VisualStudioInstance.Editor.PressDialogButton(DialogName, "OkButton");
     }
 }

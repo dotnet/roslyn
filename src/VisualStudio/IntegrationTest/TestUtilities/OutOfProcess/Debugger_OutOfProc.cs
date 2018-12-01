@@ -1,7 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
 {
@@ -16,7 +16,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         public Debugger_OutOfProc(VisualStudioInstance visualStudioInstance) : base(visualStudioInstance)
         {
             _instance = visualStudioInstance;
-            _debuggerInProc = CreateInProcComponent<Debugger_InProc>(visualStudioInstance);
+            _debuggerInProc = new Debugger_InProc(visualStudioInstance.VisualStudioHost);
         }
 
         public void SetBreakPoint(string fileName, int lineNumber, int columnIndex) =>
@@ -44,8 +44,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         public void CheckExpression(string expressionText, string expectedType, string expectedValue)
         {
             var entry = _debuggerInProc.GetExpression(expressionText);
-            Assert.Equal(expectedType, entry.Type);
-            Assert.Equal(expectedValue, entry.Value);
+            Assert.AreEqual(expectedType, entry.Type);
+            Assert.AreEqual(expectedValue, entry.Value);
         }
     }
 }

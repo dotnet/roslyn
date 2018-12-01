@@ -4,18 +4,14 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
-using Roslyn.Test.Utilities;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Roslyn.VisualStudio.IntegrationTests.Basic
 {
-    [Collection(nameof(SharedIntegrationHostFixture))]
+    [TestClass]
     public class BasicEncapsulateField : AbstractEditorTest
     {
-        public BasicEncapsulateField(VisualStudioInstanceFactory instanceFactory)
-            : base(instanceFactory, nameof(BasicEncapsulateField))
-        {
-        }
+        public BasicEncapsulateField() : base(nameof(BasicEncapsulateField)) { }
 
         protected override string LanguageName => LanguageNames.VisualBasic;
 
@@ -27,14 +23,14 @@ Module Module1
     End Sub
 End Module";
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/19816")]
-        [Trait(Traits.Feature, Traits.Features.EncapsulateField)]
+        [TestMethod, Ignore("https://github.com/dotnet/roslyn/issues/19816")]
+        [TestCategory(Traits.Features.EncapsulateField)]
         public void EncapsulateThroughCommand()
         {
             SetUpEditor(TestSource);
 
-            var encapsulateField = VisualStudio.EncapsulateField;
-            var dialog = VisualStudio.PreviewChangesDialog;
+            var encapsulateField = VisualStudioInstance.EncapsulateField;
+            var dialog = VisualStudioInstance.PreviewChangesDialog;
             encapsulateField.Invoke();
             dialog.VerifyOpen(encapsulateField.DialogName, timeout: Helper.HangMitigatingTimeout);
             dialog.ClickCancel(encapsulateField.DialogName);
@@ -42,7 +38,7 @@ End Module";
             encapsulateField.Invoke();
             dialog.VerifyOpen(encapsulateField.DialogName, timeout: Helper.HangMitigatingTimeout);
             dialog.ClickApplyAndWaitForFeature(encapsulateField.DialogName, FeatureAttribute.EncapsulateField);
-            VisualStudio.Editor.Verify.TextContains(@"    Private _name As Integer? = 0
+            VisualStudioInstance.Editor.Verify.TextContains(@"    Private _name As Integer? = 0
 
     Public Property Name As Integer?
         Get
@@ -54,13 +50,13 @@ End Module";
     End Property");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
+        [TestMethod, TestCategory(Traits.Features.EncapsulateField)]
         public void EncapsulateThroughLightbulbIncludingReferences()
         {
             SetUpEditor(TestSource);
-            VisualStudio.Editor.InvokeCodeActionList();
-            VisualStudio.Editor.Verify.CodeAction("Encapsulate field: 'name' (and use property)", applyFix: true, blockUntilComplete: true);
-            VisualStudio.Editor.Verify.TextContains(@"
+            VisualStudioInstance.Editor.InvokeCodeActionList();
+            VisualStudioInstance.Editor.Verify.CodeAction("Encapsulate field: 'name' (and use property)", applyFix: true, blockUntilComplete: true);
+            VisualStudioInstance.Editor.Verify.TextContains(@"
 Module Module1
     Private _name As Integer? = 0
 
@@ -79,13 +75,13 @@ Module Module1
 End Module");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
+        [TestMethod, TestCategory(Traits.Features.EncapsulateField)]
         public void EncapsulateThroughLightbulbDefinitionsOnly()
         {
             SetUpEditor(TestSource);
-            VisualStudio.Editor.InvokeCodeActionList();
-            VisualStudio.Editor.Verify.CodeAction("Encapsulate field: 'name' (but still use field)", applyFix: true, blockUntilComplete: true);
-            VisualStudio.Editor.Verify.TextContains(@"
+            VisualStudioInstance.Editor.InvokeCodeActionList();
+            VisualStudioInstance.Editor.Verify.CodeAction("Encapsulate field: 'name' (but still use field)", applyFix: true, blockUntilComplete: true);
+            VisualStudioInstance.Editor.Verify.TextContains(@"
 Module Module1
     Private _name As Integer? = 0
 

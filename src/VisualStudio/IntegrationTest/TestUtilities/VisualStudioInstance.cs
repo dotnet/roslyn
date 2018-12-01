@@ -8,6 +8,7 @@ using System.Runtime.Remoting.Channels.Ipc;
 using System.Threading;
 using System.Threading.Tasks;
 using EnvDTE;
+using Microsoft.Test.Apex.VisualStudio;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess;
@@ -27,6 +28,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         private readonly IntegrationService _integrationService;
         private readonly IpcClientChannel _integrationServiceChannel;
         private readonly VisualStudio_InProc _inProc;
+
+        public VisualStudioHost VisualStudioHost { get; }
 
         public ChangeSignatureDialog_OutOfProc ChangeSignatureDialog { get; }
 
@@ -70,8 +73,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
         internal DTE Dte { get; }
 
-        internal Process HostProcess { get; }
-
         /// <summary>
         /// The set of Visual Studio packages that are installed into this instance.
         /// </summary>
@@ -83,30 +84,28 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         /// </summary>
         public string InstallationPath { get; }
 
-        public VisualStudioInstance(Process hostProcess, DTE dte, ImmutableHashSet<string> supportedPackageIds, string installationPath)
+        public VisualStudioInstance(VisualStudioHost visualStudioHost, ImmutableHashSet<string> supportedPackageIds, string installationPath)
         {
-            HostProcess = hostProcess;
-            Dte = dte;
+            VisualStudioHost = visualStudioHost;
+            Dte = visualStudioHost.Dte;
             SupportedPackageIds = supportedPackageIds;
             InstallationPath = installationPath;
 
-            StartRemoteIntegrationService(dte);
+            StartRemoteIntegrationService(Dte);
 
-            _integrationServiceChannel = new IpcClientChannel(GetIpcClientChannelName(HostProcess), sinkProvider: null);
+            _integrationServiceChannel = new IpcClientChannel(GetIpcClientChannelName(visualStudioHost.HostProcess), sinkProvider: null);
             ChannelServices.RegisterChannel(_integrationServiceChannel, ensureSecurity: true);
 
             // Connect to a 'well defined, shouldn't conflict' IPC channel
-            _integrationService = IntegrationService.GetInstanceFromHostProcess(hostProcess);
+            _integrationService = IntegrationService.GetInstanceFromHostProcess(visualStudioHost.HostProcess);
 
             // Create marshal-by-ref object that runs in host-process.
-            _inProc = ExecuteInHostProcess<VisualStudio_InProc>(
-                type: typeof(VisualStudio_InProc),
-                methodName: nameof(VisualStudio_InProc.Create)
-            );
+            _inProc = new VisualStudio_InProc(visualStudioHost);
 
             // There is a lot of VS initialization code that goes on, so we want to wait for that to 'settle' before
             // we start executing any actual code.
-            _inProc.WaitForSystemIdle();
+            visualStudioHost.WaitForProcessCpuIdle();
+            //_inProc.WaitForSystemIdle();
 
             ChangeSignatureDialog = new ChangeSignatureDialog_OutOfProc(this);
             InteractiveWindow = new CSharpInteractiveWindow_OutOfProc(this);
@@ -187,7 +186,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         public void WaitForNoErrorsInErrorList()
             => _inProc.WaitForNoErrorsInErrorList();
 
-        public bool IsRunning => !HostProcess.HasExited;
+        public bool IsRunning => !VisualStudioHost.HostProcess.HasExited;
 
         public void CleanUp()
         {
@@ -238,7 +237,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         private void CloseHostProcess()
         {
             _inProc.Quit();
-            IntegrationHelper.KillProcess(HostProcess);
+            IntegrationHelper.KillProcess(VisualStudioHost.HostProcess);
         }
 
         private void CloseRemotingService(bool allowInProcCalls)

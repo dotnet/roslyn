@@ -1,13 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
-using Microsoft.VisualStudio.IntegrationTest.Utilities;
-using Xunit;
 
 namespace Roslyn.VisualStudio.IntegrationTests
 {
-    [CollectionDefinition(nameof(SharedIntegrationHostFixture))]
-    public sealed class SharedIntegrationHostFixture : ICollectionFixture<VisualStudioInstanceFactory>
+    // TODO these are attributes to be inheritted by concrete test classes. Can we re-use this? or should we remove it?
+    public sealed class SharedIntegrationHostFixture
     {
         public const string MSBuildPackageId = "Microsoft.Component.MSBuild";
         public const string Net46TargetingPackPackageId = "Microsoft.Net.Component.4.6.TargetingPack";

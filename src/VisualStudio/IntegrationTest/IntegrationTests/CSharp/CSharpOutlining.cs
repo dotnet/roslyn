@@ -7,22 +7,19 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Roslyn.Test.Utilities;
-using Xunit;
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 {
-    [Collection(nameof(SharedIntegrationHostFixture))]
+    [TestClass]
     public class CSharpOutlining : AbstractEditorTest
     {
         protected override string LanguageName => LanguageNames.CSharp;
 
-        public CSharpOutlining(VisualStudioInstanceFactory instanceFactory)
-            : base(instanceFactory, nameof(CSharpOutlining))
-        {
-        }
+        public CSharpOutlining() : base(nameof(CSharpOutlining)) { }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [TestMethod, TestCategory(Traits.Features.Outlining)]
         public void Outlining()
         {
             var input = @"
@@ -41,11 +38,11 @@ namespace ConsoleApplication1[|
     }|]
 }|]";
             MarkupTestFile.GetSpans(input, out var text, out ImmutableArray<TextSpan> spans);
-            VisualStudio.Editor.SetText(text);
-            Assert.Equal(spans.OrderBy(s => s.Start), VisualStudio.Editor.GetOutliningSpans());
+            VisualStudioInstance.Editor.SetText(text);
+            Assert.AreEqual(spans.OrderBy(s => s.Start), VisualStudioInstance.Editor.GetOutliningSpans());
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [TestMethod, TestCategory(Traits.Features.Outlining)]
         public void OutliningConfigChange()
         {
             var input = @"
@@ -69,7 +66,7 @@ namespace ClassLibrary1[|
     }|]
 }|]";
             MarkupTestFile.GetSpans(input, out var text, out IDictionary<string, ImmutableArray<TextSpan>> spans);
-            VisualStudio.Editor.SetText(text);
+            VisualStudioInstance.Editor.SetText(text);
 
             VerifySpansInConfiguration(spans, "Release");
             VerifySpansInConfiguration(spans, "Debug");
@@ -77,10 +74,10 @@ namespace ClassLibrary1[|
 
         private void VerifySpansInConfiguration(IDictionary<string, ImmutableArray<TextSpan>> spans, string configuration)
         {
-            VisualStudio.ExecuteCommand("Build.SolutionConfigurations", configuration);
+            VisualStudioInstance.ExecuteCommand("Build.SolutionConfigurations", configuration);
 
             var expectedSpans = spans[""].Concat(spans[configuration]).OrderBy(s => s.Start);
-            Assert.Equal(expectedSpans, VisualStudio.Editor.GetOutliningSpans());
+            Assert.AreEqual(expectedSpans, VisualStudioInstance.Editor.GetOutliningSpans());
         }
     }
 }

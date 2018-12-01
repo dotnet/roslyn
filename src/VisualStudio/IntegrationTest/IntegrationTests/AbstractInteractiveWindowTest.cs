@@ -7,23 +7,20 @@ namespace Roslyn.VisualStudio.IntegrationTests
 {
     public abstract class AbstractInteractiveWindowTest : AbstractIntegrationTest
     {
-        protected AbstractInteractiveWindowTest(VisualStudioInstanceFactory instanceFactory)
-            : base(instanceFactory)
-        {
-        }
+        protected AbstractInteractiveWindowTest() : base() { }
 
-        public override async Task InitializeAsync()
+        public override void Initialize()
         {
-            await base.InitializeAsync().ConfigureAwait(true);
+            base.Initialize();
             ClearInteractiveWindow();
         }
 
         protected void ClearInteractiveWindow()
         {
-            VisualStudio.InteractiveWindow.Initialize();
-            VisualStudio.InteractiveWindow.ClearScreen();
-            VisualStudio.InteractiveWindow.ShowWindow();
-            VisualStudio.InteractiveWindow.Reset();
+            VisualStudioInstance.InteractiveWindow.Initialize();
+            VisualStudioInstance.InteractiveWindow.ClearScreen();
+            VisualStudioInstance.InteractiveWindow.ShowWindow();
+            VisualStudioInstance.InteractiveWindow.Reset();
         }
     }
 }

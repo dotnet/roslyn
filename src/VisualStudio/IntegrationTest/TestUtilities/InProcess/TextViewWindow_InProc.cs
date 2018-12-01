@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Editor.Implementation.Suggestions;
+using Microsoft.Test.Apex.VisualStudio;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
@@ -15,7 +16,6 @@ using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.Text.Tagging;
-using Roslyn.Utilities;
 using OLECMDEXECOPT = Microsoft.VisualStudio.OLE.Interop.OLECMDEXECOPT;
 using ThreadHelper = Microsoft.VisualStudio.Shell.ThreadHelper;
 
@@ -23,6 +23,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 {
     internal abstract class TextViewWindow_InProc : InProcComponent
     {
+        protected TextViewWindow_InProc(VisualStudioHost visualStudioHost) : base(visualStudioHost) { }
+
         /// <remarks>
         /// This method does not wait for async operations before
         /// querying the editor

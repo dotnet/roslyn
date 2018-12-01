@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using Microsoft.Test.Apex.VisualStudio;
 using Microsoft.VisualStudio.InteractiveWindow;
 using Microsoft.VisualStudio.LanguageServices.CSharp.Interactive;
 
@@ -9,13 +10,10 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
     {
         private const string ViewCommand = "View.C#Interactive";
 
-        private CSharpInteractiveWindow_InProc()
-            : base(ViewCommand, CSharpVsInteractiveWindowPackage.Id)
+        public CSharpInteractiveWindow_InProc(VisualStudioHost visualStudioHost)
+            : base(ViewCommand, CSharpVsInteractiveWindowPackage.Id, visualStudioHost)
         {
         }
-
-        public static CSharpInteractiveWindow_InProc Create()
-            => new CSharpInteractiveWindow_InProc();
 
         protected override IInteractiveWindow AcquireInteractiveWindow()
             => InvokeOnUIThread(() =>

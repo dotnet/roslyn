@@ -6,23 +6,24 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Common;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Roslyn.Test.Utilities;
-using Xunit;
+
 using ProjectUtils = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils;
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 {
-    [Collection(nameof(SharedIntegrationHostFixture))]
+    [TestClass]
     public class CSharpFindReferences : AbstractEditorTest
     {
         protected override string LanguageName => LanguageNames.CSharp;
 
-        public CSharpFindReferences(VisualStudioInstanceFactory instanceFactory)
-            : base(instanceFactory, nameof(CSharpFindReferences))
+        public CSharpFindReferences( )
+            : base(nameof(CSharpFindReferences))
         {
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)]
+        [TestMethod, TestCategory(Traits.Features.FindReferences)]
         public void FindReferencesToCtor()
         {
             SetUpEditor(@"
@@ -31,8 +32,8 @@ class Program
 }$$
 ");
             var project = new ProjectUtils.Project(ProjectName); ;
-            VisualStudio.SolutionExplorer.AddFile(project, "File2.cs");
-            VisualStudio.SolutionExplorer.OpenFile(project, "File2.cs");
+            VisualStudioInstance.SolutionExplorer.AddFile(project, "File2.cs");
+            VisualStudioInstance.SolutionExplorer.OpenFile(project, "File2.cs");
 
             SetUpEditor(@"
 class SomeOtherClass
@@ -44,37 +45,37 @@ class SomeOtherClass
 }
 ");
 
-            VisualStudio.Editor.SendKeys(Shift(VirtualKey.F12));
+            VisualStudioInstance.Editor.SendKeys(Shift(VirtualKey.F12));
 
             const string programReferencesCaption = "'Program' references";
-            var results = VisualStudio.FindReferencesWindow.GetContents(programReferencesCaption);
+            var results = VisualStudioInstance.FindReferencesWindow.GetContents(programReferencesCaption);
 
-            var activeWindowCaption = VisualStudio.Shell.GetActiveWindowCaption();
-            Assert.Equal(expected: programReferencesCaption, actual: activeWindowCaption);
+            var activeWindowCaption = VisualStudioInstance.Shell.GetActiveWindowCaption();
+            Assert.AreEqual(expected: programReferencesCaption, actual: activeWindowCaption);
 
-            Assert.Collection(
+            ExtendedAssert.Collection(
                 results,
                 new Action<Reference>[]
                 {
                     reference =>
                     {
-                        Assert.Equal(expected: "class Program", actual: reference.Code);
-                        Assert.Equal(expected: 1, actual: reference.Line);
-                        Assert.Equal(expected: 6, actual: reference.Column);
+                        Assert.AreEqual(expected: "class Program", actual: reference.Code);
+                        Assert.AreEqual(expected: 1, actual: reference.Line);
+                        Assert.AreEqual(expected: 6, actual: reference.Column);
                     },
                     reference =>
                     {
-                        Assert.Equal(expected: "Program p = new Program();", actual: reference.Code);
-                        Assert.Equal(expected: 5, actual: reference.Line);
-                        Assert.Equal(expected: 24, actual: reference.Column);
+                        Assert.AreEqual(expected: "Program p = new Program();", actual: reference.Code);
+                        Assert.AreEqual(expected: 5, actual: reference.Line);
+                        Assert.AreEqual(expected: 24, actual: reference.Column);
                     }
                 });
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)]
+        [TestMethod, TestCategory(Traits.Features.FindReferences)]
         public void FindReferencesToLocals()
         {
-            using (var telemetry = VisualStudio.EnableTestTelemetryChannel())
+            using (var telemetry = VisualStudioInstance.EnableTestTelemetryChannel())
             {
                 SetUpEditor(@"
 class Program
@@ -87,29 +88,29 @@ class Program
 }
 ");
 
-                VisualStudio.Editor.SendKeys(Shift(VirtualKey.F12));
+                VisualStudioInstance.Editor.SendKeys(Shift(VirtualKey.F12));
 
                 const string localReferencesCaption = "'local' references";
-                var results = VisualStudio.FindReferencesWindow.GetContents(localReferencesCaption);
+                var results = VisualStudioInstance.FindReferencesWindow.GetContents(localReferencesCaption);
 
-                var activeWindowCaption = VisualStudio.Shell.GetActiveWindowCaption();
-                Assert.Equal(expected: localReferencesCaption, actual: activeWindowCaption);
+                var activeWindowCaption = VisualStudioInstance.Shell.GetActiveWindowCaption();
+                Assert.AreEqual(expected: localReferencesCaption, actual: activeWindowCaption);
 
-                Assert.Collection(
+                ExtendedAssert.Collection(
                     results,
                     new Action<Reference>[]
                     {
                     reference =>
                     {
-                        Assert.Equal(expected: "int local = 1;", actual: reference.Code);
-                        Assert.Equal(expected: 5, actual: reference.Line);
-                        Assert.Equal(expected: 12, actual: reference.Column);
+                        Assert.AreEqual(expected: "int local = 1;", actual: reference.Code);
+                        Assert.AreEqual(expected: 5, actual: reference.Line);
+                        Assert.AreEqual(expected: 12, actual: reference.Column);
                     },
                     reference =>
                     {
-                        Assert.Equal(expected: "Console.WriteLine(local);", actual: reference.Code);
-                        Assert.Equal(expected: 6, actual: reference.Line);
-                        Assert.Equal(expected: 26, actual: reference.Column);
+                        Assert.AreEqual(expected: "Console.WriteLine(local);", actual: reference.Code);
+                        Assert.AreEqual(expected: 6, actual: reference.Line);
+                        Assert.AreEqual(expected: 26, actual: reference.Column);
                     }
                     });
 
@@ -117,7 +118,7 @@ class Program
             }
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)]
+        [TestMethod, TestCategory(Traits.Features.FindReferences)]
         public void FindReferencesToString()
         {
             SetUpEditor(@"
@@ -130,23 +131,23 @@ class Program
 }
 ");
 
-            VisualStudio.Editor.SendKeys(Shift(VirtualKey.F12));
+            VisualStudioInstance.Editor.SendKeys(Shift(VirtualKey.F12));
 
             const string findReferencesCaption = "'\"1\"' references";
-            var results = VisualStudio.FindReferencesWindow.GetContents(findReferencesCaption);
+            var results = VisualStudioInstance.FindReferencesWindow.GetContents(findReferencesCaption);
 
-            var activeWindowCaption = VisualStudio.Shell.GetActiveWindowCaption();
-            Assert.Equal(expected: findReferencesCaption, actual: activeWindowCaption);
+            var activeWindowCaption = VisualStudioInstance.Shell.GetActiveWindowCaption();
+            Assert.AreEqual(expected: findReferencesCaption, actual: activeWindowCaption);
 
-            Assert.Collection(
+            ExtendedAssert.Collection(
                 results,
                 new Action<Reference>[]
                 {
                     reference =>
                     {
-                        Assert.Equal(expected: "string local = \"1\";", actual: reference.Code);
-                        Assert.Equal(expected: 5, actual: reference.Line);
-                        Assert.Equal(expected: 24, actual: reference.Column);
+                        Assert.AreEqual(expected: "string local = \"1\";", actual: reference.Code);
+                        Assert.AreEqual(expected: 5, actual: reference.Line);
+                        Assert.AreEqual(expected: 24, actual: reference.Column);
                     }
                 });
         }

@@ -11,7 +11,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         internal ObjectBrowserWindow_OutOfProc(VisualStudioInstance visualStudioInstance)
             : base(visualStudioInstance)
         {
-            _inProc = CreateInProcComponent<ObjectBrowserWindow_InProc>(visualStudioInstance);
+            _inProc = new ObjectBrowserWindow_InProc(visualStudioInstance.VisualStudioHost);
         }
 
         public void CloseWindow()

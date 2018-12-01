@@ -16,7 +16,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         public FindReferencesWindow_OutOfProc(VisualStudioInstance visualStudioInstance)
             : base(visualStudioInstance)
         {
-            _inProc = CreateInProcComponent<FindReferencesWindow_InProc>(visualStudioInstance);
+            _inProc = new FindReferencesWindow_InProc(VisualStudioInstance.VisualStudioHost);
         }
 
         /// <summary>

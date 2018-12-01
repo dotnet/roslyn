@@ -6,23 +6,20 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Common;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
-using Roslyn.Test.Utilities;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+
 using ProjectUtils = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils;
 
 namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
 {
-    [Collection(nameof(SharedIntegrationHostFixture))]
+    [TestClass]
     public class BasicFindReferences : AbstractEditorTest
     {
         protected override string LanguageName => LanguageNames.VisualBasic;
 
-        public BasicFindReferences(VisualStudioInstanceFactory instanceFactory)
-            : base(instanceFactory, nameof(BasicFindReferences))
-        {
-        }
+        public BasicFindReferences() : base(nameof(BasicFindReferences)) { }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)]
+        [TestMethod, TestCategory(Traits.Features.FindReferences)]
         public void FindReferencesToLocals()
         {
             SetUpEditor(@"
@@ -34,34 +31,34 @@ Class Program
 End Class
 ");
 
-            VisualStudio.SendKeys.Send(Shift(VirtualKey.F12));
+            VisualStudioInstance.SendKeys.Send(Shift(VirtualKey.F12));
 
             const string localReferencesCaption = "'local' references";
-            var results = VisualStudio.FindReferencesWindow.GetContents(localReferencesCaption);
+            var results = VisualStudioInstance.FindReferencesWindow.GetContents(localReferencesCaption);
 
-            var activeWindowCaption = VisualStudio.Shell.GetActiveWindowCaption();
-            Assert.Equal(expected: localReferencesCaption, actual: activeWindowCaption);
+            var activeWindowCaption = VisualStudioInstance.Shell.GetActiveWindowCaption();
+            Assert.AreEqual(expected: localReferencesCaption, actual: activeWindowCaption);
 
-            Assert.Collection(
+            ExtendedAssert.Collection(
                 results,
                 new Action<Reference>[]
                 {
                     reference =>
                     {
-                        Assert.Equal(expected: "Dim local = 1", actual: reference.Code);
-                        Assert.Equal(expected: 3, actual: reference.Line);
-                        Assert.Equal(expected: 10, actual: reference.Column);
+                        Assert.AreEqual(expected: "Dim local = 1", actual: reference.Code);
+                        Assert.AreEqual(expected: 3, actual: reference.Line);
+                        Assert.AreEqual(expected: 10, actual: reference.Column);
                     },
                     reference =>
                     {
-                        Assert.Equal(expected: "Console.WriteLine(local)", actual: reference.Code);
-                        Assert.Equal(expected: 4, actual: reference.Line);
-                        Assert.Equal(expected: 24, actual: reference.Column);
+                        Assert.AreEqual(expected: "Console.WriteLine(local)", actual: reference.Code);
+                        Assert.AreEqual(expected: 4, actual: reference.Line);
+                        Assert.AreEqual(expected: 24, actual: reference.Column);
                     }
                 });
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)]
+        [TestMethod, TestCategory(Traits.Features.FindReferences)]
         public void FindReferencesToSharedField()
         {
             SetUpEditor(@"
@@ -70,8 +67,8 @@ Class Program
 End Class$$
 ");
             var project = new ProjectUtils.Project(ProjectName);
-            VisualStudio.SolutionExplorer.AddFile(project, "File2.vb");
-            VisualStudio.SolutionExplorer.OpenFile(project, "File2.vb");
+            VisualStudioInstance.SolutionExplorer.AddFile(project, "File2.vb");
+            VisualStudioInstance.SolutionExplorer.OpenFile(project, "File2.vb");
 
             SetUpEditor(@"
 Class SomeOtherClass
@@ -81,29 +78,29 @@ Class SomeOtherClass
 End Class
 ");
 
-            VisualStudio.SendKeys.Send(Shift(VirtualKey.F12));
+            VisualStudioInstance.SendKeys.Send(Shift(VirtualKey.F12));
 
             const string alphaReferencesCaption = "'Alpha' references";
-            var results = VisualStudio.FindReferencesWindow.GetContents(alphaReferencesCaption);
+            var results = VisualStudioInstance.FindReferencesWindow.GetContents(alphaReferencesCaption);
 
-            var activeWindowCaption = VisualStudio.Shell.GetActiveWindowCaption();
-            Assert.Equal(expected: alphaReferencesCaption, actual: activeWindowCaption);
+            var activeWindowCaption = VisualStudioInstance.Shell.GetActiveWindowCaption();
+            Assert.AreEqual(expected: alphaReferencesCaption, actual: activeWindowCaption);
 
-            Assert.Collection(
+            ExtendedAssert.Collection(
                 results,
                 new Action<Reference>[]
                 {
                     reference =>
                     {
-                        Assert.Equal(expected: "Public Shared Alpha As Int32", actual: reference.Code);
-                        Assert.Equal(expected: 2, actual: reference.Line);
-                        Assert.Equal(expected: 18, actual: reference.Column);
+                        Assert.AreEqual(expected: "Public Shared Alpha As Int32", actual: reference.Code);
+                        Assert.AreEqual(expected: 2, actual: reference.Line);
+                        Assert.AreEqual(expected: 18, actual: reference.Column);
                     },
                     reference =>
                     {
-                        Assert.Equal(expected: "Console.WriteLine(Program.Alpha)", actual: reference.Code);
-                        Assert.Equal(expected: 3, actual: reference.Line);
-                        Assert.Equal(expected: 34, actual: reference.Column);
+                        Assert.AreEqual(expected: "Console.WriteLine(Program.Alpha)", actual: reference.Code);
+                        Assert.AreEqual(expected: 3, actual: reference.Line);
+                        Assert.AreEqual(expected: 34, actual: reference.Column);
                     }
                 });
         }

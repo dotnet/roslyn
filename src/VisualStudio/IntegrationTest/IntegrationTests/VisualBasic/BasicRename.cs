@@ -7,24 +7,23 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Roslyn.Test.Utilities;
-using Xunit;
+
+using WorkItemAttribute = Roslyn.Test.Utilities.WorkItemAttribute;
 
 namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
 {
-    [Collection(nameof(SharedIntegrationHostFixture))]
+    [TestClass]
     public class BasicRename : AbstractEditorTest
     {
         protected override string LanguageName => LanguageNames.VisualBasic;
 
-        private InlineRenameDialog_OutOfProc InlineRenameDialog => VisualStudio.InlineRenameDialog;
+        private InlineRenameDialog_OutOfProc InlineRenameDialog => VisualStudioInstance.InlineRenameDialog;
 
-        public BasicRename(VisualStudioInstanceFactory instanceFactory)
-            : base(instanceFactory, nameof(BasicRename))
-        {
-        }
+        public BasicRename() : base(nameof(BasicRename)) { }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Rename)]
+        [TestMethod, TestCategory(Traits.Features.Rename)]
         public void VerifyLocalVariableRename()
         {
             var markup = @"
@@ -46,11 +45,11 @@ End Module";
             InlineRenameDialog.Invoke();
 
             MarkupTestFile.GetSpans(markup, out var _, out ImmutableArray<TextSpan> renameSpans);
-            var tags = VisualStudio.Editor.GetTagSpans(InlineRenameDialog.ValidRenameTag);
+            var tags = VisualStudioInstance.Editor.GetTagSpans(InlineRenameDialog.ValidRenameTag);
             AssertEx.SetEqual(renameSpans, tags);
 
-            VisualStudio.Editor.SendKeys(VirtualKey.Y, VirtualKey.Enter);
-            VisualStudio.Editor.Verify.TextContains(@"
+            VisualStudioInstance.Editor.SendKeys(VirtualKey.Y, VirtualKey.Enter);
+            VisualStudioInstance.Editor.Verify.TextContains(@"
 Imports System
 Imports System.Collections.Generic
 Imports System.Linq
@@ -67,7 +66,7 @@ Module Program
 End Module");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Rename)]
+        [TestMethod, TestCategory(Traits.Features.Rename)]
         public void VerifyLocalVariableRenameWithCommentsUpdated()
         {
             // "variable" is intentionally misspelled as "varixable" and "this" is misspelled as
@@ -94,11 +93,11 @@ End Module";
             InlineRenameDialog.ToggleIncludeComments();
 
             MarkupTestFile.GetSpans(markup, out var _, out ImmutableArray<TextSpan> renameSpans);
-            var tags = VisualStudio.Editor.GetTagSpans(InlineRenameDialog.ValidRenameTag);
+            var tags = VisualStudioInstance.Editor.GetTagSpans(InlineRenameDialog.ValidRenameTag);
             AssertEx.SetEqual(renameSpans, tags);
 
-            VisualStudio.Editor.SendKeys(VirtualKey.Y, VirtualKey.Enter);
-            VisualStudio.Editor.Verify.TextContains(@"
+            VisualStudioInstance.Editor.SendKeys(VirtualKey.Y, VirtualKey.Enter);
+            VisualStudioInstance.Editor.Verify.TextContains(@"
 Imports System
 Imports System.Collections.Generic
 Imports System.Linq
@@ -116,7 +115,7 @@ Module Program
 End Module");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Rename)]
+        [TestMethod, TestCategory(Traits.Features.Rename)]
         public void VerifyLocalVariableRenameWithStringsUpdated()
         {
             var markup = @"
@@ -137,11 +136,11 @@ End Module";
             InlineRenameDialog.ToggleIncludeStrings();
 
             MarkupTestFile.GetSpans(markup, out var _, out ImmutableArray<TextSpan> renameSpans);
-            var tags = VisualStudio.Editor.GetTagSpans(InlineRenameDialog.ValidRenameTag);
+            var tags = VisualStudioInstance.Editor.GetTagSpans(InlineRenameDialog.ValidRenameTag);
             AssertEx.SetEqual(renameSpans, tags);
 
-            VisualStudio.Editor.SendKeys(VirtualKey.Y, VirtualKey.Enter);
-            VisualStudio.Editor.Verify.TextContains(@"
+            VisualStudioInstance.Editor.SendKeys(VirtualKey.Y, VirtualKey.Enter);
+            VisualStudioInstance.Editor.Verify.TextContains(@"
 Imports System
 Imports System.Collections.Generic
 Imports System.Linq
@@ -155,7 +154,7 @@ Module Program
 End Module");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Rename)]
+        [TestMethod, TestCategory(Traits.Features.Rename)]
         public void VerifyOverloadsUpdated()
         {
             var markup = @"
@@ -175,11 +174,11 @@ End Class";
             InlineRenameDialog.ToggleIncludeOverloads();
 
             MarkupTestFile.GetSpans(markup, out var _, out ImmutableArray<TextSpan> renameSpans);
-            var tags = VisualStudio.Editor.GetTagSpans(InlineRenameDialog.ValidRenameTag);
+            var tags = VisualStudioInstance.Editor.GetTagSpans(InlineRenameDialog.ValidRenameTag);
             AssertEx.SetEqual(renameSpans, tags);
 
-            VisualStudio.Editor.SendKeys(VirtualKey.Y, VirtualKey.Enter);
-            VisualStudio.Editor.Verify.TextContains(@"
+            VisualStudioInstance.Editor.SendKeys(VirtualKey.Y, VirtualKey.Enter);
+            VisualStudioInstance.Editor.Verify.TextContains(@"
 Interface I
     Sub y(y As Integer)
     Sub y(y As String)
@@ -192,7 +191,7 @@ Public MustInherit Class A
 End Class");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Rename)]
+        [TestMethod, TestCategory(Traits.Features.Rename)]
         [WorkItem(21657, "https://github.com/dotnet/roslyn/issues/21657")]
         public void VerifyAttributeRename()
         {
@@ -206,11 +205,11 @@ End Class";
             InlineRenameDialog.Invoke();
 
             MarkupTestFile.GetSpans(markup, out var _, out ImmutableArray<TextSpan> renameSpans);
-            var tags = VisualStudio.Editor.GetTagSpans(InlineRenameDialog.ValidRenameTag);
+            var tags = VisualStudioInstance.Editor.GetTagSpans(InlineRenameDialog.ValidRenameTag);
             AssertEx.SetEqual(renameSpans, tags);
 
-            VisualStudio.Editor.SendKeys("Custom", VirtualKey.Enter);
-            VisualStudio.Editor.Verify.TextContains(@"
+            VisualStudioInstance.Editor.SendKeys("Custom", VirtualKey.Enter);
+            VisualStudioInstance.Editor.Verify.TextContains(@"
 Import System;
 
 Public Class CustomAttribute 
@@ -218,7 +217,7 @@ Public Class CustomAttribute
 End Class");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Rename)]
+        [TestMethod, TestCategory(Traits.Features.Rename)]
         [WorkItem(21657, "https://github.com/dotnet/roslyn/issues/21657")]
         public void VerifyAttributeRenameWhileRenameClasss()
         {
@@ -233,11 +232,11 @@ End Class";
             InlineRenameDialog.Invoke();
 
             MarkupTestFile.GetSpans(markup, out var _, out ImmutableArray<TextSpan> renameSpans);
-            var tags = VisualStudio.Editor.GetTagSpans(InlineRenameDialog.ValidRenameTag);
+            var tags = VisualStudioInstance.Editor.GetTagSpans(InlineRenameDialog.ValidRenameTag);
             AssertEx.SetEqual(renameSpans, tags);
 
-            VisualStudio.Editor.SendKeys("Custom");
-            VisualStudio.Editor.Verify.TextContains(@"
+            VisualStudioInstance.Editor.SendKeys("Custom");
+            VisualStudioInstance.Editor.Verify.TextContains(@"
 Import System;
 
 Public Class Custom$$Attribute 
@@ -245,7 +244,7 @@ Public Class Custom$$Attribute
 End Class", true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Rename)]
+        [TestMethod, TestCategory(Traits.Features.Rename)]
         [WorkItem(21657, "https://github.com/dotnet/roslyn/issues/21657")]
         public void VerifyAttributeRenameWhileRenameAttribute()
         {
@@ -263,10 +262,10 @@ End Class";
             InlineRenameDialog.Invoke();
 
             MarkupTestFile.GetSpans(markup, out var _, out ImmutableArray<TextSpan> renameSpans);
-            var tags = VisualStudio.Editor.GetTagSpans(InlineRenameDialog.ValidRenameTag);
+            var tags = VisualStudioInstance.Editor.GetTagSpans(InlineRenameDialog.ValidRenameTag);
 
-            VisualStudio.Editor.SendKeys("Custom");
-            VisualStudio.Editor.Verify.TextContains(@"
+            VisualStudioInstance.Editor.SendKeys("Custom");
+            VisualStudioInstance.Editor.Verify.TextContains(@"
 Import System;
 
 <Custom$$>
@@ -278,7 +277,7 @@ Public Class CustomAttribute
 End Class", true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Rename)]
+        [TestMethod, TestCategory(Traits.Features.Rename)]
         [WorkItem(21657, "https://github.com/dotnet/roslyn/issues/21657")]
         public void VerifyAttributeRenameWhileRenameAttributeClass()
         {
@@ -296,10 +295,10 @@ End Class";
             InlineRenameDialog.Invoke();
 
             MarkupTestFile.GetSpans(markup, out var _, out ImmutableArray<TextSpan> renameSpans);
-            var tags = VisualStudio.Editor.GetTagSpans(InlineRenameDialog.ValidRenameTag);
+            var tags = VisualStudioInstance.Editor.GetTagSpans(InlineRenameDialog.ValidRenameTag);
 
-            VisualStudio.Editor.SendKeys("Custom");
-            VisualStudio.Editor.Verify.TextContains(@"
+            VisualStudioInstance.Editor.SendKeys("Custom");
+            VisualStudioInstance.Editor.Verify.TextContains(@"
 Import System;
 
 <Custom>
@@ -311,7 +310,7 @@ Public Class Custom$$Attribute
 End Class", true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Rename)]
+        [TestMethod, TestCategory(Traits.Features.Rename)]
         [WorkItem(21657, "https://github.com/dotnet/roslyn/issues/21657")]
         public void VerifyAttributeCapitalizedRename()
         {
@@ -325,11 +324,11 @@ End Class";
             InlineRenameDialog.Invoke();
 
             MarkupTestFile.GetSpans(markup, out var _, out ImmutableArray<TextSpan> renameSpans);
-            var tags = VisualStudio.Editor.GetTagSpans(InlineRenameDialog.ValidRenameTag);
+            var tags = VisualStudioInstance.Editor.GetTagSpans(InlineRenameDialog.ValidRenameTag);
             AssertEx.SetEqual(renameSpans, tags);
 
-            VisualStudio.Editor.SendKeys("Custom", VirtualKey.Enter);
-            VisualStudio.Editor.Verify.TextContains(@"
+            VisualStudioInstance.Editor.SendKeys("Custom", VirtualKey.Enter);
+            VisualStudioInstance.Editor.Verify.TextContains(@"
 Import System;
 
 Public Class CustomAttribute
@@ -337,7 +336,7 @@ Public Class CustomAttribute
 End Class");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Rename)]
+        [TestMethod, TestCategory(Traits.Features.Rename)]
         [WorkItem(21657, "https://github.com/dotnet/roslyn/issues/21657")]
         public void VerifyAttributeNotCapitalizedRename()
         {
@@ -351,11 +350,11 @@ End Class";
             InlineRenameDialog.Invoke();
 
             MarkupTestFile.GetSpans(markup, out var _, out ImmutableArray<TextSpan> renameSpans);
-            var tags = VisualStudio.Editor.GetTagSpans(InlineRenameDialog.ValidRenameTag);
+            var tags = VisualStudioInstance.Editor.GetTagSpans(InlineRenameDialog.ValidRenameTag);
             AssertEx.SetEqual(renameSpans, tags);
 
-            VisualStudio.Editor.SendKeys("Custom", VirtualKey.Enter);
-            VisualStudio.Editor.Verify.TextContains(@"
+            VisualStudioInstance.Editor.SendKeys("Custom", VirtualKey.Enter);
+            VisualStudioInstance.Editor.Verify.TextContains(@"
 Import System;
 
 Public Class CustomAttribute

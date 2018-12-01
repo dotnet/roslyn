@@ -4,25 +4,26 @@ using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Roslyn.Test.Utilities;
-using Xunit;
+
 using ProjectUtils = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils;
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 {
-    [Collection(nameof(SharedIntegrationHostFixture))]
+    [TestClass]
     public class CSharpSendToInteractive : AbstractInteractiveWindowTest
     {
         private const string FileName = "Program.cs";
 
-        public CSharpSendToInteractive(VisualStudioInstanceFactory instanceFactory)
-            : base(instanceFactory)
+        public CSharpSendToInteractive( )
+            : base()
         {
-            VisualStudio.SolutionExplorer.CreateSolution(SolutionName);
+            VisualStudioInstance.SolutionExplorer.CreateSolution(SolutionName);
             var project = new Project(ProjectName);
-            VisualStudio.SolutionExplorer.AddProject(project, WellKnownProjectTemplates.ConsoleApplication, Microsoft.CodeAnalysis.LanguageNames.CSharp);
+            VisualStudioInstance.SolutionExplorer.AddProject(project, WellKnownProjectTemplates.ConsoleApplication, Microsoft.CodeAnalysis.LanguageNames.CSharp);
 
-            VisualStudio.SolutionExplorer.UpdateFile(
+            VisualStudioInstance.SolutionExplorer.UpdateFile(
                 ProjectName,
                 FileName,
                 @"using System;
@@ -56,193 +57,193 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 ",
                 open: true);
 
-            VisualStudio.InteractiveWindow.SubmitText("using System;");
+            VisualStudioInstance.InteractiveWindow.SubmitText("using System;");
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/20868")]
+        [TestMethod, Ignore("https://github.com/dotnet/roslyn/issues/20868")]
         public void SendSingleLineSubmissionToInteractive()
         {
-            VisualStudio.InteractiveWindow.InsertCode("// scenario 1");
+            VisualStudioInstance.InteractiveWindow.InsertCode("// scenario 1");
             var project = new Project(ProjectName);
-            VisualStudio.SolutionExplorer.OpenFile(project, FileName);
-            VisualStudio.Editor.PlaceCaret("/* 1 */", charsOffset: 1);
-            VisualStudio.Editor.PlaceCaret("/* 2 */", charsOffset: -1, extendSelection: true);
-            VisualStudio.ExecuteCommand(WellKnownCommandNames.InteractiveConsole_ExecuteInInteractive);
-            VisualStudio.InteractiveWindow.WaitForLastReplOutput("int x = 1;");
+            VisualStudioInstance.SolutionExplorer.OpenFile(project, FileName);
+            VisualStudioInstance.Editor.PlaceCaret("/* 1 */", charsOffset: 1);
+            VisualStudioInstance.Editor.PlaceCaret("/* 2 */", charsOffset: -1, extendSelection: true);
+            VisualStudioInstance.ExecuteCommand(WellKnownCommandNames.InteractiveConsole_ExecuteInInteractive);
+            VisualStudioInstance.InteractiveWindow.WaitForLastReplOutput("int x = 1;");
 
-            VisualStudio.InteractiveWindow.ClearReplText();
-            VisualStudio.InteractiveWindow.SubmitText("x.ToString()");
-            VisualStudio.InteractiveWindow.WaitForLastReplOutputContains("\"1\"");
+            VisualStudioInstance.InteractiveWindow.ClearReplText();
+            VisualStudioInstance.InteractiveWindow.SubmitText("x.ToString()");
+            VisualStudioInstance.InteractiveWindow.WaitForLastReplOutputContains("\"1\"");
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/20868")]
+        [TestMethod, Ignore("https://github.com/dotnet/roslyn/issues/20868")]
         public void SendMultipleLineSubmissionToInteractive()
         {
-            VisualStudio.InteractiveWindow.InsertCode("// scenario 2");
+            VisualStudioInstance.InteractiveWindow.InsertCode("// scenario 2");
             var project = new Project(ProjectName);
-            VisualStudio.SolutionExplorer.OpenFile(project, FileName);
-            VisualStudio.Editor.PlaceCaret("/* 3 */", charsOffset: 1);
-            VisualStudio.Editor.PlaceCaret("/* 4 */", charsOffset: -1, extendSelection: true);
-            VisualStudio.ExecuteCommand(WellKnownCommandNames.InteractiveConsole_ExecuteInInteractive);
-            VisualStudio.InteractiveWindow.WaitForLastReplOutput("int z = 3;");
+            VisualStudioInstance.SolutionExplorer.OpenFile(project, FileName);
+            VisualStudioInstance.Editor.PlaceCaret("/* 3 */", charsOffset: 1);
+            VisualStudioInstance.Editor.PlaceCaret("/* 4 */", charsOffset: -1, extendSelection: true);
+            VisualStudioInstance.ExecuteCommand(WellKnownCommandNames.InteractiveConsole_ExecuteInInteractive);
+            VisualStudioInstance.InteractiveWindow.WaitForLastReplOutput("int z = 3;");
 
-            VisualStudio.InteractiveWindow.ClearReplText();
-            VisualStudio.InteractiveWindow.SubmitText("y.ToString()");
-            VisualStudio.InteractiveWindow.WaitForLastReplOutputContains("\"2\"");
-            VisualStudio.InteractiveWindow.SubmitText("z.ToString()");
-            VisualStudio.InteractiveWindow.WaitForLastReplOutputContains("\"3\"");
+            VisualStudioInstance.InteractiveWindow.ClearReplText();
+            VisualStudioInstance.InteractiveWindow.SubmitText("y.ToString()");
+            VisualStudioInstance.InteractiveWindow.WaitForLastReplOutputContains("\"2\"");
+            VisualStudioInstance.InteractiveWindow.SubmitText("z.ToString()");
+            VisualStudioInstance.InteractiveWindow.WaitForLastReplOutputContains("\"3\"");
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/20868")]
+        [TestMethod, Ignore("https://github.com/dotnet/roslyn/issues/20868")]
         public void SendMultipleLineBlockSelectedSubmissionToInteractive()
         {
-            VisualStudio.InteractiveWindow.SubmitText("int x = 1;");
-            VisualStudio.InteractiveWindow.InsertCode("// scenario 3");
+            VisualStudioInstance.InteractiveWindow.SubmitText("int x = 1;");
+            VisualStudioInstance.InteractiveWindow.InsertCode("// scenario 3");
             var project = new Project(ProjectName);
-            VisualStudio.SolutionExplorer.OpenFile(project, FileName);
-            VisualStudio.Editor.PlaceCaret("/* 5 */", charsOffset: 6);
-            VisualStudio.Editor.PlaceCaret("/* 6 */", charsOffset: -3, extendSelection: true, selectBlock: true);
-            VisualStudio.ExecuteCommand(WellKnownCommandNames.InteractiveConsole_ExecuteInInteractive);
-            VisualStudio.InteractiveWindow.WaitForLastReplOutput(". x *= 4;");
+            VisualStudioInstance.SolutionExplorer.OpenFile(project, FileName);
+            VisualStudioInstance.Editor.PlaceCaret("/* 5 */", charsOffset: 6);
+            VisualStudioInstance.Editor.PlaceCaret("/* 6 */", charsOffset: -3, extendSelection: true, selectBlock: true);
+            VisualStudioInstance.ExecuteCommand(WellKnownCommandNames.InteractiveConsole_ExecuteInInteractive);
+            VisualStudioInstance.InteractiveWindow.WaitForLastReplOutput(". x *= 4;");
 
-            VisualStudio.InteractiveWindow.ClearReplText();
-            VisualStudio.InteractiveWindow.SubmitText("a + \"s\"");
-            VisualStudio.InteractiveWindow.WaitForLastReplOutputContains("\"alphas\"");
-            VisualStudio.InteractiveWindow.SubmitText("b");
-            VisualStudio.InteractiveWindow.WaitForLastReplOutputContains("CS0103");
-            VisualStudio.InteractiveWindow.SubmitText("x");
-            VisualStudio.InteractiveWindow.WaitForLastReplOutputContains("4");
+            VisualStudioInstance.InteractiveWindow.ClearReplText();
+            VisualStudioInstance.InteractiveWindow.SubmitText("a + \"s\"");
+            VisualStudioInstance.InteractiveWindow.WaitForLastReplOutputContains("\"alphas\"");
+            VisualStudioInstance.InteractiveWindow.SubmitText("b");
+            VisualStudioInstance.InteractiveWindow.WaitForLastReplOutputContains("CS0103");
+            VisualStudioInstance.InteractiveWindow.SubmitText("x");
+            VisualStudioInstance.InteractiveWindow.WaitForLastReplOutputContains("4");
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/20868")]
+        [TestMethod, Ignore("https://github.com/dotnet/roslyn/issues/20868")]
         public void SendToInteractiveWithKeyboardShortcut()
         {
-            VisualStudio.InteractiveWindow.InsertCode("// scenario 4");
+            VisualStudioInstance.InteractiveWindow.InsertCode("// scenario 4");
             var project = new Project(ProjectName);
-            VisualStudio.SolutionExplorer.OpenFile(project, FileName);
-            VisualStudio.Editor.PlaceCaret("/* 7 */", charsOffset: 1);
-            VisualStudio.Editor.PlaceCaret("/* 8 */", charsOffset: -1, extendSelection: true);
-            VisualStudio.SendKeys.Send(Ctrl(VirtualKey.E), Ctrl(VirtualKey.E));
-            VisualStudio.InteractiveWindow.WaitForLastReplOutput("int j = 7;");
+            VisualStudioInstance.SolutionExplorer.OpenFile(project, FileName);
+            VisualStudioInstance.Editor.PlaceCaret("/* 7 */", charsOffset: 1);
+            VisualStudioInstance.Editor.PlaceCaret("/* 8 */", charsOffset: -1, extendSelection: true);
+            VisualStudioInstance.SendKeys.Send(Ctrl(VirtualKey.E), Ctrl(VirtualKey.E));
+            VisualStudioInstance.InteractiveWindow.WaitForLastReplOutput("int j = 7;");
 
-            VisualStudio.InteractiveWindow.ClearReplText();
-            VisualStudio.InteractiveWindow.SubmitText("j.ToString()");
-            VisualStudio.InteractiveWindow.WaitForLastReplOutputContains("\"7\"");
+            VisualStudioInstance.InteractiveWindow.ClearReplText();
+            VisualStudioInstance.InteractiveWindow.SubmitText("j.ToString()");
+            VisualStudioInstance.InteractiveWindow.WaitForLastReplOutputContains("\"7\"");
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/20868")]
+        [TestMethod, Ignore("https://github.com/dotnet/roslyn/issues/20868")]
         public void ExecuteSingleLineSubmissionInInteractiveWhilePreservingReplSubmissionBuffer()
         {
-            VisualStudio.InteractiveWindow.InsertCode("// scenario 5");
+            VisualStudioInstance.InteractiveWindow.InsertCode("// scenario 5");
             var project = new Project(ProjectName);
-            VisualStudio.SolutionExplorer.OpenFile(project, FileName);
-            VisualStudio.Editor.PlaceCaret("/* 1 */", charsOffset: 1);
-            VisualStudio.Editor.PlaceCaret("/* 2 */", charsOffset: -1, extendSelection: true);
-            VisualStudio.ExecuteCommand(WellKnownCommandNames.InteractiveConsole_ExecuteInInteractive);
-            VisualStudio.InteractiveWindow.WaitForLastReplInputContains("// scenario 5");
+            VisualStudioInstance.SolutionExplorer.OpenFile(project, FileName);
+            VisualStudioInstance.Editor.PlaceCaret("/* 1 */", charsOffset: 1);
+            VisualStudioInstance.Editor.PlaceCaret("/* 2 */", charsOffset: -1, extendSelection: true);
+            VisualStudioInstance.ExecuteCommand(WellKnownCommandNames.InteractiveConsole_ExecuteInInteractive);
+            VisualStudioInstance.InteractiveWindow.WaitForLastReplInputContains("// scenario 5");
 
-            VisualStudio.InteractiveWindow.ClearReplText();
-            VisualStudio.InteractiveWindow.SubmitText("x");
-            VisualStudio.InteractiveWindow.WaitForLastReplOutput("1");
+            VisualStudioInstance.InteractiveWindow.ClearReplText();
+            VisualStudioInstance.InteractiveWindow.SubmitText("x");
+            VisualStudioInstance.InteractiveWindow.WaitForLastReplOutput("1");
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/20868")]
+        [TestMethod, Ignore("https://github.com/dotnet/roslyn/issues/20868")]
         public void ExecuteMultipleLineSubmissionInInteractiveWhilePreservingReplSubmissionBuffer()
         {
-            VisualStudio.InteractiveWindow.InsertCode("// scenario 6");
+            VisualStudioInstance.InteractiveWindow.InsertCode("// scenario 6");
             var project = new Project(ProjectName);
-            VisualStudio.SolutionExplorer.OpenFile(project, FileName);
-            VisualStudio.Editor.PlaceCaret("/* 3 */", charsOffset: 1);
-            VisualStudio.Editor.PlaceCaret("/* 4 */", charsOffset: -1, extendSelection: true);
-            VisualStudio.ExecuteCommand(WellKnownCommandNames.InteractiveConsole_ExecuteInInteractive);
-            VisualStudio.InteractiveWindow.WaitForLastReplInputContains("// scenario 6");
+            VisualStudioInstance.SolutionExplorer.OpenFile(project, FileName);
+            VisualStudioInstance.Editor.PlaceCaret("/* 3 */", charsOffset: 1);
+            VisualStudioInstance.Editor.PlaceCaret("/* 4 */", charsOffset: -1, extendSelection: true);
+            VisualStudioInstance.ExecuteCommand(WellKnownCommandNames.InteractiveConsole_ExecuteInInteractive);
+            VisualStudioInstance.InteractiveWindow.WaitForLastReplInputContains("// scenario 6");
 
-            VisualStudio.InteractiveWindow.ClearReplText();
-            VisualStudio.InteractiveWindow.SubmitText("y");
-            VisualStudio.InteractiveWindow.WaitForLastReplOutput("2");
-            VisualStudio.InteractiveWindow.SubmitText("z");
-            VisualStudio.InteractiveWindow.WaitForLastReplOutput("3");
+            VisualStudioInstance.InteractiveWindow.ClearReplText();
+            VisualStudioInstance.InteractiveWindow.SubmitText("y");
+            VisualStudioInstance.InteractiveWindow.WaitForLastReplOutput("2");
+            VisualStudioInstance.InteractiveWindow.SubmitText("z");
+            VisualStudioInstance.InteractiveWindow.WaitForLastReplOutput("3");
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/20868")]
+        [TestMethod, Ignore("https://github.com/dotnet/roslyn/issues/20868")]
         public void ExecuteMultipleLineBlockSelectedSubmissionInInteractiveWhilePreservingReplSubmissionBuffer()
         {
-            VisualStudio.InteractiveWindow.SubmitText("int x = 1;");
-            VisualStudio.InteractiveWindow.InsertCode("// scenario 7");
+            VisualStudioInstance.InteractiveWindow.SubmitText("int x = 1;");
+            VisualStudioInstance.InteractiveWindow.InsertCode("// scenario 7");
             var project = new Project(ProjectName);
-            VisualStudio.SolutionExplorer.OpenFile(project, FileName);
-            VisualStudio.Editor.PlaceCaret("/* 5 */", charsOffset: 6);
-            VisualStudio.Editor.PlaceCaret("/* 6 */", charsOffset: -3, extendSelection: true, selectBlock: true);
-            VisualStudio.ExecuteCommand(WellKnownCommandNames.InteractiveConsole_ExecuteInInteractive);
-            VisualStudio.InteractiveWindow.WaitForLastReplInputContains("// scenario 7");
+            VisualStudioInstance.SolutionExplorer.OpenFile(project, FileName);
+            VisualStudioInstance.Editor.PlaceCaret("/* 5 */", charsOffset: 6);
+            VisualStudioInstance.Editor.PlaceCaret("/* 6 */", charsOffset: -3, extendSelection: true, selectBlock: true);
+            VisualStudioInstance.ExecuteCommand(WellKnownCommandNames.InteractiveConsole_ExecuteInInteractive);
+            VisualStudioInstance.InteractiveWindow.WaitForLastReplInputContains("// scenario 7");
 
-            VisualStudio.InteractiveWindow.ClearReplText();
+            VisualStudioInstance.InteractiveWindow.ClearReplText();
 
-            VisualStudio.InteractiveWindow.SubmitText("a");
-            VisualStudio.InteractiveWindow.WaitForLastReplOutput("\"alpha\"");
+            VisualStudioInstance.InteractiveWindow.SubmitText("a");
+            VisualStudioInstance.InteractiveWindow.WaitForLastReplOutput("\"alpha\"");
 
-            VisualStudio.InteractiveWindow.SubmitText("b");
-            VisualStudio.InteractiveWindow.WaitForLastReplOutputContains("CS0103");
-            VisualStudio.InteractiveWindow.SubmitText("x");
-            VisualStudio.InteractiveWindow.WaitForLastReplOutput("4");
+            VisualStudioInstance.InteractiveWindow.SubmitText("b");
+            VisualStudioInstance.InteractiveWindow.WaitForLastReplOutputContains("CS0103");
+            VisualStudioInstance.InteractiveWindow.SubmitText("x");
+            VisualStudioInstance.InteractiveWindow.WaitForLastReplOutput("4");
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/20868")]
+        [TestMethod, Ignore("https://github.com/dotnet/roslyn/issues/20868")]
         public void ExecuteInInteractiveWithKeyboardShortcut()
         {
-            VisualStudio.InteractiveWindow.InsertCode("// scenario 8");
+            VisualStudioInstance.InteractiveWindow.InsertCode("// scenario 8");
             var project = new Project(ProjectName);
-            VisualStudio.SolutionExplorer.OpenFile(project, FileName);
-            VisualStudio.Editor.PlaceCaret("/* 7 */", charsOffset: 1);
-            VisualStudio.Editor.PlaceCaret("/* 8 */", charsOffset: -1, extendSelection: true);
-            VisualStudio.SendKeys.Send(Ctrl(VirtualKey.E), Ctrl(VirtualKey.E));
-            VisualStudio.InteractiveWindow.WaitForLastReplInputContains("// scenario 8");
+            VisualStudioInstance.SolutionExplorer.OpenFile(project, FileName);
+            VisualStudioInstance.Editor.PlaceCaret("/* 7 */", charsOffset: 1);
+            VisualStudioInstance.Editor.PlaceCaret("/* 8 */", charsOffset: -1, extendSelection: true);
+            VisualStudioInstance.SendKeys.Send(Ctrl(VirtualKey.E), Ctrl(VirtualKey.E));
+            VisualStudioInstance.InteractiveWindow.WaitForLastReplInputContains("// scenario 8");
 
-            VisualStudio.InteractiveWindow.ClearReplText();
-            VisualStudio.InteractiveWindow.SubmitText("j");
-            VisualStudio.InteractiveWindow.WaitForLastReplOutput("7");
+            VisualStudioInstance.InteractiveWindow.ClearReplText();
+            VisualStudioInstance.InteractiveWindow.SubmitText("j");
+            VisualStudioInstance.InteractiveWindow.WaitForLastReplOutput("7");
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/20868")]
+        [TestMethod, Ignore("https://github.com/dotnet/roslyn/issues/20868")]
         public void AddAssemblyReferenceAndTypesToInteractive()
         {
-            VisualStudio.InteractiveWindow.ClearReplText();
-            VisualStudio.InteractiveWindow.SubmitText("#r \"System.Numerics\"");
-            VisualStudio.InteractiveWindow.SubmitText("Console.WriteLine(new System.Numerics.BigInteger(42));");
-            VisualStudio.InteractiveWindow.WaitForLastReplOutput("42");
+            VisualStudioInstance.InteractiveWindow.ClearReplText();
+            VisualStudioInstance.InteractiveWindow.SubmitText("#r \"System.Numerics\"");
+            VisualStudioInstance.InteractiveWindow.SubmitText("Console.WriteLine(new System.Numerics.BigInteger(42));");
+            VisualStudioInstance.InteractiveWindow.WaitForLastReplOutput("42");
 
-            VisualStudio.InteractiveWindow.SubmitText("public class MyClass { public string MyFunc() { return \"MyClass.MyFunc()\"; } }");
-            VisualStudio.InteractiveWindow.SubmitText("(new MyClass()).MyFunc()");
-            VisualStudio.InteractiveWindow.WaitForLastReplOutput("\"MyClass.MyFunc()\"");
-            VisualStudio.Workspace.WaitForAsyncOperations(FeatureAttribute.SolutionCrawler);
+            VisualStudioInstance.InteractiveWindow.SubmitText("public class MyClass { public string MyFunc() { return \"MyClass.MyFunc()\"; } }");
+            VisualStudioInstance.InteractiveWindow.SubmitText("(new MyClass()).MyFunc()");
+            VisualStudioInstance.InteractiveWindow.WaitForLastReplOutput("\"MyClass.MyFunc()\"");
+            VisualStudioInstance.Workspace.WaitForAsyncOperations(FeatureAttribute.SolutionCrawler);
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/20868")]
+        [TestMethod, Ignore("https://github.com/dotnet/roslyn/issues/20868")]
         public void ResetInteractiveFromProjectAndVerify()
         {
             var assembly = new ProjectUtils.AssemblyReference("System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089");
             var project = new ProjectUtils.Project(ProjectName);
-            VisualStudio.SolutionExplorer.AddMetadataReference(assembly, project);
+            VisualStudioInstance.SolutionExplorer.AddMetadataReference(assembly, project);
 
-            VisualStudio.SolutionExplorer.SelectItem(ProjectName);
-            VisualStudio.ExecuteCommand(WellKnownCommandNames.ProjectAndSolutionContextMenus_Project_ResetCSharpInteractiveFromProject);
+            VisualStudioInstance.SolutionExplorer.SelectItem(ProjectName);
+            VisualStudioInstance.ExecuteCommand(WellKnownCommandNames.ProjectAndSolutionContextMenus_Project_ResetCSharpInteractiveFromProject);
 
             // Waiting for a long operation: build + reset from project
-            int defaultTimeoutInMilliseconds = VisualStudio.InteractiveWindow.GetTimeoutInMilliseconds();
-            VisualStudio.InteractiveWindow.SetTimeout(120000);
-            VisualStudio.InteractiveWindow.WaitForReplOutput("using TestProj;");
-            VisualStudio.InteractiveWindow.SetTimeout(defaultTimeoutInMilliseconds);
+            int defaultTimeoutInMilliseconds = VisualStudioInstance.InteractiveWindow.GetTimeoutInMilliseconds();
+            VisualStudioInstance.InteractiveWindow.SetTimeout(120000);
+            VisualStudioInstance.InteractiveWindow.WaitForReplOutput("using TestProj;");
+            VisualStudioInstance.InteractiveWindow.SetTimeout(defaultTimeoutInMilliseconds);
 
-            VisualStudio.InteractiveWindow.SubmitText("x");
-            VisualStudio.InteractiveWindow.WaitForLastReplOutputContains("CS0103");
+            VisualStudioInstance.InteractiveWindow.SubmitText("x");
+            VisualStudioInstance.InteractiveWindow.WaitForLastReplOutputContains("CS0103");
 
-            VisualStudio.InteractiveWindow.SubmitText("(new TestProj.C()).M()");
-            VisualStudio.InteractiveWindow.WaitForLastReplOutput("\"C.M()\"");
+            VisualStudioInstance.InteractiveWindow.SubmitText("(new TestProj.C()).M()");
+            VisualStudioInstance.InteractiveWindow.WaitForLastReplOutput("\"C.M()\"");
 
-            VisualStudio.InteractiveWindow.SubmitText("System.Windows.Forms.Form f = new System.Windows.Forms.Form(); f.Text = \"goo\";");
-            VisualStudio.InteractiveWindow.SubmitText("f.Text");
-            VisualStudio.InteractiveWindow.WaitForLastReplOutput("\"goo\"");
-            VisualStudio.Workspace.WaitForAsyncOperations(FeatureAttribute.SolutionCrawler);
+            VisualStudioInstance.InteractiveWindow.SubmitText("System.Windows.Forms.Form f = new System.Windows.Forms.Form(); f.Text = \"goo\";");
+            VisualStudioInstance.InteractiveWindow.SubmitText("f.Text");
+            VisualStudioInstance.InteractiveWindow.WaitForLastReplOutput("\"goo\"");
+            VisualStudioInstance.Workspace.WaitForAsyncOperations(FeatureAttribute.SolutionCrawler);
         }
     }
 }

@@ -3,12 +3,12 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Roslyn.Test.Utilities;
-using Xunit;
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 {
-    [Collection(nameof(SharedIntegrationHostFixture))]
+    [TestClass]
     public class CSharpNavigationBar : AbstractEditorTest
     {
         private const string TestSource = @"
@@ -28,17 +28,17 @@ struct S
 
         protected override string LanguageName => LanguageNames.CSharp;
 
-        public CSharpNavigationBar(VisualStudioInstanceFactory instanceFactory)
-            : base(instanceFactory, nameof(CSharpNavigationBar))
+        public CSharpNavigationBar( )
+            : base( nameof(CSharpNavigationBar))
         {
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar)]
+        [TestMethod, TestCategory(Traits.Features.NavigationBar)]
         public void VerifyNavBar()
         {
             SetUpEditor(TestSource);
-            VisualStudio.Editor.PlaceCaret("this", charsOffset: 1);
-            VisualStudio.Editor.ExpandMemberNavBar();
+            VisualStudioInstance.Editor.PlaceCaret("this", charsOffset: 1);
+            VisualStudioInstance.Editor.ExpandMemberNavBar();
             var expectedItems = new[]
             {
                 "M(int i)",
@@ -47,13 +47,13 @@ struct S
                 "this[int index]"
             };
 
-            Assert.Equal(expectedItems, VisualStudio.Editor.GetMemberNavBarItems());
-            VisualStudio.Editor.SelectMemberNavBarItem("operator !=(C c1, C c2)");
+            Assert.AreEqual(expectedItems, VisualStudioInstance.Editor.GetMemberNavBarItems());
+            VisualStudioInstance.Editor.SelectMemberNavBarItem("operator !=(C c1, C c2)");
 
-            VisualStudio.Editor.Verify.CurrentLineText("public static bool operator $$!=(C c1, C c2) { return false; }", assertCaretPosition: true, trimWhitespace: true);
+            VisualStudioInstance.Editor.Verify.CurrentLineText("public static bool operator $$!=(C c1, C c2) { return false; }", assertCaretPosition: true, trimWhitespace: true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar)]
+        [TestMethod, TestCategory(Traits.Features.NavigationBar)]
         public void VerifyNavBar2()
         {
             SetUpEditor(TestSource);
@@ -61,21 +61,21 @@ struct S
             VerifyLeftSelected("C");
             VerifyRightSelected("this[int index]");
 
-            VisualStudio.Editor.ExpandTypeNavBar();
+            VisualStudioInstance.Editor.ExpandTypeNavBar();
             var expectedItems = new[]
             {
                 "C",
                 "S",
             };
 
-            VisualStudio.Editor.SelectTypeNavBarItem("S");
+            VisualStudioInstance.Editor.SelectTypeNavBarItem("S");
 
             VerifyLeftSelected("S");
             VerifyRightSelected("Goo()");
-            VisualStudio.Editor.Verify.CurrentLineText("$$struct S", assertCaretPosition: true, trimWhitespace: true);
+            VisualStudioInstance.Editor.Verify.CurrentLineText("$$struct S", assertCaretPosition: true, trimWhitespace: true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar)]
+        [TestMethod, TestCategory(Traits.Features.NavigationBar)]
         public void VerifyNavBar3()
         {
             SetUpEditor(@"
@@ -84,24 +84,24 @@ struct S$$
     int Goo() { }
     void Bar() { }
 }");
-            VisualStudio.Editor.ExpandMemberNavBar();
+            VisualStudioInstance.Editor.ExpandMemberNavBar();
             var expectedItems = new[]
             {
                 "Bar()",
                 "Goo()",
             };
-            Assert.Equal(expectedItems, VisualStudio.Editor.GetMemberNavBarItems());
-            VisualStudio.Editor.SelectMemberNavBarItem("Bar()");
-            VisualStudio.Editor.Verify.CurrentLineText("void $$Bar() { }", assertCaretPosition: true, trimWhitespace: true);
+            Assert.AreEqual(expectedItems, VisualStudioInstance.Editor.GetMemberNavBarItems());
+            VisualStudioInstance.Editor.SelectMemberNavBarItem("Bar()");
+            VisualStudioInstance.Editor.Verify.CurrentLineText("void $$Bar() { }", assertCaretPosition: true, trimWhitespace: true);
 
-            VisualStudio.ExecuteCommand("Edit.LineUp");
+            VisualStudioInstance.ExecuteCommand("Edit.LineUp");
             VerifyRightSelected("Goo()");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar)]
+        [TestMethod, TestCategory(Traits.Features.NavigationBar)]
         public void TestSplitWindow()
         {
-            VisualStudio.Editor.SetText(@"
+            VisualStudioInstance.Editor.SetText(@"
 class C
 {
     public void M(int i) { }
@@ -113,34 +113,34 @@ struct S
     int Goo() { }
     void Bar() { }
 }");
-            VisualStudio.ExecuteCommand("Window.Split");
-            VisualStudio.Editor.PlaceCaret("this", charsOffset: 1);
+            VisualStudioInstance.ExecuteCommand("Window.Split");
+            VisualStudioInstance.Editor.PlaceCaret("this", charsOffset: 1);
             VerifyLeftSelected("C");
             VerifyRightSelected("this[int index]");
-            VisualStudio.ExecuteCommand("Window.NextSplitPane");
-            VisualStudio.Editor.PlaceCaret("Goo", charsOffset: 1);
+            VisualStudioInstance.ExecuteCommand("Window.NextSplitPane");
+            VisualStudioInstance.Editor.PlaceCaret("Goo", charsOffset: 1);
             VerifyLeftSelected("S");
             VerifyRightSelected("Goo()");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar)]
+        [TestMethod, TestCategory(Traits.Features.NavigationBar)]
         public void VerifyOption()
         {
-            VisualStudio.Workspace.SetFeatureOption("NavigationBarOptions", "ShowNavigationBar", "C#", "False");
-            Assert.False(VisualStudio.Editor.IsNavBarEnabled());
+            VisualStudioInstance.Workspace.SetFeatureOption("NavigationBarOptions", "ShowNavigationBar", "C#", "False");
+            Assert.IsFalse(VisualStudioInstance.Editor.IsNavBarEnabled());
 
-            VisualStudio.Workspace.SetFeatureOption("NavigationBarOptions", "ShowNavigationBar", "C#", "True");
-            Assert.True(VisualStudio.Editor.IsNavBarEnabled());
+            VisualStudioInstance.Workspace.SetFeatureOption("NavigationBarOptions", "ShowNavigationBar", "C#", "True");
+            Assert.IsTrue(VisualStudioInstance.Editor.IsNavBarEnabled());
         }
 
         private void VerifyLeftSelected(string expected)
         {
-            Assert.Equal(expected, VisualStudio.Editor.GetTypeNavBarSelection());
+            Assert.AreEqual(expected, VisualStudioInstance.Editor.GetTypeNavBarSelection());
         }
 
         private void VerifyRightSelected(string expected)
         {
-            Assert.Equal(expected, VisualStudio.Editor.GetMemberNavBarSelection());
+            Assert.AreEqual(expected, VisualStudioInstance.Editor.GetMemberNavBarSelection());
         }
     }
 }

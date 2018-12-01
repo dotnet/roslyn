@@ -6,28 +6,29 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
-using Roslyn.Test.Utilities;
-using Xunit;
+using Microsoft.VisualStudio.IntegrationTest.Utilities.Common;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+
 using ProjectUtils = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils;
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 {
-    [Collection(nameof(SharedIntegrationHostFixture))]
+    [TestClass]
     public class CSharpBuild : AbstractIntegrationTest
     {
-        public CSharpBuild(VisualStudioInstanceFactory instanceFactory)
-            : base(instanceFactory)
+        public CSharpBuild( )
+            : base()
         {
         }
 
-        public override async Task InitializeAsync()
+        public override void Initialize()
         {
-            await base.InitializeAsync().ConfigureAwait(true);
-            VisualStudio.SolutionExplorer.CreateSolution(nameof(CSharpBuild));
-            VisualStudio.SolutionExplorer.AddProject(new ProjectUtils.Project("TestProj"), WellKnownProjectTemplates.ConsoleApplication, LanguageNames.CSharp);
+            base.Initialize();
+            VisualStudioInstance.SolutionExplorer.CreateSolution(nameof(CSharpBuild));
+            VisualStudioInstance.SolutionExplorer.AddProject(new ProjectUtils.Project("TestProj"), WellKnownProjectTemplates.ConsoleApplication, LanguageNames.CSharp);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Build)]
+        [TestMethod, TestCategory(Traits.Features.Build)]
         public void BuildProject()
         {
             var editorText = @"using System;
@@ -40,18 +41,18 @@ class Program
     }
 }";
 
-            VisualStudio.Editor.SetText(editorText);
+            VisualStudioInstance.Editor.SetText(editorText);
 
             // TODO: Validate build works as expected
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/18204"), Trait(Traits.Feature, Traits.Features.Build)]
+        [TestMethod, Ignore("https://github.com/dotnet/roslyn/issues/18204"), TestCategory(Traits.Features.Build)]
         public void BuildWithCommandLine()
         {
-            VisualStudio.SolutionExplorer.SaveAll();
+            VisualStudioInstance.SolutionExplorer.SaveAll();
 
-            var pathToDevenv = Path.Combine(VisualStudio.InstallationPath, @"Common7\IDE\devenv.exe");
-            var pathToSolution = VisualStudio.SolutionExplorer.SolutionFileFullPath;
+            var pathToDevenv = Path.Combine(VisualStudioInstance.InstallationPath, @"Common7\IDE\devenv.exe");
+            var pathToSolution = VisualStudioInstance.SolutionExplorer.SolutionFileFullPath;
             var logFileName = pathToSolution + ".log";
 
             File.Delete(logFileName);
@@ -61,9 +62,9 @@ class Program
             var process = Process.Start(pathToDevenv, commandLine);
             process.WaitForExit();
 
-            Assert.Contains("Rebuild All: 1 succeeded, 0 failed, 0 skipped", File.ReadAllText(logFileName));
+            ExtendedAssert.Contains("Rebuild All: 1 succeeded, 0 failed, 0 skipped", File.ReadAllText(logFileName));
 
-            Assert.Equal(0, process.ExitCode);
+            Assert.AreEqual(0, process.ExitCode);
         }
     }
 }

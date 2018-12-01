@@ -6,22 +6,19 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Roslyn.Test.Utilities;
-using Xunit;
 
 namespace Roslyn.VisualStudio.IntegrationTests.Basic
 {
-    [Collection(nameof(SharedIntegrationHostFixture))]
+    [TestClass]
     public class BasicOutlining : AbstractEditorTest
     {
         protected override string LanguageName => LanguageNames.VisualBasic;
 
-        public BasicOutlining(VisualStudioInstanceFactory instanceFactory)
-            : base(instanceFactory, nameof(BasicOutlining))
-        {
-        }
+        public BasicOutlining() : base(nameof(BasicOutlining)) { }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [TestMethod, TestCategory(Traits.Features.Outlining)]
         public void Outlining()
         {
             var input = @"
@@ -36,8 +33,8 @@ Imports System.Text|]
     End Module|]
 End Namespace|]";
             MarkupTestFile.GetSpans(input, out var text, out ImmutableArray<TextSpan> spans);
-            VisualStudio.Editor.SetText(text);
-            Assert.Equal(spans.OrderBy(s => s.Start), VisualStudio.Editor.GetOutliningSpans());
+            VisualStudioInstance.Editor.SetText(text);
+            Assert.AreEqual(spans.OrderBy(s => s.Start), VisualStudioInstance.Editor.GetOutliningSpans());
         }
     }
 }
