@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// state before the node to the state after the node) is not monotonic, in the sense that
         /// it can change the state in either direction in the lattice. If the transfer function is
         /// monotonic, the transfer function can only change the state toward the <see
-        /// cref="ReachableBottomState"/>. Reachability and definite assignment are monotonic, and
+        /// cref="UnreachableState"/>. Reachability and definite assignment are monotonic, and
         /// permit a more efficient analysis. Region analysis and nullable analysis are not
         /// monotonic. This is just an optimization; we could treat all of them as nonmonotonic
         /// without much loss of performance. In fact, this only affects the analysis of (relatively
