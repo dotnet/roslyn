@@ -577,6 +577,7 @@ namespace System
                     case WellKnownType.System_Threading_Tasks_Sources_IValueTaskSource_T:
                     case WellKnownType.System_Threading_Tasks_ValueTask_T:
                     case WellKnownType.System_Threading_Tasks_ValueTask:
+                    case WellKnownType.System_MatchFailureException:
                         // Not yet in the platform.
                         continue;
                     case WellKnownType.Microsoft_CodeAnalysis_Runtime_Instrumentation:
@@ -912,6 +913,8 @@ namespace System
                     case WellKnownMember.System_Threading_Tasks_Sources_IValueTaskSource_T__GetStatus:
                     case WellKnownMember.System_Threading_Tasks_Sources_IValueTaskSource_T__OnCompleted:
                     case WellKnownMember.System_Threading_Tasks_ValueTask_T__ctor:
+                    case WellKnownMember.System_MatchFailureException__ctor:
+                    case WellKnownMember.System_MatchFailureException__ctorObject:
                         // Not yet in the platform.
                         continue;
                     case WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningSingleFile:

@@ -2098,5 +2098,37 @@ class Program
             var expectedOutput = @"11";
             var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
+
+        [Fact]
+        public void MissingExceptions_01()
+        {
+            var source = @"namespace System {
+    public class Object { }
+    public abstract class ValueType { }
+    public struct Void { }
+    public struct Boolean { }
+    public struct Int32 { }
+}
+static class C {
+    public static bool M(int i) => i switch { 1 => true };
+}
+";
+            var compilation = CreateEmptyCompilation(source, options: TestOptions.ReleaseDll);
+            compilation.GetDiagnostics().Verify(
+                // (9,38): warning CS8509: The switch expression does not handle all possible inputs (it is not exhaustive).
+                //     public static bool M(int i) => i switch { 1 => true };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithLocation(9, 38)
+                );
+            compilation.GetEmitDiagnostics().Verify(
+                // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
+                Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion).WithLocation(1, 1),
+                // (9,36): error CS0656: Missing compiler required member 'System.InvalidOperationException..ctor'
+                //     public static bool M(int i) => i switch { 1 => true };
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "i switch { 1 => true }").WithArguments("System.InvalidOperationException", ".ctor").WithLocation(9, 36),
+                // (9,38): warning CS8509: The switch expression does not handle all possible inputs (it is not exhaustive).
+                //     public static bool M(int i) => i switch { 1 => true };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithLocation(9, 38)
+                );
+        }
     }
 }
