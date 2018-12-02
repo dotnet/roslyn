@@ -96,6 +96,28 @@ T:N.Banned";
         }
 
         [Fact]
+        public void CSharp_BannedApiFileLineWhiteSpace()
+        {
+            var source = @"
+namespace N
+{
+    class Banned { }
+    class C
+    {
+        void M()
+        {
+            var c = new Banned();
+        }
+    }
+}";
+
+            var bannedText = @"
+  T:N.Banned  ";
+
+            VerifyCSharp(source, bannedText, GetCSharpResultAt(9, 21, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "Banned", ""));
+        }
+
+        [Fact]
         public void CSharp_DiagnosticReportedWithMessage()
         {
             var source = @"
@@ -112,6 +134,27 @@ namespace N
 }";
 
             var bannedText = @"T:N.Banned;Use NonBanned instead";
+
+            VerifyCSharp(source, bannedText, GetCSharpResultAt(9, 21, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "Banned", ": Use NonBanned instead"));
+        }
+
+        [Fact]
+        public void CSharp_DiagnosticReportedWithMessageAndMiscWhiteSpace()
+        {
+            var source = @"
+namespace N
+{
+    class Banned { }
+    class C
+    {
+        void M()
+        {
+            var c = new Banned();
+        }
+    }
+}";
+
+            var bannedText = @"T:N.Banned ; Use NonBanned instead ";
 
             VerifyCSharp(source, bannedText, GetCSharpResultAt(9, 21, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "Banned", ": Use NonBanned instead"));
         }

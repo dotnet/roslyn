@@ -220,18 +220,18 @@ namespace Roslyn.Diagnostics.Analyzers
 
                 if (index == -1)
                 {
-                    DeclarationId = text;
+                    DeclarationId = text.Trim();
                     Message = "";
                 }
                 else if (index == text.Length - 1)
                 {
-                    DeclarationId = text.Substring(0, text.Length - 1);
+                    DeclarationId = text.Substring(0, text.Length - 1).Trim();
                     Message = "";
                 }
                 else
                 {
-                    DeclarationId = text.Substring(0, index);
-                    Message = text.Substring(index + 1);
+                    DeclarationId = text.Substring(0, index).Trim();
+                    Message = text.Substring(index + 1).Trim();
                 }
 
                 Span = span;
