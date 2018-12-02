@@ -63,8 +63,8 @@ namespace Roslyn.Diagnostics.Analyzers
                     : SymbolDisplayFormat.VisualBasicShortErrorMessageFormat;
 
                 var bannedAttributes = bannedSymbols
-                    .Where(s => s is ITypeSymbol n && n.IsAttribute())
-                    .ToImmutableHashSet();
+                    .Where(s => s.symbol is ITypeSymbol n && n.IsAttribute())
+                    .ToImmutableDictionary(s => s.symbol, s => s.message);
 
                 if (bannedAttributes.Count > 0)
                 {
@@ -96,17 +96,21 @@ namespace Roslyn.Diagnostics.Analyzers
                 {
                     foreach (AttributeData attribute in attributes)
                     {
-                        if (bannedAttributes.Contains(attribute.AttributeClass))
+                        if (bannedAttributes.TryGetValue(attribute.AttributeClass, out var message))
                         {
                             SyntaxNode node = attribute.ApplicationSyntaxReference.GetSyntax();
-                            reportDiagnostic(node.CreateDiagnostic(SymbolIsBannedRule, attribute.AttributeClass.ToDisplayString()));
+                            reportDiagnostic(
+                                node.CreateDiagnostic(
+                                    SymbolIsBannedRule, 
+                                    attribute.AttributeClass.ToDisplayString(),
+                                    string.IsNullOrWhiteSpace(message) ? "": ": " + message));
                         }
                     }
                 }
             }
         }
 
-        private static ImmutableHashSet<ISymbol> ReadBannedApis(CompilationStartAnalysisContext context)
+        private static ImmutableHashSet<(ISymbol symbol, string message)> ReadBannedApis(CompilationStartAnalysisContext context)
         {
             var query = 
                 from additionalFile in context.Options.AdditionalFiles
@@ -122,27 +126,30 @@ namespace Roslyn.Diagnostics.Analyzers
 
             if (apiLines.Count == 0)
             {
-                return ImmutableHashSet<ISymbol>.Empty;
+                return ImmutableHashSet<(ISymbol, string)>.Empty;
             }
 
             var lineById = new Dictionary<string, ApiLine>(StringComparer.Ordinal);
             var errors = new List<Diagnostic>();
-            var bannedSymbols = ImmutableHashSet.CreateBuilder<ISymbol>();
+            var bannedSymbols = ImmutableHashSet.CreateBuilder<(ISymbol symbol, string message)>();
 
             foreach (var line in apiLines)
             {
-                if (lineById.TryGetValue(line.Text, out ApiLine existingLine))
+                if (lineById.TryGetValue(line.DeclarationId, out ApiLine existingLine))
                 {
-                    errors.Add(Diagnostic.Create(DuplicateBannedSymbolRule, line.Location, new[] { existingLine.Location }, line.Text));
+                    errors.Add(Diagnostic.Create(DuplicateBannedSymbolRule, line.Location, new[] { existingLine.Location }, line.DeclarationId));
                     continue;
                 }
 
-                lineById.Add(line.Text, line);
+                lineById.Add(line.DeclarationId, line);
 
-                var symbols = DocumentationCommentId.GetSymbolsForDeclarationId(line.Text, context.Compilation);
+                var symbols = DocumentationCommentId.GetSymbolsForDeclarationId(line.DeclarationId, context.Compilation);
                 if (!symbols.IsDefaultOrEmpty)
                 {
-                    bannedSymbols.UnionWith(symbols);
+                    foreach (var symbol in symbols)
+                    {
+                        bannedSymbols.Add((symbol, line.Message));
+                    }
                 }
             }
 
@@ -161,8 +168,10 @@ namespace Roslyn.Diagnostics.Analyzers
             return bannedSymbols.ToImmutable();
         }
 
-        private static void AnalyzeOperation(OperationAnalysisContext oac, ImmutableHashSet<ISymbol> bannedSymbols, SymbolDisplayFormat symbolDisplayFormat)
+        private static void AnalyzeOperation(OperationAnalysisContext oac, ImmutableHashSet<(ISymbol symbol, string message)> bannedSymbols, SymbolDisplayFormat symbolDisplayFormat)
         {
+            var messageBySymbol = bannedSymbols.ToDictionary(s => s.symbol, s => s.message);
+
             ITypeSymbol type = null;
             switch (oac.Operation)
             {
@@ -181,9 +190,14 @@ namespace Roslyn.Diagnostics.Analyzers
 
             while (!(type is null))
             {
-                if (bannedSymbols.Contains(type))
+                if (messageBySymbol.TryGetValue(type, out var message))
                 {
-                    oac.ReportDiagnostic(Diagnostic.Create(SymbolIsBannedRule, oac.Operation.Syntax.GetLocation(), type.ToDisplayString(symbolDisplayFormat)));
+                    oac.ReportDiagnostic(
+                        Diagnostic.Create(
+                            SymbolIsBannedRule, 
+                            oac.Operation.Syntax.GetLocation(), 
+                            type.ToDisplayString(symbolDisplayFormat),
+                            string.IsNullOrWhiteSpace(message) ? "" : ": " + message));
                     break;
                 }
 
@@ -196,11 +210,30 @@ namespace Roslyn.Diagnostics.Analyzers
             public TextSpan Span { get; }
             public SourceText SourceText { get; }
             public string Path { get; }
-            public string Text { get; }
+            public string DeclarationId { get; }
+            public string Message { get; }
 
             public ApiLine(string text, TextSpan span, SourceText sourceText, string path)
             {
-                Text = text;
+                // Split the text on semicolon into declaration ID and message
+                var index = text.IndexOf(';');
+
+                if (index == -1)
+                {
+                    DeclarationId = text;
+                    Message = "";
+                }
+                else if (index == text.Length - 1)
+                {
+                    DeclarationId = text.Substring(0, text.Length - 1);
+                    Message = "";
+                }
+                else
+                {
+                    DeclarationId = text.Substring(0, index);
+                    Message = text.Substring(index + 1);
+                }
+
                 Span = span;
                 SourceText = sourceText;
                 Path = path;

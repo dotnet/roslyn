@@ -92,7 +92,49 @@ namespace N
             var bannedText = @"
 T:N.Banned";
 
-            VerifyCSharp(source, bannedText, GetCSharpResultAt(9, 21, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "Banned"));
+            VerifyCSharp(source, bannedText, GetCSharpResultAt(9, 21, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "Banned", ""));
+        }
+
+        [Fact]
+        public void CSharp_DiagnosticReportedWithMessage()
+        {
+            var source = @"
+namespace N
+{
+    class Banned { }
+    class C
+    {
+        void M()
+        {
+            var c = new Banned();
+        }
+    }
+}";
+
+            var bannedText = @"T:N.Banned;Use NonBanned instead";
+
+            VerifyCSharp(source, bannedText, GetCSharpResultAt(9, 21, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "Banned", ": Use NonBanned instead"));
+        }
+
+        [Fact]
+        public void CSharp_DiagnosticReportedWithEmptyMessage()
+        {
+            var source = @"
+namespace N
+{
+    class Banned { }
+    class C
+    {
+        void M()
+        {
+            var c = new Banned();
+        }
+    }
+}";
+
+            var bannedText = @"T:N.Banned;";
+
+            VerifyCSharp(source, bannedText, GetCSharpResultAt(9, 21, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "Banned", ""));
         }
 
         [Fact]
@@ -110,7 +152,7 @@ class C
             var bannedText = @"
 T:System.Collections.Generic.List`1";
 
-            VerifyCSharp(source, bannedText, GetCSharpResultAt(6, 17, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "List<T>"));
+            VerifyCSharp(source, bannedText, GetCSharpResultAt(6, 17, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "List<T>", ""));
         }
 
         [Fact]
@@ -129,7 +171,7 @@ class C
             var bannedText = @"
 T:C.Nested";
 
-            VerifyCSharp(source, bannedText, GetCSharpResultAt(7, 17, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C.Nested"));
+            VerifyCSharp(source, bannedText, GetCSharpResultAt(7, 17, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C.Nested", ""));
         }
 
         [Fact]
@@ -154,7 +196,7 @@ class D
             var bannedText = @"
 T:C";
 
-            VerifyCSharp(source, bannedText, GetCSharpResultAt(14, 9, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C"));
+            VerifyCSharp(source, bannedText, GetCSharpResultAt(14, 9, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C", ""));
         }
 
         [Fact]
@@ -176,7 +218,7 @@ class C
 }";
             var bannedText = @"T:I";
 
-            VerifyCSharp(source, bannedText, GetCSharpResultAt(12, 9, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "I"));
+            VerifyCSharp(source, bannedText, GetCSharpResultAt(12, 9, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "I", ""));
         }
 
         [Fact]
@@ -194,8 +236,8 @@ class C
             var bannedText = @"T:C";
 
             VerifyCSharp(source, bannedText,
-                GetCSharpResultAt(7, 9, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C"),
-                GetCSharpResultAt(7, 13, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C"));
+                GetCSharpResultAt(7, 9, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C", ""),
+                GetCSharpResultAt(7, 13, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C", ""));
         }
 
         [Fact]
@@ -213,8 +255,8 @@ class C
             var bannedText = @"T:C";
 
             VerifyCSharp(source, bannedText,
-                GetCSharpResultAt(7, 9, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C"),
-                GetCSharpResultAt(7, 13, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C"));
+                GetCSharpResultAt(7, 9, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C", ""),
+                GetCSharpResultAt(7, 13, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C", ""));
         }
 
         [Fact]
@@ -236,9 +278,9 @@ class C
             var bannedText = @"T:C";
 
             VerifyCSharp(source, bannedText,
-                GetCSharpResultAt(9, 9, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C"),
-                GetCSharpResultAt(10, 9, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C"),
-                GetCSharpResultAt(11, 9, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C"));
+                GetCSharpResultAt(9, 9, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C", ""),
+                GetCSharpResultAt(10, 9, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C", ""),
+                GetCSharpResultAt(11, 9, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C", ""));
         }
 
         [Fact]
@@ -257,7 +299,7 @@ class C
             var bannedText = @"T:C";
 
             VerifyCSharp(source, bannedText,
-                GetCSharpResultAt(7, 15, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C"));
+                GetCSharpResultAt(7, 15, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C", ""));
         }
 
         [Fact]
@@ -276,7 +318,7 @@ class D : C { }
             var bannedText = @"T:BannedAttribute";
 
             VerifyCSharp(source, bannedText,
-                GetCSharpResultAt(7, 2, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "BannedAttribute"));
+                GetCSharpResultAt(7, 2, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "BannedAttribute", ""));
         }
 
         [Fact]
@@ -296,7 +338,7 @@ class C
             var bannedText = @"T:BannedAttribute";
 
             VerifyCSharp(source, bannedText,
-                GetCSharpResultAt(8, 6, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "BannedAttribute"));
+                GetCSharpResultAt(8, 6, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "BannedAttribute", ""));
         }
 
         [Fact]
@@ -313,7 +355,7 @@ using System;
             var bannedText = @"T:BannedAttribute";
 
             VerifyCSharp(source, bannedText,
-                GetCSharpResultAt(4, 12, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "BannedAttribute"));
+                GetCSharpResultAt(4, 12, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "BannedAttribute", ""));
         }
 
         [Fact]
@@ -330,7 +372,7 @@ using System;
             var bannedText = @"T:BannedAttribute";
 
             VerifyCSharp(source, bannedText,
-                GetCSharpResultAt(4, 10, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "BannedAttribute"));
+                GetCSharpResultAt(4, 10, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "BannedAttribute", ""));
         }
 
         [Fact]
@@ -349,7 +391,7 @@ End Namespace";
             var bannedText = @"
 T:N.Banned";
 
-            VerifyBasic(source, bannedText, GetBasicResultAt(6, 22, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "Banned"));
+            VerifyBasic(source, bannedText, GetBasicResultAt(6, 22, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "Banned", ""));
         }
 
         [Fact]
@@ -365,7 +407,7 @@ End Class";
             var bannedText = @"
 T:System.Collections.Generic.List`1";
 
-            VerifyBasic(source, bannedText, GetBasicResultAt(4, 17, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "List(Of T)"));
+            VerifyBasic(source, bannedText, GetBasicResultAt(4, 17, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "List(Of T)", ""));
         }
 
         [Fact]
@@ -382,7 +424,7 @@ End Class";
             var bannedText = @"
 T:C.Nested";
 
-            VerifyBasic(source, bannedText, GetBasicResultAt(5, 18, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C.Nested"));
+            VerifyBasic(source, bannedText, GetBasicResultAt(5, 18, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C.Nested", ""));
         }
 
         [Fact]
@@ -404,7 +446,7 @@ End Class
             var bannedText = @"
 T:C";
 
-            VerifyBasic(source, bannedText, GetBasicResultAt(10, 9, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C"));
+            VerifyBasic(source, bannedText, GetBasicResultAt(10, 9, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C", ""));
         }
 
         [Fact]
@@ -423,7 +465,7 @@ Class C
 End Class";
             var bannedText = @"T:I";
 
-            VerifyBasic(source, bannedText, GetBasicResultAt(9, 9, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "I"));
+            VerifyBasic(source, bannedText, GetBasicResultAt(9, 9, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "I", ""));
         }
 
         [Fact]
@@ -439,8 +481,8 @@ End Class";
             var bannedText = @"T:C";
 
             VerifyBasic(source, bannedText,
-                GetBasicResultAt(5, 9, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C"),
-                GetBasicResultAt(5, 13, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C"));
+                GetBasicResultAt(5, 9, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C", ""),
+                GetBasicResultAt(5, 13, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C", ""));
         }
 
         [Fact]
@@ -456,8 +498,8 @@ End Class";
             var bannedText = @"T:C";
 
             VerifyBasic(source, bannedText,
-                GetBasicResultAt(5, 9, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C"),
-                GetBasicResultAt(5, 13, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C"));
+                GetBasicResultAt(5, 9, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C", ""),
+                GetBasicResultAt(5, 13, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C", ""));
         }
 
         [Fact]
@@ -477,9 +519,9 @@ End Class";
             var bannedText = @"T:C";
 
             VerifyBasic(source, bannedText,
-                GetBasicResultAt(7, 20, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C"),
-                GetBasicResultAt(8, 23, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C"),
-                GetBasicResultAt(9, 20, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C"));
+                GetBasicResultAt(7, 20, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C", ""),
+                GetBasicResultAt(8, 23, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C", ""),
+                GetBasicResultAt(9, 20, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C", ""));
         }
 
         [Fact]
@@ -495,7 +537,7 @@ End Class";
             var bannedText = @"T:C";
 
             VerifyBasic(source, bannedText,
-                GetBasicResultAt(5, 22, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C"));
+                GetBasicResultAt(5, 22, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C", ""));
         }
 
         [Fact]
@@ -519,7 +561,7 @@ End Class
             var bannedText = @"T:BannedAttribute";
 
             VerifyBasic(source, bannedText,
-                GetBasicResultAt(9, 2, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "BannedAttribute"));
+                GetBasicResultAt(9, 2, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "BannedAttribute", ""));
         }
 
         [Fact]
@@ -541,7 +583,7 @@ End Class
             var bannedText = @"T:BannedAttribute";
 
             VerifyBasic(source, bannedText,
-                GetBasicResultAt(10, 6, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "BannedAttribute"));
+                GetBasicResultAt(10, 6, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "BannedAttribute", ""));
         }
 
         [Fact]
@@ -561,7 +603,7 @@ End Class
             var bannedText = @"T:BannedAttribute";
 
             VerifyBasic(source, bannedText,
-                GetBasicResultAt(4, 2, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "BannedAttribute"));
+                GetBasicResultAt(4, 2, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "BannedAttribute", ""));
         }
 
         [Fact]
@@ -581,7 +623,7 @@ End Class
             var bannedText = @"T:BannedAttribute";
 
             VerifyBasic(source, bannedText,
-                GetBasicResultAt(4, 2, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "BannedAttribute"));
+                GetBasicResultAt(4, 2, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "BannedAttribute", ""));
         }
 
         #endregion

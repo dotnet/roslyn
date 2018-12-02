@@ -262,7 +262,7 @@
     <value>The symbol has been marked as banned in this project, and an alternate should be used instead.</value>
   </data>
   <data name="SymbolIsBannedMessage" xml:space="preserve">
-    <value>The symbol '{0}' is banned in this project</value>
+    <value>The symbol '{0}' is banned in this project{1}</value>
   </data>
   <data name="SymbolIsBannedTitle" xml:space="preserve">
     <value>Do not used banned APIs</value>

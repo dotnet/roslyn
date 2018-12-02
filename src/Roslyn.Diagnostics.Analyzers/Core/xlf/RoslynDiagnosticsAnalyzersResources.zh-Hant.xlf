@@ -23,8 +23,8 @@
         <note />
       </trans-unit>
       <trans-unit id="SymbolIsBannedMessage">
-        <source>The symbol '{0}' is banned in this project</source>
-        <target state="new">The symbol '{0}' is banned in this project</target>
+        <source>The symbol '{0}' is banned in this project{1}</source>
+        <target state="new">The symbol '{0}' is banned in this project{1}</target>
         <note />
       </trans-unit>
       <trans-unit id="SymbolIsBannedTitle">
