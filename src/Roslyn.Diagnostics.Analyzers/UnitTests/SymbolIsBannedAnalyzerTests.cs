@@ -74,7 +74,7 @@ T:System.Console";
         }
 
         [Fact]
-        public void CSharp_DiagnosticReportedForTypeInSource()
+        public void CSharp_BannedApiFile_MessageIncludedInDiagnostic()
         {
             var source = @"
 namespace N
@@ -89,14 +89,13 @@ namespace N
     }
 }";
 
-            var bannedText = @"
-T:N.Banned";
+            var bannedText = @"T:N.Banned;Use NonBanned instead";
 
-            VerifyCSharp(source, bannedText, GetCSharpResultAt(9, 21, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "Banned", ""));
+            VerifyCSharp(source, bannedText, GetCSharpResultAt(9, 21, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "Banned", ": Use NonBanned instead"));
         }
 
         [Fact]
-        public void CSharp_BannedApiFileLineWhiteSpace()
+        public void CSharp_BannedApiFile_WhiteSpace()
         {
             var source = @"
 namespace N
@@ -118,28 +117,7 @@ namespace N
         }
 
         [Fact]
-        public void CSharp_DiagnosticReportedWithMessage()
-        {
-            var source = @"
-namespace N
-{
-    class Banned { }
-    class C
-    {
-        void M()
-        {
-            var c = new Banned();
-        }
-    }
-}";
-
-            var bannedText = @"T:N.Banned;Use NonBanned instead";
-
-            VerifyCSharp(source, bannedText, GetCSharpResultAt(9, 21, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "Banned", ": Use NonBanned instead"));
-        }
-
-        [Fact]
-        public void CSharp_DiagnosticReportedWithMessageAndMiscWhiteSpace()
+        public void CSharp_BannedApiFile_WhiteSpaceWithMessage()
         {
             var source = @"
 namespace N
@@ -160,7 +138,7 @@ namespace N
         }
 
         [Fact]
-        public void CSharp_DiagnosticReportedWithEmptyMessage()
+        public void CSharp_BannedApiFile_EmptyMessage()
         {
             var source = @"
 namespace N
@@ -181,7 +159,29 @@ namespace N
         }
 
         [Fact]
-        public void CSharp_DiagnosticReportedForGenericTypeFromMetadata()
+        public void CSharp_BannedType_Constructor()
+        {
+            var source = @"
+namespace N
+{
+    class Banned { }
+    class C
+    {
+        void M()
+        {
+            var c = new Banned();
+        }
+    }
+}";
+
+            var bannedText = @"
+T:N.Banned";
+
+            VerifyCSharp(source, bannedText, GetCSharpResultAt(9, 21, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "Banned", ""));
+        }
+
+        [Fact]
+        public void CSharp_BannedGenericType_Constructor()
         {
             var source = @"
 class C
@@ -199,7 +199,7 @@ T:System.Collections.Generic.List`1";
         }
 
         [Fact]
-        public void CSharp_DiagnosticReportedForNestedType()
+        public void CSharp_BannedNestedType_Constructor()
         {
             var source = @"
 class C
@@ -218,7 +218,7 @@ T:C.Nested";
         }
 
         [Fact]
-        public void CSharp_DiagnosticReportedForNestedType2()
+        public void CSharp_BannedType_MethodOnNestedType()
         {
             var source = @"
 class C
@@ -243,7 +243,7 @@ T:C";
         }
 
         [Fact]
-        public void CSharp_InvocationOfMethodOnInterface()
+        public void CSharp_BannedInterface_Method()
         {
             var source = @"
 interface I
@@ -265,7 +265,7 @@ class C
         }
 
         [Fact]
-        public void CSharp_PropertyAccess()
+        public void CSharp_BannedClass_Property()
         {
             var source = @"
 class C
@@ -284,7 +284,7 @@ class C
         }
 
         [Fact]
-        public void CSharp_FieldAccess()
+        public void CSharp_BannedClass_Field()
         {
             var source = @"
 class C
@@ -303,7 +303,7 @@ class C
         }
 
         [Fact]
-        public void CSharp_EventAccess()
+        public void CSharp_BannedClass_Event()
         {
             var source = @"
 using System;
@@ -327,7 +327,7 @@ class C
         }
 
         [Fact]
-        public void CSharp_MethodReference()
+        public void CSharp_BannedClass_MethodGroup()
         {
             var source = @"
 delegate void D();
@@ -346,7 +346,7 @@ class C
         }
 
         [Fact]
-        public void CSharp_TypeAttributeUsage()
+        public void CSharp_BannedAttribute_UsageOnType()
         {
             var source = @"
 using System;
@@ -365,12 +365,13 @@ class D : C { }
         }
 
         [Fact]
-        public void CSharp_MemberAttributeUsage()
+        public void CSharp_BannedAttribute_UsageOnMember()
         {
             var source = @"
 using System;
 
-[AttributeUsage(AttributeTargets.All, Inherited = true)] class BannedAttribute : Attribute { }
+[AttributeUsage(AttributeTargets.All, Inherited = true)]
+class BannedAttribute : Attribute { }
 
 class C 
 {
@@ -381,18 +382,19 @@ class C
             var bannedText = @"T:BannedAttribute";
 
             VerifyCSharp(source, bannedText,
-                GetCSharpResultAt(8, 6, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "BannedAttribute", ""));
+                GetCSharpResultAt(9, 6, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "BannedAttribute", ""));
         }
 
         [Fact]
-        public void CSharp_AssemblyAttributeUsage()
+        public void CSharp_BannedAttribute_UsageOnAssembly()
         {
             var source = @"
 using System;
 
 [assembly: BannedAttribute]
 
-[AttributeUsage(AttributeTargets.All, Inherited = true)] class BannedAttribute : Attribute { }
+[AttributeUsage(AttributeTargets.All, Inherited = true)]
+class BannedAttribute : Attribute { }
 ";
 
             var bannedText = @"T:BannedAttribute";
@@ -402,14 +404,15 @@ using System;
         }
 
         [Fact]
-        public void CSharp_ModuleAttributeUsage()
+        public void CSharp_BannedAttribute_UsageOnModule()
         {
             var source = @"
 using System;
 
 [module: BannedAttribute]
 
-[AttributeUsage(AttributeTargets.All, Inherited = true)] class BannedAttribute : Attribute { }
+[AttributeUsage(AttributeTargets.All, Inherited = true)]
+class BannedAttribute : Attribute { }
 ";
 
             var bannedText = @"T:BannedAttribute";
@@ -419,7 +422,7 @@ using System;
         }
 
         [Fact]
-        public void VisualBasic_DiagnosticReportedForTypeInSource()
+        public void VisualBasic_BannedType_Constructor()
         {
             var source = @"
 Namespace N
@@ -438,7 +441,7 @@ T:N.Banned";
         }
 
         [Fact]
-        public void VisualBasic_DiagnosticReportedForGenericTypeFromMetadata()
+        public void VisualBasic_BannedGenericType_Constructor()
         {
             var source = @"
 Class C
@@ -454,7 +457,7 @@ T:System.Collections.Generic.List`1";
         }
 
         [Fact]
-        public void VisualBasic_DiagnosticReportedForNestedType()
+        public void VisualBasic_BannedNestedType_Constructor()
         {
             var source = @"
 Class C
@@ -471,7 +474,7 @@ T:C.Nested";
         }
 
         [Fact]
-        public void VisualBasic_DiagnosticReportedForNestedType2()
+        public void VisualBasic_BannedType_MethodOnNestedType()
         {
             var source = @"
 Class C
@@ -493,7 +496,7 @@ T:C";
         }
 
         [Fact]
-        public void VisualBasic_InvocationOfMethodOnInterface()
+        public void VisualBasic_BannedInterface_Method()
         {
             var source = @"
 Interface I
@@ -512,7 +515,7 @@ End Class";
         }
 
         [Fact]
-        public void VisualBasic_PropertyAccess()
+        public void VisualBasic_BannedClass_Property()
         {
             var source = @"
 Class C
@@ -529,7 +532,7 @@ End Class";
         }
 
         [Fact]
-        public void VisualBasic_FieldAccess()
+        public void VisualBasic_BannedClass_Field()
         {
             var source = @"
 Class C
@@ -546,7 +549,7 @@ End Class";
         }
 
         [Fact]
-        public void VisualBasic_EventAccess()
+        public void VisualBasic_BannedClass_Event()
         {
             var source = @"
 Imports System
@@ -568,7 +571,7 @@ End Class";
         }
 
         [Fact]
-        public void VisualBasic_MethodReference()
+        public void VisualBasic_BannedClass_MethodGroup()
         {
             var source = @"
 Delegate Sub D()
@@ -584,7 +587,7 @@ End Class";
         }
 
         [Fact]
-        public void VisualBasic_TypeAttributeUsage()
+        public void VisualBasic_BannedAttribute_UsageOnType()
         {
             var source = @"
 Imports System
@@ -608,7 +611,7 @@ End Class
         }
 
         [Fact]
-        public void VisualBasic_MemberAttributeUsage()
+        public void VisualBasic_BannedAttribute_UsageOnMember()
         {
             var source = @"
 Imports System
@@ -630,7 +633,7 @@ End Class
         }
 
         [Fact]
-        public void VisualBasic_AssemblyAttributeUsage()
+        public void VisualBasic_BannedAttribute_UsageOnAssembly()
         {
             var source = @"
 Imports System
@@ -650,7 +653,7 @@ End Class
         }
 
         [Fact]
-        public void VisualBasic_ModuleAttributeUsage()
+        public void VisualBasic_BannedAttribute_UsageOnModule()
         {
             var source = @"
 Imports System
