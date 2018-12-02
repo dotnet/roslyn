@@ -83,8 +83,10 @@ namespace Roslyn.Diagnostics.Analyzers
                         SymbolKind.Event);
                 }
 
+                var messageByBannedSymbol = bannedSymbols.ToDictionary(s => s.symbol, s => s.message);
+
                 compilationContext.RegisterOperationAction(
-                    oac => AnalyzeOperation(oac, bannedSymbols, symbolDisplayFormat),
+                    oac => AnalyzeOperation(oac, messageByBannedSymbol, symbolDisplayFormat),
                     OperationKind.ObjectCreation,
                     OperationKind.Invocation,
                     OperationKind.EventReference,
@@ -168,10 +170,8 @@ namespace Roslyn.Diagnostics.Analyzers
             return bannedSymbols.ToImmutable();
         }
 
-        private static void AnalyzeOperation(OperationAnalysisContext oac, ImmutableHashSet<(ISymbol symbol, string message)> bannedSymbols, SymbolDisplayFormat symbolDisplayFormat)
+        private static void AnalyzeOperation(OperationAnalysisContext oac, Dictionary<ISymbol, string> messageByBannedSymbol, SymbolDisplayFormat symbolDisplayFormat)
         {
-            var messageBySymbol = bannedSymbols.ToDictionary(s => s.symbol, s => s.message);
-
             ITypeSymbol type = null;
             switch (oac.Operation)
             {
@@ -190,7 +190,7 @@ namespace Roslyn.Diagnostics.Analyzers
 
             while (!(type is null))
             {
-                if (messageBySymbol.TryGetValue(type, out var message))
+                if (messageByBannedSymbol.TryGetValue(type, out var message))
                 {
                     oac.ReportDiagnostic(
                         Diagnostic.Create(
