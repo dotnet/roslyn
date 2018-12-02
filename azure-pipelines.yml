@@ -19,7 +19,7 @@ phases:
         _testKind: Test64
 
   steps:
-    - script: build/scripts/cibuild.cmd -configuration $(_configuration) -testDesktop -$(_testKind)
+    - script: build/scripts/cibuild.cmd -configuration $(_configuration) -testDesktop -$(_testKind) -procdump
       displayName: Build and Test
 
     - task: PublishTestResults@1
