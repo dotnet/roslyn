@@ -9,6 +9,8 @@ using Xunit;
 
 namespace Roslyn.Diagnostics.Analyzers.UnitTests
 {
+    // For specification of document comment IDs see https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/language-specification/documentation-comments#processing-the-documentation-file
+
     public class SymbolIsBannedAnalyzerTests : DiagnosticAnalyzerTestBase
     {
         protected override DiagnosticAnalyzer GetCSharpDiagnosticAnalyzer()
@@ -422,6 +424,180 @@ class BannedAttribute : Attribute { }
         }
 
         [Fact]
+        public void CSharp_BannedConstructor()
+        {
+            var source = @"
+namespace N
+{
+    class Banned
+    {
+        public Banned() {}
+        public Banned(int i) {}
+    }
+    class C
+    {
+        void M()
+        {
+            var c = new Banned();
+            var d = new Banned(1);
+        }
+    }
+}";
+
+            var bannedText1 = @"M:N.Banned.#ctor";
+            var bannedText2 = @"M:N.Banned.#ctor(System.Int32)";
+
+            VerifyCSharp(
+                source,
+                bannedText1,
+                GetCSharpResultAt(13, 21, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "Banned.Banned()", ""));
+
+            VerifyCSharp(
+                source,
+                bannedText2,
+                GetCSharpResultAt(14, 21, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "Banned.Banned(int)", ""));
+        }
+
+        [Fact]
+        public void CSharp_BannedMethod()
+        {
+            var source = @"
+namespace N
+{
+    class C
+    {
+        public void Banned() {}
+        public void Banned(int i) {}
+
+        void M()
+        {
+            Banned();
+            Banned(1);
+        }
+    }
+}";
+
+            var bannedText1 = @"M:N.C.Banned";
+            var bannedText2 = @"M:N.C.Banned(System.Int32)";
+
+            VerifyCSharp(
+                source,
+                bannedText1,
+                GetCSharpResultAt(11, 13, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C.Banned()", ""));
+
+            VerifyCSharp(
+                source,
+                bannedText2,
+                GetCSharpResultAt(12, 13, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C.Banned(int)", ""));
+        }
+
+        [Fact]
+        public void CSharp_BannedProperty()
+        {
+            var source = @"
+namespace N
+{
+    class C
+    {
+        public int Banned { get; set; }
+
+        void M()
+        {
+            Banned = Banned;
+        }
+    }
+}";
+
+            var bannedText = @"P:N.C.Banned";
+
+            VerifyCSharp(
+                source,
+                bannedText,
+                GetCSharpResultAt(10, 13, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C.Banned", ""),
+                GetCSharpResultAt(10, 22, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C.Banned", ""));
+        }
+
+        [Fact]
+        public void CSharp_BannedField()
+        {
+            var source = @"
+namespace N
+{
+    class C
+    {
+        public int Banned;
+
+        void M()
+        {
+            Banned = Banned;
+        }
+    }
+}";
+
+            var bannedText = @"F:N.C.Banned";
+
+            VerifyCSharp(
+                source,
+                bannedText,
+                GetCSharpResultAt(10, 13, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C.Banned", ""),
+                GetCSharpResultAt(10, 22, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C.Banned", ""));
+        }
+
+        [Fact]
+        public void CSharp_BannedEvent()
+        {
+            var source = @"
+namespace N
+{
+    class C
+    {
+        public event System.Action Banned;
+
+        void M()
+        {
+            Banned += null;
+            Banned -= null;
+            Banned();
+        }
+    }
+}";
+
+            var bannedText = @"E:N.C.Banned";
+
+            VerifyCSharp(
+                source,
+                bannedText,
+                GetCSharpResultAt(10, 13, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C.Banned", ""),
+                GetCSharpResultAt(11, 13, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C.Banned", ""),
+                GetCSharpResultAt(12, 13, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C.Banned", ""));
+        }
+
+        [Fact]
+        public void CSharp_BannedMethodGroup()
+        {
+            var source = @"
+namespace N
+{
+    class C
+    {
+        public void Banned() {}
+
+        void M()
+        {
+            System.Action b = Banned;
+        }
+    }
+}";
+
+            var bannedText = @"M:N.C.Banned";
+
+            VerifyCSharp(
+                source,
+                bannedText,
+                GetCSharpResultAt(10, 31, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C.Banned()", ""));
+        }
+
+        [Fact]
         public void VisualBasic_BannedType_Constructor()
         {
             var source = @"
@@ -434,8 +610,7 @@ Namespace N
     End Class
 End Namespace";
 
-            var bannedText = @"
-T:N.Banned";
+            var bannedText = @"T:N.Banned";
 
             VerifyBasic(source, bannedText, GetBasicResultAt(6, 22, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "Banned", ""));
         }
@@ -670,6 +845,156 @@ End Class
 
             VerifyBasic(source, bannedText,
                 GetBasicResultAt(4, 2, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "BannedAttribute", ""));
+        }
+
+        [Fact]
+        public void VisualBasic_BannedConstructor()
+        {
+            var source = @"
+Namespace N
+    Class Banned
+        Sub New : End Sub
+        Sub New(ByVal I As Integer) : End Sub
+    End Class
+    Class C
+        Sub M()
+            Dim c As New Banned()
+            Dim d As New Banned(1)
+        End Sub
+    End Class
+End Namespace";
+
+            var bannedText1 = @"M:N.Banned.#ctor";
+            var bannedText2 = @"M:N.Banned.#ctor(System.Int32)";
+
+            VerifyBasic(
+                source,
+                bannedText1,
+                GetBasicResultAt(9, 22, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "Public Sub New()", ""));
+
+            VerifyBasic(
+                source,
+                bannedText2,
+                GetBasicResultAt(10, 22, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "Public Sub New(I As Integer)", ""));
+        }
+
+        [Fact]
+        public void VisualBasic_BannedMethod()
+        {
+            var source = @"
+Namespace N
+    Class C
+        Sub Banned : End Sub
+        Sub Banned(ByVal I As Integer) : End Sub
+        Sub M()
+            Me.Banned()
+            Me.Banned(1)
+        End Sub
+    End Class
+End Namespace";
+
+            var bannedText1 = @"M:N.C.Banned";
+            var bannedText2 = @"M:N.C.Banned(System.Int32)";
+
+            VerifyBasic(
+                source,
+                bannedText1,
+                GetBasicResultAt(7, 13, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "Public Sub Banned()", ""));
+
+            VerifyBasic(
+                source,
+                bannedText2,
+                GetBasicResultAt(8, 13, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "Public Sub Banned(I As Integer)", ""));
+        }
+
+        [Fact]
+        public void VisualBasic_BannedProperty()
+        {
+            var source = @"
+Namespace N
+    Class C
+        Public Property Banned As Integer
+        Sub M()
+            Banned = Banned
+        End Sub
+    End Class
+End Namespace";
+
+            var bannedText = @"P:N.C.Banned";
+
+            VerifyBasic(
+                source,
+                bannedText,
+                GetBasicResultAt(6, 13, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "Public Property Banned As Integer", ""),
+                GetBasicResultAt(6, 22, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "Public Property Banned As Integer", ""));
+        }
+
+        [Fact]
+        public void VisualBasic_BannedField()
+        {
+            var source = @"
+Namespace N
+    Class C
+        Public Banned As Integer
+        Sub M()
+            Banned = Banned
+        End Sub
+    End Class
+End Namespace";
+
+            var bannedText = @"F:N.C.Banned";
+
+            VerifyBasic(
+                source,
+                bannedText,
+                GetBasicResultAt(6, 13, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "Public Banned As Integer", ""),
+                GetBasicResultAt(6, 22, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "Public Banned As Integer", ""));
+        }
+
+        [Fact]
+        public void VisualBasic_BannedEvent()
+        {
+            var source = @"
+Namespace N
+    Class C
+        Public Event Banned As System.Action
+        Sub M()
+            AddHandler Banned, Nothing
+            RemoveHandler Banned, Nothing
+            RaiseEvent Banned()
+        End Sub
+    End Class
+End Namespace";
+
+            var bannedText = @"E:N.C.Banned";
+
+            VerifyBasic(
+                source,
+                bannedText,
+                GetBasicResultAt(6, 24, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "Public Event Banned As Action", ""),
+                GetBasicResultAt(7, 27, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "Public Event Banned As Action", ""),
+                GetBasicResultAt(8, 24, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "Public Event Banned As Action", ""));
+        }
+
+        [Fact]
+        public void VisualBasic_BannedMethodGroup()
+        {
+            var source = @"
+Namespace N
+    Class C
+        Public Sub Banned() : End Sub
+        Sub M()
+            Dim b As System.Action = AddressOf Banned
+        End Sub
+    End Class
+End Namespace";
+
+            var bannedText = @"M:N.C.Banned";
+
+            VerifyBasic(
+                source,
+                bannedText,
+                GetBasicResultAt(6, 38, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "Public Sub Banned()", ""));
         }
 
         #endregion

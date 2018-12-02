@@ -175,14 +175,17 @@ namespace Roslyn.Diagnostics.Analyzers
             switch (oac.Operation)
             {
                 case IObjectCreationOperation objectCreation:
+                    ValidateSymbol(objectCreation.Constructor);
                     ValidateType(objectCreation.Type.OriginalDefinition);
                     break;
 
                 case IInvocationOperation invocation:
+                    ValidateSymbol(invocation.TargetMethod);
                     ValidateType(invocation.TargetMethod.ContainingType.OriginalDefinition);
                     break;
 
                 case IMemberReferenceOperation memberReference:
+                    ValidateSymbol(memberReference.Member);
                     ValidateType(memberReference.Member.ContainingType.OriginalDefinition);
                     break;
             }
@@ -203,6 +206,19 @@ namespace Roslyn.Diagnostics.Analyzers
                     }
 
                     type = type.ContainingType;
+                }
+            }
+
+            void ValidateSymbol(ISymbol symbol)
+            {
+                if (messageByBannedSymbol.TryGetValue(symbol, out var message))
+                {
+                    oac.ReportDiagnostic(
+                        Diagnostic.Create(
+                            SymbolIsBannedRule,
+                            oac.Operation.Syntax.GetLocation(),
+                            symbol.ToDisplayString(symbolDisplayFormat),
+                            string.IsNullOrWhiteSpace(message) ? "" : ": " + message));
                 }
             }
         }
