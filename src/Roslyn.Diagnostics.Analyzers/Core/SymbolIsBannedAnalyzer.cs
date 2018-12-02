@@ -172,36 +172,38 @@ namespace Roslyn.Diagnostics.Analyzers
 
         private static void AnalyzeOperation(OperationAnalysisContext oac, Dictionary<ISymbol, string> messageByBannedSymbol, SymbolDisplayFormat symbolDisplayFormat)
         {
-            ITypeSymbol type = null;
             switch (oac.Operation)
             {
                 case IObjectCreationOperation objectCreation:
-                    type = objectCreation.Type.OriginalDefinition;
+                    ValidateType(objectCreation.Type.OriginalDefinition);
                     break;
 
                 case IInvocationOperation invocation:
-                    type = invocation.TargetMethod.ContainingType.OriginalDefinition;
+                    ValidateType(invocation.TargetMethod.ContainingType.OriginalDefinition);
                     break;
 
                 case IMemberReferenceOperation memberReference:
-                    type = memberReference.Member.ContainingType.OriginalDefinition;
+                    ValidateType(memberReference.Member.ContainingType.OriginalDefinition);
                     break;
             }
 
-            while (!(type is null))
+            void ValidateType(ITypeSymbol type)
             {
-                if (messageByBannedSymbol.TryGetValue(type, out var message))
+                while (!(type is null))
                 {
-                    oac.ReportDiagnostic(
-                        Diagnostic.Create(
-                            SymbolIsBannedRule, 
-                            oac.Operation.Syntax.GetLocation(), 
-                            type.ToDisplayString(symbolDisplayFormat),
-                            string.IsNullOrWhiteSpace(message) ? "" : ": " + message));
-                    break;
-                }
+                    if (messageByBannedSymbol.TryGetValue(type, out var message))
+                    {
+                        oac.ReportDiagnostic(
+                            Diagnostic.Create(
+                                SymbolIsBannedRule,
+                                oac.Operation.Syntax.GetLocation(),
+                                type.ToDisplayString(symbolDisplayFormat),
+                                string.IsNullOrWhiteSpace(message) ? "" : ": " + message));
+                        break;
+                    }
 
-                type = type.ContainingType;
+                    type = type.ContainingType;
+                }
             }
         }
 
