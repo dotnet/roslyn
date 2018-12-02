@@ -20210,7 +20210,7 @@ class C
 }";
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             // https://github.com/dotnet/roslyn/issues/29890: Should report ErrorCode.HDN_ExpressionIsProbablyNeverNull.
-            // See comment in DataFlowPass.VisitAnonymousObjectCreationExpression.
+            // See comment in DefiniteAssignment.VisitAnonymousObjectCreationExpression.
             comp.VerifyDiagnostics();
         }
 
