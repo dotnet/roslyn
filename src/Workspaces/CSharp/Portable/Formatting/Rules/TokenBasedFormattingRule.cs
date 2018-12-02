@@ -308,7 +308,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                                                SyntaxKind.LabeledStatement,
                                                SyntaxKind.AttributeTargetSpecifier,
                                                SyntaxKind.NameColon,
-                                               SyntaxKind.SwitchExpressionArm))
+                                               SyntaxKindEx.SwitchExpressionArm))
                 {
                     return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
                 }
