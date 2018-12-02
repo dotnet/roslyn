@@ -29,9 +29,9 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp
 {
     /// <summary>
-    /// Implement C# data flow analysis (definite assignment).
+    /// Implement C# definite assignment.
     /// </summary>
-    internal partial class DataFlowPass : DataFlowPassBase<DataFlowPass.LocalState>
+    internal partial class DefiniteAssignmentPass : LocalDataFlowPass<DefiniteAssignmentPass.LocalState>
     {
         /// <summary>
         /// Some variables that should be considered initially assigned.  Used for region analysis.
@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             base.Free();
         }
 
-        internal DataFlowPass(
+        internal DefiniteAssignmentPass(
             CSharpCompilation compilation,
             Symbol member,
             BoundNode node,
@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.topLevelMethod = member as MethodSymbol;
         }
 
-        internal DataFlowPass(
+        internal DefiniteAssignmentPass(
             CSharpCompilation compilation,
             Symbol member,
             BoundNode node,
@@ -162,7 +162,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Constructor to be used for region analysis, for which a struct type should never be considered empty.
         /// </summary>
-        internal DataFlowPass(
+        internal DefiniteAssignmentPass(
             CSharpCompilation compilation,
             Symbol member,
             BoundNode node,
@@ -190,7 +190,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<ParameterSymbol> methodParameters = MethodParameters;
             ParameterSymbol methodThisParameter = MethodThisParameter;
             _alreadyReported = BitVector.Empty;           // no variables yet reported unassigned
-            this.State = ReachableState();                   // entry point is reachable
+            this.State = TopState();                   // entry point is reachable
             this.regionPlace = RegionPlace.Before;
             EnterParameters(methodParameters);               // with parameters assigned
             if ((object)methodThisParameter != null)
@@ -220,7 +220,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     this.State = returnBranch.State;
                     LeaveParameters(methodParameters, returnBranch.Branch.Syntax, null);
                     if ((object)methodThisParameter != null) LeaveParameter(methodThisParameter, returnBranch.Branch.Syntax, null);
-                    IntersectWith(ref savedState, ref this.State);
+                    Join(ref savedState, ref this.State);
                 }
 
                 this.State = savedState;
@@ -347,7 +347,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(diagnostics != null);
 
-            var walker = new DataFlowPass(
+            var walker = new DefiniteAssignmentPass(
                 compilation,
                 member,
                 node,
@@ -1318,12 +1318,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             SetSlotUnassigned(slot, ref this.State);
         }
 
-        protected override LocalState ReachableState()
+        protected override LocalState TopState()
         {
             return new LocalState(BitVector.Empty);
         }
 
-        protected override LocalState AllBitsSet()
+        protected override LocalState ReachableBottomState()
         {
             var result = new LocalState(BitVector.AllSet(nextVariableSlot));
             result.Assigned[0] = false; // make the state reachable
@@ -1715,7 +1715,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // State after the lambda declaration
             LocalState stateAfterLambda = this.State;
 
-            this.State = this.State.Reachable ? this.State.Clone() : AllBitsSet();
+            this.State = this.State.Reachable ? this.State.Clone() : ReachableBottomState();
 
             if (!node.WasCompilerGenerated) EnterParameters(node.Symbol.Parameters);
             var oldPending2 = SavePending();
@@ -1725,7 +1725,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             RestorePending(oldPending);
             LeaveParameters(node.Symbol.Parameters, node.Syntax, null);
 
-            IntersectWith(ref stateAfterLambda, ref this.State); // a no-op except in region analysis
+            Join(ref stateAfterLambda, ref this.State); // a no-op except in region analysis
             foreach (PendingBranch pending in pendingReturns)
             {
                 this.State = pending.State;
@@ -1739,7 +1739,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // other ways of branching out of a lambda are errors, previously reported in control-flow analysis
                 }
 
-                IntersectWith(ref stateAfterLambda, ref this.State); // a no-op except in region analysis
+                Join(ref stateAfterLambda, ref this.State); // a no-op except in region analysis
             }
 
             this.State = stateAfterLambda;
@@ -2061,8 +2061,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        protected override void ConditionallyAssignNullCoalescingOperator(BoundNullCoalescingAssignmentOperator node)
+        protected override void VisitAssignmentOfNullCoalescingAssignment(
+            BoundNullCoalescingAssignmentOperator node,
+            BoundPropertyAccess propertyAccessOpt)
         {
+            base.VisitAssignmentOfNullCoalescingAssignment(node, propertyAccessOpt);
             Assign(node.LeftOperand, node.RightOperand);
         }
 
@@ -2103,7 +2106,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 id.Symbol.Name);
         }
 
-        protected override void UnionWith(ref LocalState self, ref LocalState other)
+        protected override void Meet(ref LocalState self, ref LocalState other)
         {
             if (self.Assigned.Capacity != other.Assigned.Capacity)
             {
@@ -2122,7 +2125,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        protected override bool IntersectWith(ref LocalState self, ref LocalState other)
+        protected override bool Join(ref LocalState self, ref LocalState other)
         {
             if (self.Reachable == other.Reachable)
             {
@@ -2147,9 +2150,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
 #if REFERENCE_STATE
-        internal class LocalState : AbstractLocalState
+        internal class LocalState : ILocalState
 #else
-        internal struct LocalState : AbstractLocalState
+        internal struct LocalState : ILocalState
 #endif
         {
             internal BitVector Assigned;
