@@ -7968,6 +7968,13 @@ tryAgain:
             // into a `!(cond)` expression.  This way all downstream semantic consumers of the
             // if-statement will just see this as normal logical-not expression and can handle it
             // appropriately.
+            //
+            // Note we do things this was, as opposed to just calling 'ParseExpression' on the `!`
+            // because that approach could end up producing a different tree for things like
+            // `!(expr1)(expr).ToString();` Calling ParseExpression would continue consuming
+            // `(expr2)` as an invocation and `.ToString` as a member access and so on.  By eating
+            // the `!` manually, and then handling the parenthesized condition in the normal
+            // if-parsing fashion, we ensure that we are not thrown off here.
             if (exclamationToken != default)
             {
                 exclamationToken = CheckFeatureAvailability(exclamationToken, MessageID.IDS_FeatureGuardStatements);
