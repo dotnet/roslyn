@@ -15,21 +15,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     /// </summary>
     public class UsingStatementTests : CompilingTestBase
     {
-        private readonly string _managedClass = @"
+        private const string _managedClass = @"
 class MyManagedType : System.IDisposable
 {
     public void Dispose()
     { }
 }";
 
-        private readonly string _managedStruct = @"
+        private const string _managedStruct = @"
 struct MyManagedType : System.IDisposable
 {
     public void Dispose()
     { }
 }";
 
-        private readonly string _asyncDisposable = @"
+        private const string _asyncDisposable = @"
 namespace System
 {
     public interface IAsyncDisposable
@@ -2409,7 +2409,7 @@ class C1 : IDisposable
         }
 
         [Fact]
-        public void DiagnosticsInUsingVariableDeclaration()
+        public void DiagnosticsInUsingVariableDeclarationAreOnlyEmittedOnce()
         {
             var source = @"
 using System;
