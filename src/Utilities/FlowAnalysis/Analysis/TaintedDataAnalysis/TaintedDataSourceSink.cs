@@ -10,10 +10,10 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
     /// </summary>
     internal sealed class TaintedDataSourceSink
     {
-        public TaintedDataSourceSink(SymbolAccess sink, SinkKind sinkKind, ImmutableHashSet<SymbolAccess> sourceOrigins)
+        public TaintedDataSourceSink(SymbolAccess sink, ImmutableHashSet<SinkKind> sinkKinds, ImmutableHashSet<SymbolAccess> sourceOrigins)
         {
             Sink = sink ?? throw new ArgumentNullException(nameof(sink));
-            SinkKind = sinkKind;
+            SinkKinds = sinkKinds;
             SourceOrigins = sourceOrigins;
         }
 
@@ -25,7 +25,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         /// <summary>
         /// Kind of sink (e.g. SQL).
         /// </summary>
-        public SinkKind SinkKind { get; }
+        public ImmutableHashSet<SinkKind> SinkKinds { get; }
 
         /// <summary>
         /// <see cref="SymbolAccess"/>s of the origins of the tainted data.

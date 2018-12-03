@@ -129,6 +129,7 @@ namespace Analyzer.Utilities
         public const string SystemWebUILosFormatter = "System.Web.UI.LosFormatter";
         public const string SystemReflectionAssembly = "System.Reflection.Assembly";
         public const string SystemAppDomain = "System.AppDomain";
+        public const string SystemWindowsAssemblyPart = "System.Windows.AssemblyPart";
 
         public static INamedTypeSymbol ICollection(Compilation compilation)
         {

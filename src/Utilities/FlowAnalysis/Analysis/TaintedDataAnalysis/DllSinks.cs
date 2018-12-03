@@ -40,7 +40,16 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                     ("ExecuteAssemblyByName", new[] { "assemblyName" } ),
                     ("Load", new[] { "rawAssembly", "assemblyRef", "assemblyString", } ),
                 });
-            
+            sinkInfosBuilder.AddSink(
+                WellKnownTypes.SystemWindowsAssemblyPart,
+                SinkKind.Dll,
+                isInterface: false,
+                isAnyStringParameterInConstructorASink: false,
+                sinkProperties: null,
+                sinkMethodParameters: new[] {
+                    ("Load", new[] { "assemblyStream" } ),
+                });
+
             SinkInfos = sinkInfosBuilder.ToImmutable();
         }
     }
