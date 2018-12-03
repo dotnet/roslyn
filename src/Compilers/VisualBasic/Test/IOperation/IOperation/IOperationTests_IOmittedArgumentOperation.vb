@@ -32,6 +32,10 @@ End Class
 
             Dim methodOperation = semanticModel.GetOperation(method)
 
+            ' When we fetch an omitted argument that involves a conversion, there was a bug that involved
+            ' a synthesized conversion node being introduced without a corresponding BoundNode that got
+            ' incorrectly duplicated. This excercises that code path to ensure that the BoundNode is correctly
+            ' cached in the tree.
             Dim operationsToAnalyze = methodOperation.DescendantsAndSelf().ToArray()
         End Sub
 
