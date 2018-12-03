@@ -1989,7 +1989,7 @@ class MyClass
                 Dim project = workspace.CurrentSolution.Projects.Single()
 
                 ' Add analyzer
-                Dim analyzer = New HiddenDiagnosticsCompilationAnalyzer()
+                Dim analyzer = New CompilationAnalyzerWithSeverity(DiagnosticSeverity.Hidden, configurable:=False)
                 Dim analyzerReference = New AnalyzerImageReference(ImmutableArray.Create(Of DiagnosticAnalyzer)(analyzer))
                 project = project.AddAnalyzerReference(analyzerReference)
 
@@ -2002,7 +2002,7 @@ class MyClass
                 Assert.Equal(1, descriptorsMap.Count)
                 Dim descriptors = descriptorsMap.First().Value
                 Assert.Equal(1, descriptors.Length)
-                Assert.Equal(HiddenDiagnosticsCompilationAnalyzer.Descriptor.Id, descriptors.Single().Id)
+                Assert.Equal(analyzer.Descriptor.Id, descriptors.Single().Id)
 
                 ' Force project analysis
                 incrementalAnalyzer.AnalyzeProjectAsync(project, semanticsChanged:=True, reasons:=InvocationReasons.Empty, cancellationToken:=CancellationToken.None).Wait()
@@ -2018,7 +2018,7 @@ class MyClass
                 ' Get diagnostics explicitly
                 Dim hiddenDiagnostics = diagnosticService.GetDiagnosticsAsync(project.Solution, project.Id).WaitAndGetResult(CancellationToken.None)
                 Assert.Equal(1, hiddenDiagnostics.Count())
-                Assert.Equal(HiddenDiagnosticsCompilationAnalyzer.Descriptor.Id, hiddenDiagnostics.Single().Id)
+                Assert.Equal(analyzer.Descriptor.Id, hiddenDiagnostics.Single().Id)
             End Using
         End Sub
 

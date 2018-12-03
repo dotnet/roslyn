@@ -28,6 +28,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Log
             "Analyzer.OperationBlockStart",
             "Analyzer.SymbolEnd",
             "Analyzer.SymbolStart",
+            "Analyzer.Suppression",
         };
 
         private readonly DiagnosticAnalyzerService _owner;
@@ -87,6 +88,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Log
                 Counts[13] = analyzerTelemetryInfo.OperationBlockStartActionsCount;
                 Counts[14] = analyzerTelemetryInfo.SymbolStartActionsCount;
                 Counts[15] = analyzerTelemetryInfo.SymbolEndActionsCount;
+                Counts[16] = analyzerTelemetryInfo.SuppressionActionsCount;
             }
         }
     }

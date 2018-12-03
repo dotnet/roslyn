@@ -24,6 +24,7 @@ namespace AnalyzerRunner
             analyzerTelemetryInfo.SymbolEndActionsCount += addendum.SymbolEndActionsCount;
             analyzerTelemetryInfo.SyntaxNodeActionsCount += addendum.SyntaxNodeActionsCount;
             analyzerTelemetryInfo.SyntaxTreeActionsCount += addendum.SyntaxTreeActionsCount;
+            analyzerTelemetryInfo.SuppressionActionsCount += addendum.SuppressionActionsCount;
         }
     }
 }

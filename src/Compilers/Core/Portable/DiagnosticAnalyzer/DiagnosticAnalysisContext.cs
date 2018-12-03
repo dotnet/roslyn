@@ -1453,4 +1453,94 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         public ControlFlowGraph GetControlFlowGraph() => DiagnosticAnalysisContextHelpers.GetControlFlowGraph(Operation, _getControlFlowGraphOpt, _cancellationToken);
     }
+
+    /// <summary>
+    /// Context for suppressing analyzer and/or compiler diagnostics reported for the compilation.
+    /// </summary>
+    public struct SuppressionAnalysisContext
+    {
+        private readonly Action<Diagnostic> _suppressDiagnostic;
+        private readonly Func<SuppressionDescriptor, bool> _isSupportedSuppressionDescriptor;
+        private readonly Func<SyntaxTree, SemanticModel> _getSemanticModel;
+
+        /// <summary>
+        /// Suppressible analyzer and/or compiler diagnostics reported for the compilation.
+        /// This may be a subset of the full set of reported diagnostics, as an optimization for
+        /// supporting incremental and partial analysis scenarios.
+        /// A diagnostic is considered suppressible by analyzers if *all* of the following conditions are met:
+        ///     1. Diagnostic is not already suppressed in source via pragma/suppress message attribute.
+        ///     2. Diagnostic's <see cref="Diagnostic.DefaultSeverity"/> is not <see cref="DiagnosticSeverity.Error"/>.
+        ///     3. Diagnostic is not tagged with <see cref="WellKnownDiagnosticTags.NotConfigurable"/> custom tag.
+        /// </summary>
+        public ImmutableArray<Diagnostic> ReportedDiagnostics { get; }
+
+        /// <summary>
+        /// <see cref="CodeAnalysis.Compilation"/> for the context.
+        /// </summary>
+        public Compilation Compilation { get; }
+
+        /// <summary>
+        /// Options specified for the analysis.
+        /// </summary>
+        public AnalyzerOptions Options { get; }
+
+        /// <summary>
+        /// Token to check for requested cancellation of the analysis.
+        /// </summary>
+        public CancellationToken CancellationToken { get; }
+
+        internal SuppressionAnalysisContext(
+            Compilation compilation,
+            AnalyzerOptions options,
+            ImmutableArray<Diagnostic> reportedDiagnostics,
+            Action<Diagnostic> suppressDiagnostic,
+            Func<SuppressionDescriptor, bool> isSupportedSuppressionDescriptor,
+            Func<SyntaxTree, SemanticModel> getSemanticModel,
+            CancellationToken cancellationToken)
+        {
+            Compilation = compilation;
+            Options = options;
+            ReportedDiagnostics = reportedDiagnostics;
+            _suppressDiagnostic = suppressDiagnostic;
+            _isSupportedSuppressionDescriptor = isSupportedSuppressionDescriptor;
+            _getSemanticModel = getSemanticModel;
+            CancellationToken = cancellationToken;
+        }
+
+        /// <summary>
+        /// Report a <see cref="Suppression"/> for a reported diagnostic.
+        /// </summary>
+        public void ReportSuppression(Suppression suppression)
+        {
+            if (!ReportedDiagnostics.Contains(suppression.SuppressedDiagnostic))
+            {
+                // Non-reported diagnostic with ID '{0}' cannot be suppressed.
+                var message = string.Format(CodeAnalysisResources.NonReportedDiagnosticCannotBeSuppressed, suppression.SuppressedDiagnostic.Id);
+                throw new ArgumentException(message);
+            }
+
+            if (!_isSupportedSuppressionDescriptor(suppression.Descriptor))
+            {
+                // Reported suppression with ID '{0}' is not supported by the suppressor.
+                var message = string.Format(CodeAnalysisResources.UnsupportedSuppressionReported, suppression.Descriptor.Id);
+                throw new ArgumentException(message);
+            }
+
+            if (suppression.Descriptor.IsDisabled(Compilation.Options))
+            {
+                // Suppression has been disabled by the end user through compilation options.
+                return;
+            }
+
+            lock (_suppressDiagnostic)
+            {
+                _suppressDiagnostic(suppression.SuppressedDiagnostic);
+            }
+        }
+
+        /// <summary>
+        /// Gets a <see cref="SemanticModel"/> for the given <see cref="SyntaxTree"/>, which is shared across all analyzers.
+        /// </summary>
+        public SemanticModel GetSemanticModel(SyntaxTree syntaxTree) => _getSemanticModel(syntaxTree);
+    }
 }
