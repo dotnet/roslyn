@@ -1,0 +1,41 @@
+jobs:
+- job: Windows_VisualStudio_Integration_Tests
+  pool: dotnet-external-temp-vs2017
+  strategy:
+    maxParallel: 2
+    matrix:
+      debug:
+        _configuration: Debug
+      release:
+        _configuration: Release
+  timeoutInMinutes: 90
+
+  steps:
+    - script: build/scripts/cibuild.cmd -configuration $(_configuration) -testVsi 
+      displayName: Build and Test
+
+    - task: PublishTestResults@1
+      inputs:
+        testRunner: XUnit
+        testResultsFiles: $(Build.SourcesDirectory)\Binaries\TestResults\$(_configuration)\*.xml
+        mergeTestResults: true
+        testRunTitle: 'Windows Visual Studio Integration $(_configuration)' 
+      condition: always()
+
+    - task: PublishBuildArtifacts@1
+      displayName: Publish Logs
+      inputs:
+        PathtoPublish: '$(Build.SourcesDirectory)\Binaries\$(_configuration)\Logs'
+        ArtifactName: 'Windows Visual Studio Integration $(_configuration)'
+        publishLocation: Container
+      continueOnError: true
+      condition: not(succeeded())
+
+    - task: PublishBuildArtifacts@1
+      displayName: Publish Screenshots
+      inputs:
+        PathtoPublish: '$(Build.SourcesDirectory)\Binaries\$(_configuration)\UnitTests\Microsoft.VisualStudio.LanguageServices.IntegrationTests\xUnitResults/'
+        ArtifactName: 'Screenshots $(_configuration)' 
+        publishLocation: Container
+      continueOnError: true
+      condition: not(succeeded())
