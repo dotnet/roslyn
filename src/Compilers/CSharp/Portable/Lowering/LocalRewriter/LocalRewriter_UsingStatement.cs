@@ -306,41 +306,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 disposedExpression = local;
             }
 
-            BoundExpression disposeCall;
-            if (methodOpt is null)
-            {
-                if (awaitOpt is null)
-                {
-                    // IDisposable.Dispose()
-                    Binder.TryGetSpecialTypeMember(_compilation, SpecialMember.System_IDisposable__Dispose, syntax, _diagnostics, out methodOpt);
-                }
-                else
-                {
-                    // IAsyncDisposable.DisposeAsync()
-                    TryGetWellKnownTypeMember(syntax: null, WellKnownMember.System_IAsyncDisposable__DisposeAsync, out methodOpt, location: awaitKeywordOpt.GetLocation());
-                }
-            }
-
-            if (methodOpt is null)
-            {
-                disposeCall = new BoundBadExpression(syntax, LookupResultKind.NotInvocable, ImmutableArray<Symbol>.Empty, ImmutableArray.Create(disposedExpression), ErrorTypeSymbol.UnknownResultType);
-            }
-            else
-            {
-                disposeCall = methodOpt.IsExtensionMethod
-                   ? BoundCall.Synthesized(syntax, receiverOpt: null, methodOpt, local)
-                   : BoundCall.Synthesized(syntax, disposedExpression, methodOpt);
-
-                if(!(awaitOpt is null))
-                {
-                    // await local.DisposeAsync()
-                    _sawAwaitInExceptionHandler = true;
-
-                    TypeSymbol awaitExpressionType = awaitOpt.GetResult?.ReturnType.TypeSymbol ?? _compilation.DynamicType;
-                    BoundAwaitExpression awaitExpr = new BoundAwaitExpression(syntax, disposeCall, awaitOpt, awaitExpressionType) { WasCompilerGenerated = true };
-                    disposeCall = (BoundExpression)VisitAwaitExpression(awaitExpr);
-                }
-            }
+            BoundExpression disposeCall = GenerateDisposeCall(syntax, disposedExpression, awaitKeywordOpt, awaitOpt, methodOpt);
 
             // local.Dispose(); or await variant
             BoundStatement disposeStatement = new BoundExpressionStatement(syntax, disposeCall);
@@ -394,6 +360,47 @@ namespace Microsoft.CodeAnalysis.CSharp
                 finallyBlockOpt: BoundBlock.SynthesizedNoLocals(syntax, finallyStatement));
 
             return tryFinally;
+        }
+
+        private BoundExpression GenerateDisposeCall(SyntaxNode syntax, BoundExpression disposedExpression, SyntaxToken awaitKeywordOpt, AwaitableInfo awaitOpt, MethodSymbol methodOpt)
+        {
+            // If we don't have an explicit dispose method, try and get the special member for IDiposable/IAsyncDisposable
+            if (methodOpt is null)
+            {
+                if (awaitOpt is null)
+                {
+                    // IDisposable.Dispose()
+                    Binder.TryGetSpecialTypeMember(_compilation, SpecialMember.System_IDisposable__Dispose, syntax, _diagnostics, out methodOpt);
+                }
+                else
+                {
+                    // IAsyncDisposable.DisposeAsync()
+                    TryGetWellKnownTypeMember(syntax: null, WellKnownMember.System_IAsyncDisposable__DisposeAsync, out methodOpt, location: awaitKeywordOpt.GetLocation());
+                }
+            }
+
+            BoundExpression disposeCall;
+            if (methodOpt is null)
+            {
+                disposeCall = new BoundBadExpression(syntax, LookupResultKind.NotInvocable, ImmutableArray<Symbol>.Empty, ImmutableArray.Create(disposedExpression), ErrorTypeSymbol.UnknownResultType);
+            }
+            else
+            {
+                disposeCall = methodOpt.IsExtensionMethod
+                   ? BoundCall.Synthesized(syntax, receiverOpt: null, methodOpt, disposedExpression)
+                   : BoundCall.Synthesized(syntax, disposedExpression, methodOpt);
+
+                if (!(awaitOpt is null))
+                {
+                    // await local.DisposeAsync()
+                    _sawAwaitInExceptionHandler = true;
+                    TypeSymbol awaitExpressionType = awaitOpt.GetResult?.ReturnType.TypeSymbol ?? _compilation.DynamicType;
+                    BoundAwaitExpression awaitExpr = new BoundAwaitExpression(syntax, disposeCall, awaitOpt, awaitExpressionType) { WasCompilerGenerated = true };
+                    disposeCall = (BoundExpression)VisitAwaitExpression(awaitExpr);
+                }
+            }
+
+            return disposeCall;
         }
     }
 }
