@@ -63,15 +63,12 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         }
 
         public override Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, char? commitKey, CancellationToken cancellationToken)
-        {
-            var language = _languagesProvider.Languages.Single(lang => lang.CompletionProvider?.Name == item.Properties[EmbeddedProviderName]);
-            return language.CompletionProvider.GetChangeAsync(document, item, commitKey, cancellationToken);
-        }
+            => GetLanguage(item).CompletionProvider.GetChangeAsync(document, item, commitKey, cancellationToken);
 
         public override Task<CompletionDescription> GetDescriptionAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
-        {
-            var language = _languagesProvider.Languages.Single(lang => lang.CompletionProvider?.Name == item.Properties[EmbeddedProviderName]);
-            return language.CompletionProvider.GetDescriptionAsync(document, item, cancellationToken);
-        }
+            => GetLanguage(item).CompletionProvider.GetDescriptionAsync(document, item, cancellationToken);
+
+        private IEmbeddedLanguageFeatures GetLanguage(CompletionItem item)
+            => _languagesProvider.Languages.Single(lang => lang.CompletionProvider?.Name == item.Properties[EmbeddedProviderName]);
     }
 }
