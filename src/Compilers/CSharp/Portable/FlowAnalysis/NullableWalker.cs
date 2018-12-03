@@ -3502,7 +3502,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var resultType = TypeSymbolWithAnnotations.Create(targetType, resultAnnotation);
 
-            if (operandType.TypeSymbol?.IsErrorType() != true)
+            if (operandType.TypeSymbol?.IsErrorType() != true && !targetType.IsErrorType())
             {
                 // Need to report all warnings that apply since the warnings can be suppressed individually.
                 if (reportTopLevelWarnings)

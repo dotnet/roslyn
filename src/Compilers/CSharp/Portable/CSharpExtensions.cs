@@ -370,7 +370,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         // Given the error code and the source location, get the warning state based on pragma warning directives.
-        internal static ReportDiagnostic GetPragmaDirectiveWarningState(this SyntaxTree tree, string id, int position)
+        internal static PragmaWarningState GetPragmaDirectiveWarningState(this SyntaxTree tree, string id, int position)
         {
             return ((CSharpSyntaxTree)tree).GetPragmaDirectiveWarningState(id, position);
         }
