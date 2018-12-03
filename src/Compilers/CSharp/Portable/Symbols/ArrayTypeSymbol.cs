@@ -379,17 +379,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return Hash.Combine(current, hash);
         }
 
-        internal override void AddNullableTransforms(ArrayBuilder<bool> transforms)
+        internal override void AddNullableTransforms(ArrayBuilder<byte> transforms)
         {
             ElementType.AddNullableTransforms(transforms);
         }
 
-        internal override bool ApplyNullableTransforms(ImmutableArray<bool> transforms, INonNullTypesContext nonNullTypesContext, ref int position, out TypeSymbol result)
+        internal override bool ApplyNullableTransforms(byte defaultTransformFlag, ImmutableArray<byte> transforms, ref int position, out TypeSymbol result)
         {
             TypeSymbolWithAnnotations oldElementType = ElementType;
             TypeSymbolWithAnnotations newElementType;
 
-            if (!oldElementType.ApplyNullableTransforms(transforms, nonNullTypesContext, ref position, out newElementType))
+            if (!oldElementType.ApplyNullableTransforms(defaultTransformFlag, transforms, ref position, out newElementType))
             {
                 result = this;
                 return false; 

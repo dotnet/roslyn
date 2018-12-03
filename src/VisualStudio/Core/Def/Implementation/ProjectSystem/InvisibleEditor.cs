@@ -28,6 +28,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private OLE.Interop.IOleUndoManager _manager;
         private readonly bool _needsUndoRestored;
 
+        [Obsolete("This is a compatibility shim for Live Share; please do not use it.")]
+        public InvisibleEditor(IServiceProvider serviceProvider, string filePath, AbstractProject projectOpt, bool needsSave, bool needsUndoDisabled)
+            : this(serviceProvider, filePath, projectOpt?.Hierarchy, needsSave, needsUndoDisabled)
+        {
+        }
+
         /// <remarks>
         /// <para>The optional project is used to obtain an <see cref="IVsProject"/> 1nstance. When this instance is
         /// provided, Visual Studio will use <see cref="IVsProject.IsDocumentInProject"/> to attempt to locate the

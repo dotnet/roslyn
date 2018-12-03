@@ -631,16 +631,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
         }
 
-        protected void AddSynthesizedNonNullTypesAttributeForMember(ref ArrayBuilder<SynthesizedAttributeData> attributes)
-        {
-            bool? nonNullTypes = NonNullTypes;
-            if (nonNullTypes.HasValue && nonNullTypes != ContainingType.NonNullTypes)
-            {
-                AddSynthesizedAttribute(ref attributes,
-                                        DeclaringCompilation.TrySynthesizeNonNullTypesAttribute(nonNullTypes.GetValueOrDefault()));
-            }
-        }
-
         /// <summary>
         /// Convenience helper called by subclasses to add a synthesized attribute to a collection of attributes.
         /// </summary>
@@ -851,10 +841,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// This is determined by the presence of the `[NonNullTypes]` attribute.
         /// Returns null if no attribute was set.
         /// Not valid to call on non-definitions.
-        ///
-        /// To avoid cycles, this property should not be accessed directly, except in its overrides (fall back to parent).
-        /// It can be accessed indirectly via <see cref="TypeSymbolWithAnnotations.IsNullable"/>
-        /// which delays its evaluation using <see cref="INonNullTypesContext"/>.
         /// </summary>
         public virtual bool? NonNullTypes
         {

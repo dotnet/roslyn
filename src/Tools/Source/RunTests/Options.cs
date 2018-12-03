@@ -64,6 +64,11 @@ namespace RunTests
         public TimeSpan? Timeout { get; set; }
 
         /// <summary>
+        /// Whether or not to use proc dump to monitor running processes for failures.
+        /// </summary>
+        public bool UseProcDump { get; set; }
+
+        /// <summary>
         /// The directory which contains procdump.exe. 
         /// </summary>
         public string ProcDumpDirectory { get; set; }
@@ -171,6 +176,11 @@ namespace RunTests
                     opt.ProcDumpDirectory = value;
                     index++;
                 }
+                else if (comparer.Equals(current, "-procdump"))
+                {
+                    opt.UseProcDump = false;
+                    index++;
+                }
                 else
                 {
                     break;
@@ -192,6 +202,12 @@ namespace RunTests
             if (!File.Exists(opt.XunitPath))
             {
                 Console.WriteLine($"The file '{opt.XunitPath}' does not exist.");
+                return null;
+            }
+
+            if (opt.UseProcDump && string.IsNullOrEmpty(opt.ProcDumpDirectory))
+            {
+                Console.WriteLine($"The option 'useprocdump' was specified but 'procdumppath' was not provided");
                 return null;
             }
 

@@ -144,7 +144,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
                     text, options, captureNames, captureNumbers).ParseTree();
                 return tree2;
             }
-            catch (Exception e) when (StackGuard.IsInsufficientExecutionStackException(e))
+            catch (InsufficientExecutionStackException)
             {
                 return null;
             }

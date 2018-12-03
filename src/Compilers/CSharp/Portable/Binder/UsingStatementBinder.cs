@@ -64,35 +64,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool hasAwait = _syntax.AwaitKeyword.Kind() != default;
 
             Debug.Assert((expressionSyntax == null) ^ (declarationSyntax == null)); // Can't have both or neither.
+            TypeSymbol disposableInterface = getDisposableInterface(hasAwait);
 
-            TypeSymbol iDisposable = hasAwait
-                ? this.Compilation.GetWellKnownType(WellKnownType.System_IAsyncDisposable)
-                : this.Compilation.GetSpecialType(SpecialType.System_IDisposable);
-
-            Debug.Assert((object)iDisposable != null);
-            bool hasErrors = ReportUseSiteDiagnostics(iDisposable, diagnostics, hasAwait ? _syntax.AwaitKeyword : _syntax.UsingKeyword);
+            Debug.Assert((object)disposableInterface != null);
+            bool hasErrors = ReportUseSiteDiagnostics(disposableInterface, diagnostics, hasAwait ? _syntax.AwaitKeyword : _syntax.UsingKeyword);
 
             Conversion iDisposableConversion = Conversion.NoConversion;
             BoundMultipleLocalDeclarations declarationsOpt = null;
             BoundExpression expressionOpt = null;
             AwaitableInfo awaitOpt = null;
+            TypeSymbol declarationTypeOpt = null;
+
             if (expressionSyntax != null)
             {
                 expressionOpt = this.BindTargetExpression(diagnostics, originalBinder);
-
-                HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                iDisposableConversion = originalBinder.Conversions.ClassifyImplicitConversionFromExpression(expressionOpt, iDisposable, ref useSiteDiagnostics);
-                diagnostics.Add(expressionSyntax, useSiteDiagnostics);
-
-                if (!iDisposableConversion.IsImplicit)
-                {
-                    TypeSymbol expressionType = expressionOpt.Type;
-                    if ((object)expressionType == null || !expressionType.IsErrorType())
-                    {
-                        Error(diagnostics, hasAwait ? ErrorCode.ERR_NoConvToIAsyncDisp : ErrorCode.ERR_NoConvToIDisp, expressionSyntax, expressionOpt.Display);
-                    }
-                    hasErrors = true;
-                }
+                hasErrors |= !initConversion(fromExpression: true);
             }
             else
             {
@@ -100,30 +86,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 originalBinder.BindForOrUsingOrFixedDeclarations(declarationSyntax, LocalDeclarationKind.UsingVariable, diagnostics, out declarations);
 
                 Debug.Assert(!declarations.IsEmpty);
-
                 declarationsOpt = new BoundMultipleLocalDeclarations(declarationSyntax, declarations);
+                declarationTypeOpt = declarations[0].DeclaredType.Type;
 
-                TypeSymbol declType = declarations[0].DeclaredType.Type;
-
-                if (declType.IsDynamic())
+                if (declarationTypeOpt.IsDynamic())
                 {
                     iDisposableConversion = Conversion.ImplicitDynamic;
                 }
                 else
                 {
-                    HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                    iDisposableConversion = originalBinder.Conversions.ClassifyImplicitConversionFromType(declType, iDisposable, ref useSiteDiagnostics);
-                    diagnostics.Add(declarationSyntax, useSiteDiagnostics);
-
-                    if (!iDisposableConversion.IsImplicit)
-                    {
-                        if (!declType.IsErrorType())
-                        {
-                            Error(diagnostics, hasAwait ? ErrorCode.ERR_NoConvToIAsyncDisp : ErrorCode.ERR_NoConvToIDisp, declarationSyntax, declType);
-                        }
-
-                        hasErrors = true;
-                    }
+                    hasErrors |= !initConversion(fromExpression: false);
                 }
             }
 
@@ -149,6 +121,52 @@ namespace Microsoft.CodeAnalysis.CSharp
                 boundBody,
                 awaitOpt,
                 hasErrors);
+
+            bool initConversion(bool fromExpression)
+            {
+                HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+
+                iDisposableConversion = classifyConversion(fromExpression, disposableInterface, ref useSiteDiagnostics);
+
+                diagnostics.Add(fromExpression ? (CSharpSyntaxNode)expressionSyntax : declarationSyntax, useSiteDiagnostics);
+
+                if (iDisposableConversion.IsImplicit)
+                {
+                    return true;
+                }
+
+                TypeSymbol type = fromExpression ? expressionOpt.Type : declarationTypeOpt;
+                if (type is null || !type.IsErrorType())
+                {
+                    // Retry with a different assumption about whether the `using` is async
+                    TypeSymbol alternateInterface = getDisposableInterface(!hasAwait);
+                    HashSet<DiagnosticInfo> ignored = null;
+                    Conversion alternateConversion = classifyConversion(fromExpression, alternateInterface, ref ignored);
+
+                    bool wrongAsync = alternateConversion.IsImplicit;
+                    ErrorCode errorCode = wrongAsync
+                        ? (hasAwait ? ErrorCode.ERR_NoConvToIAsyncDispWrongAsync : ErrorCode.ERR_NoConvToIDispWrongAsync)
+                        : (hasAwait ? ErrorCode.ERR_NoConvToIAsyncDisp : ErrorCode.ERR_NoConvToIDisp);
+
+                    Error(diagnostics, errorCode, (CSharpSyntaxNode)declarationSyntax ?? expressionSyntax, declarationTypeOpt ?? expressionOpt.Display);
+                }
+
+                return false;
+            }
+
+            Conversion classifyConversion(bool fromExpression, TypeSymbol targetInterface, ref HashSet<DiagnosticInfo> diag)
+            {
+                return fromExpression?
+                    originalBinder.Conversions.ClassifyImplicitConversionFromExpression(expressionOpt, targetInterface, ref diag) :
+                    originalBinder.Conversions.ClassifyImplicitConversionFromType(declarationTypeOpt, targetInterface, ref diag);
+            }
+
+            TypeSymbol getDisposableInterface(bool isAsync)
+            {
+                return isAsync
+                    ? this.Compilation.GetWellKnownType(WellKnownType.System_IAsyncDisposable)
+                    : this.Compilation.GetSpecialType(SpecialType.System_IDisposable);
+            }
         }
 
         internal override ImmutableArray<LocalSymbol> GetDeclaredLocalsForScope(SyntaxNode scopeDesignator)

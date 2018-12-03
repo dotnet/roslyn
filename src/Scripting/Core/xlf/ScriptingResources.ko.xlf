@@ -44,7 +44,7 @@
       </trans-unit>
       <trans-unit id="InvalidCharactersInAssemblyName">
         <source>Invalid characters in assemblyName</source>
-        <target state="translated">assemblyName의 잘못된 문자</target>
+        <target state="translated">assemblyName에 잘못된 문자가 있습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ScriptRequiresGlobalVariables">
