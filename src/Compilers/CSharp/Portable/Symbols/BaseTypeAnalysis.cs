@@ -183,9 +183,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             case ThreeState.False:
                                 continue;
                             case ThreeState.Unknown:
-                                // PROTOTYPE: don't consider fields of cyclic struct types to be managed
-                                // because such structs are always invalid. Additional diagnostics
-                                // about pointer/addressof/sizeof can occur after the user fixes their struct fields.
                                 if (!fieldNamedType.OriginalDefinition.KnownCircularStruct &&
                                     DependsOnDefinitelyManagedType(fieldNamedType, partialClosure))
                                 {
