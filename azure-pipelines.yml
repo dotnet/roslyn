@@ -1,9 +1,8 @@
-phases:
-- phase: Windows_Desktop_Unit_Tests
-  queue:
-    name: dotnet-external-temp
-    timeoutInMinutes: 90
-    parallel: 4
+jobs:
+- job: Windows_Desktop_Unit_Tests
+  pool: dotnet-external-temp
+  strategy:
+    maxParallel: 4
     matrix:
       debug_32:
         _configuration: Debug
@@ -17,6 +16,7 @@ phases:
       release_64:
         _configuration: Release
         _testKind: Test64
+  timeoutInMinutes: 90
 
   steps:
     - script: build/scripts/cibuild.cmd -configuration $(_configuration) -testDesktop -$(_testKind)
@@ -39,10 +39,9 @@ phases:
       continueOnError: true
       condition: not(succeeded())
 
-- phase: Windows_Desktop_Spanish_Unit_Tests
-  queue:
-    name: dnceng-windows-spanish-external-temp
-    timeoutInMinutes: 90
+- job: Windows_Desktop_Spanish_Unit_Tests
+  pool: dnceng-windows-spanish-external-temp
+  timeoutInMinutes: 90
 
   steps:
     - script: build/scripts/cibuild.cmd -configuration Debug -testDesktop
@@ -64,16 +63,16 @@ phases:
       continueOnError: true
       condition: failed()
 
-- phase: Windows_CoreClr_Unit_Tests
-  queue:
-    name: dotnet-external-temp
-    timeoutInMinutes: 90
-    parallel: 2
+- job: Windows_CoreClr_Unit_Tests
+  pool: dotnet-external-temp
+  strategy:
+    maxParallel: 2
     matrix:
       debug:
         _configuration: Debug
       release:
         _configuration: Release
+  timeoutInMinutes: 90
 
   steps:
     - script: build/scripts/cibuild.cmd -configuration $(_configuration) -testCoreClr -buildCoreClr
@@ -95,11 +94,10 @@ phases:
         publishLocation: Container
       continueOnError: true
       condition: not(succeeded())
-
-- phase: Windows_Determinism_Test
-  queue:
-    name: dotnet-external-temp
-    timeoutInMinutes: 90
+           
+- job: Windows_Determinism_Test
+  pool: dotnet-external-temp
+  timeoutInMinutes: 90
   steps:
     - script: build/scripts/cibuild.cmd -testDeterminism
       displayName: Build - Validate determinism
@@ -113,10 +111,9 @@ phases:
       continueOnError: true
       condition: not(succeeded())
 
-- phase: Windows_Correctness_Test
-  queue:
-    name: dotnet-external-temp
-    timeoutInMinutes: 90
+- job: Windows_Correctness_Test
+  pool: dotnet-external-temp
+  timeoutInMinutes: 90
   steps:
     - script: build/scripts/test-build-correctness.cmd -configuration Release -cibuild
       displayName: Build - Validate correctness
@@ -130,11 +127,10 @@ phases:
       continueOnError: true
       condition: not(succeeded())
 
-- phase: Linux_Test
-  queue:
-    name: DotNetCore-Linux
-    timeoutInMinutes: 90
-    parallel: 2
+- job: Linux_Test
+  pool: DotNetCore-Linux                     
+  strategy:
+    maxParallel: 2
     matrix:
       coreclr:
         _args: --configuration Debug
@@ -143,7 +139,7 @@ phases:
       mono:
         _args: --configuration Debug --docker --mono
         _name: Mono
-        _configuration: Debug
+  timeoutInMinutes: 90
   steps:
     - script: ./build/scripts/cibuild.sh $(_args)
       displayName: Build and Test
