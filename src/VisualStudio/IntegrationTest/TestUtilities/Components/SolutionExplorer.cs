@@ -141,7 +141,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Components
             project.References.AddDotNetReference(fullyQualifiedAssemblyName);
         }
 
-
         /// <summary>
         /// Update the given file to have the contents given.
         /// </summary>
@@ -260,6 +259,24 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Components
             project.References.AddProjectReference(projectToReference);
         }
 
+        public void SaveAll()
+            => _solution.SaveAll();
+
+        public void SaveFile(string projectName, string fileName)
+            => _solution.Projects[projectName][fileName].Save();
+
+        public void BuildSolution(bool waitForBuildToFinish)
+        {
+            if (waitForBuildToFinish)
+            {
+                _solution.Build();
+            }
+            else
+            {
+                _solution.BuildManager.BuildAsync();
+            }
+        }
+             
         private static ProjectLanguage ConvertLanguageName(string languageName)
         {
             const string CSharp = nameof(CSharp);

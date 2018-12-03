@@ -72,20 +72,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             _instance.Workspace.WaitForAsyncOperations(FeatureAttribute.Workspace);
         }
 
-        /// <summary>
-        /// Add a PackageReference to the specified project. Generally this should be followed up by
-        /// a call to <see cref="RestoreNuGetPackages"/>.
-        /// </summary>
-        public void AddPackageReference(ProjectUtils.Project project, ProjectUtils.PackageReference package)
-            => _inProc.AddPackageReference(project.Name, package.Name, package.Version);
-
-        /// <summary>
-        /// Remove a PackageReference from the specified project. Generally this should be followed up by
-        /// a call to <see cref="RestoreNuGetPackages"/>.
-        /// </summary>
-        public void RemovePackageReference(ProjectUtils.Project project, ProjectUtils.PackageReference package)
-            => _inProc.RemovePackageReference(project.Name, package.Name);
-
         public void CleanUpOpenSolution()
             => _inProc.CleanUpOpenSolution();
 
@@ -99,7 +85,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             => _inProc.GetFileContents(project.Name, fileName);
 
         public void BuildSolution(bool waitForBuildToFinish)
-            => _inProc.BuildSolution(waitForBuildToFinish);
+            => _solutionExplorer.BuildSolution(waitForBuildToFinish);
 
         public void OpenFileWithDesigner(ProjectUtils.Project project, string fileName)
             => _inProc.OpenFileWithDesigner(project.Name, fileName);
@@ -125,22 +111,13 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             => _inProc.CloseFile(project.Name, fileName, saveFile);
 
         public void SaveFile(ProjectUtils.Project project, string fileName)
-            => _inProc.SaveFile(project.Name, fileName);
-
-        public void ReloadProject(ProjectUtils.Project project)
-            => _inProc.ReloadProject(project.RelativePath);
+            => _solutionExplorer.SaveFile(project.Name, fileName);
 
         public void RestoreNuGetPackages(ProjectUtils.Project project)
             => _inProc.RestoreNuGetPackages(project.Name);
 
         public void SaveAll()
-            => _inProc.SaveAll();
-
-        public void ShowOutputWindow()
-            => _inProc.ShowOutputWindow();
-
-        public void UnloadProject(ProjectUtils.Project project)
-            => _inProc.UnloadProject(project.Name);
+            => _solutionExplorer.SaveAll();
 
         public string[] GetProjectReferences(ProjectUtils.Project project)
             => _inProc.GetProjectReferences(project.Name);

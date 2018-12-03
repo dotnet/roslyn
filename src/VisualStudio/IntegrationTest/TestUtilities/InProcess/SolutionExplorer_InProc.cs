@@ -652,11 +652,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             return document;
         }
 
-        public void SaveFile(string projectName, string relativeFilePath)
-        {
-            SaveFileWithExtraValidation(GetOpenDocument(projectName, relativeFilePath));
-        }
-
         private static void SaveFileWithExtraValidation(EnvDTE.Document document)
         {
             var textDocument = (EnvDTE.TextDocument)document.Object(nameof(EnvDTE.TextDocument));
@@ -676,24 +671,12 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             return Path.Combine(projectPath, relativeFilePath);
         }
 
-        public void ReloadProject(string projectRelativePath)
-        {
-            var solutionPath = Path.GetDirectoryName(_solution.FullName);
-            var projectPath = Path.Combine(solutionPath, projectRelativePath);
-            _solution.AddFromFile(projectPath);
-        }
 
         public bool RestoreNuGetPackages(string projectName)
         {
             var solutionRestoreService = InvokeOnUIThread(() => GetComponentModel().GetExtensions<IVsSolutionRestoreService2>().Single());
             return solutionRestoreService.NominateProjectAsync(GetProject(projectName).FullName, CancellationToken.None).Result;
         }
-
-        public void SaveAll()
-            => ExecuteCommand(WellKnownCommandNames.File_SaveAll);
-
-        public void ShowErrorList()
-            => ExecuteCommand(WellKnownCommandNames.View_ErrorList);
 
         public void ShowOutputWindow()
             => ExecuteCommand(WellKnownCommandNames.View_Output);
