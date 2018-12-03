@@ -4026,14 +4026,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 VisitRvalue(receiverOpt);
 
-                NullableOfTMember nullableOfTMember = NullableOfTMember.None;
+                SpecialMember? nullableOfTMember = null;
                 if (!member.IsStatic)
                 {
                     member = AsMemberOfResultType(_resultType, member);
                     nullableOfTMember = GetNullableOfTMember(compilation, member);
                     // https://github.com/dotnet/roslyn/issues/30598: For l-values, mark receiver as not null
                     // after RHS has been visited, and only if the receiver has not changed.
-                    CheckPossibleNullReceiver(receiverOpt, allowValueType: nullableOfTMember == NullableOfTMember.Value);
+                    CheckPossibleNullReceiver(receiverOpt, allowValueType: nullableOfTMember == SpecialMember.System_Nullable_T_get_Value);
                 }
 
                 var resultType = member.GetTypeOrReturnType();
@@ -4057,7 +4057,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     Debug.Assert(!IsConditionalState);
-                    if (nullableOfTMember == NullableOfTMember.HasValue)
+                    if (nullableOfTMember == SpecialMember.System_Nullable_T_get_HasValue)
                     {
                         int containingSlot = getReceiverSlot();
                         if (containingSlot > 0)
@@ -4075,14 +4075,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             int getReceiverSlot() => (receiverOpt is null) ? -1 : MakeSlot(receiverOpt);
         }
 
-        private enum NullableOfTMember
-        {
-            None,
-            Value,
-            HasValue
-        }
-
-        private static NullableOfTMember GetNullableOfTMember(CSharpCompilation compilation, Symbol member)
+        private static SpecialMember? GetNullableOfTMember(CSharpCompilation compilation, Symbol member)
         {
             if (member.Kind == SymbolKind.Property)
             {
@@ -4091,15 +4084,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (getMethod == compilation.GetSpecialTypeMember(SpecialMember.System_Nullable_T_get_Value))
                     {
-                        return NullableOfTMember.Value;
+                        return SpecialMember.System_Nullable_T_get_Value;
                     }
                     if (getMethod == compilation.GetSpecialTypeMember(SpecialMember.System_Nullable_T_get_HasValue))
                     {
-                        return NullableOfTMember.HasValue;
+                        return SpecialMember.System_Nullable_T_get_HasValue;
                     }
                 }
             }
-            return NullableOfTMember.None;
+            return null;
         }
 
         private int GetNullableOfTValueSlot(TypeSymbol containingType, int containingSlot)
