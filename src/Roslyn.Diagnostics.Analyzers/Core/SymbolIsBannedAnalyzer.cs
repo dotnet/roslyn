@@ -54,7 +54,7 @@ namespace Roslyn.Diagnostics.Analyzers
 
         private static void OnCompilationStart(CompilationStartAnalysisContext compilationContext)
         {
-            var bannedSymbols = ReadBannedApis(compilationContext);
+            var bannedSymbols = ReadBannedApis();
 
             if (bannedSymbols.Count > 0)
             {
@@ -110,64 +110,64 @@ namespace Roslyn.Diagnostics.Analyzers
                     }
                 }
             }
-        }
 
-        private static ImmutableHashSet<(ISymbol symbol, string message)> ReadBannedApis(CompilationStartAnalysisContext context)
-        {
-            var query = 
-                from additionalFile in context.Options.AdditionalFiles
-                where StringComparer.Ordinal.Equals(Path.GetFileName(additionalFile.Path), BannedSymbolsFileName)
-                let sourceText = additionalFile.GetText(context.CancellationToken)
-                where sourceText != null
-                from line in sourceText.Lines
-                let text = line.ToString()
-                where !string.IsNullOrWhiteSpace(text)
-                select new ApiLine(text, line.Span, sourceText, additionalFile.Path);
-
-            var apiLines = query.ToList();
-
-            if (apiLines.Count == 0)
+            ImmutableHashSet<(ISymbol symbol, string message)> ReadBannedApis()
             {
-                return ImmutableHashSet<(ISymbol, string)>.Empty;
-            }
+                var query =
+                    from additionalFile in compilationContext.Options.AdditionalFiles
+                    where StringComparer.Ordinal.Equals(Path.GetFileName(additionalFile.Path), BannedSymbolsFileName)
+                    let sourceText = additionalFile.GetText(compilationContext.CancellationToken)
+                    where sourceText != null
+                    from line in sourceText.Lines
+                    let text = line.ToString()
+                    where !string.IsNullOrWhiteSpace(text)
+                    select new ApiLine(text, line.Span, sourceText, additionalFile.Path);
 
-            var lineById = new Dictionary<string, ApiLine>(StringComparer.Ordinal);
-            var errors = new List<Diagnostic>();
-            var bannedSymbols = ImmutableHashSet.CreateBuilder<(ISymbol symbol, string message)>();
+                var apiLines = query.ToList();
 
-            foreach (var line in apiLines)
-            {
-                if (lineById.TryGetValue(line.DeclarationId, out ApiLine existingLine))
+                if (apiLines.Count == 0)
                 {
-                    errors.Add(Diagnostic.Create(DuplicateBannedSymbolRule, line.Location, new[] { existingLine.Location }, line.DeclarationId));
-                    continue;
+                    return ImmutableHashSet<(ISymbol, string)>.Empty;
                 }
 
-                lineById.Add(line.DeclarationId, line);
+                var lineById = new Dictionary<string, ApiLine>(StringComparer.Ordinal);
+                var errors = new List<Diagnostic>();
+                var builder = ImmutableHashSet.CreateBuilder<(ISymbol symbol, string message)>();
 
-                var symbols = DocumentationCommentId.GetSymbolsForDeclarationId(line.DeclarationId, context.Compilation);
-                if (!symbols.IsDefaultOrEmpty)
+                foreach (var line in apiLines)
                 {
-                    foreach (var symbol in symbols)
+                    if (lineById.TryGetValue(line.DeclarationId, out ApiLine existingLine))
                     {
-                        bannedSymbols.Add((symbol, line.Message));
+                        errors.Add(Diagnostic.Create(DuplicateBannedSymbolRule, line.Location, new[] { existingLine.Location }, line.DeclarationId));
+                        continue;
+                    }
+
+                    lineById.Add(line.DeclarationId, line);
+
+                    var symbols = DocumentationCommentId.GetSymbolsForDeclarationId(line.DeclarationId, compilationContext.Compilation);
+                    if (!symbols.IsDefaultOrEmpty)
+                    {
+                        foreach (var symbol in symbols)
+                        {
+                            builder.Add((symbol, line.Message));
+                        }
                     }
                 }
-            }
 
-            if (errors.Count != 0)
-            {
-                context.RegisterCompilationEndAction(
-                    endContext =>
-                    {
-                        foreach (var error in errors)
+                if (errors.Count != 0)
+                {
+                    compilationContext.RegisterCompilationEndAction(
+                        endContext =>
                         {
-                            endContext.ReportDiagnostic(error);
-                        }
-                    });
-            }
+                            foreach (var error in errors)
+                            {
+                                endContext.ReportDiagnostic(error);
+                            }
+                        });
+                }
 
-            return bannedSymbols.ToImmutable();
+                return builder.ToImmutable();
+            }
         }
 
         private static void AnalyzeOperation(OperationAnalysisContext oac, Dictionary<ISymbol, string> messageByBannedSymbol, SymbolDisplayFormat symbolDisplayFormat)
