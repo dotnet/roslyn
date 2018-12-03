@@ -25,11 +25,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
         /// <returns>The correct syntactic classification for the token.</returns>
         public static string GetClassification(SyntaxToken token)
         {
-            if (token.IsKind(SyntaxKind.DiscardDesignation, SyntaxKind.UnderscoreToken))
-            {
-                return ClassificationTypeNames.Identifier;
-            }
-            if (SyntaxFacts.IsKeywordKind(token.Kind()))
+            // When classifying `_`, IsKeywordKind handles UnderscoreToken, but need to additional check for DiscardDesignation
+            if (SyntaxFacts.IsKeywordKind(token.Kind()) || token.IsKind(SyntaxKind.DiscardDesignation))
             {
                 return ClassificationTypeNames.Keyword;
             }

@@ -1,7 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 #if DEBUG
-// See comment in DataFlowPass.
+// See comment in DefiniteAssignment.
 #define REFERENCE_STATE
 #endif
 
@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// <summary>
     /// Nullability flow analysis.
     /// </summary>
-    internal sealed partial class NullableWalker : DataFlowPassBase<NullableWalker.LocalState>
+    internal sealed partial class NullableWalker : LocalDataFlowPass<NullableWalker.LocalState>
     {
         /// <summary>
         /// Used to copy variable slots and types from the NullableWalker for the containing method
@@ -180,7 +180,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             this.Diagnostics.Clear();
             ParameterSymbol methodThisParameter = MethodThisParameter;
-            this.State = ReachableState();                   // entry point is reachable
+            this.State = TopState();                   // entry point is reachable
             this.regionPlace = RegionPlace.Before;
             EnterParameters();                               // with parameters assigned
             if ((object)methodThisParameter != null)
@@ -814,7 +814,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        protected override LocalState ReachableState()
+        protected override LocalState TopState()
         {
             var state = new LocalState(reachable: true, BitVector.Create(nextVariableSlot), new ArrayBuilder<NullableAnnotation>(nextVariableSlot));
             Populate(ref state, start: 0);
@@ -826,7 +826,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new LocalState(reachable: false, BitVector.Empty, null);
         }
 
-        protected override LocalState AllBitsSet()
+        protected override LocalState ReachableBottomState()
         {
             // Create a reachable state in which all variables are known to be non-null.
             var builder = new ArrayBuilder<NullableAnnotation>(nextVariableSlot);
@@ -1682,7 +1682,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // https://github.com/dotnet/roslyn/issues/29955 For cases where the left operand determines
             // the type, we should unwrap the right conversion and re-apply.
             rightResult = VisitRvalueWithResult(rightOperand);
-            IntersectWith(ref this.State, ref leftState);
+            Join(ref this.State, ref leftState);
             TypeSymbol resultType;
             var leftResultType = leftResult.TypeSymbol;
             var rightResultType = rightResult.TypeSymbol;
@@ -1836,7 +1836,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             VisitRvalue(node.AccessExpression);
-            IntersectWith(ref this.State, ref receiverState);
+            Join(ref this.State, ref receiverState);
 
             TypeSymbol type = node.Type;
             NullableAnnotation resultAnnotation;
@@ -1951,7 +1951,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Unsplit();
                 (alternative, alternativeConversion, alternativeResult) = visitConditionalOperand(alternativeState, node.Alternative);
                 Unsplit();
-                IntersectWith(ref this.State, ref consequenceState);
+                Join(ref this.State, ref consequenceState);
             }
 
             TypeSymbol resultType;
@@ -2137,8 +2137,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             method = VisitArguments(node, arguments, refKindsOpt, method.Parameters, node.ArgsToParamsOpt,
                 node.Expanded, node.InvokedAsExtensionMethod, conversions, method);
-
-            UpdateStateForCall(node);
 
             if (method.MethodKind == MethodKind.LocalFunction)
             {
@@ -4806,7 +4804,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return string.Empty;
         }
 
-        protected override void UnionWith(ref LocalState self, ref LocalState other)
+        protected override void Meet(ref LocalState self, ref LocalState other)
         {
             if (self.Capacity != other.Capacity)
             {
@@ -4834,7 +4832,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        protected override bool IntersectWith(ref LocalState self, ref LocalState other)
+        protected override bool Join(ref LocalState self, ref LocalState other)
         {
             if (self.Reachable == other.Reachable)
             {
@@ -4887,9 +4885,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
 #if REFERENCE_STATE
-        internal class LocalState : AbstractLocalState
+        internal class LocalState : ILocalState
 #else
-        internal struct LocalState : AbstractLocalState
+        internal struct LocalState : ILocalState
 #endif
         {
             private BitVector _assigned;
