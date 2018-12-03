@@ -60682,12 +60682,6 @@ partial class Program
             }
         }
 
-        private static CSharpCompilationOptions WithNullableWarningsTrue(CSharpCompilationOptions options = null)
-        {
-            // PROTOTYPE(NullableReferenceTypes): Should be "#pragma warning enable nullable" rather than "#nullable enable".
-            return (options ?? TestOptions.ReleaseDll).WithNullable(true);
-        }
-
         [Fact]
         public void NullableT_CSharp7()
         {
@@ -60699,7 +60693,7 @@ partial class Program
         _ = x.Value;
     }
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7, options: WithNullableWarningsTrue());
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // error CS8630: Invalid 'Nullable' value: 'True' for C# 7.0. Please use language version 8.0 or greater.
                 Diagnostic(ErrorCode.ERR_NullableOptionNotAvailable).WithArguments("Nullable", "True", "7.0", "8.0").WithLocation(1, 1));
@@ -60717,7 +60711,7 @@ partial class Program
         _ = x.Value;
     }
 }";
-            var comp = CreateCompilation(source, options: WithNullableWarningsTrue());
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (5,13): warning CS8629: Nullable value type may be null.
                 //         _ = x.Value; // 1
@@ -60736,7 +60730,7 @@ partial class Program
         _ = y.Value;
     }
 }";
-            var comp = CreateCompilation(source, options: WithNullableWarningsTrue());
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics();
         }
 
@@ -60751,7 +60745,7 @@ partial class Program
         T y = x;
     }
 }";
-            var comp = CreateCompilation(source, options: WithNullableWarningsTrue());
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (5,15): error CS0266: Cannot implicitly convert type 'T?' to 'T'. An explicit conversion exists (are you missing a cast?)
                 //         T y = x; // 1
@@ -60776,7 +60770,7 @@ partial class Program
         return (T)default(T?); // 2
     }
 }";
-            var comp = CreateCompilation(source, options: WithNullableWarningsTrue());
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (5,16): warning CS8629: Nullable value type may be null.
                 //         return (T)x; // 1
@@ -60786,6 +60780,7 @@ partial class Program
                 Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "(T)default(T?)").WithLocation(9, 16));
         }
 
+        [WorkItem(31501, "https://github.com/dotnet/roslyn/issues/31501")]
         [Fact]
         public void NullableT_05()
         {
@@ -60797,8 +60792,8 @@ partial class Program
         return (T)x!;
     }
 }";
-            var comp = CreateCompilation(source, options: WithNullableWarningsTrue());
-            // PROTOTYPE(NullableReferenceTypes): Should be no warnings.
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            // https://github.com/dotnet/roslyn/issues/31501: Should be no warnings.
             comp.VerifyDiagnostics(
                 // (5,16): warning CS8629: Nullable value type may be null.
                 //         return (T)x!;
@@ -60822,7 +60817,7 @@ partial class Program
             _ = (T)x; // 1
     }
 }";
-            var comp = CreateCompilation(source, options: WithNullableWarningsTrue());
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (8,17): warning CS8629: Nullable value type may be null.
                 //             _ = (T)x; // 1
@@ -60844,7 +60839,7 @@ partial class Program
         _ = (T)x;
     }
 }";
-            var comp = CreateCompilation(source, options: WithNullableWarningsTrue());
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (5,13): warning CS8629: Nullable value type may be null.
                 //         _ = (T)x; // 1
@@ -60867,7 +60862,7 @@ partial class Program
         var z = ((int, int))y;
     }
 }";
-            var comp = CreateCompilation(source, options: WithNullableWarningsTrue());
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics();
         }
 
@@ -60882,7 +60877,7 @@ partial class Program
         var y = ((int, int))x; // 1
     }
 }";
-            var comp = CreateCompilation(source, options: WithNullableWarningsTrue());
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (5,17): warning CS8629: Nullable value type may be null.
                 //         var y = ((int, int))x; // 1
@@ -60907,7 +60902,7 @@ partial class Program
         _ = w.Value;
     }
 }";
-            var comp = CreateCompilation(source, options: WithNullableWarningsTrue());
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (6,13): warning CS8629: Nullable value type may be null.
                 //         _ = x.Value; // 1
@@ -60917,6 +60912,7 @@ partial class Program
                 Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "y").WithLocation(8, 13));
         }
 
+        [WorkItem(31502, "https://github.com/dotnet/roslyn/issues/31502")]
         [Fact]
         public void NullableT_11()
         {
@@ -60935,8 +60931,8 @@ partial class Program
         _ = w.Value;
     }
 }";
-            var comp = CreateCompilation(source, options: WithNullableWarningsTrue());
-            // PROTOTYPE(NullableReferenceTypes): Recognize Nullable<T> constructors.
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            // https://github.com/dotnet/roslyn/issues/31502: Recognize Nullable<T> constructors.
             comp.VerifyDiagnostics();
         }
 
@@ -60961,7 +60957,7 @@ partial class Program
             _ = t2.Value;
     }
 }";
-            var comp = CreateCompilation(source, options: WithNullableWarningsTrue());
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (8,17): warning CS8629: Nullable value type may be null.
                 //             _ = t1.Value; // 1
@@ -60992,7 +60988,7 @@ partial class Program
             _ = t2.Value;
     }
 }";
-            var comp = CreateCompilation(source, options: WithNullableWarningsTrue());
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (8,17): warning CS8629: Nullable value type may be null.
                 //             _ = t1.Value; // 1
@@ -61023,7 +61019,7 @@ partial class Program
             _ = (object)t2;
     }
 }";
-            var comp = CreateCompilation(source, options: WithNullableWarningsTrue());
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (8,17): warning CS8629: Nullable value type may be null.
                 //             _ = (T)t1; // 1
@@ -61072,7 +61068,7 @@ partial class Program
         }
     }
 }";
-            var comp = CreateCompilation(source, options: WithNullableWarningsTrue());
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (8,22): warning CS8629: Nullable value type may be null.
                 //             else _ = t1.Value; // 1
@@ -61119,7 +61115,7 @@ partial class Program
             (T)y4; // 5
     }
 }";
-            var comp = CreateCompilation(source, options: WithNullableWarningsTrue());
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (7,13): warning CS8629: Nullable value type may be null.
                 //             y1.Value; // 1
@@ -61169,7 +61165,7 @@ partial class Program
             (T)y4; // 5
     }
 }";
-            var comp = CreateCompilation(source, options: WithNullableWarningsTrue());
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (7,13): warning CS8629: Nullable value type may be null.
                 //             y1.Value; // 1
@@ -61204,7 +61200,7 @@ partial class Program
         _ = (T)(x2 != null ? x2 : y2);
     }
 }";
-            var comp = CreateCompilation(source, options: WithNullableWarningsTrue());
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (5,13): warning CS8629: Nullable value type may be null.
                 //         _ = (T)(x1 != null ? x1 : y1); // 1
@@ -61229,7 +61225,7 @@ partial class Program
         _ = z2/*T:object!*/.ToString();
     }
 }";
-            var comp = CreateCompilation(source, options: WithNullableWarningsTrue());
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (6,13): warning CS8602: Possible dereference of a null reference.
                 //         _ = z1/*T:object?*/.ToString(); // 1
@@ -61381,7 +61377,7 @@ class Program
         }
     }
 }";
-            var comp = CreateCompilation(source, options: WithNullableWarningsTrue());
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (7,17): warning CS8629: Nullable value type may be null.
                 //             _ = x.Value; // 1
@@ -61396,6 +61392,65 @@ class Program
 
         [Fact]
         public void NullableT_23()
+        {
+            var source =
+@"class Program
+{
+    static void F1(int? x)
+    {
+        var y = ~x;
+        _ = y.Value; // 1
+    }
+    static void F2(int x, int? y)
+    {
+        var z = x + y;
+        _ = z.Value; // 2
+    }
+}";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (6,13): warning CS8629: Nullable value type may be null.
+                //         _ = y.Value; // 1
+                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "y").WithLocation(6, 13),
+                // (11,13): warning CS8629: Nullable value type may be null.
+                //         _ = z.Value; // 2
+                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "z").WithLocation(11, 13));
+        }
+
+        [WorkItem(31500, "https://github.com/dotnet/roslyn/issues/31500")]
+        [Fact]
+        public void NullableT_24()
+        {
+            var source =
+@"class Program
+{
+    static void F1(int? x)
+    {
+        if (x == null) return;
+        var y = ~x;
+        _ = y.Value;
+    }
+    static void F2(int x, int? y)
+    {
+        if (y == null) return;
+        var z = x + y;
+        _ = z.Value;
+    }
+}";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+            // https://github.com/dotnet/roslyn/issues/31500: Track nullable state across lifted conversions.
+            comp.VerifyDiagnostics(
+                // (7,13): warning CS8629: Nullable value type may be null.
+                //         _ = y.Value;
+                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "y").WithLocation(7, 13),
+                // (13,13): warning CS8629: Nullable value type may be null.
+                //         _ = z.Value;
+                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "z").WithLocation(13, 13));
+        }
+
+        [WorkItem(31500, "https://github.com/dotnet/roslyn/issues/31500")]
+        [Fact]
+        public void NullableT_25()
         {
             var source =
 @"struct A
@@ -61427,7 +61482,7 @@ class Program
     }
 }";
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
-            // PROTOTYPE(NullableReferenceTypes): Warnings for // 2, 4?
+            // https://github.com/dotnet/roslyn/issues/31500: Track nullable state across lifted conversions.
             comp.VerifyDiagnostics(
                 // (12,16): warning CS8629: Nullable value type may be null.
                 //         B? b = a; // 1
@@ -61438,7 +61493,7 @@ class Program
         }
 
         [Fact]
-        public void NullableT_24()
+        public void NullableT_26()
         {
             var source =
 @"class Program
@@ -61449,7 +61504,7 @@ class Program
         t.Value = default(T);
     }
 }";
-            var comp = CreateCompilation(source, options: WithNullableWarningsTrue());
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (5,9): error CS0200: Property or indexer 'T?.HasValue' cannot be assigned to -- it is read only
                 //         t.HasValue = true;
@@ -61463,7 +61518,7 @@ class Program
         }
 
         [Fact]
-        public void NullableT_25()
+        public void NullableT_27()
         {
             var source =
 @"using System;
@@ -61475,7 +61530,7 @@ class Program
         _ = nameof(Nullable<T>.Value);
     }
 }";
-            var comp = CreateCompilation(source, options: WithNullableWarningsTrue());
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics();
         }
 
@@ -61498,12 +61553,8 @@ class Program
             _ = t.Value; // 1
     }
 }";
-            var comp = CreateCompilation(new[] { source, NotNullWhenTrueAttributeDefinition }, options: WithNullableWarningsTrue());
-            // PROTOTYPE(NullableReferenceTypes): Handle [NotNullWhenTrue].
+            var comp = CreateCompilation(new[] { source, NotNullWhenTrueAttributeDefinition }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
-                // (11,17): warning CS8629: Nullable value type may be null.
-                //             _ = t.Value;
-                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "t").WithLocation(11, 17),
                 // (13,17): warning CS8629: Nullable value type may be null.
                 //             _ = t.Value; // 1
                 Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "t").WithLocation(13, 17));
@@ -61527,7 +61578,7 @@ class Program
         _ = y.Value;
     }
 }";
-            var comp = CreateCompilation(new[] { source, AssertsTrueAttributeDefinition }, options: WithNullableWarningsTrue());
+            var comp = CreateCompilation(new[] { source, AssertsTrueAttributeDefinition }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics();
         }
 
@@ -61562,7 +61613,7 @@ class Program
         _ = t6.Equals(t6);
     }
 }";
-            var comp = CreateCompilation(source, options: WithNullableWarningsTrue());
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (9,13): warning CS8629: Nullable value type may be null.
                 //         _ = t2.Value; // 1
@@ -61591,7 +61642,7 @@ class Program
         _ = t.Value; // 2
     }
 }";
-            var comp = CreateCompilation(source, options: WithNullableWarningsTrue());
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (11,13): warning CS8629: Nullable value type may be null.
                 //         _ = s.Value; // 1
@@ -61601,6 +61652,7 @@ class Program
                 Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "t").WithLocation(16, 13));
         }
 
+        [WorkItem(31503, "https://github.com/dotnet/roslyn/issues/31503")]
         [Fact]
         public void NullableT_ForEach()
         {
@@ -61628,8 +61680,8 @@ class Program
             ;
     }
 }";
-            var comp = CreateCompilation(source, options: WithNullableWarningsTrue());
-            // PROTOTYPE(NullableReferenceTypes): Handle foreach.
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            // https://github.com/dotnet/roslyn/issues/31503: Report warning for `.Value.GetEnumerator()` calls.
             comp.VerifyDiagnostics();
         }
     }

@@ -2251,8 +2251,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     annotations &= ~whenSense;
                 }
 
-                // NotNullWhenSense must be applied to a reference or unconstrained generic type
-                if ((annotations & whenSense) != 0 && parameter.Type.IsValueType != false)
+                // NotNullWhenSense must be applied to a reference type, a nullable value type, or an unconstrained generic type
+                if ((annotations & whenSense) != 0 && parameter.Type.IsValueType && !parameter.Type.IsNullableType())
                 {
                     annotations &= ~whenSense;
                 }
@@ -2478,7 +2478,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 var argument = arguments[i];
-                if (argument.Type == null || argument.Type.IsValueType)
+                var argumentType = argument.Type;
+                if (argumentType == null || (argumentType.IsValueType && !argumentType.IsNullableType()))
                 {
                     continue;
                 }
