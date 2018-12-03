@@ -8,7 +8,7 @@
 
   <Import Project="RepoToolset\Imports.targets" />
   <Import Project="VisualStudio.targets"/>
-  <Import Project="Roslyn.Toolsets.Xunit.targets" Condition="'$(_IsAnyUnitTest)' == 'true'" />
+  <Import Project="Roslyn.Toolsets.Xunit.targets" Condition="'$(IsTestProject)' == 'true'" />
 
   <PropertyGroup>
     <FileAlignment>512</FileAlignment>
@@ -41,14 +41,14 @@
   </PropertyGroup>
 
   <!-- Add the UnitTestContainer project capability -->
-  <ItemGroup Condition="'$(_IsAnyUnitTest)' == 'true'">
+  <ItemGroup Condition="'$(IsTestProject)' == 'true'">
     <ProjectCapability Include="UnitTestContainer" />
   </ItemGroup>
 
   <!-- 
     Do not copy dependencies to the output directory of a library project, unless it's a unit test project.
   -->
-  <ItemDefinitionGroup Condition="'$(OutputType)' == 'Library' and '$(IsVsixProject)' != 'true' and '$(_IsAnyUnitTest)' != 'true'">
+  <ItemDefinitionGroup Condition="'$(OutputType)' == 'Library' and '$(IsVsixProject)' != 'true' and '$(IsTestProject)' != 'true'">
     <Reference>
       <Private>False</Private>
     </Reference>
@@ -58,7 +58,7 @@
     </ProjectReference>
   </ItemDefinitionGroup>
 
-  <PropertyGroup Condition="'$(ProduceReferenceAssembly)' == '' and (('$(OutputType)' == 'Library' and '$(IsVsixProject)' != 'true' and '$(_IsAnyUnitTest)' != 'true') or '$(OutputType)' == 'Exe' or '$(OutputType)' == 'WinExe')">
+  <PropertyGroup Condition="'$(ProduceReferenceAssembly)' == '' and (('$(OutputType)' == 'Library' and '$(IsVsixProject)' != 'true' and '$(IsTestProject)' != 'true') or '$(OutputType)' == 'Exe' or '$(OutputType)' == 'WinExe')">
     <ProduceReferenceAssembly>true</ProduceReferenceAssembly>
   </PropertyGroup>
 
