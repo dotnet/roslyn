@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeStructFieldsWritabl
 
     public void Test()
     {
-        [||]this = new MyStruct(5);
+        [|this = new MyStruct(5)|];
     }
 }",
 @"struct MyStruct
@@ -44,6 +44,28 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeStructFieldsWritabl
     public void Test()
     {
         this = new MyStruct(5);
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeStructFieldsWritable)]
+        public async Task SingleNonReadonlyField_ThisAssigmentInMethod()
+        {
+            await TestDiagnosticMissingAsync(
+@"struct MyStruct
+{
+    public int Third;
+
+    public MyStruct(int first, int second, int third)
+    {
+        First = first;
+        Second = second;
+        Third = third;
+    }
+
+    public void Test()
+    {
+        [|this = new MyStruct(5, 3, 1)|];
     }
 }");
         }
@@ -67,7 +89,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeStructFieldsWritabl
 
     public void Test()
     {
-        [||]this = new MyStruct(5, 3, 1);
+        [|this = new MyStruct(5, 3, 1)|];
     }
 }",
 @"struct MyStruct
@@ -100,7 +122,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeStructFieldsWritabl
 
     public MyStruct(int value)
     {
-        [||]this = new MyStruct(value, 0);
+        [|this = new MyStruct(value, 0)|];
     }
 
     public MyStruct(int first, int second)
@@ -120,7 +142,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeStructFieldsWritabl
 
     public MyStruct(int value)
     {
-        [||]Value = value;
+        [|Value = value|];
     }
 }");
         }
@@ -140,7 +162,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeStructFieldsWritabl
 
     public void Test()
     {
-        [||]this = new MyStruct(5);
+        [|this = new MyStruct(5)|];
     }
 }",
     expected: Diagnostic(IDEDiagnosticIds.MakeStructFieldsWritable));

@@ -5,6 +5,7 @@ using Microsoft.CodeAnalysis.Operations;
 
 namespace Microsoft.CodeAnalysis.CSharp.MakeStructFieldsWritable
 {
+    [DiagnosticAnalyzer(LanguageNames.CSharp)]
     internal sealed class CSharpMakeStructFieldsWritableDiagnosticAnalyzer : AbstractCodeQualityDiagnosticAnalyzer
     {
         private static readonly DiagnosticDescriptor s_diagnosticDescriptor = CreateDescriptor(
@@ -17,7 +18,6 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeStructFieldsWritable
             : base(ImmutableArray.Create(s_diagnosticDescriptor), GeneratedCodeAnalysisFlags.ReportDiagnostics)
         {
         }
-
 
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
         {
@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeStructFieldsWritable
 
         private sealed class CompilationAnalyzer
         {
-            private bool _hasNonReadonlyFields = false;
+            private bool _hasReadonlyField = false;
             private bool _hasTypeInstanceAssigment = false;
             private SyntaxNode _typeInstanceAssigmentNode;
 
@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeStructFieldsWritable
                     var namedTypeSymbol = (INamedTypeSymbol)symbolStartContext.Symbol;
                     if (namedTypeSymbol.TypeKind != TypeKind.Struct) return;
 
-                    symbolStartContext.RegisterSyntaxNodeAction(AnalyzeIfFieldIsReadonly, SymbolKind.Field);
+                    symbolStartContext.RegisterSyntaxNodeAction(AnalyzeIfFieldIsReadonly, SyntaxKind.FieldDeclaration);
                     symbolStartContext.RegisterOperationAction(AnalyzeAssignment, OperationKind.SimpleAssignment);
                     symbolStartContext.RegisterSymbolEndAction(SymbolEndAction);
                 }, SymbolKind.NamedType);
@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeStructFieldsWritable
             private void AnalyzeIfFieldIsReadonly(SyntaxNodeAnalysisContext nodeContext)
             {
                 var fieldSymbol = (IFieldSymbol)nodeContext.ContainingSymbol;
-                _hasNonReadonlyFields |= fieldSymbol.IsReadOnly;
+                _hasReadonlyField |= fieldSymbol.IsReadOnly;
             }
 
             private void AnalyzeAssignment(OperationAnalysisContext operationContext)
@@ -77,15 +77,13 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeStructFieldsWritable
 
             private void SymbolEndAction(SymbolAnalysisContext symbolEndContext)
             {
-                if (_hasTypeInstanceAssigment && !_hasNonReadonlyFields)
+                if (_hasTypeInstanceAssigment && _hasReadonlyField)
                 {
                     var diagnostic = Diagnostic.Create(
                                     s_diagnosticDescriptor,
                                     _typeInstanceAssigmentNode.GetLocation());
                     symbolEndContext.ReportDiagnostic(diagnostic);
                 }
-
-                return;
             }
         }
     }

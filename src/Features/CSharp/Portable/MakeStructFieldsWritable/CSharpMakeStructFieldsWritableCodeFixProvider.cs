@@ -1,12 +1,15 @@
 ﻿using System;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.MakeStructFieldsWritable
 {
@@ -14,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeStructFieldsWritable
     internal class CSharpMakeStructFieldsWritableCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
         public override ImmutableArray<string> FixableDiagnosticIds
-            => ImmutableArray.Create(IDEDiagnosticIds.MakeFieldReadonlyDiagnosticId);
+            => ImmutableArray.Create(IDEDiagnosticIds.MakeStructFieldsWritable);
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
@@ -25,12 +28,36 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeStructFieldsWritable
         }
 
         protected override async Task FixAllAsync(
-            Document document, 
-            ImmutableArray<Diagnostic> diagnostics, 
-            SyntaxEditor editor, 
+            Document document,
+            ImmutableArray<Diagnostic> diagnostics,
+            SyntaxEditor editor,
             CancellationToken cancellationToken)
         {
+
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken);
+            var emptyToken = SyntaxFactory.Token(SyntaxKind.None);
+
+            foreach (var diagnostic in diagnostics)
+            {
+                var diagnosticNode = diagnostic.Location.FindNode(cancellationToken);
+                var structDeclaration = diagnosticNode.GetAncestors()
+                    .OfType<StructDeclarationSyntax>()
+                    .FirstOrDefault();
+
+                var fieldDeclarations = structDeclaration.ChildNodes()
+                    .OfType<FieldDeclarationSyntax>();
+
+                foreach (var fieldDeclaration in fieldDeclarations)
+                {
+                    var readonlySyntaxToken = fieldDeclaration.ChildTokens()
+                        .FirstOrDefault(token => token.IsKind(SyntaxKind.ReadOnlyKeyword));
+                    if (readonlySyntaxToken != default)
+                    {
+                        var newFieldDeclaration = fieldDeclaration.ReplaceToken(readonlySyntaxToken, emptyToken);
+                        editor.ReplaceNode(fieldDeclaration, newFieldDeclaration);
+                    }
+                }
+            }
         }
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
