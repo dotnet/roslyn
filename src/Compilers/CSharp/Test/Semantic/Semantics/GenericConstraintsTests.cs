@@ -2980,7 +2980,7 @@ public class Test
         IsStruct<Wrapper<int>.E>();
         IsNew<Wrapper<int>.E>();
 
-        IsUnmanaged<Wrapper<int>.S>();          // Invalid
+        IsUnmanaged<Wrapper<int>.S>();
         IsEnum<Wrapper<int>.S>();               // Invalid
         IsStruct<Wrapper<int>.S>();
         IsNew<Wrapper<int>.S>();
@@ -2990,7 +2990,7 @@ public class Test
         IsStruct<Wrapper<string>.E>();
         IsNew<Wrapper<string>.E>();
 
-        IsUnmanaged<Wrapper<string>.S>();          // Invalid
+        IsUnmanaged<Wrapper<string>.S>();
         IsEnum<Wrapper<string>.S>();               // Invalid
         IsStruct<Wrapper<string>.S>();
         IsNew<Wrapper<string>.S>();
