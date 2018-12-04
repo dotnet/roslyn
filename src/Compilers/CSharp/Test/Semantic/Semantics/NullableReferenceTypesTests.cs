@@ -60759,11 +60759,11 @@ class Program
             var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (5,15): error CS0266: Cannot implicitly convert type 'T?' to 'T'. An explicit conversion exists (are you missing a cast?)
-                //         T y = x; // 1
+                //         T y = x;
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "x").WithArguments("T?", "T").WithLocation(5, 15),
-                // (5,15): warning CS8619: Nullability of reference types in value of type 'T?' doesn't match target type 'T'.
-                //         T y = x; // 1
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x").WithArguments("T?", "T").WithLocation(5, 15));
+                // (5,15): warning CS8629: Nullable value type may be null.
+                //         T y = x;
+                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "x").WithLocation(5, 15));
         }
 
         [Fact]
@@ -61301,6 +61301,148 @@ class Program
         {
             var source =
 @"#pragma warning disable 0649
+struct A
+{
+    internal B? B;
+}
+struct B
+{
+}
+class Program
+{
+    static void F1(A? na1)
+    {
+        if (na1?.B != null)
+        {
+            _ = (object)na1;
+        }
+        else
+        {
+            _ = (object)na1; // 1
+        }
+    }
+    static void F2(A? na2)
+    {
+        if (na2?.B != null)
+        {
+            _ = (System.ValueType)na2;
+        }
+        else
+        {
+            _ = (System.ValueType)na2; // 2
+        }
+    }
+    static void F3(A? na3)
+    {
+        if (na3?.B != null)
+        {
+            var a3 = (A)na3;
+            _ = (object)a3.B;
+        }
+        else
+        {
+            var a3 = (A)na3; // 3
+            _ = (object)a3.B; // 4
+        }
+    }
+    static void F4(A? na4)
+    {
+        if (na4?.B != null)
+        {
+            var a4 = (A)na4;
+            _ = (System.ValueType)a4.B;
+        }
+        else
+        {
+            var a4 = (A)na4; // 5
+            _ = (System.ValueType)a4.B; // 6
+        }
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (19,17): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //             _ = (object)na1; // 1
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(object)na1").WithLocation(19, 17),
+                // (30,17): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //             _ = (System.ValueType)na2; // 2
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(System.ValueType)na2").WithLocation(30, 17),
+                // (42,22): warning CS8629: Nullable value type may be null.
+                //             var a3 = (A)na3; // 3
+                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "(A)na3").WithLocation(42, 22),
+                // (43,17): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //             _ = (object)a3.B; // 4
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(object)a3.B").WithLocation(43, 17),
+                // (55,22): warning CS8629: Nullable value type may be null.
+                //             var a4 = (A)na4; // 5
+                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "(A)na4").WithLocation(55, 22),
+                // (56,17): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //             _ = (System.ValueType)a4.B; // 6
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(System.ValueType)a4.B").WithLocation(56, 17));
+        }
+
+        [Fact]
+        public void NullableT_21()
+        {
+            var source =
+@"#pragma warning disable 0649
+struct A
+{
+    internal B? B;
+    public static implicit operator C(A a) => new C();
+}
+struct B
+{
+    public static implicit operator C(B b) => new C();
+}
+class C
+{
+}
+class Program
+{
+    static void F1(A? na1)
+    {
+        if (na1?.B != null)
+        {
+            _ = (C)na1;
+        }
+        else
+        {
+            _ = (C)na1; // 1
+        }
+    }
+    static void F2(A? na2)
+    {
+        if (na2?.B != null)
+        {
+            var a2 = (A)na2;
+            _ = (C)a2.B;
+        }
+        else
+        {
+            var a2 = (A)na2; // 2
+            _ = (C)a2.B; // 3
+        }
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (24,17): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //             _ = (C)na1; // 1
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(C)na1").WithLocation(24, 17),
+                // (36,22): warning CS8629: Nullable value type may be null.
+                //             var a2 = (A)na2; // 2
+                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "(A)na2").WithLocation(36, 22),
+                // (37,17): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //             _ = (C)a2.B; // 3
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(C)a2.B").WithLocation(37, 17));
+        }
+
+        [Fact]
+        public void NullableT_22()
+        {
+            var source =
+@"#pragma warning disable 0649
 struct S
 {
     internal C? C;
@@ -61355,7 +61497,7 @@ class Program
         }
 
         [Fact]
-        public void NullableT_21()
+        public void NullableT_23()
         {
             var source =
 @"class Program
@@ -61387,7 +61529,7 @@ class Program
         }
 
         [Fact]
-        public void NullableT_22()
+        public void NullableT_24()
         {
             var source =
 @"class Program
@@ -61415,7 +61557,7 @@ class Program
 
         [WorkItem(31500, "https://github.com/dotnet/roslyn/issues/31500")]
         [Fact]
-        public void NullableT_23()
+        public void NullableT_25()
         {
             var source =
 @"class Program
@@ -61446,7 +61588,7 @@ class Program
 
         [WorkItem(31500, "https://github.com/dotnet/roslyn/issues/31500")]
         [Fact]
-        public void NullableT_24()
+        public void NullableT_26()
         {
             var source =
 @"struct A
@@ -61488,7 +61630,26 @@ class Program
         }
 
         [Fact]
-        public void NullableT_25()
+        public void NullableT_27()
+        {
+            var source =
+@"class Program
+{
+    static void F<T>(T? x, T? y) where T : struct
+    {
+        object z = x ?? y;
+        object? w = x ?? y;
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (5,20): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         object z = x ?? y;
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "x ?? y").WithLocation(5, 20));
+        }
+
+        [Fact]
+        public void NullableT_28()
         {
             var source =
 @"class Program
@@ -61513,7 +61674,7 @@ class Program
         }
 
         [Fact]
-        public void NullableT_26()
+        public void NullableT_29()
         {
             var source =
 @"using System;

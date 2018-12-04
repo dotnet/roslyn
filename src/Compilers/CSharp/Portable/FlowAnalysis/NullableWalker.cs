@@ -751,7 +751,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             TypeSymbolWithAnnotations fieldOrPropertyType = member.GetTypeOrReturnType();
 
-            if (fieldOrPropertyType.IsReferenceType)
+            if (fieldOrPropertyType.IsReferenceType || fieldOrPropertyType.IsNullableType())
             {
                 int targetMemberSlot = GetOrCreateSlot(member, targetContainerSlot);
                 NullableAnnotation value = fieldOrPropertyType.NullableAnnotation;
@@ -1545,8 +1545,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         var slotBuilder = ArrayBuilder<int>.GetInstance();
 
-                        // Set all nested conditional slots. For example in a?.b?.c we'll set a, b, and c
-                        // getOperandSlots will only return slots for locations that are reference types.
+                        // Set all nested conditional slots. For example in a?.b?.c we'll set a, b, and c.
+                        // getOperandSlots will only return slots for tracked expressions.
                         getOperandSlots(operandComparedToNull, slotBuilder);
                         if (slotBuilder.Count != 0)
                         {
@@ -3519,8 +3519,30 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     break;
 
-                case ConversionKind.ImplicitNullable:
                 case ConversionKind.ExplicitNullable:
+                    if (operandType.TypeSymbol?.IsNullableType() == true &&
+                        !targetType.IsNullableType())
+                    {
+                        // Explicit conversion of Nullable<T> to T is equivalent to Nullable<T>.Value.
+                        if (operandType.NullableAnnotation.IsAnyNullable())
+                        {
+                            ReportDiagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, node.Syntax);
+                        }
+                        // Mark the value as not nullable, regardless of whether it was known to be nullable,
+                        // because the implied call to `.Value` will only succeed if not null.
+                        if (operandOpt != null)
+                        {
+                            int slot = MakeSlot(operandOpt);
+                            if (slot > 0)
+                            {
+                                this.State[slot] = NullableAnnotation.NotNullable;
+                            }
+                        }
+                        break;
+                    }
+                    goto case ConversionKind.ImplicitNullable;
+
+                case ConversionKind.ImplicitNullable:
                 case ConversionKind.ImplicitTupleLiteral:
                 case ConversionKind.ImplicitTuple:
                 case ConversionKind.ExplicitTupleLiteral:
@@ -3555,19 +3577,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Need to report all warnings that apply since the warnings can be suppressed individually.
                 if (reportTopLevelWarnings)
                 {
-                    if (conversion.Kind == ConversionKind.ExplicitNullable &&
-                        operandType.TypeSymbol?.IsNullableType() == true &&
-                        !targetType.IsNullableType())
-                    {
-                        if (operandType.NullableAnnotation.IsAnyNullable())
-                        {
-                            ReportPossibleNullValue(node.Syntax, operandOpt ?? node, isValueType: true);
-                        }
-                    }
-                    else
-                    {
-                        ReportNullableAssignmentIfNecessary(node, targetTypeWithNullability, resultType, useLegacyWarnings: useLegacyWarnings, assignmentKind, target);
-                    }
+                    ReportNullableAssignmentIfNecessary(node, targetTypeWithNullability, resultType, useLegacyWarnings: useLegacyWarnings, assignmentKind, target);
                 }
                 if (reportNestedWarnings && !canConvertNestedNullability)
                 {
