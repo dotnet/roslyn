@@ -3572,7 +3572,7 @@ class C
                 state.SendTypeChars("Sys")
                 state.SendCommitUniqueCompletionListItem()
                 Await Task.Delay(250)
-                Await state.AssertNoCompletionSession(block:=False)
+                state.AssertNoCompletionSessionWithNoBlock()
                 Assert.Contains("Sys", state.GetLineTextFromCaretPosition())
                 Assert.DoesNotContain("System", state.GetLineTextFromCaretPosition())
 
@@ -3600,7 +3600,7 @@ class C
                 state.SendTypeChars("Sys")
                 state.SendCommitUniqueCompletionListItem()
                 Await Task.Delay(250)
-                Await state.AssertNoCompletionSession(block:=False)
+                state.AssertNoCompletionSessionWithNoBlock()
                 Assert.Contains("Sys", state.GetLineTextFromCaretPosition())
                 Assert.DoesNotContain("System", state.GetLineTextFromCaretPosition())
 
