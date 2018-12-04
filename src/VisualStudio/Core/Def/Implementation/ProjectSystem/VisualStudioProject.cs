@@ -297,13 +297,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         /// <summary>
         /// The default namespace of the project.
+        /// </summary>
+        /// <remarks>
         /// In C#, this is defined as the value of "rootnamespace" msbuild property. Right now VB doesn't 
-        /// have the concept of "default namespace". But we conjure one in workspace by assigning the value
-        /// of the project's root namespace to it. So various feature can choose to use it their own purpose.
+        /// have the concept of "default namespace", but we conjure one in workspace by assigning the value
+        /// of the project's root namespace to it. So various features can choose to use it for their own purpose.
         /// 
         /// In the future, we might consider officially exposing "default namespace" for VB project
         /// (e.g.through a "defaultnamespace" msbuild property)
-        /// </summary>
+        /// </remarks>
         internal string DefaultNamespace
         {
             get => _defaultNamespace;
