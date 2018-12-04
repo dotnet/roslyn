@@ -325,6 +325,12 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
             foreach (var (name, (shortDesc, longDesc)) in RegexCharClass.EscapeCategories)
             {
                 var displayText = name;
+
+                // There are some internal escape categories the regex engine has (like _xmlI).
+                // Just filter out here so we only show the main documented regex categories.
+                // Note: we still include those in RegexCharClass.EscapeCategories because we
+                // don't want to report an error on code that does use these since the .net
+                // regex engine will allow them.
                 if (displayText.StartsWith("_"))
                 {
                     continue;
