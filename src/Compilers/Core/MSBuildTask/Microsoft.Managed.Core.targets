@@ -56,8 +56,12 @@
   <Target Name="DiscoverEditorConfigFiles" Condition="'$(DiscoverEditorConfigFiles)' != 'false'" BeforeTargets="CoreCompile">
     <DiscoverEditorConfigFiles InputFiles="@(Compile);@(AdditionalFile)">
       <Output TaskParameter="EditorConfigFiles" ItemName="EditorConfigFiles" />
+      <Output TaskParameter="PotentialEditorConfigFiles" ItemName="PotentialEditorConfigFiles" />
     </DiscoverEditorConfigFiles>
   </Target>
+  
+  <!-- Find and return the files paths where we looked for .editorconfig files but did not find one. -->
+  <Target Name="GetPotentialAnalyzerConfigFiles" DependsOnTargets="DiscoverEditorConfigFiles" Returns="@(PotentialEditorConfigFiles)" />
 
   <!--
     ========================

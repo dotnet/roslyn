@@ -21,8 +21,17 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         [Required]
         public ITaskItem[] InputFiles { get; set; }
 
+        /// <summary>
+        /// The set of applicable .editorconfig files.
+        /// </summary>
         [Output]
         public ITaskItem[] EditorConfigFiles { get; private set; }
+
+        /// <summary>
+        /// Paths we considered that did *not* have a existing .editorconfig file.
+        /// </summary>
+        [Output]
+        public ITaskItem[] PotentialEditorConfigFiles { get; private set; }
 
         static DiscoverEditorConfigFiles()
         {
@@ -57,6 +66,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             var directoriesAddedToQueue = new HashSet<string>(StringComparer.Ordinal);
             var directoriesToVisit = new Queue<DirectoryInfo>();
             var editorConfigFiles = new List<ITaskItem>();
+            var potentialEditorConfigFiles = new List<ITaskItem>();
 
             void addNewDirectoryIfNotAlreadyAdded(DirectoryInfo directory)
             {
@@ -92,6 +102,10 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
                         isRootEditorConfig = FileIsRootEditorConfig(editorConfigFilePath);
                     }
+                    else
+                    {
+                        potentialEditorConfigFiles.Add(new TaskItem(editorConfigFilePath));
+                    }
                 }
                 catch (IOException exception)
                 {
@@ -106,6 +120,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             }
 
             EditorConfigFiles = editorConfigFiles.ToArray();
+            PotentialEditorConfigFiles = potentialEditorConfigFiles.ToArray();
         }
 
         internal static bool FileIsRootEditorConfig(string editorConfigFilePath)

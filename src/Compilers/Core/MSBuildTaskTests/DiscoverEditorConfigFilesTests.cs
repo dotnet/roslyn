@@ -33,6 +33,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             task.InputFiles = Array.Empty<ITaskItem>();
             Assert.True(task.Execute());
             Assert.Empty(task.EditorConfigFiles);
+            Assert.Empty(task.PotentialEditorConfigFiles);
         }
 
         [Fact]
@@ -45,24 +46,44 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             task.InputFiles = MSBuildUtil.CreateTaskItems(sourceFile.Path);
             Assert.True(task.Execute());
             Assert.Equal(editorConfigFile.Path, Assert.Single(task.EditorConfigFiles).ItemSpec);
+            Assert.Empty(task.PotentialEditorConfigFiles);
         }
 
         [Fact]
         public void EditorConfigInParentDirectoryIsFound()
         {
-            var sourceFile = _tempDirectory.CreateDirectory("Subdirectory").CreateFile("Cat.cs");
+            var subdirectory = _tempDirectory.CreateDirectory("Subdirectory");
+            var sourceFile = subdirectory.CreateFile("Cat.cs");
             var editorConfigFile = _tempDirectory.CreateFile(".editorconfig").WriteAllText("root = true");
 
             var task = new DiscoverEditorConfigFiles();
             task.InputFiles = MSBuildUtil.CreateTaskItems(sourceFile.Path);
             Assert.True(task.Execute());
             Assert.Equal(editorConfigFile.Path, Assert.Single(task.EditorConfigFiles).ItemSpec);
+            Assert.Equal(Path.Combine(subdirectory.Path, ".editorconfig"), Assert.Single(task.PotentialEditorConfigFiles).ItemSpec);
+        }
+
+        [Fact]
+        public void EditorConfigInGrandParentDirectoryIsFound()
+        {
+            var subdirectory1 = _tempDirectory.CreateDirectory("Subdirectory1");
+            var subdirectory2 = subdirectory1.CreateDirectory("Subdirectory2");
+            var sourceFile = subdirectory2.CreateFile("Cat.cs");
+            var editorConfigFile = _tempDirectory.CreateFile(".editorconfig").WriteAllText("root = true");
+
+            var task = new DiscoverEditorConfigFiles();
+            task.InputFiles = MSBuildUtil.CreateTaskItems(sourceFile.Path);
+            Assert.True(task.Execute());
+            Assert.Equal(editorConfigFile.Path, Assert.Single(task.EditorConfigFiles).ItemSpec);
+            Assert.Contains(Path.Combine(subdirectory1.Path, ".editorconfig"), task.PotentialEditorConfigFiles.Select(item => item.ItemSpec));
+            Assert.Contains(Path.Combine(subdirectory2.Path, ".editorconfig"), task.PotentialEditorConfigFiles.Select(item => item.ItemSpec));
         }
 
         [Fact]
         public void EditorConfigInParentDirectoryIsFoundWithMultipleInputs()
         {
-            var sourceFile1 = _tempDirectory.CreateDirectory("Subdirectory").CreateFile("Cat.cs");
+            var subdirectory = _tempDirectory.CreateDirectory("Subdirectory");
+            var sourceFile1 = subdirectory.CreateFile("Cat.cs");
             var sourceFile2 = _tempDirectory.CreateFile("Dog.cs");
             var editorConfigFile = _tempDirectory.CreateFile(".editorconfig").WriteAllText("root = true");
 
@@ -70,6 +91,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             task.InputFiles = MSBuildUtil.CreateTaskItems(sourceFile1.Path, sourceFile2.Path);
             Assert.True(task.Execute());
             Assert.Equal(editorConfigFile.Path, Assert.Single(task.EditorConfigFiles).ItemSpec);
+            Assert.Equal(Path.Combine(subdirectory.Path, ".editorconfig"), Assert.Single(task.PotentialEditorConfigFiles).ItemSpec);
         }
 
         [Fact]
@@ -84,6 +106,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             task.InputFiles = MSBuildUtil.CreateTaskItems(sourceFile.Path);
             Assert.True(task.Execute());
             Assert.Equal(editorConfigFileChild.Path, Assert.Single(task.EditorConfigFiles).ItemSpec);
+            Assert.Empty(task.PotentialEditorConfigFiles);
         }
 
         [Fact]
@@ -111,6 +134,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             var paths = task.EditorConfigFiles.Select(i => i.ItemSpec);
             Assert.Contains(editorConfigFile1.Path, paths);
             Assert.Contains(editorConfigFile2.Path, paths);
+            Assert.Empty(task.PotentialEditorConfigFiles);
         }
 
         [Fact]
@@ -128,6 +152,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
 
             var paths = task.EditorConfigFiles.Select(i => i.ItemSpec);
             Assert.Equal(new[] { editorConfigFileChild.Path, editorConfigFileParent.Path }, paths);
+            Assert.Empty(task.PotentialEditorConfigFiles);
         }
 
         [Fact]
