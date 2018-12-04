@@ -161,13 +161,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
                 edit.Replace(mappedSpan.Span, change.TextChange.NewText);
 
-                // The edit updates the snapshot however other extensions may make changes there.
-                // Therefore, it is safe to consume subjectBuffer.CurrentSnapshot for further calculations.
-                edit.Apply();
+                var updatedCurrentSnapsot = edit.Apply();
                 
                 if (change.NewPosition.HasValue)
-                {
-                    view.TryMoveCaretToAndEnsureVisible(new SnapshotPoint(subjectBuffer.CurrentSnapshot, change.NewPosition.Value));
+                { 
+                    // Use the most recent snapshot to make a snapshot point.
+                    view.TryMoveCaretToAndEnsureVisible(new SnapshotPoint(updatedCurrentSnapsot, change.NewPosition.Value));
                 }
 
                 includesCommitCharacter = change.IncludesCommitCharacter;
@@ -175,6 +174,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 if (roslynItem.Rules.FormatOnCommit)
                 {
                     // refresh the document
+                    // The edit updates the snapshot however other extensions may make changes there.
+                    // Therefore, it is safe to consume subjectBuffer.CurrentSnapshot for further calculations rather than the updated current snapsot defined above.
                     document = subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
                     var spanToFormat = triggerSnapshotSpan.TranslateTo(subjectBuffer.CurrentSnapshot, SpanTrackingMode.EdgeInclusive);
                     var formattingService = document?.GetLanguageService<IEditorFormattingService>();
