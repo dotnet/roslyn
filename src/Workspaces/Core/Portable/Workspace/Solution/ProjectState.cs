@@ -673,11 +673,6 @@ namespace Microsoft.CodeAnalysis
 
         public ProjectState UpdateDocumentsOrder(ImmutableList<DocumentId> documentIds)
         {
-            if (documentIds == null)
-            {
-                throw new ArgumentNullException(nameof(documentIds));
-            }
-
             if (documentIds.IsEmpty)
             {
                 throw new ArgumentOutOfRangeException("The specified documents are empty.", nameof(documentIds));
