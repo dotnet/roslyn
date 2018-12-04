@@ -4055,7 +4055,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // https://github.com/dotnet/roslyn/issues/30598: For l-values, mark receiver as not null
                     // after RHS has been visited, and only if the receiver has not changed.
                     bool allowValueType = nullableOfTMember == SpecialMember.System_Nullable_T_get_Value;
-                    CheckPossibleNullReceiver(receiverOpt, allowValueType, (allowValueType ? node : receiverOpt).Syntax);
+                    CheckPossibleNullReceiver(receiverOpt, allowValueType, (allowValueType ? node : (receiverOpt ?? node)).Syntax);
                 }
 
                 var resultType = member.GetTypeOrReturnType();
