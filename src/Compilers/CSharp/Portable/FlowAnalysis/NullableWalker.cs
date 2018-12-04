@@ -838,7 +838,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private TypeSymbol GetSlotType(int slot)
         {
-            return variableBySlot[slot].Symbol.GetTypeOrReturnType().TypeSymbol;
+            return VariableType(variableBySlot[slot].Symbol).TypeSymbol;
         }
 
         protected override LocalState TopState()
