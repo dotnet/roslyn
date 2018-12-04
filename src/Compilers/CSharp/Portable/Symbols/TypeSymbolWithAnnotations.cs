@@ -1201,7 +1201,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var resolvedType = GetResolvedType();
                 if (resolvedType.IsNullableType())
                 {
-                    return TypeSymbolWithAnnotations.Create(resolvedType, customModifiers: customModifiers);
+                    return TypeSymbolWithAnnotations.Create(resolvedType, type.NullableAnnotation, customModifiers: customModifiers);
                 }
 
                 return CreateNonLazyType(resolvedType, type.NullableAnnotation, customModifiers);
@@ -1211,7 +1211,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (typeSymbol.IsNullableType())
                 {
-                    return TypeSymbolWithAnnotations.Create(typeSymbol, customModifiers: customModifiers);
+                    return TypeSymbolWithAnnotations.Create(typeSymbol, type.NullableAnnotation, customModifiers: customModifiers);
                 }
 
                 return CreateNonLazyType(typeSymbol, type.NullableAnnotation, customModifiers);
