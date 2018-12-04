@@ -87,6 +87,13 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
             var (tree, stringToken) = await _language.TryGetTreeAndTokenAtPositionAsync(
                 context.Document, position, context.CancellationToken).ConfigureAwait(false);
 
+            if (tree == null ||
+                position <= stringToken.SpanStart ||
+                position >= stringToken.Span.End)
+            {
+                return;
+            }
+
             var embeddedContext = new EmbeddedCompletionContext(this, context, tree, stringToken);
             ProvideCompletions(embeddedContext);
 
@@ -130,12 +137,6 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
 
             var tree = context.Tree;
             var stringToken = context.StringToken;
-            if (tree == null ||
-                position <= stringToken.SpanStart ||
-                position >= stringToken.Span.End)
-            {
-                return;
-            }
 
             // First, act as if the user just inserted the previous character.  This will cause us
             // to complete down to the set of relevant items based on that character. If we get
