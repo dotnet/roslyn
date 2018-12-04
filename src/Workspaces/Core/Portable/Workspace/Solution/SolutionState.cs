@@ -1127,6 +1127,27 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public SolutionState AddDocuments(ImmutableArray<DocumentInfo> documentInfos)
         {
+            return AddDocumentsToMultipleProjects(documentInfos,
+                (documentInfo, project) => DocumentState.Create(
+                        documentInfo,
+                        project.ParseOptions,
+                        project.LanguageServices,
+                        _solutionServices).UpdateSourceCodeKind(documentInfo.SourceCodeKind),
+                (project, documents) => (project.AddDocuments(documents), CompilationTranslationAction.AddDocuments(documents)));
+        }
+
+        /// <summary>
+        /// Core helper that takes a set of <see cref="DocumentInfo" />s and does the application of the appropriate documents to each project.
+        /// </summary>
+        /// <param name="documentInfos">The set of documents to add.</param>
+        /// <param name="addDocumentsToProjectState">Returns the new <see cref="ProjectState"/> with the documents added, and the <see cref="CompilationTranslationAction"/> needed as well.</param>
+        /// <returns></returns>
+        private SolutionState AddDocumentsToMultipleProjects<T>(
+            ImmutableArray<DocumentInfo> documentInfos,
+            Func<DocumentInfo, ProjectState, T> createDocumentState,
+            Func<ProjectState, ImmutableArray<T>, (ProjectState newState, CompilationTranslationAction translationAction)> addDocumentsToProjectState)
+            where T : TextDocumentState
+        {
             if (documentInfos.IsDefault)
             {
                 throw new ArgumentNullException(nameof(documentInfos));
@@ -1148,26 +1169,20 @@ namespace Microsoft.CodeAnalysis
                 CheckContainsProject(documentInfosInProject.Key);
                 var oldProject = this.GetProjectState(documentInfosInProject.Key);
 
-                var newDocumentStatesForProjectBuilder = ArrayBuilder<DocumentState>.GetInstance();
+                var newDocumentStatesForProjectBuilder = ArrayBuilder<T>.GetInstance();
 
                 foreach (var documentInfo in documentInfosInProject)
                 {
-                    CheckNotContainsDocument(documentInfo.Id);
-
-                    newDocumentStatesForProjectBuilder.Add(DocumentState.Create(
-                        documentInfo,
-                        oldProject.ParseOptions,
-                        oldProject.LanguageServices,
-                        _solutionServices).UpdateSourceCodeKind(documentInfo.SourceCodeKind));
+                    newDocumentStatesForProjectBuilder.Add(createDocumentState(documentInfo, oldProject));
                 }
 
                 var newDocumentStatesForProject = newDocumentStatesForProjectBuilder.ToImmutableAndFree();
 
-                var newProjectState = oldProject.AddDocuments(newDocumentStatesForProject);
+                var (newProjectState, compilationTranslationAction) = addDocumentsToProjectState(oldProject, newDocumentStatesForProject);
 
                 newSolutionState = newSolutionState.ForkProject(newProjectState,
-                    CompilationTranslationAction.AddDocuments(newDocumentStatesForProject),
-                    newFilePathToDocumentIdsMap: CreateFilePathToDocumentIdsMapWithAddedDocuments(documentInfosInProject.Select(d => newProjectState.GetDocumentState(d.Id))));
+                    compilationTranslationAction,
+                    newFilePathToDocumentIdsMap: CreateFilePathToDocumentIdsMapWithAddedDocuments(newDocumentStatesForProject));
             }
 
             return newSolutionState;
