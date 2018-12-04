@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Text.RegularExpressions;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using AnalyzerOptions = System.Collections.Immutable.ImmutableDictionary<string, string>;
 using TreeOptions = System.Collections.Immutable.ImmutableDictionary<string, Microsoft.CodeAnalysis.ReportDiagnostic>;
@@ -292,6 +293,15 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public static AnalyzerConfig Parse(string text, string pathToFile)
         {
+            return Parse(SourceText.From(text), pathToFile);
+        }
+
+        /// <summary>
+        /// Parses an editor config file text located at the given path. No parsing
+        /// errors are reported. If any line contains a parse error, it is dropped.
+        /// </summary>
+        public static AnalyzerConfig Parse(SourceText text, string pathToFile)
+        {
             if (!Path.IsPathRooted(pathToFile) || string.IsNullOrEmpty(Path.GetFileName(pathToFile)))
             {
                 throw new ArgumentException("Must be an absolute path to an editorconfig file", nameof(pathToFile));
@@ -310,54 +320,52 @@ namespace Microsoft.CodeAnalysis
                 Section.PropertiesKeyComparer);
             string activeSectionName = "";
 
-            using (var reader = new StringReader(text))
+            foreach (var textLine in text.Lines)
             {
-                string line;
-                while ((line = reader.ReadLine()) != null)
+                string line = textLine.ToString();
+
+                if (string.IsNullOrWhiteSpace(line))
                 {
-                    if (string.IsNullOrWhiteSpace(line))
+                    continue;
+                }
+
+                if (IsComment(line))
+                {
+                    continue;
+                }
+
+                var sectionMatches = s_sectionMatcher.Matches(line);
+                if (sectionMatches.Count > 0 && sectionMatches[0].Groups.Count > 0)
+                {
+                    addNewSection();
+
+                    var sectionName = sectionMatches[0].Groups[1].Value;
+                    Debug.Assert(!string.IsNullOrEmpty(sectionName));
+
+                    activeSectionName = sectionName;
+                    activeSectionProperties = ImmutableDictionary.CreateBuilder<string, string>(
+                        Section.PropertiesKeyComparer);
+                    continue;
+                }
+
+                var propMatches = s_propertyMatcher.Matches(line);
+                if (propMatches.Count > 0 && propMatches[0].Groups.Count > 1)
+                {
+                    var key = propMatches[0].Groups[1].Value;
+                    var value = propMatches[0].Groups[2].Value;
+
+                    Debug.Assert(!string.IsNullOrEmpty(key));
+                    Debug.Assert(key == key.Trim());
+                    Debug.Assert(value == value?.Trim());
+
+                    key = CaseInsensitiveComparison.ToLower(key);
+                    if (ReservedKeys.Contains(key) || ReservedValues.Contains(value))
                     {
-                        continue;
+                        value = CaseInsensitiveComparison.ToLower(value);
                     }
 
-                    if (IsComment(line))
-                    {
-                        continue;
-                    }
-
-                    var sectionMatches = s_sectionMatcher.Matches(line);
-                    if (sectionMatches.Count > 0 && sectionMatches[0].Groups.Count > 0)
-                    {
-                        addNewSection();
-
-                        var sectionName = sectionMatches[0].Groups[1].Value;
-                        Debug.Assert(!string.IsNullOrEmpty(sectionName));
-
-                        activeSectionName = sectionName;
-                        activeSectionProperties = ImmutableDictionary.CreateBuilder<string, string>(
-                            Section.PropertiesKeyComparer);
-                        continue;
-                    }
-
-                    var propMatches = s_propertyMatcher.Matches(line);
-                    if (propMatches.Count > 0 && propMatches[0].Groups.Count > 1)
-                    {
-                        var key = propMatches[0].Groups[1].Value;
-                        var value = propMatches[0].Groups[2].Value;
-
-                        Debug.Assert(!string.IsNullOrEmpty(key));
-                        Debug.Assert(key == key.Trim());
-                        Debug.Assert(value == value?.Trim());
-
-                        key = CaseInsensitiveComparison.ToLower(key);
-                        if (ReservedKeys.Contains(key) || ReservedValues.Contains(value))
-                        {
-                            value = CaseInsensitiveComparison.ToLower(value);
-                        }
-
-                        activeSectionProperties[key] = value ?? "";
-                        continue;
-                    }
+                    activeSectionProperties[key] = value ?? "";
+                    continue;
                 }
             }
 
