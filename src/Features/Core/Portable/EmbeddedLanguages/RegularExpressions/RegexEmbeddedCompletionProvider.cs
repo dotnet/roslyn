@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -19,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
     using static WorkspacesResources;
     using RegexToken = EmbeddedSyntaxToken<RegexKind>;
 
-    internal class RegexEmbeddedCompletionProvider : CompletionProvider
+    internal partial class RegexEmbeddedCompletionProvider : CompletionProvider
     {
         private const string StartKey = nameof(StartKey);
         private const string LengthKey = nameof(LengthKey);
@@ -387,7 +386,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
             context.AddIfMissing(@"\W", regex_non_word_character_short, regex_non_word_character_long, parentOpt);
         }
 
-        internal RegexItem CreateItem(
+        private RegexItem CreateItem(
             SyntaxToken stringToken, string displayText, 
             string suffix, string description,
             EmbeddedCompletionContext context, RegexNode parentOpt, 
@@ -489,72 +488,6 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
 
             return Task.FromResult(CompletionDescription.Create(
                 ImmutableArray.Create(new TaggedText(TextTags.Text, description))));
-        }
-    }
-
-    internal class EmbeddedCompletionContext
-    {
-        private readonly RegexEmbeddedCompletionProvider _provider;
-        private readonly CompletionContext _context;
-
-        public readonly List<RegexItem> Items = new List<RegexItem>();
-        public readonly HashSet<string> Names = new HashSet<string>();
-
-        public readonly RegexTree Tree;
-        public readonly SyntaxToken StringToken;
-
-        public EmbeddedCompletionContext(
-            RegexEmbeddedCompletionProvider provider, 
-            CompletionContext context, 
-            RegexTree tree,
-            SyntaxToken stringToken)
-        {
-            _provider = provider;
-            _context = context;
-            Tree = tree;
-            StringToken = stringToken;
-        }
-
-        public int Position => _context.Position;
-        public OptionSet Options => _context.Options;
-        public Document Document => _context.Document;
-        public CompletionTrigger Trigger => _context.Trigger;
-        public CancellationToken CancellationToken => _context.CancellationToken;
-
-        public void AddIfMissing(
-            string displayText, string suffix, string description,
-            RegexNode parentOpt, int? positionOffset = null, string insertionText = null)
-        {
-            var item = _provider.CreateItem(
-                StringToken, displayText, suffix, description, this,
-                parentOpt, positionOffset, insertionText);
-
-            AddIfMissing(item);
-        }
-
-        public void AddIfMissing(RegexItem item)
-        {
-            if (this.Names.Add(item.DisplayText))
-            {
-                this.Items.Add(item);
-            }
-        }
-    }
-
-    internal struct RegexItem
-    {
-        public readonly string DisplayText;
-        public readonly string InlineDescription;
-        public readonly string FullDescription;
-        public readonly CompletionChange Change;
-
-        public RegexItem(
-            string displayText, string inlineDescription, string fullDescription, CompletionChange change)
-        {
-            DisplayText = displayText;
-            InlineDescription = inlineDescription;
-            FullDescription = fullDescription;
-            Change = change;
         }
     }
 }
