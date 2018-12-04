@@ -171,20 +171,14 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
         Public Overrides Function CompletionItemsContainsAll(displayText As String()) As Boolean
             AssertNoAsynchronousOperationsRunning()
-            Dim session = GetExportedValue(Of IAsyncCompletionBroker)().GetSession(TextView)
-            Assert.NotNull(session)
-            Dim items = session.GetComputedItems(CancellationToken.None)
-            Return displayText.All(Function(v) items.Items.Any(Function(i) i.DisplayText = v))
+            Dim items = GetRoslynCompletionItems()
+            Return displayText.All(Function(v) items.Any(Function(i) i.DisplayText = v))
         End Function
 
         Public Overrides Function CompletionItemsContainsAny(displayText As String()) As Boolean
             AssertNoAsynchronousOperationsRunning()
-            Dim session = GetExportedValue(Of IAsyncCompletionBroker)().GetSession(TextView)
-            Assert.NotNull(session)
-            Dim items = session.GetComputedItems(CancellationToken.None)
-
-            Return displayText.Any(Function(v) items.Items.Any(
-                                       Function(i) i.DisplayText = v))
+            Dim items = GetRoslynCompletionItems()
+            Return displayText.Any(Function(v) items.Any(Function(i) i.DisplayText = v))
         End Function
 
         Public Overrides Function CompletionItemsContainsAny(displayText As String, displayTextSuffix As String) As Boolean
@@ -241,12 +235,12 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
             If displayText IsNot Nothing Then
                 Assert.NotNull(items.SelectedItem)
-                Assert.Equal(displayText, items.SelectedItem.DisplayText)
-            End If
-
-            If displayTextSuffix IsNot Nothing Then
-                Assert.NotNull(items.SelectedItem)
-                Assert.Equal(displayTextSuffix, items.SelectedItem.Suffix)
+                If displayTextSuffix IsNot Nothing Then
+                    Assert.NotNull(items.SelectedItem)
+                    Assert.Equal(displayText + displayTextSuffix, items.SelectedItem.DisplayText)
+                Else
+                    Assert.Equal(displayText, items.SelectedItem.DisplayText)
+                End If
             End If
 
             If shouldFormatOnCommit.HasValue Then
@@ -282,13 +276,27 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Dim session = GetExportedValue(Of IAsyncCompletionBroker)().GetSession(TextView)
             If session IsNot Nothing Then
                 Dim item = session.GetComputedItems(CancellationToken.None).SelectedItem
-                Dim completionItem As CompletionItem = Nothing
-                If item?.Properties.TryGetProperty(RoslynItem, completionItem) Then
-                    Return completionItem
-                End If
+                Return GetRoslynCompletionItemOpt(item)
             End If
 
             Return Nothing
+        End Function
+
+        Private Function GetRoslynCompletionItemOpt(editorCompletionItem As Data.CompletionItem) As CompletionItem
+            Dim roslynCompletionItem As CompletionItem = Nothing
+            If editorCompletionItem?.Properties.TryGetProperty(RoslynItem, roslynCompletionItem) Then
+                Return roslynCompletionItem
+            End If
+
+            Return Nothing
+        End Function
+
+        Private Function GetRoslynCompletionItems() As CompletionItem()
+            Dim session = GetExportedValue(Of IAsyncCompletionBroker)().GetSession(TextView)
+            Assert.NotNull(session)
+            Return session.GetComputedItems(CancellationToken.None).Items.Select(Function(item)
+                                                                                     Return GetRoslynCompletionItemOpt(item)
+                                                                                 End Function).WhereNotNull().ToArray()
         End Function
 
         Public Overrides Function GetCompletionItems() As IList(Of CompletionItem)
@@ -303,7 +311,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         End Function
 
         Private Shared Function GetRoslynCompletionItem(item As Data.CompletionItem) As CompletionItem
-            Return DirectCast(item.Properties("RoslynItem"), CompletionItem)
+            Return DirectCast(item.Properties(RoslynItem), CompletionItem)
         End Function
 
         Public Overrides Sub RaiseFiltersChanged(args As CompletionItemFilterStateChangedEventArgs)

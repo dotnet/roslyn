@@ -3081,6 +3081,28 @@ End Class
             End Using
         End Function
 
+        <WorkItem(30097, "https://github.com/dotnet/roslyn/issues/30097")>
+        <MemberData(NameOf(AllCompletionImplementations))>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestMRUKeepsTwoRecentlyUsedItems(completionImplementation As CompletionImplementation) As Task
+            Using state = TestStateFactory.CreateVisualBasicTestState(completionImplementation,
+                              <Document>
+Class C
+    Public Sub Ma(m As Double)
+    End Sub
+
+    Public Sub Test()
+        $$
+    End Sub
+End Class
+                              </Document>)
+
+                state.SendTypeChars("M(M(M(M(")
+                Await state.AssertCompletionSession()
+                Assert.Equal("        Ma(m:=(Ma(m:=(", state.GetLineTextFromCaretPosition())
+            End Using
+        End Function
+
         <ExportLanguageService(GetType(ISnippetInfoService), LanguageNames.VisualBasic), System.Composition.Shared>
         Friend Class MockSnippetInfoService
             Implements ISnippetInfoService
