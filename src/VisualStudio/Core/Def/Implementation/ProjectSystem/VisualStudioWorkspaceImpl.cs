@@ -99,11 +99,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             var fileChangeWatcherProvider = exportProvider.GetExportedValue<FileChangeWatcherProvider>();
 
             FileChangeWatcher = fileChangeWatcherProvider.Watcher;
-            System.Threading.Tasks.Task.Run(async () =>
+            _threadingContext.JoinableTaskFactory.RunAsync(async () =>
                 {
                     await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
-
-                    var fileChangeService = (IVsFileChangeEx)ServiceProvider.GlobalProvider.GetService(typeof(SVsFileChangeEx));
+                    var fileChangeService = (IVsAsyncFileChangeEx)await asyncServiceProvider.GetServiceAsync(typeof(SVsFileChangeEx));
+                    
                     fileChangeWatcherProvider.SetFileChangeService(fileChangeService);
                 });
         }

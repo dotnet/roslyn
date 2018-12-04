@@ -73,11 +73,11 @@ class C
                 Dim buffer = subjectDocument.GetTextBuffer()
 
                 state.SendTypeCharsToSpecificViewAndBuffer(".", view, buffer)
-                Await state.AssertCompletionSession()
+                Await state.AssertCompletionSession(view)
 
                 state.SendTypeCharsToSpecificViewAndBuffer("Cons", view, buffer)
                 Await state.WaitForAsynchronousOperationsAsync()
-                Await state.AssertSelectedCompletionItem(displayText:="Console")
+                Await state.AssertSelectedCompletionItem(displayText:="Console", projectionsView:=view)
             End Using
         End Function
 
@@ -114,13 +114,14 @@ class C
 
                 state.SendTypeCharsToSpecificViewAndBuffer(" ", view, buffer)
                 Await state.WaitForAsynchronousOperationsAsync()
-                Await state.AssertSelectedCompletionItem(displayText:="string", isHardSelected:=True)
+                Await state.AssertSelectedCompletionItem(displayText:="string", isHardSelected:=True, projectionsView:=view)
             End Using
         End Function
 
         <WorkItem(771761, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/771761")>
-        <MemberData(NameOf(AllCompletionImplementations))>
-        <WpfTheory(Skip:="https://github.com/dotnet/roslyn/issues/24846"), Trait(Traits.Feature, Traits.Features.Completion)>
+        <InlineData(CompletionImplementation.Modern)>
+        <InlineData(CompletionImplementation.Legacy, Skip:="https://github.com/dotnet/roslyn/issues/24846")>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestRegionCompletionCommitFormatting(completionImplementation As CompletionImplementation) As Task
             Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
                 <Document><![CDATA[
@@ -152,8 +153,7 @@ class C
 
                 state.SendTypeCharsToSpecificViewAndBuffer("#reg", view, buffer)
                 Await state.WaitForAsynchronousOperationsAsync()
-                Await state.AssertSelectedCompletionItem(displayText:="region", shouldFormatOnCommit:=True)
-
+                Await state.AssertSelectedCompletionItem(displayText:="region", shouldFormatOnCommit:=True, projectionsView:=view)
             End Using
         End Function
     End Class
