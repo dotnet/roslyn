@@ -1,14 +1,14 @@
-phases:
-- phase: Windows_VisualStudio_Integration_Tests
-  queue:
-    name: dotnet-external-temp-vs2017
-    timeoutInMinutes: 90
-    parallel: 2
+jobs:
+- job: Windows_VisualStudio_Integration_Tests
+  pool: dotnet-external-temp-vs2017
+  strategy:
+    maxParallel: 2
     matrix:
       debug:
         _configuration: Debug
       release:
         _configuration: Release
+  timeoutInMinutes: 90
 
   steps:
     - script: build/scripts/cibuild.cmd -configuration $(_configuration) -testVsi 
@@ -17,10 +17,10 @@ phases:
     - task: PublishTestResults@1
       inputs:
         testRunner: XUnit
-        testResultsFiles: '**/xUnitResults/*.xml'
+        testResultsFiles: $(Build.SourcesDirectory)\Binaries\TestResults\$(_configuration)\*.xml
         mergeTestResults: true
         testRunTitle: 'Windows Visual Studio Integration $(_configuration)' 
-      condition: succeededOrFailed()
+      condition: always()
 
     - task: PublishBuildArtifacts@1
       displayName: Publish Logs
@@ -29,7 +29,7 @@ phases:
         ArtifactName: 'Windows Visual Studio Integration $(_configuration)'
         publishLocation: Container
       continueOnError: true
-      condition: or(failed(), canceled())
+      condition: not(succeeded())
 
     - task: PublishBuildArtifacts@1
       displayName: Publish Screenshots
@@ -38,4 +38,4 @@ phases:
         ArtifactName: 'Screenshots $(_configuration)' 
         publishLocation: Container
       continueOnError: true
-      condition: or(failed(), canceled())
+      condition: not(succeeded())

@@ -7,7 +7,6 @@
     <OutputType>Library</OutputType>
     <TargetFramework>net472</TargetFramework>
     <RuntimeIdentifier>$(RoslynDesktopRuntimeIdentifier)</RuntimeIdentifier>
-    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <RootNamespace></RootNamespace>
     <IsShipping>false</IsShipping>
   </PropertyGroup>

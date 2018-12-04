@@ -94,6 +94,7 @@
     <MicrosoftServiceHubClientVersion>1.3.23</MicrosoftServiceHubClientVersion>
     <MicrosoftSourceLinkVersion>1.0.0-beta-63201-01</MicrosoftSourceLinkVersion>
     <MicrosoftSymbolUploaderBuildTaskVersion>1.0.0-beta-63008-01</MicrosoftSymbolUploaderBuildTaskVersion>
+    <MicrosoftNETTestSdkVersion>15.9.0-dev2</MicrosoftNETTestSdkVersion>
     <MicrosoftTplDataflowVersion>4.5.24</MicrosoftTplDataflowVersion>
     <MicrosoftVisualBasicVersion>10.1.0</MicrosoftVisualBasicVersion>
     <MicrosoftVisualStudioCallHierarchyPackageDefinitionsVersion>15.8.27812-alpha</MicrosoftVisualStudioCallHierarchyPackageDefinitionsVersion>
@@ -176,7 +177,7 @@
     <RoslynToolsReferenceAssembliesVersion>0.1.3</RoslynToolsReferenceAssembliesVersion>
     <RoslynToolsBuildTasksVersion>1.0.0-beta3.18526.1</RoslynToolsBuildTasksVersion>
     <RoslynToolsOptProfVersion>1.0.0-beta3.18524.2</RoslynToolsOptProfVersion>
-    <RoslynOptProfRunSettingsGeneratorVersion>1.0.0-beta3.18524.2</RoslynOptProfRunSettingsGeneratorVersion>
+    <RoslynOptProfRunSettingsGeneratorVersion>1.0.0-beta3.18603.3</RoslynOptProfRunSettingsGeneratorVersion>
     <RoslynToolsLightUpSystemRuntimeLoaderFixedVersion>4.3.0</RoslynToolsLightUpSystemRuntimeLoaderFixedVersion>
     <RoslynMicrosoftVisualStudioExtensionManagerVersion>0.0.4</RoslynMicrosoftVisualStudioExtensionManagerVersion>
     <StreamJsonRpcVersion>1.3.23</StreamJsonRpcVersion>
@@ -207,10 +208,12 @@
     <XliffTasksVersion>0.2.0-beta-63004-01</XliffTasksVersion>
     <xunitVersion>2.4.1-pre.build.4059</xunitVersion>
     <xunitanalyzersVersion>0.10.0</xunitanalyzersVersion>
-    <xunitassertVersion>2.4.1-pre.build.4059</xunitassertVersion>
+    <xunitassertVersion>$(xunitVersion)</xunitassertVersion>
+    <xunitextensibilitycoreVersion>$(xunitVersion)</xunitextensibilitycoreVersion>
     <xunitrunnerconsoleVersion>2.4.1-pre.build.4059</xunitrunnerconsoleVersion>
     <xunitrunnerwpfVersion>1.0.51</xunitrunnerwpfVersion>
-    <xunitrunnervisualstudioVersion>2.4.1-pre.build.4059</xunitrunnervisualstudioVersion>
+    <xunitrunnervisualstudioVersion>$(xunitVersion)</xunitrunnervisualstudioVersion>
+    <xunitextensibilityexecutionVersion>$(xunitVersion)</xunitextensibilityexecutionVersion>
 
     <!--
       The CodeStyle layer depends on a prior stable release of the CodeAnalysis assemblies so the NuGet packages
@@ -297,6 +300,7 @@
     <UsingToolNuGetRepack>true</UsingToolNuGetRepack>
     <UsingToolVSSDK>true</UsingToolVSSDK>
     <UsingToolNetFrameworkReferenceAssemblies>true</UsingToolNetFrameworkReferenceAssemblies>
+    <UsingToolXUnit>true</UsingToolXUnit>
   </PropertyGroup>
 
   <PropertyGroup>

@@ -11,6 +11,12 @@
     <RoslynProjectType>UnitTestPortable</RoslynProjectType>
     <RuntimeIdentifiers>$(RoslynPortableRuntimeIdentifiers)</RuntimeIdentifiers>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+
+    <!-- 
+      Mono serialization errors breaking tests that have traits
+      https://github.com/mono/mono/issues/10945
+    -->
+    <SkipTests Condition="'$(TestRuntime)' == 'Mono'">true</SkipTests>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\..\Test\Utilities\Portable\Roslyn.Test.Utilities.csproj" />
