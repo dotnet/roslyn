@@ -225,6 +225,11 @@
     <MicrosoftCodeAnalysisVisualBasicWorkspacesFixedVersion>$(CodeStyleLayerCodeAnalysisVersion)</MicrosoftCodeAnalysisVisualBasicWorkspacesFixedVersion>
   </PropertyGroup>
 
+  <!-- TODO: remove https://github.com/dotnet/roslyn/issues/31479 -->
+  <PropertyGroup>
+    <MicrosoftBuildFixedVersion>14.3.0</MicrosoftBuildFixedVersion>
+    <MicrosoftBuildTasksCoreFixedVersion>14.3.0</MicrosoftBuildTasksCoreFixedVersion>
+  </PropertyGroup>
   <!-- 
     The following packages are considered implementation details and will not be included 
     in the list of dependencies of Roslyn packages. They won't flow as package references 
@@ -297,6 +302,8 @@
     <UsingToolNuGetRepack>true</UsingToolNuGetRepack>
     <UsingToolVSSDK>true</UsingToolVSSDK>
     <UsingToolNetFrameworkReferenceAssemblies>true</UsingToolNetFrameworkReferenceAssemblies>
+    <UsingToolIbcOptimization>true</UsingToolIbcOptimization>
+    <UsingToolXliff>true</UsingToolXliff>
     <UsingToolXUnit>true</UsingToolXUnit>
   </PropertyGroup>
 

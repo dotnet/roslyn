@@ -6,9 +6,28 @@
 # Stop script if unbound variable found (use ${var:-} if intentional)
 set -u
 
+ci=${ci:-false}
+configuration=${configuration:-'Debug'}
+binary_log=${binary_log:-$ci}
+prepare_machine=${prepare_machine:-false}
+restore=${restore:-true}
+verbosity=${verbosity:-'minimal'}
+warnaserror=${warnaserror:-true}
 useInstalledDotNetCli=${useInstalledDotNetCli:-true}
 
+if [[ "$ci" == true ]]; then
+  nodereuse=${nodereuse:-false}
+else
+  nodereuse=${nodereuse:-true}
+fi
+
 repo_root="$scriptroot/../.."
+
+artifacts_dir="$repo_root/Binaries"  # TODO: update layout
+
+log_dir="$artifacts_dir/$configuration/Logs"
+temp_dir="$artifacts_dir/tmp/$configuration"
+
 global_json_file="$repo_root/global.json"
 
 function ResolvePath {
@@ -45,6 +64,10 @@ function ReadGlobalVersion {
 }
 
 function InitializeDotNetCli {
+  if [[ -n "${_InitializeDotNetCli:-}" ]]; then
+    return
+  fi
+
   local install=$1
 
   # Don't resolve runtime, shared framework, or SDK from other locations to ensure build determinism
@@ -52,6 +75,15 @@ function InitializeDotNetCli {
 
   # Disable first run since we want to control all package sources
   export DOTNET_SKIP_FIRST_TIME_EXPERIENCE=1
+
+  # Disable telemetry on CI
+  if [[ $ci == true ]]; then
+    export DOTNET_CLI_TELEMETRY_OPTOUT=1
+  fi
+
+  # LTTNG is the logging infrastructure used by Core CLR. Need this variable set
+  # so it doesn't output warnings to the console.
+  export LTTNG_HOME="$HOME"
 
   # Source Build uses DotNetCoreSdkDir variable
   if [[ -n "${DotNetCoreSdkDir:-}" ]]; then
@@ -131,6 +163,66 @@ function GetDotNetInstallScript {
   _GetDotNetInstallScript="$install_script"
 }
 
+function InitializeBuildTool {
+  if [[ -n "${_InitializeBuildTool:-}" ]]; then
+    return
+  fi
+  
+  InitializeDotNetCli $restore
+
+  # return value
+  _InitializeBuildTool="$_InitializeDotNetCli/dotnet"  
+}
+
 function ExitWithExitCode {
+  if [[ "$ci" == true && "$prepare_machine" == true ]]; then
+    StopProcesses
+  fi
   exit $1
 }
+
+function StopProcesses {
+  echo "Killing running build processes..."
+  pkill -9 "dotnet"
+  pkill -9 "vbcscompiler"
+  return 0
+}
+
+function MSBuild {
+  InitializeBuildTool
+
+  local warnaserror_switch=""
+  if [[ $warnaserror == true ]]; then
+    warnaserror_switch="/warnaserror"
+  fi
+
+  "$_InitializeBuildTool" msbuild /m /nologo /clp:Summary /v:$verbosity /nr:$nodereuse $warnaserror_switch /p:TreatWarningsAsErrors=$warnaserror "$@"
+  lastexitcode=$?
+
+  if [[ $lastexitcode != 0 ]]; then
+    echo "Build failed (exit code '$lastexitcode')." >&2
+    ExitWithExitCode $lastexitcode
+  fi
+}
+
+# HOME may not be defined in some scenarios, but it is required by NuGet
+if [[ -z $HOME ]]; then
+  export HOME="$repo_root/artifacts/.home/"
+  mkdir -p "$HOME"
+fi
+
+if [[ -z ${NUGET_PACKAGES:-} ]]; then
+  if [[ $ci == true ]]; then
+    export NUGET_PACKAGES="$repo_root/.packages"
+  else
+    export NUGET_PACKAGES="$HOME/.nuget/packages"
+  fi
+fi
+
+mkdir -p "$log_dir"
+
+if [[ $ci == true ]]; then
+  mkdir -p "$temp_dir"
+  export TEMP="$temp_dir"
+  export TMP="$temp_dir"
+fi
