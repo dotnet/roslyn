@@ -3556,8 +3556,7 @@ class C
             End Using
         End Function
 
-        <InlineData(CompletionImplementation.Legacy)>
-        <InlineData(CompletionImplementation.Modern, Skip:="https://github.com/dotnet/roslyn/issues/29112")>
+        <MemberData(NameOf(AllCompletionImplementations))>
         <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestNoBlockOnCompletionItems4(completionImplementation As CompletionImplementation) As Task
             Dim tcs = New TaskCompletionSource(Of Boolean)
@@ -3570,22 +3569,52 @@ class C
                     CompletionOptions.BlockForCompletionItems, LanguageNames.CSharp, False)
 
                 state.SendTypeChars("Sys")
-                state.SendCommitUniqueCompletionListItem()
-                Await Task.Delay(250)
-                state.AssertNoCompletionSessionWithNoBlock()
-                Assert.Contains("Sys", state.GetLineTextFromCaretPosition())
-                Assert.DoesNotContain("System", state.GetLineTextFromCaretPosition())
 
-                tcs.SetResult(True)
+                If completionImplementation = CompletionImplementation.Legacy Then
+                    state.SendCommitUniqueCompletionListItem()
+                    Await Task.Delay(250)
 
-                Await state.WaitForAsynchronousOperationsAsync()
-                Await state.AssertNoCompletionSession()
-                Assert.Contains("System", state.GetLineTextFromCaretPosition())
+                    state.AssertNoCompletionSessionWithNoBlock()
+                    Assert.Contains("Sys", state.GetLineTextFromCaretPosition())
+                    Assert.DoesNotContain("System", state.GetLineTextFromCaretPosition())
+                    tcs.SetResult(True)
+
+                    Await state.WaitForAsynchronousOperationsAsync()
+                    Await state.AssertNoCompletionSession()
+                    Assert.Contains("System", state.GetLineTextFromCaretPosition())
+                Else
+                    Dim task1 = Task.Run(Sub()
+                                             ' 2. Wait to be sure we are definietely hanging.
+                                             Task.Delay(250)
+
+                                             ' 3. Hang here as well.
+                                             state.AssertNoCompletionSession()
+                                             ' 7. This should be executed after SendCommitUniqueCompletionListItem because AssertNoCompletionSession waited for SendCommitUniqueCompletionListItem.
+                                             Assert.Contains("System", state.GetLineTextFromCaretPosition())
+                                         End Sub)
+
+                    Dim task2 = Task.Run(Sub()
+                                             ' 4. Wait to be sure we already hung with the tasks above.
+                                             Task.Delay(1000)
+                                             Try
+                                                 ' 5. Check that the other thread are hanging.
+                                                 Assert.Equal(TaskStatus.Running, task1.Status)
+                                             Finally
+                                                 ' 6. Unblock the first task and the main thread.
+                                                 tcs.SetResult(True)
+                                             End Try
+                                         End Sub)
+
+                    ' In the new completion, when pressed <ctrl>-<space>, we have to wait for the aggregate operation to complete.
+                    ' 1. Hang here.
+                    state.SendCommitUniqueCompletionListItem()
+
+                    Await Task.WhenAll(task1, task2)
+                End If
             End Using
         End Function
 
-        <InlineData(CompletionImplementation.Legacy)>
-        <InlineData(CompletionImplementation.Modern, Skip:="https://github.com/dotnet/roslyn/issues/29112")>
+        <MemberData(NameOf(AllCompletionImplementations))>
         <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestNoBlockOnCompletionItems3(completionImplementation As CompletionImplementation) As Task
             Dim tcs = New TaskCompletionSource(Of Boolean)
@@ -3598,19 +3627,55 @@ class C
                     CompletionOptions.BlockForCompletionItems, LanguageNames.CSharp, False)
 
                 state.SendTypeChars("Sys")
-                state.SendCommitUniqueCompletionListItem()
-                Await Task.Delay(250)
-                state.AssertNoCompletionSessionWithNoBlock()
-                Assert.Contains("Sys", state.GetLineTextFromCaretPosition())
-                Assert.DoesNotContain("System", state.GetLineTextFromCaretPosition())
+                If completionImplementation = CompletionImplementation.Legacy Then
+                    state.SendCommitUniqueCompletionListItem()
+                    Await Task.Delay(250)
+                    state.AssertNoCompletionSessionWithNoBlock()
+                    Assert.Contains("Sys", state.GetLineTextFromCaretPosition())
+                    Assert.DoesNotContain("System", state.GetLineTextFromCaretPosition())
 
-                state.SendTypeChars("a")
+                    state.SendTypeChars("a")
 
-                tcs.SetResult(True)
+                    tcs.SetResult(True)
 
-                Await state.WaitForAsynchronousOperationsAsync()
-                Await state.AssertCompletionSession()
-                Assert.Contains("Sysa", state.GetLineTextFromCaretPosition())
+                    Await state.WaitForAsynchronousOperationsAsync()
+                    Await state.AssertCompletionSession()
+                    Assert.Contains("Sysa", state.GetLineTextFromCaretPosition())
+                Else
+                    Dim task1 = Task.Run(Sub()
+                                             ' 2. Wait to be sure we are definietely hanging.
+                                             Task.Delay(250)
+
+                                             ' 3. Hang here as well.
+                                             state.AssertNoCompletionSession()
+
+                                             ' 7. This should be executed after SendCommitUniqueCompletionListItem because AssertNoCompletionSession waited for SendCommitUniqueCompletionListItem.
+                                             Assert.Contains("System", state.GetLineTextFromCaretPosition())
+                                         End Sub)
+
+                    Dim task2 = Task.Run(Sub()
+                                             ' 4. Wait to be sure we already hung with the tasks above.
+                                             Task.Delay(1000)
+                                             Try
+                                                 ' 5. Check that the other thread are hanging.
+                                                 Assert.Equal(TaskStatus.Running, task1.Status)
+                                             Finally
+                                                 ' 6. Unblock the first task and the main thread.
+                                                 tcs.SetResult(True)
+                                             End Try
+                                         End Sub)
+
+                    ' In the new completion, when pressed <ctrl>-<space>, we have to wait for the aggregate operation to complete.
+                    ' 1. Hang here.
+                    state.SendCommitUniqueCompletionListItem()
+
+                    ' This code is not executed until the SendCommitUniqueCompletionListItem has been completed.
+                    state.SendTypeChars("a")
+
+                    Await state.WaitForAsynchronousOperationsAsync()
+                    Await state.AssertNoCompletionSession()
+                    Assert.Contains("Systema", state.GetLineTextFromCaretPosition())
+                End If
             End Using
         End Function
 
