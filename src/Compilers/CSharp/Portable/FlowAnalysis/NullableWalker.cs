@@ -4062,6 +4062,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         int containingSlot = getReceiverSlot();
                         if (containingSlot > 0)
                         {
+                            // https://github.com/dotnet/roslyn/issues/31516: Report HDN_NullCheckIsProbablyAlwaysTrue/False
+                            // when HasValue check is unnecessary.
                             Split();
                             this.StateWhenTrue[containingSlot] = NullableAnnotation.NotNullable;
                             this.StateWhenFalse[containingSlot] = NullableAnnotation.Nullable;

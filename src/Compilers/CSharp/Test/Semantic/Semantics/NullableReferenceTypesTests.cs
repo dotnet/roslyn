@@ -60809,27 +60809,6 @@ partial class Program
             var source =
 @"class Program
 {
-    static void F<T>(T? x) where T : struct
-    {
-        if (x.HasValue)
-            _ = (T)x;
-        else
-            _ = (T)x; // 1
-    }
-}";
-            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
-            comp.VerifyDiagnostics(
-                // (8,17): warning CS8629: Nullable value type may be null.
-                //             _ = (T)x; // 1
-                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "(T)x").WithLocation(8, 17));
-        }
-
-        [Fact]
-        public void NullableT_07()
-        {
-            var source =
-@"class Program
-{
     static void F<T>(T? x, T? y) where T : struct
     {
         _ = (T)x; // 1
@@ -60837,6 +60816,7 @@ partial class Program
         x = y;
         _ = (T)x; // 2
         _ = (T)x;
+        _ = (T)y; // 3
     }
 }";
             var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
@@ -60846,11 +60826,14 @@ partial class Program
                 Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "(T)x").WithLocation(5, 13),
                 // (8,13): warning CS8629: Nullable value type may be null.
                 //         _ = (T)x; // 2
-                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "(T)x").WithLocation(8, 13));
+                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "(T)x").WithLocation(8, 13),
+                // (10,13): warning CS8629: Nullable value type may be null.
+                //         _ = (T)y; // 3
+                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "(T)y").WithLocation(10, 13));
         }
 
         [Fact]
-        public void NullableT_08()
+        public void NullableT_07()
         {
             var source =
 @"class Program
@@ -60867,7 +60850,7 @@ partial class Program
         }
 
         [Fact]
-        public void NullableT_09()
+        public void NullableT_08()
         {
             var source =
 @"class Program
@@ -60885,7 +60868,7 @@ partial class Program
         }
 
         [Fact]
-        public void NullableT_10()
+        public void NullableT_09()
         {
             var source =
 @"class Program
@@ -60914,7 +60897,7 @@ partial class Program
 
         [WorkItem(31502, "https://github.com/dotnet/roslyn/issues/31502")]
         [Fact]
-        public void NullableT_11()
+        public void NullableT_10()
         {
             var source =
 @"class Program
@@ -60937,7 +60920,7 @@ partial class Program
         }
 
         [Fact]
-        public void NullableT_12()
+        public void NullableT_11()
         {
             var source =
 @"class C<T> where T : struct
@@ -60968,7 +60951,7 @@ partial class Program
         }
 
         [Fact]
-        public void NullableT_13()
+        public void NullableT_12()
         {
             var source =
 @"class C<T> where T : struct
@@ -60999,7 +60982,7 @@ partial class Program
         }
 
         [Fact]
-        public void NullableT_14()
+        public void NullableT_13()
         {
             var source =
 @"class C<T> where T : struct
@@ -61030,7 +61013,7 @@ partial class Program
         }
 
         [Fact]
-        public void NullableT_15()
+        public void NullableT_14()
         {
             var source =
 @"class C<T> where T : struct
@@ -61069,6 +61052,8 @@ partial class Program
     }
 }";
             var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            // https://github.com/dotnet/roslyn/issues/31516: Report HDN_NullCheckIsProbablyAlwaysTrue/False
+            // when HasValue check is unnecessary.
             comp.VerifyDiagnostics(
                 // (8,22): warning CS8629: Nullable value type may be null.
                 //             else _ = t1.Value; // 1
@@ -61085,7 +61070,7 @@ partial class Program
         }
 
         [Fact]
-        public void NullableT_16()
+        public void NullableT_15()
         {
             var source =
 @"class C<T> where T : struct
@@ -61135,7 +61120,7 @@ partial class Program
         }
 
         [Fact]
-        public void NullableT_17()
+        public void NullableT_16()
         {
             var source =
 @"class C<T> where T : struct
@@ -61185,7 +61170,7 @@ partial class Program
         }
 
         [Fact]
-        public void NullableT_18()
+        public void NullableT_17()
         {
             var source =
 @"class C<T> where T : struct
@@ -61208,7 +61193,7 @@ partial class Program
         }
 
         [Fact]
-        public void NullableT_19()
+        public void NullableT_18()
         {
             var source =
 @"class C<T> where T : struct
@@ -61234,7 +61219,7 @@ partial class Program
         }
 
         [Fact]
-        public void NullableT_20()
+        public void NullableT_19()
         {
             var source =
 @"#pragma warning disable 0649
@@ -61301,7 +61286,7 @@ class Program
         }
 
         [Fact]
-        public void NullableT_21()
+        public void NullableT_20()
         {
             var source =
 @"#pragma warning disable 0649
@@ -61359,7 +61344,7 @@ class Program
         }
 
         [Fact]
-        public void NullableT_22()
+        public void NullableT_21()
         {
             var source =
 @"class Program
@@ -61391,7 +61376,7 @@ class Program
         }
 
         [Fact]
-        public void NullableT_23()
+        public void NullableT_22()
         {
             var source =
 @"class Program
@@ -61419,7 +61404,7 @@ class Program
 
         [WorkItem(31500, "https://github.com/dotnet/roslyn/issues/31500")]
         [Fact]
-        public void NullableT_24()
+        public void NullableT_23()
         {
             var source =
 @"class Program
@@ -61450,7 +61435,7 @@ class Program
 
         [WorkItem(31500, "https://github.com/dotnet/roslyn/issues/31500")]
         [Fact]
-        public void NullableT_25()
+        public void NullableT_24()
         {
             var source =
 @"struct A
@@ -61493,7 +61478,7 @@ class Program
         }
 
         [Fact]
-        public void NullableT_26()
+        public void NullableT_25()
         {
             var source =
 @"class Program
@@ -61518,7 +61503,7 @@ class Program
         }
 
         [Fact]
-        public void NullableT_27()
+        public void NullableT_26()
         {
             var source =
 @"using System;
