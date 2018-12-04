@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -13,27 +14,24 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
     {
         public const string EmbeddedProviderName = "EmbeddedProvider";
 
-        private readonly IEmbeddedLanguageFeaturesProvider _languagesProvider;
+        private readonly ImmutableArray<IEmbeddedLanguageFeatures> _languageProviders;
 
         protected AbstractEmbeddedLanguageCompletionProvider(IEmbeddedLanguageFeaturesProvider languagesProvider)
         {
-            _languagesProvider = languagesProvider;
+            _languageProviders = languagesProvider?.Languages ?? ImmutableArray<IEmbeddedLanguageFeatures>.Empty;
         }
 
         public override bool ShouldTriggerCompletion(SourceText text, int caretPosition, CompletionTrigger trigger, OptionSet options)
         {
-            if (_languagesProvider != null)
+            foreach (var language in _languageProviders)
             {
-                foreach (var language in _languagesProvider.Languages)
+                var completionProvider = language.CompletionProvider;
+                if (completionProvider != null)
                 {
-                    var completionProvider = language.CompletionProvider;
-                    if (completionProvider != null)
+                    if (completionProvider.ShouldTriggerCompletion(
+                            text, caretPosition, trigger, options))
                     {
-                        if (completionProvider.ShouldTriggerCompletion(
-                                text, caretPosition, trigger, options))
-                        {
-                            return true;
-                        }
+                        return true;
                     }
                 }
             }
@@ -43,20 +41,17 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         public override async Task ProvideCompletionsAsync(CompletionContext context)
         {
-            if (_languagesProvider != null)
+            foreach (var language in _languageProviders)
             {
-                foreach (var language in _languagesProvider.Languages)
+                var completionProvider = language.CompletionProvider;
+                if (completionProvider != null)
                 {
-                    var completionProvider = language.CompletionProvider;
-                    if (completionProvider != null)
-                    {
-                        var count = context.Items.Count;
-                        await completionProvider.ProvideCompletionsAsync(context).ConfigureAwait(false);
+                    var count = context.Items.Count;
+                    await completionProvider.ProvideCompletionsAsync(context).ConfigureAwait(false);
 
-                        if (context.Items.Count > count)
-                        {
-                            return;
-                        }
+                    if (context.Items.Count > count)
+                    {
+                        return;
                     }
                 }
             }
@@ -69,6 +64,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             => GetLanguage(item).CompletionProvider.GetDescriptionAsync(document, item, cancellationToken);
 
         private IEmbeddedLanguageFeatures GetLanguage(CompletionItem item)
-            => _languagesProvider.Languages.Single(lang => lang.CompletionProvider?.Name == item.Properties[EmbeddedProviderName]);
+            => _languageProviders.Single(lang => lang.CompletionProvider?.Name == item.Properties[EmbeddedProviderName]);
     }
 }
