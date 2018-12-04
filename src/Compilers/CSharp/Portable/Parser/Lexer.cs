@@ -3126,7 +3126,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
                 case '\r':
                 case '\n':
-                    info = ScanXmlTextLiteralNewLineToken(ref info);
+                    ScanXmlTextLiteralNewLineToken(ref info);
                     break;
 
                 case SlidingTextWindow.InvalidCharacter:
@@ -3153,13 +3153,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return info.Kind != SyntaxKind.None;
         }
 
-        private TokenInfo ScanXmlTextLiteralNewLineToken(ref TokenInfo info)
+        private void ScanXmlTextLiteralNewLineToken(ref TokenInfo info)
         {
             this.ScanEndOfLine();
             info.StringValue = info.Text = TextWindow.GetText(intern: false);
             info.Kind = SyntaxKind.XmlTextLiteralNewLineToken;
             this.MutateLocation(XmlDocCommentLocation.Exterior);
-            return info;
         }
 
         private void ScanXmlTagStart(ref TokenInfo info)
