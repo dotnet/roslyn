@@ -29,6 +29,7 @@
   <Import Project="Workarounds.targets"/>
   <Import Project="RepositoryInfo.targets"/>
   <Import Project="Version.targets"/>
+  <Import Project="Tests.targets"/>
 
   <Import Project="Localization.targets" />
   <Import Project="VisualStudio.targets" Condition="'$(UsingToolVSSDK)' == 'true' and '$(DesignTimeBuild)' != 'true' and '$(BuildingForLiveUnitTesting)' != 'true' and '$(MSBuildRuntimeType)' != 'Core'"/>

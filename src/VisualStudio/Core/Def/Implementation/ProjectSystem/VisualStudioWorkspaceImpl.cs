@@ -602,7 +602,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             var documentTrackingService = this.Services.GetService<IDocumentTrackingService>();
             if (documentTrackingService != null)
             {
-                var documentId = documentTrackingService.GetActiveDocument() ?? documentTrackingService.GetVisibleDocuments().FirstOrDefault();
+                var documentId = documentTrackingService.TryGetActiveDocument() ?? documentTrackingService.GetVisibleDocuments().FirstOrDefault();
                 if (documentId != null)
                 {
                     var composition = (IComponentModel)ServiceProvider.GlobalProvider.GetService(typeof(SComponentModel));
@@ -1393,6 +1393,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// </summary>
         /// <param name="projectId">The <see cref="ProjectId"/> of the project that could be referenced in place of the output path.</param>
         /// <param name="outputPath">The output path to replace.</param>
+        [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/31306",
+            Constraint = "Avoid calling " + nameof(CodeAnalysis.Solution.GetProject) + " to avoid realizing all projects.")]
         private void ConvertMetadataReferencesToProjectReferences_NoLock(ProjectId projectId, string outputPath)
         {
             var modifiedSolution = this.CurrentSolution;
@@ -1402,11 +1404,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             {
                 if (CanConvertMetadataReferenceToProjectReference(projectIdToRetarget, referencedProjectId: projectId))
                 {
-                    foreach (PortableExecutableReference reference in modifiedSolution.GetProject(projectIdToRetarget).MetadataReferences)
+                    // PERF: call GetProjectState instead of GetProject, otherwise creating a new project might force all
+                    // Project instances to get created.
+                    foreach (PortableExecutableReference reference in modifiedSolution.GetProjectState(projectIdToRetarget).MetadataReferences)
                     {
                         if (string.Equals(reference.FilePath, outputPath, StringComparison.OrdinalIgnoreCase))
                         {
-
                             var projectReference = new ProjectReference(projectId, reference.Properties.Aliases, reference.Properties.EmbedInteropTypes);
                             modifiedSolution = modifiedSolution.RemoveMetadataReference(projectIdToRetarget, reference)
                                                                .AddProjectReference(projectIdToRetarget, projectReference);
@@ -1426,10 +1429,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             SetSolutionAndRaiseWorkspaceChanged_NoLock(modifiedSolution, projectIdsChanged);
         }
 
+        [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/31306",
+            Constraint = "Avoid calling " + nameof(CodeAnalysis.Solution.GetProject) + " to avoid realizing all projects.")]
         private bool CanConvertMetadataReferenceToProjectReference(ProjectId projectIdWithMetadataReference, ProjectId referencedProjectId)
         {
-            var projectWithMetadataReference = CurrentSolution.GetProject(projectIdWithMetadataReference);
-            var referencedProject = CurrentSolution.GetProject(referencedProjectId);
+            // PERF: call GetProjectState instead of GetProject, otherwise creating a new project might force all
+            // Project instances to get created.
+            var projectWithMetadataReference = CurrentSolution.GetProjectState(projectIdWithMetadataReference);
+            var referencedProject = CurrentSolution.GetProjectState(referencedProjectId);
 
             // We don't want to convert a metadata reference to a project reference if the project being referenced isn't something
             // we can create a Compilation for. For example, if we have a C# project, and it's referencing a F# project via a metadata reference
@@ -1468,8 +1475,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     if (string.Equals(convertedReference.path, outputPath, StringComparison.OrdinalIgnoreCase) &&
                         convertedReference.projectReference.ProjectId == projectId)
                     {
-                        var metadataReference =
-                            CreateMetadataReference(
+                        var metadataReference = 
+                            CreatePortableExecutableReference(
                                 convertedReference.path,
                                 new MetadataReferenceProperties(
                                     aliases: convertedReference.projectReference.Aliases,
@@ -1541,12 +1548,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             return null;
         }
-
-        public MetadataReference CreateMetadataReference(string path, MetadataReferenceProperties properties)
-        {
-            return Services.GetRequiredService<IMetadataService>().GetReference(path, properties);
-        }
-
+        
         private void SetSolutionAndRaiseWorkspaceChanged_NoLock(CodeAnalysis.Solution modifiedSolution, ICollection<ProjectId> projectIdsChanged)
         {
             if (projectIdsChanged.Count > 0)

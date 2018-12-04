@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.ConvertLinq
             }
 
             /// <summary>
-            /// Updates the root of the docuemtn with the document update.
+            /// Updates the root of the document with the document update.
             /// </summary>
             public SyntaxNode UpdateRoot(SyntaxNode root)
             {

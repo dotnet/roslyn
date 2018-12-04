@@ -1,11 +1,43 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports Microsoft.CodeAnalysis.Operations
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
     Partial Public Class IOperationTests
         Inherits SemanticModelTestBase
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact()>
+        Public Sub OmittedArgument_ReferenceConversionInOmittedArgument()
+
+            Dim source = <![CDATA[
+Imports System.Collections.Generic
+Public Class C
+    Public Sub M1(i As Integer, i2 As Integer)
+        i = M2(i2,,i2)
+    End Sub
+
+    Public Function M2(i as String, Optional i2 as IEnumerable(Of String) = Nothing, Optional i3 as String = Nothing)
+        Return i2
+    End Function
+End Class
+]]>.Value
+
+            Dim compilation = CreateCompilation(source)
+            Dim syntaxTree = compilation.SyntaxTrees(0)
+            Dim semanticModel = compilation.GetSemanticModel(syntaxTree)
+            Dim method = syntaxTree.GetRoot().DescendantNodes().OfType(Of MethodBlockSyntax).First()
+
+            Dim methodOperation = semanticModel.GetOperation(method)
+
+            ' When we fetch an omitted argument that involves a conversion, there was a bug that involved
+            ' a synthesized conversion node being introduced without a corresponding BoundNode that got
+            ' incorrectly duplicated. This excercises that code path to ensure that the BoundNode is correctly
+            ' cached in the tree.
+            Dim operationsToAnalyze = methodOperation.DescendantsAndSelf().ToArray()
+        End Sub
 
         <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
         <Fact()>

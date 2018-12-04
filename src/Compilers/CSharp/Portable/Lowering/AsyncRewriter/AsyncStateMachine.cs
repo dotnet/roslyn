@@ -31,8 +31,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var elementType = TypeMap.SubstituteType(asyncMethod.IteratorElementType).TypeSymbol;
                 this.IteratorElementType = elementType;
 
-                // IAsyncEnumerable<TResult>
-                interfaces.Add(compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_IAsyncEnumerable_T).Construct(elementType));
+                bool isEnumerable = asyncMethod.IsIAsyncEnumerableReturningAsync(compilation);
+                if (isEnumerable)
+                {
+                    // IAsyncEnumerable<TResult>
+                    interfaces.Add(compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_IAsyncEnumerable_T).Construct(elementType));
+                }
 
                 // IAsyncEnumerator<TResult>
                 interfaces.Add(compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_IAsyncEnumerator_T).Construct(elementType));

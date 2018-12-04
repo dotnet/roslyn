@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else if (!returnType.IsErrorType())
                     {
-                    Error(elementTypeDiagnostics, ErrorCode.ERR_BadIteratorReturn, _methodSymbol.Locations[0], _methodSymbol, returnType);
+                        Error(elementTypeDiagnostics, ErrorCode.ERR_BadIteratorReturn, _methodSymbol.Locations[0], _methodSymbol, returnType);
                     }
                     elementType = CreateErrorType();
                 }
@@ -184,7 +184,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (refKind == RefKind.None && returnType.Kind == SymbolKind.NamedType)
             {
-                switch (returnType.OriginalDefinition.SpecialType)
+                TypeSymbol originalDefinition = returnType.OriginalDefinition;
+                switch (originalDefinition.SpecialType)
                 {
                     case SpecialType.System_Collections_IEnumerable:
                     case SpecialType.System_Collections_IEnumerator:
@@ -200,7 +201,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return ((NamedTypeSymbol)returnType).TypeArgumentsNoUseSiteDiagnostics[0];
                 }
 
-                if (returnType.OriginalDefinition == compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_IAsyncEnumerable_T))
+                if (originalDefinition == compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_IAsyncEnumerable_T) ||
+                    originalDefinition == compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_IAsyncEnumerator_T))
                 {
                     return ((NamedTypeSymbol)returnType).TypeArgumentsNoUseSiteDiagnostics[0];
                 }

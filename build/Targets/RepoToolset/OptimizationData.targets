@@ -24,10 +24,10 @@
   <Target Name="PostCompileBinaryModification"
           AfterTargets="CoreCompile"
           DependsOnTargets="_InitializeAssemblyOptimizationWithTargetAssembly;ApplyOptimizations"
-          Condition="'$(IsWpfTempProject)' != 'true' and Exists('$(_PreviousOptimizedFile)')"
+          Condition="'$(IsWpfTempProject)' != 'true' and '$(ApplyPartialNgenOptimization)' == 'true'"
           Inputs="$(MSBuildAllProjects);@(IntermediateAssembly)"
           Outputs="@(IntermediateAssembly);$(PostCompileBinaryModificationSentinelFile)">
-
+    
     <!-- Write out a sentinel timestamp file to prevent unnecessary work in incremental builds. -->
     <Touch AlwaysCreate="true" Files="$(PostCompileBinaryModificationSentinelFile)" />
 
@@ -36,7 +36,7 @@
     </ItemGroup>
   </Target>
 
-  <Target Name="_InitializeAssemblyOptimizationWithTargetAssembly">
+  <Target Name="_InitializeAssemblyOptimizationWithTargetAssembly">    
     <ItemGroup>
       <OptimizeAssembly Include="@(IntermediateAssembly)" PreviousOptimizedFile="$(_PreviousOptimizedFile)" />
     </ItemGroup>
@@ -74,6 +74,9 @@
     <Message Text='IBCMerge tool will be run in an official build with arguments: %(OptimizeAssembly._IbcArgs)'
              Condition="'$(_RunIbcMerge)' != 'true'" 
              Importance="normal"/>
+
+    <Warning Text="Optimization data expected but not found at '%(OptimizeAssembly.PreviousOptimizedFile)'"
+             Condition="'$(_RunIbcMerge)' != 'true' and !Exists(%(OptimizeAssembly.PreviousOptimizedFile))" />
 
     <Exec Command='"$(_IbcMergePath)" %(OptimizeAssembly._IbcArgs)' 
           ConsoleToMSBuild="true"
