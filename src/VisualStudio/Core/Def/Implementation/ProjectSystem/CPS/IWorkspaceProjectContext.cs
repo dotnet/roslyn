@@ -45,5 +45,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ProjectSystem
 
         void StartBatch();
         void EndBatch();
+
+        void ReorderSourceFiles(IEnumerable<string> filePaths);
     }
 }

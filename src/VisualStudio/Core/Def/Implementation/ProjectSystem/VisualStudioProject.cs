@@ -1017,6 +1017,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             _workspace.RemoveProjectOutputPath(Id, outputPath);
         }
 
+        public void ReorderSourceFiles(ImmutableArray<string> filePaths)
+        {
+            _sourceFiles.ReorderFiles(filePaths);
+        }
+
         /// <summary>
         /// Clears a list and zeros out the capacity. The lists we use for batching are likely to get large during an initial load, but after
         /// that point should never get that large again.
@@ -1074,6 +1079,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             /// </summary>
             private readonly List<DocumentId> _documentsRemovedInBatch = new List<DocumentId>();
 
+            /// <summary>
+            /// The current
+            /// </summary>
+            private Nullable<ImmutableArray<string>> _orderedFilesInBatch = null;
+
             private readonly Func<Solution, DocumentId, bool> _documentAlreadyInWorkspace;
             private readonly Action<Workspace, DocumentInfo> _documentAddAction;
             private readonly Action<Workspace, DocumentId> _documentRemoveAction;
@@ -1113,6 +1123,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     {
                         throw new ArgumentException($"'{fullPath}' has already been added to this project.", nameof(fullPath));
                     }
+
+                    // Adding a file messes up the ordering and does not gaurantee any kind of order, so invalidate any ordered files in batch.
+                    _orderedFilesInBatch = null;
 
                     _documentPathsToDocumentIds.Add(fullPath, documentId);
                     _project._documentFileWatchingTokens.Add(documentId, _project._documentFileChangeContext.EnqueueWatchingFile(fullPath));
@@ -1200,6 +1213,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                         throw new ArgumentException($"'{filePath}' has already been added to this project.", nameof(filePath));
                     }
 
+                    // Adding a dynamic file messes up the ordering and does not gaurantee any kind of order, so invalidate any ordered files in batch.
+                    _orderedFilesInBatch = null;
+
                     _documentPathsToDocumentIds.Add(filePath, documentId);
 
                     _documentIdToDynamicFileInfoProvider.Add(documentId, fileInfoProvider);
@@ -1268,6 +1284,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             private void RemoveFileInternal(DocumentId documentId, string fullPath)
             {
+                // Removing a file messes up the ordering and does not gaurantee any kind of order, so invalidate any ordered files in batch.
+                _orderedFilesInBatch = null;
+
                 _documentPathsToDocumentIds.Remove(fullPath);
 
                 // There are two cases:
@@ -1440,6 +1459,39 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 }
             }
 
+            public void ReorderFiles(ImmutableArray<string> filePaths)
+            {
+                if (filePaths.IsEmpty)
+                {
+                    throw new ArgumentOutOfRangeException("The specified files are empty.", nameof(filePaths));
+                }
+
+                lock (_project._gate)
+                {
+                    if (_documentPathsToDocumentIds.Count != filePaths.Length)
+                    {
+                        throw new ArgumentException("The specified files do not equal the project document count.", nameof(filePaths));
+                    }
+
+                    foreach (var filePath in filePaths)
+                    {
+                        if (!_documentPathsToDocumentIds.ContainsKey(filePath))
+                        {
+                            throw new InvalidOperationException($"The file '{filePath}' does not exist in the project.");
+                        }
+                    }
+
+                    if (_project._activeBatchScopes > 0)
+                    {
+                        _orderedFilesInBatch = filePaths;
+                    }
+                    else
+                    {
+                        _project._workspace.ApplyBatchChangeToProject(_project.Id, oldSolution => UpdateProjectDocumentsOrder(oldSolution, filePaths));
+                    }
+                }
+            }
+
             internal Solution UpdateSolutionForBatch(
                 Solution solution,
                 ImmutableArray<string>.Builder documentFileNamesAdded,
@@ -1470,7 +1522,34 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
                 ClearAndZeroCapacity(_documentsRemovedInBatch);
 
+                // Update project's order of documents.
+                solution = UpdateProjectDocumentsOrderForBatch(solution);
+
                 return solution;
+            }
+
+            internal Solution UpdateProjectDocumentsOrderForBatch(Solution solution)
+            {
+                // The action of ordering documents was not included in the batch. Simply return the solution.
+                if (_orderedFilesInBatch == null)
+                {
+                    return solution;
+                }
+
+                var orderedFiles = _orderedFilesInBatch;
+
+                _orderedFilesInBatch = null;
+
+                return UpdateProjectDocumentsOrder(solution, orderedFiles);
+            }
+
+            private Solution UpdateProjectDocumentsOrder(Solution solution, IEnumerable<string> filePaths)
+            {
+                var projectId = _project.Id;
+                var documentIds =
+                    filePaths.Select(x => solution.GetDocumentIdsWithFilePath(x).Single(id => id.ProjectId == projectId));
+
+                return solution.WithProjectDocumentsOrder(projectId, documentIds.ToImmutableList());
             }
 
             private DocumentInfo CreateDocumentInfoFromFileInfo(DynamicFileInfo fileInfo, IEnumerable<string> folders)

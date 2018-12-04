@@ -1520,6 +1520,83 @@ public class C : A {
             var root = newTree.GetRoot();
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        public void TestUpdateDocumentsOrder()
+        {
+            var solution = CreateSolution();
+            var pid = ProjectId.CreateNewId();
+
+            Func<ImmutableArray<Document>> GetDocuments = () => solution.GetProject(pid).Documents.ToImmutableArray();
+
+            solution = solution.AddProject(pid, "test", "test.dll", LanguageNames.CSharp);
+
+            var text1 = "public class Test1 {}";
+            var did1 = DocumentId.CreateNewId(pid);
+            solution = solution.AddDocument(did1, "test1.cs", text1);
+
+            var text2 = "public class Test2 {}";
+            var did2 = DocumentId.CreateNewId(pid);
+            solution = solution.AddDocument(did2, "test2.cs", text2);
+
+            var text3 = "public class Test3 {}";
+            var did3 = DocumentId.CreateNewId(pid);
+            solution = solution.AddDocument(did3, "test3.cs", text3);
+
+            var text4 = "public class Test4 {}";
+            var did4 = DocumentId.CreateNewId(pid);
+            solution = solution.AddDocument(did4, "test4.cs", text4);
+
+            var text5 = "public class Test5 {}";
+            var did5 = DocumentId.CreateNewId(pid);
+            solution = solution.AddDocument(did5, "test5.cs", text5);
+
+            solution = solution.WithProjectDocumentsOrder(pid, ImmutableList.CreateRange(new[] { did5, did4, did3, did2, did1 }));
+
+            var documents = GetDocuments();
+
+            Assert.Equal("test5.cs", documents[0].Name, StringComparer.OrdinalIgnoreCase);
+            Assert.Equal("test4.cs", documents[1].Name, StringComparer.OrdinalIgnoreCase);
+            Assert.Equal("test3.cs", documents[2].Name, StringComparer.OrdinalIgnoreCase);
+            Assert.Equal("test2.cs", documents[3].Name, StringComparer.OrdinalIgnoreCase);
+            Assert.Equal("test1.cs", documents[4].Name, StringComparer.OrdinalIgnoreCase);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        public void TestUpdateDocumentsOrderExceptions()
+        {
+            var solution = CreateSolution();
+            var pid = ProjectId.CreateNewId();
+
+            solution = solution.AddProject(pid, "test", "test.dll", LanguageNames.CSharp);
+
+            var text1 = "public class Test1 {}";
+            var did1 = DocumentId.CreateNewId(pid);
+            solution = solution.AddDocument(did1, "test1.cs", text1);
+
+            var text2 = "public class Test2 {}";
+            var did2 = DocumentId.CreateNewId(pid);
+            solution = solution.AddDocument(did2, "test2.cs", text2);
+
+            var text3 = "public class Test3 {}";
+            var did3 = DocumentId.CreateNewId(pid);
+            solution = solution.AddDocument(did3, "test3.cs", text3);
+
+            var text4 = "public class Test4 {}";
+            var did4 = DocumentId.CreateNewId(pid);
+            solution = solution.AddDocument(did4, "test4.cs", text4);
+
+            var text5 = "public class Test5 {}";
+            var did5 = DocumentId.CreateNewId(pid);
+            solution = solution.AddDocument(did5, "test5.cs", text5);
+
+            solution = solution.RemoveDocument(did5);
+
+            Assert.Throws<ArgumentOutOfRangeException>(() => solution = solution.WithProjectDocumentsOrder(pid, ImmutableList.Create<DocumentId>()));
+            Assert.Throws<ArgumentNullException>(() => solution = solution.WithProjectDocumentsOrder(pid, null));
+            Assert.Throws<InvalidOperationException>(() => solution = solution.WithProjectDocumentsOrder(pid, ImmutableList.CreateRange(new[] { did5, did3, did2, did1 })));
+            Assert.Throws<ArgumentException>(() => solution = solution.WithProjectDocumentsOrder(pid, ImmutableList.CreateRange(new[] { did3, did2, did1 })));
+        }
+
         private static void GetMultipleProjects(
             out Project csBrokenProject,
             out Project vbNormalProject,

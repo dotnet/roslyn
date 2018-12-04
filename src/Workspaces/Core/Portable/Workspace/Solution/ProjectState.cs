@@ -671,6 +671,35 @@ namespace Microsoft.CodeAnalysis
                 latestDocumentTopLevelChangeVersion: dependentSemanticVersion);
         }
 
+        public ProjectState UpdateDocumentsOrder(ImmutableList<DocumentId> documentIds)
+        {
+            if (documentIds == null)
+            {
+                throw new ArgumentNullException(nameof(documentIds));
+            }
+
+            if (documentIds.IsEmpty)
+            {
+                throw new ArgumentOutOfRangeException("The specified documents are empty.", nameof(documentIds));
+            }
+
+            if (documentIds.Count != _documentIds.Count)
+            {
+                throw new ArgumentException($"The specified documents do not equal the project document count.", nameof(documentIds));
+            }
+
+            foreach (var documentId in documentIds)
+            {
+                if (!this.ContainsDocument(documentId))
+                {
+                    throw new InvalidOperationException($"The document '{documentId}' does not exist in the project.");
+                }
+            }
+
+            return this.With(
+                documentIds: documentIds);
+        }
+
         private void GetLatestDependentVersions(
             IImmutableDictionary<DocumentId, DocumentState> newDocumentStates,
             IImmutableDictionary<DocumentId, TextDocumentState> newAdditionalDocumentStates,
