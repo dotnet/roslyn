@@ -1089,7 +1089,7 @@ namespace Microsoft.CodeAnalysis
                 {
                     var diagnostic = Diagnostic.Create(Descriptor, operationContext.Operation.Syntax.GetLocation(), operationContext.ContainingSymbol.Name);
                     operationContext.ReportDiagnostic(diagnostic);
-                }, OperationKind.MethodBodyOperation, OperationKind.ConstructorBodyOperation);
+                }, OperationKind.MethodBody, OperationKind.ConstructorBody);
             }
         }
 
