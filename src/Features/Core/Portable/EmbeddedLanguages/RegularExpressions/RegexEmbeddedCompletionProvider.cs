@@ -465,13 +465,12 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
 
         public override Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, char? commitKey, CancellationToken cancellationToken)
         {
-            if (!item.Properties.TryGetValue(StartKey, out var startString) ||
-                !item.Properties.TryGetValue(LengthKey, out var lengthString) ||
-                !item.Properties.TryGetValue(NewTextKey, out var newText))
-            {
-                return SpecializedTasks.Default<CompletionChange>();
-            }
+            // These values have always been added by us.
+            var startString = item.Properties[StartKey];
+            var lengthString = item.Properties[LengthKey];
+            var newText = item.Properties[NewTextKey];
 
+            // This value is optionally added in some cases and may not always be there.
             item.Properties.TryGetValue(NewPositionKey, out var newPositionString);
 
             return Task.FromResult(CompletionChange.Create(
