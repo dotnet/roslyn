@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
                 properties.Add(LengthKey, textChange.Span.Length.ToString());
                 properties.Add(NewTextKey, textChange.NewText);
                 properties.Add(DescriptionKey, embeddedItem.FullDescription);
-                properties.Add(AbstractEmbeddedLanguageCompletionProvider.EmbeddedProviderName, this.Name);
+                properties.Add(EmbeddedLanguageCompletionProvider.EmbeddedProviderName, this.Name);
 
                 if (change.NewPosition != null)
                 {

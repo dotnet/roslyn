@@ -10,13 +10,13 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers
 {
-    internal abstract class AbstractEmbeddedLanguageCompletionProvider : CompletionProvider
+    internal class EmbeddedLanguageCompletionProvider : CompletionProvider
     {
         public const string EmbeddedProviderName = "EmbeddedProvider";
 
         private readonly ImmutableArray<IEmbeddedLanguageFeatures> _languageProviders;
 
-        protected AbstractEmbeddedLanguageCompletionProvider(IEmbeddedLanguageFeaturesProvider languagesProvider)
+        public EmbeddedLanguageCompletionProvider(IEmbeddedLanguageFeaturesProvider languagesProvider)
         {
             _languageProviders = languagesProvider?.Languages ?? ImmutableArray<IEmbeddedLanguageFeatures>.Empty;
         }
