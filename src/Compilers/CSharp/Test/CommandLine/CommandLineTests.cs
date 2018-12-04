@@ -4278,7 +4278,7 @@ C:\*.cs(100,7): error CS0103: The name 'Goo' does not exist in the current conte
         {
             var parsedArgs = DefaultParse(new[] { "a.cs" }, WorkingDirectory);
             parsedArgs.Errors.Verify();
-            Assert.Null(parsedArgs.CompilationOptions.Nullable);
+            Assert.False(parsedArgs.CompilationOptions.Nullable);
 
             parsedArgs = DefaultParse(new[] { @"/nullable+", "a.cs" }, WorkingDirectory);
             parsedArgs.Errors.Verify(
@@ -4288,10 +4288,7 @@ C:\*.cs(100,7): error CS0103: The name 'Goo' does not exist in the current conte
             Assert.True(parsedArgs.CompilationOptions.Nullable);
 
             parsedArgs = DefaultParse(new[] { @"/nullable-", "a.cs" }, WorkingDirectory);
-            parsedArgs.Errors.Verify(
-                // error CS8630: Invalid 'nullable' value: 'False' for C# 7.0. Please use language version 8.0 or greater.
-                Diagnostic(ErrorCode.ERR_NullableOptionNotAvailable).WithArguments("nullable", "False", "7.0", "8.0").WithLocation(1, 1)
-                );
+            parsedArgs.Errors.Verify();
             Assert.False(parsedArgs.CompilationOptions.Nullable);
 
             parsedArgs = DefaultParse(new[] { @"/nullable", "a.cs" }, WorkingDirectory);
@@ -4323,7 +4320,7 @@ C:\*.cs(100,7): error CS0103: The name 'Goo' does not exist in the current conte
 
             parsedArgs = DefaultParse(new[] { @"/nullable:", "/langversion:8", "a.cs" }, WorkingDirectory);
             parsedArgs.Errors.Verify(Diagnostic(ErrorCode.ERR_BadSwitch).WithArguments("/nullable:"));
-            Assert.Null(parsedArgs.CompilationOptions.Nullable);
+            Assert.False(parsedArgs.CompilationOptions.Nullable);
 
             parsedArgs = DefaultParse(new[] { @"/nullable+", "/langversion:7.3", "a.cs" }, WorkingDirectory);
             parsedArgs.Errors.Verify(
@@ -4333,10 +4330,7 @@ C:\*.cs(100,7): error CS0103: The name 'Goo' does not exist in the current conte
             Assert.True(parsedArgs.CompilationOptions.Nullable);
 
             parsedArgs = DefaultParse(new[] { @"/nullable-", "/langversion:7.3", "a.cs" }, WorkingDirectory);
-            parsedArgs.Errors.Verify(
-                // error CS8630: Invalid 'nullable' value: 'False' for C# 7.3. Please use language version 8.0 or greater.
-                Diagnostic(ErrorCode.ERR_NullableOptionNotAvailable).WithArguments("nullable", "False", "7.3", "8.0").WithLocation(1, 1)
-                );
+            parsedArgs.Errors.Verify();
             Assert.False(parsedArgs.CompilationOptions.Nullable);
 
             parsedArgs = DefaultParse(new[] { @"/nullable", "/langversion:7.3", "a.cs" }, WorkingDirectory);
@@ -4348,11 +4342,11 @@ C:\*.cs(100,7): error CS0103: The name 'Goo' does not exist in the current conte
 
             parsedArgs = DefaultParse(new[] { "a.cs", "/langversion:8" }, WorkingDirectory);
             parsedArgs.Errors.Verify();
-            Assert.Null(parsedArgs.CompilationOptions.Nullable);
+            Assert.False(parsedArgs.CompilationOptions.Nullable);
 
             parsedArgs = DefaultParse(new[] { "a.cs", "/langversion:7.3" }, WorkingDirectory);
             parsedArgs.Errors.Verify();
-            Assert.Null(parsedArgs.CompilationOptions.Nullable);
+            Assert.False(parsedArgs.CompilationOptions.Nullable);
         }
 
         [Fact]

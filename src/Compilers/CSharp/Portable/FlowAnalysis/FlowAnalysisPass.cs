@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             DiagnosticBag diagnostics)
         {
             var result = ControlFlowPass.Analyze(compilation, method, block, diagnostics);
-            DataFlowPass.Analyze(compilation, method, block, diagnostics);
+            DefiniteAssignmentPass.Analyze(compilation, method, block, diagnostics);
             return result;
         }
     }

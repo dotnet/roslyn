@@ -607,11 +607,6 @@
         <target state="new">'default' is converted to 'null'</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_MissingNonNullTypesContext">
-        <source>The suppression operator (!) should be used in code within a '#nullable' context.</source>
-        <target state="new">The suppression operator (!) should be used in code within a '#nullable' context.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="WRN_MissingNonNullTypesContextForAnnotation">
         <source>The annotation for nullable reference types should only be used in code within a '#nullable' context.</source>
         <target state="new">The annotation for nullable reference types should only be used in code within a '#nullable' context.</target>
@@ -620,11 +615,6 @@
       <trans-unit id="WRN_MissingNonNullTypesContextForAnnotation_Title">
         <source>The annotation for nullable reference types should only be used in code within a '#nullable' context.</source>
         <target state="new">The annotation for nullable reference types should only be used in code within a '#nullable' context.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_MissingNonNullTypesContext_Title">
-        <source>The suppression operator (!) should be used in code within a '#nullable' context.</source>
-        <target state="new">The suppression operator (!) should be used in code within a '#nullable' context.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NoBestNullabilityArrayElements">

@@ -2040,15 +2040,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression BindSuppressNullableWarningExpression(PostfixUnaryExpressionSyntax node, DiagnosticBag diagnostics)
         {
-            if (this.Flags.Includes(BinderFlags.AttributeArgument))
-            {
-                diagnostics.Add(new LazyMissingNonNullTypesContextForSuppressionDiagnosticInfo(NonNullTypesContext), node.OperatorToken.GetLocation());
-            }
-            else if (NonNullTypesContext.NonNullTypes == null)
-            {
-                diagnostics.Add(ErrorCode.WRN_MissingNonNullTypesContext, node.OperatorToken.GetLocation());
-            }
-
             var expr = BindExpression(node.Operand, diagnostics);
             var type = expr.Type;
             if (type?.IsValueType == true)

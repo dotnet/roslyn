@@ -1,0 +1,41 @@
+phases:
+- phase: Windows_VisualStudio_Integration_Tests
+  queue:
+    name: dotnet-external-temp-vs2017
+    timeoutInMinutes: 90
+    parallel: 2
+    matrix:
+      debug:
+        _configuration: Debug
+      release:
+        _configuration: Release
+
+  steps:
+    - script: build/scripts/cibuild.cmd -configuration $(_configuration) -testVsi 
+      displayName: Build and Test
+
+    - task: PublishTestResults@1
+      inputs:
+        testRunner: XUnit
+        testResultsFiles: '**/xUnitResults/*.xml'
+        mergeTestResults: true
+        testRunTitle: 'Windows Visual Studio Integration $(_configuration)' 
+      condition: succeededOrFailed()
+
+    - task: PublishBuildArtifacts@1
+      displayName: Publish Logs
+      inputs:
+        PathtoPublish: '$(Build.SourcesDirectory)\Binaries\$(_configuration)\Logs'
+        ArtifactName: 'Windows Visual Studio Integration $(_configuration)'
+        publishLocation: Container
+      continueOnError: true
+      condition: or(failed(), canceled())
+
+    - task: PublishBuildArtifacts@1
+      displayName: Publish Screenshots
+      inputs:
+        PathtoPublish: '$(Build.SourcesDirectory)\Binaries\$(_configuration)\UnitTests\Microsoft.VisualStudio.LanguageServices.IntegrationTests\xUnitResults/'
+        ArtifactName: 'Screenshots $(_configuration)' 
+        publishLocation: Container
+      continueOnError: true
+      condition: or(failed(), canceled())

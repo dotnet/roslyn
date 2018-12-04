@@ -442,6 +442,33 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
+        public async Task ShadowCopied_Analyzer_Serailization_Desktop_Test()
+        {
+            using (var tempRoot = new TempRoot())
+            {
+                var hostServices = MefHostServices.Create(
+                MefHostServices.DefaultAssemblies.Add(typeof(Host.TemporaryStorageServiceFactory.TemporaryStorageService).Assembly));
+
+                var workspace = new AdhocWorkspace(hostServices);
+                var serializer = workspace.Services.GetService<ISerializerService>();
+
+                // use 2 different files as shadow copied content
+                var original = typeof(AdhocWorkspace).Assembly.Location;
+
+                var shadow = tempRoot.CreateFile("shadow", "dll");
+                shadow.CopyContentFrom(typeof(object).Assembly.Location);
+
+                var reference = new AnalyzerFileReference(original, new MockShadowCopyAnalyzerAssemblyLoader(ImmutableDictionary<string, string>.Empty.Add(original, shadow.Path)));
+
+                // make sure this doesn't throw
+                var assetFromFile = SolutionAsset.Create(serializer.CreateChecksum(reference, CancellationToken.None), reference, serializer);
+
+                // this will verify serialized analyzer reference return same checksum as the original one
+                var assetFromStorage = await CloneAssetAsync(serializer, assetFromFile).ConfigureAwait(false);
+            }
+        }
+
+        [Fact]
         public async Task SnapshotWithMissingReferencesTest()
         {
             var hostServices = MefHostServices.Create(
