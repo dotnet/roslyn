@@ -3360,12 +3360,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Debug.Assert((object)methodOpt != null);
                         Debug.Assert(methodOpt.ParameterCount == 1);
                         var parameter = methodOpt.Parameters[0];
+                        var parameterType = parameter.Type;
+                        TypeSymbolWithAnnotations underlyingOperandType = default;
+                        bool isLiftedConversion =
+                            operandType.IsNullableType() &&
+                            !parameterType.IsNullableType() &&
+                            parameterType.Equals(underlyingOperandType = operandType.GetNullableUnderlyingType(), TypeCompareKind.AllIgnoreOptions);
 
                         // conversion "from" type -> method parameter type
-                        operandType = ClassifyAndApplyConversion(operandOpt ?? node, parameter.Type, operandType, useLegacyWarnings, AssignmentKind.Argument, target: parameter);
+                        NullableAnnotation operandAnnotation = operandType.NullableAnnotation;
+                        operandType = ClassifyAndApplyConversion(operandOpt ?? node, parameterType, isLiftedConversion ? underlyingOperandType : operandType, useLegacyWarnings, AssignmentKind.Argument, target: parameter);
 
                         // method parameter type -> method return type
                         operandType = methodOpt.ReturnType;
+
+                        if (isLiftedConversion)
+                        {
+                            operandType = TypeSymbolWithAnnotations.Create(
+                                operandType.IsValueType ? compilation.GetSpecialType(SpecialType.System_Nullable_T).Construct(ImmutableArray.Create(operandType)) : operandType.TypeSymbol,
+                                operandAnnotation.IsAnyNullable() ? NullableAnnotation.Nullable : NullableAnnotation.NotNullable);
+                        }
 
                         // method return type -> conversion "to" type
                         // May be distinct from method return type for Nullable<T>.

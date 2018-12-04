@@ -16504,12 +16504,12 @@ class C
                 // (30,9): warning CS8602: Possible dereference of a null reference.
                 //         (x5 ?? y5)/*T:B<object?>?*/.Value.F.ToString();
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "(x5 ?? y5)/*T:B<object?>?*/.Value.F").WithLocation(30, 9),
-                // (31,16): warning CS8629: Nullable value type may be null.
-                //         (y5 ?? x5)/*T:B<object?>?*/.Value.F.ToString();
-                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "x5").WithLocation(31, 16),
                 // (31,16): warning CS8619: Nullability of reference types in value of type 'B<object>?' doesn't match target type 'B<object?>?'.
                 //         (y5 ?? x5)/*T:B<object?>?*/.Value.F.ToString();
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x5").WithArguments("B<object>?", "B<object?>?").WithLocation(31, 16),
+                // (31,10): warning CS8629: Nullable value type may be null.
+                //         (y5 ?? x5)/*T:B<object?>?*/.Value.F.ToString();
+                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "y5 ?? x5").WithLocation(31, 10),
                 // (31,9): warning CS8602: Possible dereference of a null reference.
                 //         (y5 ?? x5)/*T:B<object?>?*/.Value.F.ToString();
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "(y5 ?? x5)/*T:B<object?>?*/.Value.F").WithLocation(31, 9),
@@ -16519,12 +16519,12 @@ class C
                 // (35,10): warning CS8629: Nullable value type may be null.
                 //         (x6 ?? y6)/*T:B<object!>?*/.Value.F.ToString();
                 Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "x6 ?? y6").WithLocation(35, 10),
-                // (36,16): warning CS8629: Nullable value type may be null.
-                //         (y6 ?? x6)/*T:B<object!>?*/.Value.F.ToString();
-                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "x6").WithLocation(36, 16),
                 // (36,16): warning CS8619: Nullability of reference types in value of type 'B<object?>?' doesn't match target type 'B<object>?'.
                 //         (y6 ?? x6)/*T:B<object!>?*/.Value.F.ToString();
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x6").WithArguments("B<object?>?", "B<object>?").WithLocation(36, 16));
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x6").WithArguments("B<object?>?", "B<object>?").WithLocation(36, 16),
+                // (36,10): warning CS8629: Nullable value type may be null.
+                //         (y6 ?? x6)/*T:B<object!>?*/.Value.F.ToString();
+                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "y6 ?? x6").WithLocation(36, 10));
         }
 
         [Fact]
@@ -16562,12 +16562,12 @@ class C
     static void F5(A<object>? x5, B<object?>? y5)
     {
         (x5 ?? y5)/*T:B<object?>?*/.F.ToString();
-        (y5 ?? x5)/*T:B<object?>!*/.F.ToString();
+        (y5 ?? x5)/*T:B<object?>?*/.F.ToString();
     }
     static void F6(A<object?>? x6, B<object>? y6)
     {
         (x6 ?? y6)/*T:B<object!>?*/.F.ToString();
-        (y6 ?? x6)/*T:B<object!>!*/.F.ToString();
+        (y6 ?? x6)/*T:B<object!>?*/.F.ToString();
     }
 }";
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
@@ -16603,27 +16603,27 @@ class C
                 // (30,9): warning CS8602: Possible dereference of a null reference.
                 //         (x5 ?? y5)/*T:B<object?>?*/.F.ToString();
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "(x5 ?? y5)/*T:B<object?>?*/.F").WithLocation(30, 9),
-                // (31,16): warning CS8629: Nullable value type may be null.
-                //         (y5 ?? x5)/*T:B<object?>!*/.F.ToString();
-                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "x5").WithLocation(31, 16),
                 // (31,16): warning CS8619: Nullability of reference types in value of type 'B<object>' doesn't match target type 'B<object?>'.
-                //         (y5 ?? x5)/*T:B<object?>!*/.F.ToString();
+                //         (y5 ?? x5)/*T:B<object?>?*/.F.ToString();
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x5").WithArguments("B<object>", "B<object?>").WithLocation(31, 16),
+                // (31,10): warning CS8602: Possible dereference of a null reference.
+                //         (y5 ?? x5)/*T:B<object?>?*/.F.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y5 ?? x5").WithLocation(31, 10),
                 // (31,9): warning CS8602: Possible dereference of a null reference.
-                //         (y5 ?? x5)/*T:B<object?>!*/.F.ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "(y5 ?? x5)/*T:B<object?>!*/.F").WithLocation(31, 9),
+                //         (y5 ?? x5)/*T:B<object?>?*/.F.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "(y5 ?? x5)/*T:B<object?>?*/.F").WithLocation(31, 9),
                 // (35,10): warning CS8619: Nullability of reference types in value of type 'A<object?>' doesn't match target type 'B<object>'.
                 //         (x6 ?? y6)/*T:B<object!>?*/.F.ToString();
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x6").WithArguments("A<object?>", "B<object>").WithLocation(35, 10),
                 // (35,10): warning CS8602: Possible dereference of a null reference.
                 //         (x6 ?? y6)/*T:B<object!>?*/.F.ToString();
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x6 ?? y6").WithLocation(35, 10),
-                // (36,16): warning CS8629: Nullable value type may be null.
-                //         (y6 ?? x6)/*T:B<object!>!*/.F.ToString();
-                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "x6").WithLocation(36, 16),
                 // (36,16): warning CS8619: Nullability of reference types in value of type 'B<object?>' doesn't match target type 'B<object>'.
-                //         (y6 ?? x6)/*T:B<object!>!*/.F.ToString();
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x6").WithArguments("B<object?>", "B<object>").WithLocation(36, 16));
+                //         (y6 ?? x6)/*T:B<object!>?*/.F.ToString();
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x6").WithArguments("B<object?>", "B<object>").WithLocation(36, 16),
+                // (36,10): warning CS8602: Possible dereference of a null reference.
+                //         (y6 ?? x6)/*T:B<object!>?*/.F.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y6 ?? x6").WithLocation(36, 10));
         }
 
         [Fact]
@@ -35042,12 +35042,6 @@ class C
 }";
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
-                // (14,24): warning CS8629: Nullable value type may be null.
-                //         B<object>? z = x;
-                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "x").WithLocation(14, 24),
-                // (16,25): warning CS8629: Nullable value type may be null.
-                //         B<object?>? w = y;
-                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "y").WithLocation(16, 25),
                 // (17,11): warning CS8602: Possible dereference of a null reference.
                 //         w?.F.ToString();
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, ".F").WithLocation(17, 11));
@@ -61449,8 +61443,8 @@ class Program
 {
     static void F1(A? a)
     {
-        B? b = a; // 1
-        _ = b.Value; // 2
+        B? b = a;
+        _ = b.Value; // 1
     }
     static void F2(A? a)
     {
@@ -61461,20 +61455,19 @@ class Program
         }
         else
         {
-            B? b2 = a; // 3
-            _ = b2.Value; // 4
+            B? b2 = a;
+            _ = b2.Value; // 2
         }
     }
 }";
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
-            // https://github.com/dotnet/roslyn/issues/31500: Track nullable state across lifted conversions.
             comp.VerifyDiagnostics(
-                // (12,16): warning CS8629: Nullable value type may be null.
-                //         B? b = a; // 1
-                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "a").WithLocation(12, 16),
-                // (24,21): warning CS8629: Nullable value type may be null.
-                //             B? b2 = a; // 3
-                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "a").WithLocation(24, 21));
+                // (13,13): warning CS8629: Nullable value type may be null.
+                //         _ = b.Value; // 1
+                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "b").WithLocation(13, 13),
+                // (25,17): warning CS8629: Nullable value type may be null.
+                //             _ = b2.Value; // 2
+                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "b2").WithLocation(25, 17));
         }
 
         [Fact]
@@ -61667,6 +61660,30 @@ class Program
 }";
             var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
             // https://github.com/dotnet/roslyn/issues/31503: Report warning for `.Value.GetEnumerator()` calls.
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void NullableT_IndexAndRange()
+        {
+            var source =
+@"class Program
+{
+    static void F1(int? x)
+    {
+        _ = ^x;
+    }
+    static void F2(int? y)
+    {
+        _ = ..y;
+        _ = ^y..;
+    }
+    static void F3(int? z, int? w)
+    {
+        _ = z..^w;
+    }
+}";
+            var comp = CreateCompilationWithIndexAndRange(source, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics();
         }
     }
