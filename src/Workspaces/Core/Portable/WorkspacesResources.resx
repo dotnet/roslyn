@@ -1216,7 +1216,7 @@ There is an ambiguity between octal escape codes (such as \16) and \number backr
     <value>yes</value>
   </data>
   <data name="regex_zero_width_negative_lookahead_assertion_long" xml:space="preserve">
-    <value>Aa zero-width negative lookahead assertion, where for the match to be successful, the input string must not match the regular expression pattern in subexpression. The matched string is not included in the match result.
+    <value>A zero-width negative lookahead assertion, where for the match to be successful, the input string must not match the regular expression pattern in subexpression. The matched string is not included in the match result.
 
 A zero-width negative lookahead assertion is typically used either at the beginning or at the end of a regular expression. At the beginning of a regular expression, it can define a specific pattern that should not be matched when the beginning of the regular expression defines a similar but more general pattern to be matched. In this case, it is often used to limit backtracking. At the end of a regular expression, it can define a subexpression that cannot occur at the end of a match.</value>
   </data>
@@ -1232,7 +1232,7 @@ Zero-width negative lookbehind assertions are typically used at the beginning of
     <value>zero-width negative lookbehind assertion</value>
   </data>
   <data name="regex_zero_width_positive_lookahead_assertion_long" xml:space="preserve">
-    <value>Aa zero-width positive lookahead assertion, where for a match to be successful, the input string must match the regular expression pattern in 'subexpression'. The matched substring is not included in the match result. A zero-width positive lookahead assertion does not backtrack.
+    <value>A zero-width positive lookahead assertion, where for a match to be successful, the input string must match the regular expression pattern in 'subexpression'. The matched substring is not included in the match result. A zero-width positive lookahead assertion does not backtrack.
 
 Typically, a zero-width positive lookahead assertion is found at the end of a regular expression pattern. It defines a substring that must be found at the end of a string for a match to occur but that should not be included in the match. It is also useful for preventing excessive backtracking. You can use a zero-width positive lookahead assertion to ensure that a particular captured group begins with text that matches a subset of the pattern defined for that captured group.</value>
   </data>

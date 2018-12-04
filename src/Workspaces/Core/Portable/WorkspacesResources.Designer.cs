@@ -3033,9 +3033,9 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Aa zero-width negative lookahead assertion, where for the match to be successful, the input string must not match the regular expression pattern in subexpression. The matched string is not included in the match result.
+        ///   Looks up a localized string similar to A zero-width negative lookahead assertion, where for the match to be successful, the input string must not match the regular expression pattern in subexpression. The matched string is not included in the match result.
         ///
-        ///A zero-width negative lookahead assertion is typically used either at the beginning or at the end of a regular expression. At the beginning of a regular expression, it can define a specific pattern that should not be matched when the beginning of the regular expression defines a similar bu [rest of string was truncated]&quot;;.
+        ///A zero-width negative lookahead assertion is typically used either at the beginning or at the end of a regular expression. At the beginning of a regular expression, it can define a specific pattern that should not be matched when the beginning of the regular expression defines a similar but [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string regex_zero_width_negative_lookahead_assertion_long {
             get {
@@ -3073,9 +3073,9 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Aa zero-width positive lookahead assertion, where for a match to be successful, the input string must match the regular expression pattern in &apos;subexpression&apos;. The matched substring is not included in the match result. A zero-width positive lookahead assertion does not backtrack.
+        ///   Looks up a localized string similar to A zero-width positive lookahead assertion, where for a match to be successful, the input string must match the regular expression pattern in &apos;subexpression&apos;. The matched substring is not included in the match result. A zero-width positive lookahead assertion does not backtrack.
         ///
-        ///Typically, a zero-width positive lookahead assertion is found at the end of a regular expression pattern. It defines a substring that must be found at the end of a string for a match to occur but that should not be included in th [rest of string was truncated]&quot;;.
+        ///Typically, a zero-width positive lookahead assertion is found at the end of a regular expression pattern. It defines a substring that must be found at the end of a string for a match to occur but that should not be included in the [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string regex_zero_width_positive_lookahead_assertion_long {
             get {
