@@ -758,7 +758,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return true;
         }
 
-        internal override void AddNullableTransforms(ArrayBuilder<bool> transforms)
+        internal override void AddNullableTransforms(ArrayBuilder<byte> transforms)
         {
             ContainingType?.AddNullableTransforms(transforms);
 
@@ -768,7 +768,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override bool ApplyNullableTransforms(ImmutableArray<bool> transforms, INonNullTypesContext nonNullTypesContext, ref int position, out TypeSymbol result)
+        internal override bool ApplyNullableTransforms(byte defaultTransformFlag, ImmutableArray<byte> transforms, ref int position, out TypeSymbol result)
         {
             if (!IsGenericType)
             {
@@ -784,7 +784,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 TypeSymbolWithAnnotations oldTypeArgument = allTypeArguments[i];
                 TypeSymbolWithAnnotations newTypeArgument;
-                if (!oldTypeArgument.ApplyNullableTransforms(transforms, nonNullTypesContext, ref position, out newTypeArgument))
+                if (!oldTypeArgument.ApplyNullableTransforms(defaultTransformFlag, transforms, ref position, out newTypeArgument))
                 {
                     allTypeArguments.Free();
                     result = this;

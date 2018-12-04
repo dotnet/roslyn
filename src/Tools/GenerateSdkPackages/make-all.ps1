@@ -25,31 +25,6 @@ function Package-Normal() {
     & $nuget pack $baseNuspecPath -OutputDirectory $packagePath -Properties name=$simpleName`;version=$packageVersion`;filePath=$filePath
 }
 
-# The debugger DLLs have a more complex structure and it's easier to special case
-# copying them over.
-function Copy-Debugger() { 
-    $debuggerDir = Join-Path $dllPath "debugger"
-    $debuggerRefDir = Join-Path $debuggerDir "ref"
-    $debuggerImplDir = Join-Path $debuggerDir "lib\net45"
-    Create-Directory $debuggerRefDir
-    Create-Directory $debuggerImplDir
-    
-    Copy-Item -re -fo (Join-Path $dropPath "..\..\Debugger\ReferenceDLL\*") $debuggerRefDir
-    Copy-Item -re -fo (Join-Path $dropPath "..\..\Debugger\IDE\Microsoft.VisualStudio.Debugger.Engine.dll") $debuggerImplDir
-    Copy-Item -re -fo (Join-Path $dropPath "Microsoft.VisualStudio.Debugger.Metadata.dll") $debuggerImplDir
-    Copy-Item -re -fo (Join-Path $dropPath "Microsoft.VisualStudio.Debugger.UI.Interfaces.dll") $debuggerImplDir
-    
-    Get-ChildItem $debuggerDir -Recurse -File | ForEach-Object { & $fakeSign -f $_.FullName }
-}
-
-# Used to package debugger nugets
-function Package-Debugger() {
-    param( [string]$simpleName )
-    $debuggerPath = Join-Path $dllPath "debugger"
-    $nuspecPath = Join-Path $PSScriptRoot "$simpleName.nuspec"
-    & $nuget pack $nuspecPath -OutputDirectory $packagePath -Properties version=$packageVersion`;debuggerPath=$debuggerPath
-}
-
 try {
     if ($outPath -eq "") {
         Write-Host "Need an -outPath value"
@@ -77,8 +52,6 @@ try {
     Create-Directory $packagePath
     Push-Location $outPath
     try {
-        Copy-Debugger
-
         foreach ($item in $list) {
             $name = Split-Path -leaf $item
             $simpleName = [IO.Path]::GetFileNameWithoutExtension($name) 

@@ -1,7 +1,13 @@
-﻿using System.ComponentModel.Composition;
+﻿using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.ComponentModel.Composition;
 using System.IO;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
+using Microsoft.VisualStudio.LanguageServices.Storage;
 using Microsoft.VisualStudio.Shell.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
@@ -11,12 +17,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
     {
         private readonly VisualStudioWorkspaceImpl _visualStudioWorkspaceImpl;
         private readonly HostDiagnosticUpdateSource _hostDiagnosticUpdateSource;
+        private readonly ImmutableArray<Lazy<IDynamicFileInfoProvider, FileExtensionsMetadata>> _dynamicFileInfoProviders;
 
         [ImportingConstructor]
         // TODO: remove the AllowDefault = true on HostDiagnosticUpdateSource by making it a proper mock
-        public VisualStudioProjectFactory(VisualStudioWorkspaceImpl visualStudioWorkspaceImpl, [Import(AllowDefault = true)] HostDiagnosticUpdateSource hostDiagnosticUpdateSource)
+        public VisualStudioProjectFactory(
+            VisualStudioWorkspaceImpl visualStudioWorkspaceImpl,
+            [ImportMany]IEnumerable<Lazy<IDynamicFileInfoProvider, FileExtensionsMetadata>> fileInfoProviders,
+            [Import(AllowDefault = true)] HostDiagnosticUpdateSource hostDiagnosticUpdateSource)
         {
             _visualStudioWorkspaceImpl = visualStudioWorkspaceImpl;
+            _dynamicFileInfoProviders = fileInfoProviders.AsImmutableOrEmpty();
             _hostDiagnosticUpdateSource = hostDiagnosticUpdateSource;
         }
 
@@ -32,7 +43,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             var id = ProjectId.CreateNewId(projectUniqueName);
             var directoryNameOpt = creationInfo.FilePath != null ? Path.GetDirectoryName(creationInfo.FilePath) : null;
-            var project = new VisualStudioProject(_visualStudioWorkspaceImpl, _hostDiagnosticUpdateSource, id, projectUniqueName, language, directoryNameOpt);
+            var project = new VisualStudioProject(_visualStudioWorkspaceImpl, _dynamicFileInfoProviders, _hostDiagnosticUpdateSource, id, projectUniqueName, language, directoryNameOpt);
 
             var versionStamp = creationInfo.FilePath != null ? VersionStamp.Create(File.GetLastWriteTimeUtc(creationInfo.FilePath))
                                                              : VersionStamp.Create();
@@ -74,6 +85,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                             VersionStamp.Create(),
                             solutionPathToSetWithOnSolutionAdded,
                             projects: new[] { projectInfo }));
+
+                    // set working folder for the persistent service
+                    var persistenceService = w.Services.GetRequiredService<IPersistentStorageLocationService>() as VisualStudioPersistentStorageLocationService;
+                    persistenceService?.UpdateForVisualStudioWorkspace(w);
                 }
                 else
                 {

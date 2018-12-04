@@ -33,19 +33,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public SynthesizedEmbeddedAttributeSymbol(
             AttributeDescription description,
             CSharpCompilation compilation,
-            Func<CSharpCompilation, NamedTypeSymbol, DiagnosticBag, ImmutableArray<MethodSymbol>> getAdditionalConstructors,
+            Func<CSharpCompilation, NamedTypeSymbol, DiagnosticBag, ImmutableArray<MethodSymbol>> getConstructors,
             DiagnosticBag diagnostics)
         {
             _name = description.Name;
             _baseType = MakeBaseType(compilation, diagnostics);
 
-            var builder = ArrayBuilder<MethodSymbol>.GetInstance();
-            builder.Add(new SynthesizedEmbeddedAttributeConstructorSymbol(this, m => ImmutableArray<ParameterSymbol>.Empty));
-            if (getAdditionalConstructors != null)
+            if (getConstructors != null)
             {
-                builder.AddRange(getAdditionalConstructors(compilation, this, diagnostics));
+                _constructors = getConstructors(compilation, this, diagnostics);
             }
-            _constructors = builder.ToImmutableAndFree();
+            else
+            {
+                _constructors = ImmutableArray.Create<MethodSymbol>(new SynthesizedEmbeddedAttributeConstructorSymbol(this, m => ImmutableArray<ParameterSymbol>.Empty));
+            }
+
             Debug.Assert(_constructors.Length == description.Signatures.Length);
 
             _module = compilation.SourceModule;
@@ -190,12 +192,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 ref attributes,
                 moduleBuilder.Compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor));
 
-            if (!DeclaringCompilation.GetWellKnownType(WellKnownType.Microsoft_CodeAnalysis_EmbeddedAttribute).IsErrorType())
-            {
-                AddSynthesizedAttribute(
-                    ref attributes,
-                    moduleBuilder.Compilation.TrySynthesizeAttribute(WellKnownMember.Microsoft_CodeAnalysis_EmbeddedAttribute__ctor));
-            }
+            AddSynthesizedAttribute(
+                ref attributes,
+                moduleBuilder.SynthesizeEmbeddedAttribute());
         }
     }
 

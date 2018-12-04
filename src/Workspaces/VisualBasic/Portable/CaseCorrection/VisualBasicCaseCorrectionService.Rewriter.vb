@@ -56,7 +56,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CaseCorrection
 
                 If _syntaxFactsService.IsIdentifier(newToken) Then
                     Return VisitIdentifier(token, newToken)
-                ElseIf _syntaxFactsService.IsKeyword(newToken) OrElse _syntaxFactsService.IsContextualKeyword(newToken) Then
+                ElseIf _syntaxFactsService.IsReservedOrContextualKeyword(newToken) Then
                     Return VisitKeyword(newToken)
                 ElseIf token.IsNumericLiteral() Then
                     Return VisitNumericLiteral(newToken)

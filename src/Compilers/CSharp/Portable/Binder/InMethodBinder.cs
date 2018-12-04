@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else if (!returnType.IsErrorType())
                     {
-                    Error(elementTypeDiagnostics, ErrorCode.ERR_BadIteratorReturn, _methodSymbol.Locations[0], _methodSymbol, returnType);
+                        Error(elementTypeDiagnostics, ErrorCode.ERR_BadIteratorReturn, _methodSymbol.Locations[0], _methodSymbol, returnType);
                     }
                     elementType = CreateErrorType();
                 }
@@ -177,26 +177,38 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private TypeSymbol GetIteratorElementTypeFromReturnType(RefKind refKind, TypeSymbol returnType, CSharpSyntaxNode errorLocationNode, DiagnosticBag diagnostics)
         {
+            return GetIteratorElementTypeFromReturnType(Compilation, refKind, returnType, errorLocationNode, diagnostics).TypeSymbol;
+        }
+
+        internal static TypeSymbolWithAnnotations GetIteratorElementTypeFromReturnType(CSharpCompilation compilation, RefKind refKind, TypeSymbol returnType, CSharpSyntaxNode errorLocationNode, DiagnosticBag diagnostics)
+        {
             if (refKind == RefKind.None && returnType.Kind == SymbolKind.NamedType)
             {
-                switch (returnType.OriginalDefinition.SpecialType)
+                TypeSymbol originalDefinition = returnType.OriginalDefinition;
+                switch (originalDefinition.SpecialType)
                 {
                     case SpecialType.System_Collections_IEnumerable:
                     case SpecialType.System_Collections_IEnumerator:
-                        return GetSpecialType(SpecialType.System_Object, diagnostics, errorLocationNode);
+                        var objectType = compilation.GetSpecialType(SpecialType.System_Object);
+                        if (diagnostics != null)
+                        {
+                            ReportUseSiteDiagnostics(objectType, diagnostics, errorLocationNode);
+                        }
+                        return TypeSymbolWithAnnotations.Create(objectType);
 
                     case SpecialType.System_Collections_Generic_IEnumerable_T:
                     case SpecialType.System_Collections_Generic_IEnumerator_T:
-                        return ((NamedTypeSymbol)returnType).TypeArgumentsNoUseSiteDiagnostics[0].TypeSymbol;
+                        return ((NamedTypeSymbol)returnType).TypeArgumentsNoUseSiteDiagnostics[0];
                 }
 
-                if (returnType.OriginalDefinition == Compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_IAsyncEnumerable_T))
+                if (originalDefinition == compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_IAsyncEnumerable_T) ||
+                    originalDefinition == compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_IAsyncEnumerator_T))
                 {
-                    return ((NamedTypeSymbol)returnType).TypeArgumentsNoUseSiteDiagnostics[0].TypeSymbol;
+                    return ((NamedTypeSymbol)returnType).TypeArgumentsNoUseSiteDiagnostics[0];
                 }
             }
 
-            return null;
+            return default;
         }
 
         internal override void LookupSymbolsInSingleBinder(

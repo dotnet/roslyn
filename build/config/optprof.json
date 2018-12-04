@@ -260,7 +260,7 @@
       "assembly": "Microsoft.Build.Conversion.Core.dll",
       "instrumentationArguments": [
         {
-          "relativeInstallationFolder": "MSBuild/15.0/Bin",
+          "relativeInstallationFolder": "MSBuild/Current/Bin",
           "instrumentationExecutable": "Common7/IDE/vsn.exe"
         }
       ],
@@ -277,7 +277,7 @@
       "assembly": "Microsoft.Build.dll",
       "instrumentationArguments": [
         {
-          "relativeInstallationFolder": "MSBuild/15.0/Bin",
+          "relativeInstallationFolder": "MSBuild/Current/Bin",
           "instrumentationExecutable": "Common7/IDE/vsn.exe"
         }
       ],
@@ -294,7 +294,7 @@
       "assembly": "Microsoft.Build.Engine.dll",
       "instrumentationArguments": [
         {
-          "relativeInstallationFolder": "MSBuild/15.0/Bin",
+          "relativeInstallationFolder": "MSBuild/Current/Bin",
           "instrumentationExecutable": "Common7/IDE/vsn.exe"
         }
       ],
@@ -311,7 +311,7 @@
       "assembly": "Microsoft.Build.Framework.dll",
       "instrumentationArguments": [
         {
-          "relativeInstallationFolder": "MSBuild/15.0/Bin",
+          "relativeInstallationFolder": "MSBuild/Current/Bin",
           "instrumentationExecutable": "Common7/IDE/vsn.exe"
         }
       ],
@@ -328,7 +328,7 @@
       "assembly": "Microsoft.Build.Tasks.Core.dll",
       "instrumentationArguments": [
         {
-          "relativeInstallationFolder": "MSBuild/15.0/Bin",
+          "relativeInstallationFolder": "MSBuild/Current/Bin",
           "instrumentationExecutable": "Common7/IDE/vsn.exe"
         }
       ],
@@ -345,7 +345,7 @@
       "assembly": "Microsoft.Build.Utilities.Core.dll",
       "instrumentationArguments": [
         {
-          "relativeInstallationFolder": "MSBuild/15.0/Bin",
+          "relativeInstallationFolder": "MSBuild/Current/Bin",
           "instrumentationExecutable": "Common7/IDE/vsn.exe"
         }
       ],
@@ -362,7 +362,7 @@
       "assembly": "System.Threading.Tasks.Dataflow.dll",
       "instrumentationArguments": [
         {
-          "relativeInstallationFolder": "MSBuild/15.0/Bin",
+          "relativeInstallationFolder": "MSBuild/Current/Bin",
           "instrumentationExecutable": "Common7/IDE/vsn.exe"
         }
       ],
