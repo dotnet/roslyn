@@ -195,7 +195,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
                 { "_xmlC", ("", "") },
                 { "_xmlD", ("", "") },
                 { "_xmlI", ("", "") },
-                {  "_xmlW", ("", "") },
+                { "_xmlW", ("", "") },
             };
 
         public static bool IsEscapeCategory(string value)
