@@ -8,13 +8,13 @@ set -u
 usage()
 {
   echo "Common settings:"
-  echo "  --configuration <value>    Build configuration: 'Debug' or 'Release' (short: --c)"
+  echo "  --configuration <value>    Build configuration: 'Debug' or 'Release' (short: -c)"
   echo "  --verbosity <value>        Msbuild verbosity: q[uiet], m[inimal], n[ormal], d[etailed], and diag[nostic] (short: -v)"
   echo "  --binaryLog                Create MSBuild binary log (short: -bl)"
   echo ""
   echo "Actions:"
   echo "  --restore                  Restore projects required to build (short: -r)"
-  echo "  --build                    Build all projects (short: --b)"
+  echo "  --build                    Build all projects (short: -b)"
   echo "  --rebuild                  Rebuild all projects"
   echo "  --pack                     Build nuget packages"
   echo "  --publish                  Publish build artifacts"
@@ -72,13 +72,12 @@ then
   exit 1
 fi
 
-while [[ $# > 0 ]]
-do
+while [[ $# > 0 ]]; do
   opt="$(echo "$1" | awk '{print tolower($0)}')"
   case "$opt" in
-    ---help|-h)
+    --help|-h)
       usage
-      exit 1
+      exit 0
       ;;
     --configuration|-c)
       configuration=$2
@@ -161,7 +160,7 @@ then
 fi
 
 # Import Arcade functions
-. $scriptroot/tools.sh
+. "$scriptroot/tools.sh"
 
 function MakeBootstrapBuild {
   echo "Building bootstrap compiler"
@@ -174,12 +173,12 @@ function MakeBootstrapBuild {
   local package_name="Microsoft.NETCore.Compilers"
   local project_path=src/NuGet/$package_name/$package_name.Package.csproj
 
-  dotnet pack -nologo $project_path /p:DotNetUseShippingVersions=true /p:InitialDefineConstants=BOOTSTRAP /p:PackageOutputPath=$dir
-  unzip $dir/$package_name.*.nupkg -d ${bootstrap_path}
-  chmod -R 755 $dir
+  dotnet pack -nologo "$project_path" /p:DotNetUseShippingVersions=true /p:InitialDefineConstants=BOOTSTRAP /p:PackageOutputPath="$dir"
+  unzip "$dir/$package_name.*.nupkg" -d "$dir"
+  chmod -R 755 "$dir"
 
   echo "Cleaning Bootstrap compiler artifacts"
-  dotnet clean $project_path
+  dotnet clean "$project_path"
 
   if [[ "$nodereuse" == true ]]; then
     dotnet build-server shutdown
@@ -244,7 +243,7 @@ function BuildSolution {
     /p:Rebuild=$rebuild \
     /p:Test=$test \
     /p:Pack=$pack \
-	/p:Publish=$publish \
+    /p:Publish=$publish \
     /p:UseRoslynAnalyzers=$enable_analyzers \
     /p:BootstrapBuildPath="$bootstrap_dir" \
     /p:ContinuousIntegrationBuild=$ci \
