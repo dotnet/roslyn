@@ -2,7 +2,6 @@
 # Copyright (c) .NET Foundation and contributors. All rights reserved.
 # Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-set -e
 set -u
 
 usage()
@@ -138,7 +137,7 @@ function stop_processes {
 if [[ "$build_in_docker" = true ]]
 then
     echo "Docker exec: $args"
-    BUILD_COMMAND=/opt/code/build.sh "$scriptroot"/dockerrun.sh $args
+    BUILD_COMMAND=/opt/code/build/scripts/build.sh "$scriptroot"/dockerrun.sh $args
     exit
 fi
 
@@ -204,7 +203,7 @@ then
         build_args+=" /t:Pack"
     fi
 
-    dotnet build "${root_path}/Compilers.sln" ${build_args} "/bl:${binaries_path}/Build.binlog"
+    dotnet build "${root_path}/Compilers.sln" ${build_args} "/bl:${logs_path}/Build.binlog"
 fi
 
 if [[ "${stop_vbcscompiler}" == true ]]
@@ -222,14 +221,18 @@ if [[ "${test_}" == true ]]
 then
     if [[ "${use_mono}" == true ]]
     then
-        test_runtime=mono
+        test_runtime=Mono
 
         # Echo out the mono version to the comamnd line so it's visible in CI logs. It's not fixed
         # as we're using a feed vs. a hard coded package. 
         mono --version
+
+        mono_path=`command -v mono`
+        mono_tool="/p:MonoTool=\"$mono_path\""
     else
-        test_runtime=dotnet
+        test_runtime=Core
+        mono_tool=''
     fi
 
-    "${scriptroot}"/tests.sh "${build_configuration}" "${test_runtime}"
+    dotnet msbuild "${root_path}/Compilers.sln" "/t:test" "/p:Configuration=${build_configuration}" "/p:TestRuntime=${test_runtime}" "/bl:${logs_path}/Test.binlog" ${mono_tool}
 fi

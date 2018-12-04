@@ -100,8 +100,11 @@ function Process-Arguments() {
     }
 
     if ($cibuild -and -not $official -and $anyVsi) {
-        # Avoid spending time in analyzers when requested, and also in the slowest integration test builds
+        # Integration tests are our longest test leg. We skip analyzers and bootstrapping here 
+        # to reduce the overall runtime here. There is sufficient coverage in other legs to make
+        # it safe to skip on these legs.
         $script:skipAnalyzers = $true
+        $script:bootstrap = $false
     }
 
     if ($testDeterminism -and ($anyUnit -or $anyVsi)) {
@@ -294,47 +297,7 @@ function Test-Determinism() {
 }
 
 function Test-XUnitCoreClr() {
-    $unitDir = Join-Path $configDir "UnitTests"
-    $tf = "netcoreapp2.1"
-    $xunitResultDir = Join-Path $unitDir "xUnitResults"
-    Create-Directory $xunitResultDir
-    $xunitConsole = Join-Path (Get-PackageDir "xunit.runner.console") "tools\netcoreapp2.0\xunit.console.dll"
-    $runtimeVersion = Get-ToolVersion "dotnetRuntime"
-
-    $dlls = @()
-    $allGood = $true
-    foreach ($dir in Get-ChildItem $unitDir) {
-        $testDir = Join-Path $unitDir (Join-Path $dir $tf)
-        if (Test-Path $testDir) {
-            $dllName = Get-ChildItem -name "*.UnitTests.dll" -path $testDir
-            $dllPath = Join-Path $testDir $dllName
-
-            $args = "exec"
-            $args += " --fx-version $runtimeVersion"
-            $args += " --depsfile " + [IO.Path]::ChangeExtension($dllPath, ".deps.json")
-            $args += " --runtimeconfig " + [IO.Path]::ChangeExtension($dllPath, ".runtimeconfig.json")
-            $args += " $xunitConsole"
-            $args += " $dllPath"
-            $args += " -xml " + (Join-Path $xunitResultDir ([IO.Path]::ChangeExtension($dllName, ".xml")))
-
-            # https://github.com/dotnet/roslyn/issues/25049
-            # Disable parallel runs everywhere until we get assembly specific settings working again
-            $args += " -parallel none"
-
-            try {
-                Write-Host "Running $dllName"
-                Exec-Console $dotnet $args
-            }
-            catch {
-                Write-Host "Failed"
-                $allGood = $false
-            }
-        }
-    }
-
-    if (-not $allGood) {
-        throw "Unit tests failed"
-    }
+    Run-MSBuild "Roslyn.sln" "/t:Test /p:TestTargetFrameworks=netcoreapp2.1" -logFileName "XUnitTest.Core"
 }
 
 # Core function for running our unit / integration tests tests
@@ -360,8 +323,9 @@ function Test-XUnit() {
     $runTests = Join-Path $configDir "Exes\RunTests\RunTests.exe"
     $xunitDir = Join-Path (Get-PackageDir "xunit.runner.console") "tools\net472"
     $args = "$xunitDir"
-    $args += " -logpath:$logsDir"
+    $args += " -out:$testResultsDir"
     $args += " -nocache"
+    $args += " -tfm:net46"
 
     if ($testDesktop -or $testIOperation) {
         if ($test32) {
@@ -393,13 +357,13 @@ function Test-XUnit() {
     $dlls = $dlls | ?{ -not ($_.FullName -match ".*/ref/.*") }
 
     if ($cibuild) {
-        # Use a 75 minute timeout on CI
-        $args += " -xml -timeout:75"
+        $args += " -xml -timeout:65"
     }
 
+    $procdumpPath = Ensure-ProcDump
+    $args += " -procdumppath:$procDumpPath"
     if ($procdump) {
-        $procdumpPath = Ensure-ProcDump
-        $args += " -procdumppath:$procDumpPath"
+        $args += " -useprocdump";
     }
 
     if ($test64) {
@@ -559,6 +523,7 @@ try {
     $dotnet = Ensure-DotnetSdk
     $configDir = Join-Path $binariesDir $configuration
     $vsSetupDir = Join-Path $binariesDir (Join-Path "VSSetup" $configuration)
+    $testResultsDir = Join-Path $binariesDir (Join-Path "TestResults" $configuration)
     $logsDir = Join-Path $configDir "Logs"
     $bootstrapDir = ""
 

@@ -12,7 +12,6 @@ using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.FindSymbols.SymbolTree;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.NavigateTo;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Roslyn.Utilities;
@@ -159,9 +158,8 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
 
             public override async Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, InvocationReasons reasons, CancellationToken cancellationToken)
             {
-                if (!document.SupportsSyntaxTree)
+                if (!SupportAnalysis(document.Project))
                 {
-                    // Not a language we can produce indices for (i.e. TypeScript).  Bail immediately.
                     return;
                 }
 
@@ -187,21 +185,17 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
 
             public override Task AnalyzeProjectAsync(Project project, bool semanticsChanged, InvocationReasons reasons, CancellationToken cancellationToken)
             {
+                if (!SupportAnalysis(project))
+                {
+                    return Task.CompletedTask;
+                }
+
                 return UpdateSymbolTreeInfoAsync(project, cancellationToken);
             }
 
             private async Task UpdateSymbolTreeInfoAsync(Project project, CancellationToken cancellationToken)
             {
-                if (!project.SupportsCompilation)
-                {
-                    // Not a language we can produce indices for (i.e. TypeScript).  Bail immediately.
-                    return;
-                }
-
-                if (!RemoteFeatureOptions.ShouldComputeIndex(project.Solution.Workspace))
-                {
-                    return;
-                }
+                Debug.Assert(SupportAnalysis(project));
 
                 // Produce the indices for the source and metadata symbols in parallel.
                 var tasks = new List<Task>
@@ -303,6 +297,17 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
                         }
                     }
                 }
+            }
+
+            private bool SupportAnalysis(Project project)
+            {
+                if (!project.SupportsCompilation)
+                {
+                    // Not a language we can produce indices for (i.e. TypeScript).  Bail immediately.
+                    return false;
+                }
+
+                return RemoteFeatureOptions.ShouldComputeIndex(project.Solution.Workspace);
             }
         }
     }

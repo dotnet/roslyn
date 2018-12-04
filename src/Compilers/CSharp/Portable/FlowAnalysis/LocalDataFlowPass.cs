@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -10,8 +9,11 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    internal abstract partial class DataFlowPassBase<TLocalState> : AbstractFlowPass<TLocalState>
-        where TLocalState : PreciseAbstractFlowPass<TLocalState>.AbstractLocalState
+    /// <summary>
+    /// Does a data flow analysis for state attached to local variables and fields of struct locals.
+    /// </summary>
+    internal abstract partial class LocalDataFlowPass<TLocalState> : AbstractFlowPass<TLocalState>
+        where TLocalState : AbstractFlowPass<TLocalState>.ILocalState
     {
         /// <summary>
         /// A mapping from local variables to the index of their slot in a flow analysis local state.
@@ -36,18 +38,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         protected readonly EmptyStructTypeCache _emptyStructTypeCache;
 
-        protected DataFlowPassBase(
+        protected LocalDataFlowPass(
             CSharpCompilation compilation,
             Symbol member,
             BoundNode node,
             EmptyStructTypeCache emptyStructs,
             bool trackUnassignments)
-            : base(compilation, member, node, trackUnassignments: trackUnassignments)
+            : base(compilation, member, node, nonMonotonicTransferFunction: trackUnassignments)
         {
             _emptyStructTypeCache = emptyStructs;
         }
 
-        protected DataFlowPassBase(
+        protected LocalDataFlowPass(
             CSharpCompilation compilation,
             Symbol member,
             BoundNode node,
@@ -56,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundNode lastInRegion,
             bool trackRegions,
             bool trackUnassignments)
-            : base(compilation, member, node, firstInRegion, lastInRegion, trackRegions: trackRegions, trackUnassignments: trackUnassignments)
+            : base(compilation, member, node, firstInRegion, lastInRegion, trackRegions: trackRegions, nonMonotonicTransferFunction: trackUnassignments)
         {
             _emptyStructTypeCache = emptyStructs;
         }

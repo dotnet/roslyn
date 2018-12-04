@@ -8,6 +8,7 @@
     <TargetFramework>net472</TargetFramework>
     <RoslynProjectType>UnitTest</RoslynProjectType>
     <RootNamespace></RootNamespace>
+    <SkipTests Condition="'$(TestRuntime)' == 'Mono'">true</SkipTests>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />

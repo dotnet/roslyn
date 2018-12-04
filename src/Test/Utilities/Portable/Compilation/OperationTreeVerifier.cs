@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogString(" (");
 
             // Kind
-            LogString($"{nameof(OperationKind)}.{operation.Kind}");
+            LogString($"{nameof(OperationKind)}.{GetKindText(operation.Kind)}");
 
             // Type
             LogString(", ");
@@ -102,6 +102,27 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogString($" (Syntax: {GetSnippetFromSyntax(operation.Syntax)})");
 
             LogNewLine();
+
+            // Some of these kinds were inconsistent in the first release, and in standardizing them the
+            // string output isn't guaranteed to be one or the other. So standardize manually.
+            string GetKindText(OperationKind kind)
+            {
+                switch (kind)
+                {
+                    case OperationKind.Unary:
+                        return "Unary";
+                    case OperationKind.Binary:
+                        return "Binary";
+                    case OperationKind.TupleBinary:
+                        return "TupleBinary";
+                    case OperationKind.MethodBody:
+                        return "MethodBody";
+                    case OperationKind.ConstructorBody:
+                        return "ConstructorBody";
+                    default:
+                        return kind.ToString();
+                }
+            }
         }
 
         private static string GetSnippetFromSyntax(SyntaxNode syntax)
@@ -478,7 +499,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             VisitArray(operation.Clauses, "Clauses", logElementCount: false);
             VisitArray(operation.Body, "Body", logElementCount: false);
             Unindent();
-            _ = ((BaseSwitchCase)operation).Condition;
+            _ = ((BaseSwitchCaseOperation)operation).Condition;
         }
 
         public override void VisitWhileLoop(IWhileLoopOperation operation)
@@ -517,7 +538,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Visit(operation.Body, "Body");
             VisitArray(operation.NextVariables, "NextVariables", logElementCount: true);
 
-            (ILocalSymbol loopObject, ForToLoopOperationUserDefinedInfo userDefinedInfo) = ((BaseForToLoopStatement)operation).Info;
+            (ILocalSymbol loopObject, ForToLoopOperationUserDefinedInfo userDefinedInfo) = ((BaseForToLoopOperation)operation).Info;
 
             if (userDefinedInfo != null)
             {
@@ -580,10 +601,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Visit(operation.Collection, "Collection");
             Visit(operation.Body, "Body");
             VisitArray(operation.NextVariables, "NextVariables", logElementCount: true);
-            ForEachLoopOperationInfo info = ((BaseForEachLoopStatement)operation).Info;
-            _ = info.GetEnumeratorArguments?.Value;
-            _ = info.MoveNextArguments?.Value;
-            _ = info.CurrentArguments?.Value;
+            ForEachLoopOperationInfo info = ((BaseForEachLoopOperation)operation).Info;
         }
 
         public override void VisitLabeled(ILabeledOperation operation)
@@ -1052,7 +1070,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             LogString($" ({kindStr})");
             LogHasOperatorMethodExpressionCommon(operation.OperatorMethod);
-            var unaryOperatorMethod = ((BaseBinaryOperatorExpression)operation).UnaryOperatorMethod;
+            var unaryOperatorMethod = ((BaseBinaryOperation)operation).UnaryOperatorMethod;
             LogCommonPropertiesAndNewLine(operation);
 
             Visit(operation.LeftOperand, "Left");
@@ -1097,7 +1115,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             {
                 LogNewLine();
                 Indent();
-                LogString($"({((BaseConversionExpression)operation).ConvertibleConversion})");
+                LogString($"({((BaseConversionOperation)operation).ConvertibleConversion})");
                 Unindent();
             }
 
@@ -1133,7 +1151,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogConversion(operation.ValueConversion, "ValueConversion");
             LogNewLine();
             Indent();
-            LogString($"({((BaseCoalesceExpression)operation).ConvertibleValueConversion})");
+            LogString($"({((BaseCoalesceOperation)operation).ConvertibleValueConversion})");
             Unindent();
             LogNewLine();
             Unindent();

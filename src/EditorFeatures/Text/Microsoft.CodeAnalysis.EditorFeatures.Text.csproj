@@ -7,7 +7,7 @@
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.Text</RootNamespace>
     <TargetFramework>net472</TargetFramework>
-    <ApplyNgenOptimizationData>true</ApplyNgenOptimizationData>
+    <ApplyPartialNgenOptimization>true</ApplyPartialNgenOptimization>
 
     <!-- NuGet -->
     <IsPackable>true</IsPackable>

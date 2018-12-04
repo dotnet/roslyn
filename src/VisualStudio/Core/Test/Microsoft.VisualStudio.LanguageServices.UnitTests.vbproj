@@ -8,7 +8,6 @@
     <TargetFramework>net472</TargetFramework>
     <RuntimeIdentifier>$(RoslynDesktopRuntimeIdentifier)</RuntimeIdentifier>
     <RoslynProjectType>UnitTest</RoslynProjectType>
-    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <RootNamespace></RootNamespace>
   </PropertyGroup>
   <ItemGroup Label="Project References">
