@@ -463,19 +463,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.FieldAccess:
                     {
                         var fieldAccess = (BoundFieldAccess)node;
-                        VisitMemberAccess(fieldAccess.ReceiverOpt, fieldAccess.FieldSymbol, asLvalue: true);
+                        VisitMemberAccess(node, fieldAccess.ReceiverOpt, fieldAccess.FieldSymbol, asLvalue: true);
                     }
                     break;
                 case BoundKind.PropertyAccess:
                     {
                         var propertyAccess = (BoundPropertyAccess)node;
-                        VisitMemberAccess(propertyAccess.ReceiverOpt, propertyAccess.PropertySymbol, asLvalue: true);
+                        VisitMemberAccess(node, propertyAccess.ReceiverOpt, propertyAccess.PropertySymbol, asLvalue: true);
                     }
                     break;
                 case BoundKind.EventAccess:
                     {
                         var eventAccess = (BoundEventAccess)node;
-                        VisitMemberAccess(eventAccess.ReceiverOpt, eventAccess.EventSymbol, asLvalue: true);
+                        VisitMemberAccess(node, eventAccess.ReceiverOpt, eventAccess.EventSymbol, asLvalue: true);
                     }
                     break;
                 case BoundKind.ObjectInitializerMember:
@@ -3999,13 +3999,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitFieldAccess(BoundFieldAccess node)
         {
-            VisitMemberAccess(node.ReceiverOpt, node.FieldSymbol, asLvalue: false);
+            VisitMemberAccess(node, node.ReceiverOpt, node.FieldSymbol, asLvalue: false);
             return null;
         }
 
         public override BoundNode VisitPropertyAccess(BoundPropertyAccess node)
         {
-            VisitMemberAccess(node.ReceiverOpt, node.PropertySymbol, asLvalue: false);
+            VisitMemberAccess(node, node.ReceiverOpt, node.PropertySymbol, asLvalue: false);
             return null;
         }
 
@@ -4035,11 +4035,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitEventAccess(BoundEventAccess node)
         {
-            VisitMemberAccess(node.ReceiverOpt, node.EventSymbol, asLvalue: false);
+            VisitMemberAccess(node, node.ReceiverOpt, node.EventSymbol, asLvalue: false);
             return null;
         }
 
-        private void VisitMemberAccess(BoundExpression receiverOpt, Symbol member, bool asLvalue)
+        private void VisitMemberAccess(BoundExpression node, BoundExpression receiverOpt, Symbol member, bool asLvalue)
         {
             Debug.Assert(!IsConditionalState);
 
@@ -4054,7 +4054,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     nullableOfTMember = GetNullableOfTMember(compilation, member);
                     // https://github.com/dotnet/roslyn/issues/30598: For l-values, mark receiver as not null
                     // after RHS has been visited, and only if the receiver has not changed.
-                    CheckPossibleNullReceiver(receiverOpt, allowValueType: nullableOfTMember == SpecialMember.System_Nullable_T_get_Value);
+                    bool allowValueType = nullableOfTMember == SpecialMember.System_Nullable_T_get_Value;
+                    CheckPossibleNullReceiver(receiverOpt, allowValueType, (allowValueType ? node : receiverOpt).Syntax);
                 }
 
                 var resultType = member.GetTypeOrReturnType();
@@ -4760,7 +4761,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        private void CheckPossibleNullReceiver(BoundExpression receiverOpt, bool allowValueType = false)
+        private void CheckPossibleNullReceiver(BoundExpression receiverOpt, bool allowValueType = false, SyntaxNode syntaxOpt = null)
         {
             Debug.Assert(!this.IsConditionalState);
             if (receiverOpt != null && this.State.Reachable)
@@ -4777,7 +4778,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         return;
                     }
-                    ReportPossibleNullValue(receiverOpt.Syntax, receiverOpt, isValueType);
+                    ReportPossibleNullValue(syntaxOpt ?? receiverOpt.Syntax, receiverOpt, isValueType);
                 }
             }
         }
