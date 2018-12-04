@@ -187,30 +187,30 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
 
         private void ProvideTopLevelCompletions(EmbeddedCompletionContext context)
         {
-            context.AddIfMissing("|", regex_alternation_short, regex_alternation_long, parentOpt: null);
-            context.AddIfMissing("^", regex_start_of_string_or_line_short, regex_start_of_string_or_line_long, parentOpt: null);
-            context.AddIfMissing("$", regex_end_of_string_or_line_short, regex_end_of_string_or_line_long, parentOpt: null);
-            context.AddIfMissing(".", regex_any_character_group_short, regex_any_character_group_long, parentOpt: null);
+            context.AddIfMissing("|", Regex_alternation_short, Regex_alternation_long, parentOpt: null);
+            context.AddIfMissing("^", Regex_start_of_string_or_line_short, Regex_start_of_string_or_line_long, parentOpt: null);
+            context.AddIfMissing("$", Regex_end_of_string_or_line_short, Regex_end_of_string_or_line_long, parentOpt: null);
+            context.AddIfMissing(".", Regex_any_character_group_short, Regex_any_character_group_long, parentOpt: null);
             
-            context.AddIfMissing("*", regex_match_zero_or_more_times_short, regex_match_zero_or_more_times_long, parentOpt: null);
-            context.AddIfMissing("*?", regex_match_zero_or_more_times_lazy_short, regex_match_zero_or_more_times_lazy_long, parentOpt: null);
+            context.AddIfMissing("*", Regex_match_zero_or_more_times_short, Regex_match_zero_or_more_times_long, parentOpt: null);
+            context.AddIfMissing("*?", Regex_match_zero_or_more_times_lazy_short, Regex_match_zero_or_more_times_lazy_long, parentOpt: null);
 
-            context.AddIfMissing("+", regex_match_one_or_more_times_short, regex_match_one_or_more_times_long, parentOpt: null);
-            context.AddIfMissing("+?", regex_match_one_or_more_times_lazy_short, regex_match_one_or_more_times_lazy_long, parentOpt: null);
+            context.AddIfMissing("+", Regex_match_one_or_more_times_short, Regex_match_one_or_more_times_long, parentOpt: null);
+            context.AddIfMissing("+?", Regex_match_one_or_more_times_lazy_short, Regex_match_one_or_more_times_lazy_long, parentOpt: null);
 
-            context.AddIfMissing("?", regex_match_zero_or_one_time_short, regex_match_zero_or_one_time_long, parentOpt: null);
-            context.AddIfMissing("??", regex_match_zero_or_one_time_lazy_short, regex_match_zero_or_one_time_lazy_long, parentOpt: null);
+            context.AddIfMissing("?", Regex_match_zero_or_one_time_short, Regex_match_zero_or_one_time_long, parentOpt: null);
+            context.AddIfMissing("??", Regex_match_zero_or_one_time_lazy_short, Regex_match_zero_or_one_time_lazy_long, parentOpt: null);
 
-            context.AddIfMissing("{n}", regex_match_exactly_n_times_short, regex_match_exactly_n_times_long, parentOpt: null, positionOffset: "{".Length, insertionText: "{}");
-            context.AddIfMissing("{n}?", regex_match_exactly_n_times_lazy_short, regex_match_exactly_n_times_lazy_long, parentOpt: null, positionOffset: "{".Length, insertionText: "{}?");
+            context.AddIfMissing("{n}", Regex_match_exactly_n_times_short, Regex_match_exactly_n_times_long, parentOpt: null, positionOffset: "{".Length, insertionText: "{}");
+            context.AddIfMissing("{n}?", Regex_match_exactly_n_times_lazy_short, Regex_match_exactly_n_times_lazy_long, parentOpt: null, positionOffset: "{".Length, insertionText: "{}?");
 
-            context.AddIfMissing("{n,}", regex_match_at_least_n_times_short, regex_match_at_least_n_times_long, parentOpt: null, positionOffset: "{".Length, insertionText: "{,}");
-            context.AddIfMissing("{n,}?", regex_match_at_least_n_times_lazy_short, regex_match_at_least_n_times_lazy_long, parentOpt: null, positionOffset: "{".Length, insertionText: "{,}?");
+            context.AddIfMissing("{n,}", Regex_match_at_least_n_times_short, Regex_match_at_least_n_times_long, parentOpt: null, positionOffset: "{".Length, insertionText: "{,}");
+            context.AddIfMissing("{n,}?", Regex_match_at_least_n_times_lazy_short, Regex_match_at_least_n_times_lazy_long, parentOpt: null, positionOffset: "{".Length, insertionText: "{,}?");
 
-            context.AddIfMissing("{m,n}", regex_match_between_m_and_n_times_short, regex_match_between_m_and_n_times_long, parentOpt: null, positionOffset: "{".Length, insertionText: "{,}");
-            context.AddIfMissing("{m,n}?", regex_match_between_m_and_n_times_lazy_short, regex_match_between_m_and_n_times_lazy_long, parentOpt: null, positionOffset: "{".Length, insertionText: "{,}?");
+            context.AddIfMissing("{m,n}", Regex_match_between_m_and_n_times_short, Regex_match_between_m_and_n_times_long, parentOpt: null, positionOffset: "{".Length, insertionText: "{,}");
+            context.AddIfMissing("{m,n}?", Regex_match_between_m_and_n_times_lazy_short, Regex_match_between_m_and_n_times_lazy_long, parentOpt: null, positionOffset: "{".Length, insertionText: "{,}?");
 
-            context.AddIfMissing("#", regex_end_of_line_comment_short, regex_end_of_line_comment_long, parentOpt: null);
+            context.AddIfMissing("#", Regex_end_of_line_comment_short, Regex_end_of_line_comment_long, parentOpt: null);
         }
 
         private void ProvideCompletionsAfterInsertion(EmbeddedCompletionContext context)
@@ -293,31 +293,31 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
                 return;
             }
             
-            context.AddIfMissing($"(  {regex_subexpression}  )", regex_matched_subexpression_short, regex_matched_subexpression_long, parentOpt, positionOffset: "(".Length, insertionText: "()");
-            context.AddIfMissing($"(?<  {regex_name}  >  {regex_subexpression}  )", regex_named_matched_subexpression_short, regex_named_matched_subexpression_long, parentOpt, positionOffset: "(?<".Length, insertionText: "(?<>)");
-            context.AddIfMissing($"(?<  {regex_name1}  -  {regex_name2}  >  {regex_subexpression}  )", regex_balancing_group_short, regex_balancing_group_long, parentOpt, positionOffset: "(?<".Length, insertionText: "(?<->)");
-            context.AddIfMissing($"(?:  {regex_subexpression}  )", regex_noncapturing_group_short, regex_noncapturing_group_long, parentOpt, positionOffset: "(?:".Length, insertionText: "(?:)");
-            context.AddIfMissing($"(?=  {regex_subexpression}  )", regex_zero_width_positive_lookahead_assertion_short, regex_zero_width_positive_lookahead_assertion_long, parentOpt, positionOffset: "(?=".Length, insertionText: "(?=)");
-            context.AddIfMissing($"(?!  {regex_subexpression}  )", regex_zero_width_negative_lookahead_assertion_short, regex_zero_width_negative_lookahead_assertion_long, parentOpt, positionOffset: "(?!".Length, insertionText: "(?!)");
-            context.AddIfMissing($"(?<=  {regex_subexpression}  )", regex_zero_width_positive_lookbehind_assertion_short, regex_zero_width_positive_lookbehind_assertion_long, parentOpt, positionOffset: "(?<=".Length, insertionText: "(?<=)");
-            context.AddIfMissing($"(?<!  {regex_subexpression}  )", regex_zero_width_negative_lookbehind_assertion_short, regex_zero_width_negative_lookbehind_assertion_long, parentOpt, positionOffset: "(?<!".Length, insertionText: "(?<!)");
-            context.AddIfMissing($"(?>  {regex_subexpression}  )", regex_nonbacktracking_subexpression_short, regex_nonbacktracking_subexpression_long, parentOpt, positionOffset: "(?>".Length, insertionText: "(?>)");
+            context.AddIfMissing($"(  {Regex_subexpression}  )", Regex_matched_subexpression_short, Regex_matched_subexpression_long, parentOpt, positionOffset: "(".Length, insertionText: "()");
+            context.AddIfMissing($"(?<  {Regex_name}  >  {Regex_subexpression}  )", Regex_named_matched_subexpression_short, Regex_named_matched_subexpression_long, parentOpt, positionOffset: "(?<".Length, insertionText: "(?<>)");
+            context.AddIfMissing($"(?<  {Regex_name1}  -  {Regex_name2}  >  {Regex_subexpression}  )", Regex_balancing_group_short, Regex_balancing_group_long, parentOpt, positionOffset: "(?<".Length, insertionText: "(?<->)");
+            context.AddIfMissing($"(?:  {Regex_subexpression}  )", Regex_noncapturing_group_short, Regex_noncapturing_group_long, parentOpt, positionOffset: "(?:".Length, insertionText: "(?:)");
+            context.AddIfMissing($"(?=  {Regex_subexpression}  )", Regex_zero_width_positive_lookahead_assertion_short, Regex_zero_width_positive_lookahead_assertion_long, parentOpt, positionOffset: "(?=".Length, insertionText: "(?=)");
+            context.AddIfMissing($"(?!  {Regex_subexpression}  )", Regex_zero_width_negative_lookahead_assertion_short, Regex_zero_width_negative_lookahead_assertion_long, parentOpt, positionOffset: "(?!".Length, insertionText: "(?!)");
+            context.AddIfMissing($"(?<=  {Regex_subexpression}  )", Regex_zero_width_positive_lookbehind_assertion_short, Regex_zero_width_positive_lookbehind_assertion_long, parentOpt, positionOffset: "(?<=".Length, insertionText: "(?<=)");
+            context.AddIfMissing($"(?<!  {Regex_subexpression}  )", Regex_zero_width_negative_lookbehind_assertion_short, Regex_zero_width_negative_lookbehind_assertion_long, parentOpt, positionOffset: "(?<!".Length, insertionText: "(?<!)");
+            context.AddIfMissing($"(?>  {Regex_subexpression}  )", Regex_nonbacktracking_subexpression_short, Regex_nonbacktracking_subexpression_long, parentOpt, positionOffset: "(?>".Length, insertionText: "(?>)");
 
-            context.AddIfMissing($"(?(  {regex_expression}  )  {regex_yes}  |  {regex_no}  )", regex_conditional_expression_match_short, regex_conditional_expression_match_long, parentOpt, positionOffset: "(?(".Length, insertionText: "(?()|)");
-            context.AddIfMissing($"(?(  {regex_name_or_number}  )  {regex_yes}  |  {regex_no}  )", regex_conditional_group_match_short, regex_conditional_group_match_long, parentOpt, positionOffset: "(?(".Length, insertionText: "(?()|)");
+            context.AddIfMissing($"(?(  {Regex_expression}  )  {Regex_yes}  |  {Regex_no}  )", Regex_conditional_expression_match_short, Regex_conditional_expression_match_long, parentOpt, positionOffset: "(?(".Length, insertionText: "(?()|)");
+            context.AddIfMissing($"(?(  {Regex_name_or_number}  )  {Regex_yes}  |  {Regex_no}  )", Regex_conditional_group_match_short, Regex_conditional_group_match_long, parentOpt, positionOffset: "(?(".Length, insertionText: "(?()|)");
 
-            context.AddIfMissing($"(?#  {regex_comment}  )", regex_inline_comment_short, regex_inline_comment_long, parentOpt, positionOffset: "(?#".Length, insertionText: "(?#)");
-            context.AddIfMissing($"(?imnsx-imnsx)", regex_inline_options_short, regex_inline_options_long, parentOpt, positionOffset: "(?".Length, insertionText: "(?)");
-            context.AddIfMissing($"(?imnsx-imnsx:  {regex_subexpression}  )", regex_group_options_short, regex_group_options_long, parentOpt, positionOffset: "(?".Length, insertionText: "(?:)");
+            context.AddIfMissing($"(?#  {Regex_comment}  )", Regex_inline_comment_short, Regex_inline_comment_long, parentOpt, positionOffset: "(?#".Length, insertionText: "(?#)");
+            context.AddIfMissing($"(?imnsx-imnsx)", Regex_inline_options_short, Regex_inline_options_long, parentOpt, positionOffset: "(?".Length, insertionText: "(?)");
+            context.AddIfMissing($"(?imnsx-imnsx:  {Regex_subexpression}  )", Regex_group_options_short, Regex_group_options_long, parentOpt, positionOffset: "(?".Length, insertionText: "(?:)");
         }
 
         private void ProvideCharacterClassCompletions(EmbeddedCompletionContext context, RegexNode parentOpt)
         {
-            context.AddIfMissing($"[  {regex_character_group}  ]", regex_positive_character_group_short, regex_positive_character_group_long, parentOpt, positionOffset: "[".Length, insertionText: "[]");
-            context.AddIfMissing($"[  firstCharacter-lastCharacter  ]", regex_positive_character_range_short, regex_positive_character_range_long, parentOpt, positionOffset: "[".Length, insertionText: "[-]");
-            context.AddIfMissing($"[^  {regex_character_group}  ]", regex_negative_character_group_short, regex_negative_character_group_long, parentOpt, positionOffset: "[^".Length, insertionText: "[^]");
-            context.AddIfMissing($"[^  firstCharacter-lastCharacter  ]", regex_negative_character_group_short, regex_negative_character_range_long, parentOpt, positionOffset: "[^".Length, insertionText: "[^-]");
-            context.AddIfMissing($"[  {regex_base_group}  -[  {regex_excluded_group}  ]", regex_character_class_subtraction_short, regex_character_class_subtraction_long, parentOpt, positionOffset: "[".Length, insertionText: "[-[]]");
+            context.AddIfMissing($"[  {Regex_character_group}  ]", Regex_positive_character_group_short, Regex_positive_character_group_long, parentOpt, positionOffset: "[".Length, insertionText: "[]");
+            context.AddIfMissing($"[  firstCharacter-lastCharacter  ]", Regex_positive_character_range_short, Regex_positive_character_range_long, parentOpt, positionOffset: "[".Length, insertionText: "[-]");
+            context.AddIfMissing($"[^  {Regex_character_group}  ]", Regex_negative_character_group_short, Regex_negative_character_group_long, parentOpt, positionOffset: "[^".Length, insertionText: "[^]");
+            context.AddIfMissing($"[^  firstCharacter-lastCharacter  ]", Regex_negative_character_group_short, Regex_negative_character_range_long, parentOpt, positionOffset: "[^".Length, insertionText: "[^-]");
+            context.AddIfMissing($"[  {Regex_base_group}  -[  {Regex_excluded_group}  ]", Regex_character_class_subtraction_short, Regex_character_class_subtraction_long, parentOpt, positionOffset: "[".Length, insertionText: "[-[]]");
         }
 
         private void ProvideEscapeCategoryCompletions(EmbeddedCompletionContext context)
@@ -338,7 +338,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
 
                 var description = longDesc.Length > 0
                     ? longDesc
-                    : string.Format(regex_unicode_general_category_0, name);
+                    : string.Format(Regex_unicode_general_category_0, name);
 
                 context.AddIfMissing(new RegexItem(
                     displayText, shortDesc, description,
@@ -357,39 +357,39 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
 
             if (!inCharacterClass)
             {
-                context.AddIfMissing(@"\A", regex_start_of_string_only_short, regex_start_of_string_only_long, parentOpt);
-                context.AddIfMissing(@"\b", regex_word_boundary_short, regex_word_boundary_long, parentOpt);
-                context.AddIfMissing(@"\B", regex_non_word_boundary_short, regex_non_word_boundary_long, parentOpt);
-                context.AddIfMissing(@"\G", regex_contiguous_matches_short, regex_contiguous_matches_long, parentOpt);
-                context.AddIfMissing(@"\z", regex_end_of_string_only_short, regex_end_of_string_only_long, parentOpt);
-                context.AddIfMissing(@"\Z", regex_end_of_string_or_before_ending_newline_short, regex_end_of_string_or_before_ending_newline_long, parentOpt);
+                context.AddIfMissing(@"\A", Regex_start_of_string_only_short, Regex_start_of_string_only_long, parentOpt);
+                context.AddIfMissing(@"\b", Regex_word_boundary_short, Regex_word_boundary_long, parentOpt);
+                context.AddIfMissing(@"\B", Regex_non_word_boundary_short, Regex_non_word_boundary_long, parentOpt);
+                context.AddIfMissing(@"\G", Regex_contiguous_matches_short, Regex_contiguous_matches_long, parentOpt);
+                context.AddIfMissing(@"\z", Regex_end_of_string_only_short, Regex_end_of_string_only_long, parentOpt);
+                context.AddIfMissing(@"\Z", Regex_end_of_string_or_before_ending_newline_short, Regex_end_of_string_or_before_ending_newline_long, parentOpt);
 
-                context.AddIfMissing($@"\k<  {regex_name_or_number}  >", regex_named_backreference_short, regex_named_backreference_long, parentOpt, @"\k<".Length, insertionText: @"\k<>");
+                context.AddIfMissing($@"\k<  {Regex_name_or_number}  >", Regex_named_backreference_short, Regex_named_backreference_long, parentOpt, @"\k<".Length, insertionText: @"\k<>");
                 // context.AddIfMissing(@"\<>", "", "", parentOpt, @"\<".Length));
-                context.AddIfMissing(@"\1-9", regex_numbered_backreference_short, regex_numbered_backreference_long, parentOpt, @"\".Length, @"\");
+                context.AddIfMissing(@"\1-9", Regex_numbered_backreference_short, Regex_numbered_backreference_long, parentOpt, @"\".Length, @"\");
             }
 
-            context.AddIfMissing(@"\a", regex_bell_character_short, regex_bell_character_long, parentOpt);
-            context.AddIfMissing(@"\b", regex_backspace_character_short, regex_backspace_character_long, parentOpt);
-            context.AddIfMissing(@"\e", regex_escape_character_short, regex_escape_character_long, parentOpt);
-            context.AddIfMissing(@"\f", regex_form_feed_character_short, regex_form_feed_character_long, parentOpt);
-            context.AddIfMissing(@"\n", regex_new_line_character_short, regex_new_line_character_long, parentOpt);
-            context.AddIfMissing(@"\r", regex_carriage_return_character_short, regex_carriage_return_character_long, parentOpt);
-            context.AddIfMissing(@"\t", regex_tab_character_short, regex_tab_character_long, parentOpt);
-            context.AddIfMissing(@"\v", regex_vertical_tab_character_short, regex_vertical_tab_character_long, parentOpt);
+            context.AddIfMissing(@"\a", Regex_bell_character_short, Regex_bell_character_long, parentOpt);
+            context.AddIfMissing(@"\b", Regex_backspace_character_short, Regex_backspace_character_long, parentOpt);
+            context.AddIfMissing(@"\e", Regex_escape_character_short, Regex_escape_character_long, parentOpt);
+            context.AddIfMissing(@"\f", Regex_form_feed_character_short, Regex_form_feed_character_long, parentOpt);
+            context.AddIfMissing(@"\n", Regex_new_line_character_short, Regex_new_line_character_long, parentOpt);
+            context.AddIfMissing(@"\r", Regex_carriage_return_character_short, Regex_carriage_return_character_long, parentOpt);
+            context.AddIfMissing(@"\t", Regex_tab_character_short, Regex_tab_character_long, parentOpt);
+            context.AddIfMissing(@"\v", Regex_vertical_tab_character_short, Regex_vertical_tab_character_long, parentOpt);
 
-            context.AddIfMissing(@"\x##", regex_hexadecimal_escape_short, regex_hexadecimal_escape_long, parentOpt, @"\x".Length, @"\x");
-            context.AddIfMissing(@"\u####", regex_unicode_escape_short, regex_unicode_escape_long, parentOpt, @"\u".Length, @"\u");
-            context.AddIfMissing(@"\cX", regex_control_character_short, regex_control_character_long, parentOpt, @"\c".Length, @"\c");
+            context.AddIfMissing(@"\x##", Regex_hexadecimal_escape_short, Regex_hexadecimal_escape_long, parentOpt, @"\x".Length, @"\x");
+            context.AddIfMissing(@"\u####", Regex_unicode_escape_short, Regex_unicode_escape_long, parentOpt, @"\u".Length, @"\u");
+            context.AddIfMissing(@"\cX", Regex_control_character_short, Regex_control_character_long, parentOpt, @"\c".Length, @"\c");
 
-            context.AddIfMissing(@"\d", regex_decimal_digit_character_short, regex_decimal_digit_character_long, parentOpt);
-            context.AddIfMissing(@"\D", regex_non_digit_character_short, regex_non_digit_character_long, parentOpt);
-            context.AddIfMissing(@"\p{...}", regex_unicode_category_short, regex_unicode_category_long, parentOpt, @"\p".Length, @"\p");
-            context.AddIfMissing(@"\P{...}", regex_negative_unicode_category_short, regex_negative_unicode_category_long, parentOpt, @"\P".Length, @"\P");
-            context.AddIfMissing(@"\s", regex_white_space_character_short, regex_white_space_character_long, parentOpt);
-            context.AddIfMissing(@"\S", regex_non_white_space_character_short, regex_non_white_space_character_long, parentOpt);
-            context.AddIfMissing(@"\w", regex_word_character_short, regex_word_character_long, parentOpt);
-            context.AddIfMissing(@"\W", regex_non_word_character_short, regex_non_word_character_long, parentOpt);
+            context.AddIfMissing(@"\d", Regex_decimal_digit_character_short, Regex_decimal_digit_character_long, parentOpt);
+            context.AddIfMissing(@"\D", Regex_non_digit_character_short, Regex_non_digit_character_long, parentOpt);
+            context.AddIfMissing(@"\p{...}", Regex_unicode_category_short, Regex_unicode_category_long, parentOpt, @"\p".Length, @"\p");
+            context.AddIfMissing(@"\P{...}", Regex_negative_unicode_category_short, Regex_negative_unicode_category_long, parentOpt, @"\P".Length, @"\P");
+            context.AddIfMissing(@"\s", Regex_white_space_character_short, Regex_white_space_character_long, parentOpt);
+            context.AddIfMissing(@"\S", Regex_non_white_space_character_short, Regex_non_white_space_character_long, parentOpt);
+            context.AddIfMissing(@"\w", Regex_word_character_short, Regex_word_character_long, parentOpt);
+            context.AddIfMissing(@"\W", Regex_non_word_character_short, Regex_non_word_character_long, parentOpt);
         }
 
         private RegexItem CreateItem(
