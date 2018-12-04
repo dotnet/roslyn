@@ -1224,7 +1224,7 @@ A zero-width negative lookahead assertion is typically used either at the beginn
     <value>zero-width negative lookahead assertion</value>
   </data>
   <data name="regex_zero_width_negative_lookbehind_assertion_long" xml:space="preserve">
-    <value>Azero-width negative lookbehind assertion, where for a match to be successful, 'subexpression' must not occur at the input string to the left of the current position. Any substring that does not match 'subexpression' is not included in the match result.
+    <value>A zero-width negative lookbehind assertion, where for a match to be successful, 'subexpression' must not occur at the input string to the left of the current position. Any substring that does not match 'subexpression' is not included in the match result.
 
 Zero-width negative lookbehind assertions are typically used at the beginning of regular expressions. The pattern that they define precludes a match in the string that follows. They are also used to limit backtracking when the last character or characters in a captured group must not be one or more of the characters that match that group's regular expression pattern.</value>
   </data>

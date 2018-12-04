@@ -3053,9 +3053,9 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Azero-width negative lookbehind assertion, where for a match to be successful, &apos;subexpression&apos; must not occur at the input string to the left of the current position. Any substring that does not match &apos;subexpression&apos; is not included in the match result.
+        ///   Looks up a localized string similar to A zero-width negative lookbehind assertion, where for a match to be successful, &apos;subexpression&apos; must not occur at the input string to the left of the current position. Any substring that does not match &apos;subexpression&apos; is not included in the match result.
         ///
-        ///Zero-width negative lookbehind assertions are typically used at the beginning of regular expressions. The pattern that they define precludes a match in the string that follows. They are also used to limit backtracking when the last character or characters [rest of string was truncated]&quot;;.
+        ///Zero-width negative lookbehind assertions are typically used at the beginning of regular expressions. The pattern that they define precludes a match in the string that follows. They are also used to limit backtracking when the last character or character [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string regex_zero_width_negative_lookbehind_assertion_long {
             get {
