@@ -1784,6 +1784,151 @@ class C2
         }
 
         [Fact]
+        public void UsingPatternExtensionMethodWithNullableValue()
+        {
+            var source = @"
+static class C1 
+{
+    internal static void Dispose(this int x)
+    {
+        System.Console.Write($""Dispose {x}; "");
+    }
+}
+ class C2
+{
+    static void Main()
+    {
+        using (int? i1 = 1)
+        {
+            // Dispose 1
+        }
+        
+        int? i2 = 2;
+        using (i2) 
+        {
+            // Dispose 2
+        }       
+        
+        using (int? i3 = null)
+        {
+            // no dispose, null
+        }
+        
+        int? i4 = null;
+        using (i4) 
+        {
+            // no dispose, null
+        }
+    }
+}";
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe).VerifyDiagnostics();
+            CompileAndVerify(compilation, expectedOutput: "Dispose 1; Dispose 2; ");
+        }
+
+        [Fact]
+        public void UsingPatternExtensionMethodWithNullableValueTargetAndValueTarget()
+        {
+            var source = @"
+static class C2 
+{
+    internal static void Dispose(this int? c1)
+    {
+        System.Console.Write($""Dispose? {c1}; "");
+    }        
+    
+    internal static void Dispose(this int c1)
+    { 
+        System.Console.Write($""Dispose {c1}; "");
+    }
+}
+ class C3
+{
+    static void Main()
+    {
+        using (int? i1 = 1)
+        {
+            // Dispose 1
+        }
+        
+        int? i2 = 2;
+        using (i2)
+        {
+            // Dispose 2
+        }
+      
+        using (int i3 = 3)
+        {
+            // Dispose 3
+        }
+        
+        int i4 = 4;
+        using (i4)
+        {
+            // Dipose 4        
+        }
+    }
+}";
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe).VerifyDiagnostics();
+            CompileAndVerify(compilation, expectedOutput: "Dispose 1; Dispose 2; Dispose 3; Dispose 4;");
+        }
+
+        [Fact]
+        public void UsingPatternExtensionMethodWithNullRecevier()
+        {
+            var source = @"
+static class C2 
+{
+   internal static void Dispose(this object c1) { System.Console.Write($""Dispose; "");}
+}
+ class C3
+{
+    static void Main()
+    {
+        using (object o = null)
+        {
+            // Not called
+        }
+
+        object o2 = null;
+        using (o2) 
+        {
+            // not called
+        }
+    }
+}";
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe).VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "");
+        }
+
+        [Fact]
+        public void UsingPatternWithNullableReferenceType()
+        {
+            var source = @"
+struct S1
+{
+   internal void Dispose() { System.Console.Write($""Dispose; "");}
+}
+ class C3
+{
+    static void Main()
+    {
+        using (S1? s1 = new S1())
+        {
+            // Dispose
+        }
+
+        S1? s2 = new S1();
+        using (s2) 
+        {
+            // Dispose
+        }
+    }
+}";
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe).VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "Dispose; Dispose; ");
+        }
+
+        [Fact]
         public void Lambda()
         {
             var source = @"
