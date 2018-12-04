@@ -10,7 +10,6 @@
 
 namespace Microsoft.CodeAnalysis {
     using System;
-    using System.Reflection;
     
     
     /// <summary>
@@ -20,7 +19,7 @@ namespace Microsoft.CodeAnalysis {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "15.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class WorkspacesResources {
@@ -40,7 +39,7 @@ namespace Microsoft.CodeAnalysis {
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Microsoft.CodeAnalysis.WorkspacesResources", typeof(WorkspacesResources).GetTypeInfo().Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Microsoft.CodeAnalysis.WorkspacesResources", typeof(WorkspacesResources).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
@@ -3034,9 +3033,9 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Aa zero-width negative lookahead assertion, where for the match to be successful, the input string must not match the regular expression pattern in subexpression. The matched string is not included in the match result.
+        ///   Looks up a localized string similar to A zero-width negative lookahead assertion, where for the match to be successful, the input string must not match the regular expression pattern in subexpression. The matched string is not included in the match result.
         ///
-        ///A zero-width negative lookahead assertion is typically used either at the beginning or at the end of a regular expression. At the beginning of a regular expression, it can define a specific pattern that should not be matched when the beginning of the regular expression defines a similar bu [rest of string was truncated]&quot;;.
+        ///A zero-width negative lookahead assertion is typically used either at the beginning or at the end of a regular expression. At the beginning of a regular expression, it can define a specific pattern that should not be matched when the beginning of the regular expression defines a similar but [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string regex_zero_width_negative_lookahead_assertion_long {
             get {
@@ -3054,9 +3053,9 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Azero-width negative lookbehind assertion, where for a match to be successful, &apos;subexpression&apos; must not occur at the input string to the left of the current position. Any substring that does not match &apos;subexpression&apos; is not included in the match result.
+        ///   Looks up a localized string similar to A zero-width negative lookbehind assertion, where for a match to be successful, &apos;subexpression&apos; must not occur at the input string to the left of the current position. Any substring that does not match &apos;subexpression&apos; is not included in the match result.
         ///
-        ///Zero-width negative lookbehind assertions are typically used at the beginning of regular expressions. The pattern that they define precludes a match in the string that follows. They are also used to limit backtracking when the last character or characters [rest of string was truncated]&quot;;.
+        ///Zero-width negative lookbehind assertions are typically used at the beginning of regular expressions. The pattern that they define precludes a match in the string that follows. They are also used to limit backtracking when the last character or character [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string regex_zero_width_negative_lookbehind_assertion_long {
             get {
@@ -3074,9 +3073,9 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Aa zero-width positive lookahead assertion, where for a match to be successful, the input string must match the regular expression pattern in &apos;subexpression&apos;. The matched substring is not included in the match result. A zero-width positive lookahead assertion does not backtrack.
+        ///   Looks up a localized string similar to A zero-width positive lookahead assertion, where for a match to be successful, the input string must match the regular expression pattern in &apos;subexpression&apos;. The matched substring is not included in the match result. A zero-width positive lookahead assertion does not backtrack.
         ///
-        ///Typically, a zero-width positive lookahead assertion is found at the end of a regular expression pattern. It defines a substring that must be found at the end of a string for a match to occur but that should not be included in th [rest of string was truncated]&quot;;.
+        ///Typically, a zero-width positive lookahead assertion is found at the end of a regular expression pattern. It defines a substring that must be found at the end of a string for a match to occur but that should not be included in the [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string regex_zero_width_positive_lookahead_assertion_long {
             get {

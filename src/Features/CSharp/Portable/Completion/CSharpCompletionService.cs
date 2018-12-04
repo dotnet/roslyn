@@ -4,8 +4,10 @@ using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
 using Microsoft.CodeAnalysis.Completion;
+using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Completion.SuggestionMode;
+using Microsoft.CodeAnalysis.CSharp.Features.EmbeddedLanguages;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Text;
@@ -46,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion
                 new TupleNameCompletionProvider(),
                 new DeclarationNameCompletionProvider(),
                 new InternalsVisibleToCompletionProvider(),
-                new CSharpEmbeddedLanguageCompletionProvider());
+                new EmbeddedLanguageCompletionProvider(CSharpEmbeddedLanguageFeaturesProvider.Instance));
 
         private readonly Workspace _workspace;
 

@@ -1010,6 +1010,7 @@ If ECMAScript-compliant behavior is specified, \S is equivalent to [^ \f\n\r\t\v
     Pc	Punctuation, Connector
 
 If ECMAScript-compliant behavior is specified, \W is equivalent to [^a-zA-Z_0-9]</value>
+    <comment>Note: Ll, Lu, Lt, Lo, Lm, Mn, Nd, and Pc are all things that should not be localized. </comment>
   </data>
   <data name="regex_non_word_character_short" xml:space="preserve">
     <value>non-word character</value>
@@ -1215,7 +1216,7 @@ There is an ambiguity between octal escape codes (such as \16) and \number backr
     <value>yes</value>
   </data>
   <data name="regex_zero_width_negative_lookahead_assertion_long" xml:space="preserve">
-    <value>Aa zero-width negative lookahead assertion, where for the match to be successful, the input string must not match the regular expression pattern in subexpression. The matched string is not included in the match result.
+    <value>A zero-width negative lookahead assertion, where for the match to be successful, the input string must not match the regular expression pattern in subexpression. The matched string is not included in the match result.
 
 A zero-width negative lookahead assertion is typically used either at the beginning or at the end of a regular expression. At the beginning of a regular expression, it can define a specific pattern that should not be matched when the beginning of the regular expression defines a similar but more general pattern to be matched. In this case, it is often used to limit backtracking. At the end of a regular expression, it can define a subexpression that cannot occur at the end of a match.</value>
   </data>
@@ -1223,7 +1224,7 @@ A zero-width negative lookahead assertion is typically used either at the beginn
     <value>zero-width negative lookahead assertion</value>
   </data>
   <data name="regex_zero_width_negative_lookbehind_assertion_long" xml:space="preserve">
-    <value>Azero-width negative lookbehind assertion, where for a match to be successful, 'subexpression' must not occur at the input string to the left of the current position. Any substring that does not match 'subexpression' is not included in the match result.
+    <value>A zero-width negative lookbehind assertion, where for a match to be successful, 'subexpression' must not occur at the input string to the left of the current position. Any substring that does not match 'subexpression' is not included in the match result.
 
 Zero-width negative lookbehind assertions are typically used at the beginning of regular expressions. The pattern that they define precludes a match in the string that follows. They are also used to limit backtracking when the last character or characters in a captured group must not be one or more of the characters that match that group's regular expression pattern.</value>
   </data>
@@ -1231,7 +1232,7 @@ Zero-width negative lookbehind assertions are typically used at the beginning of
     <value>zero-width negative lookbehind assertion</value>
   </data>
   <data name="regex_zero_width_positive_lookahead_assertion_long" xml:space="preserve">
-    <value>Aa zero-width positive lookahead assertion, where for a match to be successful, the input string must match the regular expression pattern in 'subexpression'. The matched substring is not included in the match result. A zero-width positive lookahead assertion does not backtrack.
+    <value>A zero-width positive lookahead assertion, where for a match to be successful, the input string must match the regular expression pattern in 'subexpression'. The matched substring is not included in the match result. A zero-width positive lookahead assertion does not backtrack.
 
 Typically, a zero-width positive lookahead assertion is found at the end of a regular expression pattern. It defines a substring that must be found at the end of a string for a match to occur but that should not be included in the match. It is also useful for preventing excessive backtracking. You can use a zero-width positive lookahead assertion to ensure that a particular captured group begins with text that matches a subset of the pattern defined for that captured group.</value>
   </data>

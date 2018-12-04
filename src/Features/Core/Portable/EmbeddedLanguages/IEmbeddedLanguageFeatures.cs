@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages
         AbstractBuiltInCodeStyleDiagnosticAnalyzer DiagnosticAnalyzer { get; }
 
         /// <summary>
-        /// An optional completion provider that can provider completion items.
+        /// An optional completion provider that can provide completion items.
         /// </summary>
         CompletionProvider CompletionProvider { get; }
     }

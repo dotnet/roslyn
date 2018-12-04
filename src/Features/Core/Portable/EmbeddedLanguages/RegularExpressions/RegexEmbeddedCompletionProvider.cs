@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -19,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
     using static WorkspacesResources;
     using RegexToken = EmbeddedSyntaxToken<RegexKind>;
 
-    internal class RegexEmbeddedCompletionProvider : CompletionProvider
+    internal partial class RegexEmbeddedCompletionProvider : CompletionProvider
     {
         private const string StartKey = nameof(StartKey);
         private const string LengthKey = nameof(LengthKey);
@@ -87,6 +86,13 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
             var (tree, stringToken) = await _language.TryGetTreeAndTokenAtPositionAsync(
                 context.Document, position, context.CancellationToken).ConfigureAwait(false);
 
+            if (tree == null ||
+                position <= stringToken.SpanStart ||
+                position >= stringToken.Span.End)
+            {
+                return;
+            }
+
             var embeddedContext = new EmbeddedCompletionContext(this, context, tree, stringToken);
             ProvideCompletions(embeddedContext);
 
@@ -105,7 +111,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
                 properties.Add(LengthKey, textChange.Span.Length.ToString());
                 properties.Add(NewTextKey, textChange.NewText);
                 properties.Add(DescriptionKey, embeddedItem.FullDescription);
-                properties.Add(AbstractEmbeddedLanguageCompletionProvider.EmbeddedProviderName, this.Name);
+                properties.Add(EmbeddedLanguageCompletionProvider.EmbeddedProviderName, this.Name);
 
                 if (change.NewPosition != null)
                 {
@@ -118,8 +124,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
                     displayText: embeddedItem.DisplayText,
                     sortText: sortText,
                     properties: properties.ToImmutable(),
-                    rules: s_rules,
-                    inlineDescription: "    " + embeddedItem.InlineDescription));
+                    rules: s_rules));
             }
 
             context.IsExclusive = true;
@@ -131,12 +136,6 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
 
             var tree = context.Tree;
             var stringToken = context.StringToken;
-            if (tree == null ||
-                position <= stringToken.SpanStart ||
-                position >= stringToken.Span.End)
-            {
-                return;
-            }
 
             // First, act as if the user just inserted the previous character.  This will cause us
             // to complete down to the set of relevant items based on that character. If we get
@@ -326,6 +325,12 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
             foreach (var (name, (shortDesc, longDesc)) in RegexCharClass.EscapeCategories)
             {
                 var displayText = name;
+
+                // There are some internal escape categories the regex engine has (like _xmlI).
+                // Just filter out here so we only show the main documented regex categories.
+                // Note: we still include those in RegexCharClass.EscapeCategories because we
+                // don't want to report an error on code that does use these since the .net
+                // regex engine will allow them.
                 if (displayText.StartsWith("_"))
                 {
                     continue;
@@ -387,7 +392,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
             context.AddIfMissing(@"\W", regex_non_word_character_short, regex_non_word_character_long, parentOpt);
         }
 
-        internal RegexItem CreateItem(
+        private RegexItem CreateItem(
             SyntaxToken stringToken, string displayText, 
             string suffix, string description,
             EmbeddedCompletionContext context, RegexNode parentOpt, 
@@ -466,13 +471,12 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
 
         public override Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, char? commitKey, CancellationToken cancellationToken)
         {
-            if (!item.Properties.TryGetValue(StartKey, out var startString) ||
-                !item.Properties.TryGetValue(LengthKey, out var lengthString) ||
-                !item.Properties.TryGetValue(NewTextKey, out var newText))
-            {
-                return SpecializedTasks.Default<CompletionChange>();
-            }
+            // These values have always been added by us.
+            var startString = item.Properties[StartKey];
+            var lengthString = item.Properties[LengthKey];
+            var newText = item.Properties[NewTextKey];
 
+            // This value is optionally added in some cases and may not always be there.
             item.Properties.TryGetValue(NewPositionKey, out var newPositionString);
 
             return Task.FromResult(CompletionChange.Create(
@@ -489,72 +493,6 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
 
             return Task.FromResult(CompletionDescription.Create(
                 ImmutableArray.Create(new TaggedText(TextTags.Text, description))));
-        }
-    }
-
-    internal class EmbeddedCompletionContext
-    {
-        private readonly RegexEmbeddedCompletionProvider _provider;
-        private readonly CompletionContext _context;
-
-        public readonly List<RegexItem> Items = new List<RegexItem>();
-        public readonly HashSet<string> Names = new HashSet<string>();
-
-        public readonly RegexTree Tree;
-        public readonly SyntaxToken StringToken;
-
-        public EmbeddedCompletionContext(
-            RegexEmbeddedCompletionProvider provider, 
-            CompletionContext context, 
-            RegexTree tree,
-            SyntaxToken stringToken)
-        {
-            _provider = provider;
-            _context = context;
-            Tree = tree;
-            StringToken = stringToken;
-        }
-
-        public int Position => _context.Position;
-        public OptionSet Options => _context.Options;
-        public Document Document => _context.Document;
-        public CompletionTrigger Trigger => _context.Trigger;
-        public CancellationToken CancellationToken => _context.CancellationToken;
-
-        public void AddIfMissing(
-            string displayText, string suffix, string description,
-            RegexNode parentOpt, int? positionOffset = null, string insertionText = null)
-        {
-            var item = _provider.CreateItem(
-                StringToken, displayText, suffix, description, this,
-                parentOpt, positionOffset, insertionText);
-
-            AddIfMissing(item);
-        }
-
-        public void AddIfMissing(RegexItem item)
-        {
-            if (this.Names.Add(item.DisplayText))
-            {
-                this.Items.Add(item);
-            }
-        }
-    }
-
-    internal struct RegexItem
-    {
-        public readonly string DisplayText;
-        public readonly string InlineDescription;
-        public readonly string FullDescription;
-        public readonly CompletionChange Change;
-
-        public RegexItem(
-            string displayText, string inlineDescription, string fullDescription, CompletionChange change)
-        {
-            DisplayText = displayText;
-            InlineDescription = inlineDescription;
-            FullDescription = fullDescription;
-            Change = change;
         }
     }
 }
