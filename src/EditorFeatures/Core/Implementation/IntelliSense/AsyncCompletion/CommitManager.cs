@@ -265,7 +265,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 case EnterKeyRule.Always:
                     return true;
                 case EnterKeyRule.AfterFullyTypedWord:
-                    return item.DisplayText + item.DisplayTextSuffix == textTypedSoFar;
+                    return item.GetEntireDisplayText() == textTypedSoFar;
             }
         }
     }

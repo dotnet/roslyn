@@ -256,7 +256,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         {
             return Task.FromResult<TextChange?>(new TextChange(
                 selectedItem.Span,
-                selectedItem.DisplayText));
+                // Do not insert colon on <Tab> so that user can complete out a variable name that does not currently exist.
+                ch == '\t' ? selectedItem.DisplayText : selectedItem.GetEntireDisplayText()));
         }
     }
 }

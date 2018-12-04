@@ -271,11 +271,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             var attributeImages = supportedPlatforms != null ? s_WarningImageAttributeImagesArray : ImmutableArray<ImageElement>.Empty;
 
             var item = new VSCompletionItem(
-                displayText: roslynItem.DisplayText,
+                displayText: roslynItem.GetEntireDisplayText(),
                 source: this,
                 icon: new ImageElement(new ImageId(imageId.Guid, imageId.Id), roslynItem.DisplayText),
                 filters: filters,
-                suffix: roslynItem.DisplayTextSuffix,
+                suffix: string.Empty, // Do not use the suffix unless want it to be right-aligned in the selection popup
                 insertText: insertionText,
                 sortText: roslynItem.SortText,
                 filterText: roslynItem.FilterText,
