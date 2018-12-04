@@ -12,6 +12,34 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Formatting
     public class FormattingEngineTriviaTests : CSharpFormattingTestBase
     {
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem(31130, "https://github.com/dotnet/roslyn/issues/31130")]
+        public async Task PreprocessorNullable()
+        {
+            var content = @"
+    #nullable
+class C
+{
+    #nullable     enable
+    void Method()
+    {
+        #nullable    disable
+    }
+}";
+
+            var expected = @"
+#nullable
+class C
+{
+#nullable enable
+    void Method()
+    {
+#nullable disable
+    }
+}";
+            await AssertFormatAsync(expected, content);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task PreprocessorInEmptyFile()
         {
             var content = @"

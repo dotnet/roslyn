@@ -47,9 +47,9 @@
         <target state="new">Type parameter '{1}' has the 'unmanaged' constraint so '{1}' cannot be used as a constraint for '{0}'</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_ExplicitNonNullTypesAttribute">
-        <source>Explicit application of 'System.Runtime.CompilerServices.NonNullTypesAttribute' is not allowed.</source>
-        <target state="new">Explicit application of 'System.Runtime.CompilerServices.NonNullTypesAttribute' is not allowed.</target>
+      <trans-unit id="ERR_ElseCannotStartStatement">
+        <source>'else' cannot start a statement.</source>
+        <target state="new">'else' cannot start a statement.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExplicitNullableAttribute">
@@ -60,6 +60,11 @@
       <trans-unit id="ERR_ExprCannotBeFixed">
         <source>The given expression cannot be used in a fixed statement</source>
         <target state="new">The given expression cannot be used in a fixed statement</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ExpressionTreeCantContainNullCoalescingAssignment">
+        <source>An expression tree may not contain a null coalescing assignment</source>
+        <target state="new">An expression tree may not contain a null coalescing assignment</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeCantContainRefStruct">
@@ -310,11 +315,6 @@
       <trans-unit id="IDS_FeatureUnmanagedGenericTypeConstraint">
         <source>unmanaged generic type constraints</source>
         <target state="new">unmanaged generic type constraints</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="IDS_InjectedDeclaration">
-        <source>injected declaration</source>
-        <target state="new">injected declaration</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_NULL">
@@ -727,11 +727,6 @@
         <target state="new">'default' is converted to 'null'</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_MissingNonNullTypesContext">
-        <source>The suppression operator (!) should be used in code within a '#nullable' context.</source>
-        <target state="new">The suppression operator (!) should be used in code within a '#nullable' context.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="WRN_MissingNonNullTypesContextForAnnotation">
         <source>The annotation for nullable reference types should only be used in code within a '#nullable' context.</source>
         <target state="new">The annotation for nullable reference types should only be used in code within a '#nullable' context.</target>
@@ -740,11 +735,6 @@
       <trans-unit id="WRN_MissingNonNullTypesContextForAnnotation_Title">
         <source>The annotation for nullable reference types should only be used in code within a '#nullable' context.</source>
         <target state="new">The annotation for nullable reference types should only be used in code within a '#nullable' context.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_MissingNonNullTypesContext_Title">
-        <source>The suppression operator (!) should be used in code within a '#nullable' context.</source>
-        <target state="new">The suppression operator (!) should be used in code within a '#nullable' context.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NoBestNullabilityArrayElements">
@@ -6419,7 +6409,7 @@ C#에서는 out과 ref를 구분하지만 CLR에서는 동일한 것으로 간�
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAsyncReturn">
-        <source>The return type of an async method must be void, Task, Task&lt;T&gt;, a task-like type, or IAsyncEnumerable&lt;T&gt;</source>
+        <source>The return type of an async method must be void, Task, Task&lt;T&gt;, a task-like type, IAsyncEnumerable&lt;T&gt;, or IAsyncEnumerator&lt;T&gt;</source>
         <target state="needs-review-translation">비동기 메서드의 반환 형식은 void, Task 또는 Task&lt;T&gt;여야 합니다.</target>
         <note />
       </trans-unit>
@@ -7979,6 +7969,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
 -errorendlocation             Output line and column of the end location of
                               each error
 -preferreduilang              Specify the preferred output language name.
+-nosdkpath                    Disable searching the default SDK path for standard library assemblies.
 -nostdlib[+|-]                Do not reference standard library (mscorlib.dll)
 -subsystemversion:&lt;string&gt;    Specify subsystem version of this assembly
 -lib:&lt;file list&gt;              Specify additional directories to search in for

@@ -524,7 +524,7 @@ class C
             var testData = Evaluate(runtime, "C.M", variableName, out error, alias);
             if (valid)
             {
-                var expectedNames = new[] { "<>x.<>m0()", "System.Runtime.CompilerServices.NonNullTypesAttribute..ctor(bool)", "Microsoft.CodeAnalysis.EmbeddedAttribute..ctor()" };
+                var expectedNames = new[] { "<>x.<>m0()" };
                 var actualNames = testData.GetMethodsByName().Keys;
                 AssertEx.SetEqual(expectedNames, actualNames);
             }

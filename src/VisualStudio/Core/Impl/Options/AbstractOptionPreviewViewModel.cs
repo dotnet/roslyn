@@ -243,5 +243,26 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
                 examples, this, optionSet, ServicesVSResources.Parentheses_preferences_colon,
                 codeStylePreferences));
         }
+
+        protected void AddUnusedParameterOption(string language, OptionSet optionSet, string title, string[] examples)
+        {
+            var unusedParameterPreferences = new List<CodeStylePreference>
+            {
+                new CodeStylePreference(ServicesVSResources.Non_public_methods, isChecked: false),
+                new CodeStylePreference(ServicesVSResources.All_methods, isChecked: true),
+            };
+
+            var enumValues = new[]
+            {
+                UnusedParametersPreference.NonPublicMethods,
+                UnusedParametersPreference.AllMethods
+            };
+
+            CodeStyleItems.Add(new EnumCodeStyleOptionViewModel<UnusedParametersPreference>(
+                CodeStyleOptions.UnusedParameters, language,
+                ServicesVSResources.Avoid_unused_parameters, enumValues,
+                examples, this, optionSet, title,
+                unusedParameterPreferences));
+        }
     }
 }

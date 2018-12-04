@@ -26,8 +26,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             // Workaround for unit tests designed to work on IBlockOperation with ConstructorBodyOperation/MethodBodyOperation parent.
             operationRoot = operationRoot.Kind == OperationKind.Block &&
-                (operationRoot.Parent?.Kind == OperationKind.ConstructorBodyOperation ||
-                operationRoot.Parent?.Kind == OperationKind.MethodBodyOperation) ?
+                (operationRoot.Parent?.Kind == OperationKind.ConstructorBody ||
+                operationRoot.Parent?.Kind == OperationKind.MethodBody) ?
                     operationRoot.Parent :
                     operationRoot;
 
@@ -73,6 +73,16 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             var actualFlowGraph = GetFlowGraph(compilation, graph);
             OperationTreeVerifier.Verify(expectedFlowGraph, actualFlowGraph);
+
+            // Basic block reachability analysis verification using a test-only dataflow analyzer
+            // that uses the dataflow analysis engine linked from the Workspaces layer.
+            // This provides test coverage for Workspace layer dataflow analysis engine
+            // for all ControlFlowGraphs created in compiler layer's flow analysis unit tests.
+            var reachabilityVector = BasicBlockReachabilityDataFlowAnalyzer.Run(graph);
+            for (int i = 0; i < graph.Blocks.Length; i++)
+            {
+                Assert.Equal(graph.Blocks[i].IsReachable, reachabilityVector[i]);
+            }
         }
 
         public static string GetFlowGraph(Compilation compilation, ControlFlowGraph graph)
@@ -1687,7 +1697,7 @@ endRegion:
                 case OperationKind.CoalesceAssignment:
                     return false;
 
-                case OperationKind.BinaryOperator:
+                case OperationKind.Binary:
                     var binary = (IBinaryOperation)n;
                     return (binary.OperatorKind != Operations.BinaryOperatorKind.ConditionalAnd && binary.OperatorKind != Operations.BinaryOperatorKind.ConditionalOr) ||
                             (binary.OperatorMethod == null && 
@@ -1739,7 +1749,7 @@ endRegion:
                 case OperationKind.InterpolatedString:
                 case OperationKind.AnonymousObjectCreation:
                 case OperationKind.Tuple:
-                case OperationKind.TupleBinaryOperator:
+                case OperationKind.TupleBinary:
                 case OperationKind.DynamicObjectCreation:
                 case OperationKind.DynamicMemberReference:
                 case OperationKind.DynamicInvocation:
@@ -1761,7 +1771,7 @@ endRegion:
                 case OperationKind.Interpolation:
                 case OperationKind.ConstantPattern:
                 case OperationKind.DeclarationPattern:
-                case OperationKind.UnaryOperator:
+                case OperationKind.Unary:
                 case OperationKind.FlowCapture:
                 case OperationKind.FlowCaptureReference:
                 case OperationKind.IsNull:

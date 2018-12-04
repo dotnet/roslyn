@@ -13,7 +13,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
-    internal partial class VisualStudioMetadataReference
+    // TODO: This class is now an empty container just to hold onto the nested type. Renaming that is an invasive change that will be it's own commit.
+    internal static class VisualStudioMetadataReference
     {
         /// <summary>
         /// Represents a metadata reference corresponding to a specific version of a file.

@@ -50,6 +50,15 @@ namespace Microsoft.CodeAnalysis.MoveDeclarationNearReference
                 return null;
             }
 
+            if (state.IndexOfDeclarationStatementInInnermostBlock >= 0 &&
+                state.IndexOfDeclarationStatementInInnermostBlock == state.IndexOfFirstStatementAffectedInInnermostBlock - 1 &&
+                !await CanMergeDeclarationAndAssignmentAsync(document, state, cancellationToken).ConfigureAwait(false))
+            {
+                // Declaration statement is already closest to the first reference
+                // and they both cannot be merged into a single statement, so bail out.
+                return null;
+            }
+
             if (!CanMoveToBlock(state.LocalSymbol, state.OutermostBlock, state.InnermostBlock))
             {
                 return null;
@@ -75,16 +84,24 @@ namespace Microsoft.CodeAnalysis.MoveDeclarationNearReference
                 ? WarningAnnotation.Create(FeaturesResources.Warning_colon_Declaration_changes_scope_and_may_change_meaning)
                 : null;
 
-            editor.RemoveNode(state.DeclarationStatement);
-
             var canMergeDeclarationAndAssignment = await CanMergeDeclarationAndAssignmentAsync(document, state, cancellationToken).ConfigureAwait(false);
             if (canMergeDeclarationAndAssignment)
             {
+                editor.RemoveNode(state.DeclarationStatement);
                 MergeDeclarationAndAssignment(
                     document, state, editor, warningAnnotation);
             }
             else
             {
+                var statementIndex = state.OutermostBlockStatements.IndexOf(state.DeclarationStatement);
+                if (statementIndex + 1 < state.OutermostBlockStatements.Count &&
+                    state.OutermostBlockStatements[statementIndex + 1] == state.FirstStatementAffectedInInnermostBlock)
+                {
+                    // Already at the correct location.
+                    return document;
+                }
+
+                editor.RemoveNode(state.DeclarationStatement);
                 await MoveDeclarationToFirstReferenceAsync(
                     document, state, editor, warningAnnotation, cancellationToken).ConfigureAwait(false);
             }
@@ -222,8 +239,9 @@ namespace Microsoft.CodeAnalysis.MoveDeclarationNearReference
             return state.DeclarationStatement.ReplaceNode(
                 state.VariableDeclarator,
                 generator.WithInitializer(
-                    state.VariableDeclarator,
-                    generator.EqualsValueClause(operatorToken, right)));
+                    state.VariableDeclarator.WithoutTrailingTrivia(),
+                    generator.EqualsValueClause(operatorToken, right))
+                    .WithTrailingTrivia(state.VariableDeclarator.GetTrailingTrivia()));
         }
 
         private class MyCodeAction : CodeAction.DocumentChangeAction

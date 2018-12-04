@@ -133,6 +133,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
             }
         }
 
+        public void SetProperty(string name, string value)
+        {
+            // TODO
+        }
+
         public void AddMetadataReference(string referencePath, MetadataReferenceProperties properties)
         {
             referencePath = FileUtilities.NormalizeAbsolutePath(referencePath);
@@ -196,10 +201,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
 
         public void AddDynamicFile(string filePath, IEnumerable<string> folderNames = null)
         {
+            _visualStudioProject.AddDynamicSourceFile(filePath, folderNames.ToImmutableArrayOrEmpty());
         }
 
-        public void RemoveDynamicFile(string fullPath)
+        public void RemoveDynamicFile(string filePath)
         {
+            _visualStudioProject.RemoveDynamicSourceFile(filePath);
         }
 
         public void SetRuleSetFile(string filePath)

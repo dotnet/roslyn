@@ -9,7 +9,6 @@
   <Choose>
     <When Condition="'$(RoslynProjectType)' == 'UnitTest' OR '$(RoslynProjectType)' == 'UnitTestPortable'">
       <PropertyGroup>
-        <_IsAnyUnitTest>true</_IsAnyUnitTest>
         <OutputPath>$(OutputPath)UnitTests\$(MSBuildProjectName)\</OutputPath>
         <IsShipping>false</IsShipping>
       </PropertyGroup>

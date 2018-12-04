@@ -204,9 +204,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
         {
             if (_workspace != null)
             {
-                var documentTrackingService = _workspace.Services.GetService<IDocumentTrackingService>() as VisualStudioDocumentTrackingService;
-                documentTrackingService.Dispose();
-
                 _workspace.Services.GetService<VisualStudioMetadataReferenceManager>().DisconnectFromVisualStudioNativeServices();
             }
         }

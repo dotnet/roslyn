@@ -2154,8 +2154,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     {
                         switch (operationBlock.Parent.Kind)
                         {
-                            case OperationKind.MethodBodyOperation:
-                            case OperationKind.ConstructorBodyOperation:
+                            case OperationKind.MethodBody:
+                            case OperationKind.ConstructorBody:
                                 operationsToAnalyze.Add(operationBlock.Parent);
                                 break;
 
