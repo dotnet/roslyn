@@ -65,7 +65,7 @@ function Print-Usage() {
     Write-Host "  -rebuild                  Rebuild main solution"
     Write-Host "  -pack                     Build NuGet packages, VS insertion manifests and installer"
     Write-Host "  -sign                     Sign our binaries"
-    Write-Host "  -publish                  Publish artifacts (e.g. symbols)"
+    Write-Host "  -publish                  Publish build artifacts (e.g. symbols)"
     Write-Host "  -launch                   Launch Visual Studio in developer hive"
     Write-Host "  -help                     Print help and exit"
     Write-Host ""

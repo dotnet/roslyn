@@ -22,4 +22,11 @@
     <PackageReference Include="RoslynTools.OptProf" Version="$(RoslynToolsOptProfVersion)" ExcludeAssets="all" />
     <PackageReference Include="Roslyn.OptProf.RunSettings.Generator" Version="$(RoslynOptProfRunSettingsGeneratorVersion)" ExcludeAssets="all" />
   </ItemGroup>
+
+  <PropertyGroup>
+    <RestoreSources>
+      $(RestoreSources);
+      https://dotnet.myget.org/F/roslyn/api/v3/index.json;
+    </RestoreSources>
+  </PropertyGroup>
 </Project>

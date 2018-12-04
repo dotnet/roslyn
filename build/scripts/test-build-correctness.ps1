@@ -32,7 +32,7 @@ try {
     Push-Location $RepoRoot
 
     Write-Host "Building Roslyn"
-    Exec-Block { & (Join-Path $PSScriptRoot "build.ps1") -restore -build -cibuild:$true -configuration:$configuration -pack -binaryLog }
+    Exec-Block { & (Join-Path $PSScriptRoot "build.ps1") -restore -build -ci:$true -configuration:$configuration -pack -binaryLog }
 
 
     # Verify the state of our various build artifacts

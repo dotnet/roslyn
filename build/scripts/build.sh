@@ -17,6 +17,7 @@ usage()
   echo "  --build                    Build all projects (short: --b)"
   echo "  --rebuild                  Rebuild all projects"
   echo "  --pack                     Build nuget packages"
+  echo "  --publish                  Publish build artifacts"
   echo "  --help                     Print help and exit"
   echo ""
   echo "Test actions:"     
@@ -49,6 +50,7 @@ restore=false
 build=false
 rebuild=false
 pack=false
+publish=false
 test_core_clr=false
 test_mono=false
 
@@ -102,6 +104,9 @@ do
       ;;
     --pack)
       pack=true
+      ;;
+    --publish)
+      publish=true
       ;;
     --testcoreclr|--test|-t)
       test_core_clr=true
@@ -239,6 +244,7 @@ function BuildSolution {
     /p:Rebuild=$rebuild \
     /p:Test=$test \
     /p:Pack=$pack \
+	/p:Publish=$publish \
     /p:UseRoslynAnalyzers=$enable_analyzers \
     /p:BootstrapBuildPath="$bootstrap_dir" \
     /p:ContinuousIntegrationBuild=$ci \
