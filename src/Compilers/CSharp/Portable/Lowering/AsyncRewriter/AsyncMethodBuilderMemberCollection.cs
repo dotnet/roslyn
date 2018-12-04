@@ -132,12 +132,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     resultType: F.SpecialType(SpecialType.System_Void),
                     createBuilderMethod: createBuilderMethod,
                     taskProperty: null,
-                    setException: 0, // unused
+                    setException: null, // unused
                     setResult: WellKnownMember.System_Runtime_CompilerServices_AsyncIteratorMethodBuilder__Complete,
                     awaitOnCompleted: WellKnownMember.System_Runtime_CompilerServices_AsyncIteratorMethodBuilder__AwaitOnCompleted,
                     awaitUnsafeOnCompleted: WellKnownMember.System_Runtime_CompilerServices_AsyncIteratorMethodBuilder__AwaitUnsafeOnCompleted,
                     start: WellKnownMember.System_Runtime_CompilerServices_AsyncIteratorMethodBuilder__MoveNext_T,
-                    setStateMachine: 0, // unused
+                    setStateMachine: null, // unused
                     collection: out collection);
             }
 
@@ -334,12 +334,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol resultType,
             MethodSymbol createBuilderMethod,
             PropertySymbol taskProperty,
-            WellKnownMember setException,
+            WellKnownMember? setException,
             WellKnownMember setResult,
             WellKnownMember awaitOnCompleted,
             WellKnownMember awaitUnsafeOnCompleted,
             WellKnownMember start,
-            WellKnownMember setStateMachine,
+            WellKnownMember? setStateMachine,
             out AsyncMethodBuilderMemberCollection collection)
         {
             MethodSymbol setExceptionMethod;
@@ -378,21 +378,22 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static bool TryGetBuilderMember<TSymbol>(
             SyntheticBoundNodeFactory F,
-            WellKnownMember member,
+            WellKnownMember? member,
             NamedTypeSymbol builderType,
             bool customBuilder,
             out TSymbol symbol)
             where TSymbol : Symbol
         {
-            if (member == 0)
+            if (!member.HasValue)
             {
                 symbol = null;
                 return true;
             }
 
+            WellKnownMember memberValue = member.Value;
             if (customBuilder)
             {
-                var descriptor = WellKnownMembers.GetDescriptor(member);
+                var descriptor = WellKnownMembers.GetDescriptor(memberValue);
                 var sym = CSharpCompilation.GetRuntimeMember(
                     builderType.OriginalDefinition,
                     ref descriptor,
@@ -406,7 +407,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                symbol = F.WellKnownMember(member, isOptional: true) as TSymbol;
+                symbol = F.WellKnownMember(memberValue, isOptional: true) as TSymbol;
                 if ((object)symbol != null)
                 {
                     symbol = (TSymbol)symbol.SymbolAsMember(builderType);
@@ -414,7 +415,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             if ((object)symbol == null)
             {
-                var descriptor = WellKnownMembers.GetDescriptor(member);
+                var descriptor = WellKnownMembers.GetDescriptor(memberValue);
                 var diagnostic = new CSDiagnostic(
                     new CSDiagnosticInfo(ErrorCode.ERR_MissingPredefinedMember, (customBuilder ? (object)builderType : descriptor.DeclaringTypeMetadataName), descriptor.Name),
                     F.Syntax.Location);
