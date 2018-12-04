@@ -420,6 +420,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                             conv.Type?.IsNullableType() == false)
                         {
                             // Explicit conversion of Nullable<T> to T is equivalent to Nullable<T>.Value.
+                            // For instance, in the following, when evaluating `((A)a).B` we need to recognize
+                            // the nullability of `(A)a` (not nullable) and the slot (the slot for `a.Value`).
+                            //   struct A { B? B; }
+                            //   struct B { }
+                            //   if (a?.B != null) _ = ((A)a).B.Value; // no warning
                             int containingSlot = MakeSlot(operand);
                             return containingSlot < 0 ? -1 : GetNullableOfTValueSlot(operand.Type, containingSlot);
                         }
