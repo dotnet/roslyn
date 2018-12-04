@@ -114,7 +114,7 @@ namespace BuildBoss
 
         private static bool ProcessStructuredLog(string configDirectory)
         {
-            var logFilePath = Path.Combine(configDirectory, @"Logs\Roslyn.binlog");
+            var logFilePath = Path.Combine(configDirectory, @"Logs\Build.binlog");
             var util = new StructuredLoggerCheckerUtil(logFilePath);
             return CheckCore(util, $"Structured log {logFilePath}");
         }

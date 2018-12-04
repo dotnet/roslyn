@@ -36,7 +36,7 @@ function Run-Build([string]$rootDir, [string]$logFileName) {
     Write-Host "Restoring Roslyn.sln"
     Restore-Project $solution
 
-    $args = "/p:DebugDeterminism=true /p:BootstrapBuildPath=$script:bootstrapDir /p:Features=`"debug-determinism`" /p:DeployExtension=false"
+    $args = "/p:DebugDeterminism=true /p:Features=`"debug-determinism`" /p:DeployExtension=false"
     Run-MSBuild $solution $args -logFileName:$logFileName
 }
 
@@ -227,7 +227,7 @@ try {
     $skipAnalyzers = $true
     $binaryLog = $true
     $official = $false
-    $cibuild = $true
+    $ci = $true
     $properties = @()
     
     if ($bootstrapDir -eq "") {
