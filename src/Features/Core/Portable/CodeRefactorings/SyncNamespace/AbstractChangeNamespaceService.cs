@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
         /// <summary>
         /// The annotation used to track applicable container in each document to be fixed.
         /// </summary>
-        protected static SyntaxAnnotation[] ContainerAnnotation { get; } = new[] { new SyntaxAnnotation() };
+        protected static SyntaxAnnotation ContainerAnnotation { get; } = new SyntaxAnnotation();
 
         protected static SyntaxAnnotation WarningAnnotation { get; }
             = CodeActions.WarningAnnotation.Create(
@@ -70,11 +70,20 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
 
         protected abstract string GetDeclaredNamespace(SyntaxNode container);
 
-        protected abstract Task<ImmutableArray<(DocumentId id, SyntaxNode container)>> CanChangeNamespaceWorkerAsync(Document document, SyntaxNode container, CancellationToken cancellationToken);
+        /// <summary>
+        /// Decide if we can change the namespace for provided <paramref name="container"/> based on the criteria listed for 
+        /// <see cref="IChangeNamespaceService.CanChangeNamespaceAsync(Document, SyntaxNode, CancellationToken)"/>
+        /// </summary>
+        /// <returns>
+        /// If namespace can be changed, returns a list of documents that linked to the provided document (including itself)
+        /// and the corresponding container nodes in each document, which will later be used for annotation. Otherwise, a 
+        /// default ImmutableArray is returned. Currently we only support linked document in multi-targeting project scenario.
+        /// </returns>
+        protected abstract Task<ImmutableArray<(DocumentId id, SyntaxNode container)>> GetValidContainersFromAllLinkedDocumentsAsync(Document document, SyntaxNode container, CancellationToken cancellationToken);
 
         public override async Task<bool> CanChangeNamespaceAsync(Document document, SyntaxNode container, CancellationToken cancellationToken)
         {
-            var applicableContainers = await CanChangeNamespaceWorkerAsync(document, container, cancellationToken).ConfigureAwait(false);
+            var applicableContainers = await GetValidContainersFromAllLinkedDocumentsAsync(document, container, cancellationToken).ConfigureAwait(false);
             return !applicableContainers.IsDefault;
         }
 
@@ -94,7 +103,7 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
                 return solution;
             }
 
-            var containersFromAllDocuments = await CanChangeNamespaceWorkerAsync(document, container, cancellationToken).ConfigureAwait(false);
+            var containersFromAllDocuments = await GetValidContainersFromAllLinkedDocumentsAsync(document, container, cancellationToken).ConfigureAwait(false);
             if (containersFromAllDocuments.IsDefault)
             {
                 return solution;
@@ -107,6 +116,7 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
                 return solution;
             }
 
+            // Annotate the container nodes so we can still find and modify them after syntax tree has changed.
             var annotatedSolution = await AnnotateContainersAsync(solution, containersFromAllDocuments, cancellationToken).ConfigureAwait(false);
 
             // Here's the entire process for changing namespace:
@@ -117,16 +127,16 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
             //
             // The reason for doing explicit diff merge twice is so merging after remove unnecessary imports can be correctly handled.
 
-            var ids = containersFromAllDocuments.SelectAsArray(pair => pair.id);
+            var documentIds = containersFromAllDocuments.SelectAsArray(pair => pair.id);
             var solutionAfterNamespaceChange = annotatedSolution;
             var referenceDocuments = PooledHashSet<DocumentId>.GetInstance();
 
             try
             {
-                foreach (var id in ids)
+                foreach (var documentId in documentIds)
                 {
                     var (newSolution, refDocumentIds) =
-                        await ChangeNamespaceInSingleDocumentAsync(solutionAfterNamespaceChange, id, declaredNamespace, targetNamespace, cancellationToken)
+                        await ChangeNamespaceInSingleDocumentAsync(solutionAfterNamespaceChange, documentId, declaredNamespace, targetNamespace, cancellationToken)
                             .ConfigureAwait(false);
                     solutionAfterNamespaceChange = newSolution;
                     referenceDocuments.AddRange(refDocumentIds);
@@ -153,7 +163,7 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
 
                 var solutionAfterImportsRemoved = await RemoveUnnecessaryImportsAsync(
                     solutionAfterFirstMerge,
-                    containersFromAllDocuments.SelectAsArray(pair => pair.id),
+                    documentIds,
                     CreateAllContainingNamespaces(declaredNamespace),
                     cancellationToken).ConfigureAwait(false);
 
@@ -191,7 +201,6 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
                 foreach (var document in documents)
                 {
                     var container = await TryGetApplicableContainerFromSpanAsync(document, span, cancellationToken).ConfigureAwait(false);
-                    containers.Add((document.Id, container));
 
                     if (container is TNamespaceDeclarationSyntax)
                     {
@@ -207,6 +216,8 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
                     {
                         return default;
                     }
+
+                    containers.Add((document.Id, container));
                 }
 
                 return spanForContainers.Count == 1 ? containers.ToImmutable() : default;
@@ -229,6 +240,7 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
                 var documentEditor = await solutionEditor.GetDocumentEditorAsync(id, cancellationToken).ConfigureAwait(false);
                 documentEditor.ReplaceNode(container, container.WithAdditionalAnnotations(ContainerAnnotation));
             }
+
             return solutionEditor.GetChangedSolution();
         }
 
@@ -251,6 +263,7 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
                     return true;
                 }
             }
+
             return false;
         }
 
@@ -328,6 +341,7 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
             {
                 import = import.WithAdditionalAnnotations(Formatter.Annotation);
             }
+
             return import;
         }        
 
@@ -345,7 +359,7 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
         {
             var document = solution.GetDocument(id);
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var container = root.GetAnnotatedNodes(ContainerAnnotation[0]).Single();
+            var container = root.GetAnnotatedNodes(ContainerAnnotation).Single();
 
             // Get types declared in the changing namespace, because we need to fix all references to them, 
             // e.g. change the namespace for qualified name, add imports to proper containers, etc.

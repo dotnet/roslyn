@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ChangeNamespace;
@@ -62,9 +63,13 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
                 // root directory, and no namespace declaration in the document, respectively.
 
                 var service = document.GetLanguageService<IChangeNamespaceService>();
-                var solutionChangeAction = new SolutionChangeAction(
-                    ChangeNamespaceActionTitle(state), 
+
+                var solutionChangeAction = new ChangeNamespaceCodeAction(
+                    state.TargetNamespace.Length == 0 
+                        ? FeaturesResources.Change_to_global_namespace
+                        : string.Format(FeaturesResources.Change_namespace_to_0, state.TargetNamespace), 
                     token => service.ChangeNamespaceAsync(document, state.Container, state.TargetNamespace, token));
+
                 context.RegisterRefactoring(solutionChangeAction);
             }            
         }
@@ -83,9 +88,12 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
 
         protected abstract string EscapeIdentifier(string identifier);
 
-        private static string ChangeNamespaceActionTitle(State state)
-            => state.TargetNamespace.Length == 0
-                ? FeaturesResources.Change_to_global_namespace
-                : string.Format(FeaturesResources.Change_namespace_to_0, state.TargetNamespace);
+        private class ChangeNamespaceCodeAction : SolutionChangeAction
+        {
+            public ChangeNamespaceCodeAction(string title, Func<CancellationToken, Task<Solution>> createChangedSolution) : 
+                base(title, createChangedSolution)
+            {
+            }
+        }
     }
 }

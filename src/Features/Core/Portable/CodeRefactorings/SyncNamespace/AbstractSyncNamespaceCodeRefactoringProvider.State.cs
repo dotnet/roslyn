@@ -214,7 +214,8 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
 
             /// <summary>
             /// Try get the relative namespace for <paramref name="namespace"/> based on <paramref name="relativeTo"/>,
-            /// if <paramref name="relativeTo"/> is the containing namespace of <paramref name="namespace"/>.
+            /// if <paramref name="relativeTo"/> is the containing namespace of <paramref name="namespace"/>. Otherwise,
+            /// Returns null.
             /// For example:
             /// - If <paramref name="relativeTo"/> is "A.B" and <paramref name="namespace"/> is "A.B.C.D", then
             /// the relative namespace is "C.D".

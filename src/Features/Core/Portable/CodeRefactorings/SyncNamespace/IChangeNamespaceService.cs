@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
         /// Change namespace for given <paramref name="container"/> to the name specified by <paramref name="targetNamespace"/>.
         /// Everything declared in the <paramref name="container"/> will be moved to the new namespace. 
         /// Change will only be made if <see cref="CanChangeNamespaceAsync"/> returns <see langword="true"/> and <paramref name="targetNamespace"/>
-        /// is a valid name for namespace (we use "" to specify global namespace).
+        /// is a valid name for namespace. Use "" for <paramref name="targetNamespace"/> to specify the global namespace.
         /// </summary>
         Task<Solution> ChangeNamespaceAsync(Document document, SyntaxNode container, string targetNamespace, CancellationToken cancellationToken);
     }

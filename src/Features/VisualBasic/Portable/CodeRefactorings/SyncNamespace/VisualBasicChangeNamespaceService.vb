@@ -39,7 +39,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeNamespace
         End Function
 
         ' TODO: Implement the service for VB
-        Protected Overrides Function CanChangeNamespaceWorkerAsync(document As Document, container As SyntaxNode, cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of (DocumentId, SyntaxNode)))
+        Protected Overrides Function GetValidContainersFromAllLinkedDocumentsAsync(document As Document, container As SyntaxNode, cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of (DocumentId, SyntaxNode)))
             Return Task.FromResult(CType(Nothing, ImmutableArray(Of (DocumentId, SyntaxNode))))
         End Function
 
