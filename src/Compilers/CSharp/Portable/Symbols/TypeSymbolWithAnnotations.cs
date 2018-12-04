@@ -326,9 +326,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private TypeSymbolWithAnnotations(TypeSymbol defaultType, NullableAnnotation nullableAnnotation, Extensions extensions)
         {
             Debug.Assert((object)defaultType != null);
+            Debug.Assert(!defaultType.IsNullableType() || (nullableAnnotation != NullableAnnotation.Unknown && nullableAnnotation != NullableAnnotation.NotAnnotated));
             Debug.Assert(extensions != null);
-            _defaultType = defaultType;
 
+            _defaultType = defaultType;
             NullableAnnotation = nullableAnnotation;
             _extensions = extensions;
         }

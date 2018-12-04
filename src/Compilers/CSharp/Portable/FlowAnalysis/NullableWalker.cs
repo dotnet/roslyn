@@ -380,8 +380,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // Remove this and populate struct members lazily to match classes.
         private Symbol GetBackingFieldIfStructProperty(Symbol symbol)
         {
-            if (symbol.Kind == SymbolKind.Property &&
-                symbol.ContainingType.OriginalDefinition.SpecialType != SpecialType.System_Nullable_T)
+            if (symbol.Kind == SymbolKind.Property && !symbol.ContainingType.IsNullableType())
             {
                 var property = (PropertySymbol)symbol;
                 var containingType = property.ContainingType;
@@ -718,6 +717,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void ReportDiagnostic(ErrorCode errorCode, SyntaxNode syntaxNode, params object[] arguments)
         {
+            // All warnings should be in the `#pragma warning ... nullable` set.
+            Debug.Assert(ErrorFacts.NullableFlowAnalysisWarnings.Contains(MessageProvider.Instance.GetIdForErrorCode((int)errorCode)));
+
             if (!_disableDiagnostics)
             {
                 Diagnostics.Add(errorCode, syntaxNode.GetLocation(), arguments);

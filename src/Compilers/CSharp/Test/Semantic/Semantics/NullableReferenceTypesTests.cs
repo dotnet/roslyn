@@ -60694,6 +60694,23 @@ partial class Program
         }
 
         [Fact]
+        public void NullableT_WarningDisabled()
+        {
+            var source =
+@"#nullable disable
+//#pragma warning disable nullable
+class Program
+{
+    static void F<T>(T? x) where T : struct
+    {
+        _ = x.Value;
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
         public void NullableT_01()
         {
             var source =
@@ -61386,7 +61403,7 @@ class Program
         _ = z.Value; // 2
     }
 }";
-            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (6,13): warning CS8629: Nullable value type may be null.
                 //         _ = y.Value; // 1
@@ -61416,7 +61433,7 @@ class Program
         _ = z.Value;
     }
 }";
-            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
             // https://github.com/dotnet/roslyn/issues/31500: Track nullable state across lifted conversions.
             comp.VerifyDiagnostics(
                 // (7,13): warning CS8629: Nullable value type may be null.
@@ -61460,7 +61477,7 @@ class Program
         }
     }
 }";
-            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (13,13): warning CS8629: Nullable value type may be null.
                 //         _ = b.Value; // 1
