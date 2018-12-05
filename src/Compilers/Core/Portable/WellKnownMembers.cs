@@ -3165,45 +3165,31 @@ namespace Microsoft.CodeAnalysis
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Boolean,
 
                 // System_Collections_Generic_IAsyncEnumerator_T__get_Current
-                (byte)(MemberFlags.PropertyGet | MemberFlags.Virtual),                                                                                               // Flags
+                (byte)(MemberFlags.PropertyGet | MemberFlags.Virtual),                                                                                          // Flags
                 (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Collections_Generic_IAsyncEnumerator_T - WellKnownType.ExtSentinel),               // DeclaringTypeId
                 0,                                                                                                                                              // Arity
                     0,                                                                                                                                          // Method Signature
                     (byte)SignatureTypeCode.GenericTypeParameter, 0, // Return Type: T
 
-                // System_Threading_Tasks_ManualResetValueTaskSourceLogic_T__ctor,
-                (byte)MemberFlags.Constructor,                                                                                                                  // Flags
-                (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Threading_Tasks_ManualResetValueTaskSourceLogic_T - WellKnownType.ExtSentinel),    // DeclaringTypeId
-                0,                                                                                                                                              // Arity
-                    1,                                                                                                                                          // Method Signature
-                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void, // Return Type
-                    (byte)SignatureTypeCode.GenericTypeInstance, // Argument: IStrongBox<ManualResetValueTaskSourceLogic<T>>
-                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Runtime_CompilerServices_IStrongBox_T - WellKnownType.ExtSentinel),
-                    1,
-                        (byte)SignatureTypeCode.GenericTypeInstance,
-                        (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Threading_Tasks_ManualResetValueTaskSourceLogic_T - WellKnownType.ExtSentinel),
-                        1,
-                        (byte)SignatureTypeCode.GenericTypeParameter, 0,
-
-                // System_Threading_Tasks_ManualResetValueTaskSourceLogic_T__GetResult,
+                // System_Threading_Tasks_Sources_ManualResetValueTaskSourceCore_T__GetResult,
                 (byte)MemberFlags.Method,                                                                                                                       // Flags
-                (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Threading_Tasks_ManualResetValueTaskSourceLogic_T - WellKnownType.ExtSentinel),    // DeclaringTypeId
+                (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Threading_Tasks_Sources_ManualResetValueTaskSourceCore_T - WellKnownType.ExtSentinel),     // DeclaringTypeId
                 0,                                                                                                                                              // Arity
                     1,                                                                                                                                          // Method Signature
                     (byte)SignatureTypeCode.GenericTypeParameter, 0, // Return Type: T
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Int16, // Argument: short
 
-                // System_Threading_Tasks_ManualResetValueTaskSourceLogic_T__GetStatus,
+                // System_Threading_Tasks_Sources_ManualResetValueTaskSourceCore_T__GetStatus,
                 (byte)MemberFlags.Method,                                                                                                                       // Flags
-                (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Threading_Tasks_ManualResetValueTaskSourceLogic_T - WellKnownType.ExtSentinel),    // DeclaringTypeId
+                (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Threading_Tasks_Sources_ManualResetValueTaskSourceCore_T - WellKnownType.ExtSentinel),     // DeclaringTypeId
                 0,                                                                                                                                              // Arity
                     1,                                                                                                                                          // Method Signature
                     (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Threading_Tasks_Sources_ValueTaskSourceStatus - WellKnownType.ExtSentinel), // Return Type
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Int16, // Argument: short
 
-                // System_Threading_Tasks_ManualResetValueTaskSourceLogic_T__OnCompleted,
+                // System_Threading_Tasks_Sources_ManualResetValueTaskSourceCore_T__OnCompleted,
                 (byte)MemberFlags.Method,                                                                                                                       // Flags
-                (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Threading_Tasks_ManualResetValueTaskSourceLogic_T - WellKnownType.ExtSentinel),    // DeclaringTypeId
+                (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Threading_Tasks_Sources_ManualResetValueTaskSourceCore_T - WellKnownType.ExtSentinel),     // DeclaringTypeId
                 0,                                                                                                                                              // Arity
                     4,                                                                                                                                          // Method Signature
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void, // Return Type
@@ -3215,49 +3201,35 @@ namespace Microsoft.CodeAnalysis
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Int16, // Argument
                     (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Threading_Tasks_Sources_ValueTaskSourceOnCompletedFlags - WellKnownType.ExtSentinel), // Argument
 
-                // System_Threading_Tasks_ManualResetValueTaskSourceLogic_T__Reset
+                // System_Threading_Tasks_Sources_ManualResetValueTaskSourceCore_T__Reset
                 (byte)MemberFlags.Method,                                                                                                                       // Flags
-                (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Threading_Tasks_ManualResetValueTaskSourceLogic_T - WellKnownType.ExtSentinel),    // DeclaringTypeId
+                (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Threading_Tasks_Sources_ManualResetValueTaskSourceCore_T - WellKnownType.ExtSentinel),     // DeclaringTypeId
                 0,                                                                                                                                              // Arity
                     0,                                                                                                                                          // Method Signature
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void, // Return Type
 
-                // System_Threading_Tasks_ManualResetValueTaskSourceLogic_T__SetException,
+                // System_Threading_Tasks_Sources_ManualResetValueTaskSourceCore_T__SetException,
                 (byte)MemberFlags.Method,                                                                                                                       // Flags
-                (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Threading_Tasks_ManualResetValueTaskSourceLogic_T - WellKnownType.ExtSentinel),    // DeclaringTypeId
+                (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Threading_Tasks_Sources_ManualResetValueTaskSourceCore_T - WellKnownType.ExtSentinel),     // DeclaringTypeId
                 0,                                                                                                                                              // Arity
                     1,                                                                                                                                          // Method Signature
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void, // Return Type
                     (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Exception, // Argument
 
-                // System_Threading_Tasks_ManualResetValueTaskSourceLogic_T__SetResult,
+                // System_Threading_Tasks_Sources_ManualResetValueTaskSourceCore_T__SetResult,
                 (byte)MemberFlags.Method,                                                                                                                       // Flags
-                (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Threading_Tasks_ManualResetValueTaskSourceLogic_T - WellKnownType.ExtSentinel),    // DeclaringTypeId
+                (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Threading_Tasks_Sources_ManualResetValueTaskSourceCore_T - WellKnownType.ExtSentinel),     // DeclaringTypeId
                 0,                                                                                                                                              // Arity
                     1,                                                                                                                                          // Method Signature
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void, // Return Type
                     (byte)SignatureTypeCode.GenericTypeParameter, 0, // Argument: T
 
-                // System_Threading_Tasks_ManualResetValueTaskSourceLogic_T__get_Version,
+                // System_Threading_Tasks_Sources_ManualResetValueTaskSourceCore_T__get_Version,
                 (byte)MemberFlags.PropertyGet,                                                                                                                  // Flags
-                (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Threading_Tasks_ManualResetValueTaskSourceLogic_T - WellKnownType.ExtSentinel),    // DeclaringTypeId
+                (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Threading_Tasks_Sources_ManualResetValueTaskSourceCore_T - WellKnownType.ExtSentinel),     // DeclaringTypeId
                 0,                                                                                                                                              // Arity
                     0,                                                                                                                                          // Method Signature
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Int16,
-
-                // System_Runtime_CompilerServices_IStrongBox_T__Value,
-                (byte)(MemberFlags.Property | MemberFlags.Virtual),                                                                                             // Flags
-                (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Runtime_CompilerServices_IStrongBox_T - WellKnownType.ExtSentinel),                // DeclaringTypeId
-                0,                                                                                                                                              // Arity
-                    0,                                                                                                                                          // Method Signature
-                    (byte)SignatureTypeCode.ByReference, (byte)SignatureTypeCode.GenericTypeParameter, 0, // Return Type: ref T
-
-                // System_Runtime_CompilerServices_IStrongBox_T__get_Value,
-                (byte)(MemberFlags.PropertyGet | MemberFlags.Virtual),                                                                                          // Flags
-                (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Runtime_CompilerServices_IStrongBox_T - WellKnownType.ExtSentinel),                // DeclaringTypeId
-                0,                                                                                                                                              // Arity
-                    0,                                                                                                                                          // Method Signature
-                    (byte)SignatureTypeCode.ByReference, (byte)SignatureTypeCode.GenericTypeParameter, 0, // Return Type: ref T
 
                 // System_Threading_Tasks_Sources_IValueTaskSource_T__GetResult,
                 (byte)(MemberFlags.Method | MemberFlags.Virtual),                                                                                               // Flags
@@ -3300,6 +3272,46 @@ namespace Microsoft.CodeAnalysis
                     1,
                         (byte)SignatureTypeCode.GenericTypeParameter, 0,
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Int16, // Argument
+
+                // System_Runtime_CompilerServices_AsyncIteratorMethodBuilder__Create
+                (byte)(MemberFlags.Method | MemberFlags.Static),                                                                                               // Flags
+                (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Runtime_CompilerServices_AsyncIteratorMethodBuilder - WellKnownType.ExtSentinel), // DeclaringTypeId
+                0,                                                                                                                                             // Arity
+                    0,                                                                                                                                         // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Runtime_CompilerServices_AsyncIteratorMethodBuilder - WellKnownType.ExtSentinel),
+
+                // System_Runtime_CompilerServices_AsyncIteratorMethodBuilder__Complete
+                (byte)MemberFlags.Method,                                                                                                                      // Flags
+                (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Runtime_CompilerServices_AsyncIteratorMethodBuilder - WellKnownType.ExtSentinel), // DeclaringTypeId
+                0,                                                                                                                                             // Arity
+                    0,                                                                                                                                         // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void, // Return Type
+
+                // System_Runtime_CompilerServices_AsyncIteratorMethodBuilder__AwaitOnCompleted
+                (byte)MemberFlags.Method,                                                                                                                      // Flags
+                (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Runtime_CompilerServices_AsyncIteratorMethodBuilder - WellKnownType.ExtSentinel), // DeclaringTypeId
+                2,                                                                                                                                             // Arity
+                    2,                                                                                                                                         // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void, // Return Type
+                    (byte)SignatureTypeCode.ByReference, (byte)SignatureTypeCode.GenericMethodParameter, 0,
+                    (byte)SignatureTypeCode.ByReference, (byte)SignatureTypeCode.GenericMethodParameter, (byte)SpecialType.System_Object,
+
+                // System_Runtime_CompilerServices_AsyncIteratorMethodBuilder__AwaitUnsafeOnCompleted
+                (byte)MemberFlags.Method,                                                                                                                      // Flags
+                (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Runtime_CompilerServices_AsyncIteratorMethodBuilder - WellKnownType.ExtSentinel), // DeclaringTypeId
+                2,                                                                                                                                             // Arity
+                    2,                                                                                                                                         // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void, // Return Type
+                    (byte)SignatureTypeCode.ByReference, (byte)SignatureTypeCode.GenericMethodParameter, 0,
+                    (byte)SignatureTypeCode.ByReference, (byte)SignatureTypeCode.GenericMethodParameter, (byte)SpecialType.System_Object,
+
+                // System_Runtime_CompilerServices_AsyncIteratorMethodBuilder__MoveNext_T
+                (byte)MemberFlags.Method,                                                                                                                      // Flags
+                (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Runtime_CompilerServices_AsyncIteratorMethodBuilder - WellKnownType.ExtSentinel), // DeclaringTypeId
+                1,                                                                                                                                             // Arity
+                    1,                                                                                                                                         // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void, // Return Type
+                    (byte)SignatureTypeCode.ByReference, (byte)SignatureTypeCode.GenericMethodParameter, 0,
             };
 
             string[] allNames = new string[(int)WellKnownMember.Count]
@@ -3700,20 +3712,23 @@ namespace Microsoft.CodeAnalysis
                 "MoveNextAsync",                            // System_Collections_Generic_IAsyncEnumerator_T__MoveNextAsync
                 "get_Current",                              // System_Collections_Generic_IAsyncEnumerator_T__get_Current
 
-                ".ctor",                                    // System_Threading_Tasks_ManualResetValueTaskSourceLogic_T__ctor
-                "GetResult",                                // System_Threading_Tasks_ManualResetValueTaskSourceLogic_T__GetResult
-                "GetStatus",                                // System_Threading_Tasks_ManualResetValueTaskSourceLogic_T__GetStatus
-                "OnCompleted",                              // System_Threading_Tasks_ManualResetValueTaskSourceLogic_T__OnCompleted
-                "Reset",                                    // System_Threading_Tasks_ManualResetValueTaskSourceLogic_T__Reset
-                "SetException",                             // System_Threading_Tasks_ManualResetValueTaskSourceLogic_T__SetException
-                "SetResult",                                // System_Threading_Tasks_ManualResetValueTaskSourceLogic_T__SetResult
-                "get_Version",                              // System_Threading_Tasks_ManualResetValueTaskSourceLogic_T__get_Version
-                "Value",                                    // System_Runtime_CompilerServices_IStrongBox_T__Value
-                "get_Value",                                // System_Runtime_CompilerServices_IStrongBox_T__get_Value
+                "GetResult",                                // System_Threading_Tasks_Sources_ManualResetValueTaskSourceCore_T__GetResult
+                "GetStatus",                                // System_Threading_Tasks_Sources_ManualResetValueTaskSourceCore_T__GetStatus
+                "OnCompleted",                              // System_Threading_Tasks_Sources_ManualResetValueTaskSourceCore_T__OnCompleted
+                "Reset",                                    // System_Threading_Tasks_Sources_ManualResetValueTaskSourceCore_T__Reset
+                "SetException",                             // System_Threading_Tasks_Sources_ManualResetValueTaskSourceCore_T__SetException
+                "SetResult",                                // System_Threading_Tasks_Sources_ManualResetValueTaskSourceCore_T__SetResult
+                "get_Version",                              // System_Threading_Tasks_Sources_ManualResetValueTaskSourceCore_T__get_Version
                 "GetResult",                                // System_Threading_Tasks_Sources_IValueTaskSource_T__GetResult
                 "GetStatus",                                // System_Threading_Tasks_Sources_IValueTaskSource_T__GetStatus
                 "OnCompleted",                              // System_Threading_Tasks_Sources_IValueTaskSource_T__OnCompleted
                 ".ctor",                                    // System_Threading_Tasks_ValueTask_T__ctor
+
+                "Create",                                   // System_Runtime_CompilerServices_AsyncIteratorMethodBuilder__Create
+                "Complete",                                 // System_Runtime_CompilerServices_AsyncIteratorMethodBuilder__Complete
+                "AwaitOnCompleted",                         // System_Runtime_CompilerServices_AsyncIteratorMethodBuilder__AwaitOnCompleted
+                "AwaitUnsafeOnCompleted",                   // System_Runtime_CompilerServices_AsyncIteratorMethodBuilder__AwaitUnsafeOnCompleted
+                "MoveNext",                                 // System_Runtime_CompilerServices_AsyncIteratorMethodBuilder__MoveNext_T
             };
 
             s_descriptors = MemberDescriptor.InitializeFromStream(new System.IO.MemoryStream(initializationBytes, writable: false), allNames);

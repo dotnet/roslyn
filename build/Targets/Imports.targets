@@ -19,6 +19,12 @@
 
     <!-- Place VS insertion (CoreXT) packages to a separate directory -->
     <PackageOutputPath Condition="'$(IsVisualStudioInsertionPackage)' == 'true'">$(ArtifactsConfigurationDir)DevDivPackages\Roslyn\</PackageOutputPath>
+
+  <!-- Until we have adopted the final layout we need to ensure documentation files have the right path
+       for multi+targeted projects
+      https://github.com/dotnet/roslyn/issues/23547
+  -->
+    <DocumentationFile Condition="'$(MSBuildProjectExtension)' == '.csproj' and '$(TargetFramework)' != '' and '$(GenerateDocumentationFile)' == 'true'">$(IntermediateOutputPath)\$(TargetFramework)\$(AssemblyName).xml</DocumentationFile>
   </PropertyGroup>
 
   <ItemGroup Condition="'$(Language)' == 'CSharp' and '$(TargetFramework)' == 'net20'">
