@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis
     {
         private abstract partial class CompilationTranslationAction
         {
-            internal class TouchDocumentAction : CompilationTranslationAction
+            internal sealed class TouchDocumentAction : CompilationTranslationAction
             {
                 private readonly DocumentState _oldState;
                 private readonly DocumentState _newState;
@@ -31,15 +31,7 @@ namespace Microsoft.CodeAnalysis
                 public DocumentId DocumentId => _newState.Attributes.Id;
             }
 
-            private class RemoveAllDocumentsAction : CompilationTranslationAction
-            {
-                public override Task<Compilation> InvokeAsync(Compilation oldCompilation, CancellationToken cancellationToken)
-                {
-                    return Task.FromResult(oldCompilation.RemoveAllReferences());
-                }
-            }
-
-            private class RemoveDocumentAction : SimpleCompilationTranslationAction<DocumentState>
+            internal sealed class RemoveDocumentAction : SimpleCompilationTranslationAction<DocumentState>
             {
                 private static readonly Func<Compilation, DocumentState, CancellationToken, Task<Compilation>> s_action =
                     async (o, d, c) => o.RemoveSyntaxTrees(await d.GetSyntaxTreeAsync(c).ConfigureAwait(false));
@@ -50,7 +42,7 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            private class AddDocumentsAction : CompilationTranslationAction
+            internal sealed class AddDocumentsAction : CompilationTranslationAction
             {
                 private readonly ImmutableArray<DocumentState> _documents;
 
@@ -71,7 +63,7 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            private class ProjectParseOptionsAction : SimpleCompilationTranslationAction<ProjectState>
+            internal sealed class ProjectParseOptionsAction : SimpleCompilationTranslationAction<ProjectState>
             {
                 private static readonly Func<Compilation, ProjectState, CancellationToken, Task<Compilation>> s_action =
                     (o, d, c) => Task.Run(() => ReplaceSyntaxTreesWithTreesFromNewProjectStateAsync(o, d, c), c);
@@ -82,7 +74,7 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            private class ProjectCompilationOptionsAction : SimpleCompilationTranslationAction<CompilationOptions>
+            internal sealed class ProjectCompilationOptionsAction : SimpleCompilationTranslationAction<CompilationOptions>
             {
                 private static readonly Func<Compilation, CompilationOptions, CancellationToken, Task<Compilation>> s_action =
                     (o, d, c) => Task.FromResult(o.WithOptions(d));
@@ -93,7 +85,7 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            private class ProjectAssemblyNameAction : SimpleCompilationTranslationAction<string>
+            internal sealed class ProjectAssemblyNameAction : SimpleCompilationTranslationAction<string>
             {
                 private static readonly Func<Compilation, string, CancellationToken, Task<Compilation>> s_action =
                     (o, d, c) => Task.FromResult(o.WithAssemblyName(d));
@@ -104,7 +96,7 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            private class SimpleCompilationTranslationAction<T> : CompilationTranslationAction
+            internal class SimpleCompilationTranslationAction<T> : CompilationTranslationAction
             {
                 private readonly T _data;
                 private readonly Func<Compilation, T, CancellationToken, Task<Compilation>> _action;

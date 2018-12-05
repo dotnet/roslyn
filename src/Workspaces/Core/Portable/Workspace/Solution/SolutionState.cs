@@ -600,7 +600,7 @@ namespace Microsoft.CodeAnalysis
                 return this;
             }
 
-            return this.ForkProject(newProject, CompilationTranslationAction.ProjectAssemblyName(assemblyName));
+            return this.ForkProject(newProject, new CompilationTranslationAction.ProjectAssemblyNameAction(assemblyName));
         }
 
         /// <summary>
@@ -744,7 +744,7 @@ namespace Microsoft.CodeAnalysis
                 return this;
             }
 
-            return this.ForkProject(newProject, CompilationTranslationAction.ProjectCompilationOptions(options));
+            return this.ForkProject(newProject, new CompilationTranslationAction.ProjectCompilationOptionsAction(options));
         }
 
         /// <summary>
@@ -776,7 +776,7 @@ namespace Microsoft.CodeAnalysis
             }
             else
             {
-                return this.ForkProject(newProject, CompilationTranslationAction.ProjectParseOptions(newProject));
+                return this.ForkProject(newProject, new CompilationTranslationAction.ProjectParseOptionsAction(newProject));
             }
         }
 
@@ -949,7 +949,7 @@ namespace Microsoft.CodeAnalysis
                 return this;
             }
 
-            return this.ForkProject(newProject, CompilationTranslationAction.ProjectParseOptions(newProject));
+            return this.ForkProject(newProject, new CompilationTranslationAction.ProjectParseOptionsAction(newProject));
         }
 
         /// <summary>
@@ -1133,7 +1133,7 @@ namespace Microsoft.CodeAnalysis
                         project.ParseOptions,
                         project.LanguageServices,
                         _solutionServices).UpdateSourceCodeKind(documentInfo.SourceCodeKind),
-                (project, documents) => (project.AddDocuments(documents), CompilationTranslationAction.AddDocuments(documents)));
+                (project, documents) => (project.AddDocuments(documents), new CompilationTranslationAction.AddDocumentsAction(documents)));
         }
 
         /// <summary>
@@ -1225,7 +1225,7 @@ namespace Microsoft.CodeAnalysis
 
             return this.ForkProject(
                 newProject,
-                CompilationTranslationAction.RemoveDocument(oldDocument),
+                new CompilationTranslationAction.RemoveDocumentAction(oldDocument),
                 newFilePathToDocumentIdsMap: CreateFilePathToDocumentIdsMapWithRemovedDocuments(documentStates));
         }
 
@@ -1534,7 +1534,7 @@ namespace Microsoft.CodeAnalysis
             var oldDocument = oldProject.GetDocumentState(documentId);
             var newDocument = newProject.GetDocumentState(documentId);
 
-            return this.ForkProject(newProject, CompilationTranslationAction.TouchDocument(oldDocument, newDocument));
+            return this.ForkProject(newProject, new CompilationTranslationAction.TouchDocumentAction(oldDocument, newDocument));
         }
 
         private SolutionState WithTextDocumentState(TextDocumentState newDocument, bool textChanged = false, bool recalculateDependentVersions = false)
