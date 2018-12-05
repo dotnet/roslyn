@@ -143,15 +143,13 @@ public class C
             // ReplaceNode overload #1
             await TestReplaceWithTrackingCoreAsync((SyntaxNode node, SyntaxNode newNode, SyntaxEditor editor) =>
             {
-                editor.ReplaceNode(node, newNode, trackNewNode: true);
+                editor.ReplaceNode(node, newNode);
             });
 
             // ReplaceNode overload #2
             await TestReplaceWithTrackingCoreAsync((SyntaxNode node, SyntaxNode newNode, SyntaxEditor editor) =>
             {
-                editor.ReplaceNode(node,
-                    computeReplacement: (originalNode, generator) => newNode,
-                    trackNewNode: true);
+                editor.ReplaceNode(node, computeReplacement: (originalNode, generator) => newNode);
             });
 
             // ReplaceNode overload #3
@@ -159,8 +157,7 @@ public class C
             {
                 editor.ReplaceNode(node,
                      computeReplacement: (originalNode, generator, argument) => newNode,
-                     argument: (object)null,
-                     trackNewNode: true);
+                     argument: (object)null);
             });
         }
 
@@ -218,13 +215,13 @@ public class C
             // InsertAfter overload #1
             await TestInterAfterWithTrackingCoreAsync((SyntaxNode node, SyntaxNode newNode, SyntaxEditor editor) =>
             {
-                editor.InsertAfter(node, newNode, trackNewNode: true);
+                editor.InsertAfter(node, newNode);
             });
 
             // InsertAfter overload #2
             await TestInterAfterWithTrackingCoreAsync((SyntaxNode node, SyntaxNode newNode, SyntaxEditor editor) =>
             {
-                editor.InsertAfter(node, new[] { newNode }, trackNewNodes: true);
+                editor.InsertAfter(node, new[] { newNode });
             });
         }
 
@@ -274,13 +271,13 @@ public class C
             // InsertBefore overload #1
             await TestInterBeforeWithTrackingCoreAsync((SyntaxNode node, SyntaxNode newNode, SyntaxEditor editor) =>
             {
-                editor.InsertBefore(node, newNode, trackNewNode: true);
+                editor.InsertBefore(node, newNode);
             });
 
             // InsertBefore overload #2
             await TestInterBeforeWithTrackingCoreAsync((SyntaxNode node, SyntaxNode newNode, SyntaxEditor editor) =>
             {
-                editor.InsertBefore(node, new[] { newNode }, trackNewNodes: true);
+                editor.InsertBefore(node, new[] { newNode });
             });
         }
 
