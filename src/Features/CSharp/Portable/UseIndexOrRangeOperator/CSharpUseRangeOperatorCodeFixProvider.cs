@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
                 canReplace: (_1, _2) => true,
                 (semanticModel, currentRoot, currentInvocation) =>
                     UpdateInvocation(semanticModel, currentRoot, currentInvocation, cancellationToken),
-                cancellationToken);
+                cancellationToken).ConfigureAwait(false);
         }
 
         private SyntaxNode UpdateInvocation(

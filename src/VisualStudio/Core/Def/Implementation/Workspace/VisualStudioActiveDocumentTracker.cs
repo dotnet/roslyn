@@ -63,7 +63,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             {
                 await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
 
-                var monitorSelectionService = (IVsMonitorSelection)await asyncServiceProvider.GetServiceAsync(typeof(SVsShellMonitorSelection));
+                var monitorSelectionService = (IVsMonitorSelection)await asyncServiceProvider.GetServiceAsync(typeof(SVsShellMonitorSelection)).ConfigureAwait(false);
 
                 if (ErrorHandler.Succeeded(monitorSelectionService.GetCurrentElementValue((uint)VSConstants.VSSELELEMID.SEID_DocumentFrame, out var value)))
                 {

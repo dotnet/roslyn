@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <RuleSet Name="Common diagnostic rules for all non-shipping projects" Description="Enables/disable rules specific to all non-shipping projects." ToolsVersion="14.0">
-  <Include Path=".\Roslyn_BuildRules.ruleset" Action="Default" />
+  <Include Path=".\Shipping.ruleset" Action="Default" />
 
   <Rules AnalyzerId="Microsoft.CodeQuality.Analyzers" RuleNamespace="Microsoft.CodeQuality.Analyzers">
     <!-- For tests, the ConfigureAwait(true) is good enough. Either they are already running on a thread pool
