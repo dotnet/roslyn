@@ -200,20 +200,25 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                             : string.Empty)
                     : null;
 
-            // Have to store the snapshot to reuse it in some projections related scenarios
-            // where data and session in further calls are able to provide other snapshots.
-            session.Properties.AddProperty(TriggerSnapshot, triggerLocation.Snapshot);
-
-            // This is a code supporting original completion scenarios: 
-            // Controller.Session_ComputeModel: if completionList.SuggestionModeItem != null, then suggestionMode = true
-            // If there are suggestionItemOptions, then later HandleNormalFiltering should set selection to SoftSelection.
-            session.Properties.AddProperty(HasSuggestionItemOptions, suggestionItemOptions != null);
-
-            session.Properties.AddProperty(InitialTriggerKind, roslynTrigger.Kind);
-            var excludedCommitCharacters = GetExcludedCommitCharacters(completionList.Items);
-            if (excludedCommitCharacters.Length > 0)
+            // In LiveShare scenarios, there is no session transferred between client and host.
+            // Roslyn provides CompletionSource but not CommitManager in those scenarios and not responsible for Commits.
+            if (session != null)
             {
-                session.Properties.AddProperty(ExcludedCommitCharacters, excludedCommitCharacters);
+                // Have to store the snapshot to reuse it in some projections related scenarios
+                // where data and session in further calls are able to provide other snapshots.
+                session.Properties.AddProperty(TriggerSnapshot, triggerLocation.Snapshot);
+
+                // This is a code supporting original completion scenarios: 
+                // Controller.Session_ComputeModel: if completionList.SuggestionModeItem != null, then suggestionMode = true
+                // If there are suggestionItemOptions, then later HandleNormalFiltering should set selection to SoftSelection.
+                session.Properties.AddProperty(HasSuggestionItemOptions, suggestionItemOptions != null);
+
+                session.Properties.AddProperty(InitialTriggerKind, roslynTrigger.Kind);
+                var excludedCommitCharacters = GetExcludedCommitCharacters(completionList.Items);
+                if (excludedCommitCharacters.Length > 0)
+                {
+                    session.Properties.AddProperty(ExcludedCommitCharacters, excludedCommitCharacters);
+                }
             }
 
             return new AsyncCompletionData.CompletionContext(
@@ -226,13 +231,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
         public async Task<object> GetDescriptionAsync(IAsyncCompletionSession session, VSCompletionItem item, CancellationToken cancellationToken)
         {
-            if (!item.Properties.TryGetProperty(RoslynItem, out RoslynCompletionItem roslynItem) ||
-                !session.Properties.TryGetProperty(TriggerSnapshot, out ITextSnapshot triggerSnapshot))
+            if (!item.Properties.TryGetProperty(RoslynItem, out RoslynCompletionItem roslynItem))
             {
                 return null;
             }
 
-            var document = triggerSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+            var document = _textView.TextBuffer.AsTextContainer().GetOpenDocumentInCurrentContext();
+            
             if (document == null)
             {
                 return null;
