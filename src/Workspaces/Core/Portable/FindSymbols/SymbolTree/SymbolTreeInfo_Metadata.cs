@@ -155,6 +155,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             {
                 var serializer = solution.Workspace.Services.GetService<ISerializerService>();
                 var checksum = serializer.CreateChecksum(reference, cancellationToken);
+
+                // Include serialization format version in our checksum.  That way if the 
+                // version ever changes, all persisted data won't match the current checksum
+                // we expect, and we'll recompute things.
                 return Checksum.Create(
                     WellKnownSynchronizationKind.SymbolTreeInfo, 
                     new[] { checksum, SerializationFormatChecksum });
