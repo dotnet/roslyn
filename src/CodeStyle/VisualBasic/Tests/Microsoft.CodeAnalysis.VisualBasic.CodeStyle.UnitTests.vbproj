@@ -8,6 +8,9 @@
     <TargetFramework>net46</TargetFramework>
     <RoslynProjectType>UnitTest</RoslynProjectType>
     <RootNamespace></RootNamespace>
+
+    <!-- https://github.com/dotnet/roslyn/issues/31412 -->
+    <SkipTests Condition="'$(TestRuntime)' == 'Mono'">true</SkipTests>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis.VisualBasic.Workspaces" Version="$(MicrosoftCodeAnalysisVisualBasicWorkspacesFixedVersion)" />

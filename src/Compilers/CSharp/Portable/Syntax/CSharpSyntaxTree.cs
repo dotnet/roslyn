@@ -608,7 +608,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         /// <param name="id">Error code.</param>
         /// <param name="position">Source location.</param>
-        internal ReportDiagnostic GetPragmaDirectiveWarningState(string id, int position)
+        internal PragmaWarningState GetPragmaDirectiveWarningState(string id, int position)
         {
             if (_lazyPragmaWarningStateMap == null)
             {
