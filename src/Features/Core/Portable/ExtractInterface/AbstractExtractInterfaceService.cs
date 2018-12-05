@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
 {
     internal abstract class AbstractExtractInterfaceService : ILanguageService
     {
-        private struct SymbolMapping
+        private readonly struct SymbolMapping
         {
             public SymbolMapping(
                 Dictionary<ISymbol, SyntaxAnnotation> symbolToDeclarationAnnotationMap, 
