@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.Host
 {
-    internal interface IChecksummedPersistentStorage : IDisposable
+    internal interface IChecksummedPersistentStorage : IPersistentStorage
     {
         /// <summary>
         /// Reads the existing checksum we have for the solution with the given <paramref name="name"/>,

@@ -7,9 +7,9 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Host
 {
-    internal class NoOpPersistentStorage : IPersistentStorage, IChecksummedPersistentStorage
+    internal class NoOpPersistentStorage : IChecksummedPersistentStorage
     {
-        public static readonly IPersistentStorage Instance = new NoOpPersistentStorage();
+        public static readonly IChecksummedPersistentStorage Instance = new NoOpPersistentStorage();
 
         private NoOpPersistentStorage()
         {

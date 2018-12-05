@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.Host
 {
-    internal abstract class AbstractPersistentStorage : IPersistentStorage, IChecksummedPersistentStorage
+    internal abstract class AbstractPersistentStorage : IChecksummedPersistentStorage
     {
         public string WorkingFolderPath { get; }
         public string SolutionFilePath { get; }

@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -18,8 +17,7 @@ namespace Microsoft.CodeAnalysis.Storage
     /// A service that enables storing and retrieving of information associated with solutions,
     /// projects or documents across runtime sessions.
     /// </summary>
-    internal abstract partial class AbstractPersistentStorageService :
-        IPersistentStorageService2, IChecksummedPersistentStorageService
+    internal abstract partial class AbstractPersistentStorageService : IChecksummedPersistentStorageService
     {
         private readonly IOptionService _optionService;
         private readonly IPersistentStorageLocationService _locationService;
@@ -29,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Storage
         /// This lock guards all mutable fields in this type.
         /// </summary>
         private readonly object _lock = new object();
-        private ReferenceCountedDisposable<IPersistentStorage> _currentPersistentStorage;
+        private ReferenceCountedDisposable<IChecksummedPersistentStorage> _currentPersistentStorage;
         private SolutionId _currentPersistentStorageSolutionId;
         private bool _subscribedToLocationServiceChangeEvents;
 
@@ -44,19 +42,19 @@ namespace Microsoft.CodeAnalysis.Storage
         }
 
         protected abstract string GetDatabaseFilePath(string workingFolderPath);
-        protected abstract bool TryOpenDatabase(Solution solution, string workingFolderPath, string databaseFilePath, out IPersistentStorage storage);
+        protected abstract bool TryOpenDatabase(Solution solution, string workingFolderPath, string databaseFilePath, out IChecksummedPersistentStorage storage);
         protected abstract bool ShouldDeleteDatabase(Exception exception);
 
         IPersistentStorage IPersistentStorageService.GetStorage(Solution solution)
-            => (IPersistentStorage)this.GetStorage(solution, checkBranchId: true);
+            => this.GetStorage(solution);
 
         IPersistentStorage IPersistentStorageService2.GetStorage(Solution solution, bool checkBranchId)
-            => (IPersistentStorage)this.GetStorage(solution, checkBranchId);
+            => this.GetStorage(solution, checkBranchId);
 
-        IChecksummedPersistentStorage IChecksummedPersistentStorageService.GetStorage(Solution solution, bool checkBranchId)
-            => (IChecksummedPersistentStorage)this.GetStorage(solution, checkBranchId);
+        public IChecksummedPersistentStorage GetStorage(Solution solution)
+            => GetStorage(solution, checkBranchId: true);
 
-        public IDisposable GetStorage(Solution solution, bool checkBranchId)
+        public IChecksummedPersistentStorage GetStorage(Solution solution, bool checkBranchId)
         {
             if (!DatabaseSupported(solution, checkBranchId))
             {
@@ -150,7 +148,7 @@ namespace Microsoft.CodeAnalysis.Storage
             return size >= threshold;
         }
 
-        private ReferenceCountedDisposable<IPersistentStorage> TryCreatePersistentStorage(Solution solution, string workingFolderPath)
+        private ReferenceCountedDisposable<IChecksummedPersistentStorage> TryCreatePersistentStorage(Solution solution, string workingFolderPath)
         {
             // Attempt to create the database up to two times.  The first time we may encounter
             // some sort of issue (like DB corruption).  We'll then try to delete the DB and can
@@ -159,7 +157,7 @@ namespace Microsoft.CodeAnalysis.Storage
             if (TryCreatePersistentStorage(solution, workingFolderPath, out var persistentStorage) ||
                 TryCreatePersistentStorage(solution, workingFolderPath, out persistentStorage))
             {
-                return new ReferenceCountedDisposable<IPersistentStorage>(persistentStorage);
+                return new ReferenceCountedDisposable<IChecksummedPersistentStorage>(persistentStorage);
             }
 
             // okay, can't recover, then use no op persistent service 
@@ -170,7 +168,7 @@ namespace Microsoft.CodeAnalysis.Storage
         private bool TryCreatePersistentStorage(
             Solution solution,
             string workingFolderPath,
-            out IPersistentStorage persistentStorage)
+            out IChecksummedPersistentStorage persistentStorage)
         {
             persistentStorage = null;
 
@@ -202,7 +200,7 @@ namespace Microsoft.CodeAnalysis.Storage
 
         private void LocationServiceStorageLocationChanging(object sender, PersistentStorageLocationChangingEventArgs e)
         {
-            ReferenceCountedDisposable<IPersistentStorage> storage = null;
+            ReferenceCountedDisposable<IChecksummedPersistentStorage> storage = null;
 
             lock (_lock)
             {
@@ -237,18 +235,16 @@ namespace Microsoft.CodeAnalysis.Storage
         /// A trivial wrapper that we can hand out for instances from the <see cref="AbstractPersistentStorageService"/>
         /// that wraps the underlying <see cref="IPersistentStorage"/> singleton.
         /// </summary>
-        private sealed class PersistentStorageReferenceCountedDisposableWrapper : IPersistentStorage, IChecksummedPersistentStorage
+        private sealed class PersistentStorageReferenceCountedDisposableWrapper : IChecksummedPersistentStorage
         {
-            private readonly ReferenceCountedDisposable<IPersistentStorage> _storage;
+            private readonly ReferenceCountedDisposable<IChecksummedPersistentStorage> _storage;
 
-            private PersistentStorageReferenceCountedDisposableWrapper(ReferenceCountedDisposable<IPersistentStorage> storage)
+            private PersistentStorageReferenceCountedDisposableWrapper(ReferenceCountedDisposable<IChecksummedPersistentStorage> storage)
             {
                 _storage = storage;
             }
 
-            private IChecksummedPersistentStorage ChecksummedTarget => (IChecksummedPersistentStorage)_storage.Target;
-            
-            public static IPersistentStorage AddReferenceCountToAndCreateWrapper(ReferenceCountedDisposable<IPersistentStorage> storage)
+            public static IChecksummedPersistentStorage AddReferenceCountToAndCreateWrapper(ReferenceCountedDisposable<IChecksummedPersistentStorage> storage)
             {
                 return new PersistentStorageReferenceCountedDisposableWrapper(storage.TryAddReference());
             }
@@ -259,13 +255,13 @@ namespace Microsoft.CodeAnalysis.Storage
             }
 
             public Task<Checksum> ReadChecksumAsync(string name, CancellationToken cancellationToken = default)
-                => ChecksummedTarget.ReadChecksumAsync(name, cancellationToken);
+                => _storage.Target.ReadChecksumAsync(name, cancellationToken);
 
             public Task<Checksum> ReadChecksumAsync(Project project, string name, CancellationToken cancellationToken = default)
-                => ChecksummedTarget.ReadChecksumAsync(project, name, cancellationToken);
+                => _storage.Target.ReadChecksumAsync(project, name, cancellationToken);
 
             public Task<Checksum> ReadChecksumAsync(Document document, string name, CancellationToken cancellationToken = default)
-                => ChecksummedTarget.ReadChecksumAsync(document, name, cancellationToken);
+                => _storage.Target.ReadChecksumAsync(document, name, cancellationToken);
 
             public Task<Stream> ReadStreamAsync(string name, CancellationToken cancellationToken = default)
                 => _storage.Target.ReadStreamAsync(name, cancellationToken);
@@ -277,13 +273,13 @@ namespace Microsoft.CodeAnalysis.Storage
                 => _storage.Target.ReadStreamAsync(document, name, cancellationToken);
 
             public Task<Stream> ReadStreamAsync(string name, Checksum checksum = null, CancellationToken cancellationToken = default)
-                => ChecksummedTarget.ReadStreamAsync(name, checksum, cancellationToken);
+                => _storage.Target.ReadStreamAsync(name, checksum, cancellationToken);
 
             public Task<Stream> ReadStreamAsync(Project project, string name, Checksum checksum = null, CancellationToken cancellationToken = default)
-                => ChecksummedTarget.ReadStreamAsync(project, name, checksum, cancellationToken);
+                => _storage.Target.ReadStreamAsync(project, name, checksum, cancellationToken);
 
             public Task<Stream> ReadStreamAsync(Document document, string name, Checksum checksum = null, CancellationToken cancellationToken = default)
-                => ChecksummedTarget.ReadStreamAsync(document, name, checksum, cancellationToken);
+                => _storage.Target.ReadStreamAsync(document, name, checksum, cancellationToken);
 
             public Task<bool> WriteStreamAsync(string name, Stream stream, CancellationToken cancellationToken = default)
                 => _storage.Target.WriteStreamAsync(name, stream, cancellationToken);
@@ -295,13 +291,13 @@ namespace Microsoft.CodeAnalysis.Storage
                 => _storage.Target.WriteStreamAsync(document, name, stream, cancellationToken);
 
             public Task<bool> WriteStreamAsync(string name, Stream stream, Checksum checksum = null, CancellationToken cancellationToken = default)
-                => ChecksummedTarget.WriteStreamAsync(name, stream, checksum, cancellationToken);
+                => _storage.Target.WriteStreamAsync(name, stream, checksum, cancellationToken);
 
             public Task<bool> WriteStreamAsync(Project project, string name, Stream stream, Checksum checksum = null, CancellationToken cancellationToken = default)
-                => ChecksummedTarget.WriteStreamAsync(project, name, stream, checksum, cancellationToken);
+                => _storage.Target.WriteStreamAsync(project, name, stream, checksum, cancellationToken);
 
             public Task<bool> WriteStreamAsync(Document document, string name, Stream stream, Checksum checksum = null, CancellationToken cancellationToken = default)
-                => ChecksummedTarget.WriteStreamAsync(document, name, stream, checksum, cancellationToken);
+                => _storage.Target.WriteStreamAsync(document, name, stream, checksum, cancellationToken);
         }
     }
 }

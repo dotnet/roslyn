@@ -2,8 +2,9 @@
 
 namespace Microsoft.CodeAnalysis.Host
 {
-    internal interface IChecksummedPersistentStorageService : IWorkspaceService
+    internal interface IChecksummedPersistentStorageService : IPersistentStorageService2
     {
-        IChecksummedPersistentStorage GetStorage(Solution solution, bool checkBranchId);
+        new IChecksummedPersistentStorage GetStorage(Solution solution);
+        new IChecksummedPersistentStorage GetStorage(Solution solution, bool checkBranchId);
     }
 }
