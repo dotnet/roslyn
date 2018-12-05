@@ -87,8 +87,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 allChecksums.Add(parseOptionsChecksum);
                 allChecksums.Add(SerializationFormatChecksum);
 
-                var checksum = Checksum.Create(
-                    WellKnownSynchronizationKind.SymbolTreeInfo, allChecksums);
+                var checksum = Checksum.Create(WellKnownSynchronizationKind.SymbolTreeInfo, allChecksums);
                 return checksum;
             }
             finally
