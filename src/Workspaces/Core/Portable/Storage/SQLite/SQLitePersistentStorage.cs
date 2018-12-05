@@ -16,6 +16,11 @@ namespace Microsoft.CodeAnalysis.SQLite
     /// </summary>
     internal partial class SQLitePersistentStorage : AbstractPersistentStorage
     {
+        // Version history.
+        // 1. Initial use of sqlite as the persistence layer.  Simple key->value storage tables.
+        // 2. Updated to store checksums.  Tables now key->(checksum,value).  Allows for reading
+        //    and validating checksums without the overhead of reading the full 'value' into
+        //    memory.
         private const string Version = "2";
 
         /// <summary>
