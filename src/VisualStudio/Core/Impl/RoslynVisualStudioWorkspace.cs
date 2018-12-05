@@ -36,8 +36,9 @@ namespace Microsoft.VisualStudio.LanguageServices
             ExportProvider exportProvider,
             [ImportMany] IEnumerable<Lazy<IStreamingFindUsagesPresenter>> streamingPresenters,
             [ImportMany] IEnumerable<IDocumentOptionsProviderFactory> documentOptionsProviderFactories,
-            Lazy<ProjectCodeModelFactory> projectCodeModelFactory)
-            : base(exportProvider, AsyncServiceProvider.GlobalProvider) // TODO: switch to the cleaner MEF import
+            Lazy<ProjectCodeModelFactory> projectCodeModelFactory,
+            [Import(typeof(SVsServiceProvider))] IAsyncServiceProvider asyncServiceProvider)
+            : base(exportProvider, asyncServiceProvider)
         {
             _streamingPresenters = streamingPresenters;
             _projectCodeModelFactory = projectCodeModelFactory;
