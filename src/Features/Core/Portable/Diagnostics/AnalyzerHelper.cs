@@ -292,7 +292,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return analyzerPerf.Select(kv => new AnalyzerPerformanceInfo(kv.analyzer.GetAnalyzerId(), DiagnosticAnalyzerLogger.AllowsTelemetry(kv.analyzer, serviceOpt), kv.timeSpan));
         }
 
-        public static bool IsCompilationEndAnalyzer(this DiagnosticAnalyzer analyzer, Project project, Compilation compilation)
+        public static bool? IsCompilationEndAnalyzer(this DiagnosticAnalyzer analyzer, Project project, Compilation compilation)
         {
             if (!project.SupportsCompilation)
             {
@@ -301,16 +301,26 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             Contract.ThrowIfNull(compilation);
 
-            // currently, this is only way to see whether analyzer has compilation end analysis or not.
-            // also, analyzer being compilation end analyzer or not is dynamic. so this can return different value based on
-            // given compilation or options.
-            //
-            // but for now, this is what we decided in design meeting until we decide how to deal with compilation end analyzer
-            // long term
-            var context = new CollectCompilationActionsContext(compilation, project.AnalyzerOptions);
-            analyzer.Initialize(context);
+            try
+            {
+                // currently, this is only way to see whether analyzer has compilation end analysis or not.
+                // also, analyzer being compilation end analyzer or not is dynamic. so this can return different value based on
+                // given compilation or options.
+                //
+                // but for now, this is what we decided in design meeting until we decide how to deal with compilation end analyzer
+                // long term
+                var context = new CollectCompilationActionsContext(compilation, project.AnalyzerOptions);
+                analyzer.Initialize(context);
 
-            return context.IsCompilationEndAnalyzer;
+                return context.IsCompilationEndAnalyzer;
+            }
+            catch
+            {
+                // analyzer.initialize can throw. when that happens, we will try again next time.
+                // we are not logging anything here since it will be logged by CompilationWithAnalyzer later
+                // in the error list
+                return null;
+            }
         }
 
         /// <summary>
