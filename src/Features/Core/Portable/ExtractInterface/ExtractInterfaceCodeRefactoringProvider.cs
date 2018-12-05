@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
         public sealed override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
             var service = context.Document.GetLanguageService<AbstractExtractInterfaceService>();
-            var actions = await service.GetExtractInterfaceCodeAction(context.Document, context.Span, context.CancellationToken).ConfigureAwait(false);
+            var actions = await service.GetExtractInterfaceCodeActionAsync(context.Document, context.Span, context.CancellationToken).ConfigureAwait(false);
             context.RegisterRefactorings(actions);
         }
     }
