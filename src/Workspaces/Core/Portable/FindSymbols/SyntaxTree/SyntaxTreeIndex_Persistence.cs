@@ -15,8 +15,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
     internal sealed partial class SyntaxTreeIndex : IObjectWritable
     {
         private const string PersistenceName = "<SyntaxTreeIndex>";
-        private static readonly Checksum SerializationFormatChecksum = 
-            Checksum.Create(new MemoryStream(Encoding.ASCII.GetBytes("16")));
+        private static readonly Checksum SerializationFormatChecksum = Checksum.Create("16");
 
         public readonly Checksum Checksum;
 

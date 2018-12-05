@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Security.Cryptography;
+using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.Serialization;
 using Roslyn.Utilities;
@@ -14,6 +15,9 @@ namespace Microsoft.CodeAnalysis
     // all these are just helper methods
     internal partial class Checksum
     {
+        public static Checksum Create(string val)
+            => Create(new MemoryStream(Encoding.UTF8.GetBytes(val)));
+
         public static Checksum Create(Stream stream)
         {
             using (var hash = IncrementalHash.CreateHash(HashAlgorithmName.SHA1))
