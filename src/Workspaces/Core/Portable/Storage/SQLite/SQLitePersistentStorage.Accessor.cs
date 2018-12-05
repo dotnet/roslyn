@@ -92,7 +92,9 @@ namespace Microsoft.CodeAnalysis.SQLite
                             using (var pooledConnection = Storage.GetPooledConnection())
                             {
                                 // Lookup the row from the DocumentData table corresponding to our dataId.
-                                return ReadBlob(pooledConnection.Connection, dataId, columnName, checksumOpt);
+                                return ReadBlob(
+                                    pooledConnection.Connection, dataId, columnName,
+                                    checksumOpt, cancellationToken);
                             }
                         }
                         catch (Exception ex)
@@ -159,7 +161,8 @@ namespace Microsoft.CodeAnalysis.SQLite
                 => Storage.AddWriteTaskAsync(_writeQueueKeyToWrites, GetWriteQueueKey(key), action, cancellationToken);
 
             private Stream ReadBlob(
-                SqlConnection connection, TDatabaseId dataId, string columnName, Checksum checksumOpt)
+                SqlConnection connection, TDatabaseId dataId, string columnName,
+                Checksum checksumOpt, CancellationToken cancellationToken)
             {
                 // Note: it's possible that someone may write to this row between when we
                 // get the row ID above and now.  That's fine.  We'll just read the new
@@ -182,17 +185,28 @@ namespace Microsoft.CodeAnalysis.SQLite
                         if (checksumOpt != null)
                         {
                             Debug.Assert(columnName != ChecksumColumnName);
-                            using (var checksumStream = connection.ReadBlob_MustRunInTransaction(
-                                DataTableName, ChecksumColumnName, rowId))
+                            using (var checksumStream = connection.ReadBlob_MustRunInTransaction(DataTableName, ChecksumColumnName, rowId))
+                            using (var reader = ObjectReader.TryGetReader(checksumStream, cancellationToken))
                             {
+                                if (reader == null)
+                                {
+                                    // Couldn't understand the old checksum.  It def doesn't match our
+                                    // current checksum.
+                                    return;
+                                }
 
+                                var checksum = Checksum.ReadFrom(reader);
+                                if (checksumOpt != checksum)
+                                {
+                                    // Checksums didn't match.  Catch use this stream.
+                                    return;
+                                }
                             }
                         }
 
                         stream = connection.ReadBlob_MustRunInTransaction(DataTableName, columnName, rowId);
                     });
 
-                    Debug.Assert(stream != null);
                     return stream;
                 }
 

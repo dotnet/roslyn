@@ -424,6 +424,135 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             }
         }
 
+        [Fact]
+        public async Task TestCanReadWithNullChecksumSomethingWrittenWithNonNullChecksum()
+        {
+            var solution = CreateOrOpenSolution();
+
+            var streamName1 = "TestCanReadWithNullChecksumSomethingWrittenWithNonNullChecksum";
+
+            using (var storage = GetStorage(solution))
+            {
+                Assert.True(await storage.WriteStreamAsync(streamName1, EncodeString(GetData1(Size.Small)), s_checksum1));
+            }
+
+            using (var storage = GetStorage(solution))
+            {
+                Assert.Equal(GetData1(Size.Small), ReadStringToEnd(await storage.ReadStreamAsync(streamName1, checksum: null)));
+            }
+        }
+
+        [Fact]
+        public async Task TestCannotReadWithMismatchedChecksums()
+        {
+            var solution = CreateOrOpenSolution();
+
+            var streamName1 = "TestCannotReadWithMismatchedChecksums";
+
+            using (var storage = GetStorage(solution))
+            {
+                Assert.True(await storage.WriteStreamAsync(streamName1, EncodeString(GetData1(Size.Small)), s_checksum1));
+            }
+
+            using (var storage = GetStorage(solution))
+            {
+                Assert.Equal(null, await storage.ReadStreamAsync(streamName1, s_checksum2));
+            }
+        }
+
+        [Fact]
+        public async Task TestCannotReadChecksumIfWriteDidNotIncludeChecksum()
+        {
+            var solution = CreateOrOpenSolution();
+
+            var streamName1 = "TestCannotReadChecksumIfWriteDidNotIncludeChecksum";
+
+            using (var storage = GetStorage(solution))
+            {
+                Assert.True(await storage.WriteStreamAsync(streamName1, EncodeString(GetData1(Size.Small)), checksum: null));
+            }
+
+            using (var storage = GetStorage(solution))
+            {
+                Assert.Equal(null, await storage.ReadChecksumAsync(streamName1));
+            }
+        }
+
+        [Fact]
+        public async Task TestReadChecksumProducesWrittenChecksum()
+        {
+            var solution = CreateOrOpenSolution();
+
+            var streamName1 = "TestReadChecksumProducesWrittenChecksum";
+
+            using (var storage = GetStorage(solution))
+            {
+                Assert.True(await storage.WriteStreamAsync(streamName1, EncodeString(GetData1(Size.Small)), checksum: s_checksum1));
+            }
+
+            using (var storage = GetStorage(solution))
+            {
+                Assert.Equal(s_checksum1, await storage.ReadChecksumAsync(streamName1));
+            }
+        }
+
+        [Fact]
+        public async Task TestReadChecksumProducesLastWrittenChecksum1()
+        {
+            var solution = CreateOrOpenSolution();
+
+            var streamName1 = "TestReadChecksumProducesLastWrittenChecksum1";
+
+            using (var storage = GetStorage(solution))
+            {
+                Assert.True(await storage.WriteStreamAsync(streamName1, EncodeString(GetData1(Size.Small)), checksum: s_checksum1));
+                Assert.True(await storage.WriteStreamAsync(streamName1, EncodeString(GetData1(Size.Small)), checksum: null));
+            }
+
+            using (var storage = GetStorage(solution))
+            {
+                Assert.Equal(null, await storage.ReadChecksumAsync(streamName1));
+            }
+        }
+
+        [Fact]
+        public async Task TestReadChecksumProducesLastWrittenChecksum2()
+        {
+            var solution = CreateOrOpenSolution();
+
+            var streamName1 = "TestReadChecksumProducesLastWrittenChecksum2";
+
+            using (var storage = GetStorage(solution))
+            {
+                Assert.True(await storage.WriteStreamAsync(streamName1, EncodeString(GetData1(Size.Small)), checksum: null));
+                Assert.True(await storage.WriteStreamAsync(streamName1, EncodeString(GetData1(Size.Small)), checksum: s_checksum1));
+            }
+
+            using (var storage = GetStorage(solution))
+            {
+                Assert.Equal(s_checksum1, await storage.ReadChecksumAsync(streamName1));
+            }
+        }
+
+        [Fact]
+        public async Task TestReadChecksumProducesLastWrittenChecksum3()
+        {
+            var solution = CreateOrOpenSolution();
+
+            var streamName1 = "TestReadChecksumProducesLastWrittenChecksum3";
+
+            using (var storage = GetStorage(solution))
+            {
+                Assert.True(await storage.WriteStreamAsync(streamName1, EncodeString(GetData1(Size.Small)), checksum: s_checksum1));
+                Assert.True(await storage.WriteStreamAsync(streamName1, EncodeString(GetData1(Size.Small)), checksum: s_checksum2));
+            }
+
+            using (var storage = GetStorage(solution))
+            {
+                Assert.Equal(s_checksum2, await storage.ReadChecksumAsync(streamName1));
+            }
+        }
+
         private void DoSimultaneousReads(Func<Task<string>> read, string expectedValue)
         {
             var barrier = new Barrier(NumThreads);
