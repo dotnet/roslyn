@@ -19,7 +19,6 @@ using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.PlatformUI.OleComponentSupport;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
 using Task = System.Threading.Tasks.Task;
 
@@ -74,7 +73,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
         /// If false, ReSharper is either not installed, or has been disabled in the extension manager.
         /// If true, the ReSharper extension is enabled. ReSharper's internal status could be either suspended or enabled.
         /// </summary>
-        private bool _resharperExtensionInstalled = false;
+        private bool _resharperExtensionInstalledAndEnabled = false;
         private bool _infoBarOpen = false;
         private bool _isFirstRun = true;
 
@@ -122,9 +121,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
                 return;
             }
 
-            _resharperExtensionInstalled = extensionEnabled != 0;
+            _resharperExtensionInstalledAndEnabled = extensionEnabled != 0;
 
-            if (_resharperExtensionInstalled)
+            if (_resharperExtensionInstalledAndEnabled)
             {
                 // We need to monitor for suspend/resume commands, so create and install the command target and the modal callback.
                 var priorityCommandTargetRegistrar = _serviceProvider.GetService<IVsRegisterPriorityCommandTarget, SVsRegisterPriorityCommandTarget>();
@@ -169,9 +168,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
             var options = _workspace.Options;
             var lastStatus = options.GetOption(KeybindingResetOptions.ReSharperStatus);
 
-            var currentStatus = await IsReSharperRunningAsync(lastStatus, pollForStatus, cancellationToken).ConfigureAwait(false);
+            ReSharperStatus currentStatus;
+            try
+            {
+                currentStatus = await IsReSharperRunningAsync(lastStatus, pollForStatus, cancellationToken)
+                    .ConfigureAwait(false);
+            }
+            catch(OperationCanceledException)
+            {
+                return;
+            }
 
-            if (!StatusChanged(currentStatus, lastStatus))
+            if (!_isFirstRun && currentStatus == lastStatus)
             {
                 return;
             }
@@ -192,11 +200,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
                     // if there is still a pending show.
 
                     // If ReSharper was suspended and the user closed and reopened VS, we want to reset the gold bar
-                    if (currentStatus == ReSharperStatus.Suspended && _isFirstRun)
-                    { 
+                    else if (_isFirstRun)
+                    {
                         options = options.WithChangedOption(KeybindingResetOptions.NeedsReset, true);
                     }
-                    
+
                     break;
                 case ReSharperStatus.Enabled:
                     if (currentStatus != ReSharperStatus.Enabled)
@@ -216,20 +224,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
             }
 
             _isFirstRun = false;
-
-            bool StatusChanged(ReSharperStatus current, ReSharperStatus last)
-            {
-                // if ReSharper was suspended and user closed and restarted Visual Studio, 
-                // consider that a status change so we reset the gold bar
-                if (current == ReSharperStatus.Suspended && last == ReSharperStatus.Suspended && _isFirstRun)
-                {
-                    return true;
-                }
-                else
-                {
-                    return current != last;
-                }
-            }
         }
 
         private void ShowGoldBar()
@@ -266,11 +260,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
                               action: InfoBarClose));
         }
 
-        private async Task<ReSharperStatus> IsReSharperRunningAsync(ReSharperStatus lastStatus, 
-            bool pollForStatus, CancellationToken cancellationToken)
+        /// <summary>
+        /// Returns true if ReSharper is installed, enabled, and not suspended.  
+        /// </summary>
+        private async Task<ReSharperStatus> IsReSharperRunningAsync(ReSharperStatus lastStatus, bool pollForStatus, CancellationToken cancellationToken)
         {
             // Quick exit if resharper is either uninstalled or not enabled
-            if (!_resharperExtensionInstalled)
+            if (!_resharperExtensionInstalledAndEnabled)
             {
                 return ReSharperStatus.NotInstalledOrDisabled;
             }
@@ -281,9 +277,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
             cmds[0].cmdID = ResumeId;
             cmds[0].cmdf = 0;
 
-            var numberOfIterations = pollForStatus ? 10 : 1;
-            for (var count = 0; count < numberOfIterations; count++)
+            for (var count = 0; count < 10; count++)
             {
+                cancellationToken.ThrowIfCancellationRequested();
+
                 var hr = await QueryStatusOnUIThreadAsync().ConfigureAwait(false);
                 if (ErrorHandler.Failed(hr))
                 {
@@ -300,7 +297,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
                 {
                     return ReSharperStatus.Suspended;
                 }
-
 
                 //otherwise sleep for a bit and check again
                 await Task.Delay(TimeSpan.FromSeconds(2), cancellationToken).ConfigureAwait(false);
