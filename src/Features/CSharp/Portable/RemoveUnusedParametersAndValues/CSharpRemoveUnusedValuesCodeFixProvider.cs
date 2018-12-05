@@ -35,7 +35,9 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnusedParametersAndValues
                     return variableDeclarator.WithIdentifier(newName.WithTriviaFrom(variableDeclarator.Identifier));
 
                 case SyntaxKind.SingleVariableDesignation:
-                    return SyntaxFactory.SingleVariableDesignation(newName).WithTriviaFrom(node);
+                    return newName.ValueText == AbstractRemoveUnusedParametersAndValuesDiagnosticAnalyzer.DiscardVariableName
+                        ? SyntaxFactory.DiscardDesignation().WithTriviaFrom(node)
+                        : (SyntaxNode)SyntaxFactory.SingleVariableDesignation(newName).WithTriviaFrom(node);
 
                 case SyntaxKind.CatchDeclaration:
                     var catchDeclaration = (CatchDeclarationSyntax)node;

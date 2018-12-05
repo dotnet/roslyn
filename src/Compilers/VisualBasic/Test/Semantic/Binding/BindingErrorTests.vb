@@ -10083,7 +10083,7 @@ BC30657: 'IOCompletionCallback' has a return type that is not supported or param
                     End Set
                 End Property
             End Class
-            &lt;MyAttr(Prop:=1)&gt;
+            &lt;MyAttr(Prop:=1)&gt;'BIND:"Prop"
             Class C1
             End Class
         End Module
@@ -10092,9 +10092,14 @@ BC30657: 'IOCompletionCallback' has a return type that is not supported or param
             CompilationUtils.AssertTheseDiagnostics(compilation,
     <expected>
 BC30658: Property 'Prop' with no parameters cannot be found.
-            &lt;MyAttr(Prop:=1)&gt;
+            &lt;MyAttr(Prop:=1)&gt;'BIND:"Prop"
                     ~~~~
 </expected>)
+
+            VerifyOperationTreeForTest(Of IdentifierNameSyntax)(compilation, "a.vb", <![CDATA[
+IPropertyReferenceOperation: Property M1.MyAttr.Prop(i As System.Int32) As System.Int32 (OperationKind.PropertyReference, Type: System.Int32, IsInvalid) (Syntax: 'Prop')
+  Instance Receiver: 
+    null]]>.Value)
         End Sub
 
         <Fact()>

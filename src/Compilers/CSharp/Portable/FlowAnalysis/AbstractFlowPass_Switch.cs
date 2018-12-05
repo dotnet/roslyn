@@ -1,36 +1,27 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    internal abstract partial class PreciseAbstractFlowPass<LocalState>
+    internal abstract partial class AbstractFlowPass<TLocalState>
     {
         #region implementation for the old-style (no-patterns) variation of the switch statement.
 
         public override BoundNode VisitSwitchStatement(BoundSwitchStatement node)
         {
             // visit switch header
-            LocalState breakState = VisitSwitchHeader(node);
+            TLocalState breakState = VisitSwitchHeader(node);
             SetUnreachable();
 
             // visit switch block
             VisitSwitchBlock(node);
-            IntersectWith(ref breakState, ref this.State);
+            Join(ref breakState, ref this.State);
             ResolveBreaks(breakState, node.BreakLabel);
             return null;
         }
 
-        private LocalState VisitSwitchHeader(BoundSwitchStatement node)
+        private TLocalState VisitSwitchHeader(BoundSwitchStatement node)
         {
             // Initial value for the Break state for a switch statement is established as follows:
             //  Break state = UnreachableState if either of the following is true:
@@ -40,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // visit switch expression
             VisitRvalue(node.Expression);
-            LocalState breakState = this.State;
+            TLocalState breakState = this.State;
 
             // For a switch statement, we simulate a possible jump to the switch labels to ensure that
             // the label is not treated as an unused label and a pending branch to the label is noted.
@@ -94,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 VisitSwitchSection(switchSections[iSection], iSection == iLastSection);
                 // Even though it is illegal for the end of a switch section to be reachable, in erroneous
                 // code it may be reachable.  We treat that as an implicit break (branch to afterSwitchState).
-                IntersectWith(ref afterSwitchState, ref this.State);
+                Join(ref afterSwitchState, ref this.State);
             }
 
             SetState(afterSwitchState);
@@ -132,11 +123,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitPatternSwitchStatement(BoundPatternSwitchStatement node)
         {
             // visit switch header
-            LocalState breakState = VisitPatternSwitchHeader(node);
+            TLocalState breakState = VisitPatternSwitchHeader(node);
 
             // visit switch block
             VisitPatternSwitchBlock(node);
-            IntersectWith(ref breakState, ref this.State);
+            Join(ref breakState, ref this.State);
             ResolveBreaks(breakState, node.BreakLabel);
             return null;
         }
@@ -166,7 +157,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             SetState(StateWhenTrue);
                         }
 
-                        _pendingBranches.Add(new PendingBranch(label, this.State));
+                        PendingBranches.Add(new PendingBranch(label, this.State));
                     }
                 }
             }
@@ -184,7 +175,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     SetState(initialState.Clone());
                 }
 
-                _pendingBranches.Add(new PendingBranch(node.DefaultLabel, this.State));
+                PendingBranches.Add(new PendingBranch(node.DefaultLabel, this.State));
             }
 
             // visit switch sections
@@ -193,7 +184,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 VisitPatternSwitchSection(switchSections[iSection], node.Expression, iSection == iLastSection);
                 // Even though it is illegal for the end of a switch section to be reachable, in erroneous
                 // code it may be reachable.  We treat that as an implicit break (branch to afterSwitchState).
-                IntersectWith(ref afterSwitchState, ref this.State);
+                Join(ref afterSwitchState, ref this.State);
             }
 
             SetState(afterSwitchState);
@@ -202,7 +193,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Visit the switch expression, and return the initial break state.
         /// </summary>
-        private LocalState VisitPatternSwitchHeader(BoundPatternSwitchStatement node)
+        private TLocalState VisitPatternSwitchHeader(BoundPatternSwitchStatement node)
         {
             // visit switch expression
             VisitRvalue(node.Expression);

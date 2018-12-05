@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- All Rights Reserved. Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this file to you under the MIT license. See the LICENSE file in the project root for more information. -->
+<Project>
+
+  <PropertyGroup>
+    <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <!-- 
+      Default settings file for Desktop FX that sets shadowCopy to false, to allow loading public-signed assemblies to xunit AppDomain.
+    -->
+    <XUnitDesktopSettingsFile>$(MSBuildThisFileDirectory)xunit.runner.json</XUnitDesktopSettingsFile>
+  </PropertyGroup>
+</Project>

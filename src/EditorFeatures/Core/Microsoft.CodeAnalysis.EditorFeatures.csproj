@@ -9,7 +9,7 @@
     <TargetFramework>net472</TargetFramework>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <DefineConstants>$(DefineConstants);EDITOR_FEATURES</DefineConstants>
-    <ApplyNgenOptimizationData>true</ApplyNgenOptimizationData>
+    <ApplyPartialNgenOptimization>true</ApplyPartialNgenOptimization>
 
     <!-- NuGet -->
     <PackageId>Microsoft.CodeAnalysis.EditorFeatures.Common</PackageId>
