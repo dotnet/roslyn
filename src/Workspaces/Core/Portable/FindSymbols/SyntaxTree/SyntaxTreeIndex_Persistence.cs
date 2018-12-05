@@ -101,6 +101,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             {
                 using (var storage = persistentStorageService.GetStorage(solution, checkBranchId: false))
                 {
+                    // Check if we've already stored a checksum and it matches the checksum we 
+                    // expect.  If so, we're already precalculated and don't have to recompute
+                    // this index.  Otherwise if we don't have a checksum, or the checksums don't
+                    // match, go ahead and recompute it.
                     var persistedChecksum = await storage.ReadChecksumAsync(document, PersistenceName, cancellationToken).ConfigureAwait(false);
                     return persistedChecksum == checksum;
                 }
