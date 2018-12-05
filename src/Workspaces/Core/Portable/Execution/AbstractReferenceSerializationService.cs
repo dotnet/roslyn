@@ -235,7 +235,11 @@ namespace Microsoft.CodeAnalysis.Execution
         {
             try
             {
-                using (var stream = new FileStream(reference.FullPath, FileMode.Open, FileAccess.Read, FileShare.Read | FileShare.Delete))
+                // use actual assembly path rather than one returned from reference.FullPath
+                // 2 can be different if analyzer loader used for the reference do something like shadow copying
+                var assemblyPath = TryGetAnalyzerAssemblyPath(reference) ?? reference.FullPath;
+
+                using (var stream = new FileStream(assemblyPath, FileMode.Open, FileAccess.Read, FileShare.Read | FileShare.Delete))
                 using (var peReader = new PEReader(stream))
                 {
                     var metadataReader = peReader.GetMetadataReader();
