@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             return Checksum.Create(
                 WellKnownSynchronizationKind.SyntaxTreeIndex,
-                new[] { textChecksum, parseOptionsChecksum });
+                new[] { textChecksum, parseOptionsChecksum, SerializationFormatChecksum });
         }
 
         private async Task<bool> SaveAsync(
