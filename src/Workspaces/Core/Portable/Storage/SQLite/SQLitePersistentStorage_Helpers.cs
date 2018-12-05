@@ -24,6 +24,10 @@ namespace Microsoft.CodeAnalysis.SQLite
         private static (byte[] bytes, int length, bool fromPool) GetBytes(
             Checksum checksumOpt, CancellationToken cancellationToken)
         {
+            // If we weren't passed a checsum, just pass the singleton empty byte array.
+            // Note: we don't add this to/from our pool.  But it likely woudn't be a problem
+            // for us to do that as this instance can't actually be mutated since it's just
+            // an empty array.
             if (checksumOpt == null)
             {
                 return (Array.Empty<byte>(), length: 0, fromPool: false);
