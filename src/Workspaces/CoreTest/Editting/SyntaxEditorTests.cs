@@ -211,10 +211,7 @@ public class C
 {
 }");
         }
-        public class C
-        {
-            public string Y;
-        }
+
         [Fact]
         public async Task TestInsertAfterWithTracking()
         {
@@ -301,12 +298,22 @@ public class C
             var editor = GetEditor(cu);
             var fieldX = editor.Generator.GetMembers(cls)[0];
             var newFieldY = editor.Generator.FieldDeclaration("Y", editor.Generator.TypeExpression(SpecialType.System_String), Accessibility.Public);
-            var newFieldZ = editor.Generator.FieldDeclaration("Z", editor.Generator.TypeExpression(SpecialType.System_String), Accessibility.Public);
             insertBeforeWithTracking(fieldX, newFieldY, editor);
-            editor.ReplaceNode(newFieldY, newFieldZ);
 
             var newRoot = editor.GetChangedRoot();
+            await VerifySyntaxAsync<CompilationUnitSyntax>(
+                newRoot,
+                @"
+public class C
+{
+    public string Y;
+    public int X;
+}");
 
+            var newFieldZ = editor.Generator.FieldDeclaration("Z", editor.Generator.TypeExpression(SpecialType.System_String), Accessibility.Public);
+            editor.ReplaceNode(newFieldY, newFieldZ);
+
+            newRoot = editor.GetChangedRoot();
             await VerifySyntaxAsync<CompilationUnitSyntax>(
                 newRoot,
                 @"
