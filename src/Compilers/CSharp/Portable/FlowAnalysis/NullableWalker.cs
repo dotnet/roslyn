@@ -3414,46 +3414,55 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     break;
 
-                case ConversionKind.Unboxing:
-                    if (!operandType.IsNull && targetType.IsTypeParameter())
-                    {
-                        resultAnnotation = operandType.GetValueNullableAnnotation();
-
-                        if (resultAnnotation == NullableAnnotation.NotAnnotated)
-                        {
-                            resultAnnotation = NullableAnnotation.NotNullable;
-                        }
-                    }
-                    break;
-
                 case ConversionKind.ImplicitThrow:
                     break;
 
+                case ConversionKind.Unboxing:
+                    if (!operandType.IsNull)
+                    {
+                        if (targetType.IsTypeParameter())
+                        {
+                            resultAnnotation = operandType.GetValueNullableAnnotation();
+
+                            if (resultAnnotation == NullableAnnotation.NotAnnotated)
+                            {
+                                resultAnnotation = NullableAnnotation.NotNullable;
+                            }
+                        }
+                        else if (targetType.IsValueType)
+                        {
+                            resultAnnotation = (targetType.IsNullableType() && operandType.NullableAnnotation.IsAnyNullable()) ? NullableAnnotation.Nullable : NullableAnnotation.NotNullable;
+                        }
+                    }
+                    break;
+
                 case ConversionKind.Boxing:
-                    if (!operandType.IsNull && operandType.IsValueType)
+                    if (!operandType.IsNull)
                     {
-                        resultAnnotation = (operandType.IsNullableType() && operandType.NullableAnnotation.IsAnyNullable()) ? NullableAnnotation.Nullable : NullableAnnotation.NotNullable;
-                    }
-                    else if (!operandType.IsNull && IsUnconstrainedTypeParameter(operandType.TypeSymbol))
-                    {
-                        if (operandType.IsPossiblyNullableReferenceTypeTypeParameter() && !targetTypeWithNullability.IsPossiblyNullableReferenceTypeTypeParameter())
+                        if (operandType.IsValueType)
                         {
-                            resultAnnotation = NullableAnnotation.Nullable;
-                            forceOperandAnnotationForResult = targetType.IsPossiblyNullableReferenceTypeTypeParameter();
+                            resultAnnotation = (operandType.IsNullableType() && operandType.NullableAnnotation.IsAnyNullable()) ? NullableAnnotation.Nullable : NullableAnnotation.NotNullable;
+                            break;
                         }
-                        else
+                        else if (IsUnconstrainedTypeParameter(operandType.TypeSymbol))
                         {
-                            resultAnnotation = operandType.NullableAnnotation;
+                            if (operandType.IsPossiblyNullableReferenceTypeTypeParameter() && !targetTypeWithNullability.IsPossiblyNullableReferenceTypeTypeParameter())
+                            {
+                                resultAnnotation = NullableAnnotation.Nullable;
+                                forceOperandAnnotationForResult = targetType.IsPossiblyNullableReferenceTypeTypeParameter();
+                            }
+                            else
+                            {
+                                resultAnnotation = operandType.NullableAnnotation;
+                            }
+                            break;
                         }
                     }
-                    else
-                    {
-                        Debug.Assert(operandType.IsNull ||
-                            !operandType.IsReferenceType ||
-                            operandType.SpecialType == SpecialType.System_ValueType ||
-                            operandType.TypeKind == TypeKind.Interface ||
-                            operandType.TypeKind == TypeKind.Dynamic);
-                    }
+                    Debug.Assert(operandType.IsNull ||
+                        !operandType.IsReferenceType ||
+                        operandType.SpecialType == SpecialType.System_ValueType ||
+                        operandType.TypeKind == TypeKind.Interface ||
+                        operandType.TypeKind == TypeKind.Dynamic);
                     break;
 
                 case ConversionKind.NoConversion:

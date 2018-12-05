@@ -62012,7 +62012,64 @@ class Program
         }
 
         [Fact]
+        public void NullableT_Unbox()
+        {
+            var source =
+@"class Program
+{
+    static void F1<T>(object x1, object? y1) where T : struct
+    {
+        _ = ((T?)x1).Value;
+        _ = ((T?)y1).Value; // 1
+    }
+    static void F2<T>(object x2, object? y2) where T : struct
+    {
+        var z2 = (T?)x2;
+        _ = z2.Value;
+        var w2 = (T?)y2;
+        _ = w2.Value; // 2
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (6,13): warning CS8629: Nullable value type may be null.
+                //         _ = ((T?)y1).Value; // 1
+                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "((T?)y1).Value").WithLocation(6, 13),
+                // (13,13): warning CS8629: Nullable value type may be null.
+                //         _ = w2.Value; // 2
+                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "w2.Value").WithLocation(13, 13));
+        }
+
+        [Fact]
         public void NullableT_23()
+        {
+            var source =
+@"#pragma warning disable 649
+struct S
+{
+    internal int F;
+}
+class Program
+{
+    static void F(S? x, S? y)
+    {
+        if (y == null) return;
+        int? ni;
+        ni = x?.F;
+        _ = ni.Value; // 1
+        ni = y?.F;
+        _ = ni.Value;
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (13,13): warning CS8629: Nullable value type may be null.
+                //         _ = ni.Value; // 1
+                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "ni.Value").WithLocation(13, 13));
+        }
+
+        [Fact]
+        public void NullableT_24()
         {
             var source =
 @"class Program
@@ -62044,7 +62101,7 @@ class Program
         }
 
         [Fact]
-        public void NullableT_24()
+        public void NullableT_25()
         {
             var source =
 @"class Program
@@ -62072,7 +62129,7 @@ class Program
 
         [WorkItem(31500, "https://github.com/dotnet/roslyn/issues/31500")]
         [Fact]
-        public void NullableT_25()
+        public void NullableT_26()
         {
             var source =
 @"class Program
@@ -62103,7 +62160,7 @@ class Program
 
         [WorkItem(31500, "https://github.com/dotnet/roslyn/issues/31500")]
         [Fact]
-        public void NullableT_26()
+        public void NullableT_27()
         {
             var source =
 @"struct A
@@ -62145,7 +62202,7 @@ class Program
         }
 
         [Fact]
-        public void NullableT_27()
+        public void NullableT_28()
         {
             var source =
 @"class Program
@@ -62164,7 +62221,7 @@ class Program
         }
 
         [Fact]
-        public void NullableT_28()
+        public void NullableT_29()
         {
             var source =
 @"class Program
@@ -62189,7 +62246,7 @@ class Program
         }
 
         [Fact]
-        public void NullableT_29()
+        public void NullableT_30()
         {
             var source =
 @"using System;
