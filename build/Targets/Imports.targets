@@ -216,7 +216,7 @@
   </ItemGroup>
 
   <!--
-    Add licens to packable projects 
+    Add license to packable projects 
   -->
   <ItemGroup Condition="'$(IsPackable)' == 'true'">
     <None Include="$(LicenseFilePath)" PackagePath="License.txt" Visible="false" Pack="true"/>
