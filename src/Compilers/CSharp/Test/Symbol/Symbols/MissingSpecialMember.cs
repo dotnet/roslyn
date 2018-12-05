@@ -566,6 +566,7 @@ namespace System
                     case WellKnownType.System_Runtime_CompilerServices_IsUnmanagedAttribute:
                     case WellKnownType.System_Index:
                     case WellKnownType.System_Range:
+                    case WellKnownType.System_Runtime_CompilerServices_AsyncIteratorStateMachineAttribute:
                     case WellKnownType.System_IAsyncDisposable:
                     case WellKnownType.System_Collections_Generic_IAsyncEnumerable_T:
                     case WellKnownType.System_Collections_Generic_IAsyncEnumerator_T:
@@ -891,6 +892,7 @@ namespace System
                     case WellKnownMember.System_Range__Create:
                     case WellKnownMember.System_Range__FromStart:
                     case WellKnownMember.System_Range__ToEnd:
+                    case WellKnownMember.System_Runtime_CompilerServices_AsyncIteratorStateMachineAttribute__ctor:
                     case WellKnownMember.System_IAsyncDisposable__DisposeAsync:
                     case WellKnownMember.System_Collections_Generic_IAsyncEnumerable_T__GetAsyncEnumerator:
                     case WellKnownMember.System_Collections_Generic_IAsyncEnumerator_T__MoveNextAsync:

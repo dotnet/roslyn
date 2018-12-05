@@ -456,6 +456,8 @@ namespace Microsoft.CodeAnalysis
         System_Range__FromStart,
         System_Range__All,
 
+        System_Runtime_CompilerServices_AsyncIteratorStateMachineAttribute__ctor,
+
         System_IAsyncDisposable__DisposeAsync,
         System_Collections_Generic_IAsyncEnumerable_T__GetAsyncEnumerator,
         System_Collections_Generic_IAsyncEnumerator_T__MoveNextAsync,
@@ -477,5 +479,7 @@ namespace Microsoft.CodeAnalysis
         System_Threading_Tasks_ValueTask_T__ctor,
 
         Count
+
+        // Remember to update the AllWellKnownTypeMembers tests when making changes here
     }
 }

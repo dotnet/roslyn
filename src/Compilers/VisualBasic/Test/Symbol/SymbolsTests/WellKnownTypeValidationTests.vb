@@ -507,6 +507,7 @@ End Namespace
                          WellKnownType.System_ReadOnlySpan_T,
                          WellKnownType.System_Index,
                          WellKnownType.System_Range,
+                         WellKnownType.System_Runtime_CompilerServices_AsyncIteratorStateMachineAttribute,
                          WellKnownType.System_IAsyncDisposable,
                          WellKnownType.System_Collections_Generic_IAsyncEnumerable_T,
                          WellKnownType.System_Collections_Generic_IAsyncEnumerator_T,
@@ -561,6 +562,7 @@ End Namespace
                          WellKnownType.System_ReadOnlySpan_T,
                          WellKnownType.System_Index,
                          WellKnownType.System_Range,
+                         WellKnownType.System_Runtime_CompilerServices_AsyncIteratorStateMachineAttribute,
                          WellKnownType.System_IAsyncDisposable,
                          WellKnownType.System_Collections_Generic_IAsyncEnumerable_T,
                          WellKnownType.System_Collections_Generic_IAsyncEnumerator_T,
@@ -591,7 +593,7 @@ End Namespace
         End Sub
 
         <Fact>
-               <WorkItem(530436, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530436")>
+        <WorkItem(530436, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530436")>
         Public Sub AllWellKnownTypeMembers()
             Dim refs As MetadataReference() =
             {
@@ -623,6 +625,7 @@ End Namespace
                          WellKnownMember.System_ReadOnlySpan_T__ctor,
                          WellKnownMember.System_ReadOnlySpan_T__get_Item,
                          WellKnownMember.System_ReadOnlySpan_T__get_Length,
+                         WellKnownMember.System_Runtime_CompilerServices_AsyncIteratorStateMachineAttribute__ctor,
                          WellKnownMember.System_IAsyncDisposable__DisposeAsync,
                          WellKnownMember.System_Collections_Generic_IAsyncEnumerable_T__GetAsyncEnumerator,
                          WellKnownMember.System_Collections_Generic_IAsyncEnumerator_T__MoveNextAsync,
@@ -746,6 +749,7 @@ End Namespace
                          WellKnownMember.System_ReadOnlySpan_T__ctor,
                          WellKnownMember.System_ReadOnlySpan_T__get_Item,
                          WellKnownMember.System_ReadOnlySpan_T__get_Length,
+                         WellKnownMember.System_Runtime_CompilerServices_AsyncIteratorStateMachineAttribute__ctor,
                          WellKnownMember.System_IAsyncDisposable__DisposeAsync,
                          WellKnownMember.System_Collections_Generic_IAsyncEnumerable_T__GetAsyncEnumerator,
                          WellKnownMember.System_Collections_Generic_IAsyncEnumerator_T__MoveNextAsync,
