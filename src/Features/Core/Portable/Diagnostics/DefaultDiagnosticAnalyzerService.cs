@@ -144,7 +144,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             public void RemoveDocument(DocumentId documentId)
             {
-                // a file is removed from misc project
+                // a file is removed from a solution
+                //
+                // here syntax and semantic indicates type of errors not where it is originated from.
+                // Option.Semantic or Option.ScriptSemantic indicates what kind of document we will produce semantic errors from.
+                // Option.Semantic == true means we will generate semantic errors for all document type
+                // Option.ScriptSemantic == true means we will generate semantic errors only for script document type
+                // both of them at the end generates semantic errors
                 RaiseEmptyDiagnosticUpdated(AnalysisKind.Syntax, documentId);
                 RaiseEmptyDiagnosticUpdated(AnalysisKind.Semantic, documentId);
             }

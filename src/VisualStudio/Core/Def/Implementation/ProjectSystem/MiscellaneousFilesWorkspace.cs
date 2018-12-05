@@ -395,7 +395,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             var projectId = ProjectId.CreateNewId(debugName: "Miscellaneous Files Project for " + filePath);
             var documentId = DocumentId.CreateNewId(projectId, debugName: filePath);
 
-            var sourceCodeKind = GetSourceCodeKind();
+            var sourceCodeKind = GetSourceCodeKind(parseOptionsOpt, fileExtension, languageInformation);
             var documentInfo = DocumentInfo.Create(
                 documentId,
                 filePath,
@@ -421,17 +421,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             // Miscellaneous files projects are never fully loaded since, by definition, it won't know
             // what the full set of information is except when the file is script code.
             return projectInfo.WithHasAllInformation(hasAllInformation: sourceCodeKind == SourceCodeKind.Script);
+        }
 
-            SourceCodeKind GetSourceCodeKind()
+        private SourceCodeKind GetSourceCodeKind(
+            ParseOptions parseOptionsOpt,
+            string fileExtension,
+            LanguageInformation languageInformation)
+        {
+            if (parseOptionsOpt != null)
             {
-                if (parseOptionsOpt != null)
-                {
-                    return parseOptionsOpt.Kind;
-                }
-
-                return string.Equals(fileExtension, languageInformation.ScriptExtension, StringComparison.OrdinalIgnoreCase) ?
-                    SourceCodeKind.Script : SourceCodeKind.Regular;
+                return parseOptionsOpt.Kind;
             }
+
+            return string.Equals(fileExtension, languageInformation.ScriptExtension, StringComparison.OrdinalIgnoreCase) ?
+                SourceCodeKind.Script : SourceCodeKind.Regular;
         }
 
         private void DetachFromDocument(uint docCookie, string moniker)
