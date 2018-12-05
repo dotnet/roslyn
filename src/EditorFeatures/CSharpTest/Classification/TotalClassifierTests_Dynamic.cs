@@ -707,7 +707,7 @@ partial void F(dynamic d)
                 Keyword("class"),
                 Class("dynamic"),
                 Punctuation.OpenCurly,
-                Identifier("dynamic"),
+                Method("dynamic"),
                 Punctuation.OpenParen,
                 Punctuation.CloseParen,
                 Punctuation.OpenCurly,

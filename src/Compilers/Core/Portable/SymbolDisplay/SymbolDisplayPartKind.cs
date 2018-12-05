@@ -67,9 +67,9 @@ namespace Microsoft.CodeAnalysis
         TypeParameterName = 26,
         /// <summary>The name of a query range variable.</summary>
         RangeVariableName = 27,
-        /// <summary>The name of an .</summary>
-        EnumMemberName = 28,
         /// <summary>The name of an enum member.</summary>
+        EnumMemberName = 28,
+        /// <summary>The name of an extension method.</summary>
         ExtensionMethodName = 29,
         /// <summary>The name of a constant.</summary>
         ConstantName = 30,

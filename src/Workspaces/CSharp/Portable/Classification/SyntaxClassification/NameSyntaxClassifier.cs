@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
                 return;
             }
 
-            var isEnumMember = symbol.IsKind(SymbolKind.Field) && symbol.ContainingType?.IsEnumType() == true;
+            var isEnumMember = symbol.IsKind(SymbolKind.Field) && symbol.ContainingType.IsEnumType();
             if (isEnumMember) // TODO: Since Enum members are always static is it useful to classify them as static?
             {
                 return;
@@ -143,11 +143,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
             CancellationToken cancellationToken,
             out ClassifiedSpan classifiedSpan)
         {
-            if (symbol is INamespaceSymbol namespaceSymbol)
+            if (symbol is INamespaceSymbol namespaceSymbol
+                && name is IdentifierNameSyntax identifierNameSyntax)
             {
-                // Do not classify the global:: namespace. It is already classified as a keyword.
+                // Do not classify the global:: namespace. It is already syntactically classified as a keyword.
                 var isGlobalNamespace = namespaceSymbol.IsGlobalNamespace
-                    && name is IdentifierNameSyntax identifierNameSyntax
                     && identifierNameSyntax.Identifier.IsKind(SyntaxKind.GlobalKeyword);
                 if (isGlobalNamespace)
                 {

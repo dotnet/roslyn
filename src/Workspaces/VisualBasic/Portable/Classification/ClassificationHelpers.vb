@@ -55,7 +55,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
 
         Private Function IsControlKeyword(token As SyntaxToken) As Boolean
             If (token.Parent Is Nothing) Then
-                Return SyntaxFacts.IsControlKeyword(token.Kind)
+                Return IsControlKeywordKind(token.Kind)
             End If
 
             ' For Exit Statments classify everything as a control keyword
@@ -69,8 +69,103 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
 
             ' Control keyword are used in other contexts so check that it is
             ' being used in a supported context.
-            Return SyntaxFacts.IsControlKeyword(token.Kind) AndAlso
-                SyntaxFacts.IsControlStatement(token.Parent.Kind)
+            Return IsControlKeywordKind(token.Kind) AndAlso
+                IsControlStatementKind(token.Parent.Kind)
+        End Function
+
+
+        ''' <summary>
+        ''' Determine if the kind represents a control keyword
+        ''' </summary>
+        Private Function IsControlKeywordKind(kind As SyntaxKind) As Boolean
+            Select Case kind
+                Case _
+                SyntaxKind.CaseKeyword,
+                SyntaxKind.CatchKeyword,
+                SyntaxKind.ContinueKeyword,
+                SyntaxKind.DoKeyword,
+                SyntaxKind.EachKeyword,
+                SyntaxKind.ElseKeyword,
+                SyntaxKind.ElseIfKeyword,
+                SyntaxKind.EndKeyword,
+                SyntaxKind.ExitKeyword,
+                SyntaxKind.FinallyKeyword,
+                SyntaxKind.ForKeyword,
+                SyntaxKind.GoToKeyword,
+                SyntaxKind.IfKeyword,
+                SyntaxKind.InKeyword,
+                SyntaxKind.LoopKeyword,
+                SyntaxKind.NextKeyword,
+                SyntaxKind.ResumeKeyword,
+                SyntaxKind.ReturnKeyword,
+                SyntaxKind.SelectKeyword,
+                SyntaxKind.ThenKeyword,
+                SyntaxKind.TryKeyword,
+                SyntaxKind.WhileKeyword,
+                SyntaxKind.WendKeyword,
+                SyntaxKind.UntilKeyword,
+                SyntaxKind.EndIfKeyword,
+                SyntaxKind.GosubKeyword,
+                SyntaxKind.YieldKeyword
+                    Return True
+                Case Else
+                    Return False
+            End Select
+
+        End Function
+
+        ''' <summary>
+        ''' Determine if the kind represents a control statement
+        ''' </summary>
+        Private Function IsControlStatementKind(kind As SyntaxKind) As Boolean
+            Select Case kind
+                Case _
+                SyntaxKind.CallStatement,
+                SyntaxKind.CaseElseStatement,
+                SyntaxKind.CaseStatement,
+                SyntaxKind.CatchStatement,
+                SyntaxKind.ContinueDoStatement,
+                SyntaxKind.ContinueForStatement,
+                SyntaxKind.ContinueWhileStatement,
+                SyntaxKind.DoUntilStatement,
+                SyntaxKind.DoWhileStatement,
+                SyntaxKind.ElseIfStatement,
+                SyntaxKind.ElseStatement,
+                SyntaxKind.EndIfStatement,
+                SyntaxKind.EndSelectStatement,
+                SyntaxKind.EndTryStatement,
+                SyntaxKind.EndUsingStatement,
+                SyntaxKind.EndWhileStatement,
+                SyntaxKind.ExitDoStatement,
+                SyntaxKind.ExitForStatement,
+                SyntaxKind.ExitSelectStatement,
+                SyntaxKind.ExitTryStatement,
+                SyntaxKind.ExitWhileStatement,
+                SyntaxKind.FinallyStatement,
+                SyntaxKind.ForEachStatement,
+                SyntaxKind.ForStatement,
+                SyntaxKind.GoToStatement,
+                SyntaxKind.IfStatement,
+                SyntaxKind.LoopUntilStatement,
+                SyntaxKind.LoopWhileStatement,
+                SyntaxKind.NextStatement,
+                SyntaxKind.ResumeLabelStatement,
+                SyntaxKind.ResumeNextStatement,
+                SyntaxKind.ReturnStatement,
+                SyntaxKind.SelectStatement,
+                SyntaxKind.SimpleDoStatement,
+                SyntaxKind.SimpleLoopStatement,
+                SyntaxKind.SingleLineIfStatement,
+                SyntaxKind.ThrowStatement,
+                SyntaxKind.TryStatement,
+                SyntaxKind.UntilClause,
+                SyntaxKind.WhileClause,
+                SyntaxKind.WhileStatement,
+                SyntaxKind.YieldStatement
+                    Return True
+                Case Else
+                    Return False
+            End Select
         End Function
 
         Private Function ClassifyPunctuation(token As SyntaxToken) As String
@@ -138,13 +233,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
                 parent = parent.Parent?.Parent
 
                 ' We are specifically looking for field declarations or constants.
-                If parent.IsKind(SyntaxKind.FieldDeclaration) Then
-                    Return False
-                End If
+                Return parent.IsKind(SyntaxKind.FieldDeclaration) AndAlso
+                    parent.GetModifiers().Any(Function(modifier) modifier.IsKind(SyntaxKind.SharedKeyword, SyntaxKind.ConstKeyword))
             End If
 
-            Return parent.GetModifiers().Any(
-                Function(modifier As SyntaxToken) modifier.IsKind(SyntaxKind.SharedKeyword, SyntaxKind.ConstKeyword))
+            Return parent.GetModifiers().Any(SyntaxKind.SharedKeyword)
         End Function
 
         Private Function IsStringToken(token As SyntaxToken) As Boolean

@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         #region Extension Method Name
         [Export]
         [Name(ClassificationTypeNames.ExtensionMethodName)]
-        [BaseDefinition(PredefinedClassificationTypeNames.Identifier)]
+        [BaseDefinition(ClassificationTypeNames.MethodName)]
         internal readonly ClassificationTypeDefinition ExtensionMethodNameTypeDefinition;
         #endregion
         #region Property Name
@@ -328,7 +328,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         #region Static Symbol
         [Export]
         [Name(ClassificationTypeNames.StaticSymbol)]
-        [BaseDefinition(PredefinedClassificationTypeNames.Identifier)]
+        [BaseDefinition(PredefinedClassificationTypeNames.FormalLanguage)]
         internal readonly ClassificationTypeDefinition StaticSymbolTypeDefinition;
         #endregion
 
