@@ -643,7 +643,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             // If we're injecting faults, we expect things to be strange
             if (faultInjectorOpt == null)
             {
-                Assert.NotEqual((IChecksummedPersistentStorage)NoOpPersistentStorage.Instance, storage);
+                Assert.NotEqual(NoOpPersistentStorage.Instance, storage);
             }
 
             return storage;

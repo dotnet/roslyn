@@ -182,28 +182,13 @@ namespace Microsoft.CodeAnalysis.SQLite
                     Stream stream = null;
                     connection.RunInTransaction(() =>
                     {
-                        if (checksumOpt != null)
+                        // If we were passed a checksum, make sure it matches what we have
+                        // stored in the table already.  If they don't match, don't read
+                        // out the data value at all.
+                        if (checksumOpt != null &&
+                            !ChecksumsMatch(connection, rowId, checksumOpt, cancellationToken))
                         {
-                            Debug.Assert(columnName != ChecksumColumnName);
-                            using (var checksumStream = connection.ReadBlob_MustRunInTransaction(DataTableName, ChecksumColumnName, rowId))
-                            using (var reader = ObjectReader.TryGetReader(checksumStream, cancellationToken))
-                            {
-                                if (reader == null)
-                                {
-                                    // Couldn't understand the old checksum.  It def doesn't match our
-                                    // current checksum.  Break out and just return a null-stream for
-                                    // this row.
-                                    return;
-                                }
-
-                                var checksum = Checksum.ReadFrom(reader);
-                                if (checksumOpt != checksum)
-                                {
-                                    // Checksums didn't match.  Catch use this stream.  Break out and
-                                    // jsut return a null-stream for this row.
-                                    return;
-                                }
-                            }
+                            return;
                         }
 
                         stream = connection.ReadBlob_MustRunInTransaction(DataTableName, columnName, rowId);
@@ -213,6 +198,15 @@ namespace Microsoft.CodeAnalysis.SQLite
                 }
 
                 return null;
+            }
+
+            private bool ChecksumsMatch(SqlConnection connection, long rowId, Checksum checksum, CancellationToken cancellationToken)
+            {
+                using (var checksumStream = connection.ReadBlob_MustRunInTransaction(DataTableName, ChecksumColumnName, rowId))
+                using (var reader = ObjectReader.TryGetReader(checksumStream, cancellationToken))
+                {
+                    return reader != null && Checksum.ReadFrom(reader) == checksum;
+                }
             }
 
             protected bool GetAndVerifyRowId(SqlConnection connection, long dataId, out long rowId)

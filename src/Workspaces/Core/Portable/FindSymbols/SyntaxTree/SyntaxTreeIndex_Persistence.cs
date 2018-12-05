@@ -53,6 +53,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             // any time the SyntaxTree could have changed.  Right now, that can only happen if the
             // text of the document changes, or the ParseOptions change.  So we get the checksums
             // for both of those, and merge them together to make the final checksum.
+            //
+            // We also want the checksu to change any time our serialization format changes.  If
+            // the format has changed, all previous versions should be invalidated.
             var projectChecksumState = await document.Project.State.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
             var parseOptionsChecksum = projectChecksumState.ParseOptions;
 
