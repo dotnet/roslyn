@@ -289,7 +289,7 @@ namespace Microsoft.CodeAnalysis
         {
             return oldState._treeSource != this._treeSource
                 || oldState.sourceTextOpt != this.sourceTextOpt
-                || oldState.textAndVersionSource != this.textAndVersionSource;
+                || oldState.TextAndVersionSource != this.TextAndVersionSource;
         }
 
         /// <summary>
@@ -298,7 +298,7 @@ namespace Microsoft.CodeAnalysis
         public bool HasTextChanged(DocumentState oldState)
         {
             return (oldState.sourceTextOpt != this.sourceTextOpt
-                || oldState.textAndVersionSource != this.textAndVersionSource);
+                || oldState.TextAndVersionSource != this.TextAndVersionSource);
         }
 
         public DocumentState UpdateParseOptions(ParseOptions options)
@@ -322,7 +322,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             var newTreeSource = CreateLazyFullyParsedTree(
-                this.textAndVersionSource,
+                this.TextAndVersionSource,
                 this.Id.ProjectId,
                 GetSyntaxTreeFilePath(this.Attributes),
                 options,
@@ -336,7 +336,7 @@ namespace Microsoft.CodeAnalysis
                 this.Attributes.With(sourceCodeKind: options.Kind),
                 options,
                 this.sourceTextOpt,
-                this.textAndVersionSource,
+                this.TextAndVersionSource,
                 newTreeSource);
         }
 
@@ -359,7 +359,7 @@ namespace Microsoft.CodeAnalysis
                 this.Attributes.With(name: name),
                 _options,
                 this.sourceTextOpt,
-                this.textAndVersionSource,
+                this.TextAndVersionSource,
                 _treeSource);
         }
 
@@ -372,7 +372,7 @@ namespace Microsoft.CodeAnalysis
                 this.Attributes.With(folders: folders),
                 _options,
                 this.sourceTextOpt,
-                this.textAndVersionSource,
+                this.TextAndVersionSource,
                 _treeSource);
         }
 
@@ -385,7 +385,7 @@ namespace Microsoft.CodeAnalysis
                 this.Attributes.With(filePath: filePath),
                 _options,
                 this.sourceTextOpt,
-                this.textAndVersionSource,
+                this.TextAndVersionSource,
                 _treeSource);
         }
 
@@ -590,7 +590,7 @@ namespace Microsoft.CodeAnalysis
 
         private VersionStamp GetNewerVersion()
         {
-            if (this.textAndVersionSource.TryGetValue(out var textAndVersion))
+            if (this.TextAndVersionSource.TryGetValue(out var textAndVersion))
             {
                 return textAndVersion.Version.GetNewerVersion();
             }
