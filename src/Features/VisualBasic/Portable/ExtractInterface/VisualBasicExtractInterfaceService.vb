@@ -94,7 +94,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractInterface
             Return typeDeclaration.GetModifiers().Any(Function(m) SyntaxFacts.IsAccessibilityModifier(m.Kind()))
         End Function
 
-        Friend Overrides Function UpdateMembersWithExplicitImplementations(unformattedSolution As Solution, documentIds As IReadOnlyList(Of DocumentId), extractedInterfaceSymbol As INamedTypeSymbol, typeToExtractFrom As INamedTypeSymbol, includedMembers As IEnumerable(Of ISymbol), symbolToDeclarationAnnotationMap As Dictionary(Of ISymbol, SyntaxAnnotation), cancellationToken As CancellationToken) As Solution
+        Friend Overrides Function UpdateMembersWithExplicitImplementations(
+            unformattedSolution As Solution, documentIds As IReadOnlyList(Of DocumentId), extractedInterfaceSymbol As INamedTypeSymbol,
+            typeToExtractFrom As INamedTypeSymbol, includedMembers As IEnumerable(Of ISymbol),
+            symbolToDeclarationAnnotationMap As Dictionary(Of ISymbol, SyntaxAnnotation), cancellationToken As CancellationToken) As Solution
+
             Dim docToRootMap = New Dictionary(Of DocumentId, CompilationUnitSyntax)
 
             Dim implementedInterfaceStatementSyntax = If(extractedInterfaceSymbol.TypeParameters.Any(),
