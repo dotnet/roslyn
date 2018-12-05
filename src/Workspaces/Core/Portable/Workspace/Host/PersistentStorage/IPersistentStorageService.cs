@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Threading.Tasks;
+
 namespace Microsoft.CodeAnalysis.Host
 {
     /// <summary>
@@ -13,5 +15,10 @@ namespace Microsoft.CodeAnalysis.Host
     internal interface IPersistentStorageService2 : IPersistentStorageService
     {
         IPersistentStorage GetStorage(Solution solution, bool checkBranchId);
+    }
+
+    internal interface IChecksummedPersistentStorageService : IWorkspaceService
+    {
+        IChecksummedPersistentStorage GetStorage(Solution solution, bool checkBranchId);
     }
 }
