@@ -61314,22 +61314,22 @@ class Program
     {
         if (na1?.B != null)
         {
-            _ = (object)na1;
+            var a1 = (object)na1;
         }
         else
         {
-            _ = (object)na1; // 1
+            var a1 = (object)na1; // 1
         }
     }
     static void F2(A? na2)
     {
         if (na2?.B != null)
         {
-            _ = (System.ValueType)na2;
+            var a2 = (System.ValueType)na2;
         }
         else
         {
-            _ = (System.ValueType)na2; // 2
+            var a2 = (System.ValueType)na2; // 2
         }
     }
     static void F3(A? na3)
@@ -61337,12 +61337,12 @@ class Program
         if (na3?.B != null)
         {
             var a3 = (A)na3;
-            _ = (object)a3.B;
+            var b3 = (object)a3.B;
         }
         else
         {
             var a3 = (A)na3; // 3
-            _ = (object)a3.B; // 4
+            var b3 = (object)a3.B; // 4
         }
     }
     static void F4(A? na4)
@@ -61350,35 +61350,35 @@ class Program
         if (na4?.B != null)
         {
             var a4 = (A)na4;
-            _ = (System.ValueType)a4.B;
+            var b4 = (System.ValueType)a4.B;
         }
         else
         {
             var a4 = (A)na4; // 5
-            _ = (System.ValueType)a4.B; // 6
+            var b4 = (System.ValueType)a4.B; // 6
         }
     }
 }";
             var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
-                // (19,17): warning CS8600: Converting null literal or possible null value to non-nullable type.
-                //             _ = (object)na1; // 1
-                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(object)na1").WithLocation(19, 17),
-                // (30,17): warning CS8600: Converting null literal or possible null value to non-nullable type.
-                //             _ = (System.ValueType)na2; // 2
-                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(System.ValueType)na2").WithLocation(30, 17),
+                // (19,22): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //             var a1 = (object)na1; // 1
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(object)na1").WithLocation(19, 22),
+                // (30,22): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //             var a2 = (System.ValueType)na2; // 2
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(System.ValueType)na2").WithLocation(30, 22),
                 // (42,22): warning CS8629: Nullable value type may be null.
                 //             var a3 = (A)na3; // 3
                 Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "(A)na3").WithLocation(42, 22),
-                // (43,17): warning CS8600: Converting null literal or possible null value to non-nullable type.
-                //             _ = (object)a3.B; // 4
-                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(object)a3.B").WithLocation(43, 17),
+                // (43,22): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //             var b3 = (object)a3.B; // 4
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(object)a3.B").WithLocation(43, 22),
                 // (55,22): warning CS8629: Nullable value type may be null.
                 //             var a4 = (A)na4; // 5
                 Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "(A)na4").WithLocation(55, 22),
-                // (56,17): warning CS8600: Converting null literal or possible null value to non-nullable type.
-                //             _ = (System.ValueType)a4.B; // 6
-                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(System.ValueType)a4.B").WithLocation(56, 17));
+                // (56,22): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //             var b4 = (System.ValueType)a4.B; // 6
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(System.ValueType)a4.B").WithLocation(56, 22));
         }
 
         [Fact]
@@ -61404,11 +61404,11 @@ class Program
     {
         if (na1?.B != null)
         {
-            _ = (C)na1;
+            var c1 = (C)na1;
         }
         else
         {
-            _ = (C)na1; // 1
+            var c1 = (C)na1; // 1
         }
     }
     static void F2(A? na2)
@@ -61416,26 +61416,26 @@ class Program
         if (na2?.B != null)
         {
             var a2 = (A)na2;
-            _ = (C)a2.B;
+            var c2 = (C)a2.B;
         }
         else
         {
             var a2 = (A)na2; // 2
-            _ = (C)a2.B; // 3
+            var c2 = (C)a2.B; // 3
         }
     }
 }";
             var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
-                // (24,17): warning CS8600: Converting null literal or possible null value to non-nullable type.
-                //             _ = (C)na1; // 1
-                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(C)na1").WithLocation(24, 17),
+                // (24,22): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //             var c1 = (C)na1; // 1
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(C)na1").WithLocation(24, 22),
                 // (36,22): warning CS8629: Nullable value type may be null.
                 //             var a2 = (A)na2; // 2
                 Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "(A)na2").WithLocation(36, 22),
-                // (37,17): warning CS8600: Converting null literal or possible null value to non-nullable type.
-                //             _ = (C)a2.B; // 3
-                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(C)a2.B").WithLocation(37, 17));
+                // (37,22): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //             var c2 = (C)a2.B; // 3
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(C)a2.B").WithLocation(37, 22));
         }
 
         [Fact]

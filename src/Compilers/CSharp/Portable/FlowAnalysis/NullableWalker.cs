@@ -419,6 +419,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             operand.Type?.IsNullableType() == true &&
                             conv.Type?.IsNullableType() == false)
                         {
+                            Debug.Assert(operand.Type.GetNullableUnderlyingType().Equals(conv.Type, TypeCompareKind.AllIgnoreOptions));
                             // Explicit conversion of Nullable<T> to T is equivalent to Nullable<T>.Value.
                             // For instance, in the following, when evaluating `((A)a).B` we need to recognize
                             // the nullability of `(A)a` (not nullable) and the slot (the slot for `a.Value`).
@@ -3390,7 +3391,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         // method return type -> conversion "to" type
                         // May be distinct from method return type for Nullable<T>.
-                        operandType = ClassifyAndApplyConversion(operandOpt ?? node, TypeSymbolWithAnnotations.Create(conversion.BestUserDefinedConversionAnalysis.ToType), operandType, useLegacyWarnings, assignmentKind, target: null);
+                        operandType = ClassifyAndApplyConversion(operandOpt ?? node, TypeSymbolWithAnnotations.Create(conversion.BestUserDefinedConversionAnalysis.ToType), operandType, useLegacyWarnings, assignmentKind, target: parameter);
 
                         // conversion "to" type -> final type
                         // https://github.com/dotnet/roslyn/issues/29959 If the original conversion was
@@ -3427,7 +3428,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ConversionKind.Boxing:
                     if (!operandType.IsNull && operandType.IsValueType)
                     {
-                        resultAnnotation = operandType.NullableAnnotation.IsAnyNullable() ? NullableAnnotation.Nullable : NullableAnnotation.NotNullable;
+                        resultAnnotation = (operandType.IsNullableType() && operandType.NullableAnnotation.IsAnyNullable()) ? NullableAnnotation.Nullable : NullableAnnotation.NotNullable;
                     }
                     else if (!operandType.IsNull && IsUnconstrainedTypeParameter(operandType.TypeSymbol))
                     {
@@ -4771,7 +4772,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        private void CheckPossibleNullReceiver(BoundExpression receiverOpt, bool allowValueType = false, SyntaxNode syntaxOpt = null)
+        private void CheckPossibleNullReceiver(BoundExpression receiverOpt, bool checkNullableValueType = false, SyntaxNode syntaxOpt = null)
         {
             Debug.Assert(!this.IsConditionalState);
             if (receiverOpt != null && this.State.Reachable)
@@ -4784,23 +4785,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                     _resultType.GetValueNullableAnnotation().IsAnyNullable())
                 {
                     bool isValueType = resultType.IsValueType;
-                    if (isValueType && !allowValueType)
+                    if (isValueType && (!checkNullableValueType || !resultType.IsNullableType()))
                     {
                         return;
                     }
-                    ReportPossibleNullValue(syntaxOpt ?? receiverOpt.Syntax, receiverOpt, isValueType);
+                    ReportDiagnostic(isValueType ? ErrorCode.WRN_NullableValueTypeMayBeNull : ErrorCode.WRN_NullReferenceReceiver, syntaxOpt ?? receiverOpt.Syntax);
+                    int slot = MakeSlot(receiverOpt);
+                    if (slot > 0)
+                    {
+                        this.State[slot] = NullableAnnotation.NotNullable;
+                    }
                 }
-            }
-        }
-
-        private void ReportPossibleNullValue(SyntaxNode syntax, BoundExpression expr, bool isValueType)
-        {
-            Debug.Assert(!this.IsConditionalState);
-            ReportDiagnostic(isValueType ? ErrorCode.WRN_NullableValueTypeMayBeNull : ErrorCode.WRN_NullReferenceReceiver, syntax);
-            int slot = MakeSlot(expr);
-            if (slot > 0)
-            {
-                this.State[slot] = NullableAnnotation.NotNullable;
             }
         }
 
