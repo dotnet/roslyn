@@ -42,8 +42,7 @@ namespace Microsoft.CodeAnalysis
             IDocumentServiceProvider documentServiceProvider,
             DocumentInfo.DocumentAttributes attributes,
             SourceText sourceTextOpt,
-            ValueSource<TextAndVersion> textAndVersionSource,
-            ValueSource<DocumentStateChecksums> lazyChecksums)
+            ValueSource<TextAndVersion> textAndVersionSource)
         {
             this.solutionServices = solutionServices;
             this.sourceTextOpt = sourceTextOpt;
@@ -52,8 +51,11 @@ namespace Microsoft.CodeAnalysis
             Attributes = attributes;
             Services = documentServiceProvider ?? DefaultTextDocumentServiceProvider.Instance;
 
-            // for now, let it re-calculate if anything changed.
-            // TODO: optimize this so that we only re-calcuate checksums that are actually changed
+            // This constructor is called whenever we're creating a new TextDocumentState from another
+            // TextDocumentState, and so we populate all the fields from the inputs. We will always create
+            // a new AsyncLazy to compute the checksum though, and that's because there's no practical way for
+            // the newly created TextDocumentState to have the same checksum as a previous TextDocumentState:
+            // if we're creating a new state, it's because something changed, and we'll have to create a new checksum.
             _lazyChecksums = new AsyncLazy<DocumentStateChecksums>(ComputeChecksumsAsync, cacheResult: true);
         }
 
@@ -95,8 +97,7 @@ namespace Microsoft.CodeAnalysis
                 documentServiceProvider: info.DocumentServiceProvider,
                 attributes: info.Attributes,
                 sourceTextOpt: null,
-                textAndVersionSource: textSource,
-                lazyChecksums: null);
+                textAndVersionSource: textSource);
         }
 
         protected static ValueSource<TextAndVersion> CreateStrongText(TextAndVersion text)
@@ -323,8 +324,7 @@ namespace Microsoft.CodeAnalysis
                 this.Services,
                 this.Attributes,
                 sourceTextOpt: null,
-                textAndVersionSource: newTextSource,
-                lazyChecksums: null);
+                textAndVersionSource: newTextSource);
         }
 
         public TextDocumentState UpdateText(SourceText newText, PreservationMode mode)
@@ -358,8 +358,7 @@ namespace Microsoft.CodeAnalysis
                 this.Services,
                 this.Attributes,
                 sourceTextOpt: null,
-                textAndVersionSource: newTextSource,
-                lazyChecksums: null);
+                textAndVersionSource: newTextSource);
         }
 
         private async Task<TextAndVersion> GetTextAndVersionAsync(CancellationToken cancellationToken)

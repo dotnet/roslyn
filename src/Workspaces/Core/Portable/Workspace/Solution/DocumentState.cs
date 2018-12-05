@@ -33,9 +33,8 @@ namespace Microsoft.CodeAnalysis
             ParseOptions options,
             SourceText sourceTextOpt,
             ValueSource<TextAndVersion> textSource,
-            ValueSource<TreeAndVersion> treeSource,
-            ValueSource<DocumentStateChecksums> lazyChecksums)
-            : base(solutionServices, documentServiceProvider, attributes, sourceTextOpt, textSource, lazyChecksums)
+            ValueSource<TreeAndVersion> treeSource)
+            : base(solutionServices, documentServiceProvider, attributes, sourceTextOpt, textSource)
         {
             _languageServices = languageServices;
             _options = options;
@@ -82,8 +81,7 @@ namespace Microsoft.CodeAnalysis
                 options: options,
                 sourceTextOpt: null,
                 textSource: textSource,
-                treeSource: treeSource,
-                lazyChecksums: null);
+                treeSource: treeSource);
         }
 
         // This is the string used to represent the FilePath property on a SyntaxTree object.
@@ -339,8 +337,7 @@ namespace Microsoft.CodeAnalysis
                 options,
                 this.sourceTextOpt,
                 this.textAndVersionSource,
-                newTreeSource,
-                lazyChecksums: null);
+                newTreeSource);
         }
 
         public DocumentState UpdateSourceCodeKind(SourceCodeKind kind)
@@ -363,8 +360,7 @@ namespace Microsoft.CodeAnalysis
                 _options,
                 this.sourceTextOpt,
                 this.textAndVersionSource,
-                _treeSource,
-                lazyChecksums: null);
+                _treeSource);
         }
 
         public DocumentState UpdateFolders(IList<string> folders)
@@ -377,8 +373,7 @@ namespace Microsoft.CodeAnalysis
                 _options,
                 this.sourceTextOpt,
                 this.textAndVersionSource,
-                _treeSource,
-                lazyChecksums: null);
+                _treeSource);
         }
 
         public DocumentState UpdateFilePath(string filePath)
@@ -391,8 +386,7 @@ namespace Microsoft.CodeAnalysis
                 _options,
                 this.sourceTextOpt,
                 this.textAndVersionSource,
-                _treeSource,
-                lazyChecksums: null);
+                _treeSource);
         }
 
         public new DocumentState UpdateText(SourceText newText, PreservationMode mode)
@@ -439,8 +433,7 @@ namespace Microsoft.CodeAnalysis
                 _options,
                 sourceTextOpt: null,
                 textSource: newTextSource,
-                treeSource: newTreeSource,
-                lazyChecksums: null);
+                treeSource: newTreeSource);
         }
 
         public new DocumentState UpdateText(TextLoader loader, PreservationMode mode)
@@ -481,8 +474,7 @@ namespace Microsoft.CodeAnalysis
                 _options,
                 sourceTextOpt: textOpt,
                 textSource: newTextSource,
-                treeSource: newTreeSource,
-                lazyChecksums: null);
+                treeSource: newTreeSource);
         }
 
         internal DocumentState UpdateTree(SyntaxNode newRoot, PreservationMode mode)
@@ -524,8 +516,7 @@ namespace Microsoft.CodeAnalysis
                 _options,
                 sourceTextOpt: null,
                 textSource: result.Item1,
-                treeSource: new ConstantValueSource<TreeAndVersion>(result.Item2),
-                lazyChecksums: null);
+                treeSource: new ConstantValueSource<TreeAndVersion>(result.Item2));
         }
 
         private VersionStamp GetNewTreeVersionForUpdatedTree(SyntaxNode newRoot, VersionStamp newTextVersion, PreservationMode mode)
