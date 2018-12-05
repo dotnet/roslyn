@@ -1780,6 +1780,8 @@ endRegion:
                 case OperationKind.Discard:
                 case OperationKind.ReDim:
                 case OperationKind.ReDimClause:
+                case OperationKind.FromEndIndex:
+                case OperationKind.Range:
                     return true;
             }
 
