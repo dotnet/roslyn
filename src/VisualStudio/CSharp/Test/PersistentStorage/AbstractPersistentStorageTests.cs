@@ -118,6 +118,12 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
 
         private async Task PersistentService_Solution_WriteReadDifferentInstances(Solution solution, Size size)
         {
+            await PersistentService_Solution_WriteReadDifferentInstances(solution, size, withChecksum: false);
+            await PersistentService_Solution_WriteReadDifferentInstances(solution, size, withChecksum: true);
+        }
+
+        private async Task PersistentService_Solution_WriteReadDifferentInstances(Solution solution, Size size, bool withChecksum)
+        {
             var streamName1 = "PersistentService_Solution_WriteReadDifferentInstances1";
             var streamName2 = "PersistentService_Solution_WriteReadDifferentInstances2";
 
@@ -144,6 +150,12 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
         }
 
         private async Task PersistentService_Solution_WriteReadReopenSolution(Solution solution, Size size)
+        {
+            await PersistentService_Solution_WriteReadReopenSolution(solution, size, withChecksum: false);
+            await PersistentService_Solution_WriteReadReopenSolution(solution, size, withChecksum: true);
+        }
+
+        private async Task PersistentService_Solution_WriteReadReopenSolution(Solution solution, Size size, bool withChecksum)
         {
             var streamName1 = "PersistentService_Solution_WriteReadReopenSolution1";
             var streamName2 = "PersistentService_Solution_WriteReadReopenSolution2";
@@ -174,6 +186,12 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
 
         private async Task PersistentService_Solution_WriteReadSameInstance(Solution solution, Size size)
         {
+            await PersistentService_Solution_WriteReadSameInstance(solution, size, withChecksum: false);
+            await PersistentService_Solution_WriteReadSameInstance(solution, size, withChecksum: true);
+        }
+
+        private async Task PersistentService_Solution_WriteReadSameInstance(Solution solution, Size size, bool withChecksum)
+        {
             var streamName1 = "PersistentService_Solution_WriteReadSameInstance1";
             var streamName2 = "PersistentService_Solution_WriteReadSameInstance2";
 
@@ -197,6 +215,12 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
         }
 
         private async Task PersistentService_Project_WriteReadSameInstance(Solution solution, Size size)
+        {
+            await PersistentService_Project_WriteReadSameInstance(solution, size, withChecksum: false);
+            await PersistentService_Project_WriteReadSameInstance(solution, size, withChecksum: true);
+        }
+
+        private async Task PersistentService_Project_WriteReadSameInstance(Solution solution, Size size, bool withChecksum)
         {
             var streamName1 = "PersistentService_Project_WriteReadSameInstance1";
             var streamName2 = "PersistentService_Project_WriteReadSameInstance2";
@@ -223,6 +247,12 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
         }
 
         private async Task PersistentService_Document_WriteReadSameInstance(Solution solution, Size size)
+        {
+            await PersistentService_Document_WriteReadSameInstance(solution, size, withChecksum: false);
+            await PersistentService_Document_WriteReadSameInstance(solution, size, withChecksum: true);
+        }
+
+        private async Task PersistentService_Document_WriteReadSameInstance(Solution solution, Size size, bool withChecksum)
         {
             var streamName1 = "PersistentService_Document_WriteReadSameInstance1";
             var streamName2 = "PersistentService_Document_WriteReadSameInstance2";
@@ -316,6 +346,12 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
 
         private async Task PersistentService_Solution_SimultaneousReads(Solution solution, Size size)
         {
+            await PersistentService_Solution_SimultaneousReads(solution, size, withChecksum: false);
+            await PersistentService_Solution_SimultaneousReads(solution, size, withChecksum: true);
+        }
+
+        private async Task PersistentService_Solution_SimultaneousReads(Solution solution, Size size, bool withChecksum)
+        {
             var streamName1 = "PersistentService_Solution_SimultaneousReads1";
 
             using (var storage = GetStorage(solution))
@@ -336,6 +372,12 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
 
         private async Task PersistentService_Project_SimultaneousReads(Solution solution, Size size)
         {
+            await PersistentService_Project_SimultaneousReads(solution, size, withChecksum: false);
+            await PersistentService_Project_SimultaneousReads(solution, size, withChecksum: true);
+        }
+
+        private async Task PersistentService_Project_SimultaneousReads(Solution solution, Size size, bool withChecksum)
+        {
             var streamName1 = "PersistentService_Project_SimultaneousReads1";
 
             using (var storage = GetStorage(solution))
@@ -355,6 +397,12 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
         }
 
         private async Task PersistentService_Document_SimultaneousReads(Solution solution, Size size)
+        {
+            await PersistentService_Document_SimultaneousReads(solution, size, withChecksum: false);
+            await PersistentService_Document_SimultaneousReads(solution, size, withChecksum: true);
+        }
+
+        private async Task PersistentService_Document_SimultaneousReads(Solution solution, Size size, bool withChecksum)
         {
             var streamName1 = "PersistentService_Document_SimultaneousReads1";
 
@@ -425,7 +473,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             return workspace.CurrentSolution;
         }
 
-        internal IPersistentStorage GetStorage(
+        internal IChecksummedPersistentStorage GetStorage(
             Solution solution, IPersistentStorageFaultInjector faultInjectorOpt = null)
         {
             // For the sake of tests, all solutions are bigger than our threshold, and thus deserve to get storage for them
@@ -437,17 +485,16 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             _persistentLocationService?.RaiseShutdown();
             _persistentLocationService = new MockPersistentStorageLocationService(solution.Id, _persistentFolder);
 
-            var storage = GetStorageService(_persistentLocationService, solutionSizeTrackerMock.Object, faultInjectorOpt).GetStorage(solution);
+            var storage = GetStorageService(_persistentLocationService, solutionSizeTrackerMock.Object, faultInjectorOpt).GetStorage(solution, checkBranchId: true);
 
             // If we're injecting faults, we expect things to be strange
             if (faultInjectorOpt == null)
             {
-                Assert.NotEqual(NoOpPersistentStorage.Instance, storage);
+                Assert.NotEqual((IChecksummedPersistentStorage)NoOpPersistentStorage.Instance, storage);
             }
 
             return storage;
         }
-
 
         private class MockPersistentStorageLocationService : IPersistentStorageLocationService
         {
@@ -480,7 +527,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             }
         }
 
-        internal abstract IPersistentStorageService GetStorageService(IPersistentStorageLocationService locationService, ISolutionSizeTracker solutionSizeTracker, IPersistentStorageFaultInjector faultInjector);
+        internal abstract IChecksummedPersistentStorageService GetStorageService(IPersistentStorageLocationService locationService, ISolutionSizeTracker solutionSizeTracker, IPersistentStorageFaultInjector faultInjector);
 
         protected Stream EncodeString(string text)
         {

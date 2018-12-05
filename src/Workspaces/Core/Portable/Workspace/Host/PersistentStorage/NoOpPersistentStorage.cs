@@ -7,7 +7,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Host
 {
-    internal class NoOpPersistentStorage : IPersistentStorage
+    internal class NoOpPersistentStorage : IPersistentStorage, IChecksummedPersistentStorage
     {
         public static readonly IPersistentStorage Instance = new NoOpPersistentStorage();
 
@@ -19,6 +19,15 @@ namespace Microsoft.CodeAnalysis.Host
         {
         }
 
+        public Task<Checksum> ReadChecksumAsync(string name, CancellationToken cancellationToken = default)
+            => SpecializedTasks.Default<Checksum>();
+
+        public Task<Checksum> ReadChecksumAsync(Project project, string name, CancellationToken cancellationToken = default)
+            => SpecializedTasks.Default<Checksum>();
+
+        public Task<Checksum> ReadChecksumAsync(Document document, string name, CancellationToken cancellationToken = default)
+            => SpecializedTasks.Default<Checksum>();
+
         public Task<Stream> ReadStreamAsync(Document document, string name, CancellationToken cancellationToken = default)
             => SpecializedTasks.Default<Stream>();
 
@@ -28,6 +37,15 @@ namespace Microsoft.CodeAnalysis.Host
         public Task<Stream> ReadStreamAsync(string name, CancellationToken cancellationToken = default)
             => SpecializedTasks.Default<Stream>();
 
+        public Task<Stream> ReadStreamAsync(string name, Checksum checksum = null, CancellationToken cancellationToken = default)
+            => SpecializedTasks.Default<Stream>();
+
+        public Task<Stream> ReadStreamAsync(Project project, string name, Checksum checksum = null, CancellationToken cancellationToken = default)
+            => SpecializedTasks.Default<Stream>();
+
+        public Task<Stream> ReadStreamAsync(Document document, string name, Checksum checksum = null, CancellationToken cancellationToken = default)
+            => SpecializedTasks.Default<Stream>();
+
         public Task<bool> WriteStreamAsync(Document document, string name, Stream stream, CancellationToken cancellationToken = default)
             => SpecializedTasks.False;
 
@@ -35,6 +53,15 @@ namespace Microsoft.CodeAnalysis.Host
             => SpecializedTasks.False;
 
         public Task<bool> WriteStreamAsync(string name, Stream stream, CancellationToken cancellationToken = default)
+            => SpecializedTasks.False;
+
+        public Task<bool> WriteStreamAsync(string name, Stream stream, Checksum checksum = null, CancellationToken cancellationToken = default)
+            => SpecializedTasks.False;
+
+        public Task<bool> WriteStreamAsync(Project project, string name, Stream stream, Checksum checksum = null, CancellationToken cancellationToken = default)
+            => SpecializedTasks.False;
+
+        public Task<bool> WriteStreamAsync(Document document, string name, Stream stream, Checksum checksum = null, CancellationToken cancellationToken = default)
             => SpecializedTasks.False;
     }
 }

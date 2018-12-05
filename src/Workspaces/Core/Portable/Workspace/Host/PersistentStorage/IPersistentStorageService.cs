@@ -16,9 +16,4 @@ namespace Microsoft.CodeAnalysis.Host
     {
         IPersistentStorage GetStorage(Solution solution, bool checkBranchId);
     }
-
-    internal interface IChecksummedPersistentStorageService : IWorkspaceService
-    {
-        IChecksummedPersistentStorage GetStorage(Solution solution, bool checkBranchId);
-    }
 }

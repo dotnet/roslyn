@@ -18,7 +18,8 @@ namespace Microsoft.CodeAnalysis.Storage
     /// A service that enables storing and retrieving of information associated with solutions,
     /// projects or documents across runtime sessions.
     /// </summary>
-    internal abstract partial class AbstractPersistentStorageService : IPersistentStorageService2
+    internal abstract partial class AbstractPersistentStorageService :
+        IPersistentStorageService2, IChecksummedPersistentStorageService
     {
         private readonly IOptionService _optionService;
         private readonly IPersistentStorageLocationService _locationService;
@@ -46,10 +47,16 @@ namespace Microsoft.CodeAnalysis.Storage
         protected abstract bool TryOpenDatabase(Solution solution, string workingFolderPath, string databaseFilePath, out IPersistentStorage storage);
         protected abstract bool ShouldDeleteDatabase(Exception exception);
 
-        public IPersistentStorage GetStorage(Solution solution)
-            => GetStorage(solution, checkBranchId: true);
+        IPersistentStorage IPersistentStorageService.GetStorage(Solution solution)
+            => (IPersistentStorage)this.GetStorage(solution, checkBranchId: true);
 
-        public IPersistentStorage GetStorage(Solution solution, bool checkBranchId)
+        IPersistentStorage IPersistentStorageService2.GetStorage(Solution solution, bool checkBranchId)
+            => (IPersistentStorage)this.GetStorage(solution, checkBranchId);
+
+        IChecksummedPersistentStorage IChecksummedPersistentStorageService.GetStorage(Solution solution, bool checkBranchId)
+            => (IChecksummedPersistentStorage)this.GetStorage(solution, checkBranchId);
+
+        public IDisposable GetStorage(Solution solution, bool checkBranchId)
         {
             if (!DatabaseSupported(solution, checkBranchId))
             {

@@ -50,12 +50,26 @@ namespace Microsoft.CodeAnalysis.SQLite
             protected abstract void BindFirstParameter(SqlStatement statement, TDatabaseId dataId);
             protected abstract TWriteQueueKey GetWriteQueueKey(TKey key);
 
-            public async Task<Stream> ReadStreamAsync(TKey key, CancellationToken cancellationToken)
+            public async Task<Checksum> ReadChecksumAsync(TKey key, CancellationToken cancellationToken)
             {
-                // Note: we're technically fully synchronous.  However, we're called from several
-                // async methods.  We just return a Task<stream> here so that all our callers don't
-                // need to call Task.FromResult on us.
+                using (var stream = await ReadBlobColumnAsync(key, ChecksumColumnName, checksumOpt: null, cancellationToken).ConfigureAwait(false))
+                using (var reader = ObjectReader.TryGetReader(stream, cancellationToken))
+                {
+                    if (reader != null)
+                    {
+                        return Checksum.ReadFrom(reader);
+                    }
+                }
 
+                return null;
+            }
+
+            public Task<Stream> ReadStreamAsync(TKey key, Checksum checksum, CancellationToken cancellationToken)
+                => ReadBlobColumnAsync(key, DataColumnName, checksum, cancellationToken);
+
+            private async Task<Stream> ReadBlobColumnAsync(
+                TKey key, string columnName, Checksum checksumOpt, CancellationToken cancellationToken)
+            {
                 cancellationToken.ThrowIfCancellationRequested();
 
                 if (!Storage._shutdownTokenSource.IsCancellationRequested)
@@ -78,7 +92,7 @@ namespace Microsoft.CodeAnalysis.SQLite
                             using (var pooledConnection = Storage.GetPooledConnection())
                             {
                                 // Lookup the row from the DocumentData table corresponding to our dataId.
-                                return ReadBlob(pooledConnection.Connection, dataId);
+                                return ReadBlob(pooledConnection.Connection, dataId, columnName, checksumOpt);
                             }
                         }
                         catch (Exception ex)
@@ -92,7 +106,7 @@ namespace Microsoft.CodeAnalysis.SQLite
             }
 
             public async Task<bool> WriteStreamAsync(
-                TKey key, Stream stream, CancellationToken cancellationToken)
+                TKey key, Stream stream, Checksum checksumOpt, CancellationToken cancellationToken)
             {
                 // Note: we're technically fully synchronous.  However, we're called from several
                 // async methods.  We just return a Task<bool> here so that all our callers don't
@@ -112,14 +126,22 @@ namespace Microsoft.CodeAnalysis.SQLite
 
                     if (haveDataId)
                     {
-                        var (bytes, length, pooled) = GetBytes(stream);
+                        var (checksumBytes, checksumLength, checksumPooled) = GetBytes(checksumOpt, cancellationToken);
+                        var (dataBytes, dataLength, dataPooled) = GetBytes(stream);
 
                         await AddWriteTaskAsync(key, con =>
                         {
-                            InsertOrReplaceBlob(con, dataId, bytes, length);
-                            if (pooled)
+                            InsertOrReplaceBlob(con, dataId,
+                                checksumBytes, checksumLength,
+                                dataBytes, dataLength);
+                            if (dataPooled)
                             {
-                                ReturnPooledBytes(bytes);
+                                ReturnPooledBytes(dataBytes);
+                            }
+
+                            if (checksumPooled)
+                            {
+                                ReturnPooledBytes(checksumBytes);
                             }
                         }, cancellationToken).ConfigureAwait(false);
 
@@ -136,17 +158,42 @@ namespace Microsoft.CodeAnalysis.SQLite
             private Task AddWriteTaskAsync(TKey key, Action<SqlConnection> action, CancellationToken cancellationToken)
                 => Storage.AddWriteTaskAsync(_writeQueueKeyToWrites, GetWriteQueueKey(key), action, cancellationToken);
 
-            private Stream ReadBlob(SqlConnection connection, TDatabaseId dataId)
+            private Stream ReadBlob(
+                SqlConnection connection, TDatabaseId dataId, string columnName, Checksum checksumOpt)
             {
+                // Note: it's possible that someone may write to this row between when we
+                // get the row ID above and now.  That's fine.  We'll just read the new
+                // bytes that have been written to this location.  Note that only the
+                // data for a row in our system can change, the ID will always stay the
+                // same, and the data will always be valid for our ID.  So there is no
+                // safety issue here.
                 if (TryGetRowId(connection, dataId, out var rowId))
                 {
-                    // Note: it's possible that someone may write to this row between when we
-                    // get the row ID above and now.  That's fine.  We'll just read the new
-                    // bytes that have been written to this location.  Note that only the
-                    // data for a row in our system can change, the ID will always stay the
-                    // same, and the data will always be valid for our ID.  So there is no
-                    // safety issue here.
-                    return connection.ReadBlob(DataTableName, DataColumnName, rowId);
+                    // Have to run the blob reading in a transaction.  This is necessary
+                    // for two reasons.  First, blob reading outside a transaction is not
+                    // safe to do with the sqlite API.  It may produce corrupt bits if 
+                    // another thread is writing to the blob.  Second, if a checksum was
+                    // passed in, we need to validate that the checksums match.  This is
+                    // only safe if we are in a transaction and no-one else can race with
+                    // us.
+                    Stream stream = null;
+                    connection.RunInTransaction(() =>
+                    {
+                        if (checksumOpt != null)
+                        {
+                            Debug.Assert(columnName != ChecksumColumnName);
+                            using (var checksumStream = connection.ReadBlob_MustRunInTransaction(
+                                DataTableName, ChecksumColumnName, rowId))
+                            {
+
+                            }
+                        }
+
+                        stream = connection.ReadBlob_MustRunInTransaction(DataTableName, columnName, rowId);
+                    });
+
+                    Debug.Assert(stream != null);
+                    return stream;
                 }
 
                 return null;
@@ -212,16 +259,19 @@ namespace Microsoft.CodeAnalysis.SQLite
             }
 
             private void InsertOrReplaceBlob(
-                SqlConnection conection, TDatabaseId dataId, byte[] bytes, int length)
+                SqlConnection conection, TDatabaseId dataId, 
+                byte[] checksumBytes, int checksumLength,
+                byte[] dataBytes, int dataLength)
             {
                 using (var resettableStatement = conection.GetResettableStatement(
-                    $@"insert or replace into ""{this.DataTableName}""(""{DataIdColumnName}"",""{DataColumnName}"") values (?,?)"))
+                    $@"insert or replace into ""{this.DataTableName}""(""{DataIdColumnName}"",""{ChecksumColumnName}"",""{DataColumnName}"") values (?,?,?)"))
                 {
                     var statement = resettableStatement.Statement;
 
                     // Binding indices are 1 based.
                     BindFirstParameter(statement, dataId);
-                    statement.BindBlobParameter(parameterIndex: 2, value: bytes, length: length);
+                    statement.BindBlobParameter(parameterIndex: 2, value: checksumBytes, length: checksumLength);
+                    statement.BindBlobParameter(parameterIndex: 3, value: dataBytes, length: dataLength);
 
                     statement.Step();
                 }

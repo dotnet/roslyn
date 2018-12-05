@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis
         /// <c>byte[]</c>.
         /// </summary>
         [StructLayout(LayoutKind.Explicit, Size = Sha1HashSize)]
-        private struct Sha1Hash : IEquatable<Sha1Hash>
+        public struct Sha1Hash : IEquatable<Sha1Hash>
         {
             [FieldOffset(0)]
             private long Data1;

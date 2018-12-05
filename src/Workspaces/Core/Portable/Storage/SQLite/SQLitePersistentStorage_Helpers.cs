@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading;
 using Roslyn.Utilities;
 using static System.FormattableString;
 
@@ -18,6 +19,24 @@ namespace Microsoft.CodeAnalysis.SQLite
 
         private static long CombineInt32ValuesToInt64(int v1, int v2)
             => ((long)v1 << 32) | (long)v2;
+
+
+        private static (byte[] bytes, int length, bool fromPool) GetBytes(
+            Checksum checksumOpt, CancellationToken cancellationToken)
+        {
+            if (checksumOpt == null)
+            {
+                return (Array.Empty<byte>(), length: 0, fromPool: false);
+            }
+
+            using (var stream = SerializableBytes.CreateWritableStream())
+            using (var writer = new ObjectWriter(stream, cancellationToken: cancellationToken))
+            {
+                checksumOpt.WriteTo(writer);
+                stream.Position = 0;
+                return GetBytes(stream);
+            }
+        }
 
         private static (byte[] bytes, int length, bool fromPool) GetBytes(Stream stream)
         {
