@@ -60763,7 +60763,10 @@ class Program
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "x").WithArguments("T?", "T").WithLocation(5, 15),
                 // (5,15): warning CS8629: Nullable value type may be null.
                 //         T y = x;
-                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "x").WithLocation(5, 15));
+                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "x").WithLocation(5, 15),
+                // (5,15): warning CS8619: Nullability of reference types in value of type 'T?' doesn't match target type 'T'.
+                //         T y = x;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x").WithArguments("T?", "T").WithLocation(5, 15));
         }
 
         [Fact]
@@ -61496,8 +61499,186 @@ class Program
                 Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "ns.Value").WithLocation(35, 17));
         }
 
+        // int -> long?
         [Fact]
         public void NullableT_23()
+        {
+            var source =
+@"class Program
+{
+    static void F(int i)
+    {
+        var nl1 = (long?)i;
+        _ = nl1.Value;
+        long? nl2 = i;
+        _ = nl2.Value;
+        int? ni = i;
+        long? nl3 = ni;
+        _ = nl3.Value;
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics();
+        }
+
+        // int? -> long?
+        [Fact]
+        public void NullableT_24()
+        {
+            var source =
+@"class Program
+{
+    static void F(int? ni)
+    {
+        if (ni.HasValue)
+        {
+            long? nl1 = ni;
+            _ = nl1.Value;
+            var nl2 = (long?)ni;
+            _ = nl2.Value;
+        }
+        else
+        {
+            long? nl3 = ni;
+            _ = nl3.Value; // 1
+            var nl4 = (long?)ni;
+            _ = nl4.Value; // 2
+        }
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (15,17): warning CS8629: Nullable value type may be null.
+                //             _ = nl3.Value; // 1
+                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "nl3.Value").WithLocation(15, 17),
+                // (17,17): warning CS8629: Nullable value type may be null.
+                //             _ = nl4.Value; // 2
+                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "nl4.Value").WithLocation(17, 17));
+        }
+
+        // int? -> long
+        [Fact]
+        public void NullableT_25()
+        {
+            var source =
+@"class Program
+{
+    static void F(int? ni)
+    {
+        if (ni.HasValue)
+        {
+            _ = (long)ni;
+        }
+        else
+        {
+            _ = (long)ni; // 1
+        }
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (11,17): warning CS8629: Nullable value type may be null.
+                //             _ = (long)ni; // 1
+                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "(long)ni").WithLocation(11, 17));
+        }
+
+        // int -> long -> S -> S?
+        [Fact]
+        public void NullableT_26()
+        {
+            var source =
+@"struct S
+{
+    public static implicit operator S(long l) => new S();
+}
+class Program
+{
+    static void F(int i)
+    {
+        var s1 = (S?)i;
+        _ = s1.Value;
+        S? s2 = i;
+        _ = s2.Value;
+        int? ni = i;
+        S? s3 = ni;
+        _ = s3.Value;
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics();
+        }
+
+        // int? -> long? -> S?
+        [Fact]
+        public void NullableT_27()
+        {
+            var source =
+@"struct S
+{
+    public static implicit operator S(long l) => new S();
+}
+class Program
+{
+    static void F(int? ni)
+    {
+        if (ni.HasValue)
+        {
+            var s1 = (S?)ni;
+            _ = s1.Value;
+            S? s2 = ni;
+            _ = s2.Value;
+        }
+        else
+        {
+            var s3 = (S?)ni;
+            _ = s3.Value; // 1
+            S? s4 = ni;
+            _ = s4.Value; // 2
+        }
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (19,17): warning CS8629: Nullable value type may be null.
+                //             _ = s3.Value; // 1
+                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "s3.Value").WithLocation(19, 17),
+                // (21,17): warning CS8629: Nullable value type may be null.
+                //             _ = s4.Value; // 2
+                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "s4.Value").WithLocation(21, 17));
+        }
+
+        // int? -> long? -> S? -> S
+        [Fact]
+        public void NullableT_28()
+        {
+            var source =
+@"struct S
+{
+    public static implicit operator S(long l) => new S();
+}
+class Program
+{
+    static void F(int? ni)
+    {
+        if (ni.HasValue)
+        {
+            _ = (S)ni;
+        }
+        else
+        {
+            _ = (S)ni; // 1
+        }
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (15,20): warning CS8629: Nullable value type may be null.
+                //             _ = (S)ni; // 1
+                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "ni").WithLocation(15, 20));
+        }
+
+        [Fact]
+        public void NullableT_29()
         {
             var source =
 @"class Program
@@ -61529,7 +61710,7 @@ class Program
         }
 
         [Fact]
-        public void NullableT_24()
+        public void NullableT_30()
         {
             var source =
 @"class Program
@@ -61557,7 +61738,7 @@ class Program
 
         [WorkItem(31500, "https://github.com/dotnet/roslyn/issues/31500")]
         [Fact]
-        public void NullableT_25()
+        public void NullableT_31()
         {
             var source =
 @"class Program
@@ -61588,7 +61769,7 @@ class Program
 
         [WorkItem(31500, "https://github.com/dotnet/roslyn/issues/31500")]
         [Fact]
-        public void NullableT_26()
+        public void NullableT_32()
         {
             var source =
 @"struct A
@@ -61630,7 +61811,7 @@ class Program
         }
 
         [Fact]
-        public void NullableT_27()
+        public void NullableT_33()
         {
             var source =
 @"class Program
@@ -61649,7 +61830,7 @@ class Program
         }
 
         [Fact]
-        public void NullableT_28()
+        public void NullableT_34()
         {
             var source =
 @"class Program
@@ -61674,7 +61855,7 @@ class Program
         }
 
         [Fact]
-        public void NullableT_29()
+        public void NullableT_35()
         {
             var source =
 @"using System;

@@ -414,20 +414,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.Conversion:
                     {
                         var conv = (BoundConversion)node;
-                        var operand = conv.Operand;
-                        if (conv.Conversion.Kind == ConversionKind.ExplicitNullable &&
-                            operand.Type?.IsNullableType() == true &&
-                            conv.Type?.IsNullableType() == false)
+                        if (conv.Conversion.Kind == ConversionKind.ExplicitNullable)
                         {
-                            Debug.Assert(operand.Type.GetNullableUnderlyingType().Equals(conv.Type, TypeCompareKind.AllIgnoreOptions));
-                            // Explicit conversion of Nullable<T> to T is equivalent to Nullable<T>.Value.
-                            // For instance, in the following, when evaluating `((A)a).B` we need to recognize
-                            // the nullability of `(A)a` (not nullable) and the slot (the slot for `a.Value`).
-                            //   struct A { B? B; }
-                            //   struct B { }
-                            //   if (a?.B != null) _ = ((A)a).B.Value; // no warning
-                            int containingSlot = MakeSlot(operand);
-                            return containingSlot < 0 ? -1 : GetNullableOfTValueSlot(operand.Type, containingSlot);
+                            var operand = conv.Operand;
+                            var operandType = operand.Type;
+                            var convertedType = conv.Type;
+                            if (operandType?.IsNullableType() == true &&
+                                convertedType?.IsNullableType() == false &&
+                                operandType.GetNullableUnderlyingType().Equals(convertedType, TypeCompareKind.AllIgnoreOptions))
+                            {
+                                // Explicit conversion of Nullable<T> to T is equivalent to Nullable<T>.Value.
+                                // For instance, in the following, when evaluating `((A)a).B` we need to recognize
+                                // the nullability of `(A)a` (not nullable) and the slot (the slot for `a.Value`).
+                                //   struct A { B? B; }
+                                //   struct B { }
+                                //   if (a?.B != null) _ = ((A)a).B.Value; // no warning
+                                int containingSlot = MakeSlot(operand);
+                                return containingSlot < 0 ? -1 : GetNullableOfTValueSlot(operandType, containingSlot);
+                            }
                         }
                     }
                     break;
@@ -3520,6 +3524,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     break;
 
+                case ConversionKind.ImplicitNullable:
+                    if (checkConversion)
+                    {
+                        conversion = GenerateConversion(_conversions, operandOpt, operandType.TypeSymbol, targetType, fromExplicitCast, extensionMethodThisArgument);
+                        canConvertNestedNullability = conversion.Exists;
+                    }
+                    if ((targetType.IsValueType && !targetType.IsNullableType()) ||
+                        (operandType.IsValueType && !operandType.IsNullableType()))
+                    {
+                        resultAnnotation = NullableAnnotation.NotNullable;
+                    }
+                    else
+                    {
+                        resultAnnotation = operandType.NullableAnnotation.IsAnyNullable() ? NullableAnnotation.Nullable : NullableAnnotation.NotNullable;
+                    }
+                    break;
+
                 case ConversionKind.ExplicitNullable:
                     if (operandType.TypeSymbol?.IsNullableType() == true &&
                         !targetType.IsNullableType())
@@ -3539,11 +3560,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 this.State[slot] = NullableAnnotation.NotNullable;
                             }
                         }
-                        break;
                     }
                     goto case ConversionKind.ImplicitNullable;
 
-                case ConversionKind.ImplicitNullable:
                 case ConversionKind.ImplicitTupleLiteral:
                 case ConversionKind.ImplicitTuple:
                 case ConversionKind.ExplicitTupleLiteral:
