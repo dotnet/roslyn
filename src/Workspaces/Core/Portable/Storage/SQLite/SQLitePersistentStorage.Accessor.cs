@@ -191,14 +191,16 @@ namespace Microsoft.CodeAnalysis.SQLite
                                 if (reader == null)
                                 {
                                     // Couldn't understand the old checksum.  It def doesn't match our
-                                    // current checksum.
+                                    // current checksum.  Break out and just return a null-stream for
+                                    // this row.
                                     return;
                                 }
 
                                 var checksum = Checksum.ReadFrom(reader);
                                 if (checksumOpt != checksum)
                                 {
-                                    // Checksums didn't match.  Catch use this stream.
+                                    // Checksums didn't match.  Catch use this stream.  Break out and
+                                    // jsut return a null-stream for this row.
                                     return;
                                 }
                             }
