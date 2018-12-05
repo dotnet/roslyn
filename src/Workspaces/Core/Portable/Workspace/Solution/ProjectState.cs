@@ -33,6 +33,12 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         private readonly ImmutableSortedDictionary<DocumentId, TextDocumentState> _additionalDocumentStates;
 
+        /// <summary>
+        /// The analyzer config documents in this project.  They are sorted by <see cref="DocumentId.Id"/> to provide a stable sort for
+        /// <see cref="GetChecksumAsync(CancellationToken)"/>.
+        /// </summary>
+        private readonly ImmutableSortedDictionary<DocumentId, AnalyzerConfigDocumentState> _analyzerConfigDocumentStates;
+
         private readonly ImmutableList<DocumentId> _documentIds;
         private readonly ImmutableList<DocumentId> _additionalDocumentIds;
         private readonly AsyncLazy<VersionStamp> _lazyLatestDocumentVersion;
@@ -52,6 +58,7 @@ namespace Microsoft.CodeAnalysis
             ImmutableList<DocumentId> additionalDocumentIds,
             ImmutableSortedDictionary<DocumentId, DocumentState> documentStates,
             ImmutableSortedDictionary<DocumentId, TextDocumentState> additionalDocumentStates,
+            ImmutableSortedDictionary<DocumentId, AnalyzerConfigDocumentState> analyzerConfigDocumentStates,
             AsyncLazy<VersionStamp> lazyLatestDocumentVersion,
             AsyncLazy<VersionStamp> lazyLatestDocumentTopLevelChangeVersion)
         {
@@ -61,6 +68,7 @@ namespace Microsoft.CodeAnalysis
             _additionalDocumentIds = additionalDocumentIds;
             _documentStates = documentStates;
             _additionalDocumentStates = additionalDocumentStates;
+            _analyzerConfigDocumentStates = analyzerConfigDocumentStates;
             _lazyLatestDocumentVersion = lazyLatestDocumentVersion;
             _lazyLatestDocumentTopLevelChangeVersion = lazyLatestDocumentTopLevelChangeVersion;
 
@@ -344,6 +352,11 @@ namespace Microsoft.CodeAnalysis
             return _additionalDocumentStates.ContainsKey(documentId);
         }
 
+        public bool ContainsAnalyzerConfigDocument(DocumentId documentId)
+        {
+            return _analyzerConfigDocumentStates.ContainsKey(documentId);
+        }
+
         public DocumentState GetDocumentState(DocumentId documentId)
         {
             _documentStates.TryGetValue(documentId, out var state);
@@ -356,12 +369,19 @@ namespace Microsoft.CodeAnalysis
             return state;
         }
 
+        public AnalyzerConfigDocumentState GetAnalyzerConfigDocumentState(DocumentId documentId)
+        {
+            _analyzerConfigDocumentStates.TryGetValue(documentId, out var state);
+            return state;
+        }
+
         private ProjectState With(
             ProjectInfo projectInfo = null,
             ImmutableList<DocumentId> documentIds = default,
             ImmutableList<DocumentId> additionalDocumentIds = default,
             ImmutableSortedDictionary<DocumentId, DocumentState> documentStates = null,
             ImmutableSortedDictionary<DocumentId, TextDocumentState> additionalDocumentStates = null,
+            ImmutableSortedDictionary<DocumentId, AnalyzerConfigDocumentState> analyzerConfigDocumentStates = null,
             AsyncLazy<VersionStamp> latestDocumentVersion = null,
             AsyncLazy<VersionStamp> latestDocumentTopLevelChangeVersion = null)
         {
@@ -373,6 +393,7 @@ namespace Microsoft.CodeAnalysis
                 additionalDocumentIds ?? _additionalDocumentIds,
                 documentStates ?? _documentStates,
                 additionalDocumentStates ?? _additionalDocumentStates,
+                analyzerConfigDocumentStates ?? _analyzerConfigDocumentStates,
                 latestDocumentVersion ?? _lazyLatestDocumentVersion,
                 latestDocumentTopLevelChangeVersion ?? _lazyLatestDocumentTopLevelChangeVersion);
         }
@@ -601,6 +622,15 @@ namespace Microsoft.CodeAnalysis
                 additionalDocumentStates: _additionalDocumentStates.Add(document.Id, document));
         }
 
+        public ProjectState AddAnalyzerConfigDocuments(ImmutableArray<AnalyzerConfigDocumentState> documents)
+        {
+            Debug.Assert(!documents.Any(d => this._analyzerConfigDocumentStates.ContainsKey(d.Id)));
+
+            return this.With(
+                projectInfo: this.ProjectInfo.WithVersion(this.Version.GetNewerVersion()),
+                analyzerConfigDocumentStates: _analyzerConfigDocumentStates.AddRange(documents.Select(d => KeyValuePairUtil.Create(d.Id, d))));
+        }
+
         public ProjectState RemoveDocument(DocumentId documentId)
         {
             Debug.Assert(this.DocumentStates.ContainsKey(documentId));
@@ -619,6 +649,15 @@ namespace Microsoft.CodeAnalysis
                 projectInfo: this.ProjectInfo.WithVersion(this.Version.GetNewerVersion()),
                 additionalDocumentIds: _additionalDocumentIds.Remove(documentId),
                 additionalDocumentStates: _additionalDocumentStates.Remove(documentId));
+        }
+
+        public ProjectState RemoveAnalyzerConfigDocument(DocumentId documentId)
+        {
+            Debug.Assert(this._analyzerConfigDocumentStates.ContainsKey(documentId));
+
+            return this.With(
+                projectInfo: this.ProjectInfo.WithVersion(this.Version.GetNewerVersion()),
+                analyzerConfigDocumentStates: _analyzerConfigDocumentStates.Remove(documentId));
         }
 
         public ProjectState RemoveAllDocuments()

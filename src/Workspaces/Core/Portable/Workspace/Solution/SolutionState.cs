@@ -291,6 +291,17 @@ namespace Microsoft.CodeAnalysis
                 this.GetProjectState(documentId.ProjectId).ContainsAdditionalDocument(documentId);
         }
 
+        /// <summary>
+        /// True if the solution contains the analyzer config document in one of its projects
+        /// </summary>
+        public bool ContainsAnalyzerConfigDocument(DocumentId documentId)
+        {
+            return
+                documentId != null &&
+                this.ContainsProject(documentId.ProjectId) &&
+                this.GetProjectState(documentId.ProjectId).ContainsAnalyzerConfigDocument(documentId);
+        }
+
         private DocumentState GetDocumentState(DocumentId documentId)
         {
             if (documentId != null)
@@ -1198,6 +1209,29 @@ namespace Microsoft.CodeAnalysis
                     newFilePathToDocumentIdsMap: CreateFilePathToDocumentIdsMapWithAddedDocuments(documentStates));
         }
 
+        public SolutionState AddAnalyzerConfigDocuments(ImmutableArray<DocumentInfo> documentInfos)
+        {
+            // Adding a new analyzer config potentially impacts all syntax trees and the diagnostic reporting information
+            // attached to them, so we'll just replace all syntax trees in that case.
+            return AddDocumentsToMultipleProjects(documentInfos,
+                (documentInfo, project) => new AnalyzerConfigDocumentState(documentInfo, _solutionServices),
+                (projectState, documents) => (projectState.AddAnalyzerConfigDocuments(documents), new CompilationTranslationAction.ReplaceAllSyntaxTreesAction(projectState)));
+        }
+
+        public SolutionState RemoveAnalyzerConfigDocument(DocumentId documentId)
+        {
+            CheckContainsAnalyzerConfigDocument(documentId);
+
+            var oldProject = this.GetProjectState(documentId.ProjectId);
+            var newProject = oldProject.RemoveAnalyzerConfigDocument(documentId);
+            var documentStates = SpecializedCollections.SingletonEnumerable(oldProject.GetAnalyzerConfigDocumentState(documentId));
+
+            return this.ForkProject(
+                newProject,
+                new CompilationTranslationAction.ReplaceAllSyntaxTreesAction(newProject),
+                newFilePathToDocumentIdsMap: CreateFilePathToDocumentIdsMapWithRemovedDocuments(documentStates));
+        }
+
         /// <summary>
         /// Creates a new solution instance that no longer includes the specified document.
         /// </summary>
@@ -2045,6 +2079,16 @@ namespace Microsoft.CodeAnalysis
             Debug.Assert(this.ContainsAdditionalDocument(documentId));
 
             if (!this.ContainsAdditionalDocument(documentId))
+            {
+                throw new InvalidOperationException(WorkspacesResources.The_solution_does_not_contain_the_specified_document);
+            }
+        }
+
+        private void CheckContainsAnalyzerConfigDocument(DocumentId documentId)
+        {
+            Debug.Assert(this.ContainsAnalyzerConfigDocument(documentId));
+
+            if (!this.ContainsAnalyzerConfigDocument(documentId))
             {
                 throw new InvalidOperationException(WorkspacesResources.The_solution_does_not_contain_the_specified_document);
             }

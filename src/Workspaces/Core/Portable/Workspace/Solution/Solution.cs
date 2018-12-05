@@ -130,6 +130,11 @@ namespace Microsoft.CodeAnalysis
         public bool ContainsAdditionalDocument(DocumentId documentId) => _state.ContainsAdditionalDocument(documentId);
 
         /// <summary>
+        /// True if the solution contains the analyzer config document in one of its projects
+        /// </summary>
+        public bool ContainsAnalyzerConfigDocument(DocumentId documentId) => _state.ContainsAnalyzerConfigDocument(documentId);
+
+        /// <summary>
         /// Gets the documentId in this solution with the specified syntax tree.
         /// </summary>
         public DocumentId GetDocumentId(SyntaxTree syntaxTree) => GetDocumentId(syntaxTree, projectId: null);
@@ -781,6 +786,20 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
+        /// Creates a new Solution instance that contains a new compiler configuration document like a .editorconfig file.
+        /// </summary>
+        public Solution AddAnalyzerConfigDocuments(ImmutableArray<DocumentInfo> documentInfos)
+        {
+            var newState = _state.AddAnalyzerConfigDocuments(documentInfos);
+            if (newState == _state)
+            {
+                return this;
+            }
+
+            return new Solution(newState);
+        }
+
+        /// <summary>
         /// Creates a new solution instance that no longer includes the specified document.
         /// </summary>
         public Solution RemoveDocument(DocumentId documentId)
@@ -800,6 +819,17 @@ namespace Microsoft.CodeAnalysis
         public Solution RemoveAdditionalDocument(DocumentId documentId)
         {
             var newState = _state.RemoveAdditionalDocument(documentId);
+            if (newState == _state)
+            {
+                return this;
+            }
+
+            return new Solution(newState);
+        }
+
+        public Solution RemoveAnalyzerConfigDocument(DocumentId documentId)
+        {
+            var newState = _state.RemoveAnalyzerConfigDocument(documentId);
             if (newState == _state)
             {
                 return this;
