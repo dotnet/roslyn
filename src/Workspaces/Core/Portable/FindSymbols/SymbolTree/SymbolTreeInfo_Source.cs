@@ -85,6 +85,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 allChecksums.AddRange(textChecksums);
                 allChecksums.Add(compilationOptionsChecksum);
                 allChecksums.Add(parseOptionsChecksum);
+
+                // Include serialization format version in our checksum.  That way if the 
+                // version ever changes, all persisted data won't match the current checksum
+                // we expect, and we'll recompute things.
                 allChecksums.Add(SerializationFormatChecksum);
 
                 var checksum = Checksum.Create(WellKnownSynchronizationKind.SymbolTreeInfo, allChecksums);
