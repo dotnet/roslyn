@@ -237,7 +237,7 @@ namespace Microsoft.CodeAnalysis.Storage
         /// A trivial wrapper that we can hand out for instances from the <see cref="AbstractPersistentStorageService"/>
         /// that wraps the underlying <see cref="IPersistentStorage"/> singleton.
         /// </summary>
-        private sealed class PersistentStorageReferenceCountedDisposableWrapper : IPersistentStorage
+        private sealed class PersistentStorageReferenceCountedDisposableWrapper : IPersistentStorage, IChecksummedPersistentStorage
         {
             private readonly ReferenceCountedDisposable<IPersistentStorage> _storage;
 
@@ -245,6 +245,8 @@ namespace Microsoft.CodeAnalysis.Storage
             {
                 _storage = storage;
             }
+
+            private IChecksummedPersistentStorage ChecksummedTarget => (IChecksummedPersistentStorage)_storage.Target;
             
             public static IPersistentStorage AddReferenceCountToAndCreateWrapper(ReferenceCountedDisposable<IPersistentStorage> storage)
             {
@@ -256,6 +258,15 @@ namespace Microsoft.CodeAnalysis.Storage
                 _storage.Dispose();
             }
 
+            public Task<Checksum> ReadChecksumAsync(string name, CancellationToken cancellationToken = default)
+                => ChecksummedTarget.ReadChecksumAsync(name, cancellationToken);
+
+            public Task<Checksum> ReadChecksumAsync(Project project, string name, CancellationToken cancellationToken = default)
+                => ChecksummedTarget.ReadChecksumAsync(project, name, cancellationToken);
+
+            public Task<Checksum> ReadChecksumAsync(Document document, string name, CancellationToken cancellationToken = default)
+                => ChecksummedTarget.ReadChecksumAsync(document, name, cancellationToken);
+
             public Task<Stream> ReadStreamAsync(string name, CancellationToken cancellationToken = default)
                 => _storage.Target.ReadStreamAsync(name, cancellationToken);
 
@@ -265,6 +276,15 @@ namespace Microsoft.CodeAnalysis.Storage
             public Task<Stream> ReadStreamAsync(Document document, string name, CancellationToken cancellationToken = default)
                 => _storage.Target.ReadStreamAsync(document, name, cancellationToken);
 
+            public Task<Stream> ReadStreamAsync(string name, Checksum checksum = null, CancellationToken cancellationToken = default)
+                => ChecksummedTarget.ReadStreamAsync(name, checksum, cancellationToken);
+
+            public Task<Stream> ReadStreamAsync(Project project, string name, Checksum checksum = null, CancellationToken cancellationToken = default)
+                => ChecksummedTarget.ReadStreamAsync(project, name, checksum, cancellationToken);
+
+            public Task<Stream> ReadStreamAsync(Document document, string name, Checksum checksum = null, CancellationToken cancellationToken = default)
+                => ChecksummedTarget.ReadStreamAsync(document, name, checksum, cancellationToken);
+
             public Task<bool> WriteStreamAsync(string name, Stream stream, CancellationToken cancellationToken = default)
                 => _storage.Target.WriteStreamAsync(name, stream, cancellationToken);
 
@@ -273,6 +293,15 @@ namespace Microsoft.CodeAnalysis.Storage
 
             public Task<bool> WriteStreamAsync(Document document, string name, Stream stream, CancellationToken cancellationToken = default)
                 => _storage.Target.WriteStreamAsync(document, name, stream, cancellationToken);
+
+            public Task<bool> WriteStreamAsync(string name, Stream stream, Checksum checksum = null, CancellationToken cancellationToken = default)
+                => ChecksummedTarget.WriteStreamAsync(name, stream, checksum, cancellationToken);
+
+            public Task<bool> WriteStreamAsync(Project project, string name, Stream stream, Checksum checksum = null, CancellationToken cancellationToken = default)
+                => ChecksummedTarget.WriteStreamAsync(project, name, stream, checksum, cancellationToken);
+
+            public Task<bool> WriteStreamAsync(Document document, string name, Stream stream, Checksum checksum = null, CancellationToken cancellationToken = default)
+                => ChecksummedTarget.WriteStreamAsync(document, name, stream, checksum, cancellationToken);
         }
     }
 }
