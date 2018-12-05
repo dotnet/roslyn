@@ -683,15 +683,30 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentException($"The specified documents do not equal the project document count.", nameof(documentIds));
             }
 
-            foreach (var documentId in documentIds)
+            var hasOrderChanged = false;
+
+            for (var i = 0; i < documentIds.Count; ++i)
             {
-                if (!this.ContainsDocument(documentId))
+                var documentId = documentIds[i];
+
+                if (!ContainsDocument(documentId))
                 {
                     throw new InvalidOperationException($"The document '{documentId}' does not exist in the project.");
                 }
+
+                if (DocumentIds[i] != documentId)
+                {
+                    hasOrderChanged = true;
+                }
+            }
+
+            if (!hasOrderChanged)
+            {
+                return this;
             }
 
             return this.With(
+                projectInfo: this.ProjectInfo.WithVersion(this.Version.GetNewerVersion()),
                 documentIds: documentIds);
         }
 

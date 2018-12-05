@@ -946,7 +946,12 @@ namespace Microsoft.CodeAnalysis
             var oldProject = this.GetProjectState(projectId);
             var newProject = oldProject.UpdateDocumentsOrder(documentIds);
 
-            return this.ForkProject(newProject);
+            if (oldProject == newProject)
+            {
+                return this;
+            }
+
+            return this.ForkProject(newProject, CompilationTranslationAction.ProjectParseOptions(newProject));
         }
 
         /// <summary>

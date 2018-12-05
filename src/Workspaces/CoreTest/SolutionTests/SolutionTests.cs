@@ -1526,7 +1526,14 @@ public class C : A {
             var solution = CreateSolution();
             var pid = ProjectId.CreateNewId();
 
-            Func<ImmutableArray<Document>> GetDocuments = () => solution.GetProject(pid).Documents.ToImmutableArray();
+            Func<VersionStamp> GetVersion = () => solution.GetProject(pid).Version;
+            Func<ImmutableArray<DocumentId>> GetDocumentIds = () => solution.GetProject(pid).DocumentIds.ToImmutableArray();
+            Func<DocumentId, Document> GetDocument = documentId => solution.GetProject(pid).GetDocument(documentId);
+            Func<ImmutableArray<SyntaxTree>> GetSyntaxTrees = () =>
+                {
+                    var cancellationToken = new CancellationToken();
+                    return solution.State.GetCompilationAsync(solution.GetProject(pid).State, cancellationToken).Result.SyntaxTrees.ToImmutableArray();
+                };
 
             solution = solution.AddProject(pid, "test", "test.dll", LanguageNames.CSharp);
 
@@ -1550,15 +1557,39 @@ public class C : A {
             var did5 = DocumentId.CreateNewId(pid);
             solution = solution.AddDocument(did5, "test5.cs", text5);
 
+            var oldVersion = GetVersion();
+
             solution = solution.WithProjectDocumentsOrder(pid, ImmutableList.CreateRange(new[] { did5, did4, did3, did2, did1 }));
 
-            var documents = GetDocuments();
+            var newVersion = GetVersion();
 
-            Assert.Equal("test5.cs", documents[0].Name, StringComparer.OrdinalIgnoreCase);
-            Assert.Equal("test4.cs", documents[1].Name, StringComparer.OrdinalIgnoreCase);
-            Assert.Equal("test3.cs", documents[2].Name, StringComparer.OrdinalIgnoreCase);
-            Assert.Equal("test2.cs", documents[3].Name, StringComparer.OrdinalIgnoreCase);
-            Assert.Equal("test1.cs", documents[4].Name, StringComparer.OrdinalIgnoreCase);
+            // Make sure we have a new version because the order changed.
+            Assert.NotEqual(oldVersion, newVersion);
+
+            var documentIds = GetDocumentIds();
+
+            Assert.Equal(did5, documentIds[0]);
+            Assert.Equal(did4, documentIds[1]);
+            Assert.Equal(did3, documentIds[2]);
+            Assert.Equal(did2, documentIds[3]);
+            Assert.Equal(did1, documentIds[4]);
+
+            var syntaxTrees = GetSyntaxTrees();
+
+            Assert.Equal(documentIds.Count(), syntaxTrees.Count());
+
+            Assert.Equal("test5.cs", syntaxTrees[0].FilePath, StringComparer.OrdinalIgnoreCase);
+            Assert.Equal("test4.cs", syntaxTrees[1].FilePath, StringComparer.OrdinalIgnoreCase);
+            Assert.Equal("test3.cs", syntaxTrees[2].FilePath, StringComparer.OrdinalIgnoreCase);
+            Assert.Equal("test2.cs", syntaxTrees[3].FilePath, StringComparer.OrdinalIgnoreCase);
+            Assert.Equal("test1.cs", syntaxTrees[4].FilePath, StringComparer.OrdinalIgnoreCase);
+
+            solution = solution.WithProjectDocumentsOrder(pid, ImmutableList.CreateRange(new[] { did5, did4, did3, did2, did1 }));
+
+            var newSameVersion = GetVersion();
+
+            // Make sure we have the same new version because the order hasn't changed.
+            Assert.Equal(newVersion, newSameVersion);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]

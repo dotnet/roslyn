@@ -67,6 +67,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
             using (var project = CreateCSharpCPSProject(environment, "project1"))
             {
                 IEnumerable<Document> GetCurrentDocuments() => environment.Workspace.CurrentSolution.Projects.Single().Documents;
+                VersionStamp GetVersion() => environment.Workspace.CurrentSolution.Projects.Single().Version;
 
                 Assert.Empty(GetCurrentDocuments());
 
@@ -87,15 +88,27 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
                 project.RemoveSourceFile(sourceFileFullPath4);
                 project.AddSourceFile(sourceFileFullPath4);
 
-                project.ReorderSourceFiles(new[] { sourceFileFullPath1, sourceFileFullPath2, sourceFileFullPath3, sourceFileFullPath4, sourceFileFullPath5 });
+                var oldVersion = GetVersion();
+
+                project.ReorderSourceFiles(new[] { sourceFileFullPath5, sourceFileFullPath4, sourceFileFullPath3, sourceFileFullPath2, sourceFileFullPath1 });
+
+                var newVersion = GetVersion();
+
+                project.ReorderSourceFiles(new[] { sourceFileFullPath5, sourceFileFullPath4, sourceFileFullPath3, sourceFileFullPath2, sourceFileFullPath1 });
+
+                var newSameVersion = GetVersion();
+
+                // Reordering should result in a new version if the order is different. If it's the same, the version should stay the same.
+                Assert.NotEqual(oldVersion, newVersion);
+                Assert.Equal(newVersion, newSameVersion);
 
                 var documents = GetCurrentDocuments().ToArray();
 
-                Assert.Equal(documents[0].FilePath, sourceFileFullPath1, StringComparer.OrdinalIgnoreCase);
-                Assert.Equal(documents[1].FilePath, sourceFileFullPath2, StringComparer.OrdinalIgnoreCase);
+                Assert.Equal(documents[0].FilePath, sourceFileFullPath5, StringComparer.OrdinalIgnoreCase);
+                Assert.Equal(documents[1].FilePath, sourceFileFullPath4, StringComparer.OrdinalIgnoreCase);
                 Assert.Equal(documents[2].FilePath, sourceFileFullPath3, StringComparer.OrdinalIgnoreCase);
-                Assert.Equal(documents[3].FilePath, sourceFileFullPath4, StringComparer.OrdinalIgnoreCase);
-                Assert.Equal(documents[4].FilePath, sourceFileFullPath5, StringComparer.OrdinalIgnoreCase);
+                Assert.Equal(documents[3].FilePath, sourceFileFullPath2, StringComparer.OrdinalIgnoreCase);
+                Assert.Equal(documents[4].FilePath, sourceFileFullPath1, StringComparer.OrdinalIgnoreCase);
             }
         }
 
@@ -131,15 +144,15 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
                 // Removing path4 to test remove of a file when it was also added in a batch.
                 project.RemoveSourceFile(sourceFileFullPath4);
 
-                project.ReorderSourceFiles(new[] { sourceFileFullPath1, sourceFileFullPath3, sourceFileFullPath5 });
+                project.ReorderSourceFiles(new[] { sourceFileFullPath5, sourceFileFullPath3, sourceFileFullPath1 });
 
                 project.EndBatch();
 
                 var documents = GetCurrentDocuments().ToArray();
 
-                Assert.Equal(documents[0].FilePath, sourceFileFullPath1, StringComparer.OrdinalIgnoreCase);
+                Assert.Equal(documents[0].FilePath, sourceFileFullPath5, StringComparer.OrdinalIgnoreCase);
                 Assert.Equal(documents[1].FilePath, sourceFileFullPath3, StringComparer.OrdinalIgnoreCase);
-                Assert.Equal(documents[2].FilePath, sourceFileFullPath5, StringComparer.OrdinalIgnoreCase);
+                Assert.Equal(documents[2].FilePath, sourceFileFullPath1, StringComparer.OrdinalIgnoreCase);
             }
         }
 
@@ -175,7 +188,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
                 // Removing path4 to test remove of a file when it was also added in a batch.
                 project.RemoveSourceFile(sourceFileFullPath4);
 
-                project.ReorderSourceFiles(new[] { sourceFileFullPath1, sourceFileFullPath3, sourceFileFullPath5 });
+                project.ReorderSourceFiles(new[] { sourceFileFullPath5, sourceFileFullPath3, sourceFileFullPath1 });
 
                 // Re-adding / re-removing / re-adding again.
                 project.AddSourceFile(sourceFileFullPath2);
@@ -185,17 +198,17 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
                 project.AddSourceFile(sourceFileFullPath2);
                 project.AddSourceFile(sourceFileFullPath4);
 
-                project.ReorderSourceFiles(new[] { sourceFileFullPath1, sourceFileFullPath2, sourceFileFullPath3, sourceFileFullPath4, sourceFileFullPath5 });
+                project.ReorderSourceFiles(new[] { sourceFileFullPath5, sourceFileFullPath4, sourceFileFullPath3, sourceFileFullPath2, sourceFileFullPath1 });
 
                 project.EndBatch();
 
                 var documents = GetCurrentDocuments().ToArray();
 
-                Assert.Equal(documents[0].FilePath, sourceFileFullPath1, StringComparer.OrdinalIgnoreCase);
-                Assert.Equal(documents[1].FilePath, sourceFileFullPath2, StringComparer.OrdinalIgnoreCase);
+                Assert.Equal(documents[0].FilePath, sourceFileFullPath5, StringComparer.OrdinalIgnoreCase);
+                Assert.Equal(documents[1].FilePath, sourceFileFullPath4, StringComparer.OrdinalIgnoreCase);
                 Assert.Equal(documents[2].FilePath, sourceFileFullPath3, StringComparer.OrdinalIgnoreCase);
-                Assert.Equal(documents[3].FilePath, sourceFileFullPath4, StringComparer.OrdinalIgnoreCase);
-                Assert.Equal(documents[4].FilePath, sourceFileFullPath5, StringComparer.OrdinalIgnoreCase);
+                Assert.Equal(documents[3].FilePath, sourceFileFullPath2, StringComparer.OrdinalIgnoreCase);
+                Assert.Equal(documents[4].FilePath, sourceFileFullPath1, StringComparer.OrdinalIgnoreCase);
             }
         }
 
@@ -221,7 +234,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
                 project.AddSourceFile(sourceFileFullPath1);
                 project.AddSourceFile(sourceFileFullPath2);
 
-                project.ReorderSourceFiles(new[] { sourceFileFullPath1, sourceFileFullPath2 });
+                project.ReorderSourceFiles(new[] { sourceFileFullPath2, sourceFileFullPath1 });
 
                 project.AddSourceFile(sourceFileFullPath3);
                 project.AddSourceFile(sourceFileFullPath4);
@@ -229,15 +242,15 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
 
                 project.EndBatch();
 
-                project.ReorderSourceFiles(new[] { sourceFileFullPath1, sourceFileFullPath2, sourceFileFullPath3, sourceFileFullPath4, sourceFileFullPath5 });
+                project.ReorderSourceFiles(new[] { sourceFileFullPath5, sourceFileFullPath4, sourceFileFullPath3, sourceFileFullPath2, sourceFileFullPath1 });
 
                 var documents = GetCurrentDocuments().ToArray();
 
-                Assert.Equal(documents[0].FilePath, sourceFileFullPath1, StringComparer.OrdinalIgnoreCase);
-                Assert.Equal(documents[1].FilePath, sourceFileFullPath2, StringComparer.OrdinalIgnoreCase);
+                Assert.Equal(documents[0].FilePath, sourceFileFullPath5, StringComparer.OrdinalIgnoreCase);
+                Assert.Equal(documents[1].FilePath, sourceFileFullPath4, StringComparer.OrdinalIgnoreCase);
                 Assert.Equal(documents[2].FilePath, sourceFileFullPath3, StringComparer.OrdinalIgnoreCase);
-                Assert.Equal(documents[3].FilePath, sourceFileFullPath4, StringComparer.OrdinalIgnoreCase);
-                Assert.Equal(documents[4].FilePath, sourceFileFullPath5, StringComparer.OrdinalIgnoreCase);
+                Assert.Equal(documents[3].FilePath, sourceFileFullPath2, StringComparer.OrdinalIgnoreCase);
+                Assert.Equal(documents[4].FilePath, sourceFileFullPath1, StringComparer.OrdinalIgnoreCase);
             }
         }
 
@@ -266,7 +279,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
                 project.AddSourceFile(sourceFileFullPath4);
                 project.AddSourceFile(sourceFileFullPath5);
 
-                project.ReorderSourceFiles(new[] { sourceFileFullPath1, sourceFileFullPath2, sourceFileFullPath3, sourceFileFullPath4, sourceFileFullPath5 });
+                project.ReorderSourceFiles(new[] { sourceFileFullPath5, sourceFileFullPath4, sourceFileFullPath3, sourceFileFullPath2, sourceFileFullPath1 });
 
                 project.RemoveSourceFile(sourceFileFullPath3);
                 project.RemoveSourceFile(sourceFileFullPath4);
@@ -274,12 +287,12 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
 
                 project.EndBatch();
 
-                project.ReorderSourceFiles(new[] { sourceFileFullPath1, sourceFileFullPath2 });
+                project.ReorderSourceFiles(new[] { sourceFileFullPath2, sourceFileFullPath1 });
 
                 var documents = GetCurrentDocuments().ToArray();
 
-                Assert.Equal(documents[0].FilePath, sourceFileFullPath1, StringComparer.OrdinalIgnoreCase);
-                Assert.Equal(documents[1].FilePath, sourceFileFullPath2, StringComparer.OrdinalIgnoreCase);
+                Assert.Equal(documents[0].FilePath, sourceFileFullPath2, StringComparer.OrdinalIgnoreCase);
+                Assert.Equal(documents[1].FilePath, sourceFileFullPath1, StringComparer.OrdinalIgnoreCase);
             }
         }
 

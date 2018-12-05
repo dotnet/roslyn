@@ -1080,9 +1080,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             private readonly List<DocumentId> _documentsRemovedInBatch = new List<DocumentId>();
 
             /// <summary>
-            /// The current
+            /// The current list of document file paths that will be ordered in a batch.
             /// </summary>
-            private Nullable<ImmutableArray<string>> _orderedFilesInBatch = null;
+            private List<string> _orderedFilesInBatch = null;
 
             private readonly Func<Solution, DocumentId, bool> _documentAlreadyInWorkspace;
             private readonly Action<Workspace, DocumentInfo> _documentAddAction;
@@ -1124,8 +1124,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                         throw new ArgumentException($"'{fullPath}' has already been added to this project.", nameof(fullPath));
                     }
 
-                    // Adding a file messes up the ordering and does not gaurantee any kind of order, so invalidate any ordered files in batch.
-                    _orderedFilesInBatch = null;
+                    // If we have an ordered files batch, we need to add the file to the end of it as well.
+                    _orderedFilesInBatch?.Add(fullPath);
 
                     _documentPathsToDocumentIds.Add(fullPath, documentId);
                     _project._documentFileWatchingTokens.Add(documentId, _project._documentFileChangeContext.EnqueueWatchingFile(fullPath));
@@ -1213,8 +1213,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                         throw new ArgumentException($"'{filePath}' has already been added to this project.", nameof(filePath));
                     }
 
-                    // Adding a dynamic file messes up the ordering and does not gaurantee any kind of order, so invalidate any ordered files in batch.
-                    _orderedFilesInBatch = null;
+                    // If we have an ordered files batch, we need to add the file to the end of it as well.
+                    _orderedFilesInBatch?.Add(filePath);
 
                     _documentPathsToDocumentIds.Add(filePath, documentId);
 
@@ -1284,8 +1284,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             private void RemoveFileInternal(DocumentId documentId, string fullPath)
             {
-                // Removing a file messes up the ordering and does not gaurantee any kind of order, so invalidate any ordered files in batch.
-                _orderedFilesInBatch = null;
+                // If we have an ordered files batch, we need to remove the file from the batch.
+                if (_orderedFilesInBatch != null)
+                {
+                    for (var i = 0; i < _orderedFilesInBatch.Count; i++)
+                    {
+                        if (_orderedFilesInBatch[i].Equals(fullPath, StringComparison.OrdinalIgnoreCase))
+                        {
+                            _orderedFilesInBatch.RemoveAt(i);
+                        }
+                    }
+                }
 
                 _documentPathsToDocumentIds.Remove(fullPath);
 
@@ -1483,7 +1492,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
                     if (_project._activeBatchScopes > 0)
                     {
-                        _orderedFilesInBatch = filePaths;
+                        _orderedFilesInBatch = new List<string>(filePaths);
                     }
                     else
                     {
@@ -1523,31 +1532,23 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 ClearAndZeroCapacity(_documentsRemovedInBatch);
 
                 // Update project's order of documents.
-                solution = UpdateProjectDocumentsOrderForBatch(solution);
-
-                return solution;
-            }
-
-            internal Solution UpdateProjectDocumentsOrderForBatch(Solution solution)
-            {
-                // The action of ordering documents was not included in the batch. Simply return the solution.
-                if (_orderedFilesInBatch == null)
+                if (_orderedFilesInBatch != null)
                 {
-                    return solution;
+                    var orderedFiles = _orderedFilesInBatch;
+
+                    _orderedFilesInBatch = null;
+
+                    solution = UpdateProjectDocumentsOrder(solution, orderedFiles);
                 }
 
-                var orderedFiles = _orderedFilesInBatch;
-
-                _orderedFilesInBatch = null;
-
-                return UpdateProjectDocumentsOrder(solution, orderedFiles);
+                return solution;
             }
 
             private Solution UpdateProjectDocumentsOrder(Solution solution, IEnumerable<string> filePaths)
             {
                 var projectId = _project.Id;
                 var documentIds =
-                    filePaths.Select(x => solution.GetDocumentIdsWithFilePath(x).Single(id => id.ProjectId == projectId));
+                    filePaths.Select(x => _documentPathsToDocumentIds[x]);
 
                 return solution.WithProjectDocumentsOrder(projectId, documentIds.ToImmutableList());
             }
