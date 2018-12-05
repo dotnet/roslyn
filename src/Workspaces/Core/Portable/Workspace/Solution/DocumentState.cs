@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -55,33 +54,33 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        public static DocumentState Create(
+        public DocumentState(
             DocumentInfo info,
             ParseOptions options,
-            HostLanguageServices language,
+            HostLanguageServices languageServices,
             SolutionServices services)
+            : base(info, services)
         {
-            var textSource = info.TextLoader != null
-                ? CreateRecoverableText(info.TextLoader, info.Id, services, reportInvalidDataException: true)
-                : CreateStrongText(TextAndVersion.Create(SourceText.From(string.Empty, Encoding.UTF8), VersionStamp.Default, info.FilePath));
+            _languageServices = languageServices;
+            _options = options;
 
-            var treeSource = CreateLazyFullyParsedTree(
-                textSource,
-                info.Id.ProjectId,
-                GetSyntaxTreeFilePath(info.Attributes),
-                options,
-                language,
-                services);
-
-            return new DocumentState(
-                languageServices: language,
-                documentServiceProvider: info.DocumentServiceProvider,
-                solutionServices: services,
-                attributes: info.Attributes,
-                options: options,
-                sourceTextOpt: null,
-                textSource: textSource,
-                treeSource: treeSource);
+            // If this is document that doesn't support syntax, then don't even bother holding
+            // onto any tree source.  It will never be used to get a tree, and can only hurt us
+            // by possibly holding onto data that might cause a slow memory leak.
+            if (!this.SupportsSyntaxTree)
+            {
+                _treeSource = ValueSource<TreeAndVersion>.Empty;
+            }
+            else
+            {
+                _treeSource = CreateLazyFullyParsedTree(
+                    base.TextAndVersionSource,
+                    info.Id.ProjectId,
+                    GetSyntaxTreeFilePath(info.Attributes),
+                    options,
+                    languageServices,
+                    services);
+            }
         }
 
         // This is the string used to represent the FilePath property on a SyntaxTree object.

@@ -86,18 +86,16 @@ namespace Microsoft.CodeAnalysis
             get { return this.Attributes.Name; }
         }
 
-        public static TextDocumentState Create(DocumentInfo info, SolutionServices services)
+        public TextDocumentState(DocumentInfo info, SolutionServices services)
+            : this(
+                  services,
+                  info.DocumentServiceProvider,
+                  info.Attributes,
+                  sourceTextOpt: null,
+                  textAndVersionSource: info.TextLoader != null
+                    ? CreateRecoverableText(info.TextLoader, info.Id, services, reportInvalidDataException: false)
+                    : CreateStrongText(TextAndVersion.Create(SourceText.From(string.Empty, Encoding.UTF8), VersionStamp.Default, info.FilePath)))
         {
-            var textSource = info.TextLoader != null
-                ? CreateRecoverableText(info.TextLoader, info.Id, services, reportInvalidDataException: false)
-                : CreateStrongText(TextAndVersion.Create(SourceText.From(string.Empty, Encoding.UTF8), VersionStamp.Default, info.FilePath));
-
-            return new TextDocumentState(
-                solutionServices: services,
-                documentServiceProvider: info.DocumentServiceProvider,
-                attributes: info.Attributes,
-                sourceTextOpt: null,
-                textAndVersionSource: textSource);
         }
 
         protected static ValueSource<TextAndVersion> CreateStrongText(TextAndVersion text)

@@ -1128,7 +1128,7 @@ namespace Microsoft.CodeAnalysis
         public SolutionState AddDocuments(ImmutableArray<DocumentInfo> documentInfos)
         {
             return AddDocumentsToMultipleProjects(documentInfos,
-                (documentInfo, project) => DocumentState.Create(
+                (documentInfo, project) => new DocumentState(
                         documentInfo,
                         project.ParseOptions,
                         project.LanguageServices,
@@ -1200,7 +1200,7 @@ namespace Microsoft.CodeAnalysis
 
             var oldProject = this.GetProjectState(documentInfo.Id.ProjectId);
 
-            var state = TextDocumentState.Create(
+            var state = new TextDocumentState(
                 documentInfo,
                 _solutionServices);
 

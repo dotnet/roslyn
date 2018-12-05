@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis
 
             var additionalDocStates = ImmutableSortedDictionary.CreateRange(DocumentIdComparer.Instance,
                     projectInfoFixed.AdditionalDocuments.Select(d =>
-                        new KeyValuePair<DocumentId, TextDocumentState>(d.Id, TextDocumentState.Create(d, solutionServices))));
+                        new KeyValuePair<DocumentId, TextDocumentState>(d.Id, new TextDocumentState(d, solutionServices))));
 
             _additionalDocumentStates = additionalDocStates;
 
@@ -212,7 +212,7 @@ namespace Microsoft.CodeAnalysis
 
         private static DocumentState CreateDocument(DocumentInfo documentInfo, ParseOptions parseOptions, HostLanguageServices languageServices, SolutionServices solutionServices)
         {
-            var doc = DocumentState.Create(documentInfo, parseOptions, languageServices, solutionServices);
+            var doc = new DocumentState(documentInfo, parseOptions, languageServices, solutionServices);
 
             if (doc.SourceCodeKind != documentInfo.SourceCodeKind)
             {
