@@ -140,6 +140,7 @@ namespace Microsoft.CodeAnalysis
         // Common error messages 
 
         public abstract int ERR_FailedToCreateTempFile { get; }
+        public abstract int ERR_MultipleAnalyzerConfigsInSameDir { get; }
 
         // command line:
         public abstract int ERR_ExpectedSingleScript { get; }
