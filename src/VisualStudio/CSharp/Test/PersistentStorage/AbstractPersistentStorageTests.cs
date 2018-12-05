@@ -425,6 +425,19 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
         }
 
         [Fact]
+        public async Task TestReadChecksumReturnsNullWhenNeverWritten()
+        {
+            var solution = CreateOrOpenSolution();
+
+            var streamName1 = "TestReadChecksumReturnsNullWhenNeverWritten";
+
+            using (var storage = GetStorage(solution))
+            {
+                Assert.Equal(null, await storage.ReadChecksumAsync(streamName1));
+            }
+        }
+
+        [Fact]
         public async Task TestCanReadWithNullChecksumSomethingWrittenWithNonNullChecksum()
         {
             var solution = CreateOrOpenSolution();
