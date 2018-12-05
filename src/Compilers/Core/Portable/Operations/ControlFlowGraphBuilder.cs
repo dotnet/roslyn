@@ -6565,6 +6565,29 @@ oneMoreTime:
                 operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
         }
 
+        public override IOperation VisitFromEndIndexOperation(IFromEndIndexOperation operation, int? argument)
+        {
+            return new FromEndIndexOperation(operation.IsLifted, operation.IsImplicit, semanticModel: null, operation.Syntax, operation.Type, Visit(operation.Operand), operation.Symbol);
+        }
+
+        public override IOperation VisitRangeOperation(IRangeOperation operation, int? argument)
+        {
+            if (!(operation.LeftOperand is null))
+            {
+                PushOperand(Visit(operation.LeftOperand));
+            }
+
+            IOperation visitedRightOperand = null;
+            if (!(operation.RightOperand is null))
+            {
+                visitedRightOperand = Visit(operation.RightOperand);
+            }
+
+            IOperation visitedLeftOperand = operation.LeftOperand is null ? null : PopOperand();
+
+            return new RangeOperation(operation.IsLifted, operation.IsImplicit, semanticModel: null, operation.Syntax, operation.Type, visitedLeftOperand, visitedRightOperand, operation.Method);
+        }
+
         public IOperation Visit(IOperation operation)
         {
             // We should never be revisiting nodes we've already visited, and we don't set SemanticModel in this builder.
