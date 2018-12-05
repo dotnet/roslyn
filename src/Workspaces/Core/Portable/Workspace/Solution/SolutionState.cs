@@ -776,7 +776,7 @@ namespace Microsoft.CodeAnalysis
             }
             else
             {
-                return this.ForkProject(newProject, new CompilationTranslationAction.ProjectParseOptionsAction(newProject));
+                return this.ForkProject(newProject, new CompilationTranslationAction.ReplaceAllSyntaxTreesAction(newProject));
             }
         }
 
@@ -821,19 +821,6 @@ namespace Microsoft.CodeAnalysis
 
             // fork without any change on compilation.
             return this.ForkProject(newProject);
-        }
-
-        private static async Task<Compilation> ReplaceSyntaxTreesWithTreesFromNewProjectStateAsync(Compilation compilation, ProjectState projectState, CancellationToken cancellationToken)
-        {
-            var syntaxTrees = new List<SyntaxTree>(capacity: projectState.DocumentIds.Count);
-
-            foreach (var documentState in projectState.OrderedDocumentStates)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-                syntaxTrees.Add(await documentState.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false));
-            }
-
-            return compilation.RemoveAllSyntaxTrees().AddSyntaxTrees(syntaxTrees);
         }
 
         /// <summary>
@@ -949,7 +936,7 @@ namespace Microsoft.CodeAnalysis
                 return this;
             }
 
-            return this.ForkProject(newProject, new CompilationTranslationAction.ProjectParseOptionsAction(newProject));
+            return this.ForkProject(newProject, new CompilationTranslationAction.ReplaceAllSyntaxTreesAction(newProject));
         }
 
         /// <summary>

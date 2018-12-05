@@ -63,14 +63,26 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            internal sealed class ProjectParseOptionsAction : SimpleCompilationTranslationAction<ProjectState>
+            internal sealed class ReplaceAllSyntaxTreesAction : CompilationTranslationAction
             {
-                private static readonly Func<Compilation, ProjectState, CancellationToken, Task<Compilation>> s_action =
-                    (o, d, c) => Task.Run(() => ReplaceSyntaxTreesWithTreesFromNewProjectStateAsync(o, d, c), c);
+                private readonly ProjectState _state;
 
-                public ProjectParseOptionsAction(ProjectState state)
-                    : base(state, s_action)
+                public ReplaceAllSyntaxTreesAction(ProjectState state)
                 {
+                    _state = state;
+                }
+
+                public override async Task<Compilation> InvokeAsync(Compilation oldCompilation, CancellationToken cancellationToken)
+                {
+                    var syntaxTrees = new List<SyntaxTree>(capacity: _state.DocumentIds.Count);
+
+                    foreach (var documentState in _state.OrderedDocumentStates)
+                    {
+                        cancellationToken.ThrowIfCancellationRequested();
+                        syntaxTrees.Add(await documentState.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false));
+                    }
+
+                    return oldCompilation.RemoveAllSyntaxTrees().AddSyntaxTrees(syntaxTrees);
                 }
             }
 
