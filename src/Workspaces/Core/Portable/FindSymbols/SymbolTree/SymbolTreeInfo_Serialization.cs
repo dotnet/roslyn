@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -83,6 +84,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                             result = tryReadObject(reader);
                             if (result != null)
                             {
+                                // If we were able to read something in, it's checksum better
+                                // have matched the checksum we expected.
+                                Debug.Assert(result.Checksum == checksum);
                                 return result;
                             }
                         }
