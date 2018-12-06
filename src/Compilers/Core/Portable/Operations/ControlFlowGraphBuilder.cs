@@ -578,7 +578,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         /// <summary>
         /// Merge content of <paramref name="subRegion"/> into its enclosing region and free it.
         /// </summary>
-        private static void MergeSubRegionAndFree(RegionBuilder subRegion, ArrayBuilder<BasicBlockBuilder> blocks, PooledDictionary<BasicBlockBuilder, RegionBuilder> regionMap)
+        private static void MergeSubRegionAndFree(RegionBuilder subRegion, ArrayBuilder<BasicBlockBuilder> blocks, PooledDictionary<BasicBlockBuilder, RegionBuilder> regionMap, bool canHaveEmptyRegion = false)
         {
             Debug.Assert(subRegion.Kind != ControlFlowRegionKind.Root);
             RegionBuilder enclosing = subRegion.Enclosing;
@@ -586,6 +586,16 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
 #if DEBUG
             subRegion.AboutToFree();
 #endif
+
+            if (subRegion.FirstBlock is null)
+            {
+                Debug.Assert(canHaveEmptyRegion);
+                Debug.Assert(!subRegion.HasRegions);
+
+                enclosing.Remove(subRegion);
+                subRegion.Free();
+                return;
+            }
 
             int firstBlockToMove = subRegion.FirstBlock.Ordinal;
 
@@ -1658,8 +1668,18 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                     Debug.Assert(toMerge.Locals.IsEmpty);
 
                     _currentRegion.AddCaptureIds(toMerge.CaptureIds);
-                    _currentRegion.ExtendToInclude(toMerge.LastBlock);
-                    MergeSubRegionAndFree(toMerge, _blocks, _regionMap);
+                    // This region can be empty in certain error scenarios, such as `new T {}`, where T does not
+                    // have a class constraint. There are no arguments or initializers, so nothing will have
+                    // been put into the region at this point
+                    if (toMerge.LastBlock is null)
+                    {
+                        Debug.Assert(toMerge.FirstBlock is null);
+                    }
+                    else
+                    {
+                        _currentRegion.ExtendToInclude(toMerge.LastBlock);
+                    }
+                    MergeSubRegionAndFree(toMerge, _blocks, _regionMap, canHaveEmptyRegion: true);
                 }
             }
         }

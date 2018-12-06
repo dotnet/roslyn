@@ -231,6 +231,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                               Kind != ControlFlowRegionKind.TryAndFinally) ||
                               Regions.Last().LastBlock == block);
 
+                Debug.Assert(block != null);
+
                 if (FirstBlock == null)
                 {
                     Debug.Assert(LastBlock == null);

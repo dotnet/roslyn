@@ -12511,5 +12511,91 @@ Block[B8] - Exit
 ";
             VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
         }
+
+        [Fact]
+        public void ObjectCreationExpression_NoNewConstraint()
+        {
+            var source = @"
+class C
+{
+    static void F2<T2>()
+    /*<bind>*/{
+        object x2;
+        x2 = new T2 { };
+    }/*</bind>*/
+}";
+            var comp = CreateCompilation(source);
+
+            var diagnostics = new DiagnosticDescription[] {
+                // (7,14): error CS0304: Cannot create an instance of the variable type 'T2' because it does not have the new() constraint
+                //         x2 = new T2 { };
+                Diagnostic(ErrorCode.ERR_NoNewTyvar, "new T2 { }").WithArguments("T2").WithLocation(7, 14)
+            };
+
+            var expectedOperationTree = @"
+IBlockOperation (2 statements, 1 locals) (OperationKind.Block, Type: null, IsInvalid) (Syntax: '{ ... }')
+  Locals: Local_1: System.Object x2
+  IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'object x2;')
+    IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'object x2')
+      Declarators:
+          IVariableDeclaratorOperation (Symbol: System.Object x2) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'x2')
+            Initializer: 
+              null
+      Initializer: 
+        null
+  IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: 'x2 = new T2 { };')
+    Expression: 
+      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Object, IsInvalid) (Syntax: 'x2 = new T2 { }')
+        Left: 
+          ILocalReferenceOperation: x2 (OperationKind.LocalReference, Type: System.Object) (Syntax: 'x2')
+        Right: 
+          IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsInvalid, IsImplicit) (Syntax: 'new T2 { }')
+            Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            Operand: 
+              IInvalidOperation (OperationKind.Invalid, Type: T2, IsInvalid) (Syntax: 'new T2 { }')
+                Children(1):
+                    IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: T2, IsInvalid) (Syntax: '{ }')
+                      Initializers(0)";
+
+            VerifyOperationTreeAndDiagnosticsForTest<BlockSyntax>(comp, expectedOperationTree, diagnostics);
+
+            VerifyFlowGraphForTest<BlockSyntax>(comp, @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1}
+
+.locals {R1}
+{
+    Locals: [System.Object x2]
+    CaptureIds: [0]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (2)
+            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'x2')
+              Value: 
+                ILocalReferenceOperation: x2 (OperationKind.LocalReference, Type: System.Object) (Syntax: 'x2')
+
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: 'x2 = new T2 { };')
+              Expression: 
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Object, IsInvalid) (Syntax: 'x2 = new T2 { }')
+                  Left: 
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Object, IsImplicit) (Syntax: 'x2')
+                  Right: 
+                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsInvalid, IsImplicit) (Syntax: 'new T2 { }')
+                      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        (Boxing)
+                      Operand: 
+                        IInvalidOperation (OperationKind.Invalid, Type: T2, IsInvalid) (Syntax: 'new T2 { }')
+                          Children(0)
+
+        Next (Regular) Block[B2]
+            Leaving: {R1}
+}
+
+Block[B2] - Exit
+    Predecessors: [B1]
+    Statements (0)");
+        }
     }
 }
