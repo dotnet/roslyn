@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
 
         private async Task<ImmutableArray<Diagnostic>> GetDiagnosticsAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken)
         {
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken);
+            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             if (semanticModel is null)
             {
                 return ImmutableArray<Diagnostic>.Empty;
@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
             var orderedTextInserts = allTextChanges.Where(change => change.Span.IsEmpty)
                 .OrderBy(change => change.NewText);
 
-            var text = await document.GetTextAsync(cancellationToken);
+            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             var newText = text.WithChanges(orderedTextInserts);
             var newDocument = newProject.GetDocument(document.Id).WithText(newText);
 

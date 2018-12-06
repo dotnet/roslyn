@@ -1542,6 +1542,42 @@ class Bar { }";
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [WorkItem(31410, "https://github.com/dotnet/roslyn/pull/31410")]
+        public async Task XmlDocComment_MalformedXmlDocComment()
+        {
+            var code = @"
+///<summary>
+///<a: b, c />.
+///</summary>
+class C { }";
+            await TestAsync(code,
+                XmlDoc.Delimiter("///"),
+                XmlDoc.Delimiter("<"),
+                XmlDoc.Name("summary"),
+                XmlDoc.Delimiter(">"),
+                XmlDoc.Delimiter("///"),
+                XmlDoc.Delimiter("<"),
+                XmlDoc.Name("a"),
+                XmlDoc.Name(":"),
+                XmlDoc.Name(" "),
+                XmlDoc.Name("b"),
+                XmlDoc.Text(","),
+                XmlDoc.Name(" "),
+                XmlDoc.Text("c"),
+                XmlDoc.Delimiter(" "),
+                XmlDoc.Delimiter("/>"),
+                XmlDoc.Text("."),
+                XmlDoc.Delimiter("///"),
+                XmlDoc.Delimiter("</"),
+                XmlDoc.Name("summary"),
+                XmlDoc.Delimiter(">"),
+                Keyword("class"),
+                Class("C"),
+                Punctuation.OpenCurly,
+                Punctuation.CloseCurly);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task MultilineXmlDocComment_ExteriorTrivia()
         {
             var code =

@@ -934,7 +934,7 @@ aeu";
             await TestInMethodAsync(
                 code: @"M2(out var _);",
                 expected: Classifications(Identifier("M2"), Punctuation.OpenParen, Keyword("out"), Identifier("var"),
-                    Identifier("_"), Punctuation.CloseParen, Punctuation.Semicolon));
+                    Keyword("_"), Punctuation.CloseParen, Punctuation.Semicolon));
         }
 
         [Fact]
@@ -943,7 +943,7 @@ aeu";
             await TestInMethodAsync(
                 code: @"switch (1) { case int _: }",
                 expected: Classifications(ControlKeyword("switch"), Punctuation.OpenParen, Number("1"), Punctuation.CloseParen,
-                    Punctuation.OpenCurly, ControlKeyword("case"), Keyword("int"), Identifier("_"), Punctuation.Colon, Punctuation.CloseCurly));
+                    Punctuation.OpenCurly, ControlKeyword("case"), Keyword("int"), Keyword("_"), Punctuation.Colon, Punctuation.CloseCurly));
         }
 
         [Fact]
@@ -952,7 +952,7 @@ aeu";
             await TestInMethodAsync(
                 code: @"var (x, _) = (1, 2);",
                 expected: Classifications(Identifier("var"), Punctuation.OpenParen, Local("x"), Punctuation.Comma,
-                    Identifier("_"), Punctuation.CloseParen, Operators.Equals, Punctuation.OpenParen, Number("1"),
+                    Keyword("_"), Punctuation.CloseParen, Operators.Equals, Punctuation.OpenParen, Number("1"),
                     Punctuation.Comma, Number("2"), Punctuation.CloseParen, Punctuation.Semicolon));
         }
 
@@ -961,8 +961,8 @@ aeu";
         {
             await TestInMethodAsync(
                 code: @"(var _, var _) = (1, 2);",
-                expected: Classifications(Punctuation.OpenParen, Identifier("var"), Identifier("_"), Punctuation.Comma,
-                    Identifier("var"), Identifier("_"), Punctuation.CloseParen, Operators.Equals, Punctuation.OpenParen,
+                expected: Classifications(Punctuation.OpenParen, Identifier("var"), Keyword("_"), Punctuation.Comma,
+                    Identifier("var"), Keyword("_"), Punctuation.CloseParen, Operators.Equals, Punctuation.OpenParen,
                     Number("1"), Punctuation.Comma, Number("2"), Punctuation.CloseParen, Punctuation.Semicolon));
         }
 

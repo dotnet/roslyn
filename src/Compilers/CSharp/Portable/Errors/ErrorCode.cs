@@ -1624,7 +1624,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_NoBestNullabilityConditionalExpression = 8626,
         ERR_NullableUnconstrainedTypeParameter = 8627,
         ERR_AnnotationDisallowedInObjectCreation = 8628,
-        WRN_MissingNonNullTypesContext = 8629,
+        // Available -> 8629,
         ERR_NullableOptionNotAvailable = 8630,
         WRN_NullabilityMismatchInTypeParameterConstraint = 8631,
         WRN_MissingNonNullTypesContextForAnnotation = 8632,

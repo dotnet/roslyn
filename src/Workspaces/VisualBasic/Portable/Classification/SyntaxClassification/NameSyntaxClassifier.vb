@@ -86,8 +86,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification.Classifiers
 
             Select Case symbol.Kind
                 Case SymbolKind.Namespace
-                    classifiedSpan = New ClassifiedSpan(GetNameToken(node).Span, ClassificationTypeNames.NamespaceName)
-                    Return True
+                    ' Do not classify the Global namespace. It is already syntactically classified as a keyword.
+                    If Not node.IsKind(SyntaxKind.GlobalName) Then
+                        classifiedSpan = New ClassifiedSpan(GetNameToken(node).Span, ClassificationTypeNames.NamespaceName)
+                        Return True
+                    End If
                 Case SymbolKind.Method
                     Dim classification = GetClassificationForMethod(node, DirectCast(symbol, IMethodSymbol))
                     If classification IsNot Nothing Then
