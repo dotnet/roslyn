@@ -61666,7 +61666,6 @@ class Program
     }
 }";
             var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
-            // PROTOTYPE(NullableReferenceTypes): WRN_NullabilityMismatchInAssignment warnings and references to `S??`.
             comp.VerifyDiagnostics(
                 // (11,13): warning CS8629: Nullable value type may be null.
                 //         _ = s1.Value; // 1
@@ -61674,33 +61673,18 @@ class Program
                 // (13,13): warning CS8629: Nullable value type may be null.
                 //         _ = s2.Value; // 2
                 Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "s2.Value").WithLocation(13, 13),
-                // (15,17): warning CS8619: Nullability of reference types in value of type 'S??' doesn't match target type 'S?'.
-                //         S? s3 = ni;
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "ni").WithArguments("S??", "S?").WithLocation(15, 17),
                 // (16,13): warning CS8629: Nullable value type may be null.
                 //         _ = s3.Value; // 3
                 Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "s3.Value").WithLocation(16, 13),
-                // (23,26): warning CS8619: Nullability of reference types in value of type 'S??' doesn't match target type 'S?'.
-                //             var s1 = (S?)ni;
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "ni").WithArguments("S??", "S?").WithLocation(23, 26),
                 // (24,17): warning CS8629: Nullable value type may be null.
                 //             _ = s1.Value; // 4
                 Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "s1.Value").WithLocation(24, 17),
-                // (25,21): warning CS8619: Nullability of reference types in value of type 'S??' doesn't match target type 'S?'.
-                //             S? s2 = ni;
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "ni").WithArguments("S??", "S?").WithLocation(25, 21),
                 // (26,17): warning CS8629: Nullable value type may be null.
                 //             _ = s2.Value; // 5
                 Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "s2.Value").WithLocation(26, 17),
-                // (30,26): warning CS8619: Nullability of reference types in value of type 'S??' doesn't match target type 'S?'.
-                //             var s3 = (S?)ni;
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "ni").WithArguments("S??", "S?").WithLocation(30, 26),
                 // (31,17): warning CS8629: Nullable value type may be null.
                 //             _ = s3.Value; // 6
                 Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "s3.Value").WithLocation(31, 17),
-                // (32,21): warning CS8619: Nullability of reference types in value of type 'S??' doesn't match target type 'S?'.
-                //             S? s4 = ni;
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "ni").WithArguments("S??", "S?").WithLocation(32, 21),
                 // (33,17): warning CS8629: Nullable value type may be null.
                 //             _ = s4.Value; // 7
                 Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "s4.Value").WithLocation(33, 17));
@@ -61879,7 +61863,6 @@ class Program
     }
 }";
             var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
-            // PROTOTYPE(NullableReferenceTypes): WRN_NullabilityMismatchInAssignment warnings and references to `int??`.
             comp.VerifyDiagnostics(
                 // (11,13): warning CS8629: Nullable value type may be null.
                 //         _ = nl1.Value; // 1
@@ -61887,27 +61870,15 @@ class Program
                 // (13,13): warning CS8629: Nullable value type may be null.
                 //         _ = nl2.Value; // 2
                 Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "nl2.Value").WithLocation(13, 13),
-                // (20,30): warning CS8619: Nullability of reference types in value of type 'int??' doesn't match target type 'int?'.
-                //             var nl1 = (long?)ns;
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "ns").WithArguments("int??", "int?").WithLocation(20, 30),
                 // (21,17): warning CS8629: Nullable value type may be null.
                 //             _ = nl1.Value; // 3
                 Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "nl1.Value").WithLocation(21, 17),
-                // (22,25): warning CS8619: Nullability of reference types in value of type 'int??' doesn't match target type 'int?'.
-                //             long? nl2 = ns;
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "ns").WithArguments("int??", "int?").WithLocation(22, 25),
                 // (23,17): warning CS8629: Nullable value type may be null.
                 //             _ = nl2.Value; // 4
                 Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "nl2.Value").WithLocation(23, 17),
-                // (27,30): warning CS8619: Nullability of reference types in value of type 'int??' doesn't match target type 'int?'.
-                //             var nl1 = (long?)ns;
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "ns").WithArguments("int??", "int?").WithLocation(27, 30),
                 // (28,17): warning CS8629: Nullable value type may be null.
                 //             _ = nl1.Value; // 5
                 Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "nl1.Value").WithLocation(28, 17),
-                // (29,25): warning CS8619: Nullability of reference types in value of type 'int??' doesn't match target type 'int?'.
-                //             long? nl2 = ns;
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "ns").WithArguments("int??", "int?").WithLocation(29, 25),
                 // (30,17): warning CS8629: Nullable value type may be null.
                 //             _ = nl2.Value; // 6
                 Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "nl2.Value").WithLocation(30, 17));
@@ -62778,7 +62749,6 @@ class C<T> where T : struct
     }
 }";
             var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
-            // PROTOTYPE(NullableReferenceTypes): WRN_NullabilityMismatchInAssignment warnings and references to `T??`.
             comp.VerifyDiagnostics(
                 // (11,13): warning CS8629: Nullable value type may be null.
                 //         _ = t1.Value; // 1
@@ -62786,27 +62756,15 @@ class C<T> where T : struct
                 // (13,13): warning CS8629: Nullable value type may be null.
                 //         _ = t2.Value; // 2
                 Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "t2.Value").WithLocation(13, 13),
-                // (20,26): warning CS8619: Nullability of reference types in value of type 'T??' doesn't match target type 'T?'.
-                //             var t1 = (T?)ns;
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "ns").WithArguments("T??", "T?").WithLocation(20, 26),
                 // (21,17): warning CS8629: Nullable value type may be null.
                 //             _ = t1.Value; // 3
                 Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "t1.Value").WithLocation(21, 17),
-                // (22,21): warning CS8619: Nullability of reference types in value of type 'T??' doesn't match target type 'T?'.
-                //             T? t2 = ns;
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "ns").WithArguments("T??", "T?").WithLocation(22, 21),
                 // (23,17): warning CS8629: Nullable value type may be null.
                 //             _ = t2.Value; // 4
                 Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "t2.Value").WithLocation(23, 17),
-                // (27,26): warning CS8619: Nullability of reference types in value of type 'T??' doesn't match target type 'T?'.
-                //             var t3 = (T?)ns; // 5
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "ns").WithArguments("T??", "T?").WithLocation(27, 26),
                 // (28,17): warning CS8629: Nullable value type may be null.
                 //             _ = t3.Value; // 6
                 Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "t3.Value").WithLocation(28, 17),
-                // (29,21): warning CS8619: Nullability of reference types in value of type 'T??' doesn't match target type 'T?'.
-                //             T? t4 = ns; // 7
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "ns").WithArguments("T??", "T?").WithLocation(29, 21),
                 // (30,17): warning CS8629: Nullable value type may be null.
                 //             _ = t4.Value; // 8
                 Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "t4.Value").WithLocation(30, 17));
@@ -63114,7 +63072,6 @@ class C<T> where T : struct
     }
 }";
             var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
-            // PROTOTYPE(NullableReferenceTypes): WRN_NullabilityMismatchInAssignment warnings and references to `T??`.
             comp.VerifyDiagnostics(
                 // (11,13): warning CS8629: Nullable value type may be null.
                 //         _ = s1.Value; // 1
@@ -63122,27 +63079,15 @@ class C<T> where T : struct
                 // (13,13): warning CS8629: Nullable value type may be null.
                 //         _ = s2.Value; // 2
                 Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "s2.Value").WithLocation(13, 13),
-                // (20,29): warning CS8619: Nullability of reference types in value of type 'S<T>??' doesn't match target type 'S<T>?'.
-                //             var s1 = (S<T>?)nt;
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "nt").WithArguments("S<T>??", "S<T>?").WithLocation(20, 29),
                 // (21,17): warning CS8629: Nullable value type may be null.
                 //             _ = s1.Value; // 3
                 Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "s1.Value").WithLocation(21, 17),
-                // (22,24): warning CS8619: Nullability of reference types in value of type 'S<T>??' doesn't match target type 'S<T>?'.
-                //             S<T>? s2 = nt;
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "nt").WithArguments("S<T>??", "S<T>?").WithLocation(22, 24),
                 // (23,17): warning CS8629: Nullable value type may be null.
                 //             _ = s2.Value; // 4
                 Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "s2.Value").WithLocation(23, 17),
-                // (27,29): warning CS8619: Nullability of reference types in value of type 'S<T>??' doesn't match target type 'S<T>?'.
-                //             var s3 = (S<T>?)nt; // 5
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "nt").WithArguments("S<T>??", "S<T>?").WithLocation(27, 29),
                 // (28,17): warning CS8629: Nullable value type may be null.
                 //             _ = s3.Value; // 6
                 Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "s3.Value").WithLocation(28, 17),
-                // (29,24): warning CS8619: Nullability of reference types in value of type 'S<T>??' doesn't match target type 'S<T>?'.
-                //             S<T>? s4 = nt; // 7
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "nt").WithArguments("S<T>??", "S<T>?").WithLocation(29, 24),
                 // (30,17): warning CS8629: Nullable value type may be null.
                 //             _ = s4.Value; // 8
                 Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "s4.Value").WithLocation(30, 17));

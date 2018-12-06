@@ -3385,17 +3385,19 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         // method parameter type -> method return type
                         var methodReturnType = methodOpt.ReturnType;
-                        operandType = methodReturnType;
-
                         if (isLiftedConversion)
                         {
                             operandType = TypeSymbolWithAnnotations.Create(
-                                operandType.IsValueType ?
-                                    compilation.GetSpecialType(SpecialType.System_Nullable_T).Construct(ImmutableArray.Create(operandType)) :
-                                    operandType.TypeSymbol,
+                                methodReturnType.IsValueType && !methodReturnType.IsNullableType()  ?
+                                    compilation.GetSpecialType(SpecialType.System_Nullable_T).Construct(ImmutableArray.Create(methodReturnType)) :
+                                    methodReturnType.TypeSymbol,
                                 methodReturnType.NullableAnnotation.IsAnyNullable() || operandAnnotation.IsAnyNullable() ?
                                     NullableAnnotation.Nullable :
                                     (methodReturnType.IsPossiblyNullableReferenceTypeTypeParameter() ? methodReturnType.NullableAnnotation : NullableAnnotation.NotNullable));
+                        }
+                        else
+                        {
+                            operandType = methodReturnType;
                         }
 
                         // method return type -> conversion "to" type
