@@ -47,16 +47,16 @@
 
     <RepositoryEngineeringDir>$(RepoRoot)build\Targets\</RepositoryEngineeringDir>
 
-    <VersionsPropsPath>$(RepositoryEngineeringDir)Packages.props</VersionsPropsPath>
-    <FixedVersionsPropsPath>$(RepositoryEngineeringDir)FixedPackages.props</FixedVersionsPropsPath>
+    <VersionsPropsPath>$(RepositoryEngineeringDir)Versions.props</VersionsPropsPath>
 
     <ArtifactsDir Condition="'$(ArtifactsDir)' == ''">$(RepoRoot)Binaries\</ArtifactsDir>
     <ArtifactsToolsetDir>$(ArtifactsDir)toolset\</ArtifactsToolsetDir>
     <ArtifactsConfigurationDir>$(ArtifactsDir)$(Configuration)\</ArtifactsConfigurationDir>
-    <ArtifactsSymStoreDirectory>$(ArtifactsConfigurationDir)SymStore\</ArtifactsSymStoreDirectory>
     <ArtifactsTmpDir>$(ArtifactsConfigurationDir)tmp\</ArtifactsTmpDir>
-    <ArtifactsTestResultsDir>$(ArtifactsDir)TestResults\$(Configuration)\</ArtifactsTestResultsDir>
     <ArtifactsLogDir>$(ArtifactsConfigurationDir)Logs\</ArtifactsLogDir>
+    <ArtifactsTmpDir>$(ArtifactsDir)tmp\$(Configuration)\</ArtifactsTmpDir>
+    <ArtifactsTestResultsDir>$(ArtifactsDir)TestResults\$(Configuration)\</ArtifactsTestResultsDir>
+    <ArtifactsSymStoreDirectory>$(ArtifactsDir)SymStore\$(Configuration)\</ArtifactsSymStoreDirectory>
     <ArtifactsPackagesDir>$(ArtifactsConfigurationDir)NuGet\</ArtifactsPackagesDir>
     <ArtifactsShippingPackagesDir>$(ArtifactsPackagesDir)Shipping\</ArtifactsShippingPackagesDir>
     <ArtifactsNonShippingPackagesDir>$(ArtifactsPackagesDir)NonShipping\</ArtifactsNonShippingPackagesDir>
@@ -64,4 +64,5 @@
     <VisualStudioSetupInsertionPath>$(VisualStudioSetupOutputPath)Insertion\</VisualStudioSetupInsertionPath>
     <VisualStudioSetupIntermediateOutputPath>$(ArtifactsDir)VSSetup.obj\$(Configuration)\</VisualStudioSetupIntermediateOutputPath>
   </PropertyGroup>
+
 </Project>

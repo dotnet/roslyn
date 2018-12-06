@@ -1,54 +1,43 @@
-#### 
-#
-#   $bootstrapDir: directory containing the bootstrap compiler
-#   $release: whether to build a debug or release build
-#   $altRootDrive: the drive we build on (via subst) for verifying pathmap implementation
-#
-####
 [CmdletBinding(PositionalBinding=$false)]
-param ( [string]$bootstrapDir = "",
-        [switch]$release = $false,
-        [string]$altRootDrive = "q:")
-
+param([string]$configuration = "Debug",
+      [string]$msbuildEngine = "vs",
+      [string]$bootstrapDir = "",
+      [string]$altRootDrive = "q:",
+      [switch]$help)
 
 Set-StrictMode -version 2.0
 $ErrorActionPreference = "Stop"
 
-### Variables available to the entire script.
+function Print-Usage() {
+    Write-Host "Usage: test-determinism.ps1"
+    Write-Host "  -configuration <value>    Build configuration ('Debug' or 'Release')"
+    Write-Host "  -msbuildEngine <value>    Msbuild engine to use to run build ('dotnet', 'vs', or unspecified)."
+    Write-Host "  -bootstrapDir             Directory containing the bootstrap compiler"
+    Write-Host "  -altRootDrive             The drive we build on (via subst) for verifying pathmap implementation"
+}
+
+if ($help) {
+    Print-Usage
+    exit 0
+}
 
 # List of binary names that should be skipped because they have a known issue that
 # makes them non-deterministic.  
 $script:skipList = @()
 
-# Location that deterministic error information should be written to. 
-[string]$errorDir = ""
-[string]$errorDirLeft = ""
-[string]$errorDirRight = ""
+function Run-Build([string]$rootDir, [string]$logFileName) {
+    # Clean out the previous run
+    Write-Host "Cleaning the Binaries"
+    Remove-Item -Recurse (Get-ConfigDir $rootDir) 
+    Remove-Item -Recurse (Get-ObjDir $rootDir) 
 
-function Run-Build([string]$rootDir, [string]$logFile = $null) {
-    Push-Location $rootDir
-    try {
+    $solution = Join-Path $rootDir "Roslyn.sln"
 
-        # Clean out the previous run
-        Write-Host "Cleaning the Binaries"
-        Remove-Item -Recurse (Get-ConfigDir $rootDir) 
-        Remove-Item -Recurse (Get-ObjDir $rootDir) 
+    Write-Host "Restoring Roslyn.sln"
+    Restore-Project $solution
 
-        Write-Host "Restoring the packages"
-        Restore-Project "Roslyn.sln"
-
-        $args = "/nologo /v:m /nodeReuse:false /m /p:DebugDeterminism=true /p:ContinuousIntegrationBuild=true /p:BootstrapBuildPath=$script:bootstrapDir /p:Features=`"debug-determinism`" /p:UseRoslynAnalyzers=false /p:DeployExtension=false Roslyn.sln"
-        if ($logFile -ne $null) {
-            $logFile = Join-Path $logDir $logFile
-            $args += " /bl:$logFile"
-        }
-
-        Write-Host "Building the Solution"
-        Exec-Console $msbuild $args
-    }
-    finally {
-        Pop-Location
-    }
+    $args = "/p:DebugDeterminism=true /p:Features=`"debug-determinism`" /p:DeployExtension=false"
+    Run-MSBuild $solution $args -logFileName:$logFileName
 }
 
 function Get-ObjDir([string]$rootDir) { 
@@ -56,7 +45,7 @@ function Get-ObjDir([string]$rootDir) {
 }
 
 function Get-ConfigDir([string]$rootDir) { 
-    return Join-Path $rootDir "Binaries\$buildConfiguration"
+    return Join-Path $rootDir "Binaries\$configuration"
 }
 
 # Return all of the files that need to be processed for determinism under the given
@@ -143,8 +132,8 @@ function Test-MapContents($dataMap) {
     }
 }
 
-function Test-Build([string]$rootDir, $dataMap, [string]$logFile) {
-    Run-Build $rootDir -logFile $logFile
+function Test-Build([string]$rootDir, $dataMap, [string]$logFileName) {
+    Run-Build $rootDir -logFile $logFileName
 
     $errorList = @()
     $allGood = $true
@@ -167,7 +156,7 @@ function Test-Build([string]$rootDir, $dataMap, [string]$logFile) {
             $allGood = $false
             $errorList += $fileName
 
-            # Save out the original and baseline so Jenkins will archive them for investigation
+            # Save out the original and baseline for investigation
             [IO.File]::WriteAllBytes((Join-Path $errorDirLeft $fileName), $oldFileData.Content)
             Copy-Item $filePath (Join-Path $errorDirRight $fileName)
 
@@ -191,7 +180,7 @@ function Test-Build([string]$rootDir, $dataMap, [string]$logFile) {
         }
 
         Write-Host "Archiving failure information"
-        $zipFile = Join-Path $logDir "determinism.zip"
+        $zipFile = Join-Path $LogDir "determinism.zip"
         Add-Type -Assembly "System.IO.Compression.FileSystem";
         [System.IO.Compression.ZipFile]::CreateFromDirectory($script:errorDir, $zipFile, "Fastest", $true);
 
@@ -201,15 +190,13 @@ function Test-Build([string]$rootDir, $dataMap, [string]$logFile) {
 }
 
 function Run-Test() {
-    $rootDir = $RepoRoot
-
     # Run the initial build so that we can populate the maps
-    Run-Build $RepoRoot -logFile "initial.binlog"
+    Run-Build $RepoRoot -logFileName "Initial"
     $dataMap = Record-Binaries $RepoRoot
     Test-MapContents $dataMap
 
     # Run a test against the source in the same directory location
-    Test-Build -rootDir $RepoRoot -dataMap $dataMap -logFile "test1.binlog"
+    Test-Build -rootDir $RepoRoot -dataMap $dataMap -logFileName "test1"
 
     # Run another build in a different source location and verify that path mapping 
     # allows the build to be identical.  To do this we'll copy the entire source 
@@ -218,7 +205,7 @@ function Run-Test() {
     Exec-Command "subst" "$altRootDrive $(Split-Path -parent $RepoRoot)"
     try {
         $altRootDir = Join-Path "$($altRootDrive)\" (Split-Path -leaf $RepoRoot)
-        Test-Build -rootDir $altRootDir -dataMap $dataMap -logFile "test2.binlog"
+        Test-Build -rootDir $altRootDir -dataMap $dataMap -logFileName "test2"
     }
     finally {
         Exec-Command "subst" "$altRootDrive /d"
@@ -229,18 +216,23 @@ try {
     . (Join-Path $PSScriptRoot "build-utils.ps1")
 
     # Create all of the logging directories
-    $buildConfiguration = if ($release) { "Release" } else { "Debug" }
-    $logDir = Join-Path (Get-ConfigDir $RepoRoot) "Logs"
-    $errorDir = Join-Path $binariesDir "Determinism"
+    $errorDir = Join-Path $LogDir "DeterminismFailures"
     $errorDirLeft = Join-Path $errorDir "Left"
     $errorDirRight = Join-Path $errorDir "Right"
-    Create-Directory $logDir
+
+    Create-Directory $LogDir
     Create-Directory $errorDirLeft
     Create-Directory $errorDirRight
 
-    $dotnet = Ensure-DotnetSdk
-    $msbuild = Ensure-MSBuild
-    if (($bootstrapDir -eq "") -or (-not ([IO.Path]::IsPathRooted($script:bootstrapDir)))) {
+    $skipAnalyzers = $true
+    $binaryLog = $true
+    $official = $false
+    $ci = $true
+    $properties = @()
+    
+    if ($bootstrapDir -eq "") {
+        $bootstrapDir = Make-BootstrapBuild
+    } elseif (![IO.Path]::IsPathRooted($script:bootstrapDir)) {
         Write-Host "The bootstrap build path must be absolute"
         exit 1
     }

@@ -49,7 +49,6 @@ jobs:
 
   - script: build\scripts\cibuild.cmd
               -configuration $(BuildConfiguration) -official -testDesktop -procdump
-              /p:OfficialBuildId=$(BUILD.BUILDNUMBER)
               /p:DotNetSignType=$(PB_SignType)
               /p:DotNetSymbolServerTokenMsdl=$(microsoft-symbol-server-pat)
               /p:DotNetSymbolServerTokenSymWeb=$(symweb-symbol-server-pat)
