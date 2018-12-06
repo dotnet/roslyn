@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping
                         continue;
                     }
 
-                    var actions = await computer.GetTopLevelCodeActionsAsync();
+                    var actions = await computer.GetTopLevelCodeActionsAsync().ConfigureAwait(false);
                     if (actions.IsDefaultOrEmpty)
                     {
                         continue;
