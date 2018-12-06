@@ -65,5 +65,29 @@ namespace Microsoft.CodeAnalysis.CSharp
             node.WasCompilerGenerated = true;
             return node;
         }
+
+        public static bool ContainsUsingDeclarationStatement(this BoundStatement statement)
+        {
+            return ContainsUsingDeclarationStatement(statement, out var _);
+        }
+
+        public static bool ContainsUsingDeclarationStatement(this BoundStatement statement, out BoundUsingLocalDeclarations declaration)
+        {
+            declaration = null;
+            if (statement is BoundUsingLocalDeclarations localDeclaration)
+            {
+                declaration = localDeclaration;
+                return true;
+            }
+            else if (statement is BoundLabeledStatement label)
+            {
+                if (label.Body is BoundUsingLocalDeclarations localLabelDeclaration)
+                {
+                    declaration = localLabelDeclaration;
+                    return true;
+                }
+            }
+            return false;
+        }
     }
 }

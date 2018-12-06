@@ -82,6 +82,11 @@
         <target state="new">foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public instance definition for '{1}'. Did you mean 'await foreach'?</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_GoToJumpOverUsingVar">
+        <source>A goto target within the same block can not cross a using declaration.</source>
+        <target state="new">A goto target within the same block can not cross a using declaration.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InDynamicMethodArg">
         <source>Arguments with 'in' modifier cannot be used in dynamically dispatched expessions.</source>
         <target state="new">Arguments with 'in' modifier cannot be used in dynamically dispatched expessions.</target>

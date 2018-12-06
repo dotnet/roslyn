@@ -1674,6 +1674,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 boundStatements.Add(boundStatement);
             }
 
+            var immutableBoundStatements = boundStatements.ToImmutableAndFree();
+
             ImmutableArray<LocalSymbol> locals = GetDeclaredLocalsForScope(node);
 
             if (IsDirectlyInIterator)
@@ -1697,11 +1699,43 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
+            // check there are no goto jumps across any using declarations declaration
+            CheckForInvalidGotos(immutableBoundStatements, diagnostics);
+
             return new BoundBlock(
                 node,
                 locals,
                 GetDeclaredLocalFunctionsForScope(node),
-                boundStatements.ToImmutableAndFree());
+                immutableBoundStatements);
+        }
+
+        private static void CheckForInvalidGotos(ImmutableArray<BoundStatement> immutableBoundStatements, DiagnosticBag diagnostics)
+        {
+            // PROTOTYPE: Can we do this more efficiently than n^3?
+            for (int i = 0; i < immutableBoundStatements.Length; i++)
+            {
+                // look for any goto's. If we find one, go through the list again and see if there is a corresponding label
+                if (immutableBoundStatements[i] is BoundGotoStatement gotoStatement)
+                {
+                    for (int j = 0; j < immutableBoundStatements.Length; j++)
+                    {
+                        if (immutableBoundStatements[j] is BoundLabeledStatement label && label.Label == gotoStatement.Label)
+                        {
+                            // we found a matching label in this block. lets see if any of the statements between the two are using declarations
+                            int startIndex = Math.Min(i, j);
+                            int endIndex = Math.Max(i, j);
+                            for (int k = startIndex; k < endIndex; k++)
+                            {
+                                if (immutableBoundStatements[k].ContainsUsingDeclarationStatement())
+                                {
+                                    // we're jumping across a using declaration in the same block, which is an error
+                                    diagnostics.Add(ErrorCode.ERR_GoToJumpOverUsingVar, gotoStatement.Syntax.Location);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
 
         internal BoundExpression GenerateConversionForAssignment(TypeSymbol targetType, BoundExpression expression, DiagnosticBag diagnostics, bool isDefaultParameter = false, bool isRefAssignment = false)

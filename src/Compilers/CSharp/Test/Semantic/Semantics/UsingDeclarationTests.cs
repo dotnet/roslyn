@@ -14,6 +14,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.Semantics
     public class UsingDeclarationTests : CompilingTestBase
     {
         [Fact]
+        public void UsingVariableIsNotReportedAsUnused()
+        {
+            var source = @"
+using System;
+class C
+{
+    static void Main()
+    {
+        using var x = (IDisposable)null;
+    }
+}
+";
+            CreateCompilation(source).VerifyDiagnostics();
+        }
+
+        [Fact]
         public void DisallowGoToAcrossUsingDeclarationsForward()
         {
             var source = @"
@@ -36,10 +52,7 @@ class C
                 Diagnostic(ErrorCode.ERR_GoToJumpOverUsingVar, "goto label1;").WithLocation(7, 9),
                 // (8,9): warning CS0162: Unreachable code detected
                 //         using var x = (IDisposable)null;
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "using").WithLocation(8, 9),
-                // (8,19): warning CS0219: The variable 'x' is assigned but its value is never used
-                //         using var x = (IDisposable)null;
-                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x").WithArguments("x").WithLocation(8, 19)
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "using").WithLocation(8, 9)
                 );
         }
 
@@ -60,9 +73,6 @@ class C
 }
 ";
             CreateCompilation(source).VerifyDiagnostics(
-                // (8,19): warning CS0219: The variable 'x' is assigned but its value is never used
-                //         using var x = (IDisposable)null;
-                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x").WithArguments("x").WithLocation(8, 19),
                 // (10,9): error CS8641: A goto target within the same block can not cross a using declaration.
                 //         goto label1;
                 Diagnostic(ErrorCode.ERR_GoToJumpOverUsingVar, "goto label1;").WithLocation(10, 9)
@@ -86,11 +96,7 @@ class C
     }
 }
 ";
-            CreateCompilation(source).VerifyDiagnostics(
-                // (8,19): warning CS0219: The variable 'x' is assigned but its value is never used
-                //         using var x = (IDisposable)null;
-                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x").WithArguments("x").WithLocation(8, 19)
-                );
+            CreateCompilation(source).VerifyDiagnostics();
         }
     }
 }
