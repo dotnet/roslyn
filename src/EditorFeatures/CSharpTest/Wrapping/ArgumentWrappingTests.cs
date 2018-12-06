@@ -70,6 +70,18 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
+        public async Task TestMissingWithMultiLineParameter2()
+        {
+            await TestMissingAsync(
+@"class C {
+    void Bar() {
+        Goobar([||]i, @""
+        "");
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
         public async Task TestInHeader1()
         {
             await TestInRegularAndScript1Async(

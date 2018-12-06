@@ -44,6 +44,9 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping
                 var firstToken = item.IsToken ? item.AsToken() : item.AsNode().GetFirstToken();
                 var lastToken = item.IsToken ? item.AsToken() : item.AsNode().GetLastToken();
 
+                // Note: we check if things are on the same line, even in the case of a single token.
+                // This is so that we don't try to wrap multiline tokens either (like a multi-line 
+                // string).
                 if (!sourceText.AreOnSameLine(firstToken, lastToken))
                 {
                     return true;
