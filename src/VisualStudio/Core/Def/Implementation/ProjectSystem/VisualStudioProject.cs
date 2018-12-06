@@ -147,8 +147,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             _fileReferenceChangeContext = workspace.FileChangeWatcher.CreateContext();
             _fileReferenceChangeContext.FileChanged += FileReferenceChangeContext_FileChanged;
 
-            _sourceFiles = new BatchingDocumentCollection(this, (s, d) => s.ContainsDocument(d), (w, d) => w.OnDocumentAdded(d), (w, documentId) => w.OnDocumentRemoved(documentId));
-            _additionalFiles = new BatchingDocumentCollection(this, (s, d) => s.ContainsAdditionalDocument(d), (w, d) => w.OnAdditionalDocumentAdded(d), (w, documentId) => w.OnAdditionalDocumentRemoved(documentId));
+            _sourceFiles = new BatchingDocumentCollection(
+                this,
+                documentAlreadyInWorkspace: (s, d) => s.ContainsDocument(d),
+                documentAddAction: (w, d) => w.OnDocumentAdded(d),
+                documentRemoveAction: (w, documentId) => w.OnDocumentRemoved(documentId),
+                documentTextLoaderChangedAction: (w, d, loader) => w.OnDocumentTextLoaderChanged(d, loader));
+
+            _additionalFiles = new BatchingDocumentCollection(this,
+                (s, d) => s.ContainsAdditionalDocument(d),
+                (w, d) => w.OnAdditionalDocumentAdded(d),
+                (w, documentId) => w.OnAdditionalDocumentRemoved(documentId),
+                documentTextLoaderChangedAction: (w, d, loader) => w.OnAdditionalDocumentTextLoaderChanged(d, loader));
         }
 
         private void ChangeProjectProperty<T>(ref T field, T newValue, Func<Solution, Solution> withNewValue, Action<Workspace> changeValue)
@@ -1077,16 +1087,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             private readonly Func<Solution, DocumentId, bool> _documentAlreadyInWorkspace;
             private readonly Action<Workspace, DocumentInfo> _documentAddAction;
             private readonly Action<Workspace, DocumentId> _documentRemoveAction;
+            private readonly Action<Workspace, DocumentId, TextLoader> _documentTextLoaderChangedAction;
 
             public BatchingDocumentCollection(VisualStudioProject project,
                 Func<Solution, DocumentId, bool> documentAlreadyInWorkspace,
                 Action<Workspace, DocumentInfo> documentAddAction,
-                Action<Workspace, DocumentId> documentRemoveAction)
+                Action<Workspace, DocumentId> documentRemoveAction,
+                Action<Workspace, DocumentId, TextLoader> documentTextLoaderChangedAction)
             {
                 _project = project;
                 _documentAlreadyInWorkspace = documentAlreadyInWorkspace;
                 _documentAddAction = documentAddAction;
                 _documentRemoveAction = documentRemoveAction;
+                _documentTextLoaderChangedAction = documentTextLoaderChangedAction;
             }
 
             public DocumentId AddFile(string fullPath, SourceCodeKind sourceCodeKind, ImmutableArray<string> folders)
@@ -1390,8 +1403,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                         // possible we might see a file change notification early. In this case, toss it out. Since
                         // all adds/removals of documents for this project happen under our lock, it's safe to do this
                         // check without taking the main workspace lock
-                        var document = _project._workspace.CurrentSolution.GetDocument(documentId);
-                        if (document == null)
+
+                        if (_documentsAddedInBatch.Any(d => d.Id == documentId))
                         {
                             return;
                         }
@@ -1405,12 +1418,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                                 return;
                             }
 
-                            TextLoader textLoader;
-                            IDocumentServiceProvider documentServiceProvider;
                             if (fileInfoProvider == null)
                             {
-                                textLoader = new FileTextLoader(projectSystemFilePath, defaultEncoding: null);
-                                documentServiceProvider = null;
+                                var textLoader = new FileTextLoader(projectSystemFilePath, defaultEncoding: null);
+                                _documentTextLoaderChangedAction(w, documentId, textLoader);
                             }
                             else
                             {
@@ -1420,21 +1431,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                                 var fileInfo = fileInfoProvider.GetDynamicFileInfoAsync(
                                     _project.Id, _project._filePath, projectSystemFilePath, CancellationToken.None).WaitAndGetResult_CanCallOnBackground(CancellationToken.None);
 
-                                textLoader = fileInfo.TextLoader;
-                                documentServiceProvider = fileInfo.DocumentServiceProvider;
+                                // Right now we're only supporting dynamic files as actual source files, so it's OK to call GetDocument here
+                                var document = w.CurrentSolution.GetDocument(documentId);
+
+                                var documentInfo = DocumentInfo.Create(
+                                    document.Id,
+                                    document.Name,
+                                    document.Folders,
+                                    document.SourceCodeKind,
+                                    loader: fileInfo.TextLoader,
+                                    document.FilePath,
+                                    document.State.Attributes.IsGenerated,
+                                    documentServiceProvider: fileInfo.DocumentServiceProvider);
+
+                                w.OnDocumentReloaded(documentInfo);
                             }
-
-                            var documentInfo = DocumentInfo.Create(
-                                document.Id,
-                                document.Name,
-                                document.Folders,
-                                document.SourceCodeKind,
-                                loader: textLoader,
-                                document.FilePath,
-                                document.State.Attributes.IsGenerated,
-                                documentServiceProvider: documentServiceProvider);
-
-                            w.OnDocumentReloaded(documentInfo);
                         });
                     }
                 }
