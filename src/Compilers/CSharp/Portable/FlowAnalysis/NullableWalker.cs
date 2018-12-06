@@ -3389,8 +3389,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (isLiftedConversion)
                         {
                             operandType = TypeSymbolWithAnnotations.Create(
-                                operandType.IsValueType ? compilation.GetSpecialType(SpecialType.System_Nullable_T).Construct(ImmutableArray.Create(operandType)) : operandType.TypeSymbol,
-                                operandAnnotation.IsAnyNullable() ? NullableAnnotation.Nullable : NullableAnnotation.NotNullable);
+                                operandType.IsValueType ?
+                                    compilation.GetSpecialType(SpecialType.System_Nullable_T).Construct(ImmutableArray.Create(operandType)) :
+                                    operandType.TypeSymbol,
+                                methodOpt.ReturnType.NullableAnnotation.IsAnyNullable() || operandAnnotation.IsAnyNullable() ?
+                                    NullableAnnotation.Nullable :
+                                    NullableAnnotation.NotNullable);
                         }
 
                         // method return type -> conversion "to" type
