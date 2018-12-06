@@ -30,6 +30,8 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping
             // formatting badly.  If this is really important to support, we can put in the effort
             // to properly move multi-line items around (which would involve properly fixing up the
             // indentation of lines within them.
+            //
+            // https://github.com/dotnet/roslyn/issues/31575
             var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             foreach (var item in nodesAndTokens)
             {
