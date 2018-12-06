@@ -1561,6 +1561,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             return base.VisitFixedStatement(node);
         }
 
+        public override BoundNode VisitUsingLocalDeclarations(BoundUsingLocalDeclarations node)
+        {
+            var visited = base.VisitUsingLocalDeclarations(node);
+
+            // every variable declared in a using local declaration is implicity read when it goes out of scope and it is disposed
+            foreach (var decl in node.LocalDeclarations)
+            {
+                NoteRead(decl.LocalSymbol);
+            }
+            return visited;
+        }
+
         public override BoundNode VisitSequence(BoundSequence node)
         {
             DeclareVariables(node.Locals);
