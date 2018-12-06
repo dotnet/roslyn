@@ -2286,6 +2286,10 @@ public class B : A
         public void UnmanagedConstraint_StructMismatchInImplements()
         {
             CreateCompilation(@"
+public struct Segment<T> {
+    public T[] array;
+}
+
 public interface I1<in T> where T : unmanaged
 {
     void Test<G>(G x) where G : unmanaged;
@@ -2296,22 +2300,22 @@ public class C2<T> : I1<T> where T : struct
     public void Test<G>(G x) where G : struct
     {
         I1<T> i = this;
-        i.Test(default(System.ArraySegment<int>));
+        i.Test(default(Segment<int>));
     }
 }
 ").VerifyDiagnostics(
-                // (7,14): error CS8379: The type 'T' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'I1<T>'
+                // (11,14): error CS8377: The type 'T' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'I1<T>'
                 // public class C2<T> : I1<T> where T : struct
-                Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "C2").WithArguments("I1<T>", "T", "T").WithLocation(7, 14),
-                // (9,17): error CS0425: The constraints for type parameter 'G' of method 'C2<T>.Test<G>(G)' must match the constraints for type parameter 'G' of interface method 'I1<T>.Test<G>(G)'. Consider using an explicit interface implementation instead.
+                Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "C2").WithArguments("I1<T>", "T", "T").WithLocation(11, 14),
+                // (13,17): error CS0425: The constraints for type parameter 'G' of method 'C2<T>.Test<G>(G)' must match the constraints for type parameter 'G' of interface method 'I1<T>.Test<G>(G)'. Consider using an explicit interface implementation instead.
                 //     public void Test<G>(G x) where G : struct
-                Diagnostic(ErrorCode.ERR_ImplBadConstraints, "Test").WithArguments("G", "C2<T>.Test<G>(G)", "G", "I1<T>.Test<G>(G)").WithLocation(9, 17),
-                // (11,12): error CS8379: The type 'T' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'I1<T>'
+                Diagnostic(ErrorCode.ERR_ImplBadConstraints, "Test").WithArguments("G", "C2<T>.Test<G>(G)", "G", "I1<T>.Test<G>(G)").WithLocation(13, 17),
+                // (15,12): error CS8377: The type 'T' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'I1<T>'
                 //         I1<T> i = this;
-                Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "T").WithArguments("I1<T>", "T", "T").WithLocation(11, 12),
-                // (12,11): error CS8379: The type 'ArraySegment<int>' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter 'G' in the generic type or method 'I1<T>.Test<G>(G)'
-                //         i.Test(default(System.ArraySegment<int>));
-                Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "Test").WithArguments("I1<T>.Test<G>(G)", "G", "System.ArraySegment<int>").WithLocation(12, 11)
+                Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "T").WithArguments("I1<T>", "T", "T").WithLocation(15, 12),
+                // (16,11): error CS8377: The type 'Segment<int>' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter 'G' in the generic type or method 'I1<T>.Test<G>(G)'
+                //         i.Test(default(Segment<int>));
+                Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "Test").WithArguments("I1<T>.Test<G>(G)", "G", "Segment<int>").WithLocation(16, 11)
                 );
         }
 
@@ -2976,7 +2980,7 @@ public class Test
         IsStruct<Wrapper<int>.E>();
         IsNew<Wrapper<int>.E>();
 
-        IsUnmanaged<Wrapper<int>.S>();          // Invalid
+        IsUnmanaged<Wrapper<int>.S>();
         IsEnum<Wrapper<int>.S>();               // Invalid
         IsStruct<Wrapper<int>.S>();
         IsNew<Wrapper<int>.S>();
@@ -2986,7 +2990,7 @@ public class Test
         IsStruct<Wrapper<string>.E>();
         IsNew<Wrapper<string>.E>();
 
-        IsUnmanaged<Wrapper<string>.S>();          // Invalid
+        IsUnmanaged<Wrapper<string>.S>();
         IsEnum<Wrapper<string>.S>();               // Invalid
         IsStruct<Wrapper<string>.S>();
         IsNew<Wrapper<string>.S>();
@@ -2994,15 +2998,9 @@ public class Test
 }";
 
             CreateCompilation(code).VerifyDiagnostics(
-                // (27,9): error CS8377: The type 'Wrapper<int>.S' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'Test.IsUnmanaged<T>()'
-                //         IsUnmanaged<Wrapper<int>.S>();          // Invalid
-                Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "IsUnmanaged<Wrapper<int>.S>").WithArguments("Test.IsUnmanaged<T>()", "T", "Wrapper<int>.S").WithLocation(27, 9),
                 // (28,9): error CS0315: The type 'Wrapper<int>.S' cannot be used as type parameter 'T' in the generic type or method 'Test.IsEnum<T>()'. There is no boxing conversion from 'Wrapper<int>.S' to 'System.Enum'.
                 //         IsEnum<Wrapper<int>.S>();               // Invalid
                 Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedValType, "IsEnum<Wrapper<int>.S>").WithArguments("Test.IsEnum<T>()", "System.Enum", "T", "Wrapper<int>.S").WithLocation(28, 9),
-                // (37,9): error CS8377: The type 'Wrapper<string>.S' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'Test.IsUnmanaged<T>()'
-                //         IsUnmanaged<Wrapper<string>.S>();          // Invalid
-                Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "IsUnmanaged<Wrapper<string>.S>").WithArguments("Test.IsUnmanaged<T>()", "T", "Wrapper<string>.S").WithLocation(37, 9),
                 // (38,9): error CS0315: The type 'Wrapper<string>.S' cannot be used as type parameter 'T' in the generic type or method 'Test.IsEnum<T>()'. There is no boxing conversion from 'Wrapper<string>.S' to 'System.Enum'.
                 //         IsEnum<Wrapper<string>.S>();               // Invalid
                 Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedValType, "IsEnum<Wrapper<string>.S>").WithArguments("Test.IsEnum<T>()", "System.Enum", "T", "Wrapper<string>.S").WithLocation(38, 9));
@@ -3269,6 +3267,367 @@ unsafe class C
                 // (20,9): error CS0315: The type 'int' cannot be used as type parameter 'T' in the generic type or method 'C.UnmanagedWithInterface<T>(T*)'. There is no boxing conversion from 'int' to 'System.IDisposable'.
                 //         UnmanagedWithInterface(&a);         // fail (does not match interface)
                 Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedValType, "UnmanagedWithInterface").WithArguments("C.UnmanagedWithInterface<T>(T*)", "System.IDisposable", "T", "int").WithLocation(20, 9));
+        }
+
+        [Fact]
+        public void UnmanagedGenericStructPointer()
+        {
+            var code = @"
+public struct MyStruct<T>
+{
+    public T field;
+}
+
+public class C
+{
+    public unsafe void M()
+    {
+        MyStruct<int> myStruct;
+        M2(&myStruct);
+    }
+
+    public unsafe void M2(MyStruct<int>* ms) { }
+}
+";
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll)
+                .VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ManagedGenericStructPointer()
+        {
+            var code = @"
+public struct MyStruct<T>
+{
+    public T field;
+}
+
+public class C
+{
+    public unsafe void M()
+    {
+        MyStruct<string> myStruct;
+        M2(&myStruct);
+    }
+
+    public unsafe void M2<T>(MyStruct<T>* ms) where T : unmanaged { }
+}
+";
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll)
+                .VerifyDiagnostics(
+                    // (12,12): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('MyStruct<string>')
+                    //         M2(&myStruct);
+                    Diagnostic(ErrorCode.ERR_ManagedAddr, "&myStruct").WithArguments("MyStruct<string>").WithLocation(12, 12));
+        }
+
+        [Fact]
+        public void UnmanagedGenericConstraintStructPointer()
+        {
+            var code = @"
+public struct MyStruct<T> where T : unmanaged
+{
+    public T field;
+}
+
+public class C
+{
+    public unsafe void M()
+    {
+        MyStruct<int> myStruct;
+        M2(&myStruct);
+    }
+
+    public unsafe void M2(MyStruct<int>* ms) { }
+}
+";
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll)
+                .VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void UnmanagedGenericConstraintNestedStructPointer()
+        {
+            var code = @"
+public struct MyStruct<T> where T : unmanaged
+{
+    public T field;
+}
+
+public struct OuterStruct
+{
+    public int x;
+    public InnerStruct inner;
+}
+
+public struct InnerStruct
+{
+    public int y;
+}
+
+public class C
+{
+    public unsafe void M()
+    {
+        MyStruct<OuterStruct> myStruct;
+        M2(&myStruct);
+    }
+
+    public unsafe void M2(MyStruct<OuterStruct>* ms) { }
+}
+";
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll)
+                .VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void UnmanagedGenericConstraintNestedGenericStructPointer()
+        {
+            var code = @"
+public struct MyStruct<T> where T : unmanaged
+{
+    public T field;
+}
+
+public struct InnerStruct<U>
+{
+    public U value;
+}
+
+public class C
+{
+    public unsafe void M()
+    {
+        MyStruct<InnerStruct<int>> myStruct;
+        M2(&myStruct);
+    }
+
+    public unsafe void M2(MyStruct<InnerStruct<int>>* ms) { }
+}
+";
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll)
+                .VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void UnmanagedGenericConstraintPartialConstructedStruct()
+        {
+            var code = @"
+public struct MyStruct<T> where T : unmanaged
+{
+    public T field;
+}
+
+public class C
+{
+    public unsafe void M<U>()
+    {
+        MyStruct<U> myStruct;
+        M2<U>(&myStruct);
+    }
+
+    public unsafe void M2<V>(MyStruct<V>* ms) { }
+}
+";
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll)
+                .VerifyDiagnostics(
+                    // (11,18): error CS8377: The type 'U' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'MyStruct<T>'
+                    //         MyStruct<U> myStruct;
+                    Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "U").WithArguments("MyStruct<T>", "T", "U").WithLocation(11, 18),
+                    // (12,15): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('MyStruct<U>')
+                    //         M2<U>(&myStruct);
+                    Diagnostic(ErrorCode.ERR_ManagedAddr, "&myStruct").WithArguments("MyStruct<U>").WithLocation(12, 15),
+                    // (15,30): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('MyStruct<V>')
+                    //     public unsafe void M2<V>(MyStruct<V>* ms) { }
+                    Diagnostic(ErrorCode.ERR_ManagedAddr, "MyStruct<V>*").WithArguments("MyStruct<V>").WithLocation(15, 30),
+                    // (15,43): error CS8377: The type 'V' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'MyStruct<T>'
+                    //     public unsafe void M2<V>(MyStruct<V>* ms) { }
+                    Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "ms").WithArguments("MyStruct<T>", "T", "V").WithLocation(15, 43));
+        }
+
+        [Fact]
+        public void GenericStructManagedFieldPointer()
+        {
+            var code = @"
+public struct MyStruct<T>
+{
+    public T field;
+}
+
+public class C
+{
+    public unsafe void M()
+    {
+        MyStruct<string> myStruct;
+        M2(&myStruct);
+    }
+
+    public unsafe void M2(MyStruct<string>* ms) { }
+}
+";
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll)
+                .VerifyDiagnostics(
+                    // (12,12): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('MyStruct<string>')
+                    //         M2(&myStruct);
+                    Diagnostic(ErrorCode.ERR_ManagedAddr, "&myStruct").WithArguments("MyStruct<string>").WithLocation(12, 12),
+                    // (15,27): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('MyStruct<string>')
+                    //     public unsafe void M2(MyStruct<string>* ms) { }
+                    Diagnostic(ErrorCode.ERR_ManagedAddr, "MyStruct<string>*").WithArguments("MyStruct<string>").WithLocation(15, 27));
+        }
+
+        [Fact]
+        public void UnmanagedRecursiveGenericStruct()
+        {
+            var code = @"
+public unsafe struct MyStruct<T> where T : unmanaged
+{
+    public YourStruct<T>* field;
+}
+
+public unsafe struct YourStruct<T> where T : unmanaged
+{
+    public MyStruct<T>* field;
+}
+";
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll)
+                .VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void UnmanagedRecursiveStruct()
+        {
+            var code = @"
+public unsafe struct MyStruct
+{
+    public YourStruct* field;
+}
+
+public unsafe struct YourStruct
+{
+    public MyStruct* field;
+}
+";
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll)
+                .VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void UnmanagedExpandingTypeArgument()
+        {
+            var code = @"
+public struct MyStruct<T>
+{
+    public YourStruct<MyStruct<MyStruct<T>>> field;
+}
+
+public struct YourStruct<T> where T : unmanaged
+{
+    public T field;
+}
+";
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll)
+                .VerifyDiagnostics(
+                    // (4,46): error CS0523: Struct member 'MyStruct<T>.field' of type 'YourStruct<MyStruct<MyStruct<T>>>' causes a cycle in the struct layout
+                    //     public YourStruct<MyStruct<MyStruct<T>>> field;
+                    Diagnostic(ErrorCode.ERR_StructLayoutCycle, "field").WithArguments("MyStruct<T>.field", "YourStruct<MyStruct<MyStruct<T>>>").WithLocation(4, 46));
+        }
+
+        [Fact]
+        public void UnmanagedCyclic()
+        {
+            var code = @"
+public struct MyStruct<T>
+{
+    public YourStruct<T> field;
+}
+
+public struct YourStruct<T> where T : unmanaged
+{
+    public MyStruct<T> field;
+}
+";
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll)
+                .VerifyDiagnostics(
+                    // (4,26): error CS0523: Struct member 'MyStruct<T>.field' of type 'YourStruct<T>' causes a cycle in the struct layout
+                    //     public YourStruct<T> field;
+                    Diagnostic(ErrorCode.ERR_StructLayoutCycle, "field").WithArguments("MyStruct<T>.field", "YourStruct<T>").WithLocation(4, 26),
+                    // (4,26): error CS8377: The type 'T' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'YourStruct<T>'
+                    //     public YourStruct<T> field;
+                    Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "field").WithArguments("YourStruct<T>", "T", "T").WithLocation(4, 26),
+                    // (9,24): error CS0523: Struct member 'YourStruct<T>.field' of type 'MyStruct<T>' causes a cycle in the struct layout
+                    //     public MyStruct<T> field;
+                    Diagnostic(ErrorCode.ERR_StructLayoutCycle, "field").WithArguments("YourStruct<T>.field", "MyStruct<T>").WithLocation(9, 24));
+        }
+
+        [Fact]
+        public void UnmanagedExpandingTypeArgumentManagedGenericField()
+        {
+            var code = @"
+public struct MyStruct<T>
+{
+    public YourStruct<MyStruct<MyStruct<T>>> field;
+    public T myField;
+}
+
+public struct YourStruct<T> where T : unmanaged
+{
+    public T field;
+}
+";
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll)
+                .VerifyDiagnostics(
+                    // (4,46): error CS0523: Struct member 'MyStruct<T>.field' of type 'YourStruct<MyStruct<MyStruct<T>>>' causes a cycle in the struct layout
+                    //     public YourStruct<MyStruct<MyStruct<T>>> field;
+                    Diagnostic(ErrorCode.ERR_StructLayoutCycle, "field").WithArguments("MyStruct<T>.field", "YourStruct<MyStruct<MyStruct<T>>>").WithLocation(4, 46));
+        }
+
+        [Fact]
+        public void UnmanagedExpandingTypeArgumentConstraintViolation()
+        {
+            var code = @"
+public struct MyStruct<T>
+{
+    public YourStruct<MyStruct<MyStruct<T>>> field;
+    public string s;
+}
+
+public struct YourStruct<T> where T : unmanaged
+{
+    public T field;
+}
+";
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll)
+                .VerifyDiagnostics(
+                    // (4,46): error CS0523: Struct member 'MyStruct<T>.field' of type 'YourStruct<MyStruct<MyStruct<T>>>' causes a cycle in the struct layout
+                    //     public YourStruct<MyStruct<MyStruct<T>>> field;
+                    Diagnostic(ErrorCode.ERR_StructLayoutCycle, "field").WithArguments("MyStruct<T>.field", "YourStruct<MyStruct<MyStruct<T>>>").WithLocation(4, 46),
+                    // (4,46): error CS8377: The type 'MyStruct<MyStruct<T>>' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'YourStruct<T>'
+                    //     public YourStruct<MyStruct<MyStruct<T>>> field;
+                    Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "field").WithArguments("YourStruct<T>", "T", "MyStruct<MyStruct<T>>").WithLocation(4, 46));
+        }
+
+        [Fact]
+        public void UnmanagedRecursiveTypeArgumentConstraintViolation_02()
+        {
+            var code = @"
+public struct MyStruct<T>
+{
+    public YourStruct<MyStruct<MyStruct<T>>> field;
+}
+
+public struct YourStruct<T> where T : unmanaged
+{
+    public T field;
+    public string s;
+}
+";
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll)
+                .VerifyDiagnostics(
+                    // (4,46): error CS0523: Struct member 'MyStruct<T>.field' of type 'YourStruct<MyStruct<MyStruct<T>>>' causes a cycle in the struct layout
+                    //     public YourStruct<MyStruct<MyStruct<T>>> field;
+                    Diagnostic(ErrorCode.ERR_StructLayoutCycle, "field").WithArguments("MyStruct<T>.field", "YourStruct<MyStruct<MyStruct<T>>>").WithLocation(4, 46),
+                    // (4,46): error CS8377: The type 'MyStruct<MyStruct<T>>' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'YourStruct<T>'
+                    //     public YourStruct<MyStruct<MyStruct<T>>> field;
+                    Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "field").WithArguments("YourStruct<T>", "T", "MyStruct<MyStruct<T>>").WithLocation(4, 46));
         }
     }
 }

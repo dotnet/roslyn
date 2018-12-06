@@ -93,8 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// IsManagedType is simple for most named types:
         ///     enums are not managed;
         ///     non-enum, non-struct named types are managed;
-        ///     generic types and their nested types are managed;
-        ///     type parameters are managed;
+        ///     type parameters are managed unless an 'unmanaged' constraint is present;
         ///     all special types have spec'd values (basically, (non-string) primitives) are not managed;
         /// 
         /// Only structs are complicated, because the definition is recursive.  A struct type is managed
@@ -184,7 +183,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             case ThreeState.False:
                                 continue;
                             case ThreeState.Unknown:
-                                if (DependsOnDefinitelyManagedType(fieldNamedType, partialClosure))
+                                if (!fieldNamedType.OriginalDefinition.KnownCircularStruct &&
+                                    DependsOnDefinitelyManagedType(fieldNamedType, partialClosure))
                                 {
                                     return true;
                                 }
@@ -236,11 +236,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 default:
                     // CONSIDER: could provide cases for other common special types.
                     break; // Proceed with additional checks.
-            }
-
-            if (type.AllTypeArgumentCount() > 0)
-            {
-                return ThreeState.True;
             }
 
             switch (type.TypeKind)
