@@ -355,6 +355,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     builder.Add(CreatePart(SymbolDisplayPartKind.MethodName, symbol, symbol.Name));
                     break;
                 case MethodKind.ReducedExtension:
+                    // Note: Extension methods invoked off of their static class will be tagged as methods.
+                    //       This behavior matches the semantic classification done in NameSyntaxClassifier.
                     builder.Add(CreatePart(SymbolDisplayPartKind.ExtensionMethodName, symbol, symbol.Name));
                     break;
                 case MethodKind.PropertyGet:

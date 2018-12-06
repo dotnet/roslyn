@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.Classification
             foreach (var span in classifiedSpans)
             {
                 // If there is space between this span and the last one, then add a space.
-                if (startPosition != span.TextSpan.Start)
+                if (startPosition < span.TextSpan.Start)
                 {
                     parts.AddRange(Space());
                 }

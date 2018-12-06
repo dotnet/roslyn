@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             }
         }
         #endregion
-        #region Operator - Overload
+        #region Operator - Overloaded
         [Export(typeof(EditorFormatDefinition))]
         [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.OperatorOverload)]
         [BaseDefinition(PredefinedClassificationTypeNames.Operator)]
@@ -112,11 +112,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [Order(After = PredefinedClassificationTypeNames.Operator)]
         [UserVisible(true)]
         [ExcludeFromCodeCoverage]
-        private class OperatorOverloadFormatDefinition : ClassificationFormatDefinition
+        private class OperatorOverloadedFormatDefinition : ClassificationFormatDefinition
         {
-            private OperatorOverloadFormatDefinition()
+            private OperatorOverloadedFormatDefinition()
             {
-                this.DisplayName = EditorFeaturesResources.Operator_Overload;
+                this.DisplayName = EditorFeaturesResources.Operator_Overloaded;
             }
         }
         #endregion
@@ -247,7 +247,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         }
         #endregion
 
-        #region User Members - Field Name 
+        #region User Members - Fields 
         [Export(typeof(EditorFormatDefinition))]
         [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.FieldName)]
         [Name(ClassificationTypeNames.FieldName)]
@@ -256,15 +256,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [Order(Before = ClassificationTypeNames.StaticSymbol)]
         [UserVisible(true)]
         [ExcludeFromCodeCoverage]
-        private class UserSymbolsFieldNameFormatDefinition : ClassificationFormatDefinition
+        private class UserMembersFieldNameFormatDefinition : ClassificationFormatDefinition
         {
-            private UserSymbolsFieldNameFormatDefinition()
+            private UserMembersFieldNameFormatDefinition()
             {
-                this.DisplayName = EditorFeaturesResources.User_Symbols_Fields;
+                this.DisplayName = EditorFeaturesResources.User_Members_Fields;
             }
         }
         #endregion
-        #region User Symbols - Enum Member Name 
+        #region User Members - Enum Members 
         [Export(typeof(EditorFormatDefinition))]
         [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.EnumMemberName)]
         [Name(ClassificationTypeNames.EnumMemberName)]
@@ -273,15 +273,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [Order(Before = ClassificationTypeNames.StaticSymbol)]
         [UserVisible(true)]
         [ExcludeFromCodeCoverage]
-        private class UserSymbolsEnumMemberNameFormatDefinition : ClassificationFormatDefinition
+        private class UserMembersEnumMemberNameFormatDefinition : ClassificationFormatDefinition
         {
-            private UserSymbolsEnumMemberNameFormatDefinition()
+            private UserMembersEnumMemberNameFormatDefinition()
             {
-                this.DisplayName = EditorFeaturesResources.User_Symbols_Enum_Members;
+                this.DisplayName = EditorFeaturesResources.User_Members_Enum_Members;
             }
         }
         #endregion
-        #region User Symbols - Constant Name 
+        #region User Members - Constants 
         [Export(typeof(EditorFormatDefinition))]
         [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.ConstantName)]
         [Name(ClassificationTypeNames.ConstantName)]
@@ -290,15 +290,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [Order(Before = ClassificationTypeNames.StaticSymbol)]
         [UserVisible(true)]
         [ExcludeFromCodeCoverage]
-        private class UserSymbolsConstantNameFormatDefinition : ClassificationFormatDefinition
+        private class UserMembersConstantNameFormatDefinition : ClassificationFormatDefinition
         {
-            private UserSymbolsConstantNameFormatDefinition()
+            private UserMembersConstantNameFormatDefinition()
             {
-                this.DisplayName = EditorFeaturesResources.User_Symbols_Constants;
+                this.DisplayName = EditorFeaturesResources.User_Members_Constants;
             }
         }
         #endregion
-        #region User Symbols - Local Name 
+        #region User Members - Locals 
         [Export(typeof(EditorFormatDefinition))]
         [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.LocalName)]
         [Name(ClassificationTypeNames.LocalName)]
@@ -307,15 +307,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [Order(Before = ClassificationTypeNames.StaticSymbol)]
         [UserVisible(true)]
         [ExcludeFromCodeCoverage]
-        private class UserSymbolsLocalNameFormatDefinition : ClassificationFormatDefinition
+        private class UserMembersLocalNameFormatDefinition : ClassificationFormatDefinition
         {
-            private UserSymbolsLocalNameFormatDefinition()
+            private UserMembersLocalNameFormatDefinition()
             {
-                this.DisplayName = EditorFeaturesResources.User_Symbols_Locals;
+                this.DisplayName = EditorFeaturesResources.User_Members_Locals;
             }
         }
         #endregion
-        #region User Symbols - Parameter Name 
+        #region User Members - Parameters 
         [Export(typeof(EditorFormatDefinition))]
         [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.ParameterName)]
         [Name(ClassificationTypeNames.ParameterName)]
@@ -324,15 +324,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [Order(Before = ClassificationTypeNames.StaticSymbol)]
         [UserVisible(true)]
         [ExcludeFromCodeCoverage]
-        private class UserSymbolsParameterNameFormatDefinition : ClassificationFormatDefinition
+        private class UserMembersParameterNameFormatDefinition : ClassificationFormatDefinition
         {
-            private UserSymbolsParameterNameFormatDefinition()
+            private UserMembersParameterNameFormatDefinition()
             {
-                this.DisplayName = EditorFeaturesResources.User_Symbols_Parameters;
+                this.DisplayName = EditorFeaturesResources.User_Members_Parameters;
             }
         }
         #endregion
-        #region User Symbols - Method Name 
+        #region User Members - Methods 
         [Export(typeof(EditorFormatDefinition))]
         [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.MethodName)]
         [Name(ClassificationTypeNames.MethodName)]
@@ -341,15 +341,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [Order(Before = ClassificationTypeNames.StaticSymbol)]
         [UserVisible(true)]
         [ExcludeFromCodeCoverage]
-        private class UserSymbolsMethodNameFormatDefinition : ClassificationFormatDefinition
+        private class UserMembersMethodNameFormatDefinition : ClassificationFormatDefinition
         {
-            private UserSymbolsMethodNameFormatDefinition()
+            private UserMembersMethodNameFormatDefinition()
             {
-                this.DisplayName = EditorFeaturesResources.User_Symbols_Methods;
+                this.DisplayName = EditorFeaturesResources.User_Members_Methods;
             }
         }
         #endregion
-        #region User Symbols - Extension Method Name 
+        #region User Members - Extension Methods
         [Export(typeof(EditorFormatDefinition))]
         [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.ExtensionMethodName)]
         [Name(ClassificationTypeNames.ExtensionMethodName)]
@@ -358,15 +358,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [Order(Before = ClassificationTypeNames.StaticSymbol)]
         [UserVisible(true)]
         [ExcludeFromCodeCoverage]
-        private class UserSymbolsExtensionMethodNameFormatDefinition : ClassificationFormatDefinition
+        private class UserMembersExtensionMethodNameFormatDefinition : ClassificationFormatDefinition
         {
-            private UserSymbolsExtensionMethodNameFormatDefinition()
+            private UserMembersExtensionMethodNameFormatDefinition()
             {
-                this.DisplayName = EditorFeaturesResources.User_Symbols_Extension_Methods;
+                this.DisplayName = EditorFeaturesResources.User_Members_Extension_Methods;
             }
         }
         #endregion
-        #region User Symbols - Property Name 
+        #region User Members - Properties 
         [Export(typeof(EditorFormatDefinition))]
         [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.PropertyName)]
         [Name(ClassificationTypeNames.PropertyName)]
@@ -375,15 +375,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [Order(Before = ClassificationTypeNames.StaticSymbol)]
         [UserVisible(true)]
         [ExcludeFromCodeCoverage]
-        private class UserSymbolsPropertyNameFormatDefinition : ClassificationFormatDefinition
+        private class UserMembersPropertyNameFormatDefinition : ClassificationFormatDefinition
         {
-            private UserSymbolsPropertyNameFormatDefinition()
+            private UserMembersPropertyNameFormatDefinition()
             {
-                this.DisplayName = EditorFeaturesResources.User_Symbols_Properties;
+                this.DisplayName = EditorFeaturesResources.User_Members_Properties;
             }
         }
         #endregion
-        #region User Symbols - Event Name 
+        #region User Members - Events 
         [Export(typeof(EditorFormatDefinition))]
         [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.EventName)]
         [Name(ClassificationTypeNames.EventName)]
@@ -391,15 +391,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [Order(After = PredefinedClassificationTypeNames.Keyword)]
         [UserVisible(true)]
         [ExcludeFromCodeCoverage]
-        private class UserSymbolsEventNameFormatDefinition : ClassificationFormatDefinition
+        private class UserMembersEventNameFormatDefinition : ClassificationFormatDefinition
         {
-            private UserSymbolsEventNameFormatDefinition()
+            private UserMembersEventNameFormatDefinition()
             {
-                this.DisplayName = EditorFeaturesResources.User_Symbols_Events;
+                this.DisplayName = EditorFeaturesResources.User_Members_Events;
             }
         }
         #endregion
-        #region User Symbols - Namespace Name 
+        #region User Members - Namespaces 
         [Export(typeof(EditorFormatDefinition))]
         [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.NamespaceName)]
         [Name(ClassificationTypeNames.NamespaceName)]
@@ -407,15 +407,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [Order(After = PredefinedClassificationTypeNames.Keyword)]
         [UserVisible(true)]
         [ExcludeFromCodeCoverage]
-        private class UserSymbolsNamespaceNameFormatDefinition : ClassificationFormatDefinition
+        private class UserMembersNamespaceNameFormatDefinition : ClassificationFormatDefinition
         {
-            private UserSymbolsNamespaceNameFormatDefinition()
+            private UserMembersNamespaceNameFormatDefinition()
             {
-                this.DisplayName = EditorFeaturesResources.User_Symbols_Namespaces;
+                this.DisplayName = EditorFeaturesResources.User_Members_Namespaces;
             }
         }
         #endregion
-        #region User Symbols - Label Name 
+        #region User Members - Labels 
         [Export(typeof(EditorFormatDefinition))]
         [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.LabelName)]
         [Name(ClassificationTypeNames.LabelName)]
@@ -424,11 +424,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [Order(Before = ClassificationTypeNames.StaticSymbol)]
         [UserVisible(true)]
         [ExcludeFromCodeCoverage]
-        private class UserSymbolsLabelNameFormatDefinition : ClassificationFormatDefinition
+        private class UserMembersLabelNameFormatDefinition : ClassificationFormatDefinition
         {
-            private UserSymbolsLabelNameFormatDefinition()
+            private UserMembersLabelNameFormatDefinition()
             {
-                this.DisplayName = EditorFeaturesResources.User_Symbols_Labels;
+                this.DisplayName = EditorFeaturesResources.User_Members_Labels;
             }
         }
         #endregion
