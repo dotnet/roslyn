@@ -10,9 +10,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Editor.Wrapping.SeparatedSyntaxList
     internal partial class CSharpArgumentWrapper
         : AbstractCSharpSeparatedSyntaxListWrapper<BaseArgumentListSyntax, ArgumentSyntax>
     {
-        protected override string ListName => FeaturesResources.argument_list;
-        protected override string ItemNamePlural => FeaturesResources.arguments;
-        protected override string ItemNameSingular => FeaturesResources.argument;
+        protected override string Align_wrapped_items => FeaturesResources.Align_wrapped_arguments;
+        protected override string Indent_all_items => FeaturesResources.Indent_all_arguments;
+        protected override string Indent_wrapped_items => FeaturesResources.Indent_wrapped_arguments;
+        protected override string Unwrap_all_items => FeaturesResources.Unwrap_all_arguments;
+        protected override string Unwrap_and_indent_all_items => FeaturesResources.Unwrap_and_indent_all_arguments;
+        protected override string Unwrap_list => FeaturesResources.Unwrap_argument_list;
+        protected override string Wrap_every_item => FeaturesResources.Wrap_every_argument;
+        protected override string Wrap_long_list => FeaturesResources.Wrap_long_argument_list;
 
         protected override SeparatedSyntaxList<ArgumentSyntax> GetListItems(BaseArgumentListSyntax listSyntax)
             => listSyntax.Arguments;

@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "15.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class FeaturesResources {
@@ -510,11 +510,20 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Align wrapped {0}.
+        ///   Looks up a localized string similar to Align wrapped arguments.
         /// </summary>
-        internal static string Align_wrapped_0 {
+        internal static string Align_wrapped_arguments {
             get {
-                return ResourceManager.GetString("Align_wrapped_0", resourceCulture);
+                return ResourceManager.GetString("Align_wrapped_arguments", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Align wrapped parameters.
+        /// </summary>
+        internal static string Align_wrapped_parameters {
+            get {
+                return ResourceManager.GetString("Align_wrapped_parameters", resourceCulture);
             }
         }
         
@@ -584,15 +593,6 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to argument.
-        /// </summary>
-        internal static string argument {
-            get {
-                return ResourceManager.GetString("argument", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Argument cannot be empty..
         /// </summary>
         internal static string Argument_cannot_be_empty {
@@ -607,24 +607,6 @@ namespace Microsoft.CodeAnalysis {
         internal static string Argument_cannot_have_a_null_element {
             get {
                 return ResourceManager.GetString("Argument_cannot_have_a_null_element", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to argument list.
-        /// </summary>
-        internal static string argument_list {
-            get {
-                return ResourceManager.GetString("argument_list", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to arguments.
-        /// </summary>
-        internal static string arguments {
-            get {
-                return ResourceManager.GetString("arguments", resourceCulture);
             }
         }
         
@@ -1927,20 +1909,38 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Indent all {0}.
+        ///   Looks up a localized string similar to Indent all arguments.
         /// </summary>
-        internal static string Indent_all_0 {
+        internal static string Indent_all_arguments {
             get {
-                return ResourceManager.GetString("Indent_all_0", resourceCulture);
+                return ResourceManager.GetString("Indent_all_arguments", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Indent wrapped {0}.
+        ///   Looks up a localized string similar to Indent all parameters.
         /// </summary>
-        internal static string Indent_wrapped_0 {
+        internal static string Indent_all_parameters {
             get {
-                return ResourceManager.GetString("Indent_wrapped_0", resourceCulture);
+                return ResourceManager.GetString("Indent_all_parameters", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Indent wrapped arguments.
+        /// </summary>
+        internal static string Indent_wrapped_arguments {
+            get {
+                return ResourceManager.GetString("Indent_wrapped_arguments", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Indent wrapped parameters.
+        /// </summary>
+        internal static string Indent_wrapped_parameters {
+            get {
+                return ResourceManager.GetString("Indent_wrapped_parameters", resourceCulture);
             }
         }
         
@@ -2721,24 +2721,6 @@ namespace Microsoft.CodeAnalysis {
         internal static string parameter {
             get {
                 return ResourceManager.GetString("parameter", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to parameter list.
-        /// </summary>
-        internal static string parameter_list {
-            get {
-                return ResourceManager.GetString("parameter_list", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to parameters.
-        /// </summary>
-        internal static string parameters {
-            get {
-                return ResourceManager.GetString("parameters", resourceCulture);
             }
         }
         
@@ -3726,29 +3708,47 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Unwrap {0}.
+        ///   Looks up a localized string similar to Unwrap all arguments.
         /// </summary>
-        internal static string Unwrap_0 {
+        internal static string Unwrap_all_arguments {
             get {
-                return ResourceManager.GetString("Unwrap_0", resourceCulture);
+                return ResourceManager.GetString("Unwrap_all_arguments", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Unwrap all {0}.
+        ///   Looks up a localized string similar to Unwrap all parameters.
         /// </summary>
-        internal static string Unwrap_all_0 {
+        internal static string Unwrap_all_parameters {
             get {
-                return ResourceManager.GetString("Unwrap_all_0", resourceCulture);
+                return ResourceManager.GetString("Unwrap_all_parameters", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Unwrap and indent all {0}.
+        ///   Looks up a localized string similar to Unwrap and indent all arguments.
         /// </summary>
-        internal static string Unwrap_and_indent_all_0 {
+        internal static string Unwrap_and_indent_all_arguments {
             get {
-                return ResourceManager.GetString("Unwrap_and_indent_all_0", resourceCulture);
+                return ResourceManager.GetString("Unwrap_and_indent_all_arguments", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unwrap and indent all parameters.
+        /// </summary>
+        internal static string Unwrap_and_indent_all_parameters {
+            get {
+                return ResourceManager.GetString("Unwrap_and_indent_all_parameters", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unwrap argument list.
+        /// </summary>
+        internal static string Unwrap_argument_list {
+            get {
+                return ResourceManager.GetString("Unwrap_argument_list", resourceCulture);
             }
         }
         
@@ -3758,6 +3758,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Unwrap_expression {
             get {
                 return ResourceManager.GetString("Unwrap_expression", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unwrap parameter list.
+        /// </summary>
+        internal static string Unwrap_parameter_list {
+            get {
+                return ResourceManager.GetString("Unwrap_parameter_list", resourceCulture);
             }
         }
         
@@ -4413,11 +4422,20 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Wrap every {0}.
+        ///   Looks up a localized string similar to Wrap every argument.
         /// </summary>
-        internal static string Wrap_every_0 {
+        internal static string Wrap_every_argument {
             get {
-                return ResourceManager.GetString("Wrap_every_0", resourceCulture);
+                return ResourceManager.GetString("Wrap_every_argument", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Wrap every parameter.
+        /// </summary>
+        internal static string Wrap_every_parameter {
+            get {
+                return ResourceManager.GetString("Wrap_every_parameter", resourceCulture);
             }
         }
         
@@ -4440,11 +4458,20 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Wrap long {0}.
+        ///   Looks up a localized string similar to Wrap long argument list.
         /// </summary>
-        internal static string Wrap_long_0 {
+        internal static string Wrap_long_argument_list {
             get {
-                return ResourceManager.GetString("Wrap_long_0", resourceCulture);
+                return ResourceManager.GetString("Wrap_long_argument_list", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Wrap long parameter list.
+        /// </summary>
+        internal static string Wrap_long_parameter_list {
+            get {
+                return ResourceManager.GetString("Wrap_long_parameter_list", resourceCulture);
             }
         }
         

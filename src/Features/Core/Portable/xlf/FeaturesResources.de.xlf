@@ -37,9 +37,14 @@
         <target state="new">Adding a method with an explicit interface specifier will prevent the debug session from continuing.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Align_wrapped_0">
-        <source>Align wrapped {0}</source>
-        <target state="new">Align wrapped {0}</target>
+      <trans-unit id="Align_wrapped_arguments">
+        <source>Align wrapped arguments</source>
+        <target state="new">Align wrapped arguments</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Align_wrapped_parameters">
+        <source>Align wrapped parameters</source>
+        <target state="new">Align wrapped parameters</target>
         <note />
       </trans-unit>
       <trans-unit id="Change_namespace_to_0">
@@ -112,14 +117,24 @@
         <target state="translated">Dokument wird formatiert</target>
         <note />
       </trans-unit>
-      <trans-unit id="Indent_all_0">
-        <source>Indent all {0}</source>
-        <target state="new">Indent all {0}</target>
+      <trans-unit id="Indent_all_arguments">
+        <source>Indent all arguments</source>
+        <target state="new">Indent all arguments</target>
         <note />
       </trans-unit>
-      <trans-unit id="Indent_wrapped_0">
-        <source>Indent wrapped {0}</source>
-        <target state="new">Indent wrapped {0}</target>
+      <trans-unit id="Indent_all_parameters">
+        <source>Indent all parameters</source>
+        <target state="new">Indent all parameters</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Indent_wrapped_arguments">
+        <source>Indent wrapped arguments</source>
+        <target state="new">Indent wrapped arguments</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Indent_wrapped_parameters">
+        <source>Indent wrapped parameters</source>
+        <target state="new">Indent wrapped parameters</target>
         <note />
       </trans-unit>
       <trans-unit id="Move_file_to_0">
@@ -232,24 +247,39 @@
         <target state="new">Replace '{0}' with '{1}' </target>
         <note />
       </trans-unit>
-      <trans-unit id="Unwrap_0">
-        <source>Unwrap {0}</source>
-        <target state="new">Unwrap {0}</target>
+      <trans-unit id="Unwrap_all_arguments">
+        <source>Unwrap all arguments</source>
+        <target state="new">Unwrap all arguments</target>
         <note />
       </trans-unit>
-      <trans-unit id="Unwrap_all_0">
-        <source>Unwrap all {0}</source>
-        <target state="new">Unwrap all {0}</target>
+      <trans-unit id="Unwrap_all_parameters">
+        <source>Unwrap all parameters</source>
+        <target state="new">Unwrap all parameters</target>
         <note />
       </trans-unit>
-      <trans-unit id="Unwrap_and_indent_all_0">
-        <source>Unwrap and indent all {0}</source>
-        <target state="new">Unwrap and indent all {0}</target>
+      <trans-unit id="Unwrap_and_indent_all_arguments">
+        <source>Unwrap and indent all arguments</source>
+        <target state="new">Unwrap and indent all arguments</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unwrap_and_indent_all_parameters">
+        <source>Unwrap and indent all parameters</source>
+        <target state="new">Unwrap and indent all parameters</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unwrap_argument_list">
+        <source>Unwrap argument list</source>
+        <target state="new">Unwrap argument list</target>
         <note />
       </trans-unit>
       <trans-unit id="Unwrap_expression">
         <source>Unwrap expression</source>
         <target state="new">Unwrap expression</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unwrap_parameter_list">
+        <source>Unwrap parameter list</source>
+        <target state="new">Unwrap parameter list</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_block_body_for_lambda_expressions">
@@ -297,9 +327,14 @@
         <target state="new">Use range operator</target>
         <note />
       </trans-unit>
-      <trans-unit id="Wrap_every_0">
-        <source>Wrap every {0}</source>
-        <target state="new">Wrap every {0}</target>
+      <trans-unit id="Wrap_every_argument">
+        <source>Wrap every argument</source>
+        <target state="new">Wrap every argument</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Wrap_every_parameter">
+        <source>Wrap every parameter</source>
+        <target state="new">Wrap every parameter</target>
         <note />
       </trans-unit>
       <trans-unit id="Wrap_expression">
@@ -312,9 +347,14 @@
         <target state="new">Wrap expression (including operators)</target>
         <note />
       </trans-unit>
-      <trans-unit id="Wrap_long_0">
-        <source>Wrap long {0}</source>
-        <target state="new">Wrap long {0}</target>
+      <trans-unit id="Wrap_long_argument_list">
+        <source>Wrap long argument list</source>
+        <target state="new">Wrap long argument list</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Wrap_long_parameter_list">
+        <source>Wrap long parameter list</source>
+        <target state="new">Wrap long parameter list</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_can_be_simplified">
@@ -330,21 +370,6 @@
       <trans-unit id="Value_assigned_to_symbol_is_never_used">
         <source>Value assigned to symbol is never used</source>
         <target state="new">Value assigned to symbol is never used</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="argument">
-        <source>argument</source>
-        <target state="new">argument</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="argument_list">
-        <source>argument list</source>
-        <target state="new">argument list</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="arguments">
-        <source>arguments</source>
-        <target state="new">arguments</target>
         <note />
       </trans-unit>
       <trans-unit id="generic_overload">
@@ -680,16 +705,6 @@
       <trans-unit id="label">
         <source>label</source>
         <target state="translated">Bezeichnung</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="parameter_list">
-        <source>parameter list</source>
-        <target state="new">parameter list</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="parameters">
-        <source>parameters</source>
-        <target state="new">parameters</target>
         <note />
       </trans-unit>
       <trans-unit id="range_variable">

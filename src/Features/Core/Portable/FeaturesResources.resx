@@ -1469,44 +1469,56 @@ This version used in: {2}</value>
   <data name="Replace_0_with_1" xml:space="preserve">
     <value>Replace '{0}' with '{1}' </value>
   </data>
-  <data name="arguments" xml:space="preserve">
-    <value>arguments</value>
+  <!--
+        protected override string Unwrap_list => FeaturesResources.Unwrap_parameter_list;
+    -->
+  <data name="Align_wrapped_parameters" xml:space="preserve">
+    <value>Align wrapped parameters</value>
   </data>
-  <data name="Indent_all_0" xml:space="preserve">
-    <value>Indent all {0}</value>
+  <data name="Indent_all_parameters" xml:space="preserve">
+    <value>Indent all parameters</value>
   </data>
-  <data name="parameters" xml:space="preserve">
-    <value>parameters</value>
+  <data name="Indent_wrapped_parameters" xml:space="preserve">
+    <value>Indent wrapped parameters</value>
   </data>
-  <data name="Unwrap_all_0" xml:space="preserve">
-    <value>Unwrap all {0}</value>
+  <data name="Unwrap_all_parameters" xml:space="preserve">
+    <value>Unwrap all parameters</value>
   </data>
-  <data name="Unwrap_and_indent_all_0" xml:space="preserve">
-    <value>Unwrap and indent all {0}</value>
+  <data name="Unwrap_and_indent_all_parameters" xml:space="preserve">
+    <value>Unwrap and indent all parameters</value>
   </data>
-  <data name="Wrap_every_0" xml:space="preserve">
-    <value>Wrap every {0}</value>
+  <data name="Wrap_every_parameter" xml:space="preserve">
+    <value>Wrap every parameter</value>
   </data>
-  <data name="Wrap_long_0" xml:space="preserve">
-    <value>Wrap long {0}</value>
+  <data name="Wrap_long_parameter_list" xml:space="preserve">
+    <value>Wrap long parameter list</value>
   </data>
-  <data name="Align_wrapped_0" xml:space="preserve">
-    <value>Align wrapped {0}</value>
+  <data name="Unwrap_parameter_list" xml:space="preserve">
+    <value>Unwrap parameter list</value>
   </data>
-  <data name="Indent_wrapped_0" xml:space="preserve">
-    <value>Indent wrapped {0}</value>
+  <data name="Align_wrapped_arguments" xml:space="preserve">
+    <value>Align wrapped arguments</value>
   </data>
-  <data name="parameter_list" xml:space="preserve">
-    <value>parameter list</value>
+  <data name="Indent_all_arguments" xml:space="preserve">
+    <value>Indent all arguments</value>
   </data>
-  <data name="Unwrap_0" xml:space="preserve">
-    <value>Unwrap {0}</value>
+  <data name="Indent_wrapped_arguments" xml:space="preserve">
+    <value>Indent wrapped arguments</value>
   </data>
-  <data name="argument" xml:space="preserve">
-    <value>argument</value>
+  <data name="Unwrap_all_arguments" xml:space="preserve">
+    <value>Unwrap all arguments</value>
   </data>
-  <data name="argument_list" xml:space="preserve">
-    <value>argument list</value>
+  <data name="Unwrap_and_indent_all_arguments" xml:space="preserve">
+    <value>Unwrap and indent all arguments</value>
+  </data>
+  <data name="Wrap_every_argument" xml:space="preserve">
+    <value>Wrap every argument</value>
+  </data>
+  <data name="Wrap_long_argument_list" xml:space="preserve">
+    <value>Wrap long argument list</value>
+  </data>
+  <data name="Unwrap_argument_list" xml:space="preserve">
+    <value>Unwrap argument list</value>
   </data>
   <data name="Introduce_constant" xml:space="preserve">
     <value>Introduce constant</value>

@@ -7,9 +7,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Editor.Wrapping.SeparatedSyntaxList
     Partial Friend Class VisualBasicArgumentWrapper
         Inherits AbstractVisualBasicSeparatedSyntaxListWrapper(Of ArgumentListSyntax, ArgumentSyntax)
 
-        Protected Overrides ReadOnly Property ListName As String = FeaturesResources.argument_list
-        Protected Overrides ReadOnly Property ItemNamePlural As String = FeaturesResources.arguments
-        Protected Overrides ReadOnly Property ItemNameSingular As String = FeaturesResources.argument
+        Protected Overrides ReadOnly Property Align_wrapped_items As String = FeaturesResources.Align_wrapped_arguments
+        Protected Overrides ReadOnly Property Indent_all_items As String = FeaturesResources.Indent_all_arguments
+        Protected Overrides ReadOnly Property Indent_wrapped_items As String = FeaturesResources.Indent_wrapped_arguments
+        Protected Overrides ReadOnly Property Unwrap_all_items As String = FeaturesResources.Unwrap_all_arguments
+        Protected Overrides ReadOnly Property Unwrap_and_indent_all_items As String = FeaturesResources.Unwrap_and_indent_all_arguments
+        Protected Overrides ReadOnly Property Unwrap_list As String = FeaturesResources.Unwrap_argument_list
+        Protected Overrides ReadOnly Property Wrap_every_item As String = FeaturesResources.Wrap_every_argument
+        Protected Overrides ReadOnly Property Wrap_long_list As String = FeaturesResources.Wrap_long_argument_list
 
         Protected Overrides Function GetListItems(listSyntax As ArgumentListSyntax) As SeparatedSyntaxList(Of ArgumentSyntax)
             Return listSyntax.Arguments

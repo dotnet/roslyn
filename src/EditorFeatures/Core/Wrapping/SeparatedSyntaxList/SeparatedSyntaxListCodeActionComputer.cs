@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.SeparatedSyntaxList
             {
                 var unwrapActions = ArrayBuilder<WrapItemsAction>.GetInstance();
 
-                var parentTitle = string.Format(FeaturesResources.Unwrap_0, Wrapper.ListName);
+                var parentTitle = Wrapper.Unwrap_list;
 
                 // MethodName(int a, int b, int c, int d, int e, int f, int g, int h, int i, int j)
                 unwrapActions.Add(await GetUnwrapAllCodeActionAsync(parentTitle, WrappingStyle.UnwrapFirst_IndentRest).ConfigureAwait(false));
@@ -155,8 +155,8 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.SeparatedSyntaxList
             {
                 var edits = GetUnwrapAllEdits(wrappingStyle);
                 var title = wrappingStyle == WrappingStyle.WrapFirst_IndentRest
-                    ? string.Format(FeaturesResources.Unwrap_and_indent_all_0, Wrapper.ItemNamePlural)
-                    : string.Format(FeaturesResources.Unwrap_all_0, Wrapper.ItemNamePlural);
+                    ? Wrapper.Unwrap_and_indent_all_items
+                    : Wrapper.Unwrap_all_items;
                 
                 return await TryCreateCodeActionAsync(edits, parentTitle, title).ConfigureAwait(false);
             }
@@ -183,7 +183,7 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.SeparatedSyntaxList
 
             private async Task<WrappingGroup> GetWrapLongGroupAsync()
             {
-                var parentTitle = string.Format(FeaturesResources.Wrap_long_0, Wrapper.ListName);
+                var parentTitle = Wrapper.Wrap_long_list;
                 var codeActions = ArrayBuilder<WrapItemsAction>.GetInstance();
 
                 // MethodName(int a, int b, int c,
@@ -286,7 +286,7 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.SeparatedSyntaxList
 
             private async Task<WrappingGroup> GetWrapEveryGroupAsync()
             {
-                var parentTitle = string.Format(FeaturesResources.Wrap_every_0, Wrapper.ItemNameSingular);
+                var parentTitle = Wrapper.Wrap_every_item;
 
                 var codeActions = ArrayBuilder<WrapItemsAction>.GetInstance();
 
@@ -332,9 +332,9 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.SeparatedSyntaxList
             {
                 switch (wrappingStyle)
                 {
-                    case WrappingStyle.WrapFirst_IndentRest: return string.Format(FeaturesResources.Indent_all_0, Wrapper.ItemNamePlural);
-                    case WrappingStyle.UnwrapFirst_AlignRest: return string.Format(FeaturesResources.Align_wrapped_0, Wrapper.ItemNamePlural);
-                    case WrappingStyle.UnwrapFirst_IndentRest: return string.Format(FeaturesResources.Indent_wrapped_0, Wrapper.ItemNamePlural);
+                    case WrappingStyle.WrapFirst_IndentRest: return Wrapper.Indent_all_items;
+                    case WrappingStyle.UnwrapFirst_AlignRest: return Wrapper.Align_wrapped_items;
+                    case WrappingStyle.UnwrapFirst_IndentRest: return Wrapper.Indent_wrapped_items;
                     default:
                         throw ExceptionUtilities.UnexpectedValue(wrappingStyle);
                 }
