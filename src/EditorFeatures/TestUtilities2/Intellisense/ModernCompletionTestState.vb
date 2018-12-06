@@ -30,7 +30,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             MyBase.New(
                 workspaceElement,
                 extraCompletionProviders,
-                excludedTypes:=Nothing,
+                excludedTypes:=excludedTypes,
                 extraExportedTypes,
                 includeFormatCommandHandler,
                 workspaceKind:=workspaceKind)
@@ -265,7 +265,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Await WaitForAsynchronousOperationsAsync()
             Dim session = GetExportedValue(Of IAsyncCompletionBroker)().GetSession(TextView)
             If Not session Is Nothing Then
-                Assert.False(CompletionItemsContainsAny({"ClassLibrary1"}))
+                Assert.False(CompletionItemsContainsAny({text}))
             End If
         End Function
 

@@ -3560,10 +3560,11 @@ class C
         <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestNoBlockOnCompletionItems4(completionImplementation As CompletionImplementation) As Task
             Dim tcs = New TaskCompletionSource(Of Boolean)
+            Dim provider = New TaskControlledCompletionProvider(tcs.Task)
             Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
                               <Document>
                                   using $$
-                              </Document>, {New TaskControlledCompletionProvider(tcs.Task)})
+                              </Document>, {provider})
 
                 state.Workspace.Options = state.Workspace.Options.WithChangedOption(
                     CompletionOptions.BlockForCompletionItems, LanguageNames.CSharp, False)
@@ -3583,45 +3584,59 @@ class C
                     Await state.AssertNoCompletionSession()
                     Assert.Contains("System", state.GetLineTextFromCaretPosition())
                 Else
-                    Dim task1 = Task.Run(Sub()
-                                             ' 2. Wait to be sure we are definietely hanging.
-                                             Task.Delay(250)
+                    Dim task1 As Task = Nothing
+                    Dim task2 As Task = Nothing
 
-                                             ' 3. Hang here as well.
-                                             state.AssertNoCompletionSession()
-                                             ' 7. This should be executed after SendCommitUniqueCompletionListItem because AssertNoCompletionSession waited for SendCommitUniqueCompletionListItem.
-                                             Assert.Contains("System", state.GetLineTextFromCaretPosition())
-                                         End Sub)
+                    Dim providerCalledHandler = Sub()
+                                                    task1 = Task.Run(Sub()
+                                                                         ' 2. Hang here as well.
+                                                                         Dim completionItem = state.GetSelectedItemOpt()
+                                                                     End Sub)
+                                                    Task.Delay(250)
+                                                    task2 = Task.Run(Sub()
+                                                                         Try
+                                                                             ' 3. Check that the other task is running/hanging.
+                                                                             Assert.Equal(TaskStatus.Running, task1.Status)
+                                                                             Assert.Contains("Sys", state.GetLineTextFromCaretPosition())
+                                                                             Assert.DoesNotContain("System", state.GetLineTextFromCaretPosition())
+                                                                         Finally
+                                                                             ' 4. Unblock the first task and the main thread.
+                                                                             tcs.SetResult(True)
+                                                                         End Try
+                                                                     End Sub)
+                                                End Sub
 
-                    Dim task2 = Task.Run(Sub()
-                                             ' 4. Wait to be sure we already hung with the tasks above.
-                                             Task.Delay(1000)
-                                             Try
-                                                 ' 5. Check that the other thread are hanging.
-                                                 Assert.Equal(TaskStatus.Running, task1.Status)
-                                             Finally
-                                                 ' 6. Unblock the first task and the main thread.
-                                                 tcs.SetResult(True)
-                                             End Try
-                                         End Sub)
+                    Try
+                        AddHandler provider.ProviderCalled, providerCalledHandler
 
-                    ' In the new completion, when pressed <ctrl>-<space>, we have to wait for the aggregate operation to complete.
-                    ' 1. Hang here.
-                    state.SendCommitUniqueCompletionListItem()
+                        ' In the new completion, when pressed <ctrl>-<space>, we have to wait for the aggregate operation to complete.
+                        ' 1. Hang here.
+                        state.SendCommitUniqueCompletionListItem()
 
-                    Await Task.WhenAll(task1, task2)
+                        Assert.NotNull(task1)
+                        Assert.NotNull(task2)
+                        Await Task.WhenAll(task1, task2)
+
+                        Await state.WaitForAsynchronousOperationsAsync()
+                        Await state.AssertNoCompletionSession()
+                        Assert.Contains("System", state.GetLineTextFromCaretPosition())
+                    Finally
+                        RemoveHandler provider.ProviderCalled, providerCalledHandler
+                    End Try
                 End If
             End Using
+
         End Function
 
         <MemberData(NameOf(AllCompletionImplementations))>
         <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestNoBlockOnCompletionItems3(completionImplementation As CompletionImplementation) As Task
             Dim tcs = New TaskCompletionSource(Of Boolean)
+            Dim provider = New TaskControlledCompletionProvider(tcs.Task)
             Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
                               <Document>
                                   using $$
-                              </Document>, {New TaskControlledCompletionProvider(tcs.Task)})
+                              </Document>, {provider})
 
                 state.Workspace.Options = state.Workspace.Options.WithChangedOption(
                     CompletionOptions.BlockForCompletionItems, LanguageNames.CSharp, False)
@@ -3642,39 +3657,47 @@ class C
                     Await state.AssertCompletionSession()
                     Assert.Contains("Sysa", state.GetLineTextFromCaretPosition())
                 Else
-                    Dim task1 = Task.Run(Sub()
-                                             ' 2. Wait to be sure we are definietely hanging.
-                                             Task.Delay(250)
+                    Dim task1 As Task = Nothing
+                    Dim task2 As Task = Nothing
 
-                                             ' 3. Hang here as well.
-                                             state.AssertNoCompletionSession()
+                    Dim providerCalledHandler = Sub()
+                                                    task1 = Task.Run(Sub()
+                                                                         ' 2. Hang here as well.
+                                                                         Dim completionItem = state.GetSelectedItemOpt()
+                                                                     End Sub)
+                                                    Task.Delay(250)
+                                                    task2 = Task.Run(Sub()
+                                                                         Try
+                                                                             ' 3. Check that the other task is running/hanging.
+                                                                             Assert.Equal(TaskStatus.Running, task1.Status)
+                                                                             Assert.Contains("Sys", state.GetLineTextFromCaretPosition())
+                                                                             Assert.DoesNotContain("System", state.GetLineTextFromCaretPosition())
+                                                                         Finally
+                                                                             ' 4. Unblock the first task and the main thread.
+                                                                             tcs.SetResult(True)
+                                                                         End Try
+                                                                     End Sub)
+                                                End Sub
 
-                                             ' 7. This should be executed after SendCommitUniqueCompletionListItem because AssertNoCompletionSession waited for SendCommitUniqueCompletionListItem.
-                                             Assert.Contains("System", state.GetLineTextFromCaretPosition())
-                                         End Sub)
+                    Try
+                        AddHandler provider.ProviderCalled, providerCalledHandler
 
-                    Dim task2 = Task.Run(Sub()
-                                             ' 4. Wait to be sure we already hung with the tasks above.
-                                             Task.Delay(1000)
-                                             Try
-                                                 ' 5. Check that the other thread are hanging.
-                                                 Assert.Equal(TaskStatus.Running, task1.Status)
-                                             Finally
-                                                 ' 6. Unblock the first task and the main thread.
-                                                 tcs.SetResult(True)
-                                             End Try
-                                         End Sub)
+                        ' In the new completion, when pressed <ctrl>-<space>, we have to wait for the aggregate operation to complete.
+                        ' 1. Hang here.
+                        state.SendCommitUniqueCompletionListItem()
+                        ' 5. Put insertion of 'a' into the edtior queue. It can be executed in the foreground thread only
+                        state.SendTypeChars("a")
 
-                    ' In the new completion, when pressed <ctrl>-<space>, we have to wait for the aggregate operation to complete.
-                    ' 1. Hang here.
-                    state.SendCommitUniqueCompletionListItem()
+                        Assert.NotNull(task1)
+                        Assert.NotNull(task2)
+                        Await Task.WhenAll(task1, task2)
 
-                    ' This code is not executed until the SendCommitUniqueCompletionListItem has been completed.
-                    state.SendTypeChars("a")
-
-                    Await state.WaitForAsynchronousOperationsAsync()
-                    Await state.AssertNoCompletionSession()
-                    Assert.Contains("Systema", state.GetLineTextFromCaretPosition())
+                        Await state.WaitForAsynchronousOperationsAsync()
+                        Await state.AssertNoCompletionSession()
+                        Assert.Contains("Systema", state.GetLineTextFromCaretPosition())
+                    Finally
+                        RemoveHandler provider.ProviderCalled, providerCalledHandler
+                    End Try
                 End If
             End Using
         End Function
@@ -3684,11 +3707,14 @@ class C
 
             Private ReadOnly _task As Task
 
+            Public Event ProviderCalled()
+
             Public Sub New(task As Task)
                 _task = task
             End Sub
 
             Public Overrides Function ProvideCompletionsAsync(context As CompletionContext) As Task
+                RaiseEvent ProviderCalled()
                 Return _task
             End Function
         End Class
