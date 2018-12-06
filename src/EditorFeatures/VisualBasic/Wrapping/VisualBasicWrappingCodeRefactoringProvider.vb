@@ -11,8 +11,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Wrapping
     Friend Class VisualBasicWrappingCodeRefactoringProvider
         Inherits AbstractWrappingCodeRefactoringProvider
 
-        Private Shared ReadOnly s_wrappers As ImmutableArray(Of IWrapper) =
-            ImmutableArray.Create(Of IWrapper)(
+        Private Shared ReadOnly s_wrappers As ImmutableArray(Of ISyntaxWrapper) =
+            ImmutableArray.Create(Of ISyntaxWrapper)(
                 New VisualBasicArgumentWrapper(),
                 New VisualBasicParameterWrapper())
 

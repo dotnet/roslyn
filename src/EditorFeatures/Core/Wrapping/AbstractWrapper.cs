@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 namespace Microsoft.CodeAnalysis.Editor.Wrapping
 {
     /// <summary>
-    /// Common implementation of all IWrappers.  This type takes care of a lot of common logic for
+    /// Common implementation of all <see cref="ISyntaxWrapper"/>.  This type takes care of a lot of common logic for
     /// all of them, including:
     /// 
     /// 1. Keeping track of code action invocations, allowing code actions to then be prioritized on
@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping
     /// Individual subclasses may be targeted at specific syntactic forms.  For example, wrapping
     /// lists, or wrapping logical expressions.
     /// </summary>
-    internal abstract partial class AbstractWrapper : IWrapper
+    internal abstract partial class AbstractSyntaxWrapper : ISyntaxWrapper
     {
         public abstract Task<ICodeActionComputer> TryCreateComputerAsync(Document document, int position, SyntaxNode node, CancellationToken cancellationToken);
 

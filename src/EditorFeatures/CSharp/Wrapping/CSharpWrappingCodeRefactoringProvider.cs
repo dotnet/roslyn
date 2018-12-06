@@ -11,8 +11,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Wrapping
     [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.Wrapping), Shared]
     internal class CSharpWrappingCodeRefactoringProvider : AbstractWrappingCodeRefactoringProvider
     {
-        private static readonly ImmutableArray<IWrapper> s_wrappers =
-            ImmutableArray.Create<IWrapper>(
+        private static readonly ImmutableArray<ISyntaxWrapper> s_wrappers =
+            ImmutableArray.Create<ISyntaxWrapper>(
                 new CSharpArgumentWrapper(),
                 new CSharpParameterWrapper());
 

@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.SeparatedSyntaxList
     internal abstract partial class AbstractSeparatedSyntaxListWrapper<
         TListSyntax,
         TListItemSyntax>
-        : AbstractWrapper
+        : AbstractSyntaxWrapper
         where TListSyntax : SyntaxNode
         where TListItemSyntax : SyntaxNode
     {

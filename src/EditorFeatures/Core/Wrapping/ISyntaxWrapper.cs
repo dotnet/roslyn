@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping
     /// is contained within.
     /// </remarks>
     /// <seealso cref="AbstractWrappingCodeRefactoringProvider"/>
-    internal interface IWrapper
+    internal interface ISyntaxWrapper
     {
         /// <summary>
         /// Returns the <see cref="ICodeActionComputer"/> that produces wrapping code actions for the  

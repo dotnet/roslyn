@@ -17,7 +17,7 @@ using static Microsoft.CodeAnalysis.CodeActions.CodeAction;
 
 namespace Microsoft.CodeAnalysis.Editor.Wrapping
 {
-    internal abstract partial class AbstractWrapper
+    internal abstract partial class AbstractSyntaxWrapper
     {
         /// <summary>
         /// Class responsible for actually computing the entire set of code actions to offer the
@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping
         /// something that will be unclear.
         /// </summary>
         protected abstract class AbstractCodeActionComputer<TWrapper> : ICodeActionComputer
-            where TWrapper : AbstractWrapper
+            where TWrapper : AbstractSyntaxWrapper
         {
             /// <summary>
             /// Annotation used so that we can track the top-most node we want to format after
