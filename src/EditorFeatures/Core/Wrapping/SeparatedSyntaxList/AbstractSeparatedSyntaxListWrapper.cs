@@ -43,13 +43,13 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.SeparatedSyntaxList
             var listSyntax = TryGetApplicableList(declaration);
             if (listSyntax == null)
             {
-                return default;
+                return null;
             }
 
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             if (!PositionIsApplicable(root, position, declaration, listSyntax))
             {
-                return default;
+                return null;
             }
 
             var listItems = GetListItems(listSyntax);
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.SeparatedSyntaxList
                 // nothing to do with 0-1 items.  Simple enough for users to just edit
                 // themselves, and this prevents constant clutter with formatting that isn't
                 // really that useful.
-                return default;
+                return null;
             }
 
             var containsUnformattableContent = await ContainsUnformattableContentAsync(
@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.SeparatedSyntaxList
 
             if (containsUnformattableContent)
             {
-                return default;
+                return null;
             }
 
             var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
