@@ -68,6 +68,12 @@
     <ProduceReferenceAssembly>true</ProduceReferenceAssembly>
   </PropertyGroup>
 
+  <!-- Rulesets -->
+  <PropertyGroup Condition="'$(CodeAnalysisRuleSet)' == ''">
+    <CodeAnalysisRuleSet Condition="'$(IsShipping)' == 'true'">$(RepoRoot)build\Rulesets\Shipping.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRuleSet Condition="'$(IsShipping)' != 'true'">$(RepoRoot)build\Rulesets\NonShipping.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+
   <!--
     Some dependencies bring in references to UIAutomationClient and UIAutomationTypes. These conflict with the faster
     UIAComWrapper implementation used by the Roslyn integration tests. This target sets the alias for the slower
