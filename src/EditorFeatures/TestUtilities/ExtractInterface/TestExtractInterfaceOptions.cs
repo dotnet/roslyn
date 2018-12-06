@@ -2,6 +2,7 @@
 
 using System.Collections.Generic;
 using System.Composition;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ExtractInterface;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServices;
@@ -24,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ExtractInterface
         public IEnumerable<ISymbol> ChosenMembers { get; set; }
         public bool SameFile { get; set; }
 
-        public ExtractInterfaceOptionsResult GetExtractInterfaceOptions(
+        public Task<ExtractInterfaceOptionsResult> GetExtractInterfaceOptionsAsync(
             ISyntaxFactsService syntaxFactsService,
             INotificationService notificationService,
             List<ISymbol> extractableMembers,
@@ -40,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ExtractInterface
             this.DefaultNamespace = defaultNamespace;
             this.GeneratedNameTypeParameterSuffix = generatedNameTypeParameterSuffix;
 
-            return IsCancelled
+            var result = IsCancelled
                 ? ExtractInterfaceOptionsResult.Cancelled
                 : new ExtractInterfaceOptionsResult(
                     isCancelled: false,
@@ -48,6 +49,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ExtractInterface
                     interfaceName: ChosenInterfaceName ?? defaultInterfaceName,
                     fileName: ChosenFileName ?? defaultInterfaceName,
                     location: SameFile ? ExtractInterfaceOptionsResult.ExtractLocation.SameFile : ExtractInterfaceOptionsResult.ExtractLocation.NewFile);
+
+            return Task.FromResult(result);
         }
     }
 }

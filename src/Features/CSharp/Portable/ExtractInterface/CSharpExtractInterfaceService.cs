@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractInterface
             return typeDeclaration.Modifiers.Any(m => SyntaxFacts.IsAccessibilityModifier(m.Kind()));
         }
 
-        internal override Solution UpdateMembersWithExplicitImplementations(
+        internal override Task<Solution> UpdateMembersWithExplicitImplementationsAsync(
             Solution unformattedSolution, IReadOnlyList<DocumentId> documentIds, 
             INamedTypeSymbol extractedInterface, INamedTypeSymbol typeToExtractFrom, 
             IEnumerable<ISymbol> includedMembers, Dictionary<ISymbol, SyntaxAnnotation> symbolToDeclarationMap, 
@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractInterface
             // In C#, member implementations do not always need
             // to be explicitly added. It's safe enough to return
             // the passed in solution
-            return unformattedSolution;
+            return Task.FromResult(unformattedSolution);
         }
     }
 }

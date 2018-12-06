@@ -4,8 +4,10 @@ using System;
 using System.Collections.Generic;
 using System.Composition;
 using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Implementation.ExtractInterface;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ExtractInterface;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServices;
@@ -18,14 +20,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ExtractInterfac
     internal class VisualStudioExtractInterfaceOptionsService : IExtractInterfaceOptionsService
     {
         private readonly IGlyphService _glyphService;
+        private readonly IThreadingContext _threadingContext;
 
         [ImportingConstructor]
-        public VisualStudioExtractInterfaceOptionsService(IGlyphService glyphService)
+        public VisualStudioExtractInterfaceOptionsService(IGlyphService glyphService, IThreadingContext threadingContext)
         {
             _glyphService = glyphService;
+            _threadingContext = threadingContext;
         }
 
-        public ExtractInterfaceOptionsResult GetExtractInterfaceOptions(
+        public async Task<ExtractInterfaceOptionsResult> GetExtractInterfaceOptionsAsync(
             ISyntaxFactsService syntaxFactsService,
             INotificationService notificationService,
             List<ISymbol> extractableMembers,
@@ -35,6 +39,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ExtractInterfac
             string generatedNameTypeParameterSuffix,
             string languageName)
         {
+            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
+
             var viewModel = new ExtractInterfaceDialogViewModel(
                 syntaxFactsService,
                 _glyphService,

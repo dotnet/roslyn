@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
             TypeDiscoveryRule typeDiscoveryRule,
             CancellationToken cancellationToken);
 
-        internal abstract Solution UpdateMembersWithExplicitImplementations(
+        internal abstract Task<Solution> UpdateMembersWithExplicitImplementationsAsync(
             Solution unformattedSolution,
             IReadOnlyList<DocumentId> documentId,
             INamedTypeSymbol extractedInterfaceSymbol,
@@ -74,17 +74,17 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
                 : ImmutableArray<ExtractInterfaceCodeAction>.Empty;
         }
 
-        public ExtractInterfaceResult ExtractInterface(
+        public async Task<ExtractInterfaceResult> ExtractInterfaceAsync(
             Document documentWithTypeToExtractFrom,
             int position,
             Action<string, NotificationSeverity> errorHandler,
             CancellationToken cancellationToken)
         {
-            var typeAnalysisResult = AnalyzeTypeAtPositionAsync(
+            var typeAnalysisResult = await AnalyzeTypeAtPositionAsync(
                 documentWithTypeToExtractFrom,
                 position,
                 TypeDiscoveryRule.TypeDeclaration,
-                cancellationToken).WaitAndGetResult_CanCallOnBackground(cancellationToken);
+                cancellationToken).ConfigureAwait(false);
 
             if (!typeAnalysisResult.CanExtractInterface)
             {
@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
                 return new ExtractInterfaceResult(succeeded: false);
             }
 
-            return ExtractInterfaceFromAnalyzedType(typeAnalysisResult, cancellationToken);
+            return await ExtractInterfaceFromAnalyzedTypeAsync(typeAnalysisResult, cancellationToken).ConfigureAwait(false);
         }
 
         public async Task<ExtractInterfaceTypeAnalysisResult> AnalyzeTypeAtPositionAsync(
@@ -127,31 +127,28 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
             return new ExtractInterfaceTypeAnalysisResult(this, document, typeNode, typeToExtractFrom, extractableMembers);
         }
 
-        public ExtractInterfaceResult ExtractInterfaceFromAnalyzedType(ExtractInterfaceTypeAnalysisResult refactoringResult, CancellationToken cancellationToken)
+        public async Task<ExtractInterfaceResult> ExtractInterfaceFromAnalyzedTypeAsync(ExtractInterfaceTypeAnalysisResult refactoringResult, CancellationToken cancellationToken)
         {
             var containingNamespaceDisplay = refactoringResult.TypeToExtractFrom.ContainingNamespace.IsGlobalNamespace
                 ? string.Empty
                 : refactoringResult.TypeToExtractFrom.ContainingNamespace.ToDisplayString();
 
-            // GetExtractInterfaceOptions will potentially show a UI dialog, and may be 
-            // expected to mantain the same calling thread. After this call, 
-            // everything else can be done in a background thread
-            var extractInterfaceOptions = GetExtractInterfaceOptions(
+            var extractInterfaceOptions = await GetExtractInterfaceOptionsAsync(
                 refactoringResult.DocumentToExtractFrom,
                 refactoringResult.TypeToExtractFrom,
                 refactoringResult.ExtractableMembers,
                 containingNamespaceDisplay,
-                cancellationToken);
+                cancellationToken).ConfigureAwait(false);
 
             if (extractInterfaceOptions.IsCancelled)
             {
                 return new ExtractInterfaceResult(succeeded: false);
             }
 
-            return ExtractInterfaceFromAnalyzedType(refactoringResult, extractInterfaceOptions, cancellationToken);
+            return await ExtractInterfaceFromAnalyzedTypeAsync(refactoringResult, extractInterfaceOptions, cancellationToken);
         }
 
-        public ExtractInterfaceResult ExtractInterfaceFromAnalyzedType(
+        public async Task<ExtractInterfaceResult> ExtractInterfaceFromAnalyzedTypeAsync(
             ExtractInterfaceTypeAnalysisResult refactoringResult, 
             ExtractInterfaceOptionsResult extractInterfaceOptions, 
             CancellationToken cancellationToken)
@@ -171,16 +168,16 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
             {
                 case ExtractInterfaceOptionsResult.ExtractLocation.NewFile:
                     var containingNamespaceDisplay = GetContainingNamespaceDisplay(refactoringResult.TypeToExtractFrom, refactoringResult.DocumentToExtractFrom.Project.CompilationOptions);
-                    return ExtractInterfaceToNewFile(
+                    return await ExtractInterfaceToNewFileAsync(
                         solution: solution,
                         containingNamespaceDisplay: containingNamespaceDisplay,
                         extractedInterfaceSymbol: extractedInterfaceSymbol,
                         refactoringResult: refactoringResult,
                         extractInterfaceOptions: extractInterfaceOptions,
-                        cancellationToken: cancellationToken);
+                        cancellationToken: cancellationToken).ConfigureAwait(false);
 
                 case ExtractInterfaceOptionsResult.ExtractLocation.SameFile:
-                    return ExtractInterfaceToSameFile(
+                    return await ExtractInterfaceToSameFileAsync(
                         solution: solution,
                         extractedInterfaceSymbol: extractedInterfaceSymbol,
                         refactoringResult: refactoringResult,
@@ -191,35 +188,35 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
             }
         }
 
-        private ExtractInterfaceResult ExtractInterfaceToNewFile(
+        private async Task<ExtractInterfaceResult> ExtractInterfaceToNewFileAsync(
             Solution solution, string containingNamespaceDisplay, INamedTypeSymbol extractedInterfaceSymbol,
             ExtractInterfaceTypeAnalysisResult refactoringResult, ExtractInterfaceOptionsResult extractInterfaceOptions, CancellationToken cancellationToken)
         {
-            var symbolMapping = CreateSymbolToDeclarationAnnotationMap(
+            var symbolMapping = await CreateSymbolToDeclarationAnnotationMapAsync(
                 extractInterfaceOptions.IncludedMembers,
                 solution,
                 refactoringResult.TypeNode,
-                cancellationToken);
+                cancellationToken).ConfigureAwait(false);
 
 
 
             var interfaceDocumentId = DocumentId.CreateNewId(refactoringResult.DocumentToExtractFrom.Project.Id, debugName: extractInterfaceOptions.FileName);
 
-            var unformattedInterfaceDocument = GetUnformattedInterfaceDocument(
+            var unformattedInterfaceDocument = await GetUnformattedInterfaceDocumentAsync(
                 symbolMapping.AnnotatedSolution,
                 containingNamespaceDisplay,
                 extractInterfaceOptions.FileName,
                 refactoringResult.DocumentToExtractFrom.Folders,
                 extractedInterfaceSymbol,
                 interfaceDocumentId,
-                cancellationToken);
+                cancellationToken).ConfigureAwait(false);
 
-            var solutionWithFormattedInterfaceDocument = GetFormattedSolution(
+            var solutionWithFormattedInterfaceDocument = await GetFormattedSolutionAsync(
                 unformattedInterfaceDocument.Project.Solution,
                 SpecializedCollections.SingletonList(unformattedInterfaceDocument.Id),
-                cancellationToken);
+                cancellationToken).ConfigureAwait(false);
 
-            var completedSolution = GetSolutionWithOriginalTypeUpdated(
+            var completedSolution = await GetSolutionWithOriginalTypeUpdatedAsync(
                 solutionWithFormattedInterfaceDocument,
                 symbolMapping.DocumentIds,
                 refactoringResult.DocumentToExtractFrom.Id,
@@ -228,7 +225,7 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
                 extractedInterfaceSymbol,
                 extractInterfaceOptions.IncludedMembers,
                 symbolMapping.SymbolToDeclarationAnnotationMap,
-                cancellationToken);
+                cancellationToken).ConfigureAwait(false);
 
             return new ExtractInterfaceResult(
                 succeeded: true,
@@ -236,16 +233,16 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
                 navigationDocumentId: interfaceDocumentId);
         }
 
-        private ExtractInterfaceResult ExtractInterfaceToSameFile(
+        private async Task<ExtractInterfaceResult> ExtractInterfaceToSameFileAsync(
             Solution solution, ExtractInterfaceTypeAnalysisResult refactoringResult, INamedTypeSymbol extractedInterfaceSymbol,
             ExtractInterfaceOptionsResult extractInterfaceOptions, CancellationToken cancellationToken)
         {
             // Track all of the symbols we need to modify, which includes the original type declaration being modified
-            var symbolMapping = CreateSymbolToDeclarationAnnotationMap(
+            var symbolMapping = await CreateSymbolToDeclarationAnnotationMapAsync(
                 extractInterfaceOptions.IncludedMembers,
                 solution,
                 refactoringResult.TypeNode,
-                cancellationToken);
+                cancellationToken).ConfigureAwait(false);
 
             var document = symbolMapping.AnnotatedSolution.GetDocument(refactoringResult.DocumentToExtractFrom.Id);
             var originalRoot = document.GetSyntaxRootSynchronously(cancellationToken);
@@ -266,11 +263,11 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
             var unformattedSolution = document.WithSyntaxRoot(editor.GetChangedRoot()).Project.Solution;
 
             // After the interface is inserted, update the original type to show it implements the new interface
-            var completedSolution = GetSolutionWithOriginalTypeUpdated(
+            var completedSolution = await GetSolutionWithOriginalTypeUpdatedAsync(
                 unformattedSolution, symbolMapping.DocumentIds,
                 refactoringResult.DocumentToExtractFrom.Id, symbolMapping.TypeNodeAnnotation,
                 refactoringResult.TypeToExtractFrom, extractedInterfaceSymbol,
-                extractInterfaceOptions.IncludedMembers, symbolMapping.SymbolToDeclarationAnnotationMap, cancellationToken);
+                extractInterfaceOptions.IncludedMembers, symbolMapping.SymbolToDeclarationAnnotationMap, cancellationToken).ConfigureAwait(false);
 
             return new ExtractInterfaceResult(
                 succeeded: true,
@@ -278,7 +275,7 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
                 navigationDocumentId: refactoringResult.DocumentToExtractFrom.Id);
         }
 
-        private SymbolMapping CreateSymbolToDeclarationAnnotationMap(
+        private async Task<SymbolMapping> CreateSymbolToDeclarationAnnotationMapAsync(
                 IEnumerable<ISymbol> includedMembers,
                 Solution solution,
                 SyntaxNode typeNode,
@@ -288,7 +285,7 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
             var currentRoots = new Dictionary<SyntaxTree, SyntaxNode>();
             var documentIds = new List<DocumentId>();
 
-            var typeNodeRoot = typeNode.SyntaxTree.GetRoot(CancellationToken.None);
+            var typeNodeRoot = await typeNode.SyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
             var typeNodeAnnotation = new SyntaxAnnotation();
             currentRoots[typeNode.SyntaxTree] = typeNodeRoot.ReplaceNode(typeNode, typeNode.WithAdditionalAnnotations(typeNodeAnnotation));
             documentIds.Add(solution.GetDocument(typeNode.SyntaxTree).Id);
@@ -299,7 +296,7 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
                 var tree = location.SourceTree;
                 if (!currentRoots.TryGetValue(tree, out var root))
                 {
-                    root = tree.GetRoot(cancellationToken);
+                    root = await tree.GetRootAsync(cancellationToken).ConfigureAwait(false);
                     documentIds.Add(solution.GetDocument(tree).Id);
                 }
 
@@ -320,7 +317,7 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
             return new SymbolMapping(symbolToDeclarationAnnotationMap, annotatedSolution, documentIds, typeNodeAnnotation);
         }
 
-        internal ExtractInterfaceOptionsResult GetExtractInterfaceOptions(
+        internal Task<ExtractInterfaceOptionsResult> GetExtractInterfaceOptionsAsync(
             Document document,
             INamedTypeSymbol type,
             IEnumerable<ISymbol> extractableMembers,
@@ -335,7 +332,7 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
             var generatedNameTypeParameterSuffix = GetGeneratedNameTypeParameterSuffix(GetTypeParameters(type, extractableMembers), document.Project.Solution.Workspace);
 
             var service = document.Project.Solution.Workspace.Services.GetService<IExtractInterfaceOptionsService>();
-            return service.GetExtractInterfaceOptions(
+            return service.GetExtractInterfaceOptionsAsync(
                 syntaxFactsService,
                 notificationService,
                 extractableMembers.ToList(),
@@ -346,7 +343,7 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
                 document.Project.Language);
         }
 
-        private Document GetUnformattedInterfaceDocument(
+        private async Task<Document> GetUnformattedInterfaceDocumentAsync(
             Solution solution,
             string containingNamespaceDisplay,
             string name,
@@ -357,20 +354,20 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
         {
             var solutionWithInterfaceDocument = solution.AddDocument(interfaceDocumentId, name, text: "", folders: folders);
             var interfaceDocument = solutionWithInterfaceDocument.GetDocument(interfaceDocumentId);
-            var interfaceDocumentSemanticModel = interfaceDocument.GetSemanticModelAsync(cancellationToken).WaitAndGetResult_CanCallOnBackground(cancellationToken);
+            var interfaceDocumentSemanticModel = await interfaceDocument.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
             var namespaceParts = containingNamespaceDisplay.Split('.').Where(s => !string.IsNullOrEmpty(s));
-            var unformattedInterfaceDocument = CodeGenerator.AddNamespaceOrTypeDeclarationAsync(
+            var unformattedInterfaceDocument = await CodeGenerator.AddNamespaceOrTypeDeclarationAsync(
                 interfaceDocument.Project.Solution,
                 interfaceDocumentSemanticModel.GetEnclosingNamespace(0, cancellationToken),
                 extractedInterfaceSymbol.GenerateRootNamespaceOrType(namespaceParts.ToArray()),
                 options: new CodeGenerationOptions(interfaceDocumentSemanticModel.SyntaxTree.GetLocation(new TextSpan())),
-                cancellationToken: cancellationToken).WaitAndGetResult_CanCallOnBackground(cancellationToken);
+                cancellationToken: cancellationToken).ConfigureAwait(false);
 
             return unformattedInterfaceDocument;
         }
 
-        private Solution GetFormattedSolution(Solution unformattedSolution, IEnumerable<DocumentId> documentIds, CancellationToken cancellationToken)
+        private async Task<Solution> GetFormattedSolutionAsync(Solution unformattedSolution, IEnumerable<DocumentId> documentIds, CancellationToken cancellationToken)
         {
             // Since code action performs formatting and simplification on a single document, 
             // this ensures that anything marked with formatter or simplifier annotations gets 
@@ -379,20 +376,25 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
             foreach (var documentId in documentIds)
             {
                 var document = formattedSolution.GetDocument(documentId);
-                var formattedRoot = Formatter.Format(document.GetSyntaxRootSynchronously(cancellationToken),
+                var formattedRoot = await Formatter.FormatAsync(
+                    await document.GetSyntaxRootAsync(cancellationToken),
                     Formatter.Annotation,
                     document.Project.Solution.Workspace, 
-                    cancellationToken: cancellationToken);
+                    cancellationToken: cancellationToken).ConfigureAwait(false);
 
                 var formattedDocument = document.WithSyntaxRoot(formattedRoot);
-                var simplifiedDocument = Simplifier.ReduceAsync(formattedDocument, Simplifier.Annotation, cancellationToken: cancellationToken).WaitAndGetResult_CanCallOnBackground(cancellationToken);
+                var simplifiedDocument = await Simplifier.ReduceAsync(
+                    formattedDocument, 
+                    Simplifier.Annotation, 
+                    cancellationToken: cancellationToken).ConfigureAwait(false);
+
                 formattedSolution = simplifiedDocument.Project.Solution;
             }
 
             return formattedSolution;
         }
 
-        private Solution GetSolutionWithOriginalTypeUpdated(
+        private async Task<Solution> GetSolutionWithOriginalTypeUpdatedAsync(
             Solution solution,
             List<DocumentId> documentIds,
             DocumentId invocationLocationDocumentId,
@@ -415,7 +417,7 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
             foreach (var documentId in documentIds)
             {
                 var document = solution.GetDocument(documentId);
-                var currentRoot = document.GetSyntaxRootSynchronously(cancellationToken);
+                var currentRoot = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
                 var editor = new SyntaxEditor(currentRoot, solution.Workspace);
 
                 var syntaxGenerator = SyntaxGenerator.GetGenerator(document);
@@ -438,16 +440,16 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
                 break;
             }
 
-            var updatedUnformattedSolution = UpdateMembersWithExplicitImplementations(
+            var updatedUnformattedSolution = await UpdateMembersWithExplicitImplementationsAsync(
                 unformattedSolution,
                 documentIds,
                 extractedInterfaceSymbol,
                 typeToExtractFrom,
                 includedMembers,
                 symbolToDeclarationAnnotationMap,
-                cancellationToken);
+                cancellationToken).ConfigureAwait(false);
 
-            var formattedSolution = GetFormattedSolution(updatedUnformattedSolution, documentIds, cancellationToken);
+            var formattedSolution = await GetFormattedSolutionAsync(updatedUnformattedSolution, documentIds, cancellationToken);
             return formattedSolution;
         }
 

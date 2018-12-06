@@ -94,10 +94,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractInterface
             Return typeDeclaration.GetModifiers().Any(Function(m) SyntaxFacts.IsAccessibilityModifier(m.Kind()))
         End Function
 
-        Friend Overrides Function UpdateMembersWithExplicitImplementations(
+        Friend Overrides Async Function UpdateMembersWithExplicitImplementationsAsync(
             unformattedSolution As Solution, documentIds As IReadOnlyList(Of DocumentId), extractedInterfaceSymbol As INamedTypeSymbol,
             typeToExtractFrom As INamedTypeSymbol, includedMembers As IEnumerable(Of ISymbol),
-            symbolToDeclarationAnnotationMap As Dictionary(Of ISymbol, SyntaxAnnotation), cancellationToken As CancellationToken) As Solution
+            symbolToDeclarationAnnotationMap As Dictionary(Of ISymbol, SyntaxAnnotation), cancellationToken As CancellationToken) As Task(Of Solution)
 
             Dim docToRootMap = New Dictionary(Of DocumentId, CompilationUnitSyntax)
 
@@ -107,7 +107,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractInterface
                     SyntaxFactory.TypeArgumentList(SyntaxFactory.SeparatedList(extractedInterfaceSymbol.TypeParameters.Select(Function(p) SyntaxFactory.ParseTypeName(p.Name))))),
                 SyntaxFactory.ParseTypeName(extractedInterfaceSymbol.Name))
 
-            Dim implementedInterfaceStatement = Formatter.Format(implementedInterfaceStatementSyntax, unformattedSolution.Workspace).ToFullString()
+            Dim formattedStatementSyntax = Await Formatter.FormatAsync(
+                implementedInterfaceStatementSyntax, unformattedSolution.Workspace,
+                cancellationToken:=cancellationToken).ConfigureAwait(False)
+
+            Dim implementedInterfaceStatement = formattedStatementSyntax.ToFullString()
 
             For Each member In includedMembers
                 Dim annotation = symbolToDeclarationAnnotationMap(member)
@@ -120,7 +124,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractInterface
                     If docToRootMap.ContainsKey(candidateDocId) Then
                         currentRoot = docToRootMap(candidateDocId)
                     Else
-                        currentRoot = CType(unformattedSolution.GetDocument(candidateDocId).GetSyntaxRootSynchronously(cancellationToken), CompilationUnitSyntax)
+                        Dim document = Await unformattedSolution.GetDocument(candidateDocId).GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
+                        currentRoot = CType(document, CompilationUnitSyntax)
                     End If
 
                     token = currentRoot.DescendantNodesAndTokensAndSelf().FirstOrDefault(Function(x) x.HasAnnotation(annotation))
