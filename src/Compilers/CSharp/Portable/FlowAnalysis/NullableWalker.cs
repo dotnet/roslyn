@@ -4484,7 +4484,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             //if (this.State.Reachable) // Consider reachability: see https://github.com/dotnet/roslyn/issues/28798
             {
                 NullableAnnotation nullableAnnotation = NullableAnnotation.Unknown;
-                if (!node.Type.IsValueType)
+                var type = node.Type;
+
+                if (!type.IsValueType || type.IsNullableType())
                 {
                     switch (node.Conversion.Kind)
                     {
@@ -4494,11 +4496,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                             break;
 
                         case ConversionKind.ImplicitReference:
-
                             // Inherit nullability from the operand
                             if (!_resultType.IsNull && _resultType.IsPossiblyNullableReferenceTypeTypeParameter())
                             {
-                                if (!node.Type.IsPossiblyNullableReferenceTypeTypeParameter())
+                                if (!type.IsPossiblyNullableReferenceTypeTypeParameter())
                                 {
                                     nullableAnnotation = NullableAnnotation.Nullable;
                                 }
@@ -4510,7 +4511,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             else
                             {
                                 nullableAnnotation = _resultType.NullableAnnotation;
-                                if (nullableAnnotation == NullableAnnotation.NotAnnotated && node.Type.IsTypeParameter())
+                                if (nullableAnnotation == NullableAnnotation.NotAnnotated && type.IsTypeParameter())
                                 {
                                     nullableAnnotation = NullableAnnotation.NotNullable;
                                 }
@@ -4522,7 +4523,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             if (operandType?.IsValueType == true)
                             {
                                 // https://github.com/dotnet/roslyn/issues/29959 We currently don't worry about a pathological case of boxing nullable value known to be not null
-                                nullableAnnotation = operandType.IsNullableType() ? NullableAnnotation.Nullable : NullableAnnotation.NotNullable;
+                                nullableAnnotation = (operandType.IsNullableType() && _resultType.NullableAnnotation.IsAnyNullable()) ? NullableAnnotation.Nullable : NullableAnnotation.NotNullable;
                             }
                             else
                             {
@@ -4530,7 +4531,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                                 if (!_resultType.IsNull)
                                 {
-                                    if (_resultType.IsPossiblyNullableReferenceTypeTypeParameter() && node.Type.IsPossiblyNullableReferenceTypeTypeParameter())
+                                    if (_resultType.IsPossiblyNullableReferenceTypeTypeParameter() && type.IsPossiblyNullableReferenceTypeTypeParameter())
                                     {
                                         nullableAnnotation = NullableAnnotation.NotAnnotated;
                                     }
@@ -4546,13 +4547,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
                             break;
 
+                        case ConversionKind.ImplicitNullable:
+                            nullableAnnotation = (_resultType.IsNullableType() && _resultType.NullableAnnotation.IsAnyNullable()) ? NullableAnnotation.Nullable : NullableAnnotation.NotNullable;
+                            break;
+
                         default:
                             nullableAnnotation = NullableAnnotation.Nullable;
                             break;
                     }
                 }
 
-                _resultType = TypeSymbolWithAnnotations.Create(node.Type, nullableAnnotation);
+                _resultType = TypeSymbolWithAnnotations.Create(type, nullableAnnotation);
             }
 
             return result;
