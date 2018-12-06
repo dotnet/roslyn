@@ -5,10 +5,10 @@ using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.VisualStudio.LanguageServices.Utilities
 {
-    internal interface ICompilationOptionsService : ILanguageService
+    internal interface ICompilationOptionsChangingService : ILanguageService
     {
-        bool SupportsUnsafe { get; }
-        bool GetAllowUnsafe(CompilationOptions options);
-        CompilationOptions WithAllowUnsafe(CompilationOptions old, bool allowUnsafe);
+        bool CanApplyChange(CompilationOptions oldOptions, CompilationOptions newOptions);
+
+        void Apply(CompilationOptions options, ProjectPropertyStorage storage);
     }
 }

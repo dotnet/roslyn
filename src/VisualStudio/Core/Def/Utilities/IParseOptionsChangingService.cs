@@ -5,9 +5,10 @@ using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.VisualStudio.LanguageServices.Utilities
 {
-    internal interface IParseOptionsService : ILanguageService
+    internal interface IParseOptionsChangingService : ILanguageService
     {
-        string GetLanguageVersion(ParseOptions options);
-        ParseOptions WithLanguageVersion(ParseOptions old, string version);
+        bool CanApplyChange(ParseOptions oldOptions, ParseOptions newOptions);
+
+        void Apply(ParseOptions options, ProjectPropertyStorage storage);
     }
 }

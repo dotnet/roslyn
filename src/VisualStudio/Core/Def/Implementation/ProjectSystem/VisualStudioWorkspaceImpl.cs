@@ -329,32 +329,24 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         protected override bool CanApplyCompilationOptionChange(CompilationOptions oldOptions, CompilationOptions newOptions, CodeAnalysis.Project project)
         {
-            var compilationOptionsService = project.LanguageServices.GetService<ICompilationOptionsService>();
-            if (compilationOptionsService == null || !compilationOptionsService.SupportsUnsafe)
+            var compilationOptionsService = project.LanguageServices.GetService<ICompilationOptionsChangingService>();
+            if (compilationOptionsService == null)
             {
                 return false;
             }
 
-            // Currently, only changes to AllowUnsafe of compilation options are supported.
-            var newAllowUnsafe = compilationOptionsService.GetAllowUnsafe(newOptions);
-            var updated = compilationOptionsService.WithAllowUnsafe(oldOptions, newAllowUnsafe);
-
-            return newOptions == updated;
+            return compilationOptionsService.CanApplyChange(oldOptions, newOptions);
         }
 
         protected override bool CanApplyParseOptionChange(ParseOptions oldOptions, ParseOptions newOptions, CodeAnalysis.Project project)
         {
-            var parseOptionsService = project.LanguageServices.GetService<IParseOptionsService>();
+            var parseOptionsService = project.LanguageServices.GetService<IParseOptionsChangingService>();
             if (parseOptionsService == null)
             {
                 return false;
             }
 
-            // Currently, only changes to the LanguageVersion of parse options are supported.
-            var newLanguageVersion = parseOptionsService.GetLanguageVersion(newOptions);
-            var updated = parseOptionsService.WithLanguageVersion(oldOptions, newLanguageVersion);
-
-            return newOptions == updated;
+            return parseOptionsService.CanApplyChange(oldOptions, newOptions);
         }
 
         private void AddTextBufferCloneServiceToBuffer(object sender, TextBufferCreatedEventArgs e)
@@ -454,20 +446,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             var project = CurrentSolution.GetProject(projectId);
 
-            var compilationOptionsService = project.LanguageServices.GetService<ICompilationOptionsService>();
-            Contract.ThrowIfNull(compilationOptionsService, nameof(compilationOptionsService));
+            var compilationOptionsService = project.LanguageServices.GetService<ICompilationOptionsChangingService>();
+            if (compilationOptionsService == null)
+            {
+                throw new InvalidOperationException(ServicesVSResources.This_workspace_does_not_support_updating_Visual_Basic_compilation_options);
+            }
 
             var storage = ProjectPropertyStorage.Create(TryGetDTEProject(projectId), ServiceProvider.GlobalProvider);
-
-            switch (project.Language)
-            {
-                case LanguageNames.CSharp:
-                    storage.SetProperty("AllowUnsafeBlocks", nameof(ProjectConfigurationProperties3.AllowUnsafeBlocks),
-                        compilationOptionsService.GetAllowUnsafe(options).ToString().ToLowerInvariant());
-                    break;
-                case LanguageNames.VisualBasic:
-                    throw new InvalidOperationException(ServicesVSResources.This_workspace_does_not_support_updating_Visual_Basic_compilation_options);
-            }
+            compilationOptionsService.Apply(options, storage);
         }
 
         protected override void ApplyParseOptionsChanged(ProjectId projectId, ParseOptions options)
@@ -484,20 +470,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             var project = CurrentSolution.GetProject(projectId);
 
-            var parseOptionsService = project.LanguageServices.GetService<IParseOptionsService>();
-            Contract.ThrowIfNull(parseOptionsService, nameof(parseOptionsService));
+            var parseOptionsService = project.LanguageServices.GetService<IParseOptionsChangingService>();
+            if (parseOptionsService == null)
+            {
+                throw new InvalidOperationException(ServicesVSResources.This_workspace_does_not_support_updating_Visual_Basic_parse_options);
+            }
 
             var storage = ProjectPropertyStorage.Create(TryGetDTEProject(projectId), ServiceProvider.GlobalProvider);
-
-            switch (project.Language)
-            {
-                case LanguageNames.CSharp:
-                    storage.SetProperty("LangVersion", nameof(CSharpProjectConfigurationProperties3.LanguageVersion),
-                        parseOptionsService.GetLanguageVersion(options));
-                    break;
-                case LanguageNames.VisualBasic:
-                    throw new InvalidOperationException(ServicesVSResources.This_workspace_does_not_support_updating_Visual_Basic_parse_options);
-            }
+            parseOptionsService.Apply(options, storage);
         }
 
         protected override void ApplyAnalyzerReferenceAdded(ProjectId projectId, AnalyzerReference analyzerReference)
