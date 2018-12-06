@@ -311,6 +311,18 @@ class MyClass
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
+        public async Task EntryPointMethodNotFlagged_05()
+        {
+            await TestDiagnosticMissingAsync(
+@"using System.Threading.Tasks;
+
+class MyClass
+{
+    private static int [|Main|]() => 0;
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task FieldIsUnused_ReadOnly()
         {
             await TestInRegularAndScriptAsync(

@@ -601,6 +601,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                 => methodSymbol.Name == WellKnownMemberNames.EntryPointMethodName &&
                    methodSymbol.IsStatic &&
                    (methodSymbol.ReturnsVoid ||
+                    methodSymbol.ReturnType.SpecialType == SpecialType.System_Int32 ||
                     methodSymbol.ReturnType.OriginalDefinition == _taskType ||
                     methodSymbol.ReturnType.OriginalDefinition == _genericTaskType);
 
