@@ -81,8 +81,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             nameof(FormattingOptions),
             FormattingOptionGroups.NewLine,
             nameof(PreferredWrappingColumn),
-            defaultValue: 120,
-            storageLocations: EditorConfigStorageLocation.ForInt32Option("dotnet_preferred_wrapping_column"));
+            defaultValue: 120);
 
         private static readonly BidirectionalMap<string, string> s_parenthesesPreferenceMap =
             new BidirectionalMap<string, string>(new[]
