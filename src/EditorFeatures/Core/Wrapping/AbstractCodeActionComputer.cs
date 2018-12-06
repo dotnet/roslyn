@@ -165,8 +165,8 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping
                         // is already there.
                         if (text != edit.GetNewTrivia())
                         {
-                            leftTokenToTrailingTrivia.Add(edit.Left, edit.LeftTrailingTrivia);
-                            rightTokenToLeadingTrivia.Add(edit.Right, edit.RightLeadingTrivia);
+                            leftTokenToTrailingTrivia.Add(edit.Left, edit.NewLeftTrailingTrivia);
+                            rightTokenToLeadingTrivia.Add(edit.Right, edit.NewRightLeadingTrivia);
                         }
                     }
 
