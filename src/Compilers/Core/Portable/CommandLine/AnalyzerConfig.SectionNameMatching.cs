@@ -8,12 +8,24 @@ namespace Microsoft.CodeAnalysis
 {
     public sealed partial class AnalyzerConfig
     {
+        public readonly struct SectionNameMatcher
+        {
+            internal Regex Regex { get; }
+
+            internal SectionNameMatcher(Regex regex)
+            {
+                Regex = regex;
+            }
+
+            public bool IsMatch(string s) => Regex.IsMatch(s);
+        }
+
         /// <summary>
-        /// Takes a <see cref="Section.Name"/> and compiles the file glob
-        /// inside to a regex which recognizes the given language. Returns
-        /// null if the section name is invalid.
+        /// Takes a <see cref="Section.Name"/> and creates a matcher that
+        /// matches the the given language. Returns null if the section name is
+        /// invalid.
         /// </summary>
-        public static string TryCompileSectionNameToRegEx(string sectionName)
+        public static SectionNameMatcher? TryCreateSectionNameMatcher(string sectionName)
         {
             // An editorconfig section name is a language for recognizing file paths
             // defined by the following grammar:
@@ -60,7 +72,7 @@ namespace Microsoft.CodeAnalysis
                 return null;
             }
             sb.Append('$');
-            return sb.ToString();
+            return new SectionNameMatcher(new Regex(sb.ToString(), RegexOptions.Compiled));
         }
 
         /// <summary>

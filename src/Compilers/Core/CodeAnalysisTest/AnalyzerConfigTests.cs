@@ -272,180 +272,180 @@ RoOt = TruE");
         [Fact]
         public void SimpleNameMatch()
         {
-            string regex = TryCompileSectionNameToRegEx("abc");
-            Assert.Equal("^.*/abc$", regex);
+            SectionNameMatcher matcher = TryCreateSectionNameMatcher("abc").Value;
+            Assert.Equal("^.*/abc$", matcher.Regex.ToString());
 
-            Assert.Matches(regex, "/abc");
-            Assert.DoesNotMatch(regex, "/aabc");
-            Assert.DoesNotMatch(regex, "/ abc");
-            Assert.DoesNotMatch(regex, "/cabc");
+            Assert.True(matcher.IsMatch("/abc"));
+            Assert.False(matcher.IsMatch("/aabc"));
+            Assert.False(matcher.IsMatch("/ abc"));
+            Assert.False(matcher.IsMatch("/cabc"));
         }
 
         [Fact]
         public void StarOnlyMatch()
         {
-            string regex = TryCompileSectionNameToRegEx("*");
-            Assert.Equal("^.*/[^/]*$", regex);
+            SectionNameMatcher matcher = TryCreateSectionNameMatcher("*").Value;
+            Assert.Equal("^.*/[^/]*$", matcher.Regex.ToString());
 
-            Assert.Matches(regex, "/abc");
-            Assert.Matches(regex, "/123");
-            Assert.Matches(regex, "/abc/123");
+            Assert.True(matcher.IsMatch("/abc"));
+            Assert.True(matcher.IsMatch("/123"));
+            Assert.True(matcher.IsMatch("/abc/123"));
         }
 
         [Fact]
         public void StarNameMatch()
         {
-            string regex = TryCompileSectionNameToRegEx("*.cs");
-            Assert.Equal("^.*/[^/]*\\.cs$", regex);
+            SectionNameMatcher matcher = TryCreateSectionNameMatcher("*.cs").Value;
+            Assert.Equal("^.*/[^/]*\\.cs$", matcher.Regex.ToString());
 
-            Assert.Matches(regex, "/abc.cs");
-            Assert.Matches(regex, "/123.cs");
-            Assert.Matches(regex, "/dir/subpath.cs");
+            Assert.True(matcher.IsMatch("/abc.cs"));
+            Assert.True(matcher.IsMatch("/123.cs"));
+            Assert.True(matcher.IsMatch("/dir/subpath.cs"));
             // Only '/' is defined as a directory separator, so the caller
             // is responsible for converting any other machine directory
             // separators to '/' before matching
-            Assert.Matches(regex, "/dir\\subpath.cs");
+            Assert.True(matcher.IsMatch("/dir\\subpath.cs"));
 
-            Assert.DoesNotMatch(regex, "/abc.vb");
+            Assert.False(matcher.IsMatch("/abc.vb"));
         }
 
         [Fact]
         public void StarStarNameMatch()
         {
-            string regex = TryCompileSectionNameToRegEx("**.cs");
-            Assert.Equal("^.*/.*\\.cs$", regex);
+            SectionNameMatcher matcher = TryCreateSectionNameMatcher("**.cs").Value;
+            Assert.Equal("^.*/.*\\.cs$", matcher.Regex.ToString());
 
-            Assert.Matches(regex, "/abc.cs");
-            Assert.Matches(regex, "/dir/subpath.cs");
+            Assert.True(matcher.IsMatch("/abc.cs"));
+            Assert.True(matcher.IsMatch("/dir/subpath.cs"));
         }
 
         [Fact]
         public void EscapeDot()
         {
-            string regex = TryCompileSectionNameToRegEx("...");
-            Assert.Equal("^.*/\\.\\.\\.$", regex);
+            SectionNameMatcher matcher = TryCreateSectionNameMatcher("...").Value;
+            Assert.Equal("^.*/\\.\\.\\.$", matcher.Regex.ToString());
 
-            Assert.Matches(regex, "/...");
-            Assert.Matches(regex, "/subdir/...");
-            Assert.DoesNotMatch(regex, "/aaa");
-            Assert.DoesNotMatch(regex, "/???");
-            Assert.DoesNotMatch(regex, "/abc");
+            Assert.True(matcher.IsMatch("/..."));
+            Assert.True(matcher.IsMatch("/subdir/..."));
+            Assert.False(matcher.IsMatch("/aaa"));
+            Assert.False(matcher.IsMatch("/???"));
+            Assert.False(matcher.IsMatch("/abc"));
         }
 
         [Fact]
         public void BadEscapeMatch()
         {
-            string regex = TryCompileSectionNameToRegEx("abc\\d.cs");
-            Assert.Null(regex);
+            SectionNameMatcher? matcher = TryCreateSectionNameMatcher("abc\\d.cs");
+            Assert.Null(matcher);
         }
 
         [Fact]
         public void EndBackslashMatch()
         {
-            string regex = TryCompileSectionNameToRegEx("abc\\");
-            Assert.Null(regex);
+            SectionNameMatcher? matcher = TryCreateSectionNameMatcher("abc\\");
+            Assert.Null(matcher);
         }
 
         [Fact]
         public void QuestionMatch()
         {
-            string regex = TryCompileSectionNameToRegEx("ab?def");
-            Assert.Equal("^.*/ab.def$", regex);
+            SectionNameMatcher matcher = TryCreateSectionNameMatcher("ab?def").Value;
+            Assert.Equal("^.*/ab.def$", matcher.Regex.ToString());
 
-            Assert.Matches(regex, "/abcdef");
-            Assert.Matches(regex, "/ab?def");
-            Assert.Matches(regex, "/abzdef");
-            Assert.Matches(regex, "/ab/def");
-            Assert.Matches(regex, "/ab\\def");
+            Assert.True(matcher.IsMatch("/abcdef"));
+            Assert.True(matcher.IsMatch("/ab?def"));
+            Assert.True(matcher.IsMatch("/abzdef"));
+            Assert.True(matcher.IsMatch("/ab/def"));
+            Assert.True(matcher.IsMatch("/ab\\def"));
         }
 
         [Fact]
         public void LiteralBackslash()
         {
-            string regex = TryCompileSectionNameToRegEx("ab\\\\c");
-            Assert.Equal("^.*/ab\\\\c$", regex);
+            SectionNameMatcher matcher = TryCreateSectionNameMatcher("ab\\\\c").Value;
+            Assert.Equal("^.*/ab\\\\c$", matcher.Regex.ToString());
 
-            Assert.Matches(regex, "/ab\\c");
-            Assert.DoesNotMatch(regex, "/ab/c");
-            Assert.DoesNotMatch(regex, "/ab\\\\c");
+            Assert.True(matcher.IsMatch("/ab\\c"));
+            Assert.False(matcher.IsMatch("/ab/c"));
+            Assert.False(matcher.IsMatch("/ab\\\\c"));
         }
 
         [Fact]
         public void LiteralStars()
         {
-            string regex = TryCompileSectionNameToRegEx("\\***\\*\\**");
-            Assert.Equal("^.*/\\*.*\\*\\*[^/]*$", regex);
+            SectionNameMatcher matcher = TryCreateSectionNameMatcher("\\***\\*\\**").Value;
+            Assert.Equal("^.*/\\*.*\\*\\*[^/]*$", matcher.Regex.ToString());
 
-            Assert.Matches(regex, "/*ab/cd**efg*");
-            Assert.DoesNotMatch(regex, "/ab/cd**efg*");
-            Assert.DoesNotMatch(regex, "/*ab/cd*efg*");
-            Assert.DoesNotMatch(regex, "/*ab/cd**ef/gh");
+            Assert.True(matcher.IsMatch("/*ab/cd**efg*"));
+            Assert.False(matcher.IsMatch("/ab/cd**efg*"));
+            Assert.False(matcher.IsMatch("/*ab/cd*efg*"));
+            Assert.False(matcher.IsMatch("/*ab/cd**ef/gh"));
         }
 
         [Fact]
         public void LiteralQuestions()
         {
-            string regex = TryCompileSectionNameToRegEx("\\??\\?*\\??");
-            Assert.Equal("^.*/\\?.\\?[^/]*\\?.$", regex);
+            SectionNameMatcher matcher = TryCreateSectionNameMatcher("\\??\\?*\\??").Value;
+            Assert.Equal("^.*/\\?.\\?[^/]*\\?.$", matcher.Regex.ToString());
 
-            Assert.Matches(regex, "/?a?cde?f");
-            Assert.Matches(regex, "/???????f");
-            Assert.DoesNotMatch(regex, "/aaaaaaaa");
-            Assert.DoesNotMatch(regex, "/aa?cde?f");
-            Assert.DoesNotMatch(regex, "/?a?cdexf");
-            Assert.DoesNotMatch(regex, "/?axcde?f");
+            Assert.True(matcher.IsMatch("/?a?cde?f"));
+            Assert.True(matcher.IsMatch("/???????f"));
+            Assert.False(matcher.IsMatch("/aaaaaaaa"));
+            Assert.False(matcher.IsMatch("/aa?cde?f"));
+            Assert.False(matcher.IsMatch("/?a?cdexf"));
+            Assert.False(matcher.IsMatch("/?axcde?f"));
         }
 
         [Fact]
         public void LiteralBraces()
         {
-            string regex = TryCompileSectionNameToRegEx("abc\\{\\}def");
-            Assert.Equal("^.*/abc\\{\\}def$", regex);
+            SectionNameMatcher matcher = TryCreateSectionNameMatcher("abc\\{\\}def").Value;
+            Assert.Equal("^.*/abc\\{\\}def$", matcher.Regex.ToString());
 
-            Assert.Matches(regex, "/abc{}def");
-            Assert.Matches(regex, "/subdir/abc{}def");
-            Assert.DoesNotMatch(regex, "/abcdef");
-            Assert.DoesNotMatch(regex, "/abc}{def");
+            Assert.True(matcher.IsMatch("/abc{}def"));
+            Assert.True(matcher.IsMatch("/subdir/abc{}def"));
+            Assert.False(matcher.IsMatch("/abcdef"));
+            Assert.False(matcher.IsMatch("/abc}{def"));
         }
 
         [Fact]
         public void LiteralComma()
         {
-            string regex = TryCompileSectionNameToRegEx("abc\\,def");
-            Assert.Equal("^.*/abc,def$", regex);
+            SectionNameMatcher matcher = TryCreateSectionNameMatcher("abc\\,def").Value;
+            Assert.Equal("^.*/abc,def$", matcher.Regex.ToString());
 
-            Assert.Matches(regex, "/abc,def");
-            Assert.Matches(regex, "/subdir/abc,def");
-            Assert.DoesNotMatch(regex, "/abcdef");
-            Assert.DoesNotMatch(regex, "/abc\\,def");
-            Assert.DoesNotMatch(regex, "/abc`def");
+            Assert.True(matcher.IsMatch("/abc,def"));
+            Assert.True(matcher.IsMatch("/subdir/abc,def"));
+            Assert.False(matcher.IsMatch("/abcdef"));
+            Assert.False(matcher.IsMatch("/abc\\,def"));
+            Assert.False(matcher.IsMatch("/abc`def"));
         }
 
         [Fact]
         public void SimpleChoice()
         {
-            string regex = TryCompileSectionNameToRegEx("*.{cs,vb,fs}");
-            Assert.Equal("^.*/[^/]*\\.(?:cs|vb|fs)$", regex);
+            SectionNameMatcher matcher = TryCreateSectionNameMatcher("*.{cs,vb,fs}").Value;
+            Assert.Equal("^.*/[^/]*\\.(?:cs|vb|fs)$", matcher.Regex.ToString());
 
-            Assert.Matches(regex, "/abc.cs");
-            Assert.Matches(regex, "/abc.vb");
-            Assert.Matches(regex, "/abc.fs");
-            Assert.Matches(regex, "/subdir/abc.cs");
-            Assert.Matches(regex, "/subdir/abc.vb");
-            Assert.Matches(regex, "/subdir/abc.fs");
+            Assert.True(matcher.IsMatch("/abc.cs"));
+            Assert.True(matcher.IsMatch("/abc.vb"));
+            Assert.True(matcher.IsMatch("/abc.fs"));
+            Assert.True(matcher.IsMatch("/subdir/abc.cs"));
+            Assert.True(matcher.IsMatch("/subdir/abc.vb"));
+            Assert.True(matcher.IsMatch("/subdir/abc.fs"));
 
-            Assert.DoesNotMatch(regex, "/abcxcs");
-            Assert.DoesNotMatch(regex, "/abcxvb");
-            Assert.DoesNotMatch(regex, "/abcxfs");
-            Assert.DoesNotMatch(regex, "/subdir/abcxcs");
-            Assert.DoesNotMatch(regex, "/subdir/abcxcb");
-            Assert.DoesNotMatch(regex, "/subdir/abcxcs");
+            Assert.False(matcher.IsMatch("/abcxcs"));
+            Assert.False(matcher.IsMatch("/abcxvb"));
+            Assert.False(matcher.IsMatch("/abcxfs"));
+            Assert.False(matcher.IsMatch("/subdir/abcxcs"));
+            Assert.False(matcher.IsMatch("/subdir/abcxcb"));
+            Assert.False(matcher.IsMatch("/subdir/abcxcs"));
         }
 
         [Fact]
         public void OneChoiceHasSlashes()
         {
-            string regex = TryCompileSectionNameToRegEx("{*.cs,subdir/test.vb}");
+            SectionNameMatcher matcher = TryCreateSectionNameMatcher("{*.cs,subdir/test.vb}").Value;
             // This is an interesting case that may be counterintuitive.  A reasonable understanding
             // of the section matching could interpret the choice as generating multiple identical
             // sections, so [{a, b, c}] would be equivalent to [a] ... [b] ... [c] with all of the
@@ -455,101 +455,101 @@ RoOt = TruE");
             // [*.cs] usually translates into '**/*.cs' because it contains no slashes, the slashes in
             // the second choice make this into '/*.cs', effectively matching only files in the root
             // directory of the match, instead of all subdirectories.
-            Assert.Equal("^/(?:[^/]*\\.cs|subdir/test\\.vb)$", regex);
+            Assert.Equal("^/(?:[^/]*\\.cs|subdir/test\\.vb)$", matcher.Regex.ToString());
 
-            Assert.Matches(regex, "/test.cs");
-            Assert.Matches(regex, "/subdir/test.vb");
+            Assert.True(matcher.IsMatch("/test.cs"));
+            Assert.True(matcher.IsMatch("/subdir/test.vb"));
 
-            Assert.DoesNotMatch(regex, "/subdir/test.cs");
-            Assert.DoesNotMatch(regex, "/subdir/subdir/test.vb");
-            Assert.DoesNotMatch(regex, "/test.vb");
+            Assert.False(matcher.IsMatch("/subdir/test.cs"));
+            Assert.False(matcher.IsMatch("/subdir/subdir/test.vb"));
+            Assert.False(matcher.IsMatch("/test.vb"));
         }
 
         [Fact]
         public void EmptyChoice()
         {
-            string regex = TryCompileSectionNameToRegEx("{}");
-            Assert.Equal("^.*/(?:)$", regex);
+            SectionNameMatcher matcher = TryCreateSectionNameMatcher("{}").Value;
+            Assert.Equal("^.*/(?:)$", matcher.Regex.ToString());
 
-            Assert.Matches(regex, "/");
-            Assert.Matches(regex, "/subdir/");
-            Assert.DoesNotMatch(regex, "/.");
-            Assert.DoesNotMatch(regex, "/anything");
+            Assert.True(matcher.IsMatch("/"));
+            Assert.True(matcher.IsMatch("/subdir/"));
+            Assert.False(matcher.IsMatch("/."));
+            Assert.False(matcher.IsMatch("/anything"));
         }
 
         [Fact]
         public void SingleChoice()
         {
-            string regex = TryCompileSectionNameToRegEx("{*.cs}");
-            Assert.Equal("^.*/(?:[^/]*\\.cs)$", regex);
+            SectionNameMatcher matcher = TryCreateSectionNameMatcher("{*.cs}").Value;
+            Assert.Equal("^.*/(?:[^/]*\\.cs)$", matcher.Regex.ToString());
 
-            Assert.Matches(regex, "/test.cs");
-            Assert.Matches(regex, "/subdir/test.cs");
-            Assert.DoesNotMatch(regex, "test.vb");
-            Assert.DoesNotMatch(regex, "testxcs");
+            Assert.True(matcher.IsMatch("/test.cs"));
+            Assert.True(matcher.IsMatch("/subdir/test.cs"));
+            Assert.False(matcher.IsMatch("test.vb"));
+            Assert.False(matcher.IsMatch("testxcs"));
         }
 
         [Fact]
         public void UnmatchedBraces()
         {
-            string regex = TryCompileSectionNameToRegEx("{{{{}}");
-            Assert.Null(regex);
+            SectionNameMatcher? matcher = TryCreateSectionNameMatcher("{{{{}}");
+            Assert.Null(matcher);
         }
 
         [Fact]
         public void CommaOutsideBraces()
         {
-            string regex = TryCompileSectionNameToRegEx("abc,def");
-            Assert.Null(regex);
+            SectionNameMatcher? matcher = TryCreateSectionNameMatcher("abc,def");
+            Assert.Null(matcher);
         }
 
         [Fact]
         public void RecursiveChoice()
         {
-            string regex = TryCompileSectionNameToRegEx("{test{.cs,.vb},other.{a{bb,cc}}}");
-            Assert.Equal("^.*/(?:test(?:\\.cs|\\.vb)|other\\.(?:a(?:bb|cc)))$", regex);
+            SectionNameMatcher matcher = TryCreateSectionNameMatcher("{test{.cs,.vb},other.{a{bb,cc}}}").Value;
+            Assert.Equal("^.*/(?:test(?:\\.cs|\\.vb)|other\\.(?:a(?:bb|cc)))$", matcher.Regex.ToString());
 
-            Assert.Matches(regex, "/test.cs");
-            Assert.Matches(regex, "/test.vb");
-            Assert.Matches(regex, "/subdir/test.cs");
-            Assert.Matches(regex, "/subdir/test.vb");
-            Assert.Matches(regex, "/other.abb");
-            Assert.Matches(regex, "/other.acc");
+            Assert.True(matcher.IsMatch("/test.cs"));
+            Assert.True(matcher.IsMatch("/test.vb"));
+            Assert.True(matcher.IsMatch("/subdir/test.cs"));
+            Assert.True(matcher.IsMatch("/subdir/test.vb"));
+            Assert.True(matcher.IsMatch("/other.abb"));
+            Assert.True(matcher.IsMatch("/other.acc"));
 
-            Assert.DoesNotMatch(regex, "/test.fs");
-            Assert.DoesNotMatch(regex, "/other.bbb");
-            Assert.DoesNotMatch(regex, "/other.ccc");
-            Assert.DoesNotMatch(regex, "/subdir/other.bbb");
-            Assert.DoesNotMatch(regex, "/subdir/other.ccc");
+            Assert.False(matcher.IsMatch("/test.fs"));
+            Assert.False(matcher.IsMatch("/other.bbb"));
+            Assert.False(matcher.IsMatch("/other.ccc"));
+            Assert.False(matcher.IsMatch("/subdir/other.bbb"));
+            Assert.False(matcher.IsMatch("/subdir/other.ccc"));
         }
 
         [Fact]
         public void DashChoice()
         {
-            string regex = TryCompileSectionNameToRegEx("ab{-}cd{-,}ef");
-            Assert.Equal("^.*/ab(?:-)cd(?:-|)ef$", regex);
+            SectionNameMatcher matcher = TryCreateSectionNameMatcher("ab{-}cd{-,}ef").Value;
+            Assert.Equal("^.*/ab(?:-)cd(?:-|)ef$", matcher.Regex.ToString());
 
-            Assert.Matches(regex, "/ab-cd-ef");
-            Assert.Matches(regex, "/ab-cdef");
+            Assert.True(matcher.IsMatch("/ab-cd-ef"));
+            Assert.True(matcher.IsMatch("/ab-cdef"));
 
-            Assert.DoesNotMatch(regex, "/abcdef");
-            Assert.DoesNotMatch(regex, "/ab--cd-ef");
-            Assert.DoesNotMatch(regex, "/ab--cd--ef");
+            Assert.False(matcher.IsMatch("/abcdef"));
+            Assert.False(matcher.IsMatch("/ab--cd-ef"));
+            Assert.False(matcher.IsMatch("/ab--cd--ef"));
         }
 
         [Fact]
         public void MiddleMatch()
         {
-            string regex = TryCompileSectionNameToRegEx("ab{cs,vb,fs}cd");
-            Assert.Equal("^.*/ab(?:cs|vb|fs)cd$", regex);
+            SectionNameMatcher matcher = TryCreateSectionNameMatcher("ab{cs,vb,fs}cd").Value;
+            Assert.Equal("^.*/ab(?:cs|vb|fs)cd$", matcher.Regex.ToString());
 
-            Assert.Matches(regex, "/abcscd");
-            Assert.Matches(regex, "/abvbcd");
-            Assert.Matches(regex, "/abfscd");
+            Assert.True(matcher.IsMatch("/abcscd"));
+            Assert.True(matcher.IsMatch("/abvbcd"));
+            Assert.True(matcher.IsMatch("/abfscd"));
 
-            Assert.DoesNotMatch(regex, "/abcs");
-            Assert.DoesNotMatch(regex, "/abcd");
-            Assert.DoesNotMatch(regex, "/vbcd");
+            Assert.False(matcher.IsMatch("/abcs"));
+            Assert.False(matcher.IsMatch("/abcd"));
+            Assert.False(matcher.IsMatch("/vbcd"));
         }
 
         [Fact]
@@ -593,6 +593,33 @@ dotnet_diagnostic.cs000.severity = error", "/.editorconfig"));
 
             Assert.Equal(new[] {
                 CreateImmutableDictionary(("cs000", ReportDiagnostic.Error)),
+                CreateImmutableDictionary(("cs000", ReportDiagnostic.Error)),
+                null
+            }, options.TreeOptions);
+        }
+
+        [Fact]
+        public void BadSectionInConfigIgnored()
+        {
+            var configs = ArrayBuilder<AnalyzerConfig>.GetInstance();
+            configs.Add(Parse(@"
+[*.cs]
+dotnet_diagnostic.cs000.severity = suppress
+
+[*.vb]
+dotnet_diagnostic.cs000.severity = error
+
+[{test.*]
+dotnet_diagnostic.cs000.severity = info"
+, "/.editorconfig"));
+
+            var options = GetAnalyzerConfigOptions(
+                new[] { "/test.cs", "/test.vb", "/test" },
+                configs);
+            configs.Free();
+
+            Assert.Equal(new[] {
+                CreateImmutableDictionary(("cs000", ReportDiagnostic.Suppress)),
                 CreateImmutableDictionary(("cs000", ReportDiagnostic.Error)),
                 null
             }, options.TreeOptions);
