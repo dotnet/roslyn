@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Editor.Wrapping.SeparatedSyntaxList
         protected override SeparatedSyntaxList<ArgumentSyntax> GetListItems(BaseArgumentListSyntax listSyntax)
             => listSyntax.Arguments;
 
-        protected override BaseArgumentListSyntax GetApplicableList(SyntaxNode node)
+        protected override BaseArgumentListSyntax TryGetApplicableList(SyntaxNode node)
         {
             switch (node)
             {

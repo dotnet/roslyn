@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.SeparatedSyntaxList
 
         protected abstract IBlankLineIndentationService GetIndentationService();
 
-        protected abstract TListSyntax GetApplicableList(SyntaxNode node);
+        protected abstract TListSyntax TryGetApplicableList(SyntaxNode node);
         protected abstract SeparatedSyntaxList<TListItemSyntax> GetListItems(TListSyntax listSyntax);
         protected abstract bool PositionIsApplicable(
             SyntaxNode root, int position, SyntaxNode declaration, TListSyntax listSyntax);
@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.SeparatedSyntaxList
         public override async Task<ICodeActionComputer> TryCreateComputerAsync(
             Document document, int position, SyntaxNode declaration, CancellationToken cancellationToken)
         {
-            var listSyntax = GetApplicableList(declaration);
+            var listSyntax = TryGetApplicableList(declaration);
             if (listSyntax == null)
             {
                 return default;

@@ -15,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Editor.Wrapping.SeparatedSyntaxList
             Return listSyntax.Arguments
         End Function
 
-        Protected Overrides Function GetApplicableList(node As SyntaxNode) As ArgumentListSyntax
+        Protected Overrides Function TryGetApplicableList(node As SyntaxNode) As ArgumentListSyntax
             Return If(TryCast(node, InvocationExpressionSyntax)?.ArgumentList,
                       TryCast(node, ObjectCreationExpressionSyntax)?.ArgumentList)
         End Function

@@ -16,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Editor.Wrapping.SeparatedSyntaxList
             Return listSyntax.Parameters
         End Function
 
-        Protected Overrides Function GetApplicableList(node As SyntaxNode) As ParameterListSyntax
+        Protected Overrides Function TryGetApplicableList(node As SyntaxNode) As ParameterListSyntax
             Return VisualBasicSyntaxGenerator.GetParameterList(node)
         End Function
 
