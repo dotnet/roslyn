@@ -145,16 +145,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.AddBraces
 
             if (statement.GetLastToken() != embeddedStatement.GetLastToken())
             {
-                var firstTokenAfterEmbeddedStatement = embeddedStatement.GetLastToken().GetNextToken();
-                if (!FormattingRangeHelper.AreTwoTokensOnSameLine(firstTokenAfterEmbeddedStatement, statement.GetLastToken()))
+                if (statement is IfStatementSyntax ifStatement && ifStatement.Statement == embeddedStatement)
                 {
-                    // The part of the statement following the embedded statement does not fit on one line. Examples:
+                    // The embedded statement is followed by an 'else' clause, which may span multiple lines without
+                    // triggering a braces requirement, such as this:
                     //
-                    //   do
-                    //     SomeMethod();
-                    //   while (x < 0 ||    // <-- This condition is split across multiple lines.
-                    //          x > 10);
-                    return true;
+                    //   if (true)
+                    //     return;
+                    //   else          // <-- this else clause is two lines, but is not considered a multiline context
+                    //     return;
+                    //
+                    // ---
+                    // INTENTIONAL FALLTHROUGH
+                }
+                else
+                {
+                    var firstTokenAfterEmbeddedStatement = embeddedStatement.GetLastToken().GetNextToken();
+                    if (!FormattingRangeHelper.AreTwoTokensOnSameLine(firstTokenAfterEmbeddedStatement, statement.GetLastToken()))
+                    {
+                        // The part of the statement following the embedded statement does not fit on one line. Examples:
+                        //
+                        //   do
+                        //     SomeMethod();
+                        //   while (x < 0 ||    // <-- This condition is split across multiple lines.
+                        //          x > 10);
+                        return true;
+                    }
                 }
             }
 
@@ -165,6 +181,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.AddBraces
         {
             if (!statement.IsKind(SyntaxKind.IfStatement, SyntaxKind.ElseClause))
             {
+                // 'if' statements are the only statements that can have multiple embedded statements which are
+                // considered relative to each other.
                 return false;
             }
 
