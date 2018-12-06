@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Lower a foreach loop that will enumerate a collection using an enumerator.
         ///
         /// <![CDATA[
-        /// E e = ((C)(x)).GetEnumerator()  OR  ((C)(x)).GetAsyncEnumerator()
+        /// E e = ((C)(x)).GetEnumerator()  OR  ((C)(x)).GetAsyncEnumerator(default)
         /// try {
         ///     while (e.MoveNext())  OR  while (await e.MoveNextAsync())
         ///     {
@@ -119,7 +119,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundLocal boundEnumeratorVar = MakeBoundLocal(forEachSyntax, enumeratorVar, enumeratorType);
 
             // ((C)(x)).GetEnumerator();  OR  (x).GetEnumerator();  OR  async variants
-            BoundExpression enumeratorVarInitValue = SynthesizeCall(forEachSyntax, rewrittenExpression, enumeratorInfo.GetEnumeratorMethod, enumeratorInfo.CollectionConversion, enumeratorInfo.CollectionType);
+            bool isAsync = node.AwaitOpt != null;
+            BoundExpression enumeratorVarInitValue = SynthesizeCall(forEachSyntax, rewrittenExpression, enumeratorInfo.GetEnumeratorMethod, enumeratorInfo.CollectionConversion, enumeratorInfo.CollectionType, withDefaultArgument: isAsync);
 
             // E e = ((C)(x)).GetEnumerator();
             BoundStatement enumeratorVarDecl = MakeLocalDeclaration(forEachSyntax, enumeratorVar, enumeratorVarInitValue);
@@ -244,7 +245,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Conversion.ImplicitReference;
 
                 // ((IDisposable)e).Dispose() or e.Dispose() or await ((IAsyncDisposable)e).DisposeAsync() or await e.DisposeAsync()
-                BoundExpression disposeCall = SynthesizeCall(forEachSyntax, boundEnumeratorVar, disposeMethod, receiverConversion, idisposableTypeSymbol);
+                BoundExpression disposeCall = SynthesizeCall(forEachSyntax, boundEnumeratorVar, disposeMethod, receiverConversion, idisposableTypeSymbol, withDefaultArgument: false);
                 if (disposeAwaitableInfoOpt != null)
                 {
                     // await /* disposeCall */
@@ -391,13 +392,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="receiverConversion">Conversion to be applied to the receiver if not calling an interface method on a struct.</param>
         /// <param name="convertedReceiverType">Type of the receiver after applying the conversion.</param>
         /// <returns>A BoundExpression representing the call.</returns>
-        private BoundExpression SynthesizeCall(CSharpSyntaxNode syntax, BoundExpression receiver, MethodSymbol method, Conversion receiverConversion, TypeSymbol convertedReceiverType)
+        private BoundExpression SynthesizeCall(CSharpSyntaxNode syntax, BoundExpression receiver, MethodSymbol method, Conversion receiverConversion, TypeSymbol convertedReceiverType, bool withDefaultArgument)
         {
+            var arguments = withDefaultArgument
+                ? ImmutableArray.Create<BoundExpression>(new BoundDefaultExpression(syntax, method.Parameters[0].Type.TypeSymbol))
+                : ImmutableArray<BoundExpression>.Empty;
+
             if (!receiver.Type.IsReferenceType && method.ContainingType.IsInterface)
             {
                 Debug.Assert(receiverConversion.IsImplicit && !receiverConversion.IsUserDefined);
 
-                // NOTE: The spec says that disposing of a struct enumerator won't cause any 
+                // NOTE: The spec says that disposing of a struct enumerator won't cause any
                 // unnecessary boxing to occur.  However, Dev10 extends this improvement to the
                 // GetEnumerator call as well.
 
@@ -415,12 +420,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // We're invoking the interface method directly on the struct (which may have a private
                 // explicit implementation).  The code generator knows how to handle it though.
 
-                // receiver.InterfaceMethod()
-                return BoundCall.Synthesized(syntax, receiver, method);
+                // receiver.InterfaceMethod()  OR  receiver.InterfaceMethod(default)
+                return BoundCall.Synthesized(syntax, receiver, method, arguments);
             }
             else
             {
-                // ((Interface)receiver).InterfaceMethod()
+                // ((Interface)receiver).InterfaceMethod()  OR  ((Interface)receiver).InterfaceMethod(default)
                 Debug.Assert(!receiverConversion.IsNumeric);
 
                 return BoundCall.Synthesized(
@@ -431,7 +436,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         conversion: receiverConversion,
                         @checked: false,
                         rewrittenType: convertedReceiverType),
-                    method: method);
+                    method: method,
+                    arguments);
             }
         }
 
