@@ -1528,11 +1528,9 @@ public class C : A {
 
             Func<VersionStamp> GetVersion = () => solution.GetProject(pid).Version;
             Func<ImmutableArray<DocumentId>> GetDocumentIds = () => solution.GetProject(pid).DocumentIds.ToImmutableArray();
-            Func<DocumentId, Document> GetDocument = documentId => solution.GetProject(pid).GetDocument(documentId);
             Func<ImmutableArray<SyntaxTree>> GetSyntaxTrees = () =>
                 {
-                    var cancellationToken = new CancellationToken();
-                    return solution.State.GetCompilationAsync(solution.GetProject(pid).State, cancellationToken).Result.SyntaxTrees.ToImmutableArray();
+                    return solution.GetProject(pid).GetCompilationAsync().Result.SyntaxTrees.ToImmutableArray();
                 };
 
             solution = solution.AddProject(pid, "test", "test.dll", LanguageNames.CSharp);

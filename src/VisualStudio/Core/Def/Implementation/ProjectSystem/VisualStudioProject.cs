@@ -1082,7 +1082,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             /// <summary>
             /// The current list of document file paths that will be ordered in a batch.
             /// </summary>
-            private List<string> _orderedFilesInBatch = null;
+            private ImmutableList<DocumentId> _orderedDocumentsInBatch = null;
 
             private readonly Func<Solution, DocumentId, bool> _documentAlreadyInWorkspace;
             private readonly Action<Workspace, DocumentInfo> _documentAddAction;
@@ -1124,8 +1124,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                         throw new ArgumentException($"'{fullPath}' has already been added to this project.", nameof(fullPath));
                     }
 
-                    // If we have an ordered files batch, we need to add the file to the end of it as well.
-                    _orderedFilesInBatch?.Add(fullPath);
+                    // If we have an ordered document ids batch, we need to add the document id to the end of it as well.
+                    _orderedDocumentsInBatch = _orderedDocumentsInBatch?.Add(documentId);
 
                     _documentPathsToDocumentIds.Add(fullPath, documentId);
                     _project._documentFileWatchingTokens.Add(documentId, _project._documentFileChangeContext.EnqueueWatchingFile(fullPath));
@@ -1213,8 +1213,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                         throw new ArgumentException($"'{filePath}' has already been added to this project.", nameof(filePath));
                     }
 
-                    // If we have an ordered files batch, we need to add the file to the end of it as well.
-                    _orderedFilesInBatch?.Add(filePath);
+                    // If we have an ordered document ids batch, we need to add the document id to the end of it as well.
+                    _orderedDocumentsInBatch = _orderedDocumentsInBatch?.Add(documentId);
 
                     _documentPathsToDocumentIds.Add(filePath, documentId);
 
@@ -1284,18 +1284,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             private void RemoveFileInternal(DocumentId documentId, string fullPath)
             {
-                // If we have an ordered files batch, we need to remove the file from the batch.
-                if (_orderedFilesInBatch != null)
-                {
-                    for (var i = 0; i < _orderedFilesInBatch.Count; i++)
-                    {
-                        if (_orderedFilesInBatch[i].Equals(fullPath, StringComparison.OrdinalIgnoreCase))
-                        {
-                            _orderedFilesInBatch.RemoveAt(i);
-                        }
-                    }
-                }
-
+                _orderedDocumentsInBatch = _orderedDocumentsInBatch?.Remove(documentId);
                 _documentPathsToDocumentIds.Remove(fullPath);
 
                 // There are two cases:
@@ -1490,13 +1479,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                         }
                     }
 
+                    var documentIds = filePaths.Select(x => _documentPathsToDocumentIds[x]).ToImmutableList();
+
                     if (_project._activeBatchScopes > 0)
                     {
-                        _orderedFilesInBatch = new List<string>(filePaths);
+                        _orderedDocumentsInBatch = documentIds;
                     }
                     else
                     {
-                        _project._workspace.ApplyBatchChangeToProject(_project.Id, oldSolution => UpdateProjectDocumentsOrder(oldSolution, filePaths));
+                        _project._workspace.ApplyBatchChangeToProject(_project.Id, solution => solution.WithProjectDocumentsOrder(_project.Id, documentIds));
                     }
                 }
             }
@@ -1532,25 +1523,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 ClearAndZeroCapacity(_documentsRemovedInBatch);
 
                 // Update project's order of documents.
-                if (_orderedFilesInBatch != null)
+                if (_orderedDocumentsInBatch != null)
                 {
-                    var orderedFiles = _orderedFilesInBatch;
-
-                    _orderedFilesInBatch = null;
-
-                    solution = UpdateProjectDocumentsOrder(solution, orderedFiles);
+                    solution = solution.WithProjectDocumentsOrder(_project.Id, _orderedDocumentsInBatch);
+                    _orderedDocumentsInBatch = null;
                 }
 
                 return solution;
-            }
-
-            private Solution UpdateProjectDocumentsOrder(Solution solution, IEnumerable<string> filePaths)
-            {
-                var projectId = _project.Id;
-                var documentIds =
-                    filePaths.Select(x => _documentPathsToDocumentIds[x]);
-
-                return solution.WithProjectDocumentsOrder(projectId, documentIds.ToImmutableList());
             }
 
             private DocumentInfo CreateDocumentInfoFromFileInfo(DynamicFileInfo fileInfo, IEnumerable<string> folders)
