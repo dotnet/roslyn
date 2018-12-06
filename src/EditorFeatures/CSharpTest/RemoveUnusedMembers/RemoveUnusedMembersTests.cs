@@ -311,6 +311,7 @@ class MyClass
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
+        [WorkItem(31572, "https://github.com/dotnet/roslyn/issues/31572")]
         public async Task EntryPointMethodNotFlagged_05()
         {
             await TestDiagnosticMissingAsync(
@@ -911,6 +912,7 @@ class MyClass
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
+        [WorkItem(31581, "https://github.com/dotnet/roslyn/issues/31581")]
         public async Task MethodInNameOf()
         {
             await TestDiagnosticsAsync(
@@ -923,6 +925,7 @@ class MyClass
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
+        [WorkItem(31581, "https://github.com/dotnet/roslyn/issues/31581")]
         public async Task PropertyInNameOf()
         {
             await TestDiagnosticsAsync(

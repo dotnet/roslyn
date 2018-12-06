@@ -649,6 +649,7 @@ End Class", parameters:=Nothing,
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
+        <WorkItem(31581, "https://github.com/dotnet/roslyn/issues/31581")>
         Public Async Function MethodInNameOf() As Task
             Await TestDiagnosticsAsync(
 "Class C
@@ -660,6 +661,7 @@ End Class", parameters:=Nothing,
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
+        <WorkItem(31581, "https://github.com/dotnet/roslyn/issues/31581")>
         Public Async Function PropertyInNameOf() As Task
             Await TestDiagnosticsAsync(
 "Class C
