@@ -720,6 +720,15 @@ namespace Microsoft.CodeAnalysis.Editor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Filter.
+        /// </summary>
+        internal static string Filter_image_element {
+            get {
+                return ResourceManager.GetString("Filter_image_element", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Find References.
         /// </summary>
         internal static string Find_References {
@@ -2058,6 +2067,15 @@ namespace Microsoft.CodeAnalysis.Editor {
         internal static string VB_XML_Literals_Text {
             get {
                 return ResourceManager.GetString("VB_XML_Literals_Text", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Warning.
+        /// </summary>
+        internal static string Warning_image_element {
+            get {
+                return ResourceManager.GetString("Warning_image_element", resourceCulture);
             }
         }
         
