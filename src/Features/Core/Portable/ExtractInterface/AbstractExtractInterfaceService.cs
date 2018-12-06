@@ -145,7 +145,7 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
                 return new ExtractInterfaceResult(succeeded: false);
             }
 
-            return await ExtractInterfaceFromAnalyzedTypeAsync(refactoringResult, extractInterfaceOptions, cancellationToken);
+            return await ExtractInterfaceFromAnalyzedTypeAsync(refactoringResult, extractInterfaceOptions, cancellationToken).ConfigureAwait(false);
         }
 
         public async Task<ExtractInterfaceResult> ExtractInterfaceFromAnalyzedTypeAsync(
@@ -182,7 +182,7 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
                         extractedInterfaceSymbol: extractedInterfaceSymbol,
                         refactoringResult: refactoringResult,
                         extractInterfaceOptions: extractInterfaceOptions,
-                        cancellationToken: cancellationToken);
+                        cancellationToken: cancellationToken).ConfigureAwait(false);
 
                 default: throw new InvalidOperationException($"Unable to extract interface for operation of type {extractInterfaceOptions.GetType()}");
             }
@@ -377,7 +377,7 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
             {
                 var document = formattedSolution.GetDocument(documentId);
                 var formattedRoot = await Formatter.FormatAsync(
-                    await document.GetSyntaxRootAsync(cancellationToken),
+                    await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false),
                     Formatter.Annotation,
                     document.Project.Solution.Workspace, 
                     cancellationToken: cancellationToken).ConfigureAwait(false);
@@ -449,8 +449,7 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
                 symbolToDeclarationAnnotationMap,
                 cancellationToken).ConfigureAwait(false);
 
-            var formattedSolution = await GetFormattedSolutionAsync(updatedUnformattedSolution, documentIds, cancellationToken);
-            return formattedSolution;
+            return await GetFormattedSolutionAsync(updatedUnformattedSolution, documentIds, cancellationToken).ConfigureAwait(false);
         }
 
         private ImmutableArray<ISymbol> CreateInterfaceMembers(IEnumerable<ISymbol> includedMembers)
