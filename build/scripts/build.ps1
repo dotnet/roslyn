@@ -38,6 +38,7 @@ param (
     [switch]$skipAnalyzers,
     [switch]$deployExtensions,
     [switch]$prepareMachine,
+    [switch]$useGlobalNuGetCache = $true,
 
     # Test actions
     [switch]$test32,
@@ -85,13 +86,9 @@ function Print-Usage() {
     Write-Host "  -procdump                 Monitor test runs with procdump"
     Write-Host "  -skipAnalyzers            Do not run analyzers during build operations"
     Write-Host "  -prepareMachine           Prepare machine for CI run, clean up processes after build"
+    Write-Host "  -useGlobalNuGetCache      Use global NuGet cache."
     Write-Host ""
     Write-Host "Command line arguments starting with '/p:' are passed through to MSBuild."
-}
-
-if ($help -or (($properties -ne $null) -and ($properties.Contains("/help") -or $properties.Contains("/?")))) {
-  Print-Usage
-  exit 0
 }
 
 # Process the command line arguments and establish defaults for the values which are not
@@ -102,6 +99,11 @@ if ($help -or (($properties -ne $null) -and ($properties.Contains("/help") -or $
 # $build based on say $testDesktop. It's possible the developer wanted only for testing
 # to execute, not any build.
 function Process-Arguments() {
+    if ($help -or (($properties -ne $null) -and ($properties.Contains("/help") -or $properties.Contains("/?")))) {
+       Print-Usage
+       exit 0
+    }
+
     if ($test32 -and $test64) {
         Write-Host "Cannot combine -test32 and -test64"
         exit 1
@@ -139,13 +141,13 @@ function BuildSolution() {
     # Roslyn.sln can't be built with dotnet due to WPF and VSIX build task dependencies
     $solution = if ($msbuildEngine -eq 'dotnet') { "Compilers.sln" } else { "Roslyn.sln" }
     
-    Write-Host "Running msbuild on $solution"
+    Write-Host "$($solution):"
 
     $bl = if ($binaryLog) { "/bl:" + (Join-Path $LogDir "Build.binlog") } else { "" }
     $projects = Join-Path $RepoRoot $solution
     $officialBuildId = if ($official) { $env:BUILD_BUILDNUMBER } else { "" }
     $enableAnalyzers = !$skipAnalyzers
-    $toolsetBuildProj = Join-Path $RepoRoot "build\Targets\RepoToolset\Build.proj"
+    $toolsetBuildProj = InitializeToolset
     $quietRestore = !$ci
     $testTargetFrameworks = if ($testCoreClr) { "netcoreapp2.1" } else { "" }
 
@@ -374,7 +376,7 @@ try {
     . (Join-Path $PSScriptRoot "build-utils.ps1")
 
     if ($testVsi) {
-        $ProcessesToStopOnExit += "devenv"
+        $processesToStopOnExit += "devenv"
     }
 
     Push-Location $RepoRoot

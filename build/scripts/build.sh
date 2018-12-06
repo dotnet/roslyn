@@ -190,7 +190,10 @@ function MakeBootstrapBuild {
 
 function BuildSolution {
   local solution="Compilers.sln"
-  echo "Running msbuild on $solution"
+  echo "$solution:"
+
+  InitializeToolset
+  local toolset_build_proj=$_InitializeToolset
   
   local bl=""
   if [[ "$binary_log" = true ]]; then
@@ -205,8 +208,6 @@ function BuildSolution {
   if [[ "$UNAME" == "Darwin" ]]; then
     enable_analyzers=false
   fi
-
-  local toolset_build_proj="$repo_root/build/Targets/RepoToolset/Build.proj"
 
   local quiet_restore=""
   if [[ "$ci" != true ]]; then

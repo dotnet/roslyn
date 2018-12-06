@@ -10,7 +10,7 @@ $BinariesConfigDir = Join-Path $ArtifactsDir $configuration # TODO: remove
 $VSSetupDir = Join-Path $ArtifactsDir (Join-Path "VSSetup" $configuration)
 
 $binaryLog = if (Test-Path variable:binaryLog) { $binaryLog } else { $false }
-$nodereuse = if (Test-Path variable:nodereuse) { $nodereuse } else { $false }
+$nodeReuse = if (Test-Path variable:nodeReuse) { $nodeReuse } else { $false }
 $bootstrapDir = if (Test-Path variable:bootstrapDir) { $bootstrapDir } else { "" }
 $properties = if (Test-Path variable:properties) { $properties } else { @() }
 

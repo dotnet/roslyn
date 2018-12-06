@@ -2,20 +2,46 @@
 # TODO: This file is currently a subset of Arcade's tools.ps1.
 # 
 
-# Initialize variables if they aren't already defined
+# Initialize variables if they aren't already defined.
+# These may be defined as parameters of the importing script, or set after importing this script.
 
-$ci = if (Test-Path variable:ci) { $ci } else { $false }
-$configuration = if (Test-Path variable:configuration) { $configuration } else { "Debug" }
-$binaryLog = if (Test-Path variable:binaryLog) { $binaryLog } else { $ci }
-$nodereuse = if (Test-Path variable:nodereuse) { $nodereuse } else { !$ci }
-$prepareMachine = if (Test-Path variable:prepareMachine) { $prepareMachine } else { $false }
-$restore = if (Test-Path variable:restore) { $restore } else { $true }
-$verbosity = if (Test-Path variable:verbosity) { $verbosity } else { "minimal" }
-$warnaserror = if (Test-Path variable:warnaserror) { $warnaserror } else { $true }
-$msbuildEngine = if (Test-Path variable:msbuildEngine) { $msbuildEngine } else { $null }
-$useInstalledDotNetCli = if (Test-Path variable:useInstalledDotNetCli) { $useInstalledDotNetCli } else { $true }
+# CI mode - set to true on CI server for PR validation build or official build.
+[bool]$ci = if (Test-Path variable:ci) { $ci } else { $false }
 
-$ProcessesToStopOnExit = @("msbuild", "dotnet", "vbcscompiler")
+# Build configuration. Common values include 'Debug' and 'Release', but the repository may use other names.
+[string]$configuration = if (Test-Path variable:configuration) { $configuration } else { "Debug" }
+
+# Set to true to output binary log from msbuild. Note that emitting binary log slows down the build.
+# Binary log must be enabled on CI.
+[bool]$binaryLog = if (Test-Path variable:binaryLog) { $binaryLog } else { $ci }
+
+# Turns on machine preparation/clean up code that changes the machine state (e.g. kills build processes).
+[bool]$prepareMachine = if (Test-Path variable:prepareMachine) { $prepareMachine } else { $false }
+
+# True to restore toolsets and dependencies.
+[bool]$restore = if (Test-Path variable:restore) { $restore } else { $true }
+
+# Adjusts msbuild verbosity level.
+[string]$verbosity = if (Test-Path variable:verbosity) { $verbosity } else { "minimal" }
+
+# Set to true to reuse msbuild nodes. Recommended to not reuse on CI.
+[bool]$nodeReuse = if (Test-Path variable:nodeReuse) { $nodeReuse } else { !$ci }
+
+# Configures warning treatment in msbuild.
+[bool]$warnAsError = if (Test-Path variable:warnAsError) { $warnAsError } else { $true }
+
+# Specifies which msbuild engine to use for build: 'vs', 'dotnet' or unspecified (determined based on presence of tools.vs in global.json).
+[string]$msbuildEngine = if (Test-Path variable:msbuildEngine) { $msbuildEngine } else { $null }
+
+# True to attempt using .NET Core already that meets requirements specified in global.json 
+# installed on the machine instead of downloading one.
+[bool]$useInstalledDotNetCli = if (Test-Path variable:useInstalledDotNetCli) { $useInstalledDotNetCli } else { $true }
+
+# True to use global NuGet cache instead of restoring packages to repository-local directory.
+[bool]$useGlobalNuGetCache = if (Test-Path variable:useGlobalNuGetCache) { $useGlobalNuGetCache } else { !$ci }
+
+# An array of names of processes to stop on script exit if prepareMachine is true.
+$processesToStopOnExit = if (Test-Path variable:processesToStopOnExit) { $processesToStopOnExit } else { @("msbuild", "dotnet", "vbcscompiler") }
 
 set-strictmode -version 2.0
 $ErrorActionPreference = "Stop"
@@ -326,6 +352,32 @@ function GetDefaultMSBuildEngine() {
   ExitWithExitCode 1
 }
 
+function GetNuGetPackageCachePath() {
+  if ($env:NUGET_PACKAGES -eq $null) {
+    # Use local cache on CI to ensure deterministic build,
+    # use global cache in dev builds to avoid cost of downloading packages.
+    if ($useGlobalNuGetCache) {
+      $env:NUGET_PACKAGES = Join-Path $env:UserProfile ".nuget\packages"
+    } else {
+      $env:NUGET_PACKAGES = Join-Path $RepoRoot ".packages"
+    }
+  }
+
+  return $env:NUGET_PACKAGES
+}
+
+function InitializeToolset() {
+  if (Test-Path global:_ToolsetBuildProj) {
+    return $global:_ToolsetBuildProj
+  }
+
+  $nugetCache = GetNuGetPackageCachePath
+
+  # TODO: Restore Arcade SDK here.
+  $path = Join-Path $RepoRoot "build\Targets\RepoToolset\Build.proj"
+  return $global:_ToolsetBuildProj = $path
+}
+
 function ExitWithExitCode([int] $exitCode) {
   if ($ci -and $prepareMachine) {
     Stop-Processes
@@ -335,7 +387,7 @@ function ExitWithExitCode([int] $exitCode) {
 
 function Stop-Processes() {
   Write-Host "Killing running build processes..."
-  foreach ($processName in $ProcessesToStopOnExit) {
+  foreach ($processName in $processesToStopOnExit) {
     Get-Process -Name $processName -ErrorAction SilentlyContinue | Stop-Process
   }
 }
@@ -346,11 +398,21 @@ function Stop-Processes() {
 # Terminates the script if the build fails.
 #
 function MSBuild() {
+  if ($ci) {
+    if (!$binaryLog) {
+      throw "Binary log must be enabled in CI build."
+    }
+
+    if ($nodeReuse) {
+      throw "Node reuse must be disabled in CI build."
+    }
+  }
+
   $buildTool = InitializeBuildTool
 
-  $cmdArgs = "$($buildTool.Command) /m /nologo /clp:Summary /v:$verbosity /nr:$nodereuse"
+  $cmdArgs = "$($buildTool.Command) /m /nologo /clp:Summary /v:$verbosity /nr:$nodeReuse"
 
-  if ($warnaserror) { 
+  if ($warnAsError) { 
     $cmdArgs += " /warnaserror /p:TreatWarningsAsErrors=true" 
   }
 
@@ -400,17 +462,10 @@ $LogDir = Join-Path (Join-Path $ArtifactsDir $configuration) "Logs" # TODO: upda
 $TempDir = Join-Path (Join-Path $ArtifactsDir "tmp") $configuration
 $GlobalJson = Get-Content -Raw -Path (Join-Path $RepoRoot "global.json") | ConvertFrom-Json
 
-if ($env:NUGET_PACKAGES -eq $null) {
-  # Use local cache on CI to ensure deterministic build,
-  # use global cache in dev builds to avoid cost of downloading packages.
-  $env:NUGET_PACKAGES = if ($ci) { Join-Path $RepoRoot ".packages" }
-                        else { Join-Path $env:UserProfile ".nuget\packages" }
-}
-
+Create-Directory $TempDir
 Create-Directory $LogDir
 
 if ($ci) {
-  Create-Directory $TempDir
   $env:TEMP = $TempDir
   $env:TMP = $TempDir
 }

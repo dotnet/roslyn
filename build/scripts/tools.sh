@@ -6,19 +6,46 @@
 # Stop script if unbound variable found (use ${var:-} if intentional)
 set -u
 
-ci=${ci:-false}
-configuration=${configuration:-'Debug'}
-binary_log=${binary_log:-$ci}
-prepare_machine=${prepare_machine:-false}
-restore=${restore:-true}
-verbosity=${verbosity:-'minimal'}
-warnaserror=${warnaserror:-true}
-useInstalledDotNetCli=${useInstalledDotNetCli:-true}
+# Initialize variables if they aren't already defined.
 
+# CI mode - set to true on CI server for PR validation build or official build.
+ci=${ci:-false}
+
+# Build configuration. Common values include 'Debug' and 'Release', but the repository may use other names.
+configuration=${configuration:-'Debug'}
+
+# Set to true to output binary log from msbuild. Note that emitting binary log slows down the build.
+# Binary log must be enabled on CI.
+binary_log=${binary_log:-$ci}
+
+# Turns on machine preparation/clean up code that changes the machine state (e.g. kills build processes).
+prepare_machine=${prepare_machine:-false}
+
+# True to restore toolsets and dependencies.
+restore=${restore:-true}
+
+# Adjusts msbuild verbosity level.
+verbosity=${verbosity:-'minimal'}
+
+# Set to true to reuse msbuild nodes. Recommended to not reuse on CI.
 if [[ "$ci" == true ]]; then
-  nodereuse=${nodereuse:-false}
+  node_reuse=${node_reuse:-false}
 else
-  nodereuse=${nodereuse:-true}
+  node_reuse=${node_reuse:-true}
+fi
+
+# Configures warning treatment in msbuild.
+warn_as_error=${warn_as_error:-true}
+
+# True to attempt using .NET Core already that meets requirements specified in global.json 
+# installed on the machine instead of downloading one.
+use_installed_dotnet_cli=${use_installed_dotnet_cli:-true}
+
+# True to use global NuGet cache instead of restoring packages to repository-local directory.
+if [[ "$ci" == true ]]; then
+  use_global_nuget_cache=${use_global_nuget_cache:-false}
+else
+  use_global_nuget_cache=${use_global_nuget_cache:-true}
 fi
 
 repo_root="$scriptroot/../.."
@@ -91,7 +118,7 @@ function InitializeDotNetCli {
   fi
 
   # Find the first path on $PATH that contains the dotnet.exe
-  if [[ "$useInstalledDotNetCli" == true && -z "${DOTNET_INSTALL_DIR:-}" ]]; then
+  if [[ "$use_installed_dotnet_cli" == true && -z "${DOTNET_INSTALL_DIR:-}" ]]; then
     local dotnet_path=`command -v dotnet`
     if [[ -n "$dotnet_path" ]]; then
       ResolvePath "$dotnet_path"
@@ -174,6 +201,34 @@ function InitializeBuildTool {
   _InitializeBuildTool="$_InitializeDotNetCli/dotnet"  
 }
 
+function GetNuGetPackageCachePath {
+  if [[ -z ${NUGET_PACKAGES:-} ]]; then
+    if [[ "$use_global_nuget_cache" == true ]]; then
+      export NUGET_PACKAGES="$HOME/.nuget/packages"
+    else
+      export NUGET_PACKAGES="$repo_root/.packages"
+    fi
+  fi
+
+  # return value
+  _GetNuGetPackageCachePath=$NUGET_PACKAGES
+}
+
+function InitializeToolset {
+  if [[ -n "${_InitializeToolset:-}" ]]; then
+    return
+  fi
+
+  GetNuGetPackageCachePath
+
+  # TODO: restore Arcade SDK
+  local toolset_build_proj="$repo_root/build/Targets/RepoToolset/Build.proj"
+
+
+  # return value
+  _InitializeToolset="$toolset_build_proj"
+}
+
 function ExitWithExitCode {
   if [[ "$ci" == true && "$prepare_machine" == true ]]; then
     StopProcesses
@@ -189,14 +244,26 @@ function StopProcesses {
 }
 
 function MSBuild {
+  if [[ "$ci" == true ]]; then
+    if [[ "$binary_log" != true ]]; then
+      echo "Binary log must be enabled in CI build." >&2
+      ExitWithExitCode 1
+    fi
+
+    if [[ "$node_reuse" == true ]]; then
+      echo "Node reuse must be disabled in CI build." >&2
+      ExitWithExitCode 1
+    fi
+  fi
+
   InitializeBuildTool
 
   local warnaserror_switch=""
-  if [[ $warnaserror == true ]]; then
+  if [[ $warn_as_error == true ]]; then
     warnaserror_switch="/warnaserror"
   fi
 
-  "$_InitializeBuildTool" msbuild /m /nologo /clp:Summary /v:$verbosity /nr:$nodereuse $warnaserror_switch /p:TreatWarningsAsErrors=$warnaserror "$@"
+  "$_InitializeBuildTool" msbuild /m /nologo /clp:Summary /v:$verbosity /nr:$node_reuse $warnaserror_switch /p:TreatWarningsAsErrors=$warn_as_error "$@"
   lastexitcode=$?
 
   if [[ $lastexitcode != 0 ]]; then
@@ -211,18 +278,11 @@ if [[ -z $HOME ]]; then
   mkdir -p "$HOME"
 fi
 
-if [[ -z ${NUGET_PACKAGES:-} ]]; then
-  if [[ $ci == true ]]; then
-    export NUGET_PACKAGES="$repo_root/.packages"
-  else
-    export NUGET_PACKAGES="$HOME/.nuget/packages"
-  fi
-fi
-
+mkdir -p "$toolset_dir"
+mkdir -p "$temp_dir"
 mkdir -p "$log_dir"
 
 if [[ $ci == true ]]; then
-  mkdir -p "$temp_dir"
   export TEMP="$temp_dir"
   export TMP="$temp_dir"
 fi
