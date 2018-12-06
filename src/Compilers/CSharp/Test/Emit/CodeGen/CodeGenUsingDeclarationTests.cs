@@ -3,7 +3,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
-    public class CodeGenUsingVariableTests : EmitMetadataTestBase
+    public class CodeGenUsingDeclarationTests : EmitMetadataTestBase
     {
         [Fact]
         public void UsingVariableVarEmitTest()
@@ -45,7 +45,7 @@ class C2
         }
 
         [Fact]
-        public void UseUsingVariableEmitTest()
+        public void UsingVariableEmitTest()
         {
             string source = @"
 using System;
@@ -131,7 +131,7 @@ class C2
         }
 
         [Fact]
-        public void PreexistingVariablesUsingVariableEmitTest()
+        public void PreexistingVariablesUsingDeclarationEmitTest()
         {
             string source = @"
 using System;
@@ -349,7 +349,187 @@ class C2
         }
 
         [Fact]
-        public void UsingVariableUsingPatternIntersectionEmitTest()
+        public void AsPartOfLabelStatement()
+        {
+            string source = @"
+using System;
+class C1 : IDisposable
+{
+    public void Dispose() { Console.Write(""Dispose; "");}
+}
+class C2
+{
+    public static void Main()                                                                                                           
+    {
+        label1:
+        using C1 o1 = new C1();
+        using C1 o2 = new C1();
+        label2:
+        using C1 o3 = new C1();
+    }
+}";
+            CompileAndVerify(source, expectedOutput: "Dispose; Dispose; Dispose; ").VerifyIL("C2.Main", @"
+{
+  // Code size       51 (0x33)
+  .maxstack  1
+  .locals init (C1 V_0, //o1
+                C1 V_1, //o2
+                C1 V_2) //o3
+  IL_0000:  newobj     ""C1..ctor()""
+  IL_0005:  stloc.0
+  .try
+  {
+    IL_0006:  newobj     ""C1..ctor()""
+    IL_000b:  stloc.1
+    .try
+    {
+      IL_000c:  newobj     ""C1..ctor()""
+      IL_0011:  stloc.2
+      .try
+      {
+        IL_0012:  leave.s    IL_0032
+      }
+      finally
+      {
+        IL_0014:  ldloc.2
+        IL_0015:  brfalse.s  IL_001d
+        IL_0017:  ldloc.2
+        IL_0018:  callvirt   ""void System.IDisposable.Dispose()""
+        IL_001d:  endfinally
+      }
+    }
+    finally
+    {
+      IL_001e:  ldloc.1
+      IL_001f:  brfalse.s  IL_0027
+      IL_0021:  ldloc.1
+      IL_0022:  callvirt   ""void System.IDisposable.Dispose()""
+      IL_0027:  endfinally
+    }
+  }
+  finally
+  {
+    IL_0028:  ldloc.0
+    IL_0029:  brfalse.s  IL_0031
+    IL_002b:  ldloc.0
+    IL_002c:  callvirt   ""void System.IDisposable.Dispose()""
+    IL_0031:  endfinally
+  }
+  IL_0032:  ret
+}
+");
+        }
+
+        [Fact]
+        public void InsideTryCatchFinallyBlocks()
+        {
+            string source = @"
+using System;
+class C1 : IDisposable
+{
+    public string Text { get; set; }
+    public void Dispose() { Console.Write($""Dispose {Text}; "");}
+}
+class C2
+{
+    public static void Main()                                                                                                           
+    {
+        try
+        {
+            using var x = new C1() { Text = ""Try"" };
+            throw new Exception();
+        }
+        catch
+        {
+            using var x = new C1(){ Text = ""Catch"" };
+        }
+        finally
+        {
+            using var x = new C1(){ Text = ""Finally"" };
+        }
+    }
+}";
+            CompileAndVerify(source, expectedOutput: "Dispose Try; Dispose Catch; Dispose Finally; ").VerifyIL("C2.Main", @"
+{
+  // Code size       96 (0x60)
+  .maxstack  3
+  .locals init (C1 V_0, //x
+                C1 V_1, //x
+                C1 V_2) //x
+  .try
+  {
+    .try
+    {
+      IL_0000:  newobj     ""C1..ctor()""
+      IL_0005:  dup
+      IL_0006:  ldstr      ""Try""
+      IL_000b:  callvirt   ""void C1.Text.set""
+      IL_0010:  stloc.0
+      .try
+      {
+        IL_0011:  newobj     ""System.Exception..ctor()""
+        IL_0016:  throw
+      }
+      finally
+      {
+        IL_0017:  ldloc.0
+        IL_0018:  brfalse.s  IL_0020
+        IL_001a:  ldloc.0
+        IL_001b:  callvirt   ""void System.IDisposable.Dispose()""
+        IL_0020:  endfinally
+      }
+    }
+    catch object
+    {
+      IL_0021:  pop
+      IL_0022:  newobj     ""C1..ctor()""
+      IL_0027:  dup
+      IL_0028:  ldstr      ""Catch""
+      IL_002d:  callvirt   ""void C1.Text.set""
+      IL_0032:  stloc.1
+      .try
+      {
+        IL_0033:  leave.s    IL_003f
+      }
+      finally
+      {
+        IL_0035:  ldloc.1
+        IL_0036:  brfalse.s  IL_003e
+        IL_0038:  ldloc.1
+        IL_0039:  callvirt   ""void System.IDisposable.Dispose()""
+        IL_003e:  endfinally
+      }
+      IL_003f:  leave.s    IL_005f
+    }
+  }
+  finally
+  {
+    IL_0041:  newobj     ""C1..ctor()""
+    IL_0046:  dup
+    IL_0047:  ldstr      ""Finally""
+    IL_004c:  callvirt   ""void C1.Text.set""
+    IL_0051:  stloc.2
+    .try
+    {
+      IL_0052:  leave.s    IL_005e
+    }
+    finally
+    {
+      IL_0054:  ldloc.2
+      IL_0055:  brfalse.s  IL_005d
+      IL_0057:  ldloc.2
+      IL_0058:  callvirt   ""void System.IDisposable.Dispose()""
+      IL_005d:  endfinally
+    }
+    IL_005e:  endfinally
+  }
+  IL_005f:  ret
+}
+");
+        }
+
+        [Fact]
+        public void UsingDeclarationUsingPatternIntersectionEmitTest()
         {
             var source = @"
     using System;
@@ -454,6 +634,54 @@ This object has been disposed by IDisposable.Dispose().";
   }
   IL_0018:  ret
 }");
+        }
+
+        [Fact]
+        public void UsingDeclarationUsingPatternExtensionMethod()
+        {
+            var source = @"
+    using System;
+    class C1
+    {
+    }
+    internal static class C2
+    {
+        internal static void Dispose(this C1 c1)
+        {
+            Console.Write(""Disposed; "");
+        }
+    }
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            using C1 o1 = new C1();
+        }
+    }";
+
+            var output = @"Disposed; ";
+            CompileAndVerify(source, expectedOutput: output).VerifyIL("Program.Main", @"
+{
+  // Code size       19 (0x13)
+  .maxstack  1
+  .locals init (C1 V_0) //o1
+  IL_0000:  newobj     ""C1..ctor()""
+  IL_0005:  stloc.0
+  .try
+  {
+    IL_0006:  leave.s    IL_0012
+  }
+  finally
+  {
+    IL_0008:  ldloc.0
+    IL_0009:  brfalse.s  IL_0011
+    IL_000b:  ldloc.0
+    IL_000c:  call       ""void C2.Dispose(C1)""
+    IL_0011:  endfinally
+  }
+  IL_0012:  ret
+}
+");
         }
 
         [Fact]
@@ -657,6 +885,76 @@ Object first has been disposed.";
   }
   IL_003b:  ret
 }");
+        }
+
+        [Fact]
+        public void JumpBackOverUsingDeclaration()
+        {
+            string source = @"
+using System;
+class C1 : IDisposable
+{
+    private string name;
+    public C1(string name)
+    {
+        this.name = name;
+    }
+    public void Dispose()
+    {
+        Console.WriteLine(""Disposed "" + name);
+    }
+}
+class C2
+{
+    public static void Main()                                                                                                           
+    {
+        int x = 0;
+        label1:
+        using C1 o1 = new C1(""first"");
+        if(x++ < 3)
+        {
+            goto label1;
+        }
+    }
+}";
+            var output = @"Disposed first
+Disposed first
+Disposed first
+Disposed first";
+            CompileAndVerify(source, expectedOutput: output).VerifyIL("C2.Main", @"
+{
+  // Code size       36 (0x24)
+  .maxstack  3
+  .locals init (int V_0, //x
+                C1 V_1) //o1
+  IL_0000:  ldc.i4.0
+  IL_0001:  stloc.0
+  IL_0002:  ldstr      ""first""
+  IL_0007:  newobj     ""C1..ctor(string)""
+  IL_000c:  stloc.1
+  .try
+  {
+    IL_000d:  ldloc.0
+    IL_000e:  dup
+    IL_000f:  ldc.i4.1
+    IL_0010:  add
+    IL_0011:  stloc.0
+    IL_0012:  ldc.i4.3
+    IL_0013:  bge.s      IL_0017
+    IL_0015:  leave.s    IL_0002
+    IL_0017:  leave.s    IL_0023
+  }
+  finally
+  {
+    IL_0019:  ldloc.1
+    IL_001a:  brfalse.s  IL_0022
+    IL_001c:  ldloc.1
+    IL_001d:  callvirt   ""void System.IDisposable.Dispose()""
+    IL_0022:  endfinally
+  }
+  IL_0023:  ret
+}
+");
         }
     }
 }
