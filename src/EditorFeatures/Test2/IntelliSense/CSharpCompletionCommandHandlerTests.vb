@@ -3834,31 +3834,17 @@ class C
 }", finalText)
 
                 Dim changes = snapshotBeforeCommit.Version.Changes
-                Select Case completionImplementation
-                    Case CompletionImplementation.Legacy ' Specific of the legacy implementation
-                        ' This should have happened as two text changes to the buffer.
-                        Assert.Equal(2, changes.Count)
+                ' This should have happened as two text changes to the buffer.
+                Assert.Equal(2, changes.Count)
 
-                        Dim actualChanges = changes.ToArray()
-                        Dim firstChange = actualChanges(0)
-                        Assert.Equal(New Span(0, 0), firstChange.OldSpan)
-                        Assert.Equal("using NewUsing;", firstChange.NewText)
+                Dim actualChanges = changes.ToArray()
+                Dim firstChange = actualChanges(0)
+                Assert.Equal(New Span(0, 0), firstChange.OldSpan)
+                Assert.Equal("using NewUsing;", firstChange.NewText)
 
-                        Dim secondChange = actualChanges(1)
-                        Assert.Equal(New Span(testDocument.CursorPosition.Value, 0), secondChange.OldSpan)
-                        Assert.Equal("InsertedItem", secondChange.NewText)
-                    Case CompletionImplementation.Modern
-                        Assert.Equal(1, changes.Count)
-                        Dim actualChanges = changes.ToArray()
-                        Dim firstChange = actualChanges(0)
-                        Assert.Equal(New Span(0, testDocument.CursorPosition.Value), firstChange.OldSpan)
-                        Assert.Equal("using NewUsing;
-using System;
-class C
-{
-    void goo() {
-        return InsertedItem", firstChange.NewText)
-                End Select
+                Dim secondChange = actualChanges(1)
+                Assert.Equal(New Span(testDocument.CursorPosition.Value, 0), secondChange.OldSpan)
+                Assert.Equal("InsertedItem", secondChange.NewText)
 
                 ' Make sure new edits happen after the text that was inserted.
                 state.SendTypeChars("1")
@@ -3914,33 +3900,17 @@ class C
 }", finalText)
 
                 Dim changes = snapshotBeforeCommit.Version.Changes
-                Select Case completionImplementation
-                    Case CompletionImplementation.Legacy ' Specific of the legacy implementation
-                        ' This should have happened as two text changes to the buffer.
+                ' This should have happened as two text changes to the buffer.
+                Assert.Equal(2, changes.Count)
 
-                        Assert.Equal(2, changes.Count)
+                Dim actualChanges = changes.ToArray()
+                Dim firstChange = actualChanges(0)
+                Assert.Equal(New Span(0, 0), firstChange.OldSpan)
+                Assert.Equal("using NewUsing;", firstChange.NewText)
 
-                        Dim actualChanges = changes.ToArray()
-                        Dim firstChange = actualChanges(0)
-                        Assert.Equal(New Span(0, 0), firstChange.OldSpan)
-                        Assert.Equal("using NewUsing;", firstChange.NewText)
-
-                        Dim secondChange = actualChanges(1)
-                        Assert.Equal(New Span(testDocument.CursorPosition.Value - "Custom".Length, "Custom".Length), secondChange.OldSpan)
-                        Assert.Equal("InsertedItem", secondChange.NewText)
-                    Case CompletionImplementation.Modern
-                        Assert.Equal(1, changes.Count)
-                        Dim actualChanges = changes.ToArray()
-                        Dim firstChange = actualChanges(0)
-                        Assert.Equal(New Span(0, testDocument.CursorPosition.Value), firstChange.OldSpan)
-                        Assert.Equal(
-"using NewUsing;
-using System;
-class C
-{
-    void goo() {
-        return InsertedItem", firstChange.NewText)
-                End Select
+                Dim secondChange = actualChanges(1)
+                Assert.Equal(New Span(testDocument.CursorPosition.Value - "Custom".Length, "Custom".Length), secondChange.OldSpan)
+                Assert.Equal("InsertedItem", secondChange.NewText)
 
                 ' Make sure new edits happen after the text that was inserted.
                 state.SendTypeChars("1")

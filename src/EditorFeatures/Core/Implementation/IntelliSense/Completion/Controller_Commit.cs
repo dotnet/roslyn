@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Completion;
+using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncCompletion;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Internal.Log;
@@ -112,8 +113,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                     var mappedSpan = triggerSnapshotSpan.TranslateTo(
                         this.SubjectBuffer.CurrentSnapshot, SpanTrackingMode.EdgeInclusive);
 
-                    var adjustedNewText = AdjustForVirtualSpace(textChange);
-                    var editOptions = GetEditOptions(mappedSpan, adjustedNewText);
+                    var adjustedNewText = CommitManager.AdjustForVirtualSpace(textChange, this.TextView, _editorOperationsFactoryService);
+                    var editOptions = CommitManager.GetEditOptions(mappedSpan, adjustedNewText);
 
                     // The immediate window is always marked read-only and the language service is
                     // responsible for asking the buffer to make itself writable. We'll have to do that for
@@ -204,20 +205,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             TextView.Caret.MoveTo(new SnapshotPoint(TextView.TextBuffer.CurrentSnapshot, viewTextSpan.TextSpan.Start));
         }
 
-        private EditOptions GetEditOptions(SnapshotSpan spanToReplace, string adjustedNewText)
-        {
-            if (spanToReplace.GetText() == adjustedNewText)
-            {
-                // We're replacing the current buffer text with the exact same code.  If 
-                // we pass EditOptions.DefaultMinimalChange then no actual buffer change
-                // will happen.  That's problematic as it breaks features like brace-matching
-                // which want to buffer changes to properly compute their state.  In this
-                return EditOptions.None;
-            }
-
-            return EditOptions.DefaultMinimalChange;
-        }
-
         private void RollbackToBeforeTypeChar(ITextSnapshot initialTextSnapshot)
         {
             // Get all the versions from the initial text snapshot (before we passed the
@@ -249,28 +236,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 yield return version;
                 version = version.Next;
             }
-        }
-
-        private string AdjustForVirtualSpace(TextChange textChange)
-        {
-            var newText = textChange.NewText;
-
-            var caretPoint = this.TextView.Caret.Position.BufferPosition;
-            var virtualCaretPoint = this.TextView.Caret.Position.VirtualBufferPosition;
-
-            if (textChange.Span.IsEmpty &&
-                textChange.Span.Start == caretPoint &&
-                virtualCaretPoint.IsInVirtualSpace)
-            {
-                // They're in virtual space and the text change is specified against the cursor
-                // position that isn't in virtual space.  In this case, add the virtual spaces to the
-                // thing we're adding.
-                var editorOperations = _editorOperationsFactoryService.GetEditorOperations(this.TextView);
-                var whitespace = editorOperations.GetWhitespaceForVirtualSpace(virtualCaretPoint);
-                return whitespace + newText;
-            }
-
-            return newText;
         }
     }
 }
