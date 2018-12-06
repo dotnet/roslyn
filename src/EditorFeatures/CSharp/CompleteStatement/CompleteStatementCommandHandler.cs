@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
             }
 
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-            if (!LooksLikeNodeInArgumentListForStatementCompletion(currentNode, syntaxFacts))
+            if (!LooksLikeNodeInArgumentListForStatementCompletion(currentNode, syntaxFacts, caret))
             {
                 return;
             }
@@ -126,12 +126,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
                 }
             }
 
-            // if you haven't found any enclosures, put semicolon at end of statement
-            if (lastDelimiterSpan == default)
-            {
-                lastDelimiterSpan = currentNode.Span;
-            }
-
             // Move to space after the last delimiter
             args.TextView.TryMoveCaretToAndEnsureVisible(args.SubjectBuffer.CurrentSnapshot.GetPoint(GetEndPosition(root, lastDelimiterSpan.End, currentNode.Kind())));
         }
@@ -144,7 +138,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
         /// list, where the immediately-containing statement resembles an "expression statement". This method returns
         /// <see langword="true"/> if the node matches a recognizable pattern of this form.</para>
         /// </remarks>
-        private static bool LooksLikeNodeInArgumentListForStatementCompletion(SyntaxNode currentNode, ISyntaxFactsService syntaxFacts)
+        private static bool LooksLikeNodeInArgumentListForStatementCompletion(SyntaxNode currentNode, ISyntaxFactsService syntaxFacts, SnapshotPoint? caret)
         {
             while (!currentNode.IsKind(SyntaxKind.ArgumentList, SyntaxKind.ArrayRankSpecifier))
             {
@@ -157,7 +151,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
                 if (currentNode.IsKind(SyntaxKind.InterpolatedStringExpression, SyntaxKind.StringLiteralExpression))
                 {
                     // No special action is performed at this time if `;` is typed inside a string, including
-                    // interpolated strings.
+                    // interpolated strings.  
+                    // If caret is at the end of the line, it is outside the string so is a candidate for 
+                    // statement completion
+                    if (caret != null && IsCaretAtEndOfLine((SnapshotPoint)caret))
+                    {
+                        return true;
+                    }
+
                     return false;
                 }
 

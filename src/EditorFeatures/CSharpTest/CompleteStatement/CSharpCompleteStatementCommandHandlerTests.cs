@@ -98,9 +98,18 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CompleteStatement
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void ArgumentListOfMethodInvocation7()
+        {
+            var code = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x, ""y""$$)");
+            var expected = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x, ""y"");$$");
+
+            VerifyTypingSemicolon(code, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
         public void ArgumentListOfMethodInvocation_MissingParen()
         {
-            var code = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x, y$$");
+            var code = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x, ""y"");$$");
 
             VerifyNoSpecialSemicolonHandling(code);
         }
@@ -352,6 +361,24 @@ var test = ClassC.MethodM(
 var test = ClassC.MethodM(
                 x.ToString(), 
                 y
+                );$$");
+
+            VerifyTypingSemicolon(code, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void ArgumentListOfNestedMethodInvocation_MultiLine3()
+        {
+            var code = CreateTestWithMethodCall(@"
+var test = ClassC.MethodM(
+                x.ToString(), 
+                ""y""$$
+                )");
+
+            var expected = CreateTestWithMethodCall(@"
+var test = ClassC.MethodM(
+                x.ToString(), 
+                ""y""
                 );$$");
 
             VerifyTypingSemicolon(code, expected);
