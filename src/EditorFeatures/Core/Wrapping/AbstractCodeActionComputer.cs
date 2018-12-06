@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping
 
             protected readonly SyntaxTriviaList NewLineTrivia;
             protected readonly SyntaxTriviaList SingleWhitespaceTrivia;
-            protected readonly SyntaxTriviaList NoTrivia = default;
+            protected readonly SyntaxTriviaList NoTrivia;
 
             /// <summary>
             /// The contents of the documents we've created code-actions for.  This is used so that
