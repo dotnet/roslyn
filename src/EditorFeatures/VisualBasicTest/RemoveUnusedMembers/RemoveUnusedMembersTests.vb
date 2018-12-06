@@ -649,6 +649,27 @@ End Class", parameters:=Nothing,
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
+        Public Async Function MethodInNameOf() As Task
+            Await TestDiagnosticsAsync(
+"Class C
+    Private Sub [|M|]()
+    End Sub
+    Private _goo2 As String = NameOf(M)
+End Class", parameters:=Nothing,
+    Diagnostic("IDE0052"))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
+        Public Async Function PropertyInNameOf() As Task
+            Await TestDiagnosticsAsync(
+"Class C
+    Private ReadOnly Property [|P|] As Integer
+    Private _goo2 As String = NameOf(P)
+End Class", parameters:=Nothing,
+    Diagnostic("IDE0052"))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
         Public Async Function FieldInDocComment() As Task
             Await TestDiagnosticsAsync(
 "

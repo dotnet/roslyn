@@ -911,6 +911,30 @@ class MyClass
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
+        public async Task MethodInNameOf()
+        {
+            await TestDiagnosticsAsync(
+@"class MyClass
+{
+    private void [|M|]() { }
+    private string _goo = nameof(M);
+}",
+    expected: Diagnostic("IDE0052"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
+        public async Task PropertyInNameOf()
+        {
+            await TestDiagnosticsAsync(
+@"class MyClass
+{
+    private int [|P|] { get; }
+    private string _goo = nameof(P);
+}",
+    expected: Diagnostic("IDE0052"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task FieldInDocComment()
         {
             await TestDiagnosticsAsync(
