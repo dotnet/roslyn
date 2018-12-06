@@ -278,7 +278,6 @@ if [[ -z $HOME ]]; then
   mkdir -p "$HOME"
 fi
 
-mkdir -p "$toolset_dir"
 mkdir -p "$temp_dir"
 mkdir -p "$log_dir"
 

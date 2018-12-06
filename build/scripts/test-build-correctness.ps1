@@ -22,17 +22,19 @@ function Print-Usage() {
     Write-Host "  -configuration            Build configuration ('Debug' or 'Release')"
 }
 
-if ($help) {
-    Print-Usage
-    exit 0
-}
-
 try {
+    if ($help) {
+        Print-Usage
+        exit 0
+    }
+
+    $ci = $true
+
     . (Join-Path $PSScriptRoot "build-utils.ps1")
     Push-Location $RepoRoot
 
     Write-Host "Building Roslyn"
-    Exec-Block { & (Join-Path $PSScriptRoot "build.ps1") -restore -build -ci:$true -configuration:$configuration -pack -binaryLog -useGlobalNuGetCache:$false }
+    Exec-Block { & (Join-Path $PSScriptRoot "build.ps1") -restore -build -ci:$ci -configuration:$configuration -pack -binaryLog -useGlobalNuGetCache:$false }
 
 
     # Verify the state of our various build artifacts
