@@ -144,10 +144,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
             }
 
             // run it from background and fire and forget
-            StartUpdateStateMachine(pollForStatus:true);
+            StartUpdateStateMachine();
         }
 
-        private void StartUpdateStateMachine(bool pollForStatus)
+        private void StartUpdateStateMachine()
         {
             // cancel previous state machine update request
             _cancellationTokenSource.Cancel();
@@ -159,11 +159,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
             // doesn't mess the state up.   
             _lastTask = _lastTask.ContinueWith(async _ =>
             {
-                await UpdateStateMachineWorkerAsync(pollForStatus, cancellationToken).ConfigureAwait(false);
+                await UpdateStateMachineWorkerAsync(cancellationToken).ConfigureAwait(false);
             }, cancellationToken, TaskContinuationOptions.LazyCancellation, TaskScheduler.Default).Unwrap();
         }
 
-        private async Task UpdateStateMachineWorkerAsync(bool pollForStatus, CancellationToken cancellationToken)
+        private async Task UpdateStateMachineWorkerAsync(CancellationToken cancellationToken)
         {
             var options = _workspace.Options;
             var lastStatus = options.GetOption(KeybindingResetOptions.ReSharperStatus);
@@ -171,7 +171,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
             ReSharperStatus currentStatus;
             try
             {
-                currentStatus = await IsReSharperRunningAsync(lastStatus, pollForStatus, cancellationToken)
+                currentStatus = await IsReSharperRunningAsync(lastStatus, cancellationToken)
                     .ConfigureAwait(false);
             }
             catch(OperationCanceledException)
@@ -263,7 +263,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
         /// <summary>
         /// Returns true if ReSharper is installed, enabled, and not suspended.  
         /// </summary>
-        private async Task<ReSharperStatus> IsReSharperRunningAsync(ReSharperStatus lastStatus, bool pollForStatus, CancellationToken cancellationToken)
+        private async Task<ReSharperStatus> IsReSharperRunningAsync(ReSharperStatus lastStatus, CancellationToken cancellationToken)
         {
             // Quick exit if resharper is either uninstalled or not enabled
             if (!_resharperExtensionInstalledAndEnabled)
@@ -394,7 +394,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
             if (pguidCmdGroup == ReSharperCommandGroup && nCmdID >= ResumeId && nCmdID <= ToggleSuspendId)
             {
                 // Don't delay command processing to update resharper status
-                StartUpdateStateMachine(pollForStatus: false);
+                StartUpdateStateMachine();
             }
 
             // No matter the command, we never actually want to respond to it, so always return not supported. We're just monitoring.
@@ -410,7 +410,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
             // extra QueryStatus.
             if (args.TransitionType == StateTransitionType.Exit)
             {
-                StartUpdateStateMachine(pollForStatus: false);
+                StartUpdateStateMachine();
             }
         }
 
