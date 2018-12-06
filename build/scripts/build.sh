@@ -180,7 +180,7 @@ function MakeBootstrapBuild {
   echo "Cleaning Bootstrap compiler artifacts"
   dotnet clean "$project_path"
 
-  if [[ "$nodereuse" == true ]]; then
+  if [[ "$node_reuse" == true ]]; then
     dotnet build-server shutdown
   fi
 
