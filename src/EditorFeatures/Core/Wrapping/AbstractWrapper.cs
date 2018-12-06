@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping
     /// 2. Checking nodes and tokens to make sure they are safe to be wrapped.
     /// 
     /// Individual subclasses may be targeted at specific syntactic forms.  For example, wrapping
-    /// lists, or wrapping logical expressions.  Most subclasses should 
+    /// lists, or wrapping logical expressions.
     /// </summary>
     internal abstract partial class AbstractWrapper : IWrapper
     {
