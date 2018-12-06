@@ -143,6 +143,12 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             get { return _store.GetOrDefault(nameof(PublicSign), false); }
         }
 
+        public ITaskItem[] AnalyzerConfigFiles
+        {
+            set { _store[nameof(AnalyzerConfigFiles)] = value; }
+            get { return (ITaskItem[])_store[nameof(AnalyzerConfigFiles)]; }
+        }
+
         public bool EmitDebugInformation
         {
             set { _store[nameof(EmitDebugInformation)] = value; }
@@ -806,6 +812,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
             AddFeatures(commandLine, Features);
             AddEmbeddedFilesToCommandLine(commandLine);
+            AddAnalyzerConfigFilesToCommandLine(commandLine);
         }
 
         /// <summary>
@@ -871,6 +878,20 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 foreach (ITaskItem embeddedFile in EmbeddedFiles)
                 {
                     commandLine.AppendSwitchIfNotNull("/embed:", embeddedFile.ItemSpec);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Adds a "/editorconfig:" switch to the command line for each .editorconfig file.
+        /// </summary>
+        private void AddAnalyzerConfigFilesToCommandLine(CommandLineBuilderExtension commandLine)
+        {
+            if (AnalyzerConfigFiles != null)
+            {
+                foreach (ITaskItem analyzerConfigFile in AnalyzerConfigFiles)
+                {
+                    commandLine.AppendSwitchIfNotNull("/analyzerconfig:", analyzerConfigFile.ItemSpec);
                 }
             }
         }
