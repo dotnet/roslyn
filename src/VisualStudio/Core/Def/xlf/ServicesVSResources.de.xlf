@@ -102,6 +102,11 @@
         <target state="new">Prefer range operator</target>
         <note />
       </trans-unit>
+      <trans-unit id="References">
+        <source>References</source>
+        <target state="new">References</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Regular_Expressions">
         <source>Regular Expressions</source>
         <target state="new">Regular Expressions</target>
@@ -120,6 +125,11 @@
       <trans-unit id="Save_dot_editorconfig_file">
         <source>Save .editorconfig file</source>
         <target state="new">Save .editorconfig file</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="This_0_has_1_references">
+        <source>This {0} has {1} reference(s)</source>
+        <target state="new">This {0} has {1} reference(s)</target>
         <note />
       </trans-unit>
       <trans-unit id="Unused_value_is_explicitly_assigned_to_an_unused_local">
@@ -270,6 +280,11 @@
       <trans-unit id="Not_a_valid_value">
         <source>Not a valid value</source>
         <target state="translated">Kein gültiger Wert.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_reference">
+        <source>{0} reference</source>
+        <target state="new">{0} reference</target>
         <note />
       </trans-unit>
       <trans-unit id="given_workspace_doesn_t_support_undo">
@@ -1321,6 +1336,21 @@ Zusätzliche Informationen: {1}</target>
       <trans-unit id="When_inserting_properties_events_and_methods_place_them">
         <source>When inserting properties, events and methods, place them:</source>
         <target state="translated">Eingefügte Eigenschaften, Ereignisse und Methoden hier ablegen:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="method">
+        <source>method</source>
+        <target state="new">method</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="property">
+        <source>property</source>
+        <target state="new">property</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="type1">
+        <source>type</source>
+        <target state="new">type</target>
         <note />
       </trans-unit>
       <trans-unit id="with_other_members_of_the_same_kind">

@@ -1,11 +1,14 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
-using Microsoft.CodeAnalysis.CodeLens;
+using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeLens;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Text;
-using System.Threading;
+using StreamJsonRpc;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
@@ -18,11 +21,23 @@ namespace Microsoft.CodeAnalysis.Remote
                 using (Internal.Log.Logger.LogBlock(FunctionId.CodeAnalysisService_GetReferenceCountAsync, documentId.ProjectId.DebugName, token))
                 {
                     var solution = await GetSolutionAsync(token).ConfigureAwait(false);
-                    var syntaxNode = (await solution.GetDocument(documentId).GetSyntaxRootAsync().ConfigureAwait(false)).FindNode(textSpan);
 
-                    return await CodeLensReferencesServiceFactory.Instance.GetReferenceCountAsync(solution, documentId,
-                        syntaxNode, maxResultCount, token).ConfigureAwait(false);
+                    var document = solution.GetDocument(documentId);
+                    if (document == null)
+                    {
+                        return null;
+                    }
+
+                    var syntaxNode = (await document.GetSyntaxRootAsync().ConfigureAwait(false)).FindNode(textSpan);
+
+                    return await CodeLensReferencesServiceFactory.Instance.GetReferenceCountAsync(
+                        solution,
+                        documentId,
+                        syntaxNode,
+                        maxResultCount,
+                        token).ConfigureAwait(false);
                 }
+
             }, cancellationToken);
         }
 
@@ -33,10 +48,19 @@ namespace Microsoft.CodeAnalysis.Remote
                 using (Internal.Log.Logger.LogBlock(FunctionId.CodeAnalysisService_FindReferenceLocationsAsync, documentId.ProjectId.DebugName, token))
                 {
                     var solution = await GetSolutionAsync(token).ConfigureAwait(false);
-                    var syntaxNode = (await solution.GetDocument(documentId).GetSyntaxRootAsync().ConfigureAwait(false)).FindNode(textSpan);
+                    var document = solution.GetDocument(documentId);
+                    if (document == null)
+                    {
+                        return null;
+                    }
 
-                    return await CodeLensReferencesServiceFactory.Instance.FindReferenceLocationsAsync(solution, documentId,
-                        syntaxNode, token).ConfigureAwait(false);
+                    var syntaxNode = (await document.GetSyntaxRootAsync().ConfigureAwait(false)).FindNode(textSpan);
+
+                    return await CodeLensReferencesServiceFactory.Instance.FindReferenceLocationsAsync(
+                        solution,
+                        documentId,
+                        syntaxNode,
+                        token).ConfigureAwait(false);
                 }
             }, cancellationToken);
         }
@@ -69,6 +93,144 @@ namespace Microsoft.CodeAnalysis.Remote
                         syntaxNode, token).ConfigureAwait(false);
                 }
             }, cancellationToken);
+        }
+
+        public Task TrackCodeLensAsync(DocumentId documentId, CancellationToken cancellationToken)
+        {
+            return RunServiceAsync(async token =>
+            {
+                await SemanticChangeTracker.TrackAsync(this.Rpc, SolutionService.PrimaryWorkspace, documentId, cancellationToken).ConfigureAwait(false);
+            }, cancellationToken);
+        }
+
+        /// <summary>
+        /// it tracks relevant changes on workspace for the given document.
+        /// 
+        /// better place for this is in ICodeLensContext but CodeLens OOP doesn't provide a way to call back to codelens OOP from
+        /// VS so, this for now will be in Roslyn OOP
+        /// </summary>
+        private class SemanticChangeTracker
+        {
+            private static readonly TimeSpan s_delay = TimeSpan.FromMilliseconds(100);
+
+            private readonly object _gate;
+
+            private readonly JsonRpc _rpc;
+            private readonly Workspace _workspace;
+            private readonly DocumentId _documentId;
+
+            private VersionStamp _lastVersion;
+            private ResettableDelay _resettableDelay;
+
+            public static async Task TrackAsync(JsonRpc rpc, Workspace workspace, DocumentId documentId, CancellationToken cancellationToken)
+            {
+                var document = workspace.CurrentSolution.GetDocument(documentId);
+                if (document == null)
+                {
+                    return;
+                }
+
+                var dpendentVersion = await document.Project.GetDependentVersionAsync(cancellationToken).ConfigureAwait(false);
+                var _ = new SemanticChangeTracker(rpc, workspace, documentId, dpendentVersion);
+            }
+
+            private SemanticChangeTracker(JsonRpc rpc, Workspace workspace, DocumentId documentId, VersionStamp dpendentVersion)
+            {
+                _gate = new object();
+
+                _rpc = rpc;
+                _workspace = workspace;
+                _documentId = documentId;
+
+                _lastVersion = dpendentVersion;
+                _resettableDelay = ResettableDelay.CompletedDelay;
+
+                ConnectEvents(subscription: true);
+            }
+
+            private void ConnectEvents(bool subscription)
+            {
+                // this is only place lock is used.
+                // we have a lock here so that subscription and unsubscription of the two events
+                // are happening atomic, but that doesn't mean there is no possiblity of race here
+                // theoradically, there can be a race if connection got disconnected before we subscribe
+                // to OnRpcDisconnected but already in the subscription code path.
+                // but there is no easy way to solve the problem unless Rpc itself provide things like
+                // subscribe only if connection still alive or something
+                lock (_gate)
+                {
+                    if (subscription)
+                    {
+                        _rpc.Disconnected += OnRpcDisconnected;
+                        _workspace.WorkspaceChanged += OnWorkspaceChanged;
+                    }
+                    else
+                    {
+                        _rpc.Disconnected -= OnRpcDisconnected;
+                        _workspace.WorkspaceChanged -= OnWorkspaceChanged;
+                    }
+                }
+            }
+
+            private void OnRpcDisconnected(object sender, JsonRpcDisconnectedEventArgs e)
+            {
+                ConnectEvents(subscription: false);
+            }
+
+            private void OnWorkspaceChanged(object sender, WorkspaceChangeEventArgs e)
+            {
+                switch (e.Kind)
+                {
+                    case WorkspaceChangeKind.ProjectRemoved:
+                    case WorkspaceChangeKind.ProjectChanged:
+                    case WorkspaceChangeKind.ProjectReloaded:
+                    case WorkspaceChangeKind.DocumentAdded:
+                    case WorkspaceChangeKind.DocumentRemoved:
+                    case WorkspaceChangeKind.DocumentReloaded:
+                    case WorkspaceChangeKind.DocumentChanged:
+                    case WorkspaceChangeKind.DocumentInfoChanged:
+                        EnqueueUpdate();
+                        return;
+                }
+
+                void EnqueueUpdate()
+                {
+                    // workspace event is serialized events. and reset delay only get updated here
+                    if (!_resettableDelay.Task.IsCompleted)
+                    {
+                        _resettableDelay.Reset();
+                        return;
+                    }
+
+                    var delay = new ResettableDelay((int)s_delay.TotalMilliseconds);
+
+                    _resettableDelay = delay;
+                    delay.Task.ContinueWith(async _ =>
+                    {
+                        try
+                        {
+                            var document = _workspace.CurrentSolution.GetDocument(_documentId);
+                            if (document == null)
+                            {
+                                return;
+                            }
+
+                            var newVersion = await document.Project.GetDependentVersionAsync(CancellationToken.None).ConfigureAwait(false);
+                            if (newVersion == _lastVersion)
+                            {
+                                return;
+                            }
+
+                            // fire and forget.
+                            // ignore any exception such as rpc already disposed (disconnected)
+
+                            _lastVersion = newVersion;
+                            await _rpc.InvokeAsync(nameof(IRemoteCodeLensDataPoint.Invalidate)).ConfigureAwait(false);
+                        }
+                        catch { }
+                    }, CancellationToken.None, TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
+                }
+            }
         }
     }
 }
