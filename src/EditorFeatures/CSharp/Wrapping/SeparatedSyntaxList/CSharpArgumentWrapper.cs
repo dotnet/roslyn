@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Editor.Wrapping.SeparatedSyntaxList
                 // section.
                 var expr = (declaration as InvocationExpressionSyntax)?.Expression ??
                            (declaration as ElementAccessExpressionSyntax).Expression;
-                var name = GetPrecedingRelevantExpressionPortion(expr);
+                var name = TryGetInvokedName(expr);
 
                 startToken = name == null ? listSyntax.GetFirstToken() : name.GetFirstToken();
             }
@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Editor.Wrapping.SeparatedSyntaxList
             return true;
         }
 
-        private ExpressionSyntax GetPrecedingRelevantExpressionPortion(ExpressionSyntax expr)
+        private ExpressionSyntax TryGetInvokedName(ExpressionSyntax expr)
         {
             // `Foo(...)`.  Allow up through the 'Foo' portion
             if (expr is NameSyntax name)
