@@ -201,6 +201,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
                 case SyntaxKind.PragmaChecksumDirectiveTrivia:
                 case SyntaxKind.ReferenceDirectiveTrivia:
                 case SyntaxKind.LoadDirectiveTrivia:
+                case SyntaxKind.NullableDirectiveTrivia:
                 case SyntaxKind.BadDirectiveTrivia:
                     ClassifyPreprocessorDirective((DirectiveTriviaSyntax)trivia.GetStructure());
                     return;
