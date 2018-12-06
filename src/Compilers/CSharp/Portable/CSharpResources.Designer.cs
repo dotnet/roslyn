@@ -15316,7 +15316,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The suppression operator (!) can only be applied to reference types..
+        ///   Looks up a localized string similar to The suppression operator (!) can only be applied to reference types and nullable value types..
         /// </summary>
         internal static string WRN_SuppressionOperatorNotReferenceType {
             get {
@@ -15325,7 +15325,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The suppression operator (!) can only be applied to reference types..
+        ///   Looks up a localized string similar to The suppression operator (!) can only be applied to reference types and nullable value types..
         /// </summary>
         internal static string WRN_SuppressionOperatorNotReferenceType_Title {
             get {

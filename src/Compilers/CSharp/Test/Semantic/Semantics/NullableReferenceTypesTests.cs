@@ -834,7 +834,7 @@ class C
 ";
             var c = CreateCompilation(source);
             c.VerifyEmitDiagnostics(
-                // (2,22): error CS8624: The suppression operator (!) can only be applied to reference types.
+                // (2,22): error CS8624: The suppression operator (!) can only be applied to reference types and nullable value types.
                 // [System.Obsolete("", true!)] // 1, 2
                 Diagnostic(ErrorCode.WRN_SuppressionOperatorNotReferenceType, "true!").WithLocation(2, 22),
                 // (8,16): warning CS0219: The variable 'y' is assigned but its value is never used
@@ -32931,7 +32931,7 @@ class C
                 new[] { source }, options: WithNonNullTypesTrue(),
                 parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
-                // (5,16): warning CS8624: The suppression operator (!) can only be applied to reference types.
+                // (5,16): warning CS8624: The suppression operator (!) can only be applied to reference types and nullable value types.
                 //         return (b && G(out var o))!? o : null;
                 Diagnostic(ErrorCode.WRN_SuppressionOperatorNotReferenceType, "(b && G(out var o))!").WithLocation(5, 16),
                 // (5,38): error CS0165: Use of unassigned local variable 'o'
@@ -32969,16 +32969,13 @@ struct S2<T>
                 new[] { source }, options: WithNonNullTypesTrue(),
                 parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
-                // (5,11): error CS8624: The suppression operator (!) can only be applied to reference types.
+                // (5,11): error CS8624: The suppression operator (!) can only be applied to reference types and nullable value types.
                 //         G(1!);
                 Diagnostic(ErrorCode.WRN_SuppressionOperatorNotReferenceType, "1!").WithLocation(5, 11),
-                // (6,11): error CS8624: The suppression operator (!) can only be applied to reference types.
-                //         G(((int?)null)!);
-                Diagnostic(ErrorCode.WRN_SuppressionOperatorNotReferenceType, "((int?)null)!").WithLocation(6, 11),
-                // (7,11): error CS8624: The suppression operator (!) can only be applied to reference types.
+                // (7,11): error CS8624: The suppression operator (!) can only be applied to reference types and nullable value types.
                 //         G(default(S)!);
                 Diagnostic(ErrorCode.WRN_SuppressionOperatorNotReferenceType, "default(S)!").WithLocation(7, 11),
-                // (8,13): error CS8624: The suppression operator (!) can only be applied to reference types.
+                // (8,13): error CS8624: The suppression operator (!) can only be applied to reference types and nullable value types.
                 //         _ = new S2<object>()!;
                 Diagnostic(ErrorCode.WRN_SuppressionOperatorNotReferenceType, "new S2<object>()!").WithLocation(8, 13));
 
@@ -32987,16 +32984,13 @@ struct S2<T>
                 new[] { source },
                 parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
-                // (5,11): error CS8624: The suppression operator (!) can only be applied to reference types.
+                // (5,11): error CS8624: The suppression operator (!) can only be applied to reference types and nullable value types.
                 //         G(1!);
                 Diagnostic(ErrorCode.WRN_SuppressionOperatorNotReferenceType, "1!").WithLocation(5, 11),
-                // (6,11): error CS8624: The suppression operator (!) can only be applied to reference types.
-                //         G(((int?)null)!);
-                Diagnostic(ErrorCode.WRN_SuppressionOperatorNotReferenceType, "((int?)null)!").WithLocation(6, 11),
-                // (7,11): error CS8624: The suppression operator (!) can only be applied to reference types.
+                // (7,11): error CS8624: The suppression operator (!) can only be applied to reference types and nullable value types.
                 //         G(default(S)!);
                 Diagnostic(ErrorCode.WRN_SuppressionOperatorNotReferenceType, "default(S)!").WithLocation(7, 11),
-                // (8,13): error CS8624: The suppression operator (!) can only be applied to reference types.
+                // (8,13): error CS8624: The suppression operator (!) can only be applied to reference types and nullable value types.
                 //         _ = new S2<object>()!;
                 Diagnostic(ErrorCode.WRN_SuppressionOperatorNotReferenceType, "new S2<object>()!").WithLocation(8, 13));
 
@@ -33017,16 +33011,13 @@ struct S2<T>
                 // (8,13): error CS8107: Feature 'nullable reference types' is not available in C# 7.0. Please use language version 8.0 or greater.
                 //         _ = new S2<object>()!;
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "new S2<object>()!").WithArguments("nullable reference types", "8.0").WithLocation(8, 13),
-                // (5,11): warning CS8624: The suppression operator (!) can only be applied to reference types.
+                // (5,11): warning CS8624: The suppression operator (!) can only be applied to reference types and nullable value types.
                 //         G(1!);
                 Diagnostic(ErrorCode.WRN_SuppressionOperatorNotReferenceType, "1!").WithLocation(5, 11),
-                // (6,11): warning CS8624: The suppression operator (!) can only be applied to reference types.
-                //         G(((int?)null)!);
-                Diagnostic(ErrorCode.WRN_SuppressionOperatorNotReferenceType, "((int?)null)!").WithLocation(6, 11),
-                // (7,11): warning CS8624: The suppression operator (!) can only be applied to reference types.
+                // (7,11): warning CS8624: The suppression operator (!) can only be applied to reference types and nullable value types.
                 //         G(default(S)!);
                 Diagnostic(ErrorCode.WRN_SuppressionOperatorNotReferenceType, "default(S)!").WithLocation(7, 11),
-                // (8,13): warning CS8624: The suppression operator (!) can only be applied to reference types.
+                // (8,13): warning CS8624: The suppression operator (!) can only be applied to reference types and nullable value types.
                 //         _ = new S2<object>()!;
                 Diagnostic(ErrorCode.WRN_SuppressionOperatorNotReferenceType, "new S2<object>()!").WithLocation(8, 13));
         }
@@ -33043,7 +33034,7 @@ struct S2<T>
                 new[] { source }, options: WithNonNullTypesTrue(),
                 parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
-                // (3,41): error CS8624: The suppression operator (!) can only be applied to reference types.
+                // (3,41): error CS8624: The suppression operator (!) can only be applied to reference types and nullable value types.
                 //     static S<object> F(S<object?> s) => s!/*T:S<object?>*/;
                 Diagnostic(ErrorCode.WRN_SuppressionOperatorNotReferenceType, "s!").WithLocation(3, 41),
                 // (3,41): warning CS8619: Nullability of reference types in value of type 'S<object?>' doesn't match target type 'S<object>'.
@@ -33070,14 +33061,14 @@ struct S2<T>
             // Feature enabled.
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
-                // (6,13): error CS8624: The suppression operator (!) can only be applied to reference types.
+                // (6,13): error CS8624: The suppression operator (!) can only be applied to reference types and nullable value types.
                 //         _ = tStruct!;
                 Diagnostic(ErrorCode.WRN_SuppressionOperatorNotReferenceType, "tStruct!").WithLocation(6, 13));
 
             // Feature disabled.
             comp = CreateCompilation(new[] { source }, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
-                // (6,13): error CS8624: The suppression operator (!) can only be applied to reference types.
+                // (6,13): error CS8624: The suppression operator (!) can only be applied to reference types and nullable value types.
                 //         _ = tStruct!;
                 Diagnostic(ErrorCode.WRN_SuppressionOperatorNotReferenceType, "tStruct!").WithLocation(6, 13)
                 );
@@ -33094,7 +33085,7 @@ struct S2<T>
                 // (8,13): error CS8107: Feature 'nullable reference types' is not available in C# 7.0. Please use language version 8.0 or greater.
                 //         _ = tUnconstrained!;
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "tUnconstrained!").WithArguments("nullable reference types", "8.0").WithLocation(8, 13),
-                // (6,13): warning CS8624: The suppression operator (!) can only be applied to reference types.
+                // (6,13): warning CS8624: The suppression operator (!) can only be applied to reference types and nullable value types.
                 //         _ = tStruct!;
                 Diagnostic(ErrorCode.WRN_SuppressionOperatorNotReferenceType, "tStruct!").WithLocation(6, 13)
                 );
@@ -33144,10 +33135,10 @@ struct S2<T>
                 // (12,9): warning CS8602: Possible dereference of a null reference.
                 //         default(T2).ToString(); // 3
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "default(T2)").WithLocation(12, 9),
-                // (20,9): error CS8624: The suppression operator (!) can only be applied to reference types.
+                // (20,9): error CS8624: The suppression operator (!) can only be applied to reference types and nullable value types.
                 //         default(T3)!.ToString(); // 4
                 Diagnostic(ErrorCode.WRN_SuppressionOperatorNotReferenceType, "default(T3)!").WithLocation(20, 9),
-                // (22,9): error CS8624: The suppression operator (!) can only be applied to reference types.
+                // (22,9): error CS8624: The suppression operator (!) can only be applied to reference types and nullable value types.
                 //         t3!.ToString(); // 5
                 Diagnostic(ErrorCode.WRN_SuppressionOperatorNotReferenceType, "t3!").WithLocation(22, 9));
         }
@@ -33215,16 +33206,16 @@ class B5 : A<int>
                 parseOptions: TestOptions.Regular8);
             // https://github.com/dotnet/roslyn/issues/29907: Report error for `default!`.
             comp.VerifyDiagnostics(
-                // (19,14): error CS8624: The suppression operator (!) can only be applied to reference types.
+                // (19,14): error CS8624: The suppression operator (!) can only be applied to reference types and nullable value types.
                 //         t2 = default(T)!; // 1
                 Diagnostic(ErrorCode.WRN_SuppressionOperatorNotReferenceType, "default(T)!").WithLocation(19, 14),
-                // (21,14): error CS8624: The suppression operator (!) can only be applied to reference types.
+                // (21,14): error CS8624: The suppression operator (!) can only be applied to reference types and nullable value types.
                 //         u2 = default(U)!; // 3
                 Diagnostic(ErrorCode.WRN_SuppressionOperatorNotReferenceType, "default(U)!").WithLocation(21, 14),
-                // (49,14): error CS8624: The suppression operator (!) can only be applied to reference types.
+                // (49,14): error CS8624: The suppression operator (!) can only be applied to reference types and nullable value types.
                 //         t5 = default(int)!; // 5
                 Diagnostic(ErrorCode.WRN_SuppressionOperatorNotReferenceType, "default(int)!").WithLocation(49, 14),
-                // (51,14): error CS8624: The suppression operator (!) can only be applied to reference types.
+                // (51,14): error CS8624: The suppression operator (!) can only be applied to reference types and nullable value types.
                 //         u5 = default(U)!; // 7
                 Diagnostic(ErrorCode.WRN_SuppressionOperatorNotReferenceType, "default(U)!").WithLocation(51, 14));
         }
@@ -60794,27 +60785,21 @@ class Program
                 Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "(T)default(T?)").WithLocation(9, 16));
         }
 
-        [WorkItem(31501, "https://github.com/dotnet/roslyn/issues/31501")]
         [Fact]
         public void NullableT_05()
         {
             var source =
-@"class Program
+@"using System;
+class Program
 {
-    static T F<T>(T? x) where T : struct
+    static void F<T>() where T : struct
     {
-        return (T)x!;
+        _ = nameof(Nullable<T>.HasValue);
+        _ = nameof(Nullable<T>.Value);
     }
 }";
             var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
-            // https://github.com/dotnet/roslyn/issues/31501: Should be no warnings.
-            comp.VerifyDiagnostics(
-                // (5,16): warning CS8629: Nullable value type may be null.
-                //         return (T)x!;
-                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "(T)x!").WithLocation(5, 16),
-                // (5,19): warning CS8624: The suppression operator (!) can only be applied to reference types.
-                //         return (T)x!;
-                Diagnostic(ErrorCode.WRN_SuppressionOperatorNotReferenceType, "x!").WithLocation(5, 19));
+            comp.VerifyDiagnostics();
         }
 
         [Fact]
@@ -63426,23 +63411,6 @@ class Program
         }
 
         [Fact]
-        public void NullableT_30()
-        {
-            var source =
-@"using System;
-class Program
-{
-    static void F<T>() where T : struct
-    {
-        _ = nameof(Nullable<T>.HasValue);
-        _ = nameof(Nullable<T>.Value);
-    }
-}";
-            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
-            comp.VerifyDiagnostics();
-        }
-
-        [Fact]
         public void NullableT_As_01()
         {
             var source =
@@ -63579,6 +63547,64 @@ class Program
                 // (33,17): warning CS8629: Nullable value type may be null.
                 //             _ = (t4 as U?).Value; // 10
                 Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "(t4 as U?).Value").WithLocation(33, 17));
+        }
+
+        [WorkItem(31501, "https://github.com/dotnet/roslyn/issues/31501")]
+        [Fact]
+        public void NullableT_Suppress_01()
+        {
+            var source =
+@"class Program
+{
+    static void F<T>(T x, T? y, T? z) where T : struct
+    {
+        _ = (T)((T?)null)!;
+        _ = (T)((T?)default)!;
+        _ = (T)default(T?)!;
+        _ = (T)((T?)x)!;
+        _ = (T)y!;
+        _ = (T)y!!;
+        _ = ((T)z)!; // 1
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            // PROTOTYPE(NullableReferenceTypes): Update WRN_SuppressionOperatorNotReferenceType message
+            // to "... can only be applied to reference types and nullable value types".
+            comp.VerifyDiagnostics(
+                // (11,13): warning CS8624: The suppression operator (!) can only be applied to reference types and nullable value types.
+                //         _ = ((T)z)!; // 1
+                Diagnostic(ErrorCode.WRN_SuppressionOperatorNotReferenceType, "((T)z)!").WithLocation(11, 13),
+                // (11,14): warning CS8629: Nullable value type may be null.
+                //         _ = ((T)z)!; // 1
+                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "(T)z").WithLocation(11, 14));
+        }
+
+        [WorkItem(31501, "https://github.com/dotnet/roslyn/issues/31501")]
+        [Fact]
+        public void NullableT_Suppress_02()
+        {
+            var source =
+@"class Program
+{
+    static void F<T>(T x, T? y, T? z) where T : struct
+    {
+        _ = ((T?)null)!.Value;
+        _ = ((T?)default)!.Value;
+        _ = default(T?)!.Value;
+        _ = ((T?)x)!.Value;
+        _ = y!.Value;
+        _ = y!!.Value;
+        _ = z.Value!; // 1
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (11,13): warning CS8624: The suppression operator (!) can only be applied to reference types and nullable value types.
+                //         _ = z.Value!; // 1
+                Diagnostic(ErrorCode.WRN_SuppressionOperatorNotReferenceType, "z.Value!").WithLocation(11, 13),
+                // (11,13): warning CS8629: Nullable value type may be null.
+                //         _ = z.Value!; // 1
+                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "z.Value").WithLocation(11, 13));
         }
 
         [Fact]

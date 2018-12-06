@@ -901,10 +901,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return true;
         }
 
-        public TypeSymbolWithAnnotations WithTopLevelNonNullabilityForReferenceTypes()
+        public TypeSymbolWithAnnotations WithTopLevelNonNullability()
         {
             var typeSymbol = TypeSymbol;
-            if (NullableAnnotation == NullableAnnotation.NotNullable || typeSymbol.IsValueType)
+            if (NullableAnnotation == NullableAnnotation.NotNullable || (typeSymbol.IsValueType && !typeSymbol.IsNullableType()))
             {
                 return this;
             }
