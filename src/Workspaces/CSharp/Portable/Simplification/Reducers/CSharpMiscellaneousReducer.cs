@@ -3,6 +3,7 @@
 using System;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -112,7 +113,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
         {
             if (node.Statements.Count == 1 &&
                 CanHaveEmbeddedStatement(node.Parent) &&
-                !optionSet.GetOption(CSharpCodeStyleOptions.PreferBraces).Value)
+                optionSet.GetOption(CSharpCodeStyleOptions.PreferBraces).Value == PreferBracesPreference.None)
             {
                 return node.Statements[0];
             }

@@ -2,6 +2,8 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Diagnostics.AddBraces;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
@@ -15,8 +17,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddBraces
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (new CSharpAddBracesDiagnosticAnalyzer(), new CSharpAddBracesCodeFixProvider());
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
-        public async Task DoNotFireForIfWithBraces()
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
+        [InlineData((int)PreferBracesPreference.None)]
+        [InlineData((int)PreferBracesPreference.WhenMultiline)]
+        [InlineData((int)PreferBracesPreference.Always)]
+        public async Task DoNotFireForIfWithBraces(int bracesPreference)
         {
             await TestMissingInRegularAndScriptAsync(
 @"class Program
@@ -28,11 +33,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddBraces
             return;
         }
     }
-}");
+}",
+                new TestParameters(options: Option(CSharpCodeStyleOptions.PreferBraces, (PreferBracesPreference)bracesPreference, NotificationOption.Silent)));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
-        public async Task DoNotFireForElseWithBraces()
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
+        [InlineData((int)PreferBracesPreference.None)]
+        [InlineData((int)PreferBracesPreference.WhenMultiline)]
+        [InlineData((int)PreferBracesPreference.Always)]
+        public async Task DoNotFireForElseWithBraces(int bracesPreference)
         {
             await TestMissingInRegularAndScriptAsync(
 @"class Program
@@ -48,11 +57,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddBraces
             return;
         }
     }
-}");
+}",
+                new TestParameters(options: Option(CSharpCodeStyleOptions.PreferBraces, (PreferBracesPreference)bracesPreference, NotificationOption.Silent)));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
-        public async Task DoNotFireForElseWithChildIf()
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
+        [InlineData((int)PreferBracesPreference.None)]
+        [InlineData((int)PreferBracesPreference.WhenMultiline)]
+        [InlineData((int)PreferBracesPreference.Always)]
+        public async Task DoNotFireForElseWithChildIf(int bracesPreference)
         {
             await TestMissingInRegularAndScriptAsync(
 @"class Program
@@ -64,11 +77,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddBraces
         [|else|] if (false)
             return;
     }
-}");
+}",
+                new TestParameters(options: Option(CSharpCodeStyleOptions.PreferBraces, (PreferBracesPreference)bracesPreference, NotificationOption.Silent)));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
-        public async Task DoNotFireForForWithBraces()
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
+        [InlineData((int)PreferBracesPreference.None)]
+        [InlineData((int)PreferBracesPreference.WhenMultiline)]
+        [InlineData((int)PreferBracesPreference.Always)]
+        public async Task DoNotFireForForWithBraces(int bracesPreference)
         {
             await TestMissingInRegularAndScriptAsync(
 @"class Program
@@ -80,11 +97,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddBraces
             return;
         }
     }
-}");
+}",
+                new TestParameters(options: Option(CSharpCodeStyleOptions.PreferBraces, (PreferBracesPreference)bracesPreference, NotificationOption.Silent)));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
-        public async Task DoNotFireForForEachWithBraces()
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
+        [InlineData((int)PreferBracesPreference.None)]
+        [InlineData((int)PreferBracesPreference.WhenMultiline)]
+        [InlineData((int)PreferBracesPreference.Always)]
+        public async Task DoNotFireForForEachWithBraces(int bracesPreference)
         {
             await TestMissingInRegularAndScriptAsync(
 @"class Program
@@ -96,11 +117,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddBraces
             return;
         }
     }
-}");
+}",
+                new TestParameters(options: Option(CSharpCodeStyleOptions.PreferBraces, (PreferBracesPreference)bracesPreference, NotificationOption.Silent)));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
-        public async Task DoNotFireForWhileWithBraces()
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
+        [InlineData((int)PreferBracesPreference.None)]
+        [InlineData((int)PreferBracesPreference.WhenMultiline)]
+        [InlineData((int)PreferBracesPreference.Always)]
+        public async Task DoNotFireForWhileWithBraces(int bracesPreference)
         {
             await TestMissingInRegularAndScriptAsync(
 @"class Program
@@ -112,11 +137,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddBraces
             return;
         }
     }
-}");
+}",
+                new TestParameters(options: Option(CSharpCodeStyleOptions.PreferBraces, (PreferBracesPreference)bracesPreference, NotificationOption.Silent)));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
-        public async Task DoNotFireForDoWhileWithBraces()
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
+        [InlineData((int)PreferBracesPreference.None)]
+        [InlineData((int)PreferBracesPreference.WhenMultiline)]
+        [InlineData((int)PreferBracesPreference.Always)]
+        public async Task DoNotFireForDoWhileWithBraces(int bracesPreference)
         {
             await TestMissingInRegularAndScriptAsync(
 @"class Program
@@ -129,11 +158,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddBraces
         }
         while (true);
     }
-}");
+}",
+                new TestParameters(options: Option(CSharpCodeStyleOptions.PreferBraces, (PreferBracesPreference)bracesPreference, NotificationOption.Silent)));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
-        public async Task DoNotFireForUsingWithBraces()
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
+        [InlineData((int)PreferBracesPreference.None)]
+        [InlineData((int)PreferBracesPreference.WhenMultiline)]
+        [InlineData((int)PreferBracesPreference.Always)]
+        public async Task DoNotFireForUsingWithBraces(int bracesPreference)
         {
             await TestMissingInRegularAndScriptAsync(
 @"class Program
@@ -153,11 +186,15 @@ class Fizz : IDisposable
     {
         throw new NotImplementedException();
     }
-}");
+}",
+                new TestParameters(options: Option(CSharpCodeStyleOptions.PreferBraces, (PreferBracesPreference)bracesPreference, NotificationOption.Silent)));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
-        public async Task DoNotFireForUsingWithChildUsing()
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
+        [InlineData((int)PreferBracesPreference.None)]
+        [InlineData((int)PreferBracesPreference.WhenMultiline)]
+        [InlineData((int)PreferBracesPreference.Always)]
+        public async Task DoNotFireForUsingWithChildUsing(int bracesPreference)
         {
             await TestMissingInRegularAndScriptAsync(
 @"class Program
@@ -184,11 +221,15 @@ class Buzz : IDisposable
     {
         throw new NotImplementedException();
     }
-}");
+}",
+                new TestParameters(options: Option(CSharpCodeStyleOptions.PreferBraces, (PreferBracesPreference)bracesPreference, NotificationOption.Silent)));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
-        public async Task DoNotFireForLockWithBraces()
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
+        [InlineData((int)PreferBracesPreference.None)]
+        [InlineData((int)PreferBracesPreference.WhenMultiline)]
+        [InlineData((int)PreferBracesPreference.Always)]
+        public async Task DoNotFireForLockWithBraces(int bracesPreference)
         {
             await TestMissingInRegularAndScriptAsync(
 @"class Program
@@ -201,11 +242,15 @@ class Buzz : IDisposable
             return;
         }
     }
-}");
+}",
+                new TestParameters(options: Option(CSharpCodeStyleOptions.PreferBraces, (PreferBracesPreference)bracesPreference, NotificationOption.Silent)));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
-        public async Task DoNotFireForLockWithChildLock()
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
+        [InlineData((int)PreferBracesPreference.None)]
+        [InlineData((int)PreferBracesPreference.WhenMultiline)]
+        [InlineData((int)PreferBracesPreference.Always)]
+        public async Task DoNotFireForLockWithChildLock(int bracesPreference)
         {
             await TestMissingInRegularAndScriptAsync(
 @"class Program
@@ -218,11 +263,15 @@ class Buzz : IDisposable
             lock (str2)
                 return;
     }
-}");
+}",
+                new TestParameters(options: Option(CSharpCodeStyleOptions.PreferBraces, (PreferBracesPreference)bracesPreference, NotificationOption.Silent)));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
-        public async Task DoNotFireForFixedWithChildFixed()
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
+        [InlineData((int)PreferBracesPreference.None)]
+        [InlineData((int)PreferBracesPreference.WhenMultiline)]
+        [InlineData((int)PreferBracesPreference.Always)]
+        public async Task DoNotFireForFixedWithChildFixed(int bracesPreference)
         {
             await TestMissingInRegularAndScriptAsync(
 @"class Program
@@ -234,13 +283,17 @@ class Buzz : IDisposable
         {
         }
     }
-}");
+}",
+                new TestParameters(options: Option(CSharpCodeStyleOptions.PreferBraces, (PreferBracesPreference)bracesPreference, NotificationOption.Silent)));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
-        public async Task FireForFixedWithoutBraces()
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
+        [InlineData((int)PreferBracesPreference.None, false)]
+        [InlineData((int)PreferBracesPreference.WhenMultiline, false)]
+        [InlineData((int)PreferBracesPreference.Always, true)]
+        public async Task FireForFixedWithoutBraces(int bracesPreference, bool expectDiagnostic)
         {
-            await TestInRegularAndScriptAsync(
+            await TestMissingOrInRegularAndScriptAsync(
 @"class Program
 {
     unsafe static void Main()
@@ -260,13 +313,18 @@ class Buzz : IDisposable
             return;
         }
     }
-}");
+}",
+                (PreferBracesPreference)bracesPreference,
+                expectDiagnostic);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
-        public async Task FireForIfWithoutBraces()
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
+        [InlineData((int)PreferBracesPreference.None, false)]
+        [InlineData((int)PreferBracesPreference.WhenMultiline, false)]
+        [InlineData((int)PreferBracesPreference.Always, true)]
+        public async Task FireForIfWithoutBraces(int bracesPreference, bool expectDiagnostic)
         {
-            await TestInRegularAndScriptAsync(
+            await TestMissingOrInRegularAndScriptAsync(
    @"
 class Program
 {
@@ -286,13 +344,18 @@ class Program
             return;
         }
     }
-}");
+}",
+                (PreferBracesPreference)bracesPreference,
+                expectDiagnostic);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
-        public async Task FireForElseWithoutBraces()
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
+        [InlineData((int)PreferBracesPreference.None, false)]
+        [InlineData((int)PreferBracesPreference.WhenMultiline, true)]
+        [InlineData((int)PreferBracesPreference.Always, true)]
+        public async Task FireForElseWithoutBraces(int bracesPreference, bool expectDiagnostic)
         {
-            await TestInRegularAndScriptAsync(
+            await TestMissingOrInRegularAndScriptAsync(
             @"
 class Program
 {
@@ -314,13 +377,18 @@ class Program
             return;
         }
     }
-}");
+}",
+                (PreferBracesPreference)bracesPreference,
+                expectDiagnostic);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
-        public async Task FireForIfNestedInElseWithoutBraces()
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
+        [InlineData((int)PreferBracesPreference.None, false)]
+        [InlineData((int)PreferBracesPreference.WhenMultiline, false)]
+        [InlineData((int)PreferBracesPreference.Always, true)]
+        public async Task FireForIfNestedInElseWithoutBraces(int bracesPreference, bool expectDiagnostic)
         {
-            await TestInRegularAndScriptAsync(
+            await TestMissingOrInRegularAndScriptAsync(
             @"
 class Program
 {
@@ -342,13 +410,18 @@ class Program
             return;
         }
     }
-}");
+}",
+                (PreferBracesPreference)bracesPreference,
+                expectDiagnostic);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
-        public async Task FireForForWithoutBraces()
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
+        [InlineData((int)PreferBracesPreference.None, false)]
+        [InlineData((int)PreferBracesPreference.WhenMultiline, false)]
+        [InlineData((int)PreferBracesPreference.Always, true)]
+        public async Task FireForForWithoutBraces(int bracesPreference, bool expectDiagnostic)
         {
-            await TestInRegularAndScriptAsync(
+            await TestMissingOrInRegularAndScriptAsync(
             @"
 class Program
 {
@@ -368,13 +441,18 @@ class Program
             return;
         }
     }
-}");
+}",
+                (PreferBracesPreference)bracesPreference,
+                expectDiagnostic);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
-        public async Task FireForForEachWithoutBraces()
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
+        [InlineData((int)PreferBracesPreference.None, false)]
+        [InlineData((int)PreferBracesPreference.WhenMultiline, false)]
+        [InlineData((int)PreferBracesPreference.Always, true)]
+        public async Task FireForForEachWithoutBraces(int bracesPreference, bool expectDiagnostic)
         {
-            await TestInRegularAndScriptAsync(
+            await TestMissingOrInRegularAndScriptAsync(
             @"
 class Program
 {
@@ -394,13 +472,18 @@ class Program
             return;
         }
     }
-}");
+}",
+                (PreferBracesPreference)bracesPreference,
+                expectDiagnostic);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
-        public async Task FireForWhileWithoutBraces()
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
+        [InlineData((int)PreferBracesPreference.None, false)]
+        [InlineData((int)PreferBracesPreference.WhenMultiline, false)]
+        [InlineData((int)PreferBracesPreference.Always, true)]
+        public async Task FireForWhileWithoutBraces(int bracesPreference, bool expectDiagnostic)
         {
-            await TestInRegularAndScriptAsync(
+            await TestMissingOrInRegularAndScriptAsync(
             @"
 class Program
 {
@@ -420,13 +503,18 @@ class Program
             return;
         }
     }
-}");
+}",
+                (PreferBracesPreference)bracesPreference,
+                expectDiagnostic);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
-        public async Task FireForDoWhileWithoutBraces()
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
+        [InlineData((int)PreferBracesPreference.None, false)]
+        [InlineData((int)PreferBracesPreference.WhenMultiline, false)]
+        [InlineData((int)PreferBracesPreference.Always, true)]
+        public async Task FireForDoWhileWithoutBraces(int bracesPreference, bool expectDiagnostic)
         {
-            await TestInRegularAndScriptAsync(
+            await TestMissingOrInRegularAndScriptAsync(
             @"
 class Program
 {
@@ -447,13 +535,18 @@ class Program
         }
         while (true);
     }
-}");
+}",
+                (PreferBracesPreference)bracesPreference,
+                expectDiagnostic);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
-        public async Task FireForUsingWithoutBraces()
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
+        [InlineData((int)PreferBracesPreference.None, false)]
+        [InlineData((int)PreferBracesPreference.WhenMultiline, false)]
+        [InlineData((int)PreferBracesPreference.Always, true)]
+        public async Task FireForUsingWithoutBraces(int bracesPreference, bool expectDiagnostic)
         {
-            await TestInRegularAndScriptAsync(
+            await TestMissingOrInRegularAndScriptAsync(
             @"
 class Program
 {
@@ -490,13 +583,18 @@ class Fizz : IDisposable
     {
         throw new NotImplementedException();
     }
-}");
+}",
+                (PreferBracesPreference)bracesPreference,
+                expectDiagnostic);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
-        public async Task FireForUsingWithoutBracesNestedInUsing()
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
+        [InlineData((int)PreferBracesPreference.None, false)]
+        [InlineData((int)PreferBracesPreference.WhenMultiline, false)]
+        [InlineData((int)PreferBracesPreference.Always, true)]
+        public async Task FireForUsingWithoutBracesNestedInUsing(int bracesPreference, bool expectDiagnostic)
         {
-            await TestInRegularAndScriptAsync(
+            await TestMissingOrInRegularAndScriptAsync(
             @"
 class Program
 {
@@ -551,13 +649,18 @@ class Buzz : IDisposable
     {
         throw new NotImplementedException();
     }
-}");
+}",
+                (PreferBracesPreference)bracesPreference,
+                expectDiagnostic);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
-        public async Task FireForLockWithoutBraces()
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
+        [InlineData((int)PreferBracesPreference.None, false)]
+        [InlineData((int)PreferBracesPreference.WhenMultiline, false)]
+        [InlineData((int)PreferBracesPreference.Always, true)]
+        public async Task FireForLockWithoutBraces(int bracesPreference, bool expectDiagnostic)
         {
-            await TestInRegularAndScriptAsync(
+            await TestMissingOrInRegularAndScriptAsync(
             @"
 class Program
 {
@@ -580,13 +683,18 @@ class Program
             return;
         }
     }
-}");
+}",
+                (PreferBracesPreference)bracesPreference,
+                expectDiagnostic);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
-        public async Task FireForLockWithoutBracesNestedInLock()
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
+        [InlineData((int)PreferBracesPreference.None, false)]
+        [InlineData((int)PreferBracesPreference.WhenMultiline, false)]
+        [InlineData((int)PreferBracesPreference.Always, true)]
+        public async Task FireForLockWithoutBracesNestedInLock(int bracesPreference, bool expectDiagnostic)
         {
-            await TestInRegularAndScriptAsync(
+            await TestMissingOrInRegularAndScriptAsync(
             @"
 class Program
 {
@@ -615,7 +723,21 @@ class Program
                 return;
             }
     }
-}");
+}",
+                (PreferBracesPreference)bracesPreference,
+                expectDiagnostic);
+        }
+
+        private async Task TestMissingOrInRegularAndScriptAsync(string initialMarkup, string expectedMarkup, PreferBracesPreference bracesPreference, bool expectDiagnostic)
+        {
+            if (expectDiagnostic)
+            {
+                await TestInRegularAndScriptAsync(initialMarkup, expectedMarkup, options: Option(CSharpCodeStyleOptions.PreferBraces, bracesPreference, NotificationOption.Silent));
+            }
+            else
+            {
+                await TestMissingInRegularAndScriptAsync(initialMarkup, new TestParameters(options: Option(CSharpCodeStyleOptions.PreferBraces, bracesPreference, NotificationOption.Silent)));
+            }
         }
     }
 }

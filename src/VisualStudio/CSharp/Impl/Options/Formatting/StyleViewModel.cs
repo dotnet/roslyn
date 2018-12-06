@@ -1382,7 +1382,7 @@ class C2
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CSharpCodeStyleOptions.UseImplicitTypeWherePossible, CSharpVSResources.Elsewhere, s_varWherePossiblePreviewTrue, s_varWherePossiblePreviewFalse, this, optionSet, varGroupTitle, typeStylePreferences));
 
             // Code block
-            CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CSharpCodeStyleOptions.PreferBraces, ServicesVSResources.Prefer_braces, s_preferBraces, s_preferBraces, this, optionSet, codeBlockPreferencesGroupTitle));
+            AddBracesOptions(optionSet, codeBlockPreferencesGroupTitle);
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CodeStyleOptions.PreferAutoProperties, ServicesVSResources.analyzer_Prefer_auto_properties, s_preferAutoProperties, s_preferAutoProperties, this, optionSet, codeBlockPreferencesGroupTitle));
 
             AddParenthesesOptions(Options);
@@ -1450,6 +1450,25 @@ class C2
                 ServicesVSResources.In_other_operators,
                 new[] { s_otherParenthesesAlwaysForClarity, s_otherParenthesesNeverIfUnnecessary },
                 defaultAddForClarity: false);
+        }
+
+        private void AddBracesOptions(OptionSet optionSet, string bracesPreferenceGroupTitle)
+        {
+            var bracesPreferences = new List<CodeStylePreference>
+            {
+                new CodeStylePreference(ServicesVSResources.Yes, isChecked: false),
+                new CodeStylePreference(ServicesVSResources.No, isChecked: false),
+                new CodeStylePreference(CSharpVSResources.When_on_multiple_lines, isChecked: false),
+            };
+
+            var enumValues = new[] { PreferBracesPreference.Always, PreferBracesPreference.None, PreferBracesPreference.WhenMultiline };
+
+            CodeStyleItems.Add(new EnumCodeStyleOptionViewModel<PreferBracesPreference>(
+                CSharpCodeStyleOptions.PreferBraces,
+                ServicesVSResources.Prefer_braces,
+                enumValues,
+                new[] { s_preferBraces, s_preferBraces, s_preferBraces },
+                this, optionSet, bracesPreferenceGroupTitle, bracesPreferences));
         }
 
         private void AddExpressionBodyOptions(OptionSet optionSet, string expressionPreferencesGroupTitle)
