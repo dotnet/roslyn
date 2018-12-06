@@ -67,8 +67,12 @@ namespace Microsoft.CodeAnalysis
         /// or null if it is unknown or not applicable. 
         /// </summary>
         /// <remarks>
-        /// This only has meaning in C# and is explicitly set to null in VB.
-        /// </remarks>>
+        /// Right now VB doesn't have the concept of "default namespace". But we conjure one in workspace 
+        /// by assigning the value of the project's root namespace to it. So various feature can choose to 
+        /// use it for their own purpose.
+        /// In the future, we might consider officially exposing "default namespace" for VB project 
+        /// (e.g. through a "defaultnamespace" msbuild property)
+        /// </remarks>
         internal string DefaultNamespace => _projectState.DefaultNamespace;
 
         /// <summary>
