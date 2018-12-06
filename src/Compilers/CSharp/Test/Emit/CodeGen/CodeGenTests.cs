@@ -16692,5 +16692,53 @@ static class Program
 none called
 in called");
         }
+
+        [Fact]
+        public void NormalizedNaN()
+        {
+            string source =
+@"using System;
+class Program
+{
+    static void Main()
+    {
+        CheckNaN(double.NaN);
+        CheckNaN(0.0 / 0.0);
+        CheckNaN(0.0 / -0.0);
+        const double inf = 1.0 / 0.0;
+        CheckNaN(inf + double.NaN);
+        CheckNaN(inf - double.NaN);
+        CheckNaN(-double.NaN);
+
+        CheckNaN(float.NaN);
+        CheckNaN(0.0f / 0.0f);
+        CheckNaN(0.0f / -0.0f);
+        const float finf = 1.0f / 0.0f;
+        CheckNaN(finf + float.NaN);
+        CheckNaN(finf - float.NaN);
+        CheckNaN(-float.NaN);
+}
+
+    static void CheckNaN(double nan)
+    {
+        const long expected = unchecked((long)0xFFF8000000000000UL);
+        long actual = BitConverter.DoubleToInt64Bits(nan);
+        if (expected != actual)
+            throw new Exception($""expected=0X{expected:X} actual=0X{actual:X}"");
+    }
+
+    static unsafe void CheckNaN(float nan)
+    {
+        const int expected = unchecked((int)0xFFC00000U);
+        void* p = &nan;
+        int* ip = (int*)p;
+        int actual = *ip;
+        if (expected != actual)
+            throw new Exception($""expected=0X{expected:X} actual=0X{actual:X}"");
+    }
+}
+";
+            var compilation = CompileAndVerify(source, options: TestOptions.ReleaseExe.WithAllowUnsafe(true), verify: Verification.Skipped, expectedOutput: @"");
+        }
     }
 }

@@ -14477,6 +14477,67 @@ Diagnostic(ErrorCode.ERR_MethodReturnCantBeRefAny, "TypedReference").WithArgumen
                 );
         }
 
+        [Fact, WorkItem(27463, "https://github.com/dotnet/roslyn/issues/27463")]
+        public void CS1599ERR_LocalFunctionReturnCantBeRefAny()
+        {
+            var text = @"
+class C
+{
+    public void Goo()
+    {
+        System.TypedReference local1() // 1599
+        {
+            return default;
+        }
+        local1();
+
+        System.RuntimeArgumentHandle local2() // 1599
+        {
+            return default;
+        }
+        local2();
+
+        System.ArgIterator local3() // 1599
+        {
+            return default;
+        }
+        local3();
+    }
+}
+";
+            CreateCompilationWithMscorlib46(text).VerifyDiagnostics(
+                // (6,9): error CS1599: Method or delegate cannot return type 'TypedReference'
+                //         System.TypedReference local1() // 1599
+                Diagnostic(ErrorCode.ERR_MethodReturnCantBeRefAny, "System.TypedReference").WithArguments("System.TypedReference").WithLocation(6, 9),
+                // (12,9): error CS1599: Method or delegate cannot return type 'RuntimeArgumentHandle'
+                //         System.RuntimeArgumentHandle local2() // 1599
+                Diagnostic(ErrorCode.ERR_MethodReturnCantBeRefAny, "System.RuntimeArgumentHandle").WithArguments("System.RuntimeArgumentHandle").WithLocation(12, 9),
+                // (18,9): error CS1599: Method or delegate cannot return type 'ArgIterator'
+                //         System.ArgIterator local3() // 1599
+                Diagnostic(ErrorCode.ERR_MethodReturnCantBeRefAny, "System.ArgIterator").WithArguments("System.ArgIterator").WithLocation(18, 9));
+        }
+
+        [Fact, WorkItem(27463, "https://github.com/dotnet/roslyn/issues/27463")]
+        public void CS1599ERR_LocalFunctionReturnCanBeSpan()
+        {
+            var text = @"
+using System;
+class C
+{
+    static void M()
+    {
+        byte[] bytes = new byte[1];
+        Span<byte> local1()
+        {
+            return new Span<byte>(bytes);
+        }
+        Span<byte> res = local1();
+    }
+}
+";
+            CreateCompilationWithMscorlibAndSpanSrc(text).VerifyDiagnostics();
+        }
+
         [Fact, WorkItem(544910, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544910")]
         public void CS1601ERR_MethodArgCantBeRefAny()
         {
@@ -14523,6 +14584,91 @@ Diagnostic(ErrorCode.ERR_MethodArgCantBeRefAny, "ref TypedReference t1").WithArg
 //         var x = __makeref(r3); // CS1601
 Diagnostic(ErrorCode.ERR_MethodArgCantBeRefAny, "__makeref(r3)").WithArguments("System.RuntimeArgumentHandle")
                  );
+        }
+
+        [Fact, WorkItem(27463, "https://github.com/dotnet/roslyn/issues/27463")]
+        public void CS1599ERR_LocalFunctionParamCantBeRefAny()
+        {
+            var text = @"
+class C
+{
+    public void Goo()
+    {
+        {
+            System.TypedReference _arg = default;
+            void local1(ref System.TypedReference tr) { } // 1601
+            local1(ref _arg);
+
+            void local2(in System.TypedReference tr) { } // 1601
+            local2(in _arg);
+
+            void local3(out System.TypedReference tr) // 1601
+            {
+                tr = default;
+            }
+            local3(out _arg);
+        }
+
+        {
+            System.ArgIterator _arg = default;
+            void local1(ref System.ArgIterator ai) { } // 1601
+            local1(ref _arg);
+
+            void local2(in System.ArgIterator ai) { } // 1601
+            local2(in _arg);
+
+            void local3(out System.ArgIterator ai) // 1601
+            {
+                ai = default;
+            }
+            local3(out _arg);
+        }
+
+        {
+            System.RuntimeArgumentHandle _arg = default;
+            void local1(ref System.RuntimeArgumentHandle ah) { } // 1601
+            local1(ref _arg);
+
+            void local2(in System.RuntimeArgumentHandle ah) { } // 1601
+            local2(in _arg);
+
+            void local3(out System.RuntimeArgumentHandle ah) // 1601
+            {
+                ah = default;
+            }
+            local3(out _arg);
+        }
+    }
+}
+";
+            CreateCompilationWithMscorlib46(text).VerifyDiagnostics(
+                // (8,25): error CS1601: Cannot make reference to variable of type 'TypedReference'
+                //             void local1(ref System.TypedReference tr) { } // 1601
+                Diagnostic(ErrorCode.ERR_MethodArgCantBeRefAny, "ref System.TypedReference tr").WithArguments("System.TypedReference").WithLocation(8, 25),
+                // (11,25): error CS1601: Cannot make reference to variable of type 'TypedReference'
+                //             void local2(in System.TypedReference tr) { } // 1601
+                Diagnostic(ErrorCode.ERR_MethodArgCantBeRefAny, "in System.TypedReference tr").WithArguments("System.TypedReference").WithLocation(11, 25),
+                // (14,25): error CS1601: Cannot make reference to variable of type 'TypedReference'
+                //             void local3(out System.TypedReference tr) // 1601
+                Diagnostic(ErrorCode.ERR_MethodArgCantBeRefAny, "out System.TypedReference tr").WithArguments("System.TypedReference").WithLocation(14, 25),
+                // (23,25): error CS1601: Cannot make reference to variable of type 'ArgIterator'
+                //             void local1(ref System.ArgIterator ai) { } // 1601
+                Diagnostic(ErrorCode.ERR_MethodArgCantBeRefAny, "ref System.ArgIterator ai").WithArguments("System.ArgIterator").WithLocation(23, 25),
+                // (26,25): error CS1601: Cannot make reference to variable of type 'ArgIterator'
+                //             void local2(in System.ArgIterator ai) { } // 1601
+                Diagnostic(ErrorCode.ERR_MethodArgCantBeRefAny, "in System.ArgIterator ai").WithArguments("System.ArgIterator").WithLocation(26, 25),
+                // (29,25): error CS1601: Cannot make reference to variable of type 'ArgIterator'
+                //             void local3(out System.ArgIterator ai) // 1601
+                Diagnostic(ErrorCode.ERR_MethodArgCantBeRefAny, "out System.ArgIterator ai").WithArguments("System.ArgIterator").WithLocation(29, 25),
+                // (38,25): error CS1601: Cannot make reference to variable of type 'RuntimeArgumentHandle'
+                //             void local1(ref System.RuntimeArgumentHandle ah) { } // 1601
+                Diagnostic(ErrorCode.ERR_MethodArgCantBeRefAny, "ref System.RuntimeArgumentHandle ah").WithArguments("System.RuntimeArgumentHandle").WithLocation(38, 25),
+                // (41,25): error CS1601: Cannot make reference to variable of type 'RuntimeArgumentHandle'
+                //             void local2(in System.RuntimeArgumentHandle ah) { } // 1601
+                Diagnostic(ErrorCode.ERR_MethodArgCantBeRefAny, "in System.RuntimeArgumentHandle ah").WithArguments("System.RuntimeArgumentHandle").WithLocation(41, 25),
+                // (44,25): error CS1601: Cannot make reference to variable of type 'RuntimeArgumentHandle'
+                //             void local3(out System.RuntimeArgumentHandle ah) // 1601
+                Diagnostic(ErrorCode.ERR_MethodArgCantBeRefAny, "out System.RuntimeArgumentHandle ah").WithArguments("System.RuntimeArgumentHandle").WithLocation(44, 25));
         }
 
         [WorkItem(542003, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542003")]
@@ -20035,7 +20181,7 @@ namespace UserSpace
         public void MultipleForwardsThatChainResultInTheSameAssemblyShouldStillProduceAnError()
         {
             // The scenario is that assembly A is calling a method from assembly B. This method has a parameter of a type that lives
-            // in assembly C. Now if assembly C is replaced with assembly C2, that forwards the type to both D and E, and D fowards it to E,
+            // in assembly C. Now if assembly C is replaced with assembly C2, that forwards the type to both D and E, and D forwards it to E,
             // it should fail with the appropriate error.
 
             var codeC = @"

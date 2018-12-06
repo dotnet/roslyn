@@ -62,13 +62,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
             Dim mockServiceProvider As MockServiceProvider = ExportProvider.GetExportedValue(Of MockServiceProvider)()
             mockServiceProvider.MockMonitorSelection = New MockShellMonitorSelection(solutionIsFullyLoaded)
             ServiceProvider = mockServiceProvider
-
-            Dim ruleSetFileProvider = New VisualStudioRuleSetManager(
-                New FileChangeWatcher(System.Threading.Tasks.Task.FromResult(DirectCast(ServiceProvider.GetService(GetType(SVsFileChangeEx)), IVsFileChangeEx))),
-                New TestForegroundNotificationService(),
-                AsynchronousOperationListenerProvider.NullListener)
-
-            Dim documentTrackingService = New VisualStudioDocumentTrackingService(ServiceProvider)
         End Sub
 
         <PartNotDiscoverable>
@@ -79,7 +72,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
 
             <ImportingConstructor>
             Public Sub New(exportProvider As Composition.ExportProvider)
-                MyBase.New(exportProvider.AsExportProvider(), exportProvider.GetExportedValue(Of MockServiceProvider))
+                MyBase.New(exportProvider, exportProvider.GetExportedValue(Of MockServiceProvider))
             End Sub
 
             Public Overrides Sub DisplayReferencedSymbols(solution As Microsoft.CodeAnalysis.Solution, referencedSymbols As IEnumerable(Of ReferencedSymbol))

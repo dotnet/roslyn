@@ -58,6 +58,10 @@ async IAsyncEnumerable<int> GetValuesFromServer()
 
 **open issue**: Design async LINQ
 
+### Detailed design for `await using` statement
+
+An asynchronous `using` is lowered just like a regular `using`, except that `Dispose()` is replaced with `await DisposeAsync()`.
+
 ### Detailed design for `await foreach` statement
 
 An `await foreach` is lowered just like a regular `foreach`, except that:
@@ -92,7 +96,8 @@ The state machine for an async-iterator method primarily implements `IAsyncEnume
 It is similar to a state machine produced for an async method. It contains builder and awaiter fields, used to run the state machine in the background (when an `await` is reached in the async-iterator). It also captures parameter values (if any) or `this` (if needed).
 But it contains additional state:
 - a promise of a value-or-end,
-- a current yielded value of type `T`.
+- a current yielded value of type `T`,
+- an `int` capturing the id of the thread that created it.
 
 The central method of the state machine is `MoveNext()`. It gets run by `MoveNextAsync()`, or as a background continuation initiated from these from an `await` in the method.
 
@@ -116,17 +121,46 @@ This is reflected in the implementation, which extends the lowering machinery fo
 ```C#
 ValueTask<bool> MoveNextAsync()
 {
-    if (State == StateMachineStates.FinishedStateMachine)
+    if (state == StateMachineStates.FinishedStateMachine)
     {
         return default(ValueTask<bool>);
     }
-    _valueOrEndPromise.Reset();
+    valueOrEndPromise.Reset();
     var inst = this;
-    _builder.Start(ref inst);
-    return new ValueTask<bool>(this, _valueOrEndPromise.Version);
+    builder.Start(ref inst);
+    return new ValueTask<bool>(this, valueOrEndPromise.Version);
 }
 ```
 
 ```C#
-T Current => _current;
+T Current => current;
+```
+
+The kick-off method and the initialization of the state machine for an async-iterator method follows those for regular iterator methods.
+In particular, the synthesized `GetAsyncEnumerator()` method is like `GetEnuemrator()` except that it sets the initial state to to StateMachineStates.NotStartedStateMachine (-1):
+```C#
+IAsyncEnumerator<T> GetAsyncEnumerator()
+{
+    {StateMachineType} result;
+    if (initialThreadId == /*managedThreadId*/ && state == StateMachineStates.FinishedStateMachine)
+    {
+        state = StateMachineStates.NotStartedStateMachine;
+        result = this;
+    }
+    else
+    {
+        result = new {StateMachineType}(StateMachineStates.NotStartedStateMachine);
+    }
+    /* copy all of the parameter proxies */
+}
+```
+For a discussion of the threadID check, see https://github.com/dotnet/corefx/issues/3481
+
+Similarly, the kick-off method is much like those of regular iterator methods:
+```C#
+{
+    {StateMachineType} result = new {StateMachineType}(StateMachineStates.FinishedStateMachine); // -2
+    /* save parameters into parameter proxies */
+    return result;
+}
 ```

@@ -187,7 +187,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Dynamic type will be erased in emit phase. It is considered equivalent to Object in lowered bound trees.
             // Unused deconstructions are lowered to produce a return value that isn't a tuple type.
             Debug.Assert(visited == null || visited.HasErrors || ReferenceEquals(visited.Type, node.Type) ||
-                    visited.Type.Equals(node.Type, TypeCompareKind.IgnoreDynamicAndTupleNames) ||
+                    visited.Type.Equals(node.Type, TypeCompareKind.IgnoreDynamicAndTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes) ||
                     IsUnusedDeconstruction(node));
 
             if (visited != null && visited != node)
@@ -244,15 +244,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _factory.CompilationState.ModuleBuilderOpt?.EnsureIsUnmanagedAttributeExists();
             }
 
-            bool hasConstraintsWithNullableReferenceTypes = typeParameters.Any(
-               typeParameter => typeParameter.ReferenceTypeConstraintIsNullable == true ||
+            bool constraintsNeedNullableAttribute = typeParameters.Any(
+               typeParameter => (typeParameter.HasReferenceTypeConstraint && typeParameter.ReferenceTypeConstraintIsNullable != null) ||
                                 typeParameter.ConstraintTypesNoUseSiteDiagnostics.Any(
-                                    typeConstraint => typeConstraint.ContainsNullableReferenceTypes()));
+                                    typeConstraint => typeConstraint.NeedsNullableAttribute()));
 
-            bool hasReturnTypeWithNullableReferenceTypes = node.Symbol.ReturnType.ContainsNullableReferenceTypes();
-            bool hasParametersWithNullableReferenceTypes = node.Symbol.ParameterTypes.Any(parameter => parameter.ContainsNullableReferenceTypes());
+            bool returnTypeNeedsNullableAttribute = node.Symbol.ReturnType.NeedsNullableAttribute();
+            bool parametersNeedNullableAttribute = node.Symbol.ParameterTypes.Any(parameter => parameter.NeedsNullableAttribute());
 
-            if (hasConstraintsWithNullableReferenceTypes || hasReturnTypeWithNullableReferenceTypes || hasParametersWithNullableReferenceTypes)
+            if (constraintsNeedNullableAttribute || returnTypeNeedsNullableAttribute || parametersNeedNullableAttribute)
             {
                 _factory.CompilationState.ModuleBuilderOpt?.EnsureNullableAttributeExists();
             }
@@ -878,7 +878,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     new LocalRewritingValidator().Visit(node);
                 }
-                catch (Exception ex) when (StackGuard.IsInsufficientExecutionStackException(ex))
+                catch (InsufficientExecutionStackException)
                 {
                     // Intentionally ignored to let the overflow get caught in a more crucial visitor
                 }

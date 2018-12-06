@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
 using Microsoft.VisualStudio.LanguageServices.ProjectSystem;
+using Microsoft.VisualStudio.Shell.Interop;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.CPS
@@ -27,6 +28,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
         private readonly VisualStudioWorkspaceImpl _visualStudioWorkspace;
         private readonly IProjectCodeModel _projectCodeModel;
         private readonly ProjectExternalErrorReporter _externalErrorReporterOpt;
+        private readonly EditAndContinue.VsENCRebuildableProjectImpl _editAndContinueProject;
 
         public string DisplayName
         {
@@ -64,6 +66,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
             if (visualStudioWorkspace.Services.GetLanguageServices(visualStudioProject.Language).GetService<ICommandLineParserService>() != null)
             {
                 _visualStudioProjectOptionsProcessor = new VisualStudioProjectOptionsProcessor(_visualStudioProject, visualStudioWorkspace.Services);
+            }
+
+            // We don't have a SVsShellDebugger service in unit tests, in that case we can't implement ENC. We're OK
+            // leaving the field null in that case.
+            if (Shell.ServiceProvider.GlobalProvider.GetService(typeof(SVsShellDebugger)) != null)
+            {
+                // TODO: make this lazier, as fetching all the services up front during load shoudn't be necessary
+                _editAndContinueProject = new EditAndContinue.VsENCRebuildableProjectImpl(_visualStudioWorkspace, _visualStudioProject, Shell.ServiceProvider.GlobalProvider);
             }
 
             Guid = projectGuid;
@@ -120,6 +130,25 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
             if (_visualStudioProjectOptionsProcessor != null)
             {
                 _visualStudioProjectOptionsProcessor.CommandLine = commandLineForOptions;
+            }
+        }
+
+        public string DefaultNamespace
+        {
+            get => _visualStudioProject.DefaultNamespace;
+            private set => _visualStudioProject.DefaultNamespace = value;
+        }
+
+        public void SetProperty(string name, string value)
+        {
+            if (name == AdditionalPropertyNames.RootNamespace)
+            {
+                // Right now VB doesn't have the concept of "default namespace". But we conjure one in workspace 
+                // by assigning the value of the project's root namespace to it. So various feature can choose to 
+                // use it for their own purpose.
+                // In the future, we might consider officially exposing "default namespace" for VB project 
+                // (e.g. through a <defaultnamespace> msbuild property)
+                DefaultNamespace = value;
             }
         }
 
@@ -186,10 +215,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
 
         public void AddDynamicFile(string filePath, IEnumerable<string> folderNames = null)
         {
+            _visualStudioProject.AddDynamicSourceFile(filePath, folderNames.ToImmutableArrayOrEmpty());
         }
 
-        public void RemoveDynamicFile(string fullPath)
+        public void RemoveDynamicFile(string filePath)
         {
+            _visualStudioProject.RemoveDynamicSourceFile(filePath);
         }
 
         public void SetRuleSetFile(string filePath)

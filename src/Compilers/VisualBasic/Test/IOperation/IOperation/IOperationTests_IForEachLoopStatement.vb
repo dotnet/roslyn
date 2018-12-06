@@ -133,7 +133,7 @@ IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 0, Exit Label Id: 1)
     IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'For Each y  ... Next')
       IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'If y = "B"c ... End If')
         Condition: 
-          IBinaryOperation (BinaryOperatorKind.Equals, Checked) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'y = "B"c')
+          IBinaryOperation (BinaryOperatorKind.Equals, Checked) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'y = "B"c')
             Left: 
               ILocalReferenceOperation: y (OperationKind.LocalReference, Type: System.Char) (Syntax: 'y')
             Right: 
@@ -201,7 +201,7 @@ IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 0, Exit Label Id: 1)
           IBlockOperation (2 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'For Each y  ... Next y, x')
             IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'If y = "B"c ... End If')
               Condition: 
-                IBinaryOperation (BinaryOperatorKind.Equals, Checked) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'y = "B"c')
+                IBinaryOperation (BinaryOperatorKind.Equals, Checked) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'y = "B"c')
                   Left: 
                     ILocalReferenceOperation: y (OperationKind.LocalReference, Type: System.Char) (Syntax: 'y')
                   Right: 
@@ -556,9 +556,9 @@ IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 0, Exit Label Id: 1)
               null
             Arguments(1):
                 IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: message) (OperationKind.Argument, Type: null) (Syntax: 'country.Cou ... untry.Count')
-                  IBinaryOperation (BinaryOperatorKind.Concatenate, Checked) (OperationKind.BinaryOperator, Type: System.String) (Syntax: 'country.Cou ... untry.Count')
+                  IBinaryOperation (BinaryOperatorKind.Concatenate, Checked) (OperationKind.Binary, Type: System.String) (Syntax: 'country.Cou ... untry.Count')
                     Left: 
-                      IBinaryOperation (BinaryOperatorKind.Concatenate, Checked) (OperationKind.BinaryOperator, Type: System.String) (Syntax: 'country.Cou ... & " count="')
+                      IBinaryOperation (BinaryOperatorKind.Concatenate, Checked) (OperationKind.Binary, Type: System.String) (Syntax: 'country.Cou ... & " count="')
                         Left: 
                           IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key CountryName As System.String, Key CustomersInCountry As System.Collections.Generic.IEnumerable(Of Customer), Key Count As System.Int32>.CountryName As System.String (OperationKind.PropertyReference, Type: System.String) (Syntax: 'country.CountryName')
                             Instance Receiver: 
@@ -593,11 +593,11 @@ IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 0, Exit Label Id: 1)
                     null
                   Arguments(1):
                       IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: message) (OperationKind.Argument, Type: null) (Syntax: '"   " & cus ... stomer.City')
-                        IBinaryOperation (BinaryOperatorKind.Concatenate, Checked) (OperationKind.BinaryOperator, Type: System.String) (Syntax: '"   " & cus ... stomer.City')
+                        IBinaryOperation (BinaryOperatorKind.Concatenate, Checked) (OperationKind.Binary, Type: System.String) (Syntax: '"   " & cus ... stomer.City')
                           Left: 
-                            IBinaryOperation (BinaryOperatorKind.Concatenate, Checked) (OperationKind.BinaryOperator, Type: System.String) (Syntax: '"   " & cus ... Name & "  "')
+                            IBinaryOperation (BinaryOperatorKind.Concatenate, Checked) (OperationKind.Binary, Type: System.String) (Syntax: '"   " & cus ... Name & "  "')
                               Left: 
-                                IBinaryOperation (BinaryOperatorKind.Concatenate, Checked) (OperationKind.BinaryOperator, Type: System.String) (Syntax: '"   " & cus ... CompanyName')
+                                IBinaryOperation (BinaryOperatorKind.Concatenate, Checked) (OperationKind.Binary, Type: System.String) (Syntax: '"   " & cus ... CompanyName')
                                   Left: 
                                     ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "   ") (Syntax: '"   "')
                                   Right: 
@@ -956,7 +956,7 @@ IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 0, Exit Label Id: 1)
         Condition: 
           IParenthesizedOperation (OperationKind.Parenthesized, Type: System.Boolean) (Syntax: '(s = "one")')
             Operand: 
-              IBinaryOperation (BinaryOperatorKind.Equals, Checked) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 's = "one"')
+              IBinaryOperation (BinaryOperatorKind.Equals, Checked) (OperationKind.Binary, Type: System.Boolean) (Syntax: 's = "one"')
                 Left: 
                   ILocalReferenceOperation: s (OperationKind.LocalReference, Type: System.String) (Syntax: 's')
                 Right: 
@@ -1014,7 +1014,7 @@ IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 0, Exit Label Id: 1)
     IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'For Each o  ... Next')
       IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'If o IsNot  ... Return True')
         Condition: 
-          IBinaryOperation (BinaryOperatorKind.NotEquals) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'o IsNot Nothing')
+          IBinaryOperation (BinaryOperatorKind.NotEquals) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'o IsNot Nothing')
             Left: 
               ILocalReferenceOperation: o (OperationKind.LocalReference, Type: System.Object) (Syntax: 'o')
             Right: 

@@ -18,8 +18,10 @@
   <Import Project="RepoToolset\ProjectLayout.props" />
   <Import Project="RepoToolset\DefaultVersions.props"/>
   <Import Project="RepoToolset\ProjectDefaults.props" />
+  <Import Project="RepoToolset\BuildTasks.props" />
   <Import Project="RepoToolset\StrongName.props" />
   <Import Project="RepoToolset\VisualStudio.props"/>
+  <Import Project="RepoToolset\Tests.props" />
   <Import Project="Tools.props" />
 
   <PropertyGroup>
@@ -27,7 +29,7 @@
     <DisableImplicitNuGetFallbackFolder>true</DisableImplicitNuGetFallbackFolder>
     <ToolsetPackagesDir>$(RepoRoot)build\ToolsetPackages\</ToolsetPackagesDir>
 
-    <RoslynPortableTargetFrameworks>net46;netcoreapp2.1</RoslynPortableTargetFrameworks>
+    <RoslynPortableTargetFrameworks>net472;netcoreapp2.1</RoslynPortableTargetFrameworks>
     <RoslynPortableRuntimeIdentifiers>win;win-x64;linux-x64;osx-x64</RoslynPortableRuntimeIdentifiers>
     <RoslynDesktopRuntimeIdentifier>win</RoslynDesktopRuntimeIdentifier>
     <RoslynDesktopRuntimeIdentifierX86>win-x86</RoslynDesktopRuntimeIdentifierX86>
@@ -39,13 +41,17 @@
     <GenerateFullPaths>true</GenerateFullPaths>
     <UseRoslynAnalyzers Condition="'$(UseRoslynAnalyzers)' == ''">true</UseRoslynAnalyzers>
 
+    <!-- Set to non-existent file to prevent common targets from importing Microsoft.CodeAnalysis.targets -->
+    <CodeAnalysisTargets>*none*</CodeAnalysisTargets>
+
     <ThirdPartyNoticesFilePath>$(MSBuildThisFileDirectory)..\..\src\NuGet\ThirdPartyNotices.rtf</ThirdPartyNoticesFilePath>    
-    <TargetFrameworkRootPath>$(NuGetPackageRoot)\roslyntools.referenceassemblies\$(RoslynToolsReferenceAssembliesVersion)\tools\framework</TargetFrameworkRootPath>
+    <IbcOptimizationDataDir>$(NuGetPackageRoot)roslyndependencies.optimizationdata\$(RoslynDependenciesOptimizationDataVersion)\content\OptimizationData\</IbcOptimizationDataDir>
 
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">15.0</VisualStudioVersion>
     <VisualStudioReferenceMajorVersion Condition="'$(VisualStudioReferenceMajorVersion)' == ''">$(VisualStudioVersion.Substring($([System.Convert]::ToInt32(0)), $(VisualStudioVersion.IndexOf('.'))))</VisualStudioReferenceMajorVersion>
     <VisualStudioReferenceAssemblyVersion Condition="'$(VisualStudioReferenceAssemblyVersion)' == ''">$(VisualStudioReferenceMajorVersion).0.0.0</VisualStudioReferenceAssemblyVersion>
     <MinimumVisualStudioVersion>$(VisualStudioVersion)</MinimumVisualStudioVersion>
+    <MinimumMSBuildVersion>15.7.0</MinimumMSBuildVersion>
 
     <!-- Disable AppX packaging for the Roslyn source. Not setting this to false has the side effect
          that any builds of portable projects end up in a sub folder of $(OutputPath). Search for this flag in
@@ -71,7 +77,19 @@
     <CustomBeforeMicrosoftCommonTargets>$(MSBuildThisFileDirectory)\BeforeCommonTargets.targets</CustomBeforeMicrosoftCommonTargets>
     <CustomAfterMicrosoftCommonTargets>$(MSBuildThisFileDirectory)\AfterCommonTargets.targets</CustomAfterMicrosoftCommonTargets>
   </PropertyGroup>
-  
+
+  <PropertyGroup Condition="'$(IsTestProject)' == 'true'" >
+    <!--
+      Choose default target frameworks to use for testing on Mono and Core.
+      These may be overriden by projects that need to be skipped.
+    -->
+    <TestTargetFrameworks Condition="'$(TestRuntime)' == 'Mono'">net46;net472</TestTargetFrameworks>
+    <TestTargetFrameworks Condition="'$(TestRuntime)' == 'Core'">netcoreapp2.1</TestTargetFrameworks>
+
+    <XUnitDesktopSettingsFile>$(MSBuildThisFileDirectory)..\config\xunit.runner.json</XUnitDesktopSettingsFile>
+    <XUnitCoreSettingsFile>$(MSBuildThisFileDirectory)..\config\xunit.runner.json</XUnitCoreSettingsFile>
+  </PropertyGroup>
+
   <!-- Keys used by InternalsVisibleTo attributes. -->
   <PropertyGroup>
     <MoqPublicKey>0024000004800000940000000602000000240000525341310004000001000100c547cac37abd99c8db225ef2f6c8a3602f3b3606cc9891605d02baa56104f4cfc0734aa39b93bf7852f7d9266654753cc297e7d2edfe0bac1cdcf9f717241550e0a7b191195b7667bb4f64bcb8e2121380fd1d9d46ad2d92d2d15605093924cceaf74c4861eff62abf69b9291ed0a340e113be11e6a7d3113e92484cf7045cc7</MoqPublicKey>
@@ -137,12 +155,6 @@
   <UsingTask TaskName="Microsoft.CodeAnalysis.BuildTasks.ValidateBootstrap"
              AssemblyFile="$(RoslynToolsetDirectory)tools\Microsoft.Build.Tasks.CodeAnalysis.dll"
              Condition="'$(BootstrapBuildPath)' != ''" />
-  <UsingTask TaskName="Roslyn.MSBuild.Util.FindNuGetAssetsForVsix"
-             AssemblyFile="$(NuGetPackageRoot)Roslyn.Build.Util\$(RoslynBuildUtilVersion)\lib\net46\Roslyn.MSBuild.Util.dll"
-             Condition="'$(OS)' == 'Windows_NT'" />
-  <UsingTask TaskName="Roslyn.MSBuild.Util.ValidateBuildEnvironment"
-             AssemblyFile="$(NuGetPackageRoot)Roslyn.Build.Util\$(RoslynBuildUtilVersion)\lib\net46\Roslyn.MSBuild.Util.dll"
-             Condition="'$(OS)' == 'Windows_NT'" />
 
   <ItemGroup>
     <PackageReference Include="Microsoft.CodeQuality.Analyzers" Version="$(MicrosoftCodeQualityAnalyzersVersion)" PrivateAssets="all" />

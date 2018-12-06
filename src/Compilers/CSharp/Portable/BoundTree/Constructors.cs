@@ -68,7 +68,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return ((BoundFieldAccess)receiver).IsByValue;
 
                 case BoundKind.Local:
-                    return !((BoundLocal)receiver).LocalSymbol.IsWritableVariable;
+                    var localSymbol = ((BoundLocal)receiver).LocalSymbol;
+                    return !(localSymbol.IsWritableVariable || localSymbol.IsRef);
 
                 default:
                     return false;
@@ -335,11 +336,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             : this(
                 syntax,
                 operatorKind,
-                left,
-                right,
                 constantValueOpt,
                 methodOpt,
                 resultKind,
+                left,
+                right,
                 type,
                 hasErrors)
         {
@@ -364,12 +365,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             : this(
                 syntax,
                 operatorKind,
-                left,
-                right,
                 logicalOperator,
                 trueOperator,
                 falseOperator,
                 resultKind,
+                left,
+                right,
                 type,
                 hasErrors)
         {

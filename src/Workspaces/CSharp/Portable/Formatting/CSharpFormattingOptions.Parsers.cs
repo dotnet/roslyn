@@ -80,9 +80,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         }
 
         private static NewLineOption? ConvertToNewLineOption(string value)
-            => s_newLineOptionsEditorConfigMap.TryGetValue(value, out var option)
-               ? option
-               : (NewLineOption?)null;
+        { 
+            if (s_newLineOptionsEditorConfigMap.TryGetValue(value, out var option)) {
+                return option;
+            }
+            if (s_legacyNewLineOptionsEditorConfigMap.TryGetValue(value, out var legacyOption))
+            {
+                return legacyOption;
+            }
+            return null;
+        }
 
         private static string GetNewLineOptionEditorConfigString(OptionSet optionSet)
         {

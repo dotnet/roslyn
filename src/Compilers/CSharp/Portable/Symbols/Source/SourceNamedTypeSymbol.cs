@@ -748,11 +748,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // NullableAttribute should not be set explicitly.
                 arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitNullableAttribute, arguments.AttributeSyntaxOpt.Location);
             }
-            else if (attribute.IsTargetAttribute(this, AttributeDescription.NonNullTypesAttribute))
-            {
-                // NonNullTypesAttribute should not be set explicitly.
-                arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitNonNullTypesAttribute, arguments.AttributeSyntaxOpt.Location);
-            }
             else
             {
                 var compilation = this.DeclaringCompilation;
@@ -1224,17 +1219,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     AddSynthesizedAttribute(ref attributes, compilation.SynthesizeTupleNamesAttribute(baseType));
                 }
 
-                if (baseType.ContainsNullableReferenceTypes())
+                if (baseType.NeedsNullableAttribute())
                 {
                     AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeNullableAttribute(this, TypeSymbolWithAnnotations.Create(baseType)));
                 }
-            }
-
-            bool? nonNullTypes = NonNullTypes;
-            if (nonNullTypes.HasValue && nonNullTypes != ((Symbol)ContainingType ?? ContainingModule).NonNullTypes)
-            {
-                AddSynthesizedAttribute(ref attributes,
-                                        compilation.TrySynthesizeNonNullTypesAttribute(nonNullTypes.GetValueOrDefault()));
             }
         }
 

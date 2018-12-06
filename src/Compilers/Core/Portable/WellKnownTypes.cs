@@ -276,9 +276,6 @@ namespace Microsoft.CodeAnalysis
         System_Runtime_CompilerServices_IsUnmanagedAttribute,
 
         Microsoft_VisualBasic_Conversion,
-        System_Runtime_CompilerServices_NonNullTypesAttribute,
-        System_AttributeTargets,
-        Microsoft_CodeAnalysis_EmbeddedAttribute,
 
         System_Index,
         System_Range,
@@ -286,13 +283,13 @@ namespace Microsoft.CodeAnalysis
         System_IAsyncDisposable,
         System_Collections_Generic_IAsyncEnumerable_T,
         System_Collections_Generic_IAsyncEnumerator_T,
-        System_Threading_Tasks_ManualResetValueTaskSourceLogic_T,
-        System_Runtime_CompilerServices_IStrongBox_T,
+        System_Threading_Tasks_Sources_ManualResetValueTaskSourceCore_T,
         System_Threading_Tasks_Sources_ValueTaskSourceStatus,
         System_Threading_Tasks_Sources_ValueTaskSourceOnCompletedFlags,
         System_Threading_Tasks_Sources_IValueTaskSource_T,
         System_Threading_Tasks_ValueTask_T,
         System_Threading_Tasks_ValueTask,
+        System_Runtime_CompilerServices_AsyncIteratorMethodBuilder,
 
         NextAvailable,
     }
@@ -564,9 +561,6 @@ namespace Microsoft.CodeAnalysis
             "System.Runtime.CompilerServices.IsUnmanagedAttribute",
 
             "Microsoft.VisualBasic.Conversion",
-            "System.Runtime.CompilerServices.NonNullTypesAttribute",
-            "System.AttributeTargets",
-            "Microsoft.CodeAnalysis.EmbeddedAttribute",
 
             "System.Index",
             "System.Range",
@@ -574,13 +568,13 @@ namespace Microsoft.CodeAnalysis
             "System.IAsyncDisposable",
             "System.Collections.Generic.IAsyncEnumerable`1",
             "System.Collections.Generic.IAsyncEnumerator`1",
-            "System.Threading.Tasks.ManualResetValueTaskSourceLogic`1",
-            "System.Runtime.CompilerServices.IStrongBox`1",
+            "System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore`1",
             "System.Threading.Tasks.Sources.ValueTaskSourceStatus",
             "System.Threading.Tasks.Sources.ValueTaskSourceOnCompletedFlags",
             "System.Threading.Tasks.Sources.IValueTaskSource`1",
             "System.Threading.Tasks.ValueTask`1",
             "System.Threading.Tasks.ValueTask",
+            "System.Runtime.CompilerServices.AsyncIteratorMethodBuilder",
         };
 
         private readonly static Dictionary<string, WellKnownType> s_nameToTypeIdMap = new Dictionary<string, WellKnownType>((int)Count);

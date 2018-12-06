@@ -214,7 +214,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 typeSymbol = DynamicTypeDecoder.TransformType(typeSymbol, customModifiersArray.Length, _handle, moduleSymbol);
 
                 // We start without annotations
-                var type = TypeSymbolWithAnnotations.Create(nonNullTypesContext: this, typeSymbol, customModifiers: customModifiersArray);
+                var type = TypeSymbolWithAnnotations.Create(typeSymbol, customModifiers: customModifiersArray);
 
                 // Decode nullable before tuple types to avoid converting between
                 // NamedTypeSymbol and TupleTypeSymbol unnecessarily.
@@ -273,7 +273,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             return _lazyType.ToType();
         }
 
-        public override bool IsFixed
+        public override bool IsFixedSizeBuffer
         {
             get
             {
@@ -511,10 +511,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             get
             {
-                var moduleSymbol = _containingType.ContainingPEModule;
-                bool optOut;
-
-                return moduleSymbol.Module.HasNonNullTypesAttribute(_handle, out optOut) ? optOut : base.NonNullTypes;
+                throw ExceptionUtilities.Unreachable;
             }
         }
     }

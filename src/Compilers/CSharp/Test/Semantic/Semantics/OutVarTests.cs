@@ -5531,7 +5531,7 @@ True");
 @"
 IFieldInitializerOperation (Field: System.Boolean X.Test1) (OperationKind.FieldInitializer, Type: null) (Syntax: '= TakeOutPa ... & Dummy(x1)')
   Locals: Local_1: System.Int32 x1
-  IBinaryOperation (BinaryOperatorKind.ConditionalAnd) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'TakeOutPara ... & Dummy(x1)')
+  IBinaryOperation (BinaryOperatorKind.ConditionalAnd) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'TakeOutPara ... & Dummy(x1)')
     Left: 
       IInvocationOperation (System.Boolean X.TakeOutParam(System.Int32 y, out System.Int32 x)) (OperationKind.Invocation, Type: System.Boolean) (Syntax: 'TakeOutPara ... out int x1)')
         Instance Receiver: 
@@ -10976,7 +10976,7 @@ public class X
 @"
 IParameterInitializerOperation (Parameter: [System.Boolean p = default(System.Boolean)]) (OperationKind.ParameterInitializer, Type: null, IsInvalid) (Syntax: '= TakeOutPa ... ) && x3 > 0')
   Locals: Local_1: System.Int32 x3
-  IBinaryOperation (BinaryOperatorKind.ConditionalAnd) (OperationKind.BinaryOperator, Type: System.Boolean, IsInvalid) (Syntax: 'TakeOutPara ... ) && x3 > 0')
+  IBinaryOperation (BinaryOperatorKind.ConditionalAnd) (OperationKind.Binary, Type: System.Boolean, IsInvalid) (Syntax: 'TakeOutPara ... ) && x3 > 0')
     Left: 
       IInvocationOperation (System.Boolean X.TakeOutParam(System.Int32 y, out System.Int32 x)) (OperationKind.Invocation, Type: System.Boolean, IsInvalid) (Syntax: 'TakeOutPara ... out int x3)')
         Instance Receiver: 
@@ -10992,7 +10992,7 @@ IParameterInitializerOperation (Parameter: [System.Boolean p = default(System.Bo
               InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
               OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
     Right: 
-      IBinaryOperation (BinaryOperatorKind.GreaterThan) (OperationKind.BinaryOperator, Type: System.Boolean, IsInvalid) (Syntax: 'x3 > 0')
+      IBinaryOperation (BinaryOperatorKind.GreaterThan) (OperationKind.Binary, Type: System.Boolean, IsInvalid) (Syntax: 'x3 > 0')
         Left: 
           ILocalReferenceOperation: x3 (OperationKind.LocalReference, Type: System.Int32, IsInvalid) (Syntax: 'x3')
         Right: 
@@ -11234,7 +11234,7 @@ True");
 @"
 IPropertyInitializerOperation (Property: System.Boolean X.Test1 { get; }) (OperationKind.PropertyInitializer, Type: null) (Syntax: '= TakeOutPa ... & Dummy(x1)')
   Locals: Local_1: System.Int32 x1
-  IBinaryOperation (BinaryOperatorKind.ConditionalAnd) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'TakeOutPara ... & Dummy(x1)')
+  IBinaryOperation (BinaryOperatorKind.ConditionalAnd) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'TakeOutPara ... & Dummy(x1)')
     Left: 
       IInvocationOperation (System.Boolean X.TakeOutParam(System.Int32 y, out System.Int32 x)) (OperationKind.Invocation, Type: System.Boolean) (Syntax: 'TakeOutPara ... out int x1)')
         Instance Receiver: 
@@ -34263,7 +34263,7 @@ IBlockOperation (1 statements, 1 locals) (OperationKind.Block, Type: null, IsInv
               OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ");
             IOperation blockBodyOperation = model.GetOperation(blockBodySyntax);
-            Assert.Equal(OperationKind.ConstructorBodyOperation, blockBodyOperation.Parent.Kind);
+            Assert.Equal(OperationKind.ConstructorBody, blockBodyOperation.Parent.Kind);
             Assert.Same(initializerOperation.Parent.Parent, blockBodyOperation.Parent);
             Assert.Null(blockBodyOperation.Parent.Parent);
 
@@ -34296,7 +34296,7 @@ IBlockOperation (1 statements, 1 locals) (OperationKind.Block, Type: null, IsInv
 
             compilation.VerifyOperationTree(declarationSyntax, expectedOperationTree:
 @"
-IConstructorBodyOperation (OperationKind.ConstructorBodyOperation, Type: null, IsInvalid) (Syntax: 'C() : this( ... out var z);')
+IConstructorBodyOperation (OperationKind.ConstructorBody, Type: null, IsInvalid) (Syntax: 'C() : this( ... out var z);')
   Locals: Local_1: System.Int32 x
   Initializer: 
     IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid, IsImplicit) (Syntax: ': this(out var x)')
@@ -34384,7 +34384,7 @@ IBlockOperation (1 statements, 1 locals) (OperationKind.Block, Type: null, IsInv
               OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ");
             IOperation expressionBodyOperation = model.GetOperation(expressionBodySyntax);
-            Assert.Equal(OperationKind.MethodBodyOperation, expressionBodyOperation.Parent.Kind);
+            Assert.Equal(OperationKind.MethodBody, expressionBodyOperation.Parent.Kind);
             Assert.Null(expressionBodyOperation.Parent.Parent);
 
             var blockBodySyntax = tree.GetRoot().DescendantNodes().OfType<BlockSyntax>().First();
@@ -34420,7 +34420,7 @@ IBlockOperation (1 statements, 1 locals) (OperationKind.Block, Type: null, IsInv
             Assert.Same(expressionBodyOperation.Parent, model.GetOperation(declarationSyntax));
             compilation.VerifyOperationTree(declarationSyntax, expectedOperationTree:
 @"
-IMethodBodyOperation (OperationKind.MethodBodyOperation, Type: null, IsInvalid) (Syntax: 'get {return ... out var y);')
+IMethodBodyOperation (OperationKind.MethodBody, Type: null, IsInvalid) (Syntax: 'get {return ... out var y);')
   BlockBody: 
     IBlockOperation (1 statements, 1 locals) (OperationKind.Block, Type: null, IsInvalid) (Syntax: '{return M(out var x);}')
       Locals: Local_1: System.Int32 x
@@ -34493,6 +34493,53 @@ IBlockOperation (1 statements, 1 locals) (OperationKind.Block, Type: null) (Synt
 ");
             Assert.Null(model.GetOperation(node3).Parent);
         }
+
+        [Fact]
+        public void OutVarInConstructorUsedInObjectInitializer()
+        {
+            var source =
+@"
+public class C
+{
+    public int Number { get; set; }
+    
+    public C(out int n)
+    {
+        n = 1;
+    }
+
+    public static void Main()
+    {
+        C c = new C(out var i) { Number = i };
+        System.Console.WriteLine(c.Number);
+    }
+}
+";
+            CompileAndVerify(source, expectedOutput: @"1");
+        }
+
+        [Fact]
+        public void OutVarInConstructorUsedInCollectionInitializer()
+        {
+            var source =
+@"
+public class C : System.Collections.Generic.List<int>
+{
+    public C(out int n)
+    {
+        n = 1;
+    }
+
+    public static void Main()
+    {
+        C c = new C(out var i) { i, i, i };
+        System.Console.WriteLine(c[0]);
+    }
+}
+";
+            CompileAndVerify(source, expectedOutput: @"1");
+        }
+
     }
 
     internal static class OutVarTestsExtensions

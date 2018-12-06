@@ -540,7 +540,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     SetGlobalErrorIfTrue(constantValue == null || constantValue.IsBad);
                                 }
 
-                                if (fieldSymbol.IsFixed && compilationState.Emitting)
+                                if (fieldSymbol.IsFixedSizeBuffer && compilationState.Emitting)
                                 {
                                     // force the generation of implementation types for fixed-size buffers
                                     TypeSymbol discarded = fieldSymbol.FixedImplementationType(compilationState.ModuleBuilderOpt);
@@ -934,7 +934,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     body = BoundBlock.SynthesizedNoLocals(initializerStatements.Syntax, initializerStatements.Statements);
 
                     var unusedDiagnostics = DiagnosticBag.GetInstance();
-                    DataFlowPass.Analyze(_compilation, methodSymbol, initializerStatements, unusedDiagnostics, requireOutParamsAssigned: false);
+                    DefiniteAssignmentPass.Analyze(_compilation, methodSymbol, initializerStatements, unusedDiagnostics, requireOutParamsAssigned: false);
                     DiagnosticsPass.IssueDiagnostics(_compilation, initializerStatements, unusedDiagnostics, methodSymbol);
                     unusedDiagnostics.Free();
                 }
@@ -967,7 +967,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 // Flow analysis over the initializers is necessary in order to find assignments to fields.
                                 // Bodies of implicit constructors do not get flow analysis later, so the initializers
                                 // are analyzed here.
-                                DataFlowPass.Analyze(_compilation, methodSymbol, analyzedInitializers, diagsForCurrentMethod, requireOutParamsAssigned: false);
+                                DefiniteAssignmentPass.Analyze(_compilation, methodSymbol, analyzedInitializers, diagsForCurrentMethod, requireOutParamsAssigned: false);
                             }
 
                             // In order to get correct diagnostics, we need to analyze initializers and the body together.
@@ -979,7 +979,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             // These analyses check for diagnostics in lambdas.
                             // Control flow analysis and implicit return insertion are unnecessary.
-                            DataFlowPass.Analyze(_compilation, methodSymbol, analyzedInitializers, diagsForCurrentMethod, requireOutParamsAssigned: false);
+                            DefiniteAssignmentPass.Analyze(_compilation, methodSymbol, analyzedInitializers, diagsForCurrentMethod, requireOutParamsAssigned: false);
                             DiagnosticsPass.IssueDiagnostics(_compilation, analyzedInitializers, diagsForCurrentMethod, methodSymbol);
                         }
                     }

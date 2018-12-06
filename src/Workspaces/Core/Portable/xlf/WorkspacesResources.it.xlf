@@ -12,6 +12,11 @@
         <target state="new">C# files</target>
         <note />
       </trans-unit>
+      <trans-unit id="Changing_document_0_is_not_supported">
+        <source>Changing document '{0}' is not supported.</source>
+        <target state="new">Changing document '{0}' is not supported.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Core_EditorConfig_Options">
         <source>Core EditorConfig Options</source>
         <target state="new">Core EditorConfig Options</target>
@@ -50,6 +55,11 @@
       <trans-unit id="Organize_usings">
         <source>Organize usings</source>
         <target state="new">Organize usings</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Parameter_preferences">
+        <source>Parameter preferences</source>
+        <target state="new">Parameter preferences</target>
         <note />
       </trans-unit>
       <trans-unit id="Parentheses_preferences">
@@ -359,7 +369,7 @@
       </trans-unit>
       <trans-unit id="Arrays_with_more_than_one_dimension_cannot_be_serialized">
         <source>Arrays with more than one dimension cannot be serialized.</source>
-        <target state="translated">Non è possibile serializzare le matrice con più di una dimensione.</target>
+        <target state="translated">Non è possibile serializzare le matrici con più di una dimensione.</target>
         <note />
       </trans-unit>
       <trans-unit id="Value_too_large_to_be_represented_as_a_30_bit_unsigned_integer">

@@ -107,8 +107,11 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
             using (var workspace = CreateMSBuildWorkspace())
             {
                 var project = await workspace.OpenProjectAsync(projectFilePath);
+                AssertFailures(workspace);
+
                 var hasFacades = project.MetadataReferences.OfType<PortableExecutableReference>().Any(r => r.FilePath.Contains("Facade"));
-                Assert.True(hasFacades);
+                Assert.True(hasFacades, userMessage: "Expected to find facades in the project references:" + Environment.NewLine + 
+                    string.Join(Environment.NewLine, project.MetadataReferences.OfType<PortableExecutableReference>().Select(r => r.FilePath)));
             }
         }
 
@@ -3517,13 +3520,12 @@ class C { }";
 
                 var projectFilePath = GetSolutionFileName(@"CSharpProject\CSharpProject.csproj");
 
-                var properties = ImmutableDictionary<string, string>.Empty;
-                var buildManager = new ProjectBuildManager();
-                buildManager.Start();
+                var buildManager = new ProjectBuildManager(ImmutableDictionary<string, string>.Empty);
+                buildManager.StartBatchBuild();
 
-                var projectFile = await loader.LoadProjectFileAsync(projectFilePath, properties, buildManager, CancellationToken.None);
+                var projectFile = await loader.LoadProjectFileAsync(projectFilePath, buildManager, CancellationToken.None);
                 var projectFileInfo = (await projectFile.GetProjectFileInfosAsync(CancellationToken.None)).Single();
-                buildManager.Stop();
+                buildManager.EndBatchBuild();
 
                 var commandLineParser = workspace.Services
                     .GetLanguageServices(loader.Language)

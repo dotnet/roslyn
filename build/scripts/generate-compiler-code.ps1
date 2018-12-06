@@ -55,8 +55,8 @@ function Run-Language($language, $languageSuffix, $languageDir, $languageTestDir
         Run-LanguageCore $language $languageSuffix $languageDir $syntaxTool $errorFactsTool $generatedDir $generatedTestDir
     }
     else {
-        $scratchDir = Join-Path $binariesDir "Generated\$language\Src"
-        $scratchTestDir = Join-Path $binariesDir "Generated\$language\Test"
+        $scratchDir = Join-Path $generationTempDir "$language\Src"
+        $scratchTestDir = Join-Path $generationTempDir "$language\Test"
         Run-LanguageCore $language $languageSuffix $languageDir $syntaxTool $errorFactsTool $scratchDir $scratchTestDir
         Test-GeneratedContent $generatedDir $scratchDir
         Test-GeneratedContent $generatedTestDir $scratchTestDir
@@ -72,12 +72,12 @@ function Run-GetTextCore($generatedDir) {
 }
 
 function Run-GetText() {
-    $generatedDir = Join-Path $repoDir "src\ExpressionEvaluator\VisualBasic\Source\ResultProvider\Generated"
+    $generatedDir = Join-Path $RepoRoot "src\ExpressionEvaluator\VisualBasic\Source\ResultProvider\Generated"
     if (-not $test) { 
         Run-GetTextCore $generatedDir
     }
     else {
-        $scratchDir = Join-Path $binariesDir "Generated\VB\GetText"
+        $scratchDir = Join-Path $generationTempDir "VB\GetText"
         Run-GetTextCore $scratchDir
         Test-GeneratedContent $generatedDir $scratchDir
     }
@@ -86,7 +86,6 @@ function Run-GetText() {
 # Build all of the tools that we need to generate the syntax trees and ensure
 # they are in a published / runnable state.
 function Build-Tools() {
-    $dotnet = Ensure-DotnetSdk
     $list = @(
         'boundTreeGenerator;BoundTreeGenerator;BoundTreeGenerator\CompilersBoundTreeGenerator.csproj',
         'csharpErrorFactsGenerator;CSharpErrorFactsGenerator;CSharpErrorFactsGenerator\CSharpErrorFactsGenerator.csproj',
@@ -94,7 +93,7 @@ function Build-Tools() {
         'basicErrorFactsGenerator;VBErrorFactsGenerator;VisualBasicErrorFactsGenerator\VisualBasicErrorFactsGenerator.vbproj',
         'basicSyntaxGenerator;VBSyntaxGenerator;VisualBasicSyntaxGenerator\VisualBasicSyntaxGenerator.vbproj')
 
-    Push-Location (Join-Path $repoDir 'src\Tools\Source\CompilerGeneratorTools\Source')
+    Push-Location (Join-Path $RepoRoot 'src\Tools\Source\CompilerGeneratorTools\Source')
     try {
         foreach ($item in $list) { 
             $all = $item.Split(';')
@@ -103,10 +102,10 @@ function Build-Tools() {
             $proj = $all[2]
             $fileName = [IO.Path]::GetFileNameWithoutExtension($proj)
             Write-Host "Building $fileName"
-            Restore-Project $dotnet $proj
-            Exec-Command $dotnet "publish /p:Configuration=Debug /p:RuntimeIdentifier=win-x64 /v:m $proj" | Out-Null
+            Restore-Project $proj
+            Exec-Command (Ensure-DotnetSdk) "publish /p:Configuration=Debug /p:RuntimeIdentifier=win-x64 /v:m $proj" | Out-Null
 
-            $exePath = Join-Path $binariesDir "Debug\Exes\$fileName\win-x64\publish\$($exeName).exe"
+            $exePath = Join-Path $ArtifactsDir "Debug\Exes\$fileName\win-x64\publish\$($exeName).exe"
             if (-not (Test-Path $exePath)) { 
                 Write-Host "Did not find exe after build: $exePath"
                 throw "Missing exe"
@@ -125,11 +124,12 @@ try {
 
     Build-Tools
 
-    $compilerToolsDir = Join-Path $binariesDir "Debug\Exes\DeployCompilerGeneratorToolsRuntime"
-    $csharpDir = Join-Path $repoDir "src\Compilers\CSharp\Portable"
-    $csharpTestDir = Join-Path $repoDir "src\Compilers\CSharp\Test\Syntax"
-    $basicDir = Join-Path $repoDir "src\Compilers\VisualBasic\Portable"
-    $basicTestDir = Join-Path $repoDir "src\Compilers\VisualBasic\Test\Syntax"
+    $compilerToolsDir = Join-Path $BinariesConfigDir "Debug\Exes\DeployCompilerGeneratorToolsRuntime"
+    $csharpDir = Join-Path $RepoRoot "src\Compilers\CSharp\Portable"
+    $csharpTestDir = Join-Path $RepoRoot "src\Compilers\CSharp\Test\Syntax"
+    $basicDir = Join-Path $RepoRoot "src\Compilers\VisualBasic\Portable"
+    $basicTestDir = Join-Path $RepoRoot "src\Compilers\VisualBasic\Test\Syntax"
+    $generationTempDir = Join-Path $TempDir "Generated"
 
     Run-Language "CSharp" "cs" $csharpDir $csharpTestDir $csharpSyntaxGenerator $csharpErrorFactsGenerator
     Run-Language "VB" "vb" $basicDir $basicTestDir $basicSyntaxGenerator $basicErrorFactsGenerator

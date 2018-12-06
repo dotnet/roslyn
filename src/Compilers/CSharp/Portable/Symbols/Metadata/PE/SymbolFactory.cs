@@ -174,7 +174,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             // NonNullTypesContext is unset because the actual context will
             // be set when these types are transformed by the caller.
-            return TypeSymbolWithAnnotations.Create(NonNullTypesFalseContext.Instance, type, customModifiers: CSharpCustomModifier.Convert(customModifiers));
+            return TypeSymbolWithAnnotations.Create(NonNullTypesNullContext.Instance, type, customModifiers: CSharpCustomModifier.Convert(customModifiers));
         }
     }
 }

@@ -43,17 +43,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var oldPending = SavePending(); // We do not support branches *into* a lambda.
             LocalState finalState = this.State;
-            this.State = ReachableState();
+            this.State = TopState();
             var oldPending2 = SavePending();
             VisitAlways(body);
             RestorePending(oldPending2); // process any forward branches within the lambda body
             ImmutableArray<PendingBranch> pendingReturns = RemoveReturns();
             RestorePending(oldPending);
-            IntersectWith(ref finalState, ref this.State);
+            Join(ref finalState, ref this.State);
             foreach (PendingBranch returnBranch in pendingReturns)
             {
                 this.State = returnBranch.State;
-                IntersectWith(ref finalState, ref this.State);
+                Join(ref finalState, ref this.State);
             }
 
             this.State = finalState;

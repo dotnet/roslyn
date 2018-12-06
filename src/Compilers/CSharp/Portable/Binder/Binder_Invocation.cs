@@ -347,11 +347,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return new BoundDynamicInvocation(
                 node,
-                expression,
-                argArray,
                 arguments.GetNames(),
                 refKindsArray,
                 applicableMethods,
+                expression,
+                argArray,
                 type: Compilation.DynamicType,
                 hasErrors: hasErrors);
         }
@@ -1388,7 +1388,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     {
                                         candidateType = parameterType;
                                     }
-                                    else if (!candidateType.Equals(parameterType, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds))
+                                    else if (!candidateType.Equals(parameterType, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes))
                                     {
                                         // type mismatch
                                         candidateType = null;

@@ -16,7 +16,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="..\..\CodeStyle\CSharp\CodeFixes\EditorConfigOptionsApplier.cs" Link="CodeStyle\EditorConfigOptionsApplier.cs" />
     <Compile Include="..\Source\RunTests\ProcessRunner.cs" Link="InternalUtilities\ProcessRunner.cs" />
     <Compile Include="..\..\Compilers\Core\Portable\FileSystem\PathKind.cs" Link="InternalUtilities\PathKind.cs" />
     <Compile Include="..\..\Compilers\Core\Portable\FileSystem\PathUtilities.cs" Link="InternalUtilities\PathUtilities.cs" />

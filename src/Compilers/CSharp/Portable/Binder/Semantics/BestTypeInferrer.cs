@@ -10,36 +10,65 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal static class BestTypeInferrer
     {
-        public static bool? GetIsNullable(ArrayBuilder<TypeSymbolWithAnnotations> types)
+        public static NullableAnnotation GetNullableAnnotation(TypeSymbol bestType, ArrayBuilder<TypeSymbolWithAnnotations> types)
         {
-            bool? isNullable = false;
+            bool bestTypeIsPossiblyNullableReferenceTypeTypeParameter = bestType.IsPossiblyNullableReferenceTypeTypeParameter();
+            NullableAnnotation? result = null;
             foreach (var type in types)
             {
                 if (type.IsNull)
                 {
                     // https://github.com/dotnet/roslyn/issues/27961 Should ignore untyped
                     // expressions such as unbound lambdas and typeless tuples.
-                    isNullable = true;
+                    result = NullableAnnotation.Nullable;
                     continue;
                 }
-                if (!type.IsReferenceType)
+
+                if (!type.IsReferenceType && !type.TypeSymbol.IsPossiblyNullableReferenceTypeTypeParameter())
                 {
-                    return null;
+                    return NullableAnnotation.Unknown;
                 }
-                switch (type.IsNullable)
+
+                NullableAnnotation nullableAnnotation;
+
+                if (type.IsPossiblyNullableReferenceTypeTypeParameter() && !bestTypeIsPossiblyNullableReferenceTypeTypeParameter)
                 {
-                    case null:
-                        if (isNullable == false)
-                        {
-                            isNullable = null;
-                        }
-                        break;
-                    case true:
-                        isNullable = true;
-                        break;
+                    nullableAnnotation = NullableAnnotation.Nullable;
+                }
+                else
+                {
+                    nullableAnnotation = type.NullableAnnotation;
+                }
+
+                if (nullableAnnotation == NullableAnnotation.Unknown)
+                {
+                    if (result?.IsAnyNotNullable() != false)
+                    {
+                        result = NullableAnnotation.Unknown;
+                    }
+                }
+                else if (nullableAnnotation.IsAnyNullable())
+                {
+                    if (result?.IsAnyNullable() != true)
+                    {
+                        result = nullableAnnotation;
+                    }
+                    else if (result != nullableAnnotation)
+                    {
+                        result = NullableAnnotation.Annotated;
+                    }
+                }
+                else if (result == null)
+                {
+                    result = nullableAnnotation;
+                }
+                else if (result.GetValueOrDefault() == NullableAnnotation.NotNullable && nullableAnnotation == NullableAnnotation.NotAnnotated)
+                {
+                    result = NullableAnnotation.NotAnnotated;
                 }
             }
-            return isNullable;
+
+            return result ?? NullableAnnotation.NotAnnotated;
         }
 
         /// <remarks>
@@ -63,7 +92,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // SPEC:    If no such S exists, the expressions have no best common type.
 
             // All non-null types are candidates for best type inference.
-            IEqualityComparer<TypeSymbol> comparer = conversions.IncludeNullability ? TypeSymbol.EqualsIncludingNullableComparer : TypeSymbol.EqualsConsiderEverything;
+            IEqualityComparer<TypeSymbol> comparer = conversions.IncludeNullability ? TypeSymbol.EqualsConsiderEverything : TypeSymbol.EqualsIgnoringNullableComparer;
             HashSet<TypeSymbol> candidateTypes = new HashSet<TypeSymbol>(comparer);
             foreach (BoundExpression expr in exprs)
             {
@@ -201,7 +230,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else
                     {
-                        if (!better.Equals(best, TypeCompareKind.IgnoreDynamicAndTupleNames))
+                        if (!better.Equals(best, TypeCompareKind.IgnoreDynamicAndTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes))
                         {
                             hadNullabilityMismatch = false;
                         }
@@ -224,7 +253,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 TypeSymbol type = types[i];
                 TypeSymbol better = Better(best, type, conversions, out bool hadMismatch, ref useSiteDiagnostics);
-                if (!best.Equals(better, TypeCompareKind.ConsiderEverything))
+                if (!best.Equals(better, TypeCompareKind.IgnoreNullableModifiersForReferenceTypes))
                 {
                     hadNullabilityMismatch = false;
                     return null;
@@ -275,7 +304,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return type2;
                 }
 
-                if (type1.Equals(type2, TypeCompareKind.IgnoreDynamicAndTupleNames))
+                if (type1.Equals(type2, TypeCompareKind.IgnoreDynamicAndTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes))
                 {
                     return MethodTypeInferrer.Merge(
                         TypeSymbolWithAnnotations.Create(type1),
