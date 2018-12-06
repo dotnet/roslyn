@@ -306,7 +306,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 disposedExpression = local;
             }
 
-            BoundExpression disposeCall = GenerateDisposeCall(syntax, disposedExpression, awaitKeywordOpt, awaitOpt, methodOpt);
+            BoundExpression disposeCall = GenerateDisposeCall(syntax, disposedExpression, methodOpt, awaitOpt, awaitKeywordOpt);
 
             // local.Dispose(); or await variant
             BoundStatement disposeStatement = new BoundExpressionStatement(syntax, disposeCall);
@@ -362,7 +362,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return tryFinally;
         }
 
-        private BoundExpression GenerateDisposeCall(SyntaxNode syntax, BoundExpression disposedExpression, SyntaxToken awaitKeywordOpt, AwaitableInfo awaitOpt, MethodSymbol methodOpt)
+        private BoundExpression GenerateDisposeCall(SyntaxNode syntax, BoundExpression disposedExpression, MethodSymbol methodOpt, AwaitableInfo awaitOpt, SyntaxToken awaitKeyword)
         {
             // If we don't have an explicit dispose method, try and get the special member for IDiposable/IAsyncDisposable
             if (methodOpt is null)
@@ -374,8 +374,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
+                    Debug.Assert(awaitKeyword != default);
+
                     // IAsyncDisposable.DisposeAsync()
-                    TryGetWellKnownTypeMember(syntax: null, WellKnownMember.System_IAsyncDisposable__DisposeAsync, out methodOpt, location: awaitKeywordOpt.GetLocation());
+                    TryGetWellKnownTypeMember(syntax: null, WellKnownMember.System_IAsyncDisposable__DisposeAsync, out methodOpt, location: awaitKeyword.GetLocation());
                 }
             }
 
