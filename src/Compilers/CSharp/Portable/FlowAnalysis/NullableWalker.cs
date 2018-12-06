@@ -3384,7 +3384,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         operandType = ClassifyAndApplyConversion(operandOpt ?? node, parameterType, isLiftedConversion ? underlyingOperandType : operandType, useLegacyWarnings, AssignmentKind.Argument, target: parameter);
 
                         // method parameter type -> method return type
-                        operandType = methodOpt.ReturnType;
+                        var methodReturnType = methodOpt.ReturnType;
+                        operandType = methodReturnType;
 
                         if (isLiftedConversion)
                         {
@@ -3392,9 +3393,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 operandType.IsValueType ?
                                     compilation.GetSpecialType(SpecialType.System_Nullable_T).Construct(ImmutableArray.Create(operandType)) :
                                     operandType.TypeSymbol,
-                                methodOpt.ReturnType.NullableAnnotation.IsAnyNullable() || operandAnnotation.IsAnyNullable() ?
+                                methodReturnType.NullableAnnotation.IsAnyNullable() || operandAnnotation.IsAnyNullable() ?
                                     NullableAnnotation.Nullable :
-                                    NullableAnnotation.NotNullable);
+                                    (methodReturnType.IsPossiblyNullableReferenceTypeTypeParameter() ? methodReturnType.NullableAnnotation : NullableAnnotation.NotNullable));
                         }
 
                         // method return type -> conversion "to" type

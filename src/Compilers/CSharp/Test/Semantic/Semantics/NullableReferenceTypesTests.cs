@@ -62497,7 +62497,6 @@ class C<T>
     }
 }";
             var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
-            // PROTOTYPE(NullableReferenceTypes): Not reporting warning 3.
             comp.VerifyDiagnostics(
                 // (11,13): warning CS8602: Possible dereference of a null reference.
                 //         _ = t1.ToString(); // 1
@@ -62505,6 +62504,9 @@ class C<T>
                 // (13,13): warning CS8602: Possible dereference of a null reference.
                 //         _ = t2.ToString(); // 2
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t2").WithLocation(13, 13),
+                // (21,17): warning CS8602: Possible dereference of a null reference.
+                //             _ = t1.ToString(); // 3
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t1").WithLocation(21, 17),
                 // (25,22): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //             var t2 = (T)ns; // 4
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(T)ns").WithLocation(25, 22),
