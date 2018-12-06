@@ -364,6 +364,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression GenerateDisposeCall(SyntaxNode syntax, BoundExpression disposedExpression, MethodSymbol methodOpt, AwaitableInfo awaitOpt, SyntaxToken awaitKeyword)
         {
+            Debug.Assert(awaitOpt is null || awaitKeyword != default);
+
             // If we don't have an explicit dispose method, try and get the special member for IDiposable/IAsyncDisposable
             if (methodOpt is null)
             {
@@ -374,8 +376,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    Debug.Assert(awaitKeyword != default);
-
                     // IAsyncDisposable.DisposeAsync()
                     TryGetWellKnownTypeMember(syntax: null, WellKnownMember.System_IAsyncDisposable__DisposeAsync, out methodOpt, location: awaitKeyword.GetLocation());
                 }
