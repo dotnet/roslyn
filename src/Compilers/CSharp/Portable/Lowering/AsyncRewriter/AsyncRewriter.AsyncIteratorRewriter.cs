@@ -35,6 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(method.IteratorElementType != null);
 
                 _isEnumerable = method.IsIAsyncEnumerableReturningAsync(method.DeclaringCompilation);
+                Debug.Assert(_isEnumerable != method.IsIAsyncEnumeratorReturningAsync(method.DeclaringCompilation));
             }
 
             protected override void VerifyPresenceOfRequiredAPIs(DiagnosticBag bag)

@@ -8179,6 +8179,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The return type of an async method must be a task-like type instead of &apos;{0}&apos;. The body of an async-iterator method must be an iterator block (ie. contain a &apos;yield&apos; statement)..
+        /// </summary>
+        internal static string ERR_PossibleAsyncIteratorWithoutYield {
+            get {
+                return ResourceManager.GetString("ERR_PossibleAsyncIteratorWithoutYield", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to To cast a negative value, you must enclose the value in parentheses..
         /// </summary>
         internal static string ERR_PossibleBadNegCast {

@@ -47,6 +47,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return body;
             }
 
+            CSharpCompilation compilation = method.DeclaringCompilation;
+            bool isAsyncEnumerableOrEnumerator = method.IsIAsyncEnumerableReturningAsync(compilation) ||
+                method.IsIAsyncEnumeratorReturningAsync(compilation);
+            if (isAsyncEnumerableOrEnumerator && !method.IsIterator)
+            {
+                diagnostics.Add(new CSDiagnosticInfo(ErrorCode.ERR_PossibleAsyncIteratorWithoutYield, method.ReturnType), method.Locations[0]);
+                stateMachineType = null;
+                return body;
+            }
+
             // The CLR doesn't support adding fields to structs, so in order to enable EnC in an async method we need to generate a class.
             // For async-iterators, we also need to generate a class.
             var typeKind = (compilationState.Compilation.Options.EnableEditAndContinue || method.IsIterator) ? TypeKind.Class : TypeKind.Struct;
@@ -56,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             stateMachineType = new AsyncStateMachine(slotAllocatorOpt, compilationState, method, methodOrdinal, typeKind);
             compilationState.ModuleBuilderOpt.CompilationState.SetStateMachineType(method, stateMachineType);
 
-            AsyncRewriter rewriter = method.IsIterator
+            AsyncRewriter rewriter = isAsyncEnumerableOrEnumerator
                 ? new AsyncIteratorRewriter(bodyWithAwaitLifted, method, methodOrdinal, stateMachineType, slotAllocatorOpt, compilationState, diagnostics)
                 : new AsyncRewriter(bodyWithAwaitLifted, method, methodOrdinal, stateMachineType, slotAllocatorOpt, compilationState, diagnostics);
 

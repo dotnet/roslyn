@@ -152,6 +152,11 @@
         <target state="new">An out variable cannot be declared as a ref local</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_PossibleAsyncIteratorWithoutYield">
+        <source>The return type of an async method must be a task-like type instead of '{0}'. The body of an async-iterator method must be an iterator block (ie. contain a 'yield' statement).</source>
+        <target state="new">The return type of an async method must be a task-like type instead of '{0}'. The body of an async-iterator method must be an iterator block (ie. contain a 'yield' statement).</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_RefAssignNarrower">
         <source>Cannot ref-assign '{1}' to '{0}' because '{1}' has a narrower escape scope than '{0}'.</source>
         <target state="new">Cannot ref-assign '{1}' to '{0}' because '{1}' has a narrower escape scope than '{0}'.</target>
