@@ -12597,5 +12597,111 @@ Block[B2] - Exit
     Predecessors: [B1]
     Statements (0)");
         }
+
+        [Fact]
+        public void ObjectCreationFlow_ParenthesizedReferenceOffConstructedObject()
+        {
+            var source =
+@"
+class A
+{
+    internal object F1;
+}
+class B
+{
+    internal A G;
+}
+class Program
+{
+    static void F(A a)
+    /*<bind>*/{
+        a = (new B() { G = new A() { F1 = new object() } }).G;
+    }/*</bind>*/
+}";
+
+            var comp = CreateCompilation(source);
+            VerifyFlowGraphForTest<BlockSyntax>(comp, @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1}
+
+.locals {R1}
+{
+    CaptureIds: [0] [1]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (2)
+            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
+              Value: 
+                IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: A) (Syntax: 'a')
+
+            IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'new B() { G ... bject() } }')
+              Value: 
+                IObjectCreationOperation (Constructor: B..ctor()) (OperationKind.ObjectCreation, Type: B) (Syntax: 'new B() { G ... bject() } }')
+                  Arguments(0)
+                  Initializer: 
+                    null
+
+        Next (Regular) Block[B2]
+            Entering: {R2}
+
+    .locals {R2}
+    {
+        CaptureIds: [2]
+        Block[B2] - Block
+            Predecessors: [B1]
+            Statements (3)
+                IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'new A() { F ...  object() }')
+                  Value: 
+                    IObjectCreationOperation (Constructor: A..ctor()) (OperationKind.ObjectCreation, Type: A) (Syntax: 'new A() { F ...  object() }')
+                      Arguments(0)
+                      Initializer: 
+                        null
+
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Object) (Syntax: 'F1 = new object()')
+                  Left: 
+                    IFieldReferenceOperation: System.Object A.F1 (OperationKind.FieldReference, Type: System.Object) (Syntax: 'F1')
+                      Instance Receiver: 
+                        IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: A, IsImplicit) (Syntax: 'new A() { F ...  object() }')
+                  Right: 
+                    IObjectCreationOperation (Constructor: System.Object..ctor()) (OperationKind.ObjectCreation, Type: System.Object) (Syntax: 'new object()')
+                      Arguments(0)
+                      Initializer: 
+                        null
+
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: A) (Syntax: 'G = new A() ...  object() }')
+                  Left: 
+                    IFieldReferenceOperation: A B.G (OperationKind.FieldReference, Type: A) (Syntax: 'G')
+                      Instance Receiver: 
+                        IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: B, IsImplicit) (Syntax: 'new B() { G ... bject() } }')
+                  Right: 
+                    IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: A, IsImplicit) (Syntax: 'new A() { F ...  object() }')
+
+            Next (Regular) Block[B3]
+                Leaving: {R2}
+    }
+
+    Block[B3] - Block
+        Predecessors: [B2]
+        Statements (1)
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'a = (new B( ... t() } }).G;')
+              Expression: 
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: A) (Syntax: 'a = (new B( ... ct() } }).G')
+                  Left: 
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: A, IsImplicit) (Syntax: 'a')
+                  Right: 
+                    IFieldReferenceOperation: A B.G (OperationKind.FieldReference, Type: A) (Syntax: '(new B() {  ... ct() } }).G')
+                      Instance Receiver: 
+                        IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: B, IsImplicit) (Syntax: 'new B() { G ... bject() } }')
+
+        Next (Regular) Block[B4]
+            Leaving: {R1}
+}
+
+Block[B4] - Exit
+    Predecessors: [B3]
+    Statements (0)");
+        }
     }
 }
