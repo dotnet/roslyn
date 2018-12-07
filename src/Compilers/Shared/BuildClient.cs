@@ -169,7 +169,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
 
             try
             {
-                var buildResponseTask = RunServerCompilation(
+                var buildResponseTask = RunServerCompilationAsync(
                     arguments,
                     buildPaths,
                     sessionName,
@@ -215,9 +215,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
             }
         }
 
-#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
-        protected abstract Task<BuildResponse> RunServerCompilation(List<string> arguments, BuildPaths buildPaths, string sessionName, string keepAlive, string libDirectory, CancellationToken cancellationToken);
-#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
+        protected abstract Task<BuildResponse> RunServerCompilationAsync(List<string> arguments, BuildPaths buildPaths, string sessionName, string keepAlive, string libDirectory, CancellationToken cancellationToken);
 
         protected abstract string GetSessionKey(BuildPaths buildPaths);
 

@@ -39,19 +39,19 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 ValidateBuildRequestFunc?.Invoke(request);
             }
 
-            protected override Task CreateMonitorDisconnectTask(CancellationToken cancellationToken)
+            protected override Task MonitorDisconnectAsync(CancellationToken cancellationToken)
             {
                 return CreateMonitorDisconnectTaskFunc(cancellationToken);
             }
 
-            protected override Task<BuildResponse> ServeBuildRequest(BuildRequest request, CancellationToken cancellationToken)
+            protected override Task<BuildResponse> ServeBuildRequestAsync(BuildRequest request, CancellationToken cancellationToken)
             {
                 if (ServeBuildRequestFunc != null)
                 {
                     return ServeBuildRequestFunc(request, cancellationToken);
                 }
 
-                return base.ServeBuildRequest(request, cancellationToken);
+                return base.ServeBuildRequestAsync(request, cancellationToken);
             }
         }
 
@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
         {
             var stream = new Mock<Stream>(MockBehavior.Strict);
             var connection = CreateConnection(stream.Object);
-            var result = await connection.HandleConnection().ConfigureAwait(true);
+            var result = await connection.HandleConnectionAsync().ConfigureAwait(true);
             Assert.Equal(CompletionReason.CompilationNotStarted, result.CompletionReason);
         }
 
@@ -149,7 +149,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 
             var connection = CreateConnection(stream.Object);
             connection.ServeBuildRequestFunc = delegate { return Task.FromResult(s_emptyBuildResponse); };
-            var connectionData = await connection.HandleConnection().ConfigureAwait(true);
+            var connectionData = await connection.HandleConnectionAsync().ConfigureAwait(true);
             Assert.Equal(CompletionReason.ClientDisconnect, connectionData.CompletionReason);
             Assert.Null(connectionData.KeepAlive);
         }
@@ -183,7 +183,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 return monitorTaskSource.Task;
             };
 
-            var handleTask = clientConnection.HandleConnection();
+            var handleTask = clientConnection.HandleConnectionAsync();
 
             // Wait until the monitor task is actually created and running. 
             await readyTaskSource.Task.ConfigureAwait(false);
@@ -208,7 +208,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             var connection = CreateConnection(stream);
             connection.ServeBuildRequestFunc = (req, token) => Task.FromResult(s_emptyBuildResponse);
             connection.ValidateBuildRequestFunc = _ => { validated = true; };
-            await connection.HandleConnection().ConfigureAwait(true);
+            await connection.HandleConnectionAsync().ConfigureAwait(true);
 
             Assert.True(validated);
         }
@@ -221,7 +221,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             stream.ReadStream.Position = 0;
 
             var connection = CreateConnection(stream);
-            var connectionData = await connection.HandleConnection(allowCompilationRequests: false).ConfigureAwait(false);
+            var connectionData = await connection.HandleConnectionAsync(allowCompilationRequests: false).ConfigureAwait(false);
             Assert.Equal(CompletionReason.CompilationNotStarted, connectionData.CompletionReason);
 
             stream.WriteStream.Position = 0;
@@ -237,7 +237,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             stream.ReadStream.Position = 0;
 
             var connection = CreateConnection(stream);
-            var connectionData = await connection.HandleConnection(allowCompilationRequests: false).ConfigureAwait(false);
+            var connectionData = await connection.HandleConnectionAsync(allowCompilationRequests: false).ConfigureAwait(false);
             Assert.Equal(CompletionReason.ClientShutdownRequest, connectionData.CompletionReason);
 
             stream.WriteStream.Position = 0;

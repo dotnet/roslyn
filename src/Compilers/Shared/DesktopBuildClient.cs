@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
             return _compileFunc(arguments, buildPaths, textWriter, _analyzerAssemblyLoader);
         }
 
-        protected override Task<BuildResponse> RunServerCompilation(
+        protected override Task<BuildResponse> RunServerCompilationAsync(
             List<string> arguments,
             BuildPaths buildPaths,
             string sessionKey,
@@ -58,12 +58,10 @@ namespace Microsoft.CodeAnalysis.CommandLine
             string libDirectory,
             CancellationToken cancellationToken)
         {
-            return RunServerCompilationCore(_language, arguments, buildPaths, sessionKey, keepAlive, libDirectory, TimeoutOverride, TryCreateServer, cancellationToken);
+            return RunServerCompilationCoreAsync(_language, arguments, buildPaths, sessionKey, keepAlive, libDirectory, TimeoutOverride, TryCreateServer, cancellationToken);
         }
 
-#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
-        private static Task<BuildResponse> RunServerCompilationCore(
-#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
+        private static Task<BuildResponse> RunServerCompilationCoreAsync(
             RequestLanguage language,
             List<string> arguments,
             BuildPaths buildPaths,
@@ -80,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 buildPaths.SdkDirectory,
                 buildPaths.TempDirectory);
 
-            return BuildServerConnection.RunServerCompilationCore(
+            return BuildServerConnection.RunServerCompilationCoreAsync(
                 language,
                 arguments,
                 alt,

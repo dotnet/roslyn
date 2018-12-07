@@ -29,9 +29,9 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             _pipeName = pipeName;
         }
 
-        public async Task<IClientConnection> CreateListenTask(CancellationToken cancellationToken)
+        public async Task<IClientConnection> ListenAsync(CancellationToken cancellationToken)
         {
-            var pipeStream = await CreateListenTaskCore(cancellationToken).ConfigureAwait(false);
+            var pipeStream = await ListenCoreAsync(cancellationToken).ConfigureAwait(false);
             return new NamedPipeClientConnection(_compilerServerHost, _loggingIdentifier++.ToString(), pipeStream);
         }
 
@@ -40,9 +40,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         /// <see cref="NamedPipeServerStream"/> object.  Throws on any connection error.
         /// </summary>
         /// <param name="cancellationToken">Used to cancel the connection sequence.</param>
-#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
-        private async Task<NamedPipeServerStream> CreateListenTaskCore(CancellationToken cancellationToken)
-#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
+        private async Task<NamedPipeServerStream> ListenCoreAsync(CancellationToken cancellationToken)
         {
             // Create the pipe and begin waiting for a connection. This 
             // doesn't block, but could fail in certain circumstances, such
@@ -153,9 +151,9 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         ///
         /// This will return true if the pipe was disconnected.
         /// </summary>
-        protected override Task CreateMonitorDisconnectTask(CancellationToken cancellationToken)
+        protected override Task MonitorDisconnectAsync(CancellationToken cancellationToken)
         {
-            return BuildServerConnection.CreateMonitorDisconnectTask(_pipeStream, LoggingIdentifier, cancellationToken);
+            return BuildServerConnection.MonitorDisconnectAsync(_pipeStream, LoggingIdentifier, cancellationToken);
         }
 
         protected override void ValidateBuildRequest(BuildRequest request)

@@ -17,9 +17,9 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             _underlyingHost = underlyingHost;
         }
 
-        public async Task<IClientConnection> CreateListenTask(CancellationToken cancellationToken)
+        public async Task<IClientConnection> ListenAsync(CancellationToken cancellationToken)
         {
-            var underlyingConnection = await _underlyingHost.CreateListenTask(cancellationToken);
+            var underlyingConnection = await _underlyingHost.ListenAsync(cancellationToken);
             return new FailingClientConnection(underlyingConnection);
         }
 
@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 
             public void Close() => _underlyingConnection.Close();
 
-            public Task<ConnectionData> HandleConnection(bool allowCompilationRequests, CancellationToken cancellationToken)
+            public Task<ConnectionData> HandleConnectionAsync(bool allowCompilationRequests, CancellationToken cancellationToken)
             {
                 // Forcibly kill the connection
                 _underlyingConnection.Close();

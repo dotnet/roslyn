@@ -50,14 +50,14 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 return _createServerFunc(pipeName);
             }
 
-            protected override Task<BuildResponse> RunServerCompilation(List<string> arguments, BuildPaths buildPaths, string sessionKey, string keepAlive, string libDirectory, CancellationToken cancellationToken)
+            protected override Task<BuildResponse> RunServerCompilationAsync(List<string> arguments, BuildPaths buildPaths, string sessionKey, string keepAlive, string libDirectory, CancellationToken cancellationToken)
             {
                 if (_runServerCompilationFunc != null)
                 {
                     return _runServerCompilationFunc();
                 }
 
-                return base.RunServerCompilation(arguments, buildPaths, sessionKey, keepAlive, libDirectory, cancellationToken);
+                return base.RunServerCompilationAsync(arguments, buildPaths, sessionKey, keepAlive, libDirectory, cancellationToken);
             }
 
             public static async Task<bool> TryConnectToNamedPipe(string pipeName, int timeoutMs, CancellationToken cancellationToken)

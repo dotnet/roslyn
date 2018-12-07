@@ -16,9 +16,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 {
     internal interface IClientConnectionHost
     {
-#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
-        Task<IClientConnection> CreateListenTask(CancellationToken cancellationToken);
-#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
+        Task<IClientConnection> ListenAsync(CancellationToken cancellationToken);
     }
 
     /// <summary>
@@ -197,7 +195,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             Debug.Assert(_listenTask == null);
             Debug.Assert(_timeoutTask == null);
             _listenCancellationTokenSource = new CancellationTokenSource();
-            _listenTask = _clientConnectionHost.CreateListenTask(_listenCancellationTokenSource.Token);
+            _listenTask = _clientConnectionHost.ListenAsync(_listenCancellationTokenSource.Token);
             _diagnosticListener.ConnectionListening();
         }
 
@@ -214,7 +212,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         {
             _diagnosticListener.ConnectionReceived();
             var allowCompilationRequests = _state == State.Running;
-            var connectionTask = HandleClientConnection(_listenTask, allowCompilationRequests, cancellationToken);
+            var connectionTask = HandleClientConnectionAsync(_listenTask, allowCompilationRequests, cancellationToken);
             _connectionList.Add(connectionTask);
 
             // Timeout and GC are only done when there are no active connections.  Now that we have a new
@@ -340,9 +338,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         /// will never fail.  It will always produce a <see cref="ConnectionData"/> value.  Connection errors
         /// will end up being represented as <see cref="CompletionReason.ClientDisconnect"/>
         /// </summary>
-#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
-        internal static async Task<ConnectionData> HandleClientConnection(Task<IClientConnection> clientConnectionTask, bool allowCompilationRequests = true, CancellationToken cancellationToken = default(CancellationToken))
-#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
+        internal static async Task<ConnectionData> HandleClientConnectionAsync(Task<IClientConnection> clientConnectionTask, bool allowCompilationRequests = true, CancellationToken cancellationToken = default(CancellationToken))
         {
             IClientConnection clientConnection;
             try
@@ -359,7 +355,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
             try
             {
-                return await clientConnection.HandleConnection(allowCompilationRequests, cancellationToken).ConfigureAwait(false);
+                return await clientConnection.HandleConnectionAsync(allowCompilationRequests, cancellationToken).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
