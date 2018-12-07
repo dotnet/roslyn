@@ -1,12 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow;
-using Microsoft.CodeAnalysis.Operations;
+using Analyzer.Utilities.Extensions;
 
 namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 {
@@ -15,15 +12,15 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         /// <summary>
         /// <see cref="SinkInfo"/>s for tainted data SQL sinks.
         /// </summary>
-        public static ImmutableList<SinkInfo> SinkInfos { get; }
+        public static ImmutableHashSet<SinkInfo> SinkInfos { get; }
 
         static SqlSinks()
         {
-            ImmutableList<SinkInfo>.Builder sinkInfosBuilder = ImmutableList.CreateBuilder<SinkInfo>();
+            ImmutableHashSet<SinkInfo>.Builder sinkInfosBuilder = ImmutableHashSet.CreateBuilder<SinkInfo>();
 
-            AddSink(
-                sinkInfosBuilder,
+            sinkInfosBuilder.AddSink(
                 WellKnownTypes.SystemDataIDbCommand,
+                SinkKind.Sql,
                 isInterface: true,
                 isAnyStringParameterInConstructorASink: true,
                 sinkProperties: new string[] {
@@ -31,17 +28,17 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 },
                 sinkMethodParameters: null);
 
-            AddSink(
-                sinkInfosBuilder,
+            sinkInfosBuilder.AddSink(
                 WellKnownTypes.SystemDataIDataAdapter,
+                SinkKind.Sql,
                 isInterface: true,
                 isAnyStringParameterInConstructorASink: true,
                 sinkProperties: null,
                 sinkMethodParameters: null);
 
-            AddSink(
-                sinkInfosBuilder,
+            sinkInfosBuilder.AddSink(
                 WellKnownTypes.SystemWebUIWebControlsSqlDataSource,
+                SinkKind.Sql,
                 isInterface: false,
                 isAnyStringParameterInConstructorASink: false,
                 sinkProperties: new string[] {
@@ -54,31 +51,6 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 sinkMethodParameters: null);
 
             SinkInfos = sinkInfosBuilder.ToImmutable();
-        }
-
-        private static void AddSink(
-            ImmutableList<SinkInfo>.Builder builder,
-            string fullTypeName,
-            bool isInterface,
-            bool isAnyStringParameterInConstructorASink,
-            IEnumerable<string> sinkProperties,
-            IDictionary<string, IEnumerable<string>> sinkMethodParameters)
-        {
-            SinkInfo sinkInfo = new SinkInfo(
-                fullTypeName,
-                isInterface,
-                isAnyStringParameterInConstructorASink,
-                sinkProperties:
-                    sinkProperties != null
-                        ? sinkProperties.ToImmutableHashSet()
-                        : ImmutableHashSet<string>.Empty,
-                sinkMethodParameters:
-                    sinkMethodParameters != null
-                        ? sinkMethodParameters
-                             .Select(kvp => new KeyValuePair<string, ImmutableHashSet<string>>(kvp.Key, kvp.Value.ToImmutableHashSet()))
-                             .ToImmutableDictionary()
-                        : ImmutableDictionary<string, ImmutableHashSet<string>>.Empty);
-            builder.Add(sinkInfo);
         }
     }
 }

@@ -9,11 +9,11 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         /// <summary>
         /// <see cref="SanitizerInfo"/>s for primitive type conversion tainted data sanitizers.
         /// </summary>
-        public static ImmutableList<SanitizerInfo> SanitizerInfos { get; }
+        public static ImmutableHashSet<SanitizerInfo> SanitizerInfos { get; }
 
         static PrimitiveTypeConverterSanitizers()
         {
-            ImmutableList<SanitizerInfo>.Builder builder = ImmutableList.CreateBuilder<SanitizerInfo>();
+            ImmutableHashSet<SanitizerInfo>.Builder builder = ImmutableHashSet.CreateBuilder<SanitizerInfo>();
 
             string[] parseMethods = new string[] { "Parse", "TryParse" };
 
@@ -87,7 +87,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         }
 
         private static void AddConcreteSanitizer(
-            ImmutableList<SanitizerInfo>.Builder builder,
+            ImmutableHashSet<SanitizerInfo>.Builder builder,
             string fullTypeName,
             bool isConstructorSanitizing,
             string[] sanitizingMethods)

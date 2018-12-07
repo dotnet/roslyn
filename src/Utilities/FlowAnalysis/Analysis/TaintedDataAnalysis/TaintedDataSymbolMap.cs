@@ -112,6 +112,11 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 
         public bool Equals(TaintedDataSymbolMap<TInfo> other)
         {
+            if (Object.ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
             return other != null
                 && this.InterfaceInfos == other.InterfaceInfos
                 && this.ConcreteInfos == other.ConcreteInfos;

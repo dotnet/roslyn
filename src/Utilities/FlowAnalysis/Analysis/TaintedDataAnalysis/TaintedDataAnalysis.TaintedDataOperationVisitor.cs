@@ -21,24 +21,24 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             /// Mapping of a tainted data sinks to their originating sources.
             /// </summary>
             /// <remarks>Keys are <see cref="SymbolAccess"/> sinks where the tainted data entered, values are <see cref="SymbolAccess"/>s where the tainted data originated from.</remarks>
-            private Dictionary<SymbolAccess, ImmutableHashSet<SymbolAccess>.Builder> TaintedSourcesBySink { get; }
+            private Dictionary<SymbolAccess, (ImmutableHashSet<SinkKind>.Builder SinkKinds, ImmutableHashSet<SymbolAccess>.Builder SourceOrigins)> TaintedSourcesBySink { get; }
 
             public TaintedDataOperationVisitor(TaintedDataAnalysisContext analysisContext)
                 : base(analysisContext)
             {
-                this.TaintedSourcesBySink = new Dictionary<SymbolAccess, ImmutableHashSet<SymbolAccess>.Builder>();
+                this.TaintedSourcesBySink = new Dictionary<SymbolAccess, (ImmutableHashSet<SinkKind>.Builder SinkKinds, ImmutableHashSet<SymbolAccess>.Builder SourceOrigins)>();
             }
 
             public ImmutableArray<TaintedDataSourceSink> GetTaintedDataSourceSinkEntries()
             {
                 ImmutableArray<TaintedDataSourceSink>.Builder builder = ImmutableArray.CreateBuilder<TaintedDataSourceSink>();
-                foreach (KeyValuePair<SymbolAccess, ImmutableHashSet<SymbolAccess>.Builder> kvp in this.TaintedSourcesBySink)
+                foreach (KeyValuePair<SymbolAccess, (ImmutableHashSet<SinkKind>.Builder SinkKinds, ImmutableHashSet<SymbolAccess>.Builder SourceOrigins)> kvp in this.TaintedSourcesBySink)
                 {
                     builder.Add(
                         new TaintedDataSourceSink(
                             kvp.Key,
-                            SinkKind.Sql,
-                            kvp.Value.ToImmutable()));
+                            kvp.Value.SinkKinds.ToImmutable(),
+                            kvp.Value.SourceOrigins.ToImmutable()));
                 }
                  
                 return builder.ToImmutableArray();
@@ -298,21 +298,26 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 return taintedDataAbstractValue;
             }
 
-            private void TrackTaintedDataEnteringSink(ISymbol sinkSymbol, Location sinkLocation, IEnumerable<SymbolAccess> sources)
+            private void TrackTaintedDataEnteringSink(
+                ISymbol sinkSymbol, 
+                Location sinkLocation,
+                IEnumerable<SinkKind> sinkKinds,
+                IEnumerable<SymbolAccess> sources)
             {
                 SymbolAccess sink = new SymbolAccess(sinkSymbol, sinkLocation, this.OwningSymbol);
-                this.TrackTaintedDataEnteringSink(sink, sources);
+                this.TrackTaintedDataEnteringSink(sink, sinkKinds, sources);
             }
 
-            private void TrackTaintedDataEnteringSink(SymbolAccess sink, IEnumerable<SymbolAccess> sources)
+            private void TrackTaintedDataEnteringSink(SymbolAccess sink, IEnumerable<SinkKind> sinkKinds, IEnumerable<SymbolAccess> sources)
             {
-                if (!this.TaintedSourcesBySink.TryGetValue(sink, out ImmutableHashSet<SymbolAccess>.Builder sourceOrigins))
+                if (!this.TaintedSourcesBySink.TryGetValue(sink, out (ImmutableHashSet<SinkKind>.Builder SinkKinds, ImmutableHashSet<SymbolAccess>.Builder SourceOrigins) data))
                 {
-                    sourceOrigins = ImmutableHashSet.CreateBuilder<SymbolAccess>();
-                    this.TaintedSourcesBySink.Add(sink, sourceOrigins);
+                    data = (ImmutableHashSet.CreateBuilder<SinkKind>(), ImmutableHashSet.CreateBuilder<SymbolAccess>());
+                    this.TaintedSourcesBySink.Add(sink, data);
                 }
 
-                sourceOrigins.UnionWith(sources);
+                data.SinkKinds.UnionWith(sinkKinds);
+                data.SourceOrigins.UnionWith(sources);
             }
 
             /// <summary>
@@ -326,12 +331,12 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 IEnumerable<IArgumentOperation> taintedArguments,
                 IOperation originalOperation)
             {
-                if (this.IsMethodArgumentASink(targetMethod, taintedArguments))
+                if (this.IsMethodArgumentASink(targetMethod, taintedArguments, out HashSet<SinkKind> sinkKinds))
                 {
                     foreach (IArgumentOperation taintedArgument in taintedArguments)
                     {
                         TaintedDataAbstractValue abstractValue = this.GetCachedAbstractValue(taintedArgument);
-                        this.TrackTaintedDataEnteringSink(targetMethod, originalOperation.Syntax.GetLocation(), abstractValue.SourceOrigins);
+                        this.TrackTaintedDataEnteringSink(targetMethod, originalOperation.Syntax.GetLocation(), sinkKinds, abstractValue.SourceOrigins);
                     }
                 }
 
@@ -340,13 +345,16 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 {
                     foreach (TaintedDataSourceSink sourceSink in subResult.TaintedDataSourceSinks)
                     {
-                        if (!this.TaintedSourcesBySink.TryGetValue(sourceSink.Sink, out ImmutableHashSet<SymbolAccess>.Builder sourceOrigins))
+                        if (!this.TaintedSourcesBySink.TryGetValue(
+                                sourceSink.Sink,
+                                out (ImmutableHashSet<SinkKind>.Builder SinkKinds, ImmutableHashSet<SymbolAccess>.Builder SourceOrigins) data))
                         {
-                            sourceOrigins = ImmutableHashSet.CreateBuilder<SymbolAccess>();
-                            this.TaintedSourcesBySink.Add(sourceSink.Sink, sourceOrigins);
+                            data = (ImmutableHashSet.CreateBuilder<SinkKind>(), ImmutableHashSet.CreateBuilder<SymbolAccess>());
+                            this.TaintedSourcesBySink.Add(sourceSink.Sink, data);
                         }
 
-                        sourceOrigins.UnionWith(sourceSink.SourceOrigins);
+                        data.SinkKinds.UnionWith(sourceSink.SinkKinds);
+                        data.SourceOrigins.UnionWith(sourceSink.SourceOrigins);
                     }
                 }
             }
@@ -357,9 +365,13 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 if (assignmentOperation.Target != null
                     && assignmentValueAbstractValue.Kind == TaintedDataAbstractValueKind.Tainted
                     && assignmentOperation.Target is IPropertyReferenceOperation propertyReferenceOperation
-                    && this.IsPropertyASink(propertyReferenceOperation))
+                    && this.IsPropertyASink(propertyReferenceOperation, out HashSet<SinkKind> sinkKinds))
                 {
-                    this.TrackTaintedDataEnteringSink(propertyReferenceOperation.Member, propertyReferenceOperation.Syntax.GetLocation(), assignmentValueAbstractValue.SourceOrigins);
+                    this.TrackTaintedDataEnteringSink(
+                        propertyReferenceOperation.Member, 
+                        propertyReferenceOperation.Syntax.GetLocation(), 
+                        sinkKinds,
+                        assignmentValueAbstractValue.SourceOrigins);
                 }
             }
 
@@ -411,30 +423,45 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             /// <param name="method">Method being invoked.</param>
             /// <param name="taintedArguments">Arguments passed to the method invocation that are tainted.</param>
             /// <returns>True if any of the tainted data arguments enters a sink, false otherwise.</returns>
-            private bool IsMethodArgumentASink(IMethodSymbol method, IEnumerable<IArgumentOperation> taintedArguments)
+            private bool IsMethodArgumentASink(IMethodSymbol method, IEnumerable<IArgumentOperation> taintedArguments, out HashSet<SinkKind> sinkKinds)
             {
+                sinkKinds = null;
+
                 if (method.ContainingType == null || !taintedArguments.Any())
                 {
                     return false;
                 }
 
+                Lazy<HashSet<SinkKind>> lazySinkKinds = new Lazy<HashSet<SinkKind>>(() => new HashSet<SinkKind>());
                 foreach (SinkInfo sinkInfo in this.DataFlowAnalysisContext.SinkInfos.GetInfosForType(method.ContainingType))
                 {
+                    if (lazySinkKinds.IsValueCreated && lazySinkKinds.Value.Contains(sinkInfo.SinkKind))
+                    {
+                        continue;
+                    }
+
                     if (method.MethodKind == MethodKind.Constructor
                         && sinkInfo.IsAnyStringParameterInConstructorASink
                         && taintedArguments.Any(a => a.Parameter.Type.SpecialType == SpecialType.System_String))
                     {
-                        return true;
+                        lazySinkKinds.Value.Add(sinkInfo.SinkKind);
                     }
-
-                    if (sinkInfo.SinkMethodParameters.TryGetValue(method.MetadataName, out ImmutableHashSet<string> sinkParameters)
+                    else if (sinkInfo.SinkMethodParameters.TryGetValue(method.MetadataName, out ImmutableHashSet<string> sinkParameters)
                         && taintedArguments.Any(a => sinkParameters.Contains(a.Parameter.MetadataName)))
                     {
-                        return true;
+                        lazySinkKinds.Value.Add(sinkInfo.SinkKind);
                     }
                 }
 
-                return false;
+                if (lazySinkKinds.IsValueCreated)
+                {
+                    sinkKinds = lazySinkKinds.Value;
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
             }
 
             /// <summary>
@@ -442,17 +469,32 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             /// </summary>
             /// <param name="propertyReferenceOperation">Property to check if it's a sink.</param>
             /// <returns>True if the property is a sink, false otherwise.</returns>
-            private bool IsPropertyASink(IPropertyReferenceOperation propertyReferenceOperation)
+            private bool IsPropertyASink(IPropertyReferenceOperation propertyReferenceOperation, out HashSet<SinkKind> sinkKinds)
             {
+                Lazy<HashSet<SinkKind>> lazySinkKinds = new Lazy<HashSet<SinkKind>>(() => new HashSet<SinkKind>());
                 foreach (SinkInfo sinkInfo in this.DataFlowAnalysisContext.SinkInfos.GetInfosForType(propertyReferenceOperation.Member.ContainingType))
                 {
+                    if (lazySinkKinds.IsValueCreated && lazySinkKinds.Value.Contains(sinkInfo.SinkKind))
+                    {
+                        continue;
+                    }
+
                     if (sinkInfo.SinkProperties.Contains(propertyReferenceOperation.Member.MetadataName))
                     {
-                        return true;
+                        lazySinkKinds.Value.Add(sinkInfo.SinkKind);
                     }
                 }
 
-                return false;
+                if (lazySinkKinds.IsValueCreated)
+                {
+                    sinkKinds = lazySinkKinds.Value;
+                    return true;
+                }
+                else
+                {
+                    sinkKinds = null;
+                    return false;
+                }
             }
 
             private IEnumerable<IArgumentOperation> GetTaintedArguments(ImmutableArray<IArgumentOperation> arguments)
