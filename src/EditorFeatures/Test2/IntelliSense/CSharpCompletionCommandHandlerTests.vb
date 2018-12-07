@@ -3559,6 +3559,17 @@ class C
         <MemberData(NameOf(AllCompletionImplementations))>
         <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestNoBlockOnCompletionItems4(completionImplementation As CompletionImplementation) As Task
+            ' This test verifies a scenario with the following conditions:
+            ' a. A slow completion provider
+            ' b. The block option set to false.
+            ' Scenario:
+            ' 1. Type 'Sys'
+            ' 2. Send CommitIfUnique (Ctrl + space)
+            ' 3. Wait for 250ms.
+            ' 4. Verify that there is no completion window shown. In the new completion, we can just start the verification and check that the verification is still running.
+            ' 5. Check that the commit is not yet provided: there is 'Sys' but no 'System'
+            ' 6. Simulate unblocking the provider.
+            ' 7. Verify that the completion completes CommitIfUnique.
             Dim tcs = New TaskCompletionSource(Of Boolean)
             Dim provider = New TaskControlledCompletionProvider(tcs.Task)
             Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
@@ -3592,7 +3603,7 @@ class C
                                                                          ' 2. Hang here as well.
                                                                          Dim completionItem = state.GetSelectedItemOpt()
                                                                      End Sub)
-                                                    Task.Delay(250)
+                                                    Thread.Sleep(250)
                                                     task2 = Task.Run(Sub()
                                                                          Try
                                                                              ' 3. Check that the other task is running/hanging.
@@ -3631,6 +3642,20 @@ class C
         <MemberData(NameOf(AllCompletionImplementations))>
         <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestNoBlockOnCompletionItems3(completionImplementation As CompletionImplementation) As Task
+            ' This test verifies a scenario with the following conditions:
+            ' a. A slow completion provider
+            ' b. The block option set to false.
+            ' Scenario:
+            ' 1. Type 'Sys'
+            ' 2. Send CommitIfUnique (Ctrl + space)
+            ' 3. Wait for 250ms.
+            ' 4. Verify that there is no completion window shown. In the new completion, we can just start the verification and check that the verification is still running.
+            ' 5. Check that the commit is not yet provided: there is 'Sys' but no 'System'
+            ' 6. The next statement in the UI thread after CommitIfUnique is typing 'a'.
+            ' 7. Simulate unblocking the provider.
+            ' 8. Verify that 
+            ' 8.a. The old completion adds 'a' to 'Sys' and displays 'Sysa'. CommitIfUnique is canceled because it was interrupted by typing 'a'.
+            ' 8.b. The new completion completes CommitIfUnique and then add 'a'.
             Dim tcs = New TaskCompletionSource(Of Boolean)
             Dim provider = New TaskControlledCompletionProvider(tcs.Task)
             Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
@@ -3665,7 +3690,7 @@ class C
                                                                          ' 2. Hang here as well.
                                                                          Dim completionItem = state.GetSelectedItemOpt()
                                                                      End Sub)
-                                                    Task.Delay(250)
+                                                    Thread.Sleep(250)
                                                     task2 = Task.Run(Sub()
                                                                          Try
                                                                              ' 3. Check that the other task is running/hanging.
