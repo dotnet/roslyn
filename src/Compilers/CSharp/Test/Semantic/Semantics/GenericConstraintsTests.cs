@@ -3629,5 +3629,34 @@ public struct YourStruct<T> where T : unmanaged
                     //     public YourStruct<MyStruct<MyStruct<T>>> field;
                     Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "field").WithArguments("YourStruct<T>", "T", "MyStruct<MyStruct<T>>").WithLocation(4, 46));
         }
+
+        [Fact]
+        public void NestedGenericStructContainingPointer()
+        {
+            var code = @"
+public unsafe struct MyStruct<T> where T : unmanaged
+{
+    public T* field;
+
+    public T this[int index]
+    {
+        get { return field[index]; }
+    }
+}
+
+public class C
+{
+    public static unsafe void Main()
+    {
+        float f = 42.0f;
+        var ms = new MyStruct<float> { field = &f };
+        //var test = new MyStruct<MyStruct<float>> { field = &ms };
+        float value = ms[0]; //test[0][0];
+        System.Console.Write(value);
+    }
+}
+";
+            CompileAndVerify(code, options: TestOptions.UnsafeReleaseExe, expectedOutput: "42.0");
+        }
     }
 }
