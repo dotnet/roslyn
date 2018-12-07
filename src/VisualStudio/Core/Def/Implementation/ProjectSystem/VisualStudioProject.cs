@@ -1471,23 +1471,27 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                         throw new ArgumentException("The specified files do not equal the project document count.", nameof(filePaths));
                     }
 
+                    var documentIds = ImmutableList.CreateBuilder<DocumentId>();
+
                     foreach (var filePath in filePaths)
                     {
-                        if (!_documentPathsToDocumentIds.ContainsKey(filePath))
+                        if (_documentPathsToDocumentIds.TryGetValue(filePath, out var documentId))
+                        {
+                            documentIds.Add(documentId);
+                        }
+                        else
                         {
                             throw new InvalidOperationException($"The file '{filePath}' does not exist in the project.");
                         }
                     }
 
-                    var documentIds = filePaths.Select(x => _documentPathsToDocumentIds[x]).ToImmutableList();
-
                     if (_project._activeBatchScopes > 0)
                     {
-                        _orderedDocumentsInBatch = documentIds;
+                        _orderedDocumentsInBatch = documentIds.ToImmutable();
                     }
                     else
                     {
-                        _project._workspace.ApplyBatchChangeToProject(_project.Id, solution => solution.WithProjectDocumentsOrder(_project.Id, documentIds));
+                        _project._workspace.ApplyBatchChangeToProject(_project.Id, solution => solution.WithProjectDocumentsOrder(_project.Id, documentIds.ToImmutable()));
                     }
                 }
             }
