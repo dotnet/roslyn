@@ -77,6 +77,10 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
+    <Compile Update="Telemetry\TelemetryPanel.xaml.cs">
+      <DependentUpon>TelemetryPanel.xaml</DependentUpon>
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Update="VenusMargin\ProjectionBufferMargin.xaml.cs">
       <DependentUpon>ProjectionBufferMargin.xaml</DependentUpon>
     </Compile>
@@ -107,6 +111,9 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <Page Include="Telemetry\TelemetryPanel.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="VenusMargin\ProjectionBufferMargin.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>

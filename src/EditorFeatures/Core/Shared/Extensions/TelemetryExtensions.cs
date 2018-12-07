@@ -1,11 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 
 namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
@@ -19,12 +16,18 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
 
         public static int GetTelemetryPrefix(this Type type)
         {
+            type = GetTypeForTelemetry(type);
+
             // AssemblyQualifiedName will change across version numbers, FullName won't
-            type = type.IsConstructedGenericType ? type.GetGenericTypeDefinition() : type;
             return type.FullName.GetHashCode();
         }
 
-        public static short GetTelemetryScope(this FixAllScope scope)
+        public static Type GetTypeForTelemetry(this Type type)
+        {
+            return type.IsConstructedGenericType ? type.GetGenericTypeDefinition() : type;
+        }
+
+        public static short GetScopeIdForTelemetry(this FixAllScope scope)
         {
             switch (scope)
             {
