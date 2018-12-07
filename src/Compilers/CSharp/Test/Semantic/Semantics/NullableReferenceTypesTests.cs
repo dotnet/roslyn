@@ -20210,7 +20210,7 @@ class C
 }";
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             // https://github.com/dotnet/roslyn/issues/29890: Should report ErrorCode.HDN_ExpressionIsProbablyNeverNull.
-            // See comment in DataFlowPass.VisitAnonymousObjectCreationExpression.
+            // See comment in DefiniteAssignment.VisitAnonymousObjectCreationExpression.
             comp.VerifyDiagnostics();
         }
 
@@ -49478,7 +49478,7 @@ public class B0<T> where T : A { }";
 
             var source =
 @"#pragma warning disable 0169
-#pragma warning disable 8618
+
 
 class B1<T> where T : A? { }
 class B2<T> where T : A { }
@@ -49515,13 +49515,10 @@ class D
     B4<A> G10;
 }";
             var comp = CreateCompilation(new[] { source }, references: new[] { ref0 });
-            comp.VerifyDiagnostics(
+            comp.GetDiagnostics().Where(d => d.Code != (int)ErrorCode.WRN_UninitializedNonNullableField).Verify(
                 // (4,24): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
                 // class B1<T> where T : A? { }
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(4, 24),
-                // (21,8): warning CS8631: The type 'A?' cannot be used as type parameter 'T' in the generic type or method 'B4<T>'. Nullability of type argument 'A?' doesn't match constraint type 'A'.
-                //     B4<A?> F9; // 5 and 6
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "A?").WithArguments("B4<T>", "A", "T", "A?").WithLocation(21, 8),
                 // (15,9): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
                 //     B1<A?> F3; // 2
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(15, 9),
@@ -49555,7 +49552,7 @@ public class B0<T> where T : A<object> { }";
 
             var source =
 @"#pragma warning disable 0169
-#pragma warning disable 8618
+
 
 class B1<T> where T : A<object?> { }
 class B2<T> where T : A<object> { }
@@ -49592,7 +49589,7 @@ class D
     B4<A<object>> G10;
 }";
             var comp = CreateCompilation(new[] { source }, references: new[] { ref0 });
-            comp.VerifyDiagnostics(
+            comp.GetDiagnostics().Where(d => d.Code != (int)ErrorCode.WRN_UninitializedNonNullableField).Verify(
                 // (4,31): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
                 // class B1<T> where T : A<object?> { }
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(4, 31),
@@ -49619,10 +49616,7 @@ class D
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "A<object>").WithArguments("B3<T>", "A<object?>", "T", "A<object>").WithLocation(34, 8),
                 // (35,8): warning CS8631: The type 'A<object?>' cannot be used as type parameter 'T' in the generic type or method 'B4<T>'. Nullability of type argument 'A<object?>' doesn't match constraint type 'A<object>'.
                 //     B4<A<object?>> G9; // 9
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "A<object?>").WithArguments("B4<T>", "A<object>", "T", "A<object?>").WithLocation(35, 8),
-                // (21,8): warning CS8631: The type 'A<object?>' cannot be used as type parameter 'T' in the generic type or method 'B4<T>'. Nullability of type argument 'A<object?>' doesn't match constraint type 'A<object>'.
-                //     B4<A<object?>> F9; // 5 and 6
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "A<object?>").WithArguments("B4<T>", "A<object>", "T", "A<object?>").WithLocation(21, 8)
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "A<object?>").WithArguments("B4<T>", "A<object>", "T", "A<object?>").WithLocation(35, 8)
                 );
         }
 
@@ -50017,18 +50011,28 @@ public class A6<T> where T : IEquatable<int?> { }";
             // [NullNullTypes(true)]
             comp0 = CreateCompilation(new[] { source0 }, options: WithNonNullTypesTrue());
             ref0 = comp0.EmitToImageReference();
-            comp = CreateCompilation(source, references: new[] { ref0 });
 
+            comp = CreateCompilation(source, references: new[] { ref0 });
             comp.VerifyDiagnostics(
                 // (5,22): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
                 //         new A0<string?>(); // 1
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(5, 22),
+                // (9,22): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
+                //         new A5<string?>(); // 4
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(9, 22)
+                );
+            verifyTypeParameterConstraint("A0", "System.IEquatable<T>");
+            verifyTypeParameterConstraint("A1", "System.IEquatable<T>");
+            verifyTypeParameterConstraint("A3", "System.IEquatable<T>");
+            verifyTypeParameterConstraint("A4", "System.IEquatable<T?>");
+            verifyTypeParameterConstraint("A5", "System.IEquatable<System.String?>");
+            verifyTypeParameterConstraint("A6", "System.IEquatable<System.Int32?>");
+
+            comp = CreateCompilation(source, references: new[] { ref0 }, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
                 // (5,16): warning CS8631: The type 'string?' cannot be used as type parameter 'T' in the generic type or method 'A0<T>'. Nullability of type argument 'string?' doesn't match constraint type 'System.IEquatable<string?>'.
                 //         new A0<string?>(); // 1
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "string?").WithArguments("A0<T>", "System.IEquatable<string?>", "T", "string?").WithLocation(5, 16),
-                // (9,22): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
-                //         new A5<string?>(); // 4
-                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(9, 22),
                 // (9,16): warning CS8631: The type 'string?' cannot be used as type parameter 'T' in the generic type or method 'A5<T>'. Nullability of type argument 'string?' doesn't match constraint type 'System.IEquatable<string?>'.
                 //         new A5<string?>(); // 4
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "string?").WithArguments("A5<T>", "System.IEquatable<string?>", "T", "string?").WithLocation(9, 16)
@@ -50111,18 +50115,24 @@ public class A2<T> where T : class, IEquatable<T?> { }
             // [NullNullTypes(true)]
             comp0 = CreateCompilation(new[] { source0 }, options: WithNonNullTypesTrue());
             ref0 = comp0.EmitToImageReference();
+
             comp = CreateCompilation(source, references: new[] { ref0 });
             // https://github.com/dotnet/roslyn/issues/30003: Should report a nullability mismatch warning for A2<string>().
+            comp.VerifyDiagnostics(
+                // (5,22): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
+                //         new A2<string?>(); // 2
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(5, 22)
+                );
+            verifyTypeParameterConstraint("A2", "System.IEquatable<T?>");
+
+            comp = CreateCompilation(source, references: new[] { ref0 }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (5,16): warning CS8634: The type 'string?' cannot be used as type parameter 'T' in the generic type or method 'A2<T>'. Nullability of type argument 'string?' doesn't match 'class' constraint.
                 //         new A2<string?>(); // 2
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint, "string?").WithArguments("A2<T>", "T", "string?").WithLocation(5, 16),
                 // (5,16): warning CS8631: The type 'string?' cannot be used as type parameter 'T' in the generic type or method 'A2<T>'. Nullability of type argument 'string?' doesn't match constraint type 'System.IEquatable<string?>'.
                 //         new A2<string?>(); // 2
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "string?").WithArguments("A2<T>", "System.IEquatable<string?>", "T", "string?").WithLocation(5, 16),
-                // (5,22): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
-                //         new A2<string?>(); // 2
-                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(5, 22)
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "string?").WithArguments("A2<T>", "System.IEquatable<string?>", "T", "string?").WithLocation(5, 16)
                 );
             verifyTypeParameterConstraint("A2", "System.IEquatable<T?>");
 
@@ -59694,6 +59704,750 @@ class Program
                 //         F(b2.F/*T:T?*/); // 4
                 Diagnostic(ErrorCode.WRN_NullReferenceArgument, "b2.F").WithArguments("o", "void Program.F(object o)").WithLocation(20, 11));
             comp.VerifyTypes();
+        }
+
+        [Fact]
+        public void DiagnosticOptions_01()
+        {
+            var source =
+@"
+partial class Program
+{
+    static void Test()
+    {
+        F(null);
+    }
+}";
+            AssertDiagnosticOptions_01(source);
+        }
+
+        private static void AssertDiagnosticOptions_01(string source)
+        {
+            string id = MessageProvider.Instance.GetIdForErrorCode((int)ErrorCode.WRN_NullAsNonNullable);
+
+            var source2 =
+@"
+partial class Program
+{
+#nullable enable
+    static void F(object o)
+    {
+    }
+}";
+
+            var comp = CreateCompilation(new[] { source, source2 }, options: WithNonNullTypesFalse());
+            comp.VerifyDiagnostics();
+
+            foreach (ReportDiagnostic option in Enum.GetValues(typeof(ReportDiagnostic)))
+            {
+                comp = CreateCompilation(new[] { source, source2 }, options: WithNonNullTypesFalse().WithSpecificDiagnosticOptions(id, option));
+                comp.VerifyDiagnostics();
+
+                comp = CreateCompilation(new[] { source, source2 }, options: WithNonNullTypesFalse().WithGeneralDiagnosticOption(option));
+                comp.VerifyDiagnostics();
+            }
+
+            comp = CreateCompilation(new[] { source, source2 }, options: WithNonNullTypesTrue());
+            var diagnostics = comp.GetDiagnostics();
+            diagnostics.Verify(
+                // (6,11): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //         F(null);
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null")
+                );
+            Assert.Equal(DiagnosticSeverity.Warning, diagnostics.Single().Severity);
+
+            comp = CreateCompilation(new[] { source, source2 }, options: WithNonNullTypesTrue().WithSpecificDiagnosticOptions(id, ReportDiagnostic.Default));
+            diagnostics = comp.GetDiagnostics();
+            diagnostics.Verify(
+                // (6,11): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //         F(null);
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null")
+                );
+            Assert.Equal(DiagnosticSeverity.Warning, diagnostics.Single().Severity);
+
+            comp = CreateCompilation(new[] { source, source2 }, options: WithNonNullTypesTrue().WithGeneralDiagnosticOption(ReportDiagnostic.Default));
+            diagnostics = comp.GetDiagnostics();
+            diagnostics.Verify(
+                // (6,11): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //         F(null);
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null")
+                );
+            Assert.Equal(DiagnosticSeverity.Warning, diagnostics.Single().Severity);
+
+            comp = CreateCompilation(new[] { source, source2 }, options: WithNonNullTypesTrue().
+                                                      WithSpecificDiagnosticOptions(id, ReportDiagnostic.Default).
+                                                      WithGeneralDiagnosticOption(ReportDiagnostic.Error));
+            diagnostics = comp.GetDiagnostics();
+            diagnostics.Verify(
+                // (6,11): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //         F(null);
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null")
+                );
+            Assert.Equal(DiagnosticSeverity.Warning, diagnostics.Single().Severity);
+
+            comp = CreateCompilation(new[] { source, source2 }, options: WithNonNullTypesTrue().WithSpecificDiagnosticOptions(id, ReportDiagnostic.Error));
+            diagnostics = comp.GetDiagnostics();
+            diagnostics.Verify(
+                // (6,11): error CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //         F(null);
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithWarningAsError(true)
+                );
+            Assert.Equal(DiagnosticSeverity.Error, diagnostics.Single().Severity);
+
+            comp = CreateCompilation(new[] { source, source2 }, options: WithNonNullTypesTrue().
+                                                      WithSpecificDiagnosticOptions(id, ReportDiagnostic.Error).
+                                                      WithGeneralDiagnosticOption(ReportDiagnostic.Default));
+            diagnostics = comp.GetDiagnostics();
+            diagnostics.Verify(
+                // (6,11): error CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //         F(null);
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithWarningAsError(true)
+                );
+            Assert.Equal(DiagnosticSeverity.Error, diagnostics.Single().Severity);
+
+            comp = CreateCompilation(new[] { source, source2 }, options: WithNonNullTypesTrue().
+                                                      WithGeneralDiagnosticOption(ReportDiagnostic.Error));
+            diagnostics = comp.GetDiagnostics();
+            diagnostics.Verify(
+                // (6,11): error CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //         F(null);
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithWarningAsError(true)
+                );
+            Assert.Equal(DiagnosticSeverity.Error, diagnostics.Single().Severity);
+
+            comp = CreateCompilation(new[] { source, source2 }, options: WithNonNullTypesTrue().
+                                                      WithSpecificDiagnosticOptions(id, ReportDiagnostic.Suppress));
+            diagnostics = comp.GetDiagnostics();
+            diagnostics.Verify();
+
+            comp = CreateCompilation(new[] { source, source2 }, options: WithNonNullTypesTrue().
+                                                      WithSpecificDiagnosticOptions(id, ReportDiagnostic.Suppress).
+                                                      WithGeneralDiagnosticOption(ReportDiagnostic.Error));
+            diagnostics = comp.GetDiagnostics();
+            diagnostics.Verify();
+
+            comp = CreateCompilation(new[] { source, source2 }, options: WithNonNullTypesTrue().
+                                                      WithGeneralDiagnosticOption(ReportDiagnostic.Suppress));
+            diagnostics = comp.GetDiagnostics();
+            diagnostics.Verify();
+
+            comp = CreateCompilation(new[] { source, source2 }, options: WithNonNullTypesTrue().WithSpecificDiagnosticOptions(id, ReportDiagnostic.Hidden));
+            diagnostics = comp.GetDiagnostics();
+            diagnostics.Verify(
+                // (6,11): hidden CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //         F(null);
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null")
+                );
+            Assert.Equal(DiagnosticSeverity.Hidden, diagnostics.Single().Severity);
+
+            comp = CreateCompilation(new[] { source, source2 }, options: WithNonNullTypesTrue().
+                                                      WithSpecificDiagnosticOptions(id, ReportDiagnostic.Hidden).
+                                                      WithGeneralDiagnosticOption(ReportDiagnostic.Error));
+            diagnostics = comp.GetDiagnostics();
+            diagnostics.Verify(
+                // (6,11): hidden CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //         F(null);
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null")
+                );
+            Assert.Equal(DiagnosticSeverity.Hidden, diagnostics.Single().Severity);
+
+            comp = CreateCompilation(new[] { source, source2 }, options: WithNonNullTypesTrue().
+                                                      WithGeneralDiagnosticOption(ReportDiagnostic.Hidden));
+            diagnostics = comp.GetDiagnostics();
+            diagnostics.Verify(
+                // (6,11): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //         F(null);
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null")
+                );
+            Assert.Equal(DiagnosticSeverity.Warning, diagnostics.Single().Severity);
+
+            comp = CreateCompilation(new[] { source, source2 }, options: WithNonNullTypesTrue().
+                                                      WithSpecificDiagnosticOptions(id, ReportDiagnostic.Default).
+                                                      WithGeneralDiagnosticOption(ReportDiagnostic.Hidden));
+            diagnostics = comp.GetDiagnostics();
+            diagnostics.Verify(
+                // (6,11): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //         F(null);
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null")
+                );
+            Assert.Equal(DiagnosticSeverity.Warning, diagnostics.Single().Severity);
+        }
+
+        [Fact]
+        public void DiagnosticOptions_02()
+        {
+            var source =
+@"
+#pragma warning disable
+partial class Program
+{
+    static void Test()
+    {
+        F(null);
+    }
+}";
+            AssertDiagnosticOptions_02(source);
+        }
+
+        private static void AssertDiagnosticOptions_02(string source)
+        {
+            string id = MessageProvider.Instance.GetIdForErrorCode((int)ErrorCode.WRN_NullAsNonNullable);
+
+            var source2 =
+@"
+partial class Program
+{
+#nullable enable
+    static void F(object o)
+    {
+    }
+}";
+
+            var comp = CreateCompilation(new[] { source, source2 }, options: WithNonNullTypesFalse());
+            comp.VerifyDiagnostics();
+
+            foreach (ReportDiagnostic option in Enum.GetValues(typeof(ReportDiagnostic)))
+            {
+                comp = CreateCompilation(new[] { source, source2 }, options: WithNonNullTypesFalse().WithSpecificDiagnosticOptions(id, option));
+                comp.VerifyDiagnostics();
+
+                comp = CreateCompilation(new[] { source, source2 }, options: WithNonNullTypesFalse().WithGeneralDiagnosticOption(option));
+                comp.VerifyDiagnostics();
+            }
+
+            comp = CreateCompilation(new[] { source, source2 }, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics();
+
+            comp = CreateCompilation(new[] { source, source2 }, options: WithNonNullTypesTrue().WithSpecificDiagnosticOptions(id, ReportDiagnostic.Default));
+            comp.VerifyDiagnostics();
+
+            comp = CreateCompilation(new[] { source, source2 }, options: WithNonNullTypesTrue().WithGeneralDiagnosticOption(ReportDiagnostic.Default));
+            comp.VerifyDiagnostics();
+
+            comp = CreateCompilation(new[] { source, source2 }, options: WithNonNullTypesTrue().
+                                                      WithSpecificDiagnosticOptions(id, ReportDiagnostic.Default).
+                                                      WithGeneralDiagnosticOption(ReportDiagnostic.Error));
+            comp.VerifyDiagnostics();
+
+            comp = CreateCompilation(new[] { source, source2 }, options: WithNonNullTypesTrue().WithSpecificDiagnosticOptions(id, ReportDiagnostic.Error));
+            comp.VerifyDiagnostics();
+
+            comp = CreateCompilation(new[] { source, source2 }, options: WithNonNullTypesTrue().
+                                                      WithSpecificDiagnosticOptions(id, ReportDiagnostic.Error).
+                                                      WithGeneralDiagnosticOption(ReportDiagnostic.Default));
+            comp.VerifyDiagnostics();
+
+            comp = CreateCompilation(new[] { source, source2 }, options: WithNonNullTypesTrue().
+                                                      WithGeneralDiagnosticOption(ReportDiagnostic.Error));
+            comp.VerifyDiagnostics();
+
+            comp = CreateCompilation(new[] { source, source2 }, options: WithNonNullTypesTrue().
+                                                      WithSpecificDiagnosticOptions(id, ReportDiagnostic.Suppress));
+            comp.VerifyDiagnostics();
+
+            comp = CreateCompilation(new[] { source, source2 }, options: WithNonNullTypesTrue().
+                                                      WithSpecificDiagnosticOptions(id, ReportDiagnostic.Suppress).
+                                                      WithGeneralDiagnosticOption(ReportDiagnostic.Error));
+            comp.VerifyDiagnostics();
+
+            comp = CreateCompilation(new[] { source, source2 }, options: WithNonNullTypesTrue().
+                                                      WithGeneralDiagnosticOption(ReportDiagnostic.Suppress));
+            comp.VerifyDiagnostics();
+
+            comp = CreateCompilation(new[] { source, source2 }, options: WithNonNullTypesTrue().WithSpecificDiagnosticOptions(id, ReportDiagnostic.Hidden));
+            comp.VerifyDiagnostics();
+
+            comp = CreateCompilation(new[] { source, source2 }, options: WithNonNullTypesTrue().
+                                                      WithSpecificDiagnosticOptions(id, ReportDiagnostic.Hidden).
+                                                      WithGeneralDiagnosticOption(ReportDiagnostic.Error));
+            comp.VerifyDiagnostics();
+
+            comp = CreateCompilation(new[] { source, source2 }, options: WithNonNullTypesTrue().
+                                                      WithGeneralDiagnosticOption(ReportDiagnostic.Hidden));
+            comp.VerifyDiagnostics();
+
+            comp = CreateCompilation(new[] { source, source2 }, options: WithNonNullTypesTrue().
+                                                      WithSpecificDiagnosticOptions(id, ReportDiagnostic.Default).
+                                                      WithGeneralDiagnosticOption(ReportDiagnostic.Hidden));
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void DiagnosticOptions_03()
+        {
+            var source =
+@"
+#pragma warning disable " + MessageProvider.Instance.GetIdForErrorCode((int)ErrorCode.WRN_NullAsNonNullable) + @"
+partial class Program
+{
+    static void Test()
+    {
+        F(null);
+    }
+}";
+            AssertDiagnosticOptions_02(source);
+        }
+
+        [Fact]
+        public void DiagnosticOptions_04()
+        {
+            var source =
+@"
+#pragma warning restore " + MessageProvider.Instance.GetIdForErrorCode((int)ErrorCode.WRN_NullAsNonNullable) + @"
+partial class Program
+{
+    static void Test()
+    {
+        F(null);
+    }
+}";
+            AssertDiagnosticOptions_01(source);
+        }
+
+        [Fact]
+        public void DiagnosticOptions_05()
+        {
+            var source =
+@"
+#nullable disable
+partial class Program
+{
+    static void Test()
+    {
+        F(null);
+    }
+}";
+            AssertDiagnosticOptions_02(source);
+        }
+
+        [Fact]
+        public void DiagnosticOptions_06()
+        {
+            var source =
+@"
+#nullable enable
+partial class Program
+{
+    static void Test()
+    {
+        F(null);
+    }
+}";
+            AssertDiagnosticOptions_06(source);
+        }
+
+        private static void AssertDiagnosticOptions_06(string source)
+        {
+
+            var source2 =
+@"
+partial class Program
+{
+#nullable enable
+    static void F(object o)
+    {
+    }
+}";
+            assertDiagnosticOptions(WithNonNullTypesTrue());
+            assertDiagnosticOptions(WithNonNullTypesFalse());
+
+            void assertDiagnosticOptions(CSharpCompilationOptions options)
+            {
+                string id = MessageProvider.Instance.GetIdForErrorCode((int)ErrorCode.WRN_NullAsNonNullable);
+                var comp = CreateCompilation(new[] { source, source2 }, options: options);
+                var diagnostics = comp.GetDiagnostics();
+                diagnostics.Verify(
+                    // (6,11): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                    //         F(null);
+                    Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null")
+                    );
+                Assert.Equal(DiagnosticSeverity.Warning, diagnostics.Single().Severity);
+
+                comp = CreateCompilation(new[] { source, source2 }, options: options.WithSpecificDiagnosticOptions(id, ReportDiagnostic.Default));
+                diagnostics = comp.GetDiagnostics();
+                diagnostics.Verify(
+                    // (6,11): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                    //         F(null);
+                    Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null")
+                    );
+                Assert.Equal(DiagnosticSeverity.Warning, diagnostics.Single().Severity);
+
+                comp = CreateCompilation(new[] { source, source2 }, options: options.WithGeneralDiagnosticOption(ReportDiagnostic.Default));
+                diagnostics = comp.GetDiagnostics();
+                diagnostics.Verify(
+                    // (6,11): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                    //         F(null);
+                    Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null")
+                    );
+                Assert.Equal(DiagnosticSeverity.Warning, diagnostics.Single().Severity);
+
+                comp = CreateCompilation(new[] { source, source2 }, options: options.
+                                                          WithSpecificDiagnosticOptions(id, ReportDiagnostic.Default).
+                                                          WithGeneralDiagnosticOption(ReportDiagnostic.Error));
+                diagnostics = comp.GetDiagnostics();
+                diagnostics.Verify(
+                    // (6,11): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                    //         F(null);
+                    Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null")
+                    );
+                Assert.Equal(DiagnosticSeverity.Warning, diagnostics.Single().Severity);
+
+                comp = CreateCompilation(new[] { source, source2 }, options: options.WithSpecificDiagnosticOptions(id, ReportDiagnostic.Error));
+                diagnostics = comp.GetDiagnostics();
+                diagnostics.Verify(
+                    // (6,11): error CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                    //         F(null);
+                    Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithWarningAsError(true)
+                    );
+                Assert.Equal(DiagnosticSeverity.Error, diagnostics.Single().Severity);
+
+                comp = CreateCompilation(new[] { source, source2 }, options: options.
+                                                          WithSpecificDiagnosticOptions(id, ReportDiagnostic.Error).
+                                                          WithGeneralDiagnosticOption(ReportDiagnostic.Default));
+                diagnostics = comp.GetDiagnostics();
+                diagnostics.Verify(
+                    // (6,11): error CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                    //         F(null);
+                    Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithWarningAsError(true)
+                    );
+                Assert.Equal(DiagnosticSeverity.Error, diagnostics.Single().Severity);
+
+                comp = CreateCompilation(new[] { source, source2 }, options: options.
+                                                          WithGeneralDiagnosticOption(ReportDiagnostic.Error));
+                diagnostics = comp.GetDiagnostics();
+                diagnostics.Verify(
+                    // (6,11): error CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                    //         F(null);
+                    Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithWarningAsError(true)
+                    );
+                Assert.Equal(DiagnosticSeverity.Error, diagnostics.Single().Severity);
+
+                comp = CreateCompilation(new[] { source, source2 }, options: options.
+                                                          WithSpecificDiagnosticOptions(id, ReportDiagnostic.Suppress));
+                diagnostics = comp.GetDiagnostics();
+                diagnostics.Verify(
+                    // (6,11): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                    //         F(null);
+                    Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null")
+                    );
+                Assert.Equal(DiagnosticSeverity.Warning, diagnostics.Single().Severity);
+
+                comp = CreateCompilation(new[] { source, source2 }, options: options.
+                                                          WithSpecificDiagnosticOptions(id, ReportDiagnostic.Suppress).
+                                                          WithGeneralDiagnosticOption(ReportDiagnostic.Error));
+                diagnostics = comp.GetDiagnostics();
+                diagnostics.Verify(
+                    // (6,11): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                    //         F(null);
+                    Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null")
+                    );
+                Assert.Equal(DiagnosticSeverity.Warning, diagnostics.Single().Severity);
+
+                comp = CreateCompilation(new[] { source, source2 }, options: options.
+                                                          WithGeneralDiagnosticOption(ReportDiagnostic.Suppress));
+                diagnostics = comp.GetDiagnostics();
+                diagnostics.Verify(
+                    // (6,11): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                    //         F(null);
+                    Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null")
+                    );
+                Assert.Equal(DiagnosticSeverity.Warning, diagnostics.Single().Severity);
+
+                comp = CreateCompilation(new[] { source, source2 }, options: options.WithSpecificDiagnosticOptions(id, ReportDiagnostic.Hidden));
+                diagnostics = comp.GetDiagnostics();
+                diagnostics.Verify(
+                    // (6,11): hidden CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                    //         F(null);
+                    Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null")
+                    );
+                Assert.Equal(DiagnosticSeverity.Hidden, diagnostics.Single().Severity);
+
+                comp = CreateCompilation(new[] { source, source2 }, options: options.
+                                                          WithSpecificDiagnosticOptions(id, ReportDiagnostic.Hidden).
+                                                          WithGeneralDiagnosticOption(ReportDiagnostic.Error));
+                diagnostics = comp.GetDiagnostics();
+                diagnostics.Verify(
+                    // (6,11): hidden CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                    //         F(null);
+                    Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null")
+                    );
+                Assert.Equal(DiagnosticSeverity.Hidden, diagnostics.Single().Severity);
+
+                comp = CreateCompilation(new[] { source, source2 }, options: options.
+                                                          WithGeneralDiagnosticOption(ReportDiagnostic.Hidden));
+                diagnostics = comp.GetDiagnostics();
+                diagnostics.Verify(
+                    // (6,11): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                    //         F(null);
+                    Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null")
+                    );
+                Assert.Equal(DiagnosticSeverity.Warning, diagnostics.Single().Severity);
+
+                comp = CreateCompilation(new[] { source, source2 }, options: options.
+                                                          WithSpecificDiagnosticOptions(id, ReportDiagnostic.Default).
+                                                          WithGeneralDiagnosticOption(ReportDiagnostic.Hidden));
+                diagnostics = comp.GetDiagnostics();
+                diagnostics.Verify(
+                    // (6,11): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                    //         F(null);
+                    Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null")
+                    );
+                Assert.Equal(DiagnosticSeverity.Warning, diagnostics.Single().Severity);
+            }
+        }
+
+        [Fact]
+        public void DiagnosticOptions_07()
+        {
+            var source =
+@"
+#pragma warning disable
+#nullable disable
+partial class Program
+{
+    static void Test()
+    {
+        F(null);
+    }
+}";
+            AssertDiagnosticOptions_02(source);
+        }
+
+        [Fact]
+        public void DiagnosticOptions_08()
+        {
+            var source =
+@"
+#pragma warning disable
+#nullable enable
+partial class Program
+{
+    static void Test()
+    {
+        F(null);
+    }
+}";
+            AssertDiagnosticOptions_06(source);
+        }
+
+        [Fact]
+        public void DiagnosticOptions_09()
+        {
+            var source =
+@"
+#pragma warning disable " + MessageProvider.Instance.GetIdForErrorCode((int)ErrorCode.WRN_NullAsNonNullable) + @"
+#nullable disable
+partial class Program
+{
+    static void Test()
+    {
+        F(null);
+    }
+}";
+            AssertDiagnosticOptions_02(source);
+        }
+
+        [Fact]
+        public void DiagnosticOptions_10()
+        {
+            var source =
+@"
+#pragma warning disable " + MessageProvider.Instance.GetIdForErrorCode((int)ErrorCode.WRN_NullAsNonNullable) + @"
+#nullable enable
+partial class Program
+{
+    static void Test()
+    {
+        F(null);
+    }
+}";
+            AssertDiagnosticOptions_06(source);
+        }
+
+        [Fact]
+        public void DiagnosticOptions_11()
+        {
+            var source =
+@"
+#nullable disable
+#pragma warning disable " + MessageProvider.Instance.GetIdForErrorCode((int)ErrorCode.WRN_NullAsNonNullable) + @"
+partial class Program
+{
+    static void Test()
+    {
+        F(null);
+    }
+}";
+            AssertDiagnosticOptions_02(source);
+        }
+
+        [Fact]
+        public void DiagnosticOptions_12()
+        {
+            var source =
+@"
+#nullable disable
+#pragma warning disable
+partial class Program
+{
+    static void Test()
+    {
+        F(null);
+    }
+}";
+            AssertDiagnosticOptions_02(source);
+        }
+
+        [Fact]
+        public void DiagnosticOptions_13()
+        {
+            var source =
+@"
+#pragma warning restore " + MessageProvider.Instance.GetIdForErrorCode((int)ErrorCode.WRN_NullAsNonNullable) + @"
+#nullable disable
+partial class Program
+{
+    static void Test()
+    {
+        F(null);
+    }
+}";
+            AssertDiagnosticOptions_02(source);
+        }
+
+        [Fact]
+        public void DiagnosticOptions_14()
+        {
+            var source =
+@"
+#pragma warning restore " + MessageProvider.Instance.GetIdForErrorCode((int)ErrorCode.WRN_NullAsNonNullable) + @"
+#nullable enable
+partial class Program
+{
+    static void Test()
+    {
+        F(null);
+    }
+}";
+            AssertDiagnosticOptions_06(source);
+        }
+
+        [Fact]
+        public void DiagnosticOptions_15()
+        {
+            var source =
+@"
+#nullable disable
+#pragma warning restore " + MessageProvider.Instance.GetIdForErrorCode((int)ErrorCode.WRN_NullAsNonNullable) + @"
+partial class Program
+{
+    static void Test()
+    {
+        F(null);
+    }
+}";
+            AssertDiagnosticOptions_01(source);
+        }
+
+        [Fact]
+        public void DiagnosticOptions_16()
+        {
+            var source =
+@"
+#pragma warning restore
+partial class Program
+{
+    static void Test()
+    {
+        F(null);
+    }
+}";
+            AssertDiagnosticOptions_01(source);
+        }
+
+        [Fact]
+        public void DiagnosticOptions_17()
+        {
+            var source =
+@"
+#nullable disable
+#pragma warning restore
+partial class Program
+{
+    static void Test()
+    {
+        F(null);
+    }
+}";
+            AssertDiagnosticOptions_01(source);
+        }
+
+        [Fact]
+        public void DiagnosticOptions_18()
+        {
+            var source =
+@"
+#pragma warning restore
+#nullable disable
+partial class Program
+{
+    static void Test()
+    {
+        F(null);
+    }
+}";
+            AssertDiagnosticOptions_02(source);
+        }
+
+        [Fact]
+        public void DiagnosticOptions_19()
+        {
+            var source =
+@"
+#nullable enable
+#pragma warning restore
+partial class Program
+{
+    static void Test()
+    {
+        F(null);
+    }
+}";
+            AssertDiagnosticOptions_01(source);
+        }
+
+        [Fact]
+        public void DiagnosticOptions_20()
+        {
+            var source =
+@"
+#pragma warning restore
+#nullable enable
+partial class Program
+{
+    static void Test()
+    {
+        F(null);
+    }
+}";
+            AssertDiagnosticOptions_06(source);
+        }
+
+        [Fact]
+        public void DiagnosticOptions_21()
+        {
+            var source =
+@"
+#nullable enable
+#pragma warning restore " + MessageProvider.Instance.GetIdForErrorCode((int)ErrorCode.WRN_NullAsNonNullable) + @"
+partial class Program
+{
+    static void Test()
+    {
+        F(null);
+    }
+}";
+            AssertDiagnosticOptions_01(source);
         }
 
         private readonly static NullableAnnotation[] s_AllNullableAnnotations = (NullableAnnotation[])Enum.GetValues(typeof(NullableAnnotation));

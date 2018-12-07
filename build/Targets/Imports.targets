@@ -8,7 +8,7 @@
 
   <Import Project="RepoToolset\Imports.targets" />
   <Import Project="VisualStudio.targets"/>
-  <Import Project="Roslyn.Toolsets.Xunit.targets" Condition="'$(_IsAnyUnitTest)' == 'true'" />
+  <Import Project="Roslyn.Toolsets.Xunit.targets" Condition="'$(IsTestProject)' == 'true'" />
 
   <PropertyGroup>
     <FileAlignment>512</FileAlignment>
@@ -19,6 +19,12 @@
 
     <!-- Place VS insertion (CoreXT) packages to a separate directory -->
     <PackageOutputPath Condition="'$(IsVisualStudioInsertionPackage)' == 'true'">$(ArtifactsConfigurationDir)DevDivPackages\Roslyn\</PackageOutputPath>
+
+  <!-- Until we have adopted the final layout we need to ensure documentation files have the right path
+       for multi+targeted projects
+      https://github.com/dotnet/roslyn/issues/23547
+  -->
+    <DocumentationFile Condition="'$(MSBuildProjectExtension)' == '.csproj' and '$(TargetFramework)' != '' and '$(GenerateDocumentationFile)' == 'true'">$(IntermediateOutputPath)\$(TargetFramework)\$(AssemblyName).xml</DocumentationFile>
   </PropertyGroup>
 
   <ItemGroup Condition="'$(Language)' == 'CSharp' and '$(TargetFramework)' == 'net20'">
@@ -41,14 +47,14 @@
   </PropertyGroup>
 
   <!-- Add the UnitTestContainer project capability -->
-  <ItemGroup Condition="'$(_IsAnyUnitTest)' == 'true'">
+  <ItemGroup Condition="'$(IsTestProject)' == 'true'">
     <ProjectCapability Include="UnitTestContainer" />
   </ItemGroup>
 
   <!-- 
     Do not copy dependencies to the output directory of a library project, unless it's a unit test project.
   -->
-  <ItemDefinitionGroup Condition="'$(OutputType)' == 'Library' and '$(IsVsixProject)' != 'true' and '$(_IsAnyUnitTest)' != 'true'">
+  <ItemDefinitionGroup Condition="'$(OutputType)' == 'Library' and '$(IsVsixProject)' != 'true' and '$(IsTestProject)' != 'true'">
     <Reference>
       <Private>False</Private>
     </Reference>
@@ -58,8 +64,14 @@
     </ProjectReference>
   </ItemDefinitionGroup>
 
-  <PropertyGroup Condition="'$(ProduceReferenceAssembly)' == '' and (('$(OutputType)' == 'Library' and '$(IsVsixProject)' != 'true' and '$(_IsAnyUnitTest)' != 'true') or '$(OutputType)' == 'Exe' or '$(OutputType)' == 'WinExe')">
+  <PropertyGroup Condition="'$(ProduceReferenceAssembly)' == '' and (('$(OutputType)' == 'Library' and '$(IsVsixProject)' != 'true' and '$(IsTestProject)' != 'true') or '$(OutputType)' == 'Exe' or '$(OutputType)' == 'WinExe')">
     <ProduceReferenceAssembly>true</ProduceReferenceAssembly>
+  </PropertyGroup>
+
+  <!-- Rulesets -->
+  <PropertyGroup Condition="'$(CodeAnalysisRuleSet)' == ''">
+    <CodeAnalysisRuleSet Condition="'$(IsShipping)' == 'true'">$(RepoRoot)build\Rulesets\Shipping.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRuleSet Condition="'$(IsShipping)' != 'true'">$(RepoRoot)build\Rulesets\NonShipping.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
 
   <!--
@@ -92,14 +104,8 @@
   </Target>
 
   <PropertyGroup>
-    <PrepareForBuildDependsOn>RestoreToolsetCheck;$(PrepareForBuildDependsOn)</PrepareForBuildDependsOn>
     <TargetFrameworkMonikerAssemblyAttributesPath>$(IntermediateOutputPath)$(TargetFrameworkMoniker).AssemblyAttributes$(DefaultLanguageSourceExtension)</TargetFrameworkMonikerAssemblyAttributesPath>
   </PropertyGroup>
-
-  <Target Name="RestoreToolsetCheck" Condition="'$(BuildingProject)' == 'true' AND '$(DotNetBuildFromSource)' != 'true'">
-      <Error Text="Toolset packages have not been restored, run Restore.cmd before building. Expected '$(RoslynToolsetPropsFilePath)' to exist."
-             Condition="!Exists('$(RoslynToolsetPropsFilePath)')" />
-  </Target>
 
   <Target Name="CheckBootstrapState"
           Condition="'$(BootstrapBuildPath)' != ''"
@@ -177,36 +183,6 @@
     <None Include="@(Page)" />
     <None Include="@(Resource)" />
   </ItemGroup>
-
-  <!-- 
-    Prepare inputs for Symbol Store publishing.
-     
-    The imported targets populate ArtifactsSymStoreDirectory with links to binaries and Windows PDBs produced either 
-    directly by the build or converted from Portable PDBs produced by the build.
-    In official build the content of ArtifactsSymStoreDirectory is uploaded to a symbol server.
-  -->
-  <PropertyGroup>
-    <PublishOutputToSymStore Condition="'$(IsShipping)' != 'true'">false</PublishOutputToSymStore>
-  </PropertyGroup>
-
-  <!--
-    Workaround for not having VS 15.7 on build machines.
-    Remove when machines are upgraded.
-  -->
-  <Target Name="InitializeSourceControlInformation" />
-  <PropertyGroup>
-    <SourceControlInformationFeatureSupported>true</SourceControlInformationFeatureSupported>
-  </PropertyGroup>
-
-  <!--
-    Triggered from Jenkins localization validation leg.
-    Delegates to XliffTasks to validate that all localizable resources have been translated.
-    We can't use EnsureAllResoucesTranslated directly because the XliffTasks package is only pulled in by projects that
-    produce shipping binaries.
-  -->
-  <Target Name="CheckLocStatus"
-          DependsOnTargets="EnsureAllResourcesTranslated"
-          Condition="'$(IsShipping)' == 'true'" />
 
   <!-- 
     Add ThirdPartyNotices.rtf to all shipping NuGet packages.

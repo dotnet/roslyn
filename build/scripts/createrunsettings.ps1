@@ -8,20 +8,25 @@ $ErrorActionPreference = "Stop"
 try {
     . (Join-Path $PSScriptRoot "build-utils.ps1")
     Push-Location $RepoRoot
-    
-    Write-Host "Repo Dir $RepoRoot"
-    Write-Host "Binaries Dir $binariesDir"
-    
+
     $buildConfiguration = if ($release) { "Release" } else { "Debug" }
-    $configDir = Join-Path (Join-Path $binariesDir "VSSetup") $buildConfiguration
-    
+
     $optProfToolDir = Get-PackageDir "Roslyn.OptProf.RunSettings.Generator"
     $optProfToolExe = Join-Path $optProfToolDir "tools\roslyn.optprof.runsettings.generator.exe"
     $configFile = Join-Path $RepoRoot "build\config\optprof.json"
-    $outputFolder = Join-Path $configDir "Insertion\RunSettings"
+    $outputFolder = Join-Path $VSSetupDir "Insertion\RunSettings"
     $optProfArgs = "--configFile $configFile --outputFolder $outputFolder --buildNumber 28320.3001 "
-    
-    Exec-Console $optProfToolExe $optProfArgs
+
+    # https://github.com/dotnet/roslyn/issues/31486
+    $dest = Join-Path $RepoRoot ".vsts-ci.yml"
+    try {
+        Copy-Item (Join-Path $RepoRoot "azure-pipelines-official.yml") $dest
+        Exec-Console $optProfToolExe $optProfArgs
+    }
+    finally {
+        Remove-Item $dest
+    }
+
     exit 0
 }
 catch {

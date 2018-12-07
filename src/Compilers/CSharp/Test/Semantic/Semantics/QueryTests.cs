@@ -218,7 +218,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collectio
                   IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'i+1')
                     IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'i+1')
                       ReturnedValue: 
-                        IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'i+1')
+                        IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: System.Int32) (Syntax: 'i+1')
                           Left: 
                             IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'i')
                           Right: 
@@ -286,7 +286,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collectio
                   IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'i % 2')
                     IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'i % 2')
                       ReturnedValue: 
-                        IBinaryOperation (BinaryOperatorKind.Remainder) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'i % 2')
+                        IBinaryOperation (BinaryOperatorKind.Remainder) (OperationKind.Binary, Type: System.Int32) (Syntax: 'i % 2')
                           Left: 
                             IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'i')
                           Right: 
@@ -447,7 +447,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collectio
                   IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'i < 5')
                     IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'i < 5')
                       ReturnedValue: 
-                        IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'i < 5')
+                        IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'i < 5')
                           Left: 
                             IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'i')
                           Right: 
@@ -538,7 +538,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collectio
                   IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'x2/10')
                     IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'x2/10')
                       ReturnedValue: 
-                        IBinaryOperation (BinaryOperatorKind.Divide) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'x2/10')
+                        IBinaryOperation (BinaryOperatorKind.Divide) (OperationKind.Binary, Type: System.Int32) (Syntax: 'x2/10')
                           Left: 
                             IParameterReferenceOperation: x2 (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'x2')
                           Right: 
@@ -552,7 +552,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collectio
                   IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'x1+x2')
                     IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'x1+x2')
                       ReturnedValue: 
-                        IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'x1+x2')
+                        IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: System.Int32) (Syntax: 'x1+x2')
                           Left: 
                             IParameterReferenceOperation: x1 (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'x1')
                           Right: 
@@ -630,7 +630,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Linq.IOrd
                           IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'i/10')
                             IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'i/10')
                               ReturnedValue: 
-                                IBinaryOperation (BinaryOperatorKind.Divide) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'i/10')
+                                IBinaryOperation (BinaryOperatorKind.Divide) (OperationKind.Binary, Type: System.Int32) (Syntax: 'i/10')
                                   Left: 
                                     IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'i')
                                   Right: 
@@ -646,7 +646,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Linq.IOrd
                   IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'i%10')
                     IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'i%10')
                       ReturnedValue: 
-                        IBinaryOperation (BinaryOperatorKind.Remainder) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'i%10')
+                        IBinaryOperation (BinaryOperatorKind.Remainder) (OperationKind.Binary, Type: System.Int32) (Syntax: 'i%10')
                           Left: 
                             IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'i')
                           Right: 
@@ -739,7 +739,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collectio
                   IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'x2 / 10')
                     IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'x2 / 10')
                       ReturnedValue: 
-                        IBinaryOperation (BinaryOperatorKind.Divide) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'x2 / 10')
+                        IBinaryOperation (BinaryOperatorKind.Divide) (OperationKind.Binary, Type: System.Int32) (Syntax: 'x2 / 10')
                           Left: 
                             IParameterReferenceOperation: x2 (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'x2')
                           Right: 
@@ -753,9 +753,9 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collectio
                   IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'x1 + "":"" + g.ToString()')
                     IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'x1 + "":"" + g.ToString()')
                       ReturnedValue: 
-                        IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.String) (Syntax: 'x1 + "":"" + g.ToString()')
+                        IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: System.String) (Syntax: 'x1 + "":"" + g.ToString()')
                           Left: 
-                            IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.String) (Syntax: 'x1 + "":""')
+                            IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: System.String) (Syntax: 'x1 + "":""')
                               Left: 
                                 IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'x1')
                                   Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -846,7 +846,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collectio
                   IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'x + y')
                     IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'x + y')
                       ReturnedValue: 
-                        IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'x + y')
+                        IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: System.Int32) (Syntax: 'x + y')
                           Left: 
                             IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'x')
                           Right: 
@@ -971,7 +971,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collectio
                                                     Instance Receiver: 
                                                       IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: System.Int32 x, System.Int32 g>, IsImplicit) (Syntax: 'let g = x * 10')
                                                 Right: 
-                                                  IBinaryOperation (BinaryOperatorKind.Multiply) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'x * 10')
+                                                  IBinaryOperation (BinaryOperatorKind.Multiply) (OperationKind.Binary, Type: System.Int32) (Syntax: 'x * 10')
                                                     Left: 
                                                       IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'x')
                                                     Right: 
@@ -1002,13 +1002,13 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collectio
                                             Instance Receiver: 
                                               IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: <anonymous type: System.Int32 x, System.Int32 g> <>h__TransparentIdentifier0, System.Int32 z>, IsImplicit) (Syntax: 'let z = g + x*100')
                                         Right: 
-                                          IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'g + x*100')
+                                          IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: System.Int32) (Syntax: 'g + x*100')
                                             Left: 
                                               IPropertyReferenceOperation: System.Int32 <anonymous type: System.Int32 x, System.Int32 g>.g { get; } (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'g')
                                                 Instance Receiver: 
                                                   IParameterReferenceOperation: <>h__TransparentIdentifier0 (OperationKind.ParameterReference, Type: <anonymous type: System.Int32 x, System.Int32 g>, IsImplicit) (Syntax: 'g')
                                             Right: 
-                                              IBinaryOperation (BinaryOperatorKind.Multiply) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'x*100')
+                                              IBinaryOperation (BinaryOperatorKind.Multiply) (OperationKind.Binary, Type: System.Int32) (Syntax: 'x*100')
                                                 Left: 
                                                   IPropertyReferenceOperation: System.Int32 <anonymous type: System.Int32 x, System.Int32 g>.x { get; } (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'x')
                                                     Instance Receiver: 
@@ -1026,7 +1026,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collectio
                   IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'x + z')
                     IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'x + z')
                       ReturnedValue: 
-                        IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'x + z')
+                        IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: System.Int32) (Syntax: 'x + z')
                           Left: 
                             IPropertyReferenceOperation: System.Int32 <anonymous type: System.Int32 x, System.Int32 g>.x { get; } (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'x')
                               Instance Receiver: 
@@ -1254,9 +1254,9 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collectio
                                                     Instance Receiver: 
                                                       IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: <anonymous type: <anonymous type: System.Int32 x, System.Int32 y> <>h__TransparentIdentifier0, System.Int32 z> <>h__TransparentIdentifier1, System.Int32 g>, IsImplicit) (Syntax: 'let g = x + y + z')
                                                 Right: 
-                                                  IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'x + y + z')
+                                                  IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: System.Int32) (Syntax: 'x + y + z')
                                                     Left: 
-                                                      IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'x + y')
+                                                      IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: System.Int32) (Syntax: 'x + y')
                                                         Left: 
                                                           IPropertyReferenceOperation: System.Int32 <anonymous type: System.Int32 x, System.Int32 y>.x { get; } (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'x')
                                                             Instance Receiver: 
@@ -1284,11 +1284,11 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collectio
                           IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: '(x + y / 10 ...  / 100) < 6')
                             IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: '(x + y / 10 ...  / 100) < 6')
                               ReturnedValue: 
-                                IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: '(x + y / 10 ...  / 100) < 6')
+                                IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.Binary, Type: System.Boolean) (Syntax: '(x + y / 10 ...  / 100) < 6')
                                   Left: 
-                                    IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'x + y / 10 + z / 100')
+                                    IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: System.Int32) (Syntax: 'x + y / 10 + z / 100')
                                       Left: 
-                                        IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'x + y / 10')
+                                        IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: System.Int32) (Syntax: 'x + y / 10')
                                           Left: 
                                             IPropertyReferenceOperation: System.Int32 <anonymous type: System.Int32 x, System.Int32 y>.x { get; } (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'x')
                                               Instance Receiver: 
@@ -1298,7 +1298,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collectio
                                                       Instance Receiver: 
                                                         IParameterReferenceOperation: <>h__TransparentIdentifier2 (OperationKind.ParameterReference, Type: <anonymous type: <anonymous type: <anonymous type: System.Int32 x, System.Int32 y> <>h__TransparentIdentifier0, System.Int32 z> <>h__TransparentIdentifier1, System.Int32 g>, IsImplicit) (Syntax: 'x')
                                           Right: 
-                                            IBinaryOperation (BinaryOperatorKind.Divide) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'y / 10')
+                                            IBinaryOperation (BinaryOperatorKind.Divide) (OperationKind.Binary, Type: System.Int32) (Syntax: 'y / 10')
                                               Left: 
                                                 IPropertyReferenceOperation: System.Int32 <anonymous type: System.Int32 x, System.Int32 y>.y { get; } (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'y')
                                                   Instance Receiver: 
@@ -1310,7 +1310,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collectio
                                               Right: 
                                                 ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 10) (Syntax: '10')
                                       Right: 
-                                        IBinaryOperation (BinaryOperatorKind.Divide) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'z / 100')
+                                        IBinaryOperation (BinaryOperatorKind.Divide) (OperationKind.Binary, Type: System.Int32) (Syntax: 'z / 100')
                                           Left: 
                                             IPropertyReferenceOperation: System.Int32 <anonymous type: <anonymous type: System.Int32 x, System.Int32 y> <>h__TransparentIdentifier0, System.Int32 z>.z { get; } (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'z')
                                               Instance Receiver: 
@@ -1608,9 +1608,9 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collectio
                   IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'x + y + z')
                     IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'x + y + z')
                       ReturnedValue: 
-                        IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'x + y + z')
+                        IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: System.Int32) (Syntax: 'x + y + z')
                           Left: 
-                            IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'x + y')
+                            IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: System.Int32) (Syntax: 'x + y')
                               Left: 
                                 IPropertyReferenceOperation: System.Int32 <anonymous type: System.Int32 x, System.Int32 y>.x { get; } (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'x')
                                   Instance Receiver: 
@@ -2056,7 +2056,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collectio
                   IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: '4 * a')
                     IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: '4 * a')
                       ReturnedValue: 
-                        IBinaryOperation (BinaryOperatorKind.Multiply) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: '4 * a')
+                        IBinaryOperation (BinaryOperatorKind.Multiply) (OperationKind.Binary, Type: System.Int32) (Syntax: '4 * a')
                           Left: 
                             ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 4) (Syntax: '4')
                           Right: 
@@ -3048,7 +3048,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: ?, IsInvalid) (S
             IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'x + 1')
               IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'x + 1')
                 ReturnedValue: 
-                  IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: ?) (Syntax: 'x + 1')
+                  IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: ?) (Syntax: 'x + 1')
                     Left: 
                       IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: ?) (Syntax: 'x')
                     Right: 
@@ -3671,7 +3671,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: X, IsInvalid) (S
                         IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'x.ToString( ... .ToString()')
                           IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'x.ToString( ... .ToString()')
                             ReturnedValue: 
-                              IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'x.ToString( ... .ToString()')
+                              IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'x.ToString( ... .ToString()')
                                 Left: 
                                   IInvocationOperation (virtual System.String System.Int32.ToString()) (OperationKind.Invocation, Type: System.String) (Syntax: 'x.ToString()')
                                     Instance Receiver: 
@@ -4243,7 +4243,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collectio
                   IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'i + 1')
                     IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'i + 1')
                       ReturnedValue: 
-                        IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'i + 1')
+                        IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: System.Int32) (Syntax: 'i + 1')
                           Left: 
                             IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'i')
                           Right: 
@@ -4295,7 +4295,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collectio
                   IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'i + 1')
                     IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'i + 1')
                       ReturnedValue: 
-                        IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'i + 1')
+                        IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: System.Int32) (Syntax: 'i + 1')
                           Left: 
                             IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'i')
                           Right: 

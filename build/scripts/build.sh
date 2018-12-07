@@ -2,25 +2,36 @@
 # Copyright (c) .NET Foundation and contributors. All rights reserved.
 # Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-set -e
+# Stop script if unbound variable found (use ${var:-} if intentional)
 set -u
 
 usage()
 {
-    echo "Main interface to running builds on Mac/Linux"
-    echo "Usage: build.sh [options]"
-    echo ""
-    echo "Options"
-    echo "  --configuration       Build configuration ('Debug' or 'Release')"
-    echo "  --ci                  Building in CI"
-    echo "  --restore             Restore projects required to build"
-    echo "  --build               Build all projects"
-    echo "  --pack                Build nuget packages"
-    echo "  --test                Run unit tests"
-    echo "  --mono                Run unit tests with mono"
-    echo "  --build-bootstrap     Build the bootstrap compilers"
-    echo "  --use-bootstrap       Use the built bootstrap compilers when running main build"
-    echo "  --bootstrap           Implies --build-bootstrap and --use-bootstrap"
+  echo "Common settings:"
+  echo "  --configuration <value>    Build configuration: 'Debug' or 'Release' (short: -c)"
+  echo "  --verbosity <value>        Msbuild verbosity: q[uiet], m[inimal], n[ormal], d[etailed], and diag[nostic] (short: -v)"
+  echo "  --binaryLog                Create MSBuild binary log (short: -bl)"
+  echo ""
+  echo "Actions:"
+  echo "  --restore                  Restore projects required to build (short: -r)"
+  echo "  --build                    Build all projects (short: -b)"
+  echo "  --rebuild                  Rebuild all projects"
+  echo "  --pack                     Build nuget packages"
+  echo "  --publish                  Publish build artifacts"
+  echo "  --help                     Print help and exit"
+  echo ""
+  echo "Test actions:"     
+  echo "  --testCoreClr              Run unit tests on .NET Core (short: --test, -t)"
+  echo "  --testMono                 Run unit tests on Mono"
+  echo ""
+  echo "Advanced settings:"
+  echo "  --ci                       Building in CI"
+  echo "  --docker                   Run in a docker container if applicable"
+  echo "  --bootstrap                Build using a bootstrap compilers"
+  echo "  --skipAnalyzers            Do not run analyzers during build operations"
+  echo "  --prepareMachine           Prepare machine for CI run, clean up processes after build"
+  echo ""
+  echo "Command line arguments starting with '/p:' are passed through to MSBuild."
 }
 
 source="${BASH_SOURCE[0]}"
@@ -35,201 +46,230 @@ while [[ -h "$source" ]]; do
 done
 scriptroot="$( cd -P "$( dirname "$source" )" && pwd )"
 
-root_path="$scriptroot/../.."
-binaries_path="${root_path}"/Binaries
-bootstrap_path="${binaries_path}"/Bootstrap
-
-args=
-build_in_docker=false
-build_configuration=Debug
 restore=false
 build=false
-test_=false
+rebuild=false
 pack=false
-use_mono=false
-build_bootstrap=false
-use_bootstrap=false
-stop_vbcscompiler=false
-ci=false
+publish=false
+test_core_clr=false
+test_mono=false
 
-# LTTNG is the logging infrastructure used by coreclr.  Need this variable set
-# so it doesn't output warnings to the console.
-export LTTNG_HOME="$HOME"
+configuration="Debug"
+verbosity='minimal'
+binary_log=false
+ci=false
+bootstrap=false
+skip_analyzers=false
+prepare_machine=false
+properties=""
+
+docker=false
+args=""
 
 if [[ $# = 0 ]]
 then
-    usage
-    echo ""
-    echo "To build and test this repo, try: ./build.sh --restore --build --test"
-    exit 1
+  usage
+  exit 1
 fi
 
-while [[ $# > 0 ]]
-do
-    opt="$(echo "$1" | awk '{print tolower($0)}')"
-    case "$opt" in
-        -h|--help)
-            usage
-            exit 1
-            ;;
-        --docker)
-            build_in_docker=true
-            shift
-            continue
-            ;;
-        --configuration)
-            build_configuration=$2
-            args="$args $1"
-            shift
-            ;;
-        --ci)
-            ci=true
-            ;;
-        --restore|-r)
-            restore=true
-            ;;
-        --build|-b)
-            build=true
-            ;;
-        --test|-t)
-            test_=true
-            ;;
-        --mono)
-            use_mono=true
-            ;;
-        --build-bootstrap)
-            build_bootstrap=true
-            ;;
-        --use-bootstrap)
-            use_bootstrap=true
-            ;;
-        --bootstrap)
-            build_bootstrap=true
-            use_bootstrap=true
-            ;;
-        --stop-vbcscompiler)
-            stop_vbcscompiler=true
-            ;;
-        --pack)
-            pack=true
-            ;;
-        *)
-            echo "$1"
-            usage
-            exit 1
-        ;;
-    esac
-    args="$args $1"
-    shift
+while [[ $# > 0 ]]; do
+  opt="$(echo "$1" | awk '{print tolower($0)}')"
+  case "$opt" in
+    --help|-h)
+      usage
+      exit 0
+      ;;
+    --configuration|-c)
+      configuration=$2
+      args="$args $1"
+      shift
+      ;;
+    --verbosity|-v)
+      verbosity=$2
+      args="$args $1"
+      shift
+      ;;
+    --binarylog|-bl)
+      binary_log=true
+      ;;
+    --restore|-r)
+      restore=true
+      ;;
+    --build|-b)
+      build=true
+      ;;
+    --rebuild)
+      rebuild=true
+      ;;
+    --pack)
+      pack=true
+      ;;
+    --publish)
+      publish=true
+      ;;
+    --testcoreclr|--test|-t)
+      test_core_clr=true
+      ;;
+    --testmono)
+      test_mono=true
+      ;;
+    --ci)
+      ci=true
+      ;;
+    --bootstrap)
+      bootstrap=true
+      ;;
+    --skipanalyzers)
+      skip_analyzers=true
+      ;;
+    --preparemachine)
+      prepare_machine=true
+      ;;
+    --docker)
+      docker=true
+      shift
+      continue
+      ;;
+    /p:*)
+      properties="$properties $1"
+      ;;
+    *)
+      echo "Invalid argument: $1"
+      usage
+      exit 1
+      ;;
+  esac
+  args="$args $1"
+  shift
 done
 
-config_path=${binaries_path}/${build_configuration}
-logs_path=${config_path}/Logs
-mkdir -p ${binaries_path}
-mkdir -p ${config_path}
-mkdir -p ${logs_path}
-
-function stop_processes {
-    echo "Killing running build processes..."
-    pkill -9 "dotnet" || true
-    pkill -9 "vbcscompiler" || true
-}
-
-if [[ "$build_in_docker" = true ]]
+if [[ "$test_mono" == true && "$docker" == true ]]
 then
-    echo "Docker exec: $args"
-    BUILD_COMMAND=/opt/code/build.sh "$scriptroot"/dockerrun.sh $args
-    exit
+  echo "Docker exec: $args"
+
+  # Run this script with the same arguments (except for --docker) in a container that has Mono installed.
+  BUILD_COMMAND=/opt/code/build/scripts/build.sh "$scriptroot"/dockerrun.sh $args
+  
+  # Ensure that all docker containers are stopped.
+  # Hence exit with true even if "kill" failed as it will fail if they stopped gracefully
+  if [[ "$prepare_machine" == true ]]; then
+    docker kill $(docker ps -q) || true
+  fi
+
+  exit
 fi
 
 # Import Arcade functions
-. $scriptroot/tools.sh
+. "$scriptroot/tools.sh"
+
+function MakeBootstrapBuild {
+  echo "Building bootstrap compiler"
+
+  local dir="$binaries_path/Bootstrap"
+
+  rm -rf $dir
+  mkdir -p $dir
+
+  local package_name="Microsoft.NETCore.Compilers"
+  local project_path=src/NuGet/$package_name/$package_name.Package.csproj
+
+  dotnet pack -nologo "$project_path" /p:DotNetUseShippingVersions=true /p:InitialDefineConstants=BOOTSTRAP /p:PackageOutputPath="$dir"
+  unzip "$dir/$package_name.*.nupkg" -d "$dir"
+  chmod -R 755 "$dir"
+
+  echo "Cleaning Bootstrap compiler artifacts"
+  dotnet clean "$project_path"
+
+  if [[ "$node_reuse" == true ]]; then
+    dotnet build-server shutdown
+  fi
+
+  # return value
+  _MakeBootstrapBuild=$dir
+}
+
+function BuildSolution {
+  local solution="Compilers.sln"
+  echo "$solution:"
+
+  InitializeToolset
+  local toolset_build_proj=$_InitializeToolset
+  
+  local bl=""
+  if [[ "$binary_log" = true ]]; then
+    bl="/bl:\"$log_dir/Build.binlog\""
+  fi
+  
+  local projects="$repo_root/$solution" 
+  
+  # https://github.com/dotnet/roslyn/issues/23736
+  local enable_analyzers=!$skip_analyzers
+  UNAME="$(uname)"
+  if [[ "$UNAME" == "Darwin" ]]; then
+    enable_analyzers=false
+  fi
+
+  local quiet_restore=""
+  if [[ "$ci" != true ]]; then
+    quiet_restore=true
+  fi
+
+  local test=false
+  local test_runtime=""
+  local mono_tool=""
+  if [[ "$test_mono" == true ]]; then
+    # Echo out the mono version to the comamnd line so it's visible in CI logs. It's not fixed
+    # as we're using a feed vs. a hard coded package.
+    if [[ "$ci" == true ]]; then
+      mono --version
+    fi
+
+    test=true
+    test_runtime="/p:TestRuntime=Mono"
+    mono_path=`command -v mono`
+    mono_tool="/p:MonoTool=\"$mono_path\""
+  elif [[ "$test_core_clr" == true ]]; then
+    test=true
+    test_runtime="/p:TestRuntime=Core"
+    mono_tool=""
+  fi
+
+  MSBuild $toolset_build_proj \
+    $bl \
+    /p:Configuration=$configuration \
+    /p:Projects="$projects" \
+    /p:RepoRoot="$repo_root" \
+    /p:Restore=$restore \
+    /p:Build=$build \
+    /p:Rebuild=$rebuild \
+    /p:Test=$test \
+    /p:Pack=$pack \
+    /p:Publish=$publish \
+    /p:UseRoslynAnalyzers=$enable_analyzers \
+    /p:BootstrapBuildPath="$bootstrap_dir" \
+    /p:ContinuousIntegrationBuild=$ci \
+    /p:QuietRestore=$quiet_restore \
+    /p:QuietRestoreBinaryLog="$binary_log" \
+    $test_runtime \
+    $mono_tool \
+    $properties
+}
+
+# TODO: update layout
+binaries_path="$repo_root/Binaries"
+config_path="$binaries_path/$configuration"
+mkdir -p $binaries_path
+mkdir -p $config_path
 
 InitializeDotNetCli $restore
 
 export PATH="$DOTNET_INSTALL_DIR:$PATH"
 
-if [[ "$restore" == true ]]
-then
-    echo "Restoring RoslynToolset.csproj"
-    dotnet restore "${root_path}/build/ToolsetPackages/RoslynToolset.csproj" "/bl:${logs_path}/Restore-RoslynToolset.binlog"
-    echo "Restoring Compilers.sln"
-    dotnet restore "${root_path}/Compilers.sln" "/bl:${logs_path}/Restore-Compilers.binlog"
+bootstrap_dir=""
+if [[ "$bootstrap" == true ]]; then
+  MakeBootstrapBuild
+  bootstrap_dir=$_MakeBootstrapBuild
 fi
 
-build_args="--no-restore -c ${build_configuration} /nologo"
-
-if [[ "$build_bootstrap" == true ]]
-then
-    echo "Building bootstrap compiler"
-
-    rm -rf ${bootstrap_path}
-    mkdir -p ${bootstrap_path} 
-
-    project_path=src/NuGet/Microsoft.NETCore.Compilers/Microsoft.NETCore.Compilers.Package.csproj
-
-    dotnet pack -nologo ${project_path} /p:DotNetUseShippingVersions=true /p:InitialDefineConstants=BOOTSTRAP /p:PackageOutputPath=${bootstrap_path}
-    unzip ${bootstrap_path}/Microsoft.NETCore.Compilers.*.nupkg -d ${bootstrap_path}
-    chmod -R 755 ${bootstrap_path}
-
-    echo "Cleaning Bootstrap compiler artifacts"
-    dotnet clean ${project_path}
-
-    stop_processes
-fi
-
-if [[ "${use_bootstrap}" == true ]]
-then
-    build_args+=" /p:BootstrapBuildPath=${bootstrap_path}"
-fi
-
-if [[ "${ci}" == true ]]
-then
-    build_args+=" /p:ContinuousIntegrationBuild=true"
-fi
-
-# https://github.com/dotnet/roslyn/issues/23736
-UNAME="$(uname)"
-if [[ "$UNAME" == "Darwin" ]]
-then
-    build_args+=" /p:UseRoslynAnalyzers=false"
-fi
-
-if [[ "${build}" == true ]]
-then
-    echo "Building Compilers.sln"
-
-    if [[ "${pack}" == true ]]
-    then
-        build_args+=" /t:Pack"
-    fi
-
-    dotnet build "${root_path}/Compilers.sln" ${build_args} "/bl:${binaries_path}/Build.binlog"
-fi
-
-if [[ "${stop_vbcscompiler}" == true ]]
-then
-    if [[ "${use_bootstrap}" == true ]]
-    then
-        dotnet build-server shutdown
-    else
-        echo "--stop-vbcscompiler requires --use-bootstrap. Aborting."
-        exit 1
-    fi
-fi
-
-if [[ "${test_}" == true ]]
-then
-    if [[ "${use_mono}" == true ]]
-    then
-        test_runtime=mono
-
-        # Echo out the mono version to the comamnd line so it's visible in CI logs. It's not fixed
-        # as we're using a feed vs. a hard coded package. 
-        mono --version
-    else
-        test_runtime=dotnet
-    fi
-
-    "${scriptroot}"/tests.sh "${build_configuration}" "${test_runtime}"
-fi
+BuildSolution
+ExitWithExitCode 0

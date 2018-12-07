@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
+using Microsoft.VisualStudio.LanguageServices.Storage;
 using Microsoft.VisualStudio.Shell.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
@@ -61,8 +62,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                         language: language,
                         filePath: creationInfo.FilePath,
                         compilationOptions: creationInfo.CompilationOptions,
-                        parseOptions: creationInfo.ParseOptions)
-                        .WithDefaultNamespace(creationInfo.DefaultNamespace);
+                        parseOptions: creationInfo.ParseOptions);
 
                 // HACK: update this since we're still on the UI thread. Note we can only update this if we don't have projects -- the workspace
                 // only lets us really do this with OnSolutionAdded for now.
@@ -84,6 +84,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                             VersionStamp.Create(),
                             solutionPathToSetWithOnSolutionAdded,
                             projects: new[] { projectInfo }));
+
+                    // set working folder for the persistent service
+                    var persistenceService = w.Services.GetRequiredService<IPersistentStorageLocationService>() as VisualStudioPersistentStorageLocationService;
+                    persistenceService?.UpdateForVisualStudioWorkspace(w);
                 }
                 else
                 {

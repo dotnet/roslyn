@@ -214,9 +214,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting
         /// </summary>
         /// <param name="node">the <see cref="SyntaxNode"/> to format.</param>
         /// <remarks>uses an <see cref="AdhocWorkspace"/> for formatting context, since the <paramref name="node"/> is not associated with a <see cref="SyntaxTree"/> </remarks>
-        protected async Task AssertFormatOnArbitraryNodeAsync(SyntaxNode node, string expected)
+        protected void AssertFormatOnArbitraryNode(SyntaxNode node, string expected)
         {
-            var result = await Formatter.FormatAsync(node, new AdhocWorkspace());
+            var result = Formatter.Format(node, new AdhocWorkspace());
             var actual = result.GetText().ToString();
 
             Assert.Equal(expected, actual);

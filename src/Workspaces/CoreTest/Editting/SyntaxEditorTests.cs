@@ -2,7 +2,6 @@
 
 using System;
 using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
@@ -19,10 +18,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Editing
         private Workspace EmptyWorkspace
             => _emptyWorkspace ?? (_emptyWorkspace = new AdhocWorkspace());
 
-        private async Task VerifySyntaxAsync<TSyntax>(SyntaxNode node, string expectedText) where TSyntax : SyntaxNode
+        private void VerifySyntax<TSyntax>(SyntaxNode node, string expectedText) where TSyntax : SyntaxNode
         {
             Assert.IsAssignableFrom(typeof(TSyntax), node);
-            var formatted = await Formatter.FormatAsync(node, EmptyWorkspace);
+            var formatted = Formatter.Format(node, EmptyWorkspace);
             var actualText = formatted.ToFullString();
             Assert.Equal(expectedText, actualText);
         }
@@ -33,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Editing
         }
 
         [Fact]
-        public async Task TestReplaceNode()
+        public void TestReplaceNode()
         {
             var code = @"
 public class C
@@ -49,7 +48,7 @@ public class C
             editor.ReplaceNode(fieldX, editor.Generator.FieldDeclaration("Y", editor.Generator.TypeExpression(SpecialType.System_String), Accessibility.Public));
             var newRoot = editor.GetChangedRoot();
 
-            await VerifySyntaxAsync<CompilationUnitSyntax>(
+            VerifySyntax<CompilationUnitSyntax>(
                 newRoot,
                 @"
 public class C
@@ -59,7 +58,7 @@ public class C
         }
 
         [Fact]
-        public async Task TestRemoveNode()
+        public void TestRemoveNode()
         {
             var code = @"
 public class C
@@ -75,7 +74,7 @@ public class C
             editor.RemoveNode(fieldX);
             var newRoot = editor.GetChangedRoot();
 
-            await VerifySyntaxAsync<CompilationUnitSyntax>(
+            VerifySyntax<CompilationUnitSyntax>(
                 newRoot,
                 @"
 public class C
@@ -84,7 +83,7 @@ public class C
         }
 
         [Fact]
-        public async Task TestInsertAfter()
+        public void TestInsertAfter()
         {
             var code = @"
 public class C
@@ -100,7 +99,7 @@ public class C
             editor.InsertAfter(fieldX, editor.Generator.FieldDeclaration("Y", editor.Generator.TypeExpression(SpecialType.System_String), Accessibility.Public));
             var newRoot = editor.GetChangedRoot();
 
-            await VerifySyntaxAsync<CompilationUnitSyntax>(
+            VerifySyntax<CompilationUnitSyntax>(
                 newRoot,
                 @"
 public class C
@@ -111,7 +110,7 @@ public class C
         }
 
         [Fact]
-        public async Task TestInsertBefore()
+        public void TestInsertBefore()
         {
             var code = @"
 public class C
@@ -127,7 +126,7 @@ public class C
             editor.InsertBefore(fieldX, editor.Generator.FieldDeclaration("Y", editor.Generator.TypeExpression(SpecialType.System_String), Accessibility.Public));
             var newRoot = editor.GetChangedRoot();
 
-            await VerifySyntaxAsync<CompilationUnitSyntax>(
+            VerifySyntax<CompilationUnitSyntax>(
                 newRoot,
                 @"
 public class C
@@ -138,22 +137,22 @@ public class C
         }
 
         [Fact]
-        public async Task TestReplaceWithTracking()
+        public void TestReplaceWithTracking()
         {
             // ReplaceNode overload #1
-            await TestReplaceWithTrackingCoreAsync((SyntaxNode node, SyntaxNode newNode, SyntaxEditor editor) =>
+            TestReplaceWithTrackingCore((SyntaxNode node, SyntaxNode newNode, SyntaxEditor editor) =>
             {
                 editor.ReplaceNode(node, newNode);
             });
 
             // ReplaceNode overload #2
-            await TestReplaceWithTrackingCoreAsync((SyntaxNode node, SyntaxNode newNode, SyntaxEditor editor) =>
+            TestReplaceWithTrackingCore((SyntaxNode node, SyntaxNode newNode, SyntaxEditor editor) =>
             {
                 editor.ReplaceNode(node, computeReplacement: (originalNode, generator) => newNode);
             });
 
             // ReplaceNode overload #3
-            await TestReplaceWithTrackingCoreAsync((SyntaxNode node, SyntaxNode newNode, SyntaxEditor editor) =>
+            TestReplaceWithTrackingCore((SyntaxNode node, SyntaxNode newNode, SyntaxEditor editor) =>
             {
                 editor.ReplaceNode(node,
                      computeReplacement: (originalNode, generator, argument) => newNode,
@@ -161,7 +160,7 @@ public class C
             });
         }
 
-        private async Task TestReplaceWithTrackingCoreAsync(Action<SyntaxNode, SyntaxNode, SyntaxEditor> replaceNodeWithTracking)
+        private void TestReplaceWithTrackingCore(Action<SyntaxNode, SyntaxNode, SyntaxEditor> replaceNodeWithTracking)
         {
             var code = @"
 public class C
@@ -178,7 +177,7 @@ public class C
             replaceNodeWithTracking(fieldX, newFieldY, editor);
 
             var newRoot = editor.GetChangedRoot();
-            await VerifySyntaxAsync<CompilationUnitSyntax>(
+            VerifySyntax<CompilationUnitSyntax>(
                 newRoot,
                 @"
 public class C
@@ -190,7 +189,7 @@ public class C
             replaceNodeWithTracking(newFieldYType, newType, editor);
 
             newRoot = editor.GetChangedRoot();
-            await VerifySyntaxAsync<CompilationUnitSyntax>(
+            VerifySyntax<CompilationUnitSyntax>(
                 newRoot,
                 @"
 public class C
@@ -201,7 +200,7 @@ public class C
             editor.RemoveNode(newFieldY);
 
             newRoot = editor.GetChangedRoot();
-            await VerifySyntaxAsync<CompilationUnitSyntax>(
+            VerifySyntax<CompilationUnitSyntax>(
                 newRoot,
                 @"
 public class C
@@ -210,7 +209,7 @@ public class C
         }
 
         [Fact]
-        public async Task TestReplaceWithTracking_02()
+        public void TestReplaceWithTracking_02()
         {
             var code = @"
 public class C
@@ -233,7 +232,7 @@ public class C
             editor.ReplaceNode(fieldX, newFieldY);
 
             var newRoot = editor.GetChangedRoot();
-            await VerifySyntaxAsync<CompilationUnitSyntax>(
+            VerifySyntax<CompilationUnitSyntax>(
                 newRoot,
                 @"
 public class C
@@ -247,7 +246,7 @@ public class C
             editor.ReplaceNode(newFieldYType, newType);
 
             newRoot = editor.GetChangedRoot();
-            await VerifySyntaxAsync<CompilationUnitSyntax>(
+            VerifySyntax<CompilationUnitSyntax>(
                 newRoot,
                 @"
 public class C
@@ -261,7 +260,7 @@ public class C
             editor.ReplaceNode(fieldX2, newFieldY2);
 
             newRoot = editor.GetChangedRoot();
-            await VerifySyntaxAsync<CompilationUnitSyntax>(
+            VerifySyntax<CompilationUnitSyntax>(
                 newRoot,
                 @"
 public class C
@@ -275,7 +274,7 @@ public class C
             editor.ReplaceNode(newFieldY, newFieldZ);
 
             newRoot = editor.GetChangedRoot();
-            await VerifySyntaxAsync<CompilationUnitSyntax>(
+            VerifySyntax<CompilationUnitSyntax>(
                 newRoot,
                 @"
 public class C
@@ -290,7 +289,7 @@ public class C
             editor.ReplaceNode(originalFieldX3Type, newType);
 
             newRoot = editor.GetChangedRoot();
-            await VerifySyntaxAsync<CompilationUnitSyntax>(
+            VerifySyntax<CompilationUnitSyntax>(
                 newRoot,
                 @"
 public class C
@@ -304,7 +303,7 @@ public class C
             editor.RemoveNode(fieldX3);
 
             newRoot = editor.GetChangedRoot();
-            await VerifySyntaxAsync<CompilationUnitSyntax>(
+            VerifySyntax<CompilationUnitSyntax>(
                 newRoot,
                 @"
 public class C
@@ -314,22 +313,22 @@ public class C
         }
 
         [Fact]
-        public async Task TestInsertAfterWithTracking()
+        public void TestInsertAfterWithTracking()
         {
             // InsertAfter overload #1
-            await TestInsertAfterWithTrackingCoreAsync((SyntaxNode node, SyntaxNode newNode, SyntaxEditor editor) =>
+            TestInsertAfterWithTrackingCore((SyntaxNode node, SyntaxNode newNode, SyntaxEditor editor) =>
             {
                 editor.InsertAfter(node, newNode);
             });
 
             // InsertAfter overload #2
-            await TestInsertAfterWithTrackingCoreAsync((SyntaxNode node, SyntaxNode newNode, SyntaxEditor editor) =>
+            TestInsertAfterWithTrackingCore((SyntaxNode node, SyntaxNode newNode, SyntaxEditor editor) =>
             {
                 editor.InsertAfter(node, new[] { newNode });
             });
         }
 
-        private async Task TestInsertAfterWithTrackingCoreAsync(Action<SyntaxNode, SyntaxNode, SyntaxEditor> insertAfterWithTracking)
+        private void TestInsertAfterWithTrackingCore(Action<SyntaxNode, SyntaxNode, SyntaxEditor> insertAfterWithTracking)
         {
             var code = @"
 public class C
@@ -346,7 +345,7 @@ public class C
             insertAfterWithTracking(fieldX, newFieldY, editor);
 
             var newRoot = editor.GetChangedRoot();
-            await VerifySyntaxAsync<CompilationUnitSyntax>(
+            VerifySyntax<CompilationUnitSyntax>(
                 newRoot,
                 @"
 public class C
@@ -359,7 +358,7 @@ public class C
             editor.ReplaceNode(newFieldY, newFieldZ);
 
             newRoot = editor.GetChangedRoot();
-            await VerifySyntaxAsync<CompilationUnitSyntax>(
+            VerifySyntax<CompilationUnitSyntax>(
                 newRoot,
                 @"
 public class C
@@ -370,22 +369,22 @@ public class C
         }
 
         [Fact]
-        public async Task TestInsertBeforeWithTracking()
+        public void TestInsertBeforeWithTracking()
         {
             // InsertBefore overload #1
-            await TestInsertBeforeWithTrackingCoreAsync((SyntaxNode node, SyntaxNode newNode, SyntaxEditor editor) =>
+            TestInsertBeforeWithTrackingCore((SyntaxNode node, SyntaxNode newNode, SyntaxEditor editor) =>
             {
                 editor.InsertBefore(node, newNode);
             });
 
             // InsertBefore overload #2
-            await TestInsertBeforeWithTrackingCoreAsync((SyntaxNode node, SyntaxNode newNode, SyntaxEditor editor) =>
+            TestInsertBeforeWithTrackingCore((SyntaxNode node, SyntaxNode newNode, SyntaxEditor editor) =>
             {
                 editor.InsertBefore(node, new[] { newNode });
             });
         }
 
-        private async Task TestInsertBeforeWithTrackingCoreAsync(Action<SyntaxNode, SyntaxNode, SyntaxEditor> insertBeforeWithTracking)
+        private void TestInsertBeforeWithTrackingCore(Action<SyntaxNode, SyntaxNode, SyntaxEditor> insertBeforeWithTracking)
         {
             var code = @"
 public class C
@@ -402,7 +401,7 @@ public class C
             insertBeforeWithTracking(fieldX, newFieldY, editor);
 
             var newRoot = editor.GetChangedRoot();
-            await VerifySyntaxAsync<CompilationUnitSyntax>(
+            VerifySyntax<CompilationUnitSyntax>(
                 newRoot,
                 @"
 public class C
@@ -415,7 +414,7 @@ public class C
             editor.ReplaceNode(newFieldY, newFieldZ);
 
             newRoot = editor.GetChangedRoot();
-            await VerifySyntaxAsync<CompilationUnitSyntax>(
+            VerifySyntax<CompilationUnitSyntax>(
                 newRoot,
                 @"
 public class C
@@ -447,7 +446,7 @@ public class C
         }
 
         [Fact]
-        public async Task TestMultipleEdits()
+        public void TestMultipleEdits()
         {
             var code = @"
 public class C
@@ -465,7 +464,7 @@ public class C
             editor.RemoveNode(fieldX);
             var newRoot = editor.GetChangedRoot();
 
-            await VerifySyntaxAsync<CompilationUnitSyntax>(
+            VerifySyntax<CompilationUnitSyntax>(
                 newRoot,
                 @"
 public class C
