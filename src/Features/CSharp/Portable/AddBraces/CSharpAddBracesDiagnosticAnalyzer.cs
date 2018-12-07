@@ -109,8 +109,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.AddBraces
                 SyntaxFacts.GetText(firstToken.Kind())));
         }
 
+        /// <summary>
+        /// <para>In general, statements are considered multiline if any of the following span more than one line:</para>
+        /// <list type="bullet">
+        /// <item><description>The part of the statement preceding the embedded statement</description></item>
+        /// <item><description>The embedded statement itself</description></item>
+        /// <item><description>The part of the statement following the embedded statement</description></item>
+        /// </list>
+        /// <para>The third condition is not checked for <c>else</c> clauses because they are only considered multiline
+        /// when their embedded statement is multiline.</para>
+        /// </summary>
         private static bool IsConsideredMultiLine(SyntaxNode statement, SyntaxNode embeddedStatement)
         {
+            // Early return if the entire statement fits on one line
             if (FormattingRangeHelper.AreTwoTokensOnSameLine(statement.GetFirstToken(), statement.GetLastToken()))
             {
                 // The entire statement fits on one line. Examples:
@@ -121,6 +132,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.AddBraces
                 return false;
             }
 
+            // Check the part of the statement preceding the embedded statement
             if (!FormattingRangeHelper.AreTwoTokensOnSameLine(embeddedStatement.GetFirstToken(), embeddedStatement.GetLastToken()))
             {
                 // The embedded statement does not fit on one line. Examples:
@@ -131,6 +143,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.AddBraces
                 return true;
             }
 
+            // Check the embedded statement itself
             var lastTokenBeforeEmbeddedStatement = embeddedStatement.GetFirstToken().GetPreviousToken();
             if (!FormattingRangeHelper.AreTwoTokensOnSameLine(statement.GetFirstToken(), lastTokenBeforeEmbeddedStatement))
             {
@@ -143,6 +156,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.AddBraces
                 return true;
             }
 
+            // Check the part of the statement following the embedded statement, but only if it exists
             if (statement.GetLastToken() != embeddedStatement.GetLastToken())
             {
                 if (statement is IfStatementSyntax ifStatement && ifStatement.Statement == embeddedStatement)
@@ -177,6 +191,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.AddBraces
             return false;
         }
 
+        /// <summary>
+        /// Determines whether <paramref name="embeddedStatement"/> should use braces under a
+        /// <see cref="PreferBracesPreference.WhenMultiline"/> preference due to the presence of braces on one or more
+        /// sibling statements (the "context").
+        /// </summary>
         private static bool RequiresBracesToMatchContext(SyntaxNode statement, StatementSyntax embeddedStatement)
         {
             if (!statement.IsKind(SyntaxKind.IfStatement, SyntaxKind.ElseClause))
@@ -187,7 +206,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.AddBraces
             }
 
             var topLevelContext = GetTopLevelContext(statement);
-            if (AnyPartUsesBraces(topLevelContext))
+            if (AnySiblingUsesBraces(topLevelContext))
             {
                 return true;
             }
@@ -195,17 +214,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.AddBraces
             return false;
         }
 
-        private static IfStatementSyntax GetTopLevelContext(SyntaxNode statement)
+        /// <summary>
+        /// Gets the top-most <see cref="IfStatementSyntax"/> for which <paramref name="ifStatementOrElseClause"/> is
+        /// part of the <c>if</c>/<c>else if</c>/<c>else</c> sequence.
+        /// </summary>
+        /// <remarks>
+        /// <para>For the purpose of brace usage analysis, the embedded statments of an <c>if</c>/<c>else if</c>/<c>else</c>
+        /// sequence are considered sibling statements, even though they don't appear as immediate siblings in the
+        /// syntax tree. This method walks up the syntax tree to find the <c>if</c> statement that starts the
+        /// sequence.</para>
+        /// </remarks>
+        private static IfStatementSyntax GetTopLevelContext(SyntaxNode ifStatementOrElseClause)
         {
             IfStatementSyntax result;
-            if (statement.IsKind(SyntaxKind.ElseClause))
+            if (ifStatementOrElseClause.IsKind(SyntaxKind.ElseClause))
             {
-                result = (IfStatementSyntax)statement.Parent;
+                result = (IfStatementSyntax)ifStatementOrElseClause.Parent;
             }
             else
             {
-                Debug.Assert(statement.IsKind(SyntaxKind.IfStatement));
-                result = (IfStatementSyntax)statement;
+                Debug.Assert(ifStatementOrElseClause.IsKind(SyntaxKind.IfStatement));
+                result = (IfStatementSyntax)ifStatementOrElseClause;
             }
 
             while (result != null)
@@ -221,7 +250,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.AddBraces
             return result;
         }
 
-        private static bool AnyPartUsesBraces(IfStatementSyntax statement)
+        /// <summary>
+        /// Determines if any embedded statement of an <c>if</c>/<c>else if</c>/<c>else</c> sequence uses braces. Only
+        /// the embedded statements falling <em>immediately</em> under one of these nodes are checked.
+        /// </summary>
+        private static bool AnySiblingUsesBraces(IfStatementSyntax statement)
         {
             // Iterative instead of recursive to avoid stack depth problems
             while (statement != null)
