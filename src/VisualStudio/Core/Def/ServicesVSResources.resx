@@ -1114,4 +1114,7 @@ I agree to all of the foregoing:</value>
   <data name="Value_returned_by_invocation_is_implicitly_ignored" xml:space="preserve">
     <value>Value returned by invocation is implicitly ignored</value>
   </data>
+  <data name="Allow_colon" xml:space="preserve">
+    <value>Allow:</value>
+  </data>
 </root>

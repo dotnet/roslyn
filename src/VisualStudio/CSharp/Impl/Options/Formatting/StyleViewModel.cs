@@ -630,6 +630,76 @@ class Customer
 }}
 ";
 
+        private static readonly string s_doNotPreferBraces = $@"
+using System;
+
+class Customer
+{{
+    private int Age;
+
+    void M1()
+    {{
+//[
+        // {ServicesVSResources.Allow_colon}
+        if (test) Console.WriteLine(""Text"");
+
+        // {ServicesVSResources.Allow_colon}
+        if (test)
+            Console.WriteLine(""Text"");
+
+        // {ServicesVSResources.Allow_colon}
+        if (test)
+            Console.WriteLine(
+                ""Text"");
+
+        // {ServicesVSResources.Allow_colon}
+        if (test)
+        {{
+            Console.WriteLine(
+                ""Text"");
+        }}
+//]
+    }}
+}}
+";
+
+        private static readonly string s_preferBracesWhenMultiline = $@"
+using System;
+
+class Customer
+{{
+    private int Age;
+
+    void M1()
+    {{
+//[
+        // {ServicesVSResources.Allow_colon}
+        if (test) Console.WriteLine(""Text"");
+
+        // {ServicesVSResources.Allow_colon}
+        if (test)
+            Console.WriteLine(""Text"");
+
+        // {ServicesVSResources.Prefer_colon}
+        if (test)
+        {{
+            Console.WriteLine(
+                ""Text"");
+        }}
+//]
+    }}
+    void M2()
+    {{
+//[
+        // {ServicesVSResources.Over_colon}
+        if (test)
+            Console.WriteLine(
+                ""Text"");
+//]
+    }}
+}}
+";
+
         private static readonly string s_preferBraces = $@"
 using System;
 
@@ -643,7 +713,7 @@ class Customer
         // {ServicesVSResources.Prefer_colon}
         if (test)
         {{
-            this.Display();
+            Console.WriteLine(""Text"");
         }}
 //]
     }}
@@ -652,7 +722,7 @@ class Customer
 //[
         // {ServicesVSResources.Over_colon}
         if (test)
-            this.Display();
+            Console.WriteLine(""Text"");
 //]
     }}
 }}
@@ -1467,7 +1537,7 @@ class C2
                 CSharpCodeStyleOptions.PreferBraces,
                 ServicesVSResources.Prefer_braces,
                 enumValues,
-                new[] { s_preferBraces, s_preferBraces, s_preferBraces },
+                new[] { s_preferBraces, s_doNotPreferBraces, s_preferBracesWhenMultiline },
                 this, optionSet, bracesPreferenceGroupTitle, bracesPreferences));
         }
 
