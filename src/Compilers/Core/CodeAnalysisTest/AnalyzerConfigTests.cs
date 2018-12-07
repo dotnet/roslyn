@@ -553,6 +553,71 @@ RoOt = TruE");
         }
 
         [Fact]
+        public void NumberMatch()
+        {
+            SectionNameMatcher matcher = TryCreateSectionNameMatcher("{0..10}").Value;
+            Assert.Equal("^.*/(-?[0-9]+)$", matcher.Regex.ToString());
+
+            Assert.True(matcher.IsMatch("/0"));
+            Assert.True(matcher.IsMatch("/10"));
+            Assert.True(matcher.IsMatch("/5"));
+            Assert.True(matcher.IsMatch("/000005"));
+            Assert.False(matcher.IsMatch("/-1"));
+            Assert.False(matcher.IsMatch("/-00000001"));
+            Assert.False(matcher.IsMatch("/11"));
+        }
+
+        [Fact]
+        public void NumberMatchNegativeRange()
+        {
+            SectionNameMatcher matcher = TryCreateSectionNameMatcher("{-10..0}").Value;
+            Assert.Equal("^.*/(-?[0-9]+)$", matcher.Regex.ToString());
+
+            Assert.True(matcher.IsMatch("/0"));
+            Assert.True(matcher.IsMatch("/-10"));
+            Assert.True(matcher.IsMatch("/-5"));
+            Assert.False(matcher.IsMatch("/1"));
+            Assert.False(matcher.IsMatch("/-11"));
+            Assert.False(matcher.IsMatch("/--0"));
+        }
+
+        [Fact]
+        public void NumberMatchNegToPos()
+        {
+            SectionNameMatcher matcher = TryCreateSectionNameMatcher("{-10..10}").Value;
+            Assert.Equal("^.*/(-?[0-9]+)$", matcher.Regex.ToString());
+
+            Assert.True(matcher.IsMatch("/0"));
+            Assert.True(matcher.IsMatch("/-5"));
+            Assert.True(matcher.IsMatch("/5"));
+            Assert.True(matcher.IsMatch("/-10"));
+            Assert.True(matcher.IsMatch("/10"));
+            Assert.False(matcher.IsMatch("/-11"));
+            Assert.False(matcher.IsMatch("/11"));
+            Assert.False(matcher.IsMatch("/--0"));
+        }
+
+        [Fact]
+        public void MultipleNumberRanges()
+        {
+            SectionNameMatcher matcher = TryCreateSectionNameMatcher("a{-10..0}b{0..10}").Value;
+
+            Assert.True(matcher.IsMatch("/a0b0"));
+            Assert.True(matcher.IsMatch("/a-5b0"));
+            Assert.True(matcher.IsMatch("/a-5b5"));
+            Assert.True(matcher.IsMatch("/a-5b10"));
+            Assert.True(matcher.IsMatch("/a-10b10"));
+            Assert.True(matcher.IsMatch("/a-10b0"));
+            Assert.True(matcher.IsMatch("/a-0b0"));
+            Assert.True(matcher.IsMatch("/a-0b-0"));
+
+            Assert.False(matcher.IsMatch("/a-11b10"));
+            Assert.False(matcher.IsMatch("/a-11b10"));
+            Assert.False(matcher.IsMatch("/a-10b11"));
+        }
+
+
+        [Fact]
         public void EditorConfigToDiagnostics()
         {
             var configs = ArrayBuilder<AnalyzerConfig>.GetInstance();
