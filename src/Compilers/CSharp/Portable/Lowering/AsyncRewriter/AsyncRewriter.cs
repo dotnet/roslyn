@@ -227,7 +227,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         startMethod,
                         ImmutableArray.Create<BoundExpression>(F.Local(stateMachineVariable)))));
 
-            bodyBuilder.Add(method.IsVoidReturningAsync()
+            bodyBuilder.Add(method.IsAsyncReturningVoid()
                 ? F.Return()
                 : F.Return(
                     F.Property(

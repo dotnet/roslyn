@@ -282,9 +282,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Returns whether this method is async and returns void.
         /// </summary>
-#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
-        public static bool IsVoidReturningAsync(this MethodSymbol method)
-#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
+        public static bool IsAsyncReturningVoid(this MethodSymbol method)
         {
             return method.IsAsync && method.ReturnsVoid;
         }
@@ -292,9 +290,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Returns whether this method is async and returns a task.
         /// </summary>
-#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
-        public static bool IsTaskReturningAsync(this MethodSymbol method, CSharpCompilation compilation)
-#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
+        public static bool IsAsyncReturningTask(this MethodSymbol method, CSharpCompilation compilation)
         {
             return method.IsAsync
                 && method.ReturnType.TypeSymbol.IsNonGenericTaskType(compilation);
@@ -303,9 +299,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Returns whether this method is async and returns a generic task.
         /// </summary>
-#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
-        public static bool IsGenericTaskReturningAsync(this MethodSymbol method, CSharpCompilation compilation)
-#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
+        public static bool IsAsyncReturningGenericTask(this MethodSymbol method, CSharpCompilation compilation)
         {
             return method.IsAsync
                 && method.ReturnType.TypeSymbol.IsGenericTaskType(compilation);
@@ -314,9 +308,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Returns whether this method is async and returns an IAsyncEnumerable`1.
         /// </summary>
-#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
-        public static bool IsIAsyncEnumerableReturningAsync(this MethodSymbol method, CSharpCompilation compilation)
-#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
+        public static bool IsAsyncReturningIAsyncEnumerable(this MethodSymbol method, CSharpCompilation compilation)
         {
             return method.IsAsync
                 && method.ReturnType.TypeSymbol.IsIAsyncEnumerableType(compilation);
@@ -325,9 +317,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Returns whether this method is async and returns an IAsyncEnumerator`1.
         /// </summary>
-#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
-        public static bool IsIAsyncEnumeratorReturningAsync(this MethodSymbol method, CSharpCompilation compilation)
-#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
+        public static bool IsAsyncReturningIAsyncEnumerator(this MethodSymbol method, CSharpCompilation compilation)
         {
             return method.IsAsync
                 && method.ReturnType.TypeSymbol.IsIAsyncEnumeratorType(compilation);

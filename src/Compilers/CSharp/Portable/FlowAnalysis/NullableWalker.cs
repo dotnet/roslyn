@@ -987,7 +987,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var method = (MethodSymbol)_member;
             var returnType = (_useMethodSignatureReturnType ? _methodSignatureOpt : method).ReturnType;
             Debug.Assert((object)returnType != LambdaSymbol.ReturnTypeIsBeingInferred);
-            if (method.IsGenericTaskReturningAsync(compilation))
+            if (method.IsAsyncReturningGenericTask(compilation))
             {
                 returnType = ((NamedTypeSymbol)returnType.TypeSymbol).TypeArgumentsNoUseSiteDiagnostics.Single();
             }
