@@ -1534,8 +1534,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (operandComparedToNull != null)
                     {
-                        // https://github.com/dotnet/roslyn/issues/29953 This check is incorrect since it compares declared
-                        // nullability rather than tracked nullability. Moreover, we should only report such
+                        // https://github.com/dotnet/roslyn/issues/29953: We should only report such
                         // diagnostics for locals that are set or checked explicitly within this method.
                         if (!operandComparedToNullType.IsNull && operandComparedToNullType.NullableAnnotation.IsAnyNotNullable())
                         {
@@ -3425,21 +3424,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
 
                 case ConversionKind.Unboxing:
-                    if (!operandType.IsNull)
+                    if (!operandType.IsNull && targetType.IsTypeParameter())
                     {
-                        if (targetType.IsTypeParameter())
-                        {
-                            resultAnnotation = operandType.GetValueNullableAnnotation();
+                        resultAnnotation = operandType.GetValueNullableAnnotation();
 
-                            if (resultAnnotation == NullableAnnotation.NotAnnotated)
-                            {
-                                resultAnnotation = NullableAnnotation.NotNullable;
-                            }
-                        }
-                        else if (targetType.IsValueType)
+                        if (resultAnnotation == NullableAnnotation.NotAnnotated)
                         {
-                            resultAnnotation = (targetType.IsNullableType() && operandType.NullableAnnotation.IsAnyNullable()) ? NullableAnnotation.Nullable : NullableAnnotation.NotNullable;
+                            resultAnnotation = NullableAnnotation.NotNullable;
                         }
+                    }
+                    else if (targetType.IsValueType)
+                    {
+                        Debug.Assert(!operandType.IsNull); // If assert fails, add a test that verifies resulting type is nullable.
+                        resultAnnotation = (targetType.IsNullableType() && (operandType.IsNull || operandType.NullableAnnotation.IsAnyNullable())) ? NullableAnnotation.Nullable : NullableAnnotation.NotNullable;
                     }
                     break;
 
@@ -4134,7 +4131,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                             // when HasValue check is unnecessary.
                             Split();
                             this.StateWhenTrue[containingSlot] = NullableAnnotation.NotNullable;
-                            this.StateWhenFalse[containingSlot] = NullableAnnotation.Nullable;
                         }
                     }
                 }
@@ -4529,7 +4525,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                             var operandType = node.Operand.Type;
                             if (operandType?.IsValueType == true)
                             {
-                                // https://github.com/dotnet/roslyn/issues/29959 We currently don't worry about a pathological case of boxing nullable value known to be not null
                                 nullableAnnotation = (operandType.IsNullableType() && _resultType.NullableAnnotation.IsAnyNullable()) ? NullableAnnotation.Nullable : NullableAnnotation.NotNullable;
                             }
                             else

@@ -61022,14 +61022,14 @@ class Program
         if (t1.HasValue)
         {
             if (t1.HasValue) _ = t1.Value;
-            else _ = t1.Value; // 1
+            else _ = t1.Value;
         }
     }
     static void F2(T? t2)
     {
-        if (t2.HasValue)
+        if (t2 != null)
         {
-            if (!t2.HasValue) _ = t2.Value; // 2
+            if (!t2.HasValue) _ = t2.Value;
             else _ = t2.Value;
         }
     }
@@ -61037,35 +61037,27 @@ class Program
     {
         if (!t3.HasValue)
         {
-            if (t3.HasValue) _ = t3.Value;
-            else _ = t3.Value; // 3
+            if (t3 != null) _ = t3.Value;
+            else _ = t3.Value; // 1
         }
     }
     static void F4(T? t4)
     {
-        if (!t4.HasValue)
+        if (t4 == null)
         {
-            if (!t4.HasValue) _ = t4.Value; // 4
+            if (t4 == null) _ = t4.Value; // 2
             else _ = t4.Value;
         }
     }
 }";
             var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
-            // https://github.com/dotnet/roslyn/issues/31516: Report HDN_NullCheckIsProbablyAlwaysTrue/False
-            // when HasValue check is unnecessary.
             comp.VerifyDiagnostics(
-                // (8,22): warning CS8629: Nullable value type may be null.
-                //             else _ = t1.Value; // 1
-                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "t1.Value").WithLocation(8, 22),
-                // (15,35): warning CS8629: Nullable value type may be null.
-                //             if (!t2.HasValue) _ = t2.Value; // 2
-                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "t2.Value").WithLocation(15, 35),
                 // (24,22): warning CS8629: Nullable value type may be null.
-                //             else _ = t3.Value; // 3
+                //             else _ = t3.Value; // 1
                 Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "t3.Value").WithLocation(24, 22),
-                // (31,35): warning CS8629: Nullable value type may be null.
-                //             if (!t4.HasValue) _ = t4.Value; // 4
-                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "t4.Value").WithLocation(31, 35));
+                // (31,33): warning CS8629: Nullable value type may be null.
+                //             if (t4 == null) _ = t4.Value; // 2
+                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "t4.Value").WithLocation(31, 33));
         }
 
         [Fact]
@@ -63393,6 +63385,25 @@ class Program
 {
     static void F<T>(T? t) where T : struct
     {
+        if (!t.HasValue) return;
+        _ = t ?? default(T);
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (6,13): hidden CS8607: Expression is probably never null.
+                //         _ = t ?? default(T);
+                Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "t").WithLocation(6, 13));
+        }
+
+        [Fact]
+        public void NullableT_30()
+        {
+            var source =
+@"class Program
+{
+    static void F<T>(T? t) where T : struct
+    {
         t.HasValue = true;
         t.Value = default(T);
     }
@@ -63408,6 +63419,98 @@ class Program
                 // (6,9): warning CS8629: Nullable value type may be null.
                 //         t.Value = default(T);
                 Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "t.Value").WithLocation(6, 9));
+        }
+
+        [Fact]
+        public void NullableT_31()
+        {
+            var source =
+@"struct S { }
+class Program
+{
+    static void F()
+    {
+        var s =  (S?)F;
+        _ = s.Value; // 1
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (6,18): error CS0030: Cannot convert type 'method' to 'S?'
+                //         var s =  (S?)F;
+                Diagnostic(ErrorCode.ERR_NoExplicitConv, "(S?)F").WithArguments("method", "S?").WithLocation(6, 18),
+                // (7,13): warning CS8629: Nullable value type may be null.
+                //         _ = s.Value; // 1
+                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "s.Value").WithLocation(7, 13));
+        }
+
+        [Fact]
+        public void NullableT_AlwaysTrueOrFalse()
+        {
+            var source =
+@"class Program
+{
+    static void F1<T>(T? t1) where T : struct
+    {
+        if (!t1.HasValue) return;
+        if (t1.HasValue) { } // always false
+        if (!t1.HasValue) { } // always true
+        if (t1 != null) { } // always false
+        if (t1 == null) { } // always true
+    }
+    static void F2<T>(T? t2) where T : struct
+    {
+        if (!t2.HasValue) return;
+        if (t2 == null) { } // always false
+        if (t2 != null) { } // always true
+        if (!t2.HasValue) { } // always false
+        if (t2.HasValue) { } // always true
+    }
+    static void F3<T>(T? t3) where T : struct
+    {
+        if (t3 == null) return;
+        if (!t3.HasValue) { } // always true
+        if (t3.HasValue) { } // always false
+        if (t3 == null) { } // always true
+        if (t3 != null) { } // always false
+    }
+    static void F4<T>(T? t4) where T : struct
+    {
+        if (t4 == null) return;
+        if (t4 != null) { } // always true
+        if (t4 == null) { } // always false
+        if (t4.HasValue) { } // always true
+        if (!t4.HasValue) { } // always false
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            // https://github.com/dotnet/roslyn/issues/31516: Report HDN_NullCheckIsProbablyAlwaysTrue/False
+            // when HasValue check is unnecessary.
+            comp.VerifyDiagnostics(
+                // (8,13): hidden CS8605: Result of the comparison is possibly always true.
+                //         if (t1 != null) { } // always false
+                Diagnostic(ErrorCode.HDN_NullCheckIsProbablyAlwaysTrue, "t1 != null").WithLocation(8, 13),
+                // (9,13): hidden CS8606: Result of the comparison is possibly always false.
+                //         if (t1 == null) { } // always true
+                Diagnostic(ErrorCode.HDN_NullCheckIsProbablyAlwaysFalse, "t1 == null").WithLocation(9, 13),
+                // (14,13): hidden CS8606: Result of the comparison is possibly always false.
+                //         if (t2 == null) { } // always false
+                Diagnostic(ErrorCode.HDN_NullCheckIsProbablyAlwaysFalse, "t2 == null").WithLocation(14, 13),
+                // (15,13): hidden CS8605: Result of the comparison is possibly always true.
+                //         if (t2 != null) { } // always true
+                Diagnostic(ErrorCode.HDN_NullCheckIsProbablyAlwaysTrue, "t2 != null").WithLocation(15, 13),
+                // (24,13): hidden CS8606: Result of the comparison is possibly always false.
+                //         if (t3 == null) { } // always true
+                Diagnostic(ErrorCode.HDN_NullCheckIsProbablyAlwaysFalse, "t3 == null").WithLocation(24, 13),
+                // (25,13): hidden CS8605: Result of the comparison is possibly always true.
+                //         if (t3 != null) { } // always false
+                Diagnostic(ErrorCode.HDN_NullCheckIsProbablyAlwaysTrue, "t3 != null").WithLocation(25, 13),
+                // (30,13): hidden CS8605: Result of the comparison is possibly always true.
+                //         if (t4 != null) { } // always true
+                Diagnostic(ErrorCode.HDN_NullCheckIsProbablyAlwaysTrue, "t4 != null").WithLocation(30, 13),
+                // (31,13): hidden CS8606: Result of the comparison is possibly always false.
+                //         if (t4 == null) { } // always false
+                Diagnostic(ErrorCode.HDN_NullCheckIsProbablyAlwaysFalse, "t4 == null").WithLocation(31, 13));
         }
 
         [Fact]
