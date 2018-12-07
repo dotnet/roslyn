@@ -4432,26 +4432,28 @@ public class D
     static async Task Main()
     {
         var enumerable = new MyEnumerable(42);
-        CancellationTokenSource source = new CancellationTokenSource();
-        CancellationToken token = source.Token;
-        await using (var enumerator = enumerable.GetAsyncEnumerator(token))
+        using (CancellationTokenSource source = new CancellationTokenSource())
         {
-            if (!await enumerator.MoveNextAsync()) throw null;
-            System.Console.Write($""{enumerator.Current} ""); // 42
-
-            if (!await enumerator.MoveNextAsync()) throw null;
-            System.Console.Write($""{enumerator.Current} ""); // 43
-
-            var task = enumerator.MoveNextAsync(); // starts long computation
-            source.Cancel();
-
-            try
+            CancellationToken token = source.Token;
+            await using (var enumerator = enumerable.GetAsyncEnumerator(token))
             {
-                await task;
-            }
-            catch (System.OperationCanceledException)
-            {
-                Write(""Cancelled"");
+                if (!await enumerator.MoveNextAsync()) throw null;
+                System.Console.Write($""{enumerator.Current} ""); // 42
+
+                if (!await enumerator.MoveNextAsync()) throw null;
+                System.Console.Write($""{enumerator.Current} ""); // 43
+
+                var task = enumerator.MoveNextAsync(); // starts long computation
+                source.Cancel();
+
+                try
+                {
+                    await task;
+                }
+                catch (System.OperationCanceledException)
+                {
+                    Write(""Cancelled"");
+                }
             }
         }
     }
