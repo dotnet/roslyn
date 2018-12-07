@@ -1,9 +1,16 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Immutable;
+
 namespace Microsoft.CodeAnalysis.Classification
 {
     public static class ClassificationTypeNames
     {
+        /// <summary>
+        /// Additive classifications types supply additional context to other classifications.
+        /// </summary>
+        public static ImmutableList<string> AdditiveTypeNames { get; } = ImmutableList.Create(StaticSymbol);
+
         public const string Comment = "comment";
         public const string ExcludedCode = "excluded code";
         public const string Identifier = "identifier";

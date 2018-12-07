@@ -94,6 +94,12 @@ namespace Microsoft.CodeAnalysis.Editor
             Order(syntaxSpans);
             Order(semanticSpans);
 
+            // Additive classifications provide additional context to the 
+            // traditional classifications. We remove these since we can only 
+            // return a single classified span for any particular span of text.
+            RemoveAdditiveClassifications(syntaxSpans);
+            RemoveAdditiveClassifications(semanticSpans);
+
             // It's possible for us to get classified spans that occur *before*
             // or after the span we want to present. This happens because the calls to
             // AddSyntacticClassificationsAsync and AddSemanticClassificationsAsync 
@@ -133,6 +139,9 @@ namespace Microsoft.CodeAnalysis.Editor
 
         private static void Order(List<ClassifiedSpan> syntaxSpans)
             => syntaxSpans.Sort((s1, s2) => s1.TextSpan.Start - s2.TextSpan.Start);
+
+        private static void RemoveAdditiveClassifications(List<ClassifiedSpan> spans)
+            => spans.RemoveAll(span => ClassificationTypeNames.AdditiveTypeNames.Contains(span.ClassificationType));
 
         private static void AdjustSpans(List<ClassifiedSpan> spans, TextSpan widenedSpan)
         {
