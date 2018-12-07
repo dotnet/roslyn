@@ -18,12 +18,15 @@ namespace Microsoft.CodeAnalysis.Tools.CodeFormatter
 {
     internal static class CodeFormatter
     {
-        public static async Task<int> FormatWorkspaceAsync(ILogger logger, string solutionOrProjectPath, bool isSolution, CancellationToken cancellationToken)
+        const int MaxLoggedWorkspaceWarnings = 5;
+
+        public static async Task<int> FormatWorkspaceAsync(ILogger logger, string solutionOrProjectPath, bool isSolution, bool logAllWorkspaceWarnings, CancellationToken cancellationToken)
         {
             logger.LogInformation(string.Format(Resources.Formatting_code_files_in_workspace_0, solutionOrProjectPath));
 
             logger.LogTrace(Resources.Loading_workspace);
 
+            var loggedWarningCount = 0;
             var exitCode = 1;
             var workspaceStopwatch = Stopwatch.StartNew();
 
@@ -39,14 +42,7 @@ namespace Microsoft.CodeAnalysis.Tools.CodeFormatter
 
             using (var workspace = MSBuildWorkspace.Create(properties))
             {
-                workspace.WorkspaceFailed += (s, e) =>
-                {
-                    if (e.Diagnostic.Kind != WorkspaceDiagnosticKind.Failure)
-                    {
-                        logger.LogError(e.Diagnostic.Message);
-                        logger.LogError(Resources.Unable_to_load_workspace);
-                    }
-                };
+                workspace.WorkspaceFailed += LogWorkspaceWarnings;
 
                 var projectPath = string.Empty;
                 if (isSolution)
@@ -70,6 +66,27 @@ namespace Microsoft.CodeAnalysis.Tools.CodeFormatter
             logger.LogInformation(Resources.Format_complete);
 
             return exitCode;
+
+            void LogWorkspaceWarnings(object sender, WorkspaceDiagnosticEventArgs args)
+            {
+                if (args.Diagnostic.Kind == WorkspaceDiagnosticKind.Failure)
+                {
+                    return;
+                }
+
+                logger.LogWarning(args.Diagnostic.Message);
+
+                if (!logAllWorkspaceWarnings)
+                {
+                    loggedWarningCount++;
+
+                    if (loggedWarningCount == MaxLoggedWorkspaceWarnings)
+                    {
+                        logger.LogWarning(Resources.Maximum_number_of_workspace_warnings_to_log_has_been_reached_Set_the_verbosity_option_to_the_diagnostic_level_to_see_all_warnings);
+                        ((MSBuildWorkspace)sender).WorkspaceFailed -= LogWorkspaceWarnings;
+                    }
+                }
+            }
         }
 
         private static async Task<int> FormatFilesInSolutionAsync(ILogger logger, Solution solution, string projectPath, ICodingConventionsManager codingConventionsManager, CancellationToken cancellationToken)
