@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
         /// </remarks>
         private static bool LooksLikeNodeInArgumentListForStatementCompletion(SyntaxNode currentNode, ISyntaxFactsService syntaxFacts, SnapshotPoint? caret)
         {
-            while (!currentNode.IsKind(SyntaxKind.ArgumentList, SyntaxKind.ArrayRankSpecifier))
+            while (!currentNode.IsKind(SyntaxKind.ArgumentList, SyntaxKind.ArrayRankSpecifier, SyntaxKind.ParenthesizedExpression))
             {
                 if (currentNode == null)
                 {
@@ -179,18 +179,52 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
                 currentNode = currentNode.Parent;
             }
 
-            // now we're in an argument list (or similar), so return the enclosing statement-like syntax
+            // now we're in an argument list (or similar), so look for the enclosing statement-like syntax
             while (!syntaxFacts.IsStatement(currentNode) && !currentNode.IsKind(SyntaxKind.VariableDeclaration))
             {
                 currentNode = currentNode.Parent;
-                if (currentNode == null)
+                if (currentNode == null ||
+                    currentNode.IsKind(SyntaxKind.IfStatement, SyntaxKind.SwitchStatement, SyntaxKind.WhileStatement))
                 {
                     return false;
                 }
             }
 
+            // TO DO
+            // In certain scenarios, enclosing variable declaration is not a candidate for statement completion
+            //      - for statement initializer
+            //      - for statement condition
+            //      - foreach statement 
+            if (VariableDeclarationNotInStatementCompletionCandidate(currentNode))
+            {
+                    return false;
+            }
+                
             Debug.Assert(currentNode != null);
             return true;
+        }
+
+        private static bool VariableDeclarationNotInStatementCompletionCandidate(SyntaxNode currentNode)
+        {
+            // 
+            if (!currentNode.IsKind(SyntaxKind.VariableDeclaration))
+            {
+                return false;
+            }
+
+            currentNode = currentNode.Parent;
+            while (currentNode != null)
+            {
+
+                if (currentNode.IsKind(SyntaxKind.ForEachStatement, SyntaxKind.ForEachVariableStatement, SyntaxKind.SwitchStatement))
+                {
+                    return true;
+                }
+                currentNode = currentNode.Parent;
+            }
+
+            return false;
+
         }
 
         private static bool IsCaretAtEndOfLine(SnapshotPoint caret)
@@ -365,6 +399,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
                     lastDelimiterSpan = initializerExpressionSyntax.CloseBraceToken.Span;
                     return !initializerExpressionSyntax.CloseBraceToken.IsMissing;
 
+                case SyntaxKind.ArrayRankSpecifier:
+                    var arrayRankSpecifierSyntax = (ArrayRankSpecifierSyntax)currentNode;
+                    lastDelimiterSpan = arrayRankSpecifierSyntax.CloseBracketToken.Span;
+                    return !arrayRankSpecifierSyntax.CloseBracketToken.IsMissing;
                 default:
                     // Type of node does not require a closing delimiter
                     return true;
@@ -385,7 +423,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
                 || currentNode.IsKind(SyntaxKind.GetAccessorDeclaration)
                 || currentNode.IsKind(SyntaxKind.SetAccessorDeclaration)
                 || currentNode.IsKind(SyntaxKind.LocalDeclarationStatement)
-                || currentNode.IsKind(SyntaxKind.VariableDeclaration))
+                || currentNode.IsKind(SyntaxKind.VariableDeclaration)
+                || currentNode.IsKind(SyntaxKind.IfStatement))
             {
                 return true;
             }

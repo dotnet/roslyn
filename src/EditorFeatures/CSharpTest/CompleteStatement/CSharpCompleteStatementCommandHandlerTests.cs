@@ -1196,11 +1196,27 @@ public class Goo
     public string s;
 }
 ";
-
-            VerifyNoSpecialSemicolonHandling(code);
+            var expected =
+@"
+class C
+{
+    static void Main(string[] args)
+    {
+        for (Goo f = new Goo { i = 0, s = ""abc""
+    };$$
+}
+public class Goo
+{
+    public int i;
+    public string s;
+}
+";
+            VerifyTypingSemicolon(code,expected);
         }
 
         #endregion
+
+        #region indexer
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
         public void Indexer()
@@ -1219,6 +1235,10 @@ class SampleCollection<T>
 
             VerifyNoSpecialSemicolonHandling(code);
         }
+
+        #endregion
+
+        #region ObjectInitializer
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
         public void ObjectInitializer()
@@ -1331,9 +1351,29 @@ public class Goo
     public string s;
 }
 ";
+            var expected =
+@"
+class C
+{
+    static void Main(string[] args)
+    {
+        Goo f = new Goo { i = 0, s = ""abc""
+    };$$
+}
 
-            VerifyNoSpecialSemicolonHandling(code);
+public class Goo
+{
+    public int i;
+    public string s;
+}
+";
+
+            VerifyTypingSemicolon(code, expected);
         }
+
+        #endregion
+
+        #region Accessors
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
         public void PropertyAccessors1()
@@ -1484,6 +1524,221 @@ public class SaleItem
             VerifyNoSpecialSemicolonHandling(code);
         }
 
+        #endregion
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void ParenthesizedExpression_Assignment1()
+        {
+            var code = @"
+public class Class1
+{
+    void M()
+    {
+        int i = (6*5$$)
+    }
+}";
+
+            var expected = @"
+public class Class1
+{
+    void M()
+    {
+        int i = (6*5);$$
+    }
+}";
+
+            VerifyTypingSemicolon(code, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void ParenthesizedExpression_Assignment2()
+        {
+            var code = @"
+public class Class1
+{
+    void M()
+    {
+        int i = (6*Math.Min(4,5$$))
+    }
+}";
+
+            var expected = @"
+public class Class1
+{
+    void M()
+    {
+        int i = (6*Math.Min(4,5));$$
+    }
+}";
+
+            VerifyTypingSemicolon(code,expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void ParenthesizedExpression_Assignment3()
+        {
+            var code = @"
+public class Class1
+{
+    void M()
+    {
+        int[] array = { 2, 3, 4 };
+        int i = (6*array[2$$])
+    }
+}";
+
+            var expected = @"
+public class Class1
+{
+    void M()
+    {
+        int[] array = { 2, 3, 4 };
+        int i = (6*array[2]);$$
+    }
+}";
+
+            VerifyTypingSemicolon(code, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void ParenthesizedExpression_ForLoop()
+        {
+            var code = @"
+public class Class1
+{
+    void M()
+    {
+        for (int i = 0; i < 10; i++)
+        {
+            int j = (i+i$$)
+        }
+    }
+}";
+
+            var expected = @"
+public class Class1
+{
+    void M()
+    {
+        for (int i = 0; i < 10; i++)
+        {
+            int j = (i+i);$$
+        }
+    }
+}";
+
+            VerifyTypingSemicolon(code, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void ParenthesizedExpression_ForLoop2()
+        {
+            var code = @"
+public class Class1
+{
+    void M()
+    {
+        for (int i = ((3+2)*4$$); i < 10; i++)
+        {
+            int j = (i+i);
+        }
+    }
+}";
+
+            var expected = @"
+public class Class1
+{
+    void M()
+    {
+        for (int i = ((3+2)*4);$$; i < 10; i++)
+        {
+            int j = (i+i);
+        }
+    }
+}";
+
+            VerifyTypingSemicolon(code, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void ParenthesizedExpression_ForLoop3()
+        {
+            var code = @"
+public class Class1
+{
+    void M()
+    {
+        for (int i = 0; i < ((3+2)*4$$); i++)
+        {
+            int j = (i+i);
+        }
+    }
+}";
+
+            var expected = @"
+public class Class1
+{
+    void M()
+    {
+        for (int i = 0; i < ((3+2)*4);$$; i++)
+        {
+            int j = (i+i);
+        }
+    }
+}";
+
+            VerifyTypingSemicolon(code, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void ParenthesizedExpression_ForEach()
+        {
+            var code = @"
+    public class Class1
+    {
+        static void Main(string[] args)
+        {
+            foreach (int i in M((2*3)+4$$))
+            {
+
+            }
+        }
+
+        private static int[] M(int i)
+        {
+            int[] value = { 2, 3, 4 };
+            return value;
+        }
+    } 
+";
+
+    //        var expected = @"
+    //public class Class1
+    //{
+    //    static void Main(string[] args)
+    //    {
+    //        foreach (int i in M((2*3)+4))
+    //        {
+
+    //        }
+    //    }
+
+    //    private static int[] M(int i)
+    //    {
+    //        int[] value = { 2, 3, 4 };
+    //        return value;
+    //    }
+    //} 
+//";
+
+            VerifyNoSpecialSemicolonHandling(code);
+        }
+
+        #region ParenthesizeExpression
+
+
+
+        #endregion
         [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
         public void ThrowStatement_MissingBoth()
         {
@@ -1529,7 +1784,6 @@ public class Class1
             VerifyTypingSemicolon(code, expected);
         }
 
-        #region Don't Complete
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
         public void DontComplete_SemicolonBeforeClassDeclaration()
@@ -1945,8 +2199,6 @@ class ContinueTest
 
             VerifyNoSpecialSemicolonHandling(code);
         }
-
-        #endregion
 
         internal override VSCommanding.ICommandHandler GetCommandHandler(TestWorkspace workspace)
         {
