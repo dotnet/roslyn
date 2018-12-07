@@ -1,5 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.CodeStyle
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Operations
@@ -11,6 +12,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnusedParametersAndValues
 
     <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
+    <ExtensionOrder(After:=PredefinedCodeFixProviderNames.AddImport)>
     Friend NotInheritable Class VisualBasicRemoveUnusedParametersAndValuesDiagnosticAnalyzer
         Inherits AbstractRemoveUnusedParametersAndValuesDiagnosticAnalyzer
         Protected Overrides ReadOnly Property UnusedValueExpressionStatementOption As [Option](Of CodeStyleOption(Of UnusedValuePreference))
