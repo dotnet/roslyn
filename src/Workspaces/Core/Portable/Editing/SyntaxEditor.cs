@@ -40,6 +40,11 @@ namespace Microsoft.CodeAnalysis.Editing
 
         private SyntaxNode ApplyTrackingToNewNode(SyntaxNode node)
         {
+            if (node == null)
+            {
+                return null;
+            }
+
             _lazyTrackedNewNodesOpt = _lazyTrackedNewNodesOpt ?? new HashSet<SyntaxNode>();
             foreach (var descendant in node.DescendantNodesAndSelf())
             {
@@ -122,6 +127,11 @@ namespace Microsoft.CodeAnalysis.Editing
         public void ReplaceNode(SyntaxNode node, Func<SyntaxNode, SyntaxGenerator, SyntaxNode> computeReplacement)
         {
             CheckNodeInOriginalTreeOrTracked(node);
+            if (computeReplacement == null)
+            {
+                throw new ArgumentNullException(nameof(computeReplacement));
+            }
+
             _allowEditsOnLazilyCreatedTrackedNewNodes = true;
             _changes.Add(new ReplaceChange(node, computeReplacement, ApplyTrackingToNewNode));
         }
@@ -129,6 +139,11 @@ namespace Microsoft.CodeAnalysis.Editing
         internal void ReplaceNode<TArgument>(SyntaxNode node, Func<SyntaxNode, SyntaxGenerator, TArgument, SyntaxNode> computeReplacement, TArgument argument)
         {
             CheckNodeInOriginalTreeOrTracked(node);
+            if (computeReplacement == null)
+            {
+                throw new ArgumentNullException(nameof(computeReplacement));
+            }
+
             _allowEditsOnLazilyCreatedTrackedNewNodes = true;
             _changes.Add(new ReplaceChange<TArgument>(node, computeReplacement, argument, ApplyTrackingToNewNode));
         }
@@ -158,6 +173,11 @@ namespace Microsoft.CodeAnalysis.Editing
         public void InsertBefore(SyntaxNode node, IEnumerable<SyntaxNode> newNodes)
         {
             CheckNodeInOriginalTreeOrTracked(node);
+            if (newNodes == null)
+            {
+                throw new ArgumentNullException(nameof(newNodes));
+            }
+
             newNodes = ApplyTrackingToNewNodes(newNodes);
             _changes.Add(new InsertChange(node, newNodes, isBefore: true));
         }
@@ -178,6 +198,11 @@ namespace Microsoft.CodeAnalysis.Editing
         public void InsertAfter(SyntaxNode node, IEnumerable<SyntaxNode> newNodes)
         {
             CheckNodeInOriginalTreeOrTracked(node);
+            if (newNodes == null)
+            {
+                throw new ArgumentNullException(nameof(newNodes));
+            }
+
             newNodes = ApplyTrackingToNewNodes(newNodes);
             _changes.Add(new InsertChange(node, newNodes, isBefore: false));
         }
@@ -192,6 +217,11 @@ namespace Microsoft.CodeAnalysis.Editing
 
         private void CheckNodeInOriginalTreeOrTracked(SyntaxNode node)
         {
+            if (node == null)
+            {
+                throw new ArgumentNullException(nameof(node));
+            }
+
             if (OriginalRoot.Contains(node))
             {
                 // Node is contained in the original tree.
