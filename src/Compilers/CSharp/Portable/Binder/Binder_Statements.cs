@@ -621,7 +621,30 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal BoundStatement BindLocalDeclarationStatement(LocalDeclarationStatementSyntax node, DiagnosticBag diagnostics)
         {
-            return BindDeclarationStatementParts(node, diagnostics);
+            if (node.UsingKeyword != default)
+            {
+                return BindUsingDeclarationStatementParts(node, diagnostics);
+            }
+            else
+            {
+                return BindDeclarationStatementParts(node, diagnostics);
+            }
+        }
+
+        private BoundStatement BindUsingDeclarationStatementParts(LocalDeclarationStatementSyntax node, DiagnosticBag diagnostics)
+        {
+            Conversion iDisposableConversion;
+            MethodSymbol disposeMethod;
+            var declarations = BindUsingVariableDeclaration(
+                                                this,
+                                                diagnostics,
+                                                diagnostics.HasAnyErrors(),
+                                                node,
+                                                node.Declaration,
+                                                hasAwait: false,
+                                                out iDisposableConversion,
+                                                out disposeMethod);
+            return new BoundUsingLocalDeclarations(node, disposeMethod, iDisposableConversion, declarations);
         }
 
         private BoundStatement BindDeclarationStatementParts(LocalDeclarationStatementSyntax node, DiagnosticBag diagnostics)
@@ -633,40 +656,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             AliasSymbol alias;
             TypeSymbolWithAnnotations declType = BindVariableType(node.Declaration, diagnostics, typeSyntax, ref isConst, isVar: out isVar, alias: out alias);
 
-            if (node.UsingKeyword != default)
+            var kind = isConst ? LocalDeclarationKind.Constant : LocalDeclarationKind.RegularVariable;
+            var variableList = node.Declaration.Variables;
+            int variableCount = variableList.Count;
+            if (variableCount == 1)
             {
-                Conversion iDisposableConversion;
-                MethodSymbol disposeMethod;
-                var declarations = BindUsingVariableDeclaration(
-                                                    this,
-                                                    diagnostics,
-                                                    diagnostics.HasAnyErrors(),
-                                                    node,
-                                                    node.Declaration,
-                                                    hasAwait: false,
-                                                    out iDisposableConversion,
-                                                    out disposeMethod);
-                return new BoundUsingLocalDeclarations(node, disposeMethod, iDisposableConversion, declarations);
+                return BindVariableDeclaration(kind, isVar, variableList[0], typeSyntax, declType, alias, diagnostics, node);
             }
             else
             {
-                var kind = isConst ? LocalDeclarationKind.Constant : LocalDeclarationKind.RegularVariable;
-                var variableList = node.Declaration.Variables;
-                int variableCount = variableList.Count;
-                if (variableCount == 1)
+                BoundLocalDeclaration[] boundDeclarations = new BoundLocalDeclaration[variableCount];
+                int i = 0;
+                foreach (var variableDeclarationSyntax in variableList)
                 {
-                    return BindVariableDeclaration(kind, isVar, variableList[0], typeSyntax, declType, alias, diagnostics, node);
+                    boundDeclarations[i++] = BindVariableDeclaration(kind, isVar, variableDeclarationSyntax, typeSyntax, declType, alias, diagnostics);
                 }
-                else
-                {
-                    BoundLocalDeclaration[] boundDeclarations = new BoundLocalDeclaration[variableCount];
-                    int i = 0;
-                    foreach (var variableDeclarationSyntax in variableList)
-                    {
-                        boundDeclarations[i++] = BindVariableDeclaration(kind, isVar, variableDeclarationSyntax, typeSyntax, declType, alias, diagnostics);
-                    }
-                    return new BoundMultipleLocalDeclarations(node, boundDeclarations.AsImmutableOrNull());
-                }
+                return new BoundMultipleLocalDeclarations(node, boundDeclarations.AsImmutableOrNull());
             }
         }
 
@@ -707,7 +712,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     var declarationLocal = new BoundLocal(declaration.Syntax, declaration.LocalSymbol, null, declType);
 
-                    disposeMethod = TryFindDisposePatternMethod(declarationLocal, declarationSyntax, diagnostics);
+                    disposeMethod = TryFindDisposePatternMethod(declarationLocal, declarationSyntax, hasAwait, diagnostics);
                     if (disposeMethod is null)
                     {
                         if (!declType.IsErrorType())
@@ -728,21 +733,23 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="syntaxNode">The syntax node to perform lookup on</param>
         /// <param name="diagnostics">Populated with invocation errors, and warnings of near misses</param>
         /// <returns>The <see cref="MethodSymbol"/> of the Dispose method if one is found, otherwise null.</returns>
-        internal MethodSymbol TryFindDisposePatternMethod(BoundExpression expr, SyntaxNode syntaxNode, DiagnosticBag diagnostics)
+        internal MethodSymbol TryFindDisposePatternMethod(BoundExpression expr, SyntaxNode syntaxNode, bool hasAwait, DiagnosticBag diagnostics)
         {
             Debug.Assert(!(expr is null));
-            if(expr.Type is null)
+            if (expr.Type is null)
             {
                 return null;
             }
 
             var result = FindPatternMethodRelaxed(expr,
-                                                  WellKnownMemberNames.DisposeMethodName,
+                                                  hasAwait ? WellKnownMemberNames.DisposeAsyncMethodName : WellKnownMemberNames.DisposeMethodName,
                                                   syntaxNode,
                                                   diagnostics,
                                                   out var disposeMethod);
-            
-            if (disposeMethod?.ReturnsVoid == false || result == PatternLookupResult.NotAMethod)
+
+            if ((!hasAwait && disposeMethod?.ReturnsVoid == false) 
+                || (hasAwait && disposeMethod?.ReturnType.TypeSymbol.IsNonGenericTaskType(Compilation) == false) 
+                || result == PatternLookupResult.NotAMethod)
             {
                 ReportPatternWarning(diagnostics, expr.Type, disposeMethod, syntaxNode, MessageID.IDS_Disposable);
                 disposeMethod = null;

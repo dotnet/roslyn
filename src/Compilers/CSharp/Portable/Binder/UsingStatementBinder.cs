@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (!(expressionType is null))
                     {
-                        disposeMethod = TryFindDisposePatternMethod(expressionOpt, expressionSyntax, diagnostics);
+                        disposeMethod = TryFindDisposePatternMethod(expressionOpt, expressionSyntax, hasAwait, diagnostics);
                     }
                     if (disposeMethod is null)
                     {

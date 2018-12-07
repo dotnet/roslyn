@@ -318,5 +318,10 @@ namespace Microsoft.CodeAnalysis
         /// The required name for the <c>Dispose</c> method used in a Using statement.
         /// </summary>
         public const string DisposeMethodName = "Dispose";
+
+        /// <summary>
+        /// The required name for the <c>DisposeAsync</c> method used in an await using statement.
+        /// </summary>
+        public const string DisposeAsyncMethodName = "DisposeAsync";
     }
 }
