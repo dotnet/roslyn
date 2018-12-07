@@ -317,7 +317,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 // We're replacing the current buffer text with the exact same code.  If 
                 // we pass EditOptions.DefaultMinimalChange then no actual buffer change
                 // will happen.  That's problematic as it breaks features like brace-matching
-                // which want to buffer changes to properly compute their state.  In this
+                // which want to buffer changes to properly compute their state.  In this 
+                // scenario, we want the editor do nothing special with the edit.
                 return EditOptions.None;
             }
 
