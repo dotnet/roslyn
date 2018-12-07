@@ -39,14 +39,12 @@ namespace Microsoft.CodeAnalysis.Completion
             // Then, if we would commit text that could be expanded as a snippet, 
             // put that information in the description so that the user knows.
             var description = await this.GetDescriptionWorkerAsync(document, item, cancellationToken).ConfigureAwait(false);
-            var parts = await TryAddSnippetInvocationPart(document, item, description.TaggedParts, cancellationToken).ConfigureAwait(false);
+            var parts = await TryAddSnippetInvocationPartAsync(document, item, description.TaggedParts, cancellationToken).ConfigureAwait(false);
 
             return description.WithTaggedParts(parts);
         }
 
-#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
-        private async Task<ImmutableArray<TaggedText>> TryAddSnippetInvocationPart(
-#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
+        private async Task<ImmutableArray<TaggedText>> TryAddSnippetInvocationPartAsync(
             Document document, CompletionItem item, 
             ImmutableArray<TaggedText> parts, CancellationToken cancellationToken)
         {

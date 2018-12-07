@@ -53,7 +53,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CodeLens
                 }
 
                 // map spans to right locations using SpanMapper for documents such as cshtml and etc
-                return await FixUpDescriptors(solution, descriptors, cancellationToken).ConfigureAwait(false);
+                return await FixUpDescriptorsAsync(solution, descriptors, cancellationToken).ConfigureAwait(false);
             }
         }
 
@@ -103,9 +103,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CodeLens
             }
         }
 
-#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
-        private static async Task<IEnumerable<ReferenceLocationDescriptor>> FixUpDescriptors(
-#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
+        private static async Task<IEnumerable<ReferenceLocationDescriptor>> FixUpDescriptorsAsync(
             Solution solution, IEnumerable<ReferenceLocationDescriptor> descriptors, CancellationToken cancellationToken)
         {
             var list = new List<ReferenceLocationDescriptor>();

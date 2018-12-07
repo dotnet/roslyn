@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.NameTupleElement
             var cancellationToken = context.CancellationToken;
             var document = context.Document;
 
-            var (_, _, elementName) = await TryGetArgumentInfo(document, span, cancellationToken).ConfigureAwait(false);
+            var (_, _, elementName) = await TryGetArgumentInfoAsync(document, span, cancellationToken).ConfigureAwait(false);
 
             if (elementName == null)
             {
@@ -38,9 +38,7 @@ namespace Microsoft.CodeAnalysis.NameTupleElement
                     c => AddNamedElementAsync(document, span, cancellationToken)));
         }
 
-#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
-        private async Task<(SyntaxNode root, TArgumentSyntax argument, string argumentName)> TryGetArgumentInfo(
-#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
+        private async Task<(SyntaxNode root, TArgumentSyntax argument, string argumentName)> TryGetArgumentInfoAsync(
             Document document, TextSpan span, CancellationToken cancellationToken)
         {
             if (document.Project.Solution.Workspace.Kind == WorkspaceKind.MiscellaneousFiles)
@@ -104,7 +102,7 @@ namespace Microsoft.CodeAnalysis.NameTupleElement
 
         private async Task<Document> AddNamedElementAsync(Document document, TextSpan span, CancellationToken cancellationToken)
         {
-            var (root, argument, elementName) = await TryGetArgumentInfo(document, span, cancellationToken).ConfigureAwait(false);
+            var (root, argument, elementName) = await TryGetArgumentInfoAsync(document, span, cancellationToken).ConfigureAwait(false);
 
             var newArgument = WithName(argument, elementName).WithTriviaFrom(argument);
             var newRoot = root.ReplaceNode(argument, newArgument);

@@ -409,7 +409,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
                 invocationDocument, argument, cancellationToken).ConfigureAwait(false);
 
             var referencedSymbols = fixAllReferences
-                ? await FindMethodDeclarationReferences(invocationDocument, method, cancellationToken).ConfigureAwait(false)
+                ? await FindMethodDeclarationReferencesAsync(invocationDocument, method, cancellationToken).ConfigureAwait(false)
                 : method.GetAllMethodSymbolsOfPartialParts();
 
             var anySymbolReferencesNotInSource = referencedSymbols.Any(symbol => !symbol.IsFromSource());
@@ -480,9 +480,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
             return (argumentType, refKind);
         }
 
-#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
-        private static async Task<ImmutableArray<IMethodSymbol>> FindMethodDeclarationReferences(
-#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
+        private static async Task<ImmutableArray<IMethodSymbol>> FindMethodDeclarationReferencesAsync(
             Document invocationDocument, IMethodSymbol method, CancellationToken cancellationToken)
         {
             var progress = new StreamingProgressCollector(StreamingFindReferencesProgress.Instance);

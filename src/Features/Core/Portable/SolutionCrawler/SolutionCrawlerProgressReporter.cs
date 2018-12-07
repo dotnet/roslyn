@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 if (Interlocked.Increment(ref _count) == 1)
                 {
                     var asyncToken = _listener.BeginAsyncOperation("ProgressReportStart");
-                    return RaiseStarted().CompletesAsyncOperation(asyncToken);
+                    return RaiseStartedAsync().CompletesAsyncOperation(asyncToken);
                 }
 
                 return Task.CompletedTask;
@@ -78,29 +78,22 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 if (Interlocked.Decrement(ref _count) == 0)
                 {
                     var asyncToken = _listener.BeginAsyncOperation("ProgressReportStop");
-                    return RaiseStopped().CompletesAsyncOperation(asyncToken);
+                    return RaiseStoppedAsync().CompletesAsyncOperation(asyncToken);
                 }
 
                 return Task.CompletedTask;
             }
 
-#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
-            private Task RaiseStarted()
-#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
+            private Task RaiseStartedAsync()
             {
-                return RaiseEvent(nameof(ProgressChanged), running: true);
+                return RaiseEventAsync(nameof(ProgressChanged), running: true);
+            }
+            private Task RaiseStoppedAsync()
+            {
+                return RaiseEventAsync(nameof(ProgressChanged), running: false);
             }
 
-#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
-            private Task RaiseStopped()
-#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
-            {
-                return RaiseEvent(nameof(ProgressChanged), running: false);
-            }
-
-#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
-            private Task RaiseEvent(string eventName, bool running)
-#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
+            private Task RaiseEventAsync(string eventName, bool running)
             {
                 // this method name doesn't have Async since it should work as async void.
                 var ev = _eventMap.GetEventHandlers<EventHandler<bool>>(eventName);

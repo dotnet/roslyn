@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
                 context.RegisterRefactoring(
                     new ConvertToInterpolatedStringCodeAction(
                         FeaturesResources.Convert_to_interpolated_string,
-                        c => CreateInterpolatedString(invocation, context.Document, syntaxFactsService, c)));
+                        c => CreateInterpolatedStringAsync(invocation, context.Document, syntaxFactsService, c)));
             }
         }
 
@@ -126,9 +126,7 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
             return false;
         }
 
-#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
-        private async Task<Document> CreateInterpolatedString(
-#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
+        private async Task<Document> CreateInterpolatedStringAsync(
             TInvocationExpressionSyntax invocation,
             Document document,
             ISyntaxFactsService syntaxFactsService,

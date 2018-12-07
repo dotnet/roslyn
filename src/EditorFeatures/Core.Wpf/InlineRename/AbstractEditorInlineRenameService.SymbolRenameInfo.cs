@@ -232,12 +232,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                     }
                 }
 
-                return GetLocationSet(renameTask, optionSet, cancellationToken);
+                return GetLocationSetAsync(renameTask, optionSet, cancellationToken);
             }
 
-#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
-            private async Task<IInlineRenameLocationSet> GetLocationSet(Task<RenameLocations> renameTask, OptionSet optionSet, CancellationToken cancellationToken)
-#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
+            private async Task<IInlineRenameLocationSet> GetLocationSetAsync(Task<RenameLocations> renameTask, OptionSet optionSet, CancellationToken cancellationToken)
             {
                 var locationSet = await renameTask.ConfigureAwait(false);
                 if (optionSet != null)

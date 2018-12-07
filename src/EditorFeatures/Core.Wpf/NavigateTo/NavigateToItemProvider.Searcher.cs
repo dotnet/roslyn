@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
                         var docTrackingService = _documentTrackingService ?? workspace.Services.GetService<IDocumentTrackingService>();
                         if (docTrackingService != null)
                         {
-                            await SearchProjectsInPriorityOrder(docTrackingService).ConfigureAwait(false);
+                            await SearchProjectsInPriorityOrderAsync(docTrackingService).ConfigureAwait(false);
                         }
                         else
                         {
@@ -98,9 +98,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
                 }
             }
 
-#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
-            private async Task SearchProjectsInPriorityOrder(IDocumentTrackingService docTrackingService)
-#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
+            private async Task SearchProjectsInPriorityOrderAsync(IDocumentTrackingService docTrackingService)
             {
                 var processedProjects = new HashSet<Project>();
 
@@ -165,7 +163,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
             {
                 try
                 {
-                    await SearchAsyncWorker(project, priorityDocuments).ConfigureAwait(false);
+                    await SearchCoreAsync(project, priorityDocuments).ConfigureAwait(false);
                 }
                 finally
                 {
@@ -173,9 +171,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
                 }
             }
 
-#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
-            private async Task SearchAsyncWorker(Project project, ImmutableArray<Document> priorityDocuments)
-#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
+            private async Task SearchCoreAsync(Project project, ImmutableArray<Document> priorityDocuments)
             {
                 if (_searchCurrentDocument && _currentDocument?.Project != project)
                 {

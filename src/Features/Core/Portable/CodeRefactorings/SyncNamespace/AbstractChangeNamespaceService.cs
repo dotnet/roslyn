@@ -228,7 +228,7 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
 
             var refLocations = await Task.WhenAll(
                 declaredSymbols.Select(declaredSymbol
-                    => FindReferenceLocationsForSymbol(document, declaredSymbol, cancellationToken))).ConfigureAwait(false);
+                    => FindReferenceLocationsForSymbolAsync(document, declaredSymbol, cancellationToken))).ConfigureAwait(false);
 
             foreach (var refLocation in refLocations.SelectMany(locs => locs))
             {
@@ -274,9 +274,7 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
             return originalSolution;
         }
 
-#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
-        private static async Task<ImmutableArray<ReferenceLocation>> FindReferenceLocationsForSymbol(
-#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
+        private static async Task<ImmutableArray<ReferenceLocation>> FindReferenceLocationsForSymbolAsync(
             Document document, ISymbol symbol, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();

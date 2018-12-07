@@ -41,15 +41,13 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
 
             protected async override Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
             {
-                var newRoot = await GetNewRoot(cancellationToken).ConfigureAwait(false);
+                var newRoot = await GetNewRootAsync(cancellationToken).ConfigureAwait(false);
                 var newDocument = _document.WithSyntaxRoot(newRoot);
 
                 return newDocument;
             }
 
-#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
-            private async Task<SyntaxNode> GetNewRoot(CancellationToken cancellationToken)
-#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
+            private async Task<SyntaxNode> GetNewRootAsync(CancellationToken cancellationToken)
             {
                 var semanticModel = await _document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                 var documentOptions = await _document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);

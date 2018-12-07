@@ -458,7 +458,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
             _interactiveHost.SetOutput(window.OutputWriter);
             _interactiveHost.SetErrorOutput(window.ErrorOutputWriter);
 
-            return ResetAsyncWorker(GetHostOptions(initialize: true, resetOptions.Is64Bit));
+            return ResetCoreAsync(GetHostOptions(initialize: true, resetOptions.Is64Bit));
         }
 
         Task<ExecutionResult> IInteractiveEvaluator.ResetAsync(bool initialize)
@@ -471,7 +471,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
             window.WriteLine(InteractiveEditorFeaturesResources.Resetting_execution_engine);
             window.FlushOutput();
 
-            return ResetAsyncWorker(GetHostOptions(initialize, resetOptions.Is64Bit));
+            return ResetCoreAsync(GetHostOptions(initialize, resetOptions.Is64Bit));
         }
 
         public InteractiveHostOptions GetHostOptions(bool initialize, bool? is64bit)
@@ -480,9 +480,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
                  culture: CultureInfo.CurrentUICulture,
                  is64Bit: is64bit ?? _interactiveHost.OptionsOpt?.Is64Bit ?? InteractiveHost.DefaultIs64Bit);
 
-#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
-        private async Task<ExecutionResult> ResetAsyncWorker(InteractiveHostOptions options)
-#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
+        private async Task<ExecutionResult> ResetCoreAsync(InteractiveHostOptions options)
         {
             try
             {

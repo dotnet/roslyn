@@ -182,7 +182,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeCleanup
                 cancellationToken.ThrowIfCancellationRequested();
 
                 progressTracker.Description = description;
-                document = await ApplyCodeFixesForSpecificDiagnosticIds(
+                document = await ApplyCodeFixesForSpecificDiagnosticIdsAsync(
                     document, diagnosticIds, cancellationToken).ConfigureAwait(false);
 
                 // Mark this option as being completed.
@@ -192,16 +192,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeCleanup
             return document;
         }
 
-#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
-        private async Task<Document> ApplyCodeFixesForSpecificDiagnosticIds(
-#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
+        private async Task<Document> ApplyCodeFixesForSpecificDiagnosticIdsAsync(
             Document document, ImmutableArray<string> diagnosticIds, CancellationToken cancellationToken)
         {
             foreach (var diagnosticId in diagnosticIds)
             {
                 using (Logger.LogBlock(FunctionId.CodeCleanup_ApplyCodeFixesAsync, diagnosticId, cancellationToken))
                 {
-                    document = await ApplyCodeFixesForSpecificDiagnosticId(
+                    document = await ApplyCodeFixesForSpecificDiagnosticIdAsync(
                         document, diagnosticId, cancellationToken).ConfigureAwait(false);
                 }
             }
@@ -209,9 +207,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeCleanup
             return document;
         }
 
-#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
-        private async Task<Document> ApplyCodeFixesForSpecificDiagnosticId(
-#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
+        private async Task<Document> ApplyCodeFixesForSpecificDiagnosticIdAsync(
             Document document, string diagnosticId, CancellationToken cancellationToken)
         {
             var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);

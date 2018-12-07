@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Async
             SemanticModel semanticModel,
             CancellationToken cancellationToken)
         {
-            var methodNode = await GetMethodDeclaration(node, semanticModel, cancellationToken).ConfigureAwait(false);
+            var methodNode = await GetMethodDeclarationAsync(node, semanticModel, cancellationToken).ConfigureAwait(false);
             return string.Format(CSharpFeaturesResources.Make_0_return_Task_instead_of_void, methodNode.WithBody(null));
         }
 
@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Async
             Diagnostic diagnostic,
             CancellationToken cancellationToken)
         {
-            var methodDeclaration = await GetMethodDeclaration(node, semanticModel, cancellationToken).ConfigureAwait(false);
+            var methodDeclaration = await GetMethodDeclarationAsync(node, semanticModel, cancellationToken).ConfigureAwait(false);
             if (methodDeclaration == null)
             {
                 return null;
@@ -52,9 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Async
             return Tuple.Create(oldRoot.SyntaxTree, newRoot);
         }
 
-#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
-        private async Task<MethodDeclarationSyntax> GetMethodDeclaration(
-#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
+        private async Task<MethodDeclarationSyntax> GetMethodDeclarationAsync(
             SyntaxNode node,
             SemanticModel semanticModel,
             CancellationToken cancellationToken)

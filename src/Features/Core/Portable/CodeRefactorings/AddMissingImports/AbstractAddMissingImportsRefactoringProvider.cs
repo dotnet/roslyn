@@ -42,13 +42,11 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
 
             var addImportsCodeAction = new AddMissingImportsCodeAction(
                 CodeActionTitle,
-                cancellationToken => AddMissingImports(document, textSpan, cancellationToken));
+                cancellationToken => AddMissingImportsAsync(document, textSpan, cancellationToken));
             context.RegisterRefactoring(addImportsCodeAction);
     }
 
-#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
-        private async Task<Solution> AddMissingImports(Document document, TextSpan textSpan, CancellationToken cancellationToken)
-#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
+        private async Task<Solution> AddMissingImportsAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken)
         {
             // Add missing imports for the pasted text span.
             var addMissingImportsService = document.GetLanguageService<IAddMissingImportsFeatureService>();

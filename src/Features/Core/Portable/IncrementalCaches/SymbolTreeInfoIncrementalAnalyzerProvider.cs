@@ -201,7 +201,7 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
                 var tasks = new List<Task>
                 {
                     GetTask(project, () => UpdateSourceSymbolTreeInfoAsync(project, cancellationToken), cancellationToken),
-                    GetTask(project, () => UpdateReferencesAync(project, cancellationToken), cancellationToken)
+                    GetTask(project, () => UpdateReferencesAsync(project, cancellationToken), cancellationToken)
                 };
 
                 await Task.WhenAll(tasks).ConfigureAwait(false);
@@ -235,9 +235,7 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
                     : func();
             }
 
-#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
-            private Task UpdateReferencesAync(Project project, CancellationToken cancellationToken)
-#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
+            private Task UpdateReferencesAsync(Project project, CancellationToken cancellationToken)
             {
                 // Process all metadata references. If it remote workspace, do this in parallel.
                 var tasks = new List<Task>();

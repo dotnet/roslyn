@@ -146,15 +146,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                         return null;
                     }
 
-                    var classifiedSpansOnContent = await GetClassifiedSpansOnContent(document, roslynSnapshot, contentSpanOnPrimarySnapshot.Value, cancellationToken).ConfigureAwait(false);
+                    var classifiedSpansOnContent = await GetClassifiedSpansOnContentAsync(document, roslynSnapshot, contentSpanOnPrimarySnapshot.Value, cancellationToken).ConfigureAwait(false);
 
                     // the default implementation has no idea how to classify the primary snapshot
                     return new ExcerptResult(content, spanOnContent, classifiedSpansOnContent, document, span);
                 }
 
-#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
-                private static async Task<ImmutableArray<ClassifiedSpan>> GetClassifiedSpansOnContent(
-#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
+                private static async Task<ImmutableArray<ClassifiedSpan>> GetClassifiedSpansOnContentAsync(
                     Document document, ITextSnapshot roslynSnapshot, SnapshotSpan contentSpanOnPrimarySnapshot, CancellationToken cancellationToken)
                 {
                     var primarySnapshot = (IProjectionSnapshot)contentSpanOnPrimarySnapshot.Snapshot;

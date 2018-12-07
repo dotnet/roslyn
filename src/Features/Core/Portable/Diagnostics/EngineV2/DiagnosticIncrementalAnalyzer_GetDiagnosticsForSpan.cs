@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 // we can do span based analysis even though we implemented it as semantic model analysis
                 if (stateSet.Analyzer == _compilerAnalyzer)
                 {
-                    return await TryGetSyntaxAndSemanticCompilerDiagnostics(stateSet, list, cancellationToken).ConfigureAwait(false);
+                    return await TryGetSyntaxAndSemanticCompilerDiagnosticsAsync(stateSet, list, cancellationToken).ConfigureAwait(false);
                 }
 
                 var fullResult = true;
@@ -165,9 +165,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 return fullResult;
             }
 
-#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
-            private async Task<bool> TryGetSyntaxAndSemanticCompilerDiagnostics(StateSet stateSet, List<DiagnosticData> list, CancellationToken cancellationToken)
-#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
+            private async Task<bool> TryGetSyntaxAndSemanticCompilerDiagnosticsAsync(StateSet stateSet, List<DiagnosticData> list, CancellationToken cancellationToken)
             {
                 // First, get syntax errors and semantic errors
                 var fullResult = true;

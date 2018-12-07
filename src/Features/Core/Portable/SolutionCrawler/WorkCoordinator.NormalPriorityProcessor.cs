@@ -346,8 +346,8 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                                     {
                                         var isOpen = document.IsOpen();
 
-                                        await ProcessOpenDocumentIfNeeded(analyzers, workItem, document, isOpen, cancellationToken).ConfigureAwait(false);
-                                        await ProcessCloseDocumentIfNeeded(analyzers, workItem, document, isOpen, cancellationToken).ConfigureAwait(false);
+                                        await ProcessOpenDocumentIfNeededAsync(analyzers, workItem, document, isOpen, cancellationToken).ConfigureAwait(false);
+                                        await ProcessCloseDocumentIfNeededAsync(analyzers, workItem, document, isOpen, cancellationToken).ConfigureAwait(false);
                                     }
 
                                     // check whether we are having special reanalyze request
@@ -388,9 +388,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         }
                     }
 
-#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
-                    private async Task ProcessOpenDocumentIfNeeded(ImmutableArray<IIncrementalAnalyzer> analyzers, WorkItem workItem, Document document, bool isOpen, CancellationToken cancellationToken)
-#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
+                    private async Task ProcessOpenDocumentIfNeededAsync(ImmutableArray<IIncrementalAnalyzer> analyzers, WorkItem workItem, Document document, bool isOpen, CancellationToken cancellationToken)
                     {
                         if (!isOpen || !workItem.InvocationReasons.Contains(PredefinedInvocationReasons.DocumentOpened))
                         {
@@ -402,9 +400,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         await RunAnalyzersAsync(analyzers, document, (a, d, c) => a.DocumentOpenAsync(d, c), cancellationToken).ConfigureAwait(false);
                     }
 
-#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
-                    private async Task ProcessCloseDocumentIfNeeded(ImmutableArray<IIncrementalAnalyzer> analyzers, WorkItem workItem, Document document, bool isOpen, CancellationToken cancellationToken)
-#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
+                    private async Task ProcessCloseDocumentIfNeededAsync(ImmutableArray<IIncrementalAnalyzer> analyzers, WorkItem workItem, Document document, bool isOpen, CancellationToken cancellationToken)
                     {
                         if (isOpen || !workItem.InvocationReasons.Contains(PredefinedInvocationReasons.DocumentClosed))
                         {

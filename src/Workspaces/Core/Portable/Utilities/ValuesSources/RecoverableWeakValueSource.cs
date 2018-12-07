@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.Host
                     if (!_weakInstance.TryGetTarget(out instance))
                     {
                         instance = _recoverySource.GetValue(cancellationToken);
-                        saveTask = EnsureInstanceIsSaved(instance);
+                        saveTask = EnsureInstanceIsSavedAsync(instance);
                     }
                 }
 
@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.Host
                     if (!_weakInstance.TryGetTarget(out instance))
                     {
                         instance = await _recoverySource.GetValueAsync(cancellationToken).ConfigureAwait(false);
-                        saveTask = EnsureInstanceIsSaved(instance);
+                        saveTask = EnsureInstanceIsSavedAsync(instance);
                     }
                 }
 
@@ -130,9 +130,7 @@ namespace Microsoft.CodeAnalysis.Host
             }
         }
 
-#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
-        private Task EnsureInstanceIsSaved(T instance)
-#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
+        private Task EnsureInstanceIsSavedAsync(T instance)
         {
             if (_weakInstance == s_noReference)
             {

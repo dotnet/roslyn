@@ -186,8 +186,8 @@ namespace Microsoft.CodeAnalysis.Rename
                 }
 
                 // cascade from property accessor to property (someone in C# renames base.get_X, or the accessor override)
-                if (await IsPropertyAccessorOrAnOverride(referencedSymbol, solution, cancellationToken).ConfigureAwait(false) ||
-                    await IsPropertyAccessorOrAnOverride(originalSymbol, solution, cancellationToken).ConfigureAwait(false))
+                if (await IsPropertyAccessorOrAnOverrideAsync(referencedSymbol, solution, cancellationToken).ConfigureAwait(false) ||
+                    await IsPropertyAccessorOrAnOverrideAsync(originalSymbol, solution, cancellationToken).ConfigureAwait(false))
                 {
                     return true;
                 }
@@ -246,9 +246,7 @@ namespace Microsoft.CodeAnalysis.Rename
                 return default;
             }
 
-#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
-            private static async Task<bool> IsPropertyAccessorOrAnOverride(
-#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
+            private static async Task<bool> IsPropertyAccessorOrAnOverrideAsync(
                 ISymbol symbol, Solution solution, CancellationToken cancellationToken)
             {
                 var result = await GetPropertyFromAccessorOrAnOverride(
@@ -301,7 +299,7 @@ namespace Microsoft.CodeAnalysis.Rename
                     return results.ToImmutableAndFree();
                 }
 
-                var isRenamableAccessor = await IsPropertyAccessorOrAnOverride(referencedSymbol, solution, cancellationToken).ConfigureAwait(false);
+                var isRenamableAccessor = await IsPropertyAccessorOrAnOverrideAsync(referencedSymbol, solution, cancellationToken).ConfigureAwait(false);
                 foreach (var location in referencedSymbol.Locations)
                 {
                     if (location.IsInSource)
@@ -402,7 +400,7 @@ namespace Microsoft.CodeAnalysis.Rename
                             location.Document.Id,
                             isWrittenTo: location.IsWrittenTo,
                             candidateReason: location.CandidateReason,
-                            isRenamableAccessor: await IsPropertyAccessorOrAnOverride(referencedSymbol, solution, cancellationToken).ConfigureAwait(false)));
+                            isRenamableAccessor: await IsPropertyAccessorOrAnOverrideAsync(referencedSymbol, solution, cancellationToken).ConfigureAwait(false)));
                     }
                 }
 

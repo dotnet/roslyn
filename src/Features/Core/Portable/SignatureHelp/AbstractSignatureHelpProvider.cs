@@ -198,7 +198,7 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
             }
 
             var relatedDocumentsAndItems = await GetItemsForRelatedDocuments(document, relatedDocuments, position, triggerInfo, cancellationToken).ConfigureAwait(false);
-            var candidateLinkedProjectsAndSymbolSets = await ExtractSymbolsFromRelatedItems(position, relatedDocumentsAndItems, cancellationToken).ConfigureAwait(false);
+            var candidateLinkedProjectsAndSymbolSets = await ExtractSymbolsFromRelatedItemsAsync(position, relatedDocumentsAndItems, cancellationToken).ConfigureAwait(false);
 
             var totalProjects = candidateLinkedProjectsAndSymbolSets.Select(c => c.Item1).Concat(document.Project.Id);
 
@@ -237,9 +237,7 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
                 itemsForCurrentDocument.SelectedItemIndex);
         }
 
-#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
-        private async Task<List<Tuple<ProjectId, ISet<ISymbol>>>> ExtractSymbolsFromRelatedItems(int position, List<Tuple<Document, IEnumerable<SignatureHelpItem>>> relatedDocuments, CancellationToken cancellationToken)
-#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
+        private async Task<List<Tuple<ProjectId, ISet<ISymbol>>>> ExtractSymbolsFromRelatedItemsAsync(int position, List<Tuple<Document, IEnumerable<SignatureHelpItem>>> relatedDocuments, CancellationToken cancellationToken)
         {
             var resultSets = new List<Tuple<ProjectId, ISet<ISymbol>>>();
             foreach (var related in relatedDocuments)

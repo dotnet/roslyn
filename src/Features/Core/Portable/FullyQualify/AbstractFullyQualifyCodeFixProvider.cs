@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
 
                 var codeAction = new MyCodeAction(
                     $"{containerName}.{memberName}",
-                    c => ProcessNode(document, node, containerName, c));
+                    c => ProcessNodeAsync(document, node, containerName, c));
 
                 yield return codeAction;
             }
@@ -128,9 +128,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
             return name;
         }
 
-#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
-        private async Task<Document> ProcessNode(Document document, SyntaxNode node, string containerName, CancellationToken cancellationToken)
-#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
+        private async Task<Document> ProcessNodeAsync(Document document, SyntaxNode node, string containerName, CancellationToken cancellationToken)
         {
             var newRoot = await this.ReplaceNodeAsync(node, containerName, cancellationToken).ConfigureAwait(false);
             return document.WithSyntaxRoot(newRoot);

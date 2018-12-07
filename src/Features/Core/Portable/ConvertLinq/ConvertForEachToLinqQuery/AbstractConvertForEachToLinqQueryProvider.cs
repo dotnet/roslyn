@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.ConvertLinq.ConvertForEachToLinqQuery
             context.RegisterRefactoring(
                 new ForEachToLinqQueryCodeAction(
                     FeaturesResources.Convert_to_linq, 
-                    c => ApplyConversion(queryConverter, document, convertToQuery: true, c)));
+                    c => ApplyConversionAsync(queryConverter, document, convertToQuery: true, c)));
 
             // Offer refactoring to convert foreach to LINQ invocation expression. For example:
             //
@@ -133,13 +133,11 @@ namespace Microsoft.CodeAnalysis.ConvertLinq.ConvertForEachToLinqQuery
                 context.RegisterRefactoring(
                     new ForEachToLinqQueryCodeAction(
                         FeaturesResources.Convert_to_linq_call_form,
-                        c => ApplyConversion(linqConverter, document, convertToQuery: false, c)));
+                        c => ApplyConversionAsync(linqConverter, document, convertToQuery: false, c)));
             }
         }
 
-#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
-        private Task<Document> ApplyConversion(
-#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
+        private Task<Document> ApplyConversionAsync(
             IConverter<TForEachStatement, TStatement> converter,
             Document document,
             bool convertToQuery,

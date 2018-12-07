@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis
             // If we have a selection, it needs to be selecting at least the full node. We allow the selection to start
             // in whitespace (including up to one newline) before the start of the node, and we allow it to end after
             // the end of the node and the end of the line the node ends on.
-            var expandedSpan = await GetExpandedNodeSpan(document, node, cancellationToken).ConfigureAwait(false);
+            var expandedSpan = await GetExpandedNodeSpanAsync(document, node, cancellationToken).ConfigureAwait(false);
             if ((selection.Start >= expandedSpan.Start && selection.Start <= node.SpanStart) &&
                 (selection.End >= node.Span.End && selection.End <= expandedSpan.End))
             {
@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis
             ImmutableArray<SyntaxNode> holes,
             CancellationToken cancellationToken)
         {
-            var expandedSpan = await GetExpandedNodeSpan(document, node, cancellationToken).ConfigureAwait(false);
+            var expandedSpan = await GetExpandedNodeSpanAsync(document, node, cancellationToken).ConfigureAwait(false);
             if (!expandedSpan.IntersectsWith(position))
             {
                 // Position isn’t within the node’s widened span. Definitely not valid here.
@@ -99,9 +99,7 @@ namespace Microsoft.CodeAnalysis
             return true;
         }
 
-#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
-        private static async Task<TextSpan> GetExpandedNodeSpan(
-#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
+        private static async Task<TextSpan> GetExpandedNodeSpanAsync(
             Document document,
             SyntaxNode node,
             CancellationToken cancellationToken)

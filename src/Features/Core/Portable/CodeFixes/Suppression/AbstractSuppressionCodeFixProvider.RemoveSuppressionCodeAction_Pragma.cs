@@ -162,11 +162,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                 {
                     if (isStartToken)
                     {
-                        return PragmaHelpers.GetNewStartTokenWithAddedPragmaAsync(token, currentDiagnosticSpan, _diagnostic, Fixer, FormatNode, isRemoveSuppression: true);
+                        return PragmaHelpers.GetNewStartTokenWithAddedPragmaAsync(token, currentDiagnosticSpan, _diagnostic, Fixer, FormatNodeAsync, isRemoveSuppression: true);
                     }
                     else
                     {
-                        return PragmaHelpers.GetNewEndTokenWithAddedPragmaAsync(token, currentDiagnosticSpan, _diagnostic, Fixer, FormatNode, isRemoveSuppression: true);
+                        return PragmaHelpers.GetNewEndTokenWithAddedPragmaAsync(token, currentDiagnosticSpan, _diagnostic, Fixer, FormatNodeAsync, isRemoveSuppression: true);
                     }
                 }
 
@@ -217,9 +217,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                 public SyntaxToken StartToken_TestOnly => _suppressionTargetInfo.StartToken;
                 public SyntaxToken EndToken_TestOnly => _suppressionTargetInfo.EndToken;
 
-#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
-                private Task<SyntaxNode> FormatNode(SyntaxNode node)
-#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
+                private Task<SyntaxNode> FormatNodeAsync(SyntaxNode node)
                 {
                     return Formatter.FormatAsync(node, _document.Project.Solution.Workspace);
                 }

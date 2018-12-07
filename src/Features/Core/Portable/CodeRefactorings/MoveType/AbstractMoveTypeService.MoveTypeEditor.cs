@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
                 }
 
                 var modifiedRoot = documentEditor.GetChangedRoot();
-                modifiedRoot = await AddFinalNewLineIfDesired(document, modifiedRoot).ConfigureAwait(false);
+                modifiedRoot = await AddFinalNewLineIfDesiredAsync(document, modifiedRoot).ConfigureAwait(false);
 
                 // add an empty document to solution, so that we'll have options from the right context.
                 var solutionWithNewDocument = projectToBeUpdated.Solution.AddDocument(
@@ -119,9 +119,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
             /// Add a trailing newline if we don't already have one if that's what the user's 
             /// preference is.
             /// </summary>
-#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
-            private async Task<SyntaxNode> AddFinalNewLineIfDesired(Document document, SyntaxNode modifiedRoot)
-#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
+            private async Task<SyntaxNode> AddFinalNewLineIfDesiredAsync(Document document, SyntaxNode modifiedRoot)
             {
                 var options = await document.GetOptionsAsync(CancellationToken).ConfigureAwait(false);
                 var insertFinalNewLine = options.GetOption(FormattingOptions.InsertFinalNewLine);

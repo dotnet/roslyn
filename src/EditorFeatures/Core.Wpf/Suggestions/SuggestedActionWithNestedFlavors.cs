@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
                 // We use ConfigureAwait(true) to stay on the UI thread.
                 _nestedFlavors = await extensionManager.PerformFunctionAsync(
-                    Provider, () => CreateAllFlavors(cancellationToken),
+                    Provider, () => CreateAllFlavorsAsync(cancellationToken),
                     defaultValue: ImmutableArray<SuggestedActionSet>.Empty).ConfigureAwait(true);
             }
 
@@ -69,14 +69,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             return _nestedFlavors;
         }
 
-#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
-        private async Task<ImmutableArray<SuggestedActionSet>> CreateAllFlavors(CancellationToken cancellationToken)
-#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
+        private async Task<ImmutableArray<SuggestedActionSet>> CreateAllFlavorsAsync(CancellationToken cancellationToken)
         {
             var builder = ArrayBuilder<SuggestedActionSet>.GetInstance();
 
             // We use ConfigureAwait(true) to stay on the UI thread.
-            var previewChangesSuggestedActionSet = await GetPreviewChangesFlavor(cancellationToken).ConfigureAwait(true);
+            var previewChangesSuggestedActionSet = await GetPreviewChangesFlavorAsync(cancellationToken).ConfigureAwait(true);
             if (previewChangesSuggestedActionSet != null)
             {
                 builder.Add(previewChangesSuggestedActionSet);
@@ -90,9 +88,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             return builder.ToImmutableAndFree();
         }
 
-#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
-        private async Task<SuggestedActionSet> GetPreviewChangesFlavor(CancellationToken cancellationToken)
-#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
+        private async Task<SuggestedActionSet> GetPreviewChangesFlavorAsync(CancellationToken cancellationToken)
         {
             // We use ConfigureAwait(true) to stay on the UI thread.
             var previewChangesAction = await PreviewChangesSuggestedAction.CreateAsync(

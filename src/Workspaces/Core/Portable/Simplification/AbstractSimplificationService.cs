@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Simplification
                 bool originalDocHasErrors = await document.HasAnyErrorsAsync(cancellationToken).ConfigureAwait(false);
 #endif
 
-                var reduced = await this.ReduceAsyncInternal(document, spanList, optionSet, reducers, cancellationToken).ConfigureAwait(false);
+                var reduced = await this.ReduceCoreAsync(document, spanList, optionSet, reducers, cancellationToken).ConfigureAwait(false);
 
                 if (reduced != document)
                 {
@@ -89,9 +89,7 @@ namespace Microsoft.CodeAnalysis.Simplification
             }
         }
 
-#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
-        private async Task<Document> ReduceAsyncInternal(
-#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
+        private async Task<Document> ReduceCoreAsync(
             Document document,
             ImmutableArray<TextSpan> spans,
             OptionSet optionSet,

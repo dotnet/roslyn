@@ -312,9 +312,7 @@ namespace Microsoft.CodeAnalysis.Interactive
             return new LazyRemoteService(this, options, Interlocked.Increment(ref _remoteServiceInstanceId), skipInitialization);
         }
 
-#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
-        private Task OnProcessExited(Process process)
-#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
+        private Task OnProcessExitedAsync(Process process)
         {
             ReportProcessExited(process);
             return TryGetOrCreateRemoteServiceAsync(processPendingOutput: true);

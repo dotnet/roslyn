@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 return;
             }
 
-            var classified = await TryClassifyContainingMemberSpan(
+            var classified = await TryClassifyContainingMemberSpanAsync(
                     context, spanToTag, delegationService, classificationService, typeMap).ConfigureAwait(false);
             if (classified)
             {
@@ -46,9 +46,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 context, spanToTag, delegationService, classificationService, typeMap).ConfigureAwait(false);
         }
 
-#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
-        private static async Task<bool> TryClassifyContainingMemberSpan<TClassificationService>(
-#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
+        private static async Task<bool> TryClassifyContainingMemberSpanAsync<TClassificationService>(
             TaggerContext<IClassificationTag> context,
             DocumentSnapshotSpan spanToTag,
             IClassificationDelegationService<TClassificationService> delegationService,

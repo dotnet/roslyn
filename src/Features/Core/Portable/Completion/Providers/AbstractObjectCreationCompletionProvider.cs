@@ -44,18 +44,16 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         protected override Task<ImmutableArray<ISymbol>> GetSymbolsWorker(SyntaxContext context, int position, OptionSet options, CancellationToken cancellationToken)
         {
-            return GetSymbolsWorkerInternal(context, position, options, preselect: false, cancellationToken);
+            return GetSymbolsCoreAsync(context, position, options, preselect: false, cancellationToken);
         }
 
         protected override Task<ImmutableArray<ISymbol>> GetPreselectedSymbolsWorker(
             SyntaxContext context, int position, OptionSet options, CancellationToken cancellationToken)
         {
-            return GetSymbolsWorkerInternal(context, position, options, preselect: true, cancellationToken);
+            return GetSymbolsCoreAsync(context, position, options, preselect: true, cancellationToken);
         }
 
-#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
-        private Task<ImmutableArray<ISymbol>> GetSymbolsWorkerInternal(
-#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
+        private Task<ImmutableArray<ISymbol>> GetSymbolsCoreAsync(
             SyntaxContext context, int position, OptionSet options, bool preselect, CancellationToken cancellationToken)
         {
             var newExpression = this.GetObjectCreationNewExpression(context.SyntaxTree, position, cancellationToken);

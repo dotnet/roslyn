@@ -86,18 +86,16 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
-            var namedTypeReferences = await FindReferencesInDocumentWorker(
+            var namedTypeReferences = await FindReferencesInDocumentCoreAsync(
                 namedType, document, semanticModel, cancellationToken).ConfigureAwait(false);
 
             // Mark any references that are also Constructor references.  Some callers
             // will want to know about these so they won't display duplicates.
-            return await MarkConstructorReferences(
+            return await MarkConstructorReferencesAsync(
                 namedType, document, semanticModel, namedTypeReferences, cancellationToken).ConfigureAwait(false);
         }
 
-#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
-        private async Task<ImmutableArray<FinderLocation>> MarkConstructorReferences(
-#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
+        private async Task<ImmutableArray<FinderLocation>> MarkConstructorReferencesAsync(
             INamedTypeSymbol namedType, Document document,
             SemanticModel semanticModel,
             ImmutableArray<FinderLocation> namedTypeReferences,
@@ -144,9 +142,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             return false;
         }
 
-#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
-        private static async Task<ImmutableArray<FinderLocation>> FindReferencesInDocumentWorker(
-#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
+        private static async Task<ImmutableArray<FinderLocation>> FindReferencesInDocumentCoreAsync(
             INamedTypeSymbol namedType,
             Document document,
             SemanticModel semanticModel,

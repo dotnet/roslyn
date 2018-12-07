@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.IntroduceUsingStatement
             var span = context.Span;
 
             var (declarationSyntax, _) =
-                await FindDisposableLocalDeclaration(document, span, context.CancellationToken).ConfigureAwait(false);
+                await FindDisposableLocalDeclarationAsync(document, span, context.CancellationToken).ConfigureAwait(false);
 
             if (declarationSyntax != null)
             {
@@ -45,9 +45,7 @@ namespace Microsoft.CodeAnalysis.IntroduceUsingStatement
             }
         }
 
-#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
-        private async Task<(TLocalDeclarationSyntax, ILocalSymbol)> FindDisposableLocalDeclaration(Document document, TextSpan selection, CancellationToken cancellationToken)
-#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
+        private async Task<(TLocalDeclarationSyntax, ILocalSymbol)> FindDisposableLocalDeclarationAsync(Document document, TextSpan selection, CancellationToken cancellationToken)
         {
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
@@ -138,7 +136,7 @@ namespace Microsoft.CodeAnalysis.IntroduceUsingStatement
             TextSpan span,
             CancellationToken cancellationToken)
         {
-            var (declarationStatement, localVariable) = await FindDisposableLocalDeclaration(document, span, cancellationToken).ConfigureAwait(false);
+            var (declarationStatement, localVariable) = await FindDisposableLocalDeclarationAsync(document, span, cancellationToken).ConfigureAwait(false);
 
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);

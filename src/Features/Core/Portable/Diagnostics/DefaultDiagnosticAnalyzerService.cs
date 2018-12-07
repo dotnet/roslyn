@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     return;
                 }
 
-                await AnalyzeForKind(document, AnalysisKind.Syntax, cancellationToken).ConfigureAwait(false);
+                await AnalyzeForKindAsync(document, AnalysisKind.Syntax, cancellationToken).ConfigureAwait(false);
             }
 
             public async Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, InvocationReasons reasons, CancellationToken cancellationToken)
@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     return;
                 }
 
-                await AnalyzeForKind(document, AnalysisKind.Semantic, cancellationToken).ConfigureAwait(false);
+                await AnalyzeForKindAsync(document, AnalysisKind.Semantic, cancellationToken).ConfigureAwait(false);
 
                 bool IsSemanticAnalysisOn()
                 {
@@ -120,9 +120,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }
             }
 
-#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
-            private async Task AnalyzeForKind(Document document, AnalysisKind kind, CancellationToken cancellationToken)
-#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
+            private async Task AnalyzeForKindAsync(Document document, AnalysisKind kind, CancellationToken cancellationToken)
             {
                 var diagnosticData = await _service._analyzerService.GetDiagnosticsAsync(document, GetAnalyzers(), kind, cancellationToken).ConfigureAwait(false);
 

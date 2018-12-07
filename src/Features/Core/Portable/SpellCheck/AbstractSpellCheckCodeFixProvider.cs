@@ -187,13 +187,11 @@ namespace Microsoft.CodeAnalysis.SpellCheck
         {
             return new SpellCheckCodeAction(
                 string.Format(FeaturesResources.Change_0_to_1, oldName, newName),
-                c => Update(document, nameToken, newName, c),
+                c => UpdateAsync(document, nameToken, newName, c),
                 equivalenceKey: newName);
         }
 
-#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
-        private async Task<Document> Update(Document document, SyntaxToken nameToken, string newName, CancellationToken cancellationToken)
-#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
+        private async Task<Document> UpdateAsync(Document document, SyntaxToken nameToken, string newName, CancellationToken cancellationToken)
         {
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var newRoot = root.ReplaceToken(nameToken, CreateIdentifier(nameToken, newName));

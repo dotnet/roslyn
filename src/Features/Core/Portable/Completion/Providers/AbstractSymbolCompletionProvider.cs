@@ -201,12 +201,12 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         {
             var relatedDocumentIds = GetRelatedDocumentIds(document, position);
 
-            var context = await GetOrCreateContext(document, position, cancellationToken).ConfigureAwait(false);
+            var context = await GetOrCreateContextAsync(document, position, cancellationToken).ConfigureAwait(false);
             options = GetUpdatedRecommendationOptions(options, document.Project.Language);
 
             if (relatedDocumentIds.IsEmpty)
             {
-                var itemsForCurrentDocument = await GetSymbolsWorker(position, preselect, context, options, cancellationToken).ConfigureAwait(false);
+                var itemsForCurrentDocument = await GetSymbolsAsync(position, preselect, context, options, cancellationToken).ConfigureAwait(false);
                 return CreateItems(itemsForCurrentDocument, context, preselect);
             }
 
@@ -251,9 +251,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return SpecializedTasks.True;
         }
 
-#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
-        private Task<ImmutableArray<ISymbol>> GetSymbolsWorker(int position, bool preselect, SyntaxContext context, OptionSet options, CancellationToken cancellationToken)
-#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
+        private Task<ImmutableArray<ISymbol>> GetSymbolsAsync(int position, bool preselect, SyntaxContext context, OptionSet options, CancellationToken cancellationToken)
         {
             try
             {
@@ -299,11 +297,11 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             foreach (var relatedDocumentId in relatedDocuments)
             {
                 var relatedDocument = document.Project.Solution.GetDocument(relatedDocumentId);
-                var context = await GetOrCreateContext(relatedDocument, position, cancellationToken).ConfigureAwait(false);
+                var context = await GetOrCreateContextAsync(relatedDocument, position, cancellationToken).ConfigureAwait(false);
 
                 if (IsCandidateProject(context, cancellationToken))
                 {
-                    var symbols = await GetSymbolsWorker(position, preselect, context, options, cancellationToken).ConfigureAwait(false);
+                    var symbols = await GetSymbolsAsync(position, preselect, context, options, cancellationToken).ConfigureAwait(false);
                     perContextSymbols.Add((relatedDocument.Id, context, symbols));
                 }
             }
@@ -331,9 +329,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         protected abstract Task<SyntaxContext> CreateContext(Document document, int position, CancellationToken cancellationToken);
 #pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
 
-#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
-        private Task<SyntaxContext> GetOrCreateContext(Document document, int position, CancellationToken cancellationToken)
-#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
+        private Task<SyntaxContext> GetOrCreateContextAsync(Document document, int position, CancellationToken cancellationToken)
         {
             lock (s_cacheGate)
             {

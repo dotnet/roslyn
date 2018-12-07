@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Concurrent;
@@ -311,16 +311,14 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                 // Write the file out to disk so we'll have it the next time we launch VS.  Do this
                 // after we set the in-memory instance so we at least have something to search while
                 // we're waiting to write.
-                await WriteDatabaseFile(bytes).ConfigureAwait(false);
+                await WriteDatabaseFileAsync(bytes).ConfigureAwait(false);
 
                 var delay = _service._delayService.UpdateSucceededDelay;
                 await _service.LogInfoAsync($"Processing full database element completed. Update again in {delay}").ConfigureAwait(false);
                 return (succeeded: true, delay);
             }
 
-#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
-            private async Task WriteDatabaseFile(byte[] bytes)
-#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
+            private async Task WriteDatabaseFileAsync(byte[] bytes)
             {
                 await _service.LogInfoAsync("Writing database file").ConfigureAwait(false);
 
@@ -473,7 +471,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
 
                 await CreateAndSetInMemoryDatabaseAsync(finalBytes).ConfigureAwait(false);
 
-                await WriteDatabaseFile(finalBytes).ConfigureAwait(false);
+                await WriteDatabaseFileAsync(finalBytes).ConfigureAwait(false);
 
                 return _service._delayService.UpdateSucceededDelay;
             }
