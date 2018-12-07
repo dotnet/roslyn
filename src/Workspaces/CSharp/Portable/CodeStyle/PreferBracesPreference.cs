@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Xml.Linq;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 
 namespace Microsoft.CodeAnalysis.CodeStyle
@@ -12,7 +13,29 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         /// <summary>
         /// Braces are allowed, but not preferred.
         /// </summary>
-        None,
+        /// <remarks>
+        /// <para>The value <c>0</c> is important for serialization compatibility in
+        /// <see cref="CodeStyleOption{T}.FromXElement(XElement)"/>. Prior to the use of this enum, the serialized value
+        /// was the <see cref="bool"/> value <see langword="false"/>.</para>
+        /// </remarks>
+        None = 0,
+
+        /// <summary>
+        /// <para>Braces are preferred where allowed except in the following limited situations:</para>
+        ///
+        /// <list type="bullet">
+        /// <item><description>Braces are not required for the embedded statement of an <c>else</c> clause when the embedded statement is an <c>if</c> statement.</description></item>
+        /// <item><description>In a sequence of consecutive <c>using</c> statements, only the last statement requires braces.</description></item>
+        /// <item><description>In a sequence of consecutive <c>lock</c> statements, only the last statement requires braces.</description></item>
+        /// <item><description>In a sequence of consecutive <c>fixed</c> statements, only the last statement requires braces.</description></item>
+        /// </list>
+        /// </summary>
+        /// <remarks>
+        /// <para>The value <c>1</c> is important for serialization compatibility in
+        /// <see cref="CodeStyleOption{T}.FromXElement(XElement)"/>. Prior to the use of this enum, the serialized value
+        /// was the <see cref="bool"/> value <see langword="true"/>.</para>
+        /// </remarks>
+        Always = 1,
 
         /// <summary>
         /// <para>Braces are always allowed, and generally preferred except in limited situations involving single-line
@@ -30,17 +53,5 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         /// </list>
         /// </summary>
         WhenMultiline,
-
-        /// <summary>
-        /// <para>Braces are preferred where allowed except in the following limited situations:</para>
-        ///
-        /// <list type="bullet">
-        /// <item><description>Braces are not required for the embedded statement of an <c>else</c> clause when the embedded statement is an <c>if</c> statement.</description></item>
-        /// <item><description>In a sequence of consecutive <c>using</c> statements, only the last statement requires braces.</description></item>
-        /// <item><description>In a sequence of consecutive <c>lock</c> statements, only the last statement requires braces.</description></item>
-        /// <item><description>In a sequence of consecutive <c>fixed</c> statements, only the last statement requires braces.</description></item>
-        /// </list>
-        /// </summary>
-        Always,
     }
 }
