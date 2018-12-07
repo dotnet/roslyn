@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             TextWriter consoleOutput,
             TouchedFileLogger touchedFilesLogger,
             ErrorLogger errorLogger,
-            ImmutableArray<ImmutableDictionary<string, ReportDiagnostic>> syntaxDiagOptionsOpt)
+            ImmutableArray<AnalyzerConfigOptionsResult> syntaxDiagOptionsOpt)
         {
             Compilation = base.CreateCompilation(consoleOutput, touchedFilesLogger, errorLogger, syntaxDiagOptionsOpt);
             return Compilation;

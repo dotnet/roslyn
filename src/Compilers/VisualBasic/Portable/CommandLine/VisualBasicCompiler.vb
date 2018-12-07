@@ -85,7 +85,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Overrides Function CreateCompilation(consoleOutput As TextWriter,
                                                     touchedFilesLogger As TouchedFileLogger,
                                                     errorLogger As ErrorLogger,
-                                                    syntaxTreeDiagnosticOptionsOpt As ImmutableArray(Of ImmutableDictionary(Of String, ReportDiagnostic))) As Compilation
+                                                    analyzerConfigOptions As ImmutableArray(Of AnalyzerConfigOptionsResult)) As Compilation
             Dim parseOptions = Arguments.ParseOptions
 
             ' We compute script parse options once so we don't have to do it repeatedly in
@@ -107,9 +107,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                 consoleOutput,
                                 parseOptions,
                                 scriptParseOptions,
-                                If(syntaxTreeDiagnosticOptionsOpt.IsDefault,
+                                If(analyzerConfigOptions.IsDefault,
                                     Nothing,
-                                    syntaxTreeDiagnosticOptionsOpt(i)),
+                                    analyzerConfigOptions(i).TreeOptions),
                                 hadErrors,
                                 sourceFiles(i),
                                 errorLogger)
@@ -124,9 +124,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         consoleOutput,
                         parseOptions,
                         scriptParseOptions,
-                        If(syntaxTreeDiagnosticOptionsOpt.IsDefault,
+                        If(analyzerConfigOptions.IsDefault,
                             Nothing,
-                            syntaxTreeDiagnosticOptionsOpt(i)),
+                            analyzerConfigOptions(i).TreeOptions),
                         hadErrors,
                         sourceFiles(i),
                         errorLogger)

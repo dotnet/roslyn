@@ -678,7 +678,7 @@ dotnet_diagnostic.cs000.severity = error", "/.editorconfig"));
                 CreateImmutableDictionary(("cs000", ReportDiagnostic.Suppress)),
                 CreateImmutableDictionary(("cs000", ReportDiagnostic.Error)),
                 null
-            }, options.TreeOptions);
+            }, options.Select(o => o.TreeOptions).ToArray());
         }
 
         [Fact]
@@ -701,7 +701,7 @@ dotnet_diagnostic.cs000.severity = error", "/.editorconfig"));
                 CreateImmutableDictionary(("cs000", ReportDiagnostic.Error)),
                 CreateImmutableDictionary(("cs000", ReportDiagnostic.Error)),
                 null
-            }, options.TreeOptions);
+            }, options.Select(o => o.TreeOptions).ToArray());
         }
 
         [Fact]
@@ -728,7 +728,7 @@ dotnet_diagnostic.cs000.severity = info"
                 CreateImmutableDictionary(("cs000", ReportDiagnostic.Suppress)),
                 CreateImmutableDictionary(("cs000", ReportDiagnostic.Error)),
                 null
-            }, options.TreeOptions);
+            }, options.Select(o => o.TreeOptions).ToArray());
         }
 
         [Fact]
@@ -750,7 +750,7 @@ dotnet_diagnostic.cs001.severity = info", "/.editorconfig"));
                 CreateImmutableDictionary(
                     ("cs000", ReportDiagnostic.Suppress),
                     ("cs001", ReportDiagnostic.Info)),
-            }, options.TreeOptions);
+            }, options.Select(o => o.TreeOptions).ToArray());
         }
 
         [Fact]
@@ -774,7 +774,7 @@ dotnet_diagnostic.cs001.severity = info", "/.editorconfig"));
                 CreateImmutableDictionary(
                     ("cs000", ReportDiagnostic.Suppress),
                     ("cs001", ReportDiagnostic.Info))
-            }, options.TreeOptions);
+            }, options.Select(o => o.TreeOptions).ToArray());
         }
 
         [Fact]
@@ -807,7 +807,7 @@ dotnet_diagnostic.cs001.severity = error", "/subdir/.editorconfig"));
                 CreateImmutableDictionary(
                     ("cs000", ReportDiagnostic.Warn),
                     ("cs001", ReportDiagnostic.Info))
-            }, options.TreeOptions);
+            }, options.Select(o => o.TreeOptions).ToArray());
         }
 
         [Fact]
@@ -838,7 +838,7 @@ dotnet_diagnostic.cs001.severity = error", "/subdir/.editorconfig"));
                     ("cs001", ReportDiagnostic.Error)),
                 CreateImmutableDictionary(
                     ("cs000", ReportDiagnostic.Suppress))
-            }, options.TreeOptions);
+            }, options.Select(o => o.TreeOptions).ToArray());
         }
 
         [ConditionalFact(typeof(WindowsOnly))]
@@ -858,27 +858,32 @@ dotnet_diagnostic.cs000.severity = suppress", "Z:\\.editorconfig"));
             {
                 CreateImmutableDictionary(
                     ("cs000", ReportDiagnostic.Suppress))
-            }, options.TreeOptions);
+            }, options.Select(o => o.TreeOptions).ToArray());
+        }
+
+        private AnalyzerConfigOptionsResult[] GetAnalyzerConfigOptions(string[] filePaths, ArrayBuilder<AnalyzerConfig> configs)
+        {
+            var set = AnalyzerConfigSet.Create(configs);
+            return filePaths.Select(f => set.GetOptionsForSourcePath(f)).ToArray();
         }
 
         private static void VerifyAnalyzerOptions(
             (string key, string val)[][] expected,
-            AnalyzerConfigOptionsResult options)
+            AnalyzerConfigOptionsResult[] options)
         {
-            var analyzerOptions = options.AnalyzerOptions;
-            Assert.Equal(expected.Length, analyzerOptions.Length);
+            Assert.Equal(expected.Length, options.Length);
 
             for (int i = 0; i < expected.Length; i++)
             {
                 if (expected[i] is null)
                 {
-                    Assert.Null(analyzerOptions[i]);
+                    Assert.Null(options[i]);
                 }
                 else
                 {
                     AssertEx.SetEqual(
                         expected[i].Select(KeyValuePair.ToKeyValuePair),
-                        analyzerOptions[i]);
+                        options[i].AnalyzerOptions);
                 }
             }
         }
@@ -999,7 +1004,7 @@ dotnet_diagnostic..some_key = some_val", "/.editorconfig"));
 
             Assert.Equal(new[] {
                 CreateImmutableDictionary(("", ReportDiagnostic.Warn)),
-            }, options.TreeOptions);
+            }, options.Select(o => o.TreeOptions).ToArray());
 
             VerifyAnalyzerOptions(
                 new[]
@@ -1029,7 +1034,7 @@ dotnet_diagnostic.some_key = some_val", "/.editorconfig"));
             Assert.Equal(new ImmutableDictionary<string, ReportDiagnostic>[]
             {
                 null
-            }, options.TreeOptions);
+            }, options.Select(o => o.TreeOptions).ToArray());
 
             VerifyAnalyzerOptions(
                 new[]
@@ -1062,8 +1067,8 @@ dotnet_diagnostic.cs000.severity = warn", "/.editorconfig"));
                     ("cs000", ReportDiagnostic.Warn)),
                 CreateImmutableDictionary(
                     ("cs000", ReportDiagnostic.Warn)),
-                null
-            }, options.TreeOptions);
+                SyntaxTree.EmptyDiagnosticOptions
+            }, options.Select(o => o.TreeOptions).ToArray());
         }
     }
 }

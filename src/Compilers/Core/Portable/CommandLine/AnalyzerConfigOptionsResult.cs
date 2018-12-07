@@ -7,37 +7,28 @@ using TreeOptions = System.Collections.Immutable.ImmutableDictionary<string, Mic
 namespace Microsoft.CodeAnalysis
 {
     /// <summary>
-    /// Holds results from <see cref="AnalyzerConfig.GetAnalyzerConfigOptions{TStringList, TACList}(TStringList, TACList)"/>.
+    /// Holds results from <see cref="AnalyzerConfigSet.GetOptionsForSourcePath(string)"/>.
     /// </summary>
     public readonly struct AnalyzerConfigOptionsResult
     {
         /// <summary>
-        /// Options that customize diagnostic severity as reported by the compiler. If there
-        /// are no options for a given source path, that entry in the array is null.
+        /// Options that customize diagnostic severity as reported by the compiler.
         /// </summary>
-        /// <remarks>
-        /// The item index corresponds to the input source path to
-        /// <see cref="AnalyzerConfig.GetAnalyzerConfigOptions{TStringList, TACList}(TStringList, TACList)" />
-        /// </remarks>
-        public ImmutableArray<TreeOptions> TreeOptions { get; }
-        /// <summary>
-        /// Options that do not have any special compiler behavior and are passed to analyzers as-is.
-        /// If there are no options for a given source path, that entry in the array is null.
-        /// </summary>
-        /// <remarks>
-        /// The item index corresponds to the input source path to
-        /// <see cref="AnalyzerConfig.GetAnalyzerConfigOptions{TStringList, TACList}(TStringList, TACList)"/>.
-        /// </remarks>
-        public ImmutableArray<AnalyzerOptions> AnalyzerOptions { get; }
+        public TreeOptions TreeOptions { get; }
 
         /// <summary>
-        /// Any produced diagnostics while processing AnalyzerConfig files.
+        /// Options that do not have any special compiler behavior and are passed to analyzers as-is.
+        /// </summary>
+        public AnalyzerOptions AnalyzerOptions { get; }
+
+        /// <summary>
+        /// Any produced diagnostics while applying analyzer configuration.
         /// </summary>
         public ImmutableArray<Diagnostic> Diagnostics { get; }
 
         internal AnalyzerConfigOptionsResult(
-            ImmutableArray<TreeOptions> treeOptions,
-            ImmutableArray<AnalyzerOptions> analyzerOptions,
+            TreeOptions treeOptions,
+            AnalyzerOptions analyzerOptions,
             ImmutableArray<Diagnostic> diagnostics)
         {
             TreeOptions = treeOptions;

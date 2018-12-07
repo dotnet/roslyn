@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis
             TextWriter consoleOutput,
             TouchedFileLogger touchedFilesLogger,
             ErrorLogger errorLoggerOpt,
-            ImmutableArray<TreeOptions> syntaxDiagnosticOptionsOpt);
+            ImmutableArray<AnalyzerConfigOptionsResult> analyzerConfigOptions);
 
         public abstract void PrintLogo(TextWriter consoleOutput);
         public abstract void PrintHelp(TextWriter consoleOutput);
@@ -253,12 +253,12 @@ namespace Microsoft.CodeAnalysis
 
 
         /// <summary>
-        /// Read all analyzer config files from the given paths and sort them from shortest to longest.
+        /// Read all analyzer config files from the given paths.
         /// </summary>
-        internal bool TryGetSortedAnalyzerConfigFiles(
+        internal bool TryGetAnalyzerConfigSet(
             ImmutableArray<string> analyzerConfigPaths,
             DiagnosticBag diagnostics,
-            out ImmutableArray<AnalyzerConfig> analyzerConfigs)
+            out AnalyzerConfigSet analyzerConfigSet)
         {
             var configs = ArrayBuilder<AnalyzerConfig>.GetInstance(analyzerConfigPaths.Length);
 
@@ -297,14 +297,11 @@ namespace Microsoft.CodeAnalysis
             if (diagnostics.HasAnyErrors())
             {
                 configs.Free();
-                analyzerConfigs = default;
+                analyzerConfigSet = null;
                 return false;
             }
 
-            // Sort editorconfig paths from shortest to longest.
-            configs.Sort(AnalyzerConfig.DirectoryLengthComparer);
-
-            analyzerConfigs = configs.ToImmutableAndFree();
+            analyzerConfigSet = AnalyzerConfigSet.Create(configs);
             return true;
         }
 
@@ -650,25 +647,27 @@ namespace Microsoft.CodeAnalysis
 
             var diagnostics = DiagnosticBag.GetInstance();
 
-            ImmutableArray<AnalyzerConfig> sortedAnalyzerConfigs = default;
-            AnalyzerConfigOptionsResult analyzerConfigOptions = default;
+            AnalyzerConfigSet analyzerConfigSet = default;
+            ImmutableArray<AnalyzerConfigOptionsResult> sourceFileAnalyzerConfigOptions = default;
 
             if (Arguments.AnalyzerConfigPaths.Length > 0)
             {
-                if (!TryGetSortedAnalyzerConfigFiles(Arguments.AnalyzerConfigPaths, diagnostics, out sortedAnalyzerConfigs))
+                if (!TryGetAnalyzerConfigSet(Arguments.AnalyzerConfigPaths, diagnostics, out analyzerConfigSet))
                 {
                     var hadErrors = ReportDiagnostics(diagnostics, consoleOutput, errorLogger);
                     Debug.Assert(hadErrors);
                     return Failed;
                 }
 
-                analyzerConfigOptions = GetAnalyzerConfigOptions(
-                    Arguments.SourceFiles.SelectAsArray(f => f.Path),
-                    sortedAnalyzerConfigs);
-                diagnostics.AddRange(analyzerConfigOptions.Diagnostics);
+                sourceFileAnalyzerConfigOptions = Arguments.SourceFiles.SelectAsArray(f => analyzerConfigSet.GetOptionsForSourcePath(f.Path));
+
+                foreach (var sourceFileAnalyzerConfigOption in sourceFileAnalyzerConfigOptions)
+                {
+                    diagnostics.AddRange(sourceFileAnalyzerConfigOption.Diagnostics);
+                }
             }
 
-            Compilation compilation = CreateCompilation(consoleOutput, touchedFilesLogger, errorLogger, analyzerConfigOptions.TreeOptions);
+            Compilation compilation = CreateCompilation(consoleOutput, touchedFilesLogger, errorLogger, sourceFileAnalyzerConfigOptions);
             if (compilation == null)
             {
                 return Failed;
@@ -695,8 +694,8 @@ namespace Microsoft.CodeAnalysis
                 ref compilation,
                 analyzers,
                 additionalTexts,
-                sortedAnalyzerConfigs,
-                analyzerConfigOptions.AnalyzerOptions,
+                analyzerConfigSet,
+                sourceFileAnalyzerConfigOptions,
                 embeddedTexts,
                 diagnostics,
                 cancellationToken,
@@ -738,15 +737,15 @@ namespace Microsoft.CodeAnalysis
 
         private static CompilerAnalyzerConfigOptionsProvider CreateAnalyzerConfigOptionsProvider(
             IEnumerable<SyntaxTree> syntaxTrees,
-            ImmutableArray<ImmutableDictionary<string, string>> treeOptions,
+            ImmutableArray<AnalyzerConfigOptionsResult> sourceFileAnalyzerConfigOptions,
             ImmutableArray<AdditionalText> additionalFiles,
-            ImmutableArray<ImmutableDictionary<string, string>> additionalFileOptions)
+            ImmutableArray<AnalyzerConfigOptionsResult> additionalFileOptions)
         {
             var builder = ImmutableDictionary.CreateBuilder<object, AnalyzerConfigOptions>();
             int i = 0;
             foreach (var syntaxTree in syntaxTrees)
             {
-                var options = treeOptions[i];
+                var options = sourceFileAnalyzerConfigOptions[i].AnalyzerOptions;
                 if (!(options is null))
                 {
                     builder.Add(syntaxTree, new CompilerAnalyzerConfigOptions(options));
@@ -756,7 +755,7 @@ namespace Microsoft.CodeAnalysis
 
             for (i = 0; i < additionalFiles.Length; i++)
             {
-                var options = additionalFileOptions[i];
+                var options = additionalFileOptions[i].AnalyzerOptions;
                 if (!(options is null))
                 {
                     builder.Add(additionalFiles[i], new CompilerAnalyzerConfigOptions(options));
@@ -776,8 +775,8 @@ namespace Microsoft.CodeAnalysis
             ref Compilation compilation,
             ImmutableArray<DiagnosticAnalyzer> analyzers,
             ImmutableArray<AdditionalText> additionalTextFiles,
-            ImmutableArray<AnalyzerConfig> sortedAnalyzerConfigs,
-            ImmutableArray<ImmutableDictionary<string, string>> treeAnalyzerOptions,
+            AnalyzerConfigSet analyzerConfigSet,
+            ImmutableArray<AnalyzerConfigOptionsResult> sourceFileAnalyzerConfigOptions,
             ImmutableArray<EmbeddedText> embeddedTexts,
             DiagnosticBag diagnostics,
             CancellationToken cancellationToken,
@@ -808,15 +807,17 @@ namespace Microsoft.CodeAnalysis
                 {
                     // TODO(https://github.com/dotnet/roslyn/issues/31916): The compiler currently doesn't support
                     // configuring diagnostic reporting on additional text files individually.
-                    AnalyzerConfigOptionsResult result = GetAnalyzerConfigOptions(
-                        additionalTextFiles.SelectAsArray(f => f.Path),
-                        sortedAnalyzerConfigs);
-                    diagnostics.AddRange(result.Diagnostics);
-                    var additionalFileAnalyzerOptions = result.AnalyzerOptions;
+                    ImmutableArray<AnalyzerConfigOptionsResult> additionalFileAnalyzerOptions =
+                        additionalTextFiles.SelectAsArray(f => analyzerConfigSet.GetOptionsForSourcePath(f.Path));
+
+                    foreach (var result in additionalFileAnalyzerOptions)
+                    {
+                        diagnostics.AddRange(result.Diagnostics);
+                    }
 
                     analyzerConfigProvider = CreateAnalyzerConfigOptionsProvider(
                         compilation.SyntaxTrees,
-                        treeAnalyzerOptions,
+                        sourceFileAnalyzerConfigOptions,
                         additionalTextFiles,
                         additionalFileAnalyzerOptions);
                 }
