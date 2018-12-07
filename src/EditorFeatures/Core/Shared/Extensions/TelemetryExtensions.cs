@@ -1,0 +1,50 @@
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
+using System.Collections.Generic;
+using System.Globalization;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeFixes;
+
+namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
+{
+    internal static class TelemetryExtensions
+    {
+        public static Guid GetTelemetryId(this Type type, short scope = 0)
+        {
+            return new Guid(type.GetTelemetryPrefix(), scope, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+        }
+
+        public static int GetTelemetryPrefix(this Type type)
+        {
+            // AssemblyQualifiedName will change across version numbers, FullName won't
+            type = type.IsConstructedGenericType ? type.GetGenericTypeDefinition() : type;
+            return type.FullName.GetHashCode();
+        }
+
+        public static short GetTelemetryScope(this FixAllScope scope)
+        {
+            switch (scope)
+            {
+                case FixAllScope.Document: return 1;
+                case FixAllScope.Project: return 2;
+                case FixAllScope.Solution: return 3;
+                default: return 4;
+            }
+        }
+
+        public static string GetTelemetryDiagnosticID(this Diagnostic diagnostic)
+        {
+            // we log diagnostic id as it is if it is from us
+            if (diagnostic.Descriptor.CustomTags.Any(t => t == WellKnownDiagnosticTags.Telemetry))
+            {
+                return diagnostic.Id;
+            }
+
+            // if it is from third party, we use hashcode
+            return diagnostic.GetHashCode().ToString(CultureInfo.InvariantCulture);
+        }
+    }
+}
