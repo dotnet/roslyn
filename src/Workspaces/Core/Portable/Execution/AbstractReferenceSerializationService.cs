@@ -238,8 +238,10 @@ namespace Microsoft.CodeAnalysis.Execution
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                // use actual assembly path rather than one returned from reference.FullPath
+                // use actual assembly path rather than one returned from reference.FullPath if asked (usePathFromAssembly)
                 // 2 can be different if analyzer loader used for the reference do something like shadow copying
+                // otherwise, use reference.FullPath. we use usePathFromAssembly == false for vsix installed analyzer dlls
+                // to make sure we don't load them up front and they don't get shadow copied.
                 var assemblyPath = usePathFromAssembly ? TryGetAnalyzerAssemblyPath(file) : file.FullPath;
 
                 using (var stream = new FileStream(assemblyPath, FileMode.Open, FileAccess.Read, FileShare.Read | FileShare.Delete))
