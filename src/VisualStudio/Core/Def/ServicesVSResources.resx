@@ -1186,4 +1186,10 @@ I agree to all of the foregoing:</value>
   <data name="Select_member" xml:space="preserve">
     <value>Select member</value>
   </data>
+  <data name="Move_to_namespace" xml:space="preserve">
+    <value>Move To Namespace</value>
+  </data>
+  <data name="Namespace" xml:space="preserve">
+    <value>Namespace</value>
+  </data>
 </root>

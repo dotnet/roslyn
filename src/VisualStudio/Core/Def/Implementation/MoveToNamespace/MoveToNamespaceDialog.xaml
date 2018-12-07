@@ -1,0 +1,70 @@
+﻿<vs:DialogWindow x:Uid="MoveToNamespaceDialog"
+             x:Class="Microsoft.VisualStudio.LanguageServices.Implementation.MoveToNamespace.MoveToNamespaceDialog"
+             x:ClassModifier="internal"
+             x:Name="dialog"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:Microsoft.VisualStudio.LanguageServices.Implementation.MoveToNamespace"
+             xmlns:vs="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.15.0"
+             xmlns:u="clr-namespace:Microsoft.VisualStudio.LanguageServices.Implementation.Utilities"
+             mc:Ignorable="d" 
+             d:DesignHeight="140" d:DesignWidth="460"
+             Height="140" Width="460"
+             MinHeight="140" MinWidth="460"
+             Title="{Binding ElementName=dialog, Path=MoveToNamespaceDialogTitle}"
+             HasHelpButton="True"
+             FocusManager.FocusedElement="{Binding ElementName=interfaceNameTextBox}"
+             ResizeMode="CanResizeWithGrip"
+             ShowInTaskbar="False"
+             HasDialogFrame="True"
+             WindowStartupLocation="CenterOwner">
+
+    <Window.Resources>
+        <Thickness x:Key="labelPadding">0, 5, 0, 2</Thickness>
+        <Thickness x:Key="textboxPadding">2</Thickness>
+    </Window.Resources>
+
+    <Grid Margin="11,6,11,11">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+        <StackPanel Grid.Row="0">
+            <Label x:Uid="NamespaceLabel" 
+                   x:Name="NamespaceLabel"
+                   Content="{Binding ElementName=dialog, Path=NamespaceLabelText}"
+                   Padding="{StaticResource ResourceKey=labelPadding}"
+                   Target="{Binding ElementName=NamespaceTextBox}" />
+            <TextBox x:Uid="NamespaceTextBox"
+                     Name="NamespaceTextBox"
+                     AutomationProperties.LabeledBy="{Binding ElementName=NamespaceLabel}"
+                     Text="{Binding NamespaceName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                     Padding="{StaticResource ResourceKey=textboxPadding}"
+                     GotFocus="SelectAllInTextBox" />
+        </StackPanel>
+
+        <StackPanel Grid.Row="1" 
+                    HorizontalAlignment="Right" 
+                    Margin="0, 11, 0, 0"
+                    Orientation="Horizontal">
+            <Button x:Uid="OkButton" 
+                    Content="{Binding ElementName=dialog, Path=OK}" 
+                    Margin="0, 0, 0, 0" 
+                    Padding="9,2,9,2"
+                    Click="OK_Click" 
+                    IsDefault="True"
+                    MinWidth="73"
+                    MinHeight="21"/>
+            <Button x:Uid="CancelButton" 
+                    Content="{Binding ElementName=dialog, Path=Cancel}"
+                    Margin="7, 0, 0, 0" 
+                    Padding="9,2,9,2"
+                    Click="Cancel_Click"
+                    IsCancel="True"
+                    MinWidth="73"
+                    MinHeight="21"/>
+        </StackPanel>
+    </Grid>
+</vs:DialogWindow>

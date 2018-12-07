@@ -19,7 +19,7 @@ namespace Microsoft.VisualStudio.LanguageServices {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "15.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class ServicesVSResources {
@@ -1596,6 +1596,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Move To Namespace.
+        /// </summary>
+        internal static string Move_to_namespace {
+            get {
+                return ResourceManager.GetString("Move_to_namespace", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Move up.
         /// </summary>
         internal static string Move_up {
@@ -1619,6 +1628,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string Name_colon2 {
             get {
                 return ResourceManager.GetString("Name_colon2", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Namespace:.
+        /// </summary>
+        internal static string Namespace_colon {
+            get {
+                return ResourceManager.GetString("Namespace:", resourceCulture);
             }
         }
         

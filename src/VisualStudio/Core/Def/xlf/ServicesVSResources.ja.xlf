@@ -117,6 +117,16 @@
         <target state="new">Members</target>
         <note />
       </trans-unit>
+      <trans-unit id="Move_to_namespace">
+        <source>Move To Namespace</source>
+        <target state="new">Move To Namespace</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Namespace">
+        <source>Namespace</source>
+        <target state="new">Namespace</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Namespace_0">
         <source>Namespace: '{0}'</source>
         <target state="new">Namespace: '{0}'</target>

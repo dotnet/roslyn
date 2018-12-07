@@ -202,6 +202,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string LinkedFileDiffMerging = nameof(LinkedFileDiffMerging);
             public const string MetadataAsSource = nameof(MetadataAsSource);
             public const string MSBuildWorkspace = nameof(MSBuildWorkspace);
+            public const string MoveToNamespace = nameof(MoveToNamespace);
             public const string NamingStyle = nameof(NamingStyle);
             public const string NavigableSymbols = nameof(NavigableSymbols);
             public const string NavigateTo = nameof(NavigateTo);
