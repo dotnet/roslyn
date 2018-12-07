@@ -3603,8 +3603,8 @@ class C
                                                                          ' 2. Hang here as well.
                                                                          Dim completionItem = state.GetSelectedItemOpt()
                                                                      End Sub)
-                                                    Thread.Sleep(250)
                                                     task2 = Task.Run(Sub()
+                                                                         Thread.Sleep(250)
                                                                          Try
                                                                              ' 3. Check that the other task is running/hanging.
                                                                              Assert.Equal(TaskStatus.Running, task1.Status)
@@ -3655,7 +3655,7 @@ class C
             ' 7. Simulate unblocking the provider.
             ' 8. Verify that 
             ' 8.a. The old completion adds 'a' to 'Sys' and displays 'Sysa'. CommitIfUnique is canceled because it was interrupted by typing 'a'.
-            ' 8.b. The new completion completes CommitIfUnique and then add 'a'.
+            ' 8.b. The new completion completes CommitIfUnique and then adds 'a'.
             Dim tcs = New TaskCompletionSource(Of Boolean)
             Dim provider = New TaskControlledCompletionProvider(tcs.Task)
             Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
@@ -3690,8 +3690,8 @@ class C
                                                                          ' 2. Hang here as well.
                                                                          Dim completionItem = state.GetSelectedItemOpt()
                                                                      End Sub)
-                                                    Thread.Sleep(250)
                                                     task2 = Task.Run(Sub()
+                                                                         Thread.Sleep(250)
                                                                          Try
                                                                              ' 3. Check that the other task is running/hanging.
                                                                              Assert.Equal(TaskStatus.Running, task1.Status)
