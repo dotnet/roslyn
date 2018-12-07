@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.Host
                 // don't even get started if there is nothing to do
                 if (allProjects.Count > 0)
                 {
-                    BuildCompilationsAsync(solution, initialProject, allProjects);
+                    _ = BuildCompilationsAsync(solution, initialProject, allProjects);
                 }
             }
         }
@@ -111,15 +111,13 @@ namespace Microsoft.CodeAnalysis.Host
             }
         }
 
-#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
-        private void BuildCompilationsAsync(
-#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
+        private Task BuildCompilationsAsync(
             Solution solution,
             ProjectId initialProject,
             ISet<ProjectId> allProjects)
         {
             var cancellationToken = _cancellationSource.Token;
-            _compilationScheduler.ScheduleTask(
+            return _compilationScheduler.ScheduleTask(
                 () => BuildCompilationsAsync(solution, initialProject, allProjects, cancellationToken),
                 "BackgroundCompiler.BuildCompilationsAsync",
                 cancellationToken);
