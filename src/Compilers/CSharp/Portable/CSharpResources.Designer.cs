@@ -3931,6 +3931,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to &apos;else&apos; cannot start a statement..
+        /// </summary>
+        internal static string ERR_ElseCannotStartStatement {
+            get {
+                return ResourceManager.GetString("ERR_ElseCannotStartStatement", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Empty character literal.
         /// </summary>
         internal static string ERR_EmptyCharConst {
@@ -4422,6 +4431,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_ExpressionOrDeclarationExpected {
             get {
                 return ResourceManager.GetString("ERR_ExpressionOrDeclarationExpected", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Expression tree cannot contain value of ref struct or restricted type &apos;{0}&apos;..
+        /// </summary>
+        internal static string ERR_ExpressionTreeCantContainRefStruct {
+            get {
+                return ResourceManager.GetString("ERR_ExpressionTreeCantContainRefStruct", resourceCulture);
             }
         }
         

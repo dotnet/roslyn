@@ -1635,6 +1635,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_NullableDirectiveQualifierExpected = 8637,
         WRN_CantInferNullabilityOfMethodTypeArgs = 8638,
         WRN_NoBestNullabilityArrayElements = 8639,
+        ERR_ExpressionTreeCantContainRefStruct = 8640,
+        ERR_ElseCannotStartStatement = 8641
 
         #endregion diagnostics introduced for C# 8.0
 

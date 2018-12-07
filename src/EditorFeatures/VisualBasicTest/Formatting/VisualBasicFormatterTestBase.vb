@@ -9,10 +9,24 @@ Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.Text.Shared.Extensions
 Imports Microsoft.VisualStudio.Text
 Imports Roslyn.Test.EditorUtilities
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.Formatting
+Imports Microsoft.CodeAnalysis.Editor.Implementation.Formatting.Indentation
+Imports Microsoft.VisualStudio.Text.Operations
+Imports Microsoft.CodeAnalysis.Editor.VisualBasic.Formatting.Indentation
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Formatting
     <[UseExportProvider]>
-    Public Class FormattingTestBase
+    Public Class VisualBasicFormatterTestBase
+        Inherits CoreFormatterTestsBase
+
+        Friend Overrides Function GetLanguageName() As String
+            Return LanguageNames.VisualBasic
+        End Function
+
+        Friend Overrides Function CreateSmartTokenFormatterCommandHandler(registry As ITextUndoHistoryRegistry, operations As IEditorOperationsFactoryService) As AbstractSmartTokenFormatterCommandHandler
+            Return New SmartTokenFormatterCommandHandler(registry, operations)
+        End Function
+
         Protected Async Function AssertFormatSpanAsync(content As String, expected As String, Optional baseIndentation As Integer? = Nothing, Optional span As TextSpan = Nothing) As Tasks.Task
             Using workspace = TestWorkspace.CreateVisualBasic(content)
                 Dim hostdoc = workspace.Documents.First()
