@@ -182,8 +182,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                     // Note: we only want to move the caret if the caret would have been moved 
                     // by the edit.  i.e. if the caret was actually in the mapped span that 
                     // we're replacing.
-                    if (view.GetCaretPoint(subjectBuffer) is SnapshotPoint caretPositionInBuffer &&
-                        mappedSpan.IntersectsWith(caretPositionInBuffer))
+                    var caretPositionInBuffer = view.GetCaretPoint(subjectBuffer);
+                    if (caretPositionInBuffer.HasValue && mappedSpan.IntersectsWith(caretPositionInBuffer.Value))
                     {
                         view.TryMoveCaretToAndEnsureVisible(new SnapshotPoint(subjectBuffer.CurrentSnapshot, mappedSpan.Start.Position + adjustedNewText.Length));
                     }
