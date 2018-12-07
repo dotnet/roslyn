@@ -1,2 +1,2 @@
 @echo off
-powershell -noprofile -executionPolicy RemoteSigned -file "%~dp0\build\scripts\build.ps1" -testDesktop %* 
+powershell -ExecutionPolicy ByPass -NoProfile -command "& """%~dp0build\scripts\build.ps1""" -test %*"

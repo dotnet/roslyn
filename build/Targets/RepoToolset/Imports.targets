@@ -1,14 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
+<!-- All Rights Reserved. Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this file to you under the MIT license. See the LICENSE file in the project root for more information. -->
 <Project>
 
   <PropertyGroup>
     <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
   </PropertyGroup>
 
-  <PropertyGroup>
-    <IsShipping Condition="'$(IsShipping)' == ''">true</IsShipping>
-  </PropertyGroup>
 
   <!--
     Set PackageOutputPath based on the IsShipping flag set by projects.
@@ -31,9 +28,9 @@
   <Import Project="Version.targets"/>
   <Import Project="Tests.targets"/>
 
-  <Import Project="Localization.targets" />
+  <Import Project="Localization.targets" Condition="'$(UsingToolXliff)' == 'true'"/>
   <Import Project="VisualStudio.targets" Condition="'$(UsingToolVSSDK)' == 'true' and '$(DesignTimeBuild)' != 'true' and '$(BuildingForLiveUnitTesting)' != 'true' and '$(MSBuildRuntimeType)' != 'Core'"/>
-  <Import Project="OptimizationData.targets"/>
-  <Import Project="SymStore.targets"/>
+  <Import Project="OptimizationData.targets" Condition="'$(UsingToolIbcOptimization)' == 'true' and '$(IbcOptimizationDataDir)' != ''"/>
+  <Import Project="SymStore.targets" Condition="'$(ContinuousIntegrationBuild)' == 'true' and '$(OS)' == 'Windows_NT'"/>
 
 </Project>

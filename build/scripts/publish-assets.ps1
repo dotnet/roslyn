@@ -62,7 +62,7 @@ function Publish-Vsix([string]$uploadUrl) {
     $apiKey = Get-PublishKey $uploadUrl
     $extensions = [xml](Get-Content (Join-Path $RepoRoot "build\config\myget_org-extensions.config"))
     foreach ($extension in $extensions.extensions.extension) {
-        $vsix = Join-Path $vsSetupDir ($extension.id + ".vsix")
+        $vsix = Join-Path $VSSetupDir ($extension.id + ".vsix")
         if (-not (Test-Path $vsix)) {
             throw "VSIX $vsix does not exist"
         }
@@ -78,7 +78,7 @@ function Publish-Vsix([string]$uploadUrl) {
 }
 
 function Publish-Channel([string]$packageDir, [string]$name) {
-    $publish = Join-Path $configDir "Exes\RoslynPublish\RoslynPublish.exe"
+    $publish = Join-Path $BinariesConfigDir "Exes\RoslynPublish\RoslynPublish.exe"
     $args = "-nugetDir $packageDir -channel $name -gu $gitHubUserName -gt $gitHubToken -ge $githubEmail"
     Write-Host "Publishing $packageDir to channel $name"
     if (-not $test) { 
@@ -145,9 +145,7 @@ function Normalize-BranchName([string]$branchName) {
 try {
     . (Join-Path $PSScriptRoot "build-utils.ps1")
     $dotnet = Ensure-DotnetSdk
-    $configDir = Join-Path $binariesDir $config
-    $nugetDir = Join-Path $configDir "NuGet"
-    $vsSetupDir = Join-Path $binariesDir "VSSetup\$config"
+    $nugetDir = Join-Path $BinariesConfigDir "NuGet"
 
     if ($config -eq "") {
         Write-Host "Must provide the build configuration with -config"

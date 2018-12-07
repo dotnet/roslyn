@@ -11,7 +11,7 @@ jobs:
   timeoutInMinutes: 90
 
   steps:
-    - script: build/scripts/cibuild.cmd -configuration $(_configuration) -testVsi 
+    - script: build/scripts/cibuild.cmd -configuration $(_configuration) -prepareMachine -testVsi 
       displayName: Build and Test
 
     - task: PublishTestResults@1

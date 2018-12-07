@@ -7380,7 +7380,7 @@ class Module1
             Assert.Equal(n, nodes.Length);
         }
 
-        [NoIOperationValidationFact]
+        [ConditionalFact(typeof(NoIOperationValidation))]
         public void BinaryIntrinsicSymbols2()
         {
             BinaryOperatorKind[] operators =

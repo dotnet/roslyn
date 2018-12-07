@@ -104,14 +104,8 @@
   </Target>
 
   <PropertyGroup>
-    <PrepareForBuildDependsOn>RestoreToolsetCheck;$(PrepareForBuildDependsOn)</PrepareForBuildDependsOn>
     <TargetFrameworkMonikerAssemblyAttributesPath>$(IntermediateOutputPath)$(TargetFrameworkMoniker).AssemblyAttributes$(DefaultLanguageSourceExtension)</TargetFrameworkMonikerAssemblyAttributesPath>
   </PropertyGroup>
-
-  <Target Name="RestoreToolsetCheck" Condition="'$(BuildingProject)' == 'true' AND '$(DotNetBuildFromSource)' != 'true'">
-      <Error Text="Toolset packages have not been restored, run Restore.cmd before building. Expected '$(RoslynToolsetPropsFilePath)' to exist."
-             Condition="!Exists('$(RoslynToolsetPropsFilePath)')" />
-  </Target>
 
   <Target Name="CheckBootstrapState"
           Condition="'$(BootstrapBuildPath)' != ''"
@@ -189,36 +183,6 @@
     <None Include="@(Page)" />
     <None Include="@(Resource)" />
   </ItemGroup>
-
-  <!-- 
-    Prepare inputs for Symbol Store publishing.
-     
-    The imported targets populate ArtifactsSymStoreDirectory with links to binaries and Windows PDBs produced either 
-    directly by the build or converted from Portable PDBs produced by the build.
-    In official build the content of ArtifactsSymStoreDirectory is uploaded to a symbol server.
-  -->
-  <PropertyGroup>
-    <PublishOutputToSymStore Condition="'$(IsShipping)' != 'true'">false</PublishOutputToSymStore>
-  </PropertyGroup>
-
-  <!--
-    Workaround for not having VS 15.7 on build machines.
-    Remove when machines are upgraded.
-  -->
-  <Target Name="InitializeSourceControlInformation" />
-  <PropertyGroup>
-    <SourceControlInformationFeatureSupported>true</SourceControlInformationFeatureSupported>
-  </PropertyGroup>
-
-  <!--
-    Triggered from Jenkins localization validation leg.
-    Delegates to XliffTasks to validate that all localizable resources have been translated.
-    We can't use EnsureAllResoucesTranslated directly because the XliffTasks package is only pulled in by projects that
-    produce shipping binaries.
-  -->
-  <Target Name="CheckLocStatus"
-          DependsOnTargets="EnsureAllResourcesTranslated"
-          Condition="'$(IsShipping)' == 'true'" />
 
   <!-- 
     Add ThirdPartyNotices.rtf to all shipping NuGet packages.

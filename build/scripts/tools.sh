@@ -6,9 +6,55 @@
 # Stop script if unbound variable found (use ${var:-} if intentional)
 set -u
 
-useInstalledDotNetCli=${useInstalledDotNetCli:-true}
+# Initialize variables if they aren't already defined.
+
+# CI mode - set to true on CI server for PR validation build or official build.
+ci=${ci:-false}
+
+# Build configuration. Common values include 'Debug' and 'Release', but the repository may use other names.
+configuration=${configuration:-'Debug'}
+
+# Set to true to output binary log from msbuild. Note that emitting binary log slows down the build.
+# Binary log must be enabled on CI.
+binary_log=${binary_log:-$ci}
+
+# Turns on machine preparation/clean up code that changes the machine state (e.g. kills build processes).
+prepare_machine=${prepare_machine:-false}
+
+# True to restore toolsets and dependencies.
+restore=${restore:-true}
+
+# Adjusts msbuild verbosity level.
+verbosity=${verbosity:-'minimal'}
+
+# Set to true to reuse msbuild nodes. Recommended to not reuse on CI.
+if [[ "$ci" == true ]]; then
+  node_reuse=${node_reuse:-false}
+else
+  node_reuse=${node_reuse:-true}
+fi
+
+# Configures warning treatment in msbuild.
+warn_as_error=${warn_as_error:-true}
+
+# True to attempt using .NET Core already that meets requirements specified in global.json 
+# installed on the machine instead of downloading one.
+use_installed_dotnet_cli=${use_installed_dotnet_cli:-true}
+
+# True to use global NuGet cache instead of restoring packages to repository-local directory.
+if [[ "$ci" == true ]]; then
+  use_global_nuget_cache=${use_global_nuget_cache:-false}
+else
+  use_global_nuget_cache=${use_global_nuget_cache:-true}
+fi
 
 repo_root="$scriptroot/../.."
+
+artifacts_dir="$repo_root/Binaries"  # TODO: update layout
+
+log_dir="$artifacts_dir/$configuration/Logs"
+temp_dir="$artifacts_dir/tmp/$configuration"
+
 global_json_file="$repo_root/global.json"
 
 function ResolvePath {
@@ -45,6 +91,10 @@ function ReadGlobalVersion {
 }
 
 function InitializeDotNetCli {
+  if [[ -n "${_InitializeDotNetCli:-}" ]]; then
+    return
+  fi
+
   local install=$1
 
   # Don't resolve runtime, shared framework, or SDK from other locations to ensure build determinism
@@ -53,13 +103,22 @@ function InitializeDotNetCli {
   # Disable first run since we want to control all package sources
   export DOTNET_SKIP_FIRST_TIME_EXPERIENCE=1
 
+  # Disable telemetry on CI
+  if [[ $ci == true ]]; then
+    export DOTNET_CLI_TELEMETRY_OPTOUT=1
+  fi
+
+  # LTTNG is the logging infrastructure used by Core CLR. Need this variable set
+  # so it doesn't output warnings to the console.
+  export LTTNG_HOME="$HOME"
+
   # Source Build uses DotNetCoreSdkDir variable
   if [[ -n "${DotNetCoreSdkDir:-}" ]]; then
     export DOTNET_INSTALL_DIR="$DotNetCoreSdkDir"
   fi
 
   # Find the first path on $PATH that contains the dotnet.exe
-  if [[ "$useInstalledDotNetCli" == true && -z "${DOTNET_INSTALL_DIR:-}" ]]; then
+  if [[ "$use_installed_dotnet_cli" == true && -z "${DOTNET_INSTALL_DIR:-}" ]]; then
     local dotnet_path=`command -v dotnet`
     if [[ -n "$dotnet_path" ]]; then
       ResolvePath "$dotnet_path"
@@ -131,6 +190,98 @@ function GetDotNetInstallScript {
   _GetDotNetInstallScript="$install_script"
 }
 
+function InitializeBuildTool {
+  if [[ -n "${_InitializeBuildTool:-}" ]]; then
+    return
+  fi
+  
+  InitializeDotNetCli $restore
+
+  # return value
+  _InitializeBuildTool="$_InitializeDotNetCli/dotnet"  
+}
+
+function GetNuGetPackageCachePath {
+  if [[ -z ${NUGET_PACKAGES:-} ]]; then
+    if [[ "$use_global_nuget_cache" == true ]]; then
+      export NUGET_PACKAGES="$HOME/.nuget/packages"
+    else
+      export NUGET_PACKAGES="$repo_root/.packages"
+    fi
+  fi
+
+  # return value
+  _GetNuGetPackageCachePath=$NUGET_PACKAGES
+}
+
+function InitializeToolset {
+  if [[ -n "${_InitializeToolset:-}" ]]; then
+    return
+  fi
+
+  GetNuGetPackageCachePath
+
+  # TODO: restore Arcade SDK
+  local toolset_build_proj="$repo_root/build/Targets/RepoToolset/Build.proj"
+
+
+  # return value
+  _InitializeToolset="$toolset_build_proj"
+}
+
 function ExitWithExitCode {
+  if [[ "$ci" == true && "$prepare_machine" == true ]]; then
+    StopProcesses
+  fi
   exit $1
 }
+
+function StopProcesses {
+  echo "Killing running build processes..."
+  pkill -9 "dotnet"
+  pkill -9 "vbcscompiler"
+  return 0
+}
+
+function MSBuild {
+  if [[ "$ci" == true ]]; then
+    if [[ "$binary_log" != true ]]; then
+      echo "Binary log must be enabled in CI build." >&2
+      ExitWithExitCode 1
+    fi
+
+    if [[ "$node_reuse" == true ]]; then
+      echo "Node reuse must be disabled in CI build." >&2
+      ExitWithExitCode 1
+    fi
+  fi
+
+  InitializeBuildTool
+
+  local warnaserror_switch=""
+  if [[ $warn_as_error == true ]]; then
+    warnaserror_switch="/warnaserror"
+  fi
+
+  "$_InitializeBuildTool" msbuild /m /nologo /clp:Summary /v:$verbosity /nr:$node_reuse $warnaserror_switch /p:TreatWarningsAsErrors=$warn_as_error "$@"
+  lastexitcode=$?
+
+  if [[ $lastexitcode != 0 ]]; then
+    echo "Build failed (exit code '$lastexitcode')." >&2
+    ExitWithExitCode $lastexitcode
+  fi
+}
+
+# HOME may not be defined in some scenarios, but it is required by NuGet
+if [[ -z $HOME ]]; then
+  export HOME="$repo_root/artifacts/.home/"
+  mkdir -p "$HOME"
+fi
+
+mkdir -p "$temp_dir"
+mkdir -p "$log_dir"
+
+if [[ $ci == true ]]; then
+  export TEMP="$temp_dir"
+  export TMP="$temp_dir"
+fi
