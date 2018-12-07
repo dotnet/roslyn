@@ -72,22 +72,10 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
         public void SetAbstractValue(
             AnalysisEntity key,
             PointsToAbstractValue value,
-            AbstractValueDomain<PointsToAbstractValue> valueDomain,
             Func<AnalysisEntity, bool> isLValueFlowCaptureEntity)
         {
             Debug.Assert(value.Kind != PointsToAbstractValueKind.Undefined);
             Debug.Assert(!isLValueFlowCaptureEntity(key) || value.Kind == PointsToAbstractValueKind.KnownLValueCaptures);
-
-            // PointsToAbstractValueKind.Unknown value might point to some known locations.
-            // If we are setting to PointsToAbstractValue.Unknown, 
-            // ensure we don't lose those these locations, as that would a non-monotonic operation.
-            if (value == PointsToAbstractValue.Unknown &&
-                TryGetValue(key, out var currentValue) &&
-                currentValue.Kind == PointsToAbstractValueKind.Unknown &&
-                currentValue != PointsToAbstractValue.Unknown)
-            {
-                value = valueDomain.Merge(value, currentValue);
-            }
 
             base.SetAbstractValue(key, value);
         }

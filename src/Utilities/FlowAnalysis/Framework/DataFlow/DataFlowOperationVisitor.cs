@@ -257,7 +257,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 {
                     IParameterSymbol parameter = parameters[i];
                     PointsToAbstractValue instanceLocation = interproceduralAnalysisData.Arguments[i].InstanceLocation;
-                    if (parameter.RefKind != RefKind.None && instanceLocation != PointsToAbstractValue.Unknown)
+                    if (parameter.RefKind != RefKind.None && instanceLocation.Kind != PointsToAbstractValueKind.Unknown)
                     {
                         yield return new KeyValuePair<ISymbol, PointsToAbstractValue>(parameter, instanceLocation);
                     }
@@ -519,8 +519,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 case ControlFlowBranchSemantics.Throw:
                 case ControlFlowBranchSemantics.Rethrow:
                     // Update the tracked merged analysis data at throw branches.
-                    var exceptionType = branch.BranchValueOpt?.GetThrowExceptionType(CurrentBasicBlock) as INamedTypeSymbol;
-                    if (exceptionType != null &&
+                    if (branch.BranchValueOpt?.GetThrowExceptionType(CurrentBasicBlock) is INamedTypeSymbol exceptionType &&
                         exceptionType.DerivesFrom(WellKnownTypeProvider.Exception, baseTypesOnly: true))
                     {
                         AnalysisDataForUnhandledThrowOperations = AnalysisDataForUnhandledThrowOperations ?? new Dictionary<ThrowBranchWithExceptionType, TAnalysisData>();

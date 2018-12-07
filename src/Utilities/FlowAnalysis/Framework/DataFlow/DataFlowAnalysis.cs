@@ -32,7 +32,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
         protected AbstractAnalysisDomain<TAnalysisData> AnalysisDomain { get; }
         protected DataFlowOperationVisitor<TAnalysisData, TAnalysisContext, TAnalysisResult, TAbstractAnalysisValue> OperationVisitor { get; }
-        private Dictionary<ControlFlowRegion, TAnalysisData> MergedInputAnalysisDataForFinallyRegions { get; set; }
 
         protected TAnalysisResult GetOrComputeResultCore(TAnalysisContext analysisContext, bool cacheResult)
         {
