@@ -50,8 +50,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // reuse types to avoid reporting duplicate errors if missing:
             var voidType = TypeSymbolWithAnnotations.Create(binder.GetSpecialType(SpecialType.System_Void, diagnostics, syntax));
-            // https://github.com/dotnet/roslyn/issues/30079: Should the 'object' parameter be considered nullable?
-            var objectType = TypeSymbolWithAnnotations.Create(nonNullTypesContext: delegateType, binder.GetSpecialType(SpecialType.System_Object, diagnostics, syntax));
+            // https://github.com/dotnet/roslyn/issues/30079: Should the 'object', IAsyncResult and AsyncCallback parameters be considered nullable or not nullable?
+            var objectType = TypeSymbolWithAnnotations.Create(binder.GetSpecialType(SpecialType.System_Object, diagnostics, syntax));
             var intPtrType = TypeSymbolWithAnnotations.Create(binder.GetSpecialType(SpecialType.System_IntPtr, diagnostics, syntax));
 
             if (returnType.IsRestrictedType(ignoreSpanLikeTypes: true))
@@ -74,8 +74,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // WinRT delegates don't have Begin/EndInvoke methods
                 !delegateType.IsCompilationOutputWinMdObj())
             {
-                var iAsyncResultType = TypeSymbolWithAnnotations.Create(nonNullTypesContext: delegateType, binder.GetSpecialType(SpecialType.System_IAsyncResult, diagnostics, syntax));
-                var asyncCallbackType = TypeSymbolWithAnnotations.Create(nonNullTypesContext: delegateType, binder.GetSpecialType(SpecialType.System_AsyncCallback, diagnostics, syntax));
+                var iAsyncResultType = TypeSymbolWithAnnotations.Create(binder.GetSpecialType(SpecialType.System_IAsyncResult, diagnostics, syntax));
+                var asyncCallbackType = TypeSymbolWithAnnotations.Create(binder.GetSpecialType(SpecialType.System_AsyncCallback, diagnostics, syntax));
 
                 // (3) BeginInvoke
                 symbols.Add(new BeginInvokeMethod(invoke, iAsyncResultType, objectType, asyncCallbackType, syntax));

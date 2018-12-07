@@ -169,15 +169,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal abstract bool HasSpecialName { get; }
 
-        public override bool? NonNullTypes
-        {
-            get
-            {
-                Debug.Assert(IsDefinition);
-                return ContainingType?.NonNullTypes;
-            }
-        }
-
         /// <summary>
         /// The 'get' accessor of the property, or null if the property is write-only.
         /// </summary>

@@ -181,14 +181,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _cachedDiagnostics; }
         }
 
-        public override bool? NonNullTypes
-        {
-            get
-            {
-                return GetNonNullTypesFromSyntax() ?? (AssociatedSymbol ?? ContainingModule)?.NonNullTypes;
-            }
-        }
-
         internal ImmutableArray<Diagnostic> SetDiagnostics(ImmutableArray<Diagnostic> newSet, out bool diagsWritten)
         {
             //return the diagnostics that were actually saved in the event that there were two threads racing. 

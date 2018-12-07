@@ -711,14 +711,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        public override bool? NonNullTypes
-        {
-            get
-            {
-                throw ExceptionUtilities.Unreachable;
-            }
-        }
-
         public override ImmutableArray<Location> Locations => _containingType.ContainingPEModule.MetadataLocation.Cast<MetadataLocation, Location>();
 
         public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences => ImmutableArray<SyntaxReference>.Empty;

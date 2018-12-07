@@ -338,14 +338,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override bool? NonNullTypes
-        {
-            get
-            {
-                return GetNonNullTypesFromSyntax() ?? ContainingModule?.NonNullTypes;
-            }
-        }
-
         public sealed override bool IsAbstract
         {
             get { return (_modifiers & DeclarationModifiers.Abstract) != 0; }
