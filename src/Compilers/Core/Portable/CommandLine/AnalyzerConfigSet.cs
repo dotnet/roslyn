@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.AnalyzerConfig;
@@ -125,8 +126,8 @@ namespace Microsoft.CodeAnalysis
             }
 
             return new AnalyzerConfigOptionsResult(
-                treeOptionsBuilder.Count > 0 ? treeOptionsBuilder.ToImmutable() : null,
-                analyzerOptionsBuilder.Count > 0 ? analyzerOptionsBuilder.ToImmutable() : null,
+                treeOptionsBuilder.Count > 0 ? treeOptionsBuilder.ToImmutable() : SyntaxTree.EmptyDiagnosticOptions,
+                analyzerOptionsBuilder.Count > 0 ? analyzerOptionsBuilder.ToImmutable() : AnalyzerConfigOptions.EmptyDictionary,
                 diagnosticBuilder.ToImmutableAndFree());
 
             void addOptions(

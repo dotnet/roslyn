@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
+using System.Diagnostics;
 using AnalyzerOptions = System.Collections.Immutable.ImmutableDictionary<string, string>;
 using TreeOptions = System.Collections.Immutable.ImmutableDictionary<string, Microsoft.CodeAnalysis.ReportDiagnostic>;
 
@@ -31,6 +32,9 @@ namespace Microsoft.CodeAnalysis
             AnalyzerOptions analyzerOptions,
             ImmutableArray<Diagnostic> diagnostics)
         {
+            Debug.Assert(treeOptions != null);
+            Debug.Assert(analyzerOptions != null);
+
             TreeOptions = treeOptions;
             AnalyzerOptions = analyzerOptions;
             Diagnostics = diagnostics;

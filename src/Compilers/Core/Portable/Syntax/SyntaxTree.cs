@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Cached value for empty <see cref="DiagnosticOptions"/>.
         /// </summary>
-        protected static readonly ImmutableDictionary<string, ReportDiagnostic> EmptyDiagnosticOptions =
+        internal protected static readonly ImmutableDictionary<string, ReportDiagnostic> EmptyDiagnosticOptions =
             ImmutableDictionary.Create<string, ReportDiagnostic>(CaseInsensitiveComparison.Comparer);
 
         private ImmutableArray<byte> _lazyChecksum;

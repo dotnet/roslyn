@@ -746,7 +746,9 @@ namespace Microsoft.CodeAnalysis
             foreach (var syntaxTree in syntaxTrees)
             {
                 var options = sourceFileAnalyzerConfigOptions[i].AnalyzerOptions;
-                if (!(options is null))
+
+                // Optimization: don't create a bunch of entries pointing to a no-op
+                if (options.Count > 0)
                 {
                     builder.Add(syntaxTree, new CompilerAnalyzerConfigOptions(options));
                 }
@@ -756,7 +758,9 @@ namespace Microsoft.CodeAnalysis
             for (i = 0; i < additionalFiles.Length; i++)
             {
                 var options = additionalFileOptions[i].AnalyzerOptions;
-                if (!(options is null))
+
+                // Optimization: don't create a bunch of entries pointing to a no-op
+                if (options.Count > 0)
                 {
                     builder.Add(additionalFiles[i], new CompilerAnalyzerConfigOptions(options));
                 }

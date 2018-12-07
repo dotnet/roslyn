@@ -677,7 +677,7 @@ dotnet_diagnostic.cs000.severity = error", "/.editorconfig"));
             Assert.Equal(new[] {
                 CreateImmutableDictionary(("cs000", ReportDiagnostic.Suppress)),
                 CreateImmutableDictionary(("cs000", ReportDiagnostic.Error)),
-                null
+                SyntaxTree.EmptyDiagnosticOptions
             }, options.Select(o => o.TreeOptions).ToArray());
         }
 
@@ -700,7 +700,7 @@ dotnet_diagnostic.cs000.severity = error", "/.editorconfig"));
             Assert.Equal(new[] {
                 CreateImmutableDictionary(("cs000", ReportDiagnostic.Error)),
                 CreateImmutableDictionary(("cs000", ReportDiagnostic.Error)),
-                null
+                SyntaxTree.EmptyDiagnosticOptions
             }, options.Select(o => o.TreeOptions).ToArray());
         }
 
@@ -727,7 +727,7 @@ dotnet_diagnostic.cs000.severity = info"
             Assert.Equal(new[] {
                 CreateImmutableDictionary(("cs000", ReportDiagnostic.Suppress)),
                 CreateImmutableDictionary(("cs000", ReportDiagnostic.Error)),
-                null
+                SyntaxTree.EmptyDiagnosticOptions
             }, options.Select(o => o.TreeOptions).ToArray());
         }
 
@@ -904,7 +904,7 @@ dotnet_diagnostic.cs000.some_key = some_val", "/.editorconfig"));
             VerifyAnalyzerOptions(
                 new[] {
                     new[] { ("dotnet_diagnostic.cs000.some_key", "some_val") },
-                    null
+                    new (string, string) [] { }
                 },
                 options);
         }
@@ -1033,7 +1033,7 @@ dotnet_diagnostic.some_key = some_val", "/.editorconfig"));
 
             Assert.Equal(new ImmutableDictionary<string, ReportDiagnostic>[]
             {
-                null
+                SyntaxTree.EmptyDiagnosticOptions
             }, options.Select(o => o.TreeOptions).ToArray());
 
             VerifyAnalyzerOptions(
