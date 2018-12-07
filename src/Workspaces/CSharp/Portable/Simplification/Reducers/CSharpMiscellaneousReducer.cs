@@ -124,6 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
             switch (optionSet.GetOption(CSharpCodeStyleOptions.PreferBraces).Value)
             {
                 case PreferBracesPreference.Always:
+                default:
                     return node;
 
                 case PreferBracesPreference.WhenMultiline:
@@ -159,7 +160,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                     }
 
                     break;
-
 
                 case PreferBracesPreference.None:
                     break;
