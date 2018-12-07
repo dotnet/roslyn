@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Execution
     {
         // host analyzer is not shadow copied, no need to load assembly to get real path
         // this also prevent us from loading assemblies for all vsix analyzers preemptively
-        const bool usePathFromAssembly = false;
+        private const bool usePathFromAssembly = false;
 
         private readonly AnalyzerReference _reference;
         private readonly ISerializerService _serializer;
