@@ -242,6 +242,8 @@ namespace Microsoft.CodeAnalysis.Execution
                 // 2 can be different if analyzer loader used for the reference do something like shadow copying
                 // otherwise, use reference.FullPath. we use usePathFromAssembly == false for vsix installed analyzer dlls
                 // to make sure we don't load them up front and they don't get shadow copied.
+                // TryGetAnalyzerAssemblyPath will load the given assembly to find out actual location where CLR
+                // picked up the dll
                 var assemblyPath = usePathFromAssembly ? TryGetAnalyzerAssemblyPath(file) : file.FullPath;
 
                 using (var stream = new FileStream(assemblyPath, FileMode.Open, FileAccess.Read, FileShare.Read | FileShare.Delete))
