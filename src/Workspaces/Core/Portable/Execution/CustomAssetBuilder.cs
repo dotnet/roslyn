@@ -41,9 +41,7 @@ namespace Microsoft.CodeAnalysis.Execution
 
         public CustomAsset Build(AnalyzerReference reference, CancellationToken cancellationToken)
         {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            return new WorkspaceAnalyzerReferenceAsset(reference, _serializer, _hostSerializationService);
+            return WorkspaceAnalyzerReferenceAsset.Create(reference, _serializer, _hostSerializationService, cancellationToken);
         }
     }
 }

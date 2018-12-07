@@ -69,15 +69,21 @@ namespace Microsoft.CodeAnalysis.Execution
         private readonly AnalyzerReference _reference;
         private readonly ISerializerService _serializer;
 
-        public WorkspaceAnalyzerReferenceAsset(
+        public static WorkspaceAnalyzerReferenceAsset Create(
             AnalyzerReference reference,
             ISerializerService serializer,
-            IReferenceSerializationService hostSerializationService) :
-            base(
-                Checksum.Create(
-                    WellKnownSynchronizationKind.AnalyzerReference,
-                    hostSerializationService.CreateChecksum(reference, usePathFromAssembly, CancellationToken.None)),
-                WellKnownSynchronizationKind.AnalyzerReference)
+            IReferenceSerializationService hostSerializationService,
+            CancellationToken cancellationToken)
+        {
+            var checksum = Checksum.Create(
+                WellKnownSynchronizationKind.AnalyzerReference,
+                hostSerializationService.CreateChecksum(reference, usePathFromAssembly, cancellationToken));
+
+            return new WorkspaceAnalyzerReferenceAsset(reference, serializer, checksum);
+        }
+
+        private WorkspaceAnalyzerReferenceAsset(AnalyzerReference reference, ISerializerService serializer, Checksum checksum) :
+            base(checksum, WellKnownSynchronizationKind.AnalyzerReference)
         {
             _reference = reference;
             _serializer = serializer;
