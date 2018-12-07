@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.Editing
             }
 
             _allowEditsOnLazilyCreatedTrackedNewNodes = true;
-            _changes.Add(new ReplaceChange(node, computeReplacement, ApplyTrackingToNewNode));
+            _changes.Add(new ReplaceChange(node, computeReplacement, this));
         }
 
         internal void ReplaceNode<TArgument>(SyntaxNode node, Func<SyntaxNode, SyntaxGenerator, TArgument, SyntaxNode> computeReplacement, TArgument argument)
@@ -145,7 +145,7 @@ namespace Microsoft.CodeAnalysis.Editing
             }
 
             _allowEditsOnLazilyCreatedTrackedNewNodes = true;
-            _changes.Add(new ReplaceChange<TArgument>(node, computeReplacement, argument, ApplyTrackingToNewNode));
+            _changes.Add(new ReplaceChange<TArgument>(node, computeReplacement, argument, this));
         }
 
         /// <summary>
@@ -162,7 +162,7 @@ namespace Microsoft.CodeAnalysis.Editing
             }
 
             newNode = ApplyTrackingToNewNode(newNode);
-            _changes.Add(new ReplaceChange(node, (n, g) => newNode, ApplyTrackingToNewNode));
+            _changes.Add(new ReplaceChange(node, (n, g) => newNode, this));
         }
 
         /// <summary>
@@ -290,23 +290,23 @@ namespace Microsoft.CodeAnalysis.Editing
         private class ReplaceChange : Change
         {
             private readonly Func<SyntaxNode, SyntaxGenerator, SyntaxNode> _modifier;
-            private readonly Func<SyntaxNode, SyntaxNode> _applyTrackingToNewNode;
+            private readonly SyntaxEditor _editor;
 
             public ReplaceChange(
                 SyntaxNode node,
                 Func<SyntaxNode, SyntaxGenerator, SyntaxNode> modifier,
-                Func<SyntaxNode, SyntaxNode> applyTrackingToNewNode)
+                SyntaxEditor editor)
                 : base(node)
             {
                 _modifier = modifier;
-                _applyTrackingToNewNode = applyTrackingToNewNode;
+                _editor = editor;
             }
 
             public override SyntaxNode Apply(SyntaxNode root, SyntaxGenerator generator)
             {
                 var current = root.GetCurrentNode(this.Node);
                 var newNode = _modifier(current, generator);
-                newNode = _applyTrackingToNewNode(newNode);
+                newNode = _editor.ApplyTrackingToNewNode(newNode);
                 return generator.ReplaceNode(root, current, newNode);
             }
         }
@@ -315,25 +315,25 @@ namespace Microsoft.CodeAnalysis.Editing
         {
             private readonly Func<SyntaxNode, SyntaxGenerator, TArgument, SyntaxNode> _modifier;
             private readonly TArgument _argument;
-            private readonly Func<SyntaxNode, SyntaxNode> _applyTrackingToNewNode;
+            private readonly SyntaxEditor _editor;
 
             public ReplaceChange(
                 SyntaxNode node,
                 Func<SyntaxNode, SyntaxGenerator, TArgument, SyntaxNode> modifier,
                 TArgument argument,
-                Func<SyntaxNode, SyntaxNode> applyTrackingToNewNode)
+                SyntaxEditor editor)
                 : base(node)
             {
                 _modifier = modifier;
                 _argument = argument;
-                _applyTrackingToNewNode = applyTrackingToNewNode;
+                _editor = editor;
             }
 
             public override SyntaxNode Apply(SyntaxNode root, SyntaxGenerator generator)
             {
                 var current = root.GetCurrentNode(this.Node);
                 var newNode = _modifier(current, generator, _argument);
-                newNode = _applyTrackingToNewNode(newNode);
+                newNode = _editor.ApplyTrackingToNewNode(newNode);
                 return generator.ReplaceNode(root, current, newNode);
             }
         }

@@ -84,7 +84,7 @@ public class C
         }
 
         [Fact]
-        public async Task TestInterAfter()
+        public async Task TestInsertAfter()
         {
             var code = @"
 public class C
@@ -111,7 +111,7 @@ public class C
         }
 
         [Fact]
-        public async Task TestInterBefore()
+        public async Task TestInsertBefore()
         {
             var code = @"
 public class C
@@ -210,22 +210,126 @@ public class C
         }
 
         [Fact]
+        public async Task TestReplaceWithTracking_02()
+        {
+            var code = @"
+public class C
+{
+    public int X;
+    public string X2;
+    public char X3;
+}";
+
+            var cu = SyntaxFactory.ParseCompilationUnit(code);
+            
+            var editor = GetEditor(cu);
+
+            var cls = cu.Members[0];
+            var fieldX = editor.Generator.GetMembers(cls)[0];
+            var fieldX2 = editor.Generator.GetMembers(cls)[1];
+            var fieldX3 = editor.Generator.GetMembers(cls)[2];
+
+            var newFieldY = editor.Generator.FieldDeclaration("Y", editor.Generator.TypeExpression(SpecialType.System_String), Accessibility.Public);
+            editor.ReplaceNode(fieldX, newFieldY);
+
+            var newRoot = editor.GetChangedRoot();
+            await VerifySyntaxAsync<CompilationUnitSyntax>(
+                newRoot,
+                @"
+public class C
+{
+    public string Y;
+    public string X2;
+    public char X3;
+}");
+            var newFieldYType = newFieldY.DescendantNodes().Single(n => n.ToString() == "string");
+            var newType = editor.Generator.TypeExpression(SpecialType.System_Char);
+            editor.ReplaceNode(newFieldYType, newType);
+
+            newRoot = editor.GetChangedRoot();
+            await VerifySyntaxAsync<CompilationUnitSyntax>(
+                newRoot,
+                @"
+public class C
+{
+    public char Y;
+    public string X2;
+    public char X3;
+}");
+
+            var newFieldY2 = editor.Generator.FieldDeclaration("Y2", editor.Generator.TypeExpression(SpecialType.System_Boolean), Accessibility.Private);
+            editor.ReplaceNode(fieldX2, newFieldY2);
+
+            newRoot = editor.GetChangedRoot();
+            await VerifySyntaxAsync<CompilationUnitSyntax>(
+                newRoot,
+                @"
+public class C
+{
+    public char Y;
+    private bool Y2;
+    public char X3;
+}");
+
+            var newFieldZ = editor.Generator.FieldDeclaration("Z", editor.Generator.TypeExpression(SpecialType.System_Boolean), Accessibility.Public);
+            editor.ReplaceNode(newFieldY, newFieldZ);
+
+            newRoot = editor.GetChangedRoot();
+            await VerifySyntaxAsync<CompilationUnitSyntax>(
+                newRoot,
+                @"
+public class C
+{
+    public bool Z;
+    private bool Y2;
+    public char X3;
+}");
+
+            var originalFieldX3Type = fieldX3.DescendantNodes().Single(n => n.ToString() == "char");
+            newType = editor.Generator.TypeExpression(SpecialType.System_Boolean);
+            editor.ReplaceNode(originalFieldX3Type, newType);
+
+            newRoot = editor.GetChangedRoot();
+            await VerifySyntaxAsync<CompilationUnitSyntax>(
+                newRoot,
+                @"
+public class C
+{
+    public bool Z;
+    private bool Y2;
+    public bool X3;
+}");
+
+            editor.RemoveNode(newFieldY2);
+            editor.RemoveNode(fieldX3);
+
+            newRoot = editor.GetChangedRoot();
+            await VerifySyntaxAsync<CompilationUnitSyntax>(
+                newRoot,
+                @"
+public class C
+{
+    public bool Z;
+}");
+        }
+
+        [Fact]
         public async Task TestInsertAfterWithTracking()
         {
             // InsertAfter overload #1
-            await TestInterAfterWithTrackingCoreAsync((SyntaxNode node, SyntaxNode newNode, SyntaxEditor editor) =>
+            await TestInsertAfterWithTrackingCoreAsync((SyntaxNode node, SyntaxNode newNode, SyntaxEditor editor) =>
             {
                 editor.InsertAfter(node, newNode);
             });
 
             // InsertAfter overload #2
-            await TestInterAfterWithTrackingCoreAsync((SyntaxNode node, SyntaxNode newNode, SyntaxEditor editor) =>
+            await TestInsertAfterWithTrackingCoreAsync((SyntaxNode node, SyntaxNode newNode, SyntaxEditor editor) =>
             {
                 editor.InsertAfter(node, new[] { newNode });
             });
         }
 
-        private async Task TestInterAfterWithTrackingCoreAsync(Action<SyntaxNode, SyntaxNode, SyntaxEditor> insertAfterWithTracking)
+        private async Task TestInsertAfterWithTrackingCoreAsync(Action<SyntaxNode, SyntaxNode, SyntaxEditor> insertAfterWithTracking)
         {
             var code = @"
 public class C
@@ -269,19 +373,19 @@ public class C
         public async Task TestInsertBeforeWithTracking()
         {
             // InsertBefore overload #1
-            await TestInterBeforeWithTrackingCoreAsync((SyntaxNode node, SyntaxNode newNode, SyntaxEditor editor) =>
+            await TestInsertBeforeWithTrackingCoreAsync((SyntaxNode node, SyntaxNode newNode, SyntaxEditor editor) =>
             {
                 editor.InsertBefore(node, newNode);
             });
 
             // InsertBefore overload #2
-            await TestInterBeforeWithTrackingCoreAsync((SyntaxNode node, SyntaxNode newNode, SyntaxEditor editor) =>
+            await TestInsertBeforeWithTrackingCoreAsync((SyntaxNode node, SyntaxNode newNode, SyntaxEditor editor) =>
             {
                 editor.InsertBefore(node, new[] { newNode });
             });
         }
 
-        private async Task TestInterBeforeWithTrackingCoreAsync(Action<SyntaxNode, SyntaxNode, SyntaxEditor> insertBeforeWithTracking)
+        private async Task TestInsertBeforeWithTrackingCoreAsync(Action<SyntaxNode, SyntaxNode, SyntaxEditor> insertBeforeWithTracking)
         {
             var code = @"
 public class C
