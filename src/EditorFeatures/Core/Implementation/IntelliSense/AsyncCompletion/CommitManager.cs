@@ -161,21 +161,23 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
                 edit.Replace(mappedSpan.Span, change.TextChange.NewText);
 
-                var updatedCurrentSnapsot = edit.Apply();
+                // edit.Apply() may trigger changes made by extensions.
+                // updatedCurrentSnapshot will contain changes made by Roslyn but not by other extensions.
+                var updatedCurrentSnapshot = edit.Apply();
                 
                 if (change.NewPosition.HasValue)
-                { 
-                    // Use the most recent snapshot to make a snapshot point.
-                    view.TryMoveCaretToAndEnsureVisible(new SnapshotPoint(updatedCurrentSnapsot, change.NewPosition.Value));
+                {
+                    // Roslyn knows how to positionate the caret in the snapshot we just created.
+                    // If there were more edits made by extensions, TryMoveCaretToAndEnsureVisible maps the snapshot point to the most recent one.
+                    view.TryMoveCaretToAndEnsureVisible(new SnapshotPoint(updatedCurrentSnapshot, change.NewPosition.Value));
                 }
 
                 includesCommitCharacter = change.IncludesCommitCharacter;
 
                 if (roslynItem.Rules.FormatOnCommit)
                 {
-                    // refresh the document
                     // The edit updates the snapshot however other extensions may make changes there.
-                    // Therefore, it is safe to consume subjectBuffer.CurrentSnapshot for further calculations rather than the updated current snapsot defined above.
+                    // Therefore, it is required to use subjectBuffer.CurrentSnapshot for further calculations rather than the updated current snapsot defined above.
                     document = subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
                     var spanToFormat = triggerSnapshotSpan.TranslateTo(subjectBuffer.CurrentSnapshot, SpanTrackingMode.EdgeInclusive);
                     var formattingService = document?.GetLanguageService<IEditorFormattingService>();
