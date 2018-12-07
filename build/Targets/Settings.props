@@ -13,6 +13,11 @@
     <PackageProjectUrl>https://github.com/dotnet/roslyn</PackageProjectUrl>
     <PackageTags>Roslyn CodeAnalysis Compiler CSharp VB VisualBasic Parser Scanner Lexer Emit CodeGeneration Metadata IL Compilation Scripting Syntax Semantics</PackageTags>
     <VSSDKTargetPlatformRegRootSuffix>RoslynDev</VSSDKTargetPlatformRegRootSuffix>
+    
+    <!--
+      NU5125 should be removed. See https://github.com/dotnet/roslyn/issues/31589 for details
+    -->
+    <NoWarn>$(NoWarn);NU5125</NoWarn>
   </PropertyGroup>
 
   <Import Project="RepoToolset\ProjectLayout.props" />
