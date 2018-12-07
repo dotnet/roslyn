@@ -129,6 +129,26 @@ namespace Microsoft.CodeAnalysis.CSharp
             return Pool.Allocate();
         }
 
+        public static AnalyzedArguments GetInstance(
+            ImmutableArray<BoundExpression> arguments,
+            ImmutableArray<RefKind> argumentRefKindsOpt,
+            ImmutableArray<IdentifierNameSyntax> argumentNamesOpt)
+        {
+            var instance = GetInstance();
+            instance.Arguments.AddRange(arguments);
+            if (!argumentRefKindsOpt.IsDefault)
+            {
+                instance.RefKinds.AddRange(argumentRefKindsOpt);
+            }
+
+            if (!argumentNamesOpt.IsDefault)
+            {
+                instance.Names.AddRange(argumentNamesOpt);
+            }
+
+            return instance;
+        }
+
         public void Free()
         {
             this.Clear();
@@ -147,27 +167,5 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         #endregion
-
-        internal void Initialize(
-            ImmutableArray<BoundExpression> arguments,
-            ImmutableArray<RefKind> argumentRefKindsOpt,
-            ImmutableArray<IdentifierNameSyntax> argumentNamesOpt)
-        {
-            Debug.Assert(this.Arguments.IsEmpty());
-            Debug.Assert(this.RefKinds.IsEmpty());
-            Debug.Assert(this.Names.IsEmpty());
-
-            this.Arguments.AddRange(arguments);
-
-            if (!argumentRefKindsOpt.IsDefault)
-            {
-                this.RefKinds.AddRange(argumentRefKindsOpt);
-            }
-
-            if (!argumentNamesOpt.IsDefault)
-            {
-                this.Names.AddRange(argumentNamesOpt);
-            }
-        }
     }
 }

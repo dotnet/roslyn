@@ -144,11 +144,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ? BindInitializerExpression(syntax: node.InitializerOpt, type: type, typeSyntax: node.Syntax, diagnostics)
                 : null;
 
-            var arguments = AnalyzedArguments.GetInstance();
+            var arguments = AnalyzedArguments.GetInstance(node.Arguments, node.ArgumentRefKindsOpt, node.ArgumentNamesOpt);
             try
             {
-                arguments.Initialize(node.Arguments, node.ArgumentRefKindsOpt, node.ArgumentNamesOpt);
-
                 if (ReportBadTargetType(syntax, type, diagnostics))
                 {
                     return MakeBadExpressionForObjectCreation(node.Syntax, destination, boundInitializerOpt, arguments);
