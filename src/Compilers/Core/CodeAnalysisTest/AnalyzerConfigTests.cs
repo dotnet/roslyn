@@ -16,6 +16,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
 {
     public class EditorConfigTests
     {
+        #region Parsing Tests
+
         private static AnalyzerConfig ParseConfigFile(string text) => Parse(text, "/.editorconfig");
 
         [Fact]
@@ -269,6 +271,10 @@ RoOt = TruE");
                 AnalyzerConfig.ReservedKeys.Select(k => KeyValuePair.Create(k, "my_val")).ToList(),
                 config.GlobalSection.Properties);
         }
+
+        #endregion
+
+        #region Section Matching Tests
 
         [Fact]
         public void SimpleNameMatch()
@@ -658,6 +664,10 @@ RoOt = TruE");
             Assert.Null(matcherOpt);
         }
 
+        #endregion
+
+        #region Processing of dotnet_diagnostic rules
+
         [Fact]
         public void EditorConfigToDiagnostics()
         {
@@ -860,6 +870,10 @@ dotnet_diagnostic.cs000.severity = suppress", "Z:\\.editorconfig"));
                     ("cs000", ReportDiagnostic.Suppress))
             }, options.Select(o => o.TreeOptions).ToArray());
         }
+
+        #endregion
+
+        #region Processing of Analyzer Options
 
         private AnalyzerConfigOptionsResult[] GetAnalyzerConfigOptions(string[] filePaths, ArrayBuilder<AnalyzerConfig> configs)
         {
@@ -1070,5 +1084,7 @@ dotnet_diagnostic.cs000.severity = warn", "/.editorconfig"));
                 SyntaxTree.EmptyDiagnosticOptions
             }, options.Select(o => o.TreeOptions).ToArray());
         }
+
+        #endregion
     }
 }
