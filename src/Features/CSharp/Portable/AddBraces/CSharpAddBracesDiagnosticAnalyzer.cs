@@ -121,6 +121,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.AddBraces
         /// </summary>
         private static bool IsConsideredMultiLine(SyntaxNode statement, SyntaxNode embeddedStatement)
         {
+            if (embeddedStatement.IsMissing)
+            {
+                // The embedded statement was added by the compiler during recovery from a syntax error
+                return false;
+            }
+
             // Early return if the entire statement fits on one line
             if (FormattingRangeHelper.AreTwoTokensOnSameLine(statement.GetFirstToken(), statement.GetLastToken()))
             {

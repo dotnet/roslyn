@@ -419,6 +419,37 @@ class Program
         [InlineData((int)PreferBracesPreference.None, false)]
         [InlineData((int)PreferBracesPreference.WhenMultiline, false)]
         [InlineData((int)PreferBracesPreference.Always, true)]
+        public async Task FireForStandaloneElseWithoutBraces(int bracesPreference, bool expectDiagnostic)
+        {
+            await TestAsync(
+            @"
+class Program
+{
+    static void Main()
+    {
+        [|else|]
+            return;
+    }
+}",
+
+   @"
+class Program
+{
+    static void Main()
+    {
+{}
+        else
+            return;
+    }
+}",
+                (PreferBracesPreference)bracesPreference,
+                expectDiagnostic);
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
+        [InlineData((int)PreferBracesPreference.None, false)]
+        [InlineData((int)PreferBracesPreference.WhenMultiline, false)]
+        [InlineData((int)PreferBracesPreference.Always, true)]
         public async Task FireForIfNestedInElseWithoutBraces(int bracesPreference, bool expectDiagnostic)
         {
             await TestAsync(
