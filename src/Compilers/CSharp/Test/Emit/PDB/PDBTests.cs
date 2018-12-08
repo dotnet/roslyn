@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Reflection.Metadata;
@@ -24,6 +25,42 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
         private static readonly MetadataReference[] s_valueTupleRefs = new[] { SystemRuntimeFacadeRef, ValueTupleRef };
 
         #region General
+
+        [Fact]
+        public void EmbeddedTextWithEmptyFilePath()
+        {
+            var c = CreateCompilationWithMscorlib40AndSystemCore(source: "", options: TestOptions.DebugDll);
+            var embeddedTexts = ImmutableArray.Create(EmbeddedText.FromSource("", SourceText.From("hello", Encoding.UTF8)));
+            var peImage = c.EmitToArray(embeddedTexts: embeddedTexts, options: EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.Embedded));
+
+            using (var peReader = new PEReader(peImage))
+            {
+                var entry = peReader.ReadDebugDirectory().Single(e => e.Type == DebugDirectoryEntryType.EmbeddedPortablePdb);
+
+                using (var mdProvider = peReader.ReadEmbeddedPortablePdbDebugDirectoryData(entry))
+                {
+                    var mdReader = mdProvider.GetMetadataReader();
+                    bool found = false;
+                    foreach (var handle in mdReader.Documents)
+                    {
+                        var doc = mdReader.GetDocument(handle);
+
+                        SourceText embeddedSource = mdReader.GetEmbeddedSource(handle);
+                        if (embeddedSource == null)
+                        {
+                            continue;
+                        }
+
+                        var docPath = mdReader.GetString(doc.Name);
+                        Assert.Equal("", docPath);
+
+                        Assert.Equal("hello", embeddedSource.ToString());
+                        found = true;
+                    }
+                    Assert.True(found);
+                }
+            }
+        }
 
         [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void EmitDebugInfoForSourceTextWithoutEncoding1()
