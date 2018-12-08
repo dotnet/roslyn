@@ -8,6 +8,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnusedParametersAndValues
     <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeFixProviderNames.RemoveUnusedValues), [Shared]>
+    <ExtensionOrder(After:=PredefinedCodeFixProviderNames.AddImport)>
     Friend Class VisualBasicRemoveUnusedValuesCodeFixProvider
         Inherits AbstractRemoveUnusedValuesCodeFixProvider(Of ExpressionSyntax, StatementSyntax, StatementSyntax,
             ExpressionStatementSyntax, LocalDeclarationStatementSyntax, VariableDeclaratorSyntax, ForEachBlockSyntax,
