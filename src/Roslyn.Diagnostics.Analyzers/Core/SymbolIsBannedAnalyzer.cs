@@ -117,11 +117,11 @@ namespace Roslyn.Diagnostics.Analyzers
 
             void VerifyAttributes(ImmutableArray<AttributeData> attributes)
             {
-                foreach (AttributeData attribute in attributes)
+                foreach (var attribute in attributes)
                 {
                     if (bannedAttributes.TryGetValue(attribute.AttributeClass, out var message))
                     {
-                        SyntaxNode node = attribute.ApplicationSyntaxReference.GetSyntax();
+                        var node = attribute.ApplicationSyntaxReference.GetSyntax();
                         ReportDiagnostic(
                             node.CreateDiagnostic(
                                 SymbolIsBannedRule,
@@ -156,7 +156,7 @@ namespace Roslyn.Diagnostics.Analyzers
 
                 foreach (var line in apiLines)
                 {
-                    if (lineById.TryGetValue(line.DeclarationId, out ApiLine existingLine))
+                    if (lineById.TryGetValue(line.DeclarationId, out var existingLine))
                     {
                         errors.Add(Diagnostic.Create(DuplicateBannedSymbolRule, line.Location, new[] { existingLine.Location }, line.DeclarationId));
                         continue;
