@@ -98,6 +98,8 @@ namespace Roslyn.Diagnostics.Analyzers
                 OperationKind.MethodReference,
                 OperationKind.PropertyReference);
 
+            return;
+
             void VerifyAttributes(Action<Diagnostic> reportDiagnostic, ImmutableArray<AttributeData> attributes)
             {
                 foreach (AttributeData attribute in attributes)
