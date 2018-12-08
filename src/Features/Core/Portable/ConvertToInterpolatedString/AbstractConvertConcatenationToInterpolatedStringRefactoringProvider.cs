@@ -39,17 +39,17 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
-            // The token has to at least be contained in a concatenation of some form.
+            // The selected token has to at least be contained in a concatenation of some form.
             // i.e.  "goo" + a      or    3 + 1 + "goo".  However, those concats could be in larger
             // concats as well.  Walk to the top of that entire chain.
-            var literalExpression = token.Parent;
-            var top = literalExpression;
+            var selectedExpression = token.Parent;
+            var top = selectedExpression;
             while (IsStringConcat(syntaxFacts, top.Parent, semanticModel, cancellationToken))
             {
                 top = top.Parent;
             }
 
-            if (top == literalExpression && !IsStringConcat(syntaxFacts, top, semanticModel, cancellationToken))
+            if (top == selectedExpression && !IsStringConcat(syntaxFacts, top, semanticModel, cancellationToken))
             {
                 // We weren't in a concatenation at all.
                 return;
