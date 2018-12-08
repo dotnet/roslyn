@@ -58,7 +58,7 @@ jobs:
   - task: PowerShell@2
     displayName: Publish Assets
     inputs:
-      arguments: '-config $(BuildConfiguration) -branchName "$(Build.SourceBranch)" -mygetApiKey $(Roslyn.MyGetApiKey) -nugetApiKey $(Roslyn.NuGetApiKey) -gitHubUserName $(Roslyn.GitHubUserName) -gitHubToken $(Roslyn.GitHubToken) -gitHubEmail $(Roslyn.GitHubEmail)'
+      arguments: '-configuration $(BuildConfiguration) -branchName "$(Build.SourceBranch)" -mygetApiKey $(Roslyn.MyGetApiKey) -nugetApiKey $(Roslyn.NuGetApiKey) -gitHubUserName $(Roslyn.GitHubUserName) -gitHubToken $(Roslyn.GitHubToken) -gitHubEmail $(Roslyn.GitHubEmail)'
       filePath: 'build\scripts\publish-assets.ps1'
     condition: succeeded()
 
