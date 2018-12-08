@@ -69,17 +69,19 @@ namespace Roslyn.Diagnostics.Analyzers
                 .Where(s => s.symbol is ITypeSymbol n && n.IsAttribute())
                 .ToImmutableDictionary(s => s.symbol, s => s.message);
 
+            List<Diagnostic> diagnostics = null;
+
             if (bannedAttributes.Count > 0)
             {
                 compilationContext.RegisterCompilationEndAction(
                     context =>
                     {
-                        VerifyAttributes(context.ReportDiagnostic, compilationContext.Compilation.Assembly.GetAttributes());
-                        VerifyAttributes(context.ReportDiagnostic, compilationContext.Compilation.SourceModule.GetAttributes());
+                        VerifyAttributes(compilationContext.Compilation.Assembly.GetAttributes());
+                        VerifyAttributes(compilationContext.Compilation.SourceModule.GetAttributes());
                     });
 
                 compilationContext.RegisterSymbolAction(
-                    sac => VerifyAttributes(sac.ReportDiagnostic, sac.Symbol.GetAttributes()),
+                    sac => VerifyAttributes(sac.Symbol.GetAttributes()),
                     SymbolKind.NamedType,
                     SymbolKind.Method,
                     SymbolKind.Field,
@@ -98,16 +100,29 @@ namespace Roslyn.Diagnostics.Analyzers
                 OperationKind.MethodReference,
                 OperationKind.PropertyReference);
 
+            compilationContext.RegisterCompilationEndAction(
+                context =>
+                {
+                    // Flush any diagnostics created during processing
+                    if (diagnostics != null)
+                    {
+                        foreach (var diagnostic in diagnostics)
+                        {
+                            context.ReportDiagnostic(diagnostic);
+                        }
+                    }
+                });
+
             return;
 
-            void VerifyAttributes(Action<Diagnostic> reportDiagnostic, ImmutableArray<AttributeData> attributes)
+            void VerifyAttributes(ImmutableArray<AttributeData> attributes)
             {
                 foreach (AttributeData attribute in attributes)
                 {
                     if (bannedAttributes.TryGetValue(attribute.AttributeClass, out var message))
                     {
                         SyntaxNode node = attribute.ApplicationSyntaxReference.GetSyntax();
-                        reportDiagnostic(
+                        ReportDiagnostic(
                             node.CreateDiagnostic(
                                 SymbolIsBannedRule,
                                 attribute.AttributeClass.ToDisplayString(),
@@ -172,6 +187,12 @@ namespace Roslyn.Diagnostics.Analyzers
                 }
 
                 return builder.ToImmutable();
+            }
+
+            void ReportDiagnostic(Diagnostic diagnostic)
+            {
+                diagnostics = diagnostics ?? new List<Diagnostic>(4);
+                diagnostics.Add(diagnostic);
             }
         }
 
