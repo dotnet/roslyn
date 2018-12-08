@@ -23,6 +23,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             // false if it implements IAsyncEnumerator<T>
             private readonly bool _isEnumerable;
 
+            // We use state=-3 to distinguish the initial state from the running state (-1)
+            private const int InitialState = -3;
+
             internal AsyncIteratorRewriter(
                 BoundStatement body,
                 MethodSymbol method,
@@ -167,7 +170,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             protected override void InitializeStateMachine(ArrayBuilder<BoundStatement> bodyBuilder, NamedTypeSymbol frameType, LocalSymbol stateMachineLocal)
             {
                 // var stateMachineLocal = new {StateMachineType}({initialState})
-                int initialState = _isEnumerable ? StateMachineStates.FinishedStateMachine : StateMachineStates.NotStartedStateMachine;
+                int initialState = _isEnumerable ? StateMachineStates.FinishedStateMachine : InitialState;
                 bodyBuilder.Add(
                     F.Assignment(
                         F.Local(stateMachineLocal),
@@ -278,16 +281,20 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             /// <summary>
             /// Generates the `ValueTask IAsyncDisposable.DisposeAsync()` method.
+            /// The DisposeAsync method should not be called from states -1 (running) or 0-and-up (awaits).
             /// </summary>
             private void GenerateIAsyncDisposable_DisposeAsync()
             {
                 // Produce:
-                //  disposeMode = true;
-                //  if (state == StateMachineStates.FinishedStateMachine ||
-                //      state == StateMachineStates.NotStartedStateMachine)
+                //  if (state >= StateMachineStates.NotStartedStateMachine /* -3 */)
+                //  {
+                //      throw new NotSupportedException();
+                //  }
+                //  if (state == StateMachineStates.FinishedStateMachine /* -2 */)
                 //  {
                 //      return default;
                 //  }
+                //  disposeMode = true;
                 //  _valueOrEndPromise.Reset();
                 //  var inst = this;
                 //  _builder.Start(ref inst);
@@ -307,12 +314,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                     out BoundExpressionStatement startCall,
                     out MethodSymbol promise_get_Version);
 
+                BoundStatement ifInvalidState = F.If(
+                    // if (state >= StateMachineStates.NotStartedStateMachine /* -1 */)
+                    F.IntGreaterThanOrEqual(F.InstanceField(stateField), F.Literal(StateMachineStates.NotStartedStateMachine)),
+                    // throw new NotSupportedException();
+                    thenClause: F.Throw(F.New(F.WellKnownType(WellKnownType.System_NotSupportedException))));
+
                 BoundStatement ifFinished = F.If(
-                    //  if (state == StateMachineStates.FinishedStateMachine ||
-                    //      state == StateMachineStates.NotStartedStateMachine)
-                    F.LogicalOr(
-                        F.IntEqual(F.InstanceField(stateField), F.Literal(StateMachineStates.FinishedStateMachine)),
-                        F.IntEqual(F.InstanceField(stateField), F.Literal(StateMachineStates.NotStartedStateMachine))),
+                    // if (state == StateMachineStates.FinishedStateMachine)
+                    F.IntEqual(F.InstanceField(stateField), F.Literal(StateMachineStates.FinishedStateMachine)),
                     // return default;
                     thenClause: F.Return(F.Default(returnType)));
 
@@ -325,8 +335,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 F.CloseMethod(F.Block(
                     ImmutableArray.Create(instSymbol),
-                    F.Assignment(F.InstanceField(_disposeModeField), F.Literal(true)), // disposeMode = true;
+                    ifInvalidState,
                     ifFinished,
+                    F.Assignment(F.InstanceField(_disposeModeField), F.Literal(true)), // disposeMode = true;
                     callReset, // _promiseOfValueOrEnd.Reset();
                     instAssignment, // var inst = this;
                     startCall, // _builder.Start(ref inst);
@@ -523,7 +534,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     .AsMember(IAsyncEnumerableOfElementType);
 
                 BoundExpression managedThreadId = null;
-                GenerateIteratorGetEnumerator(IAsyncEnumerableOfElementType_GetEnumerator, ref managedThreadId, StateMachineStates.NotStartedStateMachine);
+                GenerateIteratorGetEnumerator(IAsyncEnumerableOfElementType_GetEnumerator, ref managedThreadId, initialState: InitialState);
+            }
+
+            protected override BoundStatement GetExtraResetForIteratorGetEnumerator()
+            {
+                // disposeMode = false;
+                return F.Assignment(F.InstanceField(_disposeModeField), F.Literal(false));
             }
 
             protected override void GenerateMoveNext(SynthesizedImplementationMethod moveNextMethod)
