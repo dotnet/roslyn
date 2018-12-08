@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues;
 namespace Microsoft.CodeAnalysis.CSharp.RemoveUnusedParametersAndValues
 {
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.RemoveUnusedValues), Shared]
+    [ExtensionOrder(After = PredefinedCodeFixProviderNames.AddImport)]
     internal class CSharpRemoveUnusedValuesCodeFixProvider:
         AbstractRemoveUnusedValuesCodeFixProvider<ExpressionSyntax, StatementSyntax, BlockSyntax,
             ExpressionStatementSyntax, LocalDeclarationStatementSyntax, VariableDeclaratorSyntax,
