@@ -1833,7 +1833,7 @@ static class C2
 {
     internal static void Dispose(this int? c1)
     {
-        System.Console.Write($""Dispose? {c1}; "");
+        throw new System.Exception(""Nullable extension should not be called"");
     }        
     
     internal static void Dispose(this int c1)
@@ -1929,7 +1929,7 @@ static class C2
 {
    internal static void Dispose(this object c1) { System.Console.Write($""Dispose; "");}
 }
- class C3
+class C3
 {
     static void Main()
     {

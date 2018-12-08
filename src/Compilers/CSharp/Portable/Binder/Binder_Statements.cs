@@ -742,7 +742,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // this emulates the same behavior as x?.Dispose(); 
             if (expr.Type.IsNullableType())
             {
-                expr = CreateConversion(expr, expr.Type.GetNullableUnderlyingType(), diagnostics);
+                expr = new BoundDisposableValuePlaceholder(expr.Syntax, expr.Type.GetNullableUnderlyingType());
             }
 
             var result = FindPatternMethodRelaxed(expr,
