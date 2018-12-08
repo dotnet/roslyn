@@ -61,6 +61,8 @@ namespace Roslyn.Diagnostics.Analyzers
                 return;
             }
 
+            var messageByBannedSymbol = bannedSymbols.ToDictionary(s => s.symbol, s => s.message);
+
             var symbolDisplayFormat = compilationContext.Compilation.Language == LanguageNames.CSharp
                 ? SymbolDisplayFormat.CSharpShortErrorMessageFormat
                 : SymbolDisplayFormat.VisualBasicShortErrorMessageFormat;
@@ -89,8 +91,6 @@ namespace Roslyn.Diagnostics.Analyzers
                     SymbolKind.Event);
             }
 
-            var messageByBannedSymbol = bannedSymbols.ToDictionary(s => s.symbol, s => s.message);
-
             compilationContext.RegisterOperationAction(
                 oac => AnalyzeOperation(oac, messageByBannedSymbol, symbolDisplayFormat),
                 OperationKind.ObjectCreation,
@@ -114,22 +114,6 @@ namespace Roslyn.Diagnostics.Analyzers
                 });
 
             return;
-
-            void VerifyAttributes(ImmutableArray<AttributeData> attributes)
-            {
-                foreach (var attribute in attributes)
-                {
-                    if (bannedAttributes.TryGetValue(attribute.AttributeClass, out var message))
-                    {
-                        var node = attribute.ApplicationSyntaxReference.GetSyntax();
-                        ReportDiagnostic(
-                            node.CreateDiagnostic(
-                                SymbolIsBannedRule,
-                                attribute.AttributeClass.ToDisplayString(),
-                                string.IsNullOrWhiteSpace(message) ? "" : ": " + message));
-                    }
-                }
-            }
 
             ImmutableHashSet<(ISymbol symbol, string message)> ReadBannedApis()
             {
@@ -193,6 +177,22 @@ namespace Roslyn.Diagnostics.Analyzers
             {
                 diagnostics = diagnostics ?? new List<Diagnostic>(4);
                 diagnostics.Add(diagnostic);
+            }
+
+            void VerifyAttributes(ImmutableArray<AttributeData> attributes)
+            {
+                foreach (var attribute in attributes)
+                {
+                    if (bannedAttributes.TryGetValue(attribute.AttributeClass, out var message))
+                    {
+                        var node = attribute.ApplicationSyntaxReference.GetSyntax();
+                        ReportDiagnostic(
+                            node.CreateDiagnostic(
+                                SymbolIsBannedRule,
+                                attribute.AttributeClass.ToDisplayString(),
+                                string.IsNullOrWhiteSpace(message) ? "" : ": " + message));
+                    }
+                }
             }
         }
 
