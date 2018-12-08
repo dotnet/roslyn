@@ -1866,14 +1866,63 @@ static class C2
         {
             // Dipose 4        
         }
+
+        using (5)
+        {
+            // Dispose 5
+        }
     }
 }";
             var compilation = CreateCompilation(source, options: TestOptions.DebugExe).VerifyDiagnostics();
-            CompileAndVerify(compilation, expectedOutput: "Dispose 1; Dispose 2; Dispose 3; Dispose 4;");
+            CompileAndVerify(compilation, expectedOutput: "Dispose 1; Dispose 2; Dispose 3; Dispose 4; Dispose 5; ");
         }
 
         [Fact]
-        public void UsingPatternExtensionMethodWithNullRecevier()
+        public void UsingPatternExtensionMethodWithOnlyNullableValueTarget()
+        {
+            var source = @"
+static class C2 
+{
+    internal static void Dispose(this int? c1)
+    {
+        System.Console.Write($""Dispose? {c1}; "");
+    }        
+    
+}
+ class C3
+{
+    static void Main()
+    {
+        using (int? i1 = 1)
+        {
+            // Dispose 1
+        }
+        
+        int? i2 = 2;
+        using (i2)
+        {
+            // Dispose 2
+        }
+    }
+}";
+            var compilation = CreateCompilation(source).VerifyDiagnostics(
+                 // (14,16): error CS1674: 'int?': type used in a using statement must be implicitly convertible to 'System.IDisposable' or have a public void-returning Dispose() instance method.
+                 //         using (int? i1 = 1)
+                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "int? i1 = 1").WithArguments("int?").WithLocation(14, 16),
+                 // (14,21): error CS1929: 'int' does not contain a definition for 'Dispose' and the best extension method overload 'C2.Dispose(int?)' requires a receiver of type 'int?'
+                 //         using (int? i1 = 1)
+                 Diagnostic(ErrorCode.ERR_BadInstanceArgType, "i1 = 1").WithArguments("int", "Dispose", "C2.Dispose(int?)", "int?").WithLocation(14, 21),
+                 // (20,16): error CS1929: 'int' does not contain a definition for 'Dispose' and the best extension method overload 'C2.Dispose(int?)' requires a receiver of type 'int?'
+                 //         using (i2)
+                 Diagnostic(ErrorCode.ERR_BadInstanceArgType, "i2").WithArguments("int", "Dispose", "C2.Dispose(int?)", "int?").WithLocation(20, 16),
+                 // (20,16): error CS1674: 'int?': type used in a using statement must be implicitly convertible to 'System.IDisposable' or have a public void-returning Dispose() instance method.
+                 //         using (i2)
+                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "i2").WithArguments("int?").WithLocation(20, 16)
+                );
+        }
+
+        [Fact]
+        public void UsingPatternExtensionMethodWithNullReceiver()
         {
             var source = @"
 static class C2 
@@ -1894,6 +1943,11 @@ static class C2
         {
             // not called
         }
+
+        using (null)
+        {
+            // not called
+        }
     }
 }";
             var comp = CreateCompilation(source, options: TestOptions.DebugExe).VerifyDiagnostics();
@@ -1901,7 +1955,7 @@ static class C2
         }
 
         [Fact]
-        public void UsingPatternWithNullableReferenceType()
+        public void UsingPatternWithNullableValueType()
         {
             var source = @"
 struct S1

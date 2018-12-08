@@ -736,7 +736,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal MethodSymbol TryFindDisposePatternMethod(BoundExpression expr, SyntaxNode syntaxNode, bool hasAwait, DiagnosticBag diagnostics)
         {
             Debug.Assert(!(expr is null));
-                                
+            Debug.Assert(!(expr.Type is null));
+            
             // For dispose on nullable value types, we always perform lookup on the underlying type, as we'll never actually call in the null case
             // this emulates the same behavior as x?.Dispose(); 
             if (expr.Type.IsNullableType())
