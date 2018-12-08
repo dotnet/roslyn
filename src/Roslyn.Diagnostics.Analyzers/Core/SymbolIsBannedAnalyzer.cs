@@ -56,57 +56,60 @@ namespace Roslyn.Diagnostics.Analyzers
         {
             var bannedSymbols = ReadBannedApis();
 
-            if (bannedSymbols.Count > 0)
+            if (bannedSymbols.Count == 0)
             {
-                var symbolDisplayFormat = compilationContext.Compilation.Language == LanguageNames.CSharp
-                    ? SymbolDisplayFormat.CSharpShortErrorMessageFormat
-                    : SymbolDisplayFormat.VisualBasicShortErrorMessageFormat;
+                return;
+            }
 
-                var bannedAttributes = bannedSymbols
-                    .Where(s => s.symbol is ITypeSymbol n && n.IsAttribute())
-                    .ToImmutableDictionary(s => s.symbol, s => s.message);
+            var symbolDisplayFormat = compilationContext.Compilation.Language == LanguageNames.CSharp
+                ? SymbolDisplayFormat.CSharpShortErrorMessageFormat
+                : SymbolDisplayFormat.VisualBasicShortErrorMessageFormat;
 
-                if (bannedAttributes.Count > 0)
-                {
-                    compilationContext.RegisterCompilationEndAction(context =>
+            var bannedAttributes = bannedSymbols
+                .Where(s => s.symbol is ITypeSymbol n && n.IsAttribute())
+                .ToImmutableDictionary(s => s.symbol, s => s.message);
+
+            if (bannedAttributes.Count > 0)
+            {
+                compilationContext.RegisterCompilationEndAction(
+                    context =>
                     {
                         VerifyAttributes(context.ReportDiagnostic, compilationContext.Compilation.Assembly.GetAttributes());
                         VerifyAttributes(context.ReportDiagnostic, compilationContext.Compilation.SourceModule.GetAttributes());
                     });
 
-                    compilationContext.RegisterSymbolAction(
-                        sac => VerifyAttributes(sac.ReportDiagnostic, sac.Symbol.GetAttributes()),
-                        SymbolKind.NamedType,
-                        SymbolKind.Method,
-                        SymbolKind.Field,
-                        SymbolKind.Property,
-                        SymbolKind.Event);
-                }
+                compilationContext.RegisterSymbolAction(
+                    sac => VerifyAttributes(sac.ReportDiagnostic, sac.Symbol.GetAttributes()),
+                    SymbolKind.NamedType,
+                    SymbolKind.Method,
+                    SymbolKind.Field,
+                    SymbolKind.Property,
+                    SymbolKind.Event);
+            }
 
-                var messageByBannedSymbol = bannedSymbols.ToDictionary(s => s.symbol, s => s.message);
+            var messageByBannedSymbol = bannedSymbols.ToDictionary(s => s.symbol, s => s.message);
 
-                compilationContext.RegisterOperationAction(
-                    oac => AnalyzeOperation(oac, messageByBannedSymbol, symbolDisplayFormat),
-                    OperationKind.ObjectCreation,
-                    OperationKind.Invocation,
-                    OperationKind.EventReference,
-                    OperationKind.FieldReference,
-                    OperationKind.MethodReference,
-                    OperationKind.PropertyReference);
+            compilationContext.RegisterOperationAction(
+                oac => AnalyzeOperation(oac, messageByBannedSymbol, symbolDisplayFormat),
+                OperationKind.ObjectCreation,
+                OperationKind.Invocation,
+                OperationKind.EventReference,
+                OperationKind.FieldReference,
+                OperationKind.MethodReference,
+                OperationKind.PropertyReference);
 
-                void VerifyAttributes(Action<Diagnostic> reportDiagnostic, ImmutableArray<AttributeData> attributes)
+            void VerifyAttributes(Action<Diagnostic> reportDiagnostic, ImmutableArray<AttributeData> attributes)
+            {
+                foreach (AttributeData attribute in attributes)
                 {
-                    foreach (AttributeData attribute in attributes)
+                    if (bannedAttributes.TryGetValue(attribute.AttributeClass, out var message))
                     {
-                        if (bannedAttributes.TryGetValue(attribute.AttributeClass, out var message))
-                        {
-                            SyntaxNode node = attribute.ApplicationSyntaxReference.GetSyntax();
-                            reportDiagnostic(
-                                node.CreateDiagnostic(
-                                    SymbolIsBannedRule, 
-                                    attribute.AttributeClass.ToDisplayString(),
-                                    string.IsNullOrWhiteSpace(message) ? "": ": " + message));
-                        }
+                        SyntaxNode node = attribute.ApplicationSyntaxReference.GetSyntax();
+                        reportDiagnostic(
+                            node.CreateDiagnostic(
+                                SymbolIsBannedRule,
+                                attribute.AttributeClass.ToDisplayString(),
+                                string.IsNullOrWhiteSpace(message) ? "" : ": " + message));
                     }
                 }
             }
