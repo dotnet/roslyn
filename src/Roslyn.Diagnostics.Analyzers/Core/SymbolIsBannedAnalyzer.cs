@@ -83,7 +83,7 @@ namespace Roslyn.Diagnostics.Analyzers
                     });
 
                 compilationContext.RegisterSymbolAction(
-                    sac => VerifyAttributes(sac.Symbol.GetAttributes()),
+                    context => VerifyAttributes(context.Symbol.GetAttributes()),
                     SymbolKind.NamedType,
                     SymbolKind.Method,
                     SymbolKind.Field,
@@ -92,7 +92,26 @@ namespace Roslyn.Diagnostics.Analyzers
             }
 
             compilationContext.RegisterOperationAction(
-                oac => AnalyzeOperation(oac, messageByBannedSymbol, symbolDisplayFormat),
+                context =>
+                {
+                    switch (context.Operation)
+                    {
+                        case IObjectCreationOperation objectCreation:
+                            VerifySymbol(objectCreation.Constructor, context.Operation.Syntax);
+                            VerifyType(objectCreation.Type.OriginalDefinition, context.Operation.Syntax);
+                            break;
+
+                        case IInvocationOperation invocation:
+                            VerifySymbol(invocation.TargetMethod, context.Operation.Syntax);
+                            VerifyType(invocation.TargetMethod.ContainingType.OriginalDefinition, context.Operation.Syntax);
+                            break;
+
+                        case IMemberReferenceOperation memberReference:
+                            VerifySymbol(memberReference.Member, context.Operation.Syntax);
+                            VerifyType(memberReference.Member.ContainingType.OriginalDefinition, context.Operation.Syntax);
+                            break;
+                    }
+                },
                 OperationKind.ObjectCreation,
                 OperationKind.Invocation,
                 OperationKind.EventReference,
@@ -194,38 +213,17 @@ namespace Roslyn.Diagnostics.Analyzers
                     }
                 }
             }
-        }
 
-        private static void AnalyzeOperation(OperationAnalysisContext oac, Dictionary<ISymbol, string> messageByBannedSymbol, SymbolDisplayFormat symbolDisplayFormat)
-        {
-            switch (oac.Operation)
-            {
-                case IObjectCreationOperation objectCreation:
-                    ValidateSymbol(objectCreation.Constructor);
-                    ValidateType(objectCreation.Type.OriginalDefinition);
-                    break;
-
-                case IInvocationOperation invocation:
-                    ValidateSymbol(invocation.TargetMethod);
-                    ValidateType(invocation.TargetMethod.ContainingType.OriginalDefinition);
-                    break;
-
-                case IMemberReferenceOperation memberReference:
-                    ValidateSymbol(memberReference.Member);
-                    ValidateType(memberReference.Member.ContainingType.OriginalDefinition);
-                    break;
-            }
-
-            void ValidateType(ITypeSymbol type)
+            void VerifyType(ITypeSymbol type, SyntaxNode syntaxNode)
             {
                 while (!(type is null))
                 {
                     if (messageByBannedSymbol.TryGetValue(type, out var message))
                     {
-                        oac.ReportDiagnostic(
+                        ReportDiagnostic(
                             Diagnostic.Create(
                                 SymbolIsBannedRule,
-                                oac.Operation.Syntax.GetLocation(),
+                                syntaxNode.GetLocation(),
                                 type.ToDisplayString(symbolDisplayFormat),
                                 string.IsNullOrWhiteSpace(message) ? "" : ": " + message));
                         break;
@@ -235,14 +233,14 @@ namespace Roslyn.Diagnostics.Analyzers
                 }
             }
 
-            void ValidateSymbol(ISymbol symbol)
+            void VerifySymbol(ISymbol symbol, SyntaxNode syntaxNode)
             {
                 if (messageByBannedSymbol.TryGetValue(symbol, out var message))
                 {
-                    oac.ReportDiagnostic(
+                    ReportDiagnostic(
                         Diagnostic.Create(
                             SymbolIsBannedRule,
-                            oac.Operation.Syntax.GetLocation(),
+                            syntaxNode.GetLocation(),
                             symbol.ToDisplayString(symbolDisplayFormat),
                             string.IsNullOrWhiteSpace(message) ? "" : ": " + message));
                 }
