@@ -3148,6 +3148,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             (BoundExpression operand, Conversion conversion) = RemoveConversion(expr, includeExplicitConversions: false);
             var operandType = VisitRvalueWithResult(operand);
+            // If an explicit conversion was used in place of an implicit conversion, the explicit
+            // conversion was created by initial binding after reporting "error CS0266:
+            // Cannot implicitly convert type '...' to '...'. An explicit conversion exists ...".
+            // Since an error was reported, we don't need to report nested warnings as well.
+            bool reportNestedWarnings = !conversion.IsExplicit;
             return ApplyConversion(
                 expr,
                 operand,
@@ -3157,7 +3162,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 checkConversion: true,
                 fromExplicitCast: false,
                 useLegacyWarnings: useLegacyWarnings,
-                assignmentKind);
+                assignmentKind,
+                reportTopLevelWarnings: true,
+                reportNestedWarnings: reportNestedWarnings);
         }
 
         public override BoundNode VisitTupleLiteral(BoundTupleLiteral node)
@@ -3401,7 +3408,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         // method return type -> conversion "to" type
                         // May be distinct from method return type for Nullable<T>.
-                        operandType = ClassifyAndApplyConversion(operandOpt ?? node, TypeSymbolWithAnnotations.Create(conversion.BestUserDefinedConversionAnalysis.ToType), operandType, useLegacyWarnings, assignmentKind, target: parameter);
+                        operandType = ClassifyAndApplyConversion(operandOpt ?? node, TypeSymbolWithAnnotations.Create(conversion.BestUserDefinedConversionAnalysis.ToType), operandType, useLegacyWarnings, assignmentKind, target);
 
                         // conversion "to" type -> final type
                         // https://github.com/dotnet/roslyn/issues/29959 If the original conversion was
@@ -3417,6 +3424,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (resultAnnotation == NullableAnnotation.NotAnnotated && targetType.IsTypeParameter())
                     {
                         resultAnnotation = NullableAnnotation.NotNullable;
+                    }
+                    else if (targetType.IsValueType)
+                    {
+                        Debug.Assert(!operandType.IsNull); // If assert fails, add a test that verifies resulting type is nullable.
+                        resultAnnotation = (targetType.IsNullableType() && (operandType.IsNull || operandType.NullableAnnotation.IsAnyNullable())) ? NullableAnnotation.Nullable : NullableAnnotation.NotNullable;
                     }
                     break;
 
@@ -3559,7 +3571,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         !targetType.IsNullableType())
                     {
                         // Explicit conversion of Nullable<T> to T is equivalent to Nullable<T>.Value.
-                        if (operandType.NullableAnnotation.IsAnyNullable())
+                        if (reportTopLevelWarnings && operandType.NullableAnnotation.IsAnyNullable())
                         {
                             ReportDiagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, node.Syntax);
                         }
@@ -4482,7 +4494,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitAsOperator(BoundAsOperator node)
         {
-            var result = base.VisitAsOperator(node);
+            VisitRvalue(node.Operand);
 
             //if (this.State.Reachable) // Consider reachability: see https://github.com/dotnet/roslyn/issues/28798
             {
@@ -4491,16 +4503,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (!type.IsValueType || type.IsNullableType())
                 {
+                    var operandType = _resultType;
                     switch (node.Conversion.Kind)
                     {
                         case ConversionKind.Identity:
                             // Inherit nullability from the operand
-                            nullableAnnotation = _resultType.NullableAnnotation;
+                            nullableAnnotation = operandType.NullableAnnotation;
                             break;
 
                         case ConversionKind.ImplicitReference:
                             // Inherit nullability from the operand
-                            if (!_resultType.IsNull && _resultType.IsPossiblyNullableReferenceTypeTypeParameter())
+                            if (!operandType.IsNull && operandType.IsPossiblyNullableReferenceTypeTypeParameter())
                             {
                                 if (!type.IsPossiblyNullableReferenceTypeTypeParameter())
                                 {
@@ -4513,7 +4526,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
                             else
                             {
-                                nullableAnnotation = _resultType.NullableAnnotation;
+                                nullableAnnotation = operandType.NullableAnnotation;
                                 if (nullableAnnotation == NullableAnnotation.NotAnnotated && type.IsTypeParameter())
                                 {
                                     nullableAnnotation = NullableAnnotation.NotNullable;
@@ -4522,24 +4535,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                             break;
 
                         case ConversionKind.Boxing:
-                            var operandType = node.Operand.Type;
-                            if (operandType?.IsValueType == true)
+                            if (operandType.TypeSymbol?.IsValueType == true)
                             {
-                                nullableAnnotation = (operandType.IsNullableType() && _resultType.NullableAnnotation.IsAnyNullable()) ? NullableAnnotation.Nullable : NullableAnnotation.NotNullable;
+                                nullableAnnotation = (operandType.TypeSymbol.IsNullableType() && operandType.NullableAnnotation.IsAnyNullable()) ? NullableAnnotation.Nullable : NullableAnnotation.NotNullable;
                             }
                             else
                             {
-                                Debug.Assert(operandType?.IsReferenceType != true);
+                                Debug.Assert(operandType.TypeSymbol?.IsReferenceType != true);
 
-                                if (!_resultType.IsNull)
+                                if (!operandType.IsNull)
                                 {
-                                    if (_resultType.IsPossiblyNullableReferenceTypeTypeParameter() && type.IsPossiblyNullableReferenceTypeTypeParameter())
+                                    if (operandType.IsPossiblyNullableReferenceTypeTypeParameter() && type.IsPossiblyNullableReferenceTypeTypeParameter())
                                     {
                                         nullableAnnotation = NullableAnnotation.NotAnnotated;
                                     }
                                     else
                                     {
-                                        nullableAnnotation = _resultType.GetValueNullableAnnotation();
+                                        nullableAnnotation = operandType.GetValueNullableAnnotation();
                                     }
                                 }
                                 else
@@ -4550,7 +4562,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             break;
 
                         case ConversionKind.ImplicitNullable:
-                            nullableAnnotation = (_resultType.IsNullableType() && _resultType.NullableAnnotation.IsAnyNullable()) ? NullableAnnotation.Nullable : NullableAnnotation.NotNullable;
+                            nullableAnnotation = (operandType.IsNullableType() && operandType.NullableAnnotation.IsAnyNullable()) ? NullableAnnotation.Nullable : NullableAnnotation.NotNullable;
                             break;
 
                         default:
@@ -4562,7 +4574,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _resultType = TypeSymbolWithAnnotations.Create(type, nullableAnnotation);
             }
 
-            return result;
+            return null;
         }
 
         public override BoundNode VisitSuppressNullableWarningExpression(BoundSuppressNullableWarningExpression node)
