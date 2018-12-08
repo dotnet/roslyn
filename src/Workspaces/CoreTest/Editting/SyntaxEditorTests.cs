@@ -17,10 +17,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Editing
         private Workspace EmptyWorkspace
             => _emptyWorkspace ?? (_emptyWorkspace = new AdhocWorkspace());
 
-        private async Task VerifySyntaxAsync<TSyntax>(SyntaxNode node, string expectedText) where TSyntax : SyntaxNode
+        private void VerifySyntax<TSyntax>(SyntaxNode node, string expectedText) where TSyntax : SyntaxNode
         {
             Assert.IsAssignableFrom(typeof(TSyntax), node);
-            var formatted = await Formatter.FormatAsync(node, EmptyWorkspace);
+            var formatted = Formatter.Format(node, EmptyWorkspace);
             var actualText = formatted.ToFullString();
             Assert.Equal(expectedText, actualText);
         }
@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Editing
         }
 
         [Fact]
-        public async Task TestReplaceNode()
+        public void TestReplaceNode()
         {
             var code = @"
 public class C
@@ -47,7 +47,7 @@ public class C
             editor.ReplaceNode(fieldX, editor.Generator.FieldDeclaration("Y", editor.Generator.TypeExpression(SpecialType.System_String), Accessibility.Public));
             var newRoot = editor.GetChangedRoot();
 
-            await VerifySyntaxAsync<CompilationUnitSyntax>(
+            VerifySyntax<CompilationUnitSyntax>(
                 newRoot,
                 @"
 public class C
@@ -57,7 +57,7 @@ public class C
         }
 
         [Fact]
-        public async Task TestRemoveNode()
+        public void TestRemoveNode()
         {
             var code = @"
 public class C
@@ -73,7 +73,7 @@ public class C
             editor.RemoveNode(fieldX);
             var newRoot = editor.GetChangedRoot();
 
-            await VerifySyntaxAsync<CompilationUnitSyntax>(
+            VerifySyntax<CompilationUnitSyntax>(
                 newRoot,
                 @"
 public class C
@@ -82,7 +82,7 @@ public class C
         }
 
         [Fact]
-        public async Task TestInterAfter()
+        public void TestInterAfter()
         {
             var code = @"
 public class C
@@ -98,7 +98,7 @@ public class C
             editor.InsertAfter(fieldX, editor.Generator.FieldDeclaration("Y", editor.Generator.TypeExpression(SpecialType.System_String), Accessibility.Public));
             var newRoot = editor.GetChangedRoot();
 
-            await VerifySyntaxAsync<CompilationUnitSyntax>(
+            VerifySyntax<CompilationUnitSyntax>(
                 newRoot,
                 @"
 public class C
@@ -109,7 +109,7 @@ public class C
         }
 
         [Fact]
-        public async Task TestInterBefore()
+        public void TestInterBefore()
         {
             var code = @"
 public class C
@@ -125,7 +125,7 @@ public class C
             editor.InsertBefore(fieldX, editor.Generator.FieldDeclaration("Y", editor.Generator.TypeExpression(SpecialType.System_String), Accessibility.Public));
             var newRoot = editor.GetChangedRoot();
 
-            await VerifySyntaxAsync<CompilationUnitSyntax>(
+            VerifySyntax<CompilationUnitSyntax>(
                 newRoot,
                 @"
 public class C
@@ -157,7 +157,7 @@ public class C
         }
 
         [Fact]
-        public async Task TestMultipleEdits()
+        public void TestMultipleEdits()
         {
             var code = @"
 public class C
@@ -175,7 +175,7 @@ public class C
             editor.RemoveNode(fieldX);
             var newRoot = editor.GetChangedRoot();
 
-            await VerifySyntaxAsync<CompilationUnitSyntax>(
+            VerifySyntax<CompilationUnitSyntax>(
                 newRoot,
                 @"
 public class C
