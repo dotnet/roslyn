@@ -119,6 +119,19 @@ namespace Roslyn.Diagnostics.Analyzers
                 OperationKind.MethodReference,
                 OperationKind.PropertyReference);
 
+            if (compilationContext.Compilation.Language == LanguageNames.CSharp)
+            {
+                compilationContext.RegisterSyntaxNodeAction(
+                    context => VerifyDocumentationSyntax(((Microsoft.CodeAnalysis.CSharp.Syntax.XmlCrefAttributeSyntax)context.Node).Cref, context),
+                    Microsoft.CodeAnalysis.CSharp.SyntaxKind.XmlCrefAttribute);
+            }
+            else if (compilationContext.Compilation.Language == LanguageNames.VisualBasic)
+            {
+                compilationContext.RegisterSyntaxNodeAction(
+                    context => VerifyDocumentationSyntax(((Microsoft.CodeAnalysis.VisualBasic.Syntax.XmlCrefAttributeSyntax)context.Node).Reference, context),
+                    Microsoft.CodeAnalysis.VisualBasic.SyntaxKind.XmlCrefAttribute);
+            }
+
             compilationContext.RegisterCompilationEndAction(
                 context =>
                 {
@@ -243,6 +256,20 @@ namespace Roslyn.Diagnostics.Analyzers
                             syntaxNode.GetLocation(),
                             symbol.ToDisplayString(symbolDisplayFormat),
                             string.IsNullOrWhiteSpace(message) ? "" : ": " + message));
+                }
+            }
+
+            void VerifyDocumentationSyntax(SyntaxNode syntaxNode, SyntaxNodeAnalysisContext context)
+            {
+                var symbol = syntaxNode.GetDeclaredOrReferencedSymbol(context.SemanticModel);
+
+                if (symbol is ITypeSymbol typeSymbol)
+                {
+                    VerifyType(typeSymbol, syntaxNode);
+                }
+                else
+                {
+                    VerifySymbol(symbol, syntaxNode);
                 }
             }
         }

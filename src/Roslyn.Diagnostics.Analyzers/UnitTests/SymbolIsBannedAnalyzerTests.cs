@@ -348,6 +348,21 @@ class C
         }
 
         [Fact]
+        public void CSharp_BannedClass_DocumentationReference()
+        {
+            var source = @"
+class C { }
+
+/// <summary><see cref=""C"" /></summary>
+class D { }
+";
+            var bannedText = @"T:C";
+
+            VerifyCSharp(source, bannedText,
+                GetCSharpResultAt(4, 25, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C", ""));
+        }
+
+        [Fact]
         public void CSharp_BannedAttribute_UsageOnType()
         {
             var source = @"
@@ -995,6 +1010,21 @@ End Namespace";
                 source,
                 bannedText,
                 GetBasicResultAt(6, 38, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "Public Sub Banned()", ""));
+        }
+
+        [Fact]
+        public void VisualBasic_BannedClass_DocumentationReference()
+        {
+            var source = @"
+Class C : End Class
+
+''' <summary><see cref=""C"" /></summary>
+Class D : End Class
+";
+            var bannedText = @"T:C";
+
+            VerifyBasic(source, bannedText,
+                GetBasicResultAt(4, 25, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C", ""));
         }
 
         #endregion
