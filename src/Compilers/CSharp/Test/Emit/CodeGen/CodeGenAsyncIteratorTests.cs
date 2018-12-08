@@ -465,8 +465,35 @@ public class C
             CompileAndVerify(comp, symbolValidator: module =>
             {
                 var method = module.GlobalNamespace.GetMember<MethodSymbol>("C.M");
-                AssertEx.SetEqual(new[] { "AsyncStateMachineAttribute", "IteratorStateMachineAttribute" },
+                AssertEx.SetEqual(new[] { "AsyncIteratorStateMachineAttribute" },
                     GetAttributeNames(method.GetAttributes()));
+
+                var attribute = method.GetAttributes().Single();
+                var argument = attribute.ConstructorArguments.Single();
+                Assert.Equal("System.Type", argument.Type.ToTestDisplayString());
+                Assert.Equal("C.<M>d__0", ((ITypeSymbol)argument.Value).ToTestDisplayString());
+            });
+        }
+
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        public void AttributesSynthesized_Optional()
+        {
+            string source = @"
+public class C
+{
+    public static async System.Collections.Generic.IAsyncEnumerable<int> M()
+    {
+        await System.Threading.Tasks.Task.CompletedTask;
+        yield return 4;
+    }
+}";
+            var comp = CreateCompilationWithAsyncIterator(source, options: TestOptions.DebugDll);
+            comp.MakeTypeMissing(WellKnownType.System_Runtime_CompilerServices_AsyncIteratorStateMachineAttribute);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, symbolValidator: module =>
+            {
+                var method = module.GlobalNamespace.GetMember<MethodSymbol>("C.M");
+                Assert.Empty(GetAttributeNames(method.GetAttributes()));
             });
         }
 
@@ -1073,9 +1100,9 @@ class C
                 // (4,60): error CS8370: Feature 'async streams' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     async System.Collections.Generic.IAsyncEnumerator<int> M()
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "M").WithArguments("async streams", "8.0").WithLocation(4, 60),
-                // (23,2): error CS8370: Feature 'nullable reference types' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // (34,2): error CS8370: Feature 'nullable reference types' is not available in C# 7.3. Please use language version 8.0 or greater.
                 // #nullable disable
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "nullable").WithArguments("nullable reference types", "8.0").WithLocation(23, 2)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "nullable").WithArguments("nullable reference types", "8.0").WithLocation(34, 2)
                 );
         }
 

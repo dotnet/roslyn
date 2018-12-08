@@ -1636,13 +1636,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var arg = new TypedConstant(compilation.GetWellKnownType(WellKnownType.System_Type),
                     TypedConstantKind.Type, stateMachineType.GetUnboundGenericTypeOrSelf());
 
-                if (isAsync)
+                if (isAsync && isIterator)
+                {
+                    AddSynthesizedAttribute(ref attributes,
+                        compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_AsyncIteratorStateMachineAttribute__ctor,
+                            ImmutableArray.Create(arg)));
+                }
+                else if (isAsync)
                 {
                     AddSynthesizedAttribute(ref attributes,
                         compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_AsyncStateMachineAttribute__ctor,
                             ImmutableArray.Create(arg)));
                 }
-                if (isIterator)
+                else if (isIterator)
                 {
                     AddSynthesizedAttribute(ref attributes,
                         compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_IteratorStateMachineAttribute__ctor,

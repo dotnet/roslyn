@@ -219,13 +219,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 
             var formattingRules = additionalFormattingRule.Concat(Formatter.GetDefaultFormattingRules(targetDocument));
 
-            newRoot = Formatter.FormatAsync(
+            newRoot = Formatter.Format(
                 newRoot,
                 Formatter.Annotation,
                 targetDocument.Project.Solution.Workspace,
                 targetDocument.GetOptionsAsync(cancellationToken).WaitAndGetResult_Venus(cancellationToken),
                 formattingRules,
-                cancellationToken).WaitAndGetResult_Venus(cancellationToken);
+                cancellationToken);
 
             var newMember = newRoot.GetAnnotatedNodesAndTokens(annotation).Single();
             var newMemberText = newMember.ToFullString();
