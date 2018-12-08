@@ -50665,7 +50665,7 @@ class A
          F1;
 }
 
-class B {}
+class B<T> {}
 ";
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesFalse());
 
@@ -50689,7 +50689,7 @@ class A
          F1;
 }
 
-class B {}
+class B<T> {}
 ";
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
 
@@ -50898,10 +50898,10 @@ A<string>
 "
             );
 
-            AssertNonNullTypesContext_22(source, WithNonNullTypesTrue(), type, "A<System.String!>");
+            AssertGetSpeculativeTypeInfo(source, WithNonNullTypesTrue(), type, "A<System.String!>");
         }
 
-        private static void AssertNonNullTypesContext_22(string source, CSharpCompilationOptions options, TypeSyntax type, string expected)
+        private static void AssertGetSpeculativeTypeInfo(string source, CSharpCompilationOptions options, TypeSyntax type, string expected)
         {
             var comp = CreateCompilation(new[] { source }, options: options);
 
@@ -50935,7 +50935,7 @@ A<string>
 "
             );
 
-            AssertNonNullTypesContext_22(source, WithNonNullTypesFalse(), type, "A<System.String>");
+            AssertGetSpeculativeTypeInfo(source, WithNonNullTypesFalse(), type, "A<System.String>");
         }
 
         [Fact]
@@ -50960,7 +50960,7 @@ A<string>
 "
             );
 
-            AssertNonNullTypesContext_22(source, WithNonNullTypesTrue(), type, "A<System.String>");
+            AssertGetSpeculativeTypeInfo(source, WithNonNullTypesTrue(), type, "A<System.String>");
         }
 
         [Fact]
@@ -50985,7 +50985,7 @@ A<string>
 "
             );
 
-            AssertNonNullTypesContext_22(source, WithNonNullTypesFalse(), type, "A<System.String!>");
+            AssertGetSpeculativeTypeInfo(source, WithNonNullTypesFalse(), type, "A<System.String!>");
         }
 
         [Fact]
@@ -51012,7 +51012,7 @@ A<string>
 "
             );
 
-            AssertNonNullTypesContext_22(source, WithNonNullTypesTrue(), type, "A<System.String>");
+            AssertGetSpeculativeTypeInfo(source, WithNonNullTypesTrue(), type, "A<System.String>");
         }
 
         [Fact]
@@ -51039,7 +51039,7 @@ A<string>
 "
             );
 
-            AssertNonNullTypesContext_22(source, WithNonNullTypesFalse(), type, "A<System.String!>");
+            AssertGetSpeculativeTypeInfo(source, WithNonNullTypesFalse(), type, "A<System.String!>");
         }
 
         [Fact]
@@ -51067,7 +51067,7 @@ A<string>
 "
             );
 
-            AssertNonNullTypesContext_22(source, WithNonNullTypesTrue(), type, "A<System.String!>");
+            AssertGetSpeculativeTypeInfo(source, WithNonNullTypesTrue(), type, "A<System.String!>");
         }
 
         [Fact]
@@ -51095,7 +51095,7 @@ A<string>
 "
             );
 
-            AssertNonNullTypesContext_22(source, WithNonNullTypesFalse(), type, "A<System.String>");
+            AssertGetSpeculativeTypeInfo(source, WithNonNullTypesFalse(), type, "A<System.String>");
         }
 
         [Fact]
@@ -51119,10 +51119,10 @@ A<string>
 "
             );
 
-            AssertNonNullTypesContext_30(source, WithNonNullTypesTrue(), type, "A<System.String!>");
+            AssertTryGetSpeculativeSemanticModel(source, WithNonNullTypesTrue(), type, "A<System.String!>");
         }
 
-        private static void AssertNonNullTypesContext_30(string source, CSharpCompilationOptions options, TypeSyntax type, string expected)
+        private static void AssertTryGetSpeculativeSemanticModel(string source, CSharpCompilationOptions options, TypeSyntax type, string expected)
         {
             var comp = CreateCompilation(new[] { source }, options: options);
 
@@ -51157,7 +51157,7 @@ A<string>
 "
             );
 
-            AssertNonNullTypesContext_30(source, WithNonNullTypesFalse(), type, "A<System.String>");
+            AssertTryGetSpeculativeSemanticModel(source, WithNonNullTypesFalse(), type, "A<System.String>");
         }
 
         [Fact]
@@ -51182,7 +51182,7 @@ A<string>
 "
             );
 
-            AssertNonNullTypesContext_30(source, WithNonNullTypesTrue(), type, "A<System.String>");
+            AssertTryGetSpeculativeSemanticModel(source, WithNonNullTypesTrue(), type, "A<System.String>");
         }
 
         [Fact]
@@ -51207,7 +51207,7 @@ A<string>
 "
             );
 
-            AssertNonNullTypesContext_30(source, WithNonNullTypesFalse(), type, "A<System.String!>");
+            AssertTryGetSpeculativeSemanticModel(source, WithNonNullTypesFalse(), type, "A<System.String!>");
         }
 
         [Fact]
@@ -51234,7 +51234,7 @@ A<string>
 "
             );
 
-            AssertNonNullTypesContext_30(source, WithNonNullTypesTrue(), type, "A<System.String>");
+            AssertTryGetSpeculativeSemanticModel(source, WithNonNullTypesTrue(), type, "A<System.String>");
         }
 
         [Fact]
@@ -51261,7 +51261,7 @@ A<string>
 "
             );
 
-            AssertNonNullTypesContext_30(source, WithNonNullTypesFalse(), type, "A<System.String!>");
+            AssertTryGetSpeculativeSemanticModel(source, WithNonNullTypesFalse(), type, "A<System.String!>");
         }
 
         [Fact]
@@ -51289,7 +51289,7 @@ A<string>
 "
             );
 
-            AssertNonNullTypesContext_30(source, WithNonNullTypesTrue(), type, "A<System.String!>");
+            AssertTryGetSpeculativeSemanticModel(source, WithNonNullTypesTrue(), type, "A<System.String!>");
         }
 
         [Fact]
@@ -51317,7 +51317,163 @@ A<string>
 "
             );
 
-            AssertNonNullTypesContext_30(source, WithNonNullTypesFalse(), type, "A<System.String>");
+            AssertTryGetSpeculativeSemanticModel(source, WithNonNullTypesFalse(), type, "A<System.String>");
+        }
+
+        [Fact]
+        public void NonNullTypesContext_38()
+        {
+            var source =
+@"
+using B = C;
+#pragma warning disable CS0169
+
+class A
+{
+#nullable enable
+    B
+#nullable disable
+      F1;
+}
+
+class C {}
+";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesFalse());
+
+            var f1 = comp.GetMember<FieldSymbol>("A.F1");
+            Assert.Equal("C!", f1.Type.ToTestDisplayString(includeNonNullable: true));
+        }
+
+        [Fact]
+        public void NonNullTypesContext_39()
+        {
+            var source =
+@"
+using B = C;
+#pragma warning disable CS0169
+
+class A
+{
+#nullable disable
+    B
+#nullable enable
+      F1;
+}
+
+class C {}
+";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+
+            var f1 = comp.GetMember<FieldSymbol>("A.F1");
+            Assert.Equal("C", f1.Type.ToTestDisplayString(includeNonNullable: true));
+        }
+
+        [Fact]
+        public void NonNullTypesContext_40()
+        {
+            var source =
+@"
+#pragma warning disable CS0169
+
+class A
+{
+    C.
+#nullable enable
+    B
+#nullable disable
+      F1;
+}
+
+namespace C
+{
+    class B {}
+}
+";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesFalse());
+
+            var f1 = comp.GetMember<FieldSymbol>("A.F1");
+            Assert.Equal("C.B!", f1.Type.ToTestDisplayString(includeNonNullable: true));
+        }
+
+        [Fact]
+        public void NonNullTypesContext_41()
+        {
+            var source =
+@"
+#pragma warning disable CS0169
+
+class A
+{
+    C.
+#nullable disable
+    B
+#nullable enable
+      F1;
+}
+
+namespace C
+{
+    class B {}
+}
+";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+
+            var f1 = comp.GetMember<FieldSymbol>("A.F1");
+            Assert.Equal("C.B", f1.Type.ToTestDisplayString(includeNonNullable: true));
+        }
+
+        [Fact]
+        public void NonNullTypesContext_42()
+        {
+            var source =
+@"
+#pragma warning disable CS0169
+
+class A
+{
+    C.B<A
+#nullable enable
+       >
+#nullable disable
+         F1;
+}
+
+namespace C
+{
+    class B<T> {}
+}
+";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesFalse());
+
+            var f1 = comp.GetMember<FieldSymbol>("A.F1");
+            Assert.Equal("C.B<A>!", f1.Type.ToTestDisplayString(includeNonNullable: true));
+        }
+
+        [Fact]
+        public void NonNullTypesContext_43()
+        {
+            var source =
+@"
+#pragma warning disable CS0169
+
+class A
+{
+    C.B<A
+#nullable disable
+       >
+#nullable enable
+         F1;
+}
+
+namespace C
+{
+    class B<T> {}
+}
+";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+
+            var f1 = comp.GetMember<FieldSymbol>("A.F1");
+            Assert.Equal("C.B<A!>", f1.Type.ToTestDisplayString(includeNonNullable: true));
         }
 
         [Fact]
