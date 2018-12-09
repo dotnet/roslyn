@@ -912,6 +912,7 @@ namespace System
                     case WellKnownMember.System_Threading_Tasks_Sources_IValueTaskSource__GetStatus:
                     case WellKnownMember.System_Threading_Tasks_Sources_IValueTaskSource__OnCompleted:
                     case WellKnownMember.System_Threading_Tasks_ValueTask_T__ctor:
+                    case WellKnownMember.System_Threading_Tasks_ValueTask_T__ctorValue:
                     case WellKnownMember.System_Threading_Tasks_ValueTask__ctor:
                     case WellKnownMember.System_Runtime_CompilerServices_AsyncIteratorMethodBuilder__AwaitOnCompleted:
                     case WellKnownMember.System_Runtime_CompilerServices_AsyncIteratorMethodBuilder__AwaitUnsafeOnCompleted:

@@ -3299,7 +3299,7 @@ namespace Microsoft.CodeAnalysis
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Int16, // Argument
                     (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Threading_Tasks_Sources_ValueTaskSourceOnCompletedFlags - WellKnownType.ExtSentinel), // Argument
 
-                // System_Threading_Tasks_ValueTask_T__ctor,
+                // System_Threading_Tasks_ValueTask_T__ctor
                 (byte)MemberFlags.Constructor,                                                                                                                  // Flags
                 (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Threading_Tasks_ValueTask_T - WellKnownType.ExtSentinel),                          // DeclaringTypeId
                 0,                                                                                                                                              // Arity
@@ -3311,7 +3311,15 @@ namespace Microsoft.CodeAnalysis
                         (byte)SignatureTypeCode.GenericTypeParameter, 0,
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Int16, // Argument
 
-                // System_Threading_Tasks_ValueTask__ctor,
+                // System_Threading_Tasks_ValueTask_T__ctorValue
+                (byte)MemberFlags.Constructor,                                                                                                                  // Flags
+                (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Threading_Tasks_ValueTask_T - WellKnownType.ExtSentinel),                          // DeclaringTypeId
+                0,                                                                                                                                              // Arity
+                    1,                                                                                                                                          // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void, // Return Type
+                    (byte)SignatureTypeCode.GenericTypeParameter, 0, // Argument: T
+
+                // System_Threading_Tasks_ValueTask__ctor
                 (byte)MemberFlags.Constructor,                                                                                                                  // Flags
                 (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Threading_Tasks_ValueTask - WellKnownType.ExtSentinel),                            // DeclaringTypeId
                 0,                                                                                                                                              // Arity
@@ -3775,6 +3783,7 @@ namespace Microsoft.CodeAnalysis
                 "GetStatus",                                // System_Threading_Tasks_Sources_IValueTaskSource__GetStatus
                 "OnCompleted",                              // System_Threading_Tasks_Sources_IValueTaskSource__OnCompleted
                 ".ctor",                                    // System_Threading_Tasks_ValueTask_T__ctor
+                ".ctor",                                    // System_Threading_Tasks_ValueTask_T__ctorValue
                 ".ctor",                                    // System_Threading_Tasks_ValueTask__ctor
                 "Create",                                   // System_Runtime_CompilerServices_AsyncIteratorMethodBuilder__Create
                 "Complete",                                 // System_Runtime_CompilerServices_AsyncIteratorMethodBuilder__Complete
