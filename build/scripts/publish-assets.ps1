@@ -9,7 +9,7 @@
 [CmdletBinding(PositionalBinding=$false)]
 Param(
     # Standard options
-    [string]$config = "",
+    [string]$configuration = "",
     [string]$branchName = "",
     [string]$releaseName = "",
     [switch]$test,
@@ -143,14 +143,15 @@ function Normalize-BranchName([string]$branchName) {
 }
 
 try {
-    . (Join-Path $PSScriptRoot "build-utils.ps1")
-    $dotnet = Ensure-DotnetSdk
-    $nugetDir = Join-Path $BinariesConfigDir "NuGet"
-
-    if ($config -eq "") {
+    if ($configuration -eq "") {
         Write-Host "Must provide the build configuration with -config"
         exit 1
     }
+
+    . (Join-Path $PSScriptRoot "build-utils.ps1")
+
+    $dotnet = Ensure-DotnetSdk
+    $nugetDir = Join-Path $BinariesConfigDir "NuGet"
 
     Write-Host "Downloading PublishData.json"
     $publishFileContent = (Invoke-WebRequest -Uri "https://raw.githubusercontent.com/dotnet/roslyn/master/build/config/PublishData.json" -UseBasicParsing).Content
