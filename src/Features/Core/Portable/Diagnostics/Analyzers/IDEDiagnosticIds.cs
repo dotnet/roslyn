@@ -99,6 +99,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public const string ValueAssignedIsUnusedDiagnosticId = "IDE0059";
         public const string UnusedParameterDiagnosticId = "IDE0060";
 
+        public const string UseExpressionBodyForLocalFunctionsDiagnosticId = "IDE0061";
+
         // Analyzer error Ids
         public const string AnalyzerChangedId = "IDE1001";
         public const string AnalyzerDependencyConflictId = "IDE1002";
