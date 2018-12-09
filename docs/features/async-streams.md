@@ -268,3 +268,37 @@ finallyEntryLabel:
 
 In both cases, we will add a `if (disposeMode) /* jump to next finally or exit */` after the block for `finally` logic.
 
+#### State values and transitions
+
+The enumerable starts with state -2.
+Calling GetAsyncEnumerator sets the state to -1, or returns a fresh enumerator (also with state -1).
+
+From there, MoveNext will either:
+- reach the end of the method (-2)
+- reach a `yield break` (-1, dispose mode = true)
+- reach a `yield return` or `await` (N)
+
+From suspended state N, MoveNext will resume execution (-1).
+But if the suspension was a `yield return`, you could also call DisposeAsync, which resumes execution (-1) in dispose mode.
+
+When in dispose mode, MoveNext continues to suspend (N) and resume (-1) until the end of the method is reached (-2).
+
+```
+   GetAsyncEnumerator    suspension (yield return, await)
+-2 -----------------> -1 -------------------------------> N
+ ^                   |  ^                                 |   Dispose mode = false
+ | done and disposed |  |          resuming               |
+ +-------------------+  +---------------------------------+
+ |                   |                                    |
+ |                   |                                    |
+ |             yield |                                    |
+ |             break |           DisposeAsync             |
+ |                   |  +---------------------------------+
+ |                   |  |
+ |                   |  |
+ | done and disposed v  v     suspension (await)
+ +------------------- -1 -------------------------------> N
+                        ^                                 |   Dispose mode = true
+                        |          resuming               |
+                        +---------------------------------+
+```

@@ -118,8 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal void GenerateMoveNext(BoundStatement body, MethodSymbol moveNextMethod)
         {
             F.CurrentFunction = moveNextMethod;
-
-            BoundStatement rewrittenBody = (BoundStatement)Visit(body);
+            BoundStatement rewrittenBody = VisitBody(body);
 
             ImmutableArray<StateMachineFieldSymbol> rootScopeHoistedLocals;
             TryUnwrapBoundStateMachineScope(ref rewrittenBody, out rootScopeHoistedLocals);
@@ -254,6 +253,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         #region Visitors
+
+        protected virtual BoundStatement VisitBody(BoundStatement body)
+        {
+            return (BoundStatement)Visit(body);
+        }
 
         public sealed override BoundNode VisitExpressionStatement(BoundExpressionStatement node)
         {

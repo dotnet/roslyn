@@ -115,6 +115,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         #region Visitors
+
+        protected override BoundStatement VisitBody(BoundStatement body)
+        {
+            return F.Block(
+                // disposeMode = false;
+                SetDisposeMode(false),
+                (BoundStatement)Visit(body));
+        }
+
         public override BoundNode VisitYieldReturnStatement(BoundYieldReturnStatement node)
         {
             // Produce:
@@ -174,9 +183,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return F.Block(
                 // disposeMode = true;
-                F.Assignment(F.Field(F.This(), _asyncIteratorInfo.DisposeModeField), F.Literal(true)),
+                SetDisposeMode(true),
                 // goto _currentFinallyOrExitLabel;
                 F.Goto(_currentFinallyOrExitLabel));
+        }
+
+        private BoundExpressionStatement SetDisposeMode(bool value)
+        {
+            return F.Assignment(F.Field(F.This(), _asyncIteratorInfo.DisposeModeField), F.Literal(value));
         }
 
         /// <summary>
