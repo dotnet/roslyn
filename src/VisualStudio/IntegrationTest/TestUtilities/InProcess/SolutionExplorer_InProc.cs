@@ -106,8 +106,13 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
             string solutionPath = IntegrationHelper.CreateTemporaryPath();
             IntegrationHelper.DeleteDirectoryRecursively(solutionPath);
+            Directory.CreateDirectory(solutionPath);
 
             dte.Solution.Create(solutionPath, solutionName);
+
+            // Workaround for https://devdiv.visualstudio.com/DevDiv/_workitems/edit/627280
+            var solution = GetGlobalService<SVsSolution, IVsSolution>();
+            ErrorHandler.ThrowOnFailure(solution.SaveSolutionElement((uint)__VSSLNSAVEOPTIONS.SLNSAVEOPT_ForceSave, null, 0));
 
             _solution = (Solution2)dte.Solution;
             _fileName = Path.Combine(solutionPath, $"{solutionName}.sln");
