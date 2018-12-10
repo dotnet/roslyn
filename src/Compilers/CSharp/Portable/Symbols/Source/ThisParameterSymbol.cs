@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override FlowAnalysisAnnotations FlowAnalysisAnnotations
         {
-            get { return FlowAnalysisAnnotations.None;  }
+            get { return FlowAnalysisAnnotations.None; }
         }
 
         public override int Ordinal

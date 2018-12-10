@@ -161,7 +161,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
                 _debugEncNotify.NotifyEncEditDisallowedByProject(_workspace.GetHierarchy(documentId.ProjectId));
                 return;
             }
-            
+
             // NotifyEncEditDisallowedByProject is broken if the project isn't built at the time the debugging starts (debugger bug 877586).
             string message;
             if (sessionReason == SessionReadOnlyReason.Running)
@@ -257,7 +257,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
                     {
                         log.Write("StartDebuggingPE: error reading MVID of '{0}' ('{1}'): {2}", _project.Id.ToString(), outputPath, e.Message);
                         _mvid = Guid.Empty;
-                        ReportInternalError(InternalErrorCode.ErrorReadingFile, new[] { outputPath, e.Message }); 
+                        ReportInternalError(InternalErrorCode.ErrorReadingFile, new[] { outputPath, e.Message });
                     }
                 }
                 else
@@ -683,7 +683,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
                         _encService.EditSession.LogEditSession(s_encDebuggingSessionInfo);
 
                         // If no edits were made the pending list will be empty and we need to keep the previous regions.
-                        var newNonRemappableRegions = (s_pendingNonRemappableRegions.Count == 0) ? null : 
+                        var newNonRemappableRegions = (s_pendingNonRemappableRegions.Count == 0) ? null :
                             GroupToImmutable(
                                 from regionsPerModule in s_pendingNonRemappableRegions
                                 from region in regionsPerModule
@@ -706,9 +706,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
                     _changesApplied = false;
 
                     _diagnosticProvider.ClearDiagnostics(
-                        new EncErrorId(_encService.DebuggingSession, EditAndContinueDiagnosticUpdateSource.EmitErrorId), 
+                        new EncErrorId(_encService.DebuggingSession, EditAndContinueDiagnosticUpdateSource.EmitErrorId),
                         _workspace.CurrentSolution,
-                        _project.Id, 
+                        _project.Id,
                         _documentsWithEmitError);
 
                     _documentsWithEmitError = ImmutableArray<DocumentId>.Empty;
@@ -762,7 +762,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
                 // so we'll to emit an empty delta. See bug 839558.
                 Debug.Assert(_lastEditSessionSummary == ProjectAnalysisSummary.ValidInsignificantChanges ||
                              _lastEditSessionSummary == ProjectAnalysisSummary.ValidChanges);
-                
+
                 // ISymUnmanagedReader can only be accessed from an MTA thread,
                 // so dispatch emit to one of thread pool threads, which are MTA.
                 var emitTask = Task.Factory.SafeStartNew(EmitProjectDelta, CancellationToken.None, TaskScheduler.Default);
@@ -933,7 +933,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
         private Deltas EmitProjectDelta()
         {
             Debug.Assert(Thread.CurrentThread.GetApartmentState() == ApartmentState.MTA);
-            
+
             var baseline = _committedBaseline;
             if (baseline == null)
             {

@@ -25,7 +25,7 @@ class C
             var compilation = CreateCompilationWithMscorlib45(source);
             var tree = compilation.SyntaxTrees[0];
             var model = compilation.GetSemanticModel(tree);
-            var node = (ObjectCreationExpressionSyntax) tree.GetRoot().DescendantNodes().Where(n => n.ToString() == "new C(0)").Last();
+            var node = (ObjectCreationExpressionSyntax)tree.GetRoot().DescendantNodes().Where(n => n.ToString() == "new C(0)").Last();
             var identifierName = node.Type;
 
             var symbolInfo = model.GetSymbolInfo(node);

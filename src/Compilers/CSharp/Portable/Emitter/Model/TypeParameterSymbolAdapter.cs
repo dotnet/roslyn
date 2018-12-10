@@ -228,7 +228,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (this.HasUnmanagedTypeConstraint)
             {
                 var typeRef = moduleBeingBuilt.GetSpecialType(
-                    SpecialType.System_ValueType,                  
+                    SpecialType.System_ValueType,
                     syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt,
                     diagnostics: context.Diagnostics);
 

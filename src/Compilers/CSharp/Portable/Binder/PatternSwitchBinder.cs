@@ -29,11 +29,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                    var parseOptions = SwitchSyntax?.SyntaxTree?.Options as CSharpParseOptions;
-                    return
-                        parseOptions?.Features.ContainsKey("testV7SwitchBinder") == true ||
-                        HasPatternSwitchSyntax(SwitchSyntax) ||
-                        !SwitchGoverningType.IsValidV6SwitchGoverningType();
+                var parseOptions = SwitchSyntax?.SyntaxTree?.Options as CSharpParseOptions;
+                return
+                    parseOptions?.Features.ContainsKey("testV7SwitchBinder") == true ||
+                    HasPatternSwitchSyntax(SwitchSyntax) ||
+                    !SwitchGoverningType.IsValidV6SwitchGoverningType();
             }
         }
 

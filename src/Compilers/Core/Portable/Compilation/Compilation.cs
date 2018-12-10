@@ -2414,7 +2414,7 @@ namespace Microsoft.CodeAnalysis
                         {
                             ReportUnusedImports(null, diagnostics, cancellationToken);
                         }
-                   }
+                    }
                 }
                 finally
                 {
@@ -2656,15 +2656,15 @@ namespace Microsoft.CodeAnalysis
                     return ret;
                 };
 
-                Func<Stream> getRefPeStream = 
+                Func<Stream> getRefPeStream =
                     metadataPEStreamProvider == null
                     ? null
-                    : (Func<Stream>) (() => ConditionalGetOrCreateStream(metadataPEStreamProvider, metadataDiagnostics));
+                    : (Func<Stream>)(() => ConditionalGetOrCreateStream(metadataPEStreamProvider, metadataDiagnostics));
 
                 Func<Stream> getPortablePdbStream =
                     moduleBeingBuilt.DebugInformationFormat != DebugInformationFormat.PortablePdb || pdbStreamProvider == null
                     ? null
-                    : (Func<Stream>) (() => ConditionalGetOrCreateStream(pdbStreamProvider, metadataDiagnostics));
+                    : (Func<Stream>)(() => ConditionalGetOrCreateStream(pdbStreamProvider, metadataDiagnostics));
 
                 try
                 {

@@ -46,7 +46,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
                 EnsureSubscribedToRunningDocumentTableEvents();
             }
         }
-       
+
         public void StopTrackingProject(VisualStudioProject project)
         {
             AssertIsForeground();

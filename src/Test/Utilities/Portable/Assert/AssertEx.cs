@@ -177,11 +177,11 @@ namespace Roslyn.Test.Utilities
         }
 
         public static void Equal<T>(
-            IEnumerable<T> expected, 
-            IEnumerable<T> actual, 
+            IEnumerable<T> expected,
+            IEnumerable<T> actual,
             IEqualityComparer<T> comparer = null,
             string message = null,
-            string itemSeparator = null, 
+            string itemSeparator = null,
             Func<T, string> itemInspector = null,
             string expectedValueSourcePath = null,
             int expectedValueSourceLine = 0)

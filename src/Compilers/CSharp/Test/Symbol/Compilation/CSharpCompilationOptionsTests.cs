@@ -449,7 +449,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(a, a);
             Assert.Equal(a.GetHashCode(), a.GetHashCode());
             Assert.Same(a, a.WithNullable(false));
-            
+
             CSharpCompilationOptions b = a.WithNullable(true);
             Assert.True(b.Nullable);
             Assert.NotEqual(a, b);

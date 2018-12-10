@@ -168,7 +168,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
             AppDomain appDomain,
             ImmutableArray<MetadataBlock> blocks,
             (Guid ModuleVersionId, ISymUnmanagedReader SymReader, int MethodToken, int LocalSignatureToken, uint ILOffset) state,
-            MakeAssemblyReferencesKind kind =  MakeAssemblyReferencesKind.AllReferences)
+            MakeAssemblyReferencesKind kind = MakeAssemblyReferencesKind.AllReferences)
         {
             return CreateMethodContext(
                 appDomain,

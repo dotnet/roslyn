@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Operations
         /// Reference to the event being bound.
         /// </summary>
         IOperation EventReference { get; }
-        
+
         /// <summary>
         /// Handler supplied for the event.
         /// </summary>

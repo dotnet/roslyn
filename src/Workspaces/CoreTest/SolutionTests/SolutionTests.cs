@@ -1506,11 +1506,11 @@ public class C : A {
 
             // create recoverable tree off the original tree
             var recoverableTree = factory.CreateRecoverableTree(
-                dummyProject.Id, 
-                strongTree.FilePath, 
-                strongTree.Options, 
-                new ConstantValueSource<TextAndVersion>(TextAndVersion.Create(strongTree.GetText(), VersionStamp.Create(), strongTree.FilePath)), 
-                strongTree.GetText().Encoding, 
+                dummyProject.Id,
+                strongTree.FilePath,
+                strongTree.Options,
+                new ConstantValueSource<TextAndVersion>(TextAndVersion.Create(strongTree.GetText(), VersionStamp.Create(), strongTree.FilePath)),
+                strongTree.GetText().Encoding,
                 strongTree.GetRoot());
 
             // create new tree before it ever getting root node
