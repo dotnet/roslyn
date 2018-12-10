@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 method.IsIAsyncEnumeratorReturningAsync(compilation);
             if (isAsyncEnumerableOrEnumerator && !method.IsIterator)
             {
-                diagnostics.Add(new CSDiagnosticInfo(ErrorCode.ERR_PossibleAsyncIteratorWithoutYield, method.ReturnType), method.Locations[0]);
+                diagnostics.Add(ErrorCode.ERR_PossibleAsyncIteratorWithoutYield, method.Locations[0], method.ReturnType);
                 stateMachineType = null;
                 return body;
             }

@@ -1290,7 +1290,7 @@ class C
 
         [Fact]
         [WorkItem(31552, "https://github.com/dotnet/roslyn/issues/31552")]
-        public void AsyncIterator_WithoutBody()
+        public void AsyncIterator_WithEmptyBody()
         {
             string source = @"
 class C
