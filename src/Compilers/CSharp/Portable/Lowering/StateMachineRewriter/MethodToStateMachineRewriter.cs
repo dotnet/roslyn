@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // create cache local for reference type "this" in Release
             var thisParameter = originalMethod.ThisParameter;
             CapturedSymbolReplacement thisProxy;
-            if ((object)thisParameter != null && 
+            if ((object)thisParameter != null &&
                 thisParameter.Type.IsReferenceType &&
                 proxies.TryGetValue(thisParameter, out thisProxy) &&
                 F.Compilation.Options.OptimizationLevel == OptimizationLevel.Release)
@@ -612,12 +612,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // Editing await expression is not allowed. Thus all spilled fields will be present in the previous state machine.
                         // However, it may happen that the type changes, in which case we need to allocate a new slot.
                         int slotIndex;
-                        if (slotAllocatorOpt == null || 
+                        if (slotAllocatorOpt == null ||
                             !slotAllocatorOpt.TryGetPreviousHoistedLocalSlotIndex(
-                                awaitSyntaxOpt, 
-                                F.ModuleBuilderOpt.Translate(fieldType, awaitSyntaxOpt, Diagnostics), 
+                                awaitSyntaxOpt,
+                                F.ModuleBuilderOpt.Translate(fieldType, awaitSyntaxOpt, Diagnostics),
                                 kind,
-                                id, 
+                                id,
                                 Diagnostics,
                                 out slotIndex))
                         {

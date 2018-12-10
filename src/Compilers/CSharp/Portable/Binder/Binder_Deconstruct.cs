@@ -340,13 +340,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.DeconstructionVariablePendingInference:
                     {
                         var pending = (DeconstructionVariablePendingInference)expression;
-                        return pending.SetInferredType(TypeSymbolWithAnnotations.Create(NonNullTypesContext, type), this, diagnostics);
+                        return pending.SetInferredType(TypeSymbolWithAnnotations.Create(type), this, diagnostics);
                     }
                 case BoundKind.DiscardExpression:
                     {
                         var pending = (BoundDiscardExpression)expression;
                         Debug.Assert((object)pending.Type == null);
-                        return pending.SetInferredType(TypeSymbolWithAnnotations.Create(NonNullTypesContext, type));
+                        return pending.SetInferredType(TypeSymbolWithAnnotations.Create(type));
                     }
                 default:
                     throw ExceptionUtilities.UnexpectedValue(expression.Kind);

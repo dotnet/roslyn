@@ -157,7 +157,7 @@ namespace Microsoft.DiaSymReader
             moduleName = null;
 
             var clsid = new Guid(createReader ? SymReaderClsid : SymWriterClsid);
-            
+
             try
             {
                 try

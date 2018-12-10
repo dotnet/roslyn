@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             csc.ChecksumAlgorithm = "";
             Assert.Equal("/out:test.exe /checksumalgorithm: test.cs", csc.GenerateResponseFileContents());
         }
-        
+
         [Fact]
         public void InstrumentTestNamesFlag()
         {
@@ -350,7 +350,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             csc.NullableReferenceTypes = false;
             Assert.Equal("/nullable- /out:test.exe test.cs", csc.GenerateResponseFileContents());
         }
-        
+
         [Fact, WorkItem(29252, "https://github.com/dotnet/roslyn/issues/29252")]
         public void DisableSdkPath()
         {

@@ -569,7 +569,7 @@ End Class
     </file>
 </compilation>
 
-            CompileAndVerify(text, expectedOutput:="0" & Environment.NewLine & "0" & Environment.NewLine & "0" & Environment.NewLine) 
+            CompileAndVerify(text, expectedOutput:="0" & Environment.NewLine & "0" & Environment.NewLine & "0" & Environment.NewLine)
         End Sub
 
         ' Derived.

@@ -962,19 +962,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// parameters in the type.</param>
         public NamedTypeSymbol Construct(params TypeSymbol[] typeArguments)
         {
-            // https://github.com/dotnet/roslyn/issues/30064: We should fix the callers to pass an explicit context.
-            return ConstructWithoutModifiers(typeArguments.AsImmutableOrNull(), false, NonNullTypesNullContext.Instance);
-        }
-
-        /// <summary>
-        /// Returns a constructed type given its type arguments.
-        /// </summary>
-        /// <param name="nonNullTypesContext">This context indicates how to interpret un-annotated types.</param>
-        /// <param name="typeArguments">The immediate type arguments to be replaced for type
-        /// parameters in the type.</param>
-        public NamedTypeSymbol Construct(INonNullTypesContext nonNullTypesContext, params TypeSymbol[] typeArguments)
-        {
-            return ConstructWithoutModifiers(typeArguments.AsImmutableOrNull(), false, nonNullTypesContext);
+            // https://github.com/dotnet/roslyn/issues/30064: We should fix the callers to pass TypeSymbolWithAnnotations[] instead of TypeSymbol[].
+            return ConstructWithoutModifiers(typeArguments.AsImmutableOrNull(), false);
         }
 
         /// <summary>
@@ -982,10 +971,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         /// <param name="typeArguments">The immediate type arguments to be replaced for type
         /// parameters in the type.</param>
-        public NamedTypeSymbol Construct(ImmutableArray<TypeSymbol> typeArguments, INonNullTypesContext nonNullTypesContext = null)
+        public NamedTypeSymbol Construct(ImmutableArray<TypeSymbol> typeArguments)
         {
-            // https://github.com/dotnet/roslyn/issues/30064: We should fix the callers to pass an explicit context.
-            return ConstructWithoutModifiers(typeArguments, false, nonNullTypesContext ?? NonNullTypesNullContext.Instance);
+            // https://github.com/dotnet/roslyn/issues/30064: We should fix the callers to pass ImmutableArray<TypeSymbolWithAnnotations> instead of ImmutableArray<TypeSymbol>.
+            return ConstructWithoutModifiers(typeArguments, false);
         }
 
         /// <summary>
@@ -994,8 +983,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <param name="typeArguments"></param>
         public NamedTypeSymbol Construct(IEnumerable<TypeSymbol> typeArguments)
         {
-            // https://github.com/dotnet/roslyn/issues/30064: We should fix the callers to pass an explicit context.
-            return ConstructWithoutModifiers(typeArguments.AsImmutableOrNull(), false, NonNullTypesNullContext.Instance);
+            // https://github.com/dotnet/roslyn/issues/30064: We should fix the callers to pass IEnumerable<TypeSymbolWithAnnotations> instead of IEnumerable<TypeSymbol>.
+            return ConstructWithoutModifiers(typeArguments.AsImmutableOrNull(), false);
         }
 
         /// <summary>
@@ -1025,7 +1014,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal static readonly Func<TypeSymbolWithAnnotations, bool> TypeSymbolIsErrorType = type => !type.IsNull && type.IsErrorType();
 
-        private NamedTypeSymbol ConstructWithoutModifiers(ImmutableArray<TypeSymbol> typeArguments, bool unbound, INonNullTypesContext nonNullTypesContext)
+        private NamedTypeSymbol ConstructWithoutModifiers(ImmutableArray<TypeSymbol> typeArguments, bool unbound)
         {
             ImmutableArray<TypeSymbolWithAnnotations> modifiedArguments;
 
@@ -1035,7 +1024,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else
             {
-                modifiedArguments = typeArguments.SelectAsArray((t, c) => t == null ? default : TypeSymbolWithAnnotations.Create(c, t), nonNullTypesContext);
+                modifiedArguments = typeArguments.SelectAsArray(t => TypeSymbolWithAnnotations.Create(t));
             }
 
             return Construct(modifiedArguments, unbound);
@@ -1403,15 +1392,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 return this.GetEffectiveDefaultMarshallingCharSet() ?? CharSet.Ansi;
-            }
-        }
-
-        public override bool? NonNullTypes
-        {
-            get
-            {
-                Debug.Assert(IsDefinition);
-                return ((Symbol)ContainingType ?? base.ContainingModule)?.NonNullTypes;
             }
         }
 

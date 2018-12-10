@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis
         {
             return typeOpt?.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T;
         }
-        
+
         internal static bool IsNullableOfBoolean(ITypeSymbol type)
         {
             return IsNullableType(type) && IsBooleanType(GetNullableUnderlyingType(type));

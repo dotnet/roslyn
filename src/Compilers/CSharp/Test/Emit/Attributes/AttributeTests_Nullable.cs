@@ -1493,7 +1493,7 @@ class C
                 AssertAttributes(reader, customAttributes,
                     "MemberReference:Void System.Runtime.CompilerServices.TupleElementNamesAttribute..ctor(String[])",
                     "MethodDefinition:Void System.Runtime.CompilerServices.NullableAttribute..ctor(Byte[])");
-                customAttribute = reader.GetCustomAttribute(customAttributes.ElementAt(1)); 
+                customAttribute = reader.GetCustomAttribute(customAttributes.ElementAt(1));
                 AssertEx.Equal(ImmutableArray.Create<byte>(0, 2, 0, 2, 0, 2, 0, 2, 0, 0, 2), reader.ReadByteArray(customAttribute.Value));
             });
 

@@ -150,7 +150,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
                             {
                                 // We cannot just pass executeNextCommandTarget becuase it would execute TYPECHAR
                                 var showMemberListCmdGroupId = VSConstants.VSStd2K;
-                                NextCommandTarget.Exec(ref showMemberListCmdGroupId, (uint)VSConstants.VSStd2KCmdID.SHOWMEMBERLIST, 
+                                NextCommandTarget.Exec(ref showMemberListCmdGroupId, (uint)VSConstants.VSStd2KCmdID.SHOWMEMBERLIST,
                                     executeInformation, pvaIn, pvaOut);
                             });
                         }

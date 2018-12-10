@@ -485,7 +485,7 @@ namespace Microsoft.Cci
                 {
                     _symWriter.DefineLocalConstant(
                         scopeConstant.Name,
-                        scopeConstant.CompileTimeValue.Value, 
+                        scopeConstant.CompileTimeValue.Value,
                         MetadataTokens.GetToken(signatureHandle));
                 }
             }
@@ -599,11 +599,11 @@ namespace Microsoft.Cci
 
             documentIndex = _symWriter.DefineDocument(
                 document.Location,
-                document.Language, 
+                document.Language,
                 document.LanguageVendor,
                 document.DocumentType,
-                algorithmId, 
-                checksum, 
+                algorithmId,
+                checksum,
                 embeddedSource);
 
             _documentIndex.Add(document, documentIndex);

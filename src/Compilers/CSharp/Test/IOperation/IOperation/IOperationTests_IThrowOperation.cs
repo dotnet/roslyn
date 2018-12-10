@@ -962,7 +962,7 @@ label1:
             var compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics();
-            
+
             string expectedGraph = @"
 Block[B0] - Entry
     Statements (0)
@@ -1017,7 +1017,7 @@ label1:
             var compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics();
-            
+
             string expectedGraph = @"
 Block[B0] - Entry
     Statements (0)
@@ -1081,7 +1081,7 @@ label1:
             var compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics();
-            
+
             string expectedGraph = @"
 Block[B0] - Entry
     Statements (0)
@@ -1130,7 +1130,7 @@ label1:
             var compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics();
-            
+
             string expectedGraph = @"
 Block[B0] - Entry
     Statements (0)
@@ -1494,7 +1494,7 @@ label2:
             var compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics();
-            
+
             string expectedGraph = @"
 Block[B0] - Entry
     Statements (0)

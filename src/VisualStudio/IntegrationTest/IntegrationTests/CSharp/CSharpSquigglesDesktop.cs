@@ -11,7 +11,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
     public class CSharpSquigglesDesktop : CSharpSquigglesCommon
     {
         public CSharpSquigglesDesktop(VisualStudioInstanceFactory instanceFactory)
-            :base(instanceFactory, WellKnownProjectTemplates.ClassLibrary)
+            : base(instanceFactory, WellKnownProjectTemplates.ClassLibrary)
         {
         }
 

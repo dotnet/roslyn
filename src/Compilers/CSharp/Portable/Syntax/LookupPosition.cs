@@ -179,7 +179,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
             return initializerOpt == null ?
                 IsInBody(position, constructorDecl) :
-                IsBetweenTokens(position, initializerOpt.ColonToken, 
+                IsBetweenTokens(position, initializerOpt.ColonToken,
                                 constructorDecl.SemicolonToken.Kind() == SyntaxKind.None ? constructorDecl.Body.CloseBraceToken : constructorDecl.SemicolonToken);
         }
 
@@ -437,7 +437,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 case SyntaxKind.AnonymousMethodExpression:
                     AnonymousMethodExpressionSyntax anon = (AnonymousMethodExpressionSyntax)lambdaExpressionOrQueryNode;
                     body = anon.Block;
-                    firstIncluded = body.GetFirstToken(includeZeroWidth:true);
+                    firstIncluded = body.GetFirstToken(includeZeroWidth: true);
                     break;
 
                 default:

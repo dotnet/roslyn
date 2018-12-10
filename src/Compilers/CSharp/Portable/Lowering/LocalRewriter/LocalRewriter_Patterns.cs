@@ -215,7 +215,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var assignment = _factory.AssignmentExpression(loweredTarget, convertedInput);
                         return _factory.MakeSequence(assignment, _factory.Literal(true));
                     }
-                    
+
                 }
                 else
                 {

@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
             }
-            
+
             BoundExpression convertedCount = _factory.Convert(uintType, countExpression, Conversion.ExplicitNumeric);
             convertedCount = _factory.Convert(uintPtrType, convertedCount, Conversion.IntegerToPointer);
 

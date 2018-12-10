@@ -20205,7 +20205,7 @@ namespace B
     }
 }";
             var referenceB = CreateCompilation(codeB, references: new MetadataReference[] { referenceC }, assemblyName: "B").EmitToImageReference();
-            
+
             var codeC2 = @"
 .assembly C { }
 .module C.dll

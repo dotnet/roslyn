@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             return textView.GetOrCreatePerSubjectBufferProperty(subjectBuffer, s_controllerPropertyKey,
                 (v, b) => new Controller(
                     threadingContext,
-                    textView, subjectBuffer, editorOperationsFactoryService, undoHistoryRegistry, 
+                    textView, subjectBuffer, editorOperationsFactoryService, undoHistoryRegistry,
                     presenter, asyncListener, autoBraceCompletionChars, isDebugger, isImmediateWindow));
         }
 

@@ -69,7 +69,7 @@ namespace Microsoft.DiaSymReader
         /// <exception cref="InvalidOperationException">Writes are not allowed to the underlying stream.</exception>
         /// <exception cref="SymUnmanagedWriterException">Error occurred while writing PDB data.</exception>
         public abstract void CloseMethod();
-        
+
         /// <summary>
         /// Opens a local scope.
         /// </summary>
@@ -105,7 +105,7 @@ namespace Microsoft.DiaSymReader
         /// <exception cref="SymUnmanagedWriterException">Error occurred while writing PDB data.</exception>
         /// <exception cref="ArgumentNullException"><paramref name="name"/> is null</exception>
         public abstract bool DefineLocalConstant(string name, object value, int constantSignatureToken);
-        
+
         /// <summary>
         /// Adds namespace import.
         /// </summary>

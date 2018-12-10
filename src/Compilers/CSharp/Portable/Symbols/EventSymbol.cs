@@ -91,15 +91,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal abstract bool HasSpecialName { get; }
 
-        public override bool? NonNullTypes
-        {
-            get
-            {
-                Debug.Assert(IsDefinition);
-                return ContainingType?.NonNullTypes;
-            }
-        }
-
         /// <summary>
         /// Gets the attributes on event's associated field, if any.
         /// Returns an empty <see cref="ImmutableArray&lt;AttributeData&gt;"/> if

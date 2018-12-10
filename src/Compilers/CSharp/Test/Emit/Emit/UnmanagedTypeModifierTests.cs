@@ -1330,7 +1330,7 @@ public class Test
 }";
 
             var c = CreateCompilation(code, references: new[] { reference });
-            
+
             c.VerifyDiagnostics(
                 // (10,23): error CS0315: The type 'Test.S1' cannot be used as type parameter 'T' in the generic type or method 'TestRef.M<T>()'. There is no boxing conversion from 'Test.S1' to 'System.IComparable'.
                 //         new TestRef().M<S1>();
