@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
             {
                 _listener = listener;
 
-                listener.Increment();
+                listener.Increment_NoLock();
             }
 
             public void Dispose()
@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
                     }
 
                     _disposed = true;
-                    _listener.Decrement(this);
+                    _listener.Decrement_NoLock(this);
                 }
             }
         }

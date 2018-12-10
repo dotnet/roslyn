@@ -53,13 +53,13 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
             }
         }
 
-        private void Increment()
+        private void Increment_NoLock()
         {
             Contract.ThrowIfFalse(_gate.LockHeldByMe());
             _counter++;
         }
 
-        private void Decrement(AsyncToken token)
+        private void Decrement_NoLock(AsyncToken token)
         {
             Contract.ThrowIfFalse(_gate.LockHeldByMe());
 
