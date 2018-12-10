@@ -14,12 +14,11 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Roslyn.Diagnostics.Analyzers
 {
-    [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
-    public sealed class SymbolIsBannedAnalyzer : DiagnosticAnalyzer
+    internal static class SymbolIsBannedAnalyzer
     {
-        internal const string BannedSymbolsFileName = "BannedSymbols.txt";
+        public const string BannedSymbolsFileName = "BannedSymbols.txt";
 
-        internal static readonly DiagnosticDescriptor SymbolIsBannedRule = new DiagnosticDescriptor(
+        public static readonly DiagnosticDescriptor SymbolIsBannedRule = new DiagnosticDescriptor(
             id: RoslynDiagnosticIds.SymbolIsBannedRuleId,
             title: RoslynDiagnosticsAnalyzersResources.SymbolIsBannedTitle,
             messageFormat: RoslynDiagnosticsAnalyzersResources.SymbolIsBannedMessage,
@@ -29,7 +28,7 @@ namespace Roslyn.Diagnostics.Analyzers
             description: RoslynDiagnosticsAnalyzersResources.SymbolIsBannedDescription,
             customTags: WellKnownDiagnosticTags.Telemetry);
 
-        internal static readonly DiagnosticDescriptor DuplicateBannedSymbolRule = new DiagnosticDescriptor(
+        public static readonly DiagnosticDescriptor DuplicateBannedSymbolRule = new DiagnosticDescriptor(
             id: RoslynDiagnosticIds.DuplicateBannedSymbolRuleId,
             title: RoslynDiagnosticsAnalyzersResources.DuplicateBannedSymbolTitle,
             messageFormat: RoslynDiagnosticsAnalyzersResources.DuplicateBannedSymbolMessage,
@@ -38,9 +37,19 @@ namespace Roslyn.Diagnostics.Analyzers
             isEnabledByDefault: DiagnosticHelpers.EnabledByDefaultIfNotBuildingVSIX,
             description: RoslynDiagnosticsAnalyzersResources.DuplicateBannedSymbolDescription,
             customTags: WellKnownDiagnosticTags.Telemetry);
+    }
 
+    public abstract class SymbolIsBannedAnalyzer<TSyntaxKind> : DiagnosticAnalyzer
+        where TSyntaxKind : struct
+    {
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics =>
-            ImmutableArray.Create(SymbolIsBannedRule, DuplicateBannedSymbolRule);
+            ImmutableArray.Create(SymbolIsBannedAnalyzer.SymbolIsBannedRule, SymbolIsBannedAnalyzer.DuplicateBannedSymbolRule);
+
+        protected abstract TSyntaxKind XmlCrefSyntaxKind { get; }
+
+        protected abstract SyntaxNode GetReferenceSyntaxNodeFromXmlCref(SyntaxNode syntaxNode);
+
+        protected abstract SymbolDisplayFormat SymbolDisplayFormat { get; }
 
         public override void Initialize(AnalysisContext context)
         {
@@ -52,7 +61,7 @@ namespace Roslyn.Diagnostics.Analyzers
             context.RegisterCompilationStartAction(OnCompilationStart);
         }
 
-        private static void OnCompilationStart(CompilationStartAnalysisContext compilationContext)
+        private void OnCompilationStart(CompilationStartAnalysisContext compilationContext)
         {
             var bannedSymbols = ReadBannedApis();
 
@@ -62,10 +71,6 @@ namespace Roslyn.Diagnostics.Analyzers
             }
 
             var messageByBannedSymbol = bannedSymbols.ToDictionary(s => s.symbol, s => s.message);
-
-            var symbolDisplayFormat = compilationContext.Compilation.Language == LanguageNames.CSharp
-                ? SymbolDisplayFormat.CSharpShortErrorMessageFormat
-                : SymbolDisplayFormat.VisualBasicShortErrorMessageFormat;
 
             var bannedAttributes = bannedSymbols
                 .Where(s => s.symbol is ITypeSymbol n && n.IsAttribute())
@@ -119,18 +124,9 @@ namespace Roslyn.Diagnostics.Analyzers
                 OperationKind.MethodReference,
                 OperationKind.PropertyReference);
 
-            if (compilationContext.Compilation.Language == LanguageNames.CSharp)
-            {
-                compilationContext.RegisterSyntaxNodeAction(
-                    context => VerifyDocumentationSyntax(((Microsoft.CodeAnalysis.CSharp.Syntax.XmlCrefAttributeSyntax)context.Node).Cref, context),
-                    Microsoft.CodeAnalysis.CSharp.SyntaxKind.XmlCrefAttribute);
-            }
-            else if (compilationContext.Compilation.Language == LanguageNames.VisualBasic)
-            {
-                compilationContext.RegisterSyntaxNodeAction(
-                    context => VerifyDocumentationSyntax(((Microsoft.CodeAnalysis.VisualBasic.Syntax.XmlCrefAttributeSyntax)context.Node).Reference, context),
-                    Microsoft.CodeAnalysis.VisualBasic.SyntaxKind.XmlCrefAttribute);
-            }
+            compilationContext.RegisterSyntaxNodeAction(
+                context => VerifyDocumentationSyntax(GetReferenceSyntaxNodeFromXmlCref(context.Node), context),
+                XmlCrefSyntaxKind);
 
             compilationContext.RegisterCompilationEndAction(
                 context =>
@@ -151,7 +147,7 @@ namespace Roslyn.Diagnostics.Analyzers
             {
                 var query =
                     from additionalFile in compilationContext.Options.AdditionalFiles
-                    where StringComparer.Ordinal.Equals(Path.GetFileName(additionalFile.Path), BannedSymbolsFileName)
+                    where StringComparer.Ordinal.Equals(Path.GetFileName(additionalFile.Path), SymbolIsBannedAnalyzer.BannedSymbolsFileName)
                     let sourceText = additionalFile.GetText(compilationContext.CancellationToken)
                     where sourceText != null
                     from line in sourceText.Lines
@@ -174,7 +170,7 @@ namespace Roslyn.Diagnostics.Analyzers
                 {
                     if (lineById.TryGetValue(line.DeclarationId, out var existingLine))
                     {
-                        errors.Add(Diagnostic.Create(DuplicateBannedSymbolRule, line.Location, new[] { existingLine.Location }, line.DeclarationId));
+                        errors.Add(Diagnostic.Create(SymbolIsBannedAnalyzer.DuplicateBannedSymbolRule, line.Location, new[] {existingLine.Location}, line.DeclarationId));
                         continue;
                     }
 
@@ -220,7 +216,7 @@ namespace Roslyn.Diagnostics.Analyzers
                         var node = attribute.ApplicationSyntaxReference.GetSyntax();
                         ReportDiagnostic(
                             node.CreateDiagnostic(
-                                SymbolIsBannedRule,
+                                SymbolIsBannedAnalyzer.SymbolIsBannedRule,
                                 attribute.AttributeClass.ToDisplayString(),
                                 string.IsNullOrWhiteSpace(message) ? "" : ": " + message));
                     }
@@ -235,9 +231,9 @@ namespace Roslyn.Diagnostics.Analyzers
                     {
                         ReportDiagnostic(
                             Diagnostic.Create(
-                                SymbolIsBannedRule,
+                                SymbolIsBannedAnalyzer.SymbolIsBannedRule,
                                 syntaxNode.GetLocation(),
-                                type.ToDisplayString(symbolDisplayFormat),
+                                type.ToDisplayString(SymbolDisplayFormat),
                                 string.IsNullOrWhiteSpace(message) ? "" : ": " + message));
                         break;
                     }
@@ -252,9 +248,9 @@ namespace Roslyn.Diagnostics.Analyzers
                 {
                     ReportDiagnostic(
                         Diagnostic.Create(
-                            SymbolIsBannedRule,
+                            SymbolIsBannedAnalyzer.SymbolIsBannedRule,
                             syntaxNode.GetLocation(),
-                            symbol.ToDisplayString(symbolDisplayFormat),
+                            symbol.ToDisplayString(SymbolDisplayFormat),
                             string.IsNullOrWhiteSpace(message) ? "" : ": " + message));
                 }
             }

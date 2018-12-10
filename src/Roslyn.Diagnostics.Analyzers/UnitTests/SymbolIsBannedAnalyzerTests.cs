@@ -4,6 +4,8 @@ using System;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Testing;
+using Roslyn.Diagnostics.CSharp.Analyzers;
+using Roslyn.Diagnostics.VisualBasic.Analyzers;
 using Test.Utilities;
 using Xunit;
 
@@ -15,12 +17,12 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
     {
         protected override DiagnosticAnalyzer GetCSharpDiagnosticAnalyzer()
         {
-            return new SymbolIsBannedAnalyzer();
+            return new CSharpSymbolIsBannedAnalyzer();
         }
 
         protected override DiagnosticAnalyzer GetBasicDiagnosticAnalyzer()
         {
-            return new SymbolIsBannedAnalyzer();
+            return new BasicSymbolIsBannedAnalyzer();
         }
 
         private void VerifyBasic(string source, string bannedApiText, params DiagnosticResult[] expected)
