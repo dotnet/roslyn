@@ -14,8 +14,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.ExtractInterface
     internal class ExtractInterfaceCommandHandler : AbstractExtractInterfaceCommandHandler
     {
         [ImportingConstructor]
-        public ExtractInterfaceCommandHandler(IThreadingContext threadingContext) : 
-            base(threadingContext)
+        public ExtractInterfaceCommandHandler(IThreadingContext threadingContext) 
+            : base(threadingContext)
         {
         }
     }

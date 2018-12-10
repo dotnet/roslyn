@@ -14,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractInterface
     Friend Class VisualBasicExtractInterfaceService
         Inherits AbstractExtractInterfaceService
 
-        Friend Overrides Async Function GetTypeDeclarationAsync(
+        Protected Overrides Async Function GetTypeDeclarationAsync(
             document As Document, position As Integer,
             typeDiscoveryRule As TypeDiscoveryRule,
             cancellationToken As CancellationToken) As Task(Of SyntaxNode)
@@ -94,7 +94,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractInterface
             Return typeDeclaration.GetModifiers().Any(Function(m) SyntaxFacts.IsAccessibilityModifier(m.Kind()))
         End Function
 
-        Friend Overrides Async Function UpdateMembersWithExplicitImplementationsAsync(
+        Protected Overrides Async Function UpdateMembersWithExplicitImplementationsAsync(
             unformattedSolution As Solution, documentIds As IReadOnlyList(Of DocumentId), extractedInterfaceSymbol As INamedTypeSymbol,
             typeToExtractFrom As INamedTypeSymbol, includedMembers As IEnumerable(Of ISymbol),
             symbolToDeclarationAnnotationMap As Dictionary(Of ISymbol, SyntaxAnnotation), cancellationToken As CancellationToken) As Task(Of Solution)

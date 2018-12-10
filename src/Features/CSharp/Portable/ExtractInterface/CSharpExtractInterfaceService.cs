@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractInterface
     [ExportLanguageService(typeof(AbstractExtractInterfaceService), LanguageNames.CSharp), Shared]
     internal sealed class CSharpExtractInterfaceService : AbstractExtractInterfaceService
     {
-        internal override async Task<SyntaxNode> GetTypeDeclarationAsync(Document document, int position, TypeDiscoveryRule typeDiscoveryRule, CancellationToken cancellationToken)
+        protected override async Task<SyntaxNode> GetTypeDeclarationAsync(Document document, int position, TypeDiscoveryRule typeDiscoveryRule, CancellationToken cancellationToken)
         {
             var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             var root = await tree.GetRootAsync(cancellationToken).ConfigureAwait(false);
@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractInterface
             return typeDeclaration.Modifiers.Any(m => SyntaxFacts.IsAccessibilityModifier(m.Kind()));
         }
 
-        internal override Task<Solution> UpdateMembersWithExplicitImplementationsAsync(
+        protected override Task<Solution> UpdateMembersWithExplicitImplementationsAsync(
             Solution unformattedSolution, IReadOnlyList<DocumentId> documentIds, 
             INamedTypeSymbol extractedInterface, INamedTypeSymbol typeToExtractFrom, 
             IEnumerable<ISymbol> includedMembers, Dictionary<ISymbol, SyntaxAnnotation> symbolToDeclarationMap, 
