@@ -63205,6 +63205,130 @@ class C<T> where T : struct
         }
 
         [Fact]
+        public void NullableT_ValueTypeConstraint_01()
+        {
+            var source =
+@"abstract class A<T>
+{
+    internal abstract void F<U>(U x) where U : T;
+}
+class B1 : A<int>
+{
+    internal override void F<U>(U x)
+    {
+        int? y = x;
+        _ = y.Value; // 1
+        _ = ((int?)x).Value; // 2
+    }
+}
+class B2 : A<int?>
+{
+    internal override void F<U>(U x)
+    {
+        int? y = x;
+        _ = y.Value; // 3
+        _ = ((int?)x).Value; // 4
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            // Conversions are not allowed from U to int in B1.F or from U to int? in B2.F,
+            // so those conversions are not handled in NullableWalker either.
+            comp.VerifyDiagnostics(
+                // (9,18): error CS0029: Cannot implicitly convert type 'U' to 'int?'
+                //         int? y = x;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "x").WithArguments("U", "int?").WithLocation(9, 18),
+                // (10,13): warning CS8629: Nullable value type may be null.
+                //         _ = y.Value; // 1
+                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "y.Value").WithLocation(10, 13),
+                // (11,13): warning CS8629: Nullable value type may be null.
+                //         _ = ((int?)x).Value; // 2
+                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "((int?)x).Value").WithLocation(11, 13),
+                // (11,14): error CS0030: Cannot convert type 'U' to 'int?'
+                //         _ = ((int?)x).Value; // 2
+                Diagnostic(ErrorCode.ERR_NoExplicitConv, "(int?)x").WithArguments("U", "int?").WithLocation(11, 14),
+                // (18,18): error CS0029: Cannot implicitly convert type 'U' to 'int?'
+                //         int? y = x;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "x").WithArguments("U", "int?").WithLocation(18, 18),
+                // (19,13): warning CS8629: Nullable value type may be null.
+                //         _ = y.Value; // 3
+                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "y.Value").WithLocation(19, 13),
+                // (20,13): warning CS8629: Nullable value type may be null.
+                //         _ = ((int?)x).Value; // 4
+                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "((int?)x).Value").WithLocation(20, 13),
+                // (20,14): error CS0030: Cannot convert type 'U' to 'int?'
+                //         _ = ((int?)x).Value; // 4
+                Diagnostic(ErrorCode.ERR_NoExplicitConv, "(int?)x").WithArguments("U", "int?").WithLocation(20, 14));
+        }
+
+        [Fact]
+        public void NullableT_ValueTypeConstraint_02()
+        {
+            var source =
+@"abstract class A<T>
+{
+    internal abstract void F<U>(T t) where U : T;
+}
+class B1 : A<int>
+{
+    internal override void F<U>(int t)
+    {
+        U u = t;
+        u.ToString();
+    }
+}
+class B2 : A<int?>
+{
+    internal override void F<U>(int? t)
+    {
+        U u = t;
+        u.ToString();
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            // Conversions are not allowed from int to U in B1.F or from int? to U in B2.F,
+            // so those conversions are not handled in NullableWalker either.
+            comp.VerifyDiagnostics(
+                // (9,15): error CS0029: Cannot implicitly convert type 'int' to 'U'
+                //         U u = t;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "t").WithArguments("int", "U").WithLocation(9, 15),
+                // (17,15): error CS0029: Cannot implicitly convert type 'int?' to 'U'
+                //         U u = t;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "t").WithArguments("int?", "U").WithLocation(17, 15));
+        }
+
+        [Fact]
+        public void NullableT_ValueTypeConstraint_03()
+        {
+            var source =
+@"abstract class A<T>
+{
+    internal abstract void F<U>(T t) where U : T;
+}
+class B1 : A<int?>
+{
+    internal override void F<U>(int? t)
+    {
+        U u = (U)(object?)t;
+        u.ToString(); // 1
+    }
+}
+class B2 : A<int?>
+{
+    internal override void F<U>(int? t)
+    {
+        U u = (U)(object?)t;
+        u.ToString(); // 2
+        if (t == null) return;
+        U v = (U)(object?)t;
+        v.ToString();
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            // https://github.com/dotnet/roslyn/issues/31673: Should report warnings for // 1 and // 2.
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
         public void NullableT_Box()
         {
             var source =
@@ -63324,7 +63448,7 @@ class B2 : A<int?>
     }
 }";
             var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
-            // Implicit conversions are not allowed from U to int in B1.F or from U to int? in B2.F,
+            // Conversions are not allowed from U to int in B1.F or from U to int? in B2.F,
             // so those conversions are not handled in NullableWalker either.
             comp.VerifyDiagnostics(
                 // (9,17): error CS0029: Cannot implicitly convert type 'U' to 'int'
@@ -63895,7 +64019,8 @@ class B2 : A<int?>
 {
     internal override void F<U>(int? t)
     {
-        _ = (t as U?).Value; // 2
+        _ = (t as U).Value; // 2
+        _ = (t as U?).Value; // 3
     }
 }";
             // Implicit conversions are not allowed from int to U in B1.F or from int? to U in B2.F,
@@ -63905,12 +64030,15 @@ class B2 : A<int?>
                 // (9,13): warning CS8629: Nullable value type may be null.
                 //         _ = (t as U?).Value; // 1
                 Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "(t as U?).Value").WithLocation(9, 13),
-                // (16,13): warning CS8629: Nullable value type may be null.
-                //         _ = (t as U?).Value; // 2
-                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "(t as U?).Value").WithLocation(16, 13),
-                // (16,19): error CS0453: The type 'U' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
-                //         _ = (t as U?).Value; // 2
-                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "U?").WithArguments("System.Nullable<T>", "T", "U").WithLocation(16, 19));
+                // (16,14): error CS0413: The type parameter 'U' cannot be used with the 'as' operator because it does not have a class type constraint nor a 'class' constraint
+                //         _ = (t as U).Value; // 2
+                Diagnostic(ErrorCode.ERR_AsWithTypeVar, "t as U").WithArguments("U").WithLocation(16, 14),
+                // (17,13): warning CS8629: Nullable value type may be null.
+                //         _ = (t as U?).Value; // 3
+                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "(t as U?).Value").WithLocation(17, 13),
+                // (17,19): error CS0453: The type 'U' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
+                //         _ = (t as U?).Value; // 3
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "U?").WithArguments("System.Nullable<T>", "T", "U").WithLocation(17, 19));
         }
 
         [WorkItem(31501, "https://github.com/dotnet/roslyn/issues/31501")]
