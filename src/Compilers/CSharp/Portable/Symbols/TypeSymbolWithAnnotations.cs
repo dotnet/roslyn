@@ -360,11 +360,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                           customModifiers.NullToEmpty());
         }
 
-        internal static TypeSymbolWithAnnotations Create(TypeSymbol typeSymbol, ImmutableArray<ModifierInfo<TypeSymbol>> customModifiers)
-        {
-            return Create(typeSymbol, NullableAnnotation.Unknown, CSharpCustomModifier.Convert(customModifiers));
-        }
-
         internal static TypeSymbolWithAnnotations Create(TypeSymbol typeSymbol, NullableAnnotation nullableAnnotation = NullableAnnotation.Unknown, ImmutableArray<CustomModifier> customModifiers = default)
         {
             if (typeSymbol is null)
