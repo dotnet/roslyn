@@ -492,7 +492,7 @@ Block[B1] - Block
                   Instance Receiver: 
                     null
               Right: 
-                IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'this.i + c.i')
+                IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: System.Int32) (Syntax: 'this.i + c.i')
                   Left: 
                     IFieldReferenceOperation: System.Int32 C.i (OperationKind.FieldReference, Type: System.Int32) (Syntax: 'this.i')
                       Instance Receiver: 

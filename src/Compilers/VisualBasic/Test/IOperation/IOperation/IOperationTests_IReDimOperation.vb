@@ -28,7 +28,7 @@ IReDimOperation (OperationKind.ReDim, Type: null) (Syntax: 'ReDim intArray(2)')
         Operand: 
           ILocalReferenceOperation: intArray (OperationKind.LocalReference, Type: System.Int32()) (Syntax: 'intArray')
         DimensionSizes(1):
-            IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, Constant: 3, IsImplicit) (Syntax: '2')
+            IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32, Constant: 3, IsImplicit) (Syntax: '2')
               Left: 
                 ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
               Right: 
@@ -58,7 +58,7 @@ IReDimClauseOperation (OperationKind.ReDimClause, Type: null) (Syntax: 'intArray
   Operand: 
     ILocalReferenceOperation: intArray (OperationKind.LocalReference, Type: System.Int32()) (Syntax: 'intArray')
   DimensionSizes(1):
-      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, Constant: 3, IsImplicit) (Syntax: '2')
+      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32, Constant: 3, IsImplicit) (Syntax: '2')
         Left: 
           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
         Right: 
@@ -134,12 +134,12 @@ IReDimOperation (OperationKind.ReDim, Type: null) (Syntax: 'ReDim intArray(2, 1)
         Operand: 
           ILocalReferenceOperation: intArray (OperationKind.LocalReference, Type: System.Int32(,)) (Syntax: 'intArray')
         DimensionSizes(2):
-            IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, Constant: 3, IsImplicit) (Syntax: '2')
+            IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32, Constant: 3, IsImplicit) (Syntax: '2')
               Left: 
                 ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
               Right: 
                 ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: '2')
-            IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: '1')
+            IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: '1')
               Left: 
                 ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
               Right: 
@@ -171,7 +171,7 @@ IReDimOperation (OperationKind.ReDim, Type: null) (Syntax: 'ReDim intAr ... 2), 
         Operand: 
           ILocalReferenceOperation: intArray (OperationKind.LocalReference, Type: System.Int32()) (Syntax: 'intArray')
         DimensionSizes(1):
-            IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, Constant: 3, IsImplicit) (Syntax: '2')
+            IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32, Constant: 3, IsImplicit) (Syntax: '2')
               Left: 
                 ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
               Right: 
@@ -180,12 +180,12 @@ IReDimOperation (OperationKind.ReDim, Type: null) (Syntax: 'ReDim intAr ... 2), 
         Operand: 
           IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32(,)) (Syntax: 'x')
         DimensionSizes(2):
-            IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: '1')
+            IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: '1')
               Left: 
                 ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
               Right: 
                 ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: '1')
-            IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: '1')
+            IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: '1')
               Left: 
                 ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
               Right: 
@@ -215,7 +215,7 @@ IReDimClauseOperation (OperationKind.ReDimClause, Type: null) (Syntax: 'intArray
   Operand: 
     ILocalReferenceOperation: intArray (OperationKind.LocalReference, Type: System.Int32()) (Syntax: 'intArray')
   DimensionSizes(1):
-      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, Constant: 3, IsImplicit) (Syntax: '2')
+      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32, Constant: 3, IsImplicit) (Syntax: '2')
         Left: 
           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
         Right: 
@@ -245,12 +245,12 @@ IReDimClauseOperation (OperationKind.ReDimClause, Type: null) (Syntax: 'x(1, 1)'
   Operand: 
     IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32(,)) (Syntax: 'x')
   DimensionSizes(2):
-      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: '1')
+      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: '1')
         Left: 
           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
         Right: 
           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: '1')
-      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: '1')
+      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: '1')
         Left: 
           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
         Right: 
@@ -282,7 +282,7 @@ IReDimOperation (Preserve) (OperationKind.ReDim, Type: null) (Syntax: 'ReDim Pre
         Operand: 
           ILocalReferenceOperation: intArray (OperationKind.LocalReference, Type: System.Int32()) (Syntax: 'intArray')
         DimensionSizes(1):
-            IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, Constant: 3, IsImplicit) (Syntax: '2')
+            IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32, Constant: 3, IsImplicit) (Syntax: '2')
               Left: 
                 ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
               Right: 
@@ -314,7 +314,7 @@ IReDimOperation (Preserve) (OperationKind.ReDim, Type: null) (Syntax: 'ReDim Pre
         Operand: 
           ILocalReferenceOperation: intArray (OperationKind.LocalReference, Type: System.Int32()) (Syntax: 'intArray')
         DimensionSizes(1):
-            IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, Constant: 3, IsImplicit) (Syntax: '2')
+            IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32, Constant: 3, IsImplicit) (Syntax: '2')
               Left: 
                 ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
               Right: 
@@ -323,12 +323,12 @@ IReDimOperation (Preserve) (OperationKind.ReDim, Type: null) (Syntax: 'ReDim Pre
         Operand: 
           IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32(,)) (Syntax: 'x')
         DimensionSizes(2):
-            IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: '1')
+            IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: '1')
               Left: 
                 ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
               Right: 
                 ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: '1')
-            IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: '1')
+            IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: '1')
               Left: 
                 ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
               Right: 
@@ -519,7 +519,7 @@ IReDimOperation (OperationKind.ReDim, Type: null, IsInvalid) (Syntax: 'ReDim x(1
         Operand: 
           IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32, IsInvalid) (Syntax: 'x')
         DimensionSizes(1):
-            IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: '1')
+            IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: '1')
               Left: 
                 ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
               Right: 
@@ -554,7 +554,7 @@ IReDimOperation (OperationKind.ReDim, Type: null, IsInvalid) (Syntax: 'ReDim x(1
         Operand: 
           IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32(,), IsInvalid) (Syntax: 'x')
         DimensionSizes(1):
-            IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, Constant: 2, IsInvalid, IsImplicit) (Syntax: '1')
+            IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32, Constant: 2, IsInvalid, IsImplicit) (Syntax: '1')
               Left: 
                 ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
               Right: 
@@ -589,12 +589,12 @@ IReDimOperation (OperationKind.ReDim, Type: null, IsInvalid) (Syntax: 'ReDim x(1
         Operand: 
           IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32(,)) (Syntax: 'x')
         DimensionSizes(2):
-            IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: '1')
+            IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: '1')
               Left: 
                 ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
               Right: 
                 ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: '1')
-            IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: '')
+            IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: '')
               Left: 
                 IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: '')
                   Children(0)
@@ -630,7 +630,7 @@ IReDimOperation (OperationKind.ReDim, Type: null, IsInvalid) (Syntax: 'ReDim x(1
         Operand: 
           IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32()) (Syntax: 'x')
         DimensionSizes(1):
-            IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: '1')
+            IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: '1')
               Left: 
                 ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
               Right: 
@@ -679,7 +679,7 @@ Block[B1] - Block
                 Operand: 
                   IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32()) (Syntax: 'x')
                 DimensionSizes(1):
-                    IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, IsImplicit) (Syntax: 'a')
+                    IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32, IsImplicit) (Syntax: 'a')
                       Left: 
                         IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'a')
                       Right: 
@@ -765,7 +765,7 @@ Block[B0] - Entry
                         Children(1):
                             IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32(), IsInvalid, IsImplicit) (Syntax: 'If(x1, x2)')
                     DimensionSizes(1):
-                        IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, IsImplicit) (Syntax: 'a')
+                        IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32, IsImplicit) (Syntax: 'a')
                           Left: 
                             IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'a')
                           Right: 
@@ -869,12 +869,12 @@ Block[B0] - Entry
                     Operand: 
                       IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Int32(,), IsImplicit) (Syntax: 'x')
                     DimensionSizes(2):
-                        IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, IsImplicit) (Syntax: 'If(a1, a2)')
+                        IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32, IsImplicit) (Syntax: 'If(a1, a2)')
                           Left: 
                             IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'If(a1, a2)')
                           Right: 
                             ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'If(a1, a2)')
-                        IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, IsImplicit) (Syntax: 'b')
+                        IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32, IsImplicit) (Syntax: 'b')
                           Left: 
                             IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'b')
                           Right: 
@@ -925,7 +925,7 @@ Block[B0] - Entry
 
             IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
               Value: 
-                IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, IsImplicit) (Syntax: 'b')
+                IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32, IsImplicit) (Syntax: 'b')
                   Left: 
                     IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'b')
                   Right: 
@@ -983,7 +983,7 @@ Block[B0] - Entry
                       IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Int32(,), IsImplicit) (Syntax: 'x')
                     DimensionSizes(2):
                         IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'b')
-                        IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, IsImplicit) (Syntax: 'If(a1, a2)')
+                        IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32, IsImplicit) (Syntax: 'If(a1, a2)')
                           Left: 
                             IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'If(a1, a2)')
                           Right: 
@@ -1082,7 +1082,7 @@ Block[B0] - Entry
             Statements (1)
                 IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'If(a1, a2)')
                   Value: 
-                    IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, IsImplicit) (Syntax: 'If(a1, a2)')
+                    IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32, IsImplicit) (Syntax: 'If(a1, a2)')
                       Left: 
                         IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'If(a1, a2)')
                       Right: 
@@ -1141,7 +1141,7 @@ Block[B0] - Entry
                       IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Int32(,), IsImplicit) (Syntax: 'x')
                     DimensionSizes(2):
                         IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'If(a1, a2)')
-                        IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, IsImplicit) (Syntax: 'If(b1, b2)')
+                        IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32, IsImplicit) (Syntax: 'If(b1, b2)')
                           Left: 
                             IFlowCaptureReferenceOperation: 5 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'If(b1, b2)')
                           Right: 
@@ -1282,7 +1282,7 @@ Block[B0] - Entry
             Statements (1)
                 IFlowCaptureOperation: 5 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'If(a1, a2)')
                   Value: 
-                    IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, IsImplicit) (Syntax: 'If(a1, a2)')
+                    IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32, IsImplicit) (Syntax: 'If(a1, a2)')
                       Left: 
                         IFlowCaptureReferenceOperation: 4 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'If(a1, a2)')
                       Right: 
@@ -1341,7 +1341,7 @@ Block[B0] - Entry
                       IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: ?, IsInvalid, IsImplicit) (Syntax: 'If(x1, x2)')
                     DimensionSizes(2):
                         IFlowCaptureReferenceOperation: 5 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'If(a1, a2)')
-                        IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, IsImplicit) (Syntax: 'If(b1, b2)')
+                        IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32, IsImplicit) (Syntax: 'If(b1, b2)')
                           Left: 
                             IFlowCaptureReferenceOperation: 7 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'If(b1, b2)')
                           Right: 
@@ -1445,7 +1445,7 @@ Block[B0] - Entry
                     Operand: 
                       IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Int32(), IsImplicit) (Syntax: 'x1')
                     DimensionSizes(1):
-                        IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, IsImplicit) (Syntax: 'If(a1, a2)')
+                        IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32, IsImplicit) (Syntax: 'If(a1, a2)')
                           Left: 
                             IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'If(a1, a2)')
                           Right: 
@@ -1464,7 +1464,7 @@ Block[B6] - Block
                 Operand: 
                   IParameterReferenceOperation: x2 (OperationKind.ParameterReference, Type: System.Int32()) (Syntax: 'x2')
                 DimensionSizes(1):
-                    IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, IsImplicit) (Syntax: 'b')
+                    IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32, IsImplicit) (Syntax: 'b')
                       Left: 
                         IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'b')
                       Right: 
@@ -1507,7 +1507,7 @@ Block[B1] - Block
                 Operand: 
                   IParameterReferenceOperation: x1 (OperationKind.ParameterReference, Type: System.Int32()) (Syntax: 'x1')
                 DimensionSizes(1):
-                    IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, IsImplicit) (Syntax: 'b')
+                    IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32, IsImplicit) (Syntax: 'b')
                       Left: 
                         IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'b')
                       Right: 
@@ -1577,7 +1577,7 @@ Block[B1] - Block
                     Operand: 
                       IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Int32(), IsImplicit) (Syntax: 'x2')
                     DimensionSizes(1):
-                        IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, IsImplicit) (Syntax: 'If(a1, a2)')
+                        IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32, IsImplicit) (Syntax: 'If(a1, a2)')
                           Left: 
                             IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'If(a1, a2)')
                           Right: 
@@ -1677,7 +1677,7 @@ Block[B0] - Entry
                     Operand: 
                       IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Int32(), IsImplicit) (Syntax: 'x1')
                     DimensionSizes(1):
-                        IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, IsImplicit) (Syntax: 'If(a1, a2)')
+                        IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32, IsImplicit) (Syntax: 'If(a1, a2)')
                           Left: 
                             IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'If(a1, a2)')
                           Right: 
@@ -1748,7 +1748,7 @@ Block[B0] - Entry
                     Operand: 
                       IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: System.Int32(), IsImplicit) (Syntax: 'x2')
                     DimensionSizes(1):
-                        IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, IsImplicit) (Syntax: 'If(b1, b2)')
+                        IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32, IsImplicit) (Syntax: 'If(b1, b2)')
                           Left: 
                             IFlowCaptureReferenceOperation: 5 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'If(b1, b2)')
                           Right: 
@@ -1815,7 +1815,7 @@ Block[B1] - Block
                           InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                           OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 DimensionSizes(1):
-                    IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, IsImplicit) (Syntax: 'a2')
+                    IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32, IsImplicit) (Syntax: 'a2')
                       Left: 
                         IParameterReferenceOperation: a2 (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'a2')
                       Right: 
@@ -1829,7 +1829,7 @@ Block[B1] - Block
                     Instance Receiver: 
                       null
                 DimensionSizes(1):
-                    IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, IsImplicit) (Syntax: 'a3')
+                    IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32, IsImplicit) (Syntax: 'a3')
                       Left: 
                         IParameterReferenceOperation: a3 (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'a3')
                       Right: 
@@ -1937,7 +1937,7 @@ Block[B0] - Entry
                               InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                               OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     DimensionSizes(1):
-                        IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, IsImplicit) (Syntax: 'a3')
+                        IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32, IsImplicit) (Syntax: 'a3')
                           Left: 
                             IParameterReferenceOperation: a3 (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'a3')
                           Right: 
@@ -1958,7 +1958,7 @@ Block[B5] - Block
                     Instance Receiver: 
                       null
                 DimensionSizes(1):
-                    IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, IsImplicit) (Syntax: 'a4')
+                    IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32, IsImplicit) (Syntax: 'a4')
                       Left: 
                         IParameterReferenceOperation: a4 (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'a4')
                       Right: 
@@ -2076,7 +2076,7 @@ Block[B0] - Entry
                     Operand: 
                       IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Int32(), IsImplicit) (Syntax: 'X(a1)')
                     DimensionSizes(1):
-                        IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, IsImplicit) (Syntax: 'If(a2, a3)')
+                        IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32, IsImplicit) (Syntax: 'If(a2, a3)')
                           Left: 
                             IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'If(a2, a3)')
                           Right: 
@@ -2097,7 +2097,7 @@ Block[B6] - Block
                     Instance Receiver: 
                       null
                 DimensionSizes(1):
-                    IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, IsImplicit) (Syntax: 'a4')
+                    IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32, IsImplicit) (Syntax: 'a4')
                       Left: 
                         IParameterReferenceOperation: a4 (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'a4')
                       Right: 
@@ -2161,7 +2161,7 @@ Block[B1] - Block
                           InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                           OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 DimensionSizes(1):
-                    IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, IsImplicit) (Syntax: 'a2')
+                    IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32, IsImplicit) (Syntax: 'a2')
                       Left: 
                         IParameterReferenceOperation: a2 (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'a2')
                       Right: 
@@ -2233,7 +2233,7 @@ Block[B1] - Block
                     Operand: 
                       IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Int32(), IsImplicit) (Syntax: 'Y')
                     DimensionSizes(1):
-                        IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, IsImplicit) (Syntax: 'If(a3, a4)')
+                        IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32, IsImplicit) (Syntax: 'If(a3, a4)')
                           Left: 
                             IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'If(a3, a4)')
                           Right: 
@@ -2333,12 +2333,12 @@ Block[B0] - Entry
                     Operand: 
                       IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Int32(,), IsImplicit) (Syntax: 'x')
                     DimensionSizes(2):
-                        IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, IsImplicit) (Syntax: 'If(a1, a2)')
+                        IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32, IsImplicit) (Syntax: 'If(a1, a2)')
                           Left: 
                             IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'If(a1, a2)')
                           Right: 
                             ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'If(a1, a2)')
-                        IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, IsImplicit) (Syntax: 'b')
+                        IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32, IsImplicit) (Syntax: 'b')
                           Left: 
                             IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'b')
                           Right: 

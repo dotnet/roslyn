@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
@@ -9,7 +8,6 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
-using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
@@ -58,11 +56,11 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
             // annotation on it.
             var rules = new List<IFormattingRule> { GetMultiLineFormattingRule() };
 
-            var formattedRoot = await Formatter.FormatAsync(changedRoot,
+            var formattedRoot = Formatter.Format(changedRoot,
                 SpecializedFormattingAnnotation,
                 document.Project.Solution.Workspace,
                 await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false),
-                rules, cancellationToken).ConfigureAwait(false);
+                rules, cancellationToken);
             changedRoot = formattedRoot;
 
             editor.ReplaceNode(root, changedRoot);

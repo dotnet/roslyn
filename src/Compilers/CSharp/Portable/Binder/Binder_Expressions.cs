@@ -4592,9 +4592,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 return new BoundDynamicCollectionElementInitializer(
                     elementInitializer,
-                    arguments: boundElementInitializerExpressions,
-                    implicitReceiver,
                     applicableMethods: ImmutableArray<MethodSymbol>.Empty,
+                    implicitReceiver,
+                    arguments: boundElementInitializerExpressions,
                     type: GetSpecialType(SpecialType.System_Void, diagnostics, elementInitializer),
                     hasErrors: hasErrors);
             }
@@ -4613,9 +4613,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var dynamicInvocation = (BoundDynamicInvocation)addMethodInvocation;
                 return new BoundDynamicCollectionElementInitializer(
                     elementInitializer,
-                    dynamicInvocation.Arguments,
-                    implicitReceiver,
                     dynamicInvocation.ApplicableMethods,
+                    implicitReceiver,
+                    dynamicInvocation.Arguments,
                     dynamicInvocation.Type,
                     hasErrors: dynamicInvocation.HasAnyErrors);
             }

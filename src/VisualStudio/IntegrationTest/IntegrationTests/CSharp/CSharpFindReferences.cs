@@ -150,5 +150,14 @@ class Program
                     }
                 });
         }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)]
+        public void VerifyWorkingFolder()
+        {
+            SetUpEditor(@"class EmptyContent {$$}");
+
+            // verify working folder has set
+            Assert.NotNull(VisualStudio.Workspace.GetWorkingFolder());
+        }
     }
 }

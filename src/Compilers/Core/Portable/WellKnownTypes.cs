@@ -284,18 +284,21 @@ namespace Microsoft.CodeAnalysis
         System_Index,
         System_Range,
 
+        System_Runtime_CompilerServices_AsyncIteratorStateMachineAttribute,
         System_IAsyncDisposable,
         System_Collections_Generic_IAsyncEnumerable_T,
         System_Collections_Generic_IAsyncEnumerator_T,
-        System_Threading_Tasks_ManualResetValueTaskSourceLogic_T,
-        System_Runtime_CompilerServices_IStrongBox_T,
+        System_Threading_Tasks_Sources_ManualResetValueTaskSourceCore_T,
         System_Threading_Tasks_Sources_ValueTaskSourceStatus,
         System_Threading_Tasks_Sources_ValueTaskSourceOnCompletedFlags,
         System_Threading_Tasks_Sources_IValueTaskSource_T,
         System_Threading_Tasks_ValueTask_T,
         System_Threading_Tasks_ValueTask,
+        System_Runtime_CompilerServices_AsyncIteratorMethodBuilder,
 
         NextAvailable,
+
+        // Remember to update the AllWellKnownTypes tests when making changes here
     }
 
     internal static class WellKnownTypes
@@ -571,16 +574,17 @@ namespace Microsoft.CodeAnalysis
             "System.Index",
             "System.Range",
 
+            "System.Runtime.CompilerServices.AsyncIteratorStateMachineAttribute",
             "System.IAsyncDisposable",
             "System.Collections.Generic.IAsyncEnumerable`1",
             "System.Collections.Generic.IAsyncEnumerator`1",
-            "System.Threading.Tasks.ManualResetValueTaskSourceLogic`1",
-            "System.Runtime.CompilerServices.IStrongBox`1",
+            "System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore`1",
             "System.Threading.Tasks.Sources.ValueTaskSourceStatus",
             "System.Threading.Tasks.Sources.ValueTaskSourceOnCompletedFlags",
             "System.Threading.Tasks.Sources.IValueTaskSource`1",
             "System.Threading.Tasks.ValueTask`1",
             "System.Threading.Tasks.ValueTask",
+            "System.Runtime.CompilerServices.AsyncIteratorMethodBuilder",
         };
 
         private readonly static Dictionary<string, WellKnownType> s_nameToTypeIdMap = new Dictionary<string, WellKnownType>((int)Count);
@@ -633,11 +637,11 @@ namespace Microsoft.CodeAnalysis
                     typeIdName = typeIdName.Substring(0, separator);
                 }
 
-                Debug.Assert(name == typeIdName);
+                Debug.Assert(name == typeIdName, "Enum name and type name must match");
             }
 
             Debug.Assert((int)WellKnownType.ExtSentinel == 255);
-            Debug.Assert((int)WellKnownType.NextAvailable <= 512);
+            Debug.Assert((int)WellKnownType.NextAvailable <= 512, "Time for a new sentinel");
         }
 
         public static bool IsWellKnownType(this WellKnownType typeId)

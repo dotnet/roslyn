@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.PullMemberUp.QuickAction
             var codeGenerationService = contextDocument.Project.LanguageServices.GetRequiredService<ICodeGenerationService>();
             var options = new CodeGenerationOptions(generateMethodBodies: false, generateMembers: false);
             return await codeGenerationService.AddMembersAsync(
-                contextDocument.Project.Solution, result.Destination, symbolsToPullUp, options: options, cancellationToken: cancellationToken);
+                contextDocument.Project.Solution, result.Destination, symbolsToPullUp, options: options, cancellationToken: cancellationToken).ConfigureAwait(false);
         }
 
         private Solution PullMembersIntoClass(
@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.PullMemberUp.QuickAction
             {
                 var tasks = memberAnalysisResult.Member.DeclaringSyntaxReferences.SelectAsArray(@ref => @ref.GetSyntaxAsync(cancellationToken));
                 var allSyntaxes = await Task.WhenAll(tasks).ConfigureAwait(false);
-                await AddEditorsToEditorMapBuilderAsync(editorMapBuilder, allSyntaxes, solutionEditor, solution);
+                await AddEditorsToEditorMapBuilderAsync(editorMapBuilder, allSyntaxes, solutionEditor, solution).ConfigureAwait(false);
                 syntaxMapBuilder.Add(memberAnalysisResult.Member, allSyntaxes);
             }
 
@@ -164,7 +164,7 @@ namespace Microsoft.CodeAnalysis.PullMemberUp.QuickAction
                 editorMapBuilder,
                 new[] { destinationSyntaxNode },
                 solutionEditor,
-                solution);
+                solution).ConfigureAwait(false);
             return (editorMapBuilder.ToImmutableDictionary(), syntaxMapBuilder.ToImmutableDictionary());
         }
 

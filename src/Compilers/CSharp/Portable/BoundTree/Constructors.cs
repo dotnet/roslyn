@@ -336,11 +336,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             : this(
                 syntax,
                 operatorKind,
-                left,
-                right,
                 constantValueOpt,
                 methodOpt,
                 resultKind,
+                left,
+                right,
                 type,
                 hasErrors)
         {
@@ -365,12 +365,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             : this(
                 syntax,
                 operatorKind,
-                left,
-                right,
                 logicalOperator,
                 trueOperator,
                 falseOperator,
                 resultKind,
+                left,
+                right,
                 type,
                 hasErrors)
         {

@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.Emit;
 
@@ -111,6 +112,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             }
 
             return options.WithFeatures(options.Features.Concat(list));
+        }
+
+        public static CSharpCompilationOptions WithSpecificDiagnosticOptions(this CSharpCompilationOptions options, string key, ReportDiagnostic value)
+        {
+            return options.WithSpecificDiagnosticOptions(ImmutableDictionary<string, ReportDiagnostic>.Empty.Add(key, value));
         }
     }
 }

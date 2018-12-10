@@ -4526,7 +4526,7 @@ class innerClass
         [Fact]
         [WorkItem(543112, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543112")]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
-        public async Task FormatArbitaryNode()
+        public void FormatArbitaryNode()
         {
             var expected = @"public int Prop
 {
@@ -4561,7 +4561,7 @@ class innerClass
 
             Assert.NotNull(property);
 
-            var newProperty = await Formatter.FormatAsync(property, new AdhocWorkspace());
+            var newProperty = Formatter.Format(property, new AdhocWorkspace());
 
             Assert.Equal(expected, newProperty.ToFullString());
         }
@@ -7693,10 +7693,10 @@ class Program
 
         [WorkItem(1118, "https://github.com/dotnet/roslyn/issues/1118")]
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
-        public async Task DontAssumeCertainNodeAreAlwaysParented()
+        public void DontAssumeCertainNodeAreAlwaysParented()
         {
             var block = SyntaxFactory.Block();
-            await Formatter.FormatAsync(block, new AdhocWorkspace());
+            Formatter.Format(block, new AdhocWorkspace());
         }
 
         [WorkItem(776, "https://github.com/dotnet/roslyn/issues/776")]
@@ -8757,9 +8757,9 @@ class C
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         [WorkItem(25098, "https://github.com/dotnet/roslyn/issues/25098")]
-        public async Task FormatSingleStructDeclaration()
+        public void FormatSingleStructDeclaration()
         {
-            await Formatter.FormatAsync(SyntaxFactory.StructDeclaration("S"), DefaultWorkspace);
+            Formatter.Format(SyntaxFactory.StructDeclaration("S"), DefaultWorkspace);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]

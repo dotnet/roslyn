@@ -213,11 +213,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 rewrittenBoundCall = new BoundBinaryOperator(
                     syntax,
                     BinaryOperatorKind.ObjectEqual,
-                    rewrittenArguments[0],
-                    rewrittenArguments[1],
                     null,
                     null,
                     resultKind,
+                    rewrittenArguments[0],
+                    rewrittenArguments[1],
                     type);
             }
             else if (node == null)

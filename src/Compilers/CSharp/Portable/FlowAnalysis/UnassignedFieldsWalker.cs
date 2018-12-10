@@ -8,10 +8,13 @@ using System.Linq;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    // https://github.com/dotnet/roslyn/issues/30067 Should UnassignedFieldsWalker
-    // inherit from DataFlowPassBase<LocalState> directly since it has simpler
-    // requirements than DataFlowPass?
-    internal sealed class UnassignedFieldsWalker : DataFlowPass
+    /// <remarks>
+    /// https://github.com/dotnet/roslyn/issues/30067 Should
+    /// UnassignedFieldsWalker inherit from <see
+    /// cref="LocalDataFlowPass{TLocalState}"/> directly since it has simpler
+    /// requirements than <see cref="DefiniteAssignmentPass"/>?
+    /// </remarks>
+    internal sealed class UnassignedFieldsWalker : DefiniteAssignmentPass
     {
         private readonly DiagnosticBag _diagnostics;
 
@@ -25,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(method.MethodKind == MethodKind.Constructor);
 
-            if (method.NonNullTypes != true)
+            if (compilation.LanguageVersion < MessageID.IDS_FeatureNullableReferenceTypes.RequiredVersion())
             {
                 return;
             }
