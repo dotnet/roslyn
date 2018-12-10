@@ -17,18 +17,23 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
         /// - If <paramref name="container"/> is a namespace declaration node:
         ///    1. Doesn't contain or is nested in other namespace declarations
         ///    2. The name of the namespace is valid (i.e. no errors)
-        ///    3. No partial type declared in the namespace. Otherwise its multiple declaration will
+        ///    3. No partial type declared in the namespace. Otherwise its multiple declarations will
         ///       end up in different namespace.
         ///
         /// - If <paramref name="container"/> is a compilation unit node:
         ///    1. It must contain no namespace declaration
-        ///    2. No partial type declared in the document. Otherwise its multiple declaration will
+        ///    2. No partial type declared in the document. Otherwise its multiple declarations will
         ///       end up in different namespace.
         ///       
         /// - Otherwise, an <see cref="System.ArgumentException"/> will be thrown.
         ///   
         /// Returns <see langword="true"/> only when all the requirements above are met.
         /// </summary>
+        /// <remarks>
+        /// While this service might be used by features that change namespace based on some property of the document
+        /// (e.g. Sync namespace refactoring), those logic is implemented by those individual features and isn't part 
+        /// of the IChangeNamespaceService service.
+        /// </remarks>
         Task<bool> CanChangeNamespaceAsync(Document document, SyntaxNode container, CancellationToken cancellationToken);
 
         /// <summary>
@@ -41,6 +46,10 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
         /// 1. <paramref name="container"/> is not a namespace declaration or a compilation unit node.
         /// 2. <paramref name="targetNamespace"/> is null or an contain invalid character.
         /// </summary>
+        /// <remarks>
+        /// If the declared namespace for <paramref name="container"/> is already identical to <paramref name="targetNamespace"/>, then it will be
+        /// a no-op and original solution will be returned.
+        /// </remarks>
         Task<Solution> ChangeNamespaceAsync(Document document, SyntaxNode container, string targetNamespace, CancellationToken cancellationToken);
     }
 }
