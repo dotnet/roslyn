@@ -68,12 +68,7 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
             {
                 foreach (var task in _pendingTasks)
                 {
-                    // setting result of a task can cause await machinary to wake up awaited code
-                    // and run code inline. that basically means random code running at the same thread
-                    // as the thread SetResult is called. so make sure we do in another thread (basically outside of the lock).
-                    // also, to prevent re-enterance bug, use NonReentrantLock to explicitly block
-                    // re-enterance
-                    Task.Run(() => task.SetResult(true));
+                    task.SetResult(true);
                 }
 
                 _pendingTasks.Clear();
@@ -110,7 +105,12 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
                 }
                 else
                 {
-                    var source = new TaskCompletionSource<bool>();
+                    // setting result of a task can cause await machinary to wake up awaited code
+                    // and run code inline. that basically means random code running at the same thread
+                    // as the thread SetResult is called. so make sure we do in another thread (basically outside of the lock).
+                    // also, to prevent re-enterance bug, use NonReentrantLock to explicitly block
+                    // re-enterance
+                    var source = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
                     _pendingTasks.Add(source);
 
                     return source.Task;
@@ -155,7 +155,10 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
         {
             get
             {
-                return _counter != 0;
+                using (_gate.DisposableWait(CancellationToken.None))
+                {
+                    return _counter != 0;
+                }
             }
         }
 
