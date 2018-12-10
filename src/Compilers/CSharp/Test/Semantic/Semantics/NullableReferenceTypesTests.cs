@@ -62552,7 +62552,7 @@ class C<T>
         }
 
         [Fact]
-        public void NullableT_StructToTypeParameterClassConstaint()
+        public void NullableT_StructToTypeParameterClassConstraint()
         {
             var source =
 @"struct S<T>
@@ -62599,7 +62599,7 @@ class C<T> where T : class
         }
 
         [Fact]
-        public void NullableT_NullableStructToTypeParameterClassConstaint()
+        public void NullableT_NullableStructToTypeParameterClassConstraint()
         {
             var source =
 @"struct S<T>
@@ -62640,7 +62640,7 @@ class C<T> where T : class
         }
 
         [Fact]
-        public void NullableT_StructToTypeParameterStructConstaint()
+        public void NullableT_StructToTypeParameterStructConstraint()
         {
             var source =
 @"struct S<T>
@@ -62687,7 +62687,7 @@ class C<T> where T : struct
         }
 
         [Fact]
-        public void NullableT_NullableStructToTypeParameterStructConstaint()
+        public void NullableT_NullableStructToTypeParameterStructConstraint()
         {
             var source =
 @"struct S<T>
@@ -62728,7 +62728,7 @@ class C<T> where T : struct
         }
 
         [Fact]
-        public void NullableT_StructToNullableTypeParameterStructConstaint()
+        public void NullableT_StructToNullableTypeParameterStructConstraint()
         {
             var source =
 @"struct S<T> where T : struct
@@ -62787,7 +62787,7 @@ class C<T> where T : struct
         }
 
         [Fact]
-        public void NullableT_NullableStructToNullableTypeParameterStructConstaint()
+        public void NullableT_NullableStructToNullableTypeParameterStructConstraint()
         {
             var source =
 @"struct S<T> where T : struct
@@ -62896,7 +62896,7 @@ class C<T>
         }
 
         [Fact]
-        public void NullableT_TypeParameterClassConstaintToStruct()
+        public void NullableT_TypeParameterClassConstraintToStruct()
         {
             var source =
 @"struct S<T>
@@ -62941,7 +62941,7 @@ class C<T> where T : class
         }
 
         [Fact]
-        public void NullableT_TypeParameterClassConstaintToNullableStruct()
+        public void NullableT_TypeParameterClassConstraintToNullableStruct()
         {
             var source =
 @"struct S<T>
@@ -63006,7 +63006,7 @@ class C<T> where T : class
         }
 
         [Fact]
-        public void NullableT_TypeParameterStructConstaintToStruct()
+        public void NullableT_TypeParameterStructConstraintToStruct()
         {
             var source =
 @"struct S<T>
@@ -63051,7 +63051,7 @@ class C<T> where T : struct
         }
 
         [Fact]
-        public void NullableT_TypeParameterStructConstaintToNullableStruct()
+        public void NullableT_TypeParameterStructConstraintToNullableStruct()
         {
             var source =
 @"struct S<T>
@@ -63110,7 +63110,7 @@ class C<T> where T : struct
         }
 
         [Fact]
-        public void NullableT_NullableTypeParameterStructConstaintToStruct()
+        public void NullableT_NullableTypeParameterStructConstraintToStruct()
         {
             var source =
 @"struct S<T> where T : struct
@@ -63149,7 +63149,7 @@ class C<T> where T : struct
         }
 
         [Fact]
-        public void NullableT_NullableTypeParameterStructConstaintToNullableStruct()
+        public void NullableT_NullableTypeParameterStructConstraintToNullableStruct()
         {
             var source =
 @"struct S<T> where T : struct
