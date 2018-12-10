@@ -121,6 +121,38 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         }
         #endregion
 
+        #region Symbol - Static
+        [Export(typeof(EditorFormatDefinition))]
+        [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.StaticSymbol)]
+        [Name(ClassificationTypeNames.StaticSymbol)]
+        [Order(After = PredefinedClassificationTypeNames.Identifier)]
+        [UserVisible(true)]
+        [ExcludeFromCodeCoverage]
+        private class SymbolStaticFormatDefinition : ClassificationFormatDefinition
+        {
+            private SymbolStaticFormatDefinition()
+            {
+                this.DisplayName = EditorFeaturesResources.Symbol_Static;
+                // The static classification is intended to be an additive classification
+                // that simply changes the font's styling (bold or not). Allowing 
+                // customization of the foreground color would cause issues with 
+                // TaggedText as it is currently implemented, since any particular
+                // span can only be tagged with a single TextTag. 
+
+                // By restricting to only font style, the QuickInfo and FAR render with the
+                // colors the user would expect. The missing font style is not an problem
+                // for these experiences because the QuickInfo already renders the static 
+                // modifier as part of its text and the FAR window already applies its
+                // own bolding to the rendered output.
+                this.BackgroundCustomizable = false;
+                this.ForegroundCustomizable = false;
+            }
+        }
+        #endregion
+
+        // User Types - * and User Members - * are ordered before Symbol - Static 
+        // so that the font styling choosen for static symbols would override the
+        // styling choosen for specific identifier types.
         #region User Types - Classes
         [Export(typeof(EditorFormatDefinition))]
         [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.ClassName)]
@@ -929,24 +961,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             {
                 this.DisplayName = EditorFeaturesResources.VB_XML_Literals_Text;
                 this.ForegroundColor = Color.FromRgb(85, 85, 85); // HC_LIGHTBLACK
-            }
-        }
-        #endregion
-
-        #region Symbol - Static
-        [Export(typeof(EditorFormatDefinition))]
-        [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.StaticSymbol)]
-        [Name(ClassificationTypeNames.StaticSymbol)]
-        [Order(After = PredefinedClassificationTypeNames.Identifier)]
-        [UserVisible(true)]
-        [ExcludeFromCodeCoverage]
-        private class SymbolStaticFormatDefinition : ClassificationFormatDefinition
-        {
-            private SymbolStaticFormatDefinition()
-            {
-                this.DisplayName = EditorFeaturesResources.Symbol_Static;
-                this.BackgroundCustomizable = false;
-                this.ForegroundCustomizable = false;
             }
         }
         #endregion

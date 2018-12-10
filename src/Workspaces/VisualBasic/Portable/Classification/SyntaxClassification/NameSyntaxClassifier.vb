@@ -87,7 +87,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification.Classifiers
             Select Case symbol.Kind
                 Case SymbolKind.Namespace
                     ' Do not classify the Global namespace. It is already syntactically classified as a keyword.
-                    If Not node.IsKind(SyntaxKind.GlobalName) Then
+                    ' Also, we ignore QualifiedNameSyntax nodes since we want to classify individual name parts.
+                    If Not node.IsKind(SyntaxKind.GlobalName) AndAlso TypeOf node Is IdentifierNameSyntax Then
                         classifiedSpan = New ClassifiedSpan(GetNameToken(node).Span, ClassificationTypeNames.NamespaceName)
                         Return True
                     End If
@@ -185,18 +186,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification.Classifiers
             span As Text.TextSpan,
             result As ArrayBuilder(Of ClassifiedSpan))
 
-            If symbol Is Nothing Then
+            If symbol Is Nothing OrElse Not symbol.IsStatic Then
                 Return
             End If
 
             Dim isEnumMember = symbol.IsKind(SymbolKind.Field) AndAlso symbol.ContainingType?.IsEnumType() = True
-            Dim isNamespace = symbol.IsKind(SymbolKind.Namespace)
-
-            If symbol.IsStatic AndAlso
-                Not isEnumMember AndAlso ' TODO: Since Enum members are always Static Is it useful To classify them As Static? 
-                Not isNamespace Then ' TODO: Since Namespace are always static Is it useful to classify them as static?
-                result.Add(New ClassifiedSpan(span, ClassificationTypeNames.StaticSymbol))
+            If isEnumMember Then
+                ' EnumMembers are not classified as static since there is no
+                ' instance equivalent of the concept and they have their own
+                ' classification type.
+                Return
             End If
+
+            Dim isNamespace = symbol.IsKind(SymbolKind.Namespace)
+            If isNamespace Then
+                ' Namespace names are not classified as static since there is no
+                ' instance equivalent of the concept and they have their own
+                ' classification type.
+                Return
+            End If
+
+            result.Add(New ClassifiedSpan(span, ClassificationTypeNames.StaticSymbol))
         End Sub
 
         Private Function GetClassificationForField(fieldSymbol As IFieldSymbol) As String

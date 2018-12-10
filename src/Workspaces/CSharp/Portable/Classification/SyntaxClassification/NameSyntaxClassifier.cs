@@ -41,7 +41,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
 
             var _ =
                 TryClassifySymbol(name, symbolInfo, semanticModel, result, cancellationToken) ||
-                TryClassifyAsNamespace(name, symbolInfo, result) ||
                 TryClassifyFromIdentifier(name, symbolInfo, result) ||
                 TryClassifyValueIdentifier(name, symbolInfo, result) ||
                 TryClassifyNameOfIdentifier(name, symbolInfo, result);
@@ -122,14 +121,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
             }
 
             var isEnumMember = symbol.IsKind(SymbolKind.Field) && symbol.ContainingType.IsEnumType();
-            if (isEnumMember) // TODO: Since Enum members are always static is it useful to classify them as static?
+            if (isEnumMember)
             {
+                // EnumMembers are not classified as static since there is no
+                // instance equivalent of the concept and they have their own
+                // classification type.
                 return;
             }
 
             var isNamespace = symbol.IsKind(SymbolKind.Namespace);
             if (isNamespace) // TODO: Since Namespaces are always static is it useful to classify them as static?
             {
+                // Namespace names are not classified as static since there is no
+                // instance equivalent of the concept and they have their own
+                // classification type.
                 return;
             }
 
@@ -143,6 +148,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
             CancellationToken cancellationToken,
             out ClassifiedSpan classifiedSpan)
         {
+            // For Namespace parts we want don't want to classify the QualifiedNameSyntax
+            // nodes we instead wait for the each IdentifierNameSyntax part to avoid
+            // creating overlapping ClassifiedSpans.
             if (symbol is INamespaceSymbol namespaceSymbol
                 && name is IdentifierNameSyntax identifierNameSyntax)
             {
@@ -342,35 +350,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
             }
 
             return symbolInfo.Symbol;
-        }
-
-        private bool TryClassifyAsNamespace(
-            NameSyntax name,
-            SymbolInfo symbolInfo,
-            ArrayBuilder<ClassifiedSpan> result)
-        {
-            if (name is IdentifierNameSyntax
-                && symbolInfo.Symbol == null
-                && IsInNamespaceDeclarationOrUsingDirective(name))
-            {
-                result.Add(new ClassifiedSpan(name.Span, ClassificationTypeNames.NamespaceName));
-                return true;
-            }
-
-            return false;
-        }
-
-        private static bool IsInNamespaceDeclarationOrUsingDirective(NameSyntax name)
-        {
-            while (name.Parent is NameSyntax parentName)
-            {
-                name = parentName;
-            }
-
-            // Because this check runs after the TryClassifySymbol we can assume
-            // non-classified names are namespace names.
-            return name.IsParentKind(SyntaxKind.NamespaceDeclaration)
-                || name.IsParentKind(SyntaxKind.UsingDirective);
         }
 
         private bool TryClassifyFromIdentifier(

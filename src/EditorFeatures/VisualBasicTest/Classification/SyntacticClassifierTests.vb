@@ -1780,6 +1780,21 @@ Dim z6 = New List(Of Integer) With {.Capacity = 2}"
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        Public Async Function TestNamespaceDeclaration() As Task
+            Dim code =
+"Namespace N1.N2
+End Namespace"
+
+            Await TestAsync(code,
+                Keyword("Namespace"),
+                [Namespace]("N1"),
+                Operators.Dot,
+                [Namespace]("N2"),
+                Keyword("End"),
+                Keyword("Namespace"))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestClassDeclaration1() As Task
             Dim code = "Class C1"
 
@@ -2325,9 +2340,9 @@ Imports Bar"
 
             Await TestAsync(code,
                 Keyword("Imports"),
-                Identifier("Goo"),
+                [Namespace]("Goo"),
                 Keyword("Imports"),
-                Identifier("Bar"))
+                [Namespace]("Bar"))
         End Function
 
         ''' <summary>
@@ -2342,7 +2357,7 @@ Imports Bar"
             Await TestAsync(code,
                 Keyword("Imports"),
                 Keyword("Imports"),
-                Identifier("Bar"))
+                [Namespace]("Bar"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
@@ -2368,9 +2383,9 @@ Imports Bar=Quux"
 
             Await TestAsync(code,
                 Keyword("Imports"),
-                Identifier("System"),
+                [Namespace]("System"),
                 Operators.Dot,
-                Identifier("Text"))
+                [Namespace]("Text"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
@@ -4064,11 +4079,11 @@ End Class"
 
             Await TestAsync(code,
                 Keyword("Imports"),
-                Identifier("System"),
+                [Namespace]("System"),
                 Operators.Dot,
-                Identifier("Runtime"),
+                [Namespace]("Runtime"),
                 Operators.Dot,
-                Identifier("CompilerServices"),
+                [Namespace]("CompilerServices"),
                 Keyword("Module"),
                 [Module]("M"),
                 Punctuation.OpenAngle,

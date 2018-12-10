@@ -69,18 +69,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
                 return true;
             }
 
-            if (token.IsKind(SyntaxKind.DefaultKeyword))
-            {
-                return token.Parent.IsKind(SyntaxKind.DefaultSwitchLabel);
-            }
-            else if (token.IsKind(SyntaxKind.CaseKeyword))
-            {
-                return token.Parent.IsKind(SyntaxKind.CaseSwitchLabel, SyntaxKind.CasePatternSwitchLabel);
-            }
-
             return IsControlStatementKind(token.Parent.Kind());
         }
-
 
         private static bool IsControlKeywordKind(SyntaxKind kind)
         {
@@ -136,10 +126,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
                 case SyntaxKind.SwitchStatement:
                 case SyntaxKind.SwitchSection:
                 case SyntaxKind.CaseSwitchLabel:
+                case SyntaxKind.CasePatternSwitchLabel:
                 case SyntaxKind.DefaultSwitchLabel:
                 case SyntaxKind.TryStatement:
                 case SyntaxKind.CatchClause:
-                case SyntaxKind.CatchDeclaration:
                 case SyntaxKind.CatchFilterClause:
                 case SyntaxKind.FinallyClause:
                     return true;
@@ -268,6 +258,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
             {
                 return ClassificationTypeNames.Keyword;
             }
+            else if (token.Parent is IdentifierNameSyntax identifierNameSyntax && IsNamePartOfNamespace(identifierNameSyntax))
+            {
+                return ClassificationTypeNames.NamespaceName;
+            }
             else if (token.Parent is ExternAliasDirectiveSyntax externAliasDirectiveSyntax && externAliasDirectiveSyntax.Identifier == token)
             {
                 return ClassificationTypeNames.NamespaceName;
@@ -282,17 +276,44 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
             }
         }
 
+        private static bool IsNamePartOfNamespace(IdentifierNameSyntax identifierSyntax)
+        {
+            var parent = identifierSyntax.Parent;
+
+            while (parent is QualifiedNameSyntax)
+            {
+                parent = parent.Parent;
+            }
+
+            if (parent is UsingDirectiveSyntax usingDirectiveSyntax)
+            {
+                // For simple using directives we know from syntax alone that the 
+                // name is part of a namespace.
+                //
+                // For using alias or static using directives we cannot determine if
+                // the name belongs to a namespace or a type. We will return false 
+                // and allow semantic classification to classify it appropriately.
+                return usingDirectiveSyntax.Alias is null
+                    && usingDirectiveSyntax.StaticKeyword == default;
+            }
+
+            return parent is NamespaceDeclarationSyntax;
+        }
+
         public static bool IsStaticallyDeclared(SyntaxToken token)
         {
             var parentNode = token.Parent;
 
             if (parentNode.IsKind(SyntaxKind.EnumMemberDeclaration))
             {
-                return false; // TODO: Since Enum members are always static is it useful to classify them as static?
+                // EnumMembers are not classified as static since there is no
+                // instance equivalent of the concept and they have their own
+                // classification type.
+                return false;
             }
             else if (parentNode.IsKind(SyntaxKind.VariableDeclarator))
             {
-                // The parent of a VariableDeclartor is a VariableDeclarationSyntax node.
+                // The parent of a VariableDeclarator is a VariableDeclarationSyntax node.
                 // It's parent will be the declaration syntax node.
                 parentNode = parentNode.Parent.Parent;
 

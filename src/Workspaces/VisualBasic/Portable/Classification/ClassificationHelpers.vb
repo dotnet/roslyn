@@ -54,7 +54,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
         End Function
 
         Private Function IsControlKeyword(token As SyntaxToken) As Boolean
-            If (token.Parent Is Nothing) Then
+            If token.Parent Is Nothing Then
                 Return IsControlKeywordKind(token.Kind)
             End If
 
@@ -190,7 +190,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
 
             Dim classification As String = Nothing
 
-            If TypeOf parent Is TypeStatementSyntax AndAlso DirectCast(parent, TypeStatementSyntax).Identifier = identifier Then
+            If TypeOf parent Is IdentifierNameSyntax AndAlso IsNamePartOfNamespace(DirectCast(parent, IdentifierNameSyntax)) Then
+                Return ClassificationTypeNames.NamespaceName
+            ElseIf TypeOf parent Is TypeStatementSyntax AndAlso DirectCast(parent, TypeStatementSyntax).Identifier = identifier Then
                 Return ClassifyTypeDeclarationIdentifier(identifier)
             ElseIf TypeOf parent Is EnumStatementSyntax AndAlso DirectCast(parent, EnumStatementSyntax).Identifier = identifier Then
                 Return ClassificationTypeNames.EnumName
@@ -223,12 +225,34 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
             Return ClassificationTypeNames.Identifier
         End Function
 
+        Private Function IsNamePartOfNamespace(identifierSyntax As IdentifierNameSyntax) As Boolean
+            Dim parent = identifierSyntax.Parent
+
+            While TypeOf parent Is QualifiedNameSyntax
+                parent = parent.Parent
+            End While
+
+            If TypeOf parent Is SimpleImportsClauseSyntax Then
+                Dim importsClause = DirectCast(parent, SimpleImportsClauseSyntax)
+
+                ' For import aliases we cannot determine if the name belongs to a namespace
+                ' or a type. We will return false and allow semantic classification to
+                ' classify it appropriately.
+                Return importsClause.Alias Is Nothing
+            End If
+
+            Return TypeOf parent Is NamespaceStatementSyntax
+        End Function
+
         Public Function IsStaticallyDeclared(identifier As SyntaxToken) As Boolean
             'Note: parent might be Nothing, if we are classifying raw tokens.
             Dim parent = identifier.Parent
 
             If parent.IsKind(SyntaxKind.EnumMemberDeclaration) Then
-                Return False ' TODO: Since Enum members are always static is it useful to classify them as static?
+                ' EnumMembers are not classified as static since there is no
+                ' instance equivalent of the concept and they have their own
+                ' classification type.
+                Return False
             ElseIf parent.IsKind(SyntaxKind.ModifiedIdentifier) Then
                 parent = parent.Parent?.Parent
 

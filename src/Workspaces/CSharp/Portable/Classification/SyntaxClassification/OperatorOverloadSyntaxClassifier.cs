@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Classification.Classifiers;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Classification
 {
@@ -31,9 +32,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
             }
         }
 
-        private static Text.TextSpan GetOperatorTokenSpan(SyntaxNode syntax)
+        private static TextSpan GetOperatorTokenSpan(SyntaxNode syntax)
         {
-            if (syntax is BinaryExpressionSyntax binaryExpression)
+            if (syntax is AssignmentExpressionSyntax assignmentExpression)
+            {
+                return assignmentExpression.OperatorToken.Span;
+            }
+            else if (syntax is BinaryExpressionSyntax binaryExpression)
             {
                 return binaryExpression.OperatorToken.Span;
             }
@@ -50,6 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
         }
 
         public override ImmutableArray<Type> SyntaxNodeTypes { get; } = ImmutableArray.Create(
+            typeof(AssignmentExpressionSyntax),
             typeof(BinaryExpressionSyntax), 
             typeof(PrefixUnaryExpressionSyntax), 
             typeof(PostfixUnaryExpressionSyntax));

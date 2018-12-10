@@ -121,11 +121,11 @@ class yield
     }
 }",
                 Keyword("using"),
-                Identifier("System"),
+                Namespace("System"),
                 Operators.Dot,
-                Identifier("Collections"),
+                Namespace("Collections"),
                 Operators.Dot,
-                Identifier("Generic"),
+                Namespace("Generic"),
                 Punctuation.Semicolon,
                 Keyword("class"),
                 Class("yield"),
@@ -2559,13 +2559,13 @@ namespace MyNamespace
 }
 #endregion TaoRegion",
                 Keyword("using"),
-                Identifier("System"),
+                Namespace("System"),
                 Punctuation.Semicolon,
                 PPKeyword("#"),
                 PPKeyword("region"),
                 PPText("TaoRegion"),
                 Keyword("namespace"),
-                Identifier("MyNamespace"),
+                Namespace("MyNamespace"),
                 Punctuation.OpenCurly,
                 Keyword("abstract"),
                 Keyword("class"),
@@ -3499,7 +3499,7 @@ class var<T>
 {
 }",
                 Keyword("using"),
-                Identifier("System"),
+                Namespace("System"),
                 Punctuation.Semicolon,
                 Keyword("static"),
                 Keyword("class"),
@@ -3551,7 +3551,7 @@ class B : A
     }
 }",
                 Keyword("using"),
-                Identifier("System"),
+                Namespace("System"),
                 Punctuation.Semicolon,
                 Keyword("class"),
                 Class("A"),
@@ -4119,7 +4119,7 @@ namespace OtherScope
 }
 class X<T> where T : unmanaged { }",
                 Keyword("namespace"),
-                Identifier("OtherScope"),
+                Namespace("OtherScope"),
                 Punctuation.OpenCurly,
                 Keyword("interface"),
                 Interface("unmanaged"),
@@ -4211,7 +4211,7 @@ class X
     void M<T>() where T : unmanaged { }
 }",
                 Keyword("namespace"),
-                Identifier("OtherScope"),
+                Namespace("OtherScope"),
                 Punctuation.OpenCurly,
                 Keyword("interface"),
                 Interface("unmanaged"),
@@ -4292,7 +4292,7 @@ namespace OtherScope
 }
 delegate void D<T>() where T : unmanaged;",
                 Keyword("namespace"),
-                Identifier("OtherScope"),
+                Namespace("OtherScope"),
                 Punctuation.OpenCurly,
                 Keyword("interface"),
                 Interface("unmanaged"),
@@ -4407,7 +4407,7 @@ class X
     }
 }",
                 Keyword("namespace"),
-                Identifier("OtherScope"),
+                Namespace("OtherScope"),
                 Punctuation.OpenCurly,
                 Keyword("interface"),
                 Interface("unmanaged"),
@@ -4460,6 +4460,65 @@ if (foo is Action action)
                 Punctuation.CloseParen,
                 Punctuation.OpenCurly,
                 Punctuation.CloseCurly);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestUsingDirective()
+        {
+            var code = @"using System.Collections.Generic;";
+
+            await TestAsync(code,
+                Keyword("using"),
+                Namespace("System"),
+                Operators.Dot,
+                Namespace("Collections"),
+                Operators.Dot,
+                Namespace("Generic"),
+                Punctuation.Semicolon);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestUsingAliasDirectiveForNamespace()
+        {
+            var code = @"using Col = System.Collections;";
+
+            await TestAsync(code,
+                Keyword("using"),
+                Identifier("Col"),
+                Operators.Equals,
+                Identifier("System"),
+                Operators.Dot,
+                Identifier("Collections"),
+                Punctuation.Semicolon);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestUsingAliasDirectiveForClass()
+        {
+            var code = @"using Con = System.Console;";
+
+            await TestAsync(code,
+                Keyword("using"),
+                Identifier("Con"),
+                Operators.Equals,
+                Identifier("System"),
+                Operators.Dot,
+                Identifier("Console"),
+                Punctuation.Semicolon);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestUsingStaticDirective()
+        {
+            var code = @"using static System.Console;";
+
+            await TestAsync(code,
+                Keyword("using"),
+                Keyword("static"),
+                Identifier("System"),
+                Operators.Dot,
+                Identifier("Console"),
+                Punctuation.Semicolon);
         }
     }
 }

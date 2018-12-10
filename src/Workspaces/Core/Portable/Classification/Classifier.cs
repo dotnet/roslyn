@@ -171,7 +171,7 @@ namespace Microsoft.CodeAnalysis.Classification
                 case ClassificationTypeNames.NamespaceName:
                     return SymbolDisplayPartKind.NamespaceName;
                 case ClassificationTypeNames.EventName:
-                    return SymbolDisplayPartKind.EventName;      // TODO: Add more SymbolDisplayPartKinds 
+                    return SymbolDisplayPartKind.EventName;
             }
         }
     }
