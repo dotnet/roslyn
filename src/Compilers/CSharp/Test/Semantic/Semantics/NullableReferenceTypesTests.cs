@@ -63271,32 +63271,36 @@ class B2 : A<int?>
 {
     internal abstract void F<U>(T t) where U : T;
 }
-class B1 : A<int>
+class B1 : A<int?>
 {
-    internal override void F<U>(int t)
+    internal override void F<U>(int? t)
     {
         U u = t;
-        u.ToString();
+        object? o = u;
+        o.ToString(); // 1
     }
 }
 class B2 : A<int?>
 {
     internal override void F<U>(int? t)
     {
+        if (t == null) return;
         U u = t;
-        u.ToString();
+        object? o = u;
+        o.ToString();
     }
 }";
             var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
-            // Conversions are not allowed from int to U in B1.F or from int? to U in B2.F,
-            // so those conversions are not handled in NullableWalker either.
             comp.VerifyDiagnostics(
-                // (9,15): error CS0029: Cannot implicitly convert type 'int' to 'U'
+                // (9,15): error CS0029: Cannot implicitly convert type 'int?' to 'U'
                 //         U u = t;
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "t").WithArguments("int", "U").WithLocation(9, 15),
-                // (17,15): error CS0029: Cannot implicitly convert type 'int?' to 'U'
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "t").WithArguments("int?", "U").WithLocation(9, 15),
+                // (11,9): warning CS8602: Possible dereference of a null reference.
+                //         o.ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "o").WithLocation(11, 9),
+                // (19,15): error CS0029: Cannot implicitly convert type 'int?' to 'U'
                 //         U u = t;
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "t").WithArguments("int?", "U").WithLocation(17, 15));
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "t").WithArguments("int?", "U").WithLocation(19, 15));
         }
 
         [Fact]
@@ -63312,23 +63316,25 @@ class B1 : A<int?>
     internal override void F<U>(int? t)
     {
         U u = (U)(object?)t;
-        u.ToString(); // 1
+        object? o = u;
+        o.ToString(); // 1
     }
 }
 class B2 : A<int?>
 {
     internal override void F<U>(int? t)
     {
-        U u = (U)(object?)t;
-        u.ToString(); // 2
         if (t == null) return;
-        U v = (U)(object?)t;
-        v.ToString();
+        U u = (U)(object?)t;
+        object? o = u;
+        o.ToString();
     }
 }";
             var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
-            // https://github.com/dotnet/roslyn/issues/31673: Should report warnings for // 1 and // 2.
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (11,9): warning CS8602: Possible dereference of a null reference.
+                //         o.ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "o").WithLocation(11, 9));
         }
 
         [Fact]
