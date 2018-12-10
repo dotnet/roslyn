@@ -29,13 +29,15 @@ namespace BuildBoss
         internal static StringComparer PathComparer { get; } = StringComparer.OrdinalIgnoreCase;
         internal static StringComparison PathComparison { get; } = StringComparison.OrdinalIgnoreCase;
 
-        internal string ConfigDirectory { get; }
+        internal string ArtifactsDirectory { get; }
+        internal string Configuration { get; }
         internal string RepositoryDirectory { get; }
 
-        internal PackageContentsChecker(string repositoryDirectory, string configDirectory)
+        internal PackageContentsChecker(string repositoryDirectory, string artifactsDirectory, string configuration)
         {
             RepositoryDirectory = repositoryDirectory;
-            ConfigDirectory = configDirectory;
+            ArtifactsDirectory = artifactsDirectory;
+            Configuration = configuration;
         }
 
         public bool Check(TextWriter textWriter)
@@ -60,11 +62,12 @@ namespace BuildBoss
         {
             var (allGood, dllRelativeNames) = GetDllRelativeNames(
                 textWriter,
-                @"Exes\Csc\net472",
-                @"Exes\Vbc\net472",
-                @"Exes\Csi\net472",
-                @"Exes\VBCSCompiler\net472",
-                @"Dlls\Microsoft.Build.Tasks.CodeAnalysis\net472");
+                $@"csc\{Configuration}\net472",
+                $@"vbc\{Configuration}\net472",
+                $@"csi\{Configuration}\net472",
+                $@"VBCSCompiler\{Configuration}\net472",
+                $@"Microsoft.Build.Tasks.CodeAnalysis\{Configuration}\net472");
+
             if (!allGood)
             {
                 return false;
@@ -83,13 +86,13 @@ namespace BuildBoss
 
             allGood &= VerifyNuPackage(
                         textWriter,
-                        FindNuGetPackage(@"NuGet\PreRelease", "Microsoft.Net.Compilers"),
+                        FindNuGetPackage(Path.Combine(ArtifactsDirectory, "packages", Configuration, "Shipping"), "Microsoft.Net.Compilers"),
                         @"tools",
                         dllRelativeNames);
 
             allGood &= VerifyNuPackage(
                         textWriter,
-                        FindNuGetPackage(@"DevDivPackages\Roslyn", "VS.Tools.Roslyn"),
+                        FindNuGetPackage(Path.Combine(ArtifactsDirectory, "VSSetup", Configuration, "DevDivPackages"), "VS.Tools.Roslyn"),
                         string.Empty,
                         dllRelativeNames);
             return allGood;
@@ -102,9 +105,9 @@ namespace BuildBoss
         {
             var (allGood, dllRelativeNames) = GetDllRelativeNames(
                 textWriter,
-                @"Exes\Csc\netcoreapp2.1\publish",
-                @"Exes\Vbc\netcoreapp2.1\publish",
-                @"Exes\VBCSCompiler\netcoreapp2.1\publish");
+                $@"csc\{Configuration}\netcoreapp2.1\publish",
+                $@"vbc\{Configuration}\netcoreapp2.1\publish",
+                $@"VBCSCompiler\{Configuration}\netcoreapp2.1\publish");
             if (!allGood)
             {
                 return false;
@@ -119,7 +122,7 @@ namespace BuildBoss
 
             return VerifyNuPackage(
                         textWriter,
-                        FindNuGetPackage(@"NuGet\PreRelease", "Microsoft.NETCore.Compilers"),
+                        FindNuGetPackage(Path.Combine(ArtifactsDirectory, "packages", Configuration, "Shipping"), "Microsoft.NETCore.Compilers"),
                         @"tools\bincore",
                         dllRelativeNames);
         }
@@ -198,7 +201,7 @@ namespace BuildBoss
             {
                 foreach (var directory in directoryPaths)
                 {
-                    recordDependencies(md5, Path.Combine(ConfigDirectory, directory));
+                    recordDependencies(md5, Path.Combine(ArtifactsDirectory, "bin", directory));
                 }
             }
 
@@ -308,15 +311,8 @@ namespace BuildBoss
 
         private string FindNuGetPackage(string directory, string partialName)
         {
-            var file = Directory
-                .EnumerateFiles(Path.Combine(ConfigDirectory, directory), partialName + "*.nupkg")
-                .SingleOrDefault();
-            if (file == null)
-            {
-                throw new Exception($"Unable to find NuPgk {partialName} in {directory}");
-            }
-
-            return file;
+            var file = Directory.EnumerateFiles(directory, partialName + "*.nupkg").SingleOrDefault();
+            return file ?? throw new Exception($"Unable to find '{partialName}*.nupkg' in '{directory}'");
         }
     }
 }
