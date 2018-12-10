@@ -40,5 +40,5 @@
     <PackageReference Include="Microsoft.VisualStudio.Debugger.Metadata" Version="$(MicrosoftVisualStudioDebuggerMetadataVersion)" />
   </ItemGroup>
   <Import Project="..\BasicResultProvider.projitems" Label="Shared" />
-  <Import Project="..\..\..\..\..\..\build\Targets\Vsdconfig.targets" />
+  <Import Project="$(RepositoryEngineeringDir)targets\Vsdconfig.targets" />
 </Project>

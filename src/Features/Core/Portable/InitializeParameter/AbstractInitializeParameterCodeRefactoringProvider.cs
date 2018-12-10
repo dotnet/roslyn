@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             // body. This is useful for when the user is typing a new constructor and hasn't written
             // the body yet.
             var blockStatementOpt = GetBlockOperation(functionDeclaration, semanticModel, cancellationToken);
-          
+
             // Ok.  Looks like a reasonable parameter to analyze.  Defer to subclass to 
             // actually determine if there are any viable refactorings here.
             context.RegisterRefactorings(await GetRefactoringsAsync(
@@ -158,7 +158,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             => IsFieldOrPropertyAssignment(statement, containingType, out assignmentExpression, out var fieldOrProperty);
 
         protected static bool IsFieldOrPropertyAssignment(
-            IOperation statement, INamedTypeSymbol containingType, 
+            IOperation statement, INamedTypeSymbol containingType,
             out IAssignmentOperation assignmentExpression, out ISymbol fieldOrProperty)
         {
             if (statement is IExpressionStatementOperation expressionStatement)

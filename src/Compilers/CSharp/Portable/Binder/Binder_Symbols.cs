@@ -539,7 +539,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var argumentType = BindType(argumentSyntax.Type, diagnostics);
                 types.Add(argumentType);
 
-                string name =  null;
+                string name = null;
                 SyntaxToken nameToken = argumentSyntax.Identifier;
 
                 if (nameToken.Kind() == SyntaxKind.IdentifierToken)
@@ -2073,7 +2073,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(qualifierOpt.IsNamespace);
 
                     forwardedToAssembly = GetForwardedToAssembly(simpleName, arity, ref qualifierOpt, diagnostics, location);
-                    
+
                     if (ReferenceEquals(qualifierOpt, Compilation.GlobalNamespace))
                     {
                         Debug.Assert(aliasOpt == null || aliasOpt == SyntaxFacts.GetText(SyntaxKind.GlobalKeyword));

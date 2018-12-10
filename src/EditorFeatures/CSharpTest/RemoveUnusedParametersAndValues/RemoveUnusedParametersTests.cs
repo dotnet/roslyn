@@ -808,7 +808,7 @@ class C
     }
 }");
         }
-        
+
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)]
         public async Task Parameter_CustomEventArgs()
         {

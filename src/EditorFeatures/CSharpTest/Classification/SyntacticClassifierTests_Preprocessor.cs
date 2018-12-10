@@ -773,6 +773,52 @@ aeu";
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task PP_NullableEnable()
+        {
+            var code = @"#nullable enable";
+
+            await TestAsync(code,
+                PPKeyword("#"),
+                PPKeyword("nullable"),
+                PPKeyword("enable"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task PP_NullableEnableWithComment()
+        {
+            var code = @"#nullable enable //Goo";
+
+            await TestAsync(code,
+                PPKeyword("#"),
+                PPKeyword("nullable"),
+                PPKeyword("enable"),
+                Comment("//Goo"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task PP_NullableDisable()
+        {
+            var code = @"#nullable disable";
+
+            await TestAsync(code,
+                PPKeyword("#"),
+                PPKeyword("nullable"),
+                PPKeyword("disable"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task PP_NullableDisableWithComment()
+        {
+            var code = @"#nullable disable //Goo";
+
+            await TestAsync(code,
+                PPKeyword("#"),
+                PPKeyword("nullable"),
+                PPKeyword("disable"),
+                Comment("//Goo"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task PP_PragmaChecksum1()
         {
             await TestAsync(
@@ -997,7 +1043,7 @@ aeu";
         [Fact]
         public async Task UnderscoreInAssignment()
         {
-            await TestInMethodAsync(code: @"int _; _ = 1;" ,
+            await TestInMethodAsync(code: @"int _; _ = 1;",
                 expected: Classifications(Keyword("int"), Local("_"), Punctuation.Semicolon, Identifier("_"), Operators.Equals,
                     Number("1"), Punctuation.Semicolon));
         }

@@ -70,13 +70,13 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
 
             var conditionalExpression = await CreateConditionalExpressionAsync(
                 document, ifOperation, trueAssignment.Parent, falseAssignment.Parent,
-                trueAssignment.Value, falseAssignment.Value, 
+                trueAssignment.Value, falseAssignment.Value,
                 trueAssignment.IsRef, cancellationToken).ConfigureAwait(false);
 
             // See if we're assigning to a variable declared directly above the if statement. If so,
             // try to inline the conditional directly into the initializer for that variable.
             if (!TryConvertWhenAssignmentToLocalDeclaredImmediateAbove(
-                    syntaxFacts, editor, ifOperation, 
+                    syntaxFacts, editor, ifOperation,
                     trueAssignment, falseAssignment, conditionalExpression))
             {
                 // If not, just replace the if-statement with a single assignment of the new

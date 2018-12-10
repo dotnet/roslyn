@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices.TypeInferenceService
         }
 
         private static readonly ImmutableArray<string> s_booleanPrefixes =
-            ImmutableArray.Create("Is", "Has", "Contains", "Supports"); 
+            ImmutableArray.Create("Is", "Has", "Contains", "Supports");
 
         private ImmutableArray<ITypeSymbol> InferTypeBasedOnName(
             SemanticModel semanticModel, string name)
@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices.TypeInferenceService
         }
 
         public ImmutableArray<ITypeSymbol> InferTypes(
-            SemanticModel semanticModel, int position, 
+            SemanticModel semanticModel, int position,
             string nameOpt, CancellationToken cancellationToken)
         {
             var result = CreateTypeInferrer(semanticModel, cancellationToken)
@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices.TypeInferenceService
 
 
         public ImmutableArray<ITypeSymbol> InferTypes(
-            SemanticModel semanticModel, SyntaxNode expression, 
+            SemanticModel semanticModel, SyntaxNode expression,
             string nameOpt, CancellationToken cancellationToken)
         {
             var result = CreateTypeInferrer(semanticModel, cancellationToken)
@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices.TypeInferenceService
         }
 
         public ImmutableArray<TypeInferenceInfo> GetTypeInferenceInfo(
-            SemanticModel semanticModel, int position, 
+            SemanticModel semanticModel, int position,
             string nameOpt, CancellationToken cancellationToken)
         {
             var result = CreateTypeInferrer(semanticModel, cancellationToken).InferTypes(position);
@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices.TypeInferenceService
         }
 
         public ImmutableArray<TypeInferenceInfo> GetTypeInferenceInfo(
-            SemanticModel semanticModel, SyntaxNode expression, 
+            SemanticModel semanticModel, SyntaxNode expression,
             string nameOpt, CancellationToken cancellationToken)
         {
             var result = CreateTypeInferrer(semanticModel, cancellationToken).InferTypes(expression as TExpressionSyntax);

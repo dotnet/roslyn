@@ -1090,7 +1090,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         // CS0629: Conditional member '{0}' cannot implement interface member '{1}' in type '{2}'
                         diagnostics.Add(ErrorCode.ERR_InterfaceImplementedByConditional, GetImplicitImplementationDiagnosticLocation(interfaceMember, implementingType, implicitImpl), implicitImpl, interfaceMethod, implementingType);
                     }
-                    else if(ReportAnyMismatchedConstraints(interfaceMethod, implementingType, implicitImplMethod, diagnostics))
+                    else if (ReportAnyMismatchedConstraints(interfaceMethod, implementingType, implicitImplMethod, diagnostics))
                     {
                         reportedAnError = true;
                     }
@@ -1112,7 +1112,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // In constructed types, it is possible to see multiple members with the same (runtime) signature.
             // Now that we know which member will implement the interface member, confirm that it is the only
             // such member.
-                if (!implicitImpl.ContainingType.IsDefinition)
+            if (!implicitImpl.ContainingType.IsDefinition)
             {
                 foreach (Symbol member in implicitImpl.ContainingType.GetMembers(implicitImpl.Name))
                 {
@@ -1152,16 +1152,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 TypeSymbolWithAnnotations implementingMemberType = implementingMember.GetTypeOrReturnType();
                 TypeSymbolWithAnnotations implementedMemberType = implementedMember.GetTypeOrReturnType();
 
-                if (!implementingMemberType.Equals(implementedMemberType, 
+                if (!implementingMemberType.Equals(implementedMemberType,
                                                    TypeCompareKind.AllIgnoreOptions & ~(TypeCompareKind.IgnoreNullableModifiersForReferenceTypes | TypeCompareKind.IgnoreInsignificantNullableModifiersDifference)) &&
                     implementingMemberType.Equals(implementedMemberType, TypeCompareKind.AllIgnoreOptions))
                 {
                     diagnostics.Add(implementingMember.Kind == SymbolKind.Method ?
-                                        (isExplicit ? 
-                                            ErrorCode.WRN_NullabilityMismatchInReturnTypeOnExplicitImplementation : 
+                                        (isExplicit ?
+                                            ErrorCode.WRN_NullabilityMismatchInReturnTypeOnExplicitImplementation :
                                             ErrorCode.WRN_NullabilityMismatchInReturnTypeOnImplicitImplementation) :
-                                        (isExplicit ? 
-                                            ErrorCode.WRN_NullabilityMismatchInTypeOnExplicitImplementation : 
+                                        (isExplicit ?
+                                            ErrorCode.WRN_NullabilityMismatchInTypeOnExplicitImplementation :
                                             ErrorCode.WRN_NullabilityMismatchInTypeOnImplicitImplementation),
                                     implementingMember.Locations[0], new FormattedSymbol(interfaceMember, SymbolDisplayFormat.MinimallyQualifiedFormat));
                 }
@@ -1179,7 +1179,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         diagnostics.Add(isExplicit ?
                                             ErrorCode.WRN_NullabilityMismatchInParameterTypeOnExplicitImplementation :
-                                            ErrorCode.WRN_NullabilityMismatchInParameterTypeOnImplicitImplementation, 
+                                            ErrorCode.WRN_NullabilityMismatchInParameterTypeOnImplicitImplementation,
                                         implementingMember.Locations[0],
                                         new FormattedSymbol(implementingParameters[i], SymbolDisplayFormat.ShortFormat),
                                         new FormattedSymbol(interfaceMember, SymbolDisplayFormat.MinimallyQualifiedFormat));

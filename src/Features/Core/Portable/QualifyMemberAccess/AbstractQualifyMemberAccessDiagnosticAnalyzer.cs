@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.QualifyMemberAccess
         where TExpressionSyntax : SyntaxNode
         where TSimpleNameSyntax : TExpressionSyntax
     {
-        protected AbstractQualifyMemberAccessDiagnosticAnalyzer() 
+        protected AbstractQualifyMemberAccessDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.AddQualificationDiagnosticId,
                    new LocalizableResourceString(nameof(WorkspacesResources.Member_access_should_be_qualified), WorkspacesResources.ResourceManager, typeof(WorkspacesResources)),
                    new LocalizableResourceString(nameof(FeaturesResources.Add_this_or_Me_qualification), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis.QualifyMemberAccess
             if (!IsAlreadyQualifiedMemberAccess(simpleName))
             {
                 context.ReportDiagnostic(DiagnosticHelper.Create(
-                    Descriptor, 
+                    Descriptor,
                     GetLocation(operation),
                     severity,
                     additionalLocations: null,

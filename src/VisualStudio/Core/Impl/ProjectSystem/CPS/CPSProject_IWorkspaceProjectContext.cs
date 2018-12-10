@@ -133,9 +133,23 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
             }
         }
 
+        public string DefaultNamespace
+        {
+            get => _visualStudioProject.DefaultNamespace;
+            private set => _visualStudioProject.DefaultNamespace = value;
+        }
+
         public void SetProperty(string name, string value)
         {
-            // TODO
+            if (name == AdditionalPropertyNames.RootNamespace)
+            {
+                // Right now VB doesn't have the concept of "default namespace". But we conjure one in workspace 
+                // by assigning the value of the project's root namespace to it. So various feature can choose to 
+                // use it for their own purpose.
+                // In the future, we might consider officially exposing "default namespace" for VB project 
+                // (e.g. through a <defaultnamespace> msbuild property)
+                DefaultNamespace = value;
+            }
         }
 
         public void AddMetadataReference(string referencePath, MetadataReferenceProperties properties)
@@ -230,6 +244,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
         internal VisualStudioProject GetProject_TestOnly()
         {
             return _visualStudioProject;
+        }
+
+        public void AddAnalyzerConfigFile(string filePath)
+        {
+            // TODO: implement. Right now this exists to provide a stub for the project system work to be implemented against.
+        }
+
+        public void RemoveAnalyzerConfigFile(string filePath)
+        {
+            // TODO: implement. Right now this exists to provide a stub for the project system work to be implemented against.
         }
     }
 }

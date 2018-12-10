@@ -54,7 +54,8 @@ namespace Microsoft.CodeAnalysis.UseCoalesceExpression
                     conditionalExpression, out var condition, out var whenTrue, out var whenFalse);
 
                 editor.ReplaceNode(conditionalExpression,
-                    (c, g) => {
+                    (c, g) =>
+                    {
                         syntaxFacts.GetPartsOfConditionalExpression(
                             c, out var currentCondition, out var currentWhenTrue, out var currentWhenFalse);
 

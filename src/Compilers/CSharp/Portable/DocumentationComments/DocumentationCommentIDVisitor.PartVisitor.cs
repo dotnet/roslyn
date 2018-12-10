@@ -151,7 +151,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     builder.Append("``");
                 }
-                else 
+                else
                 {
                     Debug.Assert(containingSymbol is NamedTypeSymbol);
 

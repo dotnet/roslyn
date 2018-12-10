@@ -65,7 +65,7 @@ class C
 
             compilation.VerifyOperationTree(node1, expectedOperationTree:
 @"
-IConstructorBodyOperation (OperationKind.ConstructorBodyOperation, Type: null, IsInvalid) (Syntax: 'public C() : base()')
+IConstructorBodyOperation (OperationKind.ConstructorBody, Type: null, IsInvalid) (Syntax: 'public C() : base()')
   Initializer: 
     IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid, IsImplicit) (Syntax: ': base()')
       Expression: 
@@ -121,7 +121,7 @@ class C
 
             compilation.VerifyOperationTree(node1, expectedOperationTree:
 @"
-IConstructorBodyOperation (OperationKind.ConstructorBodyOperation, Type: null) (Syntax: 'public C()  ... row null; }')
+IConstructorBodyOperation (OperationKind.ConstructorBody, Type: null) (Syntax: 'public C()  ... row null; }')
   Initializer: 
     IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsImplicit) (Syntax: ': base()')
       Expression: 
@@ -181,7 +181,7 @@ class C
 
             compilation.VerifyOperationTree(node1, expectedOperationTree:
 @"
-IConstructorBodyOperation (OperationKind.ConstructorBodyOperation, Type: null) (Syntax: 'public C()  ... throw null;')
+IConstructorBodyOperation (OperationKind.ConstructorBody, Type: null) (Syntax: 'public C()  ... throw null;')
   Initializer: 
     IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsImplicit) (Syntax: ': base()')
       Expression: 
@@ -243,7 +243,7 @@ class C
 
             compilation.VerifyOperationTree(node1, expectedOperationTree:
 @"
-IConstructorBodyOperation (OperationKind.ConstructorBodyOperation, Type: null) (Syntax: 'public C() ... row null; }')
+IConstructorBodyOperation (OperationKind.ConstructorBody, Type: null) (Syntax: 'public C() ... row null; }')
   Initializer: 
     null
   BlockBody: 
@@ -291,7 +291,7 @@ class C
 
             compilation.VerifyOperationTree(node1, expectedOperationTree:
 @"
-IConstructorBodyOperation (OperationKind.ConstructorBodyOperation, Type: null) (Syntax: 'public C() ... throw null;')
+IConstructorBodyOperation (OperationKind.ConstructorBody, Type: null) (Syntax: 'public C() ... throw null;')
   Initializer: 
     null
   BlockBody: 
@@ -348,7 +348,7 @@ class C
 
             compilation.VerifyOperationTree(node1, expectedOperationTree:
 @"
-IConstructorBodyOperation (OperationKind.ConstructorBodyOperation, Type: null, IsInvalid) (Syntax: 'public C() ... throw null;')
+IConstructorBodyOperation (OperationKind.ConstructorBody, Type: null, IsInvalid) (Syntax: 'public C() ... throw null;')
   Initializer: 
     null
   BlockBody: 

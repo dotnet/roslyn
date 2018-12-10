@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.MakeMethodSynchronous
             }
 
             return await RemoveAwaitFromCallersAsync(
-                newDocument, annotation, cancellationToken).ConfigureAwait(false) ;
+                newDocument, annotation, cancellationToken).ConfigureAwait(false);
         }
 
         private async Task<Solution> RemoveAwaitFromCallersAsync(
@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis.MakeMethodSynchronous
         }
 
         private void RemoveAwaitFromCallerIfPresent(
-            SyntaxEditor editor, ISyntaxFactsService syntaxFacts, 
+            SyntaxEditor editor, ISyntaxFactsService syntaxFacts,
             SyntaxNode root, ReferenceLocation referenceLocation,
             CancellationToken cancellationToken)
         {

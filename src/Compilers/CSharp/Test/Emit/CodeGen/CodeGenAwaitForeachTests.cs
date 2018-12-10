@@ -781,7 +781,7 @@ class Element
     public override string ToString() => i.ToString();
 }";
             var comp = CreateCompilationWithTasksExtensions(new[] { source, s_IAsyncEnumerable }, options: TestOptions.DebugExe);
-            comp.VerifyDiagnostics( );
+            comp.VerifyDiagnostics();
 
             CompileAndVerify(comp,
                 expectedOutput: "NextAsync(0) Current(1) Convert(1) Got(1) NextAsync(1) Current(2) Convert(2) Got(2) NextAsync(2) Current(3) Convert(3) Got(3) NextAsync(3) Dispose(4)",

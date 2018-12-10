@@ -972,12 +972,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     var defaultImplicitlyDeclared = providedName != defaultName;
 
                     // Add a field with default name. It should be present regardless.
-                    TupleErrorFieldSymbol defaultTupleField = new TupleErrorFieldSymbol(this, 
-                                                                                        defaultName, 
-                                                                                        i, 
-                                                                                        defaultImplicitlyDeclared ? null : location, 
-                                                                                        _elementTypes[i], 
-                                                                                        diagnosticInfo, 
+                    TupleErrorFieldSymbol defaultTupleField = new TupleErrorFieldSymbol(this,
+                                                                                        defaultName,
+                                                                                        i,
+                                                                                        defaultImplicitlyDeclared ? null : location,
+                                                                                        _elementTypes[i],
+                                                                                        diagnosticInfo,
                                                                                         defaultImplicitlyDeclared,
                                                                                         correspondingDefaultFieldOpt: null);
 
@@ -986,12 +986,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     if (defaultImplicitlyDeclared && !String.IsNullOrEmpty(providedName))
                     {
                         // Add friendly named element field. 
-                        members.Add(new TupleErrorFieldSymbol(this, 
-                                                              providedName, 
-                                                              i, 
-                                                              location, 
-                                                              _elementTypes[i], 
-                                                              diagnosticInfo, 
+                        members.Add(new TupleErrorFieldSymbol(this,
+                                                              providedName,
+                                                              i,
+                                                              location,
+                                                              _elementTypes[i],
+                                                              diagnosticInfo,
                                                               isImplicitlyDeclared: false,
                                                               correspondingDefaultFieldOpt: defaultTupleField));
                     }

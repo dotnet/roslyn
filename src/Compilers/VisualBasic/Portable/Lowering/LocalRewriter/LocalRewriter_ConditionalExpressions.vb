@@ -235,7 +235,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             ' Optimize If(left, right) to left.GetValueOrDefault() when left is T? and right is the default value of T
-            If rewrittenLeft.Type.IsNullableType() AndAlso 
+            If rewrittenLeft.Type.IsNullableType() AndAlso
                rewrittenRight.IsDefaultValue() AndAlso
                rewrittenRight.Type.IsSameTypeIgnoringAll(rewrittenLeft.Type.GetNullableUnderlyingType()) _
             Then

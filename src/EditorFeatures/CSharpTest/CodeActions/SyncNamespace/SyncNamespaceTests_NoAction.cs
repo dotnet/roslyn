@@ -31,7 +31,7 @@ namespace NS
         </Document>
     </Project>
 </Workspace>";
-            
+
             await TestMissingInRegularAndScriptAsync(code);
         }
 
@@ -44,7 +44,7 @@ namespace NS
             var code =
 $@"
 <Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" DefaultNamespace="""" CommonReferences=""true"">
+    <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace="""" CommonReferences=""true"">
         <Document Folders=""{documentPath.folder}"" FilePath=""{documentPath.filePath}"">    
 class Class1
 {{
@@ -183,7 +183,7 @@ namespace [||]NS1
             var code =
 $@"
 <Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" DefaultNamespace="""" CommonReferences=""true"">
+    <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace="""" CommonReferences=""true"">
         <Document Folders=""{documentPath.folder}"" FilePath=""{documentPath.filePath}""> 
 namespace [||]
 {{
@@ -207,7 +207,7 @@ namespace [||]
             var code =
 $@"
 <Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" DefaultNamespace=""""  CommonReferences=""true"">
+    <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""""  CommonReferences=""true"">
         <Document Folders=""{documentPath.folder}"" FilePath=""{documentPath.filePath}"">    
 class [||]Class1
 {{
@@ -228,7 +228,7 @@ class [||]Class1
             var code =
 $@"
 <Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" DefaultNamespace=""""  CommonReferences=""true"">
+    <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""""  CommonReferences=""true"">
         <Document Folders=""{documentPath.folder}"" FilePath=""{documentPath.filePath}"">    
 namespace [||]A.B.C
 {{  
@@ -252,7 +252,7 @@ namespace [||]A.B.C
             var code =
 $@"
 <Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" DefaultNamespace=""A"" CommonReferences=""true"">
+    <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""A"" CommonReferences=""true"">
         <Document Folders=""{documentPath.folder}"" FilePath=""{documentPath.filePath}""> 
 namespace [||]A.B.C
 {{    

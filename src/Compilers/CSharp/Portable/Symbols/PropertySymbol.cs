@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Indicates whether or not the property returns a readonly reference
         /// </summary>
-        public bool ReturnsByRefReadonly { get { return this.RefKind == RefKind.RefReadOnly ; } }
+        public bool ReturnsByRefReadonly { get { return this.RefKind == RefKind.RefReadOnly; } }
 
         /// <summary>
         /// Gets the ref kind of the property.
