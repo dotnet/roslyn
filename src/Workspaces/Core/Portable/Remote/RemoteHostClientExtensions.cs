@@ -103,9 +103,6 @@ namespace Microsoft.CodeAnalysis.Remote
             this Workspace workspace, CancellationToken cancellationToken)
             => workspace.Services.GetService<IRemoteHostClientService>()?.TryGetRemoteHostClientAsync(cancellationToken);
 
-        public static bool IsOutOfProcessEnabled(this Workspace workspace, Option<bool> featureOption)
-            => workspace.Options.GetOption(featureOption);
-
         public static Task<bool> TryRunRemoteAsync(
             this RemoteHostClient client, string serviceName, Solution solution, string targetName, object argument, CancellationToken cancellationToken)
             => TryRunRemoteAsync(client, serviceName, solution, targetName, new object[] { argument }, cancellationToken);
