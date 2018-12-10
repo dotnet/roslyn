@@ -400,6 +400,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return NullableAnnotation.Nullable;
             }
 
+            // https://github.com/dotnet/roslyn/issues/31675: Is a similar case needed in ValueCanBeNull?
             if (NullableAnnotation != NullableAnnotation.NotNullable && IsNullableTypeOrTypeParameter())
             {
                 return NullableAnnotation.Nullable;

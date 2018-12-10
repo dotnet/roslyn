@@ -62447,6 +62447,9 @@ class Program
                 Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "s4.Value").WithLocation(33, 17));
         }
 
+        // https://github.com/dotnet/roslyn/issues/31675: Add similar tests for
+        // type parameters with `class?` constraint and Nullable<T> constraint.
+
         [Fact]
         public void NullableT_StructToTypeParameterUnconstrained()
         {
