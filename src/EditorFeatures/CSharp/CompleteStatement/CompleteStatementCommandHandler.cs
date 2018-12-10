@@ -140,74 +140,95 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
         /// </remarks>
         private static bool LooksLikeNodeInArgumentListForStatementCompletion(SyntaxNode currentNode, ISyntaxFactsService syntaxFacts, SnapshotPoint? caret)
         {
-            while (!currentNode.IsKind(SyntaxKind.ArgumentList, SyntaxKind.ArrayRankSpecifier, SyntaxKind.ParenthesizedExpression))
+            // work our way up the tree, looking for a node of interest within the current statement
+            bool nodeFound = false;
+            while (!ReachedStatementSyntax(currentNode, syntaxFacts))
             {
-                if (currentNode == null)
+                if (currentNode.IsKind(SyntaxKind.ArgumentList, SyntaxKind.ArrayRankSpecifier, SyntaxKind.ParenthesizedExpression))
                 {
-                    // We reached the root without detecting a node of interest.
+                    // It's a node of interest
+                    nodeFound = true;
+                }
+
+                // No special action is performed at this time if `;` is typed inside a string, including
+                // interpolated strings.  
+                if (IsInAString(currentNode, caret))
+                {
                     return false;
                 }
 
-                if (currentNode.IsKind(SyntaxKind.InterpolatedStringExpression, SyntaxKind.StringLiteralExpression))
+                // We reached the root without finding a statement
+                if (currentNode.Parent == null)
                 {
-                    // No special action is performed at this time if `;` is typed inside a string, including
-                    // interpolated strings.  
-                    // If caret is at the end of the line, it is outside the string so is a candidate for 
-                    // statement completion
-                    if (caret != null && IsCaretAtEndOfLine((SnapshotPoint)caret))
-                    {
-                        return true;
-                    }
-
-                    return false;
-                }
-
-                if (syntaxFacts.IsStatement(currentNode)
-                    || currentNode.IsKind(SyntaxKind.VariableDeclaration))
-                {
-                    // We reached an enclosing statement-like syntax without finding an intermediate argument-list-like
-                    // syntax. Do not treat this statement as a candidate for statement completion because inserting a
-                    // semicolon at the current location is likely to create a valid statement.
-                    //
-                    // IsStatement: The syntax is a known statement syntax
-                    // VariableDelaration: The expression is part of a field initializer, which is not part of a
-                    //      statement syntax but behaves like an expression statement for the purposes of statement
-                    //      completion.
                     return false;
                 }
 
                 currentNode = currentNode.Parent;
             }
 
-            // now we're in an argument list (or similar), so look for the enclosing statement-like syntax
-            while (!syntaxFacts.IsStatement(currentNode) && !currentNode.IsKind(SyntaxKind.VariableDeclaration))
+            // if we never found a statement, or a node of interest, or the statement we found is not a candidate for completion, return
+            if (currentNode == null || !nodeFound || !StatementIsACandidate(currentNode))
             {
-                currentNode = currentNode.Parent;
-                if (currentNode == null ||
-                    currentNode.IsKind(SyntaxKind.IfStatement, SyntaxKind.SwitchStatement, SyntaxKind.WhileStatement))
-                {
-                    return false;
-                }
+                return false;
             }
 
-            // TO DO
-            // In certain scenarios, enclosing variable declaration is not a candidate for statement completion
-            //      - for statement initializer
-            //      - for statement condition
-            //      - foreach statement 
-            if (VariableDeclarationNotInStatementCompletionCandidate(currentNode))
-            {
-                    return false;
-            }
-                
             Debug.Assert(currentNode != null);
             return true;
+        }
+
+        private static bool ReachedStatementSyntax(SyntaxNode currentNode, ISyntaxFactsService syntaxFacts)
+        {
+            if (syntaxFacts.IsStatement(currentNode)
+                    || currentNode.IsKind(SyntaxKind.VariableDeclaration))
+            {
+                // We reached an enclosing statement-like syntax without finding an intermediate argument-list-like
+                // syntax. Do not treat this statement as a candidate for statement completion because inserting a
+                // semicolon at the current location is likely to create a valid statement.
+                //
+                // IsStatement: The syntax is a known statement syntax
+                // VariableDelaration: The expression is part of a field initializer, which is not part of a
+                //      statement syntax but behaves like an expression statement for the purposes of statement
+                //      completion.
+                return true;
+            }
+            else return false;
+        }
+
+        private static bool IsInAString(SyntaxNode currentNode, SnapshotPoint? caret)
+        {
+            // If caret is at the end of the line, it is outside the string
+            if (currentNode.IsKind(SyntaxKind.InterpolatedStringExpression, SyntaxKind.StringLiteralExpression)
+                && caret != null 
+                && !IsCaretAtEndOfLine((SnapshotPoint)caret))
+                {
+                    return true;
+                }
+
+            return false;
+        }
+
+        private static bool StatementIsACandidate(SyntaxNode currentNode)
+        {
+            // if the statement kind ends in a semicolon, return true
+            switch (currentNode.Kind())
+            {
+                case SyntaxKind.DoStatement:
+                case SyntaxKind.ExpressionStatement:
+                case SyntaxKind.ForStatement:
+                case SyntaxKind.GotoCaseStatement:
+                case SyntaxKind.LocalDeclarationStatement:
+                case SyntaxKind.ReturnStatement:
+                case SyntaxKind.ThrowStatement:
+                case SyntaxKind.VariableDeclaration:
+                    return true;
+                default:
+                    return false;
+            }
         }
 
         private static bool VariableDeclarationNotInStatementCompletionCandidate(SyntaxNode currentNode)
         {
             // 
-            if (!currentNode.IsKind(SyntaxKind.VariableDeclaration))
             {
                 return false;
             }

@@ -1202,8 +1202,8 @@ class C
 {
     static void Main(string[] args)
     {
-        for (Goo f = new Goo { i = 0, s = ""abc""
-    };$$
+        for (Goo f = new Goo { i = 0, s = ""abc"";$$
+    }
 }
 public class Goo
 {
@@ -1357,8 +1357,8 @@ class C
 {
     static void Main(string[] args)
     {
-        Goo f = new Goo { i = 0, s = ""abc""
-    };$$
+        Goo f = new Goo { i = 0, s = ""abc"";$$
+    }
 }
 
 public class Goo
