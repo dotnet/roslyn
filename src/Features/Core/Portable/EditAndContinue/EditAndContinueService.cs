@@ -91,10 +91,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             Contract.ThrowIfNull(currentSolution);
 
             var newSession = new EditSession(
-                currentSolution, 
-                _debuggingSession, 
-                _activeStatementProvider, 
-                projects, 
+                currentSolution,
+                _debuggingSession,
+                _activeStatementProvider,
+                projects,
                 _nonRemappableRegions,
                 stoppedAtException);
 

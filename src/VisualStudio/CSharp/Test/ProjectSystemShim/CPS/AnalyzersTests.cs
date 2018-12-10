@@ -57,7 +57,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
   </Rules>
 </RuleSet>
 ";
-            
+
             using (var ruleSetFile = new DisposableFile())
             using (var environment = new TestEnvironment())
             using (var project = CSharpHelpers.CreateCSharpCPSProject(environment, "Test"))

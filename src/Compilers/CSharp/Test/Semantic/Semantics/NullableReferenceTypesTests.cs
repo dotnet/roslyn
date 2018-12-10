@@ -51368,7 +51368,7 @@ class Program
                 //         y2.GetEnumerator(); // 4
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y2").WithLocation(18, 9));
         }
-        
+
         [Fact]
         public void SpecialAndWellKnownMemberLookup()
         {
@@ -58541,7 +58541,7 @@ class B
 }
 ";
             var comp1 = CreateCompilation(new[] { source });
-            CompileAndVerify(comp1, symbolValidator: 
+            CompileAndVerify(comp1, symbolValidator:
             (ModuleSymbol m) =>
             {
                 (string type, string attribute)[] baseline = new[]
@@ -60628,7 +60628,7 @@ partial class Program
             }
         }
 
-        [Fact(Skip ="Two different implementations of NullableAnnotation Join do not agree")]
+        [Fact(Skip = "Two different implementations of NullableAnnotation Join do not agree")]
         public void TestJoinsAgree()
         {
             Func<bool, bool> identity = x => x;

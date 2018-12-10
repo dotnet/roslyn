@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.AddRequiredParentheses
         }
         private void AddDiagnostics(
             SyntaxNodeAnalysisContext context, TBinaryLikeExpressionSyntax binaryLikeOpt, int precedence,
-            ReportDiagnostic severity, ImmutableArray<Location> additionalLocations, 
+            ReportDiagnostic severity, ImmutableArray<Location> additionalLocations,
             string equivalenceKey, bool includeInFixAll)
         {
             if (binaryLikeOpt != null &&

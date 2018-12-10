@@ -199,7 +199,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         private FileLinePositionSpan? FindFirstRealSequencePoint()
         {
             SequencePointList current = this;
-            
+
             while (current != null)
             {
                 foreach (var offsetAndSpan in current._points)

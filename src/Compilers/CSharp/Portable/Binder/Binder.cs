@@ -687,7 +687,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return new BoundBlock(statement.Syntax, locals, ImmutableArray.Create(statement))
-                { WasCompilerGenerated = true };
+            { WasCompilerGenerated = true };
         }
 
         /// <summary>
@@ -717,7 +717,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 for (Binder scope = this; scope != null; scope = scope.Next)
                 {
-                    var(description, snippet, locals) = Print(scope);
+                    var (description, snippet, locals) = Print(scope);
                     var sub = new List<TreeDumperNode>();
                     if (!locals.IsEmpty())
                     {

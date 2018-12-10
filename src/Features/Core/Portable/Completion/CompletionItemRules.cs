@@ -34,11 +34,11 @@ namespace Microsoft.CodeAnalysis.Completion
         /// <summary>
         /// The rule used when no rule is specified when constructing a <see cref="CompletionItem"/>.
         /// </summary>
-        public static CompletionItemRules Default = 
+        public static CompletionItemRules Default =
             new CompletionItemRules(
-                filterCharacterRules: default, 
+                filterCharacterRules: default,
                 commitCharacterRules: default,
-                enterKeyRule: EnterKeyRule.Default, 
+                enterKeyRule: EnterKeyRule.Default,
                 formatOnCommit: false,
                 matchPriority: Completion.MatchPriority.Default,
                 selectionBehavior: CompletionItemSelectionBehavior.Default);
@@ -107,8 +107,8 @@ namespace Microsoft.CodeAnalysis.Completion
             int? matchPriority)
         {
             return Create(
-                filterCharacterRules, commitCharacterRules, 
-                enterKeyRule, formatOnCommit, matchPriority, 
+                filterCharacterRules, commitCharacterRules,
+                enterKeyRule, formatOnCommit, matchPriority,
                 selectionBehavior: CompletionItemSelectionBehavior.Default);
         }
 
@@ -192,7 +192,7 @@ namespace Microsoft.CodeAnalysis.Completion
                 return this;
             }
             else
-            { 
+            {
                 return Create(
                     newFilterRules, newCommitRules,
                     newEnterKeyRule, newFormatOnCommit,

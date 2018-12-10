@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             internal override ConstantValue GetConstantValue(SyntaxNode node, LocalSymbol inProgress, DiagnosticBag diagnostics = null)
             {
-                return null; 
+                return null;
             }
 
             internal override ImmutableArray<Diagnostic> GetConstantValueDiagnostics(BoundExpression boundInitValue)

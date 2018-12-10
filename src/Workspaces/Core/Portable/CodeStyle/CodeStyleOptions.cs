@@ -297,7 +297,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             new CodeStyleOption<ParenthesesPreference>(ParenthesesPreference.NeverIfUnnecessary, NotificationOption.Silent);
 
         private static PerLanguageOption<CodeStyleOption<ParenthesesPreference>> CreateParenthesesOption(
-            string fieldName, CodeStyleOption<ParenthesesPreference> defaultValue, 
+            string fieldName, CodeStyleOption<ParenthesesPreference> defaultValue,
             string styleName)
         {
             return CreateOption(

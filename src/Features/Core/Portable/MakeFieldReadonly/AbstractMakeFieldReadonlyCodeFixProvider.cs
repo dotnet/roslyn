@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
                 {
                     var model = await document.GetSemanticModelAsync().ConfigureAwait(false);
                     var generator = editor.Generator;
-                    
+
                     foreach (var declarator in declarationDeclarators.Reverse())
                     {
                         var symbol = (IFieldSymbol)model.GetDeclaredSymbol(declarator);

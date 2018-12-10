@@ -197,7 +197,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             }
 
             return GenerateLiteralExpression(
-                type, value, LiteralSpecialValues.DoubleSpecialValues, "R", canUseFieldReference, 
+                type, value, LiteralSpecialValues.DoubleSpecialValues, "R", canUseFieldReference,
                 SyntaxFactory.Literal, x => x < 0, x => -x);
         }
 
@@ -226,7 +226,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             }
 
             return GenerateLiteralExpression(
-                type, value, LiteralSpecialValues.SingleSpecialValues, "R", canUseFieldReference, 
+                type, value, LiteralSpecialValues.SingleSpecialValues, "R", canUseFieldReference,
                 SyntaxFactory.Literal, x => x < 0, x => -x);
         }
 
@@ -241,7 +241,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         }
 
         private static ExpressionSyntax GenerateLiteralExpression<T>(
-            ITypeSymbol type, T value, IEnumerable<KeyValuePair<T, string>> constants, 
+            ITypeSymbol type, T value, IEnumerable<KeyValuePair<T, string>> constants,
             string formatString, bool canUseFieldReference,
             Func<string, T, SyntaxToken> tokenFactory,
             Func<T, bool> isNegative, Func<T, T> negate)

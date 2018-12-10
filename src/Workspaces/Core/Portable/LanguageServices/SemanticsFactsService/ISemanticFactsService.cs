@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         ImmutableArray<ISymbol> GetBestOrAllSymbols(SemanticModel semanticModel, SyntaxNode node, SyntaxToken token, CancellationToken cancellationToken);
 
         SyntaxToken GenerateUniqueName(
-            SemanticModel semanticModel, SyntaxNode location, 
+            SemanticModel semanticModel, SyntaxNode location,
             SyntaxNode containerOpt, string baseName, CancellationToken cancellationToken);
 
         SyntaxToken GenerateUniqueName(
