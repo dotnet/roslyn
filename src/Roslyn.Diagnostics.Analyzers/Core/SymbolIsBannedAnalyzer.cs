@@ -213,7 +213,7 @@ namespace Roslyn.Diagnostics.Analyzers
                 {
                     if (bannedAttributes.TryGetValue(attribute.AttributeClass, out var message))
                     {
-                        var node = attribute.ApplicationSyntaxReference.GetSyntax();
+                        var node = attribute.ApplicationSyntaxReference?.GetSyntax();
                         ReportDiagnostic(
                             node.CreateDiagnostic(
                                 SymbolIsBannedAnalyzer.SymbolIsBannedRule,
