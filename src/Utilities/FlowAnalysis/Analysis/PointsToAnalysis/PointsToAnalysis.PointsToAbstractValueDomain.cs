@@ -91,6 +91,35 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                 {
                     result = value1;
                 }
+                else if (value1.Kind == PointsToAbstractValueKind.Unknown ||
+                         value2.Kind == PointsToAbstractValueKind.Unknown)
+                {
+                    result = PointsToAbstractValue.Unknown;
+                }
+                else if (value1.Kind == PointsToAbstractValueKind.UnknownNull)
+                {
+                    return value2.NullState == NullAbstractValue.Null ?
+                        PointsToAbstractValue.UnknownNull :
+                        PointsToAbstractValue.Unknown;
+                }
+                else if (value2.Kind == PointsToAbstractValueKind.UnknownNull)
+                {
+                    return value1.NullState == NullAbstractValue.Null ?
+                        PointsToAbstractValue.UnknownNull :
+                        PointsToAbstractValue.Unknown;
+                }
+                else if (value1.Kind == PointsToAbstractValueKind.UnknownNotNull)
+                {
+                    return value2.NullState == NullAbstractValue.NotNull ?
+                        PointsToAbstractValue.UnknownNotNull :
+                        PointsToAbstractValue.Unknown;
+                }
+                else if (value2.Kind == PointsToAbstractValueKind.UnknownNotNull)
+                {
+                    return value1.NullState == NullAbstractValue.NotNull ?
+                        PointsToAbstractValue.UnknownNotNull :
+                        PointsToAbstractValue.Unknown;
+                }
                 else if (value1.Kind == PointsToAbstractValueKind.KnownLValueCaptures)
                 {
                     Debug.Assert(value2.Kind == PointsToAbstractValueKind.KnownLValueCaptures);
@@ -99,26 +128,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                 }
                 else
                 {
-                    Debug.Assert(value1.Kind == PointsToAbstractValueKind.KnownLocations || value1.Kind == PointsToAbstractValueKind.Unknown);
-                    Debug.Assert(value2.Kind == PointsToAbstractValueKind.KnownLocations || value2.Kind == PointsToAbstractValueKind.Unknown);
+                    Debug.Assert(value1.Kind == PointsToAbstractValueKind.KnownLocations);
+                    Debug.Assert(value2.Kind == PointsToAbstractValueKind.KnownLocations);
+
                     var mergedLocations = _locationsDomain.Merge(value1.Locations, value2.Locations);
-                    if (mergedLocations.Count == 0)
-                    {
-                        Debug.Assert(ReferenceEquals(value1, PointsToAbstractValue.Unknown));
-                        Debug.Assert(ReferenceEquals(value2, PointsToAbstractValue.Unknown));
-                        result = PointsToAbstractValue.Unknown;
-                    }
-                    else if (value1.Kind != value2.Kind &&
-                        !mergedLocations.Any(l => l.IsAnalysisEntityDefaultLocation))
-                    {
-                        Debug.Assert(ReferenceEquals(value1, PointsToAbstractValue.Unknown) || ReferenceEquals(value2, PointsToAbstractValue.Unknown));
-                        result = PointsToAbstractValue.Unknown;
-                    }
-                    else
-                    {
-                        var mergedNullState = NullAbstractValueDomain.Default.Merge(value1.NullState, value2.NullState);
-                        result = PointsToAbstractValue.Create(mergedLocations, mergedNullState);
-                    }
+                    var mergedNullState = NullAbstractValueDomain.Default.Merge(value1.NullState, value2.NullState);
+                    result = PointsToAbstractValue.Create(mergedLocations, mergedNullState);
                 }
 
                 Debug.Assert(Compare(value1, result) <= 0);

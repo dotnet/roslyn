@@ -23,12 +23,14 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         private readonly Dictionary<ISymbol, PointsToAbstractValue> _instanceLocationsForSymbols;
         private readonly Func<IOperation, PointsToAbstractValue> _getPointsToAbstractValueOpt;
         private readonly Func<bool> _getIsInsideAnonymousObjectInitializer;
+        private readonly Func<CaptureId, bool> _getIsLValueFlowCapture;
         private readonly ImmutableStack<IOperation> _interproceduralCallStackOpt;
 
         public AnalysisEntityFactory(
             ControlFlowGraph controlFlowGraph,
             Func<IOperation, PointsToAbstractValue> getPointsToAbstractValueOpt,
             Func<bool> getIsInsideAnonymousObjectInitializer,
+            Func<CaptureId, bool> getIsLValueFlowCapture,
             INamedTypeSymbol containingTypeSymbol,
             AnalysisEntity thisOrMeInstanceFromCalleeOpt,
             ImmutableStack<IOperation> interproceduralCallStackOpt,
@@ -37,6 +39,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             _controlFlowGraph = controlFlowGraph;
             _getPointsToAbstractValueOpt = getPointsToAbstractValueOpt;
             _getIsInsideAnonymousObjectInitializer = getIsInsideAnonymousObjectInitializer;
+            _getIsLValueFlowCapture = getIsLValueFlowCapture;
             _interproceduralCallStackOpt = interproceduralCallStackOpt;
 
             _analysisEntityMap = new Dictionary<IOperation, AnalysisEntity>();
@@ -178,11 +181,11 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                     return TryCreate(argument.Value, out analysisEntity);
 
                 case IFlowCaptureOperation flowCapture:
-                    analysisEntity = AnalysisEntity.Create(flowCapture, _controlFlowGraph);
+                    analysisEntity = AnalysisEntity.Create(flowCapture, _controlFlowGraph, _getIsLValueFlowCapture);
                     break;
 
                 case IFlowCaptureReferenceOperation flowCaptureReference:
-                    analysisEntity = AnalysisEntity.Create(flowCaptureReference, _controlFlowGraph);
+                    analysisEntity = AnalysisEntity.Create(flowCaptureReference, _controlFlowGraph, _getIsLValueFlowCapture);
                     break;
 
                 case IDeclarationExpressionOperation declarationExpression:
