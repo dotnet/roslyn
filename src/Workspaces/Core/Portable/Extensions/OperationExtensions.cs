@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis
                 !localReference.IsImplicit) // Workaround for https://github.com/dotnet/roslyn/issues/30753
             {
                 // Declaration expression is a definition (write) for the declared local.
-                return ValueUsageInfo.Write;
+                return ValueUsageInfo.ValueWrite;
             }
             else if (operation is IDeclarationPatternOperation)
             {
@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis
                         //      {
                         //          case X x:
                         //
-                        return ValueUsageInfo.Write;
+                        return ValueUsageInfo.ValueWrite;
 
                     case IIsPatternOperation _:
                         // A declaration pattern within an is pattern is a
@@ -63,13 +63,13 @@ namespace Microsoft.CodeAnalysis
                         // For example, 'x' is defined and assigned the value from 'obj' below:
                         //      if (obj is X x)
                         //
-                        return ValueUsageInfo.Write;
+                        return ValueUsageInfo.ValueWrite;
 
                     default:
                         Debug.Fail("Unhandled declaration pattern context");
 
                         // Conservatively assume read/write.
-                        return ValueUsageInfo.ReadWrite;
+                        return ValueUsageInfo.ValueReadWrite;
                 }
             }
 
@@ -77,12 +77,12 @@ namespace Microsoft.CodeAnalysis
                 assignmentOperation.Target == operation)
             {
                 return operation.Parent.Kind == OperationKind.CompoundAssignment
-                    ? ValueUsageInfo.ReadWrite
-                    : ValueUsageInfo.Write;
+                    ? ValueUsageInfo.ValueReadWrite
+                    : ValueUsageInfo.ValueWrite;
             }
             else if (operation.Parent is IIncrementOrDecrementOperation)
             {
-                return ValueUsageInfo.ReadWrite;
+                return ValueUsageInfo.ValueReadWrite;
             }
             else if (operation.Parent is IParenthesizedOperation parenthesizedOperation)
             {
@@ -90,37 +90,37 @@ namespace Microsoft.CodeAnalysis
                 Debug.Assert(parenthesizedOperation.Language == LanguageNames.VisualBasic);
 
                 return parenthesizedOperation.GetValueUsageInfo() &
-                    ~(ValueUsageInfo.Write | ValueUsageInfo.Reference);
+                    ~(ValueUsageInfo.ValueWrite | ValueUsageInfo.LocationReference);
             }
             else if (operation.Parent is INameOfOperation ||
                      operation.Parent is ITypeOfOperation ||
                      operation.Parent is ISizeOfOperation)
             {
-                return ValueUsageInfo.NameOnly;
+                return ValueUsageInfo.Name;
             }
             else if (operation.Parent is IArgumentOperation argumentOperation)
             {
                 switch (argumentOperation.Parameter.RefKind)
                 {
                     case RefKind.RefReadOnly:
-                        return ValueUsageInfo.ReadableReference;
+                        return ValueUsageInfo.ValueReadableReference;
 
                     case RefKind.Out:
-                        return ValueUsageInfo.WritableReference;
+                        return ValueUsageInfo.ValueWritableReference;
 
                     case RefKind.Ref:
-                        return ValueUsageInfo.ReadableWritableReference;
+                        return ValueUsageInfo.ValueReadableWritableReference;
 
                     default:
-                        return ValueUsageInfo.Read;
+                        return ValueUsageInfo.ValueRead;
                 }
             }
             else if (operation.Parent is IReDimClauseOperation reDimClauseOperation &&
                 reDimClauseOperation.Operand == operation)
             {
                 return (reDimClauseOperation.Parent as IReDimOperation)?.Preserve == true
-                    ? ValueUsageInfo.ReadWrite
-                    : ValueUsageInfo.Write;
+                    ? ValueUsageInfo.ValueReadWrite
+                    : ValueUsageInfo.ValueWrite;
             }
             else if (operation.Parent is IDeclarationExpressionOperation declarationExpression)
             {
@@ -128,10 +128,10 @@ namespace Microsoft.CodeAnalysis
             }
             else if (operation.IsInLeftOfDeconstructionAssignment(out _))
             {
-                return ValueUsageInfo.Write;
+                return ValueUsageInfo.ValueWrite;
             }
 
-            return ValueUsageInfo.Read;
+            return ValueUsageInfo.ValueRead;
         }
 
         public static bool IsInLeftOfDeconstructionAssignment(this IOperation operation, out IDeconstructionAssignmentOperation deconstructionAssignment)

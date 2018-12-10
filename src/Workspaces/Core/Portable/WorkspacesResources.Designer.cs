@@ -10,7 +10,6 @@
 
 namespace Microsoft.CodeAnalysis {
     using System;
-    using System.Reflection;
     
     
     /// <summary>
@@ -20,7 +19,7 @@ namespace Microsoft.CodeAnalysis {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "15.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class WorkspacesResources {
@@ -40,7 +39,7 @@ namespace Microsoft.CodeAnalysis {
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Microsoft.CodeAnalysis.WorkspacesResources", typeof(WorkspacesResources).GetTypeInfo().Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Microsoft.CodeAnalysis.WorkspacesResources", typeof(WorkspacesResources).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
@@ -1901,38 +1900,92 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to NameOnly.
+        ///   Looks up a localized string similar to Base.
         /// </summary>
-        internal static string ValueUsageInfo_NameOnly {
+        internal static string ValueUsageInfo_BaseTypeOrInterface {
             get {
-                return ResourceManager.GetString("ValueUsageInfo_NameOnly", resourceCulture);
+                return ResourceManager.GetString("ValueUsageInfo_BaseTypeOrInterface", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Qualify.
+        /// </summary>
+        internal static string ValueUsageInfo_DottedName {
+            get {
+                return ResourceManager.GetString("ValueUsageInfo_DottedName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Type Argument.
+        /// </summary>
+        internal static string ValueUsageInfo_GenericTypeArgument {
+            get {
+                return ResourceManager.GetString("ValueUsageInfo_GenericTypeArgument", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Name.
+        /// </summary>
+        internal static string ValueUsageInfo_Name {
+            get {
+                return ResourceManager.GetString("ValueUsageInfo_Name", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Declare.
+        /// </summary>
+        internal static string ValueUsageInfo_NamespaceDeclaration {
+            get {
+                return ResourceManager.GetString("ValueUsageInfo_NamespaceDeclaration", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Using.
+        /// </summary>
+        internal static string ValueUsageInfo_NamespaceOrTypeInUsing {
+            get {
+                return ResourceManager.GetString("ValueUsageInfo_NamespaceOrTypeInUsing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to new().
+        /// </summary>
+        internal static string ValueUsageInfo_ObjectCreation {
+            get {
+                return ResourceManager.GetString("ValueUsageInfo_ObjectCreation", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Read.
         /// </summary>
-        internal static string ValueUsageInfo_Read {
+        internal static string ValueUsageInfo_ValueRead {
             get {
-                return ResourceManager.GetString("ValueUsageInfo_Read", resourceCulture);
+                return ResourceManager.GetString("ValueUsageInfo_ValueRead", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Reference.
         /// </summary>
-        internal static string ValueUsageInfo_Reference {
+        internal static string ValueUsageInfo_ValueReference {
             get {
-                return ResourceManager.GetString("ValueUsageInfo_Reference", resourceCulture);
+                return ResourceManager.GetString("ValueUsageInfo_ValueReference", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Write.
         /// </summary>
-        internal static string ValueUsageInfo_Write {
+        internal static string ValueUsageInfo_ValueWrite {
             get {
-                return ResourceManager.GetString("ValueUsageInfo_Write", resourceCulture);
+                return ResourceManager.GetString("ValueUsageInfo_ValueWrite", resourceCulture);
             }
         }
         

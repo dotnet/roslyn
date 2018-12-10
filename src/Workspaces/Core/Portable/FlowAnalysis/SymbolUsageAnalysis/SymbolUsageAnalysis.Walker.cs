@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
                 if (isWrittenTo)
                 {
                     // maybeWritten == 'ref' argument.
-                    OnWriteReferenceFound(symbol, operation, maybeWritten: valueUsageInfo == ValueUsageInfo.ReadableWritableReference);
+                    OnWriteReferenceFound(symbol, operation, maybeWritten: valueUsageInfo == ValueUsageInfo.ValueReadableWritableReference);
                 }
 
                 if (operation.Parent is IIncrementOrDecrementOperation &&

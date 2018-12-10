@@ -207,7 +207,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                 {
                     foreach (var field in initializer.InitializedFields)
                     {
-                        OnSymbolUsage(field, ValueUsageInfo.Write);
+                        OnSymbolUsage(field, ValueUsageInfo.ValueWrite);
                     }
                 }
             }
@@ -254,7 +254,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                     // Get the value usage info.
                     var valueUsageInfo = memberReference.GetValueUsageInfo();
 
-                    if (valueUsageInfo == ValueUsageInfo.ReadWrite)
+                    if (valueUsageInfo == ValueUsageInfo.ValueReadWrite)
                     {
                         Debug.Assert(memberReference.Parent is ICompoundAssignmentOperation compoundAssignment &&
                             compoundAssignment.Target == memberReference ||
@@ -277,7 +277,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
 
                         if (memberReference.Parent.Parent is IExpressionStatementOperation)
                         {
-                            valueUsageInfo = ValueUsageInfo.Write;
+                            valueUsageInfo = ValueUsageInfo.ValueWrite;
                         }
                     }
 
@@ -291,7 +291,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                 
                 // A method invocation is considered as a read reference to the symbol
                 // to ensure that we consider the method as "used".
-                OnSymbolUsage(targetMethod, ValueUsageInfo.Read);
+                OnSymbolUsage(targetMethod, ValueUsageInfo.ValueRead);
             }
 
             private void AnalyzeObjectCreationOperation(OperationAnalysisContext operationContext)
@@ -300,7 +300,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                 
                 // An object creation is considered as a read reference to the constructor
                 // to ensure that we consider the constructor as "used".
-                OnSymbolUsage(constructor, ValueUsageInfo.Read);
+                OnSymbolUsage(constructor, ValueUsageInfo.ValueRead);
             }
 
             private void OnSymbolEnd(SymbolAnalysisContext symbolEndContext, bool hasInvalidOperation)

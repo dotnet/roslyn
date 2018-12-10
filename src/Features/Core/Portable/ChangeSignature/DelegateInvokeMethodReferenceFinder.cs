@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
 
             return invocations.Concat(convertedAnonymousFunctions).SelectAsArray(
                 n => new FinderLocation(n, new ReferenceLocation(document, null, n.GetLocation(), isImplicit: false,
-                    valueUsageInfo: semanticModel.GetValueUsageInfo(n, semanticFactsService, cancellationToken), candidateReason: CandidateReason.None)));
+                    valueUsageInfo: semanticModel.GetValueUsageInfo(n, syntaxFactsService, semanticFactsService, cancellationToken), candidateReason: CandidateReason.None)));
         }
     }
 }

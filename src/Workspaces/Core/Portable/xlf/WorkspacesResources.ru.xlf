@@ -152,29 +152,59 @@
         <target state="translated">Добавление проектов не поддерживается.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Visual_Basic_files">
-        <source>Visual Basic files</source>
-        <target state="new">Visual Basic files</target>
+      <trans-unit id="ValueUsageInfo_BaseTypeOrInterface">
+        <source>Base</source>
+        <target state="new">Base</target>
         <note />
       </trans-unit>
-      <trans-unit id="ValueUsageInfo_NameOnly">
-        <source>NameOnly</source>
-        <target state="new">NameOnly</target>
+      <trans-unit id="ValueUsageInfo_DottedName">
+        <source>Qualify</source>
+        <target state="new">Qualify</target>
         <note />
       </trans-unit>
-      <trans-unit id="ValueUsageInfo_Read">
+      <trans-unit id="ValueUsageInfo_GenericTypeArgument">
+        <source>Type Argument</source>
+        <target state="new">Type Argument</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ValueUsageInfo_Name">
+        <source>Name</source>
+        <target state="new">Name</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ValueUsageInfo_NamespaceDeclaration">
+        <source>Declare</source>
+        <target state="new">Declare</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ValueUsageInfo_NamespaceOrTypeInUsing">
+        <source>Using</source>
+        <target state="new">Using</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ValueUsageInfo_ObjectCreation">
+        <source>new()</source>
+        <target state="new">new()</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ValueUsageInfo_ValueRead">
         <source>Read</source>
         <target state="new">Read</target>
         <note />
       </trans-unit>
-      <trans-unit id="ValueUsageInfo_Reference">
+      <trans-unit id="ValueUsageInfo_ValueReference">
         <source>Reference</source>
         <target state="new">Reference</target>
         <note />
       </trans-unit>
-      <trans-unit id="ValueUsageInfo_Write">
+      <trans-unit id="ValueUsageInfo_ValueWrite">
         <source>Write</source>
         <target state="new">Write</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Visual_Basic_files">
+        <source>Visual Basic files</source>
+        <target state="new">Visual Basic files</target>
         <note />
       </trans-unit>
       <trans-unit id="Workspace_is_not_empty">

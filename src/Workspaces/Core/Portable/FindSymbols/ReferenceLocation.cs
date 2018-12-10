@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Diagnostics;
 using Roslyn.Utilities;
 
@@ -43,7 +42,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         internal bool IsWrittenTo => ValueUsageInfo.IsWrittenTo();
 
         /// <summary>
-        /// Value usage info for this reference.
+        /// Symbol usage info for this reference.
         /// </summary>
         internal ValueUsageInfo ValueUsageInfo { get; }
 

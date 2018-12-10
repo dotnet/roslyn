@@ -327,48 +327,135 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static ValueUsageInfo GetValueUsageInfo(
             this SemanticModel semanticModel,
             SyntaxNode node,
+            ISyntaxFactsService syntaxFacts,
             ISemanticFactsService semanticFacts,
             CancellationToken cancellationToken)
         {
-            if (semanticFacts.IsInOutContext(semanticModel, node, cancellationToken))
+            return syntaxFacts.IsInNamespaceOrTypeContext(node)
+                ? GetNamespaceOrTypeUsageInfo()
+                : GetValueUsageInfo();
+
+            // Local functions.
+            ValueUsageInfo GetNamespaceOrTypeUsageInfo()
             {
-                return ValueUsageInfo.WritableReference;
-            }
-            else if (semanticFacts.IsInRefContext(semanticModel, node, cancellationToken))
-            {
-                return ValueUsageInfo.ReadableWritableReference;
-            }
-            else if (semanticFacts.IsInInContext(semanticModel, node, cancellationToken))
-            {
-                return ValueUsageInfo.ReadableReference;
-            }
-            else if (semanticFacts.IsOnlyWrittenTo(semanticModel, node, cancellationToken))
-            {
-                return ValueUsageInfo.Write;
-            }
-            else
-            {
-                var operation = semanticModel.GetOperation(node, cancellationToken);
-                switch (operation?.Parent)
+                var usageInfo = syntaxFacts.IsNodeOrAnyAncestorLeftSideOfDot(node) || syntaxFacts.IsLeftSideOfExplicitInterfaceSpecifier(node)
+                    ? ValueUsageInfo.DottedName
+                    : ValueUsageInfo.None;
+
+                if (semanticFacts.IsNamespaceDeclarationNameContext(semanticModel, node.SpanStart, cancellationToken))
                 {
-                    case INameOfOperation _:
-                    case ITypeOfOperation _:
-                    case ISizeOfOperation _:
-                        return ValueUsageInfo.NameOnly;
+                    usageInfo |= ValueUsageInfo.NamespaceDeclaration;
+                }
+                else if (node.FirstAncestorOrSelf<SyntaxNode>(syntaxFacts.IsUsingOrExternOrImport) != null)
+                {
+                    usageInfo |= ValueUsageInfo.NamespaceOrTypeInUsing;
                 }
 
-                if (node.IsPartOfStructuredTrivia())
+                while (syntaxFacts.IsQualifiedName(node.Parent))
                 {
-                    return ValueUsageInfo.NameOnly;
+                    node = node.Parent;
                 }
 
-                var usageInfo = ValueUsageInfo.Read;
-                if (semanticFacts.IsWrittenTo(semanticModel, node, cancellationToken))
+                if (syntaxFacts.IsTypeArgument(node))
                 {
-                    usageInfo |= ValueUsageInfo.Write;
+                    usageInfo |= ValueUsageInfo.GenericTypeArgument;
+                }
+                else if (syntaxFacts.IsBaseTypeInBaseList(node))
+                {
+                    usageInfo |= ValueUsageInfo.BaseTypeOrInterface;
+                }
+                else if (syntaxFacts.IsObjectCreationExpressionType(node))
+                {
+                    usageInfo |= ValueUsageInfo.ObjectCreation;
                 }
 
                 return usageInfo;
+            }
+
+            ValueUsageInfo GetValueUsageInfo()
+            {
+                if (semanticFacts.IsInOutContext(semanticModel, node, cancellationToken))
+                {
+                    return ValueUsageInfo.ValueWritableReference;
+                }
+                else if (semanticFacts.IsInRefContext(semanticModel, node, cancellationToken))
+                {
+                    return ValueUsageInfo.ValueReadableWritableReference;
+                }
+                else if (semanticFacts.IsInInContext(semanticModel, node, cancellationToken))
+                {
+                    return ValueUsageInfo.ValueReadableReference;
+                }
+                else if (semanticFacts.IsOnlyWrittenTo(semanticModel, node, cancellationToken))
+                {
+                    return ValueUsageInfo.ValueWrite;
+                }
+                else
+                {
+                    var operation = semanticModel.GetOperation(node, cancellationToken);
+                    switch (operation?.Parent)
+                    {
+                        case INameOfOperation _:
+                        case ITypeOfOperation _:
+                        case ISizeOfOperation _:
+                            return ValueUsageInfo.Name;
+                    }
+
+                    if (node.IsPartOfStructuredTrivia())
+                    {
+                        return ValueUsageInfo.Name;
+                    }
+
+                    var usageInfo = ValueUsageInfo.None;
+                    var symbolInfo = semanticModel.GetSymbolInfo(node, cancellationToken);
+                    if (symbolInfo.Symbol != null)
+                    {
+                        switch (symbolInfo.Symbol.Kind)
+                        {
+                            case SymbolKind.Namespace:
+                                if (semanticFacts.IsNamespaceDeclarationNameContext(semanticModel, node.SpanStart, cancellationToken))
+                                {
+                                    usageInfo |= ValueUsageInfo.NamespaceDeclaration;
+                                }
+
+                                if (syntaxFacts.IsNodeOrAnyAncestorLeftSideOfDot(node))
+                                {
+                                    usageInfo |= ValueUsageInfo.DottedName;
+                                }
+
+                                break;
+
+                            case SymbolKind.NamedType:
+                                if (syntaxFacts.IsNodeOrAnyAncestorLeftSideOfDot(node))
+                                {
+                                    usageInfo |= ValueUsageInfo.DottedName;
+                                }
+
+                                break;
+
+                            case SymbolKind.Method:
+                                usageInfo = symbolInfo.Symbol.IsConstructor()
+                                    ? ValueUsageInfo.ObjectCreation
+                                    : ValueUsageInfo.ValueRead;
+                                break;
+
+                            case SymbolKind.Property:
+                            case SymbolKind.Field:
+                            case SymbolKind.Event:
+                            case SymbolKind.Parameter:
+                            case SymbolKind.Local:
+                                usageInfo = ValueUsageInfo.ValueRead;
+                                if (semanticFacts.IsWrittenTo(semanticModel, node, cancellationToken))
+                                {
+                                    usageInfo |= ValueUsageInfo.ValueWrite;
+                                }
+
+                                break;
+                        }
+                    }
+
+                    return usageInfo;
+                }
             }
         }
     }

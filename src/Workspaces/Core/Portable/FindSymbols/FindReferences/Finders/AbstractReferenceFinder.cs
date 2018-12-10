@@ -224,6 +224,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             Func<SyntaxToken, SemanticModel, (bool matched, CandidateReason reason)> symbolsMatch,
             CancellationToken cancellationToken)
         {
+            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
             var semanticFacts = document.GetLanguageService<ISemanticFactsService>();
 
             var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
@@ -241,7 +242,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                         var alias = FindReferenceCache.GetAliasInfo(semanticFacts, semanticModel, token, cancellationToken);
 
                         var location = token.GetLocation();
-                        var valueUsageInfo = semanticModel.GetValueUsageInfo(token.Parent, semanticFacts, cancellationToken);
+                        var valueUsageInfo = semanticModel.GetValueUsageInfo(token.Parent, syntaxFacts, semanticFacts, cancellationToken);
                         var isWrittenTo = valueUsageInfo.IsWrittenTo();
                         locations.Add(new FinderLocation(token.Parent, new ReferenceLocation(
                             document, alias, location, isImplicit: false,
@@ -473,7 +474,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                     Matches(info.DisposeMethod, originalUnreducedSymbolDefinition))
                 {
                     var location = node.GetFirstToken().GetLocation();
-                    var valueUsageInfo = semanticModel.GetValueUsageInfo(node, semanticFacts, cancellationToken);
+                    var valueUsageInfo = semanticModel.GetValueUsageInfo(node, syntaxFacts, semanticFacts, cancellationToken);
                     locations.Add(new FinderLocation(node, new ReferenceLocation(
                         document, alias: null, location: location, isImplicit: true, valueUsageInfo, candidateReason: CandidateReason.None)));
                 }
@@ -504,7 +505,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 if (deconstructMethods.Any(m => Matches(m, originalUnreducedSymbolDefinition)))
                 {
                     var location = syntaxFacts.GetDeconstructionReferenceLocation(node);
-                    var valueUsageInfo = semanticModel.GetValueUsageInfo(node, semanticFacts, cancellationToken);
+                    var valueUsageInfo = semanticModel.GetValueUsageInfo(node, syntaxFacts, semanticFacts, cancellationToken);
                     locations.Add(new FinderLocation(node, new ReferenceLocation(
                         document, alias: null, location, isImplicit: true, valueUsageInfo, CandidateReason.None)));
                 }
@@ -530,7 +531,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 if (Matches(awaitExpressionMethod, originalUnreducedSymbolDefinition))
                 {
                     var location = node.GetFirstToken().GetLocation();
-                    var valueUsageInfo = semanticModel.GetValueUsageInfo(node, semanticFacts, cancellationToken);
+                    var valueUsageInfo = semanticModel.GetValueUsageInfo(node, syntaxFacts, semanticFacts, cancellationToken);
                     locations.Add(new FinderLocation(node, new ReferenceLocation(
                         document, alias: null, location, isImplicit: true, valueUsageInfo, CandidateReason.None)));
                 }

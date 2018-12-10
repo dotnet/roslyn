@@ -615,6 +615,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return SyntaxFacts.IsInNamespaceOrTypeContext(node)
         End Function
 
+        Public Function IsBaseTypeInBaseList(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsBaseTypeInBaseList
+            Return TryCast(node, TypeSyntax) IsNot Nothing AndAlso TryCast(node.Parent, InheritsOrImplementsStatementSyntax) IsNot Nothing
+        End Function
+
         Public Function IsInStaticContext(node As Microsoft.CodeAnalysis.SyntaxNode) As Boolean Implements ISyntaxFactsService.IsInStaticContext
             Return node.IsInStaticContext()
         End Function
@@ -635,6 +639,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function IsSimpleArgument(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsSimpleArgument
             Dim argument = TryCast(node, ArgumentSyntax)
             Return argument IsNot Nothing AndAlso Not argument.IsNamed AndAlso Not argument.IsOmitted
+        End Function
+
+        Public Function IsTypeArgument(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsTypeArgument
+            Return node.IsParentKind(SyntaxKind.TypeArgumentList)
         End Function
 
         Public Function IsInConstantContext(node As Microsoft.CodeAnalysis.SyntaxNode) As Boolean Implements ISyntaxFactsService.IsInConstantContext
@@ -1283,9 +1291,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return TryCast(node, ExpressionSyntax).IsLeftSideOfDot()
         End Function
 
+        Public Overloads Function IsNodeOrAnyAncestorLeftSideOfDot(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsNodeOrAnyAncestorLeftSideOfDot
+            Return IsNodeOrAnyAncestorLeftSideOfDot(node, Me)
+        End Function
+
         Public Function GetRightSideOfDot(node As SyntaxNode) As SyntaxNode Implements ISyntaxFactsService.GetRightSideOfDot
             Return If(TryCast(node, QualifiedNameSyntax)?.Right,
                       TryCast(node, MemberAccessExpressionSyntax)?.Name)
+        End Function
+
+        Public Function IsLeftSideOfExplicitInterfaceSpecifier(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsLeftSideOfExplicitInterfaceSpecifier
+            Return IsLeftSideOfDot(node) AndAlso TryCast(node.Parent.Parent, ImplementsClauseSyntax) IsNot Nothing
         End Function
 
         Public Function IsLeftSideOfAssignment(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsLeftSideOfAssignment
