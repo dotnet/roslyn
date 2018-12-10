@@ -64,7 +64,7 @@ try {
     Create-Directory $bootstrapperInfoFolder
     
     $bootstrapperInfoPath = Join-Path $bootstrapperInfoFolder "BootstrapperInfo.json"
-    $bootstrapperInfoContent = "[{""VSBuildVersion"":  ""42.42.42424.42""}]"
+    $bootstrapperInfoContent = "[{""VSBuildVersion"":  ""42.42.42424.42""}, {""BuildDrop"":  ""https://vsdrop.corp.microsoft.com/file/v1/Products/42.42.42.42/42.42.42.42""}]"
     $bootstrapperInfoContent >> $bootstrapperInfoPath
 
     # generate run settings
