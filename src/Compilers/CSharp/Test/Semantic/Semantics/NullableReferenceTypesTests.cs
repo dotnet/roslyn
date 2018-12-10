@@ -63807,8 +63807,6 @@ class B2 : A<int?>
     }
 }";
             var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
-            // PROTOTYPE(NullableReferenceTypes): Update WRN_SuppressionOperatorNotReferenceType message
-            // to "... can only be applied to reference types and nullable value types".
             comp.VerifyDiagnostics(
                 // (11,13): warning CS8624: The suppression operator (!) can only be applied to reference types and nullable value types.
                 //         _ = ((T)z)!; // 1
