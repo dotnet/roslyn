@@ -20,6 +20,7 @@
 
   <ItemGroup Condition="'$(IsVsixProject)' == 'true'">
     <PackageReference Include="Microsoft.VSSDK.BuildTools" Version="$(MicrosoftVSSDKBuildToolsVersion)" PrivateAssets="all" IsImplicitlyDefined="true" />
+    <PackageReference Include="RoslynTools.ModifyVsixManifest" Version="$(RoslynToolsModifyVsixManifestVersion)" PrivateAssets="all" IsImplicitlyDefined="true" />
   </ItemGroup>
 
   <PropertyGroup Condition="'$(IsVsixProject)' == 'true'">

@@ -17,7 +17,6 @@
   -->
 
   <ItemGroup>
-    <PackageReference Include="RoslynTools.BuildTasks" Version="$(RoslynToolsBuildTasksVersion)" ExcludeAssets="all" />
     <PackageReference Include="RoslynDependencies.OptimizationData" Version="$(RoslynDependenciesOptimizationDataVersion)" ExcludeAssets="all" />
     <PackageReference Include="RoslynTools.OptProf" Version="$(RoslynToolsOptProfVersion)" ExcludeAssets="all" />
     <PackageReference Include="Roslyn.OptProf.RunSettings.Generator" Version="$(RoslynOptProfRunSettingsGeneratorVersion)" ExcludeAssets="all" />
