@@ -72,68 +72,68 @@ namespace Microsoft.CodeAnalysis.BuildTasks
              );
 
         // Matches and extracts filename and location from an 'origin' element.
-        private static readonly Regex s_filenameLocationFromOrigin = new Regex(
-                @"^                                           # Beginning of line
-                  (\d+>)?                                     # Optional ddd> project number prefix
-                  (?<FILENAME>.*)                             # Match anything.
-                  \(                                          # Find a parenthesis.
-                  (?<LOCATION>[\,,0-9,-]*)                    # Match any combination of numbers and ',' and '-'
-                  \)\s*                                       # Find the closing paren then any amount of spaces.
-                  $                                           # End-of-line",
+        private static readonly Regex s_filenameLocationFromOrigin = new Regex(@"
+                ^                                           # Beginning of line
+                (\d+>)?                                     # Optional ddd> project number prefix
+                (?<FILENAME>.*)                             # Match anything.
+                \(                                          # Find a parenthesis.
+                (?<LOCATION>[\,,0-9,-]*)                    # Match any combination of numbers and ',' and '-'
+                \)\s*                                       # Find the closing paren then any amount of spaces.
+                $                                           # End-of-line",
                 RegexOptions.IgnoreCase | RegexOptions.IgnorePatternWhitespace);
 
         // Matches location that is a simple number.
         // Example: line
-        private static readonly Regex s_lineFromLocation = new Regex(
-                @"^                                           # Beginning of line
-                  (?<LINE>[0-9]*)                             # Match any number.
-                  $                                           # End-of-line",
+        private static readonly Regex s_lineFromLocation = new Regex(@"
+                ^                                           # Beginning of line
+                (?<LINE>[0-9]*)                             # Match any number.
+                $                                           # End-of-line",
                 RegexOptions.IgnoreCase | RegexOptions.IgnorePatternWhitespace);
 
         // Matches location that is a range of lines.
         // Example: line-line
-        private static readonly Regex s_lineLineFromLocation = new Regex(
-                @"^                                           # Beginning of line
-                  (?<LINE>[0-9]*)                             # Match any number.
-                  -                                           # Dash
-                  (?<ENDLINE>[0-9]*)                          # Match any number.
-                  $                                           # End-of-line",
+        private static readonly Regex s_lineLineFromLocation = new Regex(@"
+                ^                                           # Beginning of line
+                (?<LINE>[0-9]*)                             # Match any number.
+                -                                           # Dash
+                (?<ENDLINE>[0-9]*)                          # Match any number.
+                $                                           # End-of-line",
                 RegexOptions.IgnoreCase | RegexOptions.IgnorePatternWhitespace);
 
         // Matches location that is a line and column
         // Example: line,col
-        private static readonly Regex s_lineColFromLocation = new Regex(
-                @"^                                           # Beginning of line
-                  (?<LINE>[0-9]*)                             # Match any number.
-                  ,                                           # Comma
-                  (?<COLUMN>[0-9]*)                           # Match any number.
-                  $                                           # End-of-line",
+        private static readonly Regex s_lineColFromLocation = new Regex(@"
+                ^                                           # Beginning of line
+                (?<LINE>[0-9]*)                             # Match any number.
+                ,                                           # Comma
+                (?<COLUMN>[0-9]*)                           # Match any number.
+                $                                           # End-of-line",
                 RegexOptions.IgnoreCase | RegexOptions.IgnorePatternWhitespace);
 
         // Matches location that is a line and column-range
         // Example: line,col-col
-        private static readonly Regex s_lineColColFromLocation = new Regex(
-                @"^                                           # Beginning of line
-                  (?<LINE>[0-9]*)                             # Match any number.
-                  ,                                           # Comma
-                  (?<COLUMN>[0-9]*)                           # Match any number.
-                  -                                           # Dash
-                  (?<ENDCOLUMN>[0-9]*)                        # Match any number.
-                  $                                           # End-of-line",
+        private static readonly Regex s_lineColColFromLocation = new Regex(@"
+                ^                                           # Beginning of line
+                (?<LINE>[0-9]*)                             # Match any number.
+                ,                                           # Comma
+                (?<COLUMN>[0-9]*)                           # Match any number.
+                -                                           # Dash
+                (?<ENDCOLUMN>[0-9]*)                        # Match any number.
+                $                                           # End-of-line",
                 RegexOptions.IgnoreCase | RegexOptions.IgnorePatternWhitespace);
 
         // Matches location that is line,col,line,col
         // Example: line,col,line,col
-        private static readonly Regex s_lineColLineColFromLocation = new Regex(
-                @"^                                           # Beginning of line
-                  (?<LINE>[0-9]*)                             # Match any number.
-                  ,                                           # Comma
-                  (?<COLUMN>[0-9]*)                           # Match any number.
-                  ,                                           # Dash
-                  (?<ENDLINE>[0-9]*)                          # Match any number.
-                  ,                                           # Dash
-                  (?<ENDCOLUMN>[0-9]*)                        # Match any number.
-                  $                                           # End-of-line",
+        private static readonly Regex s_lineColLineColFromLocation = new Regex(@"
+                ^                                           # Beginning of line
+                (?<LINE>[0-9]*)                             # Match any number.
+                ,                                           # Comma
+                (?<COLUMN>[0-9]*)                           # Match any number.
+                ,                                           # Dash
+                (?<ENDLINE>[0-9]*)                          # Match any number.
+                ,                                           # Dash
+                (?<ENDCOLUMN>[0-9]*)                        # Match any number.
+                $                                           # End-of-line",
                 RegexOptions.IgnoreCase | RegexOptions.IgnorePatternWhitespace);
 
         /// <summary>
