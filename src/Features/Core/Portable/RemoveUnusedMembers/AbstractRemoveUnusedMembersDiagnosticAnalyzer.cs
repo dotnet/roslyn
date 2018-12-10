@@ -402,17 +402,6 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                                 continue;
                             }
 
-                            var messageFormat = rule.MessageFormat;
-                            if (rule == s_removeUnreadMembersRule &&
-                                member is IMethodSymbol)
-                            {
-                                // IDE0052 has a different message for method symbols.
-                                messageFormat = FeaturesResources.Private_method_0_can_be_removed_as_it_is_never_invoked;
-                            }
-
-                            var memberName = $"{member.ContainingType.Name}.{member.Name}";
-                            var message = new DiagnosticHelper.LocalizableStringWithArguments(messageFormat, memberName);
-
                             // Most of the members should have a single location, except for partial methods.
                             // We report the diagnostic on the first location of the member.
                             var diagnostic = DiagnosticHelper.CreateWithMessage(
@@ -421,7 +410,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                                 rule.GetEffectiveSeverity(symbolEndContext.Compilation.Options),
                                 additionalLocations: null,
                                 properties: null,
-                                message);
+                                GetMessage(rule, member));
                             symbolEndContext.ReportDiagnostic(diagnostic);
                         }
                     }
@@ -433,6 +422,22 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                 }
 
                 return;
+            }
+
+            private static LocalizableString GetMessage(
+               DiagnosticDescriptor rule,
+               ISymbol member)
+            {
+                var messageFormat = rule.MessageFormat;
+                if (rule == s_removeUnreadMembersRule &&
+                    member is IMethodSymbol)
+                {
+                    // IDE0052 has a different message for method symbols.
+                    messageFormat = FeaturesResources.Private_method_0_can_be_removed_as_it_is_never_invoked;
+                }
+
+                var memberName = $"{member.ContainingType.Name}.{member.Name}";
+                return new DiagnosticHelper.LocalizableStringWithArguments(messageFormat, memberName);
             }
 
             private static bool HasSyntaxErrors(INamedTypeSymbol namedTypeSymbol, CancellationToken cancellationToken)
@@ -641,8 +646,8 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                    methodSymbol.IsStatic &&
                    (methodSymbol.ReturnsVoid ||
                     methodSymbol.ReturnType.SpecialType == SpecialType.System_Int32 ||
-                    methodSymbol.ReturnType.OriginalDefinition == _taskType ||
-                    methodSymbol.ReturnType.OriginalDefinition == _genericTaskType);
+                    methodSymbol.ReturnType.OriginalDefinition.Equals(_taskType) ||
+                    methodSymbol.ReturnType.OriginalDefinition.Equals(_genericTaskType));
 
             private bool IsMethodWithSpecialAttribute(IMethodSymbol methodSymbol)
                 => methodSymbol.GetAttributes().Any(a => _attributeSetForMethodsToIgnore.Contains(a.AttributeClass));
