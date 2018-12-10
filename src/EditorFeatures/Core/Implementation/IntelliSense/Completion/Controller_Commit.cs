@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                         this.SubjectBuffer.CurrentSnapshot, SpanTrackingMode.EdgeInclusive);
 
                     var adjustedNewText = CommitManager.AdjustForVirtualSpace(textChange, this.TextView, _editorOperationsFactoryService);
-                    var editOptions = CommitManager.GetEditOptions(mappedSpan, adjustedNewText);
+                    var editOptions = GetEditOptions(mappedSpan, adjustedNewText);
 
                     // The immediate window is always marked read-only and the language service is
                     // responsible for asking the buffer to make itself writable. We'll have to do that for
@@ -203,6 +203,20 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             var desiredCaretPoint = new SnapshotPoint(TextView.TextBuffer.CurrentSnapshot, viewTextSpan.TextSpan.Start);
 
             TextView.Caret.MoveTo(new SnapshotPoint(TextView.TextBuffer.CurrentSnapshot, viewTextSpan.TextSpan.Start));
+        }
+
+        private EditOptions GetEditOptions(SnapshotSpan spanToReplace, string adjustedNewText)
+        {
+            if (spanToReplace.GetText() == adjustedNewText)
+            {
+                // We're replacing the current buffer text with the exact same code.  If 
+                // we pass EditOptions.DefaultMinimalChange then no actual buffer change
+                // will happen.  That's problematic as it breaks features like brace-matching
+                // which want to buffer changes to properly compute their state.  In this
+                return EditOptions.None;
+            }
+
+            return EditOptions.DefaultMinimalChange;
         }
 
         private void RollbackToBeforeTypeChar(ITextSnapshot initialTextSnapshot)

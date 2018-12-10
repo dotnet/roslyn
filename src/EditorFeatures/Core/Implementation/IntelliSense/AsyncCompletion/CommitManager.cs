@@ -159,8 +159,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             var mappedSpan = triggerSnapshotSpan.TranslateTo(subjectBuffer.CurrentSnapshot, SpanTrackingMode.EdgeInclusive);
             
             var adjustedNewText = AdjustForVirtualSpace(textChange, view, _editorOperationsFactoryService);
-            var editOptions = GetEditOptions(mappedSpan, adjustedNewText);
-            using (var edit = subjectBuffer.CreateEdit(editOptions, reiteratedVersionNumber: null, editTag: null))
+
+            using (var edit = subjectBuffer.CreateEdit(EditOptions.DefaultMinimalChange, reiteratedVersionNumber: null, editTag: null))
             {
                 edit.Replace(mappedSpan.Span, change.TextChange.NewText);
 
@@ -172,7 +172,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 {
                     view.TryMoveCaretToAndEnsureVisible(new SnapshotPoint(subjectBuffer.CurrentSnapshot, change.NewPosition.Value));
                 }
-                else if (editOptions.ComputeMinimalChange)
+                else
                 {
                     // Or, If we're doing a minimal change, then the edit that we make to the 
                     // buffer may not make the total text change that places the caret where we 
@@ -308,21 +308,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             }
 
             return newText;
-        }
-
-        internal static EditOptions GetEditOptions(SnapshotSpan spanToReplace, string adjustedNewText)
-        {
-            if (spanToReplace.GetText() == adjustedNewText)
-            {
-                // We're replacing the current buffer text with the exact same code.  If 
-                // we pass EditOptions.DefaultMinimalChange then no actual buffer change
-                // will happen.  That's problematic as it breaks features like brace-matching
-                // which want to buffer changes to properly compute their state.  In this 
-                // scenario, we want the editor do nothing special with the edit.
-                return EditOptions.None;
-            }
-
-            return EditOptions.DefaultMinimalChange;
         }
     }
 }
