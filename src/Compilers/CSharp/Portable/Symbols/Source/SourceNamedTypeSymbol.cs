@@ -919,14 +919,6 @@ next:;
             }
         }
 
-        public override bool? NonNullTypes
-        {
-            get
-            {
-                return GetNonNullTypesFromSyntax() ?? ContainingModule?.NonNullTypes;
-            }
-        }
-
         internal override bool HasCodeAnalysisEmbeddedAttribute
         {
             get

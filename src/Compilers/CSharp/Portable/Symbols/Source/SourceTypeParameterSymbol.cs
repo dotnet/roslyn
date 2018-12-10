@@ -400,14 +400,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return false;
             }
 
-            if ((constraints & TypeParameterConstraintKind.NullableReferenceType) == TypeParameterConstraintKind.NullableReferenceType)
+            switch (constraints & (TypeParameterConstraintKind.NullableReferenceType | TypeParameterConstraintKind.NotNullableReferenceType))
             {
-                return true;
-            }
-
-            if (NonNullTypes == true)
-            {
-                return false;
+                case TypeParameterConstraintKind.NullableReferenceType:
+                    return true;
+                case TypeParameterConstraintKind.NotNullableReferenceType:
+                    return false;
             }
 
             return null;

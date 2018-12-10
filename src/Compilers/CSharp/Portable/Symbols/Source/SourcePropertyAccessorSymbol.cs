@@ -373,7 +373,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             else
             {
                 var binder = GetBinder();
-                return TypeSymbolWithAnnotations.Create(nonNullTypesContext: _property, binder.GetSpecialType(SpecialType.System_Void, diagnostics, this.GetSyntax()));
+                return TypeSymbolWithAnnotations.Create(binder.GetSpecialType(SpecialType.System_Void, diagnostics, this.GetSyntax()));
             }
         }
 

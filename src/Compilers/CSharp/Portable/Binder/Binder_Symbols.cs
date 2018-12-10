@@ -102,14 +102,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (syntax.IsVar)
             {
-                var symbol = BindTypeOrAliasOrKeyword(syntax, diagnostics, out isVar);
+                var symbol = BindTypeOrAliasOrKeyword((IdentifierNameSyntax)syntax, diagnostics, out isVar);
 
                 if (isVar)
                 {
                     CheckFeatureAvailability(syntax, MessageID.IDS_FeatureImplicitLocal, diagnostics);
                 }
 
-                return NamespaceOrTypeOrAliasSymbolWithAnnotations.CreateUnannotated(NonNullTypesContext, symbol);
+                return symbol;
             }
             else
             {
@@ -122,14 +122,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (syntax.IsUnmanaged)
             {
-                var symbol = BindTypeOrAliasOrKeyword(syntax, diagnostics, out isUnmanaged);
+                var symbol = BindTypeOrAliasOrKeyword((IdentifierNameSyntax)syntax, diagnostics, out isUnmanaged);
 
                 if (isUnmanaged)
                 {
                     CheckFeatureAvailability(syntax, MessageID.IDS_FeatureUnmanagedGenericTypeConstraint, diagnostics);
                 }
 
-                return NamespaceOrTypeOrAliasSymbolWithAnnotations.CreateUnannotated(NonNullTypesContext, symbol);
+                return symbol;
             }
             else
             {
@@ -144,10 +144,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// PREREQUISITE: syntax should be checked to match the keyword, like <see cref="TypeSyntax.IsVar"/> or <see cref="TypeSyntax.IsUnmanaged"/>.
         /// Otherwise, call <see cref="Binder.BindTypeOrAlias(ExpressionSyntax, DiagnosticBag, ConsList{Symbol})"/> instead.
         /// </summary>
-        private Symbol BindTypeOrAliasOrKeyword(TypeSyntax syntax, DiagnosticBag diagnostics, out bool isKeyword)
+        private NamespaceOrTypeOrAliasSymbolWithAnnotations BindTypeOrAliasOrKeyword(IdentifierNameSyntax syntax, DiagnosticBag diagnostics, out bool isKeyword)
         {
             // Keywords can only be IdentifierNameSyntax
-            var identifierValueText = ((IdentifierNameSyntax)syntax).Identifier.ValueText;
+            var identifierValueText = syntax.Identifier.ValueText;
             Symbol symbol = null;
 
             // Perform name lookup without generating diagnostics as it could possibly be a keyword in the current context.
@@ -240,7 +240,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             lookupResult.Free();
-            return symbol;
+
+            return NamespaceOrTypeOrAliasSymbolWithAnnotations.CreateUnannotated(IsNullableEnabled(syntax.Identifier), symbol);
         }
 
         // Binds the given expression syntax as Type.
@@ -355,11 +356,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                             var type = (NamedTypeSymbol)constructedType.TypeSymbol;
                             var location = syntax.Location;
                             var conversions = this.Conversions.WithNullability(includeNullability: true);
-                            if (!ShouldCheckConstraintsNullability)
-                            {
-                                diagnostics.Add(new LazyNullableContraintChecksDiagnosticInfo(type, conversions, this.Compilation), location);
-                                conversions = this.Conversions.WithNullability(includeNullability: false);
-                            }
                             type.CheckConstraints(this.Compilation, conversions, location, diagnostics);
                         }
                         else if (constructedType.TypeSymbol.IsUnconstrainedTypeParameter())
@@ -372,17 +368,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case SyntaxKind.PredefinedType:
                     {
-                        var type = BindPredefinedTypeSymbol((PredefinedTypeSyntax)syntax, diagnostics);
-                        return TypeSymbolWithAnnotations.Create(NonNullTypesContext, type);
+                        var predefinedType = (PredefinedTypeSyntax)syntax;
+                        var type = BindPredefinedTypeSymbol(predefinedType, diagnostics);
+                        return TypeSymbolWithAnnotations.Create(IsNullableEnabled(predefinedType.Keyword), type);
                     }
 
                 case SyntaxKind.IdentifierName:
-                    return NamespaceOrTypeOrAliasSymbolWithAnnotations.CreateUnannotated(NonNullTypesContext,
-                        BindNonGenericSimpleNamespaceOrTypeOrAliasSymbol((IdentifierNameSyntax)syntax, diagnostics, basesBeingResolved, suppressUseSiteDiagnostics, qualifierOpt: null));
+                    return BindNonGenericSimpleNamespaceOrTypeOrAliasSymbol((IdentifierNameSyntax)syntax, diagnostics, basesBeingResolved, suppressUseSiteDiagnostics, qualifierOpt: null);
 
                 case SyntaxKind.GenericName:
-                    return TypeSymbolWithAnnotations.Create(NonNullTypesContext,
-                        BindGenericSimpleNamespaceOrTypeOrAliasSymbol((GenericNameSyntax)syntax, diagnostics, basesBeingResolved, qualifierOpt: null));
+                    return BindGenericSimpleNamespaceOrTypeOrAliasSymbol((GenericNameSyntax)syntax, diagnostics, basesBeingResolved, qualifierOpt: null);
 
                 case SyntaxKind.AliasQualifiedName:
                     {
@@ -396,19 +391,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                             return TypeSymbolWithAnnotations.Create(new ExtendedErrorTypeSymbol(left, LookupResultKind.NotATypeOrNamespace, diagnostics.Add(ErrorCode.ERR_ColColWithTypeAlias, node.Alias.Location, node.Alias.Identifier.Text)));
                         }
 
-                        return NamespaceOrTypeOrAliasSymbolWithAnnotations.CreateUnannotated(NonNullTypesContext, this.BindSimpleNamespaceOrTypeOrAliasSymbol(node.Name, diagnostics, basesBeingResolved, suppressUseSiteDiagnostics, left));
+                        return this.BindSimpleNamespaceOrTypeOrAliasSymbol(node.Name, diagnostics, basesBeingResolved, suppressUseSiteDiagnostics, left);
                     }
 
                 case SyntaxKind.QualifiedName:
                     {
                         var node = (QualifiedNameSyntax)syntax;
-                        return NamespaceOrTypeOrAliasSymbolWithAnnotations.CreateUnannotated(NonNullTypesContext, BindQualifiedName(node.Left, node.Right, diagnostics, basesBeingResolved, suppressUseSiteDiagnostics));
+                        return BindQualifiedName(node.Left, node.Right, diagnostics, basesBeingResolved, suppressUseSiteDiagnostics);
                     }
 
                 case SyntaxKind.SimpleMemberAccessExpression:
                     {
                         var node = (MemberAccessExpressionSyntax)syntax;
-                        return NamespaceOrTypeOrAliasSymbolWithAnnotations.CreateUnannotated(NonNullTypesContext, BindQualifiedName(node.Expression, node.Name, diagnostics, basesBeingResolved, suppressUseSiteDiagnostics));
+                        return BindQualifiedName(node.Expression, node.Name, diagnostics, basesBeingResolved, suppressUseSiteDiagnostics);
                     }
 
                 case SyntaxKind.ArrayType:
@@ -446,7 +441,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
                             else
                             {
-                                type = TypeSymbolWithAnnotations.Create(NonNullTypesContext, array);
+                                type = TypeSymbolWithAnnotations.Create(IsNullableEnabled(a.CloseBracketToken), array);
                             }
                         }
 
@@ -481,7 +476,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case SyntaxKind.TupleType:
                     {
-                        return TypeSymbolWithAnnotations.Create(NonNullTypesContext, BindTupleType((TupleTypeSyntax)syntax, diagnostics));
+                        var tupleTypeSyntax = (TupleTypeSyntax)syntax;
+                        return TypeSymbolWithAnnotations.Create(IsNullableEnabled(tupleTypeSyntax.CloseParenToken), BindTupleType(tupleTypeSyntax, diagnostics));
                     }
 
                 case SyntaxKind.RefType:
@@ -503,15 +499,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             void reportNullableReferenceTypesIfNeeded(SyntaxToken questionToken, TypeSymbolWithAnnotations typeArgument = default)
             {
-                // Inside a method body or other executable code, we can pull on NonNullTypes symbol or question IsValueType without causing cycles.
-                // We still need to delay that check when binding in an attribute argument
-                if (!InExecutableBinder || !ShouldCheckConstraintsNullability)
+                bool isNullableEnabled = IsNullableEnabled(questionToken);
+
+                // Inside a method body or other executable code, we can question IsValueType without causing cycles.
+                if (!typeArgument.IsNull && !ShouldCheckConstraints)
                 {
-                    diagnostics.Add(new LazyMissingNonNullTypesContextDiagnosticInfo(Compilation, NonNullTypesContext, typeArgument), questionToken.GetLocation());
+                    diagnostics.Add(new LazyMissingNonNullTypesContextDiagnosticInfo(Compilation, isNullableEnabled, typeArgument), questionToken.GetLocation());
                 }
                 else
                 {
-                    DiagnosticInfo info = LazyMissingNonNullTypesContextDiagnosticInfo.ReportNullableReferenceTypesIfNeeded(Compilation, NonNullTypesContext, typeArgument);
+                    DiagnosticInfo info = LazyMissingNonNullTypesContextDiagnosticInfo.ReportNullableReferenceTypesIfNeeded(Compilation, isNullableEnabled, typeArgument);
 
                     if (!(info is null))
                     {
@@ -651,7 +648,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Binds a simple name or the simple name portion of a qualified name. 
         /// </summary>
-        private Symbol BindSimpleNamespaceOrTypeOrAliasSymbol(
+        private NamespaceOrTypeOrAliasSymbolWithAnnotations BindSimpleNamespaceOrTypeOrAliasSymbol(
             SimpleNameSyntax syntax,
             DiagnosticBag diagnostics,
             ConsList<Symbol> basesBeingResolved,
@@ -668,7 +665,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (syntax.Kind())
             {
                 default:
-                    return new ExtendedErrorTypeSymbol(qualifierOpt ?? this.Compilation.Assembly.GlobalNamespace, string.Empty, arity: 0, errorInfo: null);
+                    return TypeSymbolWithAnnotations.Create(new ExtendedErrorTypeSymbol(qualifierOpt ?? this.Compilation.Assembly.GlobalNamespace, string.Empty, arity: 0, errorInfo: null));
 
                 case SyntaxKind.IdentifierName:
                     return BindNonGenericSimpleNamespaceOrTypeOrAliasSymbol((IdentifierNameSyntax)syntax, diagnostics, basesBeingResolved, suppressUseSiteDiagnostics, qualifierOpt);
@@ -701,7 +698,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        protected Symbol BindNonGenericSimpleNamespaceOrTypeOrAliasSymbol(
+        protected NamespaceOrTypeOrAliasSymbolWithAnnotations BindNonGenericSimpleNamespaceOrTypeOrAliasSymbol(
             IdentifierNameSyntax node,
             DiagnosticBag diagnostics,
             ConsList<Symbol> basesBeingResolved,
@@ -717,15 +714,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (string.IsNullOrWhiteSpace(identifierValueText))
             {
-                return new ExtendedErrorTypeSymbol(
+                return TypeSymbolWithAnnotations.Create(new ExtendedErrorTypeSymbol(
                     Compilation.Assembly.GlobalNamespace, identifierValueText, 0,
-                    new CSDiagnosticInfo(ErrorCode.ERR_SingleTypeNameNotFound));
+                    new CSDiagnosticInfo(ErrorCode.ERR_SingleTypeNameNotFound)));
             }
 
             var errorResult = CreateErrorIfLookupOnTypeParameter(node.Parent, qualifierOpt, identifierValueText, 0, diagnostics);
             if ((object)errorResult != null)
             {
-                return errorResult;
+                return TypeSymbolWithAnnotations.Create(errorResult);
             }
 
             var result = LookupResult.GetInstance();
@@ -765,7 +762,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             result.Free();
-            return bindingResult;
+            return NamespaceOrTypeOrAliasSymbolWithAnnotations.CreateUnannotated(IsNullableEnabled(node.Identifier), bindingResult);
         }
 
         private void ReportUseSiteDiagnosticForDynamic(DiagnosticBag diagnostics, IdentifierNameSyntax node)
@@ -834,7 +831,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (symbol.IsAlias)
             {
                 AliasSymbol discarded;
-                return NamespaceOrTypeOrAliasSymbolWithAnnotations.CreateUnannotated(NonNullTypesContext, (NamespaceOrTypeSymbol)UnwrapAlias(symbol.Symbol, out discarded, diagnostics, syntax, basesBeingResolved));
+                return NamespaceOrTypeOrAliasSymbolWithAnnotations.CreateUnannotated(symbol.IsNullableEnabled, (NamespaceOrTypeSymbol)UnwrapAlias(symbol.Symbol, out discarded, diagnostics, syntax, basesBeingResolved));
             }
 
             return symbol;
@@ -844,7 +841,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (symbol.IsAlias)
             {
-                return NamespaceOrTypeOrAliasSymbolWithAnnotations.CreateUnannotated(NonNullTypesContext, (NamespaceOrTypeSymbol)UnwrapAlias(symbol.Symbol, out alias, diagnostics, syntax, basesBeingResolved));
+                return NamespaceOrTypeOrAliasSymbolWithAnnotations.CreateUnannotated(symbol.IsNullableEnabled, (NamespaceOrTypeSymbol)UnwrapAlias(symbol.Symbol, out alias, diagnostics, syntax, basesBeingResolved));
             }
 
             alias = null;
@@ -885,7 +882,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return symbol;
         }
 
-        private NamedTypeSymbol BindGenericSimpleNamespaceOrTypeOrAliasSymbol(
+        private TypeSymbolWithAnnotations BindGenericSimpleNamespaceOrTypeOrAliasSymbol(
             GenericNameSyntax node,
             DiagnosticBag diagnostics,
             ConsList<Symbol> basesBeingResolved,
@@ -995,7 +992,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     LookupResultKind.NotAnAttributeType, errorInfo: null);
             }
 
-            return resultType;
+            return TypeSymbolWithAnnotations.Create(IsNullableEnabled(node.TypeArgumentList.GreaterThanToken), resultType);
         }
 
         private NamedTypeSymbol LookupGenericTypeName(
@@ -1194,11 +1191,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 bool includeNullability = Compilation.IsFeatureEnabled(MessageID.IDS_FeatureNullableReferenceTypes);
                 var conversions = this.Conversions.WithNullability(includeNullability);
-                if (includeNullability && !ShouldCheckConstraintsNullability)
-                {
-                    diagnostics.Add(new LazyNullableContraintChecksDiagnosticInfo(type, conversions, this.Compilation), typeSyntax.GetLocation());
-                    conversions = this.Conversions.WithNullability(includeNullability: false);
-                }
                 type.CheckConstraintsForNonTuple(conversions, typeSyntax, typeArgumentsSyntax, this.Compilation, basesBeingResolved, diagnostics);
             }
 
@@ -1219,15 +1211,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private bool ShouldCheckConstraintsNullability
-        {
-            get
-            {
-                return ShouldCheckConstraints && !this.Flags.Includes(BinderFlags.AttributeArgument);
-            }
-        }
-
-        private NamespaceOrTypeSymbol BindQualifiedName(
+        private NamespaceOrTypeOrAliasSymbolWithAnnotations BindQualifiedName(
             ExpressionSyntax leftName,
             SimpleNameSyntax rightName,
             DiagnosticBag diagnostics,
@@ -1249,17 +1233,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // since the name is qualified, it cannot result in a using alias symbol, only a type or namespace
-            var right = this.BindSimpleNamespaceOrTypeOrAliasSymbol(rightName, diagnostics, basesBeingResolved, suppressUseSiteDiagnostics, left) as NamespaceOrTypeSymbol;
+            var right = this.BindSimpleNamespaceOrTypeOrAliasSymbol(rightName, diagnostics, basesBeingResolved, suppressUseSiteDiagnostics, left);
 
             // If left name bound to an unbound generic type
             // and right name bound to a generic type, we must
             // convert right to an unbound generic type.
             if (isLeftUnboundGenericType)
             {
-                var namedTypeRight = right as NamedTypeSymbol;
+                var namedTypeRight = right.Symbol as NamedTypeSymbol;
                 if ((object)namedTypeRight != null && namedTypeRight.IsGenericType)
                 {
-                    right = namedTypeRight.AsUnboundGenericType();
+                    TypeSymbolWithAnnotations type = right.Type;
+                    right = type.WithTypeAndModifiers(namedTypeRight.AsUnboundGenericType(), type.CustomModifiers);
                 }
             }
 

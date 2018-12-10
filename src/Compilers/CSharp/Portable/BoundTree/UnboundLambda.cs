@@ -604,7 +604,7 @@ haveLambdaBodyAndBinders:
             var returnType = inferredReturnType.Type;
             if (returnType.IsNull)
             {
-                returnType = TypeSymbolWithAnnotations.Create(NonNullTypesNullContext.Instance, LambdaSymbol.InferenceFailureReturnType);
+                returnType = TypeSymbolWithAnnotations.Create(LambdaSymbol.InferenceFailureReturnType);
             }
             lambdaSymbol.SetInferredReturnType(inferredReturnType.RefKind, returnType);
 

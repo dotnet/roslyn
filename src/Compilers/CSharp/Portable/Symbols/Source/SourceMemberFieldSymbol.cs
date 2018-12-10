@@ -473,7 +473,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             {
                                 if ((object)initializerOpt.Type != null && !initializerOpt.Type.IsErrorType())
                                 {
-                                    type = TypeSymbolWithAnnotations.Create(nonNullTypesContext: this, initializerOpt.Type);
+                                    type = TypeSymbolWithAnnotations.Create(initializerOpt.Type);
                                 }
 
                                 _lazyFieldTypeInferred = 1;
@@ -482,7 +482,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                         if (type.IsNull)
                         {
-                            type = TypeSymbolWithAnnotations.Create(nonNullTypesContext: this, binder.CreateErrorType("var"));
+                            type = TypeSymbolWithAnnotations.Create(binder.CreateErrorType("var"));
                         }
                     }
                 }
