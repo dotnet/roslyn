@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Text.Operations;
 using Roslyn.Utilities;
 using AsyncCompletionData = Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data;
 using RoslynCompletionItem = Microsoft.CodeAnalysis.Completion.CompletionItem;
@@ -28,14 +29,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             new AsyncCompletionData.CommitResult(isHandled: false, AsyncCompletionData.CommitBehavior.None);
 
         private readonly RecentItemsManager _recentItemsManager;
+        private readonly IEditorOperationsFactoryService _editorOperationsFactoryService;
 
         public IEnumerable<char> PotentialCommitCharacters { get; }
 
-        internal CommitManager(ImmutableArray<char> potentialCommitCharacters, RecentItemsManager recentItemsManager, IThreadingContext threadingContext) : base(threadingContext)
+        internal CommitManager(ImmutableArray<char> potentialCommitCharacters, RecentItemsManager recentItemsManager, IThreadingContext threadingContext, IEditorOperationsFactoryService editorOperationsFactoryService) : base(threadingContext)
         {
             PotentialCommitCharacters = potentialCommitCharacters;
             _recentItemsManager = recentItemsManager;
-        }
+            _editorOperationsFactoryService = editorOperationsFactoryService;
+    }
 
         /// <summary>
         /// The method performs a preliminarily filtering of commit availability.
@@ -150,15 +153,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 return AsyncCompletionData.CommitBehavior.None;
             }
 
-            using (var edit = subjectBuffer.CreateEdit())
+            var change = completionService.GetChangeAsync(document, roslynItem, commitCharacter, cancellationToken).WaitAndGetResult(cancellationToken);
+            var textChange = change.TextChange;
+            var triggerSnapshotSpan = new SnapshotSpan(triggerSnapshot, textChange.Span.ToSpan());
+            var mappedSpan = triggerSnapshotSpan.TranslateTo(subjectBuffer.CurrentSnapshot, SpanTrackingMode.EdgeInclusive);
+            
+            var adjustedNewText = AdjustForVirtualSpace(textChange, view, _editorOperationsFactoryService);
+
+            using (var edit = subjectBuffer.CreateEdit(EditOptions.DefaultMinimalChange, reiteratedVersionNumber: null, editTag: null))
             {
-                var change = completionService.GetChangeAsync(document, roslynItem, commitCharacter, cancellationToken).WaitAndGetResult(cancellationToken);
-
-                var textChange = change.TextChange;
-
-                var triggerSnapshotSpan = new SnapshotSpan(triggerSnapshot, textChange.Span.ToSpan());
-                var mappedSpan = triggerSnapshotSpan.TranslateTo(subjectBuffer.CurrentSnapshot, SpanTrackingMode.EdgeInclusive);
-
                 edit.Replace(mappedSpan.Span, change.TextChange.NewText);
 
                 // The edit updates the snapshot however other extensions may make changes there.
@@ -168,6 +171,22 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 if (change.NewPosition.HasValue)
                 {
                     view.TryMoveCaretToAndEnsureVisible(new SnapshotPoint(subjectBuffer.CurrentSnapshot, change.NewPosition.Value));
+                }
+                else
+                {
+                    // Or, If we're doing a minimal change, then the edit that we make to the 
+                    // buffer may not make the total text change that places the caret where we 
+                    // would expect it to go based on the requested change. In this case, 
+                    // determine where the item should go and set the care manually.
+
+                    // Note: we only want to move the caret if the caret would have been moved 
+                    // by the edit.  i.e. if the caret was actually in the mapped span that 
+                    // we're replacing.
+                    var caretPositionInBuffer = view.GetCaretPoint(subjectBuffer);
+                    if (caretPositionInBuffer.HasValue && mappedSpan.IntersectsWith(caretPositionInBuffer.Value))
+                    {
+                        view.TryMoveCaretToAndEnsureVisible(new SnapshotPoint(subjectBuffer.CurrentSnapshot, mappedSpan.Start.Position + adjustedNewText.Length));
+                    }
                 }
 
                 includesCommitCharacter = change.IncludesCommitCharacter;
@@ -267,6 +286,28 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 case EnterKeyRule.AfterFullyTypedWord:
                     return item.GetEntireDisplayText() == textTypedSoFar;
             }
+        }
+
+        internal static string AdjustForVirtualSpace(TextChange textChange, ITextView textView, IEditorOperationsFactoryService editorOperationsFactoryService)
+        {
+            var newText = textChange.NewText;
+
+            var caretPoint = textView.Caret.Position.BufferPosition;
+            var virtualCaretPoint = textView.Caret.Position.VirtualBufferPosition;
+
+            if (textChange.Span.IsEmpty &&
+                textChange.Span.Start == caretPoint &&
+                virtualCaretPoint.IsInVirtualSpace)
+            {
+                // They're in virtual space and the text change is specified against the cursor
+                // position that isn't in virtual space.  In this case, add the virtual spaces to the
+                // thing we're adding.
+                var editorOperations = editorOperationsFactoryService.GetEditorOperations(textView);
+                var whitespace = editorOperations.GetWhitespaceForVirtualSpace(virtualCaretPoint);
+                return whitespace + newText;
+            }
+
+            return newText;
         }
     }
 }
