@@ -26,8 +26,8 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
             private readonly ImmutableArray<string> _newfolders;
 
             public override string Title
-                => _newfolders.Length > 0 
-                ? string.Format(FeaturesResources.Move_file_to_0, string.Join(PathUtilities.DirectorySeparatorStr, _newfolders)) 
+                => _newfolders.Length > 0
+                ? string.Format(FeaturesResources.Move_file_to_0, string.Join(PathUtilities.DirectorySeparatorStr, _newfolders))
                 : FeaturesResources.Move_file_to_project_root_folder;
 
             public MoveFileCodeAction(State state, ImmutableArray<string> newFolders)
@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
                     new ApplyChangesOperation(solution),
                     new OpenDocumentOperation(newDocumentId, activateIfAlreadyOpen: true));
             }
-            
+
             public static ImmutableArray<MoveFileCodeAction> Create(State state)
             {
                 Debug.Assert(state.RelativeDeclaredNamespace != null);
@@ -88,8 +88,8 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
             /// exists, then will provide two actions, "move file to ProjectRoot\A.B\C\" and "move file to ProjectRoot\A\B\C\".
             /// </summary>
             private static ImmutableArray<ImmutableArray<string>> FindCandidateFolders(
-                FolderInfo currentFolderInfo, 
-                ImmutableArray<string> parts, 
+                FolderInfo currentFolderInfo,
+                ImmutableArray<string> parts,
                 ImmutableArray<string> currentFolder)
             {
                 if (parts.IsEmpty)
@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
                 // "A", "A.B" and "A.B.C". The item "index" in the result tuple is the number 
                 // of items in namespace parts used to construct iten "foldername".
                 var candidates = Enumerable.Range(1, parts.Length)
-                    .Select(i => (foldername: string.Join(".", parts.Take(i)), index: i)) 
+                    .Select(i => (foldername: string.Join(".", parts.Take(i)), index: i))
                     .ToImmutableDictionary(t => t.foldername, t => t.index, PathUtilities.Comparer);
 
                 var subFolders = currentFolderInfo.ChildFolders;

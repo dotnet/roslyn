@@ -32,7 +32,7 @@ namespace Microsoft.Cci
         /// Specifies the target CPU. <see cref="Machine.Unknown"/> means AnyCPU.
         /// </summary>
         public readonly Machine Machine;
-        
+
         /// <summary>
         /// A globally unique persistent identifier for this module.
         /// </summary>

@@ -341,7 +341,7 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 throw new InvalidOperationException(CodeAnalysisResources.OperationMustNotBeControlFlowGraphPart);
             }
-            
+
             if (operation.BranchKind != BranchKind.Break && operation.BranchKind != BranchKind.Continue)
             {
                 return null;
@@ -351,12 +351,12 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 return null;
             }
-            
+
             for (IOperation current = operation; current.Parent != null; current = current.Parent)
             {
                 switch (current)
                 {
-                    case ILoopOperation correspondingLoop when operation.Target.Equals(correspondingLoop.ExitLabel) || 
+                    case ILoopOperation correspondingLoop when operation.Target.Equals(correspondingLoop.ExitLabel) ||
                                                                operation.Target.Equals(correspondingLoop.ContinueLabel):
                         return correspondingLoop;
                     case ISwitchOperation correspondingSwitch when operation.Target.Equals(correspondingSwitch.ExitLabel):

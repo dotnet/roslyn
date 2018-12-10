@@ -48,10 +48,10 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
         where TBlockSyntax : TStatementSyntax
         where TExpressionStatementSyntax : TStatementSyntax
         where TLocalDeclarationStatementSyntax : TStatementSyntax
-        where TForEachStatementSyntax: TStatementSyntax
+        where TForEachStatementSyntax : TStatementSyntax
         where TVariableDeclaratorSyntax : SyntaxNode
         where TSwitchCaseBlockSyntax : SyntaxNode
-        where TSwitchCaseLabelOrClauseSyntax: SyntaxNode
+        where TSwitchCaseLabelOrClauseSyntax : SyntaxNode
     {
         private static readonly SyntaxAnnotation s_memberAnnotation = new SyntaxAnnotation();
         private static readonly SyntaxAnnotation s_newLocalDeclarationStatementAnnotation = new SyntaxAnnotation();
@@ -677,7 +677,8 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                 return memberDeclaration;
             }
 
-            return await service.ReplaceAsync(memberDeclaration, cancellationToken).ConfigureAwait(false);
+            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            return await service.ReplaceAsync(memberDeclaration, semanticModel, cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -784,8 +785,8 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
             CancellationToken cancellationToken)
         {
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var localDeclarationOperation = semanticModel.GetOperation(declStatement, cancellationToken) as IVariableDeclarationGroupOperation;
-            var local = localDeclarationOperation?.GetDeclaredVariables().Single();
+            var localDeclarationOperation = (IVariableDeclarationGroupOperation)semanticModel.GetOperation(declStatement, cancellationToken);
+            var local = localDeclarationOperation.GetDeclaredVariables().Single();
 
             // Check if the declared variable has no references in fixed code.
             var referencedSymbols = await SymbolFinder.FindReferencesAsync(local, document.Project.Solution, cancellationToken).ConfigureAwait(false);
@@ -801,7 +802,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
             }
         }
 
-        protected sealed class UniqueVariableNameGenerator: IDisposable
+        protected sealed class UniqueVariableNameGenerator : IDisposable
         {
             private readonly SyntaxNode _memberDeclaration;
             private readonly SemanticModel _semanticModel;

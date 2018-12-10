@@ -69,8 +69,8 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         }
 
         public static void LogReanalyze(
-            int correlationId, 
-            IIncrementalAnalyzer analyzer, 
+            int correlationId,
+            IIncrementalAnalyzer analyzer,
             int documentCount,
             string languages,
             bool highPriority)

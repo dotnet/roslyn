@@ -306,13 +306,13 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                         {
                             return loadedAssemblyWithEqualNameAndVersionOpt.Assembly;
                         }
-                        
+
                         // error: attempt to load an assembly with the same identity as already loaded assembly but different content
                         throw new InteractiveAssemblyLoaderException(
-                            string.Format(null, ScriptingResources.AssemblyAlreadyLoaded, 
-                            identity.Name, 
-                            identity.Version, 
-                            loadedAssemblyWithEqualNameAndVersionOpt.LocationOpt, 
+                            string.Format(null, ScriptingResources.AssemblyAlreadyLoaded,
+                            identity.Name,
+                            identity.Version,
+                            loadedAssemblyWithEqualNameAndVersionOpt.LocationOpt,
                             assemblyFilePathOpt)
                         );
                     }

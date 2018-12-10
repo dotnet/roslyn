@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
             var document = context.Document;
             var textSpan = context.Span;
             var cancellationToken = context.CancellationToken;
-            
+
             var state = await State.CreateAsync(this, document, textSpan, cancellationToken).ConfigureAwait(false);
             if (state == null)
             {
@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
                     token => service.ChangeNamespaceAsync(document, state.Container, state.TargetNamespace, token));
 
                 context.RegisterRefactoring(solutionChangeAction);
-            }            
+            }
         }
 
         /// <summary>

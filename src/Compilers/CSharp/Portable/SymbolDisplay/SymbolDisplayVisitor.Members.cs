@@ -169,11 +169,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if ((object)eventSymbol == null)
                 {
-                symbol.Type.Accept(this.NotFirstVisitor);
+                    symbol.Type.Accept(this.NotFirstVisitor);
                 }
                 else
                 {
-                    VisitTypeSymbolWithAnnotations(eventSymbol.Type); 
+                    VisitTypeSymbolWithAnnotations(eventSymbol.Type);
                 }
 
                 AddSpace();
@@ -290,7 +290,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
 
                             AddSpace();
-                            AddCustomModifiersIfRequired(symbol.ReturnTypeCustomModifiers); 
+                            AddCustomModifiersIfRequired(symbol.ReturnTypeCustomModifiers);
                             break;
                     }
                 }

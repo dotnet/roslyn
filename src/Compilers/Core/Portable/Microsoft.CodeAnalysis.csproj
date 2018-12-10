@@ -11,7 +11,7 @@
     <DefineConstants>$(DefineConstants);COMPILERCORE</DefineConstants>
     <CodeAnalysisRuleSet>..\CodeAnalysisRules.ruleset</CodeAnalysisRuleSet>
     <NoStdLib>true</NoStdLib>
-    <ApplyNgenOptimizationData>true</ApplyNgenOptimizationData>
+    <ApplyPartialNgenOptimization>true</ApplyPartialNgenOptimization>
 
     <!-- NuGet -->
     <IsPackable>true</IsPackable>

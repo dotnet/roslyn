@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
 {
     internal abstract class AbstractRemoveUnusedMembersDiagnosticAnalyzer<TDocumentationCommentTriviaSyntax, TIdentifierNameSyntax>
         : AbstractCodeQualityDiagnosticAnalyzer
-        where TDocumentationCommentTriviaSyntax: SyntaxNode
+        where TDocumentationCommentTriviaSyntax : SyntaxNode
         where TIdentifierNameSyntax : SyntaxNode
     {
         // IDE0051: "Remove unused members" (Symbol is declared but never referenced)
@@ -288,7 +288,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
             private void AnalyzeInvocationOperation(OperationAnalysisContext operationContext)
             {
                 var targetMethod = ((IInvocationOperation)operationContext.Operation).TargetMethod.OriginalDefinition;
-                
+
                 // A method invocation is considered as a read reference to the symbol
                 // to ensure that we consider the method as "used".
                 OnSymbolUsage(targetMethod, ValueUsageInfo.Read);
@@ -297,7 +297,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
             private void AnalyzeObjectCreationOperation(OperationAnalysisContext operationContext)
             {
                 var constructor = ((IObjectCreationOperation)operationContext.Operation).Constructor.OriginalDefinition;
-                
+
                 // An object creation is considered as a read reference to the constructor
                 // to ensure that we consider the constructor as "used".
                 OnSymbolUsage(constructor, ValueUsageInfo.Read);
@@ -614,7 +614,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                 // Note that we do a case sensitive compare for compatibility with legacy FxCop
                 // implementation of this rule.
 
-                return methodSymbol.ReturnType.SpecialType == SpecialType.System_Boolean  &&
+                return methodSymbol.ReturnType.SpecialType == SpecialType.System_Boolean &&
                     methodSymbol.Parameters.IsEmpty &&
                     (IsSpecialMethodWithMatchingProperty("ShouldSerialize") ||
                      IsSpecialMethodWithMatchingProperty("Reset"));

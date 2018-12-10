@@ -2034,7 +2034,7 @@ class H
 
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
-            CompileAndVerify(compilation, expectedOutput:@"1").VerifyDiagnostics();
+            CompileAndVerify(compilation, expectedOutput: @"1").VerifyDiagnostics();
 
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);

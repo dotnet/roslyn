@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.UseCompoundAssignment
     {
         public static void GenerateMaps<TSyntaxKind>(
             ImmutableArray<(TSyntaxKind exprKind, TSyntaxKind assignmentKind, TSyntaxKind tokenKind)> kinds,
-            out ImmutableDictionary<TSyntaxKind, TSyntaxKind> binaryToAssignmentMap, 
+            out ImmutableDictionary<TSyntaxKind, TSyntaxKind> binaryToAssignmentMap,
             out ImmutableDictionary<TSyntaxKind, TSyntaxKind> assignmentToTokenMap)
         {
             var binaryToAssignmentBuilder = ImmutableDictionary.CreateBuilder<TSyntaxKind, TSyntaxKind>();

@@ -146,7 +146,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                         return null;
                     }
 
-                    var classifiedSpansOnContent = await GetClassifiedSpansOnContent(document, roslynSnapshot, contentSpanOnPrimarySnapshot.Value, cancellationToken);
+                    var classifiedSpansOnContent = await GetClassifiedSpansOnContent(document, roslynSnapshot, contentSpanOnPrimarySnapshot.Value, cancellationToken).ConfigureAwait(false);
 
                     // the default implementation has no idea how to classify the primary snapshot
                     return new ExcerptResult(content, spanOnContent, classifiedSpansOnContent, document, span);

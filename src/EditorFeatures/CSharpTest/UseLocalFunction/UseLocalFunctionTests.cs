@@ -2002,8 +2002,8 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
         public async Task TestWithDefaultParameter1()
         {
-           await TestInRegularAndScript1Async(
-@"class C
+            await TestInRegularAndScript1Async(
+ @"class C
 {
     delegate string MyDelegate(string arg = ""hello"");
 
@@ -2012,7 +2012,7 @@ class C
         MyDelegate [||]local = (s) => s;
     }
 }",
-@"class C
+ @"class C
 {
     delegate string MyDelegate(string arg = ""hello"");
 

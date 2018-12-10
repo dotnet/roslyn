@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
             {
                 return;
             }
-            
+
             PullMemberUpViaQuickAction(context, selectedMember, allDestinations);
         }
 

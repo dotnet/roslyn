@@ -486,7 +486,7 @@ class D
                 Assert.Equal("dynamic", parameterSymbol.Type.ToTestDisplayString());
             };
 
-            var compilationVerifier = CompileAndVerify(source: source, references: new[] { TargetFrameworkUtil.StandardCSharpReference, libAssemblyRef }, 
+            var compilationVerifier = CompileAndVerify(source: source, references: new[] { TargetFrameworkUtil.StandardCSharpReference, libAssemblyRef },
                                                     expectedOutput: "Print method ran.");
         }
 
@@ -573,8 +573,8 @@ Printed: Bob
 Printed: Charlie
 ";
             var compilationVerifier = CompileAndVerify(
-                source: source, 
-                targetFramework: TargetFramework.StandardAndCSharp, 
+                source: source,
+                targetFramework: TargetFramework.StandardAndCSharp,
                 references: new[] { libAssemblyRef },
                 expectedOutput: expectedOutput);
         }
@@ -804,7 +804,7 @@ class D
     }
 }
 ";
-            var compVerifier = CompileAndVerify(source, new[] { TargetFrameworkUtil.StandardCSharpReference, CompileIL(ilSource) }, 
+            var compVerifier = CompileAndVerify(source, new[] { TargetFrameworkUtil.StandardCSharpReference, CompileIL(ilSource) },
                                                 expectedOutput: "Event raised");
 
             var comp = compVerifier.Compilation;

@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
     internal partial class CSharpCodeGenerationService : AbstractCodeGenerationService
     {
         public CSharpCodeGenerationService(HostLanguageServices languageServices)
-            : base(languageServices.GetService<ISymbolDeclarationService>(), 
+            : base(languageServices.GetService<ISymbolDeclarationService>(),
                    languageServices.WorkspaceServices.Workspace)
         {
         }
@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 if (newDestinationSymbol?.ContainingType != null)
                 {
                     return await this.AddNamedTypeAsync(
-                        newDocument.Project.Solution, newDestinationSymbol.ContainingType, 
+                        newDocument.Project.Solution, newDestinationSymbol.ContainingType,
                         namedType, options, cancellationToken).ConfigureAwait(false);
                 }
                 else if (newDestinationSymbol?.ContainingNamespace != null)

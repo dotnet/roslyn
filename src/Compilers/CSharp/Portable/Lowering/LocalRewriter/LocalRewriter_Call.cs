@@ -213,11 +213,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 rewrittenBoundCall = new BoundBinaryOperator(
                     syntax,
                     BinaryOperatorKind.ObjectEqual,
-                    rewrittenArguments[0],
-                    rewrittenArguments[1],
                     null,
                     null,
                     resultKind,
+                    rewrittenArguments[0],
+                    rewrittenArguments[1],
                     type);
             }
             else if (node == null)
@@ -574,8 +574,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Either the methodOrIndexer is a property, in which case the method used
             // for optional parameters is an accessor of that property (or an overridden
             // property), or the methodOrIndexer is used for optional parameters directly.
-            Debug.Assert(((methodOrIndexer.Kind == SymbolKind.Property) && 
-                (optionalParametersMethod.IsAccessor() || 
+            Debug.Assert(((methodOrIndexer.Kind == SymbolKind.Property) &&
+                (optionalParametersMethod.IsAccessor() ||
                  ((PropertySymbol)methodOrIndexer).MustCallMethodsDirectly)) || // This condition is a temporary workaround for https://github.com/dotnet/roslyn/issues/23852
                 (object)methodOrIndexer == optionalParametersMethod);
 
@@ -654,7 +654,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var receiverNamedType = invokedAsExtensionMethod ?
                                         ((MethodSymbol)methodOrIndexer).Parameters[0].Type.TypeSymbol as NamedTypeSymbol :
                                         methodOrIndexer.ContainingType;
-            isComReceiver = (object)receiverNamedType != null && receiverNamedType.IsComImport;
+                isComReceiver = (object)receiverNamedType != null && receiverNamedType.IsComImport;
             }
 
             return rewrittenArguments.Length == methodOrIndexer.GetParameterCount() &&
@@ -952,7 +952,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 syntax,
                 ImmutableArray.Create(arraySize),
                 new BoundArrayInitialization(syntax, arrayArgs) { WasCompilerGenerated = true },
-                paramArrayType) { WasCompilerGenerated = true };
+                paramArrayType)
+            { WasCompilerGenerated = true };
         }
 
         /// <summary>
@@ -981,7 +982,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (storesToTemps.Count > 0)
             {
-                int tempsNeeded = MergeArgumentsAndSideEffects(arguments,storesToTemps);
+                int tempsNeeded = MergeArgumentsAndSideEffects(arguments, storesToTemps);
                 if (tempsNeeded > 0)
                 {
                     foreach (BoundAssignmentOperator s in storesToTemps)
@@ -1298,7 +1299,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         syntax,
                         UnsafeGetNullableMethod(syntax, parameterType, SpecialMember.System_Nullable_T__ctor, compilation, diagnostics),
                         null,
-                        defaultValue) { WasCompilerGenerated = true };
+                        defaultValue)
+                    { WasCompilerGenerated = true };
                 }
                 else
                 {
@@ -1393,7 +1395,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     defaultValue = new BoundDefaultExpression(syntax, parameterType) { WasCompilerGenerated = true };
                 }
             }
-            else if (defaultConstantValue.IsNull && 
+            else if (defaultConstantValue.IsNull &&
                 (parameterType.IsValueType || (parameterType.IsNullableType() && parameterType.IsErrorType())))
             {
                 // We have something like M(int? x = null) or M(S x = default(S)),
@@ -1418,7 +1420,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     syntax,
                     UnsafeGetNullableMethod(syntax, parameterType, SpecialMember.System_Nullable_T__ctor, compilation, diagnostics),
                     null,
-                    defaultValue) { WasCompilerGenerated = true };
+                    defaultValue)
+                { WasCompilerGenerated = true };
             }
             else if (defaultConstantValue.IsNull || defaultConstantValue.IsBad)
             {

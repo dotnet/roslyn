@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     tk = this.CurrentToken.ContextualKind;
                     if ((!IsExpectedBinaryOperator(tk) || GetPrecedence(SyntaxFacts.GetBinaryExpression(tk)) <= precedence) &&
                         // member selection is not formally a binary operator but has higher precedence than relational
-                        tk != SyntaxKind.DotToken) 
+                        tk != SyntaxKind.DotToken)
                     {
                         // it is a typical "is Type" operator.
                         // Note that we don't bother checking for primary expressions such as X[e], X(e), X++, and X--

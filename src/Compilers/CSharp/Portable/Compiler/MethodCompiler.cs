@@ -934,7 +934,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     body = BoundBlock.SynthesizedNoLocals(initializerStatements.Syntax, initializerStatements.Statements);
 
                     var unusedDiagnostics = DiagnosticBag.GetInstance();
-                    DataFlowPass.Analyze(_compilation, methodSymbol, initializerStatements, unusedDiagnostics, requireOutParamsAssigned: false);
+                    DefiniteAssignmentPass.Analyze(_compilation, methodSymbol, initializerStatements, unusedDiagnostics, requireOutParamsAssigned: false);
                     DiagnosticsPass.IssueDiagnostics(_compilation, initializerStatements, unusedDiagnostics, methodSymbol);
                     unusedDiagnostics.Free();
                 }
@@ -967,7 +967,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 // Flow analysis over the initializers is necessary in order to find assignments to fields.
                                 // Bodies of implicit constructors do not get flow analysis later, so the initializers
                                 // are analyzed here.
-                                DataFlowPass.Analyze(_compilation, methodSymbol, analyzedInitializers, diagsForCurrentMethod, requireOutParamsAssigned: false);
+                                DefiniteAssignmentPass.Analyze(_compilation, methodSymbol, analyzedInitializers, diagsForCurrentMethod, requireOutParamsAssigned: false);
                             }
 
                             // In order to get correct diagnostics, we need to analyze initializers and the body together.
@@ -979,7 +979,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             // These analyses check for diagnostics in lambdas.
                             // Control flow analysis and implicit return insertion are unnecessary.
-                            DataFlowPass.Analyze(_compilation, methodSymbol, analyzedInitializers, diagsForCurrentMethod, requireOutParamsAssigned: false);
+                            DefiniteAssignmentPass.Analyze(_compilation, methodSymbol, analyzedInitializers, diagsForCurrentMethod, requireOutParamsAssigned: false);
                             DiagnosticsPass.IssueDiagnostics(_compilation, analyzedInitializers, diagsForCurrentMethod, methodSymbol);
                         }
                     }
@@ -1578,8 +1578,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         // NOTE: can return null if the method has no body.
-        private static BoundBlock BindMethodBody(MethodSymbol method, TypeCompilationState compilationState, DiagnosticBag diagnostics, 
-                                                 out ImportChain importChain, out bool originalBodyNested, 
+        private static BoundBlock BindMethodBody(MethodSymbol method, TypeCompilationState compilationState, DiagnosticBag diagnostics,
+                                                 out ImportChain importChain, out bool originalBodyNested,
                                                  out (SyntaxNode Syntax, BoundNode Body, ExecutableCodeBinder Binder) forSemanticModel)
         {
             originalBodyNested = false;
@@ -1810,7 +1810,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 SyntaxToken bodyToken = GetImplicitConstructorBodyToken(containerNode);
                 outerBinder = compilation.GetBinderFactory(containerNode.SyntaxTree).GetBinder(containerNode, bodyToken.Position);
             }
-            else 
+            else
             {
                 // We have a ctor in source but no explicit constructor initializer.  We can't just use the binder for the
                 // type containing the ctor because the ctor might be marked unsafe.  Use the binder for the parameter list

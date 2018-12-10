@@ -1022,7 +1022,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        internal static bool GetUnificationUseSiteDiagnosticRecursive(ref DiagnosticInfo result, ImmutableArray<TypeSymbolWithAnnotations> types, Symbol owner, ref HashSet<TypeSymbol> checkedTypes) 
+        internal static bool GetUnificationUseSiteDiagnosticRecursive(ref DiagnosticInfo result, ImmutableArray<TypeSymbolWithAnnotations> types, Symbol owner, ref HashSet<TypeSymbol> checkedTypes)
         {
             foreach (var t in types)
             {

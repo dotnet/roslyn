@@ -11,7 +11,8 @@ using Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues;
 namespace Microsoft.CodeAnalysis.CSharp.RemoveUnusedParametersAndValues
 {
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.RemoveUnusedValues), Shared]
-    internal class CSharpRemoveUnusedValuesCodeFixProvider:
+    [ExtensionOrder(After = PredefinedCodeFixProviderNames.AddImport)]
+    internal class CSharpRemoveUnusedValuesCodeFixProvider :
         AbstractRemoveUnusedValuesCodeFixProvider<ExpressionSyntax, StatementSyntax, BlockSyntax,
             ExpressionStatementSyntax, LocalDeclarationStatementSyntax, VariableDeclaratorSyntax,
             ForEachStatementSyntax, SwitchSectionSyntax, SwitchLabelSyntax, CatchClauseSyntax, CatchClauseSyntax>
@@ -35,7 +36,9 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnusedParametersAndValues
                     return variableDeclarator.WithIdentifier(newName.WithTriviaFrom(variableDeclarator.Identifier));
 
                 case SyntaxKind.SingleVariableDesignation:
-                    return SyntaxFactory.SingleVariableDesignation(newName).WithTriviaFrom(node);
+                    return newName.ValueText == AbstractRemoveUnusedParametersAndValuesDiagnosticAnalyzer.DiscardVariableName
+                        ? SyntaxFactory.DiscardDesignation().WithTriviaFrom(node)
+                        : (SyntaxNode)SyntaxFactory.SingleVariableDesignation(newName).WithTriviaFrom(node);
 
                 case SyntaxKind.CatchDeclaration:
                     var catchDeclaration = (CatchDeclarationSyntax)node;

@@ -1095,7 +1095,7 @@ namespace Microsoft.CodeAnalysis
             errors = diagnostics.ToReadOnlyAndFree().SelectAsArray(diag => new DiagnosticInfo(messageProvider, diag.IsWarningAsError, diag.Code, (object[])diag.Arguments));
             return stream;
         }
-        
+
         private static Stream GetWin32Resources(
             CommonMessageProvider messageProvider,
             CommandLineArguments arguments,

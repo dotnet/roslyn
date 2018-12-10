@@ -7,8 +7,6 @@
     <OutputType>Library</OutputType>
     <RootNamespace>Roslyn.VisualStudio.Next.UnitTests</RootNamespace>
     <TargetFramework>net472</TargetFramework>
-    <RuntimeIdentifier>$(RoslynDesktopRuntimeIdentifier)</RuntimeIdentifier>
-    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <RoslynProjectType>UnitTest</RoslynProjectType>
     <DefineConstants>$(DefineConstants);TESTS</DefineConstants>
   </PropertyGroup>

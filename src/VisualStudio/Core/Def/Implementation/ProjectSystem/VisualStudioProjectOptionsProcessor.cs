@@ -117,7 +117,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     WorkspaceServices.GetRequiredService<IMetadataService>(),
                     new RelativePathResolver(referenceSearchPaths, _commandLineArgumentsForCommandLine.BaseDirectory));
 
-            var compilationOptions =_commandLineArgumentsForCommandLine.CompilationOptions
+            var compilationOptions = _commandLineArgumentsForCommandLine.CompilationOptions
                 .WithConcurrentBuild(concurrent: false)
                 .WithMetadataReferenceResolver(referenceResolver)
                 .WithXmlReferenceResolver(new XmlFileResolver(_commandLineArgumentsForCommandLine.BaseDirectory))

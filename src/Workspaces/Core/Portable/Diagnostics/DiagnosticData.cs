@@ -280,7 +280,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return new TextSpan(text.Length, 0);
             }
 
-            AdjustBoundaries(dataLocation, lines, 
+            AdjustBoundaries(dataLocation, lines,
                 out var startLine, out var startColumn, out var endLine, out var endColumn);
 
             var startLinePosition = new LinePosition(startLine, startColumn);

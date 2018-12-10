@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 boundStatement = new BoundBlock(syntax, fieldInit.Locals, ImmutableArray.Create(boundStatement)) { WasCompilerGenerated = fieldInit.WasCompilerGenerated };
             }
 
-            Debug.Assert(LocalRewriter.IsFieldOrPropertyInitializer(boundStatement)); 
+            Debug.Assert(LocalRewriter.IsFieldOrPropertyInitializer(boundStatement));
             return boundStatement;
         }
 

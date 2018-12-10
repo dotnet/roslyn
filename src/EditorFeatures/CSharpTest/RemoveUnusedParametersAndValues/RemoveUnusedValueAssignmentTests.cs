@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedParametersAndValues
@@ -1569,7 +1570,7 @@ $@"class C
 }",
 @"class C
 {
-    void M() => M2(out var _);
+    void M() => M2(out _);
     void M2(out int x) => x = 0;
 }", options: PreferDiscard);
         }
@@ -1623,7 +1624,7 @@ $@"class C
 
         [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         [InlineData(nameof(PreferDiscard), "_")]
-        [InlineData(nameof(PreferUnusedLocal), "unused")]
+        [InlineData(nameof(PreferUnusedLocal), "var unused")]
         public async Task OutDeclarationExpressionArgument(string optionName, string fix)
         {
             await TestInRegularAndScriptAsync(
@@ -1642,7 +1643,7 @@ $@"class C
 {{
     int M()
     {{
-        M2(out var {fix});
+        M2(out {fix});
         int x = 1;
         return x;
     }}
@@ -1787,7 +1788,7 @@ $@"class C
 
         [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         [InlineData(nameof(PreferDiscard), "_")]
-        [InlineData(nameof(PreferUnusedLocal), "unused")]
+        [InlineData(nameof(PreferUnusedLocal), "var unused")]
         public async Task TupleExpressionWithDeclarationExpressions(string optionName, string fix)
         {
             await TestInRegularAndScriptAsync(
@@ -1804,7 +1805,7 @@ $@"class C
 {{
     int M()
     {{
-        (var {fix}, var y) = (1, 1);
+        ({fix}, var y) = (1, 1);
         int x = 1;
         return x;
     }}
@@ -1877,7 +1878,7 @@ $@"class C
 {
     void M(object p)
     {
-        if (p is C _)
+        if (p is C)
         {
         }
     }
@@ -1909,7 +1910,7 @@ $@"class C
     {
         if (p is C [|x|])
         {
-            C x = null;
+            x = null;
         }
     }
 }",
@@ -1917,7 +1918,7 @@ $@"class C
 {
     void M(object p)
     {
-        if (p is C _)
+        if (p is C)
         {
             C x = null;
         }
@@ -1942,8 +1943,8 @@ $@"class C
         }
 
         [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
-        [InlineData(nameof(PreferDiscard), "_")]
-        [InlineData(nameof(PreferUnusedLocal), "unused")]
+        [InlineData(nameof(PreferDiscard), "C")]
+        [InlineData(nameof(PreferUnusedLocal), "C unused")]
         public async Task DeclarationPatternInIsPattern_WithReadAndWriteReference(string optionName, string fix)
         {
             await TestInRegularAndScriptAsync(
@@ -1962,7 +1963,7 @@ $@"class C
 {{
     void M(object p)
     {{
-        if (p is C {fix})
+        if (p is {fix})
         {{
             C x = null;
             p = x;
@@ -4235,7 +4236,7 @@ class C
     void M(bool flag)
     {
         int x;
-        if (M2(out var _))
+        if (M2(out _))
         {
             x = 2;
         }
@@ -4603,7 +4604,7 @@ $@"class C
     bool M2(out int x) {{ x = 0; return true; }}
     int M3() => 0;
 }}");
-            }
+        }
 
         [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         [InlineData(nameof(PreferDiscard))]
@@ -4652,6 +4653,158 @@ $@"class C
 
     bool M2(out int x) { x = 0; return true; }
 }", optionName);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        public async Task SwitchCase_UnusedValueWithOnlyWrite_PreferDiscard()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    int M(int flag)
+    {
+        switch(flag)
+        {
+            case 0:
+                int [|x|] = M2();
+                return 0;
+
+            default:
+                return flag;
+        }
+    }
+
+    int M2() => 0;
+}",
+@"class C
+{
+    int M(int flag)
+    {
+        switch(flag)
+        {
+            case 0:
+                _ = M2();
+                return 0;
+
+            default:
+                return flag;
+        }
+    }
+
+    int M2() => 0;
+}", options: PreferDiscard);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        public async Task SwitchCase_UnusedValueWithOnlyWrite_PreferUnusedLocal()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    int M(int flag)
+    {
+        switch(flag)
+        {
+            case 0:
+                int [|x|] = M2();
+                return 0;
+
+            default:
+                return flag;
+        }
+    }
+
+    int M2() => 0;
+}", options: PreferUnusedLocal);
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        [InlineData(nameof(PreferDiscard))]
+        [InlineData(nameof(PreferUnusedLocal))]
+        public async Task SwitchCase_UnusedConstantValue_WithReadsAndWrites(string optionName)
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    int M(int flag)
+    {
+        switch(flag)
+        {
+            case 0:
+                int [|x|] = 0;
+                x = 1;
+                return x;
+
+            default:
+                return flag;
+        }
+    }
+
+    int M2() => 0;
+}",
+@"class C
+{
+    int M(int flag)
+    {
+        switch(flag)
+        {
+            case 0:
+                int x;
+                x = 1;
+                return x;
+
+            default:
+                return flag;
+        }
+    }
+
+    int M2() => 0;
+}", optionName);
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        [InlineData(nameof(PreferDiscard), "_")]
+        [InlineData(nameof(PreferUnusedLocal), "int unused")]
+        public async Task SwitchCase_UnusedNonConstantValue_WithReadsAndWrites(string optionName, string fix)
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    int M(int flag)
+    {
+        switch(flag)
+        {
+            case 0:
+                int [|x|] = M2();
+                x = 1;
+                return x;
+
+            default:
+                return flag;
+        }
+    }
+
+    int M2() => 0;
+}",
+$@"class C
+{{
+    int M(int flag)
+    {{
+        switch(flag)
+        {{
+            case 0:
+                int x;
+                {fix} = M2();
+                x = 1;
+                return x;
+
+            default:
+                return flag;
+        }}
+    }}
+
+    int M2() => 0;
+}}", optionName);
         }
 
         [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
@@ -5475,6 +5628,171 @@ class C
 
     int M2() => 0;
 }", options: PreferDiscard);
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        [InlineData(nameof(PreferDiscard))]
+        [InlineData(nameof(PreferUnusedLocal))]
+        public async Task ValueOverwrittenByOutVar_ConditionalAndExpression(string optionName)
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    void M()
+    {
+        int {|FixAllInDocument:x1|} = -1, x2 = -1;
+        if (M2(x: out x1) &&
+            M2(x: out x2))
+        {
+            x1 = 0;
+            x2 = 0;
+        }
+        else
+        {
+            Console.WriteLine(x1);
+        }
+
+        Console.WriteLine(x1 + x2);
+    }
+
+    bool M2(out int x)
+    {
+        x = 0;
+        return true;
+    }
+}",
+@"using System;
+
+class C
+{
+    void M()
+    {
+        int x2 = -1;
+        int x1;
+        if (M2(x: out x1) &&
+            M2(x: out x2))
+        {
+            x1 = 0;
+            x2 = 0;
+        }
+        else
+        {
+            Console.WriteLine(x1);
+        }
+
+        Console.WriteLine(x1 + x2);
+    }
+
+    bool M2(out int x)
+    {
+        x = 0;
+        return true;
+    }
+}", optionName);
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        [InlineData("var")]
+        [InlineData("int")]
+        public async Task UnusedOutVariableDeclaration_PreferDiscard(string typeName)
+        {
+            await TestInRegularAndScriptAsync(
+$@"class C
+{{
+    void M()
+    {{
+        if (M2(out {typeName} [|x|]))
+        {{
+        }}
+    }}
+
+    bool M2(out int x)
+    {{
+        x = 0;
+        return true;
+    }}
+}}",
+@"class C
+{
+    void M()
+    {
+        if (M2(out _))
+        {
+        }
+    }
+
+    bool M2(out int x)
+    {
+        x = 0;
+        return true;
+    }
+}", options: PreferDiscard);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        public async Task UnusedOutVariableDeclaration_MethodOverloads_PreferDiscard()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M()
+    {
+        if (M2(out int [|x|]))
+        {
+        }
+    }
+
+    bool M2(out int x)
+    {
+        x = 0;
+        return true;
+    }
+
+    bool M2(out char x)
+    {
+        x = 'c';
+        return true;
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        if (M2(out int _))
+        {
+        }
+    }
+
+    bool M2(out int x)
+    {
+        x = 0;
+        return true;
+    }
+
+    bool M2(out char x)
+    {
+        x = 'c';
+        return true;
+    }
+}", options: PreferDiscard);
+        }
+
+        [WorkItem(31583, "https://github.com/dotnet/roslyn/issues/31583")]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        [InlineData(nameof(PreferDiscard))]
+        [InlineData(nameof(PreferUnusedLocal))]
+        public async Task MissingImports(string optionName)
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    void M()
+    {
+        List<int> [|x|] = null;
+    }
+}", optionName);
         }
     }
 }

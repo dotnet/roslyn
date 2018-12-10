@@ -132,63 +132,72 @@ namespace System
     }
 }
 
-#nullable disable
-
 namespace System.Runtime.CompilerServices
 {
-    public interface IStrongBox<T>
+    [AttributeUsage(AttributeTargets.Method, Inherited = false, AllowMultiple = false)]
+    public sealed class AsyncIteratorStateMachineAttribute : StateMachineAttribute
     {
-        ref T Value { get; }
+        public AsyncIteratorStateMachineAttribute(Type stateMachineType) : base(stateMachineType)
+        {
+        }
     }
 }
 
-namespace System.Threading.Tasks
+#nullable disable
+
+namespace System.Threading.Tasks.Sources
 {
-    using System.Runtime.CompilerServices;
+    using System.Diagnostics;
     using System.Runtime.ExceptionServices;
-    using System.Threading.Tasks.Sources;
+    using System.Runtime.InteropServices;
 
-    public struct ManualResetValueTaskSourceLogic<TResult>
+    [StructLayout(LayoutKind.Auto)]
+    public struct ManualResetValueTaskSourceCore<TResult>
     {
-        private static readonly Action<object> s_sentinel = new Action<object>(s => throw new InvalidOperationException());
-
-        private readonly IStrongBox<ManualResetValueTaskSourceLogic<TResult>> _parent;
         private Action<object> _continuation;
         private object _continuationState;
-        private object _capturedContext;
         private ExecutionContext _executionContext;
+        private object _capturedContext;
         private bool _completed;
         private TResult _result;
         private ExceptionDispatchInfo _error;
         private short _version;
 
-        public ManualResetValueTaskSourceLogic(IStrongBox<ManualResetValueTaskSourceLogic<TResult>> parent)
+        /// <summary>Gets or sets whether to force continuations to run asynchronously.</summary>
+        /// <remarks>Continuations may run asynchronously if this is false, but they'll never run synchronously if this is true.</remarks>
+        public bool RunContinuationsAsynchronously { get; set; }
+
+        /// <summary>Resets to prepare for the next operation.</summary>
+        public void Reset()
         {
-            _parent = parent ?? throw new ArgumentNullException(nameof(parent));
-            _continuation = null;
-            _continuationState = null;
-            _capturedContext = null;
-            _executionContext = null;
+            // Reset/update state for the next use/await of this instance.
+            _version++;
             _completed = false;
             _result = default;
             _error = null;
-            _version = 0;
+            _executionContext = null;
+            _capturedContext = null;
+            _continuation = null;
+            _continuationState = null;
+        }
+
+        public void SetResult(TResult result)
+        {
+            _result = result;
+            SignalCompletion();
+        }
+
+        public void SetException(Exception error)
+        {
+            _error = ExceptionDispatchInfo.Capture(error);
+            SignalCompletion();
         }
 
         public short Version => _version;
 
-        private void ValidateToken(short token)
-        {
-            if (token != _version)
-            {
-                throw new InvalidOperationException();
-            }
-        }
-
         public ValueTaskSourceStatus GetStatus(short token)
         {
             ValidateToken(token);
-
             return
                 !_completed ? ValueTaskSourceStatus.Pending :
                 _error == null ? ValueTaskSourceStatus.Succeeded :
@@ -199,27 +208,13 @@ namespace System.Threading.Tasks
         public TResult GetResult(short token)
         {
             ValidateToken(token);
-
             if (!_completed)
             {
-                throw new InvalidOperationException();
+                ManualResetValueTaskSourceCoreShared.ThrowInvalidOperationException();
             }
 
             _error?.Throw();
             return _result;
-        }
-
-        public void Reset()
-        {
-            _version++;
-
-            _completed = false;
-            _continuation = null;
-            _continuationState = null;
-            _result = default;
-            _error = null;
-            _executionContext = null;
-            _capturedContext = null;
         }
 
         public void OnCompleted(Action<object> continuation, object state, short token, ValueTaskSourceOnCompletedFlags flags)
@@ -252,15 +247,30 @@ namespace System.Threading.Tasks
                 }
             }
 
-            _continuationState = state;
-            if (Interlocked.CompareExchange(ref _continuation, continuation, null) != null)
+            // We need to set the continuation state before we swap in the delegate, so that
+            // if there's a race between this and SetResult/Exception and SetResult/Exception
+            // sees the _continuation as non-null, it'll be able to invoke it with the state
+            // stored here.  However, this also means that if this is used incorrectly (e.g.
+            // awaited twice concurrently), _continuationState might get erroneously overwritten.
+            // To minimize the chances of that, we check preemptively whether _continuation
+            // is already set to something other than the completion sentinel.
+
+            object oldContinuation = _continuation;
+            if (oldContinuation == null)
             {
-                _executionContext = null;
+                _continuationState = state;
+                oldContinuation = Interlocked.CompareExchange(ref _continuation, continuation, null);
+            }
 
-                object cc = _capturedContext;
-                _capturedContext = null;
+            if (oldContinuation != null)
+            {
+                // Operation already completed, so we need to queue the supplied callback.
+                if (!ReferenceEquals(oldContinuation, ManualResetValueTaskSourceCoreShared.s_sentinel))
+                {
+                    ManualResetValueTaskSourceCoreShared.ThrowInvalidOperationException();
+                }
 
-                switch (cc)
+                switch (_capturedContext)
                 {
                     case null:
                         Task.Factory.StartNew(continuation, state, CancellationToken.None, TaskCreationOptions.DenyChildAttach, TaskScheduler.Default);
@@ -281,34 +291,30 @@ namespace System.Threading.Tasks
             }
         }
 
-        public void SetResult(TResult result)
+        private void ValidateToken(short token)
         {
-            _result = result;
-            SignalCompletion();
-        }
-
-        public void SetException(Exception error)
-        {
-            _error = ExceptionDispatchInfo.Capture(error);
-            SignalCompletion();
+            if (token != _version)
+            {
+                ManualResetValueTaskSourceCoreShared.ThrowInvalidOperationException();
+            }
         }
 
         private void SignalCompletion()
         {
             if (_completed)
             {
-                throw new InvalidOperationException();
+                ManualResetValueTaskSourceCoreShared.ThrowInvalidOperationException();
             }
             _completed = true;
 
-            if (Interlocked.CompareExchange(ref _continuation, s_sentinel, null) != null)
+            if (_continuation != null || Interlocked.CompareExchange(ref _continuation, ManualResetValueTaskSourceCoreShared.s_sentinel, null) != null)
             {
                 if (_executionContext != null)
                 {
                     ExecutionContext.Run(
                         _executionContext,
-                        s => ((IStrongBox<ManualResetValueTaskSourceLogic<TResult>>)s).Value.InvokeContinuation(),
-                        _parent ?? throw new InvalidOperationException());
+                        s => ((ManualResetValueTaskSourceCore<TResult>)s).InvokeContinuation(),
+                        this);
                 }
                 else
                 {
@@ -319,21 +325,25 @@ namespace System.Threading.Tasks
 
         private void InvokeContinuation()
         {
-            object cc = _capturedContext;
-            _capturedContext = null;
-
-            switch (cc)
+            switch (_capturedContext)
             {
                 case null:
-                    _continuation(_continuationState);
+                    if (RunContinuationsAsynchronously)
+                    {
+                        Task.Factory.StartNew(_continuation, _continuationState, CancellationToken.None, TaskCreationOptions.DenyChildAttach, TaskScheduler.Default);
+                    }
+                    else
+                    {
+                        _continuation(_continuationState);
+                    }
                     break;
 
                 case SynchronizationContext sc:
                     sc.Post(s =>
                     {
-                        ref ManualResetValueTaskSourceLogic<TResult> logicRef = ref ((IStrongBox<ManualResetValueTaskSourceLogic<TResult>>)s).Value;
-                        logicRef._continuation(logicRef._continuationState);
-                    }, _parent ?? throw new InvalidOperationException());
+                        var state = (Tuple<Action<object>, object>)s;
+                        state.Item1(state.Item2);
+                    }, Tuple.Create(_continuation, _continuationState));
                     break;
 
                 case TaskScheduler ts:
@@ -341,6 +351,60 @@ namespace System.Threading.Tasks
                     break;
             }
         }
+    }
+
+    internal static class ManualResetValueTaskSourceCoreShared // separated out of generic to avoid unnecessary duplication
+    {
+        internal static void ThrowInvalidOperationException() => throw new InvalidOperationException();
+
+        internal static readonly Action<object> s_sentinel = CompletionSentinel;
+        private static void CompletionSentinel(object _) // named method to aid debugging
+        {
+            Debug.Fail(""The sentinel delegate should never be invoked."");
+            ThrowInvalidOperationException();
+        }
+    }
+}
+
+namespace System.Runtime.CompilerServices
+{
+    using System.Runtime.InteropServices;
+
+    /// <summary>Represents a builder for asynchronous iterators.</summary>
+    [StructLayout(LayoutKind.Auto)]
+    public struct AsyncIteratorMethodBuilder
+    {
+        // AsyncIteratorMethodBuilder is used by the language compiler as part of generating
+        // async iterators. For now, the implementation just wraps AsyncTaskMethodBuilder, as
+        // most of the logic is shared.  However, in the future this could be changed and
+        // optimized.  For example, we do need to allocate an object (once) to flow state like
+        // ExecutionContext, which AsyncTaskMethodBuilder handles, but it handles it by
+        // allocating a Task-derived object.  We could optimize this further by removing
+        // the Task from the hierarchy, but in doing so we'd also lose a variety of optimizations
+        // related to it, so we'd need to replicate all of those optimizations (e.g. storing
+        // that box object directly into a Task's continuation field).
+
+        private AsyncTaskMethodBuilder _methodBuilder; // mutable struct; do not make it readonly
+
+        public static AsyncIteratorMethodBuilder Create() =>
+            new AsyncIteratorMethodBuilder() { _methodBuilder = AsyncTaskMethodBuilder.Create() };
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void MoveNext<TStateMachine>(ref TStateMachine stateMachine) where TStateMachine : IAsyncStateMachine =>
+            _methodBuilder.Start(ref stateMachine);
+
+        public void AwaitOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine)
+            where TAwaiter : INotifyCompletion
+            where TStateMachine : IAsyncStateMachine =>
+            _methodBuilder.AwaitOnCompleted(ref awaiter, ref stateMachine);
+
+        public void AwaitUnsafeOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine)
+            where TAwaiter : ICriticalNotifyCompletion
+            where TStateMachine : IAsyncStateMachine =>
+            _methodBuilder.AwaitUnsafeOnCompleted(ref awaiter, ref stateMachine);
+
+        /// <summary>Marks iteration as being completed, whether successfully or otherwise.</summary>
+        public void Complete() => _methodBuilder.SetResult();
     }
 }
 ";
@@ -380,7 +444,7 @@ namespace System.Threading.Tasks
             CSharpCompilationOptions options = null,
             CSharpParseOptions parseOptions = null,
             EmitOptions emitOptions = null,
-            Verification verify = Verification.Passes) => 
+            Verification verify = Verification.Passes) =>
             CompileAndVerify(
                 source,
                 references,
@@ -414,7 +478,7 @@ namespace System.Threading.Tasks
             CSharpCompilationOptions options = null,
             CSharpParseOptions parseOptions = null,
             EmitOptions emitOptions = null,
-            Verification verify = Verification.Passes) => 
+            Verification verify = Verification.Passes) =>
             CompileAndVerify(
                 source,
                 references,
@@ -488,7 +552,7 @@ namespace System.Threading.Tasks
             CSharpCompilationOptions options = null,
             CSharpParseOptions parseOptions = null,
             EmitOptions emitOptions = null,
-            Verification verify = Verification.Passes) => 
+            Verification verify = Verification.Passes) =>
             CompileAndVerify(
                 source,
                 references,
@@ -522,7 +586,7 @@ namespace System.Threading.Tasks
             CSharpCompilationOptions options = null,
             CSharpParseOptions parseOptions = null,
             EmitOptions emitOptions = null,
-            Verification verify = Verification.Passes) => 
+            Verification verify = Verification.Passes) =>
             CompileAndVerify(
                 source,
                 references,
@@ -1123,9 +1187,9 @@ namespace System.Threading.Tasks
             return null;
         }
 
-#endregion
+        #endregion
 
-#region Semantic Model Helpers
+        #region Semantic Model Helpers
 
         public Tuple<TNode, SemanticModel> GetBindingNodeAndModel<TNode>(CSharpCompilation compilation, int treeIndex = 0) where TNode : SyntaxNode
         {
@@ -1250,9 +1314,9 @@ namespace System.Threading.Tasks
             Assert.Equal(bindText, node.ToString());
             return ((TNode)node);
         }
-#endregion
+        #endregion
 
-#region Attributes
+        #region Attributes
 
         internal IEnumerable<string> GetAttributeNames(ImmutableArray<SynthesizedAttributeData> attributes)
         {
@@ -1269,9 +1333,9 @@ namespace System.Threading.Tasks
             return attributes.Select(a => a.ToString());
         }
 
-#endregion
+        #endregion
 
-#region Documentation Comments
+        #region Documentation Comments
 
         internal static string GetDocumentationCommentText(CSharpCompilation compilation, params DiagnosticDescription[] expectedDiagnostics)
         {
@@ -1333,9 +1397,9 @@ namespace System.Threading.Tasks
             }
         }
 
-#endregion
+        #endregion
 
-#region IL Validation
+        #region IL Validation
 
         internal override string VisualizeRealIL(IModuleSymbol peModule, CompilationTestData.MethodData methodData, IReadOnlyDictionary<int, string> markers)
         {
@@ -1467,9 +1531,9 @@ namespace System.Threading.Tasks
             }
         }
 
-#endregion
+        #endregion
 
-#region IOperation tree validation
+        #region IOperation tree validation
 
         protected static (IOperation operation, SyntaxNode node) GetOperationAndSyntaxForTest<TSyntaxNode>(CSharpCompilation compilation)
             where TSyntaxNode : SyntaxNode

@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             SourceMemberContainerTypeSymbol containingType,
             DeclarationModifiers modifiers,
             string name,
-            SyntaxReference syntax, 
+            SyntaxReference syntax,
             Location location)
             : base(containingType, name, syntax, location)
         {

@@ -12,7 +12,7 @@
     <GeneratePkgDefFile>true</GeneratePkgDefFile>
     <DeployExtension>false</DeployExtension>
     <ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>None</ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>
-    <ApplyNgenOptimizationData>true</ApplyNgenOptimizationData>
+    <ApplyPartialNgenOptimization>true</ApplyPartialNgenOptimization>
 
     <!-- NuGet -->
     <IsPackable>true</IsPackable>
@@ -272,5 +272,5 @@
     <VsdConfigXml Include="ManagedEditAndContinueService.vsdconfigxml" />
   </ItemGroup>
   <Import Project="..\..\..\Dependencies\CodeAnalysis.Debugging\Microsoft.CodeAnalysis.Debugging.projitems" Label="Shared" />
-  <Import Project="..\..\..\..\build\Targets\Vsdconfig.targets" />
+  <Import Project="$(RepositoryEngineeringDir)targets\Vsdconfig.targets" />
 </Project>

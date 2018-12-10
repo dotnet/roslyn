@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                 // # nullable d|
                 return true;
             }
-            
+
             // # pragma warning |
             // # pragma warning d|
             return

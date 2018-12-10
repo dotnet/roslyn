@@ -10,7 +10,7 @@
     <CodeAnalysisRuleSet>..\BasicCodeAnalysisRules.ruleset</CodeAnalysisRuleSet>
     <GenerateMicrosoftCodeAnalysisCommitHashAttribute>true</GenerateMicrosoftCodeAnalysisCommitHashAttribute>
     <RootNamespace></RootNamespace>
-    <ApplyNgenOptimizationData>true</ApplyNgenOptimizationData>
+    <ApplyPartialNgenOptimization>true</ApplyPartialNgenOptimization>
 
     <!-- NuGet -->
     <IsPackable>true</IsPackable>

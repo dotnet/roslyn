@@ -103,9 +103,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeNamespace
         /// <param name="new">The replacement node.</param>
         public override bool TryGetReplacementReferenceSyntax(
             SyntaxNode reference,
-            ImmutableArray<string> newNamespaceParts, 
-            ISyntaxFactsService syntaxFacts, 
-            out SyntaxNode old, 
+            ImmutableArray<string> newNamespaceParts,
+            ISyntaxFactsService syntaxFacts,
+            out SyntaxNode old,
             out SyntaxNode @new)
         {
             if (!(reference is SimpleNameSyntax nameRef))
@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeNamespace
             // 4. When the namespace is specified and not "", i.e. we are moving referenced type to a different non-global 
             //    namespace. We need to replace the qualified reference with a new qualified reference (which is qualified 
             //    with new namespace.)
-                        
+
             if (syntaxFacts.IsRightSideOfQualifiedName(nameRef))
             {
                 old = nameRef.Parent;

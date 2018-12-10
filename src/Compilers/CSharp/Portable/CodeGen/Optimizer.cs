@@ -274,7 +274,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             {
                 _localDefs.Free();
                 _localDefs = null;
-    }
+            }
 
             _pool?.Free(this);
         }
@@ -305,7 +305,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         public readonly int Start;
         public readonly int End;
 
-        public LocalDefUseSpan(int start):this(start, start){}
+        public LocalDefUseSpan(int start) : this(start, start) { }
 
         private LocalDefUseSpan(int start, int end)
         {
@@ -1021,11 +1021,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         {
             var lhs = node.Left;
 
-            Debug.Assert(!node.IsRef || 
+            Debug.Assert(!node.IsRef ||
               (lhs is BoundLocal local && local.LocalSymbol.RefKind != RefKind.None) ||
               (lhs is BoundParameter param && param.ParameterSymbol.RefKind != RefKind.None),
                                 "only ref symbols can be a target of a ref assignment");
-            
+
             switch (lhs.Kind)
             {
                 case BoundKind.ThisReference:
@@ -1061,7 +1061,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     return true;
 
                 case BoundKind.Sequence:
-                    Debug.Assert(!IsIndirectAssignment(node.Update(((BoundSequence)node.Left).Value, node.Right, node.IsRef, node.Type)), 
+                    Debug.Assert(!IsIndirectAssignment(node.Update(((BoundSequence)node.Left).Value, node.Right, node.IsRef, node.Type)),
                         "indirect assignment to a sequence is unexpected");
                     return false;
 
@@ -1388,7 +1388,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 }
 
                 var type = this.VisitType(binary.Type);
-                left = binary.Update(binary.OperatorKind, left, right, binary.ConstantValueOpt, binary.MethodOpt, binary.ResultKind, type);
+                left = binary.Update(binary.OperatorKind, binary.ConstantValueOpt, binary.MethodOpt, binary.ResultKind, left, right, type);
 
                 if (stack.Count == 0)
                 {
@@ -1422,7 +1422,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
                 EnsureStackState(cookie);   // implicit label here
 
-                return node.Update(node.OperatorKind, left, right, node.ConstantValueOpt, node.MethodOpt, node.ResultKind, node.Type);
+                return node.Update(node.OperatorKind, node.ConstantValueOpt, node.MethodOpt, node.ResultKind, left, right, node.Type);
             }
 
             return base.VisitBinaryOperator(node);
@@ -1997,7 +1997,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 binary = stack.Pop();
                 var right = (BoundExpression)this.Visit(binary.Right);
                 var type = this.VisitType(binary.Type);
-                left = binary.Update(binary.OperatorKind, left, right, binary.ConstantValueOpt, binary.MethodOpt, binary.ResultKind, type);
+                left = binary.Update(binary.OperatorKind, binary.ConstantValueOpt, binary.MethodOpt, binary.ResultKind, left, right, type);
 
                 if (stack.Count == 0)
                 {
