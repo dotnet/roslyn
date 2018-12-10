@@ -66,7 +66,7 @@ try {
     Write-Host "BUILD_STAGINGDIRECTORY = '$env:BUILD_STAGINGDIRECTORY'"
 
     # create a fake BootstrapperInfo.json file
-    $bootstrapperInfoFolder = Join-Path $ArtifactsDir "MicroBuild\Output"
+    $bootstrapperInfoFolder = Join-Path $env:BUILD_STAGINGDIRECTORY "MicroBuild\Output"
     Create-Directory $bootstrapperInfoFolder
     
     $bootstrapperInfoPath = Join-Path $bootstrapperInfoFolder "BootstrapperInfo.json"
