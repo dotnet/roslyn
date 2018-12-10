@@ -3648,15 +3648,15 @@ public class C
 {
     public static unsafe void Main()
     {
-        float f = 42.0f;
+        float f = 42;
         var ms = new MyStruct<float> { field = &f };
-        //var test = new MyStruct<MyStruct<float>> { field = &ms };
-        float value = ms[0]; //test[0][0];
+        var test = new MyStruct<MyStruct<float>> { field = &ms };
+        float value = test[0][0];
         System.Console.Write(value);
     }
 }
 ";
-            CompileAndVerify(code, options: TestOptions.UnsafeReleaseExe, expectedOutput: "42.0");
+            CompileAndVerify(code, options: TestOptions.UnsafeReleaseExe, expectedOutput: "42", verify: Verification.Skipped);
         }
     }
 }
