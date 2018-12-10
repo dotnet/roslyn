@@ -63205,6 +63205,73 @@ class C<T> where T : struct
         }
 
         [Fact]
+        public void NullableT_Box()
+        {
+            var source =
+@"class Program
+{
+    static void F1<T>(T? x1, T? y1) where T : struct
+    {
+        if (x1 == null) return;
+        ((object?)x1).ToString();
+        ((object?)y1).ToString(); // 1
+    }
+    static void F2<T>(T? x2, T? y2) where T : struct
+    {
+        if (x2 == null) return;
+        object? z2 = x2;
+        z2.ToString();
+        object? w2 = y2;
+        w2.ToString(); // 2
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (7,10): warning CS8602: Possible dereference of a null reference.
+                //         ((object?)y1).ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "(object?)y1").WithLocation(7, 10),
+                // (15,9): warning CS8602: Possible dereference of a null reference.
+                //         w2.ToString(); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "w2").WithLocation(15, 9));
+        }
+
+        [Fact]
+        public void NullableT_Box_ValueTypeConstraint()
+        {
+            var source =
+@"abstract class A<T>
+{
+    internal abstract void F<U>(U x) where U : T;
+}
+class B1 : A<int>
+{
+    internal override void F<U>(U x)
+    {
+        ((object?)x).ToString();
+        object y = x;
+        y.ToString();
+    }
+}
+class B2 : A<int?>
+{
+    internal override void F<U>(U x)
+    {
+        ((object?)x).ToString(); // 1
+        object? y = x;
+        y.ToString(); // 2
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (18,10): warning CS8602: Possible dereference of a null reference.
+                //         ((object?)x).ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "(object?)x").WithLocation(18, 10),
+                // (20,9): warning CS8602: Possible dereference of a null reference.
+                //         y.ToString(); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y").WithLocation(20, 9));
+        }
+
+        [Fact]
         public void NullableT_Unbox()
         {
             var source =
@@ -63253,6 +63320,7 @@ class B2 : A<int?>
     internal override void F<U>(object? x)
     {
         _ = ((U)x).Value;
+        _ = ((int?)(object)(U)x).Value; // 1
     }
 }";
             var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
@@ -63264,7 +63332,13 @@ class B2 : A<int?>
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "(U)x").WithArguments("U", "int").WithLocation(9, 17),
                 // (16,20): error CS1061: 'U' does not contain a definition for 'Value' and no accessible extension method 'Value' accepting a first argument of type 'U' could be found (are you missing a using directive or an assembly reference?)
                 //         _ = ((U)x).Value;
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "Value").WithArguments("U", "Value").WithLocation(16, 20));
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "Value").WithArguments("U", "Value").WithLocation(16, 20),
+                // (17,13): warning CS8629: Nullable value type may be null.
+                //         _ = ((int?)(object)(U)x).Value; // 1
+                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "((int?)(object)(U)x).Value").WithLocation(17, 13),
+                // (17,20): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         _ = ((int?)(object)(U)x).Value; // 1
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(object)(U)x").WithLocation(17, 20));
         }
 
         [Fact]
@@ -63718,6 +63792,14 @@ class Program
         else
             _ = (t4 as U?).Value; // 10
     }
+    static void F5<T>(T? t5) where T : struct
+    {
+        _ = (t5 as dynamic).ToString(); // 11
+        if (t5.HasValue)
+            _ = (t5 as dynamic).ToString();
+        else
+            _ = (t5 as dynamic).ToString(); // 12
+    }
 }";
             var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
@@ -63750,11 +63832,17 @@ class Program
                 Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "(t4 as U?).Value").WithLocation(31, 17),
                 // (33,17): warning CS8629: Nullable value type may be null.
                 //             _ = (t4 as U?).Value; // 10
-                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "(t4 as U?).Value").WithLocation(33, 17));
+                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "(t4 as U?).Value").WithLocation(33, 17),
+                // (37,14): warning CS8602: Possible dereference of a null reference.
+                //         _ = (t5 as dynamic).ToString(); // 11
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t5 as dynamic").WithLocation(37, 14),
+                // (41,18): warning CS8602: Possible dereference of a null reference.
+                //             _ = (t5 as dynamic).ToString(); // 12
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t5 as dynamic").WithLocation(41, 18));
         }
 
         [Fact]
-        public void NullableT_As_ValueTypeConstraint()
+        public void NullableT_As_ValueTypeConstraint_01()
         {
             var source =
 @"abstract class A<T>
@@ -63786,6 +63874,43 @@ class B2 : A<int?>
                 // (17,13): warning CS8629: Nullable value type may be null.
                 //         _ = (u as int?).Value; // 2
                 Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "(u as int?).Value").WithLocation(17, 13));
+        }
+
+        [Fact]
+        public void NullableT_As_ValueTypeConstraint_02()
+        {
+            var source =
+@"abstract class A<T>
+{
+    internal abstract void F<U>(T t) where U : T;
+}
+class B1 : A<int>
+{
+    internal override void F<U>(int t)
+    {
+        _ = (t as U?).Value; // 1
+    }
+}
+class B2 : A<int?>
+{
+    internal override void F<U>(int? t)
+    {
+        _ = (t as U?).Value; // 2
+    }
+}";
+            // Implicit conversions are not allowed from int to U in B1.F or from int? to U in B2.F,
+            // so those conversions are not handled in NullableWalker either.
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (9,13): warning CS8629: Nullable value type may be null.
+                //         _ = (t as U?).Value; // 1
+                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "(t as U?).Value").WithLocation(9, 13),
+                // (16,13): warning CS8629: Nullable value type may be null.
+                //         _ = (t as U?).Value; // 2
+                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "(t as U?).Value").WithLocation(16, 13),
+                // (16,19): error CS0453: The type 'U' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
+                //         _ = (t as U?).Value; // 2
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "U?").WithArguments("System.Nullable<T>", "T", "U").WithLocation(16, 19));
         }
 
         [WorkItem(31501, "https://github.com/dotnet/roslyn/issues/31501")]

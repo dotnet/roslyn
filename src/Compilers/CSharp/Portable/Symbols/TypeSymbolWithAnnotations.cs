@@ -400,6 +400,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return NullableAnnotation.Nullable;
             }
 
+            if (NullableAnnotation != NullableAnnotation.NotNullable && IsNullableTypeOrTypeParameter())
+            {
+                return NullableAnnotation.Nullable;
+            }
+
             return NullableAnnotation;
         }
 

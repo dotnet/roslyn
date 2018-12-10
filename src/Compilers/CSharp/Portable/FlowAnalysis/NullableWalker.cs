@@ -756,6 +756,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             TypeSymbolWithAnnotations fieldOrPropertyType = member.GetTypeOrReturnType();
 
+            // Nullable<T> is handled here rather than in InheritNullableStateOfTrackableStruct since that
+            // method only clones auto-properties (see https://github.com/dotnet/roslyn/issues/29619).
+            // When that issue is fixed, Nullable<T> should be handled there instead.
             if (fieldOrPropertyType.IsReferenceType || fieldOrPropertyType.IsNullableType())
             {
                 int targetMemberSlot = GetOrCreateSlot(member, targetContainerSlot);
@@ -3436,7 +3439,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
 
                 case ConversionKind.Unboxing:
-                    if (!operandType.IsNull && targetType.IsTypeParameter())
+                    if (targetType.IsValueType)
+                    {
+                        Debug.Assert(!operandType.IsNull); // If assert fails, add a test that verifies resulting type is nullable.
+                        resultAnnotation = (targetType.IsNullableTypeOrTypeParameter() && (operandType.IsNull || operandType.NullableAnnotation.IsAnyNullable())) ? NullableAnnotation.Nullable : NullableAnnotation.NotNullable;
+                    }
+                    else if (!operandType.IsNull && targetType.IsTypeParameter())
                     {
                         resultAnnotation = operandType.GetValueNullableAnnotation();
 
@@ -3445,11 +3453,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                             resultAnnotation = NullableAnnotation.NotNullable;
                         }
                     }
-                    else if (targetType.IsValueType)
-                    {
-                        Debug.Assert(!operandType.IsNull); // If assert fails, add a test that verifies resulting type is nullable.
-                        resultAnnotation = (targetType.IsNullableType() && (operandType.IsNull || operandType.NullableAnnotation.IsAnyNullable())) ? NullableAnnotation.Nullable : NullableAnnotation.NotNullable;
-                    }
                     break;
 
                 case ConversionKind.Boxing:
@@ -3457,7 +3460,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         if (operandType.IsValueType)
                         {
-                            resultAnnotation = (operandType.IsNullableType() && operandType.NullableAnnotation.IsAnyNullable()) ? NullableAnnotation.Nullable : NullableAnnotation.NotNullable;
+                            resultAnnotation = (operandType.IsNullableTypeOrTypeParameter() && operandType.GetValueNullableAnnotation().IsAnyNullable()) ? NullableAnnotation.Nullable : NullableAnnotation.NotNullable;
                             break;
                         }
                         else if (IsUnconstrainedTypeParameter(operandType.TypeSymbol))
