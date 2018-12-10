@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
 using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncCompletion
@@ -18,13 +19,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
     {
         private readonly IThreadingContext _threadingContext;
         private readonly RecentItemsManager _recentItemsManager;
+        private readonly IEditorOperationsFactoryService _editorOperationsFactoryService;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CommitManagerProvider(IThreadingContext threadingContext, RecentItemsManager recentItemsManager)
+        public CommitManagerProvider(IThreadingContext threadingContext, RecentItemsManager recentItemsManager, IEditorOperationsFactoryService editorOperationsFactoryService)
         {
             _threadingContext = threadingContext;
             _recentItemsManager = recentItemsManager;
+            _editorOperationsFactoryService = editorOperationsFactoryService;
         }
 
         IAsyncCompletionCommitManager IAsyncCompletionCommitManagerProvider.GetOrCreate(ITextView textView)
@@ -35,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 potentialCommitCharacters = ImmutableArray<char>.Empty;
             }
 
-            return new CommitManager(potentialCommitCharacters, _recentItemsManager, _threadingContext);
+            return new CommitManager(potentialCommitCharacters, _recentItemsManager, _threadingContext, _editorOperationsFactoryService);
         }
     }
 }
