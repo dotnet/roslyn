@@ -1671,9 +1671,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                     // This region can be empty in certain error scenarios, such as `new T {}`, where T does not
                     // have a class constraint. There are no arguments or initializers, so nothing will have
                     // been put into the region at this point
-                    if (toMerge.LastBlock is null)
+                    if (toMerge.FirstBlock is null)
                     {
-                        Debug.Assert(toMerge.FirstBlock is null);
+                        Debug.Assert(toMerge.LastBlock is null);
                     }
                     else
                     {

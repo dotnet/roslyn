@@ -1022,7 +1022,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                                     break;
                             }
 
-                            syntax = applyParenthesizedIfAnyCS((CSharpSyntaxNode)captureReferenceSyntax);
+                            syntax = applyParenthesizedIfAnyCS(syntax);
 
                             if (syntax.Parent?.Parent is CSharp.Syntax.UsingStatementSyntax usingStmt &&
                                 usingStmt.Declaration == syntax.Parent)
