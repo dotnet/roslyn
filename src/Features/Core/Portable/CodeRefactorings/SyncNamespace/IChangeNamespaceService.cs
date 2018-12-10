@@ -24,6 +24,8 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
         ///    1. It must contain no namespace declaration
         ///    2. No partial type declared in the document. Otherwise its multiple declaration will
         ///       end up in different namespace.
+        ///       
+        /// - Otherwise, an <see cref="System.ArgumentException"/> will be thrown.
         ///   
         /// Returns <see langword="true"/> only when all the requirements above are met.
         /// </summary>
@@ -34,6 +36,10 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
         /// Everything declared in the <paramref name="container"/> will be moved to the new namespace. 
         /// Change will only be made if <see cref="CanChangeNamespaceAsync"/> returns <see langword="true"/> and <paramref name="targetNamespace"/>
         /// is a valid name for namespace. Use "" for <paramref name="targetNamespace"/> to specify the global namespace.
+        /// 
+        /// An <see cref="System.ArgumentException"/> will be thrown if:
+        /// 1. <paramref name="container"/> is not a namespace declaration or a compilation unit node.
+        /// 2. <paramref name="targetNamespace"/> is null or an contain invalid character.
         /// </summary>
         Task<Solution> ChangeNamespaceAsync(Document document, SyntaxNode container, string targetNamespace, CancellationToken cancellationToken);
     }

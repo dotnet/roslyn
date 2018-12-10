@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -81,8 +82,16 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
         /// </returns>
         protected abstract Task<ImmutableArray<(DocumentId id, SyntaxNode container)>> GetValidContainersFromAllLinkedDocumentsAsync(Document document, SyntaxNode container, CancellationToken cancellationToken);
 
+        private static bool IsValidContainer(SyntaxNode container)
+            => container is TCompilationUnitSyntax || container is TNamespaceDeclarationSyntax;
+
         public override async Task<bool> CanChangeNamespaceAsync(Document document, SyntaxNode container, CancellationToken cancellationToken)
         {
+            if (!IsValidContainer(container))
+            {
+                throw new ArgumentException(nameof(container));
+            }
+
             var applicableContainers = await GetValidContainersFromAllLinkedDocumentsAsync(document, container, cancellationToken).ConfigureAwait(false);
             return !applicableContainers.IsDefault;
         }
@@ -93,15 +102,20 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
             string targetNamespace, 
             CancellationToken cancellationToken)
         {
-            var solution = document.Project.Solution;
-
             // Make sure given namespace name is valid, "" means global namespace.
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
             if (targetNamespace == null 
                 || (targetNamespace.Length > 0 && !targetNamespace.Split(s_dotSeparator).All(syntaxFacts.IsValidIdentifier)))
             {
-                return solution;
+                throw new ArgumentException(nameof(targetNamespace));
             }
+
+            if (!IsValidContainer(container))
+            {
+                throw new ArgumentException(nameof(container));
+            }
+
+            var solution = document.Project.Solution;
 
             var containersFromAllDocuments = await GetValidContainersFromAllLinkedDocumentsAsync(document, container, cancellationToken).ConfigureAwait(false);
             if (containersFromAllDocuments.IsDefault)

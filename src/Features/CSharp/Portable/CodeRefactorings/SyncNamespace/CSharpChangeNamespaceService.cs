@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeNamespace
             }
             else
             {
-                return default;
+                throw ExceptionUtilities.Unreachable;
             }
 
             if (!IsSupportedLinkedDocument(document, out var allDocumentIds))
