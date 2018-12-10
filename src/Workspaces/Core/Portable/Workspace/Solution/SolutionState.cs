@@ -1126,11 +1126,7 @@ namespace Microsoft.CodeAnalysis
         public SolutionState AddDocuments(ImmutableArray<DocumentInfo> documentInfos)
         {
             return AddDocumentsToMultipleProjects(documentInfos,
-                (documentInfo, project) => new DocumentState(
-                        documentInfo,
-                        project.ParseOptions,
-                        project.LanguageServices,
-                        _solutionServices).UpdateSourceCodeKind(documentInfo.SourceCodeKind),
+                (documentInfo, project) => project.CreateDocument(documentInfo, project.ParseOptions),
                 (project, documents) => (project.AddDocuments(documents), new CompilationTranslationAction.AddDocumentsAction(documents)));
         }
 

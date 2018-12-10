@@ -45,10 +45,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return SyntaxFactory.SyntaxTree(root, options, fileName, encoding);
             }
 
-            public override SyntaxTree ParseSyntaxTree(string fileName, ParseOptions options, SourceText text, CancellationToken cancellationToken)
+            public override SyntaxTree ParseSyntaxTree(string filePath, ParseOptions options, SourceText text, ImmutableDictionary<string, ReportDiagnostic> treeDiagnosticReportingOptionsOpt, CancellationToken cancellationToken)
             {
                 options = options ?? GetDefaultParseOptions();
-                return SyntaxFactory.ParseSyntaxTree(text, options, fileName, cancellationToken: cancellationToken);
+                return SyntaxFactory.ParseSyntaxTree(text, options, filePath, treeDiagnosticReportingOptionsOpt, cancellationToken: cancellationToken);
             }
 
             public override SyntaxNode DeserializeNodeFrom(Stream stream, CancellationToken cancellationToken)
