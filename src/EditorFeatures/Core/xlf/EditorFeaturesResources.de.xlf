@@ -37,6 +37,11 @@
         <target state="new">Extract method encountered the following issues:</target>
         <note />
       </trans-unit>
+      <trans-unit id="Filter_image_element">
+        <source>Filter</source>
+        <target state="new">Filter</target>
+        <note>Caption/tooltip for "Filter" image element displayed in completion popup.</note>
+      </trans-unit>
       <trans-unit id="Format_document_performed_additional_cleanup">
         <source>Format Document performed additional cleanup</source>
         <target state="translated">Durch "Dokument formatieren" wurde eine zusätzliche Bereinigung durchgeführt.</target>
@@ -106,6 +111,11 @@
         <source>String - Verbatim</source>
         <target state="translated">Zeichenfolge: ausführlich</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Warning_image_element">
+        <source>Warning</source>
+        <target state="new">Warning</target>
+        <note>Caption/tooltip for "Warning" image element displayed in completion popup.</note>
       </trans-unit>
       <trans-unit id="XML_Doc_Comments_Attribute_Name">
         <source>XML Doc Comments - Attribute Name</source>

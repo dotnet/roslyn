@@ -3,7 +3,7 @@
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Completion
-Imports Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
+Imports Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncCompletion
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Completion
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.VisualBasic.Completion
@@ -104,7 +104,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
                 Dim completionList = Await GetCompletionListAsync(service, document, position, CompletionTrigger.Invoke)
                 Dim item = completionList.Items.First(Function(i) i.DisplayText.StartsWith(textTypedSoFar))
 
-                Assert.Equal(expected, Controller.SendEnterThroughToEditor(service.GetRules(), item, textTypedSoFar))
+                Assert.Equal(expected, CommitManager.SendEnterThroughToEditor(service.GetRules(), item, textTypedSoFar))
             End Using
         End Function
 
