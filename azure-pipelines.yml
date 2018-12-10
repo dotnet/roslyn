@@ -19,13 +19,13 @@ jobs:
   timeoutInMinutes: 90
 
   steps:
-    - script: build/scripts/cibuild.cmd -configuration $(_configuration) -prepareMachine -testDesktop -$(_testKind) -procdump
+    - script: eng/cibuild.cmd -configuration $(_configuration) -prepareMachine -testDesktop -$(_testKind) -procdump
       displayName: Build and Test
 
     - task: PublishTestResults@1
       inputs:
         testRunner: XUnit
-        testResultsFiles: '$(Build.SourcesDirectory)\Binaries\TestResults\$(_configuration)\*.xml'
+        testResultsFiles: '$(Build.SourcesDirectory)\artifacts\TestResults\$(_configuration)\*.xml'
         mergeTestResults: true
         testRunTitle: 'Windows Desktop $(_configuration) $(_testKind)'
       condition: always()
@@ -33,7 +33,7 @@ jobs:
     - task: PublishBuildArtifacts@1
       displayName: Publish Logs
       inputs:
-        PathtoPublish: '$(Build.SourcesDirectory)\Binaries\$(_configuration)\Logs'
+        PathtoPublish: '$(Build.SourcesDirectory)\artifacts\log\$(_configuration)'
         ArtifactName: 'Windows Desktop $(_configuration) $(_testKind)' 
         publishLocation: Container
       continueOnError: true
@@ -44,7 +44,7 @@ jobs:
   timeoutInMinutes: 90
 
   steps:
-    - script: build/scripts/cibuild.cmd -configuration Debug -prepareMachine -testDesktop
+    - script: eng/cibuild.cmd -configuration Debug -prepareMachine -testDesktop
       displayName: Build and Test
 
     - task: PublishTestResults@1
@@ -57,7 +57,7 @@ jobs:
 
     - task: PublishBuildArtifacts@1
       inputs:
-        PathtoPublish: '$(Build.SourcesDirectory)\Binaries\$(_configuration)\Logs'
+        PathtoPublish: '$(Build.SourcesDirectory)\artifacts\log\$(_configuration)'
         ArtifactName: 'Windows Desktop Spanish' 
         publishLocation: Container
       continueOnError: true
@@ -75,13 +75,13 @@ jobs:
   timeoutInMinutes: 90
 
   steps:
-    - script: build/scripts/cibuild.cmd -configuration $(_configuration) -prepareMachine -msbuildEngine:dotnet -testCoreClr
+    - script: eng/cibuild.cmd -configuration $(_configuration) -prepareMachine -msbuildEngine:dotnet -testCoreClr
       displayName: Build and Test
 
     - task: PublishTestResults@1
       inputs:
         testRunner: XUnit
-        testResultsFiles: '$(Build.SourcesDirectory)\Binaries\TestResults\$(_configuration)\*.xml'
+        testResultsFiles: '$(Build.SourcesDirectory)\artifacts\TestResults\$(_configuration)\*.xml'
         mergeTestResults: true
         testRunTitle: 'Windows CoreClr $(_configuration)'
       condition: always()
@@ -89,7 +89,7 @@ jobs:
     - task: PublishBuildArtifacts@1
       displayName: Publish Logs
       inputs:
-        PathtoPublish: '$(Build.SourcesDirectory)\Binaries\$(_configuration)\Logs'
+        PathtoPublish: '$(Build.SourcesDirectory)\artifacts\log\$(_configuration)'
         ArtifactName: 'Windows CoreClr $(_configuration)'
         publishLocation: Container
       continueOnError: true
@@ -99,13 +99,13 @@ jobs:
   pool: dotnet-external-temp
   timeoutInMinutes: 90
   steps:
-    - script: build/scripts/test-determinism.cmd -configuration Debug
+    - script: eng/test-determinism.cmd -configuration Debug
       displayName: Build - Validate determinism
 
     - task: PublishBuildArtifacts@1
       displayName: Publish Logs
       inputs:
-        PathtoPublish: '$(Build.SourcesDirectory)\Binaries\Debug\Logs'
+        PathtoPublish: '$(Build.SourcesDirectory)\artifacts\log\Debug'
         ArtifactName: 'Build Determinism Files'
         publishLocation: Container
       continueOnError: true
@@ -115,20 +115,20 @@ jobs:
   pool: dotnet-external-temp
   timeoutInMinutes: 90
   steps:
-    - script: build/scripts/test-build-correctness.cmd -configuration Release
+    - script: eng/test-build-correctness.cmd -configuration Release
       displayName: Build - Validate correctness
 
     - task: PublishBuildArtifacts@1
       displayName: Publish Logs
       inputs:
-        PathtoPublish: '$(Build.SourcesDirectory)\Binaries\Release\Logs'
+        PathtoPublish: '$(Build.SourcesDirectory)\artifacts\log\Release'
         ArtifactName: 'Build Correctness Files'
         publishLocation: Container
       continueOnError: true
       condition: not(succeeded())
 
 - job: Linux_Test
-  pool: DotNetCore-Linux                     
+  pool: DotNetCore-Linux
   strategy:
     maxParallel: 2
     matrix:
@@ -141,12 +141,12 @@ jobs:
         _name: Mono
   timeoutInMinutes: 90
   steps:
-    - script: ./build/scripts/cibuild.sh --configuration $(_configuration) --prepareMachine $(_args)
+    - script: ./eng/cibuild.sh --configuration $(_configuration) --prepareMachine $(_args)
       displayName: Build and Test
     - task: PublishTestResults@1
       inputs:
         testRunner: XUnit
-        testResultsFiles: '$(Build.SourcesDirectory)/Binaries/TestResults/$(_configuration)/*.xml'
+        testResultsFiles: '$(Build.SourcesDirectory)/artifacts/TestResults/$(_configuration)/*.xml'
         mergeTestResults: true
         testRunTitle: 'Linux $(_name)'
       condition: always()
@@ -154,7 +154,7 @@ jobs:
     - task: PublishBuildArtifacts@1
       displayName: Publish Logs
       inputs:
-        PathtoPublish: '$(Build.SourcesDirectory)/Binaries/Debug/Logs'
+        PathtoPublish: '$(Build.SourcesDirectory)/artifacts/log/$(_configuration)'
         ArtifactName: 'Linux $(_name)'
         publishLocation: Container
       continueOnError: true
