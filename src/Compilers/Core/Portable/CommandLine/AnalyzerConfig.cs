@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis
         public string NormalizedDirectory { get; }
 
         /// <summary>
-        /// The path passed to <see cref="AnalyzerConfig.Parse(string, string)"/> during construction.
+        /// The path passed to <see cref="Parse(string, string)"/> during construction.
         /// </summary>
         public string PathToFile { get; }
 
@@ -92,17 +92,17 @@ namespace Microsoft.CodeAnalysis
         /// Takes a list of paths to source files and a list of AnalyzeConfigs and produces a
         /// resultant dictionary of diagnostic configurations for each of the source paths.
         /// Source paths are matched by checking if they are members of the language recognized by
-        /// <see cref="AnalyzerConfig.Section.Name"/>s.
+        /// <see cref="Section.Name"/>s.
         /// </summary>
         /// <param name="sourcePaths">
         /// Absolute, normalized paths to source files. These paths are expected to be normalized
         /// using the same mechanism used to normalize the path passed to the path parameter of
-        /// <see cref="AnalyzerConfig.Parse(string, string)"/>. Source files will only be considered
+        /// <see cref="Parse(string, string)"/>. Source files will only be considered
         /// applicable for a given <see cref="AnalyzerConfig"/> if the config path is an ordinal
         /// prefix of the source path.
         /// </param>
         /// <param name="analyzerConfigs">
-        /// Parsed AnalyzerConfig files. The <see cref="AnalyzerConfig.NormalizedDirectory"/>
+        /// Parsed AnalyzerConfig files. The <see cref="NormalizedDirectory"/>
         /// must be an ordinal prefix of a source file path to be considered applicable.
         /// </param>
         /// <returns>
@@ -128,24 +128,24 @@ namespace Microsoft.CodeAnalysis
             var allTreeOptions = ArrayBuilder<TreeOptions>.GetInstance(sourcePaths.Count);
             var allAnalyzerOptions = ArrayBuilder<AnalyzerOptions>.GetInstance(sourcePaths.Count);
 
-            var allRegexes = PooledDictionary<AnalyzerConfig, ImmutableArray<Regex>>.GetInstance();
+            var allMatchers = PooledDictionary<AnalyzerConfig, ImmutableArray<SectionNameMatcher?>>.GetInstance();
             foreach (var config in analyzerConfigs)
             {
                 // Create an array of regexes with each entry corresponding to the same index
                 // in <see cref="EditorConfig.NamedSections"/>.
-                var builder = ArrayBuilder<Regex>.GetInstance(config.NamedSections.Length);
+                var builder = ArrayBuilder<SectionNameMatcher?>.GetInstance(config.NamedSections.Length);
                 foreach (var section in config.NamedSections)
                 {
-                    string regex = AnalyzerConfig.TryCompileSectionNameToRegEx(section.Name);
-                    builder.Add(new Regex(regex, RegexOptions.Compiled));
+                    SectionNameMatcher? matcher = AnalyzerConfig.TryCreateSectionNameMatcher(section.Name);
+                    builder.Add(matcher);
                 }
 
                 Debug.Assert(builder.Count == config.NamedSections.Length);
 
-                allRegexes.Add(config, builder.ToImmutableAndFree());
+                allMatchers.Add(config, builder.ToImmutableAndFree());
             }
 
-            Debug.Assert(allRegexes.Count == analyzerConfigs.Count);
+            Debug.Assert(allMatchers.Count == analyzerConfigs.Count);
 
             var treeOptionsBuilder = ImmutableDictionary.CreateBuilder<string, ReportDiagnostic>(
                 CaseInsensitiveComparison.Comparer);
@@ -170,10 +170,10 @@ namespace Microsoft.CodeAnalysis
                         }
                         string relativePath = normalizedPath.Substring(dirLength);
 
-                        ImmutableArray<Regex> regexes = allRegexes[config];
-                        for (int sectionIndex = 0; sectionIndex < regexes.Length; sectionIndex++)
+                        ImmutableArray<SectionNameMatcher?> matchers = allMatchers[config];
+                        for (int sectionIndex = 0; sectionIndex < matchers.Length; sectionIndex++)
                         {
-                            if (regexes[sectionIndex].IsMatch(relativePath))
+                            if (matchers[sectionIndex]?.IsMatch(relativePath) == true)
                             {
                                 var section = config.NamedSections[sectionIndex];
                                 addOptions(section, treeOptionsBuilder, analyzerOptionsBuilder, config.PathToFile);
@@ -189,7 +189,7 @@ namespace Microsoft.CodeAnalysis
                 analyzerOptionsBuilder.Clear();
             }
 
-            allRegexes.Free();
+            allMatchers.Free();
             Debug.Assert(allTreeOptions.Count == allAnalyzerOptions.Count);
             Debug.Assert(allTreeOptions.Count == sourcePaths.Count);
 
@@ -199,7 +199,7 @@ namespace Microsoft.CodeAnalysis
                 diagnosticBuilder.ToImmutableAndFree());
 
             void addOptions(
-                AnalyzerConfig.Section section,
+                Section section,
                 TreeOptions.Builder treeBuilder,
                 AnalyzerOptions.Builder analyzerBuilder,
                 string analyzerConfigPath)
@@ -435,8 +435,8 @@ namespace Microsoft.CodeAnalysis
             /// <summary>
             /// Keys and values for this section. All keys are lower-cased according to the
             /// EditorConfig specification and keys are compared case-insensitively. Values are
-            /// lower-cased if the value appears in <see cref="AnalyzerConfig.ReservedValues" />
-            /// or if the corresponding key is in <see cref="AnalyzerConfig.ReservedKeys" />. Otherwise,
+            /// lower-cased if the value appears in <see cref="ReservedValues" />
+            /// or if the corresponding key is in <see cref="ReservedKeys" />. Otherwise,
             /// the values are the literal values present in the source.
             /// </summary>
             public ImmutableDictionary<string, string> Properties { get; }

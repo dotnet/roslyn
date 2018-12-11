@@ -24,6 +24,8 @@ Microsoft.CodeAnalysis.AnalyzerConfig.Section
 Microsoft.CodeAnalysis.AnalyzerConfig.Section.Name.get -> string
 Microsoft.CodeAnalysis.AnalyzerConfig.Section.Properties.get -> System.Collections.Immutable.ImmutableDictionary<string, string>
 Microsoft.CodeAnalysis.AnalyzerConfig.Section.Section(string name, System.Collections.Immutable.ImmutableDictionary<string, string> properties) -> void
+Microsoft.CodeAnalysis.AnalyzerConfig.SectionNameMatcher
+Microsoft.CodeAnalysis.AnalyzerConfig.SectionNameMatcher.IsMatch(string s) -> bool
 Microsoft.CodeAnalysis.AnalyzerConfigOptionsResult
 Microsoft.CodeAnalysis.AnalyzerConfigOptionsResult.AnalyzerOptions.get -> System.Collections.Immutable.ImmutableArray<System.Collections.Immutable.ImmutableDictionary<string, string>>
 Microsoft.CodeAnalysis.AnalyzerConfigOptionsResult.Diagnostics.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostic>
@@ -200,7 +202,7 @@ static Microsoft.CodeAnalysis.AnalyzerConfig.ReservedKeys.get -> System.Collecti
 static Microsoft.CodeAnalysis.AnalyzerConfig.ReservedValues.get -> System.Collections.Immutable.ImmutableHashSet<string>
 static Microsoft.CodeAnalysis.AnalyzerConfig.Section.NameComparer.get -> System.StringComparison
 static Microsoft.CodeAnalysis.AnalyzerConfig.Section.PropertiesKeyComparer.get -> System.StringComparer
-static Microsoft.CodeAnalysis.AnalyzerConfig.TryCompileSectionNameToRegEx(string sectionName) -> string
+static Microsoft.CodeAnalysis.AnalyzerConfig.TryCreateSectionNameMatcher(string sectionName) -> Microsoft.CodeAnalysis.AnalyzerConfig.SectionNameMatcher?
 static Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions.KeyComparer.get -> System.StringComparer
 static Microsoft.CodeAnalysis.FlowAnalysis.ControlFlowGraph.Create(Microsoft.CodeAnalysis.Operations.IBlockOperation body, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> Microsoft.CodeAnalysis.FlowAnalysis.ControlFlowGraph
 static Microsoft.CodeAnalysis.FlowAnalysis.ControlFlowGraph.Create(Microsoft.CodeAnalysis.Operations.IConstructorBodyOperation constructorBody, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> Microsoft.CodeAnalysis.FlowAnalysis.ControlFlowGraph
