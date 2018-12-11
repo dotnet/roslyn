@@ -786,10 +786,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                             if (typeParam.HasReferenceTypeConstraint)
                             {
                                 AddKeyword(SyntaxKind.ClassKeyword);
-                                if (format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier) &&
-                                    typeParameterSymbol?.ReferenceTypeConstraintIsNullable == true) // https://github.com/dotnet/roslyn/issues/26198 Switch to public API when we will have one.
+
+                                switch (typeParameterSymbol?.ReferenceTypeConstraintIsNullable) // https://github.com/dotnet/roslyn/issues/26198 Switch to public API when we will have one.
                                 {
-                                    AddPunctuation(SyntaxKind.QuestionToken);
+                                    case true:
+                                        if (format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier))
+                                        {
+                                            AddPunctuation(SyntaxKind.QuestionToken);
+                                        }
+                                        break;
+
+                                    case false:
+                                        if (format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.IncludeNonNullableTypeModifier))
+                                        {
+                                            AddPunctuation(SyntaxKind.ExclamationToken);
+                                        }
+                                        break;
                                 }
 
                                 needComma = true;

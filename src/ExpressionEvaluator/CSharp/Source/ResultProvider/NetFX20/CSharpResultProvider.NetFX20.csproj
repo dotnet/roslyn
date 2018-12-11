@@ -39,5 +39,5 @@
     <PackageReference Include="Microsoft.NetFX20" Version="$(MicrosoftNetFX20Version)" />
   </ItemGroup>
   <Import Project="..\CSharpResultProvider.projitems" Label="Shared" />
-  <Import Project="..\..\..\..\..\..\build\Targets\Vsdconfig.targets" />
+  <Import Project="$(RepositoryEngineeringDir)targets\Vsdconfig.targets" />
 </Project>

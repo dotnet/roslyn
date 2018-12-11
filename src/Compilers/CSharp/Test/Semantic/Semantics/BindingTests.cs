@@ -550,7 +550,7 @@ class B
     }
 }";
             CreateCompilation(source).VerifyDiagnostics(    // (11,13): error CS0103: The name 'x' does not exist in the current context
-                                                                        //         A.F(x);
+                                                            //         A.F(x);
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x").WithArguments("x"),
                 // (11,11): error CS0122: 'A.F' is inaccessible due to its protection level
                 //         A.F(x);

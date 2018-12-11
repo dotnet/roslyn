@@ -665,7 +665,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                     (parent is MemberAccessExpressionSyntax && parent.Kind() != SyntaxKind.SimpleMemberAccessExpression) ||
                     ((parent.Kind() == SyntaxKind.SimpleMemberAccessExpression || parent.Kind() == SyntaxKind.NameMemberCref) && originalSimpleName.IsRightSideOfDot()) ||
                     (parent.Kind() == SyntaxKind.QualifiedName && originalSimpleName.IsRightSideOfQualifiedName()) ||
-                    (parent.Kind() == SyntaxKind.AliasQualifiedName)||
+                    (parent.Kind() == SyntaxKind.AliasQualifiedName) ||
                     (parent.Kind() == SyntaxKind.NameColon))
                 {
                     return TryAddTypeArgumentToIdentifierName(newNode, symbol);

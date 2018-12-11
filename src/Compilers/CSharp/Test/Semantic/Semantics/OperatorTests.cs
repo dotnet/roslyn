@@ -51,9 +51,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             Assert.NotEqual(insideEnumDefinition, insideMethodBody);
 
-            Assert.Equal(insideEnumDefinition.Symbol.ToTestDisplayString(), 
+            Assert.Equal(insideEnumDefinition.Symbol.ToTestDisplayString(),
                 "System.Int32 System.Int32.op_BitwiseOr(System.Int32 left, System.Int32 right)");
-            Assert.Equal(insideMethodBody.Symbol.ToTestDisplayString(), 
+            Assert.Equal(insideMethodBody.Symbol.ToTestDisplayString(),
                 "TestEnum TestEnum.op_BitwiseOr(TestEnum left, TestEnum right)");
         }
 
@@ -7207,7 +7207,7 @@ class Module1
             }
         }
 
-        [ConditionalFact(typeof(ClrOnly), typeof(NoIOperationValidation), Reason="https://github.com/mono/mono/issues/10917")]
+        [ConditionalFact(typeof(ClrOnly), typeof(NoIOperationValidation), Reason = "https://github.com/mono/mono/issues/10917")]
         public void BinaryIntrinsicSymbols1()
         {
             BinaryOperatorKind[] operators =

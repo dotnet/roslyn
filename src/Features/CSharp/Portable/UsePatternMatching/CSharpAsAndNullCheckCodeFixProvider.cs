@@ -79,8 +79,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                     isExpression.Parenthesize());
             }
 
-            if (declarator.Parent is VariableDeclarationSyntax declaration && 
-                declaration.Parent is LocalDeclarationStatementSyntax localDeclaration && 
+            if (declarator.Parent is VariableDeclarationSyntax declaration &&
+                declaration.Parent is LocalDeclarationStatementSyntax localDeclaration &&
                 declaration.Variables.Count == 1)
             {
                 // Trivia on the local declaration will move to the next statement.

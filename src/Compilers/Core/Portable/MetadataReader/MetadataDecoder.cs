@@ -747,10 +747,10 @@ namespace Microsoft.CodeAnalysis
             TypeSymbol type;
             bool isNoPiaLocalType;
 
-            // According to ECMA spec:
-            //  The CMOD_OPT or CMOD_REQD is followed by a metadata token that
-            //  indexes a row in the TypeDef table or the TypeRef table.
-            tryAgain:
+// According to ECMA spec:
+//  The CMOD_OPT or CMOD_REQD is followed by a metadata token that
+//  indexes a row in the TypeDef table or the TypeRef table.
+tryAgain:
             switch (token.Kind)
             {
                 case HandleKind.TypeDefinition:

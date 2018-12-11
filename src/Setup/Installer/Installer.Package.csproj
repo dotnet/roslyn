@@ -13,7 +13,7 @@
 
   <Target Name="_CalculateInputsOutputs">
     <PropertyGroup>
-      <_InstallerDir>$(ArtifactsDir)Installer\</_InstallerDir>
+      <_InstallerDir>$(VisualStudioSetupOutputPath)Installer\</_InstallerDir>
       <_InstallerFilePath>$(_InstallerDir)Roslyn_Preview.zip</_InstallerFilePath>
       <_ZipDir>$(IntermediateOutputPath)Zip\</_ZipDir>
       <_DeploymentVsixPath>$(VisualStudioSetupOutputPath)RoslynDeployment.vsix</_DeploymentVsixPath>

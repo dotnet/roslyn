@@ -327,7 +327,7 @@ class C
                 Diagnostic(ErrorCode.ERR_EscapeLocal, "ternary").WithArguments("ternary").WithLocation(39, 19)
             );
         }
-        
+
         [Fact()]
         public void RefLikeReturnEscapeInParam()
         {
@@ -1122,7 +1122,7 @@ class Program
     }
 ";
             CreateCompilationWithMscorlibAndSpan(text).VerifyDiagnostics(
-                // no diagnostics expected
+            // no diagnostics expected
             );
         }
 
@@ -1367,7 +1367,7 @@ class Program
 }
 ";
             CreateCompilationWithMscorlibAndSpan(text).VerifyDiagnostics(
-                // no diagnostics
+            // no diagnostics
             );
         }
 

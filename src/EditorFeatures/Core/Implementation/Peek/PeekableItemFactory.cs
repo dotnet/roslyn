@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Peek
 
         public async Task<IEnumerable<IPeekableItem>> GetPeekableItemsAsync(
             ISymbol symbol, Project project,
-            IPeekResultFactory peekResultFactory, 
+            IPeekResultFactory peekResultFactory,
             CancellationToken cancellationToken)
         {
             if (symbol == null)

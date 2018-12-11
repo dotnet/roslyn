@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
 
             builder.EnterRegion(new RegionBuilder(ControlFlowRegionKind.LocalLifetime));
 
-            switch(body.Kind)
+            switch (body.Kind)
             {
                 case OperationKind.LocalFunction:
                     Debug.Assert(captureIdDispenser != null);
@@ -4053,7 +4053,7 @@ oneMoreTime:
                     // This must be an error case
                     AddStatement(MakeInvalidOperation(type: null, Visit(operation.Collection)));
                     result = new InvalidOperation(ImmutableArray<IOperation>.Empty, semanticModel: null, operation.Collection.Syntax,
-                                                  type: null,constantValue: default, isImplicit: true);
+                                                  type: null, constantValue: default, isImplicit: true);
                 }
 
                 PopStackFrameAndLeaveRegion(getEnumeratorFrame);
@@ -5069,8 +5069,8 @@ oneMoreTime:
                         break;
 
                     case CaseKind.Range:
-                        // A switch section with a range case must have a condition associated with it.
-                        // This point should not be reachable.
+                    // A switch section with a range case must have a condition associated with it.
+                    // This point should not be reachable.
                     default:
                         throw ExceptionUtilities.UnexpectedValue(caseClause.CaseKind);
                 }

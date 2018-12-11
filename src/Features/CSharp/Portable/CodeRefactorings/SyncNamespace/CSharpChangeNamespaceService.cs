@@ -46,9 +46,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeNamespace
         /// <param name="new">The replacement node.</param>
         public override bool TryGetReplacementReferenceSyntax(
             SyntaxNode reference,
-            ImmutableArray<string> newNamespaceParts, 
-            ISyntaxFactsService syntaxFacts, 
-            out SyntaxNode old, 
+            ImmutableArray<string> newNamespaceParts,
+            ISyntaxFactsService syntaxFacts,
+            out SyntaxNode old,
             out SyntaxNode @new)
         {
             if (!(reference is SimpleNameSyntax nameRef))
@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeNamespace
             // 4. When the namespace is specified and not "", i.e. we are moving referenced type to a different non-global 
             //    namespace. We need to replace the qualified reference with a new qualified reference (which is qualified 
             //    with new namespace.)
-                        
+
             if (syntaxFacts.IsRightSideOfQualifiedName(nameRef))
             {
                 old = nameRef.Parent;
@@ -144,8 +144,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeNamespace
         ///     namespace to global namespace (i.e. remove the namespace declaration).    
         /// </summary>
         protected override CompilationUnitSyntax ChangeNamespaceDeclaration(
-            CompilationUnitSyntax compilationUnit, 
-            ImmutableArray<string> declaredNamespaceParts, 
+            CompilationUnitSyntax compilationUnit,
+            ImmutableArray<string> declaredNamespaceParts,
             ImmutableArray<string> targetNamespaceParts)
         {
             Debug.Assert(!declaredNamespaceParts.IsDefault && !targetNamespaceParts.IsDefault);
@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeNamespace
                 var targetNamespaceDecl = SyntaxFactory.NamespaceDeclaration(
                     name: CreateNameSyntax(targetNamespaceParts, aliasQualifier: null, targetNamespaceParts.Length - 1)
                             .WithAdditionalAnnotations(WarningAnnotation),
-                    externs: default, 
+                    externs: default,
                     usings: default,
                     members: compilationUnit.Members);
                 return compilationUnit.WithMembers(new SyntaxList<MemberDeclarationSyntax>(targetNamespaceDecl));
@@ -168,7 +168,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeNamespace
             // Move everything to global namespace
             if (IsGlobalNamespace(targetNamespaceParts))
             {
-                var (namespaceOpeningTrivia, namespaceClosingTrivia) = 
+                var (namespaceOpeningTrivia, namespaceClosingTrivia) =
                     GetOpeningAndClosingTriviaOfNamespaceDeclaration(namespaceDeclaration);
                 var members = namespaceDeclaration.Members;
                 var eofToken = compilationUnit.EndOfFileToken
@@ -205,15 +205,15 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeNamespace
                 //  it may fail to resolve.
 
                 return compilationUnit.Update(
-                    compilationUnit.Externs.AddRange(namespaceDeclaration.Externs), 
-                    compilationUnit.Usings.AddRange(namespaceDeclaration.Usings), 
-                    compilationUnit.AttributeLists, 
+                    compilationUnit.Externs.AddRange(namespaceDeclaration.Externs),
+                    compilationUnit.Usings.AddRange(namespaceDeclaration.Usings),
+                    compilationUnit.AttributeLists,
                     members,
                     eofToken);
             }
 
             // Change namespace name
-            return compilationUnit.ReplaceNode(namespaceDeclaration, 
+            return compilationUnit.ReplaceNode(namespaceDeclaration,
                 namespaceDeclaration.WithName(
                     CreateNameSyntax(targetNamespaceParts, aliasQualifier: null, targetNamespaceParts.Length - 1)
                         .WithTriviaFrom(namespaceDeclaration.Name)
@@ -262,7 +262,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeNamespace
         /// Leading trivia of the node and trivia around opening brace, as well as
         /// trivia around closing brace are concatenated together respectively.
         /// </summary>
-        private static (ImmutableArray<SyntaxTrivia> openingTrivia, ImmutableArray<SyntaxTrivia> closingTrivia) 
+        private static (ImmutableArray<SyntaxTrivia> openingTrivia, ImmutableArray<SyntaxTrivia> closingTrivia)
             GetOpeningAndClosingTriviaOfNamespaceDeclaration(NamespaceDeclarationSyntax namespaceDeclaration)
         {
             var openingBuilder = ArrayBuilder<SyntaxTrivia>.GetInstance();

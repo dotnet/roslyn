@@ -9,7 +9,7 @@
 .vs/
 
 # Build results
-[Bb]inaries/
+[Aa]rtifacts/
 [Dd]ebug/
 [Rr]elease/
 x64/

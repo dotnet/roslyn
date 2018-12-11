@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
             /// current <see cref="AnalysisData"/> instance, which will be freed during <see cref="Dispose"/>.
             /// </summary>
             private readonly ArrayBuilder<BasicBlockAnalysisData> _allocatedBasicBlockAnalysisDatas;
-            
+
             protected AnalysisData(
                 PooledDictionary<(ISymbol symbol, IOperation operation), bool> symbolWriteBuilder,
                 PooledHashSet<ISymbol> symbolsRead,

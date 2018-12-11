@@ -11,9 +11,9 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 namespace Microsoft.CodeAnalysis.CSharp.AddAnonymousTypeMemberName
 {
     [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
-    internal class CSharpAddAnonymousTypeMemberNameCodeFixProvider 
+    internal class CSharpAddAnonymousTypeMemberNameCodeFixProvider
         : AbstractAddAnonymousTypeMemberNameCodeFixProvider<
-            ExpressionSyntax, 
+            ExpressionSyntax,
             AnonymousObjectCreationExpressionSyntax,
             AnonymousObjectMemberDeclaratorSyntax>
     {

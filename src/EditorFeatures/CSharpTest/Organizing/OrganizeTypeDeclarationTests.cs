@@ -1098,7 +1098,7 @@ interface I
                 var textView = workspace.Documents.Single().GetTextView();
 
                 var handler = new OrganizeDocumentCommandHandler();
-                
+
                 var state = handler.GetCommandState(new SortAndRemoveUnnecessaryImportsCommandArgs(textView, textView.TextBuffer));
                 Assert.True(state.IsUnspecified);
 

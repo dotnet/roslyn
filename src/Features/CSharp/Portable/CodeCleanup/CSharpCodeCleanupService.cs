@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeCleanup
         {
             _codeFixServiceOpt = codeFixService;
         }
-        
+
         /// <summary>
         /// Maps format document code cleanup options to DiagnosticId[]
         /// </summary>

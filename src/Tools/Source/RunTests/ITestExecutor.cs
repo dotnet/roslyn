@@ -19,7 +19,7 @@ namespace RunTests
         internal bool UseHtml { get; }
         internal bool Test64 { get; }
         internal bool TestVsi { get; }
-        
+
         internal TestExecutionOptions(string xunitPath, ProcDumpInfo? procDumpInfo, string outputDirectory, string trait, string noTrait, bool useHtml, bool test64, bool testVsi)
         {
             XunitPath = xunitPath;

@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.ConvertLinq.ConvertForEachToLinqQuery
             //
             context.RegisterRefactoring(
                 new ForEachToLinqQueryCodeAction(
-                    FeaturesResources.Convert_to_linq, 
+                    FeaturesResources.Convert_to_linq,
                     c => ApplyConversion(queryConverter, document, convertToQuery: true, c)));
 
             // Offer refactoring to convert foreach to LINQ invocation expression. For example:

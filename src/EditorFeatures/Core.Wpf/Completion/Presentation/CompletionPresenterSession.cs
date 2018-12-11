@@ -65,8 +65,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
             SubjectBuffer = subjectBuffer;
 
             _trackLogSession = new CancellationTokenSource();
-            _logger = Logger.LogBlock(FunctionId.Intellisense_Completion, 
-                KeyValueLogMessage.Create(LogType.UserAction), 
+            _logger = Logger.LogBlock(FunctionId.Intellisense_Completion,
+                KeyValueLogMessage.Create(LogType.UserAction),
                 _trackLogSession.Token);
 
             _completionSet = new RoslynCompletionSet(this, textView, subjectBuffer);

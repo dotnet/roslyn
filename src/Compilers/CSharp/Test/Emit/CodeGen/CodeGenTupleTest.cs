@@ -3886,7 +3886,7 @@ class C
 
             var verifier = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1),
                 targetFramework: TargetFramework.Mscorlib46Extended,
-                expectedOutput:"1");
+                expectedOutput: "1");
             verifier.VerifyDiagnostics();
         }
 
@@ -11410,7 +11410,7 @@ class C
                 );
         }
 
-       [ConditionalFact(typeof(DesktopOnly))]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void DefaultAndFriendlyElementNames_08()
         {
             var source = @"
@@ -23439,7 +23439,7 @@ class P
         var x1 = (1, 1) is (int, int a)?;
     }
 }";
-            var comp = CreateCompilationWithMscorlib40( source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp = CreateCompilationWithMscorlib40(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
                 // (6,29): error CS1525: Invalid expression term 'int'
                 //         var x1 = (1, 1) is (int, int a)?;

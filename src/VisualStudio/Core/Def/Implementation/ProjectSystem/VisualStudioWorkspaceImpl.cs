@@ -1475,7 +1475,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     if (string.Equals(convertedReference.path, outputPath, StringComparison.OrdinalIgnoreCase) &&
                         convertedReference.projectReference.ProjectId == projectId)
                     {
-                        var metadataReference = 
+                        var metadataReference =
                             CreatePortableExecutableReference(
                                 convertedReference.path,
                                 new MetadataReferenceProperties(
@@ -1548,7 +1548,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             return null;
         }
-        
+
         private void SetSolutionAndRaiseWorkspaceChanged_NoLock(CodeAnalysis.Solution modifiedSolution, ICollection<ProjectId> projectIdsChanged)
         {
             if (projectIdsChanged.Count > 0)

@@ -21,7 +21,7 @@ End Class
             comp.VerifyPdb("C.F",
 <symbols>
     <files>
-      <file id="1" name="" language="VB" />
+        <file id="1" name="" language="VB"/>
     </files>
     <methods>
         <method containingType="C" name="F">
@@ -96,7 +96,7 @@ End Class
             c.VerifyPdb(
 <symbols>
     <files>
-      <file id="1" name="" language="VB" />
+        <file id="1" name="" language="VB"/>
     </files>
     <methods>
         <method containingType="C`1" name="F">
