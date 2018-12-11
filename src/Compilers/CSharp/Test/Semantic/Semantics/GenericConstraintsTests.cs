@@ -3270,5 +3270,21 @@ unsafe class C
                 //         UnmanagedWithInterface(&a);         // fail (does not match interface)
                 Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedValType, "UnmanagedWithInterface").WithArguments("C.UnmanagedWithInterface<T>(T*)", "System.IDisposable", "T", "int").WithLocation(20, 9));
         }
+
+        [Fact, WorkItem(31439, "https://github.com/dotnet/roslyn/issues/31439")]
+        public void CircularTypeArgumentUnmanagedConstraint()
+        {
+            var code = @"
+public struct X<T>
+    where T : unmanaged
+{
+}
+
+public struct Z
+{
+    public X<Z> field;
+}";
+            CreateCompilation(code).VerifyDiagnostics();
+        }
     }
 }
