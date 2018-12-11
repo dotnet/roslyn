@@ -3692,5 +3692,21 @@ public unsafe struct MyStruct<T> where T : unmanaged
             CompileAndVerify(code, options: TestOptions.UnsafeReleaseDll, verify: Verification.Skipped)
                 .VerifyIL("MyStruct<T>.Test", il);
         }
+
+        [Fact]
+        public void CircularGenericUnmanagedInstantation()
+        {
+            var code = @"
+public struct X<T>
+    where T : unmanaged
+{
+}
+
+public struct Z
+{
+    public X<Z> field;
+}";
+            CreateCompilation(code).VerifyDiagnostics();
+        }
     }
 }
