@@ -1392,7 +1392,7 @@ namespace Microsoft.CodeAnalysis
                 return this;
             }
 
-            var newSolution = this.WithTextDocumentState(oldDocument.UpdateText(text, mode), textChanged: true);
+            var newSolution = this.WithAdditionalDocumentState(oldDocument.UpdateText(text, mode), textChanged: true);
             return newSolution;
         }
 
@@ -1439,7 +1439,7 @@ namespace Microsoft.CodeAnalysis
 
             var oldDocument = this.GetAdditionalDocumentState(documentId);
 
-            return WithTextDocumentState(oldDocument.UpdateText(textAndVersion, mode), textChanged: true);
+            return WithAdditionalDocumentState(oldDocument.UpdateText(textAndVersion, mode), textChanged: true);
         }
 
         /// <summary>
@@ -1528,7 +1528,7 @@ namespace Microsoft.CodeAnalysis
 
             // assumes that text has changed. user could have closed a doc without saving and we are loading text from closed file with
             // old content. also this should make sure we don't re-use latest doc version with data associated with opened document.
-            return this.WithTextDocumentState(oldDocument.UpdateText(loader, mode), textChanged: true, recalculateDependentVersions: true);
+            return this.WithAdditionalDocumentState(oldDocument.UpdateText(loader, mode), textChanged: true, recalculateDependentVersions: true);
         }
 
         /// <summary>
@@ -1583,7 +1583,7 @@ namespace Microsoft.CodeAnalysis
             return this.ForkProject(newProject, new CompilationTranslationAction.TouchDocumentAction(oldDocument, newDocument));
         }
 
-        private SolutionState WithTextDocumentState(TextDocumentState newDocument, bool textChanged = false, bool recalculateDependentVersions = false)
+        private SolutionState WithAdditionalDocumentState(TextDocumentState newDocument, bool textChanged = false, bool recalculateDependentVersions = false)
         {
             if (newDocument == null)
             {

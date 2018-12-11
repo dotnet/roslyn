@@ -684,7 +684,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Call this method when the text of a document is changed on disk.
+        /// Call this method when the text of a additional document is changed on disk.
         /// </summary>
         protected internal void OnAdditionalDocumentTextLoaderChanged(DocumentId documentId, TextLoader loader)
         {
