@@ -474,11 +474,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Produce the implementation for `ValueTaskSourceStatus IValueTaskSource.GetStatus(short token)`:
                 // return this._valueOrEndPromise.GetStatus(token);
 
-                NamedTypeSymbol IValueTaskSource = F.WellKnownType(WellKnownType.System_Threading_Tasks_Sources_IValueTaskSource);
-
                 MethodSymbol IValueTaskSource_GetStatus =
-                    F.WellKnownMethod(WellKnownMember.System_Threading_Tasks_Sources_IValueTaskSource__GetStatus)
-                    .AsMember(IValueTaskSource);
+                    F.WellKnownMethod(WellKnownMember.System_Threading_Tasks_Sources_IValueTaskSource__GetStatus);
 
                 MethodSymbol promise_GetStatus =
                     F.WellKnownMethod(WellKnownMember.System_Threading_Tasks_Sources_ManualResetValueTaskSourceCore_T__GetStatus)

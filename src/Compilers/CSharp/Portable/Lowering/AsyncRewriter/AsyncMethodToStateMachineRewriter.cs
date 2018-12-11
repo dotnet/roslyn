@@ -44,14 +44,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// The label containing a return from the method when the async method has not completed.
         /// </summary>
-        protected readonly LabelSymbol _exitLabel;
+        private readonly LabelSymbol _exitLabel;
 
         /// <summary>
         /// The field of the generated async class used in generic task returning async methods to store the value
         /// of rewritten return expressions. The return-handling code then uses <c>SetResult</c> on the async method builder
         /// to make the result available to the caller.
         /// </summary>
-        protected readonly LocalSymbol _exprRetValue;
+        private readonly LocalSymbol _exprRetValue;
 
         private readonly LoweredDynamicOperationFactory _dynamicFactory;
 
