@@ -58,5 +58,35 @@ class c
                 Assert.Contains("new Regex(@""\A"")", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
             End Using
         End Function
+
+        <MemberData(NameOf(AllCompletionImplementations))>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestCaretPlacement(completionImplementation As CompletionImplementation) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
+                <Document><![CDATA[
+using System.Text.RegularExpressions;
+class c
+{
+    void goo()
+    {
+        var r = new Regex(@"$$");
+    }
+}
+]]></Document>)
+
+                state.SendTypeChars("[")
+
+                Await state.WaitForAsynchronousOperationsAsync()
+                Await state.AssertCompletionSession()
+                state.SendDownKey()
+                state.SendDownKey()
+                state.SendDownKey()
+                state.SendDownKey()
+                state.SendTab()
+                Await state.AssertNoCompletionSession()
+                Assert.Contains("new Regex(@""[^-]"")", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+                Await state.AssertLineTextAroundCaret("        var r = new Regex(@""[^", "-]"");")
+            End Using
+        End Function
     End Class
 End Namespace
