@@ -77,7 +77,7 @@ jobs:
     displayName: 'OPTPROF - Set VSTS variables for vsman files'
     condition: succeededOrFailed()
 
-  - task: ms-vseng.MicroBuildTasks.0e9d0d4d-71ec-4e4e-ae40-db9896f1ae74.MicroBuildBuildVSBootstrapper@1
+  - task: ms-vseng.MicroBuildTasks.0e9d0d4d-71ec-4e4e-ae40-db9896f1ae74.MicroBuildBuildVSBootstrapper@2
     inputs:
       vsMajorVersion: 16
       channelName: int.$(InsertTargetBranchShortName)
