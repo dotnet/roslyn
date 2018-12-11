@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
             _editorOperationsFactoryService = editorOperationsFactoryService;
         }
 
-        public string DisplayName => CSharpEditorResources.Complete_statement;
+        public string DisplayName => CSharpEditorResources.Complete_statement_on_semicolon;
 
         public void ExecuteCommand(TypeCharCommandArgs args, Action nextCommandHandler, CommandExecutionContext executionContext)
         {
@@ -63,6 +63,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
                 return;
             }
 
+            var isCaretAtEndOfLine = ((SnapshotPoint)caret).Position == ((SnapshotPoint)caret).GetContainingLine().End;
             var document = caret.Value.Snapshot.GetOpenDocumentInCurrentContextWithChanges();
             if (document == null)
       
@@ -73,13 +74,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
             var root = document.GetSyntaxRootSynchronously(executionContext.OperationContext.UserCancellationToken);
             var caretPosition = caret.Value.Position;
 
-            var token = GetToken(root, caretPosition, caret.Value);
+            var token = GetToken(root, caretPosition, isCaretAtEndOfLine);
 
             var currentNode = token.Parent;
 
-            // If cursor is right before an opening delimiter, make sure you start with node outside of delimiters. This
-            // covers cases like `obj.ToString$()`, where `token` references `(` but the caret isn't actually inside the
-            // argument list.
+            // If cursor is right before an opening delimiter, start with node outside of delimiters. 
+            // This covers cases like `obj.ToString$()`, where `token` references `(` but the caret isn't actually 
+            // inside the argument list.
             if (token.IsKind(SyntaxKind.OpenBraceToken, SyntaxKind.OpenBracketToken, SyntaxKind.OpenParenToken)
                 && token.Span.Start >= caretPosition)
             {
@@ -92,14 +93,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
             }
 
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-            if (!LooksLikeNodeInArgumentListForStatementCompletion(currentNode, syntaxFacts, caret))
+            if (!LooksLikeNodeInArgumentListForStatementCompletion(currentNode, syntaxFacts, isCaretAtEndOfLine))
             {
                 return;
             }
 
             var lastDelimiterSpan = default(TextSpan);
 
-            // work your way out, verifying all delimeters exist until you reach statement syntax that requires a semicolon
+            // verify all delimeters exist until you reach statement syntax that requires a semicolon
             while (!ReachedStatementSyntax(currentNode, syntaxFacts))
             {
                 if (!ClosingDelimiterExistsIfNeeded(currentNode, ref lastDelimiterSpan))
@@ -130,9 +131,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
             args.TextView.TryMoveCaretToAndEnsureVisible(args.SubjectBuffer.CurrentSnapshot.GetPoint(GetEndPosition(root, lastDelimiterSpan.End, currentNode.Kind())));
         }
 
-        private static SyntaxToken GetToken(SyntaxNode root, int caretPosition, SnapshotPoint caret)
+        private static SyntaxToken GetToken(SyntaxNode root, int caretPosition, bool isCaretAtEndOfLine)
         {
-            if (IsCaretAtEndOfLine(caret) && caretPosition > 0)
+            if (isCaretAtEndOfLine && caretPosition > 0)
             {
                 return root.FindToken(caretPosition - 1);
             }
@@ -150,7 +151,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
         /// list, where the immediately-containing statement resembles an "expression statement". This method returns
         /// <see langword="true"/> if the node matches a recognizable pattern of this form.</para>
         /// </remarks>
-        private static bool LooksLikeNodeInArgumentListForStatementCompletion(SyntaxNode currentNode, ISyntaxFactsService syntaxFacts, SnapshotPoint? caret)
+        private static bool LooksLikeNodeInArgumentListForStatementCompletion(SyntaxNode currentNode, 
+            ISyntaxFactsService syntaxFacts, bool isCaretAtEndOfLine)
         {
             // work our way up the tree, looking for a node of interest within the current statement
             bool nodeFound = false;
@@ -165,7 +167,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
 
                 // No special action is performed at this time if `;` is typed inside a string, including
                 // interpolated strings.  
-                if (IsInAString(currentNode, caret))
+                if (IsInAString(currentNode, isCaretAtEndOfLine))
                 {
                     return false;
                 }
@@ -192,13 +194,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
         private static bool ReachedStatementSyntax(SyntaxNode currentNode, ISyntaxFactsService syntaxFacts)
         {
             if (syntaxFacts.IsStatement(currentNode)
-                    || currentNode.IsKind(SyntaxKind.VariableDeclaration))
+                    || currentNode.IsKind(SyntaxKind.FieldDeclaration))
             {
                 // We reached an enclosing statement-like syntax without finding an intermediate argument-list-like
                 // syntax. Do not treat this statement as a candidate for statement completion because inserting a
                 // semicolon at the current location is likely to create a valid statement.
                 //
-                // IsStatement: The syntax is a known statement syntax
                 // VariableDelaration: The expression is part of a field initializer, which is not part of a
                 //      statement syntax but behaves like an expression statement for the purposes of statement
                 //      completion.
@@ -207,12 +208,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
             else return false;
         }
 
-        private static bool IsInAString(SyntaxNode currentNode, SnapshotPoint? caret)
+        private static bool IsInAString(SyntaxNode currentNode, bool isCaretAtEndOfLine)
         {
             // If caret is at the end of the line, it is outside the string
             if (currentNode.IsKind(SyntaxKind.InterpolatedStringExpression, SyntaxKind.StringLiteralExpression)
-                && caret != null 
-                && !IsCaretAtEndOfLine((SnapshotPoint)caret))
+                && !isCaretAtEndOfLine)
                 {
                     return true;
                 }
@@ -232,16 +232,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
                 case SyntaxKind.LocalDeclarationStatement:
                 case SyntaxKind.ReturnStatement:
                 case SyntaxKind.ThrowStatement:
-                case SyntaxKind.VariableDeclaration:
+                case SyntaxKind.FieldDeclaration:
                     return true;
                 default:
                     return false;
             }
-        }
-
-        private static bool IsCaretAtEndOfLine(SnapshotPoint caret)
-        {
-            return caret.Position == caret.GetContainingLine().End;
         }
 
         private static bool SemicolonIsMissing(SyntaxNode currentNode)

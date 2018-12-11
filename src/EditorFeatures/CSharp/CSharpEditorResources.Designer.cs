@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "15.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class CSharpEditorResources {
@@ -61,20 +61,20 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Complete statement on ;.
+        /// </summary>
+        internal static string Complete_statement_on_semicolon {
+            get {
+                return ResourceManager.GetString("Complete_statement_on_semicolon", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Fix interpolated verbatim string.
         /// </summary>
         internal static string Fix_interpolated_verbatim_string {
             get {
                 return ResourceManager.GetString("Fix_interpolated_verbatim_string", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   Looks up a localized string similar to Complete statement.
-        /// </summary>
-        internal static string Complete_statement {
-            get {
-                return ResourceManager.GetString("Complete_statement", resourceCulture);
             }
         }
         
