@@ -39,7 +39,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// The three different kinds of nodes in the decision tree.
         /// </summary>
-        public enum DecisionKind {
+        public enum DecisionKind
+        {
             /// <summary>
             /// For the type <see cref="DecisionTree.ByType"/>
             /// </summary>

@@ -2406,7 +2406,7 @@ using System.Linq;
 var a = new int[] { 1, 2 };
 a.$$";
 
-            await VerifyItemExistsAsync(markup, "ElementAt<>", expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
+            await VerifyItemExistsAsync(markup, "ElementAt", displayTextSuffix: "<>", expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
         }
 
         [WorkItem(541019, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541019")]
@@ -3247,7 +3247,7 @@ class C
     {
         $$";
 
-            await VerifyItemExistsAsync(markup, "M<>", expectedDescriptionOrNull: $"void C.M<T>(T i) (+ 1 {FeaturesResources.generic_overload})");
+            await VerifyItemExistsAsync(markup, "M", displayTextSuffix: "<>", expectedDescriptionOrNull: $"void C.M<T>(T i) (+ 1 {FeaturesResources.generic_overload})");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -3262,7 +3262,7 @@ class C
     {
         $$";
 
-            await VerifyItemExistsAsync(markup, "M<>", expectedDescriptionOrNull: $"void C.M<T>(int i) (+ 2 {FeaturesResources.generic_overloads})");
+            await VerifyItemExistsAsync(markup, "M", displayTextSuffix: "<>", expectedDescriptionOrNull: $"void C.M<T>(int i) (+ 2 {FeaturesResources.generic_overloads})");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -3275,7 +3275,7 @@ class C<T>
     {
         $$";
 
-            await VerifyItemExistsAsync(markup, "C<>", expectedDescriptionOrNull: "class C<T>");
+            await VerifyItemExistsAsync(markup, "C", displayTextSuffix: "<>", expectedDescriptionOrNull: "class C<T>");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -7198,7 +7198,7 @@ class Program
         set.$$
 ";
 
-            await VerifyItemExistsAsync(markup, "ForSchemaSet<>", sourceCodeKind: SourceCodeKind.Regular);
+            await VerifyItemExistsAsync(markup, "ForSchemaSet", displayTextSuffix: "<>", sourceCodeKind: SourceCodeKind.Regular);
         }
 
         [WorkItem(667752, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/667752")]
@@ -8224,7 +8224,7 @@ class Program
     }
 }
 ";
-            await VerifyItemExistsAsync(markup, "Class1<>", sourceCodeKind: SourceCodeKind.Regular);
+            await VerifyItemExistsAsync(markup, "Class1", displayTextSuffix: "<>", sourceCodeKind: SourceCodeKind.Regular);
         }
 
         [WorkItem(988025, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/988025")]
@@ -8250,7 +8250,7 @@ class Program
     }
 }
 ";
-            await VerifyItemExistsAsync(markup, "Class1<>", sourceCodeKind: SourceCodeKind.Regular);
+            await VerifyItemExistsAsync(markup, "Class1", displayTextSuffix: "<>", sourceCodeKind: SourceCodeKind.Regular);
         }
 
         [WorkItem(991466, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/991466")]
@@ -9456,7 +9456,7 @@ class C
 }" + TestResources.NetFX.ValueTuple.tuplelib_cs;
 
             // should not crash
-            await VerifyItemExistsAsync(markup, "ToString");            
+            await VerifyItemExistsAsync(markup, "ToString");
         }
 
         [Fact]

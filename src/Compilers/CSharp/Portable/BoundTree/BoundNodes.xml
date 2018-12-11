@@ -31,6 +31,7 @@
   <ValueType Name="RefKind"/>
   <ValueType Name="BoundTypeOrValueData"/>
   <ValueType Name="BoundLocalDeclarationKind"/>
+  <ValueType Name="NullableAnnotation"/>
 
   <AbstractNode Name="BoundInitializer" Base="BoundNode"/>
 
@@ -94,6 +95,13 @@
   -->
   <Node Name="BoundTupleOperandPlaceholder" Base="BoundValuePlaceholderBase">
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
+  </Node>
+
+  <!--
+  This node is used to represent an awaitable expression of a certain type, when binding an using-await statement.
+  It does not survive past initial binding.
+  -->
+  <Node Name="BoundAwaitableValuePlaceholder" Base="BoundValuePlaceholderBase">
   </Node>
 
   <!-- only used by codegen -->
@@ -333,13 +341,15 @@
     <Field Name="MethodOpt" Type="MethodSymbol" Null="allow"/>
   </Node>
 
-  <Node Name="BoundBinaryOperator" Base="BoundExpression">
+  <AbstractNode Name="BoundBinaryOperatorBase" Base="BoundExpression">
     <!-- Non-null type is required for this node kind -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
-
-    <Field Name="OperatorKind" Type="BinaryOperatorKind"/>
     <Field Name="Left" Type="BoundExpression"/>
     <Field Name="Right" Type="BoundExpression"/>
+  </AbstractNode>
+
+  <Node Name="BoundBinaryOperator" Base="BoundBinaryOperatorBase">
+    <Field Name="OperatorKind" Type="BinaryOperatorKind"/>
     <Field Name="ConstantValueOpt" Type="ConstantValue" Null="allow"/>
     <Field Name="MethodOpt" Type="MethodSymbol" Null="allow"/>
     <Field Name="ResultKind" PropertyOverrides="true" Type="LookupResultKind"/>
@@ -360,13 +370,8 @@
     <Field Name="Operators" Type="TupleBinaryOperatorInfo.Multiple"/>
   </Node>
 
-  <Node Name="BoundUserDefinedConditionalLogicalOperator" Base="BoundExpression">
-    <!-- Non-null type is required for this node kind -->
-    <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
-
+  <Node Name="BoundUserDefinedConditionalLogicalOperator" Base="BoundBinaryOperatorBase">
     <Field Name="OperatorKind" Type="BinaryOperatorKind"/>
-    <Field Name="Left" Type="BoundExpression"/>
-    <Field Name="Right" Type="BoundExpression"/>
     <Field Name="LogicalOperator" Type="MethodSymbol"/>
     <Field Name="TrueOperator" Type="MethodSymbol"/>
     <Field Name="FalseOperator" Type="MethodSymbol"/>
@@ -500,9 +505,7 @@
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
 
     <Field Name="Expression" Type="BoundExpression"/>
-    <Field Name="GetAwaiter" Type="MethodSymbol" Null="allow"/>
-    <Field Name="IsCompleted" Type="PropertySymbol" Null="allow"/>
-    <Field Name="GetResult" Type="MethodSymbol" Null="allow"/>
+    <Field Name="AwaitableInfo" Type="AwaitableInfo" Null="disallow"/>
   </Node>
 
   <AbstractNode Name="BoundTypeOf" Base="BoundExpression">
@@ -915,16 +918,16 @@
     <Field Name="ContinueLabel" Type="GeneratedLabelSymbol"/>
   </AbstractNode>
 
-  <Node Name="BoundDoStatement" Base="BoundLoopStatement">
+  <AbstractNode Name="BoundConditionalLoopStatement" Base="BoundLoopStatement">
     <Field Name="Locals" Type="ImmutableArray&lt;LocalSymbol&gt;"/>
     <Field Name="Condition" Type="BoundExpression"/>
     <Field Name="Body" Type="BoundStatement"/>
+  </AbstractNode>
+
+  <Node Name="BoundDoStatement" Base="BoundConditionalLoopStatement">
   </Node>
 
-  <Node Name="BoundWhileStatement" Base="BoundLoopStatement">
-    <Field Name="Locals" Type="ImmutableArray&lt;LocalSymbol&gt;"/>
-    <Field Name="Condition" Type="BoundExpression"/>
-    <Field Name="Body" Type="BoundStatement"/>
+  <Node Name="BoundWhileStatement" Base="BoundConditionalLoopStatement">
   </Node>
 
   <Node Name="BoundForStatement" Base="BoundLoopStatement">
@@ -960,6 +963,7 @@
          boxing.  If this node has errors, then the conversion may not be present.-->
     <Field Name="Expression" Type="BoundExpression"/>
     <Field Name="DeconstructionOpt" Type="BoundForEachDeconstructStep" Null="allow"/>
+    <Field Name="AwaitOpt" Type="AwaitableInfo" Null="allow"/>
     <Field Name="Body" Type="BoundStatement"/>
   
     <Field Name="Checked" Type="bool"/>
@@ -978,6 +982,7 @@
     <Field Name="ExpressionOpt" Type="BoundExpression" Null="allow"/>
     <Field Name="IDisposableConversion" Type="Conversion" />
     <Field Name="Body" Type="BoundStatement"/>
+    <Field Name="AwaitOpt" Type="AwaitableInfo" Null="allow"/>
   </Node>
 
   <Node Name="BoundFixedStatement" Base="BoundStatement">
@@ -1202,11 +1207,14 @@
     <Field Name="Invoked" Type="bool"/>
     <Field Name="Indexed" Type="bool"/>
   </Node>
-  
-  <Node Name="BoundDynamicInvocation" Base="BoundExpression">
-    <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
+
+  <AbstractNode Name="BoundDynamicInvocableBase" Base="BoundExpression">
     <Field Name="Expression" Type="BoundExpression"/>
     <Field Name="Arguments" Type="ImmutableArray&lt;BoundExpression&gt;"/>
+  </AbstractNode>
+  
+  <Node Name="BoundDynamicInvocation" Base="BoundDynamicInvocableBase">
+    <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
     <Field Name="ArgumentNamesOpt" Type="ImmutableArray&lt;string&gt;" Null="allow"/>
     <Field Name="ArgumentRefKindsOpt" Type="ImmutableArray&lt;RefKind&gt;" Null="allow"/>
     
@@ -1453,14 +1461,11 @@
     <Field Name="BinderOpt" Type="Binder" Null="allow" />
   </Node>
 
-  <Node Name="BoundDynamicCollectionElementInitializer" Base="BoundExpression">
+  <Node Name="BoundDynamicCollectionElementInitializer" Base="BoundDynamicInvocableBase">
     <!-- Non-null type is required for this node kind -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
     
     <!-- We don't hold on DynamicMethodInvocation directly since dynamic invocation isn't specified explicitly in the source. -->
-    <Field Name="Arguments" Type="ImmutableArray&lt;BoundExpression&gt;"/>
-    <!-- Used for IOperation to enable translating the initializer to a IDynamicInvocationOperation -->
-    <Field Name="ImplicitReceiver" Type="BoundImplicitReceiver" />
 
     <!-- The set of applicable Add methods that may be invoked at runtime. Empty otherwise. -->
     <Field Name="ApplicableMethods" Type="ImmutableArray&lt;MethodSymbol&gt;" />
@@ -1759,6 +1764,6 @@
   <Node Name="BoundExpressionWithNullability" Base="BoundExpression">
     <Field Name="Expression" Type="BoundExpression" Null="disallow"/>
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="allow"/> <!-- We use null Type for placeholders representing out vars -->
-    <Field Name="IsNullable" Type="bool?" Null="allow"/>
+    <Field Name="NullableAnnotation" Type="NullableAnnotation"/>
   </Node>
 </Tree>

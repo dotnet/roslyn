@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
         }
 
-        internal struct LocalState : AbstractLocalState
+        internal struct LocalState : ILocalState
         {
             internal bool Alive;
             internal bool Reported; // reported unreachable statement
@@ -59,14 +59,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        protected override void UnionWith(ref LocalState self, ref LocalState other)
+        protected override void Meet(ref LocalState self, ref LocalState other)
         {
             self.Alive &= other.Alive;
             self.Reported &= other.Reported;
             Debug.Assert(!self.Alive || !self.Reported);
         }
 
-        protected override bool IntersectWith(ref LocalState self, ref LocalState other)
+        protected override bool Join(ref LocalState self, ref LocalState other)
         {
             var old = self;
             self.Alive |= other.Alive;
@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return "[alive: " + state.Alive + "; reported: " + state.Reported + "]";
         }
 
-        protected override LocalState ReachableState()
+        protected override LocalState TopState()
         {
             return new LocalState(true, false);
         }
@@ -290,6 +290,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             RestorePending(oldPending1);
         }
 
+        // For purpose of control flow analysis, awaits do not create pending branches, so asynchronous usings don't either
+        public sealed override bool AwaitUsingAddsPendingBranch => false;
 
         protected override void VisitLabel(BoundLabeledStatement node)
         {

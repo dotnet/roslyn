@@ -39,6 +39,205 @@ public static class Program
         }
 
         [Fact]
+        [WorkItem(25862, "https://github.com/dotnet/roslyn/issues/25862")]
+        public void ExtensionMethods_StructCollectionInitializer()
+        {
+            var code = @"
+public struct MyStruct : System.Collections.IEnumerable
+{
+    public int i;
+    public System.Collections.IEnumerator GetEnumerator() => throw new System.NotImplementedException();
+}
+
+public static class MyStructExtension
+{
+    public static void Add(ref this MyStruct s, int i)
+    {
+        s.i += i;
+    }
+}
+
+public static class Program
+{
+    public static void Main()
+    {
+        var s = new MyStruct { 1 };
+        System.Console.Write(s.i);
+    }
+}";
+            CompileAndVerify(code, expectedOutput: "1");
+        }
+
+        [Fact]
+        [WorkItem(25862, "https://github.com/dotnet/roslyn/issues/25862")]
+        public void ExtensionMethods_StructCollectionInitializerInParam()
+        {
+            var code = @"
+public struct MyStruct : System.Collections.IEnumerable
+{
+    public int i;
+    public System.Collections.IEnumerator GetEnumerator() => throw new System.NotImplementedException();
+}
+
+public static class MyStructExtension
+{
+    public static void Add(ref this MyStruct s, in MyStruct other)
+    {
+        s.i += other.i;
+    }
+}
+
+public static class Program
+{
+    public static void Main()
+    {
+        var other = new MyStruct { i = 2 };
+        var s = new MyStruct { other };
+        System.Console.Write(s.i);
+    }
+}";
+            var verifier = CompileAndVerify(code, expectedOutput: "2");
+            verifier.VerifyIL("Program.Main", @"{
+  // Code size       47 (0x2f)
+  .maxstack  2
+  .locals init (MyStruct V_0, //other
+                MyStruct V_1)
+  IL_0000:  ldloca.s   V_1
+  IL_0002:  initobj    ""MyStruct""
+  IL_0008:  ldloca.s   V_1
+  IL_000a:  ldc.i4.2
+  IL_000b:  stfld      ""int MyStruct.i""
+  IL_0010:  ldloc.1
+  IL_0011:  stloc.0
+  IL_0012:  ldloca.s   V_1
+  IL_0014:  initobj    ""MyStruct""
+  IL_001a:  ldloca.s   V_1
+  IL_001c:  ldloca.s   V_0
+  IL_001e:  call       ""void MyStructExtension.Add(ref MyStruct, in MyStruct)""
+  IL_0023:  ldloc.1
+  IL_0024:  ldfld      ""int MyStruct.i""
+  IL_0029:  call       ""void System.Console.Write(int)""
+  IL_002e:  ret
+}");
+        }
+
+        [Fact]
+        [WorkItem(25862, "https://github.com/dotnet/roslyn/issues/25862")]
+        public void ExtensionMethods_StructCollectionInitializerInParamImplicitTempArg()
+        {
+            var code = @"
+public struct MyStruct : System.Collections.IEnumerable
+{
+    public int i;
+    public System.Collections.IEnumerator GetEnumerator() => throw new System.NotImplementedException();
+}
+
+public static class MyStructExtension
+{
+    public static void Add(ref this MyStruct s, in MyStruct other)
+    {
+        s.i += other.i;
+    }
+}
+
+public static class Program
+{
+    public static void Main()
+    {
+        var s = new MyStruct { new MyStruct { i = 2 } };
+        System.Console.Write(s.i);
+    }
+}";
+            var verifier = CompileAndVerify(code, expectedOutput: "2");
+            verifier.VerifyIL("Program.Main", @"{
+  // Code size       45 (0x2d)
+  .maxstack  3
+  .locals init (MyStruct V_0,
+                MyStruct V_1)
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  initobj    ""MyStruct""
+  IL_0008:  ldloca.s   V_0
+  IL_000a:  ldloca.s   V_1
+  IL_000c:  initobj    ""MyStruct""
+  IL_0012:  ldloca.s   V_1
+  IL_0014:  ldc.i4.2
+  IL_0015:  stfld      ""int MyStruct.i""
+  IL_001a:  ldloca.s   V_1
+  IL_001c:  call       ""void MyStructExtension.Add(ref MyStruct, in MyStruct)""
+  IL_0021:  ldloc.0
+  IL_0022:  ldfld      ""int MyStruct.i""
+  IL_0027:  call       ""void System.Console.Write(int)""
+  IL_002c:  ret
+}");
+        }
+
+        [Fact]
+        [WorkItem(25862, "https://github.com/dotnet/roslyn/issues/25862")]
+        public void ExtensionMethods_StructCollectionInitializerRefThisRefElement()
+        {
+            var code = @"
+public struct MyStruct : System.Collections.IEnumerable
+{
+    public int i;
+    public System.Collections.IEnumerator GetEnumerator() => throw new System.NotImplementedException();
+}
+
+public static class MyStructExtension
+{
+    public static void Add(ref this MyStruct s, ref int i)
+    {
+        s.i += i;
+    }
+}
+
+public static class Program
+{
+    public static void Main()
+    {
+        var s = new MyStruct { 1 };
+        System.Console.Write(s.i);
+    }
+}";
+
+            CreateCompilationWithMscorlib40AndSystemCore(code).VerifyDiagnostics(
+                // (20,32): error CS1954: The best overloaded method match 'MyStructExtension.Add(ref MyStruct, ref int)' for the collection initializer element cannot be used. Collection initializer 'Add' methods cannot have ref or out parameters.
+                //         var s = new MyStruct { 1 };
+                Diagnostic(ErrorCode.ERR_InitializerAddHasParamModifiers, "1").WithArguments("MyStructExtension.Add(ref MyStruct, ref int)").WithLocation(20, 32));
+        }
+
+        [Fact]
+        [WorkItem(25862, "https://github.com/dotnet/roslyn/issues/25862")]
+        public void ExtensionMethods_StructCollectionInitializerInThisRefElement()
+        {
+            var code = @"
+public struct MyStruct : System.Collections.IEnumerable
+{
+    public int i;
+    public System.Collections.IEnumerator GetEnumerator() => throw new System.NotImplementedException();
+}
+
+public static class MyStructExtension
+{
+    public static void Add(in this MyStruct s, ref int i)
+    {
+    }
+}
+
+public static class Program
+{
+    public static void Main()
+    {
+        var s = new MyStruct { 1 };
+        System.Console.Write(s.i);
+    }
+}";
+            CreateCompilationWithMscorlib40AndSystemCore(code).VerifyDiagnostics(
+                // (19,32): error CS1954: The best overloaded method match 'MyStructExtension.Add(in MyStruct, ref int)' for the collection initializer element cannot be used. Collection initializer 'Add' methods cannot have ref or out parameters.
+                //         var s = new MyStruct { 1 };
+                Diagnostic(ErrorCode.ERR_InitializerAddHasParamModifiers, "1").WithArguments("MyStructExtension.Add(in MyStruct, ref int)").WithLocation(19, 32));
+        }
+
+        [Fact]
         public void ExtensionMethods_LValues_Ref_Allowed()
         {
             var code = @"
@@ -2217,7 +2416,7 @@ public static class Program
             CompileAndVerify(code, references: new[] { reference.ToMetadataReference() }, expectedOutput: "5");
             CompileAndVerify(code, references: new[] { reference.EmitToImageReference() }, expectedOutput: "5");
         }
-        
+
         private const string ExtraRefReadOnlyIL = @"
 .class private auto ansi sealed beforefieldinit Microsoft.CodeAnalysis.EmbeddedAttribute extends [mscorlib]System.Attribute
 {

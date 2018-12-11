@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.SpellCheck
         }
 
         private async Task CheckItemsAsync(
-            CodeFixContext context, SyntaxToken nameToken, bool isGeneric, 
+            CodeFixContext context, SyntaxToken nameToken, bool isGeneric,
             CompletionList completionList, WordSimilarityChecker similarityChecker)
         {
             var document = context.Document;

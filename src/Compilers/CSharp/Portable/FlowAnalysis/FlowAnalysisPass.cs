@@ -111,12 +111,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             SyntaxNode syntax = body.Syntax;
 
-            Debug.Assert(body.WasCompilerGenerated || 
-                         syntax.IsKind(SyntaxKind.Block) || 
+            Debug.Assert(body.WasCompilerGenerated ||
+                         syntax.IsKind(SyntaxKind.Block) ||
                          syntax.IsKind(SyntaxKind.ArrowExpressionClause) ||
                          syntax.IsKind(SyntaxKind.ConstructorDeclaration));
 
-            BoundStatement ret = method.IsIterator
+            BoundStatement ret = (method.IsIterator && !method.IsAsync)
                 ? (BoundStatement)BoundYieldBreakStatement.Synthesized(syntax)
                 : BoundReturnStatement.Synthesized(syntax, RefKind.None, null);
 
@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             DiagnosticBag diagnostics)
         {
             var result = ControlFlowPass.Analyze(compilation, method, block, diagnostics);
-            DataFlowPass.Analyze(compilation, method, block, diagnostics);
+            DefiniteAssignmentPass.Analyze(compilation, method, block, diagnostics);
             return result;
         }
     }

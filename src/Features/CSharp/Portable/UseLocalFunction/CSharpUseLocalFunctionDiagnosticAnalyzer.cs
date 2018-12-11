@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
     ///     }
     /// </summary>
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    internal class CSharpUseLocalFunctionDiagnosticAnalyzer : AbstractCodeStyleDiagnosticAnalyzer
+    internal class CSharpUseLocalFunctionDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
     {
         public override bool OpenFileOnly(Workspace workspace) => false;
 
@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
 
             var delegateType = semanticModel.GetTypeInfo(anonymousFunction, cancellationToken).ConvertedType as INamedTypeSymbol;
             if (!delegateType.IsDelegateType() ||
-                delegateType.DelegateInvokeMethod == null || 
+                delegateType.DelegateInvokeMethod == null ||
                 !CanReplaceDelegateWithLocalFunction(delegateType, localDeclaration, semanticModel, cancellationToken))
             {
                 return;
@@ -185,7 +185,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
         }
 
         private bool CheckForSimpleLocalDeclarationPattern(
-            SemanticModel semanticModel, 
+            SemanticModel semanticModel,
             AnonymousFunctionExpressionSyntax anonymousFunction,
             CancellationToken cancellationToken,
             out LocalDeclarationStatementSyntax localDeclaration)
@@ -374,7 +374,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
         }
 
         private static bool CanReplaceDelegateWithLocalFunction(
-            INamedTypeSymbol delegateType, 
+            INamedTypeSymbol delegateType,
             LocalDeclarationStatementSyntax localDeclaration,
             SemanticModel semanticModel,
             CancellationToken cancellationToken)

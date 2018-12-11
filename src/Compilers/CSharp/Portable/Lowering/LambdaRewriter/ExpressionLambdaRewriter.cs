@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var r = new ExpressionLambdaRewriter(compilationState, typeMap, node.Syntax, recursionDepth, diagnostics);
                 var result = r.VisitLambdaInternal(node);
-                if (node.Type != result.Type)
+                if (!node.Type.Equals(result.Type, TypeCompareKind.IgnoreNullableModifiersForReferenceTypes))
                 {
                     diagnostics.Add(ErrorCode.ERR_MissingPredefinedMember, node.Syntax.Location, r.ExpressionType, "Lambda");
                 }
@@ -280,7 +280,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return VisitExpressionWithoutStackGuard(node);
             }
-            catch (Exception ex) when (StackGuard.IsInsufficientExecutionStackException(ex))
+            catch (InsufficientExecutionStackException ex)
             {
                 throw new BoundTreeVisitor.CancelledByStackGuardException(ex, node);
             }
@@ -621,7 +621,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var isLifted = operandType != conversionInputType && strippedOperandType == conversionInputType;
                         bool requireAdditionalCast =
                             strippedOperandType != ((node.ConversionKind == ConversionKind.ExplicitUserDefined) ? conversionInputType : conversionInputType.StrippedType());
-                        var resultType = (isLifted && method.ReturnType.TypeSymbol.IsNonNullableValueType() && node.Type.IsNullableType()) ? 
+                        var resultType = (isLifted && method.ReturnType.TypeSymbol.IsNonNullableValueType() && node.Type.IsNullableType()) ?
                                             _nullableType.Construct(method.ReturnType.TypeSymbol) : method.ReturnType.TypeSymbol;
                         var e1 = requireAdditionalCast
                             ? Convert(Visit(node.Operand), node.Operand.Type, method.Parameters[0].Type.TypeSymbol, node.Checked, false)

@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.Shell.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation
@@ -183,12 +184,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 }
 
                 var document = visualStudioWorkspace.CurrentSolution.GetDocument(documentId);
-                if (ErrorHandler.Failed(hierarchy.ParseCanonicalName(document.FilePath, out uint itemID)))
-                {
-                    continue;
-                }
+                var itemID = hierarchy.TryGetItemId(document.FilePath);
 
-                if (itemID == (uint)VSConstants.VSITEMID.Nil)
+                if (itemID == VSConstants.VSITEMID_NIL)
                 {
                     continue;
                 }

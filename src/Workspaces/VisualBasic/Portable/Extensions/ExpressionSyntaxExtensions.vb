@@ -402,13 +402,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 End If
 
                 If expression.IsChildNode(Of NamedFieldInitializerSyntax)(Function(n) n.Name) Then
-                        Return True
-                    End If
-
-                    Return False
+                    Return True
                 End If
 
                 Return False
+            End If
+
+            Return False
         End Function
 
         <Extension()>

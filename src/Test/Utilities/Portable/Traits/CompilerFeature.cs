@@ -32,5 +32,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         TupleEquality,
         StackAllocInitializer,
         NullCoalescingAssignment,
+        AsyncStreams,
+        NullableReferenceTypes,
     }
 }

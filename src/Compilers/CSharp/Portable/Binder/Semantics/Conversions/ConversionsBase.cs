@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>
         /// Returns this instance if includeNullability is correct, and returns a
-        /// cached clone of this instance with distinct includeNullability otherwise.
+        /// cached clone of this instance with distinct IncludeNullability otherwise.
         /// </summary>
         internal ConversionsBase WithNullability(bool includeNullability)
         {
@@ -1378,11 +1378,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert((object)type1 != null);
             Debug.Assert((object)type2 != null);
 
-            // https://github.com/dotnet/roslyn/issues/27961: If two types differ only by nullability and
-            // one has IsNullable unset and the other doesn't, which do we choose in inference?
-            // See NullableReferenceTypesTests.TypeInference_04.
+            // Note, when we are paying attention to nullability, we ignore insignificant differences and oblivious mismatch. 
+            // See TypeCompareKind.UnknownNullableModifierMatchesAny and TypeCompareKind.IgnoreInsignificantNullableModifiersDifference
             var compareKind = includeNullability ?
-                TypeCompareKind.AllIgnoreOptions | TypeCompareKind.CompareNullableModifiersForReferenceTypes | TypeCompareKind.UnknownNullableModifierMatchesAny :
+                TypeCompareKind.AllIgnoreOptions & ~TypeCompareKind.IgnoreNullableModifiersForReferenceTypes :
                 TypeCompareKind.AllIgnoreOptions;
             return type1.Equals(type2, compareKind);
         }
@@ -1392,21 +1391,63 @@ namespace Microsoft.CodeAnalysis.CSharp
             return HasIdentityConversionInternal(type1, type2, IncludeNullability);
         }
 
-        internal static bool HasTopLevelNullabilityIdentityConversion(TypeSymbolWithAnnotations source, TypeSymbolWithAnnotations destination)
+        /// <summary>
+        /// Returns true if:
+        /// - Either type has no nullability information (oblivious).
+        /// - Both types cannot have different nullability at the same time,
+        ///   including the case of type parameters that by themselves can represent nullable and not nullable reference types.
+        /// </summary>
+        internal bool HasTopLevelNullabilityIdentityConversion(TypeSymbolWithAnnotations source, TypeSymbolWithAnnotations destination)
         {
-            bool? sourceIsNullable = source.IsNullable;
-            bool? destinationIsNullable = destination.IsNullable;
-            return sourceIsNullable == null || destinationIsNullable == null || sourceIsNullable == destinationIsNullable;
+            if (!IncludeNullability)
+            {
+                return true;
+            }
+
+            if (source.NullableAnnotation == NullableAnnotation.Unknown ||
+                destination.NullableAnnotation == NullableAnnotation.Unknown)
+            {
+                return true;
+            }
+
+            if (source.IsPossiblyNullableReferenceTypeTypeParameter() && !destination.IsPossiblyNullableReferenceTypeTypeParameter())
+            {
+                return destination.NullableAnnotation.IsAnyNullable();
+            }
+
+            if (destination.IsPossiblyNullableReferenceTypeTypeParameter() && !source.IsPossiblyNullableReferenceTypeTypeParameter())
+            {
+                return source.NullableAnnotation.IsAnyNullable();
+            }
+
+            return source.NullableAnnotation.IsAnyNullable() == destination.NullableAnnotation.IsAnyNullable();
         }
 
-        internal static bool HasTopLevelNullabilityImplicitConversion(TypeSymbolWithAnnotations source, TypeSymbolWithAnnotations destination)
+        /// <summary>
+        /// Returns false if source type can be nullable at the same time when destination type can be not nullable, 
+        /// including the case of type parameters that by themselves can represent nullable and not nullable reference types.
+        /// When either type has no nullability information (oblivious), this method returns true.
+        /// </summary>
+        internal bool HasTopLevelNullabilityImplicitConversion(TypeSymbolWithAnnotations source, TypeSymbolWithAnnotations destination)
         {
-            return HasTopLevelNullabilityImplicitConversion(source.IsNullable, destination.IsNullable);
-        }
+            if (!IncludeNullability)
+            {
+                return true;
+            }
 
-        internal static bool HasTopLevelNullabilityImplicitConversion(bool? sourceIsNullable, bool? destinationIsNullable)
-        {
-            return sourceIsNullable != true || destinationIsNullable != false;
+            if (source.NullableAnnotation == NullableAnnotation.Unknown ||
+                destination.NullableAnnotation == NullableAnnotation.Unknown ||
+                destination.NullableAnnotation.IsAnyNullable())
+            {
+                return true;
+            }
+
+            if (source.IsPossiblyNullableReferenceTypeTypeParameter() && !destination.IsPossiblyNullableReferenceTypeTypeParameter())
+            {
+                return false;
+            }
+
+            return !source.NullableAnnotation.IsAnyNullable();
         }
 
         public static bool HasIdentityConversionToAny<T>(T type, ArrayBuilder<T> targetTypes)
@@ -1483,7 +1524,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     ConversionKind.ImplicitTuple,
                     (ConversionsBase conversions, TypeSymbolWithAnnotations s, TypeSymbolWithAnnotations d, ref HashSet<DiagnosticInfo> u, bool a) =>
                     {
-                        if (conversions.IncludeNullability && !HasTopLevelNullabilityImplicitConversion(s, d))
+                        if (!conversions.HasTopLevelNullabilityImplicitConversion(s, d))
                         {
                             return Conversion.NoConversion;
                         }
@@ -1938,7 +1979,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ConversionKind.ImplicitTuple,
                 (ConversionsBase conversions, TypeSymbolWithAnnotations s, TypeSymbolWithAnnotations d, ref HashSet<DiagnosticInfo> u, bool a) =>
                 {
-                    if (conversions.IncludeNullability && !HasTopLevelNullabilityImplicitConversion(s, d))
+                    if (!conversions.HasTopLevelNullabilityImplicitConversion(s, d))
                     {
                         return Conversion.NoConversion;
                     }
@@ -1956,7 +1997,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ConversionKind.ExplicitTuple,
                 (ConversionsBase conversions, TypeSymbolWithAnnotations s, TypeSymbolWithAnnotations d, ref HashSet<DiagnosticInfo> u, bool a) =>
                 {
-                    if (conversions.IncludeNullability && !HasTopLevelNullabilityImplicitConversion(s, d))
+                    if (!conversions.HasTopLevelNullabilityImplicitConversion(s, d))
                     {
                         return Conversion.NoConversion;
                     }
@@ -2173,7 +2214,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 // Check for identity conversion of underlying types if the top-level nullability is distinct.
                 // (An identity conversion where nullability matches is not considered an implicit reference conversion.)
-                if (source.IsNullable != destination.IsNullable &&
+                if (source.NullableAnnotation != destination.NullableAnnotation &&
                     HasIdentityConversionInternal(source.TypeSymbol, destination.TypeSymbol, includeNullability: true))
                 {
                     return true;
@@ -2611,7 +2652,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     // If they're identical then this one is automatically good, so skip it.
                     if (HasIdentityConversionInternal(sourceTypeArgument.TypeSymbol, destinationTypeArgument.TypeSymbol) &&
-                        (!IncludeNullability || HasTopLevelNullabilityIdentityConversion(sourceTypeArgument, destinationTypeArgument)))
+                        HasTopLevelNullabilityIdentityConversion(sourceTypeArgument, destinationTypeArgument))
                     {
                         continue;
                     }

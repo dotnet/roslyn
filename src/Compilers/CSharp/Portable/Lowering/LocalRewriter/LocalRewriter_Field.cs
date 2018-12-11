@@ -26,12 +26,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return MakeTupleFieldAccess(syntax, fieldSymbol, rewrittenReceiver, constantValueOpt, resultKind);
             }
-            
+
             BoundExpression result = oldNodeOpt != null ?
                 oldNodeOpt.Update(rewrittenReceiver, fieldSymbol, constantValueOpt, resultKind, type) :
                 new BoundFieldAccess(syntax, rewrittenReceiver, fieldSymbol, constantValueOpt, resultKind, type);
 
-            if (fieldSymbol.IsFixed)
+            if (fieldSymbol.IsFixedSizeBuffer)
             {
                 // a reference to a fixed buffer is translated into its address
                 result = new BoundAddressOfOperator(syntax, result, type, false);
@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private BoundExpression MakeTupleFieldAccess(
             SyntaxNode syntax,
-            FieldSymbol tupleField, 
+            FieldSymbol tupleField,
             BoundExpression rewrittenReceiver,
             ConstantValue constantValueOpt,
             LookupResultKind resultKind)

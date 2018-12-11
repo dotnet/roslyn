@@ -865,7 +865,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             while (right.Kind == BoundKind.Conversion)
             {
                 var conversion = (BoundConversion)right;
-                switch(conversion.ConversionKind)
+                switch (conversion.ConversionKind)
                 {
                     case ConversionKind.Deconstruction:
                     case ConversionKind.ImplicitTupleLiteral:

@@ -453,7 +453,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             return null;
         }
 
-        public void DismissLightBulbSession()   
+        public void DismissLightBulbSession()
             => ExecuteOnActiveView(view =>
             {
                 var broker = GetComponentModel().GetService<ILightBulbBroker>();

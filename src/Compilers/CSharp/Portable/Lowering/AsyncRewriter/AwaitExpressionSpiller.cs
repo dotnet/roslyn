@@ -208,16 +208,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // we force the await expression to be assigned to a temp variable
                 var awaitExpression = (BoundAwaitExpression)expression;
-                awaitExpression = awaitExpression.Update(
-                    VisitExpression(ref builder, awaitExpression.Expression),
-                    awaitExpression.GetAwaiter,
-                    awaitExpression.IsCompleted,
-                    awaitExpression.GetResult,
-                    awaitExpression.Type);
+                awaitExpression = awaitExpression.Update(VisitExpression(ref builder, awaitExpression.Expression), awaitExpression.AwaitableInfo, awaitExpression.Type);
 
                 var syntax = awaitExpression.Syntax;
 
-                Debug.Assert(syntax.IsKind(SyntaxKind.AwaitExpression));
+                Debug.Assert(syntax.IsKind(SyntaxKind.AwaitExpression) || syntax.IsKind(SyntaxKind.ForEachStatement) || syntax.IsKind(SyntaxKind.ForEachVariableStatement));
                 _F.Syntax = syntax;
 
                 BoundAssignmentOperator assignToTemp;
@@ -392,7 +387,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             _F.Diagnostics.Add(ErrorCode.ERR_RefReturningCallAndAwait, _F.Syntax.Location, call.Method);
                         }
                         // method call is not referentially transparent, we can only spill the result value. 
-                        refKind = RefKind.None; 
+                        refKind = RefKind.None;
                         goto default;
 
                     case BoundKind.ConditionalOperator:
@@ -564,7 +559,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // await expression with result discarded
                 var awaitExpression = (BoundAwaitExpression)node.Expression;
                 var expression = VisitExpression(ref builder, awaitExpression.Expression);
-                expr = awaitExpression.Update(expression, awaitExpression.GetAwaiter, awaitExpression.IsCompleted, awaitExpression.GetResult, awaitExpression.Type);
+                expr = awaitExpression.Update(expression, awaitExpression.AwaitableInfo, awaitExpression.Type);
             }
             else
             {
@@ -592,6 +587,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundSpillSequenceBuilder builder = null;
             var expression = VisitExpression(ref builder, node.ExpressionOpt);
             return UpdateStatement(builder, node.Update(node.RefKind, expression), substituteTemps: true);
+        }
+
+        public override BoundNode VisitYieldReturnStatement(BoundYieldReturnStatement node)
+        {
+            EnterStatement(node);
+
+            BoundSpillSequenceBuilder builder = null;
+            var expression = VisitExpression(ref builder, node.Expression);
+            return UpdateStatement(builder, node.Update(expression), substituteTemps: true);
         }
 
 #if DEBUG
@@ -805,7 +809,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            return UpdateExpression(builder, node.Update(node.OperatorKind, left, right, node.ConstantValue, node.MethodOpt, node.ResultKind, node.Type));
+            return UpdateExpression(builder, node.Update(node.OperatorKind, node.ConstantValue, node.MethodOpt, node.ResultKind, left, right, node.Type));
         }
 
         public override BoundNode VisitCall(BoundCall node)

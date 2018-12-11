@@ -193,6 +193,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                                            boundBody);
         }
 
+        private void CheckRequiredLangVersionForAsyncIteratorMethods(DiagnosticBag diagnostics)
+        {
+            var method = (MethodSymbol)this.ContainingMemberOrLambda;
+            if (method.IsAsync)
+            {
+                MessageID.IDS_FeatureAsyncStreams.CheckFeatureAvailability(availableVersion: Compilation.LanguageVersion, diagnostics, method.Locations[0]);
+            }
+        }
+
         private BoundStatement BindYieldReturnStatement(YieldStatementSyntax node, DiagnosticBag diagnostics)
         {
             var binder = this;
@@ -228,6 +237,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Error(diagnostics, ErrorCode.ERR_YieldNotAllowedInScript, node.YieldKeyword);
             }
 
+            CheckRequiredLangVersionForAsyncIteratorMethods(diagnostics);
             return new BoundYieldReturnStatement(node, argument);
         }
 
@@ -243,6 +253,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             GetIteratorElementType(node, diagnostics);
+            CheckRequiredLangVersionForAsyncIteratorMethods(diagnostics);
             return new BoundYieldBreakStatement(node);
         }
 
@@ -349,30 +360,30 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var boundExpr = BindValue(exprSyntax, diagnostics, BindValueKind.RValue);
 
-                // SPEC VIOLATION: The spec requires the thrown exception to have a type, and that the type
-                // be System.Exception or derived from System.Exception. (Or, if a type parameter, to have
-                // an effective base class that meets that criterion.) However, we allow the literal null 
-                // to be thrown, even though it does not meet that criterion and will at runtime always
-                // produce a null reference exception.
+            // SPEC VIOLATION: The spec requires the thrown exception to have a type, and that the type
+            // be System.Exception or derived from System.Exception. (Or, if a type parameter, to have
+            // an effective base class that meets that criterion.) However, we allow the literal null 
+            // to be thrown, even though it does not meet that criterion and will at runtime always
+            // produce a null reference exception.
 
-                if (!boundExpr.IsLiteralNull())
+            if (!boundExpr.IsLiteralNull())
+            {
+                var type = boundExpr.Type;
+
+                // If the expression is a lambda, anonymous method, or method group then it will
+                // have no compile-time type; give the same error as if the type was wrong.
+                HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+
+                if ((object)type == null || !type.IsErrorType() && !Compilation.IsExceptionType(type.EffectiveType(ref useSiteDiagnostics), ref useSiteDiagnostics))
                 {
-                    var type = boundExpr.Type;
-
-                    // If the expression is a lambda, anonymous method, or method group then it will
-                    // have no compile-time type; give the same error as if the type was wrong.
-                    HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-
-                    if ((object)type == null || !type.IsErrorType() && !Compilation.IsExceptionType(type.EffectiveType(ref useSiteDiagnostics), ref useSiteDiagnostics))
-                    {
-                        diagnostics.Add(ErrorCode.ERR_BadExceptionType, exprSyntax.Location);
-                        hasErrors = true;
-                        diagnostics.Add(exprSyntax, useSiteDiagnostics);
-                    }
+                    diagnostics.Add(ErrorCode.ERR_BadExceptionType, exprSyntax.Location);
+                    hasErrors = true;
+                    diagnostics.Add(exprSyntax, useSiteDiagnostics);
                 }
+            }
 
             return boundExpr;
-            }
+        }
 
         private BoundStatement BindThrow(ThrowStatementSyntax node, DiagnosticBag diagnostics)
         {
@@ -481,7 +492,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             var dummyDiagnostics = DiagnosticBag.GetInstance();
                             childNodes = ImmutableArray.Create<BoundNode>(BindValue(node.Expression, dummyDiagnostics, BindValueKind.RValue));
                             dummyDiagnostics.Free();
-                         }
+                        }
                         else
                         {
                             childNodes = ImmutableArray<BoundNode>.Empty;
@@ -936,7 +947,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             Debug.Assert(!declTypeOpt.IsNull);
-            
+
             if (kind == LocalDeclarationKind.FixedVariable)
             {
                 // NOTE: this is an error, but it won't prevent further binding.
@@ -1094,7 +1105,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundKind.FieldAccess:
                     var fa = (BoundFieldAccess)initializerOpt;
-                    if (fa.FieldSymbol.IsFixed)
+                    if (fa.FieldSymbol.IsFixedSizeBuffer)
                     {
                         elementType = ((PointerTypeSymbol)fa.Type).PointedAtType.TypeSymbol;
                         break;
@@ -1193,13 +1204,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var analyzedArguments = AnalyzedArguments.GetInstance();
                 BoundExpression patternMethodCall = BindMethodGroupInvocation(
-                    initializer.Syntax, 
-                    initializer.Syntax, 
-                    methodName, 
-                    (BoundMethodGroup)boundAccess, 
-                    analyzedArguments, 
-                    bindingDiagnostics, 
-                    queryClause: null, 
+                    initializer.Syntax,
+                    initializer.Syntax,
+                    methodName,
+                    (BoundMethodGroup)boundAccess,
+                    analyzedArguments,
+                    bindingDiagnostics,
+                    queryClause: null,
                     allowUnexpandedForm: false);
 
                 analyzedArguments.Free();
@@ -1252,11 +1263,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// information it needs (e.g. conversions, helper methods).
         /// </summary>
         private BoundExpression GetFixedLocalCollectionInitializer(
-            BoundExpression initializer, 
-            TypeSymbol elementType, 
-            TypeSymbol declType, 
+            BoundExpression initializer,
+            TypeSymbol elementType,
+            TypeSymbol declType,
             MethodSymbol patternMethodOpt,
-            bool hasErrors, 
+            bool hasErrors,
             DiagnosticBag diagnostics)
         {
             Debug.Assert(initializer != null);
@@ -1363,7 +1374,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression op2,
             bool isRef,
             DiagnosticBag diagnostics)
-        {                      
+        {
             Debug.Assert(op1 != null);
             Debug.Assert(op2 != null);
 
@@ -1409,7 +1420,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // Event assignment is a call to void WindowsRuntimeMarshal.AddEventHandler<T>().
                 type = this.GetSpecialType(SpecialType.System_Void, diagnostics, node);
-            } 
+            }
             else
             {
                 type = op1.Type;
@@ -1506,6 +1517,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static bool AccessingAutoPropertyFromConstructor(BoundExpression receiver, PropertySymbol propertySymbol, Symbol fromMember)
         {
+            if (!propertySymbol.IsDefinition && propertySymbol.ContainingType.Equals(propertySymbol.ContainingType.OriginalDefinition, TypeCompareKind.IgnoreNullableModifiersForReferenceTypes))
+            {
+                propertySymbol = propertySymbol.OriginalDefinition;
+            }
+
             var sourceProperty = propertySymbol as SourcePropertySymbol;
             var propertyIsStatic = propertySymbol.IsStatic;
 
@@ -1588,7 +1604,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         internal virtual uint LocalScopeDepth => Next.LocalScopeDepth;
 
-        internal BoundBlock BindEmbeddedBlock(BlockSyntax node, DiagnosticBag diagnostics)
+        internal virtual BoundBlock BindEmbeddedBlock(BlockSyntax node, DiagnosticBag diagnostics)
         {
             return BindBlock(node, diagnostics);
         }
@@ -2466,6 +2482,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             return symbol?.Kind == SymbolKind.Method && ((MethodSymbol)symbol).IsGenericTaskReturningAsync(this.Compilation);
         }
 
+        protected bool IsIAsyncEnumerableOrIAsyncEnumeratorReturningAsyncMethod()
+        {
+            var symbol = this.ContainingMemberOrLambda;
+            if (symbol?.Kind == SymbolKind.Method)
+            {
+                var method = (MethodSymbol)symbol;
+                return method.IsIAsyncEnumerableReturningAsync(this.Compilation) ||
+                    method.IsIAsyncEnumeratorReturningAsync(this.Compilation);
+            }
+            return false;
+        }
+
         protected virtual TypeSymbol GetCurrentReturnType(out RefKind refKind)
         {
             var symbol = this.ContainingMemberOrLambda as MethodSymbol;
@@ -2517,11 +2545,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 diagnostics.Add(ErrorCode.ERR_ReturnInIterator, syntax.ReturnKeyword.GetLocation());
                 hasErrors = true;
             }
-            else if (IsInAsyncMethod() && refKind != RefKind.None)
+            else if (IsInAsyncMethod())
             {
-                // This can happen if we are binding an async anonymous method to a delegate type.
-                diagnostics.Add(ErrorCode.ERR_MustNotHaveRefReturn, syntax.ReturnKeyword.GetLocation());
-                hasErrors = true;
+                if (refKind != RefKind.None)
+                {
+                    // This can happen if we are binding an async anonymous method to a delegate type.
+                    diagnostics.Add(ErrorCode.ERR_MustNotHaveRefReturn, syntax.ReturnKeyword.GetLocation());
+                    hasErrors = true;
+                }
+                else if (IsIAsyncEnumerableOrIAsyncEnumeratorReturningAsyncMethod())
+                {
+                    diagnostics.Add(ErrorCode.ERR_ReturnInIterator, syntax.ReturnKeyword.GetLocation());
+                    hasErrors = true;
+                }
             }
             else if ((object)retType != null && (refKind != RefKind.None) != (sigRefKind != RefKind.None))
             {
@@ -2844,7 +2880,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         : ErrorCode.WRN_FilterIsConstantFalse;
 
                 // Since the expression is a constant, the name can be retrieved from the first token
-                Error(diagnostics, errorCode, filter.FilterExpression);                
+                Error(diagnostics, errorCode, filter.FilterExpression);
             }
 
             return boundFilter;
@@ -3072,8 +3108,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                   bodyBinder.GetDeclaredLocalsForScope(constructor),
                                                   constructor.Initializer == null ? null : bodyBinder.BindConstructorInitializer(constructor.Initializer, diagnostics),
                                                   constructor.Body == null ? null : (BoundBlock)bodyBinder.BindStatement(constructor.Body, diagnostics),
-                                                  constructor.ExpressionBody == null ? 
-                                                      null : 
+                                                  constructor.ExpressionBody == null ?
+                                                      null :
                                                       bodyBinder.BindExpressionBodyAsBlock(constructor.ExpressionBody,
                                                                                            constructor.Body == null ? diagnostics : new DiagnosticBag()));
         }
@@ -3098,9 +3134,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Using BindStatement to bind block to make sure we are reusing results of partial binding in SemanticModel
             return new BoundNonConstructorMethodBody(declaration,
                                                      blockBody == null ? null : (BoundBlock)BindStatement(blockBody, diagnostics),
-                                                     expressionBody == null ? 
-                                                         null : 
-                                                         BindExpressionBodyAsBlock(expressionBody, 
+                                                     expressionBody == null ?
+                                                         null :
+                                                         BindExpressionBodyAsBlock(expressionBody,
                                                                                    blockBody == null ? diagnostics : new DiagnosticBag()));
         }
 

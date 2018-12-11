@@ -235,12 +235,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             if (parameterType.IsReferenceType &&
+                parameterType.NullableAnnotation.IsAnyNotNullable() &&
                 convertedExpression.ConstantValue?.IsNull == true &&
                 !suppressNullableWarning(convertedExpression) &&
-                DeclaringCompilation.LanguageVersion >= MessageID.IDS_FeatureStaticNullChecking.RequiredVersion())
+                DeclaringCompilation.LanguageVersion >= MessageID.IDS_FeatureNullableReferenceTypes.RequiredVersion())
             {
-                // Note: Eagerly calling IsNullable causes a cycle, so we delay the check
-                diagnostics.Add(new LazyNullAsNonNullableDiagnosticInfo(parameterType), parameterSyntax.Default.Value.Location);
+                diagnostics.Add(ErrorCode.WRN_NullAsNonNullable, parameterSyntax.Default.Value.Location);
             }
 
             // represent default(struct) by a Null constant:

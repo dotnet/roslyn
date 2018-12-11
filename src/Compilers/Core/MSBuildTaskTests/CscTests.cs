@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.BuildTasks;
 using Xunit;
 using Moq;
 using System.IO;
+using Roslyn.Test.Utilities;
 
 namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
 {
@@ -118,7 +119,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             csc.ChecksumAlgorithm = "";
             Assert.Equal("/out:test.exe /checksumalgorithm: test.cs", csc.GenerateResponseFileContents());
         }
-        
+
         [Fact]
         public void InstrumentTestNamesFlag()
         {
@@ -330,6 +331,32 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             csc.Sources = MSBuildUtil.CreateTaskItems("test.cs");
             csc.RefOnly = true;
             Assert.Equal("/out:test.exe /refonly test.cs", csc.GenerateResponseFileContents());
+        }
+
+        [Fact]
+        public void NullableReferenceTypes_True()
+        {
+            var csc = new Csc();
+            csc.Sources = MSBuildUtil.CreateTaskItems("test.cs");
+            csc.NullableReferenceTypes = true;
+            Assert.Equal("/nullable+ /out:test.exe test.cs", csc.GenerateResponseFileContents());
+        }
+
+        [Fact]
+        public void NullableReferenceTypes_False()
+        {
+            var csc = new Csc();
+            csc.Sources = MSBuildUtil.CreateTaskItems("test.cs");
+            csc.NullableReferenceTypes = false;
+            Assert.Equal("/nullable- /out:test.exe test.cs", csc.GenerateResponseFileContents());
+        }
+
+        [Fact, WorkItem(29252, "https://github.com/dotnet/roslyn/issues/29252")]
+        public void DisableSdkPath()
+        {
+            var csc = new Csc();
+            csc.DisableSdkPath = true;
+            Assert.Equal(@"/nosdkpath", csc.GenerateResponseFileContents());
         }
 
         [Fact]

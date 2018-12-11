@@ -26,6 +26,10 @@ indent_size = 2
 [*.json]
 indent_size = 2
 
+[*.{sh}]
+end_of_line = lf
+indent_size = 2
+
 # Dotnet code style settings:
 [*.{cs,vb}]
 # Sort using and Import directives with System.* appearing first
@@ -154,3 +158,6 @@ csharp_new_line_before_catch = true
 csharp_new_line_before_finally = true
 csharp_new_line_before_members_in_object_initializers = true
 csharp_new_line_before_members_in_anonymous_types = true
+
+# Blocks are allowed
+csharp_prefer_braces = true:silent

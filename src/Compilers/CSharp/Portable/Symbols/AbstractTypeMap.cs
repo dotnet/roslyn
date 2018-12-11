@@ -125,7 +125,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     break;
             }
 
-            // https://github.com/dotnet/roslyn/issues/30072: we're dropping annotation and context
             return TypeSymbolWithAnnotations.Create(result);
         }
 
@@ -328,8 +327,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Substitute types, and return the results without duplicates, preserving the original order.
         /// </summary>
         internal void SubstituteTypesDistinctWithoutModifiers(
-            ImmutableArray<TypeSymbolWithAnnotations> original, 
-            ArrayBuilder<TypeSymbolWithAnnotations> result, 
+            ImmutableArray<TypeSymbolWithAnnotations> original,
+            ArrayBuilder<TypeSymbolWithAnnotations> result,
             HashSet<TypeParameterSymbol> ignoreTypesDependentOnTypeParametersOpt)
         {
             if (original.Length == 0)

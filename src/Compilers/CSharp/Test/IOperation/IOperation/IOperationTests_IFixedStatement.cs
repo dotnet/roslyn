@@ -146,7 +146,7 @@ IFixedOperation (OperationKind.None, Type: null) (Syntax: 'fixed (int* ... }')
             Left: 
               ILocalReferenceOperation: i3 (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i3')
             Right: 
-              IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: '*p1 + *p2')
+              IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: System.Int32) (Syntax: '*p1 + *p2')
                 Left: 
                   IOperation:  (OperationKind.None, Type: null) (Syntax: '*p1')
                     Children(1):
@@ -236,7 +236,7 @@ IFixedOperation (OperationKind.None, Type: null) (Syntax: 'fixed (int* ... }')
                 Left: 
                   ILocalReferenceOperation: i3 (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i3')
                 Right: 
-                  IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: '*p1 + *p2')
+                  IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: System.Int32) (Syntax: '*p1 + *p2')
                     Left: 
                       IOperation:  (OperationKind.None, Type: null) (Syntax: '*p1')
                         Children(1):

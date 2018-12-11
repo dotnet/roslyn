@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal string GetDebuggerDisplay()
         {
-            return string.Join("; ", 
+            return string.Join("; ",
                 UsingAliases.OrderBy(x => x.Value.UsingDirective.Location.SourceSpan.Start).Select(ua => $"{ua.Key} = {ua.Value.Alias.Target}").Concat(
                 Usings.Select(u => u.NamespaceOrType.ToString())).Concat(
                 ExternAliases.Select(ea => $"extern alias {ea.Alias.Name}")));
@@ -574,6 +574,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             foreach (var (_, alias) in UsingAliases)
             {
                 alias.Alias.CheckConstraints(semanticDiagnostics);
+            }
+
+            var corLibrary = _compilation.SourceAssembly.CorLibrary;
+            var conversions = new TypeConversions(corLibrary);
+            foreach (var @using in Usings)
+            {
+                // Check if `using static` directives meet constraints.
+                if (@using.NamespaceOrType.IsType)
+                {
+                    var typeSymbol = (TypeSymbol)@using.NamespaceOrType;
+                    var location = @using.UsingDirective?.Name.Location ?? NoLocation.Singleton;
+                    typeSymbol.CheckAllConstraints(conversions, location, semanticDiagnostics);
+                }
             }
 
             // Force resolution of extern aliases.

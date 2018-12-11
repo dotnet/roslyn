@@ -16,8 +16,8 @@ namespace Microsoft.CodeAnalysis.SimplifyThisOrMe
         TLanguageKindEnum,
         TExpressionSyntax,
         TThisExpressionSyntax,
-        TMemberAccessExpressionSyntax> : 
-        AbstractCodeStyleDiagnosticAnalyzer 
+        TMemberAccessExpressionSyntax> :
+        AbstractBuiltInCodeStyleDiagnosticAnalyzer
         where TLanguageKindEnum : struct
         where TExpressionSyntax : SyntaxNode
         where TThisExpressionSyntax : TExpressionSyntax
@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.SimplifyThisOrMe
             builder["OptionLanguage"] = model.Language;
 
             var diagnostic = DiagnosticHelper.Create(
-                descriptor, tree.GetLocation(issueSpan), severity, 
+                descriptor, tree.GetLocation(issueSpan), severity,
                 ImmutableArray.Create(node.GetLocation()), builder.ToImmutable());
 
             context.ReportDiagnostic(diagnostic);

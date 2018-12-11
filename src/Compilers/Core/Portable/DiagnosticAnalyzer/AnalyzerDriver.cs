@@ -436,13 +436,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                 await ProcessCompilationEventsAsync(analysisScope, analysisStateOpt, usingPrePopulatedEventQueue, cancellationToken).ConfigureAwait(false);
 
-#if DEBUG
                 // If not using pre-populated event queue (batch mode), then verify all symbol end actions were processed.
                 if (!usingPrePopulatedEventQueue)
                 {
                     AnalyzerManager.VerifyAllSymbolEndActionsExecuted();
                 }
-#endif
             }
         }
 
@@ -1138,7 +1136,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             var success = true;
             ArrayBuilder<DiagnosticAnalyzer> subsetProcessedAnalyzersBuilderOpt = null;
-            for(int i = 0; i < analysisScope.Analyzers.Length; i++)
+            for (int i = 0; i < analysisScope.Analyzers.Length; i++)
             {
                 var analyzer = analysisScope.Analyzers[i];
                 var analyzerSuccess = true;
@@ -1170,7 +1168,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 Debug.Assert(!success);
                 Debug.Assert(subsetProcessedAnalyzersBuilderOpt.Count < analysisScope.Analyzers.Length);
 
-                if(subsetProcessedAnalyzersBuilderOpt.Count > 0)
+                if (subsetProcessedAnalyzersBuilderOpt.Count > 0)
                 {
                     subsetProcessedAnalyzers = subsetProcessedAnalyzersBuilderOpt.ToImmutableAndFree();
                 }
@@ -2156,8 +2154,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     {
                         switch (operationBlock.Parent.Kind)
                         {
-                            case OperationKind.MethodBodyOperation:
-                            case OperationKind.ConstructorBodyOperation:
+                            case OperationKind.MethodBody:
+                            case OperationKind.ConstructorBody:
                                 operationsToAnalyze.Add(operationBlock.Parent);
                                 break;
 

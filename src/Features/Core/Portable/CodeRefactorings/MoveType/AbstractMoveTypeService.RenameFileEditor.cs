@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
 
                 return ImmutableArray.Create<CodeActionOperation>(
                     new RenameDocumentOperation(
-                        oldDocument.Id, newDocumentId, 
+                        oldDocument.Id, newDocumentId,
                         FileName, SemanticDocument.Text),
                     new OpenDocumentOperation(newDocumentId, activateIfAlreadyOpen: true));
             }

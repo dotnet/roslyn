@@ -377,7 +377,7 @@ namespace Microsoft.CodeAnalysis.NamingStyles
                     bool isWord = true;
                     var parts = StringBreaker.GetParts(name, isWord);
                     string[] newWords = new string[parts.Count];
-                    for(int i = 0; i < parts.Count; i++)
+                    for (int i = 0; i < parts.Count; i++)
                     {
                         newWords[i] = name.Substring(parts[i].Start, parts[i].End - parts[i].Start);
                     }

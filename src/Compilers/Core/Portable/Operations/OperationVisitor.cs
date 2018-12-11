@@ -524,7 +524,7 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             DefaultVisit(operation);
         }
-        
+
         public virtual void VisitRaiseEvent(IRaiseEventOperation operation)
         {
             DefaultVisit(operation);
@@ -576,6 +576,16 @@ namespace Microsoft.CodeAnalysis.Operations
         }
 
         public virtual void VisitRangeOperation(IRangeOperation operation)
+        {
+            DefaultVisit(operation);
+        }
+
+        public virtual void VisitReDim(IReDimOperation operation)
+        {
+            DefaultVisit(operation);
+        }
+
+        public virtual void VisitReDimClause(IReDimClauseOperation operation)
         {
             DefaultVisit(operation);
         }
@@ -1107,7 +1117,7 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             return DefaultVisit(operation, argument);
         }
-        
+
         public virtual TResult VisitRaiseEvent(IRaiseEventOperation operation, TArgument argument)
         {
             return DefaultVisit(operation, argument);
@@ -1159,6 +1169,16 @@ namespace Microsoft.CodeAnalysis.Operations
         }
 
         public virtual TResult VisitRangeOperation(IRangeOperation operation, TArgument argument)
+        {
+            return DefaultVisit(operation, argument);
+        }
+
+        public virtual TResult VisitReDim(IReDimOperation operation, TArgument argument)
+        {
+            return DefaultVisit(operation, argument);
+        }
+
+        public virtual TResult VisitReDimClause(IReDimClauseOperation operation, TArgument argument)
         {
             return DefaultVisit(operation, argument);
         }

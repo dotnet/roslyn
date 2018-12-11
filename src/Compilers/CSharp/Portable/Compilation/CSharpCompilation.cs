@@ -169,7 +169,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// The code may be less efficient and may deviate from spec in corner cases.
         /// The flag is only to be used if PEVerify pass is extremely important.
         /// </summary>
-        internal bool IsPeVerifyCompatEnabled => LanguageVersion < LanguageVersion.CSharp7_2 || Feature("peverify-compat") != null; 
+        internal bool IsPeVerifyCompatEnabled => LanguageVersion < LanguageVersion.CSharp7_2 || Feature("peverify-compat") != null;
 
         /// <summary>
         /// The language version that was used to parse the syntax trees of this compilation.
@@ -1263,7 +1263,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 throw new ArgumentOutOfRangeException(nameof(specialType), $"Unexpected SpecialType: '{(int)specialType}'.");
             }
 
-            var result = Assembly.GetSpecialType(specialType);
+            NamedTypeSymbol result;
+            if (IsTypeMissing(specialType))
+            {
+                MetadataTypeName emittedName = MetadataTypeName.FromFullName(specialType.GetMetadataName(), useCLSCompliantNameArityEncoding: true);
+                result = new MissingMetadataTypeSymbol.TopLevel(Assembly.CorLibrary.Modules[0], ref emittedName, specialType);
+            }
+            else
+            {
+                result = Assembly.GetSpecialType(specialType);
+            }
+
             Debug.Assert(result.SpecialType == specialType);
             return result;
         }
@@ -2208,6 +2218,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 CheckAssemblyName(builder);
                 builder.AddRange(Options.Errors);
+
+                if (Options.Nullable && LanguageVersion < MessageID.IDS_FeatureNullableReferenceTypes.RequiredVersion() &&
+                    _syntaxAndDeclarations.ExternalSyntaxTrees.Any())
+                {
+                    builder.Add(new CSDiagnostic(new CSDiagnosticInfo(ErrorCode.ERR_NullableOptionNotAvailable,
+                                                 nameof(Options.Nullable), Options.Nullable, LanguageVersion.ToDisplayString(),
+                                                 new CSharpRequiredLanguageVersion(MessageID.IDS_FeatureNullableReferenceTypes.RequiredVersion())), Location.None));
+                }
 
                 cancellationToken.ThrowIfCancellationRequested();
 
@@ -3422,7 +3440,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             private readonly Func<string, bool> _predicate;
 
             public PredicateSymbolSearcher(
-                CSharpCompilation compilation, SymbolFilter filter, Func<string, bool> predicate, CancellationToken cancellationToken) 
+                CSharpCompilation compilation, SymbolFilter filter, Func<string, bool> predicate, CancellationToken cancellationToken)
                 : base(compilation, filter, cancellationToken)
             {
                 _predicate = predicate;

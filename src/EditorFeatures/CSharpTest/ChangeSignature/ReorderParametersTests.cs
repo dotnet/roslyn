@@ -431,7 +431,7 @@ class Program
 
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
         }
-        
+
         [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         public async Task ReorderParamTagsInDocComments_SingleLineDocComments_OnIndividualLines()
         {

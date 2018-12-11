@@ -194,7 +194,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         AsyncKeyword = 8435,
         AwaitKeyword = 8436,
         WhenKeyword = 8437,
+        /// when adding a contextual keyword following functions must be adapted:
+        /// <see cref="SyntaxFacts.GetContextualKeywordKinds"/>
+        /// <see cref="SyntaxFacts.IsContextualKeyword(SyntaxKind)"/>
 
+        // keywords with an enum value less than ElifKeyword are considered i.a. contextual keywords
         // additional preprocessor keywords
         ElifKeyword = 8467,
         EndIfKeyword = 8468,
@@ -211,11 +215,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         DisableKeyword = 8479,
         RestoreKeyword = 8480,
         ReferenceKeyword = 8481,
-        LoadKeyword = 8485,
 
         InterpolatedStringStartToken = 8482,            // $"
         InterpolatedStringEndToken = 8483,              // "
         InterpolatedVerbatimStringStartToken = 8484,    // $@" or @$"
+
+        // additional preprocessor keywords (continued)
+        LoadKeyword = 8485,
+        NullableKeyword = 8486,
+        EnableKeyword = 8487,
 
         // Other
         UnderscoreToken = 8491,
@@ -570,5 +578,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         ThrowExpression = 9052,
         ImplicitStackAllocArrayCreationExpression = 9053,
         SuppressNullableWarningExpression = 9054,
+        NullableDirectiveTrivia = 9055,
     }
 }

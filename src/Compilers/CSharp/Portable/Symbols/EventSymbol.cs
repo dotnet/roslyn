@@ -91,15 +91,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal abstract bool HasSpecialName { get; }
 
-        public override bool? NonNullTypes
-        {
-            get
-            {
-                Debug.Assert(IsDefinition);
-                return ContainingType?.NonNullTypes;
-            }
-        }
-
         /// <summary>
         /// Gets the attributes on event's associated field, if any.
         /// Returns an empty <see cref="ImmutableArray&lt;AttributeData&gt;"/> if
@@ -257,7 +248,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Debug.Assert(this.IsDefinition);
             Debug.Assert(ReferenceEquals(newOwner.OriginalDefinition, this.ContainingSymbol.OriginalDefinition));
-            return (newOwner == this.ContainingSymbol) ? this : new SubstitutedEventSymbol(newOwner as SubstitutedNamedTypeSymbol, this);
+            return newOwner.IsDefinition ? this : new SubstitutedEventSymbol(newOwner as SubstitutedNamedTypeSymbol, this);
         }
 
         internal abstract bool MustCallMethodsDirectly { get; }

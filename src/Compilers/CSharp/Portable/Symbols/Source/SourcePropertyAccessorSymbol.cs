@@ -279,7 +279,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 MethodSymbol overriddenMethod = this.OverriddenMethod;
                 if ((object)overriddenMethod != null)
                 {
-                    CustomModifierUtils.CopyMethodCustomModifiers(overriddenMethod, this, out _lazyReturnType, 
+                    CustomModifierUtils.CopyMethodCustomModifiers(overriddenMethod, this, out _lazyReturnType,
                                                                   out _lazyRefCustomModifiers,
                                                                   out _lazyParameters, alsoCopyParamsModifier: true);
                 }
@@ -289,7 +289,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 PropertySymbol associatedProperty = _property;
                 var type = associatedProperty.Type;
                 _lazyReturnType = _lazyReturnType.WithTypeAndModifiers(
-                    CustomModifierUtils.CopyTypeCustomModifiers(type.TypeSymbol, _lazyReturnType.TypeSymbol, this.ContainingAssembly, nonNullTypesContext: associatedProperty),
+                    CustomModifierUtils.CopyTypeCustomModifiers(type.TypeSymbol, _lazyReturnType.TypeSymbol, this.ContainingAssembly),
                     type.CustomModifiers);
                 _lazyRefCustomModifiers = associatedProperty.RefCustomModifiers;
             }
@@ -373,7 +373,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             else
             {
                 var binder = GetBinder();
-                return TypeSymbolWithAnnotations.Create(nonNullTypesContext: _property, binder.GetSpecialType(SpecialType.System_Void, diagnostics, this.GetSyntax()));
+                return TypeSymbolWithAnnotations.Create(binder.GetSpecialType(SpecialType.System_Void, diagnostics, this.GetSyntax()));
             }
         }
 

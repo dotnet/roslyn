@@ -448,7 +448,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 if ((object)declaredBase != null)
                 {
                     declaredBase = (NamedTypeSymbol)NullableTypeDecoder.TransformType(
-                        TypeSymbolWithAnnotations.Create(nonNullTypesContext: this, declaredBase), _handle, ContainingPEModule).TypeSymbol;
+                        TypeSymbolWithAnnotations.Create(declaredBase), _handle, ContainingPEModule).TypeSymbol;
                 }
                 Interlocked.CompareExchange(ref _lazyDeclaredBaseTypeWithNullability, declaredBase, ErrorTypeSymbol.UnknownResultType);
             }
@@ -511,7 +511,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                         TypeSymbol typeSymbol = tokenDecoder.GetTypeOfToken(interfaceHandle);
 
                         typeSymbol = TupleTypeDecoder.DecodeTupleTypesIfApplicable(typeSymbol, interfaceImpl, moduleSymbol);
-                        typeSymbol = NullableTypeDecoder.TransformType(TypeSymbolWithAnnotations.Create(nonNullTypesContext: this, typeSymbol), interfaceImpl, moduleSymbol).TypeSymbol;
+                        typeSymbol = NullableTypeDecoder.TransformType(TypeSymbolWithAnnotations.Create(typeSymbol), interfaceImpl, moduleSymbol).TypeSymbol;
 
                         var namedTypeSymbol = typeSymbol as NamedTypeSymbol ?? new UnsupportedMetadataTypeSymbol(); // interface list contains a bad type
                         symbols.Add(namedTypeSymbol);
@@ -1986,15 +1986,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        public override bool? NonNullTypes
-        {
-            get
-            {
-                bool nonNullTypes;
-                return this.ContainingPEModule.Module.HasNonNullTypesAttribute(_handle, out nonNullTypes) ? nonNullTypes : base.NonNullTypes;
-            }
-        }
-
         internal override bool IsComImport
         {
             get
@@ -2441,8 +2432,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 // containing symbol for the temporary type is the namespace directly.
                 var nestedType = Create(this.ContainingPEModule, (PENamespaceSymbol)this.ContainingNamespace, _handle, null);
                 var nestedTypeParameters = nestedType.TypeParameters;
-                var containingTypeMap = new TypeMap(nonNullTypesContext: container, containingTypeParameters, IndexedTypeParameterSymbol.Take(n), allowAlpha: false);
-                var nestedTypeMap = new TypeMap(nonNullTypesContext: nestedType, nestedTypeParameters, IndexedTypeParameterSymbol.Take(nestedTypeParameters.Length), allowAlpha: false);
+                var containingTypeMap = new TypeMap(containingTypeParameters, IndexedTypeParameterSymbol.Take(n), allowAlpha: false);
+                var nestedTypeMap = new TypeMap(nestedTypeParameters, IndexedTypeParameterSymbol.Take(nestedTypeParameters.Length), allowAlpha: false);
 
                 for (int i = 0; i < n; i++)
                 {

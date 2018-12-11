@@ -249,7 +249,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Invocation, ObjectCreation, ObjectInitializer, or ElementAccess.
 
             if (!node.IsKind(IdentifierName))
-            { 
+            {
                 return false;
             }
 

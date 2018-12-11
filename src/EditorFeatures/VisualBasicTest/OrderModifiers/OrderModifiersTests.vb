@@ -25,7 +25,7 @@ end class
 ")
         End Function
 
-                <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsOrderModifiers)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsOrderModifiers)>
         public async Function TestStruct() As Threading.Tasks.Task
             Await TestInRegularAndScript1Async(
 "[|friend|] protected structure C

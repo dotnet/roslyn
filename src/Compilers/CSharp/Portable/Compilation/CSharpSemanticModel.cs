@@ -215,6 +215,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 binder = new TypeofBinder(expression, binder);
             }
 
+            binder = new WithNullableContextBinder(SyntaxTree, position, binder);
+
             return new ExecutableCodeBinder(expression, binder.ContainingMemberOrLambda, binder).GetBinder(expression);
         }
 
@@ -3184,7 +3186,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundKind.AwaitExpression:
                     var await = (BoundAwaitExpression)boundNode;
-                    isDynamic = await.IsDynamic;
+                    isDynamic = await.AwaitableInfo.IsDynamic;
                     // TODO:
                     goto default;
 

@@ -288,6 +288,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return Call(receiverOpt, property.GetMethod); // TODO: should we use property.GetBaseProperty().GetMethod to ensure we generate a call to the overridden method?
         }
 
+        public BoundExpression Indexer(BoundExpression receiverOpt, PropertySymbol property, BoundExpression arg0)
+        {
+            Debug.Assert((receiverOpt == null) == property.IsStatic);
+            return Call(receiverOpt, property.GetMethod, arg0); // TODO: should we use property.GetBaseProperty().GetMethod to ensure we generate a call to the overridden method?
+        }
+
         public NamedTypeSymbol SpecialType(SpecialType st)
         {
             NamedTypeSymbol specialType = Compilation.GetSpecialType(st);
@@ -491,7 +497,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundBinaryOperator Binary(BinaryOperatorKind kind, TypeSymbol type, BoundExpression left, BoundExpression right)
         {
-            return new BoundBinaryOperator(this.Syntax, kind, left, right, ConstantValue.NotAvailable, null, LookupResultKind.Viable, type) { WasCompilerGenerated = true };
+            return new BoundBinaryOperator(this.Syntax, kind, ConstantValue.NotAvailable, null, LookupResultKind.Viable, left, right, type) { WasCompilerGenerated = true };
         }
 
         public BoundAsOperator As(BoundExpression operand, TypeSymbol type)
@@ -664,7 +670,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundExpression Coalesce(BoundExpression left, BoundExpression right)
         {
-            Debug.Assert(left.Type.Equals(right.Type, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds));
+            Debug.Assert(left.Type.Equals(right.Type, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes));
             Debug.Assert(left.Type.IsReferenceType);
 
             return new BoundNullCoalescingOperator(Syntax, left, right, Conversion.Identity, BoundNullCoalescingOperatorResultKind.LeftType, left.Type) { WasCompilerGenerated = true };

@@ -536,11 +536,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var effectiveParameters = GetEffectiveParametersInNormalForm(
-                constructor, 
-                arguments.Arguments.Count, 
-                argumentAnalysis.ArgsToParamsOpt, 
-                arguments.RefKinds, 
-                isMethodGroupConversion: false, 
+                constructor,
+                arguments.Arguments.Count,
+                argumentAnalysis.ArgsToParamsOpt,
+                arguments.RefKinds,
+                isMethodGroupConversion: false,
                 allowRefOmittedArguments: false);
 
             return IsApplicable(
@@ -574,11 +574,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var effectiveParameters = GetEffectiveParametersInExpandedForm(
-                constructor, 
-                arguments.Arguments.Count, 
-                argumentAnalysis.ArgsToParamsOpt, 
-                arguments.RefKinds, 
-                isMethodGroupConversion: false, 
+                constructor,
+                arguments.Arguments.Count,
+                argumentAnalysis.ArgsToParamsOpt,
+                arguments.RefKinds,
+                isMethodGroupConversion: false,
                 allowRefOmittedArguments: false);
 
             // A vararg ctor is never applicable in its expanded form because
@@ -2654,7 +2654,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             return true;
                         }
 
-                        var x = lambda.InferReturnType(d1, ref useSiteDiagnostics);
+                        var x = lambda.InferReturnType(Conversions, d1, ref useSiteDiagnostics);
                         if (x.IsNull)
                         {
                             return true;
@@ -2861,10 +2861,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private static RefKind GetEffectiveParameterRefKind(
-            ParameterSymbol parameter, 
+            ParameterSymbol parameter,
             RefKind argRefKind,
             bool isMethodGroupConversion,
-            bool allowRefOmittedArguments, 
+            bool allowRefOmittedArguments,
             Binder binder,
             ref bool hasAnyRefOmittedArgument)
         {
@@ -3250,6 +3250,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 originalEffectiveParameters.ParameterTypes,
                 originalEffectiveParameters.ParameterRefKinds,
                 args,
+                out _,
                 ref useSiteDiagnostics);
 
             if (inferenceResult.Success)

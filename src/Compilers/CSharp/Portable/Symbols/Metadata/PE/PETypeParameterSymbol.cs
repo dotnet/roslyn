@@ -206,12 +206,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                             }
                         }
 
-                        // https://github.com/dotnet/roslyn/issues/30075: Test different [NonNullTypes] on method and containing type.
-                        var type = TypeSymbolWithAnnotations.Create(this, typeSymbol);
+                        var type = TypeSymbolWithAnnotations.Create(typeSymbol);
                         type = NullableTypeDecoder.TransformType(type, constraintHandle, moduleSymbol);
 
                         // Drop 'System.Object?' constraint type.
-                        if (type.SpecialType == SpecialType.System_Object && type.IsAnnotated)
+                        if (type.SpecialType == SpecialType.System_Object && type.NullableAnnotation.IsAnyNullable())
                         {
                             continue;
                         }
@@ -287,15 +286,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     return false;
                 }
 
-                if (((PEModuleSymbol)this.ContainingModule).Module.HasNullableAttribute(_handle, out ImmutableArray<bool> nullableTransformFlags) &&
-                    nullableTransformFlags.Length == 1 && nullableTransformFlags[0])
+                if (((PEModuleSymbol)this.ContainingModule).Module.HasNullableAttribute(_handle, out byte transformFlag, out _))
                 {
-                    return true;
-                }
-
-                if (NonNullTypes == true)
-                {
-                    return false;
+                    switch ((NullableAnnotation)transformFlag)
+                    {
+                        case NullableAnnotation.Annotated:
+                            return true;
+                        case NullableAnnotation.NotAnnotated:
+                            return false;
+                    }
                 }
 
                 return null;

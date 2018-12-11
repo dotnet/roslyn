@@ -37,9 +37,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// to perform substitution on the wrapped type, if any, and then construct a new
         /// error type symbol from the result (if there was a change).
         /// </summary>
-        internal virtual TypeSymbolWithAnnotations Substitute(AbstractTypeMap typeMap)
+        internal TypeSymbolWithAnnotations Substitute(AbstractTypeMap typeMap)
         {
-            return TypeSymbolWithAnnotations.Create((ErrorTypeSymbol)typeMap.SubstituteNamedType(this));
+            return TypeSymbolWithAnnotations.Create(typeMap.SubstituteNamedType(this));
         }
 
         /// <summary>
@@ -591,8 +591,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             return _hashCode;
         }
-
-        public override bool? NonNullTypes => false;
     }
 
     internal sealed class ConstructedErrorTypeSymbol : SubstitutedErrorTypeSymbol
@@ -645,7 +643,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             base(originalDefinition)
         {
             _containingSymbol = containingSymbol;
-            _map = containingSymbol.TypeSubstitution.WithAlphaRename(originalDefinition, this, nonNullTypesContext: originalDefinition, out _typeParameters);
+            _map = containingSymbol.TypeSubstitution.WithAlphaRename(originalDefinition, this, out _typeParameters);
         }
 
         public override ImmutableArray<TypeParameterSymbol> TypeParameters

@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -10,19 +11,20 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal sealed class LazyMissingNonNullTypesContextDiagnosticInfo : LazyDiagnosticInfo
     {
         private readonly CSharpCompilation _compilation;
-        private readonly INonNullTypesContext _context;
+        private readonly bool _isNullableEnabled;
         private readonly TypeSymbolWithAnnotations _type;
 
-        internal LazyMissingNonNullTypesContextDiagnosticInfo(CSharpCompilation compilation, INonNullTypesContext context, TypeSymbolWithAnnotations type)
+        internal LazyMissingNonNullTypesContextDiagnosticInfo(CSharpCompilation compilation, bool isNullableEnabled, TypeSymbolWithAnnotations type)
         {
+            Debug.Assert(!type.IsNull);
             _compilation = compilation;
-            _context = context;
+            _isNullableEnabled = isNullableEnabled;
             _type = type;
         }
 
         protected override DiagnosticInfo ResolveInfo()
         {
-            return ReportNullableReferenceTypesIfNeeded(_compilation, _context, _type);
+            return ReportNullableReferenceTypesIfNeeded(_compilation, _isNullableEnabled, _type);
         }
 
         /// <summary>
@@ -30,14 +32,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// - an error before C# 8.0
         /// - a warning outside of a NonNullTypes context
         /// </summary>
-        public static DiagnosticInfo ReportNullableReferenceTypesIfNeeded(CSharpCompilation compilation, INonNullTypesContext context, TypeSymbolWithAnnotations type)
+        public static DiagnosticInfo ReportNullableReferenceTypesIfNeeded(CSharpCompilation compilation, bool isNullableEnabled, TypeSymbolWithAnnotations type)
         {
-            return !type.IsNull && (type.IsValueType || type.IsErrorType()) ? null : ReportNullableReferenceTypesIfNeeded(compilation, context);
+            return !type.IsNull && (type.IsValueType || type.IsErrorType()) ? null : ReportNullableReferenceTypesIfNeeded(compilation, isNullableEnabled);
         }
 
-        private static DiagnosticInfo ReportNullableReferenceTypesIfNeeded(CSharpCompilation compilation, INonNullTypesContext nonNullTypesContext)
+        public static DiagnosticInfo ReportNullableReferenceTypesIfNeeded(CSharpCompilation compilation, bool isNullableEnabled)
         {
-            var featureID = MessageID.IDS_FeatureStaticNullChecking;
+            var featureID = MessageID.IDS_FeatureNullableReferenceTypes;
             if (!compilation.IsFeatureEnabled(featureID))
             {
                 LanguageVersion availableVersion = compilation.LanguageVersion;
@@ -45,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 return new CSDiagnosticInfo(availableVersion.GetErrorCode(), featureID.Localize(), new CSharpRequiredLanguageVersion(requiredVersion));
             }
-            else if (nonNullTypesContext.NonNullTypes != true)
+            else if (!isNullableEnabled)
             {
                 return new CSDiagnosticInfo(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation);
             }

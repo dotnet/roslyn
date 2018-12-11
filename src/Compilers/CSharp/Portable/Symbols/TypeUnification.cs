@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var substituted1 = SubstituteAllTypeParameters(substitution, TypeSymbolWithAnnotations.Create(t1));
                 var substituted2 = SubstituteAllTypeParameters(substitution, TypeSymbolWithAnnotations.Create(t2));
 
-                Debug.Assert(substituted1.TypeSymbol.Equals(substituted2.TypeSymbol, TypeCompareKind.IgnoreTupleNames));
+                Debug.Assert(substituted1.TypeSymbol.Equals(substituted2.TypeSymbol, TypeCompareKind.IgnoreTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes));
                 Debug.Assert(substituted1.CustomModifiers.SequenceEqual(substituted2.CustomModifiers));
             }
 #endif
@@ -183,8 +183,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         for (int i = 0; i < arity; i++)
                         {
-                            if (!CanUnifyHelper(nt1Arguments[i], 
-                                                nt2Arguments[i],  
+                            if (!CanUnifyHelper(nt1Arguments[i],
+                                                nt2Arguments[i],
                                                 ref substitution))
                             {
                                 return false;

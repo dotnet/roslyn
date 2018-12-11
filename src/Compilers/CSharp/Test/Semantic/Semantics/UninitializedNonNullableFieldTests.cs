@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
     internal T F4 = default(T);
 }";
             // https://github.com/dotnet/roslyn/issues/29849 Missing warnings for possible null-assignment to F3 and F4
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (1,16): warning CS8618: Non-nullable field 'F1' is uninitialized.
                 // internal class C<T> where T : new()
@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
     internal object?[] F3;
     private object[]? F4;
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue }, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (1,7): warning CS8618: Non-nullable field 'F3' is uninitialized.
                 // class C
@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
         F4 = new[] { x, y };
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue }, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (7,14): warning CS8618: Non-nullable field 'F3' is uninitialized.
                 //     internal C()
@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
     internal readonly object?[] F3;
     private readonly object[]? F4;
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue }, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (1,7): warning CS8618: Non-nullable field 'F3' is uninitialized.
                 // class C
@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
         F4 = new[] { x, y };
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue }, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (7,14): warning CS8618: Non-nullable field 'F3' is uninitialized.
                 //     internal C()
@@ -183,7 +183,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
     internal object?[] F3 = new [] { new object(), null };
     private object[]? F4 = new [] { new object() };
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue }, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics();
         }
 
@@ -201,14 +201,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
     private readonly static object F3;
     private readonly static object F4 = new object();
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue }, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics();
-                //// (8,12): warning CS8618: Non-nullable field 'F3' is uninitialized.
-                ////     static C()
-                //Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("field", "F3").WithLocation(8, 12),
-                //// (8,12): warning CS8618: Non-nullable field 'F1' is uninitialized.
-                ////     static C()
-                //Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("field", "F1").WithLocation(8, 12));
+            //// (8,12): warning CS8618: Non-nullable field 'F3' is uninitialized.
+            ////     static C()
+            //Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("field", "F3").WithLocation(8, 12),
+            //// (8,12): warning CS8618: Non-nullable field 'F1' is uninitialized.
+            ////     static C()
+            //Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("field", "F1").WithLocation(8, 12));
         }
 
         // https://github.com/dotnet/roslyn/issues/30020: Report warnings for static fields.
@@ -230,14 +230,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
         F4 = new object();
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue }, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics();
-                //// (8,12): warning CS8618: Non-nullable field 'F3' is uninitialized.
-                ////     static C()
-                //Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("field", "F3").WithLocation(8, 12),
-                //// (8,12): warning CS8618: Non-nullable field 'F1' is uninitialized.
-                ////     static C()
-                //Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("field", "F1").WithLocation(8, 12));
+            //// (8,12): warning CS8618: Non-nullable field 'F3' is uninitialized.
+            ////     static C()
+            //Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("field", "F3").WithLocation(8, 12),
+            //// (8,12): warning CS8618: Non-nullable field 'F1' is uninitialized.
+            ////     static C()
+            //Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("field", "F1").WithLocation(8, 12));
         }
 
         // Each constructor is handled in isolation.
@@ -272,7 +272,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
         F3 = z;
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue }, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (7,13): warning CS8618: Non-nullable field 'F2' is uninitialized.
                 //     private C()
@@ -312,7 +312,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
         P4 = new[] { x, y };
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue }, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (7,14): warning CS8618: Non-nullable property 'P3' is uninitialized.
                 //     internal C()
@@ -352,7 +352,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
         P4 = new[] { x, y };
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue }, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (7,14): warning CS8618: Non-nullable property 'P3' is uninitialized.
                 //     internal C()
@@ -377,7 +377,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
     private object P1 { get; } = new object();
     internal object P2 { get; set; } = new object();
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue }, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics();
         }
 
@@ -397,7 +397,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
         P2 = new object?[] { o };
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue }, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics();
         }
 
@@ -415,7 +415,7 @@ class C
     {
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue }, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics();
         }
 
@@ -439,7 +439,7 @@ class C
         P4 = t;
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue }, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (10,13): warning CS8618: Non-nullable field 'F2' is uninitialized.
                 //     private C(T t)
@@ -469,7 +469,7 @@ class C
     {
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue }, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (10,13): warning CS8618: Non-nullable property 'P1' is uninitialized.
                 //     private C()
@@ -495,7 +495,7 @@ class C
     {
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue }, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics();
         }
 
@@ -525,7 +525,7 @@ class C<T> where T : struct
 }";
 
             // [NonNullTypes(true)]
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue }, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (11,5): warning CS8618: Non-nullable field 'F2' is uninitialized.
                 //     B() { }
@@ -535,37 +535,21 @@ class C<T> where T : struct
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "A").WithArguments("field", "F1").WithLocation(5, 5));
 
             // [NonNullTypes(false)]
-            comp = CreateCompilation(new[] { source, NonNullTypesFalse }, parseOptions: TestOptions.Regular8);
+            comp = CreateCompilation(new[] { source }, options: WithNonNullTypesFalse(), parseOptions: TestOptions.Regular8);
 
-            // https://github.com/dotnet/roslyn/issues/30021: It feels like the following warning is confusing 
-            // (11,5): warning CS8618: Non-nullable field 'F3' is uninitialized.
-            //     B() { }
-            //
-            // We might want to understand why the following error causes it
-            // (10,8): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
-            //     T? F3;
             comp.VerifyDiagnostics(
-                // (10,6): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
+                // (10,6): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
                 //     T? F3;
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(10, 6),
                 // (10,5): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
                 //     T? F3;
-                Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "T?").WithLocation(10, 5),
-                // (5,5): warning CS8618: Non-nullable field 'F1' is uninitialized.
-                //     A() { }
-                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "A").WithArguments("field", "F1").WithLocation(5, 5),
-                // (11,5): warning CS8618: Non-nullable field 'F3' is uninitialized.
-                //     B() { }
-                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "B").WithArguments("field", "F3").WithLocation(11, 5),
-                // (11,5): warning CS8618: Non-nullable field 'F2' is uninitialized.
-                //     B() { }
-                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "B").WithArguments("field", "F2").WithLocation(11, 5)
+                Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "T?").WithLocation(10, 5)
             );
 
             // [NonNullTypes] missing
             comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
-                // (10,6): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
+                // (10,6): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
                 //     T? F3;
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(10, 6),
                 // (10,5): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
@@ -608,7 +592,7 @@ class C5<T, U> where T : A where U : T
     T F5;
     U G5;
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue }, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (4,7): warning CS8618: Non-nullable field 'G1' is uninitialized.
                 // class C1<T, U> where U : T
@@ -648,7 +632,7 @@ class C5<T, U> where T : A where U : T
     internal readonly (object, object? B) F3;
     internal readonly (object?, object?) F4;
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue }, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics();
         }
 
@@ -669,7 +653,7 @@ class C5<T, U> where T : A where U : T
             P = new [] { s };
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue }, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (6,14): warning CS8618: Non-nullable property 'P' is uninitialized.
                 //     internal C(string s)
@@ -696,7 +680,7 @@ class C5<T, U> where T : A where U : T
             P = new [] { s };
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue }, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (6,14): error CS0843: Auto-implemented property 'S.P' must be fully assigned before control is returned to the caller.
                 //     internal S(string s)
@@ -722,7 +706,7 @@ class C5<T, U> where T : A where U : T
     {
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue }, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics();
         }
 
@@ -742,7 +726,7 @@ class C5<T, U> where T : A where U : T
         this = s;
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue }, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics();
         }
 
@@ -765,7 +749,7 @@ class C
         F(new S() { F = string.Empty });
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue }, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics();
         }
 
@@ -780,7 +764,7 @@ class C
     private readonly S s;
     private int i;
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue }, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics();
         }
 
@@ -802,7 +786,7 @@ class C
         L(new object());
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue }, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (6,5): warning CS8618: Non-nullable field 'G' is uninitialized.
                 //     C()

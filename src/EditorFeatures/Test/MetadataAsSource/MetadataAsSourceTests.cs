@@ -3,6 +3,7 @@
 using System;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeGeneration;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
@@ -710,7 +711,7 @@ End Class");
             {
                 var file = await context.GenerateSourceAsync("System.Console", project: context.DefaultProject);
                 var document = context.GetDocument(file);
-                await Formatting.Formatter.FormatAsync(document);
+                await Formatter.FormatAsync(document);
             }
         }
 

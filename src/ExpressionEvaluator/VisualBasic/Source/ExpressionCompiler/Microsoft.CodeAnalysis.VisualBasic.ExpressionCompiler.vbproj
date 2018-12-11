@@ -6,7 +6,7 @@
     <PlatformTarget>AnyCPU</PlatformTarget>
     <OutputType>Library</OutputType>
     <AssemblyName>Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.ExpressionCompiler</AssemblyName>
-    <TargetFramework>netstandard1.3</TargetFramework>
+    <TargetFramework>netstandard2.0</TargetFramework>
     <RootNamespace></RootNamespace>
   </PropertyGroup>
   <ItemGroup Label="Project References">
@@ -47,5 +47,5 @@
       <ExcludeAssets>compile</ExcludeAssets>
     </PackageReference>
   </ItemGroup>
-  <Import Project="..\..\..\..\..\build\Targets\Vsdconfig.targets" />
+  <Import Project="$(RepositoryEngineeringDir)targets\Vsdconfig.targets" />
 </Project>
