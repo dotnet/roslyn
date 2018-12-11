@@ -744,8 +744,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             foreach (var portableExecutableReference in project.MetadataReferences.OfType<PortableExecutableReference>())
             {
                 // Loop to find each reference with the given path. It's possible that there might be multiple references of the same path;
-                // the project system could concievably add the same reference multiple times but with different aliases. It's also possible
-                // we might not find the path at all: when we recieve the file changed event, we aren't checking if the file is still
+                // the project system could conceivably add the same reference multiple times but with different aliases. It's also possible
+                // we might not find the path at all: when we receive the file changed event, we aren't checking if the file is still
                 // in the workspace at that time; it's possible it might have already been removed. We could add a second check for the file
                 // there, but it's just overhead checking for a rare situation we'll still be able to deal with here.
                 if (portableExecutableReference.FilePath == fullFilePath)
