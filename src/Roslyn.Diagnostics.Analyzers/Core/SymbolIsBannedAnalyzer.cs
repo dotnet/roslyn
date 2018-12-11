@@ -214,11 +214,14 @@ namespace Roslyn.Diagnostics.Analyzers
                     if (bannedAttributes.TryGetValue(attribute.AttributeClass, out var message))
                     {
                         var node = attribute.ApplicationSyntaxReference?.GetSyntax();
-                        ReportDiagnostic(
-                            node.CreateDiagnostic(
-                                SymbolIsBannedAnalyzer.SymbolIsBannedRule,
-                                attribute.AttributeClass.ToDisplayString(),
-                                string.IsNullOrWhiteSpace(message) ? "" : ": " + message));
+                        if (node != null)
+                        {
+                            ReportDiagnostic(
+                                node.CreateDiagnostic(
+                                    SymbolIsBannedAnalyzer.SymbolIsBannedRule,
+                                    attribute.AttributeClass.ToDisplayString(),
+                                    string.IsNullOrWhiteSpace(message) ? "" : ": " + message));
+                        }
                     }
                 }
             }
