@@ -355,13 +355,11 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
             foreach (var documentId in documentIds)
             {
                 var document = formattedSolution.GetDocument(documentId);
-                var formattedRoot = await Formatter.FormatAsync(
-                    await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false),
+                var formattedDocument = await Formatter.FormatAsync(
+                    document,
                     Formatter.Annotation,
-                    document.Project.Solution.Workspace, 
                     cancellationToken: cancellationToken).ConfigureAwait(false);
 
-                var formattedDocument = document.WithSyntaxRoot(formattedRoot);
                 var simplifiedDocument = await Simplifier.ReduceAsync(
                     formattedDocument, 
                     Simplifier.Annotation, 

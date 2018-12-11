@@ -107,12 +107,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractInterface
                     SyntaxFactory.TypeArgumentList(SyntaxFactory.SeparatedList(extractedInterfaceSymbol.TypeParameters.Select(Function(p) SyntaxFactory.ParseTypeName(p.Name))))),
                 SyntaxFactory.ParseTypeName(extractedInterfaceSymbol.Name))
 
-            Dim formattedStatementSyntax = Await Formatter.FormatAsync(
-                implementedInterfaceStatementSyntax, unformattedSolution.Workspace,
-                cancellationToken:=cancellationToken).ConfigureAwait(False)
-
-            Dim implementedInterfaceStatement = formattedStatementSyntax.ToFullString()
-
             For Each member In includedMembers
                 Dim annotation = symbolToDeclarationAnnotationMap(member)
 
@@ -139,7 +133,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractInterface
                     Continue For
                 End If
 
-                Dim qualifiedName As QualifiedNameSyntax = SyntaxFactory.QualifiedName(SyntaxFactory.ParseName(implementedInterfaceStatement), SyntaxFactory.IdentifierName(member.Name))
+                Dim qualifiedName As QualifiedNameSyntax = SyntaxFactory.QualifiedName(implementedInterfaceStatementSyntax.GetRightmostName(), SyntaxFactory.IdentifierName(member.Name))
 
                 Dim method = TryCast(token.Parent, MethodStatementSyntax)
                 If method IsNot Nothing Then
