@@ -1861,6 +1861,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitUsingLocalDeclarations(BoundUsingLocalDeclarations node)
         {
+            if (((LocalDeclarationStatementSyntax)node.Syntax).AwaitKeyword != default)
+            {
+                _pendingBranches.Add(new PendingBranch(node, this.State));
+            }
             return VisitMultipleLocalDeclarations(node);
         }
 

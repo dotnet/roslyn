@@ -1,10 +1,20 @@
-﻿using Roslyn.Test.Utilities;
+﻿using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
     public class CodeGenUsingDeclarationTests : EmitMetadataTestBase
     {
+        private const string _asyncDisposable = @"
+namespace System
+{
+    public interface IAsyncDisposable
+    {
+        System.Threading.Tasks.ValueTask DisposeAsync();
+    }
+}";
+
         [Fact]
         public void UsingVariableVarEmitTest()
         {
@@ -1089,5 +1099,168 @@ class C
             CompileAndVerify(source, expectedOutput: "Dispose; ");
         }
 
+        [Fact]
+        public void UsingDeclarationAsync()
+        {
+            var source = @"
+using System;
+using System.Threading.Tasks;
+class C1 : IAsyncDisposable
+{
+    public ValueTask DisposeAsync() 
+    { 
+        Console.WriteLine(""Dispose async"");
+        return new ValueTask(Task.CompletedTask);
+    }
+}
+
+class C2
+{
+    static async Task Main()
+    {
+        await using C1 c = new C1();
+    }
+}";
+            var compilation = CreateCompilationWithTasksExtensions(source + _asyncDisposable, options: TestOptions.DebugExe).VerifyDiagnostics();
+
+            CompileAndVerify(compilation, expectedOutput: "Dispose async").VerifyIL("C2.Main", @"
+{
+  // Code size       52 (0x34)
+  .maxstack  2
+  .locals init (C2.<Main>d__0 V_0,
+                System.Runtime.CompilerServices.AsyncTaskMethodBuilder V_1)
+  IL_0000:  newobj     ""C2.<Main>d__0..ctor()""
+  IL_0005:  stloc.0
+  IL_0006:  ldloc.0
+  IL_0007:  call       ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder System.Runtime.CompilerServices.AsyncTaskMethodBuilder.Create()""
+  IL_000c:  stfld      ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder C2.<Main>d__0.<>t__builder""
+  IL_0011:  ldloc.0
+  IL_0012:  ldc.i4.m1
+  IL_0013:  stfld      ""int C2.<Main>d__0.<>1__state""
+  IL_0018:  ldloc.0
+  IL_0019:  ldfld      ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder C2.<Main>d__0.<>t__builder""
+  IL_001e:  stloc.1
+  IL_001f:  ldloca.s   V_1
+  IL_0021:  ldloca.s   V_0
+  IL_0023:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.Start<C2.<Main>d__0>(ref C2.<Main>d__0)""
+  IL_0028:  ldloc.0
+  IL_0029:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder C2.<Main>d__0.<>t__builder""
+  IL_002e:  call       ""System.Threading.Tasks.Task System.Runtime.CompilerServices.AsyncTaskMethodBuilder.Task.get""
+  IL_0033:  ret
+}");
+        }
+
+        [Fact]
+        public void UsingDeclarationAsyncPattern()
+        {
+            var source = @"
+using System.Threading.Tasks;
+class C1
+{
+    public Task DisposeAsync() 
+    { 
+        System.Console.WriteLine(""Dispose async"");
+        return Task.CompletedTask;
+    }
+}
+
+class C2
+{
+    static async Task Main()
+    {
+        await using C1 c = new C1();
+    }
+}";
+            var compilation = CreateCompilationWithTasksExtensions(source + _asyncDisposable, options: TestOptions.DebugExe).VerifyDiagnostics();
+
+            CompileAndVerify(compilation, expectedOutput: "Dispose async");
+        }
+
+        [Fact]
+        public void UsingDeclarationAsyncPatternWithTaskLikeReturnTest()
+        {
+            var source = @"
+using System;
+using System.Runtime.CompilerServices;
+class C1
+{
+    public C1() { }
+    public MyTask DisposeAsync() {  Console.Write(""Dispose Async; ""); return new MyTask(); }
+}
+
+[AsyncMethodBuilder(typeof(MyTaskMethodBuilder))]
+struct MyTask
+{
+    internal Awaiter GetAwaiter() => new Awaiter();
+    internal class Awaiter : INotifyCompletion
+    {
+        public void OnCompleted(Action a) { }
+        internal bool IsCompleted => true;
+        internal void GetResult() { }
+    }
+}
+
+struct MyTaskMethodBuilder
+{
+    private MyTask _task;
+    public static MyTaskMethodBuilder Create() => new MyTaskMethodBuilder(new MyTask());
+    internal MyTaskMethodBuilder(MyTask task)
+    {
+        _task = task;
+    }
+    public void SetStateMachine(IAsyncStateMachine stateMachine) { }
+    public void Start<TStateMachine>(ref TStateMachine stateMachine) where TStateMachine : IAsyncStateMachine
+    {
+        stateMachine.MoveNext();
+    }
+    public void SetException(Exception e) { }
+    public void SetResult() { }
+    public void AwaitOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : INotifyCompletion where TStateMachine : IAsyncStateMachine { }
+    public void AwaitUnsafeOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : ICriticalNotifyCompletion where TStateMachine : IAsyncStateMachine { }
+    public MyTask Task => _task;
+}
+
+
+
+class C2
+{
+    static async System.Threading.Tasks.Task Main()
+    {
+        await using C1 c = new C1();
+    }
+}";
+            var compilation = CreateCompilationWithTasksExtensions(source + _asyncDisposable, options: TestOptions.DebugExe).VerifyDiagnostics();
+
+            CompileAndVerify(compilation, expectedOutput: "Dispose Async; ");
+        }
+
+        [Fact]
+        public void UsingDeclarationAsyncPatternExtensionMethod()
+        {
+            var source = @"
+using System.Threading.Tasks;
+class C1
+{
+}
+static class C2
+{
+    public static Task DisposeAsync(this C1 c1) 
+    { 
+        System.Console.WriteLine(""Dispose async"");
+        return Task.CompletedTask;
+    }
+}
+
+class C3
+{
+    static async Task Main()
+    {
+        await using C1 c = new C1();
+    }
+}";
+            var compilation = CreateCompilationWithTasksExtensions(source + _asyncDisposable, options: TestOptions.DebugExe).VerifyDiagnostics();
+
+            CompileAndVerify(compilation, expectedOutput: "Dispose async");
+        }
     }
 }

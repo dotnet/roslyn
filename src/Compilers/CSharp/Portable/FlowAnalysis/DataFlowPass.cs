@@ -275,6 +275,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.ForEachStatement:
                     var foreachStatement = (BoundForEachStatement)pending.Branch;
                     return foreachStatement.AwaitOpt != null;
+                case BoundKind.UsingLocalDeclarations:
+                    var localDeclaration = (BoundUsingLocalDeclarations)pending.Branch;
+                    return localDeclaration.AwaitOpt != null;
                 default:
                     return false;
             }

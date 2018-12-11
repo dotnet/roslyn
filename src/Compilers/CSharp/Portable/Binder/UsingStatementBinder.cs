@@ -112,12 +112,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (hasAwait)
             {
-                TypeSymbol taskType = this.Compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_ValueTask);
-                hasErrors |= ReportUseSiteDiagnostics(taskType, diagnostics, _syntax.AwaitKeyword);
-
                 var resource = (SyntaxNode)expressionSyntax ?? declarationSyntax;
-                BoundExpression placeholder = new BoundAwaitableValuePlaceholder(resource, taskType).MakeCompilerGenerated();
-                awaitOpt = BindAwaitInfo(placeholder, resource, _syntax.AwaitKeyword.GetLocation(), diagnostics, ref hasErrors);
+                awaitOpt = BindAsyncDisposeAwaiter(resource, _syntax.AwaitKeyword, disposeMethod, diagnostics, ref hasErrors);
             }
 
             BoundStatement boundBody = originalBinder.BindPossibleEmbeddedStatement(_syntax.Statement, diagnostics);
