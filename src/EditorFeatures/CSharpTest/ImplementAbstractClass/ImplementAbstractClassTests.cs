@@ -1903,5 +1903,150 @@ record B(int i) : A
     }
 }", parseOptions: TestOptions.RegularPreview);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
+        public async Task TestAllowNullAttributeOnNonNullableReferenceType()
+        {
+            await TestInRegularAndScript1Async(
+@"#nullable enable
+
+abstract class Base<T>
+{
+    [return: System.Diagnostics.CodeAnalysis.MaybeNullAttribute]
+    protected abstract T Method([System.Diagnostics.CodeAnalysis.AllowNullAttribute] T value);
+}
+
+class [|Class|] : Base<string>
+{
+#pragma warning disable CS8609 // Nullability of reference types in return type doesn't match overridden member.
+}",
+@"#nullable enable
+
+abstract class Base<T>
+{
+    [return: System.Diagnostics.CodeAnalysis.MaybeNullAttribute]
+    protected abstract T Method([System.Diagnostics.CodeAnalysis.AllowNullAttribute] T value);
+}
+
+class Class : Base<string>
+{
+#pragma warning disable CS8609 // Nullability of reference types in return type doesn't match overridden member.
+    protected override string? Method(string? value)
+    {
+        throw new System.NotImplementedException();
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
+        public async Task TestAllowNullAttributeOnNullableReferenceType()
+        {
+            await TestInRegularAndScript1Async(
+@"#nullable enable
+
+abstract class Base<T>
+{
+    [return: System.Diagnostics.CodeAnalysis.MaybeNullAttribute]
+    protected abstract T Method([System.Diagnostics.CodeAnalysis.AllowNullAttribute] T value);
+}
+
+class [|Class|] : Base<string?>
+{
+}",
+@"#nullable enable
+
+abstract class Base<T>
+{
+    [return: System.Diagnostics.CodeAnalysis.MaybeNullAttribute]
+    protected abstract T Method([System.Diagnostics.CodeAnalysis.AllowNullAttribute] T value);
+}
+
+class Class : Base<string?>
+{
+    protected override string? Method(string? value)
+    {
+        throw new System.NotImplementedException();
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
+        public async Task TestFlowAnalysisAttributeOnNonNullableValueType()
+        {
+            await TestInRegularAndScript1Async(
+@"abstract class Base<T>
+{
+    [return: System.Diagnostics.CodeAnalysis.MaybeNullAttribute]
+    protected abstract T MethodAllowNull([System.Diagnostics.CodeAnalysis.AllowNullAttribute] T value);
+
+    [return: System.Diagnostics.CodeAnalysis.NotNullAttribute]
+    protected abstract T MethodDisallowNull([System.Diagnostics.CodeAnalysis.DisallowNullAttribute] T value);
+}
+
+class [|Class<T>|] : Base<T> where T : struct
+{
+}",
+@"abstract class Base<T>
+{
+    [return: System.Diagnostics.CodeAnalysis.MaybeNullAttribute]
+    protected abstract T MethodAllowNull([System.Diagnostics.CodeAnalysis.AllowNullAttribute] T value);
+
+    [return: System.Diagnostics.CodeAnalysis.NotNullAttribute]
+    protected abstract T MethodDisallowNull([System.Diagnostics.CodeAnalysis.DisallowNullAttribute] T value);
+}
+
+class Class<T> : Base<T> where T : struct
+{
+    protected override T MethodAllowNull(T value)
+    {
+        throw new System.NotImplementedException();
+    }
+
+    protected override T MethodDisallowNull(T value)
+    {
+        throw new System.NotImplementedException();
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
+        public async Task TestFlowAnalysisAttributeOnNullableValueType()
+        {
+            await TestInRegularAndScript1Async(
+@"abstract class Base<T>
+{
+    [return: System.Diagnostics.CodeAnalysis.MaybeNullAttribute]
+    protected abstract T MethodAllowNull([System.Diagnostics.CodeAnalysis.AllowNullAttribute] T value);
+
+    [return: System.Diagnostics.CodeAnalysis.NotNullAttribute]
+    protected abstract T MethodDisallowNull([System.Diagnostics.CodeAnalysis.DisallowNullAttribute] T value);
+}
+
+class [|Class<T>|] : Base<T?> where T : struct
+{
+}",
+@"abstract class Base<T>
+{
+    [return: System.Diagnostics.CodeAnalysis.MaybeNullAttribute]
+    protected abstract T MethodAllowNull([System.Diagnostics.CodeAnalysis.AllowNullAttribute] T value);
+
+    [return: System.Diagnostics.CodeAnalysis.NotNullAttribute]
+    protected abstract T MethodDisallowNull([System.Diagnostics.CodeAnalysis.DisallowNullAttribute] T value);
+}
+
+class Class<T> : Base<T?> where T : struct
+{
+    protected override T? MethodAllowNull(T? value)
+    {
+        throw new System.NotImplementedException();
+    }
+
+    [return: System.Diagnostics.CodeAnalysis.NotNullAttribute]
+    protected override T? MethodDisallowNull([System.Diagnostics.CodeAnalysis.DisallowNullAttribute] T? value)
+    {
+        throw new System.NotImplementedException();
+    }
+}");
+        }
     }
 }

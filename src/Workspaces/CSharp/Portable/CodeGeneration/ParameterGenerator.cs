@@ -84,10 +84,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 return reusableSyntax;
             }
 
+            var nullableAnnotation = p.NullableAnnotation;
             return SyntaxFactory.Parameter(p.Name.ToIdentifierToken())
-                    .WithAttributeLists(GenerateAttributes(p, isExplicit, options))
+                    .WithAttributeLists(GenerateAttributes(p, isExplicit, options, ref nullableAnnotation))
                     .WithModifiers(GenerateModifiers(p, isFirstParam))
-                    .WithType(p.Type.GenerateTypeSyntax())
+                    .WithType(p.Type.WithNullableAnnotation(nullableAnnotation).GenerateTypeSyntax())
                     .WithDefault(GenerateEqualsValueClause(p, isExplicit, seenOptional));
         }
 
@@ -142,7 +143,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         }
 
         private static SyntaxList<AttributeListSyntax> GenerateAttributes(
-            IParameterSymbol parameter, bool isExplicit, CodeGenerationOptions options)
+            IParameterSymbol parameter, bool isExplicit, CodeGenerationOptions options, ref NullableAnnotation nullableAnnotation)
         {
             if (isExplicit)
             {
@@ -150,6 +151,26 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             }
 
             var attributes = parameter.GetAttributes();
+
+            if (parameter.Type.IsReferenceType)
+            {
+                var newAttributes = attributes.RemoveAll(IsAllowNullAttribute);
+                if (newAttributes.Length != attributes.Length)
+                {
+                    attributes = newAttributes;
+                    if (nullableAnnotation == NullableAnnotation.NotAnnotated)
+                    {
+                        nullableAnnotation = NullableAnnotation.Annotated;
+                    }
+                }
+            }
+            else if (parameter.Type.IsValueType)
+            {
+                attributes = parameter.NullableAnnotation == NullableAnnotation.Annotated
+                    ? attributes.RemoveAll(IsAllowNullAttribute)
+                    : attributes.RemoveAll(IsNullableFlowAnalysisAttribute);
+            }
+
             if (attributes.Length == 0)
             {
                 return default;

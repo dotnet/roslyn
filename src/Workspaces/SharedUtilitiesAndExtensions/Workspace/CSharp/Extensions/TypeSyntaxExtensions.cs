@@ -51,9 +51,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 && !typeSymbol.IsErrorType();
         }
 
-        public static TypeSyntax GenerateReturnTypeSyntax(this IMethodSymbol method)
+        public static TypeSyntax GenerateReturnTypeSyntax(this IMethodSymbol method) =>
+            GenerateReturnTypeSyntax(method, method.ReturnNullableAnnotation);
+
+        public static TypeSyntax GenerateReturnTypeSyntax(this IMethodSymbol method, NullableAnnotation returnNullableAnnotation)
         {
-            var returnType = method.ReturnType;
+            var returnType = method.ReturnType.WithNullableAnnotation(returnNullableAnnotation);
 
             if (method.ReturnsByRef)
             {

@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Editing;
@@ -101,6 +102,62 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         public static bool IsSpecialType(ITypeSymbol type, SpecialType specialType)
             => type != null && type.SpecialType == specialType;
+
+        /// <summary>
+        /// Indicates whether the specified attribute is <see cref="AllowNullAttribute"/>, <see cref="MaybeNullAttribute"/> or <see cref="MaybeNullWhenAttribute"/>.
+        /// </summary>
+        public static bool IsAllowNullAttribute(AttributeData attribute) =>
+            IsFlowAnalysisNamespace(attribute.AttributeClass.ContainingNamespace) &&
+                attribute.AttributeClass.Name switch
+                {
+                    nameof(AllowNullAttribute) => true,
+                    nameof(MaybeNullAttribute) => true,
+                    nameof(MaybeNullWhenAttribute) => true,
+                    _ => false
+                };
+
+        public static bool IsNullableFlowAnalysisAttribute(AttributeData attribute) =>
+            IsFlowAnalysisNamespace(attribute.AttributeClass.ContainingNamespace) &&
+                attribute.AttributeClass.Name switch
+                {
+                    nameof(AllowNullAttribute) => true,
+                    nameof(DisallowNullAttribute) => true,
+                    nameof(MaybeNullAttribute) => true,
+                    nameof(NotNullAttribute) => true,
+                    nameof(MaybeNullWhenAttribute) => true,
+                    nameof(NotNullWhenAttribute) => true,
+                    nameof(NotNullIfNotNullAttribute) => true,
+                    _ => false
+                };
+
+        private static bool IsFlowAnalysisNamespace(INamespaceSymbol namespaceSymbol)
+        {
+            return GetNameParts(namespaceSymbol).SequenceEqual(
+                new[]
+                {
+                    nameof(System),
+                    nameof(System.Diagnostics),
+                    nameof(System.Diagnostics.CodeAnalysis)
+                });
+
+            static List<string> GetNameParts(INamespaceSymbol namespaceSymbol)
+            {
+                var result = new List<string>();
+                AddNameParts(namespaceSymbol, result);
+                return result;
+            }
+
+            static void AddNameParts(INamespaceSymbol namespaceSymbol, List<string> result)
+            {
+                if (namespaceSymbol is null || namespaceSymbol.IsGlobalNamespace)
+                {
+                    return;
+                }
+
+                AddNameParts(namespaceSymbol.ContainingNamespace, result);
+                result.Add(namespaceSymbol.Name);
+            }
+        }
 
         public static int GetPreferredIndex(int index, IList<bool> availableIndices, bool forward)
         {
