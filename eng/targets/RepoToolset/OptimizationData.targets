@@ -27,7 +27,7 @@
           Condition="'$(IsWpfTempProject)' != 'true' and '$(ApplyPartialNgenOptimization)' == 'true'"
           Inputs="$(MSBuildAllProjects);@(IntermediateAssembly)"
           Outputs="@(IntermediateAssembly);$(PostCompileBinaryModificationSentinelFile)">
-    
+
     <!-- Write out a sentinel timestamp file to prevent unnecessary work in incremental builds. -->
     <Touch AlwaysCreate="true" Files="$(PostCompileBinaryModificationSentinelFile)" />
 
@@ -36,7 +36,7 @@
     </ItemGroup>
   </Target>
 
-  <Target Name="_InitializeAssemblyOptimizationWithTargetAssembly">    
+  <Target Name="_InitializeAssemblyOptimizationWithTargetAssembly">
     <ItemGroup>
       <OptimizeAssembly Include="@(IntermediateAssembly)" PreviousOptimizedFile="$(_PreviousOptimizedFile)" />
     </ItemGroup>
@@ -63,7 +63,7 @@
   <Target Name="ApplyOptimizations"
           DependsOnTargets="_CalculateIbcArgs"
           Condition="'@(OptimizeAssembly)' != '' and '$(Configuration)' == 'Release' and '$(ContinuousIntegrationBuild)' == 'true' and '$(ApplyPartialNgenOptimization)' == 'true'">
-    
+
     <PropertyGroup>
       <_IbcMergePath>$(NuGetPackageRoot)microsoft.dotnet.ibcmerge\$(MicrosoftDotNetIBCMergeVersion)\lib\net45\ibcmerge.exe</_IbcMergePath>
 

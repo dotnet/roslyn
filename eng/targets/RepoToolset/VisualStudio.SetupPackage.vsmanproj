@@ -20,7 +20,7 @@
   <PropertyGroup>
     <FinalizeManifest>false</FinalizeManifest>
     <FinalizeManifest Condition="'$(OfficialBuild)' == 'true'">true</FinalizeManifest>
-    
+
     <FinalizeSkipLayout>true</FinalizeSkipLayout>
     <IsPackage>true</IsPackage>
     <TargetName>$(ComponentName)</TargetName>

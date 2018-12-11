@@ -7,9 +7,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="xunit" Version="$(XUnitVersion)" IsImplicitlyDefined="true" PrivateAssets="all"/>
-    <PackageReference Include="xunit.runner.visualstudio" Version="$(XUnitRunnerVisualStudioVersion)" IsImplicitlyDefined="true" PrivateAssets="all"/>
-    <PackageReference Include="xunit.runner.console" Version="$(XUnitRunnerConsoleVersion)" IsImplicitlyDefined="true" PrivateAssets="all"/>
+    <PackageReference Include="xunit" Version="$(XUnitVersion)" IsImplicitlyDefined="true" PrivateAssets="all" Publish="true"/>
+    <PackageReference Include="xunit.runner.visualstudio" Version="$(XUnitRunnerVisualStudioVersion)" IsImplicitlyDefined="true" PrivateAssets="all" Publish="true"/>
+    <PackageReference Include="xunit.runner.console" Version="$(XUnitRunnerConsoleVersion)" IsImplicitlyDefined="true" PrivateAssets="all" Publish="true"/>
   </ItemGroup>
 
   <!--
@@ -39,6 +39,7 @@
       <_TestEnvironment>%(TestToRun.EnvironmentDisplay)</_TestEnvironment>
       <_TestAssembly>%(TestToRun.Identity)</_TestAssembly>
       <_TestRuntime>%(TestToRun.TestRuntime)</_TestRuntime>
+      <_TestRunnerAdditionalArguments>%(TestToRun.TestRunnerAdditionalArguments)</_TestRunnerAdditionalArguments>
     </PropertyGroup>
 
     <PropertyGroup Condition="'$(_TestRuntime)' == 'Core'">
@@ -47,7 +48,7 @@
       <_CoreRuntimeConfigPath>$(_TargetDir)$(_TargetFileNameNoExt).runtimeconfig.json</_CoreRuntimeConfigPath>
       <_CoreDepsPath>$(_TargetDir)$(_TargetFileNameNoExt).deps.json</_CoreDepsPath>
       <_TestRunner>$(DotNetTool)</_TestRunner>
-      <_TestRunnerArgs>exec --depsfile "$(_CoreDepsPath)" --runtimeconfig "$(_CoreRuntimeConfigPath)" "$(NuGetPackageRoot)xunit.runner.console/$(XUnitVersion)/tools/netcoreapp2.0/xunit.console.dll" "$(_TestAssembly)" -noautoreporters -xml "%(TestToRun.ResultsXmlPath)" -html "%(TestToRun.ResultsHtmlPath)" $(XUnitRunnerAdditionalArguments)</_TestRunnerArgs>
+      <_TestRunnerArgs>exec --depsfile "$(_CoreDepsPath)" --runtimeconfig "$(_CoreRuntimeConfigPath)" "$(NuGetPackageRoot)xunit.runner.console/$(XUnitVersion)/tools/netcoreapp2.0/xunit.console.dll" "$(_TestAssembly)" -noautoreporters -xml "%(TestToRun.ResultsXmlPath)" -html "%(TestToRun.ResultsHtmlPath)" $(_TestRunnerAdditionalArguments)</_TestRunnerArgs>
     </PropertyGroup>
 
     <PropertyGroup Condition="'$(_TestRuntime)' != 'Core'">
@@ -55,7 +56,7 @@
       <_XUnitConsoleExe Condition="'%(TestToRun.Architecture)' == 'x86'">xunit.console.x86.exe</_XUnitConsoleExe>
       <_XUnitConsoleExePath>$(NuGetPackageRoot)xunit.runner.console\$(XUnitVersion)\tools\net452\$(_XUnitConsoleExe)</_XUnitConsoleExePath>
 
-      <_TestRunnerArgs>"$(_TestAssembly)" -noshadow -xml "%(TestToRun.ResultsXmlPath)" -html "%(TestToRun.ResultsHtmlPath)" $(XUnitRunnerAdditionalArguments)</_TestRunnerArgs>
+      <_TestRunnerArgs>"$(_TestAssembly)" -noshadow -xml "%(TestToRun.ResultsXmlPath)" -html "%(TestToRun.ResultsHtmlPath)" $(_TestRunnerAdditionalArguments)</_TestRunnerArgs>
       <_TestRunnerArgs Condition="'$(_TestRuntime)' == 'Mono'">"$(_XUnitConsoleExePath)" $(_TestRunnerArgs)</_TestRunnerArgs>
 
       <_TestRunner Condition="'$(_TestRuntime)' == 'Mono'">$(MonoTool)</_TestRunner>
