@@ -2662,7 +2662,6 @@ public class C
             CompileAndVerify(comp, expectedOutput: expectedOutput);
         }
 
-
         [ConditionalTheory(typeof(WindowsDesktopOnly))]
         [InlineData(0, "DISPOSAL DONE")]
         [InlineData(1, "1 DISPOSAL Finally1 Finally2 Finally5 Finally6 DONE")]

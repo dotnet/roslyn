@@ -138,13 +138,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 F.CurrentFunction = stateMachineType.Constructor;
                 var bodyBuilder = ArrayBuilder<BoundStatement>.GetInstance();
                 bodyBuilder.Add(F.BaseInitialization());
-                bodyBuilder.Add(F.Assignment(F.Field(F.This(), stateField), F.Parameter(F.CurrentFunction.Parameters[0]))); // this.state = state;
+                bodyBuilder.Add(F.Assignment(F.InstanceField(stateField), F.Parameter(F.CurrentFunction.Parameters[0]))); // this.state = state;
 
                 var managedThreadId = MakeCurrentThreadId();
                 if (managedThreadId != null && (object)initialThreadIdField != null)
                 {
                     // this.initialThreadId = {managedThreadId};
-                    bodyBuilder.Add(F.Assignment(F.Field(F.This(), initialThreadIdField), managedThreadId));
+                    bodyBuilder.Add(F.Assignment(F.InstanceField(initialThreadIdField), managedThreadId));
                 }
 
                 // this.builder = System.Runtime.CompilerServices.AsyncVoidMethodBuilder.Create();
@@ -154,7 +154,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 bodyBuilder.Add(
                     F.Assignment(
-                        F.Field(F.This(), _builderField),
+                        F.InstanceField(_builderField),
                         F.StaticCall(
                             null,
                             methodScopeAsyncMethodBuilderMemberCollection.CreateBuilder)));
@@ -216,7 +216,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 BoundStatement ifFinished = F.If(
                     // if (state == StateMachineStates.FinishedStateMachine)
-                    F.IntEqual(F.Field(F.This(), stateField), F.Literal(StateMachineStates.FinishedStateMachine)),
+                    F.IntEqual(F.InstanceField(stateField), F.Literal(StateMachineStates.FinishedStateMachine)),
                     // return default;
                     thenClause: F.Return(F.Default(returnType)));
 
@@ -225,7 +225,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     .AsMember((NamedTypeSymbol)returnType);
 
                 // return new ValueTask<bool>(this, _valueOrEndPromise.Version);
-                var returnStatement = F.Return(F.New(valueTaskT_ctor, F.This(), F.Call(F.Field(F.This(), _promiseOfValueOrEndField), promise_get_Version)));
+                var returnStatement = F.Return(F.New(valueTaskT_ctor, F.This(), F.Call(F.InstanceField(_promiseOfValueOrEndField), promise_get_Version)));
 
                 F.CloseMethod(F.Block(
                     ImmutableArray.Create(instSymbol),
@@ -249,7 +249,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // - _valueOrEndPromise.Version
 
                 // _promiseOfValueOrEnd.Reset();
-                BoundFieldAccess promiseField = F.Field(F.This(), _promiseOfValueOrEndField);
+                BoundFieldAccess promiseField = F.InstanceField(_promiseOfValueOrEndField);
                 var resetMethod = (MethodSymbol)F.WellKnownMethod(WellKnownMember.System_Threading_Tasks_Sources_ManualResetValueTaskSourceCore_T__Reset, isOptional: true)
                     .SymbolAsMember((NamedTypeSymbol)_promiseOfValueOrEndField.Type.TypeSymbol);
 
@@ -267,7 +267,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // _builder.Start(ref inst);
                 startCall = F.ExpressionStatement(
                     F.Call(
-                        F.Field(F.This(), _builderField),
+                        F.InstanceField(_builderField),
                         startMethod,
                         ImmutableArray.Create<BoundExpression>(instLocal)));
 
@@ -316,8 +316,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     //  if (state == StateMachineStates.FinishedStateMachine ||
                     //      state == StateMachineStates.NotStartedStateMachine)
                     F.LogicalOr(
-                        F.IntEqual(F.Field(F.This(), stateField), F.Literal(StateMachineStates.FinishedStateMachine)),
-                        F.IntEqual(F.Field(F.This(), stateField), F.Literal(StateMachineStates.NotStartedStateMachine))),
+                        F.IntEqual(F.InstanceField(stateField), F.Literal(StateMachineStates.FinishedStateMachine)),
+                        F.IntEqual(F.InstanceField(stateField), F.Literal(StateMachineStates.NotStartedStateMachine))),
                     // return default;
                     thenClause: F.Return(F.Default(returnType)));
 
@@ -326,11 +326,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     .AsMember((NamedTypeSymbol)IAsyncDisposable_DisposeAsync.ReturnType.TypeSymbol);
 
                 // return new ValueTask(this, _valueOrEndPromise.Version);
-                var returnStatement = F.Return(F.New(valueTask_ctor, F.This(), F.Call(F.Field(F.This(), _promiseOfValueOrEndField), promise_get_Version)));
+                var returnStatement = F.Return(F.New(valueTask_ctor, F.This(), F.Call(F.InstanceField(_promiseOfValueOrEndField), promise_get_Version)));
 
                 F.CloseMethod(F.Block(
                     ImmutableArray.Create(instSymbol),
-                    F.Assignment(F.Field(F.This(), _disposeModeField), F.Literal(true)), // disposeMode = true;
+                    F.Assignment(F.InstanceField(_disposeModeField), F.Literal(true)), // disposeMode = true;
                     ifFinished,
                     callReset, // _promiseOfValueOrEnd.Reset();
                     instAssignment, // var inst = this;
@@ -356,7 +356,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 OpenPropertyImplementation(IAsyncEnumerableOfElementType_get_Current);
 
-                F.CloseMethod(F.Block(F.Return(F.Field(F.This(), _currentField))));
+                F.CloseMethod(F.Block(F.Return(F.InstanceField(_currentField))));
             }
 
             private void GenerateIValueTaskSourceBoolImplementation_GetResult()
@@ -381,7 +381,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // return this._valueOrEndPromise.GetResult(token);
                 F.CloseMethod(F.Return(
-                    F.Call(F.Field(F.This(), _promiseOfValueOrEndField), promise_GetResult, F.Parameter(IValueTaskSourceOfBool_GetResult.Parameters[0]))));
+                    F.Call(F.InstanceField(_promiseOfValueOrEndField), promise_GetResult, F.Parameter(IValueTaskSourceOfBool_GetResult.Parameters[0]))));
             }
 
             private void GenerateIValueTaskSourceBoolImplementation_GetStatus()
@@ -406,7 +406,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // return this._valueOrEndPromise.GetStatus(token);
                 F.CloseMethod(F.Return(
-                    F.Call(F.Field(F.This(), _promiseOfValueOrEndField), promise_GetStatus, F.Parameter(IValueTaskSourceOfBool_GetStatus.Parameters[0]))));
+                    F.Call(F.InstanceField(_promiseOfValueOrEndField), promise_GetStatus, F.Parameter(IValueTaskSourceOfBool_GetStatus.Parameters[0]))));
             }
 
             private void GenerateIValueTaskSourceBoolImplementation_OnCompleted()
@@ -433,7 +433,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 F.CloseMethod(F.Block(
                     // this._valueOrEndPromise.OnCompleted(continuation, state, token, flags);
                     F.ExpressionStatement(
-                        F.Call(F.Field(F.This(), _promiseOfValueOrEndField), promise_OnCompleted,
+                        F.Call(F.InstanceField(_promiseOfValueOrEndField), promise_OnCompleted,
                         F.Parameter(IValueTaskSourceOfBool_OnCompleted.Parameters[0]),
                         F.Parameter(IValueTaskSourceOfBool_OnCompleted.Parameters[1]),
                         F.Parameter(IValueTaskSourceOfBool_OnCompleted.Parameters[2]),
@@ -462,7 +462,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 F.CloseMethod(F.Block(
                     // this._valueOrEndPromise.GetResult(token);
-                    F.ExpressionStatement(F.Call(F.Field(F.This(), _promiseOfValueOrEndField), promise_GetResult, F.Parameter(IValueTaskSource_GetResult.Parameters[0]))),
+                    F.ExpressionStatement(F.Call(F.InstanceField(_promiseOfValueOrEndField), promise_GetResult, F.Parameter(IValueTaskSource_GetResult.Parameters[0]))),
                     // return;
                     F.Return()));
             }
@@ -489,7 +489,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // return this._valueOrEndPromise.GetStatus(token);
                 F.CloseMethod(F.Return(
-                    F.Call(F.Field(F.This(), _promiseOfValueOrEndField), promise_GetStatus, F.Parameter(IValueTaskSource_GetStatus.Parameters[0]))));
+                    F.Call(F.InstanceField(_promiseOfValueOrEndField), promise_GetStatus, F.Parameter(IValueTaskSource_GetStatus.Parameters[0]))));
             }
 
             // Consider factoring with IValueTaskSource<bool> implementation
@@ -516,7 +516,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 F.CloseMethod(F.Block(
                     // this._valueOrEndPromise.OnCompleted(continuation, state, token, flags);
                     F.ExpressionStatement(
-                        F.Call(F.Field(F.This(), _promiseOfValueOrEndField), promise_OnCompleted,
+                        F.Call(F.InstanceField(_promiseOfValueOrEndField), promise_OnCompleted,
                             F.Parameter(IValueTaskSource_OnCompleted.Parameters[0]),
                             F.Parameter(IValueTaskSource_OnCompleted.Parameters[1]),
                             F.Parameter(IValueTaskSource_OnCompleted.Parameters[2]),

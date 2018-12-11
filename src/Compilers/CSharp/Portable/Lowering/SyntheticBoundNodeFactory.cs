@@ -268,6 +268,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundFieldAccess(Syntax, receiver, f, ConstantValue.NotAvailable, LookupResultKind.Viable, f.Type.TypeSymbol) { WasCompilerGenerated = true };
         }
 
+        public BoundFieldAccess InstanceField(FieldSymbol f)
+        {
+            return this.Field(this.This(), f);
+        }
+
         public BoundExpression Property(WellKnownMember member)
         {
             return Property(null, member);

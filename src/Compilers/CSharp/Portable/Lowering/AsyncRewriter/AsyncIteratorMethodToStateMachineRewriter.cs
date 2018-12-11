@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // Produce:
                 // this.promiseOfValueOrEnd.SetResult(result);
-                BoundFieldAccess promiseField = F.Field(F.This(), _asyncIteratorInfo.PromiseOfValueOrEndField);
+                BoundFieldAccess promiseField = F.InstanceField(_asyncIteratorInfo.PromiseOfValueOrEndField);
                 return F.ExpressionStatement(F.Call(promiseField, _asyncIteratorInfo.SetResultMethod, F.Literal(result)));
             }
         }
@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // _promiseOfValueOrEnd.SetException(ex);
             return F.ExpressionStatement(F.Call(
-                F.Field(F.This(), _asyncIteratorInfo.PromiseOfValueOrEndField),
+                F.InstanceField(_asyncIteratorInfo.PromiseOfValueOrEndField),
                 _asyncIteratorInfo.SetExceptionMethod,
                 F.Local(exceptionLocal)));
         }
@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert((object)_enclosingFinallyOrExitLabel != null);
             return F.If(
                 // if (disposeMode)
-                F.Field(F.This(), _asyncIteratorInfo.DisposeModeField),
+                F.InstanceField(_asyncIteratorInfo.DisposeModeField),
                 // goto finallyOrExitLabel;
                 thenClause: F.Goto(_enclosingFinallyOrExitLabel));
         }
@@ -145,7 +145,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             blockBuilder.Add(
                 // _current = expression;
-                F.Assignment(F.Field(F.This(), _asyncIteratorInfo.CurrentField), rewrittenExpression));
+                F.Assignment(F.InstanceField(_asyncIteratorInfo.CurrentField), rewrittenExpression));
 
             blockBuilder.Add(
                 // this.state = cachedState = stateForLabel
@@ -190,7 +190,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpressionStatement SetDisposeMode(bool value)
         {
-            return F.Assignment(F.Field(F.This(), _asyncIteratorInfo.DisposeModeField), F.Literal(value));
+            return F.Assignment(F.InstanceField(_asyncIteratorInfo.DisposeModeField), F.Literal(value));
         }
 
         /// <summary>
