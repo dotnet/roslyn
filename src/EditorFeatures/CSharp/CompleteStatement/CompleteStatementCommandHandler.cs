@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
             var root = document.GetSyntaxRootSynchronously(executionContext.OperationContext.UserCancellationToken);
             var caretPosition = caret.Value.Position;
 
-            var token = GetToken(root, caretPosition, isCaretAtEndOfLine);
+            var token = root.FindToken(caretPosition);
 
             var currentNode = token.Parent;
 
@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
             var lastDelimiterSpan = default(TextSpan);
 
             // verify all delimeters exist until you reach statement syntax that requires a semicolon
-            while (!ReachedStatementSyntax(currentNode, syntaxFacts))
+            while (!IsStatementOrFieldDeclaration(currentNode, syntaxFacts))
             {
                 if (!ClosingDelimiterExistsIfNeeded(currentNode, ref lastDelimiterSpan))
                 {
@@ -131,18 +131,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
             args.TextView.TryMoveCaretToAndEnsureVisible(args.SubjectBuffer.CurrentSnapshot.GetPoint(GetEndPosition(root, lastDelimiterSpan.End, currentNode.Kind())));
         }
 
-        private static SyntaxToken GetToken(SyntaxNode root, int caretPosition, bool isCaretAtEndOfLine)
-        {
-            if (isCaretAtEndOfLine && caretPosition > 0)
-            {
-                return root.FindToken(caretPosition - 1);
-            }
-            else
-            {
-                return root.FindToken(caretPosition);
-            }
-        }
-
         /// <summary>
         /// Examines the enclosing statement-like syntax for an expression which is eligible for statement completion.
         /// </summary>
@@ -156,7 +144,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
         {
             // work our way up the tree, looking for a node of interest within the current statement
             bool nodeFound = false;
-            while (!ReachedStatementSyntax(currentNode, syntaxFacts))
+            while (!IsStatementOrFieldDeclaration(currentNode, syntaxFacts))
             {
                 if (currentNode.IsKind(SyntaxKind.ArgumentList, SyntaxKind.ArrayRankSpecifier, SyntaxKind.ParenthesizedExpression))
                 {
@@ -181,7 +169,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
                 currentNode = currentNode.Parent;
             }
 
-            // if we never found a statement, or a node of interest, or the statement we found is not a candidate for completion, return
+            // if we never found a statement, or a node of interest, or the statement kind is not a candidate for completion, return
             if (currentNode == null || !nodeFound || !StatementIsACandidate(currentNode))
             {
                 return false;
@@ -191,34 +179,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
             return true;
         }
 
-        private static bool ReachedStatementSyntax(SyntaxNode currentNode, ISyntaxFactsService syntaxFacts)
-        {
-            if (syntaxFacts.IsStatement(currentNode)
-                    || currentNode.IsKind(SyntaxKind.FieldDeclaration))
-            {
-                // We reached an enclosing statement-like syntax without finding an intermediate argument-list-like
-                // syntax. Do not treat this statement as a candidate for statement completion because inserting a
-                // semicolon at the current location is likely to create a valid statement.
-                //
-                // VariableDelaration: The expression is part of a field initializer, which is not part of a
-                //      statement syntax but behaves like an expression statement for the purposes of statement
-                //      completion.
-                return true;
-            }
-            else return false;
-        }
+        private static bool IsStatementOrFieldDeclaration(SyntaxNode currentNode, ISyntaxFactsService syntaxFacts)
+            => (syntaxFacts.IsStatement(currentNode) || currentNode.IsKind(SyntaxKind.FieldDeclaration));
 
         private static bool IsInAString(SyntaxNode currentNode, bool isCaretAtEndOfLine)
-        {
             // If caret is at the end of the line, it is outside the string
-            if (currentNode.IsKind(SyntaxKind.InterpolatedStringExpression, SyntaxKind.StringLiteralExpression)
-                && !isCaretAtEndOfLine)
-                {
-                    return true;
-                }
-
-            return false;
-        }
+            => (currentNode.IsKind(SyntaxKind.InterpolatedStringExpression, SyntaxKind.StringLiteralExpression)
+                && !isCaretAtEndOfLine);
 
         private static bool StatementIsACandidate(SyntaxNode currentNode)
         {
