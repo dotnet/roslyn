@@ -65,6 +65,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
 
             var document = caret.Value.Snapshot.GetOpenDocumentInCurrentContextWithChanges();
             if (document == null)
+      
             {
                 return;
             }
@@ -97,10 +98,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
             }
 
             var lastDelimiterSpan = default(TextSpan);
-            var finalDelimiterNeedsSemicolon = false;
 
             // work your way out, verifying all delimeters exist until you reach statement syntax that requires a semicolon
-            while (!ReachedSemicolonSyntax(currentNode, syntaxFacts, ref finalDelimiterNeedsSemicolon))
+            while (!ReachedStatementSyntax(currentNode, syntaxFacts))
             {
                 if (!ClosingDelimiterExistsIfNeeded(currentNode, ref lastDelimiterSpan))
                 {
@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
             }
 
             // if the statement syntax itself requires a closing delimeter, verify it is there
-            if (finalDelimiterNeedsSemicolon)
+            if (currentNode.IsKind(SyntaxKind.DoStatement))
             {
                 if (!StatementClosingDelimiterExists(currentNode, ref lastDelimiterSpan))
                 {
@@ -128,6 +128,18 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
 
             // Move to space after the last delimiter
             args.TextView.TryMoveCaretToAndEnsureVisible(args.SubjectBuffer.CurrentSnapshot.GetPoint(GetEndPosition(root, lastDelimiterSpan.End, currentNode.Kind())));
+        }
+
+        private static SyntaxToken GetToken(SyntaxNode root, int caretPosition, SnapshotPoint caret)
+        {
+            if (IsCaretAtEndOfLine(caret) && caretPosition > 0)
+            {
+                return root.FindToken(caretPosition - 1);
+            }
+            else
+            {
+                return root.FindToken(caretPosition);
+            }
         }
 
         /// <summary>
@@ -148,6 +160,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
                 {
                     // It's a node of interest
                     nodeFound = true;
+                    
                 }
 
                 // No special action is performed at this time if `;` is typed inside a string, including
@@ -226,43 +239,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
             }
         }
 
-        private static bool VariableDeclarationNotInStatementCompletionCandidate(SyntaxNode currentNode)
-        {
-            // 
-            {
-                return false;
-            }
-
-            currentNode = currentNode.Parent;
-            while (currentNode != null)
-            {
-
-                if (currentNode.IsKind(SyntaxKind.ForEachStatement, SyntaxKind.ForEachVariableStatement, SyntaxKind.SwitchStatement))
-                {
-                    return true;
-                }
-                currentNode = currentNode.Parent;
-            }
-
-            return false;
-
-        }
-
         private static bool IsCaretAtEndOfLine(SnapshotPoint caret)
         {
             return caret.Position == caret.GetContainingLine().End;
-        }
-
-        private static SyntaxToken GetToken(SyntaxNode root, int caretPosition, SnapshotPoint caret)
-        {
-            if (IsCaretAtEndOfLine(caret) && caretPosition > 0)
-            {
-                return root.FindToken(caretPosition - 1);
-            }
-            else
-            {
-                return root.FindToken(caretPosition);
-            }
         }
 
         private static bool SemicolonIsMissing(SyntaxNode currentNode)
@@ -430,32 +409,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
             }
         }
 
-        private static bool ReachedSemicolonSyntax(SyntaxNode currentNode, ISyntaxFactsService syntaxFacts, ref bool finalDelimiterNeedsSemicolon)
-        {
-            finalDelimiterNeedsSemicolon = false;
-
-            if (currentNode.IsKind(SyntaxKind.DoStatement))
-            {
-                finalDelimiterNeedsSemicolon = true;
-                return true;
-            }
-
-            if (syntaxFacts.IsStatement(currentNode)
-                || currentNode.IsKind(SyntaxKind.GetAccessorDeclaration)
-                || currentNode.IsKind(SyntaxKind.SetAccessorDeclaration)
-                || currentNode.IsKind(SyntaxKind.LocalDeclarationStatement)
-                || currentNode.IsKind(SyntaxKind.VariableDeclaration)
-                || currentNode.IsKind(SyntaxKind.IfStatement))
-            {
-                return true;
-            }
-
-            return false;
-        }
-
-        /// <summary>
-        /// To account for the new line character at the end of a line, this returns the previous tokens end  
-        /// </summary>
         private static int GetEndPosition(SyntaxNode root, int end, SyntaxKind nodeKind)
         {
 
@@ -475,8 +428,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
             }
 
             return end;
-            //var previousToken = root.FindToken(end).GetPreviousToken();
-            //return previousToken.Span.End;
         }
 
         public VSCommanding.CommandState GetCommandState(TypeCharCommandArgs args, Func<VSCommanding.CommandState> nextCommandHandler) => nextCommandHandler();

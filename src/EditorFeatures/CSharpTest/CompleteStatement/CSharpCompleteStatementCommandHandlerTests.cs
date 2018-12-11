@@ -1526,6 +1526,8 @@ public class SaleItem
 
         #endregion
 
+        #region ParenthesizeExpression
+
         [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
         public void ParenthesizedExpression_Assignment1()
         {
@@ -1711,35 +1713,223 @@ public class Class1
         }
     } 
 ";
+            VerifyNoSpecialSemicolonHandling(code);
+        }
 
-    //        var expected = @"
-    //public class Class1
-    //{
-    //    static void Main(string[] args)
-    //    {
-    //        foreach (int i in M((2*3)+4))
-    //        {
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void ParenthesizedExpression_GoTo2()
+        {
+            var code =
+@"
+static void Main()
+{
+    int n = 1;
+    switch (n)
+    {
+        case 1:
+            goto case (2+1$$)
+        case 3:
+            break
+        default:
+            break;
+    }
+}
+";
 
-    //        }
-    //    }
+            var expected =
+@"
+static void Main()
+{
+    int n = 1;
+    switch (n)
+    {
+        case 1:
+            goto case (2+1);$$
+        case 3:
+            break
+        default:
+            break;
+    }
+}
+";
+            VerifyTypingSemicolon(code, expected);
+        }
 
-    //    private static int[] M(int i)
-    //    {
-    //        int[] value = { 2, 3, 4 };
-    //        return value;
-    //    }
-    //} 
-//";
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void ParenthesizedExpression_Switch()
+        {
+            var code =
+@"
+class Program
+{
+    static void Main()
+    {
+        int i = 3;
+        switch (i$$)
+        {
+            case 1:
+            case 2:
+            case 3:
+                break;
+        }
+    }
+}
+";
 
             VerifyNoSpecialSemicolonHandling(code);
         }
 
-        #region ParenthesizeExpression
-
-
-
-        #endregion
         [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void ParenthesizedExpression_Switch2()
+        {
+            var code =
+@"
+class Program
+{
+    static void Main()
+    {
+        int i = 3;
+        switch (4*(i+2$$))
+        {
+            case 1:
+            case 2:
+            case 3:
+                break;
+        }
+    }
+}
+";
+
+            VerifyNoSpecialSemicolonHandling(code);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void ParenthesizedExpression_Switch3()
+        {
+            var code =
+@"
+class Program
+{
+    static void Main()
+    {
+        int i = 3;
+        switch (i)
+        {
+            case 1:
+                Console.WriteLine(4*(i+2$$))
+            case 2:
+            case 3:
+                break;
+        }
+    }
+}
+";
+            var expected =
+@"
+class Program
+{
+    static void Main()
+    {
+        int i = 3;
+        switch (i)
+        {
+            case 1:
+                Console.WriteLine(4*(i+2));$$
+            case 2:
+            case 3:
+                break;
+        }
+    }
+}
+";
+
+            VerifyTypingSemicolon(code,expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void ParenthesizedExpression_While()
+        {
+            var code =
+@"
+using System;
+class Program
+{
+    static void Main()
+    {
+        int i = 3;
+        while (i<4$$)
+        {
+            Console.WriteLine(i);
+        }
+    }
+}
+";
+
+            VerifyNoSpecialSemicolonHandling(code);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void ParenthesizedExpression_While2()
+        {
+            var code =
+@"
+using System;
+class Program
+{
+    static void Main()
+    {
+        int i = 3;
+        while (i<Math.Max(4,5$$))
+        {
+            Console.WriteLine(i);
+        }
+    }
+}
+";
+
+            VerifyNoSpecialSemicolonHandling(code);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void ParenthesizedExpression_While3()
+        {
+            var code =
+@"
+using System;
+class Program
+{
+    static void Main()
+    {
+        int i = 3;
+        while (i<Math.Max(4,5))
+        {
+            Console.WriteLine(i$$)
+        }
+    }
+}
+";
+        var expected =
+@"
+using System;
+class Program
+{
+    static void Main()
+    {
+        int i = 3;
+        while (i<Math.Max(4,5))
+        {
+            Console.WriteLine(i);$$
+        }
+    }
+}
+";
+
+        VerifyTypingSemicolon(code, expected);
+    }
+
+    #endregion
+
+    [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
         public void ThrowStatement_MissingBoth()
         {
             var code = @"
@@ -2060,6 +2250,97 @@ public class C
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void DontComplete_Checked()
+        {
+            var code =
+@"
+ class Program
+    {
+        static void Main(string[] args)
+        {
+            int num;
+            // assign maximum value
+            num = int.MaxValue;
+            try
+            {
+                checked$$
+                {
+                    num = num + 1;
+                    Console.WriteLine(num);
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.ToString());
+            }
+            Console.ReadLine();
+        }
+    }";
+
+            VerifyNoSpecialSemicolonHandling(code);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void DontComplete_Unchecked()
+        {
+            var code =
+@"
+ class Program
+    {
+        static void Main(string[] args)
+        {
+            int num;
+            // assign maximum value
+            num = int.MaxValue;
+            try
+            {
+                unchecked$$
+                {
+                    num = num + 1;
+                    Console.WriteLine(num);
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.ToString());
+            }
+            Console.ReadLine();
+        }
+    }";
+
+            VerifyNoSpecialSemicolonHandling(code);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void DontComplete_Fixed()
+        {
+            var code =
+@"
+class Program
+{
+    static void Main()
+    {
+        Console.WriteLine(Transform());
+    }
+
+    unsafe static string Transform()
+    {
+        string value = System.IO.Path.GetRandomFileName();
+        fixed$$ (char* pointer = value)
+        {
+            for (int i = 0; pointer[i] != '\0'; ++i)
+            {
+                pointer[i]++;
+            }
+            return new string(pointer);
+        }
+    }
+}";
+
+            VerifyNoSpecialSemicolonHandling(code);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
         public void DontComplete_Continue()
         {
             var code =
@@ -2124,6 +2405,91 @@ class ContinueTest
         }
     }
 }";
+
+            VerifyNoSpecialSemicolonHandling(code);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void DontComplete_GoTo()
+        {
+            var code =
+@"
+static void Main()
+{
+    int n = 1;
+    switch (n)
+    {
+        case 1:
+            goto $$case 3;                
+            break;
+        case 3:
+            break
+        default:
+            break;
+    }
+}
+";
+
+            VerifyNoSpecialSemicolonHandling(code);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void DontComplete_IfStatement()
+        {
+            var code =
+@"
+class Program
+{
+    void M()
+    {
+        int x = 0;
+        if (x == 0$$)
+        {
+            return;
+        }
+    }
+}
+";
+
+            VerifyNoSpecialSemicolonHandling(code);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void DontComplete_Labeled()
+        {
+            var code =
+@"
+class Program
+{
+    static void Main()
+    {
+        if (true)
+            goto labeled;
+        labeled$$: return;
+    }
+}
+";
+
+            VerifyNoSpecialSemicolonHandling(code);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void DontComplete_IfStatement2()
+        {
+            var code =
+@"
+class Program
+{
+    void M()
+    {
+        int x = 0;
+        if (x == Math.Min(4,5$$))
+        {
+            return;
+        }
+    }
+}
+";
 
             VerifyNoSpecialSemicolonHandling(code);
         }
