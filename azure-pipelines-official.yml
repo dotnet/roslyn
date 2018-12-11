@@ -38,16 +38,10 @@ jobs:
 
   - task: NuGetRestore@1
     inputs:
-      solution: 'build\ToolsetPackages\InternalToolset.csproj'
+      solution: 'eng\internal\Toolset.csproj'
       feed: '8f470c7e-ac49-4afe-a6ee-cf784e438b93'
 
-  - task: CmdLine@1
-    displayName: Create output directory
-    inputs:
-      filename: mkdir
-      arguments: 'Binaries\$(BuildConfiguration)'
-
-  - script: build\scripts\cibuild.cmd
+  - script: eng\cibuild.cmd
               -configuration $(BuildConfiguration) -official -testDesktop -procdump
               /p:DotNetSignType=$(PB_SignType)
               /p:DotNetSymbolServerTokenMsdl=$(microsoft-symbol-server-pat)
@@ -58,8 +52,8 @@ jobs:
   - task: PowerShell@2
     displayName: Publish Assets
     inputs:
-      arguments: '-config $(BuildConfiguration) -branchName "$(Build.SourceBranch)" -mygetApiKey $(Roslyn.MyGetApiKey) -nugetApiKey $(Roslyn.NuGetApiKey) -gitHubUserName $(Roslyn.GitHubUserName) -gitHubToken $(Roslyn.GitHubToken) -gitHubEmail $(Roslyn.GitHubEmail)'
-      filePath: 'build\scripts\publish-assets.ps1'
+      arguments: '-configuration $(BuildConfiguration) -branchName "$(Build.SourceBranch)" -mygetApiKey $(Roslyn.MyGetApiKey) -nugetApiKey $(Roslyn.NuGetApiKey) -gitHubUserName $(Roslyn.GitHubUserName) -gitHubToken $(Roslyn.GitHubToken) -gitHubEmail $(Roslyn.GitHubEmail)'
+      filePath: 'eng\publish-assets.ps1'
     condition: succeeded()
 
   ### BEGIN OPTPROF TASKS ###
@@ -69,7 +63,7 @@ jobs:
     inputs:
       dropServiceURI: 'https://devdiv.artifacts.visualstudio.com'
       buildNumber: 'ProfilingInputs/DevDiv/$(Build.Repository.Name)/$(Build.SourceBranchName)/$(Build.BuildId)'
-      sourcePath: '$(Build.SourcesDirectory)\Binaries\$(BuildConfiguration)\DevDivInsertionFiles\OptProf'
+      sourcePath: '$(Build.SourcesDirectory)\artifacts\OptProf\$(BuildConfiguration)\Data'
       toLowerCase: false
       usePat: false
     displayName: 'OPTPROF - Publish to Artifact Services - ProfilingInputs'
@@ -78,24 +72,24 @@ jobs:
   # Created a exe that will install visual studio with this version 
   - task: PowerShell@2
     inputs:
-      filePath: build\scripts\setmanifestpaths.ps1
+      filePath: eng\setmanifestpaths.ps1
       failOnStderr: true
     displayName: 'OPTPROF - Set VSTS variables for vsman files'
     condition: succeededOrFailed()
 
-  - task: ms-vseng.MicroBuildTasks.0e9d0d4d-71ec-4e4e-ae40-db9896f1ae74.MicroBuildBuildVSBootstrapper@1
+  - task: ms-vseng.MicroBuildTasks.0e9d0d4d-71ec-4e4e-ae40-db9896f1ae74.MicroBuildBuildVSBootstrapper@2
     inputs:
       vsMajorVersion: 16
       channelName: int.$(InsertTargetBranchShortName)
       manifests: $(SetupManifests)
-      outputFolder: '$(Build.SourcesDirectory)\Binaries\VSSetup\$(BuildConfiguration)\Insertion'
+      outputFolder: '$(Build.SourcesDirectory)\artifacts\VSSetup\$(BuildConfiguration)\Insertion'
     displayName: 'OPTPROF - Build VS bootstrapper'
     condition: succeededOrFailed()
 
   # Publish run settings
   - task: PowerShell@2
     inputs:
-      filePath: build\scripts\createrunsettings.ps1
+      filePath: eng\createrunsettings.ps1
       arguments: -release
       failOnStderr: true
     displayName: 'OPTPROF - generate runsettings file'
@@ -113,7 +107,7 @@ jobs:
   # Publish scripts to get the branch of VS that this inserts into
   - task: PublishBuildArtifacts@1
     inputs:
-      PathtoPublish: '$(Build.SourcesDirectory)\Binaries\$(BuildConfiguration)\DevDivInsertionFiles\BranchInfo'
+      PathtoPublish: '$(Build.SourcesDirectory)\artifacts\OptProf\$(BuildConfiguration)\BranchInfo'
       ArtifactName: BranchInfo
       ArtifactType: Container
     displayName: 'OPTPROF - Publish Artifact: BranchInfo'
@@ -124,7 +118,7 @@ jobs:
   - task: PublishBuildArtifacts@1
     displayName: Publish Logs
     inputs:
-      PathtoPublish: '$(Build.SourcesDirectory)\Binaries\$(BuildConfiguration)\Logs'
+      PathtoPublish: '$(Build.SourcesDirectory)\artifacts\log\$(BuildConfiguration)'
       ArtifactName: 'Build Diagnostic Files'
       publishLocation: Container
     continueOnError: true
@@ -134,70 +128,46 @@ jobs:
     displayName: Publish Test Results
     inputs:
       testRunner: XUnit
-      testResultsFiles: '$(Build.SourcesDirectory)\Binaries\TestResults\$(BuildConfiguration)\*.xml'
+      testResultsFiles: '$(Build.SourcesDirectory)\artifacts\TestResults\$(BuildConfiguration)\*.xml'
       mergeTestResults: true
       testRunTitle: 'Unit Tests'
     condition: succeededOrFailed()
 
+  # Publishes setup VSIXes to a drop with id defined by MicroBuildSwixPlugin.
+  # Note: The insertion tool looks for the display name of this task in the logs.
   - task: ms-vseng.MicroBuildTasks.4305a8de-ba66-4d8b-b2d1-0dc4ecbbf5e8.MicroBuildUploadVstsDropFolder@1
     displayName: Upload VSTS Drop
     inputs:
-      DropFolder: 'Binaries\VSSetup\$(BuildConfiguration)\Insertion'
+      DropFolder: 'artifacts\VSSetup\$(BuildConfiguration)\Insertion'
     condition: succeeded()
 
+  # Publish insertion packages to CoreXT store.
   - task: NuGetCommand@2
-    displayName: NuGet CoreXT publish
+    displayName: Publish CoreXT Packages 
     inputs:
       command: push
       feedsToUse: config
-      packagesToPush: '$(Build.SourcesDirectory)\Binaries\$(BuildConfiguration)\DevDivPackages\**\*.nupkg'
+      packagesToPush: '$(Build.SourcesDirectory)\artifacts\VSSetup\$(BuildConfiguration)\DevDivPackages\**\*.nupkg'
       publishVstsFeed: '97a41293-2972-4f48-8c0e-05493ae82010'
       allowPackageConflicts: true
     condition: succeeded()
 
-  # Publish VSTS artifact that the RoslynInsertionTool is able to find by its name.
-  # The backing storage of the artifact is a file share.
-  #
-  # The bulk of the publish work is done by the Powershell task below. This exists to create
-  # the proper entries in the build log so that the insertion tool can find the drop that 
-  # needs to get published
+  # Publish an artifact that the RoslynInsertionTool is able to find by its name.
   - task: PublishBuildArtifacts@1
-    displayName: Publish Drop - DevDivInsertionFiles
+    displayName: Publish Artifact VSSetup
     inputs:
-      PathtoPublish: 'Binaries\$(BuildConfiguration)\DevDivInsertionFiles'
-      ArtifactName: '$(Build.BuildNumber)'
-      publishLocation: FilePath
-      TargetPath: '$(DropRoot)\Roslyn-Signed\$(Build.SourceBranchName)\$(BuildConfiguration)'
-      Parallel: true
-      ParallelCount: 64
-    condition: succeededOrFailed()
+      PathtoPublish: 'artifacts\VSSetup\$(BuildConfiguration)'
+      ArtifactName: 'VSSetup'
+    condition: succeeded()
 
-  # Archive the files from the build necessary for future investigations
-  - task: PowerShell@2
-    displayName: Publish Drop - Binaries
+  # Archive NuGet packages to DevOps.
+  - task: PublishBuildArtifacts@1
+    displayName: Publish Artifact Packages
     inputs:
-      arguments: '-Source Binaries\$(BuildConfiguration) -Target $(DropRoot)\Roslyn-Signed\$(Build.SourceBranchName)\$(BuildConfiguration)\$(Build.BuildNumber) -ParallelCount 8 -Exclude UnitTests,PerfTests'
-      filePath: 'build\scripts\vsts-robocopy.ps1'
-    condition: succeededOrFailed()
-
-  # Copy additional files to the drop directory
-  - task: PowerShell@2
-    displayName: Publish Drop - VSSetup
-    inputs:
-      arguments: '-Source Binaries\VSSetup\$(BuildConfiguration)\Insertion -Target $(DropRoot)\Roslyn-Signed\$(Build.SourceBranchName)\$(BuildConfiguration)\$(Build.BuildNumber)\Insertion -ParallelCount 8'
-      filePath: 'build\scripts\vsts-robocopy.ps1'
-    condition: succeededOrFailed()
+      PathtoPublish: 'artifacts\packages\$(BuildConfiguration)'
+      ArtifactName: 'Packages'
+    condition: succeeded()
 
   - task: ms-vseng.MicroBuildTasks.521a94ea-9e68-468a-8167-6dcf361ea776.MicroBuildCleanup@1
     displayName: Perform Cleanup Tasks
     condition: succeededOrFailed()
-
-  - task: PublishBuildArtifacts@1
-    displayName: Publish MicroBuild Outputs
-    inputs:
-      PathtoPublish: '$(Build.ArtifactStagingDirectory)\MicroBuild\Output'
-      ArtifactName: '$(Build.BuildNumber)'
-      publishLocation: FilePath
-      TargetPath: '$(DropRoot)\Roslyn-Signed\$(Build.SourceBranchName)\$(BuildConfiguration)'
-    condition: succeededOrFailed()
-

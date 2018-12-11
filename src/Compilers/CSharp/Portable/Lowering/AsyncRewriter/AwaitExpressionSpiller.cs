@@ -387,7 +387,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             _F.Diagnostics.Add(ErrorCode.ERR_RefReturningCallAndAwait, _F.Syntax.Location, call.Method);
                         }
                         // method call is not referentially transparent, we can only spill the result value. 
-                        refKind = RefKind.None; 
+                        refKind = RefKind.None;
                         goto default;
 
                     case BoundKind.ConditionalOperator:

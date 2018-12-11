@@ -225,7 +225,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var type = VariableType(id.Symbol).TypeSymbol;
 
             Debug.Assert(!_emptyStructTypeCache.IsEmptyStructType(type));
-            
+
             if (EmptyStructTypeCache.IsTrackableStructType(type))
             {
                 foreach (var field in _emptyStructTypeCache.GetStructInstanceFields(type))

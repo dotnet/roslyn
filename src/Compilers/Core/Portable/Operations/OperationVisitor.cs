@@ -524,7 +524,7 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             DefaultVisit(operation);
         }
-        
+
         public virtual void VisitRaiseEvent(IRaiseEventOperation operation)
         {
             DefaultVisit(operation);
@@ -1117,7 +1117,7 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             return DefaultVisit(operation, argument);
         }
-        
+
         public virtual TResult VisitRaiseEvent(IRaiseEventOperation operation, TArgument argument)
         {
             return DefaultVisit(operation, argument);

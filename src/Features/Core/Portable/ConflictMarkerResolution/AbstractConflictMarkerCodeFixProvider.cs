@@ -204,7 +204,7 @@ namespace Microsoft.CodeAnalysis.ConflictMarkerResolution
 
         private bool IsConflictMarker(SourceText text, SyntaxTrivia trivia, char ch)
         {
-            return 
+            return
                 IsConflictMarker(trivia) &&
                 trivia.Span.Length > 0 &&
                 text[trivia.SpanStart] == ch;
@@ -212,7 +212,7 @@ namespace Microsoft.CodeAnalysis.ConflictMarkerResolution
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument) 
+            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
                 : base(title, createChangedDocument)
             {
             }

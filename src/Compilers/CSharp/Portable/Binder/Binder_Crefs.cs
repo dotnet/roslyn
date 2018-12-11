@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             unusedDiagnostics.Free();
 
             // BindNamespaceOrTypeSymbol will wrap any tuple types in a TupleTypeSymbol. We unwrap it here, as doc comments don't consider the (T,T) form of tuples
-            if(namespaceOrTypeSymbol is TupleTypeSymbol t)
+            if (namespaceOrTypeSymbol is TupleTypeSymbol t)
             {
                 namespaceOrTypeSymbol = t.UnderlyingNamedType;
             }

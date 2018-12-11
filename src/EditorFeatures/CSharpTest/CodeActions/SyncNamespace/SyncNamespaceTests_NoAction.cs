@@ -31,7 +31,7 @@ namespace NS
         </Document>
     </Project>
 </Workspace>";
-            
+
             await TestMissingInRegularAndScriptAsync(code);
         }
 

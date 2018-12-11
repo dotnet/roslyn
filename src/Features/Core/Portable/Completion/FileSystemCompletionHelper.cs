@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.Completion
                 description: "\\\\".ToSymbolDisplayParts(),
                 rules: _itemRules);
 
-        private CompletionItem CreateUnixRoot() 
+        private CompletionItem CreateUnixRoot()
             => CommonCompletionItem.Create(
                 "/",
                 displayTextSuffix: "",
@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.Completion
                 description: "/".ToSymbolDisplayParts(),
                 rules: _itemRules);
 
-        private CompletionItem CreateFileSystemEntryItem(string fullPath, bool isDirectory) 
+        private CompletionItem CreateFileSystemEntryItem(string fullPath, bool isDirectory)
             => CommonCompletionItem.Create(
                 PathUtilities.GetFileName(fullPath),
                 displayTextSuffix: "",
@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.Completion
                 description: fullPath.ToSymbolDisplayParts(),
                 rules: _itemRules);
 
-        private CompletionItem CreateLogicalDriveItem(string drive) 
+        private CompletionItem CreateLogicalDriveItem(string drive)
             => CommonCompletionItem.Create(
                 drive,
                 displayTextSuffix: "",
@@ -186,7 +186,7 @@ namespace Microsoft.CodeAnalysis.Completion
                     {
                         result.AddRange(GetItemsInDirectory(PathUtilities.CombineAbsoluteAndRelativePaths(_baseDirectoryOpt, directoryPath), cancellationToken));
                     }
-                    
+
                     // search paths:
                     foreach (var searchPath in _searchPaths)
                     {

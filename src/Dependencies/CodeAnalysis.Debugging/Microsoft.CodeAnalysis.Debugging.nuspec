@@ -21,7 +21,7 @@
     </contentFiles>
   </metadata>
   <files>
-    <file src="SourcePackages\Microsoft.CodeAnalysis.Debugging.Package\Microsoft.CodeAnalysis.Debugging.props" target="build" />
+    <file src="$SourcePackagePropsFilePath$" target="build" />
     <file src="$ProjectDirectory$\**\*.cs" target="contentFiles/cs/netstandard1.3" />
     <file src="$ProjectDirectory$\**\*.cs" target="contentFiles/cs/net45" />
   </files>

@@ -65,6 +65,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
                 case SyntaxKind.LoadDirectiveTrivia:
                     ClassifyLoadDirective((LoadDirectiveTriviaSyntax)node);
                     break;
+                case SyntaxKind.NullableDirectiveTrivia:
+                    ClassifyNullableDirective((NullableDirectiveTriviaSyntax)node);
+                    break;
             }
         }
 
@@ -282,6 +285,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
             AddClassification(node.HashToken, ClassificationTypeNames.PreprocessorKeyword);
             AddClassification(node.LoadKeyword, ClassificationTypeNames.PreprocessorKeyword);
             AddClassification(node.File, ClassificationTypeNames.StringLiteral);
+            ClassifyDirectiveTrivia(node);
+        }
+
+        private void ClassifyNullableDirective(NullableDirectiveTriviaSyntax node)
+        {
+            AddClassification(node.HashToken, ClassificationTypeNames.PreprocessorKeyword);
+            AddClassification(node.NullableKeyword, ClassificationTypeNames.PreprocessorKeyword);
+            AddClassification(node.SettingToken, ClassificationTypeNames.PreprocessorKeyword);
             ClassifyDirectiveTrivia(node);
         }
     }

@@ -545,18 +545,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                     goto default;
 
                 case BoundKind.FieldAccess:
-                {
-                    BoundFieldAccess node1 = (BoundFieldAccess)node;
-                    VisitFieldAccessInternal(node1.ReceiverOpt, node1.FieldSymbol);
-                    break;
-                }
+                    {
+                        BoundFieldAccess node1 = (BoundFieldAccess)node;
+                        VisitFieldAccessInternal(node1.ReceiverOpt, node1.FieldSymbol);
+                        break;
+                    }
 
                 case BoundKind.EventAccess:
-                {
-                    BoundEventAccess node1 = (BoundEventAccess)node;
-                    VisitFieldAccessInternal(node1.ReceiverOpt, node1.EventSymbol.AssociatedField);
-                    break;
-                }
+                    {
+                        BoundEventAccess node1 = (BoundEventAccess)node;
+                        VisitFieldAccessInternal(node1.ReceiverOpt, node1.EventSymbol.AssociatedField);
+                        break;
+                    }
 
                 case BoundKind.TupleLiteral:
                     ((BoundTupleExpression)node).VisitAllElements((x, self) => self.VisitLvalue(x), this);
@@ -859,35 +859,35 @@ namespace Microsoft.CodeAnalysis.CSharp
                 switch (node.Kind)
                 {
                     case BoundKind.LabeledStatement:
-                    {
-                        var label = (BoundLabeledStatement)node;
-                        stateChangedAfterUse |= ResolveBranches(label.Label, label);
-                    }
-                    break;
+                        {
+                            var label = (BoundLabeledStatement)node;
+                            stateChangedAfterUse |= ResolveBranches(label.Label, label);
+                        }
+                        break;
                     case BoundKind.LabelStatement:
-                    {
-                        var label = (BoundLabelStatement)node;
-                        stateChangedAfterUse |= ResolveBranches(label.Label, label);
-                    }
-                    break;
+                        {
+                            var label = (BoundLabelStatement)node;
+                            stateChangedAfterUse |= ResolveBranches(label.Label, label);
+                        }
+                        break;
                     case BoundKind.SwitchSection:
-                    {
-                        var sec = (BoundSwitchSection)node;
-                        foreach (var label in sec.SwitchLabels)
                         {
-                            stateChangedAfterUse |= ResolveBranches(label.Label, sec);
+                            var sec = (BoundSwitchSection)node;
+                            foreach (var label in sec.SwitchLabels)
+                            {
+                                stateChangedAfterUse |= ResolveBranches(label.Label, sec);
+                            }
                         }
-                    }
-                    break;
+                        break;
                     case BoundKind.PatternSwitchSection:
-                    {
-                        var sec = (BoundPatternSwitchSection)node;
-                        foreach (var label in sec.SwitchLabels)
                         {
-                            stateChangedAfterUse |= ResolveBranches(label.Label, sec);
+                            var sec = (BoundPatternSwitchSection)node;
+                            foreach (var label in sec.SwitchLabels)
+                            {
+                                stateChangedAfterUse |= ResolveBranches(label.Label, sec);
+                            }
                         }
-                    }
-                    break;
+                        break;
                     default:
                         // there are no other kinds of labels
                         throw ExceptionUtilities.UnexpectedValue(node.Kind);
@@ -983,31 +983,31 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (pattern.Kind)
             {
                 case BoundKind.DeclarationPattern:
-                {
-                    var declPattern = (BoundDeclarationPattern)pattern;
-                    if (declPattern.IsVar || // var pattern always matches
-                        declPattern.DeclaredType?.Type?.IsValueType == true && declPattern.DeclaredType.Type == (object)expression.Type) // exact match
                     {
-                        return true;
+                        var declPattern = (BoundDeclarationPattern)pattern;
+                        if (declPattern.IsVar || // var pattern always matches
+                            declPattern.DeclaredType?.Type?.IsValueType == true && declPattern.DeclaredType.Type == (object)expression.Type) // exact match
+                        {
+                            return true;
+                        }
+                        Debug.Assert(!declPattern.IsVar);
+                        switch (expression.ConstantValue?.IsNull)
+                        {
+                            case true: return false;
+                            case false: return true;
+                            default: return null;
+                        }
                     }
-                    Debug.Assert(!declPattern.IsVar);
-                    switch (expression.ConstantValue?.IsNull)
-                    {
-                        case true: return false;
-                        case false: return true;
-                        default: return null;
-                    }
-                }
                 case BoundKind.ConstantPattern:
-                {
-                    var constPattern = (BoundConstantPattern)pattern;
-                    if (expression.ConstantValue == null || constPattern.ConstantValue == null)
                     {
-                        return null;
-                    }
+                        var constPattern = (BoundConstantPattern)pattern;
+                        if (expression.ConstantValue == null || constPattern.ConstantValue == null)
+                        {
+                            return null;
+                        }
 
-                    return Equals(expression.ConstantValue.Value, constPattern.ConstantValue.Value);
-                }
+                        return Equals(expression.ConstantValue.Value, constPattern.ConstantValue.Value);
+                    }
             }
 
             return null;

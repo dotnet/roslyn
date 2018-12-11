@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIsNullCheck
                 var binary = (BinaryExpressionSyntax)diagnostic.Location.FindNode(getInnermostNodeForTie: true, cancellationToken: cancellationToken);
 
                 editor.ReplaceNode(
-                    binary, 
+                    binary,
                     (current, g) => Rewrite((BinaryExpressionSyntax)current));
             }
 

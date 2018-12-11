@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Formatting
             Dictionary<OptionKey, object> changedOptionSet = null,
             bool testWithTransformation = true)
         {
-            return AssertFormatAsync(expected, code, new[] { new TextSpan(0, code.Length)}, language, debugMode, changedOptionSet, testWithTransformation);
+            return AssertFormatAsync(expected, code, new[] { new TextSpan(0, code.Length) }, language, debugMode, changedOptionSet, testWithTransformation);
         }
 
         protected async Task AssertFormatAsync(
@@ -57,19 +57,19 @@ namespace Microsoft.CodeAnalysis.UnitTests.Formatting
                 }
 
                 var root = await syntaxTree.GetRootAsync();
-                await AssertFormatAsync(workspace, expected, root, spans, options, await document.GetTextAsync());
+                AssertFormat(workspace, expected, root, spans, options, await document.GetTextAsync());
 
                 // format with node and transform
-                await AssertFormatWithTransformationAsync(workspace, expected, root, spans, options, treeCompare, parseOptions);
+                AssertFormatWithTransformation(workspace, expected, root, spans, options, treeCompare, parseOptions);
             }
         }
 
         protected abstract SyntaxNode ParseCompilation(string text, ParseOptions parseOptions);
 
-        protected async Task AssertFormatWithTransformationAsync(
+        protected void AssertFormatWithTransformation(
             Workspace workspace, string expected, SyntaxNode root, IEnumerable<TextSpan> spans, OptionSet optionSet, bool treeCompare = true, ParseOptions parseOptions = null)
         {
-            var newRootNode = await Formatter.FormatAsync(root, spans, workspace, optionSet, CancellationToken.None);
+            var newRootNode = Formatter.Format(root, spans, workspace, optionSet, CancellationToken.None);
 
             Assert.Equal(expected, newRootNode.ToFullString());
 
@@ -83,9 +83,9 @@ namespace Microsoft.CodeAnalysis.UnitTests.Formatting
             }
         }
 
-        protected static async Task AssertFormatAsync(Workspace workspace, string expected, SyntaxNode root, IEnumerable<TextSpan> spans, OptionSet optionSet, SourceText sourceText)
+        protected static void AssertFormat(Workspace workspace, string expected, SyntaxNode root, IEnumerable<TextSpan> spans, OptionSet optionSet, SourceText sourceText)
         {
-            var result = await Formatter.GetFormattedTextChangesAsync(root, spans, workspace, optionSet);
+            var result = Formatter.GetFormattedTextChanges(root, spans, workspace, optionSet);
             AssertResult(expected, sourceText, result);
         }
 

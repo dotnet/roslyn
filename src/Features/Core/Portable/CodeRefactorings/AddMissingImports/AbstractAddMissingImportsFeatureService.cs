@@ -158,7 +158,7 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
         }
 
         private async Task<(ProjectChanges, IEnumerable<TextChange>)> GetChangesForCodeActionAsync(
-            Document document, 
+            Document document,
             CodeAction codeAction,
             ProgressTracker progressTracker,
             IDocumentTextDifferencingService textDiffingService,

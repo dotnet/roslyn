@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
             }
 
             protected override async Task AddDocumentFixesAsync(
-                Document document, ImmutableArray<Diagnostic> diagnostics, 
+                Document document, ImmutableArray<Diagnostic> diagnostics,
                 ConcurrentBag<(Diagnostic diagnostic, CodeAction action)> fixes,
                 FixAllState fixAllState, CancellationToken cancellationToken)
             {
@@ -57,8 +57,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                 {
                     var pragmaBatchFix = PragmaBatchFixHelpers.CreateBatchPragmaFix(
                         _suppressionFixProvider, document,
-                        pragmaActionsBuilder.ToImmutableAndFree(), 
-                        pragmaDiagnosticsBuilder.ToImmutableAndFree(), 
+                        pragmaActionsBuilder.ToImmutableAndFree(),
+                        pragmaDiagnosticsBuilder.ToImmutableAndFree(),
                         fixAllState, cancellationToken);
 
                     fixes.Add((diagnostic: null, pragmaBatchFix));

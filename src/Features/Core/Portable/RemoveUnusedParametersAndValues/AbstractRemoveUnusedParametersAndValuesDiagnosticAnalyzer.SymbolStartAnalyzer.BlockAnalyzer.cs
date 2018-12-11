@@ -366,7 +366,8 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                         out ImmutableDictionary<string, string> properties)
                     {
                         properties = null;
-                        if (_options.UnusedValueAssignmentSeverity == ReportDiagnostic.Suppress)
+                        if (_options.UnusedValueAssignmentSeverity == ReportDiagnostic.Suppress ||
+                            symbol.GetSymbolType().IsErrorType())
                         {
                             return false;
                         }

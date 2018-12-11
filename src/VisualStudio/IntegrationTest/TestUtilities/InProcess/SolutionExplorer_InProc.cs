@@ -509,7 +509,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
             GetDTE().ItemOperations.NewFile(itemTemplate, fileName);
         }
-            
+
 
         public void SetFileContents(string projectName, string relativeFilePath, string contents)
         {
