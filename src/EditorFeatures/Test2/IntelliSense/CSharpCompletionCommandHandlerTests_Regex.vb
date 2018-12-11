@@ -88,5 +88,33 @@ class c
                 Await state.AssertLineTextAroundCaret("        var r = new Regex(@""[^", "-]"");")
             End Using
         End Function
+
+        <MemberData(NameOf(AllCompletionImplementations))>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function OnlyEscapes(completionImplementation As CompletionImplementation) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
+                <Document><![CDATA[
+using System.Text.RegularExpressions;
+class c
+{
+    void goo()
+    {
+        var r = new Regex(@"$$");
+    }
+}
+]]></Document>)
+
+                state.SendTypeChars("\")
+                Await state.WaitForAsynchronousOperationsAsync()
+                Await state.AssertCompletionSession()
+
+                For Each item In state.GetCompletionItems()
+                    Assert.StartsWith("\", item.DisplayText)
+                Next
+
+                state.SendTab()
+                Await state.AssertNoCompletionSession()
+            End Using
+        End Function
     End Class
 End Namespace
