@@ -326,10 +326,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private TypeSymbolWithAnnotations(TypeSymbol defaultType, NullableAnnotation nullableAnnotation, Extensions extensions)
         {
             Debug.Assert((object)defaultType != null);
-            Debug.Assert(!defaultType.IsNullableType() || nullableAnnotation.IsAnyNullable());
+            Debug.Assert(!defaultType.IsNullableType() || (nullableAnnotation != NullableAnnotation.Unknown && nullableAnnotation != NullableAnnotation.NotAnnotated));
             Debug.Assert(extensions != null);
-            _defaultType = defaultType;
 
+            _defaultType = defaultType;
             NullableAnnotation = nullableAnnotation;
             _extensions = extensions;
         }
@@ -367,10 +367,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return default;
             }
 
-            if (!nullableAnnotation.IsAnyNullable() && typeSymbol.IsNullableType())
+            switch (nullableAnnotation)
             {
-                // int?, T? where T : struct (add annotation)
-                nullableAnnotation = NullableAnnotation.Annotated;
+                case NullableAnnotation.Unknown:
+                case NullableAnnotation.NotAnnotated:
+                    if (typeSymbol.IsNullableType())
+                    {
+                        // int?, T? where T : struct (add annotation)
+                        nullableAnnotation = NullableAnnotation.Annotated;
+                    }
+                    break;
             }
 
             return CreateNonLazyType(typeSymbol, nullableAnnotation, customModifiers.NullToEmpty());
@@ -384,6 +390,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal NullableAnnotation GetValueNullableAnnotation()
         {
             if (IsPossiblyNullableReferenceTypeTypeParameter())
+            {
+                return NullableAnnotation.Nullable;
+            }
+
+            // https://github.com/dotnet/roslyn/issues/31675: Is a similar case needed in ValueCanBeNull?
+            if (NullableAnnotation != NullableAnnotation.NotNullable && IsNullableTypeOrTypeParameter())
             {
                 return NullableAnnotation.Nullable;
             }
@@ -889,10 +901,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return true;
         }
 
-        public TypeSymbolWithAnnotations WithTopLevelNonNullabilityForReferenceTypes()
+        public TypeSymbolWithAnnotations WithTopLevelNonNullability()
         {
             var typeSymbol = TypeSymbol;
-            if (NullableAnnotation == NullableAnnotation.NotNullable || typeSymbol.IsValueType)
+            if (NullableAnnotation == NullableAnnotation.NotNullable || (typeSymbol.IsValueType && !typeSymbol.IsNullableType()))
             {
                 return this;
             }
@@ -1189,7 +1201,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var resolvedType = GetResolvedType();
                 if (resolvedType.IsNullableType())
                 {
-                    return TypeSymbolWithAnnotations.Create(resolvedType, customModifiers: customModifiers);
+                    return TypeSymbolWithAnnotations.Create(resolvedType, type.NullableAnnotation, customModifiers: customModifiers);
                 }
 
                 return CreateNonLazyType(resolvedType, type.NullableAnnotation, customModifiers);
@@ -1199,7 +1211,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (typeSymbol.IsNullableType())
                 {
-                    return TypeSymbolWithAnnotations.Create(typeSymbol, customModifiers: customModifiers);
+                    return TypeSymbolWithAnnotations.Create(typeSymbol, type.NullableAnnotation, customModifiers: customModifiers);
                 }
 
                 return CreateNonLazyType(typeSymbol, type.NullableAnnotation, customModifiers);
