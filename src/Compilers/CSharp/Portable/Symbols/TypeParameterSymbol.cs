@@ -689,14 +689,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return this;
         }
 
-        public override sealed bool? NonNullTypes
-        {
-            get
-            {
-                return ContainingSymbol.NonNullTypes;
-            }
-        }
-
         #region ITypeParameterTypeSymbol Members
 
         TypeParameterKind ITypeParameterSymbol.TypeParameterKind

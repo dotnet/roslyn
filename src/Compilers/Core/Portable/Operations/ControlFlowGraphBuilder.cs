@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
 
             builder.EnterRegion(new RegionBuilder(ControlFlowRegionKind.LocalLifetime));
 
-            switch(body.Kind)
+            switch (body.Kind)
             {
                 case OperationKind.LocalFunction:
                     Debug.Assert(captureIdDispenser != null);
@@ -4053,7 +4053,7 @@ oneMoreTime:
                     // This must be an error case
                     AddStatement(MakeInvalidOperation(type: null, Visit(operation.Collection)));
                     result = new InvalidOperation(ImmutableArray<IOperation>.Empty, semanticModel: null, operation.Collection.Syntax,
-                                                  type: null,constantValue: default, isImplicit: true);
+                                                  type: null, constantValue: default, isImplicit: true);
                 }
 
                 PopStackFrameAndLeaveRegion(getEnumeratorFrame);
@@ -5069,8 +5069,8 @@ oneMoreTime:
                         break;
 
                     case CaseKind.Range:
-                        // A switch section with a range case must have a condition associated with it.
-                        // This point should not be reachable.
+                    // A switch section with a range case must have a condition associated with it.
+                    // This point should not be reachable.
                     default:
                         throw ExceptionUtilities.UnexpectedValue(caseClause.CaseKind);
                 }
@@ -6563,6 +6563,29 @@ oneMoreTime:
         {
             return new DelegateCreationOperation(Visit(operation.Target), semanticModel: null,
                 operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
+        }
+
+        public override IOperation VisitFromEndIndexOperation(IFromEndIndexOperation operation, int? argument)
+        {
+            return new FromEndIndexOperation(operation.IsLifted, operation.IsImplicit, semanticModel: null, operation.Syntax, operation.Type, Visit(operation.Operand), operation.Symbol);
+        }
+
+        public override IOperation VisitRangeOperation(IRangeOperation operation, int? argument)
+        {
+            if (!(operation.LeftOperand is null))
+            {
+                PushOperand(Visit(operation.LeftOperand));
+            }
+
+            IOperation visitedRightOperand = null;
+            if (!(operation.RightOperand is null))
+            {
+                visitedRightOperand = Visit(operation.RightOperand);
+            }
+
+            IOperation visitedLeftOperand = operation.LeftOperand is null ? null : PopOperand();
+
+            return new RangeOperation(operation.IsLifted, operation.IsImplicit, semanticModel: null, operation.Syntax, operation.Type, visitedLeftOperand, visitedRightOperand, operation.Method);
         }
 
         public IOperation Visit(IOperation operation)

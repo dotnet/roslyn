@@ -213,7 +213,7 @@ namespace N
 end namespace")
         End Function
 
-                <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAccessibilityModifiers)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAccessibilityModifiers)>
         Public Async Function TestAllConstructsWithOmit() As Task
             Await TestInRegularAndScriptAsync(
 "

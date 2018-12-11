@@ -264,7 +264,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             var language = GetLanguage(workspace, projectElement);
 
             var assemblyName = GetAssemblyName(workspace, projectElement, ref projectId);
-            var defaultNamespace = GetDefaultNamespace(workspace, projectElement);
 
             string filePath;
 
@@ -291,6 +290,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
             var parseOptions = GetParseOptions(projectElement, language, languageServices);
             var compilationOptions = CreateCompilationOptions(workspace, projectElement, language, parseOptions);
+            var rootNamespace = GetRootNamespace(workspace, compilationOptions, projectElement);
 
             var references = CreateReferenceList(workspace, projectElement);
             var analyzers = CreateAnalyzerList(workspace, projectElement);
@@ -314,7 +314,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 documentElementToFilePath.Add(documentElement, document.FilePath);
             }
 
-            return new TestHostProject(languageServices, compilationOptions, parseOptions, assemblyName, projectName, references, documents, filePath: filePath, analyzerReferences: analyzers, defaultNamespace: defaultNamespace);
+            return new TestHostProject(languageServices, compilationOptions, parseOptions, assemblyName, projectName, references, documents, filePath: filePath, analyzerReferences: analyzers, defaultNamespace: rootNamespace);
         }
 
         private static ParseOptions GetParseOptions(XElement projectElement, string language, HostLanguageServices languageServices)
@@ -450,18 +450,23 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             return languageName;
         }
 
-        private static string GetDefaultNamespace(TestWorkspace workspace, XElement projectElement)
+        private static string GetRootNamespace(TestWorkspace workspace, CompilationOptions compilationOptions, XElement projectElement)
         {
-            // Default namespace is a C# only concept, for all other language, the value is set to null.
-            // The empty string returned in case no such property is define means global namespace.
             var language = GetLanguage(workspace, projectElement);
-            if (language != LanguageNames.CSharp)
+            var rootNamespaceAttribute = projectElement.Attribute(RootNamespaceAttributeName);
+
+            if (GetLanguage(workspace, projectElement) == LanguageNames.VisualBasic)
             {
-                return null;
+                // For VB tests, root namespace value must be defined in compilation options element, 
+                // it can't use the property in project element to avoid confusion.
+                Assert.Null(rootNamespaceAttribute);
+
+                var vbCompilationOptions = (VisualBasicCompilationOptions)compilationOptions;
+                return vbCompilationOptions.RootNamespace;
             }
 
-            var defaultNamespaceAttribute = projectElement.Attribute(DefaultNamespaceAttributeName);
-            return defaultNamespaceAttribute?.Value ?? string.Empty;
+            // If it's not defined, default to "" (global namespace)
+            return rootNamespaceAttribute?.Value ?? string.Empty;
         }
 
         private static CompilationOptions CreateCompilationOptions(

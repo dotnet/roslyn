@@ -32,7 +32,7 @@ namespace Roslyn.Test.Utilities
         /// This is represents the set of tests which must be mscorlib40 on desktop but full net standard on coreclr.
         /// </summary>
         StandardCompat,
-       
+
         /// <summary>
         /// Compat framework for the default set of references many vb compilations get.
         /// </summary>
@@ -40,7 +40,7 @@ namespace Roslyn.Test.Utilities
 
         // The flavors of mscorlib we support + extending them with LINQ and dynamic.
         Mscorlib40,
-        Mscorlib40Extended, 
+        Mscorlib40Extended,
         Mscorlib40AndSystemCore,
         Mscorlib40AndVBRuntime,
         Mscorlib45,
@@ -144,7 +144,7 @@ namespace Roslyn.Test.Utilities
                 }
             }
 
-            IEnumerable<string> getNames(IEnumerable<MetadataReference> e) 
+            IEnumerable<string> getNames(IEnumerable<MetadataReference> e)
             {
                 foreach (var r in e)
                 {

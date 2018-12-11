@@ -8,7 +8,6 @@
     <RootNamespace>Microsoft.CodeAnalysis.BuildTasks.UnitTests</RootNamespace>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <TargetFramework>net472</TargetFramework>
-    <RuntimeIdentifier>$(RoslynDesktopRuntimeIdentifier)</RuntimeIdentifier>
     <RoslynProjectType>UnitTest</RoslynProjectType>
 
     <!-- Multiple test failures -->

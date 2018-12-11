@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis
 
         public static string JoinText(this ImmutableArray<TaggedText> values)
         {
-            
+
             return values.IsDefault
                 ? null
                 : Join(values);

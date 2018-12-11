@@ -70,8 +70,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert((a == NullableAnnotation.NotAnnotated && b == NullableAnnotation.NotNullable) ||
                 (b == NullableAnnotation.NotAnnotated && a == NullableAnnotation.NotNullable));
             return NullableAnnotation.NotAnnotated; // It is reasonable to settle on this value because the difference in annotations is either
-                                                   // not significant for the type, or candidate corresponding to this value is possibly a 
-                                                   // nullable reference type type parameter and nullable should win. 
+                                                    // not significant for the type, or candidate corresponding to this value is possibly a 
+                                                    // nullable reference type type parameter and nullable should win. 
         }
 
         /// <summary>
@@ -338,7 +338,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public string Name => TypeSymbol.Name;
         public SymbolKind Kind => TypeSymbol.Kind;
 
-        // Note: We cannot pull on NonNullTypes while debugging, as that causes cycles, so we only display annotated vs. un-annotated.
         internal static readonly SymbolDisplayFormat DebuggerDisplayFormat = new SymbolDisplayFormat(
             typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
             genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
@@ -350,19 +349,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             miscellaneousOptions: SymbolDisplayMiscellaneousOptions.UseSpecialTypes | SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier,
             compilerInternalOptions: SymbolDisplayCompilerInternalOptions.IncludeNonNullableTypeModifier);
 
-        internal static TypeSymbolWithAnnotations Create(INonNullTypesContext nonNullTypesContext, TypeSymbol typeSymbol, bool isAnnotated = false, ImmutableArray<CustomModifier> customModifiers = default)
+        internal static TypeSymbolWithAnnotations Create(bool isNullableEnabled, TypeSymbol typeSymbol, bool isAnnotated = false, ImmutableArray<CustomModifier> customModifiers = default)
         {
-            Debug.Assert(nonNullTypesContext != null);
-            Debug.Assert((nonNullTypesContext as Symbol)?.IsDefinition != false);
-#if DEBUG
-            _ = nonNullTypesContext.NonNullTypes; // Should be able to ask this question right away.
-#endif
             if (typeSymbol is null)
             {
                 return default;
             }
 
-            return Create(typeSymbol, nullableAnnotation: isAnnotated ? NullableAnnotation.Annotated : nonNullTypesContext.NonNullTypes == true ? NullableAnnotation.NotAnnotated : NullableAnnotation.Unknown,
+            return Create(typeSymbol, nullableAnnotation: isAnnotated ? NullableAnnotation.Annotated : isNullableEnabled ? NullableAnnotation.NotAnnotated : NullableAnnotation.Unknown,
                           customModifiers.NullToEmpty());
         }
 
@@ -721,7 +715,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 return this; // substitution had no effect on the type or modifiers
             }
-            else if(Is((TypeParameterSymbol)typeSymbol))
+            else if (Is((TypeParameterSymbol)typeSymbol))
             {
                 return newTypeWithModifiers;
             }

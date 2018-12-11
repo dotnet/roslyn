@@ -373,7 +373,7 @@ System.Console.WriteLine();
         public void TestParentOperations()
         {
             var sourceCode = TestResource.AllInOneCSharpCode;
-            
+
             var compilation = CreateCompilationWithMscorlib40(sourceCode, new[] { SystemRef, SystemCoreRef, ValueTupleRef, SystemRuntimeFacadeRef }, sourceFileName: "file.cs");
             var tree = compilation.SyntaxTrees[0];
             var model = compilation.GetSemanticModel(tree);

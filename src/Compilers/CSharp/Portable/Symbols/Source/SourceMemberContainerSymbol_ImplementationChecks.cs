@@ -144,7 +144,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         if (synthesizedImplementation.IsVararg)
                         {
                             diagnostics.Add(
-                                ErrorCode.ERR_InterfaceImplementedImplicitlyByVariadic, 
+                                ErrorCode.ERR_InterfaceImplementedImplicitlyByVariadic,
                                 GetImplicitImplementationDiagnosticLocation(interfaceMember, this, implementingMember), implementingMember, interfaceMember, this);
                         }
                         else

@@ -3137,6 +3137,14 @@ namespace Microsoft.CodeAnalysis
                      0,                                                                                                                                         // Method Signature
                      (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Range - WellKnownType.ExtSentinel),
 
+                // System_Runtime_CompilerServices_AsyncIteratorStateMachineAttribute__ctor
+                (byte)MemberFlags.Constructor,                                                                              // Flags
+                (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Runtime_CompilerServices_AsyncIteratorStateMachineAttribute - WellKnownType.ExtSentinel), // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    1,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void, // Return Type
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Type,
+
                 // System_IAsyncDisposable__DisposeAsync
                 (byte)(MemberFlags.Method | MemberFlags.Virtual),                                                                                              // Flags
                 (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_IAsyncDisposable - WellKnownType.ExtSentinel),                                    // DeclaringTypeId
@@ -3707,6 +3715,8 @@ namespace Microsoft.CodeAnalysis
                 "FromStart",                                // System_Range__FromStart
                 "All",                                      // System_Range__All
 
+                ".ctor",                                    // System_Runtime_CompilerServices_AsyncIteratorStateMachineAttribute__ctor
+
                 "DisposeAsync",                             // System_IAsyncDisposable__DisposeAsync
                 "GetAsyncEnumerator",                       // System_Collections_Generic_IAsyncEnumerable_T__GetAsyncEnumerator
                 "MoveNextAsync",                            // System_Collections_Generic_IAsyncEnumerator_T__MoveNextAsync
@@ -3757,6 +3767,7 @@ namespace Microsoft.CodeAnalysis
                 case WellKnownMember.System_STAThreadAttribute__ctor:
                 case WellKnownMember.System_Runtime_CompilerServices_AsyncStateMachineAttribute__ctor:
                 case WellKnownMember.System_Runtime_CompilerServices_IteratorStateMachineAttribute__ctor:
+                case WellKnownMember.System_Runtime_CompilerServices_AsyncIteratorStateMachineAttribute__ctor:
                     return true;
 
                 default:

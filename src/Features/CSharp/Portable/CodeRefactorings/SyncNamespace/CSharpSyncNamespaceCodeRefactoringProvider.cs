@@ -15,7 +15,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.SyncNamespace
 {
     [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.SyncNamespace), Shared]
-    internal sealed class CSharpSyncNamespaceCodeRefactoringProvider 
+    internal sealed class CSharpSyncNamespaceCodeRefactoringProvider
         : AbstractSyncNamespaceCodeRefactoringProvider<NamespaceDeclarationSyntax, CompilationUnitSyntax, MemberDeclarationSyntax>
     {
         protected override async Task<SyntaxNode> TryGetApplicableInvocationNode(Document document, int position, CancellationToken cancellationToken)

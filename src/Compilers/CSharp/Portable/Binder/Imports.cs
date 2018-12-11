@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal string GetDebuggerDisplay()
         {
-            return string.Join("; ", 
+            return string.Join("; ",
                 UsingAliases.OrderBy(x => x.Value.UsingDirective.Location.SourceSpan.Start).Select(ua => $"{ua.Key} = {ua.Value.Alias.Target}").Concat(
                 Usings.Select(u => u.NamespaceOrType.ToString())).Concat(
                 ExternAliases.Select(ea => $"extern alias {ea.Alias.Name}")));

@@ -346,7 +346,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return true;
             }
 
-            if ((object)other == null || !other.HasSameShapeAs(this) || 
+            if ((object)other == null || !other.HasSameShapeAs(this) ||
                 !other.ElementType.Equals(ElementType, comparison))
             {
                 return false;
@@ -392,7 +392,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (!oldElementType.ApplyNullableTransforms(defaultTransformFlag, transforms, ref position, out newElementType))
             {
                 result = this;
-                return false; 
+                return false;
             }
 
             result = WithElementType(newElementType);
@@ -456,8 +456,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return result;
             }
 
-                return result;
-            }
+            return result;
+        }
 
         internal override bool GetUnificationUseSiteDiagnosticRecursive(ref DiagnosticInfo result, Symbol owner, ref HashSet<TypeSymbol> checkedTypes)
         {

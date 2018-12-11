@@ -48,7 +48,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         }
 
         public void ActivateMainWindow(bool skipAttachingThreads = false)
-            => InvokeOnUIThread(() => {
+            => InvokeOnUIThread(() =>
+            {
                 var dte = GetDTE();
 
                 var activeVisualStudioWindow = (IntPtr)dte.ActiveWindow.HWnd;

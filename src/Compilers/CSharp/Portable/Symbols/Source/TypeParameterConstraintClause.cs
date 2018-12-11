@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -18,6 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         Constructor = 0x04,
         Unmanaged = 0x08,
         NullableReferenceType = ReferenceType | 0x10,
+        NotNullableReferenceType = ReferenceType | 0x20,
     }
 
     /// <summary>
@@ -52,6 +54,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             ImmutableArray<TypeConstraintSyntax> typeConstraintsSyntax,
             ImmutableArray<TypeParameterConstraintClause> otherPartialDeclarations)
         {
+#if DEBUG
+            switch (constraints & (TypeParameterConstraintKind.NullableReferenceType | TypeParameterConstraintKind.NotNullableReferenceType))
+            {
+                case TypeParameterConstraintKind.None:
+                case TypeParameterConstraintKind.ReferenceType:
+                case TypeParameterConstraintKind.NullableReferenceType:
+                case TypeParameterConstraintKind.NotNullableReferenceType:
+                    break;
+                default:
+                    ExceptionUtilities.UnexpectedValue(constraints); // This call asserts.
+                    break;
+            }
+#endif 
             this.Constraints = constraints;
             this.ConstraintTypes = constraintTypes;
             this.TypeConstraintsSyntax = typeConstraintsSyntax;

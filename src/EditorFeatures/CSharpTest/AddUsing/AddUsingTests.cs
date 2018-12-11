@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddUsing
             int index = 0)
         {
             await TestAsync(
-                initialMarkup, expected, index: index, 
+                initialMarkup, expected, index: index,
                 options: Option(GenerationOptions.PlaceSystemNamespaceFirst, systemSpecialCase));
         }
 
