@@ -105,11 +105,10 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
                 }
                 else
                 {
-                    // setting result of a task can cause await machinary to wake up awaited code
-                    // and run code inline. that basically means random code running at the same thread
-                    // as the thread SetResult is called. so make sure we do in another thread (basically outside of the lock).
-                    // also, to prevent re-enterance bug, use NonReentrantLock to explicitly block
-                    // re-enterance
+                    // Calling SetResult on a normal TaskCompletionSource can cause continuations to run synchronously
+                    // at that point. That's a problem as that may cause additional code to run while we're holding a lock. 
+                    // In order to prevent that, we pass along RunContinuationsAsynchronously in order to ensure that 
+                    // all continuations will run at a future point when this thread has released the lock.
                     var source = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
                     _pendingTasks.Add(source);
 
