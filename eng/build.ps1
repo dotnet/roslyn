@@ -32,6 +32,7 @@ param (
 
     # Options
     [switch]$bootstrap,
+    [string]$bootstrapConfiguration = "Release",
     [switch][Alias('bl')]$binaryLog,
     [switch]$ci,
     [switch]$official,
@@ -83,6 +84,7 @@ function Print-Usage() {
     Write-Host "  -ci                       Set when running on CI server"
     Write-Host "  -official                 Set when building an official build"
     Write-Host "  -bootstrap                Build using a bootstrap compilers"
+    Write-Host "  -bootstrapConfiguration   Build configuration for bootstrap compiler: 'Debug' or 'Release'"
     Write-Host "  -msbuildEngine <value>    Msbuild engine to use to run build ('dotnet', 'vs', or unspecified)."
     Write-Host "  -procdump                 Monitor test runs with procdump"
     Write-Host "  -skipAnalyzers            Do not run analyzers during build operations"
