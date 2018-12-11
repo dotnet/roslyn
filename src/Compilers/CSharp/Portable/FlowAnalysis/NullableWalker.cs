@@ -411,6 +411,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             switch (node.Kind)
             {
+                case BoundKind.ThisReference:
+                case BoundKind.BaseReference:
+                    {
+                        var method = _member as MethodSymbol;
+                        while ((object)method != null && !isTopLevelMethod(method))
+                        {
+                            method = method.ContainingSymbol as MethodSymbol;
+                        }
+                        var thisParameter = method?.ThisParameter;
+                        return (object)thisParameter != null ? GetOrCreateSlot(thisParameter) : -1;
+                    }
                 case BoundKind.Conversion:
                     {
                         var conv = (BoundConversion)node;
@@ -453,6 +464,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
             }
             return base.MakeSlot(node);
+
+            bool isTopLevelMethod(MethodSymbol method)
+            {
+                switch (method.MethodKind)
+                {
+                    case MethodKind.LambdaMethod:
+                    case MethodKind.LocalFunction:
+                        return false;
+                    default:
+                        return true;
+                }
+            }
         }
 
         private new void VisitLvalue(BoundExpression node)
