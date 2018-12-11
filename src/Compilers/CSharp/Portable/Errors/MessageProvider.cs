@@ -212,9 +212,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         // PDB Writer:
         public override int ERR_EncodinglessSyntaxTree => (int)ErrorCode.ERR_EncodinglessSyntaxTree;
-        public override int WRN_PdbUsingNameTooLong => (int)ErrorCode.WRN_DebugFullNameTooLong; 
+        public override int WRN_PdbUsingNameTooLong => (int)ErrorCode.WRN_DebugFullNameTooLong;
         public override int WRN_PdbLocalNameTooLong => (int)ErrorCode.WRN_PdbLocalNameTooLong;
-        public override int ERR_PdbWritingFailed => (int)ErrorCode.FTL_DebugEmitFailure; 
+        public override int ERR_PdbWritingFailed => (int)ErrorCode.FTL_DebugEmitFailure;
 
         // PE Writer:
         public override int ERR_MetadataNameTooLong => (int)ErrorCode.ERR_MetadataNameTooLong;

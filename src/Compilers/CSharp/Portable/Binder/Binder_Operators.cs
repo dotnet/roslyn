@@ -2692,7 +2692,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return operand.HasAnyErrors;
-            }
+        }
 
         private bool IsOperatorErrors(CSharpSyntaxNode node, TypeSymbol operandType, BoundTypeExpression typeExpression, DiagnosticBag diagnostics)
         {

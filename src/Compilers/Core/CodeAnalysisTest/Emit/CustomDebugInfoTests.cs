@@ -519,7 +519,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Emit
             var builder = new BlobBuilder();
             var cdiEncoder = new CustomDebugInfoEncoder(builder);
 
-            cdiEncoder.AddDynamicLocals(new[] 
+            cdiEncoder.AddDynamicLocals(new[]
             {
                 ("a", Pad(64, new byte[] { 0x01, 0x02 }), 10, 1),
                 ("b", Pad(64, new byte[] { 0xFF }), 1, 2),

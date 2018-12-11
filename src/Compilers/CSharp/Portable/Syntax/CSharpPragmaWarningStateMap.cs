@@ -168,7 +168,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                     }
 
                     // Update the state of this error code with the current directive state
-                    var builder = ArrayBuilder<KeyValuePair<string, PragmaWarningState>>.GetInstance(ErrorFacts.NullableFlowAnalysisWarnings.Count); 
+                    var builder = ArrayBuilder<KeyValuePair<string, PragmaWarningState>>.GetInstance(ErrorFacts.NullableFlowAnalysisWarnings.Count);
 
                     foreach (string id in ErrorFacts.NullableFlowAnalysisWarnings)
                     {

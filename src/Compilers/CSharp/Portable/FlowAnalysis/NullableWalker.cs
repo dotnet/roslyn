@@ -863,7 +863,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-#region Visitors
+        #region Visitors
 
         public override BoundNode VisitIsPatternExpression(BoundIsPatternExpression node)
         {
@@ -1722,7 +1722,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 resultNullableAnnotation = getNullableAnnotation(rightOperand, rightResult);
             }
-            
+
             _resultType = TypeSymbolWithAnnotations.Create(resultType, resultNullableAnnotation);
             return null;
 
@@ -4374,7 +4374,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             if (operandType?.IsValueType == true)
                             {
                                 // https://github.com/dotnet/roslyn/issues/29959 We currently don't worry about a pathological case of boxing nullable value known to be not null
-                                nullableAnnotation = operandType.IsNullableType() ?  NullableAnnotation.Nullable : NullableAnnotation.NotNullable;
+                                nullableAnnotation = operandType.IsNullableType() ? NullableAnnotation.Nullable : NullableAnnotation.NotNullable;
                             }
                             else
                             {
@@ -4797,7 +4797,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-#endregion Visitors
+        #endregion Visitors
 
         protected override string Dump(LocalState state)
         {

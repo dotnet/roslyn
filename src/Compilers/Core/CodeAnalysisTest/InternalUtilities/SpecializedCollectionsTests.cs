@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.InternalUtilities
             Assert.Throws<NotSupportedException>(() => ((ICollection<int>)(emptySet)).Add(0));
             Assert.Throws<NotSupportedException>(() => emptySet.Remove(0));
             Assert.Throws<NotSupportedException>(() => emptySet.Clear());
-            
+
             // ISet (read-only safe)
             Assert.False(emptySet.IsProperSubsetOf(new int[0]));
             Assert.True(emptySet.IsProperSubsetOf(new int[1]));

@@ -9,7 +9,7 @@ namespace Roslyn.Test.Utilities
     public class WpfFactDiscoverer : FactDiscoverer
     {
         private readonly IMessageSink _diagnosticMessageSink;
- 
+
         public WpfFactDiscoverer(IMessageSink diagnosticMessageSink) : base(diagnosticMessageSink)
         {
             _diagnosticMessageSink = diagnosticMessageSink;
@@ -22,7 +22,7 @@ namespace Roslyn.Test.Utilities
     public class WpfTheoryDiscoverer : TheoryDiscoverer
     {
         private readonly IMessageSink _diagnosticMessageSink;
- 
+
         public WpfTheoryDiscoverer(IMessageSink diagnosticMessageSink) : base(diagnosticMessageSink)
         {
             _diagnosticMessageSink = diagnosticMessageSink;

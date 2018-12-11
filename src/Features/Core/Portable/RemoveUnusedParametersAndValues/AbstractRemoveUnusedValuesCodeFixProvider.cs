@@ -48,10 +48,10 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
         where TBlockSyntax : TStatementSyntax
         where TExpressionStatementSyntax : TStatementSyntax
         where TLocalDeclarationStatementSyntax : TStatementSyntax
-        where TForEachStatementSyntax: TStatementSyntax
+        where TForEachStatementSyntax : TStatementSyntax
         where TVariableDeclaratorSyntax : SyntaxNode
         where TSwitchCaseBlockSyntax : SyntaxNode
-        where TSwitchCaseLabelOrClauseSyntax: SyntaxNode
+        where TSwitchCaseLabelOrClauseSyntax : SyntaxNode
     {
         private static readonly SyntaxAnnotation s_memberAnnotation = new SyntaxAnnotation();
         private static readonly SyntaxAnnotation s_newLocalDeclarationStatementAnnotation = new SyntaxAnnotation();
@@ -802,7 +802,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
             }
         }
 
-        protected sealed class UniqueVariableNameGenerator: IDisposable
+        protected sealed class UniqueVariableNameGenerator : IDisposable
         {
             private readonly SyntaxNode _memberDeclaration;
             private readonly SemanticModel _semanticModel;

@@ -711,14 +711,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        public override bool? NonNullTypes
-        {
-            get
-            {
-                throw ExceptionUtilities.Unreachable;
-            }
-        }
-
         public override ImmutableArray<Location> Locations => _containingType.ContainingPEModule.MetadataLocation.Cast<MetadataLocation, Location>();
 
         public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences => ImmutableArray<SyntaxReference>.Empty;
@@ -813,7 +805,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
 
             var parameter = parameters[0];
-            switch(parameter.RefKind)
+            switch (parameter.RefKind)
             {
                 case RefKind.None:
                 case RefKind.Ref:
@@ -924,10 +916,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                         case WellKnownMemberNames.ExplicitConversionName:
                             return IsValidUserDefinedOperatorSignature(1) ? MethodKind.Conversion : MethodKind.Ordinary;
 
-                        //case WellKnownMemberNames.ConcatenateOperatorName:
-                        //case WellKnownMemberNames.ExponentOperatorName:
-                        //case WellKnownMemberNames.IntegerDivisionOperatorName:
-                        //case WellKnownMemberNames.LikeOperatorName:
+                            //case WellKnownMemberNames.ConcatenateOperatorName:
+                            //case WellKnownMemberNames.ExponentOperatorName:
+                            //case WellKnownMemberNames.IntegerDivisionOperatorName:
+                            //case WellKnownMemberNames.LikeOperatorName:
                             //// Non-C#-supported overloaded operator
                             //return MethodKind.Ordinary;
                     }

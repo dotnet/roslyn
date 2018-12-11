@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Completion
 
         public CompletionItemFilter(string displayText, string tag, char accessKey)
             : this(displayText, ImmutableArray.Create(tag), accessKey)
-        { 
+        {
         }
 
         public bool Matches(CompletionItem item)

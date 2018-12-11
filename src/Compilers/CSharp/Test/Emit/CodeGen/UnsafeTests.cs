@@ -4282,7 +4282,7 @@ public static class FixableExt
 
 ";
 
-            var compVerifier = CompileAndVerify(text,options: TestOptions.UnsafeReleaseExe, expectedOutput: @"2", verify: Verification.Fails);
+            var compVerifier = CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: @"2", verify: Verification.Fails);
 
             compVerifier.VerifyIL("C.Main", @"
 {
@@ -10394,7 +10394,7 @@ unsafe public struct FixedStruct
             }
         }
     }";
-            var comp = CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput:"ABC", verify: Verification.Fails).VerifyDiagnostics();
+            var comp = CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: "ABC", verify: Verification.Fails).VerifyDiagnostics();
 
             comp.VerifyIL("FixedStruct.ToString", @"
 {

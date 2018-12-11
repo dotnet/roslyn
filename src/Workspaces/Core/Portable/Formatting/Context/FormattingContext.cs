@@ -265,7 +265,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             List<SuppressOperation> operations,
             CancellationToken cancellationToken)
         {
-            var valuePairs = new(SuppressOperation operation, bool shouldSuppress, bool onSameLine)[operations.Count];
+            var valuePairs = new (SuppressOperation operation, bool shouldSuppress, bool onSameLine)[operations.Count];
 
             // TODO: think about a way to figure out whether it is already suppressed and skip the expensive check below.
             for (var i = 0; i < operations.Count; i++)

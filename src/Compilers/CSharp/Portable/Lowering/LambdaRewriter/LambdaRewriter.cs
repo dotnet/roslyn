@@ -1437,7 +1437,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 lambdaScope = null;
             }
-            
+
             CompilationState.ModuleBuilderOpt.AddSynthesizedDefinition(translatedLambdaContainer, synthesizedMethod);
 
             foreach (var parameter in node.Symbol.Parameters)

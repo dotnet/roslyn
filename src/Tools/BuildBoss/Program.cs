@@ -87,7 +87,7 @@ namespace BuildBoss
         }
 
         private static bool Go(string repositoryDirectory, string configuration, List<string> solutionFileNames)
-        { 
+        {
             var allGood = true;
             foreach (var solutionFileName in solutionFileNames)
             {

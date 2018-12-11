@@ -24,8 +24,8 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
     [Export(typeof(VSCommanding.ICommandHandler))]
     [ContentType(ContentTypeNames.RoslynContentType)]
     [Name(PredefinedCommandHandlerNames.GoToAdjacentMember)]
-    internal class GoToAdjacentMemberCommandHandler : 
-        VSCommanding.ICommandHandler<GoToNextMemberCommandArgs>, 
+    internal class GoToAdjacentMemberCommandHandler :
+        VSCommanding.ICommandHandler<GoToNextMemberCommandArgs>,
         VSCommanding.ICommandHandler<GoToPreviousMemberCommandArgs>
     {
         private readonly IOutliningManagerService _outliningManagerService;
@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
         }
 
         private VSCommanding.CommandState GetCommandStateImpl(EditorCommandArgs args)
-        { 
+        {
             var document = args.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
             var caretPoint = args.TextView.GetCaretPoint(args.SubjectBuffer);
             return IsAvailable(document, caretPoint) ? VSCommanding.CommandState.Available : VSCommanding.CommandState.Unspecified;

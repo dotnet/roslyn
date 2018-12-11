@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddRequiredParentheses
     {
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (new CSharpAddRequiredParenthesesDiagnosticAnalyzer(), new AddRequiredParenthesesCodeFixProvider());
-        
+
         private Task TestMissingAsync(string initialMarkup, IDictionary<OptionKey, object> options)
             => TestMissingInRegularAndScriptAsync(initialMarkup, new TestParameters(options: options));
 

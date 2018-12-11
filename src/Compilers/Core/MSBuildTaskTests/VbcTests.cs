@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             vbc.ChecksumAlgorithm = "";
             Assert.Equal("/optionstrict:custom /out:test.exe /checksumalgorithm: test.vb", vbc.GenerateResponseFileContents());
         }
-        
+
         [Fact]
         public void InstrumentTestNamesFlag()
         {
@@ -349,7 +349,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             vbc.SharedCompilationId = "testPipeName";
             Assert.Equal("/optionstrict:custom /out:test.exe test.vb", vbc.GenerateResponseFileContents());
         }
-      
+
         [Fact]
         [WorkItem(21371, "https://github.com/dotnet/roslyn/issues/21371")]
         public void GenerateDocumentationFalse()

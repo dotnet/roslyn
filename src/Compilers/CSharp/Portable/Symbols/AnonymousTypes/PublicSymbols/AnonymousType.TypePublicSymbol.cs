@@ -175,7 +175,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             internal sealed override bool IsByRefLikeType
             {
-                get { return false;  }
+                get { return false; }
             }
 
             internal sealed override bool IsReadOnly

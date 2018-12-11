@@ -261,18 +261,12 @@ partial class C9 { }
             // -nullable (default):
             var comp = CreateCompilation(new[] { source0, source1, source2 }, options: TestOptions.DebugDll);
             comp.VerifyDiagnostics(
-                // (12,11): warning CS8620: Nullability of reference types in argument of type 'C3' doesn't match target type 'Base<object?>' for parameter 'b' in 'void Program.F(Base<object?> b)'.
-                //         F(new C3());
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "new C3()").WithArguments("C3", "Base<object?>", "b", "void Program.F(Base<object?> b)").WithLocation(12, 11),
                 // (15,11): warning CS8620: Nullability of reference types in argument of type 'C6' doesn't match target type 'Base<object?>' for parameter 'b' in 'void Program.F(Base<object?> b)'.
                 //         F(new C6());
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "new C6()").WithArguments("C6", "Base<object?>", "b", "void Program.F(Base<object?> b)").WithLocation(15, 11),
                 // (16,11): warning CS8620: Nullability of reference types in argument of type 'C7' doesn't match target type 'Base<object?>' for parameter 'b' in 'void Program.F(Base<object?> b)'.
                 //         F(new C7());
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "new C7()").WithArguments("C7", "Base<object?>", "b", "void Program.F(Base<object?> b)").WithLocation(16, 11),
-                // (17,11): warning CS8620: Nullability of reference types in argument of type 'C8' doesn't match target type 'Base<object?>' for parameter 'b' in 'void Program.F(Base<object?> b)'.
-                //         F(new C8());
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "new C8()").WithArguments("C8", "Base<object?>", "b", "void Program.F(Base<object?> b)").WithLocation(17, 11),
                 // (18,11): warning CS8620: Nullability of reference types in argument of type 'C9' doesn't match target type 'Base<object?>' for parameter 'b' in 'void Program.F(Base<object?> b)'.
                 //         F(new C9());
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "new C9()").WithArguments("C9", "Base<object?>", "b", "void Program.F(Base<object?> b)").WithLocation(18, 11));
@@ -280,18 +274,12 @@ partial class C9 { }
             // -nullable-:
             comp = CreateCompilation(new[] { source0, source1, source2 }, options: TestOptions.DebugDll.WithNullable(false));
             comp.VerifyDiagnostics(
-                // (12,11): warning CS8620: Nullability of reference types in argument of type 'C3' doesn't match target type 'Base<object?>' for parameter 'b' in 'void Program.F(Base<object?> b)'.
-                //         F(new C3());
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "new C3()").WithArguments("C3", "Base<object?>", "b", "void Program.F(Base<object?> b)").WithLocation(12, 11),
                 // (15,11): warning CS8620: Nullability of reference types in argument of type 'C6' doesn't match target type 'Base<object?>' for parameter 'b' in 'void Program.F(Base<object?> b)'.
                 //         F(new C6());
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "new C6()").WithArguments("C6", "Base<object?>", "b", "void Program.F(Base<object?> b)").WithLocation(15, 11),
                 // (16,11): warning CS8620: Nullability of reference types in argument of type 'C7' doesn't match target type 'Base<object?>' for parameter 'b' in 'void Program.F(Base<object?> b)'.
                 //         F(new C7());
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "new C7()").WithArguments("C7", "Base<object?>", "b", "void Program.F(Base<object?> b)").WithLocation(16, 11),
-                // (17,11): warning CS8620: Nullability of reference types in argument of type 'C8' doesn't match target type 'Base<object?>' for parameter 'b' in 'void Program.F(Base<object?> b)'.
-                //         F(new C8());
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "new C8()").WithArguments("C8", "Base<object?>", "b", "void Program.F(Base<object?> b)").WithLocation(17, 11),
                 // (18,11): warning CS8620: Nullability of reference types in argument of type 'C9' doesn't match target type 'Base<object?>' for parameter 'b' in 'void Program.F(Base<object?> b)'.
                 //         F(new C9());
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "new C9()").WithArguments("C9", "Base<object?>", "b", "void Program.F(Base<object?> b)").WithLocation(18, 11));
@@ -305,15 +293,15 @@ partial class C9 { }
                 // (12,11): warning CS8620: Nullability of reference types in argument of type 'C3' doesn't match target type 'Base<object?>' for parameter 'b' in 'void Program.F(Base<object?> b)'.
                 //         F(new C3());
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "new C3()").WithArguments("C3", "Base<object?>", "b", "void Program.F(Base<object?> b)").WithLocation(12, 11),
+                // (13,11): warning CS8620: Nullability of reference types in argument of type 'C4' doesn't match target type 'Base<object?>' for parameter 'b' in 'void Program.F(Base<object?> b)'.
+                //         F(new C4());
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "new C4()").WithArguments("C4", "Base<object?>", "b", "void Program.F(Base<object?> b)").WithLocation(13, 11),
                 // (15,11): warning CS8620: Nullability of reference types in argument of type 'C6' doesn't match target type 'Base<object?>' for parameter 'b' in 'void Program.F(Base<object?> b)'.
                 //         F(new C6());
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "new C6()").WithArguments("C6", "Base<object?>", "b", "void Program.F(Base<object?> b)").WithLocation(15, 11),
                 // (16,11): warning CS8620: Nullability of reference types in argument of type 'C7' doesn't match target type 'Base<object?>' for parameter 'b' in 'void Program.F(Base<object?> b)'.
                 //         F(new C7());
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "new C7()").WithArguments("C7", "Base<object?>", "b", "void Program.F(Base<object?> b)").WithLocation(16, 11),
-                // (17,11): warning CS8620: Nullability of reference types in argument of type 'C8' doesn't match target type 'Base<object?>' for parameter 'b' in 'void Program.F(Base<object?> b)'.
-                //         F(new C8());
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "new C8()").WithArguments("C8", "Base<object?>", "b", "void Program.F(Base<object?> b)").WithLocation(17, 11),
                 // (18,11): warning CS8620: Nullability of reference types in argument of type 'C9' doesn't match target type 'Base<object?>' for parameter 'b' in 'void Program.F(Base<object?> b)'.
                 //         F(new C9());
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "new C9()").WithArguments("C9", "Base<object?>", "b", "void Program.F(Base<object?> b)").WithLocation(18, 11));
@@ -1271,8 +1259,6 @@ class C4 { }";
         {
             var comp = CreateCompilation("", options: WithNonNullTypesFalse(), parseOptions: TestOptions.Regular7);
             comp.VerifyDiagnostics();
-
-            Assert.False(comp.SourceModule.NonNullTypes);
         }
 
         [Fact]
@@ -2303,7 +2289,6 @@ public class External
                 //     public static string? fns;
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(13, 25)
                 );
-            verifyExternal(libComp);
 
             var source = @"
 
@@ -2409,43 +2394,6 @@ class E
                 //         OuterD.D.s /*T:string!*/ = null; // warn 5
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(73, 36)
                 );
-
-            var outerA = (NamedTypeSymbol)compilation.GetMember("OuterA");
-            Assert.False(outerA.NonNullTypes);
-
-            var a = (NamedTypeSymbol)outerA.GetMember("A");
-            VerifyNonNullTypes(a, true);
-
-            var b = (NamedTypeSymbol)compilation.GetMember("B");
-            VerifyNonNullTypes(b, true);
-
-            var c = (NamedTypeSymbol)compilation.GetMember("C");
-            Assert.False(c.NonNullTypes);
-            VerifyNonNullTypes(c.GetMember("s"), true);
-            VerifyNonNullTypes(c.GetMember("ns"), true);
-
-            var outerD = (NamedTypeSymbol)compilation.GetMember("OuterD");
-            Assert.False(outerD.NonNullTypes);
-
-            var d = (NamedTypeSymbol)outerD.GetMember("D");
-            Assert.False(d.NonNullTypes);
-            VerifyNonNullTypes(d.GetMember("s"), true);
-            VerifyNonNullTypes(d.GetMember("ns"), true);
-
-            var oblivious2 = (NamedTypeSymbol)compilation.GetMember("Oblivious2");
-            Assert.True(oblivious2.NonNullTypes);
-            VerifyNonNullTypes(oblivious2.GetMember("s"), false);
-            VerifyNonNullTypes(oblivious2.GetMember("ns"), false);
-
-            void verifyExternal(Compilation comp)
-            {
-                var external = (NamedTypeSymbol)comp.GetMember("External");
-                Assert.True(external.NonNullTypes);
-                Assert.True(external.GetMember("s").NonNullTypes);
-                Assert.True(external.GetMember("ns").NonNullTypes);
-                Assert.False(external.GetMember("fs").NonNullTypes);
-                Assert.False(external.GetMember("fns").NonNullTypes);
-            }
         }
 
         [Fact]
@@ -2820,7 +2768,6 @@ public class Oblivious
 
             var obliviousComp = CreateCompilation(obliviousLib, parseOptions: TestOptions.Regular7);
             obliviousComp.VerifyDiagnostics();
-            VerifyNonNullTypes(obliviousComp.GetMember("Oblivious"), expectNonNullTypes: false);
 
             var lib = @"
 public class External
@@ -2917,89 +2864,6 @@ class E
                 //         OuterD.D.s /*T:string!*/ = null; // warn 4
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(57, 36)
                 );
-
-            var outerA = (NamedTypeSymbol)compilation.GetMember("OuterA");
-            Assert.False(outerA.NonNullTypes);
-
-            var a = (NamedTypeSymbol)outerA.GetMember("A");
-            Assert.False(a.NonNullTypes);
-            VerifyNonNullTypes(a.GetMember("s"), true);
-            VerifyNonNullTypes(a.GetMember("ns"), true);
-
-            var b = (NamedTypeSymbol)compilation.GetMember("B");
-            VerifyNonNullTypes(b, true);
-
-            var outerD = (NamedTypeSymbol)compilation.GetMember("OuterD");
-            Assert.False(outerD.NonNullTypes);
-
-            var d = (NamedTypeSymbol)outerD.GetMember("D");
-            VerifyNonNullTypes(d, true);
-
-            var oblivious2 = (NamedTypeSymbol)compilation.GetMember("Oblivious2");
-            Assert.True(oblivious2.NonNullTypes);
-            VerifyNonNullTypes(oblivious2.GetMember("s"), false);
-            VerifyNonNullTypes(oblivious2.GetMember("ns"), false);
-        }
-
-        /// <summary>
-        /// The type and all of its members should have the expected NonNullTypes value.
-        /// </summary>
-        private static void VerifyNonNullTypes(NamedTypeSymbol type, bool? expectNonNullTypes)
-        {
-            Assert.Equal(expectNonNullTypes, type.NonNullTypes);
-
-            foreach (var member in type.GetMembers())
-            {
-                VerifyNonNullTypes(member, expectNonNullTypes);
-            }
-        }
-
-        private static void VerifyNonNullTypes(Symbol symbol, bool? expectNonNullTypes)
-        {
-            switch (symbol)
-            {
-                case NamedTypeSymbol type:
-                    VerifyNonNullTypes(type, expectNonNullTypes);
-                    break;
-                case PropertySymbol property:
-                    VerifyNonNullTypes(property, expectNonNullTypes);
-                    break;
-                case MethodSymbol method:
-                    VerifyNonNullTypes(method, expectNonNullTypes);
-                    break;
-                case FieldSymbol field:
-                    Assert.Equal(expectNonNullTypes, field.NonNullTypes);
-                    break;
-            }
-        }
-
-        private static void VerifyNonNullTypes(PropertySymbol property, bool? expectNonNullTypes)
-        {
-            Assert.Equal(expectNonNullTypes, property.NonNullTypes);
-            VerifyNonNullTypes(property.GetMethod, expectNonNullTypes);
-            VerifyNonNullTypes(property.SetMethod, expectNonNullTypes);
-        }
-
-        private static void VerifyNonNullTypes(MethodSymbol method, bool? expectNonNullTypes)
-        {
-            Assert.Equal(expectNonNullTypes, method.NonNullTypes);
-
-            if (method.ReturnType.NullableAnnotation != NullableAnnotation.Annotated)
-            {
-                if (method is SynthesizedInstanceConstructor)
-                {
-                    Assert.Equal(NullableAnnotation.Unknown, method.ReturnType.NullableAnnotation);
-                }
-                else
-                {
-                    Assert.Equal(expectNonNullTypes == true, method.ReturnType.NullableAnnotation != NullableAnnotation.Unknown);
-                }
-            }
-
-            foreach (var parameter in method.Parameters)
-            {
-                Assert.Equal(expectNonNullTypes, parameter.NonNullTypes);
-            }
         }
 
         [Fact]
@@ -3013,7 +2877,6 @@ public class Oblivious
 ";
 
             var obliviousComp = CreateCompilation(obliviousLib, parseOptions: TestOptions.Regular7);
-            VerifyNonNullTypes((NamedTypeSymbol)obliviousComp.GetMember("Oblivious"), expectNonNullTypes: false);
 
             var lib = @"
 public class External
@@ -3024,7 +2887,6 @@ public class External
 ";
 
             var libComp = CreateCompilation(new[] { lib }, options: WithNonNullTypesTrue());
-            verifyExternal(libComp);
 
             var source = @"
 
@@ -3113,31 +2975,6 @@ class E
                 //         OuterD.D.Method(null) /*T:string!*/; // warn 4
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(56, 25)
                 );
-
-            var outerA = (NamedTypeSymbol)compilation.GetMember("OuterA");
-            Assert.False(outerA.NonNullTypes);
-
-            var a = (NamedTypeSymbol)outerA.GetMember("A");
-            VerifyNonNullTypes(a, true);
-
-            var b = (NamedTypeSymbol)compilation.GetMember("B");
-            VerifyNonNullTypes(b, true);
-
-            var outerD = (NamedTypeSymbol)compilation.GetMember("OuterD");
-            Assert.False(outerD.NonNullTypes);
-
-            var d = (NamedTypeSymbol)outerD.GetMember("D");
-            Assert.False(d.NonNullTypes);
-            VerifyNonNullTypes(d.GetMember("Method"), true);
-            VerifyNonNullTypes(d.GetMember("NMethod"), true);
-
-            var oblivious2 = (NamedTypeSymbol)compilation.GetMember("Oblivious2");
-            VerifyNonNullTypes(oblivious2, false);
-
-            void verifyExternal(Compilation comp)
-            {
-                VerifyNonNullTypes((NamedTypeSymbol)comp.GetMember("External"), true);
-            }
         }
 
         [Fact]
@@ -3150,7 +2987,6 @@ public class Oblivious { }
 
             var obliviousComp = CreateCompilation(new[] { obliviousLib });
             obliviousComp.VerifyDiagnostics();
-            VerifyNonNullTypes(obliviousComp.GetMember("Oblivious"), expectNonNullTypes: false);
 
             var compilation = CreateCompilation("", options: TestOptions.ReleaseDll,
                 parseOptions: TestOptions.Regular8, references: new[] { obliviousComp.EmitToImageReference() });
@@ -13045,6 +12881,7 @@ public class C
         }
 
         [Fact]
+        [WorkItem(30079, "https://github.com/dotnet/roslyn/issues/30079")]
         public void EnsuresNotNull_BeginInvoke()
         {
             CSharpCompilation c = CreateCompilation(new[] { @"
@@ -13065,12 +12902,6 @@ public class C
                 // (8,32): warning CS8602: Possible dereference of a null reference.
                 //         if (s != string.Empty) s.ToString(); // warn
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(8, 32),
-                // (9,26): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
-                //         d.BeginInvoke(s, null, null);
-                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(9, 26),
-                // (9,32): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
-                //         d.BeginInvoke(s, null, null);
-                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(9, 32),
                 // (10,9): warning CS8602: Possible dereference of a null reference.
                 //         s.ToString(); // warn 2
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(10, 9)
@@ -24208,7 +24039,8 @@ class C<T>
             //Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "c").WithArguments("C<object?>", "(IIn<object> x, IOut<object> y)").WithLocation(19, 18));
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/29618")]
+        [WorkItem(29618, "https://github.com/dotnet/roslyn/issues/29618")]
         public void DeconstructionTypeInference_01()
         {
             var source =
@@ -24234,7 +24066,8 @@ class C<T>
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(9, 13));
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/29618")]
+        [WorkItem(29618, "https://github.com/dotnet/roslyn/issues/29618")]
         public void DeconstructionTypeInference_02()
         {
             var source =
@@ -24261,7 +24094,8 @@ class C<T>
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(10, 13));
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/29618")]
+        [WorkItem(29618, "https://github.com/dotnet/roslyn/issues/29618")]
         public void DeconstructionTypeInference_03()
         {
             var source =
@@ -50574,8 +50408,1072 @@ class C {}
             Assert.Equal(2, arrays.Length);
 
             Assert.Equal("B[]", model.GetTypeInfo(arrays[0]).Type.ToTestDisplayString(includeNonNullable: true));
-            // https://github.com/dotnet/roslyn/issues/30171 Expected "C![]"
-            Assert.Equal("C[]", model.GetTypeInfo(arrays[1]).Type.ToTestDisplayString(includeNonNullable: true));
+            Assert.Equal("C![]", model.GetTypeInfo(arrays[1]).Type.ToTestDisplayString(includeNonNullable: true));
+        }
+
+        [Fact]
+        public void NonNullTypesContext_02()
+        {
+            var source =
+@"
+#pragma warning disable CS0169
+
+class A
+{
+#nullable enable
+    B
+#nullable disable
+      F1;
+}
+
+class B {}
+";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesFalse());
+
+            var f1 = comp.GetMember<FieldSymbol>("A.F1");
+            Assert.Equal("B!", f1.Type.ToTestDisplayString(includeNonNullable: true));
+        }
+
+        [Fact]
+        public void NonNullTypesContext_03()
+        {
+            var source =
+@"
+#pragma warning disable CS0169
+
+class A
+{
+#nullable disable
+    B
+#nullable enable
+      F1;
+}
+
+class B {}
+";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+
+            var f1 = comp.GetMember<FieldSymbol>("A.F1");
+            Assert.Equal("B", f1.Type.ToTestDisplayString(includeNonNullable: true));
+        }
+
+        [Fact]
+        public void NonNullTypesContext_04()
+        {
+            var source =
+@"
+#pragma warning disable CS0169
+
+class A
+{
+    B
+#nullable enable
+     ?
+       F1;
+}
+
+class B {}
+";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesFalse());
+
+            var f1 = comp.GetMember<FieldSymbol>("A.F1");
+            Assert.Equal("B?", f1.Type.ToTestDisplayString(includeNonNullable: true));
+
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void NonNullTypesContext_05()
+        {
+            var source =
+@"
+#pragma warning disable CS0169
+
+class A
+{
+    B
+#nullable disable
+     ?
+       F1;
+}
+
+class B {}
+";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+
+            var f1 = comp.GetMember<FieldSymbol>("A.F1");
+            Assert.Equal("B?", f1.Type.ToTestDisplayString(includeNonNullable: true));
+
+            comp.VerifyDiagnostics(
+                // (8,6): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
+                //      ?
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(8, 6)
+                );
+        }
+
+        [Fact]
+        public void NonNullTypesContext_06()
+        {
+            var source =
+@"
+#pragma warning disable CS0169
+
+class A
+{
+#nullable enable
+    string
+#nullable disable
+      F1;
+}
+";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesFalse());
+
+            var f1 = comp.GetMember<FieldSymbol>("A.F1");
+            Assert.Equal("System.String!", f1.Type.ToTestDisplayString(includeNonNullable: true));
+        }
+
+        [Fact]
+        public void NonNullTypesContext_07()
+        {
+            var source =
+@"
+#pragma warning disable CS0169
+
+class A
+{
+#nullable disable
+    string
+#nullable enable
+      F1;
+}
+";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+
+            var f1 = comp.GetMember<FieldSymbol>("A.F1");
+            Assert.Equal("System.String", f1.Type.ToTestDisplayString(includeNonNullable: true));
+        }
+
+        [Fact]
+        public void NonNullTypesContext_08()
+        {
+            var source =
+@"
+#pragma warning disable CS0169
+
+class A
+{
+    B[
+#nullable enable
+      ]
+#nullable disable
+        F1;
+}
+
+class B {}
+";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesFalse());
+
+            var f1 = comp.GetMember<FieldSymbol>("A.F1");
+            Assert.Equal("B[]!", f1.Type.ToTestDisplayString(includeNonNullable: true));
+        }
+
+        [Fact]
+        public void NonNullTypesContext_09()
+        {
+            var source =
+@"
+#pragma warning disable CS0169
+
+class A
+{
+    B[
+#nullable disable
+      ]
+#nullable enable
+        F1;
+}
+
+class B {}
+";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+
+            var f1 = comp.GetMember<FieldSymbol>("A.F1");
+            Assert.Equal("B![]", f1.Type.ToTestDisplayString(includeNonNullable: true));
+        }
+
+        [Fact]
+        public void NonNullTypesContext_10()
+        {
+            var source =
+@"
+#pragma warning disable CS0169
+
+class A
+{
+    (B, B
+#nullable enable
+         )
+#nullable disable
+           F1;
+}
+
+class B {}
+";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesFalse());
+
+            var f1 = comp.GetMember<FieldSymbol>("A.F1");
+            Assert.Equal(NullableAnnotation.NotAnnotated, f1.Type.NullableAnnotation);
+        }
+
+        [Fact]
+        public void NonNullTypesContext_11()
+        {
+            var source =
+@"
+#pragma warning disable CS0169
+
+class A
+{
+    (B, B
+#nullable disable
+         )
+#nullable enable
+           F1;
+}
+
+class B {}
+";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+
+            var f1 = comp.GetMember<FieldSymbol>("A.F1");
+            Assert.Equal(NullableAnnotation.Unknown, f1.Type.NullableAnnotation);
+        }
+
+        [Fact]
+        public void NonNullTypesContext_12()
+        {
+            var source =
+@"
+#pragma warning disable CS0169
+
+class A
+{
+    B<A
+#nullable enable
+       >
+#nullable disable
+         F1;
+}
+
+class B<T> {}
+";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesFalse());
+
+            var f1 = comp.GetMember<FieldSymbol>("A.F1");
+            Assert.Equal("B<A>!", f1.Type.ToTestDisplayString(includeNonNullable: true));
+        }
+
+        [Fact]
+        public void NonNullTypesContext_13()
+        {
+            var source =
+@"
+#pragma warning disable CS0169
+
+class A
+{
+    B<A
+#nullable disable
+       >
+#nullable enable
+         F1;
+}
+
+class B<T> {}
+";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+
+            var f1 = comp.GetMember<FieldSymbol>("A.F1");
+            Assert.Equal("B<A!>", f1.Type.ToTestDisplayString(includeNonNullable: true));
+        }
+
+        [Fact]
+        public void NonNullTypesContext_14()
+        {
+            var source =
+@"
+class A
+{
+    void M<T>(out T x){}
+
+    void Test()
+    {
+        M(out 
+#nullable enable
+              var
+#nullable disable
+                  local);
+    }
+}
+
+class var {}
+";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesFalse());
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+
+            var decl = tree.GetRoot().DescendantNodes().OfType<DeclarationExpressionSyntax>().Single();
+            Assert.Equal("var!", ((LocalSymbol)model.GetDeclaredSymbol(decl.Designation)).Type.ToTestDisplayString(includeNonNullable: true));
+        }
+
+        [Fact]
+        public void NonNullTypesContext_15()
+        {
+            var source =
+@"
+class A
+{
+    void M<T>(out T x){}
+
+    void Test()
+    {
+        M(out 
+#nullable disable
+              var
+#nullable enable
+                  local);
+    }
+}
+
+class var {}
+";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+
+            var decl = tree.GetRoot().DescendantNodes().OfType<DeclarationExpressionSyntax>().Single();
+            Assert.Equal("var", ((LocalSymbol)model.GetDeclaredSymbol(decl.Designation)).Type.ToTestDisplayString(includeNonNullable: true));
+        }
+
+        [Fact]
+        public void NonNullTypesContext_16()
+        {
+            var source =
+@"
+class A<T> where T :
+#nullable enable
+    class
+#nullable disable
+{
+}
+";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesFalse());
+
+            var a = comp.GetTypeByMetadataName("A`1");
+            Assert.Equal("A<T> where T : class!", a.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints.WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.IncludeNonNullableTypeModifier)));
+        }
+
+        [Fact]
+        public void NonNullTypesContext_17()
+        {
+            var source =
+@"
+class A<T> where T :
+#nullable disable
+    class
+#nullable enable
+{
+}
+";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+
+            var a = comp.GetTypeByMetadataName("A`1");
+            Assert.Equal("A<T> where T : class", a.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints.WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.IncludeNonNullableTypeModifier)));
+        }
+
+        [Fact]
+        public void NonNullTypesContext_18()
+        {
+            var source =
+@"
+class A<T> where T : class
+#nullable enable
+    ?
+#nullable disable
+{
+}
+";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesFalse());
+
+            var a = comp.GetTypeByMetadataName("A`1");
+            Assert.Equal("A<T> where T : class?", a.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints.WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.IncludeNonNullableTypeModifier)));
+
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void NonNullTypesContext_19()
+        {
+            var source =
+@"
+class A<T> where T : class
+#nullable disable
+    ?
+#nullable enable
+{
+}
+";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+
+            var a = comp.GetTypeByMetadataName("A`1");
+            Assert.Equal("A<T> where T : class?", a.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints.WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.IncludeNonNullableTypeModifier)));
+
+            comp.VerifyDiagnostics(
+                // (4,5): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
+                //     ?
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(4, 5)
+                );
+        }
+
+        [Fact]
+        public void NonNullTypesContext_20()
+        {
+            var source =
+@"
+class A<T> where T :
+#nullable enable
+    unmanaged
+#nullable disable
+{
+}
+
+class unmanaged {}
+";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesFalse());
+
+            var a = comp.GetTypeByMetadataName("A`1");
+            Assert.Equal("A<T> where T : unmanaged!", a.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints.WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.IncludeNonNullableTypeModifier)));
+        }
+
+        [Fact]
+        public void NonNullTypesContext_21()
+        {
+            var source =
+@"
+class A<T> where T :
+#nullable disable
+    unmanaged
+#nullable enable
+{
+}
+
+class unmanaged {}
+";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+
+            var a = comp.GetTypeByMetadataName("A`1");
+            Assert.Equal("A<T> where T : unmanaged", a.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints.WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.IncludeNonNullableTypeModifier)));
+        }
+
+        [Fact]
+        public void NonNullTypesContext_22()
+        {
+            var source =
+@"
+#pragma warning disable CS0169
+
+class A<T>
+{
+    void Tests()
+    {
+        string b;
+    }
+}
+";
+            TypeSyntax type = SyntaxFactory.ParseTypeName(
+@"
+A<string>
+"
+            );
+
+            AssertGetSpeculativeTypeInfo(source, WithNonNullTypesTrue(), type, "A<System.String!>");
+        }
+
+        private static void AssertGetSpeculativeTypeInfo(string source, CSharpCompilationOptions options, TypeSyntax type, string expected)
+        {
+            var comp = CreateCompilation(new[] { source }, options: options);
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+
+            var decl = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Single();
+
+            Assert.Equal(expected,
+                         model.GetSpeculativeTypeInfo(decl.Identifier.SpanStart, type, SpeculativeBindingOption.BindAsTypeOrNamespace).Type.ToTestDisplayString(includeNonNullable: true));
+        }
+
+        [Fact]
+        public void NonNullTypesContext_23()
+        {
+            var source =
+@"
+#pragma warning disable CS0169
+
+class A<T>
+{
+    void Tests()
+    {
+        string b;
+    }
+}
+";
+            TypeSyntax type = SyntaxFactory.ParseTypeName(
+@"
+A<string>
+"
+            );
+
+            AssertGetSpeculativeTypeInfo(source, WithNonNullTypesFalse(), type, "A<System.String>");
+        }
+
+        [Fact]
+        public void NonNullTypesContext_24()
+        {
+            var source =
+@"
+#pragma warning disable CS0169
+
+class A<T>
+{
+    void Tests()
+    {
+        string b;
+    }
+}
+";
+            TypeSyntax type = SyntaxFactory.ParseTypeName(
+@"
+#nullable disable
+A<string>
+"
+            );
+
+            AssertGetSpeculativeTypeInfo(source, WithNonNullTypesTrue(), type, "A<System.String>");
+        }
+
+        [Fact]
+        public void NonNullTypesContext_25()
+        {
+            var source =
+@"
+#pragma warning disable CS0169
+
+class A<T>
+{
+    void Tests()
+    {
+        string b;
+    }
+}
+";
+            TypeSyntax type = SyntaxFactory.ParseTypeName(
+@"
+#nullable enable
+A<string>
+"
+            );
+
+            AssertGetSpeculativeTypeInfo(source, WithNonNullTypesFalse(), type, "A<System.String!>");
+        }
+
+        [Fact]
+        public void NonNullTypesContext_26()
+        {
+            var source =
+@"
+#pragma warning disable CS0169
+
+class A<T>
+{
+    void Tests()
+    {
+        string 
+#nullable disable
+               b;
+#nullable enable
+    }
+}
+";
+            TypeSyntax type = SyntaxFactory.ParseTypeName(
+@"
+A<string>
+"
+            );
+
+            AssertGetSpeculativeTypeInfo(source, WithNonNullTypesTrue(), type, "A<System.String>");
+        }
+
+        [Fact]
+        public void NonNullTypesContext_27()
+        {
+            var source =
+@"
+#pragma warning disable CS0169
+
+class A<T>
+{
+    void Tests()
+    {
+        string 
+#nullable enable
+               b;
+#nullable disable
+    }
+}
+";
+            TypeSyntax type = SyntaxFactory.ParseTypeName(
+@"
+A<string>
+"
+            );
+
+            AssertGetSpeculativeTypeInfo(source, WithNonNullTypesFalse(), type, "A<System.String!>");
+        }
+
+        [Fact]
+        public void NonNullTypesContext_28()
+        {
+            var source =
+@"
+#pragma warning disable CS0169
+
+class A<T>
+{
+    void Tests()
+    {
+        string 
+#nullable disable
+               b;
+#nullable enable
+    }
+}
+";
+            TypeSyntax type = SyntaxFactory.ParseTypeName(
+@"
+#nullable enable
+A<string>
+"
+            );
+
+            AssertGetSpeculativeTypeInfo(source, WithNonNullTypesTrue(), type, "A<System.String!>");
+        }
+
+        [Fact]
+        public void NonNullTypesContext_29()
+        {
+            var source =
+@"
+#pragma warning disable CS0169
+
+class A<T>
+{
+    void Tests()
+    {
+        string 
+#nullable enable
+               b;
+#nullable disable
+    }
+}
+";
+            TypeSyntax type = SyntaxFactory.ParseTypeName(
+@"
+#nullable disable
+A<string>
+"
+            );
+
+            AssertGetSpeculativeTypeInfo(source, WithNonNullTypesFalse(), type, "A<System.String>");
+        }
+
+        [Fact]
+        public void NonNullTypesContext_30()
+        {
+            var source =
+@"
+#pragma warning disable CS0169
+
+class A<T>
+{
+    void Tests()
+    {
+        string b;
+    }
+}
+";
+            TypeSyntax type = SyntaxFactory.ParseTypeName(
+@"
+A<string>
+"
+            );
+
+            AssertTryGetSpeculativeSemanticModel(source, WithNonNullTypesTrue(), type, "A<System.String!>");
+        }
+
+        private static void AssertTryGetSpeculativeSemanticModel(string source, CSharpCompilationOptions options, TypeSyntax type, string expected)
+        {
+            var comp = CreateCompilation(new[] { source }, options: options);
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+
+            var decl = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Single();
+
+            Assert.True(model.TryGetSpeculativeSemanticModel(decl.Identifier.SpanStart, type, out model, SpeculativeBindingOption.BindAsTypeOrNamespace));
+            Assert.Equal(expected,
+                         model.GetTypeInfo(type).Type.ToTestDisplayString(includeNonNullable: true));
+        }
+
+        [Fact]
+        public void NonNullTypesContext_31()
+        {
+            var source =
+@"
+#pragma warning disable CS0169
+
+class A<T>
+{
+    void Tests()
+    {
+        string b;
+    }
+}
+";
+            TypeSyntax type = SyntaxFactory.ParseTypeName(
+@"
+A<string>
+"
+            );
+
+            AssertTryGetSpeculativeSemanticModel(source, WithNonNullTypesFalse(), type, "A<System.String>");
+        }
+
+        [Fact]
+        public void NonNullTypesContext_32()
+        {
+            var source =
+@"
+#pragma warning disable CS0169
+
+class A<T>
+{
+    void Tests()
+    {
+        string b;
+    }
+}
+";
+            TypeSyntax type = SyntaxFactory.ParseTypeName(
+@"
+#nullable disable
+A<string>
+"
+            );
+
+            AssertTryGetSpeculativeSemanticModel(source, WithNonNullTypesTrue(), type, "A<System.String>");
+        }
+
+        [Fact]
+        public void NonNullTypesContext_33()
+        {
+            var source =
+@"
+#pragma warning disable CS0169
+
+class A<T>
+{
+    void Tests()
+    {
+        string b;
+    }
+}
+";
+            TypeSyntax type = SyntaxFactory.ParseTypeName(
+@"
+#nullable enable
+A<string>
+"
+            );
+
+            AssertTryGetSpeculativeSemanticModel(source, WithNonNullTypesFalse(), type, "A<System.String!>");
+        }
+
+        [Fact]
+        public void NonNullTypesContext_34()
+        {
+            var source =
+@"
+#pragma warning disable CS0169
+
+class A<T>
+{
+    void Tests()
+    {
+        string 
+#nullable disable
+               b;
+#nullable enable
+    }
+}
+";
+            TypeSyntax type = SyntaxFactory.ParseTypeName(
+@"
+A<string>
+"
+            );
+
+            AssertTryGetSpeculativeSemanticModel(source, WithNonNullTypesTrue(), type, "A<System.String>");
+        }
+
+        [Fact]
+        public void NonNullTypesContext_35()
+        {
+            var source =
+@"
+#pragma warning disable CS0169
+
+class A<T>
+{
+    void Tests()
+    {
+        string 
+#nullable enable
+               b;
+#nullable disable
+    }
+}
+";
+            TypeSyntax type = SyntaxFactory.ParseTypeName(
+@"
+A<string>
+"
+            );
+
+            AssertTryGetSpeculativeSemanticModel(source, WithNonNullTypesFalse(), type, "A<System.String!>");
+        }
+
+        [Fact]
+        public void NonNullTypesContext_36()
+        {
+            var source =
+@"
+#pragma warning disable CS0169
+
+class A<T>
+{
+    void Tests()
+    {
+        string 
+#nullable disable
+               b;
+#nullable enable
+    }
+}
+";
+            TypeSyntax type = SyntaxFactory.ParseTypeName(
+@"
+#nullable enable
+A<string>
+"
+            );
+
+            AssertTryGetSpeculativeSemanticModel(source, WithNonNullTypesTrue(), type, "A<System.String!>");
+        }
+
+        [Fact]
+        public void NonNullTypesContext_37()
+        {
+            var source =
+@"
+#pragma warning disable CS0169
+
+class A<T>
+{
+    void Tests()
+    {
+        string 
+#nullable enable
+               b;
+#nullable disable
+    }
+}
+";
+            TypeSyntax type = SyntaxFactory.ParseTypeName(
+@"
+#nullable disable
+A<string>
+"
+            );
+
+            AssertTryGetSpeculativeSemanticModel(source, WithNonNullTypesFalse(), type, "A<System.String>");
+        }
+
+        [Fact]
+        public void NonNullTypesContext_38()
+        {
+            var source =
+@"
+using B = C;
+#pragma warning disable CS0169
+
+class A
+{
+#nullable enable
+    B
+#nullable disable
+      F1;
+}
+
+class C {}
+";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesFalse());
+
+            var f1 = comp.GetMember<FieldSymbol>("A.F1");
+            Assert.Equal("C!", f1.Type.ToTestDisplayString(includeNonNullable: true));
+        }
+
+        [Fact]
+        public void NonNullTypesContext_39()
+        {
+            var source =
+@"
+using B = C;
+#pragma warning disable CS0169
+
+class A
+{
+#nullable disable
+    B
+#nullable enable
+      F1;
+}
+
+class C {}
+";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+
+            var f1 = comp.GetMember<FieldSymbol>("A.F1");
+            Assert.Equal("C", f1.Type.ToTestDisplayString(includeNonNullable: true));
+        }
+
+        [Fact]
+        public void NonNullTypesContext_40()
+        {
+            var source =
+@"
+#pragma warning disable CS0169
+
+class A
+{
+    C.
+#nullable enable
+    B
+#nullable disable
+      F1;
+}
+
+namespace C
+{
+    class B {}
+}
+";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesFalse());
+
+            var f1 = comp.GetMember<FieldSymbol>("A.F1");
+            Assert.Equal("C.B!", f1.Type.ToTestDisplayString(includeNonNullable: true));
+        }
+
+        [Fact]
+        public void NonNullTypesContext_41()
+        {
+            var source =
+@"
+#pragma warning disable CS0169
+
+class A
+{
+    C.
+#nullable disable
+    B
+#nullable enable
+      F1;
+}
+
+namespace C
+{
+    class B {}
+}
+";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+
+            var f1 = comp.GetMember<FieldSymbol>("A.F1");
+            Assert.Equal("C.B", f1.Type.ToTestDisplayString(includeNonNullable: true));
+        }
+
+        [Fact]
+        public void NonNullTypesContext_42()
+        {
+            var source =
+@"
+#pragma warning disable CS0169
+
+class A
+{
+    C.B<A
+#nullable enable
+       >
+#nullable disable
+         F1;
+}
+
+namespace C
+{
+    class B<T> {}
+}
+";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesFalse());
+
+            var f1 = comp.GetMember<FieldSymbol>("A.F1");
+            Assert.Equal("C.B<A>!", f1.Type.ToTestDisplayString(includeNonNullable: true));
+        }
+
+        [Fact]
+        public void NonNullTypesContext_43()
+        {
+            var source =
+@"
+#pragma warning disable CS0169
+
+class A
+{
+    C.B<A
+#nullable disable
+       >
+#nullable enable
+         F1;
+}
+
+namespace C
+{
+    class B<T> {}
+}
+";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+
+            var f1 = comp.GetMember<FieldSymbol>("A.F1");
+            Assert.Equal("C.B<A!>", f1.Type.ToTestDisplayString(includeNonNullable: true));
         }
 
         [Fact]
@@ -51368,7 +52266,7 @@ class Program
                 //         y2.GetEnumerator(); // 4
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y2").WithLocation(18, 9));
         }
-        
+
         [Fact]
         public void SpecialAndWellKnownMemberLookup()
         {
@@ -58541,7 +59439,7 @@ class B
 }
 ";
             var comp1 = CreateCompilation(new[] { source });
-            CompileAndVerify(comp1, symbolValidator: 
+            CompileAndVerify(comp1, symbolValidator:
             (ModuleSymbol m) =>
             {
                 (string type, string attribute)[] baseline = new[]
@@ -60628,7 +61526,7 @@ partial class Program
             }
         }
 
-        [Fact(Skip ="Two different implementations of NullableAnnotation Join do not agree")]
+        [Fact(Skip = "Two different implementations of NullableAnnotation Join do not agree")]
         public void TestJoinsAgree()
         {
             Func<bool, bool> identity = x => x;
