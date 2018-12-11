@@ -216,16 +216,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundStatement assignFinishedState =
                 F.ExpressionStatement(F.AssignmentExpression(F.Field(F.This(), stateField), F.Literal(StateMachineStates.FinishedStateMachine)));
 
-            BoundStatement callSetException = GenerateSetExceptionCall(exceptionLocal);
-
-            var builder = ArrayBuilder<BoundStatement>.GetInstance(4);
-
-            // _state = finishedState;
-            builder.Add(assignFinishedState);
             // builder.SetException(ex);  OR  _promiseOfValueOrEnd.SetException(ex);
-            builder.Add(callSetException);
-            // return;
-            builder.Add(GenerateReturn(false));
+            BoundStatement callSetException = GenerateSetExceptionCall(exceptionLocal);
 
             return new BoundCatchBlock(
                 F.Syntax,
@@ -233,7 +225,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 F.Local(exceptionLocal),
                 exceptionLocal.Type.TypeSymbol,
                 exceptionFilterOpt: null,
-                body: F.Block(builder.ToImmutableAndFree()),
+                body: F.Block(
+                    assignFinishedState, // _state = finishedState;
+                    callSetException, // builder.SetException(ex);  OR  _promiseOfValueOrEnd.SetException(ex);
+                    GenerateReturn(false)), // return;
                 isSynthesizedAsyncCatchAll: true);
         }
 

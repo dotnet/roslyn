@@ -94,8 +94,12 @@ finally
 An async-iterator method is replaced by a kick-off method, which initializes a state machine. It does not start running the state machine (unlike kick-off methods for regular async method).
 The kick-off method method is marked with both `AsyncStateMachineAttribute` and `IteratorStateMachineAttribute`.
 
-The state machine for an enumerable async-iterator method primarily implements `IAsyncEnumerable<T>` and `IAsyncEnumerator<T>`. For an enumerator async-iterator, it only implements `IAsyncEnumerator<T>`.
-It is similar to a state machine produced for an async method. It contains builder and awaiter fields, used to run the state machine in the background (when an `await` is reached in the async-iterator). It also captures parameter values (if any) or `this` (if needed).
+The state machine for an enumerable async-iterator method primarily implements `IAsyncEnumerable<T>` and `IAsyncEnumerator<T>`.
+For an enumerator async-iterator, it only implements `IAsyncEnumerator<T>`.
+It is similar to a state machine produced for an async method.
+It contains builder and awaiter fields, used to run the state machine in the background (when an `await` is reached in the async-iterator).
+It also captures parameter values (if any) or `this` (if needed).
+
 But it contains additional state:
 - a promise of a value-or-end,
 - a current yielded value of type `T`,
@@ -108,7 +112,8 @@ The promise of a value-or-end is returned from `MoveNextAsync`. It can be fulfil
 - `true` (when a value becomes available following background execution of the state machine),
 - `false` (if the end is reached),
 - an exception.
-The promise is implemented as a `ManualResetValueTaskSourceCore<bool>` (which is a re-usable and allocation-free way of producing and fulfilling `ValueTask<bool>` or `ValueTask` instances) and its surrounding interfaces on the state machine: `IValueTaskSource<bool>` and `IValueTaskSource`.
+The promise is implemented as a `ManualResetValueTaskSourceCore<bool>` (which is a re-usable and allocation-free way of producing and fulfilling `ValueTask<bool>` or `ValueTask` instances)
+and its surrounding interfaces on the state machine: `IValueTaskSource<bool>` and `IValueTaskSource`.
 See more details about those types at https://blogs.msdn.microsoft.com/dotnet/2018/11/07/understanding-the-whys-whats-and-whens-of-valuetask/
 
 Compared to the state machine for a regular async method, the `MoveNext()` for an async-iterator method adds logic:
@@ -122,7 +127,8 @@ Compared to the state machine for a regular async method, the `MoveNext()` for a
 This is reflected in the implementation, which extends the lowering machinery for async methods to:
 1. handle `yield return` and `yield break` statements (see methods `VisitYieldReturnStatement` and `VisitYieldBreakStatement` to `AsyncIteratorMethodToStateMachineRewriter`),
 2. handle `try` statements (see methods `VisitTryStatement` and `VisitExtractedFinallyBlock` in `AsyncIteratorMethodToStateMachineRewriter`)
-3. produce additional state and logic for the promise itself (see `AsyncIteratorRewriter`, which produces various other members: `MoveNextAsync`, `Current`, `DisposeAsync`, and some members supporting the resettable `ValueTask` behavior, namely `GetResult`, `SetStatus`, `OnCompleted`).
+3. produce additional state and logic for the promise itself (see `AsyncIteratorRewriter`, which produces various other members: `MoveNextAsync`, `Current`, `DisposeAsync`,
+and some members supporting the resettable `ValueTask` behavior, namely `GetResult`, `SetStatus`, `OnCompleted`).
 
 ```C#
 ValueTask<bool> MoveNextAsync()
@@ -179,18 +185,20 @@ In contrast, async methods continue running autonomously until they are done. Th
 
 In summary, disposal of an async-iterator works based on four design elements:
 - `yield return` (jumps to finally when resuming in dispose mode)
-- `yield break` (enters dispose mode and jumpps to finally)
+- `yield break` (enters dispose mode and jumps to finally)
 - `finally` (after a `finally` we jump to the next one)
 - `DisposeAsync` (enters dispose mode and resumes execution)
 
 The caller of an async-iterator method should only call `DisposeAsync()` when the method completed or was suspended by a `yield return`.
 `DisposeAsync` sets a flag on the state machine ("dispose mode") and (if the method wasn't completed) resumes the execution from the current state.
 The state machine can resume execution from a given state (even those located within a `try`).
-When the execution is resumed in dispose mode, it jump straight to the relevant `finally`.
-`finally` blocks may involve pauses and resumes, but only for `await` expressions. As a result of the restrictions imposed on `yield return` (described above), dispose mode never runs into that statement.
+When the execution is resumed in dispose mode, it jumps straight to the relevant `finally`.
+`finally` blocks may involve pauses and resumes, but only for `await` expressions. As a result of the restrictions imposed on `yield return` (described above), dispose mode never runs into a `yield return`.
 Once a `finally` block completes, the execution in dispose mode jumps to the next relevant `finally`, or the end of the method once we reach the top-level.
 
-Reaching a `yield break` also sets the dispose mode flag and jumps to the next relevant `finally` (or end of the method). By the time we return control to the caller (completing the promise as `false` by reaching the end of the method) all disposal was completed, and the state machine is left in finished state. So `DisposeAsync()` has no work left to do.
+Reaching a `yield break` also sets the dispose mode flag and jumps to the next relevant `finally` (or end of the method).
+By the time we return control to the caller (completing the promise as `false` by reaching the end of the method) all disposal was completed,
+and the state machine is left in finished state. So `DisposeAsync()` has no work left to do.
 
 Looking at disposal from the perspective of a given `finally` block, the code in that block can get executed:
 - by normal execution (ie. after the code in the `try` block),
@@ -208,13 +216,13 @@ goto <exprReturnTruelabel>; // which does _valueOrEndPromise.SetResult(true); re
 // resuming from state=<next_state> will dispatch execution to this label
 <next_state_label>: ;
 this.state = cachedState = NotStartedStateMachine;
-if (disposeMode) /* jump to current finally or exit */
+if (disposeMode) /* jump to enclosing finally or exit */
 ```
 
 A `yield break` is lowered as:
 ```C#
 disposeMode = true;
-/* jump to current finally or exit */
+/* jump to enclosing finally or exit */
 ```
 
 ```C#
@@ -246,7 +254,7 @@ finally
 {
     ...
 }
-if (disposeMode) /* jump to current finally or exit */
+if (disposeMode) /* jump to enclosing finally or exit */
 ```
 
 When a `finally` contains `await` expressions, it is extracted before async rewriting (by AsyncExceptionHandlerRewriter). In those cases, we get:

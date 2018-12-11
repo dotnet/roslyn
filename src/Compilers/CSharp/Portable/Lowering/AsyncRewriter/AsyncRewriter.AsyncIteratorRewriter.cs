@@ -222,7 +222,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 MethodSymbol valueTaskT_ctor =
                     F.WellKnownMethod(WellKnownMember.System_Threading_Tasks_ValueTask_T__ctor)
-                    .AsMember((NamedTypeSymbol)IAsyncEnumerableOfElementType_MoveNextAsync.ReturnType.TypeSymbol);
+                    .AsMember((NamedTypeSymbol)returnType);
 
                 // return new ValueTask<bool>(this, _valueOrEndPromise.Version);
                 var returnStatement = F.Return(F.New(valueTaskT_ctor, F.This(), F.Call(F.Field(F.This(), _promiseOfValueOrEndField), promise_get_Version)));
@@ -244,7 +244,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // Produce the following parts:
                 // - _promiseOfValueOrEnd.Reset();
-                // - _builder.Start(ref inst);
                 // - var inst = this;
                 // - _builder.Start(ref inst);
                 // - _valueOrEndPromise.Version
@@ -269,8 +268,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 startCall = F.ExpressionStatement(
                     F.Call(
                         F.Field(F.This(), _builderField),
-                    startMethod,
-                    ImmutableArray.Create<BoundExpression>(instLocal)));
+                        startMethod,
+                        ImmutableArray.Create<BoundExpression>(instLocal)));
 
                 //  _valueOrEndPromise.Version
                 promise_get_Version = F.WellKnownMethod(WellKnownMember.System_Threading_Tasks_Sources_ManualResetValueTaskSourceCore_T__get_Version)
@@ -518,10 +517,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // this._valueOrEndPromise.OnCompleted(continuation, state, token, flags);
                     F.ExpressionStatement(
                         F.Call(F.Field(F.This(), _promiseOfValueOrEndField), promise_OnCompleted,
-                        F.Parameter(IValueTaskSource_OnCompleted.Parameters[0]),
-                        F.Parameter(IValueTaskSource_OnCompleted.Parameters[1]),
-                        F.Parameter(IValueTaskSource_OnCompleted.Parameters[2]),
-                        F.Parameter(IValueTaskSource_OnCompleted.Parameters[3]))),
+                            F.Parameter(IValueTaskSource_OnCompleted.Parameters[0]),
+                            F.Parameter(IValueTaskSource_OnCompleted.Parameters[1]),
+                            F.Parameter(IValueTaskSource_OnCompleted.Parameters[2]),
+                            F.Parameter(IValueTaskSource_OnCompleted.Parameters[3]))),
                     F.Return())); // return;
             }
 

@@ -20,16 +20,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>
         /// Initially, this is the method's return value label (<see cref="AsyncMethodToStateMachineRewriter._exprReturnLabel"/>).
-        /// When we enter a `try` that has a `finally`, we'll use the label directly preceeding the `finally`.
+        /// When we enter a `try` that has a `finally`, we'll use the label directly preceding the `finally`.
         /// When we enter a `try` that has an extracted `finally`, we will use the label preceeding the extracted `finally`.
         /// </summary>
-        private LabelSymbol _currentFinallyOrExitLabel;
+        private LabelSymbol _enclosingFinallyOrExitLabel;
 
         /// <summary>
         /// We use _exprReturnLabel for normal end of method (ie. no more values).
         /// We use _exprReturnLabelTrue for `yield return;`.
         /// </summary>
-        private LabelSymbol _exprReturnLabelTrue;
+        private readonly LabelSymbol _exprReturnLabelTrue;
 
         internal AsyncIteratorMethodToStateMachineRewriter(MethodSymbol method,
             int methodOrdinal,
@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(asyncIteratorInfo != null);
 
             _asyncIteratorInfo = asyncIteratorInfo;
-            _currentFinallyOrExitLabel = _exprReturnLabel;
+            _enclosingFinallyOrExitLabel = _exprReturnLabel;
             _exprReturnLabelTrue = F.GenerateLabel("yieldReturn");
         }
 
@@ -96,18 +96,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundStatement GenerateJumpToCurrentFinallyOrExit()
         {
-            Debug.Assert((object)_currentFinallyOrExitLabel != null);
+            Debug.Assert((object)_enclosingFinallyOrExitLabel != null);
             return F.If(
                 // if (disposeMode)
                 F.Field(F.This(), _asyncIteratorInfo.DisposeModeField),
                 // goto finallyOrExitLabel;
-                thenClause: F.Goto(_currentFinallyOrExitLabel));
+                thenClause: F.Goto(_enclosingFinallyOrExitLabel));
         }
 
-        BoundStatement AppendJumpToCurrentFinallyOrExit(BoundStatement node)
+        private BoundStatement AppendJumpToCurrentFinallyOrExit(BoundStatement node)
         {
             // Append:
-            //  if (disposeMode) /* jump to current finally or exit */
+            //  if (disposeMode) goto _enclosingFinallyOrExitLabel;
 
             return F.Block(
                 node,
@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             //     goto _exprReturnLabelTrue;
             //     <next_state_label>: ;
             //     this.state = cachedState = NotStartedStateMachine;
-            //     if (disposeMode) /* jump to current finally or exit */
+            //     if (disposeMode) goto _enclosingFinallyOrExitLabel;
 
             // Note: at label _exprReturnLabelTrue we have:
             //  _promiseOfValueOrEnd.SetResult(true);
@@ -164,7 +164,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 GenerateSetBothStates(StateMachineStates.NotStartedStateMachine));
 
             blockBuilder.Add(
-                // if (disposeMode) /* jump to current finally or exit */
+                // if (disposeMode) goto _enclosingFinallyOrExitLabel;
                 GenerateJumpToCurrentFinallyOrExit());
 
             blockBuilder.Add(
@@ -179,13 +179,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Produce:
             //  disposeMode = true;
-            //  goto _currentFinallyOrExitLabel;
+            //  goto _enclosingFinallyOrExitLabel;
 
             return F.Block(
                 // disposeMode = true;
                 SetDisposeMode(true),
-                // goto _currentFinallyOrExitLabel;
-                F.Goto(_currentFinallyOrExitLabel));
+                // goto _enclosingFinallyOrExitLabel;
+                F.Goto(_enclosingFinallyOrExitLabel));
         }
 
         private BoundExpressionStatement SetDisposeMode(bool value)
@@ -208,12 +208,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         public override BoundNode VisitTryStatement(BoundTryStatement node)
         {
-            LabelSymbol parentFinallyOrExitLabel = _currentFinallyOrExitLabel;
+            LabelSymbol parentFinallyOrExitLabel = _enclosingFinallyOrExitLabel;
 
             if (node.FinallyBlockOpt != null)
             {
                 var finallyEntry = F.GenerateLabel("finallyEntry");
-                _currentFinallyOrExitLabel = finallyEntry;
+                _enclosingFinallyOrExitLabel = finallyEntry;
 
                 // Add finallyEntry label:
                 //  try
@@ -226,12 +226,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else if ((object)node.FinallyLabelOpt != null)
             {
-                _currentFinallyOrExitLabel = node.FinallyLabelOpt;
+                _enclosingFinallyOrExitLabel = node.FinallyLabelOpt;
             }
 
             var result = (BoundStatement)base.VisitTryStatement(node);
 
-            _currentFinallyOrExitLabel = parentFinallyOrExitLabel;
+            _enclosingFinallyOrExitLabel = parentFinallyOrExitLabel;
 
             if (node.FinallyBlockOpt != null)
             {
@@ -252,7 +252,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitExtractedFinallyBlock(BoundExtractedFinallyBlock extractedFinally)
         {
             // Remove the wrapping and append:
-            //  if (disposeMode) /* jump to current finally or exit */
+            //  if (disposeMode) goto enclosingFinallyOrExitLabel;
 
             return AppendJumpToCurrentFinallyOrExit((BoundStatement)VisitBlock(extractedFinally.FinallyBlock));
         }
