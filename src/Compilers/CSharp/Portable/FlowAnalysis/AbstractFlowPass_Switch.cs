@@ -37,7 +37,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         SetUnreachable();
                     }
 
-                    VisitPattern(label.Pattern);
                     SetState(StateWhenTrue);
                     if (label.WhenClause != null)
                     {
@@ -45,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         SetState(StateWhenTrue);
                     }
 
-                    _pendingBranches.Add(new PendingBranch(label, this.State, label.Label));
+                    PendingBranches.Add(new PendingBranch(label, this.State, label.Label));
                 }
             }
 
@@ -63,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (reachableLabels.Contains(node.BreakLabel))
             {
-                IntersectWith(ref afterSwitchState, ref initialState);
+                Join(ref afterSwitchState, ref initialState);
             }
 
             ResolveBreaks(afterSwitchState, node.BreakLabel);
@@ -78,6 +77,50 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             VisitStatementList(node);
+        }
+
+        public override BoundNode VisitSwitchDispatch(BoundSwitchDispatch node)
+        {
+            VisitRvalue(node.Expression);
+            var state = this.State.Clone();
+            PendingBranches.Add(new PendingBranch(node, state, node.DefaultLabel));
+            foreach ((_, LabelSymbol label) in node.Cases)
+            {
+                PendingBranches.Add(new PendingBranch(node, state, label));
+            }
+
+            SetUnreachable();
+            return null;
+        }
+
+        public override BoundNode VisitSwitchExpression(BoundSwitchExpression node)
+        {
+            VisitRvalue(node.Expression);
+            var dispatchState = this.State;
+            var endState = UnreachableState();
+            var reachableLabels = node.DecisionDag.ReachableLabels;
+            foreach (var arm in node.SwitchArms)
+            {
+                SetState(dispatchState.Clone());
+                VisitPattern(arm.Pattern);
+                SetState(StateWhenTrue);
+                if (!reachableLabels.Contains(arm.Label) || arm.Pattern.HasErrors)
+                {
+                    SetUnreachable();
+                }
+
+                if (arm.WhenClause != null)
+                {
+                    VisitCondition(arm.WhenClause);
+                    SetState(StateWhenTrue);
+                }
+
+                VisitRvalue(arm.Value);
+                Join(ref endState, ref this.State);
+            }
+
+            SetState(endState);
+            return node;
         }
     }
 }

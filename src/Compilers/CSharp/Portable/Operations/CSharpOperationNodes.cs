@@ -1501,7 +1501,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
         protected override IOperation CreateGuard()
         {
-            return _operationFactory.Create(_patternSwitchLabel.Guard);
+            return _operationFactory.Create(_patternSwitchLabel.WhenClause);
         }
     }
 

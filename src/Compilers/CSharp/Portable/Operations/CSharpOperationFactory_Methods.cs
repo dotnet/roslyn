@@ -437,19 +437,6 @@ namespace Microsoft.CodeAnalysis.Operations
             return builder.ToImmutableAndFree();
         }
 
-        private ImmutableArray<ISwitchCaseOperation> GetPatternSwitchStatementCases(BoundSwitchStatement statement)
-        {
-            return statement.SwitchSections.SelectAsArray(switchSection =>
-            {
-                var clauses = switchSection.SwitchLabels.SelectAsArray(s => (ICaseClauseOperation)Create(s));
-                var body = switchSection.Statements.SelectAsArray(s => Create(s));
-                ImmutableArray<ILocalSymbol> locals = switchSection.Locals.CastArray<ILocalSymbol>();
-
-                return (ISwitchCaseOperation)new SwitchCase(locals, condition: null, clauses, body, _semanticModel, switchSection.Syntax,
-                                                            type: null, constantValue: default(Optional<object>), isImplicit: switchSection.WasCompilerGenerated);
-            });
-        }
-
         internal class Helper
         {
             internal static bool IsPostfixIncrementOrDecrement(CSharp.UnaryOperatorKind operatorKind)

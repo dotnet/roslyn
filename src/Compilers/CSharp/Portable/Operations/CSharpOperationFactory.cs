@@ -1824,7 +1824,7 @@ namespace Microsoft.CodeAnalysis.Operations
             BoundNode value = boundConstantPattern.Value;
             SyntaxNode syntax = boundConstantPattern.Syntax;
             bool isImplicit = boundConstantPattern.WasCompilerGenerated;
-            return new CSharpLazyConstantPatternOperation(this, value, _semanticModel, syntax, type, constantValue, isImplicit);
+            return new CSharpLazyConstantPatternOperation(this, value, _semanticModel, syntax, type: null, constantValue: null, isImplicit);
         }
 
         private IDeclarationPatternOperation CreateBoundDeclarationPatternOperation(BoundDeclarationPattern boundDeclarationPattern)
@@ -1854,8 +1854,6 @@ namespace Microsoft.CodeAnalysis.Operations
 
         private ISwitchOperation CreateBoundPatternSwitchStatementOperation(BoundSwitchStatement boundPatternSwitchStatement)
         {
-            Lazy<IOperation> value = new Lazy<IOperation>(() => Create(boundPatternSwitchStatement.Expression));
-            Lazy<ImmutableArray<ISwitchCaseOperation>> cases = new Lazy<ImmutableArray<ISwitchCaseOperation>>(() => GetPatternSwitchStatementCases(boundPatternSwitchStatement));
             ImmutableArray<ILocalSymbol> locals = boundPatternSwitchStatement.InnerLocals.As<ILocalSymbol>();
             ILabelSymbol exitLabel = boundPatternSwitchStatement.BreakLabel;
             SyntaxNode syntax = boundPatternSwitchStatement.Syntax;
@@ -1865,7 +1863,7 @@ namespace Microsoft.CodeAnalysis.Operations
             return new CSharpLazySwitchOperation(this, boundPatternSwitchStatement, locals, exitLabel, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
-        private ISwitchCaseOperation CreateBoundPatternSwitchSectionOperation(BoundPatternSwitchSection boundPatternSwitchSection)
+        private ISwitchCaseOperation CreateBoundPatternSwitchSectionOperation(BoundSwitchSection boundPatternSwitchSection)
         {
             ImmutableArray<ILocalSymbol> locals = StaticCast<ILocalSymbol>.From(boundPatternSwitchSection.Locals);
 
@@ -1883,21 +1881,18 @@ namespace Microsoft.CodeAnalysis.Operations
             if (boundPatternSwitchLabel.Syntax.Kind() == SyntaxKind.DefaultSwitchLabel)
             {
                 Debug.Assert(boundPatternSwitchLabel.Pattern.Kind == BoundKind.DiscardPattern);
-                return new DefaultCaseClause(label, _semanticModel, syntax, type, constantValue, isImplicit);
+                return new DefaultCaseClauseOperation(label, _semanticModel, syntax, type, constantValue, isImplicit);
             }
             else if (boundPatternSwitchLabel.WhenClause == null &&
                      boundPatternSwitchLabel.Pattern.Kind == BoundKind.ConstantPattern &&
                      boundPatternSwitchLabel.Pattern is BoundConstantPattern cp &&
                      cp.InputType.IsValidV6SwitchGoverningType())
             {
-                Lazy<IOperation> value = new Lazy<IOperation>(() => Create(cp.Value));
-                return new LazySingleValueCaseClause(label, value, _semanticModel, syntax, type, constantValue, isImplicit);
+                return new CSharpLazySingleValueCaseClauseOperation(this, cp.Value, label, _semanticModel, syntax, type, constantValue, isImplicit);
             }
             else
             {
-                Lazy<IPatternOperation> pattern = new Lazy<IPatternOperation>(() => (IPatternOperation)Create(boundPatternSwitchLabel.Pattern));
-                Lazy<IOperation> guardExpression = new Lazy<IOperation>(() => Create(boundPatternSwitchLabel.WhenClause));
-                return new CSharpLazyPatternCaseClauseOperation(label, pattern, guardExpression, _semanticModel, syntax, type, constantValue, isImplicit);
+                return new CSharpLazyPatternCaseClauseOperation(this, boundPatternSwitchLabel, label, _semanticModel, syntax, type, constantValue, isImplicit);
             }
         }
 
