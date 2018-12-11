@@ -33,5 +33,7 @@ namespace Roslyn.Diagnostics.Analyzers
         public const string OverloadWithOptionalParametersShouldHaveMostParameters = "RS0027";
         public const string RoslynAnalyzerMustUseIdInSpecifiedRangeRuleId = "RS0028";
         public const string RoslynAnalyzerMustUseCategoriesFromSpecifiedRangeRuleId = "RS0029";
+        public const string SymbolIsBannedRuleId = "RS0030";
+        public const string DuplicateBannedSymbolRuleId = "RS0031";
     }
 }

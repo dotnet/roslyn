@@ -27,7 +27,11 @@ namespace Test.Utilities
         {
             _filePath = filePath;
             _fileName = fileName;
-            _sourceText = SourceText.From(text);
+
+            if (text != null)
+            {
+                _sourceText = SourceText.From(text);
+            }
         }
 
         public override string Path => _filePath;
