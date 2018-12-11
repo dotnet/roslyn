@@ -242,11 +242,16 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
             var unformattedSolution = document.WithSyntaxRoot(editor.GetChangedRoot()).Project.Solution;
 
             // After the interface is inserted, update the original type to show it implements the new interface
-            var completedSolution = await GetSolutionWithOriginalTypeUpdatedAsync(
+            var unformattedSolutionWithUpdatedType = await GetSolutionWithOriginalTypeUpdatedAsync(
                 unformattedSolution, symbolMapping.DocumentIds,
                 refactoringResult.DocumentToExtractFrom.Id, symbolMapping.TypeNodeAnnotation,
                 refactoringResult.TypeToExtractFrom, extractedInterfaceSymbol,
                 extractInterfaceOptions.IncludedMembers, symbolMapping.SymbolToDeclarationAnnotationMap, cancellationToken).ConfigureAwait(false);
+
+            var completedSolution = await GetFormattedSolutionAsync(
+                unformattedSolutionWithUpdatedType, 
+                symbolMapping.DocumentIds.Concat(refactoringResult.DocumentToExtractFrom.Id), 
+                cancellationToken).ConfigureAwait(false);
 
             return new ExtractInterfaceResult(
                 succeeded: true,
