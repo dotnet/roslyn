@@ -1784,6 +1784,205 @@ class C2
         }
 
         [Fact]
+        public void UsingPatternExtensionMethodWithNullableValue()
+        {
+            var source = @"
+static class C1 
+{
+    internal static void Dispose(this int x)
+    {
+        System.Console.Write($""Dispose {x}; "");
+    }
+}
+ class C2
+{
+    static void Main()
+    {
+        using (int? i1 = 1)
+        {
+            // Dispose 1
+        }
+        
+        int? i2 = 2;
+        using (i2) 
+        {
+            // Dispose 2
+        }       
+        
+        using (int? i3 = null)
+        {
+            // no dispose, null
+        }
+        
+        int? i4 = null;
+        using (i4) 
+        {
+            // no dispose, null
+        }
+    }
+}";
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe).VerifyDiagnostics();
+            CompileAndVerify(compilation, expectedOutput: "Dispose 1; Dispose 2; ");
+        }
+
+        [Fact]
+        public void UsingPatternExtensionMethodWithNullableValueTargetAndValueTarget()
+        {
+            var source = @"
+static class C2 
+{
+    internal static void Dispose(this int? c1)
+    {
+        throw new System.Exception(""Nullable extension should not be called"");
+    }        
+    
+    internal static void Dispose(this int c1)
+    { 
+        System.Console.Write($""Dispose {c1}; "");
+    }
+}
+ class C3
+{
+    static void Main()
+    {
+        using (int? i1 = 1)
+        {
+            // Dispose 1
+        }
+        
+        int? i2 = 2;
+        using (i2)
+        {
+            // Dispose 2
+        }
+      
+        using (int i3 = 3)
+        {
+            // Dispose 3
+        }
+        
+        int i4 = 4;
+        using (i4)
+        {
+            // Dipose 4        
+        }
+
+        using (5)
+        {
+            // Dispose 5
+        }
+    }
+}";
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe).VerifyDiagnostics();
+            CompileAndVerify(compilation, expectedOutput: "Dispose 1; Dispose 2; Dispose 3; Dispose 4; Dispose 5; ");
+        }
+
+        [Fact]
+        public void UsingPatternExtensionMethodWithOnlyNullableValueTarget()
+        {
+            var source = @"
+static class C2 
+{
+    internal static void Dispose(this int? c1)
+    {
+        System.Console.Write($""Dispose? {c1}; "");
+    }        
+    
+}
+ class C3
+{
+    static void Main()
+    {
+        using (int? i1 = 1)
+        {
+            // Dispose 1
+        }
+        
+        int? i2 = 2;
+        using (i2)
+        {
+            // Dispose 2
+        }
+    }
+}";
+            var compilation = CreateCompilation(source).VerifyDiagnostics(
+                 // (14,16): error CS1674: 'int?': type used in a using statement must be implicitly convertible to 'System.IDisposable' or have a public void-returning Dispose() instance method.
+                 //         using (int? i1 = 1)
+                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "int? i1 = 1").WithArguments("int?").WithLocation(14, 16),
+                 // (14,21): error CS1929: 'int' does not contain a definition for 'Dispose' and the best extension method overload 'C2.Dispose(int?)' requires a receiver of type 'int?'
+                 //         using (int? i1 = 1)
+                 Diagnostic(ErrorCode.ERR_BadInstanceArgType, "i1 = 1").WithArguments("int", "Dispose", "C2.Dispose(int?)", "int?").WithLocation(14, 21),
+                 // (20,16): error CS1929: 'int' does not contain a definition for 'Dispose' and the best extension method overload 'C2.Dispose(int?)' requires a receiver of type 'int?'
+                 //         using (i2)
+                 Diagnostic(ErrorCode.ERR_BadInstanceArgType, "i2").WithArguments("int", "Dispose", "C2.Dispose(int?)", "int?").WithLocation(20, 16),
+                 // (20,16): error CS1674: 'int?': type used in a using statement must be implicitly convertible to 'System.IDisposable' or have a public void-returning Dispose() instance method.
+                 //         using (i2)
+                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "i2").WithArguments("int?").WithLocation(20, 16)
+                );
+        }
+
+        [Fact]
+        public void UsingPatternExtensionMethodWithNullReceiver()
+        {
+            var source = @"
+static class C2 
+{
+   internal static void Dispose(this object c1) { System.Console.Write($""Dispose; "");}
+}
+class C3
+{
+    static void Main()
+    {
+        using (object o = null)
+        {
+            // Not called
+        }
+
+        object o2 = null;
+        using (o2) 
+        {
+            // not called
+        }
+
+        using (null)
+        {
+            // not called
+        }
+    }
+}";
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe).VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "");
+        }
+
+        [Fact]
+        public void UsingPatternWithNullableValueType()
+        {
+            var source = @"
+struct S1
+{
+   internal void Dispose() { System.Console.Write($""Dispose; "");}
+}
+ class C3
+{
+    static void Main()
+    {
+        using (S1? s1 = new S1())
+        {
+            // Dispose
+        }
+
+        S1? s2 = new S1();
+        using (s2) 
+        {
+            // Dispose
+        }
+    }
+}";
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe).VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "Dispose; Dispose; ");
+        }
+
+        [Fact]
         public void Lambda()
         {
             var source = @"
