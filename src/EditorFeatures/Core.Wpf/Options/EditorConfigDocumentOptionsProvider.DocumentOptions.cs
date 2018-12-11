@@ -1,9 +1,11 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
+using Microsoft.CodeAnalysis.ErrorLogger;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.CodingConventions;
-using Microsoft.CodeAnalysis.ErrorLogger;
-using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Options
 {
@@ -29,7 +31,8 @@ namespace Microsoft.CodeAnalysis.Editor.Options
                     return false;
                 }
 
-                var allRawConventions = _codingConventionSnapshot.AllRawConventions;
+                // HACK: temporarly map our old Dictionary<string, object> to a Dictionary<string, string>. This will go away in a future commit.
+                var allRawConventions = ImmutableDictionary.CreateRange(_codingConventionSnapshot.AllRawConventions.Select(c => KeyValuePairUtil.Create(c.Key, c.Value.ToString())));
                 try
                 {
                     var underlyingOption = underlyingOptions.GetOption(option);
