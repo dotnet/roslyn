@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Editor.Options
             _asynchronousOperationListenerProvider = asynchronousOperationListenerProvider;
         }
 
-        public IDocumentOptionsProvider Create(Workspace workspace)
+        public IDocumentOptionsProvider TryCreate(Workspace workspace)
         {
             ICodingConventionsManager codingConventionsManager;
 
