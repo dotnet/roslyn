@@ -3658,5 +3658,39 @@ public class C
 ";
             CompileAndVerify(code, options: TestOptions.UnsafeReleaseExe, expectedOutput: "42", verify: Verification.Skipped);
         }
+
+        [Fact]
+        public void SimpleGenericStructPointer_ILValidation()
+        {
+            var code = @"
+public unsafe struct MyStruct<T> where T : unmanaged
+{
+    public T field;
+
+    public static void Test()
+    {
+        var ms = new MyStruct<int>();
+        MyStruct<int>* ptr = &ms;
+        ptr->field = 42;
+    }
+}
+";
+            var il = @"
+{
+  // Code size       19 (0x13)
+  .maxstack  2
+  .locals init (MyStruct<int> V_0) //ms
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  initobj    ""MyStruct<int>""
+  IL_0008:  ldloca.s   V_0
+  IL_000a:  conv.u
+  IL_000b:  ldc.i4.s   42
+  IL_000d:  stfld      ""int MyStruct<int>.field""
+  IL_0012:  ret
+}
+";
+            CompileAndVerify(code, options: TestOptions.UnsafeReleaseDll, verify: Verification.Skipped)
+                .VerifyIL("MyStruct<T>.Test", il);
+        }
     }
 }
