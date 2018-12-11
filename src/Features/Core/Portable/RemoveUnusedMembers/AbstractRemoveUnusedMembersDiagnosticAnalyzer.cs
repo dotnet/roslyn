@@ -313,6 +313,8 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                 {
                     switch (symbol.Kind)
                     {
+                        // Handle potential references to methods/properties from missing IOperation
+                        // for method group/property group.
                         case SymbolKind.Method:
                         case SymbolKind.Property:
                             OnSymbolUsage(symbol, ValueUsageInfo.NameOnly);
