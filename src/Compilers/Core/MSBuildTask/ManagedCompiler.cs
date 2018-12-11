@@ -256,6 +256,12 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             get { return (string)_store[nameof(Platform)]; }
         }
 
+        public ITaskItem[] PotentialAnalyzerConfigFiles
+        {
+            set { _store[nameof(PotentialAnalyzerConfigFiles)] = value; }
+            get { return (ITaskItem[])_store[nameof(PotentialAnalyzerConfigFiles)]; }
+        }
+
         public bool Prefer32Bit
         {
             set { _store[nameof(Prefer32Bit)] = value; }
