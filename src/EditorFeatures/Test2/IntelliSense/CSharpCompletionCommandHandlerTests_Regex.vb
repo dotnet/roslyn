@@ -172,5 +172,57 @@ class c
                 Await state.AssertNoCompletionSession()
             End Using
         End Function
+
+        <MemberData(NameOf(AllCompletionImplementations))>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestKReferenceOutsideOfCharacterClass(completionImplementation As CompletionImplementation) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
+                <Document><![CDATA[
+using System.Text.RegularExpressions;
+class c
+{
+    void goo()
+    {
+        var r = new Regex(@"$$");
+    }
+}
+]]></Document>)
+
+                state.SendTypeChars("\")
+                Await state.WaitForAsynchronousOperationsAsync()
+                Await state.AssertCompletionSession()
+
+                Assert.True(state.GetCompletionItems().Any(Function(i) i.DisplayText.StartsWith("\k")))
+
+                state.SendTab()
+                Await state.AssertNoCompletionSession()
+            End Using
+        End Function
+
+        <MemberData(NameOf(AllCompletionImplementations))>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestNoKReferenceInsideOfCharacterClass(completionImplementation As CompletionImplementation) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
+                <Document><![CDATA[
+using System.Text.RegularExpressions;
+class c
+{
+    void goo()
+    {
+        var r = new Regex(@"[$$]");
+    }
+}
+]]></Document>)
+
+                state.SendTypeChars("\")
+                Await state.WaitForAsynchronousOperationsAsync()
+                Await state.AssertCompletionSession()
+
+                Assert.False(state.GetCompletionItems().Any(Function(i) i.DisplayText.StartsWith("\k")))
+
+                state.SendTab()
+                Await state.AssertNoCompletionSession()
+            End Using
+        End Function
     End Class
 End Namespace
