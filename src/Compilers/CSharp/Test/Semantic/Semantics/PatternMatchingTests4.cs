@@ -1898,6 +1898,211 @@ class A: IA, I1, I2, ITuple
         }
 
         [Fact]
+        public void UnmatchedInput_01()
+        {
+            var source =
+@"using System;
+public class C
+{
+    static void Main()
+    {
+        var t = (1, 2);
+        try
+        {
+            _ = t switch { (3, 4) => 1 };
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.GetType().Name);
+        }
+    }
+}
+";
+            var compilation = CreatePatternCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (9,19): warning CS8509: The switch expression does not handle all possible inputs (it is not exhaustive).
+                //             _ = t switch { (3, 4) => 1 };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithLocation(9, 19)
+                );
+            CompileAndVerify(compilation, expectedOutput: "InvalidOperationException");
+        }
+
+        [Fact]
+        public void UnmatchedInput_02()
+        {
+            var source =
+@"using System;
+public class C
+{
+    static void Main()
+    {
+        var t = (1, 2);
+        try
+        {
+            _ = t switch { (3, 4) => 1 };
+        }
+        catch (MatchFailureException ex)
+        {
+            Console.WriteLine($""{ex.GetType().Name}({ex.UnmatchedValue})"");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.GetType().Name);
+        }
+    }
+}
+namespace System
+{
+    public class MatchFailureException : InvalidOperationException
+    {
+        public MatchFailureException() {}
+        // public MatchFailureException(object unmatchedValue) => UnmatchedValue = unmatchedValue;
+        public object UnmatchedValue { get; }
+    }
+}
+";
+            var compilation = CreatePatternCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (9,19): warning CS8509: The switch expression does not handle all possible inputs (it is not exhaustive).
+                //             _ = t switch { (3, 4) => 1 };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithLocation(9, 19)
+                );
+            CompileAndVerify(compilation, expectedOutput: "MatchFailureException()");
+        }
+
+        [Fact]
+        public void UnmatchedInput_03()
+        {
+            var source =
+@"using System;
+public class C
+{
+    static void Main()
+    {
+        var t = (1, 2);
+        try
+        {
+            _ = t switch { (3, 4) => 1 };
+        }
+        catch (MatchFailureException ex)
+        {
+            Console.WriteLine($""{ex.GetType().Name}({ex.UnmatchedValue})"");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.GetType().Name);
+        }
+    }
+}
+namespace System
+{
+    public class MatchFailureException : InvalidOperationException
+    {
+        public MatchFailureException() {}
+        public MatchFailureException(object unmatchedValue) => UnmatchedValue = unmatchedValue;
+        public object UnmatchedValue { get; }
+    }
+}
+";
+            var compilation = CreatePatternCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (9,19): warning CS8509: The switch expression does not handle all possible inputs (it is not exhaustive).
+                //             _ = t switch { (3, 4) => 1 };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithLocation(9, 19)
+                );
+            CompileAndVerify(compilation, expectedOutput: "MatchFailureException((1, 2))");
+        }
+
+        [Fact]
+        public void UnmatchedInput_04()
+        {
+            var source =
+@"using System;
+public class C
+{
+    static void Main()
+    {
+        try
+        {
+            _ = (1, 2) switch { (3, 4) => 1 };
+        }
+        catch (MatchFailureException ex)
+        {
+            Console.WriteLine($""{ex.GetType().Name}({ex.UnmatchedValue})"");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.GetType().Name);
+        }
+    }
+}
+namespace System
+{
+    public class MatchFailureException : InvalidOperationException
+    {
+        public MatchFailureException() {}
+        public MatchFailureException(object unmatchedValue) => UnmatchedValue = unmatchedValue;
+        public object UnmatchedValue { get; }
+    }
+}
+";
+            var compilation = CreatePatternCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (8,24): warning CS8509: The switch expression does not handle all possible inputs (it is not exhaustive).
+                //             _ = (1, 2) switch { (3, 4) => 1 };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithLocation(8, 24)
+                );
+            CompileAndVerify(compilation, expectedOutput: "MatchFailureException()");
+        }
+
+        [Fact]
+        public void UnmatchedInput_05()
+        {
+            var source =
+@"using System;
+public class C
+{
+    static void Main()
+    {
+        try
+        {
+            R r = new R();
+            _ = r switch { (3, 4) => 1 };
+        }
+        catch (MatchFailureException ex)
+        {
+            Console.WriteLine($""{ex.GetType().Name}({ex.UnmatchedValue})"");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.GetType().Name);
+        }
+    }
+}
+ref struct R
+{
+    public void Deconstruct(out int X, out int Y) => (X, Y) = (1, 2);
+}
+namespace System
+{
+    public class MatchFailureException : InvalidOperationException
+    {
+        public MatchFailureException() {}
+        public MatchFailureException(object unmatchedValue) => UnmatchedValue = unmatchedValue;
+        public object UnmatchedValue { get; }
+    }
+}
+";
+            var compilation = CreatePatternCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (9,19): warning CS8509: The switch expression does not handle all possible inputs (it is not exhaustive).
+                //             _ = r switch { (3, 4) => 1 };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithLocation(9, 19)
+                );
+            CompileAndVerify(compilation, expectedOutput: "MatchFailureException()");
+        }
+
+        [Fact]
         public void DeconstructVsITuple_03()
         {
             // From LDM 2018-11-05:
@@ -2711,6 +2916,49 @@ class Program
                 //         if (p is var (x, y)) { }
                 Diagnostic(ErrorCode.ERR_PointerTypeInPatternMatching, "var (x, y)").WithLocation(7, 18)
                 );
+        }
+
+        [Fact]
+        public void UnmatchedInput_06()
+        {
+            var source =
+@"using System;
+public class C
+{
+    static void Main()
+    {
+        Console.WriteLine(M(1, 2));
+        try
+        {
+            Console.WriteLine(M(1, 3));
+        }
+        catch (MatchFailureException ex)
+        {
+            Console.WriteLine($""{ex.GetType().Name}({ex.UnmatchedValue})"");
+        }
+    }
+    public static int M(int x, int y) {
+        return (x, y) switch { (1, 2) => 3 };
+    }
+}
+namespace System
+{
+    public class MatchFailureException : InvalidOperationException
+    {
+        public MatchFailureException() {}
+        public MatchFailureException(object unmatchedValue) => UnmatchedValue = unmatchedValue;
+        public object UnmatchedValue { get; }
+    }
+}
+";
+            var compilation = CreatePatternCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (17,23): warning CS8509: The switch expression does not handle all possible inputs (it is not exhaustive).
+                //         return (x, y) switch { (1, 2) => 3 };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithLocation(17, 23)
+                );
+            CompileAndVerify(compilation, expectedOutput: @"3
+MatchFailureException()");
         }
     }
 }

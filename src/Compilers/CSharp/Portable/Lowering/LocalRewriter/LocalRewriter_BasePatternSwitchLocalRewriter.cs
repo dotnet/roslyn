@@ -257,7 +257,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             protected BoundDecisionDag ShareTempsIfPossibleAndEvaluateInput(
                 BoundDecisionDag decisionDag,
                 BoundExpression loweredSwitchGoverningExpression,
-                ArrayBuilder<BoundStatement> result)
+                ArrayBuilder<BoundStatement> result,
+                out BoundExpression savedInputExpressionOpt)
             {
                 // Note that a when-clause can contain an assignment to a
                 // pattern variable declared in a different when-clause (e.g. in the same section, or
@@ -271,7 +272,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (canShareTemps)
                 {
-                    decisionDag = ShareTempsAndEvaluateInput(loweredSwitchGoverningExpression, decisionDag, expr => result.Add(_factory.ExpressionStatement(expr)));
+                    decisionDag = ShareTempsAndEvaluateInput(loweredSwitchGoverningExpression, decisionDag, expr => result.Add(_factory.ExpressionStatement(expr)), out savedInputExpressionOpt);
                 }
                 else
                 {
@@ -279,6 +280,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     BoundExpression inputTemp = _tempAllocator.GetTemp(InputTemp(loweredSwitchGoverningExpression));
                     Debug.Assert(inputTemp != loweredSwitchGoverningExpression);
                     result.Add(_factory.Assignment(inputTemp, loweredSwitchGoverningExpression));
+                    savedInputExpressionOpt = inputTemp;
                 }
 
                 // There is a hidden sequence point after evaluating the input at the start of the code to

@@ -484,6 +484,10 @@ namespace Microsoft.CodeAnalysis
         System_Runtime_CompilerServices_ITuple__get_Item,
         System_Runtime_CompilerServices_ITuple__get_Length,
 
+        System_InvalidOperationException__ctor,
+        System_MatchFailureException__ctor,
+        System_MatchFailureException__ctorObject,
+
         Count
 
         // Remember to update the AllWellKnownTypeMembers tests when making changes here

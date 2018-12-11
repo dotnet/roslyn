@@ -362,7 +362,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             protected BoundDecisionDag ShareTempsAndEvaluateInput(
                 BoundExpression loweredInput,
                 BoundDecisionDag decisionDag,
-                Action<BoundExpression> addCode)
+                Action<BoundExpression> addCode,
+                out BoundExpression savedInputExpressionOpt)
             {
                 var inputDagTemp = InputTemp(loweredInput);
                 if (loweredInput.Kind == BoundKind.Local || loweredInput.Kind == BoundKind.Parameter)
@@ -406,11 +407,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // and assign them into temps (or perhaps user variables) to avoid the creation of
                     // the tuple altogether.
                     decisionDag = RewriteTupleInput(decisionDag, expr, addCode);
+                    savedInputExpressionOpt = null;
                 }
                 else
                 {
                     // Otherwise we emit an assignment of the input expression to a temporary variable.
                     BoundExpression inputTemp = _tempAllocator.GetTemp(inputDagTemp);
+                    savedInputExpressionOpt = inputTemp;
                     if (inputTemp != loweredInput)
                     {
                         addCode(_factory.AssignmentExpression(inputTemp, loweredInput));

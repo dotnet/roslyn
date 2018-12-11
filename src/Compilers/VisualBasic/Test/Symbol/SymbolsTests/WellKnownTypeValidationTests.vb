@@ -517,7 +517,8 @@ End Namespace
                          WellKnownType.System_Threading_Tasks_Sources_IValueTaskSource_T,
                          WellKnownType.System_Threading_Tasks_ValueTask_T,
                          WellKnownType.System_Threading_Tasks_ValueTask,
-                         WellKnownType.System_Runtime_CompilerServices_AsyncIteratorMethodBuilder
+                         WellKnownType.System_Runtime_CompilerServices_AsyncIteratorMethodBuilder,
+                        WellKnownType.System_MatchFailureException
                         ' Not available on all platforms.
                         Continue For
                     Case WellKnownType.ExtSentinel
@@ -573,7 +574,8 @@ End Namespace
                          WellKnownType.System_Threading_Tasks_Sources_IValueTaskSource_T,
                          WellKnownType.System_Threading_Tasks_ValueTask_T,
                          WellKnownType.System_Threading_Tasks_ValueTask,
-                         WellKnownType.System_Runtime_CompilerServices_AsyncIteratorMethodBuilder
+                         WellKnownType.System_Runtime_CompilerServices_AsyncIteratorMethodBuilder,
+                        WellKnownType.System_MatchFailureException
                         ' Not available on all platforms.
                         Continue For
                     Case WellKnownType.ExtSentinel
@@ -667,7 +669,9 @@ End Namespace
                          WellKnownMember.System_Range__ToEnd,
                          WellKnownMember.System_Runtime_CompilerServices_IsUnmanagedAttribute__ctor,
                          WellKnownMember.System_Runtime_CompilerServices_ITuple__get_Item,
-                         WellKnownMember.System_Runtime_CompilerServices_ITuple__get_Length
+                         WellKnownMember.System_Runtime_CompilerServices_ITuple__get_Length,
+                         WellKnownMember.System_MatchFailureException__ctor,
+                         WellKnownMember.System_MatchFailureException__ctorObject
                         ' Not always available.
                         Continue For
                 End Select
@@ -797,7 +801,9 @@ End Namespace
                          WellKnownMember.System_Range__ToEnd,
                          WellKnownMember.System_Runtime_CompilerServices_IsUnmanagedAttribute__ctor,
                          WellKnownMember.System_Runtime_CompilerServices_ITuple__get_Item,
-                         WellKnownMember.System_Runtime_CompilerServices_ITuple__get_Length
+                         WellKnownMember.System_Runtime_CompilerServices_ITuple__get_Length,
+                         WellKnownMember.System_MatchFailureException__ctor,
+                         WellKnownMember.System_MatchFailureException__ctorObject
                         ' Not always available.
                         Continue For
                 End Select

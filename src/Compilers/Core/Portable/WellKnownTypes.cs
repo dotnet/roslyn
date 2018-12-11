@@ -296,6 +296,9 @@ namespace Microsoft.CodeAnalysis
         System_Threading_Tasks_ValueTask,
         System_Runtime_CompilerServices_AsyncIteratorMethodBuilder,
 
+        System_InvalidOperationException,
+        System_MatchFailureException,
+
         NextAvailable,
 
         // Remember to update the AllWellKnownTypes tests when making changes here
@@ -585,6 +588,9 @@ namespace Microsoft.CodeAnalysis
             "System.Threading.Tasks.ValueTask`1",
             "System.Threading.Tasks.ValueTask",
             "System.Runtime.CompilerServices.AsyncIteratorMethodBuilder",
+
+            "System.InvalidOperationException",
+            "System.MatchFailureException"
         };
 
         private readonly static Dictionary<string, WellKnownType> s_nameToTypeIdMap = new Dictionary<string, WellKnownType>((int)Count);
