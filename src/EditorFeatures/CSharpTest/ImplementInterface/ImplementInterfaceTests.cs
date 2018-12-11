@@ -8665,145 +8665,177 @@ class C : [|I|]
         public async Task TestAllowNullAttributeOnNonNullableReferenceType()
         {
             await TestInRegularAndScript1Async(
-@"#nullable enable
+$@"#nullable enable
+
+using System.Diagnostics.CodeAnalysis;
+
+{NullableAttributesCode}
 
 interface IInterface<T>
-{
-    [return: System.Diagnostics.CodeAnalysis.MaybeNullAttribute]
-    T Method([System.Diagnostics.CodeAnalysis.AllowNullAttribute] T value);
-}
+{{
+    [return: MaybeNull]
+    T Method([AllowNull] T value);
+}}
 
 class Class : [|IInterface<string>|]
-{
+{{
 #pragma warning disable CS8609 // Nullability of reference types in return type doesn't match overridden member.
-}",
-@"#nullable enable
+}}",
+$@"#nullable enable
+
+using System.Diagnostics.CodeAnalysis;
+
+{NullableAttributesCode}
 
 interface IInterface<T>
-{
-    [return: System.Diagnostics.CodeAnalysis.MaybeNullAttribute]
-    T Method([System.Diagnostics.CodeAnalysis.AllowNullAttribute] T value);
-}
+{{
+    [return: MaybeNull]
+    T Method([AllowNull] T value);
+}}
 
 class Class : IInterface<string>
-{
+{{
 #pragma warning disable CS8609 // Nullability of reference types in return type doesn't match overridden member.
     public string? Method(string? value)
-    {
+    {{
         throw new System.NotImplementedException();
-    }
-}");
+    }}
+}}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestAllowNullAttributeOnNullableReferenceType()
         {
             await TestInRegularAndScript1Async(
-@"#nullable enable
+$@"#nullable enable
+
+using System.Diagnostics.CodeAnalysis;
+
+{NullableAttributesCode}
 
 interface IInterface<T>
-{
-    [return: System.Diagnostics.CodeAnalysis.MaybeNullAttribute]
-    T Method([System.Diagnostics.CodeAnalysis.AllowNullAttribute] T value);
-}
+{{
+    [return: MaybeNull]
+    T Method([AllowNull] T value);
+}}
 
 class Class : [|IInterface<string?>|]
-{
-}",
-@"#nullable enable
+{{
+}}",
+$@"#nullable enable
+
+using System.Diagnostics.CodeAnalysis;
+
+{NullableAttributesCode}
 
 interface IInterface<T>
-{
-    [return: System.Diagnostics.CodeAnalysis.MaybeNullAttribute]
-    T Method([System.Diagnostics.CodeAnalysis.AllowNullAttribute] T value);
-}
+{{
+    [return: MaybeNull]
+    T Method([AllowNull] T value);
+}}
 
 class Class : IInterface<string?>
-{
+{{
     public string? Method(string? value)
-    {
+    {{
         throw new System.NotImplementedException();
-    }
-}");
+    }}
+}}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestFlowAnalysisAttributeOnNonNullableValueType()
         {
             await TestInRegularAndScript1Async(
-@"interface IInterface<T>
-{
-    [return: System.Diagnostics.CodeAnalysis.MaybeNullAttribute]
-    T MethodAllowNull([System.Diagnostics.CodeAnalysis.AllowNullAttribute] T value);
+$@"using System.Diagnostics.CodeAnalysis;
 
-    [return: System.Diagnostics.CodeAnalysis.NotNullAttribute]
-    T MethodDisallowNull([System.Diagnostics.CodeAnalysis.DisallowNullAttribute] T value);
-}
+{NullableAttributesCode}
+
+interface IInterface<T>
+{{
+    [return: MaybeNull]
+    T MethodAllowNull([AllowNull] T value);
+
+    [return: NotNull]
+    T MethodDisallowNull([DisallowNull] T value);
+}}
 
 class Class<T> : [|IInterface<T>|] where T : struct
-{
-}",
-@"interface IInterface<T>
-{
-    [return: System.Diagnostics.CodeAnalysis.MaybeNullAttribute]
-    T MethodAllowNull([System.Diagnostics.CodeAnalysis.AllowNullAttribute] T value);
+{{
+}}",
+$@"using System.Diagnostics.CodeAnalysis;
 
-    [return: System.Diagnostics.CodeAnalysis.NotNullAttribute]
-    T MethodDisallowNull([System.Diagnostics.CodeAnalysis.DisallowNullAttribute] T value);
-}
+{NullableAttributesCode}
+
+interface IInterface<T>
+{{
+    [return: MaybeNull]
+    T MethodAllowNull([AllowNull] T value);
+
+    [return: NotNull]
+    T MethodDisallowNull([DisallowNull] T value);
+}}
 
 class Class<T> : IInterface<T> where T : struct
-{
+{{
     public T MethodAllowNull(T value)
-    {
+    {{
         throw new System.NotImplementedException();
-    }
+    }}
 
     public T MethodDisallowNull(T value)
-    {
+    {{
         throw new System.NotImplementedException();
-    }
-}");
+    }}
+}}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestFlowAnalysisAttributeOnNullableValueType()
         {
             await TestInRegularAndScript1Async(
-@"interface IInterface<T>
-{
-    [return: System.Diagnostics.CodeAnalysis.MaybeNullAttribute]
-    T MethodAllowNull([System.Diagnostics.CodeAnalysis.AllowNullAttribute] T value);
+$@"using System.Diagnostics.CodeAnalysis;
 
-    [return: System.Diagnostics.CodeAnalysis.NotNullAttribute]
-    T MethodDisallowNull([System.Diagnostics.CodeAnalysis.DisallowNullAttribute] T value);
-}
+{NullableAttributesCode}
+
+interface IInterface<T>
+{{
+    [return: MaybeNull]
+    T MethodAllowNull([AllowNull] T value);
+
+    [return: NotNull]
+    T MethodDisallowNull([DisallowNull] T value);
+}}
 
 class Class<T> : [|IInterface<T?>|] where T : struct
-{
-}",
-@"interface IInterface<T>
-{
-    [return: System.Diagnostics.CodeAnalysis.MaybeNullAttribute]
-    T MethodAllowNull([System.Diagnostics.CodeAnalysis.AllowNullAttribute] T value);
+{{
+}}",
+$@"using System.Diagnostics.CodeAnalysis;
 
-    [return: System.Diagnostics.CodeAnalysis.NotNullAttribute]
-    T MethodDisallowNull([System.Diagnostics.CodeAnalysis.DisallowNullAttribute] T value);
-}
+{NullableAttributesCode}
+
+interface IInterface<T>
+{{
+    [return: MaybeNull]
+    T MethodAllowNull([AllowNull] T value);
+
+    [return: NotNull]
+    T MethodDisallowNull([DisallowNull] T value);
+}}
 
 class Class<T> : IInterface<T?> where T : struct
-{
+{{
     public T? MethodAllowNull(T? value)
-    {
+    {{
         throw new System.NotImplementedException();
-    }
+    }}
 
-    [return: System.Diagnostics.CodeAnalysis.NotNullAttribute]
-    public T? MethodDisallowNull([System.Diagnostics.CodeAnalysis.DisallowNullAttribute] T? value)
-    {
+    [return: NotNull]
+    public T? MethodDisallowNull([DisallowNull] T? value)
+    {{
         throw new System.NotImplementedException();
-    }
-}");
+    }}
+}}");
         }
     }
 }
