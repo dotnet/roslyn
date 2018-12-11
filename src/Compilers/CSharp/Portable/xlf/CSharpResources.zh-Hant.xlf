@@ -977,14 +977,24 @@
         <target state="new">The type cannot be used as type parameter in the generic type or method. Nullability of type argument doesn't match 'class' constraint.</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_NullableValueTypeMayBeNull">
+        <source>Nullable value type may be null.</source>
+        <target state="new">Nullable value type may be null.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullableValueTypeMayBeNull_Title">
+        <source>Nullable value type may be null.</source>
+        <target state="new">Nullable value type may be null.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_SuppressionOperatorNotReferenceType">
-        <source>The suppression operator (!) can only be applied to reference types.</source>
-        <target state="new">The suppression operator (!) can only be applied to reference types.</target>
+        <source>The suppression operator (!) can only be applied to reference types and nullable value types.</source>
+        <target state="new">The suppression operator (!) can only be applied to reference types and nullable value types.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_SuppressionOperatorNotReferenceType_Title">
-        <source>The suppression operator (!) can only be applied to reference types.</source>
-        <target state="new">The suppression operator (!) can only be applied to reference types.</target>
+        <source>The suppression operator (!) can only be applied to reference types and nullable value types.</source>
+        <target state="new">The suppression operator (!) can only be applied to reference types and nullable value types.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_TupleBinopLiteralNameMismatch">

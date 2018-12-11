@@ -835,9 +835,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             for (int i = 0; i < overridingParameters.Length; i++)
                             {
                                 var overridenParameterType = overriddenParameters[i].Type;
-                                if (!overridingParameters[i].Type.Equals(overridenParameterType,
+                                var overridingParameterType = overridingParameters[i].Type;
+                                if (!overridingParameterType.Equals(overridenParameterType,
                                                                          TypeCompareKind.AllIgnoreOptions & ~(TypeCompareKind.IgnoreNullableModifiersForReferenceTypes | TypeCompareKind.IgnoreInsignificantNullableModifiersDifference)) &&
-                                    overridingParameters[i].Type.Equals(overridenParameterType, TypeCompareKind.AllIgnoreOptions))
+                                    overridingParameterType.Equals(overridenParameterType, TypeCompareKind.AllIgnoreOptions))
                                 {
                                     diagnostics.Add(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride, overridingMemberLocation, new FormattedSymbol(overridingParameters[i], SymbolDisplayFormat.ShortFormat));
                                 }
