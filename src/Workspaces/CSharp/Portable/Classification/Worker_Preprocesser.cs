@@ -270,6 +270,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
             {
                 ClassifyNodeOrToken(nodeOrToken);
             }
+
+            if (node.ErrorCodes.Count == 0)
+            {
+                // When there are no error codes, we need to classify the directive's trivia.
+                // (When there are error codes, ClassifyNodeOrToken above takes care of that.)
+                ClassifyDirectiveTrivia(node);
+            }
         }
 
         private void ClassifyReferenceDirective(ReferenceDirectiveTriviaSyntax node)

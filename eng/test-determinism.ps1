@@ -2,6 +2,7 @@
 param([string]$configuration = "Debug",
       [string]$msbuildEngine = "vs",
       [string]$bootstrapDir = "",
+      [string]$bootstrapConfiguration = "Debug",
       [string]$altRootDrive = "q:",
       [switch]$help)
 

@@ -1011,14 +1011,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 {
                     case LanguageNames.CSharp:
                         {
-                            CSharpSyntaxNode syntax = applyParenthesizedIfAnyCS((CSharpSyntaxNode)captureReferenceSyntax);
-
-                            if (syntax.Parent?.Parent is CSharp.Syntax.UsingStatementSyntax usingStmt &&
-                                usingStmt.Declaration == syntax.Parent)
-                            {
-                                return true;
-                            }
-
+                            var syntax = (CSharpSyntaxNode)captureReferenceSyntax;
                             switch (syntax.Kind())
                             {
                                 case CSharp.SyntaxKind.ObjectCreationExpression:
@@ -1027,6 +1020,14 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                                         return true;
                                     }
                                     break;
+                            }
+
+                            syntax = applyParenthesizedIfAnyCS(syntax);
+
+                            if (syntax.Parent?.Parent is CSharp.Syntax.UsingStatementSyntax usingStmt &&
+                                usingStmt.Declaration == syntax.Parent)
+                            {
+                                return true;
                             }
 
                             CSharpSyntaxNode parent = syntax.Parent;

@@ -4989,5 +4989,64 @@ namespace B
     }
 }");
         }
+
+
+        [WorkItem(745490, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/745490")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
+        public async Task TestAddUsingForAwaitableReturningExtensionMethod()
+        {
+            await TestAsync(
+@"
+namespace A
+{
+    using System;
+    using System.Threading.Tasks;
+
+    class C
+    {
+        C Instance { get; } => null;
+
+        async Task M() => await Instance.[|Foo|]();
+    }
+}
+
+namespace B
+{
+    using System;
+    using System.Threading.Tasks;
+    using A;
+
+    static class Extensions
+    {
+        public static Task Foo(this C instance) => null;
+    }
+}",
+@"
+namespace A
+{
+    using System;
+    using System.Threading.Tasks;
+    using B;
+
+    class C
+    {
+        C Instance { get; } => null;
+
+        async Task M() => await Instance.Foo();
+    }
+}
+
+namespace B
+{
+    using System;
+    using System.Threading.Tasks;
+    using A;
+
+    static class Extensions
+    {
+        public static Task Foo(this C instance) => null;
+    }
+}");
+        }
     }
 }
