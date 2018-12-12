@@ -26,19 +26,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
     /// </summary>
     internal static class IntegrationHelper
     {
-        public static bool AttachThreadInput(uint idAttach, uint idAttachTo)
-        {
-            var success = NativeMethods.AttachThreadInput(idAttach, idAttachTo, true);
-
-            if (!success)
-            {
-                var hresult = Marshal.GetHRForLastWin32Error();
-                Marshal.ThrowExceptionForHR(hresult);
-            }
-
-            return success;
-        }
-
         public static bool BlockInput()
         {
             var success = NativeMethods.BlockInput(true);
@@ -81,19 +68,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         public static string CreateTemporaryPath()
         {
             return Path.Combine(TempRoot.Root, Path.GetRandomFileName());
-        }
-
-        public static bool DetachThreadInput(uint idAttach, uint idAttachTo)
-        {
-            var success = NativeMethods.AttachThreadInput(idAttach, idAttachTo, false);
-
-            if (!success)
-            {
-                var hresult = Marshal.GetHRForLastWin32Error();
-                Marshal.ThrowExceptionForHR(hresult);
-            }
-
-            return success;
         }
 
         public static async Task DownloadFileAsync(string downloadUrl, string fileName)
@@ -219,57 +193,26 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             }
         }
 
-        public static void SetForegroundWindow(IntPtr window, bool skipAttachingThread = false)
+        public static void SetForegroundWindow(IntPtr window)
         {
-            var foregroundWindow = GetForegroundWindow();
+            // Make the window a top-most window so it will appear above any existing top-most windows
+            NativeMethods.SetWindowPos(window, (IntPtr)NativeMethods.HWND_TOPMOST, 0, 0, 0, 0, (NativeMethods.SWP_NOSIZE | NativeMethods.SWP_NOMOVE));
 
-            if (window == foregroundWindow)
+            // Move the window into the foreground as it may not have been achieved by the 'SetWindowPos' call
+            var success = NativeMethods.SetForegroundWindow(window);
+            if (!success)
             {
-                return;
+                throw new InvalidOperationException("Setting the foreground window failed.");
             }
 
-            var activeThreadId = NativeMethods.GetWindowThreadProcessId(foregroundWindow, IntPtr.Zero);
-            var currentThreadId = NativeMethods.GetCurrentThreadId();
+            // Ensure the window is 'Active' as it may not have been achieved by 'SetForegroundWindow'
+            NativeMethods.SetActiveWindow(window);
 
-            var threadInputsAttached = false;
+            // Give the window the keyboard focus as it may not have been achieved by 'SetActiveWindow'
+            NativeMethods.SetFocus(window);
 
-            try
-            {
-                // No need to re-attach threads in case when VS initializaed an UI thread for a debugged application.
-                if (!skipAttachingThread && activeThreadId != currentThreadId)
-                {
-                    // Attach the thread inputs so that 'SetActiveWindow' and 'SetFocus' work
-                    threadInputsAttached = AttachThreadInput(currentThreadId, activeThreadId);
-                }
-
-                // Make the window a top-most window so it will appear above any existing top-most windows
-                NativeMethods.SetWindowPos(window, (IntPtr)NativeMethods.HWND_TOPMOST, 0, 0, 0, 0, (NativeMethods.SWP_NOSIZE | NativeMethods.SWP_NOMOVE));
-
-                // Move the window into the foreground as it may not have been achieved by the 'SetWindowPos' call
-                var success = NativeMethods.SetForegroundWindow(window);
-
-                if (!success)
-                {
-                    throw new InvalidOperationException("Setting the foreground window failed.");
-                }
-
-                // Ensure the window is 'Active' as it may not have been achieved by 'SetForegroundWindow'
-                NativeMethods.SetActiveWindow(window);
-
-                // Give the window the keyboard focus as it may not have been achieved by 'SetActiveWindow'
-                NativeMethods.SetFocus(window);
-
-                // Remove the 'Top-Most' qualification from the window
-                NativeMethods.SetWindowPos(window, (IntPtr)NativeMethods.HWND_NOTOPMOST, 0, 0, 0, 0, (NativeMethods.SWP_NOSIZE | NativeMethods.SWP_NOMOVE));
-            }
-            finally
-            {
-                if (threadInputsAttached)
-                {
-                    // Finally, detach the thread inputs from eachother
-                    DetachThreadInput(currentThreadId, activeThreadId);
-                }
-            }
+            // Remove the 'Top-Most' qualification from the window
+            NativeMethods.SetWindowPos(window, (IntPtr)NativeMethods.HWND_NOTOPMOST, 0, 0, 0, 0, (NativeMethods.SWP_NOSIZE | NativeMethods.SWP_NOMOVE));
         }
 
         public static void SendInput(NativeMethods.INPUT[] inputs)
