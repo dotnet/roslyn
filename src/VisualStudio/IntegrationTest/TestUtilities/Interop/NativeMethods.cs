@@ -186,6 +186,12 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Interop
         [return: MarshalAs(UnmanagedType.Bool)]
         public static extern bool SetWindowPos(IntPtr hWnd, [Optional] IntPtr hWndInsertAfter, int X, int Y, int cx, int cy, uint uFlags);
 
+        [DllImport(User32, SetLastError = true)]
+        public static extern IntPtr GetLastActivePopup(IntPtr hWnd);
+
+        [DllImport(User32, SetLastError = true)]
+        public static extern void SwitchToThisWindow(IntPtr hWnd, [MarshalAs(UnmanagedType.Bool)] bool fUnknown);
+
         [DllImport(User32, CharSet = CharSet.Unicode)]
         public static extern short VkKeyScan(char ch);
 
