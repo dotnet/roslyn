@@ -98,12 +98,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
                 return;
             }
 
-            var lastDelimiterSpan = default(TextSpan);
-
             // verify all delimeters exist until you reach statement syntax that requires a semicolon
             while (!IsStatementOrFieldDeclaration(currentNode, syntaxFacts))
             {
-                if (!ClosingDelimiterExistsIfNeeded(currentNode, ref lastDelimiterSpan))
+                if (!ClosingDelimiterExistsIfNeeded(currentNode))
                 {
                     // A required delimiter is missing; do not treat semicolon as statement completion
                     return;
@@ -120,15 +118,37 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
             // if the statement syntax itself requires a closing delimeter, verify it is there
             if (currentNode.IsKind(SyntaxKind.DoStatement))
             {
-                if (!StatementClosingDelimiterExists(currentNode, ref lastDelimiterSpan))
+                if (!StatementClosingDelimiterExists(currentNode))
                 {
                     // Example: missing final `)` in `do { } while (x$$`
                     return;
                 }
             }
 
-            // Move to space after the last delimiter
-            args.TextView.TryMoveCaretToAndEnsureVisible(args.SubjectBuffer.CurrentSnapshot.GetPoint(GetEndPosition(root, lastDelimiterSpan.End, currentNode.Kind())));
+            var semicolonPosition = GetSemicolonLocation(currentNode, caretPosition);
+
+            // Place cursor after the statement
+            args.TextView.TryMoveCaretToAndEnsureVisible(args.SubjectBuffer.CurrentSnapshot.GetPoint(GetEndPosition(root, semicolonPosition, currentNode.Kind())));
+        }
+
+        private int GetSemicolonLocation(SyntaxNode currentNode, int caretPosition)
+        {
+            if (currentNode.IsKind(SyntaxKind.ForStatement))
+            {
+                // in for statements, semicolon can go after initializer or after condition, depending on where the caret is located
+                var forStatementSyntax = (ForStatementSyntax)currentNode;
+                if (caretPosition > forStatementSyntax.Condition.SpanStart  && caretPosition < forStatementSyntax.Condition.Span.End)
+                {
+                    return forStatementSyntax.Condition.Span.End+1;
+                }
+
+                if (caretPosition > forStatementSyntax.Initializers.Span.Start && caretPosition < forStatementSyntax.Initializers.Span.End)
+                {
+                    return forStatementSyntax.Initializers.Span.End+1;
+                }
+            }
+
+            return currentNode.Span.End;
         }
 
         /// <summary>
@@ -150,7 +170,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
                 {
                     // It's a node of interest
                     nodeFound = true;
-                    
                 }
 
                 // No special action is performed at this time if `;` is typed inside a string, including
@@ -300,17 +319,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
         /// </list>
         /// </remarks>
         /// <param name="currentNode"></param>
-        /// <param name="lastDelimiterSpan"></param>
         /// <returns><see langword="true"/> if <paramref name="currentNode"/> is a statement that ends with a closing
         /// delimiter, and that closing delimiter exists in the source code; otherwise, <see langword="false"/>.
         /// </returns>
-        private static bool StatementClosingDelimiterExists(SyntaxNode currentNode, ref TextSpan lastDelimiterSpan)
+        private static bool StatementClosingDelimiterExists(SyntaxNode currentNode)
         {
             switch (currentNode.Kind())
             {
                 case SyntaxKind.DoStatement:
                     var dostatement = (DoStatementSyntax)currentNode;
-                    lastDelimiterSpan = dostatement.CloseParenToken.Span;
                     return !dostatement.CloseParenToken.IsMissing;
 
                 default:
@@ -329,7 +346,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
         /// delimiters are present in the original source.</para>
         /// </remarks>
         /// <param name="currentNode"></param>
-        /// <param name="lastDelimiterSpan"></param>
         /// <returns>
         /// <list type="bullet">
         /// <item><description><see langword="true"/> if <paramref name="currentNode"/> requires a closing delimiter and the closing delimiter is present in the source (i.e. not missing)</description></item>
@@ -337,33 +353,28 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
         /// <item><description>otherwise, <see langword="false"/>.</description></item>
         /// </list>
         /// </returns>
-        private static bool ClosingDelimiterExistsIfNeeded(SyntaxNode currentNode, ref TextSpan lastDelimiterSpan)
+        private static bool ClosingDelimiterExistsIfNeeded(SyntaxNode currentNode)
         {
             switch (currentNode.Kind())
             {
                 case SyntaxKind.ArgumentList:
                     var argumentList = (ArgumentListSyntax)currentNode;
-                    lastDelimiterSpan = argumentList.CloseParenToken.Span;
                     return !argumentList.CloseParenToken.IsMissing;
 
                 case SyntaxKind.ParenthesizedExpression:
                     var parenthesizedExpression = (ParenthesizedExpressionSyntax)currentNode;
-                    lastDelimiterSpan = parenthesizedExpression.CloseParenToken.Span;
                     return !parenthesizedExpression.CloseParenToken.IsMissing;
 
                 case SyntaxKind.BracketedArgumentList:
                     var bracketedArgumentList = (BracketedArgumentListSyntax)currentNode;
-                    lastDelimiterSpan = bracketedArgumentList.CloseBracketToken.Span;
                     return !bracketedArgumentList.CloseBracketToken.IsMissing;
 
                 case SyntaxKind.ObjectInitializerExpression:
                     var initializerExpressionSyntax = (InitializerExpressionSyntax)currentNode;
-                    lastDelimiterSpan = initializerExpressionSyntax.CloseBraceToken.Span;
                     return !initializerExpressionSyntax.CloseBraceToken.IsMissing;
 
                 case SyntaxKind.ArrayRankSpecifier:
                     var arrayRankSpecifierSyntax = (ArrayRankSpecifierSyntax)currentNode;
-                    lastDelimiterSpan = arrayRankSpecifierSyntax.CloseBracketToken.Span;
                     return !arrayRankSpecifierSyntax.CloseBracketToken.IsMissing;
                 default:
                     // Type of node does not require a closing delimiter
@@ -377,19 +388,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
             // If "end" is at the end of a line, the token has trailing end of line trivia.
             // We want to put our cursor before that trivia, so use previous token for placement.
             var token = root.FindToken(end);
-
-            if (token.SpanStart >= end)
-            {
-                // We found a token following the end position, which means 'end' is not the end of the line
-                return end;
-            }
-
-            if (token.TrailingTrivia.Any(SyntaxKind.EndOfLineTrivia))
-            {
-                return token.TrailingTrivia.Span.Start;
-            }
-
-            return end;
+            return token.GetPreviousToken().Span.End;
         }
 
         public VSCommanding.CommandState GetCommandState(TypeCharCommandArgs args, Func<VSCommanding.CommandState> nextCommandHandler) => nextCommandHandler();
