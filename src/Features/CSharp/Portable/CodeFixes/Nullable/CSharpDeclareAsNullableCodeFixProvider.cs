@@ -93,16 +93,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.DeclareAsNullable
                 switch (containingMember)
                 {
                     case MethodDeclarationSyntax method:
-                        var returnType = method.ReturnType;
-                        var asyncModifier = method.Modifiers.FirstOrDefault(m => m.Kind() == SyntaxKind.AsyncKeyword);
-                        if (asyncModifier.Kind() != SyntaxKind.None)
-                        {
-                            // async Task<string> M() { return null; }
-                            return tryGetSingleTypeArgument(returnType);
-                        }
-
                         // string M() { return null; }
-                        return returnType;
+                        // async Task<string> M() { return null; }
+                        return tryGetMethodReturnType(method.ReturnType, method.Modifiers);
+
+                    case LocalFunctionStatementSyntax localFunction:
+                        // string local() { return null; }
+                        // async Task<string> local() { return null; }
+                        return tryGetMethodReturnType(localFunction.ReturnType, localFunction.Modifiers);
 
                     case PropertyDeclarationSyntax property:
                         // string x { get { return null; } }
@@ -148,6 +146,19 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.DeclareAsNullable
             }
 
             return null;
+
+            TypeSyntax tryGetMethodReturnType(TypeSyntax returnType, SyntaxTokenList modifiers)
+            {
+                var asyncModifier = modifiers.FirstOrDefault(m => m.Kind() == SyntaxKind.AsyncKeyword);
+                if (asyncModifier.Kind() != SyntaxKind.None)
+                {
+                    // async Task<string> M() { return null; }
+                    return tryGetSingleTypeArgument(returnType);
+                }
+
+                // string M() { return null; }
+                return returnType;
+            }
 
             TypeSyntax tryGetSingleTypeArgument(TypeSyntax type)
             {
