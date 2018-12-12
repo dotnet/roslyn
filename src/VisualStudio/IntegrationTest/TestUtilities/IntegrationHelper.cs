@@ -197,25 +197,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         {
             var activeWindow = NativeMethods.GetLastActivePopup(window);
             NativeMethods.SwitchToThisWindow(activeWindow, true);
-
-            //// Make the window a top-most window so it will appear above any existing top-most windows
-            //NativeMethods.SetWindowPos(window, (IntPtr)NativeMethods.HWND_TOPMOST, 0, 0, 0, 0, (NativeMethods.SWP_NOSIZE | NativeMethods.SWP_NOMOVE));
-
-            //// Move the window into the foreground as it may not have been achieved by the 'SetWindowPos' call
-            //var success = NativeMethods.SetForegroundWindow(window);
-            //if (!success)
-            //{
-            //    throw new InvalidOperationException("Setting the foreground window failed.");
-            //}
-
-            //// Ensure the window is 'Active' as it may not have been achieved by 'SetForegroundWindow'
-            //NativeMethods.SetActiveWindow(window);
-
-            //// Give the window the keyboard focus as it may not have been achieved by 'SetActiveWindow'
-            //NativeMethods.SetFocus(window);
-
-            //// Remove the 'Top-Most' qualification from the window
-            //NativeMethods.SetWindowPos(window, (IntPtr)NativeMethods.HWND_NOTOPMOST, 0, 0, 0, 0, (NativeMethods.SWP_NOSIZE | NativeMethods.SWP_NOMOVE));
         }
 
         public static void SendInput(NativeMethods.INPUT[] inputs)
