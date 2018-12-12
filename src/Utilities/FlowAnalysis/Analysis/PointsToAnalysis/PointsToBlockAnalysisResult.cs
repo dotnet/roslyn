@@ -12,39 +12,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
     {
         public PointsToBlockAnalysisResult(
             BasicBlock basicBlock,
-            DataFlowAnalysisInfo<PointsToAnalysisData> blockAnalysisData,
-            ImmutableDictionary<AnalysisEntity, PointsToAbstractValue> defaultPointsToValues)
+            DataFlowAnalysisInfo<PointsToAnalysisData> blockAnalysisData)
             : base (basicBlock)
         {
-            InputData = GetResult(blockAnalysisData.Input, defaultPointsToValues);
-            OutputData = GetResult(blockAnalysisData.Output, defaultPointsToValues);
+            InputData = blockAnalysisData.Input?.CoreAnalysisData.ToImmutableDictionary() ?? ImmutableDictionary<AnalysisEntity, PointsToAbstractValue>.Empty;
+            OutputData = blockAnalysisData.Output?.CoreAnalysisData.ToImmutableDictionary() ?? ImmutableDictionary<AnalysisEntity, PointsToAbstractValue>.Empty;
             IsReachable = blockAnalysisData.Input?.IsReachableBlockData ?? true;
-        }
-
-        private static ImmutableDictionary<AnalysisEntity, PointsToAbstractValue> GetResult(PointsToAnalysisData analysisData, ImmutableDictionary<AnalysisEntity, PointsToAbstractValue> defaultPointsToValues)
-        {
-            PointsToAnalysisData.AssertValidPointsToAnalysisData(defaultPointsToValues);
-
-            if (analysisData == null || analysisData.CoreAnalysisData.Count == 0)
-            {
-                return defaultPointsToValues;
-            }
-
-            analysisData.AssertValidPointsToAnalysisData();
-
-            var builder = ImmutableDictionary.CreateBuilder<AnalysisEntity, PointsToAbstractValue>();
-            builder.AddRange(analysisData.CoreAnalysisData);
-            foreach (var kvp in defaultPointsToValues)
-            {
-                AnalysisEntity entity = kvp.Key;
-                if (!builder.ContainsKey(entity))
-                {
-                    PointsToAbstractValue pointsToAbstractValue = kvp.Value;
-                    builder.Add(entity, pointsToAbstractValue);
-                }
-            }
-
-            return builder.ToImmutable();
         }
 
         public ImmutableDictionary<AnalysisEntity, PointsToAbstractValue> InputData { get; }

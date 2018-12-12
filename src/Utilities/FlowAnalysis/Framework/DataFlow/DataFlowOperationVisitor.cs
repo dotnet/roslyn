@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         protected bool IsInsideAnonymousObjectInitializer { get; private set; }
 
         protected bool IsLValueFlowCapture(CaptureId captureId) => _lValueFlowCaptures.Contains(captureId);
-        protected bool IsLValueFlowCaptureEntity(AnalysisEntity analysisEntity)
+        public bool IsLValueFlowCaptureEntity(AnalysisEntity analysisEntity)
             => analysisEntity.CaptureIdOpt != null && analysisEntity.CaptureIdOpt.Value.IsLValueFlowCapture;
 
         protected virtual int GetAllowedInterproceduralCallChain() => MaxInterproceduralCallChain;
@@ -162,17 +162,17 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 _interproceduralMethodToCfgMapOpt = new Dictionary<IMethodSymbol, ControlFlowGraph>();
             }
 
-            AnalysisEntity thisOrMeInstanceFromCalleeOpt;
+            AnalysisEntity interproceduralInvocationInstanceOpt;
             if (analysisContext.InterproceduralAnalysisDataOpt?.InvocationInstanceOpt.HasValue == true)
             {
                 var invocationInstance = analysisContext.InterproceduralAnalysisDataOpt.InvocationInstanceOpt.Value;
                 ThisOrMePointsToAbstractValue = invocationInstance.PointsToValue;
-                thisOrMeInstanceFromCalleeOpt = invocationInstance.Instance;
+                interproceduralInvocationInstanceOpt = invocationInstance.Instance;
             }
             else
             {
                 ThisOrMePointsToAbstractValue = GetThisOrMeInstancePointsToValue(analysisContext.OwningSymbol);
-                thisOrMeInstanceFromCalleeOpt = null;
+                interproceduralInvocationInstanceOpt = null;
             }
 
             AnalysisEntityFactory = new AnalysisEntityFactory(
@@ -183,7 +183,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 getIsInsideAnonymousObjectInitializer: () => IsInsideAnonymousObjectInitializer,
                 getIsLValueFlowCapture: IsLValueFlowCapture,
                 containingTypeSymbol: analysisContext.OwningSymbol.ContainingType,
-                thisOrMeInstanceFromCalleeOpt: thisOrMeInstanceFromCalleeOpt,
+                interproceduralInvocationInstanceOpt: interproceduralInvocationInstanceOpt,
+                interproceduralThisOrMeInstanceForCallerOpt: analysisContext.InterproceduralAnalysisDataOpt?.ThisOrMeInstanceForCallerOpt?.Instance,
                 interproceduralCallStackOpt: analysisContext.InterproceduralAnalysisDataOpt?.CallStack,
                 instanceLocationsFromCallee: GetInstanceLocationsFromCallee(analysisContext.OwningSymbol, analysisContext.InterproceduralAnalysisDataOpt));
         }
@@ -1393,7 +1394,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             => MergeAnalysisData(value1, value2);
         protected abstract TAnalysisData GetClonedAnalysisData(TAnalysisData analysisData);
         protected TAnalysisData GetClonedCurrentAnalysisData() => GetClonedAnalysisData(CurrentAnalysisData);
-        protected abstract TAnalysisData GetEmptyAnalysisData();
+        public abstract TAnalysisData GetEmptyAnalysisData();
         protected abstract TAnalysisData GetAnalysisDataAtBlockEnd(TAnalysisResult analysisResult, BasicBlock block);
         protected abstract bool Equals(TAnalysisData value1, TAnalysisData value2);
         protected static bool EqualsHelper<TKey, TValue>(IDictionary<TKey, TValue> dict1, IDictionary<TKey, TValue> dict2)
@@ -1564,6 +1565,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 return new InterproceduralAnalysisData<TAnalysisData, TAnalysisContext, TAbstractAnalysisValue>(
                     initialAnalysisData,
                     GetInvocationInstance(),
+                    GetThisOrMeInstance(),
                     GetArgumentValues(),
                     GetCapturedVariablesMap(),
                     _addressSharedEntitiesBuilder.ToImmutable(),
@@ -1595,6 +1597,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                         return null;
                     }
                 }
+
+                (AnalysisEntity, PointsToAbstractValue)? GetThisOrMeInstance()
+                    => (AnalysisEntityFactory.ThisOrMeInstance, ThisOrMePointsToAbstractValue);
 
                 ImmutableArray<ArgumentInfo<TAbstractAnalysisValue>> GetArgumentValues()
                 {

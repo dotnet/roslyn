@@ -86,8 +86,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         {
             base.OnLeavingRegion(region);
 
-            // Stop tracking entities for locals that are now out of scope.
-            // Additionally, stop tracking all the child entities for local if the local type has value copy semantics.
+            // Stop tracking entities for locals and capture Ids that are now out of scope.
             foreach (var local in region.Locals)
             {
                 var success = AnalysisEntityFactory.TryCreateForSymbolDeclaration(local, out var analysisEntity);
@@ -95,12 +94,22 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
                 StopTrackingDataForEntity(analysisEntity);
             }
+
+            foreach (var captureId in region.CaptureIds)
+            {
+                if (AnalysisEntityFactory.TryGetForFlowCapture(captureId, out var analysisEntity))
+                {
+                    StopTrackingDataForEntity(analysisEntity);
+                }
+            }
         }
 
         private void StopTrackingDataForEntity(AnalysisEntity analysisEntity)
         {
+            // Stop tracking entity that is now out of scope.
             StopTrackingEntity(analysisEntity);
 
+            // Additionally, stop tracking all the child entities if the entity type has value copy semantics.
             if (analysisEntity.Type.HasValueCopySemantics())
             {
                 foreach (var childEntity in GetChildAnalysisEntities(analysisEntity))

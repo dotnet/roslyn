@@ -27,6 +27,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         public InterproceduralAnalysisData(
             TAnalysisData initialAnalysisData,
             (AnalysisEntity, PointsToAbstractValue)? invocationInstanceOpt,
+            (AnalysisEntity, PointsToAbstractValue)? thisOrMeInstanceForCallerOpt,
             ImmutableArray<ArgumentInfo<TAbstractAnalysisValue>> arguments,
             ImmutableDictionary<ISymbol, PointsToAbstractValue> capturedVariablesMap,
             ImmutableDictionary<AnalysisEntity, CopyAbstractValue> addressSharedEntities,
@@ -45,6 +46,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
             InitialAnalysisData = initialAnalysisData;
             InvocationInstanceOpt = invocationInstanceOpt;
+            ThisOrMeInstanceForCallerOpt = thisOrMeInstanceForCallerOpt;
             Arguments = arguments;
             CapturedVariablesMap = capturedVariablesMap;
             AddressSharedEntities = addressSharedEntities;
@@ -56,6 +58,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
         public TAnalysisData InitialAnalysisData { get; }
         public (AnalysisEntity Instance, PointsToAbstractValue PointsToValue)? InvocationInstanceOpt { get; }
+        public (AnalysisEntity Instance, PointsToAbstractValue PointsToValue)? ThisOrMeInstanceForCallerOpt { get; }
         public ImmutableArray<ArgumentInfo<TAbstractAnalysisValue>> Arguments { get; }
         public ImmutableDictionary<ISymbol, PointsToAbstractValue> CapturedVariablesMap { get; }
         public ImmutableDictionary<AnalysisEntity, CopyAbstractValue> AddressSharedEntities { get; }
@@ -67,18 +70,28 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         protected override void ComputeHashCodeParts(ImmutableArray<int>.Builder builder)
         {
             builder.Add(InitialAnalysisData.GetHashCodeOrDefault());
-
-            if (InvocationInstanceOpt.HasValue)
-            {
-                builder.Add(InvocationInstanceOpt.Value.Instance.GetHashCode());
-                builder.Add(InvocationInstanceOpt.Value.PointsToValue.GetHashCode());
-            }
-
+            AddHashCodeParts(InvocationInstanceOpt, builder);
+            AddHashCodeParts(ThisOrMeInstanceForCallerOpt, builder);
             builder.Add(HashUtilities.Combine(Arguments));
             builder.Add(HashUtilities.Combine(CapturedVariablesMap));
             builder.Add(HashUtilities.Combine(AddressSharedEntities));
             builder.Add(HashUtilities.Combine(CallStack));
             builder.Add(HashUtilities.Combine(MethodsBeingAnalyzed));
+        }
+
+        private static void AddHashCodeParts(
+            (AnalysisEntity Instance, PointsToAbstractValue PointsToValue)? instanceAndPointsToValueOpt,
+            ImmutableArray<int>.Builder builder)
+        {
+            if (instanceAndPointsToValueOpt.HasValue)
+            {
+                builder.Add(instanceAndPointsToValueOpt.Value.Instance.GetHashCode());
+                builder.Add(instanceAndPointsToValueOpt.Value.PointsToValue.GetHashCode());
+            }
+            else
+            {
+                builder.Add(0);
+            }
         }
     }
 }

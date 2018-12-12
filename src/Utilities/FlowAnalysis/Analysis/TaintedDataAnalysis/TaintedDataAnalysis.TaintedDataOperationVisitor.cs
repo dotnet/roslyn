@@ -89,7 +89,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 this.CurrentAnalysisData.Reset(this.ValueDomain.UnknownOrMayBeValue);
             }
 
-            protected override TaintedDataAnalysisData GetEmptyAnalysisData()
+            public override TaintedDataAnalysisData GetEmptyAnalysisData()
             {
                 return new TaintedDataAnalysisData();
             }

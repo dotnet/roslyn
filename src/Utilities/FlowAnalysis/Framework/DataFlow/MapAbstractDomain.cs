@@ -16,7 +16,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         }
 
         protected AbstractValueDomain<TValue> ValueDomain { get; }
-        public override IDictionary<TKey, TValue> Bottom => new Dictionary<TKey, TValue>();
         public override IDictionary<TKey, TValue> Clone(IDictionary<TKey, TValue> value) => new Dictionary<TKey, TValue>(value);
 
         /// <summary>
