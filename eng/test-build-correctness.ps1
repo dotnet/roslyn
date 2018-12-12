@@ -53,18 +53,24 @@ try {
 
     # set environment variables
     if (-not (Test-Path env:SYSTEM_TEAMPROJECT)) { $env:SYSTEM_TEAMPROJECT = "DevDiv" }
+    Write-Host "SYSTEM_TEAMPROJECT = '$env:SYSTEM_TEAMPROJECT'"
     if (-not (Test-Path env:BUILD_REPOSITORY_NAME)) { $env:BUILD_REPOSITORY_NAME = "dotnet/roslyn" }
+    Write-Host "SYSTEM_TEAMPROJECT = '$env:BUILD_REPOSITORY_NAME'"
     if (-not (Test-Path env:BUILD_SOURCEBRANCHNAME)) { $env:BUILD_SOURCEBRANCHNAME = "test" }
+    Write-Host "BUILD_SOURCEBRANCHNAME = '$env:BUILD_SOURCEBRANCHNAME'"
     if (-not (Test-Path env:BUILD_BUILDID)) { $env:BUILD_BUILDID = "42.42.42.42" }
+    Write-Host "BUILD_BUILDID = '$env:BUILD_BUILDID'"
     if (-not (Test-Path env:BUILD_SOURCESDIRECTORY)) { $env:BUILD_SOURCESDIRECTORY = $RepoRoot }
+    Write-Host "BUILD_SOURCESDIRECTORY = '$env:BUILD_SOURCESDIRECTORY'"
     if (-not (Test-Path env:BUILD_STAGINGDIRECTORY)) { $env:BUILD_STAGINGDIRECTORY = $ArtifactsDir }
+    Write-Host "BUILD_STAGINGDIRECTORY = '$env:BUILD_STAGINGDIRECTORY'"
 
     # create a fake BootstrapperInfo.json file
-    $bootstrapperInfoFolder = Join-Path $ArtifactsDir "MicroBuild\Output"
+    $bootstrapperInfoFolder = Join-Path $env:BUILD_STAGINGDIRECTORY "MicroBuild\Output"
     Create-Directory $bootstrapperInfoFolder
     
     $bootstrapperInfoPath = Join-Path $bootstrapperInfoFolder "BootstrapperInfo.json"
-    $bootstrapperInfoContent = "[{""VSBuildVersion"":  ""42.42.42424.42""}]"
+    $bootstrapperInfoContent = "[{""BuildDrop"": ""https://vsdrop.corp.microsoft.com/file/v1/Products/42.42.42.42/42.42.42.42""}]"
     $bootstrapperInfoContent >> $bootstrapperInfoPath
 
     # generate run settings

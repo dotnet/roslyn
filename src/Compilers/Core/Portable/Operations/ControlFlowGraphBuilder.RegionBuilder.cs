@@ -226,6 +226,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
 
             public void ExtendToInclude(BasicBlockBuilder block)
             {
+                Debug.Assert(block != null);
                 Debug.Assert((Kind != ControlFlowRegionKind.FilterAndHandler &&
                               Kind != ControlFlowRegionKind.TryAndCatch &&
                               Kind != ControlFlowRegionKind.TryAndFinally) ||

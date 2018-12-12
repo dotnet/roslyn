@@ -32,6 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             builder.Add(getId(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate));
             builder.Add(getId(ErrorCode.WRN_NullAsNonNullable));
             builder.Add(getId(ErrorCode.WRN_NoBestNullabilityConditionalExpression));
+            builder.Add(getId(ErrorCode.WRN_NullableValueTypeMayBeNull));
             builder.Add(getId(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint));
             builder.Add(getId(ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint));
             builder.Add(getId(ErrorCode.WRN_CantInferNullabilityOfMethodTypeArgs));
@@ -379,6 +380,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_SuppressionOperatorNotReferenceType:
                 case ErrorCode.WRN_NullAsNonNullable:
                 case ErrorCode.WRN_NoBestNullabilityConditionalExpression:
+                case ErrorCode.WRN_NullableValueTypeMayBeNull:
                 case ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint:
                 case ErrorCode.WRN_DefaultLiteralConvertedToNullIsNotIntended:
                 case ErrorCode.WRN_MissingNonNullTypesContextForAnnotation:

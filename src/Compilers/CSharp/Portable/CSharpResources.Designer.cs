@@ -14954,6 +14954,24 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Nullable value type may be null..
+        /// </summary>
+        internal static string WRN_NullableValueTypeMayBeNull {
+            get {
+                return ResourceManager.GetString("WRN_NullableValueTypeMayBeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Nullable value type may be null..
+        /// </summary>
+        internal static string WRN_NullableValueTypeMayBeNull_Title {
+            get {
+                return ResourceManager.GetString("WRN_NullableValueTypeMayBeNull_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Cannot convert null literal to non-nullable reference or unconstrained type parameter..
         /// </summary>
         internal static string WRN_NullAsNonNullable {
@@ -15307,7 +15325,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The suppression operator (!) can only be applied to reference types..
+        ///   Looks up a localized string similar to The suppression operator (!) can only be applied to reference types and nullable value types..
         /// </summary>
         internal static string WRN_SuppressionOperatorNotReferenceType {
             get {
@@ -15316,7 +15334,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The suppression operator (!) can only be applied to reference types..
+        ///   Looks up a localized string similar to The suppression operator (!) can only be applied to reference types and nullable value types..
         /// </summary>
         internal static string WRN_SuppressionOperatorNotReferenceType_Title {
             get {
