@@ -556,7 +556,6 @@ RoOt = TruE");
         public void NumberMatch()
         {
             SectionNameMatcher matcher = TryCreateSectionNameMatcher("{0..10}").Value;
-            Assert.Equal("^.*/(-?[0-9]+)$", matcher.Regex.ToString());
 
             Assert.True(matcher.IsMatch("/0"));
             Assert.True(matcher.IsMatch("/10"));
@@ -571,7 +570,6 @@ RoOt = TruE");
         public void NumberMatchNegativeRange()
         {
             SectionNameMatcher matcher = TryCreateSectionNameMatcher("{-10..0}").Value;
-            Assert.Equal("^.*/(-?[0-9]+)$", matcher.Regex.ToString());
 
             Assert.True(matcher.IsMatch("/0"));
             Assert.True(matcher.IsMatch("/-10"));
@@ -585,7 +583,6 @@ RoOt = TruE");
         public void NumberMatchNegToPos()
         {
             SectionNameMatcher matcher = TryCreateSectionNameMatcher("{-10..10}").Value;
-            Assert.Equal("^.*/(-?[0-9]+)$", matcher.Regex.ToString());
 
             Assert.True(matcher.IsMatch("/0"));
             Assert.True(matcher.IsMatch("/-5"));
@@ -615,7 +612,6 @@ RoOt = TruE");
             Assert.False(matcher.IsMatch("/a-11b10"));
             Assert.False(matcher.IsMatch("/a-10b11"));
         }
-
 
         [Fact]
         public void EditorConfigToDiagnostics()

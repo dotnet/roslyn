@@ -15,6 +15,7 @@ namespace Microsoft.CodeAnalysis
         public readonly struct SectionNameMatcher
         {
             private readonly ImmutableArray<(int minValue, int maxValue)> _numberRangePairs;
+            // internal for testing
             internal Regex Regex { get; }
 
             internal SectionNameMatcher(
