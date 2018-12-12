@@ -1051,6 +1051,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             _workspace.RemoveProjectOutputPath(Id, outputPath);
         }
 
+        public void ReorderSourceFiles(ImmutableArray<string> filePaths)
+        {
+            _sourceFiles.ReorderFiles(filePaths);
+        }
+
         /// <summary>
         /// Clears a list and zeros out the capacity. The lists we use for batching are likely to get large during an initial load, but after
         /// that point should never get that large again.
@@ -1108,6 +1113,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             /// </summary>
             private readonly List<DocumentId> _documentsRemovedInBatch = new List<DocumentId>();
 
+            /// <summary>
+            /// The current list of document file paths that will be ordered in a batch.
+            /// </summary>
+            private ImmutableList<DocumentId> _orderedDocumentsInBatch = null;
+
             private readonly Func<Solution, DocumentId, bool> _documentAlreadyInWorkspace;
             private readonly Action<Workspace, DocumentInfo> _documentAddAction;
             private readonly Action<Workspace, DocumentId> _documentRemoveAction;
@@ -1150,6 +1160,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     {
                         throw new ArgumentException($"'{fullPath}' has already been added to this project.", nameof(fullPath));
                     }
+
+                    // If we have an ordered document ids batch, we need to add the document id to the end of it as well.
+                    _orderedDocumentsInBatch = _orderedDocumentsInBatch?.Add(documentId);
 
                     _documentPathsToDocumentIds.Add(fullPath, documentId);
                     _project._documentFileWatchingTokens.Add(documentId, _project._documentFileChangeContext.EnqueueWatchingFile(fullPath));
@@ -1237,6 +1250,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                         throw new ArgumentException($"'{filePath}' has already been added to this project.", nameof(filePath));
                     }
 
+                    // If we have an ordered document ids batch, we need to add the document id to the end of it as well.
+                    _orderedDocumentsInBatch = _orderedDocumentsInBatch?.Add(documentId);
+
                     _documentPathsToDocumentIds.Add(filePath, documentId);
 
                     _documentIdToDynamicFileInfoProvider.Add(documentId, fileInfoProvider);
@@ -1305,6 +1321,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             private void RemoveFileInternal(DocumentId documentId, string fullPath)
             {
+                _orderedDocumentsInBatch = _orderedDocumentsInBatch?.Remove(documentId);
                 _documentPathsToDocumentIds.Remove(fullPath);
 
                 // There are two cases:
@@ -1475,6 +1492,45 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 }
             }
 
+            public void ReorderFiles(ImmutableArray<string> filePaths)
+            {
+                if (filePaths.IsEmpty)
+                {
+                    throw new ArgumentOutOfRangeException("The specified files are empty.", nameof(filePaths));
+                }
+
+                lock (_project._gate)
+                {
+                    if (_documentPathsToDocumentIds.Count != filePaths.Length)
+                    {
+                        throw new ArgumentException("The specified files do not equal the project document count.", nameof(filePaths));
+                    }
+
+                    var documentIds = ImmutableList.CreateBuilder<DocumentId>();
+
+                    foreach (var filePath in filePaths)
+                    {
+                        if (_documentPathsToDocumentIds.TryGetValue(filePath, out var documentId))
+                        {
+                            documentIds.Add(documentId);
+                        }
+                        else
+                        {
+                            throw new InvalidOperationException($"The file '{filePath}' does not exist in the project.");
+                        }
+                    }
+
+                    if (_project._activeBatchScopes > 0)
+                    {
+                        _orderedDocumentsInBatch = documentIds.ToImmutable();
+                    }
+                    else
+                    {
+                        _project._workspace.ApplyBatchChangeToProject(_project.Id, solution => solution.WithProjectDocumentsOrder(_project.Id, documentIds.ToImmutable()));
+                    }
+                }
+            }
+
             internal Solution UpdateSolutionForBatch(
                 Solution solution,
                 ImmutableArray<string>.Builder documentFileNamesAdded,
@@ -1504,6 +1560,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 }
 
                 ClearAndZeroCapacity(_documentsRemovedInBatch);
+
+                // Update project's order of documents.
+                if (_orderedDocumentsInBatch != null)
+                {
+                    solution = solution.WithProjectDocumentsOrder(_project.Id, _orderedDocumentsInBatch);
+                    _orderedDocumentsInBatch = null;
+                }
 
                 return solution;
             }
