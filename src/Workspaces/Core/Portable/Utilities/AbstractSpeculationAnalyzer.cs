@@ -486,7 +486,8 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                     return true;
                 }
 
-                return !ImplicitConversionsAreCompatible(originalExpression, newExpression);
+                return !ImplicitConversionsAreCompatible(originalExpression, newExpression) ||
+                    ReplacementIntroducesErrorType(originalExpression, newExpression);
             }
             else if (currentOriginalNode is TForEachStatementSyntax originalForEachStatement)
             {

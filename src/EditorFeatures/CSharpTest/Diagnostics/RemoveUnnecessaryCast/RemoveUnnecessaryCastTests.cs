@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
@@ -189,6 +188,19 @@ class Program
     static unsafe void Main()
     {
         var x = (int)[|(int*)null|];
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DontRemovePointerCast2()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"unsafe class C
+{
+    static unsafe int Read(System.IntPtr pointer, int offset)
+    {
+        return [|((int*)pointer)|][offset];
     }
 }");
         }
