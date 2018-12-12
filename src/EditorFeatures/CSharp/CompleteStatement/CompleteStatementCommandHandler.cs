@@ -116,14 +116,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
             }
 
             // if the statement syntax itself requires a closing delimeter, verify it is there
-            if (currentNode.IsKind(SyntaxKind.DoStatement))
-            {
-                if (!StatementClosingDelimiterExists(currentNode))
+                if (StatementClosingDelimiterIsMissing(currentNode))
                 {
                     // Example: missing final `)` in `do { } while (x$$`
                     return;
                 }
-            }
 
             var semicolonPosition = GetSemicolonLocation(currentNode, caretPosition);
 
@@ -139,13 +136,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
                 var forStatementSyntax = (ForStatementSyntax)currentNode;
                 if (caretPosition > forStatementSyntax.Condition.SpanStart  && caretPosition < forStatementSyntax.Condition.Span.End)
                 {
-                    return forStatementSyntax.Condition.Span.End+1;
+                    return forStatementSyntax.Condition.FullSpan.End;
                 }
 
-                if (caretPosition > forStatementSyntax.Initializers.Span.Start && caretPosition < forStatementSyntax.Initializers.Span.End)
+                if (caretPosition > forStatementSyntax.Declaration.Span.Start && caretPosition < forStatementSyntax.Declaration.Span.End)
                 {
-                    return forStatementSyntax.Initializers.Span.End+1;
+                    return forStatementSyntax.Declaration.FullSpan.End;
                 }
+
+                return forStatementSyntax.Incrementors.FullSpan.End;
             }
 
             return currentNode.Span.End;
@@ -213,11 +212,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
             {
                 case SyntaxKind.DoStatement:
                 case SyntaxKind.ExpressionStatement:
-                case SyntaxKind.ForStatement:
                 case SyntaxKind.GotoCaseStatement:
                 case SyntaxKind.LocalDeclarationStatement:
                 case SyntaxKind.ReturnStatement:
                 case SyntaxKind.ThrowStatement:
+                case SyntaxKind.ForStatement:
                 case SyntaxKind.FieldDeclaration:
                     return true;
                 default:
@@ -322,16 +321,17 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
         /// <returns><see langword="true"/> if <paramref name="currentNode"/> is a statement that ends with a closing
         /// delimiter, and that closing delimiter exists in the source code; otherwise, <see langword="false"/>.
         /// </returns>
-        private static bool StatementClosingDelimiterExists(SyntaxNode currentNode)
+        private static bool StatementClosingDelimiterIsMissing(SyntaxNode currentNode)
         {
             switch (currentNode.Kind())
             {
                 case SyntaxKind.DoStatement:
                     var dostatement = (DoStatementSyntax)currentNode;
-                    return !dostatement.CloseParenToken.IsMissing;
-
+                    return dostatement.CloseParenToken.IsMissing;
+                case SyntaxKind.ForStatement:
+                    var forStatement = (ForStatementSyntax)currentNode;
+                    return forStatement.CloseParenToken.IsMissing;
                 default:
-                    // Statement I'm not handling yet so shouldn't proceed with statement completion
                     return false;
             }
         }
