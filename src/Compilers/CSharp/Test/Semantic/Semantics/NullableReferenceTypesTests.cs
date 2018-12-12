@@ -49798,17 +49798,18 @@ class Program
     private object _g = null!;
     private void F()
     {
-        Func<object> f = () =>
+        Func<bool, object> f = (bool b1) =>
         {
-            Func<bool, object> g = (bool b) =>
+            Func<bool, object> g = (bool b2) =>
             {
-                if (b)
+                if (b2)
                 {
                     _g = null; // 1
                     return _g; // 2
                 }
                 return _g;
             };
+            if (b1) return _f; // 3
             _f = new object();
             return _f;
         };
@@ -49821,7 +49822,10 @@ class Program
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(14, 26),
                 // (15,28): warning CS8603: Possible null reference return.
                 //                     return _g; // 2
-                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "_g").WithLocation(15, 28));
+                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "_g").WithLocation(15, 28),
+                // (19,28): warning CS8603: Possible null reference return.
+                //             if (b1) return _f; // 3
+                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "_f").WithLocation(19, 28));
         }
 
         [WorkItem(31620, "https://github.com/dotnet/roslyn/issues/31620")]
@@ -49836,16 +49840,17 @@ class Program
     private object _g = null!;
     private void F()
     {
-        object f()
+        object f(bool b1)
         {
+            if (b1) return _f; // 1
             _f = new object();
             return _f;
-            object g(bool b)
+            object g(bool b2)
             {
-                    if (b)
+                if (b2)
                 {
-                    _g = null; // 1
-                    return _g; // 2
+                    _g = null; // 2
+                    return _g; // 3
                 }
                 return _g;
             }
@@ -49854,12 +49859,15 @@ class Program
 }";
             var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
-                // (16,26): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
-                //                     _g = null; // 1
-                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(16, 26),
-                // (17,28): warning CS8603: Possible null reference return.
-                //                     return _g; // 2
-                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "_g").WithLocation(17, 28));
+                // (10,28): warning CS8603: Possible null reference return.
+                //             if (b1) return _f; // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "_f").WithLocation(10, 28),
+                // (17,26): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //                     _g = null; // 2
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(17, 26),
+                // (18,28): warning CS8603: Possible null reference return.
+                //                     return _g; // 3
+                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "_g").WithLocation(18, 28));
         }
 
         [WorkItem(29049, "https://github.com/dotnet/roslyn/issues/29049")]
