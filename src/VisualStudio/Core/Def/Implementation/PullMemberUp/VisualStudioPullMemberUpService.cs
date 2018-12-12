@@ -44,9 +44,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp
                 // Finding the dependents of all members will be expensive, so start an new background thread calculates it.
                 var dependentsTask = Task.Run(async () =>
                 {
+                    var token = cts.Token;
                     foreach (var asyncLazy in dependentsMap.Values)
                     {
-                        await asyncLazy.GetValueAsync(cts.Token).ConfigureAwait(false);
+                        if (token.IsCancellationRequested)
+                        {
+                            return;
+                        }
+                        await asyncLazy.GetValueAsync(token).ConfigureAwait(false);
                     }
                 });
 

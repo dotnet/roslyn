@@ -178,8 +178,8 @@
         <note />
       </trans-unit>
       <trans-unit id="Review_problems_below_Click_finish_to_proceed_pull_up">
-        <source>Review problem below. Click Finish to proceed pull up.</source>
-        <target state="new">Review problem below. Click Finish to proceed pull up.</target>
+        <source>Review problems below. Click Finish to proceed pull up.</source>
+        <target state="new">Review problems below. Click Finish to proceed pull up.</target>
         <note />
       </trans-unit>
       <trans-unit id="Save_dot_editorconfig_file">

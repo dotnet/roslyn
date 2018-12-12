@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
 
             private readonly IPullMemberUpOptionsService _service;
 
-            public override string Title => "A very cool name TBD";
+            public override string Title => string.Format(FeaturesResources.More_option_to_pull_0_up, _selectedMember.ToDisplayString());
 
             internal PullMemberUpWithDialogCodeAction(
                 Document document,

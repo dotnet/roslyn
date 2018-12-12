@@ -2467,7 +2467,7 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Review problem below. Click Finish to proceed pull up..
+        ///   Looks up a localized string similar to Review problems below. Click Finish to proceed pull up..
         /// </summary>
         internal static string Review_problems_below_Click_finish_to_proceed_pull_up {
             get {

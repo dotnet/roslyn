@@ -1471,7 +1471,7 @@ namespace PushUpTest
             get => j = value;
         }
 
-        private void BarBar()
+        private static void BarBar()
         {}
         
         protected static event EventHandler event1, event2;
@@ -1592,35 +1592,6 @@ namespace PushUpTest
     public abstract class TestClass : Base
     {
         public abstract void TestMethod();
-    }
-}";
-            await TestWithPullMemberDialogAsync(testText, expected, new (string, bool)[] { ("TestMethod", true) }, index: 0);
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
-        public async Task PullMethodFromInnerClassToClassViaDialog()
-        {
-            var testText = @"
-namespace PushUpTest
-{
-    public class Base
-    {
-        public abstract class TestClass : Base
-        {
-            public abstract void TestMeth[||]od();
-        }
-    }
-}";
-
-            var expected = @"
-namespace PushUpTest
-{
-    public abstract class Base
-    {
-        public abstract void TestMethod();
-        public abstract class TestClass : Base
-        {
-        }
     }
 }";
             await TestWithPullMemberDialogAsync(testText, expected, new (string, bool)[] { ("TestMethod", true) }, index: 0);

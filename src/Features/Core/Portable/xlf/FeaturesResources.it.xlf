@@ -137,6 +137,11 @@
         <target state="new">Indent wrapped parameters</target>
         <note />
       </trans-unit>
+      <trans-unit id="More_option_to_pull_0_up">
+        <source>More option to pull {0} up</source>
+        <target state="new">More option to pull {0} up</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Move_file_to_0">
         <source>Move file to '{0}'</source>
         <target state="new">Move file to '{0}'</target>
