@@ -129,9 +129,9 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 (?<LINE>[0-9]*)                             # Match any number.
                 ,                                           # Comma
                 (?<COLUMN>[0-9]*)                           # Match any number.
-                ,                                           # Dash
+                ,                                           # Comma
                 (?<ENDLINE>[0-9]*)                          # Match any number.
-                ,                                           # Dash
+                ,                                           # Comma
                 (?<ENDCOLUMN>[0-9]*)                        # Match any number.
                 $                                           # End-of-line",
                 RegexOptions.IgnoreCase | RegexOptions.IgnorePatternWhitespace);
