@@ -408,11 +408,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.ThisReference:
                 case BoundKind.BaseReference:
                     {
-                        var method = _member as MethodSymbol;
-                        while ((object)method != null && !isTopLevelMethod(method))
-                        {
-                            method = method.ContainingSymbol as MethodSymbol;
-                        }
+                        var method = getTopLevelMethod(_symbol as MethodSymbol);
                         var thisParameter = method?.ThisParameter;
                         return (object)thisParameter != null ? GetOrCreateSlot(thisParameter) : -1;
                     }
@@ -459,16 +455,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return base.MakeSlot(node);
 
-            bool isTopLevelMethod(MethodSymbol method)
+            MethodSymbol getTopLevelMethod(MethodSymbol method)
             {
-                switch (method.MethodKind)
+                while ((object)method != null)
                 {
-                    case MethodKind.LambdaMethod:
-                    case MethodKind.LocalFunction:
-                        return false;
-                    default:
-                        return true;
+                    var container = method.ContainingSymbol;
+                    if (container.Kind == SymbolKind.NamedType)
+                    {
+                        return method;
+                    }
+                    method = container as MethodSymbol;
                 }
+                return null;
             }
         }
 
@@ -888,7 +886,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void EnterParameters()
         {
-            var methodParameters = ((MethodSymbol)_member).Parameters;
+            var methodParameters = ((MethodSymbol)_symbol).Parameters;
             var signatureParameters = _useMethodSignatureParameterTypes ? _methodSignatureOpt.Parameters : methodParameters;
             Debug.Assert(signatureParameters.Length == methodParameters.Length);
             int n = methodParameters.Length;
@@ -1036,7 +1034,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private TypeSymbolWithAnnotations GetReturnType()
         {
-            var method = (MethodSymbol)_member;
+            var method = (MethodSymbol)_symbol;
             var returnType = (_useMethodSignatureReturnType ? _methodSignatureOpt : method).ReturnType;
             Debug.Assert((object)returnType != LambdaSymbol.ReturnTypeIsBeingInferred);
             if (method.IsGenericTaskReturningAsync(compilation))
@@ -1270,7 +1268,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if ((object)placeholder == null)
             {
-                placeholder = new ObjectCreationPlaceholderLocal(_member, node);
+                placeholder = new ObjectCreationPlaceholderLocal(_symbol, node);
                 _placeholderLocals.Add(node, placeholder);
             }
 
@@ -4982,7 +4980,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return null;
             }
-            var method = (MethodSymbol)_member;
+            var method = (MethodSymbol)_symbol;
             TypeSymbolWithAnnotations elementType = InMethodBinder.GetIteratorElementTypeFromReturnType(compilation, RefKind.None, method.ReturnType.TypeSymbol, errorLocationNode: null, diagnostics: null);
             VisitOptionalImplicitConversion(expr, elementType, useLegacyWarnings: false, AssignmentKind.Return);
             return null;
