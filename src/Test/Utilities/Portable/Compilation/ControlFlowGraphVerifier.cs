@@ -1022,17 +1022,23 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     case LanguageNames.CSharp:
                         {
                             var syntax = (CSharpSyntaxNode)captureReferenceSyntax;
-                            switch (syntax.Kind())
+                            while (syntax is CSharp.Syntax.ExpressionSyntax)
                             {
-                                case CSharp.SyntaxKind.ObjectCreationExpression:
-                                    if (((CSharp.Syntax.ObjectCreationExpressionSyntax)syntax).Initializer?.Expressions.Any() == true)
-                                    {
-                                        return true;
-                                    }
-                                    break;
+                                switch (syntax.Kind())
+                                {
+                                    case CSharp.SyntaxKind.ObjectCreationExpression:
+                                        if (((CSharp.Syntax.ObjectCreationExpressionSyntax)syntax).Initializer?.Expressions.Any() == true)
+                                        {
+                                            return true;
+                                        }
+                                        break;
+                                    default:
+                                        syntax = syntax.Parent;
+                                        break;
+                                }
                             }
 
-                            syntax = applyParenthesizedIfAnyCS(syntax);
+                            syntax = applyParenthesizedIfAnyCS((CSharpSyntaxNode)captureReferenceSyntax);
 
                             if (syntax.Parent?.Parent is CSharp.Syntax.UsingStatementSyntax usingStmt &&
                                 usingStmt.Declaration == syntax.Parent)
