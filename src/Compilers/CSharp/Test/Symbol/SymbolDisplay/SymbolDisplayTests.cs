@@ -5964,6 +5964,93 @@ class B
                 "static A<object>? F3(A<object?> o)");
         }
 
+        [WorkItem(31700, "https://github.com/dotnet/roslyn/issues/31700")]
+        [Fact]
+        public void NullableArrays()
+        {
+            var source =
+@"#nullable enable
+class C
+{
+    static object?[,][] F1;
+    static object[,]?[] F2;
+    static object[,][]? F3;
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            var formatWithoutModifiers = new SymbolDisplayFormat(
+                memberOptions: SymbolDisplayMemberOptions.IncludeType | SymbolDisplayMemberOptions.IncludeModifiers,
+                miscellaneousOptions: SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
+            var formatWithNullableModifier = formatWithoutModifiers.AddMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier);
+            var formatWithBothModifiers = formatWithNullableModifier.WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.IncludeNonNullableTypeModifier);
+
+            var member = comp.GetMember("C.F1");
+            Verify(
+                SymbolDisplay.ToDisplayParts(member, formatWithoutModifiers),
+                "static object[,][] F1",
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.FieldName);
+            Verify(
+                SymbolDisplay.ToDisplayParts(member, formatWithNullableModifier),
+                "static object?[,][] F1",
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.FieldName);
+            Verify(
+                SymbolDisplay.ToDisplayParts(member, formatWithBothModifiers),
+                "static object?[,]![]! F1",
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.FieldName);
+
+            member = comp.GetMember("C.F2");
+            Verify(
+                SymbolDisplay.ToDisplayParts(member, formatWithoutModifiers),
+                "static object[,][] F2");
+            Verify(
+                SymbolDisplay.ToDisplayParts(member, formatWithNullableModifier),
+                "static object[,]?[] F2");
+            Verify(
+                SymbolDisplay.ToDisplayParts(member, formatWithBothModifiers),
+                "static object![,]?[]! F2");
+
+            member = comp.GetMember("C.F3");
+            Verify(
+                SymbolDisplay.ToDisplayParts(member, formatWithoutModifiers),
+                "static object[,][] F3");
+            Verify(
+                SymbolDisplay.ToDisplayParts(member, formatWithNullableModifier),
+                "static object[,][]? F3");
+            Verify(
+                SymbolDisplay.ToDisplayParts(member, formatWithBothModifiers),
+                "static object![,]![]? F3");
+        }
+
         [Fact]
         public void UseLongHandValueTuple()
         {
