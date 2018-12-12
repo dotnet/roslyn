@@ -1,7 +1,8 @@
 ## Overview
 
-A number of [NuGet packages](https://www.nuget.org/profiles/RoslynTeam) are published from the Roslyn repo.
-New packages are published when Visual Studio releases a new RTM or Preview version.
+A number of NuGet packages are published from the Roslyn repo:
+* Official released packages are published to [nuget.org](https://www.nuget.org/profiles/RoslynTeam), when Visual Studio releases a new RTM or Preview version.
+* Pre-release packages are published daily to [myget.org](https://dotnet.myget.org/gallery/roslyn).
 
 ### Microsoft.Net.Compilers
 
