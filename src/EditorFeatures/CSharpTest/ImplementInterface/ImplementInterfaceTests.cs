@@ -8679,7 +8679,6 @@ interface IInterface<T>
 
 class Class : [|IInterface<string>|]
 {{
-#pragma warning disable CS8609 // Nullability of reference types in return type doesn't match overridden member.
 }}",
 $@"#nullable enable
 
@@ -8695,8 +8694,7 @@ interface IInterface<T>
 
 class Class : IInterface<string>
 {{
-#pragma warning disable CS8609 // Nullability of reference types in return type doesn't match overridden member.
-    public string? Method(string? value)
+    public string Method(string? value)
     {{
         throw new System.NotImplementedException();
     }}

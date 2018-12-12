@@ -111,11 +111,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
             var explicitInterfaceSpecifier = GenerateExplicitInterfaceSpecifier(method.ExplicitInterfaceImplementations);
 
-            var returnNullableAnnotation = method.ReturnNullableAnnotation;
             var methodDeclaration = SyntaxFactory.MethodDeclaration(
-                attributeLists: GenerateAttributes(method, options, explicitInterfaceSpecifier != null, ref returnNullableAnnotation),
+                attributeLists: GenerateAttributes(method, options, explicitInterfaceSpecifier != null),
                 modifiers: GenerateModifiers(method, destination, options),
-                returnType: method.GenerateReturnTypeSyntax(returnNullableAnnotation),
+                returnType: method.GenerateReturnTypeSyntax(method.ReturnNullableAnnotation),
                 explicitInterfaceSpecifier: explicitInterfaceSpecifier,
                 identifier: method.Name.ToIdentifierToken(),
                 typeParameterList: GenerateTypeParameterList(method, options),
@@ -187,7 +186,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         }
 
         private static SyntaxList<AttributeListSyntax> GenerateAttributes(
-            IMethodSymbol method, CodeGenerationOptions options, bool isExplicit, ref NullableAnnotation returnNullableAnnotation)
+            IMethodSymbol method, CodeGenerationOptions options, bool isExplicit)
         {
             if (isExplicit)
             {
@@ -202,15 +201,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
             if (method.ReturnType.IsReferenceType)
             {
-                var newAttributes = returnTypeAttributes.RemoveAll(IsAllowNullAttribute);
-                if (newAttributes.Length != returnTypeAttributes.Length)
-                {
-                    returnTypeAttributes = newAttributes;
-                    if (returnNullableAnnotation == NullableAnnotation.NotAnnotated)
-                    {
-                        returnNullableAnnotation = NullableAnnotation.Annotated;
-                    }
-                }
+                returnTypeAttributes = returnTypeAttributes.RemoveAll(IsAllowNullAttribute);
             }
             else if (method.ReturnType.IsValueType)
             {

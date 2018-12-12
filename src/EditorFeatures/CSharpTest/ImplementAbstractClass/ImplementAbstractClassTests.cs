@@ -1918,7 +1918,6 @@ abstract class Base<T>
 
 class [|Class|] : Base<string>
 {
-#pragma warning disable CS8609 // Nullability of reference types in return type doesn't match overridden member.
 }",
 @"#nullable enable
 
@@ -1930,8 +1929,7 @@ abstract class Base<T>
 
 class Class : Base<string>
 {
-#pragma warning disable CS8609 // Nullability of reference types in return type doesn't match overridden member.
-    protected override string? Method(string? value)
+    protected override string Method(string? value)
     {
         throw new System.NotImplementedException();
     }
