@@ -82,6 +82,28 @@ class Program
         }
 
         [Fact]
+        public async Task FixReturnType_Async()
+        {
+            await TestInRegularAndScript1Async(
+NonNullTypes + @"
+class Program
+{
+    static async System.Threading.Tasks.Task<string> M()
+    {
+        return [|null|];
+    }
+}",
+NonNullTypes + @"
+class Program
+{
+    static async System.Threading.Tasks.Task<string?> M()
+    {
+        return null;
+    }
+}", parameters: s_nullableFeature);
+        }
+
+        [Fact]
         public async Task FixReturnType_WithTrivia()
         {
             await TestInRegularAndScript1Async(

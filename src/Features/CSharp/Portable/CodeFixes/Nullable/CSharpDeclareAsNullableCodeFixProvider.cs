@@ -93,8 +93,16 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.DeclareAsNullable
                 switch (containingMember)
                 {
                     case MethodDeclarationSyntax method:
+                        var returnType = method.ReturnType;
+                        var asyncModifier = method.Modifiers.FirstOrDefault(m => m.Kind() == SyntaxKind.AsyncKeyword);
+                        if (asyncModifier.Kind() != SyntaxKind.None)
+                        {
+                            // async Task<string> M() { return null; }
+                            return tryGetSingleTypeArgument(returnType);
+                        }
+
                         // string M() { return null; }
-                        return method.ReturnType;
+                        return returnType;
 
                     case PropertyDeclarationSyntax property:
                         // string x { get { return null; } }
@@ -140,6 +148,24 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.DeclareAsNullable
             }
 
             return null;
+
+            TypeSyntax tryGetSingleTypeArgument(TypeSyntax type)
+            {
+                switch (type)
+                {
+                    case QualifiedNameSyntax qualified:
+                        return tryGetSingleTypeArgument(qualified.Right);
+
+                    case GenericNameSyntax generic:
+                        var typeArguments = generic.TypeArgumentList.Arguments;
+                        if (typeArguments.Count == 1)
+                        {
+                            return typeArguments[0];
+                        }
+                        break;
+                }
+                return null;
+            }
         }
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
