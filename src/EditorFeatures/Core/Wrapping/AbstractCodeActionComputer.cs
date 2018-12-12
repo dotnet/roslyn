@@ -191,6 +191,7 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping
             {
                 foreach (var ch in text)
                 {
+                    // It's safe to remove whitespace between tokens, or the VB line-continuation character.
                     if (!char.IsWhiteSpace(ch) && ch != '_')
                     {
                         return false;
