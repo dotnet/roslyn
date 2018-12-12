@@ -1,0 +1,278 @@
+﻿<vs:DialogWindow
+             x:Uid="PullMemberUpDialog" 
+             x:Class="Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.MainDialog.PullMemberUpDialog"
+             x:ClassModifier="internal"
+             x:Name="dialog"
+             xmlns:vs="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.15.0"
+             xmlns:vs_internal="clr-namespace:Microsoft.Internal.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.15.0"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:sys="clr-namespace:System;assembly=mscorlib"
+             xmlns:self="clr-namespace:Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.MainDialog"
+             mc:Ignorable="d" 
+             WindowStartupLocation="CenterOwner"
+             Height="498"
+             Width="500"
+             MinHeight="498"
+             MinWidth="500"
+             HasDialogFrame="True"
+             ShowInTaskbar="False"
+             ResizeMode="CanResizeWithGrip"
+             HasHelpButton="True"
+             Title="{Binding ElementName=dialog, Path=PullMembersUpTitle}">
+    <Window.Resources>
+        <Thickness x:Key="okAndCancelButtonPadding">9, 2, 9, 2</Thickness>
+        <Thickness x:Key="selectDependantsButtonPadding">2, 4, 4, 2</Thickness>
+        <sys:Double x:Key="ButtonWidth">75</sys:Double>
+        <sys:Double x:Key="ButtonHeight">23</sys:Double>
+        <Style x:Key="LibraryTreeViewItemStyle"
+               TargetType="{x:Type TreeViewItem}">
+            <Setter Property="IsSelected"
+                        Value="{Binding IsSelected, Mode=TwoWay}" />
+            <Setter Property="FontWeight"
+                        Value="Normal" />
+            <Setter Property="IsExpanded" Value="True"/>
+            <Style.Resources>
+                <Style TargetType="{x:Type Border}">
+                    <Setter Property="Grid.ColumnSpan" Value="2" />
+                </Style>
+            </Style.Resources>
+            <Style.Triggers>
+                <Trigger Property="IsSelected" Value="True">
+                    <Setter Property="IsExpanded"
+                            Value="{Binding IsExpanded, Mode=TwoWay}" />
+                    <Setter Property="FontWeight" Value="Bold" />
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+        <Style x:Key="CenterCheckbox"
+            TargetType="CheckBox" BasedOn="{StaticResource {x:Type CheckBox}}">
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="HorizontalAlignment" Value="Center"/>
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+        </Style>
+        <self:BooleanReverseConverter x:Key="BooleanReverseConverter"/>
+    </Window.Resources>
+    <Grid Margin="12">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="40*"/>
+            <RowDefinition Height="60*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        <Label
+            Grid.Row="0"
+            x:Uid="TitleDescription"
+            x:Name="TitleDescription"
+            Margin="0,0,0,12"
+            Content="{Binding ElementName=dialog, Path=Description}"/>
+        <GroupBox
+            Grid.Row="1"
+            BorderThickness="0"
+            x:Name="DestinationSelectionGroupBox"
+            MinHeight="130"
+            Header="{Binding ElementName=dialog, Path=SelectDestination}">
+                <TreeView x:Uid="PullDestinationTreeView"
+                          x:Name="Destination"
+                          MinHeight="100"
+                          MinWidth="360"
+                          Margin="0, 5, 0, 0"
+                          ScrollViewer.VerticalScrollBarVisibility="Auto"
+                          ItemsSource="{Binding Destinations}"
+                          ItemContainerStyle="{StaticResource LibraryTreeViewItemStyle}"
+                          SelectedItemChanged="Destination_SelectedItemChanged">
+                    <TreeView.ItemTemplate>
+                        <HierarchicalDataTemplate
+                            ItemsSource="{Binding BaseTypeNodes}"
+                            DataType="{x:Type self:BaseTypeTreeNodeViewModel}">
+                           <DockPanel HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+                                <Image Source="{Binding Glyph}" Margin="0, 0, 5, 0"/>
+                                <TextBlock
+                                    Text="{Binding MemberName}"
+                                    AutomationProperties.Name="{Binding MemberName}"
+                                    AutomationProperties.AutomationId="{Binding MemberAutomationText}"
+                                    ToolTip="{Binding Namespace}"/>
+                            </DockPanel>
+                        </HierarchicalDataTemplate>
+                    </TreeView.ItemTemplate>
+                </TreeView>
+        </GroupBox>
+        <GroupBox
+            Header="{Binding ElementName=dialog, Path=SelectMembers}"
+            Grid.Row="2"
+            MinHeight="200"
+            MinWidth="240"
+            BorderThickness="0"
+            x:Uid="MemberSelectionLabel">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <DataGrid
+                    Grid.Column="0"
+                    x:Uid="MemberSelection"
+                    x:Name="MemberSelection"
+                    Margin="2, 5, 2, 2"
+                    SelectionMode="Extended"
+                    AutoGenerateColumns="False"
+                    HeadersVisibility="Column"
+                    HorizontalContentAlignment="Stretch"
+                    VerticalContentAlignment="Stretch"
+                    CanUserResizeColumns="False"
+                    CanUserResizeRows="False"
+                    IsReadOnly="True"
+                    CanUserAddRows="False"
+                    CanUserDeleteRows="False"
+                    CanUserSortColumns="False"
+                    GridLinesVisibility="None"
+                    ScrollViewer.VerticalScrollBarVisibility="Auto"
+                    CanUserReorderColumns="False"
+                    MinWidth="334"
+                    Height="Auto"
+                    Background="White"
+                    ItemsSource="{Binding Members}">
+                    <DataGrid.CellStyle>
+                        <Style TargetType="DataGridCell">
+                            <Setter Property="BorderThickness" Value="0"/>
+                            <Setter Property="Focusable" Value="False"/>
+                            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+                        </Style>
+                    </DataGrid.CellStyle>
+                    <DataGrid.Columns>
+                        <DataGridTemplateColumn Width="*">
+                            <DataGridTemplateColumn.Header>
+                                <StackPanel Orientation="Horizontal" Width="Auto">
+                                    <self:SelectAllCheckBox
+                                            x:Name="SelectAllCheckBox"
+                                            Margin="0, 0, 4, 0"
+                                            Checked="SelectAllCheckBox_Checked"
+                                            Unchecked="SelectAllCheckBox_Unchecked"
+                                            Focusable="True"
+                                            DataContext="{Binding RelativeSource={RelativeSource AncestorType=DataGrid}, Path=DataContext}"
+                                            IsThreeState="{Binding ThreeStateEnable, UpdateSourceTrigger=PropertyChanged}"
+                                            IsChecked="{Binding SelectAllCheckBoxState, UpdateSourceTrigger=PropertyChanged}">
+                                    </self:SelectAllCheckBox>
+                                    <TextBlock
+                                        Width="Auto"
+                                        Text="{Binding RelativeSource={RelativeSource AncestorType=vs:DialogWindow}, Path=Members}" />
+                                </StackPanel>
+                            </DataGridTemplateColumn.Header>
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" MinWidth="186" Width="Auto" Margin="5, 2, 0, 2">
+                                        <CheckBox
+                                            x:Name="MemberSelectionCheckBox"
+                                            AutomationProperties.Name="{Binding MemberAutomationText}"
+                                            AutomationProperties.AutomationId="{Binding MemberName}"
+                                            IsChecked="{Binding IsChecked, UpdateSourceTrigger=PropertyChanged}"
+                                            Checked="MemberSelectionCheckBox_Checked"
+                                            Unchecked="MemberSelectionCheckBox_Unchecked"
+                                            Width="Auto"
+                                            IsEnabled="{Binding IsCheckable, UpdateSourceTrigger=PropertyChanged}"
+                                            Focusable="True"
+                                            ToolTipService.ShowOnDisabled="True"
+                                            ToolTipService.IsEnabled="{Binding IsCheckable, Converter={StaticResource BooleanReverseConverter}, UpdateSourceTrigger=PropertyChanged}"
+                                            ToolTipService.ToolTip="{Binding ElementName=dialog, Path=InterfaceCantHaveField}"/>
+                                        <Image 
+                                           x:Name="GlyphOfMember"
+                                           Margin="8,0,5,0"
+                                           Source="{Binding Glyph}"/>
+                                        <TextBlock x:Uid="MemberName"
+                                                   Text="{Binding MemberName}"
+                                                   Margin="0, 0, 5, 0"
+                                                   ToolTip="{Binding Accessibility}"/>
+                                        <vs_internal:SpinAnimationControl
+                                            Grid.Column="1"
+                                            Width="14"
+                                            Height="14"
+                                            MinWidth="14"
+                                            MinHeight="14"
+                                            HorizontalAlignment="Right"
+                                            IsSpinning="True"
+                                            ToolTipService.IsEnabled="True"
+                                            ToolTipService.ToolTip="{Binding ElementName=dialog, Path=SpinnerToolTip}"
+                                            Visibility="{Binding SpinnerVisibility, UpdateSourceTrigger=PropertyChanged}"/>
+                                    </StackPanel>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                        <DataGridTemplateColumn Width="100">
+                            <DataGridTemplateColumn.Header>
+                                <TextBlock Text="{Binding RelativeSource={RelativeSource AncestorType=vs:DialogWindow}, Path=MakeAbstract}"/>
+                            </DataGridTemplateColumn.Header>
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <CheckBox x:Name="MakeAbstract"
+                                          Style="{StaticResource CenterCheckbox}"
+                                          Visibility="{Binding MakeAbstractVisibility}"
+                                          IsEnabled="{Binding IsMakeAbstractCheckable, UpdateSourceTrigger=PropertyChanged}"
+                                          Focusable="True"
+                                          Margin="0, 2, 0, 2"
+                                          ToolTipService.IsEnabled="{Binding IsMakeAbstractCheckable, Converter={StaticResource BooleanReverseConverter}, UpdateSourceTrigger=PropertyChanged}"
+                                          ToolTipService.ShowOnDisabled="True"
+                                          IsChecked="{Binding MakeAbstract, UpdateSourceTrigger=PropertyChanged}"
+                                          ToolTipService.ToolTip="{Binding ElementName=dialog, Path=InterfaceCantHaveAbstractMember}">
+                                    </CheckBox>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                    </DataGrid.Columns>
+                </DataGrid>
+                    <StackPanel
+                        Grid.Column="1"
+                        Orientation="Vertical"
+                        VerticalAlignment="Top"
+                        HorizontalAlignment="Center"
+                        Margin="0, 4, 0, 0"
+                        Width="Auto"
+                        MaxWidth="130">
+                        <vs:DialogButton
+                            x:Name="SelecDependentsButton"
+                            Padding="{StaticResource ResourceKey=selectDependantsButtonPadding}"
+                            Content="{Binding ElementName=dialog, Path=SelectDependents}"
+                            Click="SelecDependentsButton_Click"
+                            Margin="2, 2, 2, 7"
+                            Width= "Auto"
+                            Height="Auto"/>
+                        <vs:DialogButton
+                            x:Name="SelectPublicButton"
+                            Content="{Binding ElementName=dialog, Path=SelectPublic}"
+                            Margin="2, 0, 2, 0"
+                            Click="SelectPublic_Click"
+                            Padding="{StaticResource ResourceKey=selectDependantsButtonPadding}"
+                            Width= "Auto"
+                            Height="Auto"/>
+                    </StackPanel>
+                </Grid>
+            </GroupBox>
+            <StackPanel
+                Grid.Row="3"
+                Margin="0, 18, 0, 0"
+                HorizontalAlignment="Right"
+                Orientation="Horizontal">
+                    <vs:DialogButton 
+                        x:Uid="OKButton"
+                        Click="OK_Button_Click"
+                        IsDefault="True"
+                        Margin="3, 0, 0, 0"
+                        IsEnabled="{Binding OkButtonEnabled, UpdateSourceTrigger=PropertyChanged}"
+                        Padding ="{StaticResource ResourceKey=okAndCancelButtonPadding}"
+                        Content="{Binding OK, ElementName=dialog}"
+                        Width="{StaticResource ResourceKey=ButtonWidth}"
+                        Height="{StaticResource ResourceKey=ButtonHeight}"/>
+                    <vs:DialogButton
+                        x:Uid="CancelButton"
+                        Click="Cancel_Button_Click"
+                        IsCancel="True"
+                        Padding="{StaticResource ResourceKey=okAndCancelButtonPadding}"
+                        Margin="7, 0, 4, 0"
+                        Content="{Binding Cancel, ElementName=dialog}"
+                        Width= "{StaticResource ResourceKey=ButtonWidth}"
+                        Height="{StaticResource ResourceKey=ButtonHeight}"/>
+            </StackPanel>
+    </Grid>
+</vs:DialogWindow>

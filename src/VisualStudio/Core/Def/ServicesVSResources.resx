@@ -1120,4 +1120,64 @@ I agree to all of the foregoing:</value>
   <data name="Value_returned_by_invocation_is_implicitly_ignored" xml:space="preserve">
     <value>Value returned by invocation is implicitly ignored</value>
   </data>
+  <data name="Back" xml:space="preserve">
+    <value>Back</value>
+  </data>
+  <data name="Finish" xml:space="preserve">
+    <value>Finish</value>
+  </data>
+  <data name="Found_problems" xml:space="preserve">
+    <value>Found problems:</value>
+  </data>
+  <data name="Interface_cant_have_abstract_member" xml:space="preserve">
+    <value>Interface can't have abstract member.</value>
+  </data>
+  <data name="Interface_cant_have_field" xml:space="preserve">
+    <value>Interface can't have field.</value>
+  </data>
+  <data name="Make_abstract" xml:space="preserve">
+    <value>Make abstract</value>
+  </data>
+  <data name="Members" xml:space="preserve">
+    <value>Members</value>
+  </data>
+  <data name="Namespace_0" xml:space="preserve">
+    <value>Namespace: {0}</value>
+  </data>
+  <data name="Namespace_global" xml:space="preserve">
+    <value>Namespace: global</value>
+  </data>
+  <data name="Pull_Members_Up" xml:space="preserve">
+    <value>Pull Members Up</value>
+  </data>
+  <data name="Review_problems_below_Click_finish_to_proceed_pull_up" xml:space="preserve">
+    <value>Review problem below. Click Finish to proceed pull up.</value>
+  </data>
+  <data name="Select_Dependents" xml:space="preserve">
+    <value>_Select Dependents</value>
+  </data>
+  <data name="Select_destinations" xml:space="preserve">
+    <value>Select destination type:</value>
+  </data>
+  <data name="Select_destination_and_members_to_pull_up" xml:space="preserve">
+    <value>Select destination and members to pull up.</value>
+  </data>
+  <data name="Select_members" xml:space="preserve">
+    <value>Select members:</value>
+  </data>
+  <data name="Select_Public" xml:space="preserve">
+    <value>_Select Public</value>
+  </data>
+  <data name="_0_will_be_changed_to_abstract" xml:space="preserve">
+    <value>{0} will be changed to abstract.</value>
+  </data>
+  <data name="_0_will_be_changed_to_non_static_since_1_is_an_interface" xml:space="preserve">
+    <value>{0} will be changed to non-static since {1} is an interface.</value>
+  </data>
+  <data name="_0_will_be_changed_to_public_since_1_is_an_interface" xml:space="preserve">
+    <value>{0} will be changed to public since {1} is an interface.</value>
+  </data>
+  <data name="Calculating_dependents" xml:space="preserve">
+    <value>Calculating dependents</value>
+  </data>
 </root>

@@ -1595,4 +1595,7 @@ This version used in: {2}</value>
   <data name="Remove_unused_parameter_0_its_initial_value_is_never_used" xml:space="preserve">
     <value>Remove unused parameter '{0}', its initial value is never used</value>
   </data>
+  <data name="Pull_0_up" xml:space="preserve">
+    <value>Pull {0} up</value>
+  </data>
 </root>

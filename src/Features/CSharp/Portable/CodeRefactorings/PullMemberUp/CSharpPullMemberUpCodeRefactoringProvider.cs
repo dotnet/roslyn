@@ -3,6 +3,7 @@
 using System.Composition;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp;
+using Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp.Dialog;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
@@ -12,6 +13,17 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.PullMemberUp
     [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = nameof(PredefinedCodeRefactoringProviderNames.PullMemberUp)), Shared]
     internal class CSharpPullMemberUpCodeRefactoringProvider : AbstractPullMemberUpRefactoringProvider
     {
+        /// <summary>
+        /// Test purpose only.
+        /// </summary>
+        internal CSharpPullMemberUpCodeRefactoringProvider(IPullMemberUpOptionsService service) : base(service)
+        {
+        }
+
+        internal CSharpPullMemberUpCodeRefactoringProvider() : base(null)
+        {
+        }
+
         protected override bool IsSelectionValid(TextSpan span, SyntaxNode selectedNode)
         {
             var identifier = GetIdentifier(selectedNode);

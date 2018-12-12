@@ -9,19 +9,29 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
     {
         internal static PullMembersUpAnalysisResult BuildAnalysisResult(
             INamedTypeSymbol destination,
-            ImmutableArray<ISymbol> members)
+            ImmutableArray<(ISymbol member, bool makeAbstract)> members)
         {
-            var membersAnalysisResult = members.SelectAsArray(member =>
+            var membersAnalysisResult = members.SelectAsArray(memberAndMakeAbstract =>
             {
                 if (destination.TypeKind == TypeKind.Interface)
                 {
-                    var changeOriginalToPublic = member.DeclaredAccessibility != Accessibility.Public;
-                    var changeOriginalToNonStatic = member.IsStatic;
-                    return new MemberAnalysisResult(member, changeOriginalToPublic, changeOriginalToNonStatic);
+                    var changeOriginalToPublic = memberAndMakeAbstract.member.DeclaredAccessibility != Accessibility.Public;
+                    var changeOriginalToNonStatic = memberAndMakeAbstract.member.IsStatic;
+                    return new MemberAnalysisResult(
+                        memberAndMakeAbstract.member,
+                        changeOriginalToPublic,
+                        changeOriginalToNonStatic,
+                        makeDestinationDeclarationAbstract: false,
+                        changeDestinationToAbstract: false);
                 }
                 else
                 {
-                    return new MemberAnalysisResult(member, changeOriginalToPublic: false, changeOriginalToNonStatic: false);
+                    var changeDestinationToAbstract = !destination.IsAbstract && (memberAndMakeAbstract.makeAbstract || memberAndMakeAbstract.member.IsAbstract);
+                    return new MemberAnalysisResult(memberAndMakeAbstract.member,
+                        changeOriginalToPublic: false,
+                        changeOriginalToNonStatic: false,
+                        memberAndMakeAbstract.makeAbstract,
+                        changeDestinationToAbstract: changeDestinationToAbstract);
                 }
             });
 

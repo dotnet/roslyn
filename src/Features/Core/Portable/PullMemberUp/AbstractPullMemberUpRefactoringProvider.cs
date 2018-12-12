@@ -4,15 +4,27 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.PullMemberUp.QuickAction;
+using Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp.Dialog;
+using Microsoft.CodeAnalysis.PullMemberUp;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using static Microsoft.CodeAnalysis.CodeActions.CodeAction;
 
 namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
 {
-    internal abstract class AbstractPullMemberUpRefactoringProvider : CodeRefactoringProvider
+    internal abstract partial class AbstractPullMemberUpRefactoringProvider : CodeRefactoringProvider
     {
+        private readonly IPullMemberUpOptionsService _service;
+
         protected abstract bool IsSelectionValid(TextSpan span, SyntaxNode selectedMemberNode);
+
+        /// <summary>
+        /// Test purpose only
+        /// </summary>
+        public AbstractPullMemberUpRefactoringProvider(IPullMemberUpOptionsService service)
+        {
+            _service = service;
+        }
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
@@ -34,15 +46,8 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
                 return;
             }
 
-            if (!selectedMember.IsKind(SymbolKind.Property) &&
-                !selectedMember.IsKind(SymbolKind.Event) &&
-                !selectedMember.IsKind(SymbolKind.Field) &&
-                !selectedMember.IsKind(SymbolKind.Method))
+            if (!MemberAndDestinationValidator.IsMemeberValid(selectedMember))
             {
-                // Static, abstract and accessiblity are not checked here but in PullMemberUpAnalyzer.cs since there are
-                // two refactoring options provided for pull members up,
-                // 1. Quick Action (Only allow members that don't cause error)
-                // 2. Dialog box (Allow modifers may cause errors and will provide fixing)
                 return;
             }
 
@@ -65,7 +70,15 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
                 return;
             }
 
-            PullMemberUpViaQuickAction(context, selectedMember, allDestinations);
+            var allActions = allDestinations.SelectAsArray(
+                destination => MembersPuller.Instance.TryComputeCodeAction(context.Document, selectedMember, destination)).
+                WhereAsArray(action => action != null).
+                Concat(new PullMemberUpWithDialogCodeAction(context.Document, selectedMember, this));
+
+            var nestedCodeAction = new CodeActionWithNestedActions(
+                string.Format(FeaturesResources.Pull_0_up, selectedMember.ToNameDisplayString()),
+                allActions, allActions.Length < 5);
+            context.RegisterRefactoring(nestedCodeAction);
         }
 
         private ImmutableArray<INamedTypeSymbol> FindAllValidDestinations(
@@ -78,36 +91,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
                 ? containingType.GetBaseTypes().ToImmutableArray()
                 : containingType.AllInterfaces.Concat(containingType.GetBaseTypes()).ToImmutableArray();
 
-            return allDestinations.WhereAsArray(baseType =>
-                baseType != null &&
-                // It could be ErrorType if there is syntax error on the baseType
-                (baseType.TypeKind == TypeKind.Interface || baseType.TypeKind == TypeKind.Class) &&
-                baseType.DeclaringSyntaxReferences.Length > 0 &&
-                IsLocationValid(baseType, solution, cancellationToken));
-        }
-
-        private bool IsLocationValid(INamedTypeSymbol symbol, Solution solution, CancellationToken cancellationToken)
-        {
-            return symbol.Locations.Any(location => location.IsInSource &&
-                !solution.GetDocument(location.SourceTree).IsGeneratedCode(cancellationToken));
-        }
-
-        private void PullMemberUpViaQuickAction(
-            CodeRefactoringContext context,
-            ISymbol selectedMember,
-            ImmutableArray<INamedTypeSymbol> destinations)
-        {
-            foreach (var destination in destinations)
-            {
-                var puller = destination.TypeKind == TypeKind.Interface
-                    ? InterfacePullerWithQuickAction.Instance as AbstractMemberPullerWithQuickAction
-                    : ClassPullerWithQuickAction.Instance;
-                var action = puller.TryComputeRefactoring(context.Document, selectedMember, destination);
-                if (action != null)
-                {
-                    context.RegisterRefactoring(action);
-                }
-            }
+            return allDestinations.WhereAsArray(destination => MemberAndDestinationValidator.IsDestinationValid(destination, solution, cancellationToken));
         }
     }
 }
