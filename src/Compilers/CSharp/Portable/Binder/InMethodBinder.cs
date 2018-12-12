@@ -291,7 +291,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (parameterKind == SymbolKind.TypeParameter)
             {
                 if (newSymbolKind == SymbolKind.Parameter || newSymbolKind == SymbolKind.Local ||
-                    (newSymbolKind == SymbolKind.Method && 
+                    (newSymbolKind == SymbolKind.Method &&
                      ((MethodSymbol)newSymbol).MethodKind == MethodKind.LocalFunction))
                 {
                     // CS0412: '{0}': a parameter, local variable, or local function cannot have the same name as a method type parameter

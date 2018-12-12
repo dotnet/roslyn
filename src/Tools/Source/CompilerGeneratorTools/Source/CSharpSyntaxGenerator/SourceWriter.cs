@@ -140,7 +140,7 @@ namespace CSharpSyntaxGenerator
                         WriteLine();
                         WriteComment(field.PropertyComment, "    ");
 
-                        if (IsSeparatedNodeList(field.Type) || 
+                        if (IsSeparatedNodeList(field.Type) ||
                             IsNodeList(field.Type))
                         {
                             WriteLine("    public abstract {0}Microsoft.CodeAnalysis.Syntax.InternalSyntax.{1} {2} {{ get; }}",
@@ -307,7 +307,7 @@ namespace CSharpSyntaxGenerator
             {
                 var field = nodeFields[i];
                 string type = GetFieldType(field, green: true);
-                
+
                 Write(", {0} {1}", type, CamelCase(field.Name));
             }
 

@@ -101,7 +101,7 @@ namespace Roslyn.Utilities
             char[] queryCharacters,
             int queryLength,
             int threshold,
-            List<string> result, 
+            List<string> result,
             int recursionCount)
         {
             // Don't bother recursing too deeply in the case of pathological trees.

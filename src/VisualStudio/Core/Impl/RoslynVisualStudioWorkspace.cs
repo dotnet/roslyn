@@ -134,14 +134,14 @@ namespace Microsoft.VisualStudio.LanguageServices
                 return false;
             }
 
-            if (!TryResolveSymbol(symbol, project, cancellationToken, 
+            if (!TryResolveSymbol(symbol, project, cancellationToken,
                     out var searchSymbol, out var searchProject))
             {
                 return false;
             }
 
             return GoToDefinitionHelpers.TryGoToDefinition(
-                searchSymbol, searchProject, 
+                searchSymbol, searchProject,
                 _streamingPresenters, cancellationToken);
         }
 

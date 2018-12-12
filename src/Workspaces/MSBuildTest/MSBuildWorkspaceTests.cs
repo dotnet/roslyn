@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
                 AssertFailures(workspace);
 
                 var hasFacades = project.MetadataReferences.OfType<PortableExecutableReference>().Any(r => r.FilePath.Contains("Facade"));
-                Assert.True(hasFacades, userMessage: "Expected to find facades in the project references:" + Environment.NewLine + 
+                Assert.True(hasFacades, userMessage: "Expected to find facades in the project references:" + Environment.NewLine +
                     string.Join(Environment.NewLine, project.MetadataReferences.OfType<PortableExecutableReference>().Select(r => r.FilePath)));
             }
         }

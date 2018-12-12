@@ -81,7 +81,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         {
             _asyncTasks.Join();
         }
-        
+
         /// <summary>
         /// Raised when the set of window frames being tracked changes, which means the results from <see cref="TryGetActiveDocument"/> or <see cref="GetVisibleDocuments"/> may change.
         /// May be raised on any thread.

@@ -174,7 +174,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
                 currentStatus = await IsReSharperRunningAsync(lastStatus, cancellationToken)
                     .ConfigureAwait(false);
             }
-            catch(OperationCanceledException)
+            catch (OperationCanceledException)
             {
                 return;
             }

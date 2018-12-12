@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!_variableSlot.TryGetValue(identifier, out slot))
             {
                 var variableType = VariableType(symbol).TypeSymbol;
-                 if (_emptyStructTypeCache.IsEmptyStructType(variableType))
+                if (_emptyStructTypeCache.IsEmptyStructType(variableType))
                 {
                     return -1;
                 }

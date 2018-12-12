@@ -621,7 +621,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var isLifted = operandType != conversionInputType && strippedOperandType == conversionInputType;
                         bool requireAdditionalCast =
                             strippedOperandType != ((node.ConversionKind == ConversionKind.ExplicitUserDefined) ? conversionInputType : conversionInputType.StrippedType());
-                        var resultType = (isLifted && method.ReturnType.TypeSymbol.IsNonNullableValueType() && node.Type.IsNullableType()) ? 
+                        var resultType = (isLifted && method.ReturnType.TypeSymbol.IsNonNullableValueType() && node.Type.IsNullableType()) ?
                                             _nullableType.Construct(method.ReturnType.TypeSymbol) : method.ReturnType.TypeSymbol;
                         var e1 = requireAdditionalCast
                             ? Convert(Visit(node.Operand), node.Operand.Type, method.Parameters[0].Type.TypeSymbol, node.Checked, false)

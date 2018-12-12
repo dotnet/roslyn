@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
             }
 
             internal static State Generate(
-                SemanticDocument document, TextSpan textSpan, 
+                SemanticDocument document, TextSpan textSpan,
                 TTypeDeclarationSyntax typeDeclaration, CancellationToken cancellationToken)
             {
                 var state = new State(document);

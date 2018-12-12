@@ -617,5 +617,32 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 
             return result;
         }
+
+        /// <summary>
+        /// Tests all the code actions for the given <paramref name="input"/> string.  Each code
+        /// action must produce the corresponding output in the <paramref name="outputs"/> array.
+        /// 
+        /// Will throw if there are more outputs than code actions or more code actions than outputs.
+        /// </summary>
+        protected Task TestAllInRegularAndScriptAsync(
+            string input,
+            params string[] outputs)
+        {
+            return TestAllInRegularAndScriptAsync(input, parameters: default, outputs);
+        }
+
+        protected async Task TestAllInRegularAndScriptAsync(
+            string input,
+            TestParameters parameters,
+            params string[] outputs)
+        {
+            for (int index = 0; index < outputs.Length; index++)
+            {
+                var output = outputs[index];
+                await TestInRegularAndScript1Async(input, output, index, parameters: parameters);
+            }
+
+            await TestActionCountAsync(input, outputs.Length, parameters);
+        }
     }
 }

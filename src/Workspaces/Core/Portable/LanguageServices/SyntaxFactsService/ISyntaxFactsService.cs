@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         /// if this is effectively any identifier in the language, regardless of whether the language
         /// is treating it as a keyword or not.
         /// </summary>
-        bool IsReservedKeyword(SyntaxToken token); 
+        bool IsReservedKeyword(SyntaxToken token);
 
         /// <summary>
         /// Returns <see langword="true"/> if this a 'contextual' keyword for the language.  A
@@ -389,7 +389,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         // updates root will be returned.  The context node in that new tree will also
         // be returned.
         void AddFirstMissingCloseBrace(
-            SyntaxNode root, SyntaxNode contextNode, 
+            SyntaxNode root, SyntaxNode contextNode,
             out SyntaxNode newRoot, out SyntaxNode newContextNode);
 
         SyntaxNode GetNextExecutableStatement(SyntaxNode statement);

@@ -254,7 +254,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             ImmutableArray<string> tags = default)
         {
             return CreateWorker(
-                displayText, displayTextSuffix, symbols, rules, contextPosition, 
+                displayText, displayTextSuffix, symbols, rules, contextPosition,
                 AddSymbolEncoding, sortText, insertionText,
                 filterText, supportedPlatforms, properties, tags);
         }
@@ -273,7 +273,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             ImmutableArray<string> tags = default)
         {
             return CreateWorker(
-                displayText, displayTextSuffix, symbols, rules, contextPosition, 
+                displayText, displayTextSuffix, symbols, rules, contextPosition,
                 AddSymbolNameAndKind, sortText, insertionText,
                 filterText, supportedPlatforms, properties, tags);
         }

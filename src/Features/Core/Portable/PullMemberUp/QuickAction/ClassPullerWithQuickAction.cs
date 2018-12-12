@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.PullMemberUp.QuickAction
                 {
                     overrideMembersSet.Add(symbol);
                 }
-                
+
                 // Since the destination and selectedMember may belong different language, so use SymbolEquivalenceComparer as comparer
                 return overrideMembersSet.Intersect(destination.GetMembers(), SymbolEquivalenceComparer.Instance).Any();
             }

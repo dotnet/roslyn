@@ -8,7 +8,7 @@ namespace Microsoft.CodeAnalysis.ConvertAnonymousTypeToTuple
 {
     internal abstract class AbstractConvertAnonymousTypeToTupleDiagnosticAnalyzer<
         TSyntaxKind,
-        TAnonymousObjectCreationExpressionSyntax> 
+        TAnonymousObjectCreationExpressionSyntax>
         : AbstractBuiltInCodeStyleDiagnosticAnalyzer
         where TSyntaxKind : struct
         where TAnonymousObjectCreationExpressionSyntax : SyntaxNode

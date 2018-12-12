@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
 
             FillWithIntervalsThatMatch(
                 start, length, testInterval,
-                builder, introspector, 
+                builder, introspector,
                 stopAfterFirst, candidates);
 
             s_stackPool.ClearAndFree(candidates);

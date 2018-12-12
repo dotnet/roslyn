@@ -37,6 +37,16 @@
         <target state="new">Adding a method with an explicit interface specifier will prevent the debug session from continuing.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Align_wrapped_arguments">
+        <source>Align wrapped arguments</source>
+        <target state="new">Align wrapped arguments</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Align_wrapped_parameters">
+        <source>Align wrapped parameters</source>
+        <target state="new">Align wrapped parameters</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Change_namespace_to_0">
         <source>Change namespace to '{0}'</source>
         <target state="new">Change namespace to '{0}'</target>
@@ -107,6 +117,26 @@
         <target state="translated">Форматирование документа</target>
         <note />
       </trans-unit>
+      <trans-unit id="Indent_all_arguments">
+        <source>Indent all arguments</source>
+        <target state="new">Indent all arguments</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Indent_all_parameters">
+        <source>Indent all parameters</source>
+        <target state="new">Indent all parameters</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Indent_wrapped_arguments">
+        <source>Indent wrapped arguments</source>
+        <target state="new">Indent wrapped arguments</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Indent_wrapped_parameters">
+        <source>Indent wrapped parameters</source>
+        <target state="new">Indent wrapped parameters</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Move_file_to_0">
         <source>Move file to '{0}'</source>
         <target state="new">Move file to '{0}'</target>
@@ -160,6 +190,11 @@
       <trans-unit id="Invert_conditional">
         <source>Invert conditional</source>
         <target state="new">Invert conditional</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Private_method_0_can_be_removed_as_it_is_never_invoked">
+        <source>Private method '{0}' can be removed as it is never invoked.</source>
+        <target state="new">Private method '{0}' can be removed as it is never invoked.</target>
         <note />
       </trans-unit>
       <trans-unit id="Related_method_signatures_found_in_metadata_will_not_be_updated">
@@ -217,6 +252,41 @@
         <target state="new">Replace '{0}' with '{1}' </target>
         <note />
       </trans-unit>
+      <trans-unit id="Unwrap_all_arguments">
+        <source>Unwrap all arguments</source>
+        <target state="new">Unwrap all arguments</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unwrap_all_parameters">
+        <source>Unwrap all parameters</source>
+        <target state="new">Unwrap all parameters</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unwrap_and_indent_all_arguments">
+        <source>Unwrap and indent all arguments</source>
+        <target state="new">Unwrap and indent all arguments</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unwrap_and_indent_all_parameters">
+        <source>Unwrap and indent all parameters</source>
+        <target state="new">Unwrap and indent all parameters</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unwrap_argument_list">
+        <source>Unwrap argument list</source>
+        <target state="new">Unwrap argument list</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unwrap_expression">
+        <source>Unwrap expression</source>
+        <target state="new">Unwrap expression</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unwrap_parameter_list">
+        <source>Unwrap parameter list</source>
+        <target state="new">Unwrap parameter list</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Use_block_body_for_lambda_expressions">
         <source>Use block body for lambda expressions</source>
         <target state="new">Use block body for lambda expressions</target>
@@ -260,6 +330,36 @@
       <trans-unit id="Use_range_operator">
         <source>Use range operator</source>
         <target state="new">Use range operator</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Wrap_every_argument">
+        <source>Wrap every argument</source>
+        <target state="new">Wrap every argument</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Wrap_every_parameter">
+        <source>Wrap every parameter</source>
+        <target state="new">Wrap every parameter</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Wrap_expression">
+        <source>Wrap expression</source>
+        <target state="new">Wrap expression</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Wrap_expression_including_operators">
+        <source>Wrap expression (including operators)</source>
+        <target state="new">Wrap expression (including operators)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Wrap_long_argument_list">
+        <source>Wrap long argument list</source>
+        <target state="new">Wrap long argument list</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Wrap_long_parameter_list">
+        <source>Wrap long parameter list</source>
+        <target state="new">Wrap long parameter list</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_can_be_simplified">
