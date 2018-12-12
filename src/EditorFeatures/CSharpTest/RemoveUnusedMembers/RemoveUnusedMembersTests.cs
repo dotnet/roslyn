@@ -311,6 +311,19 @@ class MyClass
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
+        [WorkItem(31572, "https://github.com/dotnet/roslyn/issues/31572")]
+        public async Task EntryPointMethodNotFlagged_05()
+        {
+            await TestDiagnosticMissingAsync(
+@"using System.Threading.Tasks;
+
+class MyClass
+{
+    private static int [|Main|]() => 0;
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task FieldIsUnused_ReadOnly()
         {
             await TestInRegularAndScriptAsync(
@@ -894,6 +907,32 @@ class MyClass
 {
     private int [|_goo|];
     private string _goo2 = nameof(_goo);
+}",
+    expected: Diagnostic("IDE0052"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
+        [WorkItem(31581, "https://github.com/dotnet/roslyn/issues/31581")]
+        public async Task MethodInNameOf()
+        {
+            await TestDiagnosticsAsync(
+@"class MyClass
+{
+    private void [|M|]() { }
+    private string _goo = nameof(M);
+}",
+    expected: Diagnostic("IDE0052"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
+        [WorkItem(31581, "https://github.com/dotnet/roslyn/issues/31581")]
+        public async Task PropertyInNameOf()
+        {
+            await TestDiagnosticsAsync(
+@"class MyClass
+{
+    private int [|P|] { get; }
+    private string _goo = nameof(P);
 }",
     expected: Diagnostic("IDE0052"));
         }
