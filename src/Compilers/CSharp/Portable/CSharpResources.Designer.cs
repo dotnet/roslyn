@@ -1024,7 +1024,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The return type of an async method must be void, Task, Task&lt;T&gt;, a task-like type, or IAsyncEnumerable&lt;T&gt;.
+        ///   Looks up a localized string similar to The return type of an async method must be void, Task, Task&lt;T&gt;, a task-like type, IAsyncEnumerable&lt;T&gt;, or IAsyncEnumerator&lt;T&gt;.
         /// </summary>
         internal static string ERR_BadAsyncReturn {
             get {
@@ -4318,15 +4318,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Explicit application of &apos;System.Runtime.CompilerServices.NonNullTypesAttribute&apos; is not allowed..
-        /// </summary>
-        internal static string ERR_ExplicitNonNullTypesAttribute {
-            get {
-                return ResourceManager.GetString("ERR_ExplicitNonNullTypesAttribute", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Explicit application of &apos;System.Runtime.CompilerServices.NullableAttribute&apos; is not allowed..
         /// </summary>
         internal static string ERR_ExplicitNullableAttribute {
@@ -4431,6 +4422,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_ExpressionOrDeclarationExpected {
             get {
                 return ResourceManager.GetString("ERR_ExpressionOrDeclarationExpected", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to An expression tree may not contain a null coalescing assignment.
+        /// </summary>
+        internal static string ERR_ExpressionTreeCantContainNullCoalescingAssignment {
+            get {
+                return ResourceManager.GetString("ERR_ExpressionTreeCantContainNullCoalescingAssignment", resourceCulture);
             }
         }
         
@@ -11384,15 +11384,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to injected declaration.
-        /// </summary>
-        internal static string IDS_InjectedDeclaration {
-            get {
-                return ResourceManager.GetString("IDS_InjectedDeclaration", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to invariantly.
         /// </summary>
         internal static string IDS_Invariantly {
@@ -14230,24 +14221,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The suppression operator (!) should be used in code within a &apos;#nullable&apos; context..
-        /// </summary>
-        internal static string WRN_MissingNonNullTypesContext {
-            get {
-                return ResourceManager.GetString("WRN_MissingNonNullTypesContext", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The suppression operator (!) should be used in code within a &apos;#nullable&apos; context..
-        /// </summary>
-        internal static string WRN_MissingNonNullTypesContext_Title {
-            get {
-                return ResourceManager.GetString("WRN_MissingNonNullTypesContext_Title", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to The annotation for nullable reference types should only be used in code within a &apos;#nullable&apos; context..
         /// </summary>
         internal static string WRN_MissingNonNullTypesContextForAnnotation {
@@ -14972,6 +14945,24 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Nullable value type may be null..
+        /// </summary>
+        internal static string WRN_NullableValueTypeMayBeNull {
+            get {
+                return ResourceManager.GetString("WRN_NullableValueTypeMayBeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Nullable value type may be null..
+        /// </summary>
+        internal static string WRN_NullableValueTypeMayBeNull_Title {
+            get {
+                return ResourceManager.GetString("WRN_NullableValueTypeMayBeNull_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Cannot convert null literal to non-nullable reference or unconstrained type parameter..
         /// </summary>
         internal static string WRN_NullAsNonNullable {
@@ -15325,7 +15316,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The suppression operator (!) can only be applied to reference types..
+        ///   Looks up a localized string similar to The suppression operator (!) can only be applied to reference types and nullable value types..
         /// </summary>
         internal static string WRN_SuppressionOperatorNotReferenceType {
             get {
@@ -15334,7 +15325,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The suppression operator (!) can only be applied to reference types..
+        ///   Looks up a localized string similar to The suppression operator (!) can only be applied to reference types and nullable value types..
         /// </summary>
         internal static string WRN_SuppressionOperatorNotReferenceType_Title {
             get {

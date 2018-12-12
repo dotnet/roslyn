@@ -29,7 +29,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Experimentation
             {
                 try
                 {
-                    experimentationServiceOpt = await ((IAsyncServiceProvider)serviceProvider).GetServiceAsync(typeof(SVsExperimentationService));
+                    experimentationServiceOpt = await ((IAsyncServiceProvider)serviceProvider).GetServiceAsync(typeof(SVsExperimentationService)).ConfigureAwait(false);
                     if (experimentationServiceOpt != null)
                     {
                         isCachedFlightEnabledInfo = experimentationServiceOpt.GetType().GetMethod(

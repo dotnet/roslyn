@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 explicitCastInCode: true,
                                 conversionGroupOpt: null,
                                 ConstantValue.NotAvailable,
-                                hostObjectField.Type.TypeSymbol 
+                                hostObjectField.Type.TypeSymbol
                             ),
                             hostObjectField.Type.TypeSymbol)
                         { WasCompilerGenerated = true })
@@ -536,7 +536,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             method.ContainingType)
                         { WasCompilerGenerated = true },
                         baseTypeFinalize))
-                    { WasCompilerGenerated = true };
+                { WasCompilerGenerated = true };
 
                 if (syntax.Kind() == SyntaxKind.Block)
                 {

@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private Dictionary<SyntaxTree, Dictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>.Builder>> _localSemanticDiagnosticsOpt = null;
         private Dictionary<SyntaxTree, Dictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>.Builder>> _localSyntaxDiagnosticsOpt = null;
         private Dictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>.Builder> _nonLocalDiagnosticsOpt = null;
-        
+
         internal AnalysisResultBuilder(bool logAnalyzerExecutionTime, ImmutableArray<DiagnosticAnalyzer> analyzers)
         {
             _analyzerExecutionTimeOpt = logAnalyzerExecutionTime ? CreateAnalyzerExecutionTimeMap(analyzers) : null;

@@ -154,6 +154,16 @@ namespace Microsoft.CodeAnalysis.Tools.CodeFormatter {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Maximum number of workspace warnings to log has been reached. Set the --verbosity option to the &apos;diagnostic&apos; level to see all warnings..
+        /// </summary>
+        internal static string Maximum_number_of_workspace_warnings_to_log_has_been_reached_Set_the_verbosity_option_to_the_diagnostic_level_to_see_all_warnings {
+            get {
+                return ResourceManager.GetString("Maximum_number_of_workspace_warnings_to_log_has_been_reached_Set_the_verbosity_op" +
+                        "tion_to_the_diagnostic_level_to_see_all_warnings", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Multiple MSBuild project files found in &apos;{0}&apos;. Specify which to use with the --workspace option..
         /// </summary>
         internal static string Multiple_MSBuild_project_files_found_in_0_Specify_which_to_use_with_the_workspace_option {

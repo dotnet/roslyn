@@ -363,7 +363,7 @@ namespace Microsoft.CodeAnalysis.Host.UnitTests
             VerifyReverseTransitiveReferences(solution, "A", new string[] { });
             VerifyReverseTransitiveReferences(solution, "B", new string[] { "A" });
             VerifyReverseTransitiveReferences(solution, "C", new string[] { });
-            VerifyReverseTransitiveReferences(solution, "D", new string[] { "C"});
+            VerifyReverseTransitiveReferences(solution, "D", new string[] { "C" });
 
             solution = AddProjectReferences(solution, "B", new string[] { "C" });
 

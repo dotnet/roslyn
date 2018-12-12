@@ -16,22 +16,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         internal static TypeSymbolWithAnnotations TransformType(
             TypeSymbolWithAnnotations metadataType,
             EntityHandle targetSymbolToken,
-            PEModuleSymbol containingModule,
-            INonNullTypesContext nonNullTypesContext)
+            PEModuleSymbol containingModule)
         {
             Debug.Assert(!metadataType.IsNull);
 
-            ImmutableArray<bool> nullableTransformFlags;
-            containingModule.Module.HasNullableAttribute(targetSymbolToken, out nullableTransformFlags);
+            byte defaultTransformFlag;
+            ImmutableArray<byte> nullableTransformFlags;
+            containingModule.Module.HasNullableAttribute(targetSymbolToken, out defaultTransformFlag, out nullableTransformFlags);
 
-            return TransformType(metadataType, nullableTransformFlags, nonNullTypesContext);
+            return TransformType(metadataType, defaultTransformFlag, nullableTransformFlags);
         }
 
-        internal static TypeSymbolWithAnnotations TransformType(TypeSymbolWithAnnotations metadataType, ImmutableArray<bool> nullableTransformFlags, INonNullTypesContext nonNullTypesContext)
+        internal static TypeSymbolWithAnnotations TransformType(TypeSymbolWithAnnotations metadataType, byte defaultTransformFlag, ImmutableArray<byte> nullableTransformFlags)
         {
+            if (nullableTransformFlags.IsDefault && defaultTransformFlag == 0)
+            {
+                return metadataType;
+            }
+
             int position = 0;
             TypeSymbolWithAnnotations result;
-            if (metadataType.ApplyNullableTransforms(nullableTransformFlags, nonNullTypesContext, ref position, out result) &&
+            if (metadataType.ApplyNullableTransforms(defaultTransformFlag, nullableTransformFlags, ref position, out result) &&
                 (nullableTransformFlags.IsDefault || position == nullableTransformFlags.Length))
             {
                 return result;
@@ -46,16 +51,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             TypeSymbolWithAnnotations metadataType,
             EntityHandle targetSymbolToken,
             PEModuleSymbol containingModule,
-            INonNullTypesContext nonNullTypesContext,
-            ImmutableArray<bool> extraAnnotations)
+            ImmutableArray<byte> extraAnnotations)
         {
             if (extraAnnotations.IsDefault)
             {
-                return NullableTypeDecoder.TransformType(metadataType, targetSymbolToken, containingModule, nonNullTypesContext);
+                return NullableTypeDecoder.TransformType(metadataType, targetSymbolToken, containingModule);
             }
             else
             {
-                return NullableTypeDecoder.TransformType(metadataType, extraAnnotations, NonNullTypesTrueContext.Instance);
+                return NullableTypeDecoder.TransformType(metadataType, defaultTransformFlag: 0, extraAnnotations);
             }
         }
     }

@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseNullPropagation
             => condition.Kind() == SyntaxKind.NotEqualsExpression;
 
         protected override bool TryAnalyzePatternCondition(
-            ISyntaxFactsService syntaxFacts, SyntaxNode conditionNode, 
+            ISyntaxFactsService syntaxFacts, SyntaxNode conditionNode,
             out SyntaxNode conditionPartToCheck, out bool isEquals)
         {
             conditionPartToCheck = null;

@@ -2480,7 +2480,7 @@ Block[B0] - Entry
               Left: 
                 ILocalReferenceOperation: x (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32, IsImplicit) (Syntax: 'x = 1 + 2')
               Right: 
-                IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32, Constant: 3) (Syntax: '1 + 2')
+                IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: System.Int32, Constant: 3) (Syntax: '1 + 2')
                   Left: 
                     ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
                   Right: 

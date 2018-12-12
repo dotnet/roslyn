@@ -13,7 +13,7 @@ using Microsoft.CodeAnalysis.Text;
 namespace Microsoft.CodeAnalysis.CSharp.SimplifyThisOrMe
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    internal sealed class CSharpSimplifyThisOrMeDiagnosticAnalyzer 
+    internal sealed class CSharpSimplifyThisOrMeDiagnosticAnalyzer
         : AbstractSimplifyThisOrMeDiagnosticAnalyzer<
             SyntaxKind,
             ExpressionSyntax,
@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SimplifyThisOrMe
             => CSharpSyntaxFactsService.Instance;
 
         protected override bool CanSimplifyTypeNameExpression(
-            SemanticModel model, MemberAccessExpressionSyntax node, OptionSet optionSet, 
+            SemanticModel model, MemberAccessExpressionSyntax node, OptionSet optionSet,
             out TextSpan issueSpan, CancellationToken cancellationToken)
         {
             return node.TryReduceOrSimplifyExplicitName(model, out _, out issueSpan, optionSet, cancellationToken);

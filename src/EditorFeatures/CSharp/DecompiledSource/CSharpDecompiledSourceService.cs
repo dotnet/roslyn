@@ -74,11 +74,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DecompiledSource
             // Decompile
             document = PerformDecompilation(document, fullName, compilation, assemblyLocation);
 
-            document = await AddAssemblyInfoRegionAsync(document, symbol, cancellationToken);
+            document = await AddAssemblyInfoRegionAsync(document, symbol, cancellationToken).ConfigureAwait(false);
 
             // Convert XML doc comments to regular comments, just like MAS
             var docCommentFormattingService = document.GetLanguageService<IDocumentationCommentFormattingService>();
-            document = await ConvertDocCommentsToRegularCommentsAsync(document, docCommentFormattingService, cancellationToken);
+            document = await ConvertDocCommentsToRegularCommentsAsync(document, docCommentFormattingService, cancellationToken).ConfigureAwait(false);
 
             var node = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 

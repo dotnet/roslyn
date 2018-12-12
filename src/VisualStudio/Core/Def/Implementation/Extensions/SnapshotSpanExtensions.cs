@@ -10,14 +10,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Extensions
     {
         public static VsTextSpan ToVsTextSpan(this SnapshotSpan snapshotSpan)
         {
-            snapshotSpan.GetLinesAndColumns(out var startLine, out var startColumnIndex, out var endLine, out var endColumnIndex);
+            snapshotSpan.GetLinesAndCharacters(out var startLine, out var startCharacterIndex, out var endLine, out var endCharacterIndex);
 
             return new VsTextSpan()
             {
                 iStartLine = startLine,
-                iStartIndex = startColumnIndex,
+                iStartIndex = startCharacterIndex,
                 iEndLine = endLine,
-                iEndIndex = endColumnIndex
+                iEndIndex = endCharacterIndex
             };
         }
     }

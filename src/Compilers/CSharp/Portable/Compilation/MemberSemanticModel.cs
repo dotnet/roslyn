@@ -1993,7 +1993,7 @@ done:
                         goto foundParent;
                 }
             }
-            foundParent:;
+foundParent:;
 
             var bindableParent = this.GetBindableSyntaxNode(parent);
             Debug.Assert(bindableParent != null);

@@ -4716,6 +4716,34 @@ class Program
 }");
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TestWithYieldReturnInAsyncMethod()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+using System.Collections.Generic;
+
+class Program
+{
+    async IAsyncEnumerable<DayOfWeek> Goo()
+    {
+        yield return [|abc|];
+    }
+}",
+@"using System;
+using System.Collections.Generic;
+
+class Program
+{
+    private DayOfWeek abc;
+
+    async IAsyncEnumerable<DayOfWeek> Goo()
+    {
+        yield return abc;
+    }
+}");
+        }
+
         [WorkItem(30235, "https://github.com/dotnet/roslyn/issues/30235")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestWithYieldReturnInLocalFunction()

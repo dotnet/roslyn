@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool displayLangVersions = false;
             bool optimize = false;
             bool checkOverflow = false;
-            bool? nullable = null;
+            bool nullable = false;
             bool allowUnsafe = false;
             bool concurrentBuild = true;
             bool deterministic = false; // TODO(5431): Enable deterministic mode by default
@@ -1189,7 +1189,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 embedAllSourceFiles = true;
                                 continue;
                             }
-                            
+
                             embeddedFiles.AddRange(ParseSeparatedFileArgument(value, baseDirectory, diagnostics));
                             continue;
                     }
@@ -1270,7 +1270,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 AddDiagnostic(diagnostics, ErrorCode.ERR_SourceLinkRequiresPdb);
             }
-            
+
             if (embedAllSourceFiles)
             {
                 embeddedFiles.AddRange(sourceFiles);
@@ -1349,7 +1349,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             diagnostics.AddRange(options.Errors);
             diagnostics.AddRange(parseOptions.Errors);
 
-            if (nullable.HasValue && parseOptions.LanguageVersion < MessageID.IDS_FeatureNullableReferenceTypes.RequiredVersion())
+            if (nullable && parseOptions.LanguageVersion < MessageID.IDS_FeatureNullableReferenceTypes.RequiredVersion())
             {
                 diagnostics.Add(new CSDiagnostic(new CSDiagnosticInfo(ErrorCode.ERR_NullableOptionNotAvailable,
                                                  nameof(nullable), nullable, parseOptions.LanguageVersion.ToDisplayString(),

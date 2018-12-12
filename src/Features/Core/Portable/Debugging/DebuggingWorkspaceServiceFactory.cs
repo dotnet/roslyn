@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 namespace Microsoft.CodeAnalysis.Debugging
 {
     [ExportWorkspaceServiceFactory(typeof(IDebuggingWorkspaceService), ServiceLayer.Host), Shared]
-    internal sealed class DebuggingWorkspaceServiceFactory: IWorkspaceServiceFactory
+    internal sealed class DebuggingWorkspaceServiceFactory : IWorkspaceServiceFactory
     {
         private readonly IEditAndContinueService _editAndContinueServiceOpt;
 

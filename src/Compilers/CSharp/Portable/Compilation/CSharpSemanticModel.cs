@@ -215,6 +215,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 binder = new TypeofBinder(expression, binder);
             }
 
+            binder = new WithNullableContextBinder(SyntaxTree, position, binder);
+
             return new ExecutableCodeBinder(expression, binder.ContainingMemberOrLambda, binder).GetBinder(expression);
         }
 

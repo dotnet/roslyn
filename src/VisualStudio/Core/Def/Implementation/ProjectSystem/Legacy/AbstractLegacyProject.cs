@@ -63,7 +63,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
             {
                 projectFilePath = null;
             }
-     
+
             var projectFactory = componentModel.GetService<VisualStudioProjectFactory>();
             VisualStudioProject = projectFactory.CreateAndAddToWorkspace(
                 projectSystemName,
@@ -76,8 +76,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
                     FilePath = projectFilePath,
                     Hierarchy = hierarchy,
                     ProjectGuid = GetProjectIDGuid(hierarchy),
-                    DefaultNamespace = GetDefaultNamespace(hierarchy, language)
                 });
+
+            // Right now VB doesn't have the concept of "default namespace". But we conjure one in workspace 
+            // by assigning the value of the project's root namespace to it. So various feature can choose to 
+            // use it for their own purpose.
+            // In the future, we might consider officially exposing "default namespace" for VB project 
+            // (e.g. through a <defaultnamespace> msbuild property)
+            VisualStudioProject.DefaultNamespace = GetRootNamespacePropertyValue(hierarchy);
 
             Hierarchy = hierarchy;
             ConnectHierarchyEvents();
@@ -330,13 +336,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
         }
 
         /// <summary>
-        /// Get the default namespace of the project ("" if not defined, which means global namespace),
+        /// Get the value of "rootnamespace" property of the project ("" if not defined, which means global namespace),
         /// or null if it is unknown or not applicable. 
         /// </summary>
         /// <remarks>
-        /// This only has meaning in C# and is explicitly set to null in VB.
+        /// This property has different meaning between C# and VB, each project type can decide how to interpret the value.
         /// </remarks>>
-        private static string GetDefaultNamespace(IVsHierarchy hierarchy, string language)
+        private static string GetRootNamespacePropertyValue(IVsHierarchy hierarchy)
         {
             // While both csproj and vbproj might define <rootnamespace> property in the project file, 
             // they are very different things.
@@ -352,23 +358,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
             // 
             // Unfortunately, although being different concepts, default namespace and root namespace are almost
             // used interchangebly in VS. For example, (1) the value is define in "rootnamespace" property in project 
-            // files and, (2) the property name we use to call into DTE project below to retrieve the value is 
+            // files and, (2) the property name we use to call into hierarchy below to retrieve the value is 
             // called "DefaultNamespace".
 
-            if (hierarchy != null && language == LanguageNames.CSharp)
+            if (hierarchy.TryGetProperty(__VSHPROPID.VSHPROPID_DefaultNamespace, out string value))
             {
-                if (hierarchy.TryGetProject(out var dteProject))
-                {
-                    try
-                    {
-                        return (string)dteProject.Properties.Item("DefaultNamespace").Value;
-                    }
-                    catch (ArgumentException)
-                    {
-                        // DefaultNamespace does not exist for this project.
-                        return string.Empty;
-                    }
-                }
+                return value;
             }
 
             return null;

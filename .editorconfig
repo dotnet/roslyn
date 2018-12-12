@@ -26,6 +26,10 @@ indent_size = 2
 [*.json]
 indent_size = 2
 
+[*.{sh}]
+end_of_line = lf
+indent_size = 2
+
 # Dotnet code style settings:
 [*.{cs,vb}]
 # Sort using and Import directives with System.* appearing first
