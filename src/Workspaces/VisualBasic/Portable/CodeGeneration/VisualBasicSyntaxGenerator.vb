@@ -1769,12 +1769,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 Case SyntaxKind.FunctionBlock,
                      SyntaxKind.SubBlock,
                      SyntaxKind.ConstructorBlock
-                    Return DirectCast(node, MethodBlockSyntax).BlockStatement.AttributeLists
+                    Return DirectCast(node, MethodBlockBaseSyntax).BlockStatement.AttributeLists
                 Case SyntaxKind.FunctionStatement,
                      SyntaxKind.SubStatement
                     Return DirectCast(node, MethodStatementSyntax).AttributeLists
-                Case SyntaxKind.ConstructorBlock
-                    Return DirectCast(node, ConstructorBlockSyntax).BlockStatement.AttributeLists
                 Case SyntaxKind.SubNewStatement
                     Return DirectCast(node, SubNewStatementSyntax).AttributeLists
                 Case SyntaxKind.Parameter
