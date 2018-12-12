@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping
             await TestMissingAsync(
 @"class C {
     void Bar() {
-        if ([||]i && j
+        if ([||]i && (j && )
     }
 }");
         }
@@ -201,76 +201,55 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
-        public async Task TestTwoParamWrappingCases()
+        public async Task TestTwoExprWrappingCases()
         {
             await TestAllWrappingCasesAsync(
 @"class C {
     void Bar() {
-        a.Goobar([||]i, j);
+        if ([||]i && j) {
+        }
     }
 }",
 @"class C {
     void Bar() {
-        a.Goobar(i,
-                 j);
+        if (i &&
+            j) {
+        }
     }
 }",
 @"class C {
     void Bar() {
-        a.Goobar(
-            i,
-            j);
-    }
-}",
-@"class C {
-    void Bar() {
-        a.Goobar(i,
-            j);
-    }
-}",
-@"class C {
-    void Bar() {
-        a.Goobar(
-            i, j);
+        if (i
+            && j) {
+        }
     }
 }");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
-        public async Task TestThreeParamWrappingCases()
+        public async Task TestThreeExprWrappingCases()
         {
             await TestAllWrappingCasesAsync(
 @"class C {
     void Bar() {
-        a.Goobar([||]i, j, k);
+        if ([||]i && j || k) {
+        }
     }
 }",
 @"class C {
     void Bar() {
-        a.Goobar(i,
-                 j,
-                 k);
+        if (i &&
+            j ||
+            k) {
+        }
     }
 }",
 @"class C {
     void Bar() {
-        a.Goobar(
-            i,
-            j,
-            k);
-    }
-}",
-@"class C {
-    void Bar() {
-        a.Goobar(i,
-            j,
-            k);
-    }
-}",
-@"class C {
-    void Bar() {
-        a.Goobar(
-            i, j, k);
+        if (i
+            && j
+            || k) {
+        }
     }
 }");
         }
@@ -281,413 +260,36 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping
             await TestAllWrappingCasesAsync(
 @"class C {
     void Bar() {
-        a.Goobar(
-            [||]i,
-                j,
-                    k);
-    }
-}",
-@"class C {
-    void Bar() {
-        a.Goobar(i,
-                 j,
-                 k);
-    }
-}",
-@"class C {
-    void Bar() {
-        a.Goobar(
-            i,
-            j,
-            k);
-    }
-}",
-@"class C {
-    void Bar() {
-        a.Goobar(i,
-            j,
-            k);
-    }
-}",
-@"class C {
-    void Bar() {
-        a.Goobar(i, j, k);
-    }
-}",
-@"class C {
-    void Bar() {
-        a.Goobar(
-            i, j, k);
-    }
-}");
+        if (
+            [||]i   &&
+                j
+                 ||   k) {
         }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
-        public async Task Test_LongWrapping_ShortIds()
-        {
-            await TestAllWrappingCasesAsync(
-@"class C {
-    void Goo() {
-        this.Goobar([||]
-            i, j, k, l, m, n, o, p,
-            n);
-    }
-}",
-GetIndentionColumn(30),
-@"class C {
-    void Goo() {
-        this.Goobar(i,
-                    j,
-                    k,
-                    l,
-                    m,
-                    n,
-                    o,
-                    p,
-                    n);
     }
 }",
 @"class C {
-    void Goo() {
-        this.Goobar(
-            i,
-            j,
-            k,
-            l,
-            m,
-            n,
-            o,
-            p,
-            n);
-    }
-}",
-@"class C {
-    void Goo() {
-        this.Goobar(i,
-            j,
-            k,
-            l,
-            m,
-            n,
-            o,
-            p,
-            n);
-    }
-}",
-@"class C {
-    void Goo() {
-        this.Goobar(i, j, k, l, m, n, o, p, n);
-    }
-}",
-@"class C {
-    void Goo() {
-        this.Goobar(
-            i, j, k, l, m, n, o, p, n);
-    }
-}",
-@"class C {
-    void Goo() {
-        this.Goobar(i, j, k, l,
-                    m, n, o, p,
-                    n);
-    }
-}",
-@"class C {
-    void Goo() {
-        this.Goobar(
-            i, j, k, l, m, n,
-            o, p, n);
-    }
-}",
-@"class C {
-    void Goo() {
-        this.Goobar(i, j, k, l,
-            m, n, o, p, n);
-    }
-}");
+    void Bar() {
+        if (
+            i &&
+            j ||
+            k) {
         }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
-        public async Task Test_LongWrapping_VariadicLengthIds()
-        {
-            await TestAllWrappingCasesAsync(
-@"class C {
-    void Goo() {
-        this.Goobar([||]
-            i, jj, kkkkk, llllllll, mmmmmmmmmmmmmmmmmm,
-            nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn);
-    }
-}",
-GetIndentionColumn(30),
-@"class C {
-    void Goo() {
-        this.Goobar(i,
-                    jj,
-                    kkkkk,
-                    llllllll,
-                    mmmmmmmmmmmmmmmmmm,
-                    nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn);
     }
 }",
 @"class C {
-    void Goo() {
-        this.Goobar(
-            i,
-            jj,
-            kkkkk,
-            llllllll,
-            mmmmmmmmmmmmmmmmmm,
-            nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn);
-    }
-}",
-@"class C {
-    void Goo() {
-        this.Goobar(i,
-            jj,
-            kkkkk,
-            llllllll,
-            mmmmmmmmmmmmmmmmmm,
-            nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn);
-    }
-}",
-@"class C {
-    void Goo() {
-        this.Goobar(i, jj, kkkkk, llllllll, mmmmmmmmmmmmmmmmmm, nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn);
-    }
-}",
-@"class C {
-    void Goo() {
-        this.Goobar(
-            i, jj, kkkkk, llllllll, mmmmmmmmmmmmmmmmmm, nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn);
-    }
-}",
-@"class C {
-    void Goo() {
-        this.Goobar(i, jj,
-                    kkkkk,
-                    llllllll,
-                    mmmmmmmmmmmmmmmmmm,
-                    nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn);
-    }
-}",
-@"class C {
-    void Goo() {
-        this.Goobar(
-            i, jj, kkkkk,
-            llllllll,
-            mmmmmmmmmmmmmmmmmm,
-            nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn);
-    }
-}",
-@"class C {
-    void Goo() {
-        this.Goobar(i, jj,
-            kkkkk, llllllll,
-            mmmmmmmmmmmmmmmmmm,
-            nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn);
-    }
-}");
+    void Bar() {
+        if (
+            i
+            && j
+            || k) {
         }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
-        public async Task Test_DoNotOfferLongWrappingOptionThatAlreadyAppeared()
-        {
-            await TestAllWrappingCasesAsync(
-@"class C {
-    void Goo() {
-        this.Goobar([||]
-            iiiii, jjjjj, kkkkk, lllll, mmmmm,
-            nnnnn);
-    }
-}",
-GetIndentionColumn(25),
-@"class C {
-    void Goo() {
-        this.Goobar(iiiii,
-                    jjjjj,
-                    kkkkk,
-                    lllll,
-                    mmmmm,
-                    nnnnn);
     }
 }",
 @"class C {
-    void Goo() {
-        this.Goobar(
-            iiiii,
-            jjjjj,
-            kkkkk,
-            lllll,
-            mmmmm,
-            nnnnn);
-    }
-}",
-@"class C {
-    void Goo() {
-        this.Goobar(iiiii,
-            jjjjj,
-            kkkkk,
-            lllll,
-            mmmmm,
-            nnnnn);
-    }
-}",
-@"class C {
-    void Goo() {
-        this.Goobar(iiiii, jjjjj, kkkkk, lllll, mmmmm, nnnnn);
-    }
-}",
-@"class C {
-    void Goo() {
-        this.Goobar(
-            iiiii, jjjjj, kkkkk, lllll, mmmmm, nnnnn);
-    }
-}",
-@"class C {
-    void Goo() {
-        this.Goobar(
-            iiiii, jjjjj,
-            kkkkk, lllll,
-            mmmmm, nnnnn);
-    }
-}",
-@"class C {
-    void Goo() {
-        this.Goobar(iiiii,
-            jjjjj, kkkkk,
-            lllll, mmmmm,
-            nnnnn);
-    }
-}");
+    void Bar() {
+        if (
+            i && j || k) {
         }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
-        public async Task Test_DoNotOfferAllLongWrappingOptionThatAlreadyAppeared()
-        {
-            await TestAllWrappingCasesAsync(
-@"class C {
-    void Bar() {
-        a.[||]Goobar(
-            iiiii, jjjjj, kkkkk, lllll, mmmmm,
-            nnnnn);
-    }
-}",
-GetIndentionColumn(20),
-@"class C {
-    void Bar() {
-        a.Goobar(iiiii,
-                 jjjjj,
-                 kkkkk,
-                 lllll,
-                 mmmmm,
-                 nnnnn);
-    }
-}",
-@"class C {
-    void Bar() {
-        a.Goobar(
-            iiiii,
-            jjjjj,
-            kkkkk,
-            lllll,
-            mmmmm,
-            nnnnn);
-    }
-}",
-@"class C {
-    void Bar() {
-        a.Goobar(iiiii,
-            jjjjj,
-            kkkkk,
-            lllll,
-            mmmmm,
-            nnnnn);
-    }
-}",
-@"class C {
-    void Bar() {
-        a.Goobar(iiiii, jjjjj, kkkkk, lllll, mmmmm, nnnnn);
-    }
-}",
-@"class C {
-    void Bar() {
-        a.Goobar(
-            iiiii, jjjjj, kkkkk, lllll, mmmmm, nnnnn);
-    }
-}");
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
-        public async Task Test_LongWrapping_VariadicLengthIds2()
-        {
-            await TestAllWrappingCasesAsync(
-@"class C {
-    void Bar() {
-        a.[||]Goobar(
-            i, jj, kkkk, lll, mm,
-            n) {
-    }
-}",
-GetIndentionColumn(30),
-@"class C {
-    void Bar() {
-        a.Goobar(i,
-                 jj,
-                 kkkk,
-                 lll,
-                 mm,
-                 n) {
-    }
-}",
-@"class C {
-    void Bar() {
-        a.Goobar(
-            i,
-            jj,
-            kkkk,
-            lll,
-            mm,
-            n) {
-    }
-}",
-@"class C {
-    void Bar() {
-        a.Goobar(i,
-            jj,
-            kkkk,
-            lll,
-            mm,
-            n) {
-    }
-}",
-@"class C {
-    void Bar() {
-        a.Goobar(i, jj, kkkk, lll, mm, n) {
-    }
-}",
-@"class C {
-    void Bar() {
-        a.Goobar(
-            i, jj, kkkk, lll, mm, n) {
-    }
-}",
-@"class C {
-    void Bar() {
-        a.Goobar(i, jj, kkkk,
-                 lll, mm, n) {
-    }
-}",
-@"class C {
-    void Bar() {
-        a.Goobar(
-            i, jj, kkkk, lll,
-            mm, n) {
-    }
-}",
-@"class C {
-    void Bar() {
-        a.Goobar(i, jj, kkkk,
-            lll, mm, n) {
     }
 }");
         }
@@ -698,67 +300,22 @@ GetIndentionColumn(30),
             await TestAllWrappingCasesAsync(
 @"class C {
     void Bar() {
-        a.[||]Goobar(iiiii,
-                 jjjjj,
-                 kkkkk,
-                 lllll,
-                 mmmmm,
-                 nnnnn);
-    }
-}",
-GetIndentionColumn(30),
-@"class C {
-    void Bar() {
-        a.Goobar(
-            iiiii,
-            jjjjj,
-            kkkkk,
-            lllll,
-            mmmmm,
-            nnnnn);
+        if ([||]a &&
+            b) {
+        }
     }
 }",
 @"class C {
     void Bar() {
-        a.Goobar(iiiii,
-            jjjjj,
-            kkkkk,
-            lllll,
-            mmmmm,
-            nnnnn);
+        if (a
+            && b) {
+        }
     }
 }",
 @"class C {
     void Bar() {
-        a.Goobar(iiiii, jjjjj, kkkkk, lllll, mmmmm, nnnnn);
-    }
-}",
-@"class C {
-    void Bar() {
-        a.Goobar(
-            iiiii, jjjjj, kkkkk, lllll, mmmmm, nnnnn);
-    }
-}",
-@"class C {
-    void Bar() {
-        a.Goobar(iiiii, jjjjj,
-                 kkkkk, lllll,
-                 mmmmm, nnnnn);
-    }
-}",
-@"class C {
-    void Bar() {
-        a.Goobar(
-            iiiii, jjjjj,
-            kkkkk, lllll,
-            mmmmm, nnnnn);
-    }
-}",
-@"class C {
-    void Bar() {
-        a.Goobar(iiiii, jjjjj,
-            kkkkk, lllll,
-            mmmmm, nnnnn);
+        if (a && b) {
+        }
     }
 }");
         }
@@ -769,169 +326,55 @@ GetIndentionColumn(30),
             await TestAllWrappingCasesAsync(
 @"class C {
     void Bar() {
-        a.Goobar([||]
-            i,
-            jj,
-            kkkk,
-            lll,
-            mm,
-            n);
-    }
-}",
-GetIndentionColumn(30),
-@"class C {
-    void Bar() {
-        a.Goobar(i,
-                 jj,
-                 kkkk,
-                 lll,
-                 mm,
-                 n);
+        if ([||]a
+            && b) {
+        }
     }
 }",
 @"class C {
     void Bar() {
-        a.Goobar(i,
-            jj,
-            kkkk,
-            lll,
-            mm,
-            n);
+        if (a &&
+            b) {
+        }
     }
 }",
 @"class C {
     void Bar() {
-        a.Goobar(i, jj, kkkk, lll, mm, n);
-    }
-}",
-@"class C {
-    void Bar() {
-        a.Goobar(
-            i, jj, kkkk, lll, mm, n);
-    }
-}",
-@"class C {
-    void Bar() {
-        a.Goobar(i, jj, kkkk,
-                 lll, mm, n);
-    }
-}",
-@"class C {
-    void Bar() {
-        a.Goobar(
-            i, jj, kkkk, lll,
-            mm, n);
-    }
-}",
-@"class C {
-    void Bar() {
-        a.Goobar(i, jj, kkkk,
-            lll, mm, n);
+        if (a && b) {
+        }
     }
 }");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
-        public async Task TestInElementAccess1()
+        public async Task TestInLocalInitializer()
         {
             await TestInRegularAndScript1Async(
 @"class C {
     void Goo() {
-        var v = this[[||]a, b, c];
+        var v = [||]a && b && c;
     }
 }",
 @"class C {
     void Goo() {
-        var v = this[a,
-                     b,
-                     c];
+        var v = a &&
+                b &&
+                c;
     }
 }");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
-        public async Task TestInElementAccess2()
+        public async Task TestInField()
         {
             await TestInRegularAndScript1Async(
 @"class C {
-    void Goo() {
-        var v = [||]this[a, b, c];
-    }
+    bool v = [||]a && b && c;
 }",
 @"class C {
-    void Goo() {
-        var v = this[a,
-                     b,
-                     c];
-    }
-}");
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
-        public async Task TestInObjectCreation1()
-        {
-            await TestInRegularAndScript1Async(
-@"class C {
-    void Goo() {
-        var v = [||]new Bar(a, b, c);
-    }
-}",
-@"class C {
-    void Goo() {
-        var v = new Bar(a,
-                        b,
-                        c);
-    }
-}");
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
-        public async Task TestInObjectCreation2()
-        {
-            await TestInRegularAndScript1Async(
-@"class C {
-    void Goo() {
-        var v = new Bar([||]a, b, c);
-    }
-}",
-@"class C {
-    void Goo() {
-        var v = new Bar(a,
-                        b,
-                        c);
-    }
-}");
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
-        public async Task TestInConstructorInitializer1()
-        {
-            await TestInRegularAndScript1Async(
-@"class C {
-    public C() : base([||]a, b, c) {
-    }
-}",
-@"class C {
-    public C() : base(a,
-                      b,
-                      c) {
-    }
-}");
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
-        public async Task TestInConstructorInitializer2()
-        {
-            await TestInRegularAndScript1Async(
-@"class C {
-    public C() : [||]base(a, b, c) {
-    }
-}",
-@"class C {
-    public C() : base(a,
-                      b,
-                      c) {
-    }
+    bool v = a &&
+             b &&
+             c;
 }");
         }
     }
