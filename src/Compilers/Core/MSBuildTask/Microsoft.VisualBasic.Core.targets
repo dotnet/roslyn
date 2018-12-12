@@ -19,8 +19,7 @@
                   $(ResolvedCodeAnalysisRuleSet);
                   @(AdditionalFiles);
                   @(EmbeddedFiles);
-                  @(EditorConfigFiles);
-                  @(PotentialEditorConfigFiles)"
+                  @(EditorConfigFiles)"
           Outputs="@(DocFileItem);
                    @(IntermediateAssembly);
                    @(IntermediateRefAssembly);
