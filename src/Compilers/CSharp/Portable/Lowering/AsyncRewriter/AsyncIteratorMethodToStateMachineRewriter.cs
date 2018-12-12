@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Initially, this is the method's return value label (<see cref="AsyncMethodToStateMachineRewriter._exprReturnLabel"/>).
         /// When we enter a `try` that has a `finally`, we'll use the label directly preceding the `finally`.
-        /// When we enter a `try` that has an extracted `finally`, we will use the label preceeding the extracted `finally`.
+        /// When we enter a `try` that has an extracted `finally`, we will use the label preceding the extracted `finally`.
         /// </summary>
         private LabelSymbol _enclosingFinallyOrExitLabel;
 
