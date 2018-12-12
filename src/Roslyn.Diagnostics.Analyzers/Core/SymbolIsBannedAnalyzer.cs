@@ -76,19 +76,17 @@ namespace Roslyn.Diagnostics.Analyzers
                 .Where(s => s.symbol is ITypeSymbol n && n.IsAttribute())
                 .ToImmutableDictionary(s => s.symbol, s => s.message);
 
-            List<Diagnostic> diagnostics = null;
-
             if (bannedAttributes.Count > 0)
             {
                 compilationContext.RegisterCompilationEndAction(
                     context =>
                     {
-                        VerifyAttributes(compilationContext.Compilation.Assembly.GetAttributes());
-                        VerifyAttributes(compilationContext.Compilation.SourceModule.GetAttributes());
+                        VerifyAttributes(context.ReportDiagnostic, compilationContext.Compilation.Assembly.GetAttributes());
+                        VerifyAttributes(context.ReportDiagnostic, compilationContext.Compilation.SourceModule.GetAttributes());
                     });
 
                 compilationContext.RegisterSymbolAction(
-                    context => VerifyAttributes(context.Symbol.GetAttributes()),
+                    context => VerifyAttributes(context.ReportDiagnostic, context.Symbol.GetAttributes()),
                     SymbolKind.NamedType,
                     SymbolKind.Method,
                     SymbolKind.Field,
@@ -102,18 +100,18 @@ namespace Roslyn.Diagnostics.Analyzers
                     switch (context.Operation)
                     {
                         case IObjectCreationOperation objectCreation:
-                            VerifySymbol(objectCreation.Constructor, context.Operation.Syntax);
-                            VerifyType(objectCreation.Type.OriginalDefinition, context.Operation.Syntax);
+                            VerifySymbol(context.ReportDiagnostic, objectCreation.Constructor, context.Operation.Syntax);
+                            VerifyType(context.ReportDiagnostic, objectCreation.Type.OriginalDefinition, context.Operation.Syntax);
                             break;
 
                         case IInvocationOperation invocation:
-                            VerifySymbol(invocation.TargetMethod, context.Operation.Syntax);
-                            VerifyType(invocation.TargetMethod.ContainingType.OriginalDefinition, context.Operation.Syntax);
+                            VerifySymbol(context.ReportDiagnostic, invocation.TargetMethod, context.Operation.Syntax);
+                            VerifyType(context.ReportDiagnostic, invocation.TargetMethod.ContainingType.OriginalDefinition, context.Operation.Syntax);
                             break;
 
                         case IMemberReferenceOperation memberReference:
-                            VerifySymbol(memberReference.Member, context.Operation.Syntax);
-                            VerifyType(memberReference.Member.ContainingType.OriginalDefinition, context.Operation.Syntax);
+                            VerifySymbol(context.ReportDiagnostic, memberReference.Member, context.Operation.Syntax);
+                            VerifyType(context.ReportDiagnostic, memberReference.Member.ContainingType.OriginalDefinition, context.Operation.Syntax);
                             break;
                     }
                 },
@@ -125,21 +123,8 @@ namespace Roslyn.Diagnostics.Analyzers
                 OperationKind.PropertyReference);
 
             compilationContext.RegisterSyntaxNodeAction(
-                context => VerifyDocumentationSyntax(GetReferenceSyntaxNodeFromXmlCref(context.Node), context),
+                context => VerifyDocumentationSyntax(context.ReportDiagnostic, GetReferenceSyntaxNodeFromXmlCref(context.Node), context),
                 XmlCrefSyntaxKind);
-
-            compilationContext.RegisterCompilationEndAction(
-                context =>
-                {
-                    // Flush any diagnostics created during processing
-                    if (diagnostics != null)
-                    {
-                        foreach (var diagnostic in diagnostics)
-                        {
-                            context.ReportDiagnostic(diagnostic);
-                        }
-                    }
-                });
 
             return;
 
@@ -201,13 +186,7 @@ namespace Roslyn.Diagnostics.Analyzers
                 return builder.ToImmutable();
             }
 
-            void ReportDiagnostic(Diagnostic diagnostic)
-            {
-                diagnostics = diagnostics ?? new List<Diagnostic>(4);
-                diagnostics.Add(diagnostic);
-            }
-
-            void VerifyAttributes(ImmutableArray<AttributeData> attributes)
+            void VerifyAttributes(Action<Diagnostic> reportDiagnostic, ImmutableArray<AttributeData> attributes)
             {
                 foreach (var attribute in attributes)
                 {
@@ -216,7 +195,7 @@ namespace Roslyn.Diagnostics.Analyzers
                         var node = attribute.ApplicationSyntaxReference?.GetSyntax();
                         if (node != null)
                         {
-                            ReportDiagnostic(
+                            reportDiagnostic(
                                 node.CreateDiagnostic(
                                     SymbolIsBannedAnalyzer.SymbolIsBannedRule,
                                     attribute.AttributeClass.ToDisplayString(),
@@ -226,13 +205,13 @@ namespace Roslyn.Diagnostics.Analyzers
                 }
             }
 
-            void VerifyType(ITypeSymbol type, SyntaxNode syntaxNode)
+            void VerifyType(Action<Diagnostic> reportDiagnostic, ITypeSymbol type, SyntaxNode syntaxNode)
             {
                 while (!(type is null))
                 {
                     if (messageByBannedSymbol.TryGetValue(type, out var message))
                     {
-                        ReportDiagnostic(
+                        reportDiagnostic(
                             Diagnostic.Create(
                                 SymbolIsBannedAnalyzer.SymbolIsBannedRule,
                                 syntaxNode.GetLocation(),
@@ -245,11 +224,11 @@ namespace Roslyn.Diagnostics.Analyzers
                 }
             }
 
-            void VerifySymbol(ISymbol symbol, SyntaxNode syntaxNode)
+            void VerifySymbol(Action<Diagnostic> reportDiagnostic, ISymbol symbol, SyntaxNode syntaxNode)
             {
                 if (messageByBannedSymbol.TryGetValue(symbol, out var message))
                 {
-                    ReportDiagnostic(
+                    reportDiagnostic(
                         Diagnostic.Create(
                             SymbolIsBannedAnalyzer.SymbolIsBannedRule,
                             syntaxNode.GetLocation(),
@@ -258,17 +237,17 @@ namespace Roslyn.Diagnostics.Analyzers
                 }
             }
 
-            void VerifyDocumentationSyntax(SyntaxNode syntaxNode, SyntaxNodeAnalysisContext context)
+            void VerifyDocumentationSyntax(Action<Diagnostic> reportDiagnostic, SyntaxNode syntaxNode, SyntaxNodeAnalysisContext context)
             {
                 var symbol = syntaxNode.GetDeclaredOrReferencedSymbol(context.SemanticModel);
 
                 if (symbol is ITypeSymbol typeSymbol)
                 {
-                    VerifyType(typeSymbol, syntaxNode);
+                    VerifyType(reportDiagnostic, typeSymbol, syntaxNode);
                 }
                 else
                 {
-                    VerifySymbol(symbol, syntaxNode);
+                    VerifySymbol(reportDiagnostic, symbol, syntaxNode);
                 }
             }
         }
