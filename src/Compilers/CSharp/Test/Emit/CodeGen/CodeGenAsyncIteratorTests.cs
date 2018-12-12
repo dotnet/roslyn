@@ -2173,6 +2173,41 @@ class C
         }
 
         [ConditionalTheory(typeof(WindowsDesktopOnly))]
+        [InlineData(1, "0 DISPOSAL DONE")]
+        [InlineData(2, "0 1 DISPOSAL Finally DONE")]
+        [InlineData(3, "0 1 Finally 2 DISPOSAL DONE")]
+        [InlineData(4, "0 1 Finally 2 3 DISPOSAL Finally DONE")]
+        [InlineData(5, "0 1 Finally 2 3 Finally END DISPOSAL DONE")]
+        public void TryFinally_Goto(int iterations, string expectedOutput)
+        {
+            string source = @"
+using static System.Console;
+public class C
+{
+    public static async System.Collections.Generic.IAsyncEnumerable<int> M()
+    {
+        int counter = 0;
+        start:
+        yield return counter++;
+        await System.Threading.Tasks.Task.Delay(10);
+        try
+        {
+            yield return counter++;
+            if (counter <= 2) goto start;
+        }
+        finally
+        {
+            Write(""Finally "");
+            await System.Threading.Tasks.Task.Delay(10);
+        }
+    }
+}";
+            var comp = CreateCompilationWithAsyncIterator(new[] { Run(iterations), source }, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: expectedOutput);
+        }
+
+        [ConditionalTheory(typeof(WindowsDesktopOnly))]
         [InlineData(2, "1 Break Throw Caught Finally END DISPOSAL DONE")]
         public void TryFinally_DisposeIAsyncEnumeratorMethod(int iterations, string expectedOutput)
         {
