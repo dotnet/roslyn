@@ -293,12 +293,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 //  _builder.Start(ref inst);
                 //  return new ValueTask(this, _valueOrEndPromise.Version);
 
-                NamedTypeSymbol IAsyncDisposable =
-                    F.WellKnownType(WellKnownType.System_IAsyncDisposable);
-
-                MethodSymbol IAsyncDisposable_DisposeAsync =
-                    F.WellKnownMethod(WellKnownMember.System_IAsyncDisposable__DisposeAsync)
-                    .AsMember(IAsyncDisposable);
+                MethodSymbol IAsyncDisposable_DisposeAsync = F.WellKnownMethod(WellKnownMember.System_IAsyncDisposable__DisposeAsync);
 
                 // The implementation doesn't depend on the method body of the iterator method.
                 OpenMethodImplementation(IAsyncDisposable_DisposeAsync, hasMethodBodyDependency: false);
@@ -434,10 +429,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // this._valueOrEndPromise.OnCompleted(continuation, state, token, flags);
                     F.ExpressionStatement(
                         F.Call(F.InstanceField(_promiseOfValueOrEndField), promise_OnCompleted,
-                        F.Parameter(IValueTaskSourceOfBool_OnCompleted.Parameters[0]),
-                        F.Parameter(IValueTaskSourceOfBool_OnCompleted.Parameters[1]),
-                        F.Parameter(IValueTaskSourceOfBool_OnCompleted.Parameters[2]),
-                        F.Parameter(IValueTaskSourceOfBool_OnCompleted.Parameters[3]))),
+                            F.Parameter(IValueTaskSourceOfBool_OnCompleted.Parameters[0]),
+                            F.Parameter(IValueTaskSourceOfBool_OnCompleted.Parameters[1]),
+                            F.Parameter(IValueTaskSourceOfBool_OnCompleted.Parameters[2]),
+                            F.Parameter(IValueTaskSourceOfBool_OnCompleted.Parameters[3]))),
                     F.Return())); // return;
             }
 
@@ -447,11 +442,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 //  this._valueOrEndPromise.GetResult(token);
                 //  return;
 
-                NamedTypeSymbol IValueTaskSource = F.WellKnownType(WellKnownType.System_Threading_Tasks_Sources_IValueTaskSource);
-
                 MethodSymbol IValueTaskSource_GetResult =
-                    F.WellKnownMethod(WellKnownMember.System_Threading_Tasks_Sources_IValueTaskSource__GetResult)
-                    .AsMember(IValueTaskSource);
+                    F.WellKnownMethod(WellKnownMember.System_Threading_Tasks_Sources_IValueTaskSource__GetResult);
 
                 MethodSymbol promise_GetResult =
                     F.WellKnownMethod(WellKnownMember.System_Threading_Tasks_Sources_ManualResetValueTaskSourceCore_T__GetResult)
@@ -497,11 +489,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // this._valueOrEndPromise.OnCompleted(continuation, state, token, flags);
                 // return;
 
-                NamedTypeSymbol IValueTaskSource = F.WellKnownType(WellKnownType.System_Threading_Tasks_Sources_IValueTaskSource);
-
-                MethodSymbol IValueTaskSource_OnCompleted =
-                    F.WellKnownMethod(WellKnownMember.System_Threading_Tasks_Sources_IValueTaskSource__OnCompleted)
-                    .AsMember(IValueTaskSource);
+                MethodSymbol IValueTaskSource_OnCompleted = F.WellKnownMethod(WellKnownMember.System_Threading_Tasks_Sources_IValueTaskSource__OnCompleted);
 
                 MethodSymbol promise_OnCompleted =
                     F.WellKnownMethod(WellKnownMember.System_Threading_Tasks_Sources_ManualResetValueTaskSourceCore_T__OnCompleted)

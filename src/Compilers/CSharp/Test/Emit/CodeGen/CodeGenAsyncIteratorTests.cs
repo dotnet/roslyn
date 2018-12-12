@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
         /// <summary>
         /// Enumerates `C.M()` a given number of iterations.
         /// </summary>
-        private static CSharpTestSource Run(int iterations)
+        private static string Run(int iterations)
         {
             string _runner = @"
 using static System.Console;
@@ -2707,7 +2707,7 @@ public class C
         [InlineData(6, "1 2 Finally1 Finally2 3 4 5 Finally3 Finally4 6 DISPOSAL Finally5 Finally6 DONE")]
         [InlineData(7, "1 2 Finally1 Finally2 3 4 5 Finally3 Finally4 6 Finally5 Finally6 7 DISPOSAL DONE")]
         [InlineData(8, "1 2 Finally1 Finally2 3 4 5 Finally3 Finally4 6 Finally5 Finally6 7 END DISPOSAL DONE")]
-        public void TryFinally_MultipleToplevelTryes(int iterations, string expectedOutput)
+        public void TryFinally_MultipleSameLevelTrys(int iterations, string expectedOutput)
         {
             string source = @"
 using static System.Console;
@@ -3414,6 +3414,39 @@ class C
                 yield break;
             }
             finally
+            {
+            }
+        }
+    }
+}
+";
+            var comp = CreateCompilationWithAsyncIterator(source);
+            comp.VerifyDiagnostics(
+                // (14,17): error CS1625: Cannot yield in the body of a finally clause
+                //                 yield break;
+                Diagnostic(ErrorCode.ERR_BadYieldInFinally, "yield").WithLocation(14, 17)
+                );
+        }
+
+        [Fact]
+        public void TryFinally_NoYieldBreakInFinally_Nested2()
+        {
+            string source = @"
+class C
+{
+    static async System.Collections.Generic.IAsyncEnumerable<int> M()
+    {
+        await System.Threading.Tasks.Task.CompletedTask;
+        try
+        {
+        }
+        finally
+        {
+            try
+            {
+                yield break;
+            }
+            catch
             {
             }
         }
