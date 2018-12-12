@@ -9,9 +9,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Wrapping.BinaryExpression
     internal class CSharpBinaryExpressionWrapper : AbstractBinaryExpressionWrapper<BinaryExpressionSyntax>
     {
         public CSharpBinaryExpressionWrapper()
-            : base(supportsOperatorWrapping: true,
-                   CSharpSyntaxFactsService.Instance)
+            : base(CSharpSyntaxFactsService.Instance)
         {
         }
+
+        protected override SyntaxTriviaList GetNewLineBeforeOperatorTrivia(SyntaxTriviaList newLine)
+            => newLine;
     }
 }

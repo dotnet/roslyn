@@ -17,9 +17,10 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.BinaryExpression
         private class BinaryExpressionCodeActionComputer : 
             AbstractCodeActionComputer<AbstractBinaryExpressionWrapper<TBinaryExpressionSyntax>>
         {
-            private readonly TBinaryExpressionSyntax _binaryExpression;
             private readonly ImmutableArray<SyntaxNodeOrToken> _exprsAndOperators;
             private readonly SyntaxTriviaList _indentationTrivia;
+
+            private readonly SyntaxTriviaList _newlineBeforeOperatorTrivia;
 
             public BinaryExpressionCodeActionComputer(
                 AbstractBinaryExpressionWrapper<TBinaryExpressionSyntax> service,
@@ -31,7 +32,6 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.BinaryExpression
                 CancellationToken cancellationToken)
                 : base(service, document, originalSourceText, options, cancellationToken)
             {
-                _binaryExpression = binaryExpression;
                 _exprsAndOperators = exprsAndOperators;
 
                 var generator = SyntaxGenerator.GetGenerator(document);
@@ -39,6 +39,7 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.BinaryExpression
                                                           .CreateIndentationString(UseTabs, TabSize);
 
                 _indentationTrivia = new SyntaxTriviaList(generator.Whitespace(indentationString));
+                _newlineBeforeOperatorTrivia = service.GetNewLineBeforeOperatorTrivia(NewLineTrivia);
             }
 
             protected override async Task<ImmutableArray<WrappingGroup>> ComputeWrappingGroupsAsync()
@@ -46,10 +47,7 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.BinaryExpression
                 var actions = ArrayBuilder<WrapItemsAction>.GetInstance();
 
                 actions.Add(await GetWrapCodeActionAsync(includeOperators: false).ConfigureAwait(false));
-                if (this.Wrapper._supportsOperatorWrapping)
-                {
-                    actions.Add(await GetWrapCodeActionAsync(includeOperators: true).ConfigureAwait(false));
-                }
+                actions.Add(await GetWrapCodeActionAsync(includeOperators: true).ConfigureAwait(false));
                 actions.Add(await GetUnwrapCodeActionAsync().ConfigureAwait(false));
 
                 return ImmutableArray.Create(new WrappingGroup(
@@ -81,7 +79,7 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.BinaryExpression
                         //
                         //      (a == b)
                         //      && (c == d)
-                        result.Add(Edit.UpdateBetween(left, NewLineTrivia, _indentationTrivia, opToken));
+                        result.Add(Edit.UpdateBetween(left, _newlineBeforeOperatorTrivia, _indentationTrivia, opToken));
                         result.Add(Edit.UpdateBetween(opToken, SingleWhitespaceTrivia, NoTrivia, right));
                     }
                     else

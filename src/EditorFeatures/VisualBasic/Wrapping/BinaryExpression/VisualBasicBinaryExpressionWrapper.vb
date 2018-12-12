@@ -8,9 +8,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Wrapping.BinaryExpression
         Inherits AbstractBinaryExpressionWrapper(Of BinaryExpressionSyntax)
 
         Public Sub New()
-            MyBase.New(
-                supportsOperatorWrapping:=False,
-                VisualBasicSyntaxFactsService.Instance)
+            MyBase.New(VisualBasicSyntaxFactsService.Instance)
         End Sub
+
+        Protected Overrides Function GetNewLineBeforeOperatorTrivia(newLine As SyntaxTriviaList) As SyntaxTriviaList
+            Return newLine.InsertRange(0, {SyntaxFactory.WhitespaceTrivia(" "), SyntaxFactory.LineContinuationTrivia("_")})
+        End Function
     End Class
 End Namespace

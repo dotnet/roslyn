@@ -12,16 +12,14 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.BinaryExpression
     internal abstract partial class AbstractBinaryExpressionWrapper<TBinaryExpressionSyntax> : AbstractSyntaxWrapper
         where TBinaryExpressionSyntax : SyntaxNode
     {
-        private readonly bool _supportsOperatorWrapping;
         private readonly ISyntaxFactsService _syntaxFacts;
 
-        protected AbstractBinaryExpressionWrapper(
-            bool supportsOperatorWrapping,
-            ISyntaxFactsService syntaxFacts)
+        protected AbstractBinaryExpressionWrapper(ISyntaxFactsService syntaxFacts)
         {
-            _supportsOperatorWrapping = supportsOperatorWrapping;
             _syntaxFacts = syntaxFacts;
         }
+
+        protected abstract SyntaxTriviaList GetNewLineBeforeOperatorTrivia(SyntaxTriviaList newLine);
 
         public sealed override async Task<ICodeActionComputer> TryCreateComputerAsync(
             Document document, int position, SyntaxNode node, CancellationToken cancellationToken)
