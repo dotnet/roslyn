@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.Editor.Wrapping.BinaryExpression
 {
-    internal abstract partial class AbstractBinaryExpressionWrapper<TBinaryExpressionSyntax> : AbstractWrapper
+    internal abstract partial class AbstractBinaryExpressionWrapper<TBinaryExpressionSyntax> : AbstractSyntaxWrapper
         where TBinaryExpressionSyntax : SyntaxNode
     {
         private readonly bool _supportsOperatorWrapping;
