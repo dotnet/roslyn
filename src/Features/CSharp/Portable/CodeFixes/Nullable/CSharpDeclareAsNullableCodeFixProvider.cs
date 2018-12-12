@@ -95,12 +95,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.DeclareAsNullable
                     case MethodDeclarationSyntax method:
                         // string M() { return null; }
                         // async Task<string> M() { return null; }
-                        return tryGetMethodReturnType(method.ReturnType, method.Modifiers);
+                        return TryGetMethodReturnType(method.ReturnType, method.Modifiers);
 
                     case LocalFunctionStatementSyntax localFunction:
                         // string local() { return null; }
                         // async Task<string> local() { return null; }
-                        return tryGetMethodReturnType(localFunction.ReturnType, localFunction.Modifiers);
+                        return TryGetMethodReturnType(localFunction.ReturnType, localFunction.Modifiers);
 
                     case PropertyDeclarationSyntax property:
                         // string x { get { return null; } }
@@ -147,25 +147,25 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.DeclareAsNullable
 
             return null;
 
-            TypeSyntax tryGetMethodReturnType(TypeSyntax returnType, SyntaxTokenList modifiers)
+            // local functions
+            TypeSyntax TryGetMethodReturnType(TypeSyntax returnType, SyntaxTokenList modifiers)
             {
-                var asyncModifier = modifiers.FirstOrDefault(m => m.Kind() == SyntaxKind.AsyncKeyword);
-                if (asyncModifier.Kind() != SyntaxKind.None)
+                if (modifiers.Any(SyntaxKind.AsyncKeyword))
                 {
                     // async Task<string> M() { return null; }
-                    return tryGetSingleTypeArgument(returnType);
+                    return TryGetSingleTypeArgument(returnType);
                 }
 
                 // string M() { return null; }
                 return returnType;
             }
 
-            TypeSyntax tryGetSingleTypeArgument(TypeSyntax type)
+            TypeSyntax TryGetSingleTypeArgument(TypeSyntax type)
             {
                 switch (type)
                 {
                     case QualifiedNameSyntax qualified:
-                        return tryGetSingleTypeArgument(qualified.Right);
+                        return TryGetSingleTypeArgument(qualified.Right);
 
                     case GenericNameSyntax generic:
                         var typeArguments = generic.TypeArgumentList.Arguments;
