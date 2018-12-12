@@ -51,11 +51,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private readonly PooledDictionary<Symbol, TypeSymbolWithAnnotations> _variableTypes = PooledDictionary<Symbol, TypeSymbolWithAnnotations>.GetInstance();
 
-        /// <summary>
-        /// The current source assembly.
-        /// </summary>
-        private readonly SourceAssemblySymbol _sourceAssembly;
-
         private readonly Binder _binder;
 
         /// <summary>
@@ -138,7 +133,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             Action<BoundExpression, TypeSymbolWithAnnotations> callbackOpt)
             : base(compilation, method, node, new EmptyStructTypeCache(compilation, dev12CompilerCompatibility: false), trackUnassignments: true)
         {
-            _sourceAssembly = (method is null) ? null : (SourceAssemblySymbol)method.ContainingAssembly;
             _callbackOpt = callbackOpt;
             _binder = compilation.GetBinderFactory(node.SyntaxTree).GetBinder(node.Syntax);
             Debug.Assert(!_binder.Conversions.IncludeNullability);
