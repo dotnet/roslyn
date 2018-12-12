@@ -165,6 +165,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                     symbolStartContext.RegisterOperationAction(AnalyzeMemberReferenceOperation, OperationKind.FieldReference, OperationKind.MethodReference, OperationKind.PropertyReference, OperationKind.EventReference);
                     symbolStartContext.RegisterOperationAction(AnalyzeFieldInitializer, OperationKind.FieldInitializer);
                     symbolStartContext.RegisterOperationAction(AnalyzeInvocationOperation, OperationKind.Invocation);
+                    symbolStartContext.RegisterOperationAction(AnalyzeNameOfOperation, OperationKind.NameOf);
                     symbolStartContext.RegisterOperationAction(AnalyzeObjectCreationOperation, OperationKind.ObjectCreation);
                     symbolStartContext.RegisterOperationAction(_ => hasInvalidOperation = true, OperationKind.Invalid);
                     symbolStartContext.RegisterSymbolEndAction(symbolEndContext => OnSymbolEnd(symbolEndContext, hasInvalidOperation));
@@ -294,6 +295,34 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                 OnSymbolUsage(targetMethod, ValueUsageInfo.Read);
             }
 
+            private void AnalyzeNameOfOperation(OperationAnalysisContext operationContext)
+            {
+                // Workaround for https://github.com/dotnet/roslyn/issues/19965
+                // IOperation API does not expose potential references to methods/properties within
+                // a bound method group/property group.
+                var nameofArgument = ((INameOfOperation)operationContext.Operation).Argument;
+
+                if (nameofArgument is IMemberReferenceOperation)
+                {
+                    // Already analyzed in AnalyzeMemberReferenceOperation.
+                    return;
+                }
+
+                var symbolInfo = nameofArgument.SemanticModel.GetSymbolInfo(nameofArgument.Syntax, operationContext.CancellationToken);
+                foreach (var symbol in symbolInfo.GetAllSymbols())
+                {
+                    switch (symbol.Kind)
+                    {
+                        // Handle potential references to methods/properties from missing IOperation
+                        // for method group/property group.
+                        case SymbolKind.Method:
+                        case SymbolKind.Property:
+                            OnSymbolUsage(symbol, ValueUsageInfo.NameOnly);
+                            break;
+                    }
+                }
+            }
+
             private void AnalyzeObjectCreationOperation(OperationAnalysisContext operationContext)
             {
                 var constructor = ((IObjectCreationOperation)operationContext.Operation).Constructor.OriginalDefinition;
@@ -377,12 +406,13 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
 
                             // Most of the members should have a single location, except for partial methods.
                             // We report the diagnostic on the first location of the member.
-                            var diagnostic = Diagnostic.Create(
+                            var diagnostic = DiagnosticHelper.CreateWithMessage(
                                 rule,
                                 member.Locations[0],
+                                rule.GetEffectiveSeverity(symbolEndContext.Compilation.Options),
                                 additionalLocations: null,
                                 properties: null,
-                                $"{member.ContainingType.Name}.{member.Name}");
+                                GetMessage(rule, member));
                             symbolEndContext.ReportDiagnostic(diagnostic);
                         }
                     }
@@ -394,6 +424,22 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                 }
 
                 return;
+            }
+
+            private static LocalizableString GetMessage(
+               DiagnosticDescriptor rule,
+               ISymbol member)
+            {
+                var messageFormat = rule.MessageFormat;
+                if (rule == s_removeUnreadMembersRule &&
+                    member is IMethodSymbol)
+                {
+                    // IDE0052 has a different message for method symbols.
+                    messageFormat = FeaturesResources.Private_method_0_can_be_removed_as_it_is_never_invoked;
+                }
+
+                var memberName = $"{member.ContainingType.Name}.{member.Name}";
+                return new DiagnosticHelper.LocalizableStringWithArguments(messageFormat, memberName);
             }
 
             private static bool HasSyntaxErrors(INamedTypeSymbol namedTypeSymbol, CancellationToken cancellationToken)
@@ -601,8 +647,9 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                 => methodSymbol.Name == WellKnownMemberNames.EntryPointMethodName &&
                    methodSymbol.IsStatic &&
                    (methodSymbol.ReturnsVoid ||
-                    methodSymbol.ReturnType.OriginalDefinition == _taskType ||
-                    methodSymbol.ReturnType.OriginalDefinition == _genericTaskType);
+                    methodSymbol.ReturnType.SpecialType == SpecialType.System_Int32 ||
+                    methodSymbol.ReturnType.OriginalDefinition.Equals(_taskType) ||
+                    methodSymbol.ReturnType.OriginalDefinition.Equals(_genericTaskType));
 
             private bool IsMethodWithSpecialAttribute(IMethodSymbol methodSymbol)
                 => methodSymbol.GetAttributes().Any(a => _attributeSetForMethodsToIgnore.Contains(a.AttributeClass));

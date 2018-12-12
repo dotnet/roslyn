@@ -10,7 +10,6 @@
 
 namespace Microsoft.CodeAnalysis {
     using System;
-    using System.Reflection;
     
     
     /// <summary>
@@ -40,7 +39,7 @@ namespace Microsoft.CodeAnalysis {
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Microsoft.CodeAnalysis.FeaturesResources", typeof(FeaturesResources).GetTypeInfo().Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Microsoft.CodeAnalysis.FeaturesResources", typeof(FeaturesResources).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
@@ -2795,6 +2794,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Private_member_0_is_unused {
             get {
                 return ResourceManager.GetString("Private_member_0_is_unused", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Private method &apos;{0}&apos; can be removed as it is never invoked..
+        /// </summary>
+        internal static string Private_method_0_can_be_removed_as_it_is_never_invoked {
+            get {
+                return ResourceManager.GetString("Private_method_0_can_be_removed_as_it_is_never_invoked", resourceCulture);
             }
         }
         
