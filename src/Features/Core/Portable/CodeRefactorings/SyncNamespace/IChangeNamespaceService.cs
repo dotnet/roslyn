@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
         /// 
         /// An <see cref="System.ArgumentException"/> will be thrown if:
         /// 1. <paramref name="container"/> is not a namespace declaration or a compilation unit node.
-        /// 2. <paramref name="targetNamespace"/> is null or an contain invalid character.
+        /// 2. <paramref name="targetNamespace"/> is null or contains an invalid character.
         /// </summary>
         /// <remarks>
         /// If the declared namespace for <paramref name="container"/> is already identical to <paramref name="targetNamespace"/>, then it will be
