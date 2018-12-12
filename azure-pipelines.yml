@@ -24,20 +24,28 @@ jobs:
     matrix:
       debug_32:
         _configuration: Debug
-        _testKind: Test32
+        _testKind: -TestDesktop -Test32
+        _title: Windows Desktop Debug32
       debug_64:
         _configuration: Debug
-        _testKind: Test64
+        _testKind: -TestDesktop -Test64
+        _title: Windows Desktop Debug64
       release_32:
         _configuration: Release
-        _testKind: Test32
+        _testKind: -TestDesktop -Test32
+        _title: Windows Desktop Release32
       release_64:
         _configuration: Release
-        _testKind: Test64
+        _testKind: -TestDesktop -Test64
+        _title: Windows Desktop Release64
+      ioperation:
+        _configuration: Debug
+        _testKind: -TestIOperation
+        _title: Windows IOperation
   timeoutInMinutes: 90
 
   steps:
-    - script: eng/cibuild.cmd -configuration $(_configuration) -prepareMachine -testDesktop -$(_testKind) -procdump
+    - script: eng/cibuild.cmd -configuration $(_configuration) -prepareMachine $(_testKind) -procdump
       displayName: Build and Test
 
     - task: PublishTestResults@2
@@ -46,14 +54,14 @@ jobs:
         testRunner: XUnit
         testResultsFiles: '$(Build.SourcesDirectory)\artifacts\TestResults\$(_configuration)\*.xml'
         mergeTestResults: true
-        testRunTitle: 'Windows Desktop $(_configuration) $(_testKind)'
+        testRunTitle: '$(_title)'
       condition: always()
 
     - task: PublishBuildArtifacts@1
       displayName: Publish Logs
       inputs:
         PathtoPublish: '$(Build.SourcesDirectory)\artifacts\log\$(_configuration)'
-        ArtifactName: 'Windows Desktop $(_configuration) $(_testKind)' 
+        ArtifactName: '$(_title)'
         publishLocation: Container
       continueOnError: true
       condition: not(succeeded())
