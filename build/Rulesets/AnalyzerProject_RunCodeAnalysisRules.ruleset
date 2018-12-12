@@ -1,9 +1,0 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<RuleSet Name="Ruleset for Roslyn analyzer projects when explicitly running Code Analysis." Description="These rule are identical to the minimum recommended ruleset, but specific roslyn performance rules have been turned off." ToolsVersion="14.0">
-  <!-- Include all analyzer project build rules -->
-  <Include Path=".\AnalyzerProject_BuildRules.ruleset" Action="Default" />
-
-  <!-- Include all FxCop minimum recommended rules -->
-  <Include Path=".\Core_RunCodeAnalysisRules.ruleset" Action="Default" />
-
-</RuleSet>

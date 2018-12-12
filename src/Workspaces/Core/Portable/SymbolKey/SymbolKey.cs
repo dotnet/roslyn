@@ -136,7 +136,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         public SymbolKeyResolution Resolve(
-            Compilation compilation, 
+            Compilation compilation,
             bool ignoreAssemblyKey = false, bool resolveLocations = false,
             CancellationToken cancellationToken = default)
         {

@@ -238,9 +238,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // which will cause some error to be reported.  That's sufficient (i.e. no need to specifically report its absence here).
                     parameter = new SignatureOnlyParameterSymbol(
                         TypeSymbolWithAnnotations.Create(compilation.GetSpecialType(SpecialType.System_Object), customModifiers: parameter.Type.CustomModifiers), parameter.RefCustomModifiers, parameter.IsParams, parameter.RefKind);
-            }
+                }
 
-            analyzedArguments.Arguments.Add(new BoundParameter(syntax, parameter) { WasCompilerGenerated = true });
+                analyzedArguments.Arguments.Add(new BoundParameter(syntax, parameter) { WasCompilerGenerated = true });
                 analyzedArguments.RefKinds.Add(parameter.RefKind);
             }
         }

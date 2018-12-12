@@ -13,24 +13,24 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping
     {
         public readonly SyntaxToken Left;
         public readonly SyntaxToken Right;
-        public readonly SyntaxTriviaList LeftTrailingTrivia;
-        public readonly SyntaxTriviaList RightLeadingTrivia;
+        public readonly SyntaxTriviaList NewLeftTrailingTrivia;
+        public readonly SyntaxTriviaList NewRightLeadingTrivia;
 
         private Edit(
-            SyntaxToken left, SyntaxTriviaList leftTrailingTrivia,
-            SyntaxToken right, SyntaxTriviaList rightLeadingTrivia)
+            SyntaxToken left, SyntaxTriviaList newLeftTrailingTrivia,
+            SyntaxToken right, SyntaxTriviaList newRightLeadingTrivia)
         {
             Left = left;
             Right = right;
-            LeftTrailingTrivia = leftTrailingTrivia;
-            RightLeadingTrivia = rightLeadingTrivia;
+            NewLeftTrailingTrivia = newLeftTrailingTrivia;
+            NewRightLeadingTrivia = newRightLeadingTrivia;
         }
 
         public string GetNewTrivia()
         {
             var result = PooledStringBuilder.GetInstance();
-            AppendTrivia(result, LeftTrailingTrivia);
-            AppendTrivia(result, RightLeadingTrivia);
+            AppendTrivia(result, NewLeftTrailingTrivia);
+            AppendTrivia(result, NewRightLeadingTrivia);
             return result.ToStringAndFree();
         }
 

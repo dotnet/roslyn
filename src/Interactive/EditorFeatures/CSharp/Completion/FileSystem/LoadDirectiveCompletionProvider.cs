@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Completion.FileSystem
     [TextViewRole(PredefinedInteractiveTextViewRoles.InteractiveTextViewRole)]
     internal sealed class LoadDirectiveCompletionProvider : AbstractLoadDirectiveCompletionProvider
     {
-        protected override bool TryGetStringLiteralToken(SyntaxTree tree, int position, out SyntaxToken stringLiteral, CancellationToken cancellationToken) 
+        protected override bool TryGetStringLiteralToken(SyntaxTree tree, int position, out SyntaxToken stringLiteral, CancellationToken cancellationToken)
             => DirectiveCompletionProviderUtilities.TryGetStringLiteralToken(tree, position, SyntaxKind.LoadDirectiveTrivia, out stringLiteral, cancellationToken);
     }
 }

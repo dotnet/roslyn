@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
         }
 
         protected override async Task FixAllAsync(
-            Document document, ImmutableArray<Diagnostic> diagnostics, 
+            Document document, ImmutableArray<Diagnostic> diagnostics,
             SyntaxEditor editor, CancellationToken cancellationToken)
         {
             var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
@@ -53,13 +53,13 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
             {
                 cancellationToken.ThrowIfCancellationRequested();
                 await AddEditsAsync(
-                    document, editor, diagnostic, 
+                    document, editor, diagnostic,
                     options, cancellationToken).ConfigureAwait(false);
             }
         }
 
         private async Task AddEditsAsync(
-            Document document, SyntaxEditor editor, Diagnostic diagnostic, 
+            Document document, SyntaxEditor editor, Diagnostic diagnostic,
             OptionSet options, CancellationToken cancellationToken)
         {
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
                     if (sourceText.AreOnSameLine(declarator.GetFirstToken(), declarator.GetFirstToken().GetPreviousToken(includeSkipped: true)))
                     {
                         editor.ReplaceNode(
-                            declaration.Type, 
+                            declaration.Type,
                             (t, g) => t.WithTrailingTrivia(SyntaxFactory.ElasticSpace).WithoutAnnotations(Formatter.Annotation));
                     }
                 }
@@ -317,7 +317,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
         }
 
         private bool TryGetSpeculativeSemanticModel(
-            SemanticModel semanticModel, 
+            SemanticModel semanticModel,
             int position, SyntaxNode topmostContainer,
             out SemanticModel speculativeModel)
         {
@@ -339,7 +339,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument) 
+            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
                 : base(FeaturesResources.Inline_variable_declaration,
                        createChangedDocument,
                        FeaturesResources.Inline_variable_declaration)

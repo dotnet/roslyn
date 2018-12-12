@@ -10,14 +10,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Editor.Wrapping.SeparatedSyntaxList
     internal partial class CSharpArgumentWrapper
         : AbstractCSharpSeparatedSyntaxListWrapper<BaseArgumentListSyntax, ArgumentSyntax>
     {
-        protected override string ListName => FeaturesResources.argument_list;
-        protected override string ItemNamePlural => FeaturesResources.arguments;
-        protected override string ItemNameSingular => FeaturesResources.argument;
+        protected override string Align_wrapped_items => FeaturesResources.Align_wrapped_arguments;
+        protected override string Indent_all_items => FeaturesResources.Indent_all_arguments;
+        protected override string Indent_wrapped_items => FeaturesResources.Indent_wrapped_arguments;
+        protected override string Unwrap_all_items => FeaturesResources.Unwrap_all_arguments;
+        protected override string Unwrap_and_indent_all_items => FeaturesResources.Unwrap_and_indent_all_arguments;
+        protected override string Unwrap_list => FeaturesResources.Unwrap_argument_list;
+        protected override string Wrap_every_item => FeaturesResources.Wrap_every_argument;
+        protected override string Wrap_long_list => FeaturesResources.Wrap_long_argument_list;
 
         protected override SeparatedSyntaxList<ArgumentSyntax> GetListItems(BaseArgumentListSyntax listSyntax)
             => listSyntax.Arguments;
 
-        protected override BaseArgumentListSyntax GetApplicableList(SyntaxNode node)
+        protected override BaseArgumentListSyntax TryGetApplicableList(SyntaxNode node)
         {
             switch (node)
             {
@@ -43,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Editor.Wrapping.SeparatedSyntaxList
                 // section.
                 var expr = (declaration as InvocationExpressionSyntax)?.Expression ??
                            (declaration as ElementAccessExpressionSyntax).Expression;
-                var name = GetPrecedingRelevantExpressionPortion(expr);
+                var name = TryGetInvokedName(expr);
 
                 startToken = name == null ? listSyntax.GetFirstToken() : name.GetFirstToken();
             }
@@ -82,7 +87,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Editor.Wrapping.SeparatedSyntaxList
             return true;
         }
 
-        private ExpressionSyntax GetPrecedingRelevantExpressionPortion(ExpressionSyntax expr)
+        private ExpressionSyntax TryGetInvokedName(ExpressionSyntax expr)
         {
             // `Foo(...)`.  Allow up through the 'Foo' portion
             if (expr is NameSyntax name)

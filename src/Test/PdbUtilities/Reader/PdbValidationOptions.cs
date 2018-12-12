@@ -23,10 +23,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
     {
         public static PdbToXmlOptions ToPdbToXmlOptions(this PdbValidationOptions options)
         {
-            const PdbValidationOptions mask = 
-                PdbValidationOptions.ExcludeDocuments | 
+            const PdbValidationOptions mask =
+                PdbValidationOptions.ExcludeDocuments |
                 PdbValidationOptions.ExcludeMethods |
-                PdbValidationOptions.ExcludeSequencePoints | 
+                PdbValidationOptions.ExcludeSequencePoints |
                 PdbValidationOptions.ExcludeScopes |
                 PdbValidationOptions.ExcludeNamespaces |
                 PdbValidationOptions.ExcludeAsyncInfo |

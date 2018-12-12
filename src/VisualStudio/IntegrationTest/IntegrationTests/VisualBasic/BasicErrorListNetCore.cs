@@ -14,7 +14,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
         {
         }
 
-        [WorkItem(1825 , "https://github.com/dotnet/roslyn-project-system/issues/1825")]
+        [WorkItem(1825, "https://github.com/dotnet/roslyn-project-system/issues/1825")]
         [WpfFact(Skip = "https://github.com/dotnet/roslyn-project-system/issues/1825"), Trait(Traits.Feature, Traits.Features.ErrorList)]
         [Trait(Traits.Feature, Traits.Features.NetCore)]
         public override void ErrorList()
@@ -22,7 +22,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
             base.ErrorList();
         }
 
-        [WorkItem(1825 , "https://github.com/dotnet/roslyn-project-system/issues/1825")]
+        [WorkItem(1825, "https://github.com/dotnet/roslyn-project-system/issues/1825")]
         [WpfFact(Skip = "https://github.com/dotnet/roslyn-project-system/issues/1825"), Trait(Traits.Feature, Traits.Features.ErrorList)]
         [Trait(Traits.Feature, Traits.Features.NetCore)]
         public override void ErrorsDuringMethodBodyEditing()

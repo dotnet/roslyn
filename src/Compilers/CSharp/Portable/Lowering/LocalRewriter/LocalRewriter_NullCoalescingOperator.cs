@@ -168,7 +168,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private bool IsStringConcat(BoundExpression expression)
         {
-            if  (expression.Kind != BoundKind.Call)
+            if (expression.Kind != BoundKind.Call)
             {
                 return false;
             }

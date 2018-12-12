@@ -180,7 +180,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         {
             var topLevelWindows = new List<IntPtr>();
 
-            var enumFunc = new NativeMethods.WNDENUMPROC((hWnd, lParam) => {
+            var enumFunc = new NativeMethods.WNDENUMPROC((hWnd, lParam) =>
+            {
                 topLevelWindows.Add(hWnd);
                 return true;
             });

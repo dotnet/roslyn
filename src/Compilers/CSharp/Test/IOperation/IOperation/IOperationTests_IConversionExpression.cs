@@ -3063,7 +3063,7 @@ IVariableDeclaratorOperation (Symbol: System.Linq.Expressions.Expression<System.
             IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'num < 5')
               IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'num < 5')
                 ReturnedValue: 
-                  IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'num < 5')
+                  IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'num < 5')
                     Left: 
                       IParameterReferenceOperation: num (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'num')
                     Right: 

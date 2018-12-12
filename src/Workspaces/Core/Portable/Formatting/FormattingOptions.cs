@@ -5,6 +5,10 @@ using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Options;
 using Roslyn.Utilities;
 
+#if CODE_STYLE
+using WorkspacesResources = Microsoft.CodeAnalysis.CodeStyleResources;
+#endif
+
 namespace Microsoft.CodeAnalysis.Formatting
 {
     public static class FormattingOptions
@@ -73,10 +77,11 @@ namespace Microsoft.CodeAnalysis.Formatting
         /// default indentation of at least 16 (for namespace, class, member, plus the final construct
         /// indentation).
         /// </summary>
-        internal static Option<int> PreferredWrappingColumn { get; } = CreateOption(
-            FormattingOptionGroups.NewLine, nameof(PreferredWrappingColumn),
-            defaultValue: 120,
-            storageLocations: EditorConfigStorageLocation.ForInt32Option("dotnet_preferred_wrapping_column"));
+        internal static Option<int> PreferredWrappingColumn { get; } = new Option<int>(
+            nameof(FormattingOptions),
+            FormattingOptionGroups.NewLine,
+            nameof(PreferredWrappingColumn),
+            defaultValue: 120);
 
         private static readonly BidirectionalMap<string, string> s_parenthesesPreferenceMap =
             new BidirectionalMap<string, string>(new[]
@@ -91,10 +96,6 @@ namespace Microsoft.CodeAnalysis.Formatting
 
         private static string GetEndOfLineEditorConfigString(string option)
             => s_parenthesesPreferenceMap.TryGetKey(option, out var editorConfigString) ? editorConfigString : null;
-
-        internal static PerLanguageOption<bool> DebugMode { get; } = CreatePerLanguageOption(OptionGroup.Default, nameof(DebugMode), defaultValue: false);
-
-        internal static Option<bool> AllowConcurrent { get; } = new Option<bool>(nameof(FormattingOptions), nameof(AllowConcurrent), defaultValue: true);
 
         internal static Option<bool> AllowDisjointSpanMerging { get; } = CreateOption(OptionGroup.Default, nameof(AllowDisjointSpanMerging), defaultValue: false);
 

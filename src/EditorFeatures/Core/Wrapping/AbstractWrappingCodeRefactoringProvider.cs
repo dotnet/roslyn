@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping
     /// <summary>
     /// Base type for the C# and VB wrapping refactorings.  The only responsibility of this type is
     /// to walk up the tree at the position the user is at, seeing if any node above the user can be
-    /// wrapped by any provided <see cref="IWrapper"/>s.
+    /// wrapped by any provided <see cref="ISyntaxWrapper"/>s.
     /// 
     /// Once we get any wrapping actions, we stop looking further.  This keeps the refactorings
     /// scoped as closely as possible to where the user is, as well as preventing overloading of the
@@ -18,10 +18,10 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping
     /// </summary>
     internal abstract class AbstractWrappingCodeRefactoringProvider : CodeRefactoringProvider
     {
-        private readonly ImmutableArray<IWrapper> _wrappers;
+        private readonly ImmutableArray<ISyntaxWrapper> _wrappers;
 
         protected AbstractWrappingCodeRefactoringProvider(
-            ImmutableArray<IWrapper> wrappers)
+            ImmutableArray<ISyntaxWrapper> wrappers)
         {
             _wrappers = wrappers;
         }
@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping
                         continue;
                     }
 
-                    var actions = await computer.GetTopLevelCodeActionsAsync();
+                    var actions = await computer.GetTopLevelCodeActionsAsync().ConfigureAwait(false);
                     if (actions.IsDefaultOrEmpty)
                     {
                         continue;

@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureInferredTupleNames = MessageBase + 12719,
         IDS_FeatureGenericPatternMatching = MessageBase + 12720,
         IDS_FeatureAsyncMain = MessageBase + 12721,
-        IDS_LangVersions = MessageBase +  12722,
+        IDS_LangVersions = MessageBase + 12722,
 
         IDS_FeatureLeadingDigitSeparator = MessageBase + 12723,
         IDS_FeatureNonTrailingNamedArguments = MessageBase + 12724,
@@ -165,11 +165,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureAltInterpolatedVerbatimStrings = MessageBase + 12745,
         IDS_FeatureCoalesceAssignmentExpression = MessageBase + 12746,
         IDS_FeatureUnconstrainedTypeParameterInNullCoalescingOperator = MessageBase + 12747,
-        IDS_InjectedDeclaration = MessageBase + 12748,
-        IDS_FeatureObjectGenericTypeConstraint = MessageBase + 12749,
-        IDS_FeatureIndexOperator = MessageBase + 12750,
-        IDS_FeatureRangeOperator = MessageBase + 12751,
-        IDS_FeatureAsyncStreams = MessageBase + 12752,
+        IDS_FeatureObjectGenericTypeConstraint = MessageBase + 12748,
+        IDS_FeatureIndexOperator = MessageBase + 12749,
+        IDS_FeatureRangeOperator = MessageBase + 12750,
+        IDS_FeatureAsyncStreams = MessageBase + 12751,
     }
 
     // Message IDs may refer to strings that need to be localized.

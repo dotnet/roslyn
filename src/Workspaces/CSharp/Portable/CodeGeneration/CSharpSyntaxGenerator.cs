@@ -3227,10 +3227,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 var fullDecl = GetFullDeclaration(declaration);
 
                 // special handling for replacing at location of sub-declaration
-                if (fullDecl != declaration)
+                if (fullDecl != declaration && fullDecl.IsKind(newFullDecl.Kind()))
                 {
                     // try to replace inline if possible
-                    if (fullDecl.IsKind(newFullDecl.Kind()) && GetDeclarationCount(newFullDecl) == 1)
+                    if (GetDeclarationCount(newFullDecl) == 1)
                     {
                         var newSubDecl = GetSubDeclarations(newFullDecl)[0];
                         if (AreInlineReplaceableSubDeclarations(declaration, newSubDecl))

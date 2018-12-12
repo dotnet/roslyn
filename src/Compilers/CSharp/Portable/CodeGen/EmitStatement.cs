@@ -364,7 +364,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 EmitCondBranchCore(condition, ref dest, sense);
                 Debug.Assert(_recursionDepth == 1);
             }
-            catch (Exception ex) when (StackGuard.IsInsufficientExecutionStackException(ex))
+            catch (InsufficientExecutionStackException)
             {
                 _diagnostics.Add(ErrorCode.ERR_InsufficientStack,
                                  BoundTreeVisitor.CancelledByStackGuardException.GetTooLongOrComplexExpressionErrorLocation(condition));
@@ -374,7 +374,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         private void EmitCondBranchCore(BoundExpression condition, ref object dest, bool sense)
         {
-        oneMoreTime:
+oneMoreTime:
 
             ILOpCode ilcode;
 
@@ -614,7 +614,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
                 foreach (var local in block.Locals)
                 {
-                    Debug.Assert(local.RefKind == RefKind.None || local.SynthesizedKind.IsLongLived(), 
+                    Debug.Assert(local.RefKind == RefKind.None || local.SynthesizedKind.IsLongLived(),
                         "A ref local ended up in a block and claims it is shortlived. That is dangerous. Are we sure it is short lived?");
 
                     var declaringReferences = local.DeclaringSyntaxReferences;

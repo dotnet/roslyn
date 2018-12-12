@@ -147,12 +147,12 @@ namespace Microsoft.CodeAnalysis
         private const int s_offsetToKeyData = BlobHeaderSize + RsaPubKeySize;
 
         private static ImmutableArray<byte> CreateSnPublicKeyBlob(
-            byte type, 
-            byte version, 
-            uint algId, 
-            uint magic, 
-            uint bitLen, 
-            uint pubExp, 
+            byte type,
+            byte version,
+            uint algId,
+            uint magic,
+            uint bitLen,
+            uint pubExp,
             byte[] pubKeyData)
         {
             var w = new BlobWriter(3 * sizeof(uint) + s_offsetToKeyData + pubKeyData.Length);
@@ -324,7 +324,7 @@ namespace Microsoft.CodeAnalysis
                     (byte)(exponent)
                 };
             }
-}
+        }
 
 
         /// <summary>
@@ -336,6 +336,6 @@ namespace Microsoft.CodeAnalysis
             byte[] data = br.ReadBytes(count);
             Array.Reverse(data);
             return data;
-}
+        }
     }
 }

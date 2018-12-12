@@ -17,7 +17,7 @@ using static Microsoft.CodeAnalysis.CodeActions.CodeAction;
 
 namespace Microsoft.CodeAnalysis.Editor.Wrapping
 {
-    internal abstract partial class AbstractWrapper
+    internal abstract partial class AbstractSyntaxWrapper
     {
         /// <summary>
         /// Class responsible for actually computing the entire set of code actions to offer the
@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping
         /// something that will be unclear.
         /// </summary>
         protected abstract class AbstractCodeActionComputer<TWrapper> : ICodeActionComputer
-            where TWrapper : AbstractWrapper
+            where TWrapper : AbstractSyntaxWrapper
         {
             /// <summary>
             /// Annotation used so that we can track the top-most node we want to format after
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping
 
             protected readonly SyntaxTriviaList NewLineTrivia;
             protected readonly SyntaxTriviaList SingleWhitespaceTrivia;
-            protected readonly SyntaxTriviaList NoTrivia = default;
+            protected readonly SyntaxTriviaList NoTrivia;
 
             /// <summary>
             /// The contents of the documents we've created code-actions for.  This is used so that
@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping
 
                 // Now, format the part of the tree that we edited.  This will ensure we properly 
                 // respect the user preferences around things like comma/operator spacing.
-                var formattedDocument = await FormatDocumentAsync(rewrittenRoot, spanToFormat);
+                var formattedDocument = await FormatDocumentAsync(rewrittenRoot, spanToFormat).ConfigureAwait(false);
                 var formattedRoot = await formattedDocument.GetSyntaxRootAsync(CancellationToken).ConfigureAwait(false);
 
                 // Now, check if this new formatted tree matches our starting tree, or any of the
@@ -165,8 +165,8 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping
                         // is already there.
                         if (text != edit.GetNewTrivia())
                         {
-                            leftTokenToTrailingTrivia.Add(edit.Left, edit.LeftTrailingTrivia);
-                            rightTokenToLeadingTrivia.Add(edit.Right, edit.RightLeadingTrivia);
+                            leftTokenToTrailingTrivia.Add(edit.Left, edit.NewLeftTrailingTrivia);
+                            rightTokenToLeadingTrivia.Add(edit.Right, edit.NewRightLeadingTrivia);
                         }
                     }
 
@@ -187,8 +187,8 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping
             }
 
             private async Task<(SyntaxNode root, SyntaxNode rewrittenRoot, TextSpan spanToFormat)> RewriteTreeAsync(
-                PooledDictionary<SyntaxToken, SyntaxTriviaList> leftTokenToTrailingTrivia,
-                PooledDictionary<SyntaxToken, SyntaxTriviaList> rightTokenToLeadingTrivia)
+                Dictionary<SyntaxToken, SyntaxTriviaList> leftTokenToTrailingTrivia,
+                Dictionary<SyntaxToken, SyntaxTriviaList> rightTokenToLeadingTrivia)
             {
                 var root = await OriginalDocument.GetSyntaxRootAsync(CancellationToken).ConfigureAwait(false);
                 var tokens = leftTokenToTrailingTrivia.Keys.Concat(rightTokenToLeadingTrivia.Keys).Distinct().ToImmutableArray();

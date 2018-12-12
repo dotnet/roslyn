@@ -205,7 +205,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         public override RefKind RefKind => _refKind;
-        
+
         internal void ComputeReturnType()
         {
             if (!_lazyReturnType.IsNull)
@@ -235,7 +235,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 DeclaringCompilation.EnsureIsReadOnlyAttributeExists(diagnostics, location, modifyCompilation: false);
             }
 
-            if (returnType.ContainsNullableReferenceTypes())
+            if (returnType.NeedsNullableAttribute())
             {
                 DeclaringCompilation.EnsureNullableAttributeExists(diagnostics, location, modifyCompilation: false);
                 // Note: we don't need to warn on annotations used without NonNullTypes context for local functions, as this is handled in binding already
@@ -271,7 +271,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override ImmutableArray<TypeSymbolWithAnnotations> TypeArguments => GetTypeParametersAsTypeArguments();
 
-        public override ImmutableArray<TypeParameterSymbol> TypeParameters 
+        public override ImmutableArray<TypeParameterSymbol> TypeParameters
             => _typeParameters.Cast<SourceMethodTypeParameterSymbol, TypeParameterSymbol>();
 
         public override bool IsExtensionMethod

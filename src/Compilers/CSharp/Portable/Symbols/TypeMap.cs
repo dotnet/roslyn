@@ -20,9 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal static ImmutableArray<TypeSymbolWithAnnotations> TypeParametersAsTypeSymbolsWithAnnotations(ImmutableArray<TypeParameterSymbol> typeParameters)
         {
-            return typeParameters.SelectAsArray((tp) =>
-                TypeSymbolWithAnnotations.Create(NonNullTypesNullContext.Instance, tp, isAnnotated: false, customModifiers: ImmutableArray<CustomModifier>.Empty)
-                );
+            return typeParameters.SelectAsArray((tp) => TypeSymbolWithAnnotations.Create(tp));
         }
 
         internal static ImmutableArray<TypeSymbol> AsTypeSymbols(ImmutableArray<TypeSymbolWithAnnotations> typesOpt)
@@ -119,7 +117,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var newTp = synthesized ?
                     new SynthesizedSubstitutedTypeParameterSymbol(newOwner, result, tp, ordinal) :
                     new SubstitutedTypeParameterSymbol(newOwner, result, tp, ordinal);
-                result.Mapping.Add(tp, TypeSymbolWithAnnotations.Create(NonNullTypesNullContext.Instance, newTp));
+                result.Mapping.Add(tp, TypeSymbolWithAnnotations.Create(newTp));
                 newTypeParametersBuilder.Add(newTp);
                 ordinal++;
             }

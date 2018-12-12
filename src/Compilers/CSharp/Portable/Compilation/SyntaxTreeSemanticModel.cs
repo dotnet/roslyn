@@ -171,7 +171,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     model = (constructor.HasAnyBody() || constructor.Initializer != null) ? GetOrAddModel(node) : null;
                     break;
                 case BaseMethodDeclarationSyntax method:
-                    model = method.HasAnyBody() ? GetOrAddModel(node) :  null;
+                    model = method.HasAnyBody() ? GetOrAddModel(node) : null;
                     break;
                 case AccessorDeclarationSyntax accessor:
                     model = (accessor.Body != null || accessor.ExpressionBody != null) ? GetOrAddModel(node) : null;
@@ -880,7 +880,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return ImmutableInterlocked.GetOrAdd(ref _memberModels, attribute,
-                                                 (node, binder) => CreateModelForAttribute(binder, (AttributeSyntax) node),
+                                                 (node, binder) => CreateModelForAttribute(binder, (AttributeSyntax)node),
                                                  containing.GetEnclosingBinder(attribute.SpanStart));
         }
 
@@ -914,14 +914,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var parameterSymbol = (ParameterSymbol)containing.GetDeclaredSymbol(paramDecl);
                 if ((object)parameterSymbol != null)
                 {
-                    return ImmutableInterlocked.GetOrAdd(ref _memberModels, defaultValueSyntax, 
+                    return ImmutableInterlocked.GetOrAdd(ref _memberModels, defaultValueSyntax,
                                                          (equalsValue, tuple) =>
                                                             InitializerSemanticModel.Create(
                                                                 this,
                                                                 tuple.paramDecl,
                                                                 tuple.parameterSymbol,
                                                                 tuple.containing.GetEnclosingBinder(tuple.paramDecl.SpanStart).
-                                                                    CreateBinderForParameterDefaultValue(tuple.parameterSymbol, 
+                                                                    CreateBinderForParameterDefaultValue(tuple.parameterSymbol,
                                                                                             (EqualsValueClauseSyntax)equalsValue)),
                                                          (compilation: this.Compilation,
                                                           paramDecl: paramDecl,
@@ -972,7 +972,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 additionalFlags = BinderFlags.IgnoreAccessibility;
             }
-            
+
             Binder defaultOuter() => _binderFactory.GetBinder(node).WithAdditionalFlags(additionalFlags);
 
             switch (node.Kind())
@@ -1196,7 +1196,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static bool IsMemberDeclaration(CSharpSyntaxNode node)
         {
-            return (node is MemberDeclarationSyntax) || (node is AccessorDeclarationSyntax) || 
+            return (node is MemberDeclarationSyntax) || (node is AccessorDeclarationSyntax) ||
                    (node.Kind() == SyntaxKind.Attribute) || (node.Kind() == SyntaxKind.Parameter);
         }
 

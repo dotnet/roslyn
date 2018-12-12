@@ -2766,7 +2766,7 @@ class C
                 {
                     workspace.Options = workspace.Options.WithChangedOption(SmartIndent, LanguageNames.CSharp, indentStyle);
                     TestIndentation(
-                        workspace, indentationLine, 
+                        workspace, indentationLine,
                         expectedIndentation, expectedBlankLineIndentation);
                 }
             }

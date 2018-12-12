@@ -3459,7 +3459,7 @@ class A
         var [|x|] = args[0];
         return x?.Length == 0;
     }
-}", 
+}",
 @"class A
 {
     bool M(string[] args)
@@ -3480,7 +3480,7 @@ class A
         var [|x|] = args.Length.ToString();
         var y = x?.ToString();
     }
-}", 
+}",
 @"class A
 {
     void M(string[] args)
@@ -3501,7 +3501,7 @@ class A
         var [|x|] = args[0]?.Length ?? 10;
         var y = x == 10 ? 10 : 4;
     }
-}", 
+}",
 @"class A
 {
     void M(string[] args)
@@ -3540,7 +3540,7 @@ class C
 
         return null;
     }
-}", 
+}",
 @"using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -3601,7 +3601,7 @@ class C
 
         return null;
     }
-}", 
+}",
 @"using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -3644,7 +3644,7 @@ class C
         var [|g|] = global::System.Guid.Empty;
         var s = $""{g}"";
     }
-}", 
+}",
 @"class A
 {
     void M()
@@ -3665,7 +3665,7 @@ class C
         var [|x|] = b ? 19 : 23;
         var s = $""{x}"";
     }
-}", 
+}",
 @"class A
 {
     bool M(bool b)
@@ -3686,7 +3686,7 @@ class C
         var [|x|] = b ? 19 : 23;
         var s = $""{x:x}"";
     }
-}", 
+}",
 @"class A
 {
     bool M(bool b)
@@ -3707,7 +3707,7 @@ class C
         var [|x|] = s.ToUpper();
         var y = $""{x}"";
     }
-}", 
+}",
 @"class A
 {
     public static void M(string s)

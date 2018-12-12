@@ -341,7 +341,7 @@ class Program
             await VerifyItemExistsAsync(text, "byte");
             await VerifyItemExistsAsync(text, "char");
         }
-    
+
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task PrivateOrProtectedModifiers()
         {

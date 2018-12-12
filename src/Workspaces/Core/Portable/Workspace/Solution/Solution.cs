@@ -32,8 +32,8 @@ namespace Microsoft.CodeAnalysis
             _state = state;
         }
 
-        internal Solution(Workspace workspace, SolutionInfo info)
-            : this(new SolutionState(workspace, info))
+        internal Solution(Workspace workspace, SolutionInfo.SolutionAttributes solutionAttributes)
+            : this(new SolutionState(workspace, solutionAttributes))
         {
         }
 

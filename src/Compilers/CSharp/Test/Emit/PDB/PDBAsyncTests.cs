@@ -1195,7 +1195,7 @@ class C
       </asyncInfo>
     </method>
   </methods>
-</symbols>");        
+</symbols>");
         }
 
         [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
@@ -2028,7 +2028,7 @@ MethodDebugInformation (index: 0x31, size: 20):
   IL_0022: (5, 29) - (5, 30)
   IL_002A: <hidden>
 }
-5: nil", 
+5: nil",
                     writer.ToString());
             }
         }

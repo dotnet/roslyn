@@ -440,7 +440,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return true;
         }
 
-       public static ImmutableArray<TypeSymbolWithAnnotations> GetElementTypesOfTupleOrCompatible(this TypeSymbol type)
+        public static ImmutableArray<TypeSymbolWithAnnotations> GetElementTypesOfTupleOrCompatible(this TypeSymbol type)
         {
             if (type.IsTupleType)
             {
@@ -950,7 +950,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Return true if the type contains any tuples with element names.
         /// </summary>
         internal static bool ContainsTupleNames(this TypeSymbol type) =>
-            (object)type.VisitType((TypeSymbol t, object _1, bool _2) => !t.TupleElementNames.IsDefault , null) != null;
+            (object)type.VisitType((TypeSymbol t, object _1, bool _2) => !t.TupleElementNames.IsDefault, null) != null;
 
         /// <summary>
         /// Guess the non-error type that the given type was intended to represent.
@@ -1053,8 +1053,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return true;
             }
 
-            return ignoreSpanLikeTypes? 
-                        false:
+            return ignoreSpanLikeTypes ?
+                        false :
                         type.IsByRefLikeType;
         }
 
@@ -1450,6 +1450,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return (object)namedType.ConstructedFrom == compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_IAsyncEnumerable_T);
         }
 
+        internal static bool IsIAsyncEnumeratorType(this TypeSymbol type, CSharpCompilation compilation)
+        {
+            var namedType = type as NamedTypeSymbol;
+            if ((object)namedType == null || namedType.Arity != 1)
+            {
+                return false;
+            }
+
+            return (object)namedType.ConstructedFrom == compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_IAsyncEnumerator_T);
+        }
+
         /// <summary>
         /// Returns true if the type is generic or non-generic custom task-like type due to the
         /// [AsyncMethodBuilder(typeof(B))] attribute. It returns the "B".
@@ -1646,7 +1657,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            if (type.ContainsNullableReferenceTypes())
+            if (type.NeedsNullableAttribute())
             {
                 SynthesizedAttributeData attr = moduleBuilder.SynthesizeNullableAttribute(declaringSymbol, type);
                 if (attr != null)
@@ -1694,10 +1705,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public static bool IsBadAsyncReturn(this TypeSymbol returnType, CSharpCompilation declaringCompilation)
         {
             // Note: we're passing the return type explicitly (rather than using `method.ReturnType`) to avoid cycles
-            return returnType.SpecialType != SpecialType.System_Void &&
+            return !returnType.IsErrorType() &&
+                returnType.SpecialType != SpecialType.System_Void &&
                 !returnType.IsNonGenericTaskType(declaringCompilation) &&
                 !returnType.IsGenericTaskType(declaringCompilation) &&
-                !returnType.IsIAsyncEnumerableType(declaringCompilation);
+                !returnType.IsIAsyncEnumerableType(declaringCompilation) &&
+                !returnType.IsIAsyncEnumeratorType(declaringCompilation);
         }
     }
 }
