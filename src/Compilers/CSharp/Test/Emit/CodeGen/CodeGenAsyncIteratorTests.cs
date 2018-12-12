@@ -3629,6 +3629,37 @@ class C
                 );
         }
 
+        [Fact]
+        public void TryFinally_NoYieldInFinally_NestedTryCatch()
+        {
+            string source = @"
+class C
+{
+    static async System.Collections.Generic.IAsyncEnumerable<int> M()
+    {
+        await System.Threading.Tasks.Task.CompletedTask;
+        try
+        {
+        }
+        finally
+        {
+            try
+            {
+                yield return 1;
+            }
+            catch { }
+        }
+    }
+}
+";
+            var comp = CreateCompilationWithAsyncIterator(source);
+            comp.VerifyDiagnostics(
+                // (14,17): error CS1625: Cannot yield in the body of a finally clause
+                //                 yield return 1;
+                Diagnostic(ErrorCode.ERR_BadYieldInFinally, "yield").WithLocation(14, 17)
+                );
+        }
+
         [ConditionalTheory(typeof(WindowsDesktopOnly))]
         [InlineData(0, "DISPOSAL DONE")]
         [InlineData(1, "0 DISPOSAL Finally1 DONE")]
