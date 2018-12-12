@@ -81,15 +81,18 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         public static IntPtr GetForegroundWindow()
         {
             // Attempt to get the foreground window in a loop, as the NativeMethods function can return IntPtr.Zero
-            // in certain circumstances, such as when a window is losing activation.
+            // in certain circumstances, such as when a window is losing activation. If no foreground window is
+            // identified after a short timeout, none is returned. This only impacts the ability of the test to restore
+            // focus to a previous window, which is fine.
 
             var foregroundWindow = IntPtr.Zero;
+            var stopwatch = Stopwatch.StartNew();
 
             do
             {
                 foregroundWindow = NativeMethods.GetForegroundWindow();
             }
-            while (foregroundWindow == IntPtr.Zero);
+            while (foregroundWindow == IntPtr.Zero && stopwatch.Elapsed < TimeSpan.FromMilliseconds(250));
 
             return foregroundWindow;
         }
