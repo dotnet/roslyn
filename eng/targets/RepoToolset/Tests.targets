@@ -57,6 +57,7 @@
         <ResultsXmlPath>$(ArtifactsTestResultsDir)$(_ResultFileNameNoExt).xml</ResultsXmlPath>
         <ResultsHtmlPath>$(ArtifactsTestResultsDir)$(_ResultFileNameNoExt).html</ResultsHtmlPath>
         <ResultsStdOutPath>$(ArtifactsLogDir)$(_ResultFileNameNoExt).log</ResultsStdOutPath>
+        <TestRunnerAdditionalArguments>$(TestRunnerAdditionalArguments)</TestRunnerAdditionalArguments>
       </TestToRun>
     </ItemGroup>
   </Target>

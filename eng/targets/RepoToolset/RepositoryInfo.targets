@@ -1,26 +1,33 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
+<!-- All Rights Reserved. Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this file to you under the MIT license. See the LICENSE file in the project root for more information. -->
 <Project>
   <PropertyGroup>
     <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
   </PropertyGroup>
 
   <!--
-    Include both GitHub and VSTS packages to enable SourceLink in repositories that mirror to VSTS.
+    Include both GitHub and Azure DevOps (formerly VSTS) packages to enable SourceLink in repositories that mirror to Azure DevOps (formerly VSTS).
   -->
   <ItemGroup Condition="'$(DotNetBuildFromSource)' != 'true'">
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="$(MicrosoftSourceLinkVersion)" PrivateAssets="all" IsImplicitlyDefined="true" />
     <PackageReference Include="Microsoft.SourceLink.Vsts.Git" Version="$(MicrosoftSourceLinkVersion)" PrivateAssets="all" IsImplicitlyDefined="true" />
   </ItemGroup>
 
-  <Target Name="_TranslateVstsUrlToGitHubUrl"
+  <Target Name="_TranslateAzureDevOpsUrlToGitHubUrl"
           DependsOnTargets="$(SourceControlManagerUrlTranslationTargets)"
           BeforeTargets="SourceControlManagerPublishTranslatedUrls">
 
-    <!-- The convention for names of VSTS repositories mirrored from GitHub is "{GitHub org name}-{GitHub repository name}" -->
+    <!-- The convention for names of Azure DevOps repositories mirrored from GitHub is "{GitHub org name}-{GitHub repository name}" -->
     <PropertyGroup>
-      <_Pattern>https://dotnet.visualstudio.com/internal/_git/([^/-]+)-(.+)</_Pattern>
-      <_Replacement>https://github.com/$1/$2</_Replacement>
+      <!-- There are quite a few git repo forms:
+        https://dnceng@dev.azure.com/dnceng/internal/_git/dotnet-arcade-services
+        https://dev.azure.com/dnceng/internal/_git/dotnet-arcade-services
+        https://dnceng.visualstudio.com/internal/_git/dotnet-arcade-services
+        dnceng@vs-ssh.visualstudio.com:v3/dnceng/internal/dotnet-arcade-services
+        git@ssh.dev.azure.com:v3/dnceng/internal/dotnet-arcade-services
+      -->
+      <_Pattern>(https://dnceng%40dev\.azure\.com/dnceng/internal/_git|https://dev\.azure\.com/dnceng/internal/_git|https://dnceng\.visualstudio\.com/internal/_git|dnceng%40vs-ssh\.visualstudio\.com:v3/dnceng/internal|git%40ssh\.dev\.azure\.com:v3/dnceng/internal)/([^/-]+)-(.+)</_Pattern>
+      <_Replacement>https://github.com/$2/$3</_Replacement>
     </PropertyGroup>
 
     <PropertyGroup>

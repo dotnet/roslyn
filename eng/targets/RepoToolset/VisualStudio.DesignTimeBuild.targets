@@ -11,7 +11,7 @@
        is not a VSIX project and sets $CreateVSIXContainer=false these targets should be
        a no-op. However they dont check for that and that's a bug. To workaround, we override them
        with empty targets and conditionally import these if CreateVSIXContainer is false.
-       Tracked by https://devdiv.visualstudio.com/DevDiv/_workitems?id=365685&fullScreen=false&_a=edit   -->
+       Tracked by https://dev.azure.com/devdiv/DevDiv/_workitems?id=365685&fullScreen=false&_a=edit   -->
   <Target Name="VSIXIdentifierProjectOutputGroup" />
   <Target Name="VSIXNameProjectOutputGroup" />
 

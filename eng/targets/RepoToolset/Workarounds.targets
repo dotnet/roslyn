@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
+<!-- All Rights Reserved. Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this file to you under the MIT license. See the LICENSE file in the project root for more information. -->
 <Project>
 
   <PropertyGroup>
@@ -39,9 +39,9 @@
     polluting the output dir. Avoid creating these directories.
     https://github.com/dotnet/sdk/issues/1367
 
-     WPF temp-projects do not import .props and .targets files from NuGet packages.
+    WPF temp-projects do not import .props and .targets files from NuGet packages.
     (see https://github.com/dotnet/sourcelink/issues/91).
-    
+
     This breaks SourceLink and Microsoft.NetFramework.ReferenceAssemblies.
   -->
   <PropertyGroup Condition="'$(IsWpfTempProject)' == 'true'">
@@ -79,9 +79,8 @@
   -->
   <Target Name="InitializeStandardNuspecProperties"
           BeforeTargets="GenerateNuspec"
-          DependsOnTargets="_InitializeNuspecRepositoryInformationPropertiesWorkaround"
-          Condition="'$(NuspecFile)' != '' and '$(NuspecProperties)' == ''">
-    
+          DependsOnTargets="_InitializeNuspecRepositoryInformationPropertiesWorkaround">
+
     <PropertyGroup>
       <PackageProjectUrl Condition="'$(PackageProjectUrl)' == ''">$(RepositoryUrl)</PackageProjectUrl>
     </PropertyGroup>
@@ -89,7 +88,7 @@
     <Error Text="PackageDescription must be specified" Condition="'$(PackageDescription)' == ''"/>
     <Error Text="PackageProjectUrl must be specified" Condition="'$(PackageProjectUrl)' == ''"/>
 
-    <ItemGroup>
+    <ItemGroup Condition="'$(NuspecFile)' != '' and '$(NuspecProperties)' == ''">
       <NuspecProperty Include="PackageId=$(PackageId)"/>
       <NuspecProperty Include="Authors=$(Authors)"/>
       <NuspecProperty Include="PackageDescription=$(PackageDescription)"/>
@@ -108,7 +107,7 @@
       <NuspecProperty Include="RepositoryCommit=$(RepositoryCommit)" Condition="'$(RepositoryCommit)' != ''" />
       <NuspecProperty Include="ProjectDirectory=$(MSBuildProjectDirectory)"/>
     </ItemGroup>
-    <PropertyGroup>
+    <PropertyGroup Condition="'$(NuspecFile)' != '' and '$(NuspecProperties)' == ''">
       <NuspecProperties>@(NuspecProperty, ';')</NuspecProperties>
     </PropertyGroup>
   </Target>
@@ -135,7 +134,7 @@
   <PropertyGroup Condition="'$(NuspecPackageId)' != ''">
     <PackageId>*$(MSBuildProjectName)*</PackageId>
   </PropertyGroup>
-  
+
   <Target Name="_SetPackageId" BeforeTargets="InitializeStandardNuspecProperties;GenerateNuSpec" Condition="'$(NuspecPackageId)' != ''">
     <PropertyGroup>
       <PackageId>$(NuspecPackageId)</PackageId>

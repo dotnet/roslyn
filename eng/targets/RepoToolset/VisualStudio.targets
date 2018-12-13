@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
+<!-- All Rights Reserved. Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this file to you under the MIT license. See the LICENSE file in the project root for more information. -->
 <Project>
 
   <!--
@@ -42,7 +42,7 @@
     <_ComponentIntermediateDir>$(VisualStudioSetupIntermediateOutputPath)$(VisualStudioInsertionComponent)\</_ComponentIntermediateDir>
 
     <IsProductComponent>true</IsProductComponent>
-    
+
     <Ngen Condition="'$(Ngen)' == ''">true</Ngen>
     <NgenArchitecture Condition="'$(NgenArchitecture)' == ''">All</NgenArchitecture>
     <NgenPriority Condition="'$(NgenPriority)' == ''">3</NgenPriority>
@@ -159,7 +159,7 @@
 
   <!--
     Build Willow VSIX from SWR files.
-  -->  
+  -->
   <Target Name="SwixBuild"
           DependsOnTargets="_CalculateSwixBuildOutputs;_WriteComponentStubFile"
           AfterTargets="Build"
@@ -203,12 +203,16 @@
 
   <!--
     This is a workaround for allowing neutral CTO resource produced from *.vsct to go in the main assembly.
+
     We move the neutral *.cto file to be categorized as WithCulture=true,Culture=en to prevent the tools from falsely reporting:
       error VSSDK1006: Two CTO files have the same Menus.ctmenu resource name.
+
      Note that this categorization does not apply to the items that actually produce the .resources.dll and so it will
      not cause an English satellite to be generated.
+
      The documented way around this is to put all resources (including neutral/en) in satellites:
        https://msdn.microsoft.com/en-us/library/ee943168.aspx
+
        However, that has consequences we do not want:
         - It breaks resx code-gen to *.designer.cs
         - It causes extra dll loads in en case
@@ -233,7 +237,7 @@
     If the Project is not a VSIX project and sets $CreateVSIXContainer=false these targets should be
     a no-op. However they dont check for that and that's a bug. To workaround, we override them
     with empty targets and conditionally import these if CreateVSIXContainer is false.
-    Tracked by https://devdiv.visualstudio.com/DevDiv/_workitems?id=365685&fullScreen=false&_a=edit
+    Tracked by https://dev.azure.com/devdiv/DevDiv/_workitems?id=365685&fullScreen=false&_a=edit
    -->
   <Import Project="VisualStudio.DesignTimeBuild.targets" Condition="'$(CreateVsixContainer)' != 'true'"/>
 
@@ -258,10 +262,12 @@
   <PropertyGroup>
     <GetVsixSourceItemsDependsOn>$(GetVsixSourceItemsDependsOn);_GetVsixTemplateItems</GetVsixSourceItemsDependsOn>
   </PropertyGroup>
-  
+
   <!-- Returns the current build version. Used in .vsixmanifests to substitute our build version into them -->
   <Target Name="GetVsixVersion" Returns="$(VsixVersion)">
     <Error Text="Invalid format of OfficialBuildId: '$(OfficialBuildId)'"
            Condition="$(VersionSuffixDateStamp) != '' and ($(VersionSuffixDateStamp.Length) != 5 or $(VersionSuffixBuildOfTheDayPadded.Length) != 2)"/>
+
   </Target>
+
 </Project>

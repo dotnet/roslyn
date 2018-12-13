@@ -20,13 +20,7 @@
     <NoWarn>$(NoWarn);NU5125</NoWarn>
   </PropertyGroup>
 
-  <Import Project="RepoToolset\ProjectLayout.props" />
-  <Import Project="RepoToolset\DefaultVersions.props"/>
-  <Import Project="RepoToolset\ProjectDefaults.props" />
-  <Import Project="RepoToolset\BuildTasks.props" />
-  <Import Project="RepoToolset\StrongName.props" />
-  <Import Project="RepoToolset\VisualStudio.props"/>
-  <Import Project="RepoToolset\Tests.props" />
+  <Import Project="RepoToolset\Settings.props" />
 
   <PropertyGroup>
     <!-- Disable the implicit nuget fallback folder as it makes it hard to locate and copy ref assemblies to the test output folder -->
@@ -152,8 +146,6 @@
     <When Condition="'$(Language)' == 'VB'">
       <PropertyGroup>
         <LangVersion>15.5</LangVersion>
-        <RemoveIntegerChecks>true</RemoveIntegerChecks>
-        <RootNamespace></RootNamespace>
         <NoWarn>$(NoWarn);40057</NoWarn>
       </PropertyGroup>
       <ItemGroup>
@@ -188,7 +180,6 @@
                       thorough documentation story
         -->
         <NoWarn>$(NoWarn);1573;1591;1701</NoWarn>
-        <CheckForOverflowUnderflow>false</CheckForOverflowUnderflow>
       </PropertyGroup>
       <PropertyGroup>
         <DefineConstants Condition="'$(InitialDefineConstants)' != ''">$(DefineConstants);$(InitialDefineConstants)</DefineConstants>
