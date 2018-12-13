@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -552,65 +553,83 @@ RoOt = TruE");
             Assert.False(matcher.IsMatch("/vbcd"));
         }
 
+        private static IEnumerable<(string, string)> RangeAndInverse(string s1, string s2)
+        {
+            yield return (s1, s2);
+            yield return (s2, s1);
+        }
+
         [Fact]
         public void NumberMatch()
         {
-            SectionNameMatcher matcher = TryCreateSectionNameMatcher("{0..10}").Value;
+            foreach (var (i1, i2) in RangeAndInverse("0", "10"))
+            {
+                var matcher = TryCreateSectionNameMatcher($"{{{i1}..{i2}}}").Value;
 
-            Assert.True(matcher.IsMatch("/0"));
-            Assert.True(matcher.IsMatch("/10"));
-            Assert.True(matcher.IsMatch("/5"));
-            Assert.True(matcher.IsMatch("/000005"));
-            Assert.False(matcher.IsMatch("/-1"));
-            Assert.False(matcher.IsMatch("/-00000001"));
-            Assert.False(matcher.IsMatch("/11"));
+                Assert.True(matcher.IsMatch("/0"));
+                Assert.True(matcher.IsMatch("/10"));
+                Assert.True(matcher.IsMatch("/5"));
+                Assert.True(matcher.IsMatch("/000005"));
+                Assert.False(matcher.IsMatch("/-1"));
+                Assert.False(matcher.IsMatch("/-00000001"));
+                Assert.False(matcher.IsMatch("/11"));
+            }
         }
 
         [Fact]
         public void NumberMatchNegativeRange()
         {
-            SectionNameMatcher matcher = TryCreateSectionNameMatcher("{-10..0}").Value;
+            foreach (var (i1, i2) in RangeAndInverse("-10", "0"))
+            {
+                var matcher = TryCreateSectionNameMatcher($"{{{i1}..{i2}}}").Value;
 
-            Assert.True(matcher.IsMatch("/0"));
-            Assert.True(matcher.IsMatch("/-10"));
-            Assert.True(matcher.IsMatch("/-5"));
-            Assert.False(matcher.IsMatch("/1"));
-            Assert.False(matcher.IsMatch("/-11"));
-            Assert.False(matcher.IsMatch("/--0"));
+                Assert.True(matcher.IsMatch("/0"));
+                Assert.True(matcher.IsMatch("/-10"));
+                Assert.True(matcher.IsMatch("/-5"));
+                Assert.False(matcher.IsMatch("/1"));
+                Assert.False(matcher.IsMatch("/-11"));
+                Assert.False(matcher.IsMatch("/--0"));
+            }
         }
 
         [Fact]
         public void NumberMatchNegToPos()
         {
-            SectionNameMatcher matcher = TryCreateSectionNameMatcher("{-10..10}").Value;
+            foreach (var (i1, i2) in RangeAndInverse("-10", "10"))
+            {
+                var matcher = TryCreateSectionNameMatcher($"{{{i1}..{i2}}}").Value;
 
-            Assert.True(matcher.IsMatch("/0"));
-            Assert.True(matcher.IsMatch("/-5"));
-            Assert.True(matcher.IsMatch("/5"));
-            Assert.True(matcher.IsMatch("/-10"));
-            Assert.True(matcher.IsMatch("/10"));
-            Assert.False(matcher.IsMatch("/-11"));
-            Assert.False(matcher.IsMatch("/11"));
-            Assert.False(matcher.IsMatch("/--0"));
+                Assert.True(matcher.IsMatch("/0"));
+                Assert.True(matcher.IsMatch("/-5"));
+                Assert.True(matcher.IsMatch("/5"));
+                Assert.True(matcher.IsMatch("/-10"));
+                Assert.True(matcher.IsMatch("/10"));
+                Assert.False(matcher.IsMatch("/-11"));
+                Assert.False(matcher.IsMatch("/11"));
+                Assert.False(matcher.IsMatch("/--0"));
+            }
         }
 
         [Fact]
         public void MultipleNumberRanges()
         {
-            SectionNameMatcher matcher = TryCreateSectionNameMatcher("a{-10..0}b{0..10}").Value;
+            foreach (var matchString in new[] { "a{-10..0}b{0..10}", "a{0..-10}b{10..0}"})
+            {
+                var matcher = TryCreateSectionNameMatcher(matchString).Value;
 
-            Assert.True(matcher.IsMatch("/a0b0"));
-            Assert.True(matcher.IsMatch("/a-5b0"));
-            Assert.True(matcher.IsMatch("/a-5b5"));
-            Assert.True(matcher.IsMatch("/a-5b10"));
-            Assert.True(matcher.IsMatch("/a-10b10"));
-            Assert.True(matcher.IsMatch("/a-10b0"));
-            Assert.True(matcher.IsMatch("/a-0b0"));
-            Assert.True(matcher.IsMatch("/a-0b-0"));
+                Assert.True(matcher.IsMatch("/a0b0"));
+                Assert.True(matcher.IsMatch("/a-5b0"));
+                Assert.True(matcher.IsMatch("/a-5b5"));
+                Assert.True(matcher.IsMatch("/a-5b10"));
+                Assert.True(matcher.IsMatch("/a-10b10"));
+                Assert.True(matcher.IsMatch("/a-10b0"));
+                Assert.True(matcher.IsMatch("/a-0b0"));
+                Assert.True(matcher.IsMatch("/a-0b-0"));
 
-            Assert.False(matcher.IsMatch("/a-11b10"));
-            Assert.False(matcher.IsMatch("/a-11b10"));
-            Assert.False(matcher.IsMatch("/a-10b11"));
+                Assert.False(matcher.IsMatch("/a-11b10"));
+                Assert.False(matcher.IsMatch("/a-11b10"));
+                Assert.False(matcher.IsMatch("/a-10b11"));
+            }
         }
 
         [Fact]

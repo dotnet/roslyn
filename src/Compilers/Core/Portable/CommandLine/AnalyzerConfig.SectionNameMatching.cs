@@ -169,12 +169,8 @@ namespace Microsoft.CodeAnalysis
                             {
                                 var pair = intStart < intEnd ? (intStart, intEnd) : (intEnd, intStart);
                                 numberRangePairs.Add(pair);
-                                // Start the capturing group
-                                sb.Append('(');
                                 // Allow any digit sequence. The validity will be checked outside of the regex
-                                sb.Append("-?[0-9]+");
-                                // Close capturing group
-                                sb.Append(')');
+                                sb.Append("(-?[0-9]+)");
                                 // Keep looping
                                 break;
                             }
