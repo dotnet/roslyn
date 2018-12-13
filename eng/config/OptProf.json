@@ -6,13 +6,8 @@
         {
           "container": "DDRIT.RPS.CSharp",
           "testCases": [
-            "DDRIT.RPS.CSharp.CSharpTest.EditingAndDesigner"
-          ]
-        },
-        {
-          "container": "DDRIT.RPS.ManagedLangs",
-          "testCases": [
-            "Microsoft.Test.Performance.DDPerf.ManagedLangsTest.ManagedLangs"
+            "DDRIT.RPS.CSharp.CSharpTest.EditingAndDesigner",
+            "DDRIT.RPS.CSharp.CSharpTest.BuildAndDebugging"
           ]
         },
         {
@@ -63,13 +58,8 @@
         {
           "container": "DDRIT.RPS.CSharp",
           "testCases": [
+            "DDRIT.RPS.CSharp.CSharpTest.EditingAndDesigner",
             "DDRIT.RPS.CSharp.CSharpTest.BuildAndDebugging"
-          ]
-        },
-        {
-          "container": "DDRIT.RPS.ManagedLangs",
-          "testCases": [
-            "Microsoft.Test.Performance.DDPerf.ManagedLangsTest.ManagedLangs"
           ]
         },
         {
@@ -87,13 +77,8 @@
         {
           "container": "DDRIT.RPS.CSharp",
           "testCases": [
+            "DDRIT.RPS.CSharp.CSharpTest.EditingAndDesigner",
             "DDRIT.RPS.CSharp.CSharpTest.BuildAndDebugging"
-          ]
-        },
-        {
-          "container": "DDRIT.RPS.ManagedLangs",
-          "testCases": [
-            "Microsoft.Test.Performance.DDPerf.ManagedLangsTest.ManagedLangs"
           ]
         },
         {
@@ -117,13 +102,8 @@
         {
           "container": "DDRIT.RPS.CSharp",
           "testCases": [
-            "DDRIT.RPS.CSharp.CSharpTest.EditingAndDesigner"
-          ]
-        },
-        {
-          "container": "DDRIT.RPS.ManagedLangs",
-          "testCases": [
-            "Microsoft.Test.Performance.DDPerf.ManagedLangsTest.ManagedLangs"
+            "DDRIT.RPS.CSharp.CSharpTest.EditingAndDesigner",
+            "DDRIT.RPS.CSharp.CSharpTest.BuildAndDebugging"
           ]
         }
       ]
@@ -142,13 +122,8 @@
         {
           "container": "DDRIT.RPS.CSharp",
           "testCases": [
-            "DDRIT.RPS.CSharp.CSharpTest.EditingAndDesigner"
-          ]
-        },
-        {
-          "container": "DDRIT.RPS.ManagedLangs",
-          "testCases": [
-            "Microsoft.Test.Performance.DDPerf.ManagedLangsTest.ManagedLangs"
+            "DDRIT.RPS.CSharp.CSharpTest.EditingAndDesigner",
+            "DDRIT.RPS.CSharp.CSharpTest.BuildAndDebugging"
           ]
         },
         {
@@ -205,13 +180,8 @@
         {
           "container": "DDRIT.RPS.CSharp",
           "testCases": [
-            "DDRIT.RPS.CSharp.CSharpTest.EditingAndDesigner"
-          ]
-        },
-        {
-          "container": "DDRIT.RPS.ManagedLangs",
-          "testCases": [
-            "Microsoft.Test.Performance.DDPerf.ManagedLangsTest.ManagedLangs"
+            "DDRIT.RPS.CSharp.CSharpTest.EditingAndDesigner",
+            "DDRIT.RPS.CSharp.CSharpTest.BuildAndDebugging"
           ]
         },
         {
@@ -371,23 +341,6 @@
           "container": "DDRIT.RPS.CSharp",
           "testCases": [
             "DDRIT.RPS.CSharp.CSharpTest.BuildAndDebugging"
-          ]
-        }
-      ]
-    },
-    {
-      "assembly": "Microsoft.CodeAnalysis.UnitTesting.SourceBasedTestDiscovery.dll",
-      "instrumentationArguments": [
-        {
-          "relativeInstallationFolder": "Common7/IDE/CommonExtensions/Microsoft/ManagedLanguages/VBCSharp/SourceBasedTestDiscovery",
-          "instrumentationExecutable": "Common7/IDE/vsn.exe"
-        }
-      ],
-      "tests": [
-        {
-          "container": "DDRIT.RPS.TestDiscovery",
-          "testCases": [
-            "Microsoft.Test.Performance.DDPerf.TestDiscovery_DDRIT.TestDiscovery"
           ]
         }
       ]
