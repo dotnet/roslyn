@@ -1,15 +1,14 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.ChangeNamespace;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageServices;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -24,35 +23,17 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
     {
         internal sealed class State
         {
-            private static readonly SymbolDisplayFormat s_qualifiedNameOnlyFormat =
-                new SymbolDisplayFormat(globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Omitted,
-                                        typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces);
-
-            public Solution Solution { get; }
-
             /// <summary>
             /// The document in which the refactoring is triggered.
             /// </summary>
-            public DocumentId OriginalDocumentId { get; }
+            public Document Document { get; }
 
             /// <summary>
-            /// The refactoring is also enabled for document in a multi-targeting project, 
-            /// which is the only form of linked document allowed. This property returns IDs
-            /// of the original document that triggered the refactoring plus every such linked 
-            /// documents.
+            /// The applicable container node based on cursor location,
+            /// which will be used to change namespace.
             /// </summary>
-            public ImmutableArray<DocumentId> DocumentIds { get; }
-
-            /// <summary>
-            /// This is the default namespace defined in the project file.
-            /// </summary>
-            public string DefaultNamespace { get; }
-
-            /// <summary>
-            /// This is the name of the namespace declaration that trigger the refactoring.
-            /// </summary>
-            public string DeclaredNamespace { get; }
-
+            public SyntaxNode Container { get; }
+                                                                                                       
             /// <summary>
             /// This is the new name we want to change the namespace to.
             /// Empty string means global namespace, whereas null means change namespace action is not available.
@@ -68,144 +49,15 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
             public string RelativeDeclaredNamespace { get; }
 
             private State(
-                Solution solution,
-                DocumentId originalDocumentId,
-                ImmutableArray<DocumentId> documentIds,
-                string rootNamespce,
-                string targetNamespace,
-                string declaredNamespace,
+                Document document,
+                SyntaxNode container,
+                string targetNamespace,                         
                 string relativeDeclaredNamespace)
             {
-                Solution = solution;
-                OriginalDocumentId = originalDocumentId;
-                DocumentIds = documentIds;
-                DefaultNamespace = rootNamespce;
+                Document = document;
+                Container = container;
                 TargetNamespace = targetNamespace;
-                DeclaredNamespace = declaredNamespace;
                 RelativeDeclaredNamespace = relativeDeclaredNamespace;
-            }
-
-            /// <summary>
-            /// This refactoring only supports non-linked document and linked document in the form of
-            /// documents in multi-targeting project. Also for simplicity, we also don't support document
-            /// what has different file path and logical path in project (i.e. [ProjectRoot] + `Document.Folders`). 
-            /// If the requirements above is met, we will return IDs of all documents linked to the specified 
-            /// document (inclusive), an array of single element will be returned for non-linked document.
-            /// </summary>
-            private static bool IsSupportedLinkedDocument(Document document, out ImmutableArray<DocumentId> allDocumentIds)
-            {
-                var solution = document.Project.Solution;
-                var linkedDocumentids = document.GetLinkedDocumentIds();
-
-                // TODO: figure out how to properly determine if and how a document is linked using project system.
-
-                // If we found a linked document which is part of a project with differenct project file,
-                // then it's an actual linked file (i.e. not a multi-targeting project). We don't support that, because 
-                // we don't know which default namespace and folder path we should use to construct target
-                // namespace.
-                if (linkedDocumentids.Any(id =>
-                        !PathUtilities.PathsEqual(solution.GetDocument(id).Project.FilePath, document.Project.FilePath)))
-                {
-                    allDocumentIds = default;
-                    return false;
-                }
-
-                // Now determine if the actual file path matches its logical path in project 
-                // which is constructed as <project root path>\Logical\Folders\. The refactoring 
-                // is triggered only when the two match. The reason of doing this is we don't really know
-                // the user's intention of keeping the file path out-of-sync with its logical path.
-                var projectRoot = PathUtilities.GetDirectoryName(document.Project.FilePath);
-                var folderPath = Path.Combine(document.Folders.ToArray());
-
-                var absoluteDircetoryPath = PathUtilities.GetDirectoryName(document.FilePath);
-                var logicalDirectoryPath = PathUtilities.CombineAbsoluteAndRelativePaths(projectRoot, folderPath);
-
-                if (PathUtilities.PathsEqual(absoluteDircetoryPath, logicalDirectoryPath))
-                {
-                    allDocumentIds = linkedDocumentids.Add(document.Id);
-                    return true;
-                }
-                else
-                {
-                    allDocumentIds = default;
-                    return false;
-                }
-            }
-
-            private static string GetDefaultNamespace(ImmutableArray<Document> documents, ISyntaxFactsService syntaxFacts)
-            {
-                // For all projects containing all the linked documents, bail if 
-                // 1. Any of them doesn't have default namespace, or
-                // 2. Multiple default namespace are found. (this might be possible by tweaking project file).
-                // The refactoring depends on a single default namespace to operate.
-                var defaultNamespaceFromProjects = new HashSet<string>(
-                    documents.Select(d => d.Project.DefaultNamespace),
-                    syntaxFacts.StringComparer);
-
-                if (defaultNamespaceFromProjects.Count != 1
-                    || defaultNamespaceFromProjects.First() == null)
-                {
-                    return default;
-                }
-
-                return defaultNamespaceFromProjects.Single();
-            }
-
-            private static async Task<(bool shouldTrigger, string declaredNamespace)> TryGetNamespaceDeclarationAsync(
-                TextSpan textSpan,
-                ImmutableArray<Document> documents,
-                AbstractSyncNamespaceCodeRefactoringProvider<TNamespaceDeclarationSyntax, TCompilationUnitSyntax, TMemberDeclarationSyntax> provider,
-                CancellationToken cancellationToken)
-            {
-                // If the cursor location doesn't meet the requirement to trigger the refactoring in any of the documents 
-                // (See `ShouldPositionTriggerRefactoringAsync`), or we are getting different namespace declarations among 
-                // those documents, then we know we can't make a proper code change. We will return false and the refactoring 
-                // will then bail. We use span of namespace declaration found in each document to decide if they are identical.
-
-                var spansForNamespaceDeclaration = PooledDictionary<TextSpan, TNamespaceDeclarationSyntax>.GetInstance();
-
-                try
-                {
-                    foreach (var document in documents)
-                    {
-                        var compilationUnitOrNamespaceDeclOpt = await provider.TryGetApplicableInvocationNode(document, textSpan.Start, cancellationToken)
-                            .ConfigureAwait(false);
-
-                        if (compilationUnitOrNamespaceDeclOpt is TNamespaceDeclarationSyntax namespaceDeclaration)
-                        {
-                            spansForNamespaceDeclaration[namespaceDeclaration.Span] = namespaceDeclaration;
-                        }
-                        else if (compilationUnitOrNamespaceDeclOpt is TCompilationUnitSyntax)
-                        {
-                            // In case there's no namespace declaration in the document, we used an empty span as key, 
-                            // since a valid namespace declaration node can't have zero length.
-                            spansForNamespaceDeclaration[default] = null;
-                        }
-                        else
-                        {
-                            return default;
-                        }
-                    }
-
-                    if (spansForNamespaceDeclaration.Count != 1)
-                    {
-                        return default;
-                    }
-
-                    var namespaceDecl = spansForNamespaceDeclaration.Values.Single();
-                    var declaredNamespace = namespaceDecl == null
-                        // namespaceDecl == null means the target namespace is global namespace.
-                        ? string.Empty
-                        // Since the node in each document has identical type and span, 
-                        // they should have same name.
-                        : SyntaxGenerator.GetGenerator(documents.First()).GetName(namespaceDecl);
-
-                    return (true, declaredNamespace);
-                }
-                finally
-                {
-                    spansForNamespaceDeclaration.Free();
-                }
             }
 
             public static async Task<State> CreateAsync(
@@ -214,35 +66,59 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
                 TextSpan textSpan,
                 CancellationToken cancellationToken)
             {
-                if (document.Project.FilePath == null
-                    || !textSpan.IsEmpty
-                    || document.Project.Solution.Workspace.Kind == WorkspaceKind.MiscellaneousFiles
-                    || document.IsGeneratedCode(cancellationToken))
+                // User must put cursor on one of the nodes described below to trigger the refactoring. 
+                // For each scenario, all requirements must be met. Some of them are checked by `TryGetApplicableInvocationNodeAsync`, 
+                // rest by `IChangeNamespaceService.CanChangeNamespaceAsync`.
+                // 
+                // - A namespace declaration node that is the only namespace declaration in the document and all types are declared in it:
+                //    1. No nested namespace declarations (even it's empty).
+                //    2. The cursor is on the name of the namespace declaration.
+                //    3. The name of the namespace is valid (i.e. no errors).
+                //    4. No partial type declared in the namespace. Otherwise its multiple declaration will
+                //       end up in different namespace.
+                //
+                // - A compilation unit node that contains no namespace declaration:
+                //    1. The cursor is on the name of first declared type.
+                //    2. No partial type declared in the document. Otherwise its multiple declaration will
+                //       end up in different namespace.
+
+                var applicableNode = await provider.TryGetApplicableInvocationNodeAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
+                if (applicableNode == null)
                 {
                     return null;
                 }
 
-                if (!IsSupportedLinkedDocument(document, out var documentIds))
+                var changenameSpaceService = document.GetLanguageService<IChangeNamespaceService>();
+                var canChange = await changenameSpaceService.CanChangeNamespaceAsync(document, applicableNode, cancellationToken).ConfigureAwait(false);
+
+                if (!canChange || !IsDocumentPathRootedInProjectFolder(document))
                 {
                     return null;
                 }
 
                 var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
                 var solution = document.Project.Solution;
-                var documents = documentIds.SelectAsArray(id => solution.GetDocument(id));
 
-                var defaultNamespace = GetDefaultNamespace(documents, syntaxFacts);
+                // We can't determine what the expected namespace would be without knowing the default namespace.
+                var defaultNamespace = GetDefaultNamespace(document, syntaxFacts);
                 if (defaultNamespace == null)
                 {
                     return null;
                 }
 
-                var (shouldTrigger, declaredNamespace) =
-                    await TryGetNamespaceDeclarationAsync(textSpan, documents, provider, cancellationToken).ConfigureAwait(false);
-
-                if (!shouldTrigger)
+                string declaredNamespace;
+                if (applicableNode is TCompilationUnitSyntax)
                 {
-                    return null;
+                    declaredNamespace = string.Empty;
+                }
+                else if (applicableNode is TNamespaceDeclarationSyntax)
+                {
+                    var syntaxGenerator = SyntaxGenerator.GetGenerator(document);
+                    declaredNamespace = syntaxGenerator.GetName(applicableNode);
+                }
+                else
+                {
+                    throw ExceptionUtilities.Unreachable;
                 }
 
                 // Namespace can't be changed if we can't construct a valid qualified identifier from folder names.
@@ -262,16 +138,49 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
                 // For example, if the default namespace is `Microsoft.CodeAnalysis`, and declared
                 // namespace is `System.Diagnostics`, it's very likely this document is an outlier  
                 // in the project and user probably has some special rule for it.
-                var relativeNamespace = GetRelativeNamespace(defaultNamespace, declaredNamespace, syntaxFacts);
+                var relativeNamespace = GetRelativeNamespace(defaultNamespace, declaredNamespace, syntaxFacts);                                                                           
+                                                                                                                          
+                return new State(document, applicableNode, targetNamespace, relativeNamespace);
+            }
 
-                return new State(
-                    solution,
-                    document.Id,
-                    documentIds,
-                    defaultNamespace,
-                    targetNamespace,
-                    declaredNamespace,
-                    relativeNamespace);
+            /// <summary>
+            /// Determines if the actual file path matches its logical path in project 
+            /// which is constructed as [project_root_path]\Logical\Folders\. The refactoring 
+            /// is triggered only when the two match. The reason of doing this is we don't really know
+            /// the user's intention of keeping the file path out-of-sync with its logical path.
+            /// </summary>
+            private static bool IsDocumentPathRootedInProjectFolder(Document document)
+            {
+                var projectRoot = PathUtilities.GetDirectoryName(document.Project.FilePath);
+                var folderPath = Path.Combine(document.Folders.ToArray());
+
+                var absoluteDircetoryPath = PathUtilities.GetDirectoryName(document.FilePath);
+                var logicalDirectoryPath = PathUtilities.CombineAbsoluteAndRelativePaths(projectRoot, folderPath);
+
+                return PathUtilities.PathsEqual(absoluteDircetoryPath, logicalDirectoryPath);
+            }
+
+            private static string GetDefaultNamespace(Document document, ISyntaxFactsService syntaxFacts)
+            {
+                var solution = document.Project.Solution;
+                var linkedIds = document.GetLinkedDocumentIds();
+                var documents = linkedIds.SelectAsArray(id => solution.GetDocument(id)).Add(document);
+
+                // For all projects containing all the linked documents, bail if 
+                // 1. Any of them doesn't have default namespace, or
+                // 2. Multiple default namespace are found. (this might be possible by tweaking project file).
+                // The refactoring depends on a single default namespace to operate.
+                var defaultNamespaceFromProjects = new HashSet<string>(
+                        documents.Select(d => d.Project.DefaultNamespace),
+                        syntaxFacts.StringComparer);
+
+                if (defaultNamespaceFromProjects.Count != 1
+                    || defaultNamespaceFromProjects.First() == null)
+                {
+                    return default;
+                }
+
+                return defaultNamespaceFromProjects.Single();
             }
 
             /// <summary>
@@ -301,6 +210,42 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
                 {
                     return rootNamespace + "." + namespaceSuffix;
                 }
+            }
+
+            /// <summary>
+            /// Try get the relative namespace for <paramref name="namespace"/> based on <paramref name="relativeTo"/>,
+            /// if <paramref name="relativeTo"/> is the containing namespace of <paramref name="namespace"/>. Otherwise,
+            /// Returns null.
+            /// For example:
+            /// - If <paramref name="relativeTo"/> is "A.B" and <paramref name="namespace"/> is "A.B.C.D", then
+            /// the relative namespace is "C.D".
+            /// - If <paramref name="relativeTo"/> is "A.B" and <paramref name="namespace"/> is also "A.B", then
+            /// the relative namespace is "".
+            /// - If <paramref name="relativeTo"/> is "" then the relative namespace us <paramref name="namespace"/>.
+            /// </summary>
+            private static string GetRelativeNamespace(string relativeTo, string @namespace, ISyntaxFactsService syntaxFacts)
+            {
+                Debug.Assert(relativeTo != null && @namespace != null);
+
+                if (syntaxFacts.StringComparer.Equals(@namespace, relativeTo))
+                {
+                    return string.Empty;
+                }
+                else if (relativeTo.Length == 0)
+                {
+                    return @namespace;
+                }
+                else if (relativeTo.Length >= @namespace.Length)
+                {
+                    return null;
+                }
+
+                var containingText = relativeTo + ".";
+                var namespacePrefix = @namespace.Substring(0, containingText.Length);
+
+                return syntaxFacts.StringComparer.Equals(containingText, namespacePrefix)
+                    ? @namespace.Substring(relativeTo.Length + 1)
+                    : null;
             }
         }
     }
