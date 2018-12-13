@@ -421,6 +421,95 @@ class C2
         }
 
         [Fact]
+        public void AsPartOfMultipleLabelStatements()
+        {
+            string source = @"
+using System;
+class C1 : IDisposable
+{
+    public void Dispose() { Console.Write(""Dispose; "");}
+}
+class C2
+{
+    public static void Main()                                                                                                           
+    {
+        label1:
+        label2:
+        Console.Write(""Start; "");
+        label3:
+        label4:
+        label5:
+        label6:
+        using C1 o1 = new C1();
+        Console.Write(""Middle1; "");
+        using C1 o2 = new C1();
+        Console.Write(""Middle2; "");
+        label7:
+        using C1 o3 = new C1();
+        Console.Write(""End; "");
+    }
+}";
+            CompileAndVerify(source, expectedOutput: "Start; Middle1; Middle2; End; Dispose; Dispose; Dispose; ").VerifyIL("C2.Main", @"
+{
+  // Code size       91 (0x5b)
+  .maxstack  1
+  .locals init (C1 V_0, //o1
+                C1 V_1, //o2
+                C1 V_2) //o3
+  IL_0000:  ldstr      ""Start; ""
+  IL_0005:  call       ""void System.Console.Write(string)""
+  IL_000a:  newobj     ""C1..ctor()""
+  IL_000f:  stloc.0
+  .try
+  {
+    IL_0010:  ldstr      ""Middle1; ""
+    IL_0015:  call       ""void System.Console.Write(string)""
+    IL_001a:  newobj     ""C1..ctor()""
+    IL_001f:  stloc.1
+    .try
+    {
+      IL_0020:  ldstr      ""Middle2; ""
+      IL_0025:  call       ""void System.Console.Write(string)""
+      IL_002a:  newobj     ""C1..ctor()""
+      IL_002f:  stloc.2
+      .try
+      {
+        IL_0030:  ldstr      ""End; ""
+        IL_0035:  call       ""void System.Console.Write(string)""
+        IL_003a:  leave.s    IL_005a
+      }
+      finally
+      {
+        IL_003c:  ldloc.2
+        IL_003d:  brfalse.s  IL_0045
+        IL_003f:  ldloc.2
+        IL_0040:  callvirt   ""void System.IDisposable.Dispose()""
+        IL_0045:  endfinally
+      }
+    }
+    finally
+    {
+      IL_0046:  ldloc.1
+      IL_0047:  brfalse.s  IL_004f
+      IL_0049:  ldloc.1
+      IL_004a:  callvirt   ""void System.IDisposable.Dispose()""
+      IL_004f:  endfinally
+    }
+  }
+  finally
+  {
+    IL_0050:  ldloc.0
+    IL_0051:  brfalse.s  IL_0059
+    IL_0053:  ldloc.0
+    IL_0054:  callvirt   ""void System.IDisposable.Dispose()""
+    IL_0059:  endfinally
+  }
+  IL_005a:  ret
+}
+");
+        }
+
+        [Fact]
         public void InsideTryCatchFinallyBlocks()
         {
             string source = @"

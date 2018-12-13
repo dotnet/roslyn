@@ -16,27 +16,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (!this.Instrument || (node != _rootStatement && (node.WasCompilerGenerated || node.Syntax.Kind() != SyntaxKind.Block)))
             {
-                return node.Update(node.Locals, node.LocalFunctions, VisitList(node.Statements));
+                return node.Update(node.Locals, node.LocalFunctions, VisitStatementSubList(node.Statements));
             }
 
             var builder = ArrayBuilder<BoundStatement>.GetInstance();
-            var usingDeclarationIndicies = ArrayBuilder<int>.GetInstance();
-            for (int i = 0; i < node.Statements.Length; i++)
-            {
-                BoundStatement statement = node.Statements[i];
-                if (statement.ContainsUsingDeclarationStatement())
-                {
-                    usingDeclarationIndicies.Add(i);
-                }
-                else
-                {
-                    statement = (BoundStatement)Visit(statement);
-                }
-                if (statement != null) builder.Add(statement);
-            }
-
-            // Lower any pendng using declarations we didn't visit during the initial loop
-            LowerPendingUsingDeclarations(builder, usingDeclarationIndicies.ToImmutableAndFree());
+            builder.AddRange(VisitStatementSubList(node.Statements));
 
             LocalSymbol synthesizedLocal;
             BoundStatement prologue = _instrumenter.CreateBlockPrologue(node, out synthesizedLocal);
@@ -54,53 +38,63 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundBlock(node.Syntax, synthesizedLocal == null ? node.Locals : node.Locals.Add(synthesizedLocal), node.LocalFunctions, builder.ToImmutableAndFree(), node.HasErrors);
         }
 
+
+        /// <summary>
+        /// Visit a partial list of statements that possibly contain using declarations
+        /// </summary>
+        /// <param name="statements">The list of statements to visit</param>
+        /// <param name="startIndex">The index of the <paramref name="statements"/> to begin visiting at</param>
+        /// <returns>An <see cref="ImmutableArray{T}"/> of <see cref="BoundStatement"/></returns>
+        public ImmutableArray<BoundStatement> VisitStatementSubList(ImmutableArray<BoundStatement> statements, int startIndex = 0)
+        {
+            var builder = ArrayBuilder<BoundStatement>.GetInstance();
+            for (int i = startIndex; i < statements.Length; i++)
+            {
+                BoundStatement statement = (BoundStatement)VisitPossibleUsingDeclaration(statements[i], statements, i, out var replacedUsingDeclarations);
+                if (statement != null)
+                {
+                    builder.Add(statement);
+                }
+
+                if (replacedUsingDeclarations)
+                {
+                    break;
+                }
+            }
+            return builder.ToImmutableAndFree();
+        }
+
+        /// <summary>
+        /// Visits a node that is possibly a <see cref="BoundUsingLocalDeclarations"/>
+        /// </summary>
+        /// <param name="node">The node to visit</param>
+        /// <param name="statements">A list of statements that follow this node</param>
+        /// <param name="startIndex">The startIndex of statements</param>
+        /// <param name="replacedLocalDeclarations">Set to true if this visited a <see cref="BoundUsingLocalDeclarations"/> node</param>
+        /// <returns></returns>
+        public BoundNode VisitPossibleUsingDeclaration(BoundStatement node, ImmutableArray<BoundStatement> statements, int startIndex, out bool replacedLocalDeclarations)
+        {
+            switch (node.Kind)
+            {
+                case BoundKind.LabeledStatement:
+                    var labelStatement = (BoundLabeledStatement)node;
+                    return MakeLabeledStatement(labelStatement, (BoundStatement)VisitPossibleUsingDeclaration(labelStatement.Body, statements, startIndex, out replacedLocalDeclarations));
+                case BoundKind.UsingLocalDeclarations:
+                    var usingDeclarations = (BoundUsingLocalDeclarations)node;
+                    replacedLocalDeclarations = true;
+                    return MakeLocalUsingDeclarationStatement(usingDeclarations, VisitStatementSubList(statements, startIndex + 1));
+                default:
+                    replacedLocalDeclarations = false;
+                    return Visit(node);
+            }
+        }
+
+
         public override BoundNode VisitNoOpStatement(BoundNoOpStatement node)
         {
             return (node.WasCompilerGenerated || !this.Instrument)
                 ? new BoundBlock(node.Syntax, ImmutableArray<LocalSymbol>.Empty, ImmutableArray<BoundStatement>.Empty)
                 : _instrumenter.InstrumentNoOpStatement(node, node);
         }
-
-        private void LowerPendingUsingDeclarations(ArrayBuilder<BoundStatement> statements, ImmutableArray<int> unloweredDeclarationIndicies)
-        {
-            // work backwards and lower the using declarations
-            for (int i = unloweredDeclarationIndicies.Length - 1; i >= 0; i--)
-            {
-                var unlowered = statements[unloweredDeclarationIndicies[i]];
-
-                // we may be wrapped in a label, remember it if so
-                BoundLabeledStatement containingLabel = null;
-                if (unlowered is BoundLabeledStatement label)
-                {
-                    unlowered = label.Body;
-                    containingLabel = label;
-                }
-
-                var localUsing = (BoundUsingLocalDeclarations)unlowered;
-
-                var statementEndIndex = (i == unloweredDeclarationIndicies.Length - 1) ? statements.Count - 1 : unloweredDeclarationIndicies[i + 1];
-                var statementStartIndex = unloweredDeclarationIndicies[i] + 1;
-
-                // get the lowered statements that form the body of this using declaration
-                var usingBuilder = ArrayBuilder<BoundStatement>.GetInstance();
-                for (int j = statementStartIndex; j <= statementEndIndex; j++)
-                {
-                    usingBuilder.Add(statements[j]);
-                }
-
-                var usingNode = MakeLocalUsingDeclarationStatement(localUsing, usingBuilder.ToImmutableAndFree());
-
-                if (containingLabel != null)
-                {
-                    // If we were wrapped in a label, make sure we lower that too, with our new lowered node as the body
-                    usingNode = (BoundStatement)MakeLabeledStatement(containingLabel, usingNode);
-                }
-
-                // replace the unlowered node (and all others after it) with our new lowered node
-                statements[unloweredDeclarationIndicies[i]] = usingNode;
-                statements.Clip(unloweredDeclarationIndicies[i] + 1);
-            }
-        }
-
     }
 }
