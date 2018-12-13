@@ -153,8 +153,13 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_PossibleAsyncIteratorWithoutYield">
-        <source>The return type of an async method must be a task-like type instead of '{0}'. The body of an async-iterator method must be an iterator block (ie. contain a 'yield' statement).</source>
-        <target state="new">The return type of an async method must be a task-like type instead of '{0}'. The body of an async-iterator method must be an iterator block (ie. contain a 'yield' statement).</target>
+        <source>The body of an async-iterator method must contain a 'yield' statement.</source>
+        <target state="new">The body of an async-iterator method must contain a 'yield' statement.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PossibleAsyncIteratorWithoutYieldOrAwait">
+        <source>The body of an async-iterator method must contain a 'yield' statement. Consider removing `async` from the method declaration.</source>
+        <target state="new">The body of an async-iterator method must contain a 'yield' statement. Consider removing `async` from the method declaration.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefAssignNarrower">

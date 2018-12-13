@@ -52,7 +52,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 method.IsIAsyncEnumeratorReturningAsync(compilation);
             if (isAsyncEnumerableOrEnumerator && !method.IsIterator)
             {
-                diagnostics.Add(ErrorCode.ERR_PossibleAsyncIteratorWithoutYield, method.Locations[0], method.ReturnType);
+                bool containsAwait = AwaitDetector.ContainsAwait(body);
+                diagnostics.Add(containsAwait ? ErrorCode.ERR_PossibleAsyncIteratorWithoutYield : ErrorCode.ERR_PossibleAsyncIteratorWithoutYieldOrAwait,
+                    method.Locations[0], method.ReturnType);
+
                 stateMachineType = null;
                 return body;
             }
@@ -267,6 +270,27 @@ namespace Microsoft.CodeAnalysis.CSharp
                 diagnostics: diagnostics);
 
             rewriter.GenerateMoveNext(body, moveNextMethod);
+        }
+
+        /// <summary>
+        /// Note: do not use a static/singleton instance of this type, as it holds state.
+        /// </summary>
+        private class AwaitDetector : BoundTreeWalkerWithStackGuardWithoutRecursionOnTheLeftOfBinaryOperator
+        {
+            private bool _sawAwait;
+
+            public static bool ContainsAwait(BoundNode node)
+            {
+                var detector = new AwaitDetector();
+                detector.Visit(node);
+                return detector._sawAwait;
+            }
+
+            public override BoundNode VisitAwaitExpression(BoundAwaitExpression node)
+            {
+                _sawAwait = true;
+                return null;
+            }
         }
     }
 }

@@ -8179,11 +8179,20 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The return type of an async method must be a task-like type instead of &apos;{0}&apos;. The body of an async-iterator method must be an iterator block (ie. contain a &apos;yield&apos; statement)..
+        ///   Looks up a localized string similar to The body of an async-iterator method must contain a &apos;yield&apos; statement..
         /// </summary>
         internal static string ERR_PossibleAsyncIteratorWithoutYield {
             get {
                 return ResourceManager.GetString("ERR_PossibleAsyncIteratorWithoutYield", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The body of an async-iterator method must contain a &apos;yield&apos; statement. Consider removing `async` from the method declaration..
+        /// </summary>
+        internal static string ERR_PossibleAsyncIteratorWithoutYieldOrAwait {
+            get {
+                return ResourceManager.GetString("ERR_PossibleAsyncIteratorWithoutYieldOrAwait", resourceCulture);
             }
         }
         
