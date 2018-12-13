@@ -1255,8 +1255,7 @@ End Module
             End Using
         End Function
 
-        <InlineData(CompletionImplementation.Legacy)>
-        <InlineData(CompletionImplementation.Modern, Skip:="https://github.com/dotnet/roslyn/issues/27446")>
+        <MemberData(NameOf(AllCompletionImplementations))>
         <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestProjections(completionImplementation As CompletionImplementation) As Task
             Using state = TestStateFactory.CreateVisualBasicTestState(completionImplementation,
@@ -1307,12 +1306,14 @@ End Module|}          </Document>)
                     editorOperations.Backspace()
                     editorOperations.InsertText("b")
                 Else
-                    state.SendBackspace()
-                    state.SendTypeChars("b")
+                    ' Editor operations are not directly handled in the new completion. 
+                    ' Therefore, for this part of the test we can only user the buffer and the view specified.
+                    state.SendBackspaceToSpecificViewAndBuffer(view, subjectBuffer)
+                    state.SendTypeCharsToSpecificViewAndBuffer("b", view, subjectBuffer)
                 End If
 
-                Await state.WaitForAsynchronousOperationsAsync()
-                Await state.AssertSelectedCompletionItem(displayText:="bbb")
+                Await state.WaitForAsynchronousOperationsAsync(view)
+                Await state.AssertSelectedCompletionItem(displayText:="bbb", projectionsView:=view)
 
                 ' prepare to remap our subject buffer
                 Dim subjectBufferText = subjectDocument.TextBuffer.CurrentSnapshot.GetText()

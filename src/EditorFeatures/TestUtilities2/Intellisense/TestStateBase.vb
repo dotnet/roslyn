@@ -91,6 +91,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             MyBase.SendBackspace(Sub(a, n, c) compHandler.ExecuteCommand(a, n, c), AddressOf MyBase.SendBackspace)
         End Sub
 
+        Public Sub SendBackspaceToSpecificViewAndBuffer(view As IWpfTextView, buffer As ITextBuffer)
+            Dim compHandler = GetHandler(Of VSCommanding.IChainedCommandHandler(Of BackspaceKeyCommandArgs))()
+            compHandler.ExecuteCommand(New BackspaceKeyCommandArgs(view, buffer), AddressOf MyBase.SendBackspace, TestCommandExecutionContext.Create())
+        End Sub
+
         Public Overrides Sub SendDelete()
             Dim compHandler = GetHandler(Of VSCommanding.IChainedCommandHandler(Of DeleteKeyCommandArgs))()
             MyBase.SendDelete(Sub(a, n, c) compHandler.ExecuteCommand(a, n, c), AddressOf MyBase.SendDelete)
@@ -198,6 +203,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                                Optional isHardSelected As Boolean? = Nothing,
                                Optional shouldFormatOnCommit As Boolean? = Nothing,
                                Optional projectionsView As ITextView = Nothing) As Task
+
+        Public Overridable Overloads Async Function WaitForAsynchronousOperationsAsync(view As ITextView) As Task
+            Await WaitForAsynchronousOperationsAsync()
+        End Function
 
 #End Region
 
