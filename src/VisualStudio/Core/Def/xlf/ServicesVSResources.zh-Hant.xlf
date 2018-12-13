@@ -62,7 +62,7 @@
         <target state="new">Finish</target>
         <note />
       </trans-unit>
-      <trans-unit id="Found_problems">
+      <trans-unit id="Found_problems_colon">
         <source>Found problems:</source>
         <target state="new">Found problems:</target>
         <note />
@@ -207,12 +207,12 @@
         <target state="new">Select destination and members to pull up.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Select_destination_type">
-        <source>Select destination type:</source>
-        <target state="new">Select destination type:</target>
+      <trans-unit id="Select_destination_colon">
+        <source>Select destination:</source>
+        <target state="new">Select destination:</target>
         <note />
       </trans-unit>
-      <trans-unit id="Select_members">
+      <trans-unit id="Select_members_colon">
         <source>Select members:</source>
         <target state="new">Select members:</target>
         <note />

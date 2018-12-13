@@ -1146,9 +1146,9 @@ namespace Microsoft.VisualStudio.LanguageServices {
         /// <summary>
         ///   Looks up a localized string similar to Found problems:.
         /// </summary>
-        internal static string Found_problems {
+        internal static string Found_problems_colon {
             get {
-                return ResourceManager.GetString("Found_problems", resourceCulture);
+                return ResourceManager.GetString("Found_problems_colon", resourceCulture);
             }
         }
         
@@ -2512,19 +2512,20 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Select destination.
-        /// </summary>
-        internal static string Select_destination {
-            get {
-                return ResourceManager.GetString("Select_destination", resourceCulture);
-            }
-        }
-
         ///   Looks up a localized string similar to _Select Dependents.
         /// </summary>
         internal static string Select_Dependents {
             get {
                 return ResourceManager.GetString("Select_Dependents", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Select destination.
+        /// </summary>
+        internal static string Select_destination {
+            get {
+                return ResourceManager.GetString("Select_destination", resourceCulture);
             }
         }
         
@@ -2538,20 +2539,20 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Select destination type:.
+        ///   Looks up a localized string similar to Select destination:.
         /// </summary>
-        internal static string Select_destination_type {
+        internal static string Select_destination_colon {
             get {
-                return ResourceManager.GetString("Select_destination_type", resourceCulture);
+                return ResourceManager.GetString("Select_destination_colon", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Select members:.
         /// </summary>
-        internal static string Select_members {
+        internal static string Select_members_colon {
             get {
-                return ResourceManager.GetString("Select_members", resourceCulture);
+                return ResourceManager.GetString("Select_members_colon", resourceCulture);
             }
         }
         

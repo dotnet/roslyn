@@ -1126,7 +1126,7 @@ I agree to all of the foregoing:</value>
   <data name="Finish" xml:space="preserve">
     <value>Finish</value>
   </data>
-  <data name="Found_problems" xml:space="preserve">
+  <data name="Found_problems_colon" xml:space="preserve">
     <value>Found problems:</value>
   </data>
   <data name="Interface_cant_have_abstract_member" xml:space="preserve">
@@ -1156,13 +1156,10 @@ I agree to all of the foregoing:</value>
   <data name="Select_Dependents" xml:space="preserve">
     <value>_Select Dependents</value>
   </data>
-  <data name="Select_destination_type" xml:space="preserve">
-    <value>Select destination type:</value>
-  </data>
   <data name="Select_destination_and_members_to_pull_up" xml:space="preserve">
     <value>Select destination and members to pull up.</value>
   </data>
-  <data name="Select_members" xml:space="preserve">
+  <data name="Select_members_colon" xml:space="preserve">
     <value>Select members:</value>
   </data>
   <data name="Select_Public" xml:space="preserve">
@@ -1179,5 +1176,8 @@ I agree to all of the foregoing:</value>
   </data>
   <data name="Calculating_dependents" xml:space="preserve">
     <value>Calculating dependents</value>
+  </data>
+  <data name="Select_destination_colon" xml:space="preserve">
+    <value>Select destination:</value>
   </data>
 </root>
