@@ -2646,6 +2646,37 @@ class C
         [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         [InlineData(nameof(PreferDiscard))]
         [InlineData(nameof(PreferUnusedLocal))]
+        public async Task UseInLambda_PassedAsArgument_02(string optionName)
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    public C(bool flag)
+    {
+        Flag = flag;
+    }
+
+    public bool Flag { get; }
+    public static bool M()
+    {
+        bool flag = true;
+        var c = Create(() => flag);
+
+        M2(c);
+        [|flag|] = false;
+        return M2(c);
+    }
+
+    private static C Create(Func<bool> isFlagTrue) { return new C(isFlagTrue()); }
+    private static bool M2(C c) => c.Flag;
+}", optionName);
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        [InlineData(nameof(PreferDiscard))]
+        [InlineData(nameof(PreferUnusedLocal))]
         public async Task UseInLocalFunction_PassedAsArgument(string optionName)
         {
             await TestMissingInRegularAndScriptAsync(
