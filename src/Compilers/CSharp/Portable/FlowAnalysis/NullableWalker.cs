@@ -537,8 +537,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private bool ReportNullableAssignmentIfNecessary(BoundExpression? value, TypeSymbolWithAnnotations targetType, TypeSymbolWithAnnotations valueType, bool useLegacyWarnings, AssignmentKind assignmentKind = AssignmentKind.Assignment, Symbol? target = null)
         {
-            Debug.Assert((object)target != null || assignmentKind != AssignmentKind.Argument);
-
             if (value == null)
             {
                 return false;
@@ -938,7 +936,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         #region Visitors
 
-        public override BoundNode? VisitIsPatternExpression(BoundIsPatternExpression node)
+        public override BoundNode VisitIsPatternExpression(BoundIsPatternExpression node)
         {
             VisitRvalue(node.Expression);
             var expressionResultType = this._resultType;
@@ -3066,7 +3064,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return type;
         }
 
-        private static Symbol? AsMemberOfResultType(TypeSymbolWithAnnotations resultType, Symbol symbol)
+        private static Symbol AsMemberOfResultType(TypeSymbolWithAnnotations resultType, Symbol symbol)
         {
             var containingType = resultType.TypeSymbol as NamedTypeSymbol;
             if ((object)containingType == null || containingType.IsErrorType())
@@ -3076,7 +3074,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return AsMemberOfType(containingType, symbol);
         }
 
-        private static Symbol? AsMemberOfType(NamedTypeSymbol containingType, Symbol symbol)
+        private static Symbol AsMemberOfType(NamedTypeSymbol containingType, Symbol symbol)
         {
             Debug.Assert((object)symbol != null);
             if (symbol.Kind == SymbolKind.Method)
@@ -3350,7 +3348,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(node != null);
             Debug.Assert(operandOpt != null || !operandType.IsNull);
             Debug.Assert(!targetTypeWithNullability.IsNull);
-            Debug.Assert((object)target != null || assignmentKind != AssignmentKind.Argument);
 
             NullableAnnotation resultAnnotation = NullableAnnotation.Unknown;
             bool forceOperandAnnotationForResult = false;
@@ -3409,8 +3406,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             checkConversion: true,
                             fromExplicitCast: false,
                             useLegacyWarnings,
-                            assignmentKind,
-                            target);
+                            assignmentKind);
 
                         // Update method based on operandType: see https://github.com/dotnet/roslyn/issues/29605.
                         // (see NullableReferenceTypesTests.ImplicitConversions_07).
@@ -3448,7 +3444,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         // method return type -> conversion "to" type
                         // May be distinct from method return type for Nullable<T>.
-                        operandType = ClassifyAndApplyConversion(operandOpt ?? node, TypeSymbolWithAnnotations.Create(conversion.BestUserDefinedConversionAnalysis.ToType), operandType, useLegacyWarnings, assignmentKind, target);
+                        operandType = ClassifyAndApplyConversion(operandOpt ?? node, TypeSymbolWithAnnotations.Create(conversion.BestUserDefinedConversionAnalysis.ToType), operandType, useLegacyWarnings, assignmentKind, target: null);
 
                         // conversion "to" type -> final type
                         // https://github.com/dotnet/roslyn/issues/29959 If the original conversion was
@@ -3687,7 +3683,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private TypeSymbolWithAnnotations ClassifyAndApplyConversion(BoundExpression node, TypeSymbolWithAnnotations targetType, TypeSymbolWithAnnotations operandType, bool useLegacyWarnings, AssignmentKind assignmentKind, ParameterSymbol? target)
         {
-            Debug.Assert((object)target != null || assignmentKind != AssignmentKind.Argument);
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
             var conversion = _conversions.ClassifyStandardConversion(null, operandType.TypeSymbol, targetType.TypeSymbol, ref useSiteDiagnostics);
             if (!conversion.Exists)
