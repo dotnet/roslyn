@@ -1651,6 +1651,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             VisitStatement(finallyBlock); // this should generate no pending branches
         }
 
+        public override BoundNode VisitExtractedFinallyBlock(BoundExtractedFinallyBlock node)
+        {
+            return VisitBlock(node.FinallyBlock);
+        }
+
         public sealed override BoundNode VisitReturnStatement(BoundReturnStatement node)
         {
             var result = VisitReturnStatementNoAdjust(node);
@@ -2286,7 +2291,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             LoopTail(node);
             ResolveBreaks(breakState, node.BreakLabel);
 
-            if (((CommonForEachStatementSyntax)node.Syntax).AwaitKeyword != default)
+            if (AwaitUsingAndForeachAddsPendingBranch && ((CommonForEachStatementSyntax)node.Syntax).AwaitKeyword != default)
             {
                 PendingBranches.Add(new PendingBranch(node, this.State));
             }
@@ -2623,14 +2628,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             VisitStatement(node.Body);
 
-            if (AwaitUsingAddsPendingBranch && node.AwaitOpt != null)
+            if (AwaitUsingAndForeachAddsPendingBranch && node.AwaitOpt != null)
             {
                 PendingBranches.Add(new PendingBranch(node, this.State));
             }
             return null;
         }
 
-        public abstract bool AwaitUsingAddsPendingBranch { get; }
+        public abstract bool AwaitUsingAndForeachAddsPendingBranch { get; }
 
         public override BoundNode VisitFixedStatement(BoundFixedStatement node)
         {
