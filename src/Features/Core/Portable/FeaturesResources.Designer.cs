@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "15.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class FeaturesResources {
@@ -506,6 +506,24 @@ namespace Microsoft.CodeAnalysis {
         internal static string Alias_ambiguous_type_0 {
             get {
                 return ResourceManager.GetString("Alias_ambiguous_type_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Align wrapped arguments.
+        /// </summary>
+        internal static string Align_wrapped_arguments {
+            get {
+                return ResourceManager.GetString("Align_wrapped_arguments", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Align wrapped parameters.
+        /// </summary>
+        internal static string Align_wrapped_parameters {
+            get {
+                return ResourceManager.GetString("Align_wrapped_parameters", resourceCulture);
             }
         }
         
@@ -1887,6 +1905,42 @@ namespace Microsoft.CodeAnalysis {
         internal static string in_Suppression_File {
             get {
                 return ResourceManager.GetString("in_Suppression_File", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Indent all arguments.
+        /// </summary>
+        internal static string Indent_all_arguments {
+            get {
+                return ResourceManager.GetString("Indent_all_arguments", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Indent all parameters.
+        /// </summary>
+        internal static string Indent_all_parameters {
+            get {
+                return ResourceManager.GetString("Indent_all_parameters", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Indent wrapped arguments.
+        /// </summary>
+        internal static string Indent_wrapped_arguments {
+            get {
+                return ResourceManager.GetString("Indent_wrapped_arguments", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Indent wrapped parameters.
+        /// </summary>
+        internal static string Indent_wrapped_parameters {
+            get {
+                return ResourceManager.GetString("Indent_wrapped_parameters", resourceCulture);
             }
         }
         
@@ -3663,6 +3717,69 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Unwrap all arguments.
+        /// </summary>
+        internal static string Unwrap_all_arguments {
+            get {
+                return ResourceManager.GetString("Unwrap_all_arguments", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unwrap all parameters.
+        /// </summary>
+        internal static string Unwrap_all_parameters {
+            get {
+                return ResourceManager.GetString("Unwrap_all_parameters", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unwrap and indent all arguments.
+        /// </summary>
+        internal static string Unwrap_and_indent_all_arguments {
+            get {
+                return ResourceManager.GetString("Unwrap_and_indent_all_arguments", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unwrap and indent all parameters.
+        /// </summary>
+        internal static string Unwrap_and_indent_all_parameters {
+            get {
+                return ResourceManager.GetString("Unwrap_and_indent_all_parameters", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unwrap argument list.
+        /// </summary>
+        internal static string Unwrap_argument_list {
+            get {
+                return ResourceManager.GetString("Unwrap_argument_list", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unwrap expression.
+        /// </summary>
+        internal static string Unwrap_expression {
+            get {
+                return ResourceManager.GetString("Unwrap_expression", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unwrap parameter list.
+        /// </summary>
+        internal static string Unwrap_parameter_list {
+            get {
+                return ResourceManager.GetString("Unwrap_parameter_list", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Updating &apos;{0}&apos; will prevent the debug session from continuing..
         /// </summary>
         internal static string Updating_0_will_prevent_the_debug_session_from_continuing {
@@ -4310,6 +4427,60 @@ namespace Microsoft.CodeAnalysis {
         internal static string Warning_Method_overrides_symbol_from_metadata {
             get {
                 return ResourceManager.GetString("Warning_Method_overrides_symbol_from_metadata", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Wrap every argument.
+        /// </summary>
+        internal static string Wrap_every_argument {
+            get {
+                return ResourceManager.GetString("Wrap_every_argument", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Wrap every parameter.
+        /// </summary>
+        internal static string Wrap_every_parameter {
+            get {
+                return ResourceManager.GetString("Wrap_every_parameter", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Wrap expression.
+        /// </summary>
+        internal static string Wrap_expression {
+            get {
+                return ResourceManager.GetString("Wrap_expression", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Wrap expression (including operators).
+        /// </summary>
+        internal static string Wrap_expression_including_operators {
+            get {
+                return ResourceManager.GetString("Wrap_expression_including_operators", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Wrap long argument list.
+        /// </summary>
+        internal static string Wrap_long_argument_list {
+            get {
+                return ResourceManager.GetString("Wrap_long_argument_list", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Wrap long parameter list.
+        /// </summary>
+        internal static string Wrap_long_parameter_list {
+            get {
+                return ResourceManager.GetString("Wrap_long_parameter_list", resourceCulture);
             }
         }
         
