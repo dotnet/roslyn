@@ -66,11 +66,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return node;
         }
 
-        public static bool ContainsUsingDeclarationStatement(this BoundStatement statement)
-        {
-            return ContainsUsingDeclarationStatement(statement, out var _);
-        }
-
         public static bool ContainsUsingDeclarationStatement(this BoundStatement statement, out BoundUsingLocalDeclarations declaration)
         {
             declaration = null;

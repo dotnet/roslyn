@@ -1726,7 +1726,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             int endIndex = Math.Max(i, j);
                             for (int k = startIndex; k < endIndex; k++)
                             {
-                                if (immutableBoundStatements[k].ContainsUsingDeclarationStatement())
+                                if (immutableBoundStatements[k].ContainsUsingDeclarationStatement(out var _))
                                 {
                                     // we're jumping across a using declaration in the same block, which is an error
                                     diagnostics.Add(ErrorCode.ERR_GoToJumpOverUsingVar, gotoStatement.Syntax.Location);

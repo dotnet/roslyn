@@ -43,19 +43,32 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                return MakeDeclarationUsingStatement(node.Syntax, tryBlock, node.Locals, node.DeclarationsOpt, node.IDisposableConversion, node.DisposeMethodOpt, node.AwaitOpt, awaitKeyword);
+                return MakeDeclarationUsingStatement(node.Syntax,
+                                                     tryBlock,
+                                                     node.Locals,
+                                                     node.DeclarationsOpt.LocalDeclarations,
+                                                     node.IDisposableConversion,
+                                                     node.DisposeMethodOpt,
+                                                     node.AwaitOpt,
+                                                     awaitKeyword);
             }
         }
 
-        public BoundNode MakeDeclarationUsingStatement(SyntaxNode syntax, BoundBlock body, ImmutableArray<LocalSymbol> locals, BoundMultipleLocalDeclarations declarations, Conversion iDisposableConversion, MethodSymbol disposeMethodOpt, AwaitableInfo awaitOpt, SyntaxToken awaitKeyword)
+        public BoundNode MakeDeclarationUsingStatement(SyntaxNode syntax,
+                                                       BoundBlock body, 
+                                                       ImmutableArray<LocalSymbol> locals,
+                                                       ImmutableArray<BoundLocalDeclaration> declarations,
+                                                       Conversion iDisposableConversion,
+                                                       MethodSymbol disposeMethodOpt,
+                                                       AwaitableInfo awaitOpt,
+                                                       SyntaxToken awaitKeyword)
         {
             Debug.Assert(declarations != null);
 
-            ImmutableArray<BoundLocalDeclaration> declarationList = declarations.LocalDeclarations;
             BoundBlock result = body;
-            for (int i = declarationList.Length - 1; i >= 0; i--) //NB: inner-to-outer = right-to-left
+            for (int i = declarations.Length - 1; i >= 0; i--) //NB: inner-to-outer = right-to-left
             {
-                result = RewriteDeclarationUsingStatement(syntax, declarationList[i], result, iDisposableConversion, awaitKeyword, awaitOpt, disposeMethodOpt);
+                result = RewriteDeclarationUsingStatement(syntax, declarations[i], result, iDisposableConversion, awaitKeyword, awaitOpt, disposeMethodOpt);
             }
 
             // Declare all locals in a single, top-level block so that the scope is correct in the debugger
@@ -65,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 locals,
                 ImmutableArray.Create<BoundStatement>(result));
         }
-        
+
         /// <summary>
         /// Lower "using var x = (expression)" to a try-finally block.
         /// </summary>
@@ -73,10 +86,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             SyntaxNode syntax = usingDeclarations.Syntax;
             BoundBlock body = new BoundBlock(syntax, ImmutableArray<LocalSymbol>.Empty, statements);
-            BoundMultipleLocalDeclarations declarations = new BoundMultipleLocalDeclarations(syntax, usingDeclarations.LocalDeclarations);
             
             //PROTOTYPE: need to handle await using when boundMultipleLocalDeclarations supports it
-            var usingStatement = (BoundStatement)MakeDeclarationUsingStatement(syntax, body, ImmutableArray<LocalSymbol>.Empty, declarations, usingDeclarations.IDisposableConversion, usingDeclarations.DisposeMethodOpt, awaitOpt: null, awaitKeyword: default);
+            var usingStatement = (BoundStatement)MakeDeclarationUsingStatement(syntax,
+                                                                               body,
+                                                                               ImmutableArray<LocalSymbol>.Empty,
+                                                                               usingDeclarations.LocalDeclarations, 
+                                                                               usingDeclarations.IDisposableConversion,
+                                                                               usingDeclarations.DisposeMethodOpt, 
+                                                                               awaitOpt: null, 
+                                                                               awaitKeyword: default);
 
             return usingStatement;
         }
