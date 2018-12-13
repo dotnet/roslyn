@@ -200,7 +200,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
                     // if there is still a pending show.
 
                     // If ReSharper was suspended and the user closed and reopened VS, we want to reset the gold bar
-                    else if (_isFirstRun)
+                    else if (currentStatus == ReSharperStatus.Suspended && _isFirstRun)
                     {
                         options = options.WithChangedOption(KeybindingResetOptions.NeedsReset, true);
                     }
