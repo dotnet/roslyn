@@ -221,7 +221,7 @@ namespace Microsoft.CodeAnalysis
         private static bool TryCompileChoice(
             ref SectionNameLexer lexer,
             StringBuilder sb,
-            ArrayBuilder<(int,int)> numberRangePairs)
+            ArrayBuilder<(int, int)> numberRangePairs)
         {
             if (lexer.Lex() != TokenKind.OpenCurly)
             {
