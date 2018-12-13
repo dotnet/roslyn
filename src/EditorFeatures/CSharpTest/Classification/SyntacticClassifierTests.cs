@@ -4440,7 +4440,7 @@ class X
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public async Task SingleVariableDesignation()
+        public async Task TestDeclarationIsPattern()
         {
             await TestInMethodAsync(@"
 object foo;
@@ -4460,6 +4460,127 @@ if (foo is Action action)
                 Punctuation.CloseParen,
                 Punctuation.OpenCurly,
                 Punctuation.CloseCurly);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestDeclarationSwitchPattern()
+        {
+            await TestInMethodAsync(@"
+object y;
+
+switch (y)
+{
+    case int x:
+        break;
+}",
+
+                Keyword("object"),
+                Local("y"),
+                Punctuation.Semicolon,
+                ControlKeyword("switch"),
+                Punctuation.OpenParen,
+                Identifier("y"),
+                Punctuation.CloseParen,
+                Punctuation.OpenCurly,
+                ControlKeyword("case"),
+                Keyword("int"),
+                Local("x"),
+                Punctuation.Colon,
+                ControlKeyword("break"),
+                Punctuation.Semicolon,
+                Punctuation.CloseCurly);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestDeclarationExpression()
+        {
+            await TestInMethodAsync(@"
+int (foo, bar) = (1, 2);",
+                Keyword("int"),
+                Punctuation.OpenParen,
+                Local("foo"),
+                Punctuation.Comma,
+                Local("bar"),
+                Punctuation.CloseParen,
+                Operators.Equals,
+                Punctuation.OpenParen,
+                Number("1"),
+                Punctuation.Comma,
+                Number("2"),
+                Punctuation.CloseParen,
+                Punctuation.Semicolon);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestTupleTypeSyntax()
+        {
+            await TestInClassAsync(@"
+public (int a, int b) Get() => null;",
+                Keyword("public"),
+                Punctuation.OpenParen,
+                Keyword("int"),
+                Identifier("a"),
+                Punctuation.Comma,
+                Keyword("int"),
+                Identifier("b"),
+                Punctuation.CloseParen,
+                Method("Get"),
+                Punctuation.OpenParen,
+                Punctuation.CloseParen,
+                Operators.EqualsGreaterThan,
+                Keyword("null"),
+                Punctuation.Semicolon);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestOutParameter()
+        {
+            await TestInMethodAsync(@"
+if (int.TryParse(""1"", out int x))
+{
+}",
+                ControlKeyword("if"),
+                Punctuation.OpenParen,
+                Keyword("int"),
+                Operators.Dot,
+                Identifier("TryParse"),
+                Punctuation.OpenParen,
+                String(@"""1"""),
+                Punctuation.Comma,
+                Keyword("out"),
+                Keyword("int"),
+                Local("x"),
+                Punctuation.CloseParen,
+                Punctuation.CloseParen,
+                Punctuation.OpenCurly,
+                Punctuation.CloseCurly);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestOutParameter2()
+        {
+            await TestInClassAsync(@"
+int F = int.TryParse(""1"", out int x) ? x : -1;
+",
+                Keyword("int"),
+                Field("F"),
+                Operators.Equals,
+                Keyword("int"),
+                Operators.Dot,
+                Identifier("TryParse"),
+                Punctuation.OpenParen,
+                String(@"""1"""),
+                Punctuation.Comma,
+                Keyword("out"),
+                Keyword("int"),
+                Local("x"),
+                Punctuation.CloseParen,
+                Operators.QuestionMark,
+                Identifier("x"),
+                Operators.Colon,
+                Operators.Minus,
+                Number("1"),
+                Punctuation.Semicolon);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
