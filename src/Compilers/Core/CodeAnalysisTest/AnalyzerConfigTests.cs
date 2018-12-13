@@ -633,6 +633,32 @@ RoOt = TruE");
         }
 
         [Fact]
+        public void BadNumberRanges()
+        {
+            var matcherOpt = TryCreateSectionNameMatcher("{0..");
+
+            Assert.Null(matcherOpt);
+
+            var matcher = TryCreateSectionNameMatcher("{0..}").Value;
+
+            Assert.True(matcher.IsMatch("/0.."));
+            Assert.False(matcher.IsMatch("/0"));
+            Assert.False(matcher.IsMatch("/0."));
+            Assert.False(matcher.IsMatch("/0abc"));
+
+            matcher = TryCreateSectionNameMatcher("{0..A}").Value;
+            Assert.True(matcher.IsMatch("/0..A"));
+            Assert.False(matcher.IsMatch("/0"));
+            Assert.False(matcher.IsMatch("/0abc"));
+
+            // The reference implementation uses atoi here so we can presume
+            // numbers out of range of Int32 are not well supported
+            matcherOpt = TryCreateSectionNameMatcher($"{{0..{UInt32.MaxValue}}}");
+
+            Assert.Null(matcherOpt);
+        }
+
+        [Fact]
         public void EditorConfigToDiagnostics()
         {
             var configs = ArrayBuilder<AnalyzerConfig>.GetInstance();
@@ -1015,6 +1041,29 @@ dotnet_diagnostic.some_key = some_val", "/.editorconfig"));
                     }
                 },
                 options);
+        }
+
+        [Fact]
+        public void E2ENumberRange()
+        {
+            var configs = ArrayBuilder<AnalyzerConfig>.GetInstance();
+            configs.Add(Parse(@"
+[a{-10..0}b{0..10}.cs]
+dotnet_diagnostic.cs000.severity = warn", "/.editorconfig"));
+
+            var options = GetAnalyzerConfigOptions(
+                new[] { "/a0b0.cs", "/test/a-5b5.cs", "/a0b0.vb" },
+                configs);
+            configs.Free();
+
+            Assert.Equal(new[]
+            {
+                CreateImmutableDictionary(
+                    ("cs000", ReportDiagnostic.Warn)),
+                CreateImmutableDictionary(
+                    ("cs000", ReportDiagnostic.Warn)),
+                null
+            }, options.TreeOptions);
         }
     }
 }

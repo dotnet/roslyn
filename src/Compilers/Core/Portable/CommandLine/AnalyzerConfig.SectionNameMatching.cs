@@ -37,11 +37,11 @@ namespace Microsoft.CodeAnalysis
                 Debug.Assert(match.Groups.Count - 1 == _numberRangePairs.Length);
                 for (int i = 0; i < _numberRangePairs.Length; i++)
                 {
-                    var expectedRange = _numberRangePairs[i];
+                    var (minValue, maxValue) = _numberRangePairs[i];
                     // Index 0 is the whole regex
                     if (!int.TryParse(match.Groups[i + 1].Value, out int matchedNum) ||
-                        matchedNum < expectedRange.minValue ||
-                        matchedNum > expectedRange.maxValue)
+                        matchedNum < minValue ||
+                        matchedNum > maxValue)
                     {
                         return false;
                     }
@@ -97,6 +97,7 @@ namespace Microsoft.CodeAnalysis
             var numberRangePairs = ArrayBuilder<(int minValue, int maxValue)>.GetInstance();
             if (!TryCompilePathList(ref lexer, sb, parsingChoice: false, numberRangePairs))
             {
+                numberRangePairs.Free();
                 return null;
             }
             sb.Append('$');
