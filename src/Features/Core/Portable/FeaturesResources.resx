@@ -1439,6 +1439,9 @@ This version used in: {2}</value>
   <data name="Private_member_0_can_be_removed_as_the_value_assigned_to_it_is_never_read" xml:space="preserve">
     <value>Private member '{0}' can be removed as the value assigned to it is never read.</value>
   </data>
+  <data name="Private_method_0_can_be_removed_as_it_is_never_invoked" xml:space="preserve">
+    <value>Private method '{0}' can be removed as it is never invoked.</value>
+  </data>
   <data name="Code_Quality" xml:space="preserve">
     <value>Code Quality</value>
   </data>
@@ -1468,6 +1471,57 @@ This version used in: {2}</value>
   </data>
   <data name="Replace_0_with_1" xml:space="preserve">
     <value>Replace '{0}' with '{1}' </value>
+  </data>
+  <!--
+        protected override string Unwrap_list => FeaturesResources.Unwrap_parameter_list;
+    -->
+  <data name="Align_wrapped_parameters" xml:space="preserve">
+    <value>Align wrapped parameters</value>
+  </data>
+  <data name="Indent_all_parameters" xml:space="preserve">
+    <value>Indent all parameters</value>
+  </data>
+  <data name="Indent_wrapped_parameters" xml:space="preserve">
+    <value>Indent wrapped parameters</value>
+  </data>
+  <data name="Unwrap_all_parameters" xml:space="preserve">
+    <value>Unwrap all parameters</value>
+  </data>
+  <data name="Unwrap_and_indent_all_parameters" xml:space="preserve">
+    <value>Unwrap and indent all parameters</value>
+  </data>
+  <data name="Wrap_every_parameter" xml:space="preserve">
+    <value>Wrap every parameter</value>
+  </data>
+  <data name="Wrap_long_parameter_list" xml:space="preserve">
+    <value>Wrap long parameter list</value>
+  </data>
+  <data name="Unwrap_parameter_list" xml:space="preserve">
+    <value>Unwrap parameter list</value>
+  </data>
+  <data name="Align_wrapped_arguments" xml:space="preserve">
+    <value>Align wrapped arguments</value>
+  </data>
+  <data name="Indent_all_arguments" xml:space="preserve">
+    <value>Indent all arguments</value>
+  </data>
+  <data name="Indent_wrapped_arguments" xml:space="preserve">
+    <value>Indent wrapped arguments</value>
+  </data>
+  <data name="Unwrap_all_arguments" xml:space="preserve">
+    <value>Unwrap all arguments</value>
+  </data>
+  <data name="Unwrap_and_indent_all_arguments" xml:space="preserve">
+    <value>Unwrap and indent all arguments</value>
+  </data>
+  <data name="Wrap_every_argument" xml:space="preserve">
+    <value>Wrap every argument</value>
+  </data>
+  <data name="Wrap_long_argument_list" xml:space="preserve">
+    <value>Wrap long argument list</value>
+  </data>
+  <data name="Unwrap_argument_list" xml:space="preserve">
+    <value>Unwrap argument list</value>
   </data>
   <data name="Introduce_constant" xml:space="preserve">
     <value>Introduce constant</value>
@@ -1522,6 +1576,15 @@ This version used in: {2}</value>
   </data>
   <data name="_0_can_be_simplified" xml:space="preserve">
     <value>{0} can be simplified</value>
+  </data>
+  <data name="Unwrap_expression" xml:space="preserve">
+    <value>Unwrap expression</value>
+  </data>
+  <data name="Wrap_expression" xml:space="preserve">
+    <value>Wrap expression</value>
+  </data>
+  <data name="Wrap_expression_including_operators" xml:space="preserve">
+    <value>Wrap expression (including operators)</value>
   </data>
   <data name="Remove_unused_parameter_0_if_it_is_not_part_of_a_shipped_public_API" xml:space="preserve">
     <value>Remove unused parameter '{0}' if it is not part of a shipped public API</value>

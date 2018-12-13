@@ -63,7 +63,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             {
                 await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
 
-                var monitorSelectionService = (IVsMonitorSelection)await asyncServiceProvider.GetServiceAsync(typeof(SVsShellMonitorSelection));
+                var monitorSelectionService = (IVsMonitorSelection)await asyncServiceProvider.GetServiceAsync(typeof(SVsShellMonitorSelection)).ConfigureAwait(false);
 
                 if (ErrorHandler.Succeeded(monitorSelectionService.GetCurrentElementValue((uint)VSConstants.VSSELELEMID.SEID_DocumentFrame, out var value)))
                 {
@@ -81,7 +81,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         {
             _asyncTasks.Join();
         }
-        
+
         /// <summary>
         /// Raised when the set of window frames being tracked changes, which means the results from <see cref="TryGetActiveDocument"/> or <see cref="GetVisibleDocuments"/> may change.
         /// May be raised on any thread.

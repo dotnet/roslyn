@@ -2042,7 +2042,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var expr = BindExpression(node.Operand, diagnostics);
             var type = expr.Type;
-            if (type?.IsValueType == true)
+            if (type?.IsValueType == true && !type.IsNullableType())
             {
                 Error(diagnostics, ErrorCode.WRN_SuppressionOperatorNotReferenceType, node);
             }
@@ -2692,7 +2692,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return operand.HasAnyErrors;
-            }
+        }
 
         private bool IsOperatorErrors(CSharpSyntaxNode node, TypeSymbol operandType, BoundTypeExpression typeExpression, DiagnosticBag diagnostics)
         {

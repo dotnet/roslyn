@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
             private void InlineAllDelegateAnonymousTypes()
             {
-            restart:
+restart:
                 foreach (var kvp in _groupMap)
                 {
                     var parts = kvp.Value;
@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                     AddToGroup(SymbolDescriptionGroups.AnonymousTypes,
                         info.AnonymousTypesParts);
 
-                restart:
+restart:
                     foreach (var kvp in _groupMap)
                     {
                         var parts = _groupMap[kvp.Key];

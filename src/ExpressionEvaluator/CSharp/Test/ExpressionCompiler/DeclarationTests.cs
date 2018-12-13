@@ -2169,7 +2169,7 @@ class C
                 string error;
                 CompileDeclaration(context, "var x = 1;", out flags, out testData, out error);
                 Assert.Equal("error CS0136: A local or parameter named 'x' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter", error);
-            });     
+            });
         }
 
         [Fact]

@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static readonly DebugInfoInjector Singleton = new DebugInfoInjector(Instrumenter.NoOp);
 
         public DebugInfoInjector(Instrumenter previous)
-            : base (previous)
+            : base(previous)
         {
         }
 
@@ -230,7 +230,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var forEachSyntax = (CommonForEachStatementSyntax)original.Syntax;
             BoundSequencePointWithSpan foreachKeywordSequencePoint = new BoundSequencePointWithSpan(forEachSyntax, null, forEachSyntax.ForEachKeyword.Span);
-            return new BoundStatementList(forEachSyntax, 
+            return new BoundStatementList(forEachSyntax,
                                             ImmutableArray.Create<BoundStatement>(foreachKeywordSequencePoint,
                                                                                 base.InstrumentForEachStatement(original, rewritten)));
         }
@@ -271,14 +271,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundStatement InstrumentForStatementConditionalGotoStartOrBreak(BoundForStatement original, BoundStatement branchBack)
         {
             // hidden sequence point if there is no condition
-            return new BoundSequencePoint(original.Condition?.Syntax, 
+            return new BoundSequencePoint(original.Condition?.Syntax,
                                           base.InstrumentForStatementConditionalGotoStartOrBreak(original, branchBack));
         }
 
         public override BoundStatement InstrumentForEachStatementConditionalGotoStart(BoundForEachStatement original, BoundStatement branchBack)
         {
             var syntax = (CommonForEachStatementSyntax)original.Syntax;
-            return new BoundSequencePointWithSpan(syntax, 
+            return new BoundSequencePointWithSpan(syntax,
                                                   base.InstrumentForEachStatementConditionalGotoStart(original, branchBack),
                                                   syntax.InKeyword.Span);
         }
@@ -314,7 +314,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var labeledSyntax = (LabeledStatementSyntax)original.Syntax;
             var span = TextSpan.FromBounds(labeledSyntax.Identifier.SpanStart, labeledSyntax.ColonToken.Span.End);
             return new BoundSequencePointWithSpan(labeledSyntax,
-                                                  base.InstrumentLabelStatement(original, rewritten), 
+                                                  base.InstrumentLabelStatement(original, rewritten),
                                                   span);
         }
 
@@ -322,7 +322,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return AddSequencePoint(original.Syntax.Kind() == SyntaxKind.VariableDeclarator ?
                                         (VariableDeclaratorSyntax)original.Syntax :
-                                        ((LocalDeclarationStatementSyntax)original.Syntax).Declaration.Variables.First(), 
+                                        ((LocalDeclarationStatementSyntax)original.Syntax).Declaration.Variables.First(),
                                     base.InstrumentLocalInitialization(original, rewritten));
         }
 
@@ -330,7 +330,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             LockStatementSyntax lockSyntax = (LockStatementSyntax)original.Syntax;
             return new BoundSequencePointWithSpan(lockSyntax,
-                                                  base.InstrumentLockTargetCapture(original, lockTargetCapture), 
+                                                  base.InstrumentLockTargetCapture(original, lockTargetCapture),
                                                   TextSpan.FromBounds(lockSyntax.LockKeyword.SpanStart, lockSyntax.CloseParenToken.Span.End));
         }
 
@@ -388,7 +388,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundStatement InstrumentUsingTargetCapture(BoundUsingStatement original, BoundStatement usingTargetCapture)
         {
-            return AddSequencePoint((UsingStatementSyntax)original.Syntax, 
+            return AddSequencePoint((UsingStatementSyntax)original.Syntax,
                                     base.InstrumentUsingTargetCapture(original, usingTargetCapture));
         }
 

@@ -205,7 +205,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         public override RefKind RefKind => _refKind;
-        
+
         internal void ComputeReturnType()
         {
             if (!_lazyReturnType.IsNull)
@@ -271,7 +271,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override ImmutableArray<TypeSymbolWithAnnotations> TypeArguments => GetTypeParametersAsTypeArguments();
 
-        public override ImmutableArray<TypeParameterSymbol> TypeParameters 
+        public override ImmutableArray<TypeParameterSymbol> TypeParameters
             => _typeParameters.Cast<SourceMethodTypeParameterSymbol, TypeParameterSymbol>();
 
         public override bool IsExtensionMethod

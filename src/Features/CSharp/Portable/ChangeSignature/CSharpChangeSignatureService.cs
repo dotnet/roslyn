@@ -624,8 +624,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
         }
 
         public override async Task<ImmutableArray<SymbolAndProjectId>> DetermineCascadedSymbolsFromDelegateInvoke(
-            SymbolAndProjectId<IMethodSymbol> symbolAndProjectId, 
-            Document document, 
+            SymbolAndProjectId<IMethodSymbol> symbolAndProjectId,
+            Document document,
             CancellationToken cancellationToken)
         {
             var symbol = symbolAndProjectId.Symbol;

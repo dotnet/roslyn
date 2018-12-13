@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.DiagnosticComments.CodeFixes
 
                     continue;
                 }
-                
+
                 // At this point, the node has to go at the beginning of the comment
                 var nodeAfterNewParamNode = paramNodes.FirstOrDefault() ?? newDocComment.ChildNodes().First();
 

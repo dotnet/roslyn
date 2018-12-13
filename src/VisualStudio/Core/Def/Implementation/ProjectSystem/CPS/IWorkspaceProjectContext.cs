@@ -41,6 +41,17 @@ namespace Microsoft.VisualStudio.LanguageServices.ProjectSystem
         void RemoveAdditionalFile(string filePath);
         void AddDynamicFile(string filePath, IEnumerable<string> folderNames = null);
         void RemoveDynamicFile(string filePath);
+
+        /// <summary>
+        /// Adds a file (like a .editorconfig) used to configure analyzers.
+        /// </summary>
+        void AddAnalyzerConfigFile(string filePath);
+
+        /// <summary>
+        /// Removes a file (like a .editorconfig) used to configure analyzers.
+        /// </summary>
+        void RemoveAnalyzerConfigFile(string filePath);
+
         void SetRuleSetFile(string filePath);
 
         void StartBatch();

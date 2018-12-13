@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Host
         public string DatabaseDirectory => Path.GetDirectoryName(DatabaseFile);
 
         protected AbstractPersistentStorage(
-            string workingFolderPath, 
+            string workingFolderPath,
             string solutionFilePath,
             string databaseFile)
         {

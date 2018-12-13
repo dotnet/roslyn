@@ -157,6 +157,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        internal override bool IsNullableGloballyEnabled()
+        {
+            return Compilation.Options.Nullable;
+        }
+
         internal override Binder GetBinder(SyntaxNode node)
         {
             return null;

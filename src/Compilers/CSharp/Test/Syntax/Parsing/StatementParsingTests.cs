@@ -2079,7 +2079,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.ElseKeyword, ss.Else.ElseKeyword.Kind());
             Assert.NotNull(ss.Else.Statement);
 
-            var subIf = (IfStatementSyntax) ss.Else.Statement;
+            var subIf = (IfStatementSyntax)ss.Else.Statement;
             Assert.NotNull(subIf.IfKeyword);
             Assert.Equal(SyntaxKind.IfKeyword, subIf.IfKeyword.Kind());
             Assert.NotNull(subIf.Condition);

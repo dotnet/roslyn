@@ -3736,7 +3736,7 @@ public static class TestExtensions
 }
 ";
             var compilation = CreateCompilationWithMscorlib40AndSystemCore(sourceCode);
-                
+
             compilation.VerifyDiagnostics(
                 // (6,34): error CS1936: Could not find an implementation of the query pattern for source type 'Test'.  'Select' not found.
                 //         var x01 = from a in Test select a + 1;
@@ -3785,7 +3785,7 @@ static class TestExtensions
                 Diagnostic(ErrorCode.ERR_QueryNoProvider, "select a + 1").WithArguments("Test", "Select").WithLocation(7, 46)
                 );
         }
-        
+
         [Fact]
         [WorkItem(204561, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=204561&_a=edit")]
         public void Bug204561_03()

@@ -1136,7 +1136,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             var success = true;
             ArrayBuilder<DiagnosticAnalyzer> subsetProcessedAnalyzersBuilderOpt = null;
-            for(int i = 0; i < analysisScope.Analyzers.Length; i++)
+            for (int i = 0; i < analysisScope.Analyzers.Length; i++)
             {
                 var analyzer = analysisScope.Analyzers[i];
                 var analyzerSuccess = true;
@@ -1168,7 +1168,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 Debug.Assert(!success);
                 Debug.Assert(subsetProcessedAnalyzersBuilderOpt.Count < analysisScope.Analyzers.Length);
 
-                if(subsetProcessedAnalyzersBuilderOpt.Count > 0)
+                if (subsetProcessedAnalyzersBuilderOpt.Count > 0)
                 {
                     subsetProcessedAnalyzers = subsetProcessedAnalyzersBuilderOpt.ToImmutableAndFree();
                 }

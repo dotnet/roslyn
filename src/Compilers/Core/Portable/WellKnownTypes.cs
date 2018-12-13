@@ -280,6 +280,7 @@ namespace Microsoft.CodeAnalysis
         System_Index,
         System_Range,
 
+        System_Runtime_CompilerServices_AsyncIteratorStateMachineAttribute,
         System_IAsyncDisposable,
         System_Collections_Generic_IAsyncEnumerable_T,
         System_Collections_Generic_IAsyncEnumerator_T,
@@ -292,6 +293,8 @@ namespace Microsoft.CodeAnalysis
         System_Runtime_CompilerServices_AsyncIteratorMethodBuilder,
 
         NextAvailable,
+
+        // Remember to update the AllWellKnownTypes tests when making changes here
     }
 
     internal static class WellKnownTypes
@@ -565,6 +568,7 @@ namespace Microsoft.CodeAnalysis
             "System.Index",
             "System.Range",
 
+            "System.Runtime.CompilerServices.AsyncIteratorStateMachineAttribute",
             "System.IAsyncDisposable",
             "System.Collections.Generic.IAsyncEnumerable`1",
             "System.Collections.Generic.IAsyncEnumerator`1",
@@ -627,11 +631,11 @@ namespace Microsoft.CodeAnalysis
                     typeIdName = typeIdName.Substring(0, separator);
                 }
 
-                Debug.Assert(name == typeIdName);
+                Debug.Assert(name == typeIdName, "Enum name and type name must match");
             }
 
             Debug.Assert((int)WellKnownType.ExtSentinel == 255);
-            Debug.Assert((int)WellKnownType.NextAvailable <= 512);
+            Debug.Assert((int)WellKnownType.NextAvailable <= 512, "Time for a new sentinel");
         }
 
         public static bool IsWellKnownType(this WellKnownType typeId)

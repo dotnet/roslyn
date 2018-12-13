@@ -178,7 +178,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
         }
 
         private static bool IsValidNamedTypeSearchResult(
-            SemanticModel semanticModel, int arity, bool inAttributeContext, 
+            SemanticModel semanticModel, int arity, bool inAttributeContext,
             bool looksGeneric, INamedTypeSymbol searchResult)
         {
             if (arity != 0 && searchResult.GetArity() != arity)
@@ -240,7 +240,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
             }
 
             var symbolAndProjectIds = await DeclarationFinder.FindAllDeclarationsWithNormalQueryAsync(
-                project, SearchQuery.Create(name, this.IgnoreCase), 
+                project, SearchQuery.Create(name, this.IgnoreCase),
                 SymbolFilter.Namespace, cancellationToken).ConfigureAwait(false);
 
             var symbols = symbolAndProjectIds.SelectAsArray(t => t.Symbol);

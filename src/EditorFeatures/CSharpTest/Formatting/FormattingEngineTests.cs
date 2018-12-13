@@ -1650,14 +1650,14 @@ class C
 
         [WorkItem(11642, "https://github.com/dotnet/roslyn/issues/11642")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
-        public async Task FormatArbitraryNodeParenthesizedLambdaExpression()
+        public void FormatArbitraryNodeParenthesizedLambdaExpression()
         {
             // code equivalent to an expression synthesized like so:
             // ParenthesizedExpression(ParenthesizedLambdaExpression(ParameterList(), Block()))
             var code = @"(()=>{})";
             var node = SyntaxFactory.ParseExpression(code);
             var expected = @"(() => { })";
-            await AssertFormatOnArbitraryNodeAsync(node, expected);
+            AssertFormatOnArbitraryNode(node, expected);
         }
 
         [WorkItem(30787, "https://github.com/dotnet/roslyn/issues/30787")]

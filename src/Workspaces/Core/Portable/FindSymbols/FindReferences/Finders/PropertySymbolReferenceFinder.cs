@@ -21,8 +21,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         }
 
         protected override async Task<ImmutableArray<SymbolAndProjectId>> DetermineCascadedSymbolsAsync(
-            SymbolAndProjectId<IPropertySymbol> symbolAndProjectId, 
-            Solution solution, 
+            SymbolAndProjectId<IPropertySymbol> symbolAndProjectId,
+            Solution solution,
             IImmutableSet<Project> projects,
             FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             FindReferencesSearchOptions options, CancellationToken cancellationToken)
         {
             var nameReferences = await FindReferencesInDocumentUsingSymbolNameAsync(
-                symbol, document, semanticModel, cancellationToken).ConfigureAwait(false); 
+                symbol, document, semanticModel, cancellationToken).ConfigureAwait(false);
 
             if (options.AssociatePropertyReferencesWithSpecificAccessor)
             {
@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 : ImmutableArray<FinderLocation>.Empty;
 
             var indexerCrefReferences = symbol.IsIndexer
-                ? await FindIndexerCrefReferencesAsync(symbol, document, semanticModel, options, cancellationToken)
+                ? await FindIndexerCrefReferencesAsync(symbol, document, semanticModel, options, cancellationToken).ConfigureAwait(false)
                 : ImmutableArray<FinderLocation>.Empty;
 
             return nameReferences.Concat(forEachReferences)
