@@ -25,7 +25,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.Ma
 
         public string SelectMembers => ServicesVSResources.Select_members;
 
-        public string SelectDestination => ServicesVSResources.Select_destinations;
+        public string SelectDestination => ServicesVSResources.Select_destination_type;
 
         public string Description => ServicesVSResources.Select_destination_and_members_to_pull_up;
 

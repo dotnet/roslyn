@@ -1255,12 +1255,12 @@ public class TestClass : VBInterface
             string initialMarkUp,
             string expectedResult,
             IEnumerable<(string, bool)> selection = null,
-            string target = null,
+            string destinationName = null,
             int index = 0,
             CodeActionPriority? priority = null,
             TestParameters parameters = default)
         {
-            var service = new TestPullMemberUpService(selection, target);
+            var service = new TestPullMemberUpService(selection, destinationName);
 
             return TestInRegularAndScript1Async(
                 initialMarkUp, expectedResult,

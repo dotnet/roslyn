@@ -12,12 +12,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.PullMemberUp
     {
         private IEnumerable<(string member, bool makeAbstract)> SelectedMembers { get; }
         
-        private string TargetBaseTypeName { get; }
+        private string DestinationName { get; }
 
-        public TestPullMemberUpService(IEnumerable<(string member, bool makeAbstract)> selectedMembers, string targetBaseTypeName)
+        public TestPullMemberUpService(IEnumerable<(string member, bool makeAbstract)> selectedMembers, string destinationName)
         {
             SelectedMembers = selectedMembers;
-            TargetBaseTypeName = targetBaseTypeName;
+            DestinationName = destinationName;
         }
 
         public PullMembersUpAnalysisResult GetPullMemberUpAnalysisResultFromDialogBox(ISymbol selectedNodeSymbol, Document document)
@@ -31,12 +31,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.PullMemberUp
             var allInterfaces = selectedNodeSymbol.ContainingType.AllInterfaces;
             var baseClass = selectedNodeSymbol.ContainingType.BaseType;
 
-            ISymbol targetSymbol = default;
-            if (TargetBaseTypeName == null)
+            ISymbol destination = default;
+            if (DestinationName == null)
             {
-                targetSymbol = allInterfaces.FirstOrDefault() ?? baseClass;
+                destination = allInterfaces.FirstOrDefault() ?? baseClass;
 
-                if (targetSymbol == null)
+                if (destination == null)
                 {
                     throw new ArgumentException($"No target base type for {selectedNodeSymbol}");
                 }
@@ -45,14 +45,14 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.PullMemberUp
             {
                 if (allInterfaces != null)
                 {
-                   targetSymbol = allInterfaces.SingleOrDefault(@interface => @interface.Name == TargetBaseTypeName);
+                   destination = allInterfaces.SingleOrDefault(@interface => @interface.Name == DestinationName);
                 }
                 
-                if (baseClass != null && targetSymbol == null)
+                if (baseClass != null && destination == null)
                 {
                     for (var i = baseClass; i != null; i = i.BaseType)
                     {
-                        if (i.Name == TargetBaseTypeName)
+                        if (i.Name == DestinationName)
                         {
                             return PullMembersUpAnalysisBuilder.BuildAnalysisResult(i, selectedMember.ToImmutableArray());
                         }
@@ -60,13 +60,13 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.PullMemberUp
                 }
             }
 
-            if (targetSymbol == null)
+            if (destination == null)
             {
-                throw new ArgumentException($"No Matching target base type for {TargetBaseTypeName}");
+                throw new ArgumentException($"No Matching target base type for {DestinationName}");
             }
             else
             {
-                return PullMembersUpAnalysisBuilder.BuildAnalysisResult(targetSymbol as INamedTypeSymbol, selectedMember.ToImmutableArray());
+                return PullMembersUpAnalysisBuilder.BuildAnalysisResult(destination as INamedTypeSymbol, selectedMember.ToImmutableArray());
             }
         }
     }

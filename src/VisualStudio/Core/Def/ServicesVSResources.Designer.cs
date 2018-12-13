@@ -2540,9 +2540,9 @@ namespace Microsoft.VisualStudio.LanguageServices {
         /// <summary>
         ///   Looks up a localized string similar to Select destination type:.
         /// </summary>
-        internal static string Select_destinations {
+        internal static string Select_destination_type {
             get {
-                return ResourceManager.GetString("Select_destinations", resourceCulture);
+                return ResourceManager.GetString("Select_destination_type", resourceCulture);
             }
         }
         

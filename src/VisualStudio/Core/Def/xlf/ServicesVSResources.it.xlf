@@ -207,7 +207,7 @@
         <target state="new">Select destination and members to pull up.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Select_destinations">
+      <trans-unit id="Select_destination_type">
         <source>Select destination type:</source>
         <target state="new">Select destination type:</target>
         <note />
