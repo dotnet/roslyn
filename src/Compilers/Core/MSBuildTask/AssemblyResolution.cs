@@ -19,13 +19,19 @@ namespace Microsoft.CodeAnalysis.BuildTasks
     {
         static AssemblyResolution()
         {
-            CorLightup.Desktop.AddAssemblyResolveHandler(ResolveAssembly);
+#if NET472 || NETCOREAPP2_1
+            AppDomain.CurrentDomain.AssemblyResolve += ResolveAssembly;
+#else
+#error Unrecoginzed configuration
+#endif
         }
 
         public static void Install()
         {
             // empty, just to trigger static ctor
         }
+
+        internal static Assembly ResolveAssembly(object sender, ResolveEventArgs e) => ResolveAssembly(e.Name, e.RequestingAssembly);
 
         internal static Assembly ResolveAssembly(string assemblyDisplayName, Assembly requestingAssemblyOpt)
         {
