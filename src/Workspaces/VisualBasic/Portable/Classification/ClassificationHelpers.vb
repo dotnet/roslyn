@@ -16,7 +16,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
         ''' <returns>The classification type for the token</returns>
         ''' <remarks></remarks>
         Public Function GetClassification(token As SyntaxToken) As String
-
             If IsControlKeyword(token) Then
                 Return ClassificationTypeNames.ControlKeyword
             ElseIf SyntaxFacts.IsKeywordKind(token.Kind) Then
@@ -55,7 +54,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
 
         Private Function IsControlKeyword(token As SyntaxToken) As Boolean
             If token.Parent Is Nothing Then
-                Return IsControlKeywordKind(token.Kind)
+                Return False
             End If
 
             ' For Exit Statments classify everything as a control keyword
@@ -67,7 +66,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
                 Return True
             End If
 
-            ' Control keyword are used in other contexts so check that it is
+            ' Control keywords are used in other contexts so check that it is
             ' being used in a supported context.
             Return IsControlKeywordKind(token.Kind) AndAlso
                 IsControlStatementKind(token.Parent.Kind)
@@ -190,7 +189,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
 
             Dim classification As String = Nothing
 
-            If TypeOf parent Is IdentifierNameSyntax AndAlso IsNamePartOfNamespace(DirectCast(parent, IdentifierNameSyntax)) Then
+            If TypeOf parent Is IdentifierNameSyntax AndAlso IsNamespaceName(DirectCast(parent, IdentifierNameSyntax)) Then
                 Return ClassificationTypeNames.NamespaceName
             ElseIf TypeOf parent Is TypeStatementSyntax AndAlso DirectCast(parent, TypeStatementSyntax).Identifier = identifier Then
                 Return ClassifyTypeDeclarationIdentifier(identifier)
@@ -225,21 +224,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
             Return ClassificationTypeNames.Identifier
         End Function
 
-        Private Function IsNamePartOfNamespace(identifierSyntax As IdentifierNameSyntax) As Boolean
+        Private Function IsNamespaceName(identifierSyntax As IdentifierNameSyntax) As Boolean
             Dim parent = identifierSyntax.Parent
 
             While TypeOf parent Is QualifiedNameSyntax
                 parent = parent.Parent
             End While
-
-            If TypeOf parent Is SimpleImportsClauseSyntax Then
-                Dim importsClause = DirectCast(parent, SimpleImportsClauseSyntax)
-
-                ' For import aliases we cannot determine if the name belongs to a namespace
-                ' or a type. We will return false and allow semantic classification to
-                ' classify it appropriately.
-                Return importsClause.Alias Is Nothing
-            End If
 
             Return TypeOf parent Is NamespaceStatementSyntax
         End Function
@@ -257,8 +247,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
                 parent = parent.Parent?.Parent
 
                 ' We are specifically looking for field declarations or constants.
-                Return parent.IsKind(SyntaxKind.FieldDeclaration) AndAlso
-                    parent.GetModifiers().Any(Function(modifier) modifier.IsKind(SyntaxKind.SharedKeyword, SyntaxKind.ConstKeyword))
+                If Not parent.IsKind(SyntaxKind.FieldDeclaration) Then
+                    Return False
+                End If
+
+                If parent.GetModifiers().Any(SyntaxKind.ConstKeyword) Then
+                    Return True
+                End If
             End If
 
             Return parent.GetModifiers().Any(SyntaxKind.SharedKeyword)

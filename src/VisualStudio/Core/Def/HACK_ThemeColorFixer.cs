@@ -64,6 +64,7 @@ namespace Microsoft.VisualStudio.LanguageServices
             UpdateForegroundColor(ClassificationTypeNames.ExcludedCode, sourceFormatMap, targetFormatMap);
             UpdateForegroundColor(ClassificationTypeNames.Identifier, sourceFormatMap, targetFormatMap);
             UpdateForegroundColor(ClassificationTypeNames.Keyword, sourceFormatMap, targetFormatMap);
+            UpdateForegroundColor(ClassificationTypeNames.ControlKeyword, sourceFormatMap, targetFormatMap);
             UpdateForegroundColor(ClassificationTypeNames.NumericLiteral, sourceFormatMap, targetFormatMap);
             UpdateForegroundColor(ClassificationTypeNames.StringLiteral, sourceFormatMap, targetFormatMap);
 
@@ -85,12 +86,11 @@ namespace Microsoft.VisualStudio.LanguageServices
             UpdateForegroundColor(ClassificationTypeNames.RegexOtherEscape, sourceFormatMap, targetFormatMap);
             UpdateForegroundColor(ClassificationTypeNames.RegexSelfEscapedCharacter, sourceFormatMap, targetFormatMap);
 
-            UpdateForegroundColor(ClassificationTypeNames.ControlKeyword, sourceFormatMap, targetFormatMap);
-
             UpdateForegroundColor(ClassificationTypeNames.PreprocessorKeyword, sourceFormatMap, targetFormatMap);
             UpdateForegroundColor(ClassificationTypeNames.PreprocessorText, sourceFormatMap, targetFormatMap);
 
             UpdateForegroundColor(ClassificationTypeNames.Operator, sourceFormatMap, targetFormatMap);
+            UpdateForegroundColor(ClassificationTypeNames.OperatorOverloaded, sourceFormatMap, targetFormatMap);
             UpdateForegroundColor(ClassificationTypeNames.Punctuation, sourceFormatMap, targetFormatMap);
 
             UpdateForegroundColor(ClassificationTypeNames.ClassName, sourceFormatMap, targetFormatMap);
@@ -112,8 +112,6 @@ namespace Microsoft.VisualStudio.LanguageServices
             UpdateForegroundColor(ClassificationTypeNames.EventName, sourceFormatMap, targetFormatMap);
             UpdateForegroundColor(ClassificationTypeNames.NamespaceName, sourceFormatMap, targetFormatMap);
             UpdateForegroundColor(ClassificationTypeNames.LabelName, sourceFormatMap, targetFormatMap);
-
-            UpdateForegroundColor(ClassificationTypeNames.StaticSymbol, sourceFormatMap, targetFormatMap);
 
             UpdateForegroundColor(ClassificationTypeNames.VerbatimStringLiteral, sourceFormatMap, targetFormatMap);
             UpdateForegroundColor(ClassificationTypeNames.StringEscapeCharacter, sourceFormatMap, targetFormatMap);

@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
         {
             [DebuggerStepThrough]
             private static FormattedClassification New(string text)
-                => new FormattedClassification(text, ClassificationTypeNames.OperatorOverload);
+                => new FormattedClassification(text, ClassificationTypeNames.OperatorOverloaded);
 
             public static FormattedClassification Ampersand { get; } = New("&");
             public static FormattedClassification AmpersandEquals { get; } = New("&=");

@@ -90,10 +90,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
 
         #endregion
         #region Keyword - Control
+        // Keyword - Control is ordered after Keyword to ensure this more specific 
+        // classification will take precedence.
         [Export(typeof(EditorFormatDefinition))]
         [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.ControlKeyword)]
         [Name(ClassificationTypeNames.ControlKeyword)]
-        [Order(After = ClassificationTypeNames.Keyword)]
+        [Order(After = PredefinedClassificationTypeNames.Keyword)]
         [UserVisible(true)]
         [ExcludeFromCodeCoverage]
         private class ControlKeywordFormatDefinition : ClassificationFormatDefinition
@@ -105,10 +107,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         }
         #endregion
         #region Operator - Overloaded
+        // Operator - Overloaded is ordered after Operator to ensure this more specific 
+        // classification will take precedence.
         [Export(typeof(EditorFormatDefinition))]
-        [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.OperatorOverload)]
-        [BaseDefinition(PredefinedClassificationTypeNames.Operator)]
-        [Name(ClassificationTypeNames.OperatorOverload)]
+        [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.OperatorOverloaded)]
+        [Name(ClassificationTypeNames.OperatorOverloaded)]
         [Order(After = PredefinedClassificationTypeNames.Operator)]
         [UserVisible(true)]
         [ExcludeFromCodeCoverage]
@@ -149,6 +152,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             }
         }
         #endregion
+
+        // User Types - * and User Members - * are ordered after Keyword
+        // so that, in the case both classifications are applied to the same
+        // span, the styling for the identifier type would be choosen.
 
         // User Types - * and User Members - * are ordered before Symbol - Static 
         // so that the font styling choosen for static symbols would override the

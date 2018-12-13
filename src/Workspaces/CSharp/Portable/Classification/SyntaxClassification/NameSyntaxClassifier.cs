@@ -120,8 +120,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
                 return;
             }
 
-            var isEnumMember = symbol.IsKind(SymbolKind.Field) && symbol.ContainingType.IsEnumType();
-            if (isEnumMember)
+            if (symbol.IsEnumMember())
             {
                 // EnumMembers are not classified as static since there is no
                 // instance equivalent of the concept and they have their own
@@ -129,12 +128,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
                 return;
             }
 
-            var isNamespace = symbol.IsKind(SymbolKind.Namespace);
-            if (isNamespace) // TODO: Since Namespaces are always static is it useful to classify them as static?
+            if (symbol.IsNamespace())
             {
                 // Namespace names are not classified as static since there is no
                 // instance equivalent of the concept and they have their own
                 // classification type.
+                return;
+            }
+
+            if (symbol.IsLocalFunction())
+            {
+                // Local function names are not classified as static since the
+                // the symbol returning true for IsStatic is an implementation detail.
                 return;
             }
 
@@ -148,21 +153,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
             CancellationToken cancellationToken,
             out ClassifiedSpan classifiedSpan)
         {
-            // For Namespace parts we want don't want to classify the QualifiedNameSyntax
-            // nodes we instead wait for the each IdentifierNameSyntax part to avoid
+            // For Namespace parts, we want don't want to classify the QualifiedNameSyntax
+            // nodes, we instead wait for the each IdentifierNameSyntax node to avoid
             // creating overlapping ClassifiedSpans.
-            if (symbol is INamespaceSymbol namespaceSymbol
-                && name is IdentifierNameSyntax identifierNameSyntax)
+            if (symbol is INamespaceSymbol namespaceSymbol && 
+                name is IdentifierNameSyntax identifierNameSyntax)
             {
                 // Do not classify the global:: namespace. It is already syntactically classified as a keyword.
-                var isGlobalNamespace = namespaceSymbol.IsGlobalNamespace
-                    && identifierNameSyntax.Identifier.IsKind(SyntaxKind.GlobalKeyword);
+                var isGlobalNamespace = namespaceSymbol.IsGlobalNamespace &&
+                    identifierNameSyntax.Identifier.IsKind(SyntaxKind.GlobalKeyword);
                 if (isGlobalNamespace)
                 {
                     classifiedSpan = default;
                     return false;
                 }
 
+                // Classifies both extern aliases and namespaces.
                 classifiedSpan = new ClassifiedSpan(name.Span, ClassificationTypeNames.NamespaceName);
                 return true;
             }

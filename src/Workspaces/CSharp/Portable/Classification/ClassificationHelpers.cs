@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -59,14 +58,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
 
         private static bool IsControlKeyword(SyntaxToken token)
         {
-            if (!IsControlKeywordKind(token.Kind()))
+            if (token.Parent is null || !IsControlKeywordKind(token.Kind()))
             {
                 return false;
-            }
-
-            if (token.Parent is null)
-            {
-                return true;
             }
 
             return IsControlStatementKind(token.Parent.Kind());
@@ -183,7 +177,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
                         return interpolatedString != null
                             && interpolatedString.StringStartToken.IsKind(SyntaxKind.InterpolatedVerbatimStringStartToken);
                     }
-
             }
 
             return false;
@@ -213,6 +206,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
                 return ClassificationTypeNames.MethodName;
             }
             else if (token.Parent is DestructorDeclarationSyntax destructorDeclaration && destructorDeclaration.Identifier == token)
+            {
+                return ClassificationTypeNames.MethodName;
+            }
+            else if (token.Parent is LocalFunctionStatementSyntax localFunctionStatement && localFunctionStatement.Identifier == token)
             {
                 return ClassificationTypeNames.MethodName;
             }
@@ -258,7 +255,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
             {
                 return ClassificationTypeNames.Keyword;
             }
-            else if (token.Parent is IdentifierNameSyntax identifierNameSyntax && IsNamePartOfNamespace(identifierNameSyntax))
+            else if (token.Parent is IdentifierNameSyntax identifierNameSyntax && IsNamespaceName(identifierNameSyntax))
             {
                 return ClassificationTypeNames.NamespaceName;
             }
@@ -276,25 +273,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
             }
         }
 
-        private static bool IsNamePartOfNamespace(IdentifierNameSyntax identifierSyntax)
+        private static bool IsNamespaceName(IdentifierNameSyntax identifierSyntax)
         {
             var parent = identifierSyntax.Parent;
 
             while (parent is QualifiedNameSyntax)
             {
                 parent = parent.Parent;
-            }
-
-            if (parent is UsingDirectiveSyntax usingDirectiveSyntax)
-            {
-                // For simple using directives we know from syntax alone that the 
-                // name is part of a namespace.
-                //
-                // For using alias or static using directives we cannot determine if
-                // the name belongs to a namespace or a type. We will return false 
-                // and allow semantic classification to classify it appropriately.
-                return usingDirectiveSyntax.Alias is null
-                    && usingDirectiveSyntax.StaticKeyword == default;
             }
 
             return parent is NamespaceDeclarationSyntax;
@@ -317,7 +302,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
                 // It's parent will be the declaration syntax node.
                 parentNode = parentNode.Parent.Parent;
 
-                return parentNode.GetModifiers().Any(modifier => modifier.IsKind(SyntaxKind.StaticKeyword, SyntaxKind.ConstKeyword));
+                // Check if this is a field constant declaration 
+                if (parentNode.GetModifiers().Any(SyntaxKind.ConstKeyword))
+                {
+                    return true;
+                }
             }
 
             return parentNode.GetModifiers().Any(SyntaxKind.StaticKeyword);

@@ -121,11 +121,11 @@ class yield
     }
 }",
                 Keyword("using"),
-                Namespace("System"),
+                Identifier("System"),
                 Operators.Dot,
-                Namespace("Collections"),
+                Identifier("Collections"),
                 Operators.Dot,
-                Namespace("Generic"),
+                Identifier("Generic"),
                 Punctuation.Semicolon,
                 Keyword("class"),
                 Class("yield"),
@@ -2559,7 +2559,7 @@ namespace MyNamespace
 }
 #endregion TaoRegion",
                 Keyword("using"),
-                Namespace("System"),
+                Identifier("System"),
                 Punctuation.Semicolon,
                 PPKeyword("#"),
                 PPKeyword("region"),
@@ -3499,7 +3499,7 @@ class var<T>
 {
 }",
                 Keyword("using"),
-                Namespace("System"),
+                Identifier("System"),
                 Punctuation.Semicolon,
                 Keyword("static"),
                 Keyword("class"),
@@ -3551,7 +3551,7 @@ class B : A
     }
 }",
                 Keyword("using"),
-                Namespace("System"),
+                Identifier("System"),
                 Punctuation.Semicolon,
                 Keyword("class"),
                 Class("A"),
@@ -4334,7 +4334,7 @@ class X
                 Punctuation.CloseParen,
                 Punctuation.OpenCurly,
                 Keyword("void"),
-                Identifier("M"),
+                Method("M"),
                 Punctuation.OpenAngle,
                 TypeParameter("T"),
                 Punctuation.CloseAngle,
@@ -4375,7 +4375,7 @@ class X
                 Punctuation.CloseParen,
                 Punctuation.OpenCurly,
                 Keyword("void"),
-                Identifier("M"),
+                Method("M"),
                 Punctuation.OpenAngle,
                 TypeParameter("T"),
                 Punctuation.CloseAngle,
@@ -4423,7 +4423,7 @@ class X
                 Punctuation.CloseParen,
                 Punctuation.OpenCurly,
                 Keyword("void"),
-                Identifier("M"),
+                Method("M"),
                 Punctuation.OpenAngle,
                 TypeParameter("T"),
                 Punctuation.CloseAngle,
@@ -4469,16 +4469,16 @@ if (foo is Action action)
 
             await TestAsync(code,
                 Keyword("using"),
-                Namespace("System"),
+                Identifier("System"),
                 Operators.Dot,
-                Namespace("Collections"),
+                Identifier("Collections"),
                 Operators.Dot,
-                Namespace("Generic"),
+                Identifier("Generic"),
                 Punctuation.Semicolon);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public async Task TestUsingAliasDirectiveForNamespace()
+        public async Task TestUsingAliasDirectiveForIdentifier()
         {
             var code = @"using Col = System.Collections;";
 

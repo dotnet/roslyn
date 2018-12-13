@@ -162,13 +162,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification.Classifiers
                 Dim token = identifierName.Identifier
 
                 If token.HasMatchingText(SyntaxKind.FromKeyword) AndAlso
-                                   semanticModel.SyntaxTree.IsExpressionContext(token.SpanStart, cancellationToken, semanticModel) Then
+                    semanticModel.SyntaxTree.IsExpressionContext(token.SpanStart, cancellationToken, semanticModel) Then
 
                     ' Optimistically classify "From" as a keyword in expression contexts
                     classifiedSpan = New ClassifiedSpan(token.Span, ClassificationTypeNames.Keyword)
                     Return True
                 ElseIf token.HasMatchingText(SyntaxKind.AsyncKeyword) OrElse
-                                       token.HasMatchingText(SyntaxKind.IteratorKeyword) Then
+                    token.HasMatchingText(SyntaxKind.IteratorKeyword) Then
 
                     ' Optimistically classify "Async" or "Iterator" as a keyword in expression contexts
                     If semanticModel.SyntaxTree.IsExpressionContext(token.SpanStart, cancellationToken, semanticModel) Then
@@ -350,6 +350,5 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification.Classifiers
 
             result.Add(New ClassifiedSpan(node.LabelToken.Span, ClassificationTypeNames.LabelName))
         End Sub
-
     End Class
 End Namespace

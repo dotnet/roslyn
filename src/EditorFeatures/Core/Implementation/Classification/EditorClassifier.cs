@@ -94,12 +94,6 @@ namespace Microsoft.CodeAnalysis.Editor
             Order(syntaxSpans);
             Order(semanticSpans);
 
-            // Additive classifications provide additional context to the 
-            // traditional classifications. We remove these since we can only 
-            // return a single classified span for any particular span of text.
-            RemoveAdditiveClassifications(syntaxSpans);
-            RemoveAdditiveClassifications(semanticSpans);
-
             // It's possible for us to get classified spans that occur *before*
             // or after the span we want to present. This happens because the calls to
             // AddSyntacticClassificationsAsync and AddSemanticClassificationsAsync 
@@ -140,9 +134,6 @@ namespace Microsoft.CodeAnalysis.Editor
         private static void Order(List<ClassifiedSpan> syntaxSpans)
             => syntaxSpans.Sort((s1, s2) => s1.TextSpan.Start - s2.TextSpan.Start);
 
-        private static void RemoveAdditiveClassifications(List<ClassifiedSpan> spans)
-            => spans.RemoveAll(span => ClassificationTypeNames.AdditiveTypeNames.Contains(span.ClassificationType));
-
         private static void AdjustSpans(List<ClassifiedSpan> spans, TextSpan widenedSpan)
         {
             for (var i = 0; i < spans.Count; i++)
@@ -156,7 +147,11 @@ namespace Microsoft.CodeAnalysis.Editor
 
                 if (i > 0 && intersection != null)
                 {
-                    if (spans[i - 1].TextSpan.End > intersection.Value.Start)
+                    var isAdditiveClassification = spans[i - 1].TextSpan == span.TextSpan &&
+                        ClassificationTypeNames.AdditiveTypeNames.Contains(span.ClassificationType);
+
+                    // Additive classifications are intended to overlap so do not ignore it.
+                    if (!isAdditiveClassification && spans[i - 1].TextSpan.End > intersection.Value.Start)
                     {
                         // This span isn't strictly after the previous span.  Ignore it.
                         intersection = null;
@@ -181,7 +176,7 @@ namespace Microsoft.CodeAnalysis.Editor
                 }
 
                 // If there is space between this span and the last one, then add a space.
-                if (startPosition != span.TextSpan.Start)
+                if (startPosition < span.TextSpan.Start)
                 {
                     result.Add(new ClassifiedSpan(ClassificationTypeNames.Text,
                         TextSpan.FromBounds(

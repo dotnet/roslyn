@@ -69,9 +69,12 @@ namespace Microsoft.CodeAnalysis
         RangeVariableName = 27,
         /// <summary>The name of an enum member.</summary>
         EnumMemberName = 28,
-        /// <summary>The name of an extension method.</summary>
+        /// <summary>The name of a reduced extension method.</summary>
+        /// <remarks>
+        /// When an extension method is in it's non-reduced form it will be will be marked as MethodName.
+        /// </remarks>
         ExtensionMethodName = 29,
-        /// <summary>The name of a constant.</summary>
+        /// <summary>The name of a field or local constant.</summary>
         ConstantName = 30,
     }
 

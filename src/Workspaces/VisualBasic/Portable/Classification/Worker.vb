@@ -87,8 +87,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
                     AddClassification(token.Span, type)
 
                     ' Additionally classify static symbols
-                    If (token.Kind() = SyntaxKind.IdentifierToken _
-                        AndAlso ClassificationHelpers.IsStaticallyDeclared(token)) Then
+                    If token.Kind() = SyntaxKind.IdentifierToken AndAlso
+                        ClassificationHelpers.IsStaticallyDeclared(token) Then
 
                         AddClassification(span, ClassificationTypeNames.StaticSymbol)
                     End If

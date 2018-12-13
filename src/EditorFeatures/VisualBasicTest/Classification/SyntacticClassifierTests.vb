@@ -2340,9 +2340,9 @@ Imports Bar"
 
             Await TestAsync(code,
                 Keyword("Imports"),
-                [Namespace]("Goo"),
+                Identifier("Goo"),
                 Keyword("Imports"),
-                [Namespace]("Bar"))
+                Identifier("Bar"))
         End Function
 
         ''' <summary>
@@ -2357,7 +2357,7 @@ Imports Bar"
             Await TestAsync(code,
                 Keyword("Imports"),
                 Keyword("Imports"),
-                [Namespace]("Bar"))
+                Identifier("Bar"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
@@ -2383,9 +2383,9 @@ Imports Bar=Quux"
 
             Await TestAsync(code,
                 Keyword("Imports"),
-                [Namespace]("System"),
+                Identifier("System"),
                 Operators.Dot,
-                [Namespace]("Text"))
+                Identifier("Text"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
@@ -4079,11 +4079,11 @@ End Class"
 
             Await TestAsync(code,
                 Keyword("Imports"),
-                [Namespace]("System"),
+                Identifier("System"),
                 Operators.Dot,
-                [Namespace]("Runtime"),
+                Identifier("Runtime"),
                 Operators.Dot,
-                [Namespace]("CompilerServices"),
+                Identifier("CompilerServices"),
                 Keyword("Module"),
                 [Module]("M"),
                 Punctuation.OpenAngle,

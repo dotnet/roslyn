@@ -39,23 +39,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
             {
                 var token = usingDirective.Alias.Name;
 
-                var typeInfo = semanticModel.GetTypeInfo(usingDirective.Name, cancellationToken);
-                if (typeInfo.Type != null)
+                var symbolInfo = semanticModel.GetSymbolInfo(usingDirective.Name, cancellationToken);
+                if (symbolInfo.Symbol is ITypeSymbol typeSymbol)
                 {
-                    var classification = GetClassificationForType(typeInfo.Type);
+                    var classification = GetClassificationForType(typeSymbol);
                     if (classification != null)
                     {
                         result.Add(new ClassifiedSpan(token.Span, classification));
                     }
-                    return;
                 }
-
-                // Since namespaces are not types, check the Symbol for how to classify the alias
-                var symbolInfo = semanticModel.GetSymbolInfo(usingDirective.Name, cancellationToken);
-                if (symbolInfo.Symbol?.Kind == SymbolKind.Namespace)
+                else if (symbolInfo.Symbol?.Kind == SymbolKind.Namespace)
                 {
                     result.Add(new ClassifiedSpan(token.Span, ClassificationTypeNames.NamespaceName));
-                    return;
                 }
             }
         }

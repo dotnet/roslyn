@@ -13,6 +13,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
 {
     internal class OperatorOverloadSyntaxClassifier : AbstractSyntaxClassifier
     {
+        public override ImmutableArray<Type> SyntaxNodeTypes { get; } = ImmutableArray.Create(
+            typeof(AssignmentExpressionSyntax),
+            typeof(BinaryExpressionSyntax),
+            typeof(PrefixUnaryExpressionSyntax),
+            typeof(PostfixUnaryExpressionSyntax));
+
         public override void AddClassifications(
             Workspace workspace,
             SyntaxNode syntax,
@@ -27,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
                 var operatorSpan = GetOperatorTokenSpan(syntax);
                 if (!operatorSpan.IsEmpty)
                 {
-                    result.Add(new ClassifiedSpan(operatorSpan, ClassificationTypeNames.OperatorOverload));
+                    result.Add(new ClassifiedSpan(operatorSpan, ClassificationTypeNames.OperatorOverloaded));
                 }
             }
         }
@@ -53,11 +59,5 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
 
             return default;
         }
-
-        public override ImmutableArray<Type> SyntaxNodeTypes { get; } = ImmutableArray.Create(
-            typeof(AssignmentExpressionSyntax),
-            typeof(BinaryExpressionSyntax), 
-            typeof(PrefixUnaryExpressionSyntax), 
-            typeof(PostfixUnaryExpressionSyntax));
     }
 }
