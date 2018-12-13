@@ -367,6 +367,8 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)]
         public async Task UnusedInLambda_LambdaPassedAsArgument()
         {
+            // We bail out from unused value analysis when lambda is passed as argument.
+            // We should still report unused parameters.
             await TestDiagnosticsAsync(
 @"using System;
 
