@@ -179,7 +179,8 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                     method.IsOverride ||
                     !method.ExplicitOrImplicitInterfaceImplementations().IsEmpty ||
                     method.IsAccessor() ||
-                    method.IsAnonymousFunction())
+                    method.IsAnonymousFunction() ||
+                    _compilationAnalyzer.MethodHasHandlesClause(method))
                 {
                     return false;
                 }

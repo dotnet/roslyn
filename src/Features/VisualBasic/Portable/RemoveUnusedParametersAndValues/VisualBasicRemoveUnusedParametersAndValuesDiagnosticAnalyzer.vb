@@ -29,6 +29,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnusedParametersAndValues
             Return False
         End Function
 
+        Protected Overrides Function MethodHasHandlesClause(method As IMethodSymbol) As Boolean
+            Return method.DeclaringSyntaxReferences().Any(Function(decl)
+                                                              Return TryCast(decl.GetSyntax(), MethodStatementSyntax)?.HandlesClause IsNot Nothing
+                                                          End Function)
+        End Function
+
         Protected Overrides Function IsCallStatement(expressionStatement As IExpressionStatementOperation) As Boolean
             Return TryCast(expressionStatement.Syntax, CallStatementSyntax) IsNot Nothing
         End Function
