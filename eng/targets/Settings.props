@@ -146,7 +146,6 @@
     <When Condition="'$(Language)' == 'VB'">
       <PropertyGroup>
         <LangVersion>15.5</LangVersion>
-        <RootNamespace></RootNamespace>
         <NoWarn>$(NoWarn);40057</NoWarn>
       </PropertyGroup>
       <ItemGroup>
