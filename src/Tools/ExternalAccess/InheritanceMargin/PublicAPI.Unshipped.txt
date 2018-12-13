@@ -1,0 +1,2 @@
+Microsoft.CodeAnalysis.ExternalAccess.InheritanceMargin.DependentTypeFinder
+static Microsoft.CodeAnalysis.ExternalAccess.InheritanceMargin.DependentTypeFinder.FindImmediatelyDerivedAndImplementingTypesAsync(Microsoft.CodeAnalysis.INamedTypeSymbol type, Microsoft.CodeAnalysis.Solution solution, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.INamedTypeSymbol>>
