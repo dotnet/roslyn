@@ -22,9 +22,6 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeStructFieldsWritable
         {
         }
 
-        public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
-            => DiagnosticAnalyzerCategory.SemanticDocumentAnalysis;
-
         protected override void InitializeWorker(AnalysisContext context)
         {
             context.RegisterCompilationStartAction(compilationStartContext

@@ -25,8 +25,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
         {
         }
 
-        public override DiagnosticAnalyzerCategory GetAnalyzerCategory() => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
-
         public override bool OpenFileOnly(Workspace workspace)
         {
             var forIntrinsicTypesOption = workspace.Options.GetOption(CSharpCodeStyleOptions.VarForBuiltInTypes).Notification;

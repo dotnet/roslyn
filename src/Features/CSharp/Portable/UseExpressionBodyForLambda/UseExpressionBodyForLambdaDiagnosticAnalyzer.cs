@@ -26,9 +26,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
         {
         }
 
-        public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
-            => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
-
         protected override void InitializeWorker(AnalysisContext context)
             => context.RegisterSyntaxNodeAction(
                 AnalyzeSyntax,

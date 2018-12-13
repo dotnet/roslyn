@@ -68,9 +68,6 @@ namespace Microsoft.CodeAnalysis.AddRequiredParentheses
             _precedenceService = precedenceService;
         }
 
-        public sealed override DiagnosticAnalyzerCategory GetAnalyzerCategory()
-            => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
-
         protected sealed override void InitializeWorker(AnalysisContext context)
             => context.RegisterSyntaxNodeAction(AnalyzeSyntax, GetSyntaxNodeKinds());
 

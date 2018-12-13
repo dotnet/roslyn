@@ -47,9 +47,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
         {
         }
 
-        public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
-            => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
-
         protected override void InitializeWorker(AnalysisContext context)
             => context.RegisterSyntaxNodeAction(SyntaxNodeAction, SyntaxKind.IsExpression);
 

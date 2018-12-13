@@ -41,9 +41,6 @@ namespace Microsoft.CodeAnalysis.SimplifyThisOrMe
         protected abstract bool CanSimplifyTypeNameExpression(
             SemanticModel model, TMemberAccessExpressionSyntax memberAccess, OptionSet optionSet, out TextSpan issueSpan, CancellationToken cancellationToken);
 
-        public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
-            => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
-
         protected override void InitializeWorker(AnalysisContext context)
             => context.RegisterSyntaxNodeAction(AnalyzeNode, _kindsOfInterest);
 

@@ -18,9 +18,6 @@ namespace Microsoft.CodeAnalysis.UseInferredMemberName
         {
         }
 
-        public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
-            => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
-
         protected void AnalyzeSyntax(SyntaxNodeAnalysisContext context)
         {
             var cancellationToken = context.CancellationToken;

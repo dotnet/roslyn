@@ -22,9 +22,6 @@ namespace Microsoft.CodeAnalysis.UseIsNullCheck
         {
         }
 
-        public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
-            => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
-
         protected override void InitializeWorker(AnalysisContext context)
             => context.RegisterCompilationStartAction(compilationContext =>
             {

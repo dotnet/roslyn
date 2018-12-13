@@ -63,11 +63,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Diagnostics
             return Task.FromResult(ImmutableArray<Diagnostic>.Empty);
         }
 
-        public DiagnosticAnalyzerCategory GetAnalyzerCategory()
-        {
-            return DiagnosticAnalyzerCategory.SemanticDocumentAnalysis;
-        }
-
         public bool OpenFileOnly(Workspace workspace)
         {
             return true;

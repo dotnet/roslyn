@@ -43,9 +43,6 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
         {
         }
 
-        public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
-            => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
-
         protected abstract bool IsSupported(ParseOptions options);
 
         protected override void InitializeWorker(AnalysisContext context)

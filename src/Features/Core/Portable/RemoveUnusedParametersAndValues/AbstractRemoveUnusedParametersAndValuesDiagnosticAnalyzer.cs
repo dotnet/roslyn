@@ -176,10 +176,6 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
             }
         }
 
-        // Our analysis is limited to unused expressions in a code block, hence is unaffected by changes outside the code block.
-        // Hence, we can support incremental span based method body analysis.
-        public override DiagnosticAnalyzerCategory GetAnalyzerCategory() => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
-
         protected sealed override void InitializeWorker(AnalysisContext context)
             => context.RegisterCompilationStartAction(
                 compilationContext => SymbolStartAnalyzer.CreateAndRegisterActions(compilationContext, this));

@@ -29,8 +29,6 @@ namespace Microsoft.CodeAnalysis.CodeQuality
 
         protected abstract void InitializeWorker(AnalysisContext context);
 
-        public abstract DiagnosticAnalyzerCategory GetAnalyzerCategory();
-
         public bool OpenFileOnly(Workspace workspace)
             => false;
 

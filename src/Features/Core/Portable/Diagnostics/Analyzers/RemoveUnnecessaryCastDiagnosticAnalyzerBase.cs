@@ -27,9 +27,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.RemoveUnnecessaryCast
         protected abstract TextSpan GetFadeSpan(TCastExpression node);
         protected abstract bool IsUnnecessaryCast(SemanticModel model, TCastExpression node, CancellationToken cancellationToken);
 
-        public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
-            => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
-
         protected override void InitializeWorker(AnalysisContext context)
             => context.RegisterSyntaxNodeAction(AnalyzeSyntax, this.SyntaxKindsOfInterest);
 

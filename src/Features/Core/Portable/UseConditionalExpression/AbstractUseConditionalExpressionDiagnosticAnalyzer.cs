@@ -16,9 +16,6 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
     {
         private readonly PerLanguageOption<CodeStyleOption<bool>> _option;
 
-        public sealed override DiagnosticAnalyzerCategory GetAnalyzerCategory()
-            => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
-
         protected AbstractUseConditionalExpressionDiagnosticAnalyzer(
             string descriptorId,
             LocalizableResourceString message,

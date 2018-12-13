@@ -151,9 +151,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 }
             }
 
-            public DiagnosticAnalyzerCategory GetAnalyzerCategory()
-                => DiagnosticAnalyzerCategory.SyntaxTreeWithoutSemanticsAnalysis;
-
             public override void Initialize(AnalysisContext analysisContext)
             {
                 analysisContext.RegisterSyntaxTreeAction(

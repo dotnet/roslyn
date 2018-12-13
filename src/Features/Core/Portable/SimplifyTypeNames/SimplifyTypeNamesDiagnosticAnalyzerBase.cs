@@ -152,8 +152,5 @@ namespace Microsoft.CodeAnalysis.SimplifyTypeNames
             diagnostic = DiagnosticHelper.Create(descriptor, tree.GetLocation(issueSpan), severity, additionalLocations: null, builder.ToImmutable());
             return true;
         }
-
-        public DiagnosticAnalyzerCategory GetAnalyzerCategory()
-            => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
     }
 }

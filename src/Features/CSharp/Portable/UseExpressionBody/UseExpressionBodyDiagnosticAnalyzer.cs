@@ -38,9 +38,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
             return builder.ToImmutable();
         }
 
-        public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
-            => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
-
         protected override void InitializeWorker(AnalysisContext context)
             => context.RegisterSyntaxNodeAction(AnalyzeSyntax, _syntaxKinds);
 

@@ -40,13 +40,6 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
         {
         }
 
-        // We need to analyze the whole document even for edits within a method body,
-        // because we might add or remove references to members in executable code.
-        // For example, if we had an unused field with no references, then editing any single method body
-        // to reference this field should clear the unused field diagnostic.
-        // Hence, we need to re-analyze the declarations in the whole file for any edits within the document. 
-        public override DiagnosticAnalyzerCategory GetAnalyzerCategory() => DiagnosticAnalyzerCategory.SemanticDocumentAnalysis;
-
         protected sealed override void InitializeWorker(AnalysisContext context)
             => context.RegisterCompilationStartAction(compilationStartContext
                 => CompilationAnalyzer.CreateAndRegisterActions(compilationStartContext, this));

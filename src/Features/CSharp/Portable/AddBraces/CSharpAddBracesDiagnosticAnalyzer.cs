@@ -38,8 +38,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.AddBraces
                 SyntaxKind.LockStatement,
                 SyntaxKind.FixedStatement);
 
-        public override DiagnosticAnalyzerCategory GetAnalyzerCategory() => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
-
         public void AnalyzeNode(SyntaxNodeAnalysisContext context)
         {
             var statement = context.Node;

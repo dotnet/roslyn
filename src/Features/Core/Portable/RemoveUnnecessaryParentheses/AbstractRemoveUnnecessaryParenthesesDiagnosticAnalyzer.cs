@@ -45,9 +45,6 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryParentheses
 
         protected abstract ISyntaxFactsService GetSyntaxFactsService();
 
-        public sealed override DiagnosticAnalyzerCategory GetAnalyzerCategory()
-            => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
-
         protected sealed override void InitializeWorker(AnalysisContext context)
             => context.RegisterSyntaxNodeAction(AnalyzeSyntax, GetSyntaxNodeKind());
 

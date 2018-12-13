@@ -56,9 +56,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseSimpleUsingStatement
         {
         }
 
-        public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
-            => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
-
         protected override void InitializeWorker(AnalysisContext context)
             => context.RegisterSyntaxNodeAction(AnalyzeSyntax, SyntaxKind.UsingStatement);
 

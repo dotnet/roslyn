@@ -22,8 +22,6 @@ namespace Microsoft.CodeAnalysis.UseExplicitTupleName
         {
         }
 
-        public override DiagnosticAnalyzerCategory GetAnalyzerCategory() => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
-
         protected override void InitializeWorker(AnalysisContext context)
             => context.RegisterOperationAction(AnalyzeOperation, OperationKind.FieldReference);
 

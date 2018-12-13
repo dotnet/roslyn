@@ -27,9 +27,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
         {
         }
 
-        public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
-            => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
-
         protected override void InitializeWorker(AnalysisContext context)
         {
             context.RegisterSyntaxNodeAction(AnalyzeNode,

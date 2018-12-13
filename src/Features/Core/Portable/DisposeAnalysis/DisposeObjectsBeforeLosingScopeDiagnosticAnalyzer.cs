@@ -39,8 +39,6 @@ namespace Microsoft.CodeAnalysis.DisposeAnalysis
         {
         }
 
-        public override DiagnosticAnalyzerCategory GetAnalyzerCategory() => DiagnosticAnalyzerCategory.SemanticDocumentAnalysis;
-
         protected override void InitializeWorker(AnalysisContext context)
         {
             context.RegisterCompilationStartAction(compilationContext =>

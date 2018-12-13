@@ -40,9 +40,6 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsingDirectives
         {
         }
 
-        public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
-            => DiagnosticAnalyzerCategory.SemanticDocumentAnalysis;
-
         protected override void InitializeWorker(AnalysisContext context)
         {
             context.RegisterSyntaxNodeAction(AnalyzeNamespaceNode, SyntaxKind.NamespaceDeclaration);

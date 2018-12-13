@@ -28,9 +28,6 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnreachableCode
         {
         }
 
-        public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
-            => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
-
         protected override void InitializeWorker(AnalysisContext context)
             => context.RegisterSemanticModelAction(AnalyzeSemanticModel);
 

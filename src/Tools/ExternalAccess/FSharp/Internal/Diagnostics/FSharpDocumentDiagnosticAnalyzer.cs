@@ -83,11 +83,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Diagnostics
             return analyzer.AnalyzeSyntaxAsync(document, cancellationToken);
         }
 
-        public DiagnosticAnalyzerCategory GetAnalyzerCategory()
-        {
-            return DiagnosticAnalyzerCategory.SemanticDocumentAnalysis;
-        }
-
         public bool OpenFileOnly(Workspace workspace)
         {
             return true;

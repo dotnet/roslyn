@@ -67,7 +67,5 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
             // The switch is incomplete if we're missing any cases or we're missing a default case.
             return missingDefaultCase || missingCases;
         }
-
-        public override DiagnosticAnalyzerCategory GetAnalyzerCategory() => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
     }
 }

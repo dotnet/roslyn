@@ -428,11 +428,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 context.RegisterSyntaxTreeAction(c => c.ReportDiagnostic(Diagnostic.Create(s_syntaxRule, c.Tree.GetRoot().GetLocation())));
             }
 
-            public DiagnosticAnalyzerCategory GetAnalyzerCategory()
-            {
-                return DiagnosticAnalyzerCategory.SyntaxTreeWithoutSemanticsAnalysis;
-            }
-
             public bool OpenFileOnly(Workspace workspace)
             {
                 return true;

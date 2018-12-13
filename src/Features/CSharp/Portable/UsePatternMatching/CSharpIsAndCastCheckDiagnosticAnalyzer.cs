@@ -225,8 +225,5 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                         .Where(d => d != variable)
                         .Any(d => d.Identifier.ValueText.Equals(variableName));
         }
-
-        public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
-            => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
     }
 }

@@ -89,8 +89,5 @@ namespace Microsoft.CodeAnalysis.Diagnostics.AddImport
                 }
             }
         }
-
-        public DiagnosticAnalyzerCategory GetAnalyzerCategory()
-            => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
     }
 }

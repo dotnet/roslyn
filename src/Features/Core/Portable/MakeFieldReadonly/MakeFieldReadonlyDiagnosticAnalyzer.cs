@@ -23,8 +23,6 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
         {
         }
 
-        public override DiagnosticAnalyzerCategory GetAnalyzerCategory() => DiagnosticAnalyzerCategory.SemanticDocumentAnalysis;
-
         protected override void InitializeWorker(AnalysisContext context)
         {
             context.RegisterCompilationStartAction(compilationStartContext =>

@@ -165,8 +165,5 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             var optionSet = await options.GetDocumentOptionSetAsync(sourceTree, cancellationToken).ConfigureAwait(false);
             return optionSet?.GetOption(SimplificationOptions.NamingPreferences, compilation.Language);
         }
-
-        public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
-            => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
     }
 }

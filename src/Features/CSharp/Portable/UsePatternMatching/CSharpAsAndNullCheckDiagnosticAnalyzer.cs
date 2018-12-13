@@ -287,8 +287,5 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
 
             return null;
         }
-
-        public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
-            => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
     }
 }

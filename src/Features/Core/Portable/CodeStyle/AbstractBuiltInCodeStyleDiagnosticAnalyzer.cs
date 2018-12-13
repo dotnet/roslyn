@@ -200,8 +200,6 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             IDEDiagnosticIdToOptionMappingHelper.AddOptionMapping(diagnosticId, options, language);
         }
 
-        public abstract DiagnosticAnalyzerCategory GetAnalyzerCategory();
-
         public virtual bool OpenFileOnly(Workspace workspace)
             => false;
     }

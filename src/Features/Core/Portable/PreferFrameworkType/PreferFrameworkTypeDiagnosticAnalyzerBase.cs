@@ -38,9 +38,6 @@ namespace Microsoft.CodeAnalysis.PreferFrameworkType
                      preferTypeKeywordInMemberAccessOption == NotificationOption.Warning || preferTypeKeywordInMemberAccessOption == NotificationOption.Error);
         }
 
-        public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
-            => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
-
         protected abstract string GetLanguageName();
         protected abstract ImmutableArray<TSyntaxKind> SyntaxKindsOfInterest { get; }
         protected abstract bool IsPredefinedTypeReplaceableWithFrameworkType(TPredefinedTypeSyntax node);

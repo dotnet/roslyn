@@ -56,8 +56,6 @@ namespace Microsoft.CodeAnalysis.QualifyMemberAccess
 
         protected abstract Location GetLocation(IOperation operation);
 
-        public override DiagnosticAnalyzerCategory GetAnalyzerCategory() => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
-
         private void AnalyzeOperation(OperationAnalysisContext context)
         {
             if (context.ContainingSymbol.IsStatic)

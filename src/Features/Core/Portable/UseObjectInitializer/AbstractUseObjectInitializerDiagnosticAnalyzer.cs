@@ -139,8 +139,5 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
         }
 
         protected abstract ISyntaxFactsService GetSyntaxFactsService();
-
-        public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
-            => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
     }
 }
