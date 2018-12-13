@@ -445,6 +445,41 @@ class Program
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(14, 26));
         }
 
+        [Fact, WorkItem(31740, "https://github.com/dotnet/roslyn/issues/31740")]
+        public void Attribute_ArrayWithDifferentNullability()
+        {
+            var source =
+@"
+public class MyAttribute : System.Attribute
+{
+    public MyAttribute(string[] x) { }
+}
+#nullable enable
+[My(new string[] { ""hello"" })]
+class C { }
+";
+            var comp = CreateCompilation(source, options: TestOptions.DebugDll);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(31740, "https://github.com/dotnet/roslyn/issues/31740")]
+        public void Attribute_ArrayWithDifferentNullability2()
+        {
+            var source =
+@"
+public class MyAttribute : System.Attribute
+{
+    public MyAttribute(string[] x) { }
+}
+#nullable enable
+[My(new string[] { null })]
+class C { }
+";
+            var comp = CreateCompilation(source, options: TestOptions.DebugDll);
+            comp.VerifyDiagnostics();
+            // Expecting a warning. Issue tracked by https://github.com/dotnet/roslyn/issues/23697
+        }
+
         [Fact]
         public void NullableAndConditionalOperators()
         {
