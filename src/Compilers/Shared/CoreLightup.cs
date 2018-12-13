@@ -13,7 +13,7 @@ namespace Roslyn.Utilities
     /// in this type can, and is expected to, fail on various platforms.  These are light up scenarios
     /// only.
     /// </summary>
-    internal static class CorLightup
+    internal static class CoreLightup
     {
         internal static class Desktop
         {
