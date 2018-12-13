@@ -170,7 +170,7 @@ namespace Microsoft.CodeAnalysis
                             {
                                 var pair = intStart < intEnd ? (intStart, intEnd) : (intEnd, intStart);
                                 numberRangePairs.Add(pair);
-                                // Allow any digit sequence. The validity will be checked outside of the regex
+                                // Group allowing any digit sequence. The validity will be checked outside of the regex
                                 sb.Append("(-?[0-9]+)");
                                 // Keep looping
                                 break;
