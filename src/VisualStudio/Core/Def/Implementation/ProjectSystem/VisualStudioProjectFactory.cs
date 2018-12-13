@@ -31,35 +31,35 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             _hostDiagnosticUpdateSource = hostDiagnosticUpdateSource;
         }
 
-        public VisualStudioProject CreateAndAddToWorkspace(string projectUniqueName, string language)
+        public VisualStudioProject CreateAndAddToWorkspace(string projectSystemName, string language)
         {
-            return CreateAndAddToWorkspace(projectUniqueName, language, new VisualStudioProjectCreationInfo());
+            return CreateAndAddToWorkspace(projectSystemName, language, new VisualStudioProjectCreationInfo());
         }
 
-        public VisualStudioProject CreateAndAddToWorkspace(string projectUniqueName, string language, VisualStudioProjectCreationInfo creationInfo)
+        public VisualStudioProject CreateAndAddToWorkspace(string projectSystemName, string language, VisualStudioProjectCreationInfo creationInfo)
         {
             // HACK: Fetch this service to ensure it's still created on the UI thread; once this is moved off we'll need to fix up it's constructor to be free-threaded.
             _visualStudioWorkspaceImpl.Services.GetRequiredService<VisualStudioMetadataReferenceManager>();
 
-            var id = ProjectId.CreateNewId(projectUniqueName);
+            var id = ProjectId.CreateNewId(projectSystemName);
             var directoryNameOpt = creationInfo.FilePath != null ? Path.GetDirectoryName(creationInfo.FilePath) : null;
 
-            // We will use the unique name as the default display name of the project
-            var project = new VisualStudioProject(_visualStudioWorkspaceImpl, _dynamicFileInfoProviders, _hostDiagnosticUpdateSource, id, displayName: projectUniqueName, language, directoryNameOpt);
+            // We will use the project system name as the default display name of the project
+            var project = new VisualStudioProject(_visualStudioWorkspaceImpl, _dynamicFileInfoProviders, _hostDiagnosticUpdateSource, id, displayName: projectSystemName, language, directoryNameOpt);
 
             var versionStamp = creationInfo.FilePath != null ? VersionStamp.Create(File.GetLastWriteTimeUtc(creationInfo.FilePath))
                                                              : VersionStamp.Create();
 
-            var assemblyName = creationInfo.AssemblyName ?? projectUniqueName;
+            var assemblyName = creationInfo.AssemblyName ?? projectSystemName;
 
-            _visualStudioWorkspaceImpl.AddProjectToInternalMaps(project, creationInfo.Hierarchy, creationInfo.ProjectGuid, projectUniqueName);
+            _visualStudioWorkspaceImpl.AddProjectToInternalMaps(project, creationInfo.Hierarchy, creationInfo.ProjectGuid, projectSystemName);
 
             _visualStudioWorkspaceImpl.ApplyChangeToWorkspace(w =>
             {
                 var projectInfo = ProjectInfo.Create(
                         id,
                         versionStamp,
-                        name: projectUniqueName,
+                        name: projectSystemName,
                         assemblyName: assemblyName,
                         language: language,
                         filePath: creationInfo.FilePath,
