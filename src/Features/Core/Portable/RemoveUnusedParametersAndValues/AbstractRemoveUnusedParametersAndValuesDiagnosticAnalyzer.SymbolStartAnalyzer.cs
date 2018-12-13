@@ -159,6 +159,10 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
 
                 // Don't flag obsolete methods.
                 yield return compilation.ObsoleteAttribute();
+
+                // Don't flag MEF import constructors with ImportingConstructor attribute.
+                yield return compilation.SystemCompositionImportingConstructorAttribute();
+                yield return compilation.SystemComponentModelCompositionImportingConstructorAttribute();
             }
 
             private bool IsUnusedParameterCandidate(IParameterSymbol parameter)

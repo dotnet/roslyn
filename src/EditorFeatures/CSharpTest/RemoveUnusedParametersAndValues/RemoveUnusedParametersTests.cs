@@ -941,6 +941,27 @@ $@"class C
 }}");
         }
 
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)]
+        [InlineData("System.Composition", "ImportingConstructorAttribute")]
+        [InlineData("System.ComponentModel.Composition", "ImportingConstructorAttribute")]
+        public async Task Parameter_ConstructorsWithSpecialAttributes(string attributeNamespace, string attributeName)
+        {
+            await TestDiagnosticMissingAsync(
+$@"
+namespace {attributeNamespace}
+{{
+    public class {attributeName} : System.Attribute {{ }}
+}}
+
+class C
+{{
+    [{attributeNamespace}.{attributeName}()]
+    public C(int [|p|])
+    {{
+    }}
+}}");
+        }
+
         [ConditionalFact(typeof(IsEnglishLocal)), Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)]
         public async Task Parameter_DiagnosticMessages()
         {
