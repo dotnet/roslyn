@@ -627,7 +627,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else if (reorderedArgument.Kind == TypedConstantKind.Array &&
                         parameter.Type.TypeKind == TypeKind.Array &&
-                        !((TypeSymbol)reorderedArgument.Type).Equals(parameter.Type.TypeSymbol, TypeCompareKind.IgnoreNullableModifiersForReferenceTypes))
+                        !((TypeSymbol)reorderedArgument.Type).Equals(parameter.Type.TypeSymbol, TypeCompareKind.AllIgnoreOptions))
                     {
                         // NOTE: As in dev11, we don't allow array covariance conversions (presumably, we don't have a way to
                         // represent the conversion in metadata).

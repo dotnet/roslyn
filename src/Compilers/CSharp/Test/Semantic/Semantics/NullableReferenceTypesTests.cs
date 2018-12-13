@@ -480,6 +480,50 @@ class C { }
             // Expecting a warning. Issue tracked by https://github.com/dotnet/roslyn/issues/23697
         }
 
+        [Fact, WorkItem(31740, "https://github.com/dotnet/roslyn/issues/31740")]
+        public void Attribute_ArrayWithDifferentNullability_DynamicAndTupleNames()
+        {
+            var source = @"
+public class MyAttribute : System.Attribute
+{
+    public MyAttribute((string alice, string)[] x, dynamic[] y, object[] z) { }
+}
+#nullable enable
+[My(new (string, string bob)[] { }, new object[] { }, new dynamic[] { })]
+class C { }
+";
+            var comp = CreateCompilation(source, options: TestOptions.DebugDll);
+            comp.VerifyDiagnostics(
+                // (7,2): error CS0181: Attribute constructor parameter 'x' has type '(string alice, string)[]', which is not a valid attribute parameter type
+                // [My(new (string, string bob)[] { }, new object[] { }, new dynamic[] { })]
+                Diagnostic(ErrorCode.ERR_BadAttributeParamType, "My").WithArguments("x", "(string alice, string)[]").WithLocation(7, 2),
+                // (7,2): error CS0181: Attribute constructor parameter 'y' has type 'dynamic[]', which is not a valid attribute parameter type
+                // [My(new (string, string bob)[] { }, new object[] { }, new dynamic[] { })]
+                Diagnostic(ErrorCode.ERR_BadAttributeParamType, "My").WithArguments("y", "dynamic[]").WithLocation(7, 2)
+                );
+        }
+
+        [Fact, WorkItem(31740, "https://github.com/dotnet/roslyn/issues/31740")]
+        public void Attribute_ArrayWithDifferentNullability_Dynamic()
+        {
+            var source =
+@"
+public class MyAttribute : System.Attribute
+{
+    public MyAttribute(dynamic[] y) { }
+}
+#nullable enable
+[My(new object[] { })]
+class C { }
+";
+            var comp = CreateCompilation(source, options: TestOptions.DebugDll);
+            comp.VerifyDiagnostics(
+                // (7,2): error CS0181: Attribute constructor parameter 'y' has type 'dynamic[]', which is not a valid attribute parameter type
+                // [My(new object[] { })]
+                Diagnostic(ErrorCode.ERR_BadAttributeParamType, "My").WithArguments("y", "dynamic[]").WithLocation(7, 2)
+                );
+        }
+
         [Fact]
         public void NullableAndConditionalOperators()
         {
