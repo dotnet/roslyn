@@ -36,10 +36,10 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                 byte[] pdbImage = new byte[pdbStream.Length];
                 pdbStream.TryReadAll(pdbImage, 0, pdbImage.Length);
 
-                return CoreLightup.Desktop.LoadAssembly(peImage, pdbImage);
+                return Assembly.Load(peImage, pdbImage);
             }
 
-            return CoreLightup.Desktop.LoadAssembly(peImage);
+            return Assembly.Load(peImage);
         }
 
         public override AssemblyAndLocation LoadFromPath(string path)

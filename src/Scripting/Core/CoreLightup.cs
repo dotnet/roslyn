@@ -17,92 +17,14 @@ namespace Roslyn.Utilities
     {
         internal static class Desktop
         {
-            private static class _CultureInfo
-            {
-                internal static readonly Type Type = typeof(CultureInfo);
-
-                internal static readonly PropertyInfo CultureTypes = Type
-                    .GetTypeInfo()
-                    .GetDeclaredProperty(nameof(CultureTypes));
-            }
-
-            private static class CultureTypes
-            {
-                internal const int UserCustomCulture = 8;
-            }
-
-            internal static bool? IsUserCustomCulture(CultureInfo cultureInfo)
-            {
-                if (_CultureInfo.CultureTypes == null)
-                {
-                    return null;
-                }
-
-                try
-                {
-                    var value = (int)_CultureInfo.CultureTypes.GetValue(cultureInfo);
-                    return (value & CultureTypes.UserCustomCulture) != 0;
-                }
-                catch (Exception ex)
-                {
-                    Debug.Assert(false, ex.Message);
-                    return null;
-                }
-            }
-
-            private static class _Directory
-            {
-                internal static readonly Type Type = typeof(Directory);
-
-                internal static readonly Func<string[]> s_getLogicalDrivesOpt = Type
-                    .GetTypeInfo()
-                    .GetDeclaredMethod("GetLogicalDrives")?
-                    .CreateDelegate<Func<string[]>>();
-            }
-
-            internal static string[] GetLogicalDrives()
-            {
-                return _Directory.s_getLogicalDrivesOpt?.Invoke() ?? Array.Empty<string>();
-            }
-
             private static class _Assembly
             {
                 internal static readonly Type Type = typeof(Assembly);
-
-                internal static readonly Func<byte[], Assembly> Load_bytes = Type
-                    .GetTypeInfo()
-                    .GetDeclaredMethod("Load", typeof(byte[]))
-                    .CreateDelegate<Func<byte[], Assembly>>();
-
-                internal static readonly Func<byte[], byte[], Assembly> Load_bytes_with_Pdb = Type
-                    .GetTypeInfo()
-                    .GetDeclaredMethod("Load", typeof(byte[]), typeof(byte[]))
-                    .CreateDelegate<Func<byte[], byte[], Assembly>>();
-
-                internal static readonly Func<string, Assembly> LoadFile = Type
-                    .GetTypeInfo()
-                    .GetDeclaredMethod("LoadFile", typeof(string))
-                    .CreateDelegate<Func<string, Assembly>>();
-
-                internal static readonly Func<Assembly, string> get_Location = Type
-                    .GetTypeInfo()
-                    .GetDeclaredMethod("get_Location")
-                    .CreateDelegate<Func<Assembly, string>>();
 
                 internal static readonly Func<Assembly, bool> get_GlobalAssemblyCache = Type
                     .GetTypeInfo()
                     .GetDeclaredMethod("get_GlobalAssemblyCache")
                     .CreateDelegate<Func<Assembly, bool>>();
-            }
-
-            private static class _Module
-            {
-                internal static readonly Type Type = typeof(Module);
-
-                internal static readonly Func<Module, Guid> get_ModuleVersionId = Type
-                    .GetTypeInfo()
-                    .GetDeclaredMethod("get_ModuleVersionId")
-                    .CreateDelegate<Func<Module, Guid>>();
             }
 
             private static class _ResolveEventArgs
@@ -134,51 +56,6 @@ namespace Roslyn.Utilities
                 internal static readonly MethodInfo remove_AssemblyResolve = Type
                     .GetTypeInfo()
                     .GetDeclaredMethod("remove_AssemblyResolve", ResolveEventHandlerType);
-            }
-
-            internal static Assembly LoadAssembly(byte[] peImage)
-            {
-                if (_Assembly.Load_bytes == null)
-                {
-                    throw new PlatformNotSupportedException();
-                }
-
-                return _Assembly.Load_bytes(peImage);
-            }
-
-            internal static Assembly LoadAssembly(byte[] peImage, byte[] pdbImage)
-            {
-                if (_Assembly.Load_bytes_with_Pdb == null)
-                {
-                    throw new PlatformNotSupportedException();
-                }
-
-                return _Assembly.Load_bytes_with_Pdb(peImage, pdbImage);
-            }
-
-            internal static Assembly LoadAssembly(string path)
-            {
-                if (_Assembly.LoadFile == null)
-                {
-                    throw new PlatformNotSupportedException();
-                }
-
-                return _Assembly.LoadFile(path);
-            }
-
-            internal static string GetAssemblyLocation(Assembly assembly)
-            {
-                if (_Assembly.get_Location == null)
-                {
-                    throw new PlatformNotSupportedException();
-                }
-
-                return _Assembly.get_Location(assembly);
-            }
-
-            internal static Guid GetModuleVersionId(Module module)
-            {
-                return _Module.get_ModuleVersionId(module);
             }
 
             internal static bool IsAssemblyFromGlobalAssemblyCache(Assembly assembly)
@@ -215,19 +92,6 @@ namespace Roslyn.Utilities
                 }
             }
 
-            internal static object GetCurrentAppDomain()
-            {
-                if (_AppDomain.get_CurrentDomain == null ||
-                    _AppDomain.add_AssemblyResolve == null ||
-                    _ResolveEventArgs.get_Name == null ||
-                    _ResolveEventArgs.get_RequestingAssembly == null)
-                {
-                    throw new PlatformNotSupportedException();
-                }
-
-                return _AppDomain.get_CurrentDomain.Invoke(null, Array.Empty<object>());
-            }
-
             internal static void GetOrRemoveAssemblyResolveHandler(Func<string, Assembly, Assembly> handler, MethodInfo handlerOperation)
             {
                 if (_AppDomain.add_AssemblyResolve == null)
@@ -235,7 +99,7 @@ namespace Roslyn.Utilities
                     throw new PlatformNotSupportedException();
                 }
 
-                object currentAppDomain = GetCurrentAppDomain();
+                var currentAppDomain = AppDomain.CurrentDomain;
                 object resolveEventHandler = new AssemblyResolveWrapper(handler).GetHandler();
 
                 handlerOperation.Invoke(currentAppDomain, new[] { resolveEventHandler });
