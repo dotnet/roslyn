@@ -901,12 +901,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             var lookupResult = LookupResult.GetInstance();
             string methodName = isAsync ? GetAsyncEnumeratorMethodName : GetEnumeratorMethodName;
 
-            ImmutableArray<BoundExpression> arguments = default;
+            ImmutableArray<BoundExpression> arguments;
             if (isAsync)
             {
-                HashSet<DiagnosticInfo> ignored = null;
-                var cancellationTokenType = GetWellKnownType(WellKnownType.System_Threading_CancellationToken, ref ignored);
+                var cancellationTokenType = Compilation.GetWellKnownType(WellKnownType.System_Threading_CancellationToken);
                 arguments = ImmutableArray.Create<BoundExpression>(new BoundAwaitableValuePlaceholder(_syntax, cancellationTokenType));
+            }
+            else
+            {
+                arguments = ImmutableArray<BoundExpression>.Empty;
             }
 
             MethodSymbol getEnumeratorMethod = FindForEachPatternMethod(collectionExprType, methodName, lookupResult, warningsOnly: true, diagnostics: diagnostics, isAsync: isAsync, arguments);
@@ -929,11 +932,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private MethodSymbol FindForEachPatternMethod(TypeSymbol patternType, string methodName, LookupResult lookupResult, bool warningsOnly, DiagnosticBag diagnostics, bool isAsync, ImmutableArray<BoundExpression> arguments)
         {
             Debug.Assert(lookupResult.IsClear);
-
-            if (arguments.IsDefault)
-            {
-                arguments = ImmutableArray<BoundExpression>.Empty;
-            }
+            Debug.Assert(!arguments.IsDefault);
 
             // Not using LookupOptions.MustBeInvocableMember because we don't want the corresponding lookup error.
             // We filter out non-methods below.
@@ -1153,7 +1152,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 MethodSymbol moveNextMethodCandidate = FindForEachPatternMethod(enumeratorType,
                     isAsync ? MoveNextAsyncMethodName : MoveNextMethodName,
-                    lookupResult, warningsOnly: false, diagnostics: diagnostics, isAsync: isAsync, arguments: default);
+                    lookupResult, warningsOnly: false, diagnostics: diagnostics, isAsync: isAsync, arguments: ImmutableArray<BoundExpression>.Empty);
 
                 if ((object)moveNextMethodCandidate == null ||
                     moveNextMethodCandidate.IsStatic || moveNextMethodCandidate.DeclaredAccessibility != Accessibility.Public ||
