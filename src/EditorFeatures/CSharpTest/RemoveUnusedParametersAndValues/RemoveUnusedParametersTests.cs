@@ -367,8 +367,6 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)]
         public async Task UnusedInLambda_LambdaPassedAsArgument()
         {
-            // We bail out from unused value analysis when lambda is passed as argument.
-            // We should still report unused parameters.
             await TestDiagnosticsAsync(
 @"using System;
 
@@ -382,6 +380,105 @@ class C
     private static void M2(Action a) { }
 }",
     Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)]
+        public async Task ReadInLambda_LambdaPassedAsArgument()
+        {
+            await TestDiagnosticMissingAsync(
+@"using System;
+
+class C
+{
+    private static void M(object [|p|])
+    {
+        M2(() => { M3(p); });
+    }
+
+    private static void M2(Action a) { }
+
+    private static void M3(object o) { }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)]
+        public async Task OnlyWrittenInLambda_LambdaPassedAsArgument()
+        {
+            await TestDiagnosticMissingAsync(
+@"using System;
+
+class C
+{
+    private static void M(object [|p|])
+    {
+        M2(() => { M3(out p); });
+    }
+
+    private static void M2(Action a) { }
+
+    private static void M3(out object o) { o = null; }
+}");
+        }
+
+        [WorkItem(31744, "https://github.com/dotnet/roslyn/issues/31744")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)]
+        public async Task UnusedInExpressionTree_PassedAsArgument()
+        {
+            await TestDiagnosticsAsync(
+@"using System;
+using System.Linq.Expressions;
+
+class C
+{
+    public static void M1(object [|p|])
+    {
+        M2(x => x.M3());
+    }
+
+    private static C M2(Expression<Func<C, int>> a) { return null; }
+    private int M3() { return 0; }
+}",
+    Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
+        }
+
+        [WorkItem(31744, "https://github.com/dotnet/roslyn/issues/31744")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)]
+        public async Task ReadInExpressionTree_PassedAsArgument()
+        {
+            await TestDiagnosticMissingAsync(
+@"using System;
+using System.Linq.Expressions;
+
+class C
+{
+    public static void M1(object [|p|])
+    {
+        M2(x => x.M3(p));
+    }
+
+    private static C M2(Expression<Func<C, int>> a) { return null; }
+    private int M3(object o) { return 0; }
+}");
+        }
+
+        [WorkItem(31744, "https://github.com/dotnet/roslyn/issues/31744")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)]
+        public async Task OnlyWrittenInExpressionTree_PassedAsArgument()
+        {
+            await TestDiagnosticMissingAsync(
+@"using System;
+using System.Linq.Expressions;
+
+class C
+{
+    public static void M1(object [|p|])
+    {
+        M2(x => x.M3(out p));
+    }
+
+    private static C M2(Expression<Func<C, int>> a) { return null; }
+    private int M3(out object o) { o = null; return 0; }
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)]

@@ -37,11 +37,11 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                 private bool _delegateAssignedToFieldOrProperty;
 
                 /// <summary>
-                /// Indicates if the operation block has an <see cref="IConversionOperation"/> with a delegate type as it's source type
-                /// and a non-delegate type as it's target.
+                /// Indicates if the operation block has an <see cref="IConversionOperation"/> with a delegate type or an anonymous function
+                /// as it's source and a non-delegate type as it's target.
                 /// We use this value in <see cref="ShouldAnalyze(IOperation, ISymbol)"/> to determine whether to bail from analysis or not.
                 /// </summary>
-                private bool _hasConversionFromDelegateTypeToNonDelegateType;
+                private bool _hasConversionFromDelegateTypeOrAnonymousFunctionToNonDelegateType;
 
                 /// <summary>
                 /// Parameters which have at least one read/write reference.
@@ -156,11 +156,11 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                 private void AnalyzeConversion(OperationAnalysisContext operationAnalysisContext)
                 {
                     var conversion = (IConversionOperation)operationAnalysisContext.Operation;
-                    if (!_hasConversionFromDelegateTypeToNonDelegateType &&
-                        conversion.Operand.Type.IsDelegateType() &&
+                    if (!_hasConversionFromDelegateTypeOrAnonymousFunctionToNonDelegateType &&
+                        (conversion.Operand.Type.IsDelegateType() || conversion.Operand.Kind == OperationKind.AnonymousFunction) &&
                         !conversion.Type.IsDelegateType())
                     {
-                        _hasConversionFromDelegateTypeToNonDelegateType = true;
+                        _hasConversionFromDelegateTypeOrAnonymousFunctionToNonDelegateType = true;
                     }
                 }
 
@@ -222,9 +222,9 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                         return false;
                     }
 
-                    //  3. Bail out if we have a conversion from a delegate type to a non-delegate type.
+                    //  3. Bail out if we have a conversion from a delegate or an anonymous function to a non-delegate type.
                     //     We can analyze this correctly when we do points-to-analysis.
-                    if (_hasConversionFromDelegateTypeToNonDelegateType)
+                    if (_hasConversionFromDelegateTypeOrAnonymousFunctionToNonDelegateType)
                     {
                         return false;
                     }

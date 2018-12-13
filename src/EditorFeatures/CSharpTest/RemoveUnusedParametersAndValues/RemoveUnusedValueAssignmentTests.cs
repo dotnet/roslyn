@@ -2720,6 +2720,78 @@ class C
 }", optionName);
         }
 
+        [WorkItem(31744, "https://github.com/dotnet/roslyn/issues/31744")]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        [InlineData(nameof(PreferDiscard))]
+        [InlineData(nameof(PreferUnusedLocal))]
+        public async Task UnusedInExpressionTree_PassedAsArgument(string optionName)
+        {
+            // Currently we bail out of analysis in presence of expression trees.
+            await TestMissingInRegularAndScriptAsync(
+@"using System;
+using System.Linq.Expressions;
+
+class C
+{
+    public static void M1()
+    {
+        object [|p|] = null;
+        M2(x => x.M3());
+    }
+
+    private static C M2(Expression<Func<C, int>> a) { return null; }
+    private int M3() { return 0; }
+}", optionName);
+        }
+
+        [WorkItem(31744, "https://github.com/dotnet/roslyn/issues/31744")]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        [InlineData(nameof(PreferDiscard))]
+        [InlineData(nameof(PreferUnusedLocal))]
+        public async Task ReadInExpressionTree_PassedAsArgument(string optionName)
+        {
+            // Currently we bail out of analysis in presence of expression trees.
+            await TestMissingInRegularAndScriptAsync(
+@"using System;
+using System.Linq.Expressions;
+
+class C
+{
+    public static void M1()
+    {
+        object [|p|] = null;
+        M2(x => x.M3(p));
+    }
+
+    private static C M2(Expression<Func<C, int>> a) { return null; }
+    private int M3(object o) { return 0; }
+}", optionName);
+        }
+
+        [WorkItem(31744, "https://github.com/dotnet/roslyn/issues/31744")]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        [InlineData(nameof(PreferDiscard))]
+        [InlineData(nameof(PreferUnusedLocal))]
+        public async Task OnlyWrittenInExpressionTree_PassedAsArgument(string optionName)
+        {
+            // Currently we bail out of analysis in presence of expression trees.
+            await TestMissingInRegularAndScriptAsync(
+@"using System;
+using System.Linq.Expressions;
+
+class C
+{
+    public static void M1()
+    {
+        object [|p|] = null;
+        M2(x => x.M3(out p));
+    }
+
+    private static C M2(Expression<Func<C, int>> a) { return null; }
+    private int M3(out object o) { o = null; return 0; }
+}", optionName);
+        }
+
         [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         [InlineData(nameof(PreferDiscard))]
         [InlineData(nameof(PreferUnusedLocal))]
