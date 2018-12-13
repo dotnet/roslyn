@@ -33411,6 +33411,7 @@ class C
         [Fact]
         public void IsDeclarationPattern_01()
         {
+            // https://github.com/dotnet/roslyn/issues/30952: `is` declaration does not set not nullable for declared local.
             var source =
 @"class Program
 {
@@ -33418,39 +33419,39 @@ class C
     {
         if (x1 is string y1)
         {
-            x1.ToString();
-            y1.ToString();
+            x1/*T:object!*/.ToString();
+            y1/*T:string*/.ToString();
         }
-        x1.ToString();
+        x1/*T:object!*/.ToString();
     }
     static void F2(object? x2)
     {
         if (x2 is string y2)
         {
-            x2.ToString();
-            y2.ToString();
+            x2/*T:object!*/.ToString();
+            y2/*T:string*/.ToString();
         }
-        x2.ToString(); // 1
+        x2/*T:object?*/.ToString(); // 1
     }
     static void F3(object x3)
     {
         x3 = null; // 2
         if (x3 is string y3)
         {
-            x3.ToString();
-            y3.ToString();
+            x3/*T:object!*/.ToString();
+            y3/*T:string*/.ToString();
         }
-        x3.ToString(); // 3
+        x3/*T:object?*/.ToString(); // 3
     }
     static void F4(object? x4)
     {
         if (x4 == null) return;
         if (x4 is string y4)
         {
-            x4.ToString();
-            y4.ToString();
+            x4/*T:object!*/.ToString();
+            y4/*T:string*/.ToString();
         }
-        x4.ToString();
+        x4/*T:object!*/.ToString();
     }
 }";
             var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
@@ -33464,6 +33465,7 @@ class C
                 // (29,9): warning CS8602: Possible dereference of a null reference.
                 //         x3.ToString(); // 3
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x3").WithLocation(29, 9));
+            comp.VerifyTypes();
         }
 
         [Fact]
@@ -33563,6 +33565,88 @@ class C
                 // (10,9): warning CS8602: Possible dereference of a null reference.
                 //         t1.ToString(); // 1
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t1").WithLocation(10, 9));
+        }
+
+        [Fact]
+        public void IsDeclarationPattern_NeverNull_01()
+        {
+            var source =
+@"class Program
+{
+    static void F1(object x1)
+    {
+        if (x1 is string y1)
+        {
+            x1?.ToString(); // 1
+            y1?.ToString(); // 2
+        }
+        x1?.ToString(); // 3
+    }
+    static void F2(object? x2)
+    {
+        if (x2 is string y2)
+        {
+            x2?.ToString(); // 4
+            y2?.ToString(); // 5
+        }
+        x2?.ToString();
+    }
+}";
+            // https://github.com/dotnet/roslyn/issues/30952: `is` declaration does not set not nullable for declared local.
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (7,13): hidden CS8607: Expression is probably never null.
+                //             x1?.ToString(); // 1
+                Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "x1").WithLocation(7, 13),
+                // (10,9): hidden CS8607: Expression is probably never null.
+                //         x1?.ToString(); // 3
+                Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "x1").WithLocation(10, 9),
+                // (16,13): hidden CS8607: Expression is probably never null.
+                //             x2?.ToString(); // 4
+                Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "x2").WithLocation(16, 13));
+        }
+
+        [Fact]
+        public void IsDeclarationPattern_NeverNull_02()
+        {
+            var source =
+@"class Program
+{
+    static void F1<T, U>(T t1)
+        where T : class
+        where U : class
+    {
+        if (t1 is U u1)
+        {
+            t1?.ToString(); // 1
+            u1?.ToString(); // 2
+        }
+        t1?.ToString(); // 3
+    }
+    static void F2<T, U>(T t2)
+        where T : class?
+        where U : class
+    {
+        if (t2 is U u2)
+        {
+            t2?.ToString(); // 4
+            u2?.ToString(); // 5
+        }
+        t2?.ToString();
+    }
+}";
+            // https://github.com/dotnet/roslyn/issues/30952: `is` declaration does not set not nullable for declared local.
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (9,13): hidden CS8607: Expression is probably never null.
+                //             t1?.ToString(); // 1
+                Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "t1").WithLocation(9, 13),
+                // (12,9): hidden CS8607: Expression is probably never null.
+                //         t1?.ToString(); // 3
+                Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "t1").WithLocation(12, 9),
+                // (20,13): hidden CS8607: Expression is probably never null.
+                //             t2?.ToString(); // 4
+                Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "t2").WithLocation(20, 13));
         }
 
         [Fact]
