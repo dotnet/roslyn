@@ -158,8 +158,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_PossibleAsyncIteratorWithoutYieldOrAwait">
-        <source>The body of an async-iterator method must contain a 'yield' statement. Consider removing `async` from the method declaration.</source>
-        <target state="new">The body of an async-iterator method must contain a 'yield' statement. Consider removing `async` from the method declaration.</target>
+        <source>The body of an async-iterator method must contain a 'yield' statement. Consider removing 'async' from the method declaration or adding a 'yield' statement.</source>
+        <target state="new">The body of an async-iterator method must contain a 'yield' statement. Consider removing 'async' from the method declaration or adding a 'yield' statement.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefAssignNarrower">

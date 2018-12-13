@@ -2645,7 +2645,7 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
     <value>The body of an async-iterator method must contain a 'yield' statement.</value>
   </data>
   <data name="ERR_PossibleAsyncIteratorWithoutYieldOrAwait" xml:space="preserve">
-    <value>The body of an async-iterator method must contain a 'yield' statement. Consider removing `async` from the method declaration.</value>
+    <value>The body of an async-iterator method must contain a 'yield' statement. Consider removing 'async' from the method declaration or adding a 'yield' statement.</value>
   </data>
   <data name="WRN_BadXMLRefParamType" xml:space="preserve">
     <value>Invalid type for parameter {0} in XML comment cref attribute: '{1}'</value>
