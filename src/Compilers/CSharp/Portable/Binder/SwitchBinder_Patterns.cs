@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression boundSwitchGoverningExpression = SwitchGoverningExpression;
             diagnostics.AddRange(SwitchGoverningDiagnostics);
 
-            ImmutableArray<BoundSwitchSection> switchSections = BindPatternSwitchSections(originalBinder, diagnostics, out BoundPatternSwitchLabel defaultLabel);
+            ImmutableArray<BoundSwitchSection> switchSections = BindSwitchSections(originalBinder, diagnostics, out BoundPatternSwitchLabel defaultLabel);
             ImmutableArray<LocalSymbol> locals = GetDeclaredLocalsForScope(node);
             ImmutableArray<LocalFunctionSymbol> functions = GetDeclaredLocalFunctionsForScope(node);
             BoundDecisionDag decisionDag = DecisionDagBuilder.CreateDecisionDagForSwitchStatement(
@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Bind the pattern switch labels.
         /// </summary>
-        private ImmutableArray<BoundSwitchSection> BindPatternSwitchSections(
+        private ImmutableArray<BoundSwitchSection> BindSwitchSections(
             Binder originalBinder,
             DiagnosticBag diagnostics,
             out BoundPatternSwitchLabel defaultLabel)

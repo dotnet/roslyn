@@ -120,6 +120,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected void SetState(TLocalState newState)
         {
+            Debug.Assert(newState != null);
             StateWhenTrue = StateWhenFalse = default(TLocalState);
             IsConditionalState = false;
             State = newState;

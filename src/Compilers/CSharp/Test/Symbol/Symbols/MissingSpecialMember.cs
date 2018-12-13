@@ -582,6 +582,8 @@ namespace System
                         continue;
                     case WellKnownType.Microsoft_CodeAnalysis_Runtime_Instrumentation:
                     case WellKnownType.System_Runtime_CompilerServices_ITuple:
+                    case WellKnownType.System_Runtime_CompilerServices_NonNullTypesAttribute:
+                    case WellKnownType.Microsoft_CodeAnalysis_EmbeddedAttribute:
                         // Not always available.
                         continue;
                     case WellKnownType.ExtSentinel:

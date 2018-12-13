@@ -274,6 +274,8 @@ namespace Microsoft.CodeAnalysis.Operations
                     return CreateFromEndIndexExpressionOperation((BoundFromEndIndexExpression)boundNode);
                 case BoundKind.RangeExpression:
                     return CreateRangeExpressionOperation((BoundRangeExpression)boundNode);
+                case BoundKind.SwitchSection:
+                    return CreateBoundPatternSwitchSectionOperation((BoundSwitchSection)boundNode);
 
                 case BoundKind.Attribute:
                 case BoundKind.ArgList:

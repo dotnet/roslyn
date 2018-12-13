@@ -37,6 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         SetUnreachable();
                     }
 
+                    VisitPattern(label.Pattern);
                     SetState(StateWhenTrue);
                     if (label.WhenClause != null)
                     {
