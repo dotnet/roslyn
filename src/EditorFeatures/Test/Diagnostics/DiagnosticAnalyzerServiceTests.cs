@@ -430,7 +430,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
             public DiagnosticAnalyzerCategory GetAnalyzerCategory()
             {
-                return DiagnosticAnalyzerCategory.SyntaxAnalysis;
+                return DiagnosticAnalyzerCategory.SyntaxTreeWithoutSemanticsAnalysis;
             }
 
             public bool OpenFileOnly(Workspace workspace)
