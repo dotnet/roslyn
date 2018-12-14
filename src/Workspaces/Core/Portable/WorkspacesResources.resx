@@ -795,32 +795,32 @@
   <data name="ValueUsageInfo_Name" xml:space="preserve">
     <value>Name</value>
   </data>
-  <data name="ValueUsageInfo_ValueRead" xml:space="preserve">
+  <data name="ValueUsageInfo_Read" xml:space="preserve">
     <value>Read</value>
   </data>
-  <data name="ValueUsageInfo_ValueReference" xml:space="preserve">
+  <data name="ValueUsageInfo_Reference" xml:space="preserve">
     <value>Reference</value>
   </data>
-  <data name="ValueUsageInfo_ValueWrite" xml:space="preserve">
+  <data name="ValueUsageInfo_Write" xml:space="preserve">
     <value>Write</value>
   </data>
-  <data name="ValueUsageInfo_DottedName" xml:space="preserve">
+  <data name="TypeOrNamespaceUsageInfo_DottedName" xml:space="preserve">
     <value>Qualify</value>
   </data>
-  <data name="ValueUsageInfo_GenericTypeArgument" xml:space="preserve">
+  <data name="TypeOrNamespaceUsageInfo_GenericTypeArgument" xml:space="preserve">
     <value>Type Argument</value>
   </data>
-  <data name="ValueUsageInfo_BaseTypeOrInterface" xml:space="preserve">
+  <data name="TypeOrNamespaceUsageInfo_BaseTypeOrInterface" xml:space="preserve">
     <value>Base</value>
   </data>
-  <data name="ValueUsageInfo_ObjectCreation" xml:space="preserve">
+  <data name="TypeOrNamespaceUsageInfo_ObjectCreation" xml:space="preserve">
     <value>new()</value>
   </data>
-  <data name="ValueUsageInfo_NamespaceOrTypeInUsing" xml:space="preserve">
+  <data name="TypeOrNamespaceUsageInfo_NamespaceOrTypeInUsing" xml:space="preserve">
     <value>Using</value>
   </data>
-  <data name="ValueUsageInfo_NamespaceDeclaration" xml:space="preserve">
-    <value>Declare</value>
+  <data name="TypeOrNamespaceUsageInfo_NamespaceDeclaration" xml:space="preserve">
+    <value>Declaration</value>
   </data>
   <data name="Parameter_preferences" xml:space="preserve">
     <value>Parameter preferences</value>

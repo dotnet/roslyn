@@ -1783,6 +1783,60 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Base.
+        /// </summary>
+        internal static string TypeOrNamespaceUsageInfo_BaseTypeOrInterface {
+            get {
+                return ResourceManager.GetString("TypeOrNamespaceUsageInfo_BaseTypeOrInterface", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Qualify.
+        /// </summary>
+        internal static string TypeOrNamespaceUsageInfo_DottedName {
+            get {
+                return ResourceManager.GetString("TypeOrNamespaceUsageInfo_DottedName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Type Argument.
+        /// </summary>
+        internal static string TypeOrNamespaceUsageInfo_GenericTypeArgument {
+            get {
+                return ResourceManager.GetString("TypeOrNamespaceUsageInfo_GenericTypeArgument", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Declaration.
+        /// </summary>
+        internal static string TypeOrNamespaceUsageInfo_NamespaceDeclaration {
+            get {
+                return ResourceManager.GetString("TypeOrNamespaceUsageInfo_NamespaceDeclaration", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Using.
+        /// </summary>
+        internal static string TypeOrNamespaceUsageInfo_NamespaceOrTypeInUsing {
+            get {
+                return ResourceManager.GetString("TypeOrNamespaceUsageInfo_NamespaceOrTypeInUsing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to new().
+        /// </summary>
+        internal static string TypeOrNamespaceUsageInfo_ObjectCreation {
+            get {
+                return ResourceManager.GetString("TypeOrNamespaceUsageInfo_ObjectCreation", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Types.
         /// </summary>
         internal static string Types {
@@ -1900,33 +1954,6 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Base.
-        /// </summary>
-        internal static string ValueUsageInfo_BaseTypeOrInterface {
-            get {
-                return ResourceManager.GetString("ValueUsageInfo_BaseTypeOrInterface", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Qualify.
-        /// </summary>
-        internal static string ValueUsageInfo_DottedName {
-            get {
-                return ResourceManager.GetString("ValueUsageInfo_DottedName", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Type Argument.
-        /// </summary>
-        internal static string ValueUsageInfo_GenericTypeArgument {
-            get {
-                return ResourceManager.GetString("ValueUsageInfo_GenericTypeArgument", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Name.
         /// </summary>
         internal static string ValueUsageInfo_Name {
@@ -1936,56 +1963,29 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Declare.
-        /// </summary>
-        internal static string ValueUsageInfo_NamespaceDeclaration {
-            get {
-                return ResourceManager.GetString("ValueUsageInfo_NamespaceDeclaration", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Using.
-        /// </summary>
-        internal static string ValueUsageInfo_NamespaceOrTypeInUsing {
-            get {
-                return ResourceManager.GetString("ValueUsageInfo_NamespaceOrTypeInUsing", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to new().
-        /// </summary>
-        internal static string ValueUsageInfo_ObjectCreation {
-            get {
-                return ResourceManager.GetString("ValueUsageInfo_ObjectCreation", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Read.
         /// </summary>
-        internal static string ValueUsageInfo_ValueRead {
+        internal static string ValueUsageInfo_Read {
             get {
-                return ResourceManager.GetString("ValueUsageInfo_ValueRead", resourceCulture);
+                return ResourceManager.GetString("ValueUsageInfo_Read", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Reference.
         /// </summary>
-        internal static string ValueUsageInfo_ValueReference {
+        internal static string ValueUsageInfo_Reference {
             get {
-                return ResourceManager.GetString("ValueUsageInfo_ValueReference", resourceCulture);
+                return ResourceManager.GetString("ValueUsageInfo_Reference", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Write.
         /// </summary>
-        internal static string ValueUsageInfo_ValueWrite {
+        internal static string ValueUsageInfo_Write {
             get {
-                return ResourceManager.GetString("ValueUsageInfo_ValueWrite", resourceCulture);
+                return ResourceManager.GetString("ValueUsageInfo_Write", resourceCulture);
             }
         }
         

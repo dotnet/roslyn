@@ -152,19 +152,34 @@
         <target state="translated">L'ajout de projets n'est pas pris en charge.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ValueUsageInfo_BaseTypeOrInterface">
+      <trans-unit id="TypeOrNamespaceUsageInfo_BaseTypeOrInterface">
         <source>Base</source>
         <target state="new">Base</target>
         <note />
       </trans-unit>
-      <trans-unit id="ValueUsageInfo_DottedName">
+      <trans-unit id="TypeOrNamespaceUsageInfo_DottedName">
         <source>Qualify</source>
         <target state="new">Qualify</target>
         <note />
       </trans-unit>
-      <trans-unit id="ValueUsageInfo_GenericTypeArgument">
+      <trans-unit id="TypeOrNamespaceUsageInfo_GenericTypeArgument">
         <source>Type Argument</source>
         <target state="new">Type Argument</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="TypeOrNamespaceUsageInfo_NamespaceDeclaration">
+        <source>Declaration</source>
+        <target state="new">Declaration</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="TypeOrNamespaceUsageInfo_NamespaceOrTypeInUsing">
+        <source>Using</source>
+        <target state="new">Using</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="TypeOrNamespaceUsageInfo_ObjectCreation">
+        <source>new()</source>
+        <target state="new">new()</target>
         <note />
       </trans-unit>
       <trans-unit id="ValueUsageInfo_Name">
@@ -172,32 +187,17 @@
         <target state="new">Name</target>
         <note />
       </trans-unit>
-      <trans-unit id="ValueUsageInfo_NamespaceDeclaration">
-        <source>Declare</source>
-        <target state="new">Declare</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ValueUsageInfo_NamespaceOrTypeInUsing">
-        <source>Using</source>
-        <target state="new">Using</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ValueUsageInfo_ObjectCreation">
-        <source>new()</source>
-        <target state="new">new()</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ValueUsageInfo_ValueRead">
+      <trans-unit id="ValueUsageInfo_Read">
         <source>Read</source>
         <target state="new">Read</target>
         <note />
       </trans-unit>
-      <trans-unit id="ValueUsageInfo_ValueReference">
+      <trans-unit id="ValueUsageInfo_Reference">
         <source>Reference</source>
         <target state="new">Reference</target>
         <note />
       </trans-unit>
-      <trans-unit id="ValueUsageInfo_ValueWrite">
+      <trans-unit id="ValueUsageInfo_Write">
         <source>Write</source>
         <target state="new">Write</target>
         <note />

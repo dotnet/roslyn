@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
         public bool IsImplicit { get; set; }
 
-        internal ValueUsageInfo ValueUsageInfo { get; set; }
+        internal SymbolUsageInfo SymbolUsageInfo { get; set; }
 
         public CandidateReason CandidateReason { get; set; }
 
@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 Alias = SerializableSymbolAndProjectId.Dehydrate(referenceLocation.Alias, referenceLocation.Document),
                 Location = referenceLocation.Location.SourceSpan,
                 IsImplicit = referenceLocation.IsImplicit,
-                ValueUsageInfo = referenceLocation.ValueUsageInfo,
+                SymbolUsageInfo = referenceLocation.SymbolUsageInfo,
                 CandidateReason = referenceLocation.CandidateReason
             };
         }
@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 aliasSymbol,
                 CodeAnalysis.Location.Create(syntaxTree, Location),
                 isImplicit: IsImplicit,
-                valueUsageInfo: ValueUsageInfo,
+                symbolUsageInfo: SymbolUsageInfo,
                 candidateReason: CandidateReason);
         }
 

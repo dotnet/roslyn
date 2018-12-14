@@ -172,7 +172,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                     }
 
                     var location = argumentList.SyntaxTree.GetLocation(new TextSpan(argumentList.SpanStart, 0));
-                    var symbolUsageInfo = semanticModel.GetValueUsageInfo(node, syntaxFacts, semanticFacts, cancellationToken);
+                    var symbolUsageInfo = semanticModel.GetSymbolUsageInfo(node, syntaxFacts, semanticFacts, cancellationToken);
                     locations.Add(new FinderLocation(
                         node, new ReferenceLocation(document, null, location, isImplicit: false, symbolUsageInfo, candidateReason: reason)));
                 }
@@ -211,7 +211,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 if (match.matched)
                 {
                     var location = node.SyntaxTree.GetLocation(new TextSpan(node.SpanStart, 0));
-                    var symbolUsageInfo = semanticModel.GetValueUsageInfo(node, syntaxFacts, semanticFacts, cancellationToken);
+                    var symbolUsageInfo = semanticModel.GetSymbolUsageInfo(node, syntaxFacts, semanticFacts, cancellationToken);
                     locations.Add(new FinderLocation(
                         node, new ReferenceLocation(document, null, location, isImplicit: false, symbolUsageInfo, candidateReason: match.reason)));
                 }

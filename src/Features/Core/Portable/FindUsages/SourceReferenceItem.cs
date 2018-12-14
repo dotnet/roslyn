@@ -16,8 +16,8 @@ namespace Microsoft.CodeAnalysis.FindUsages
     {
         // We can have only a handful of different values for ValueUsageInfo flags enum, so the maximum size of this dictionary is capped.
         // So, we store this as a static dictionary which will be held in memory for the lifetime of the process.
-        private static readonly ConcurrentDictionary<ValueUsageInfo, ReferenceInfoMap> s_valueUsageInfoToReferenceInfoMap
-            = new ConcurrentDictionary<ValueUsageInfo, ReferenceInfoMap>();
+        private static readonly ConcurrentDictionary<SymbolUsageInfo, ReferenceInfoMap> s_valueUsageInfoToReferenceInfoMap
+            = new ConcurrentDictionary<SymbolUsageInfo, ReferenceInfoMap>();
 
         /// <summary>
         /// The definition this reference corresponds to.
@@ -59,21 +59,21 @@ namespace Microsoft.CodeAnalysis.FindUsages
             ReferenceInfo = referenceInfo ?? ReferenceInfoMap.Empty;
         }
 
-        internal SourceReferenceItem(DefinitionItem definition, DocumentSpan sourceSpan, ValueUsageInfo valueUsageInfo)
-            : this(definition, sourceSpan, GetOrCreateReferenceInfo(valueUsageInfo))
+        internal SourceReferenceItem(DefinitionItem definition, DocumentSpan sourceSpan, SymbolUsageInfo symbolUsageInfo)
+            : this(definition, sourceSpan, GetOrCreateReferenceInfo(symbolUsageInfo))
         {
-            IsWrittenTo = valueUsageInfo.IsWrittenTo();
+            IsWrittenTo = symbolUsageInfo.IsWrittenTo();
         }
 
-        private static ReferenceInfoMap GetOrCreateReferenceInfo(ValueUsageInfo valueUsageInfo)
-            => s_valueUsageInfoToReferenceInfoMap.GetOrAdd(valueUsageInfo, v => CreateReferenceInfo(v));
+        private static ReferenceInfoMap GetOrCreateReferenceInfo(SymbolUsageInfo symbolUsageInfo)
+            => s_valueUsageInfoToReferenceInfoMap.GetOrAdd(symbolUsageInfo, v => CreateReferenceInfo(v));
 
-        private static ReferenceInfoMap CreateReferenceInfo(ValueUsageInfo valueUsageInfo)
+        private static ReferenceInfoMap CreateReferenceInfo(SymbolUsageInfo symbolUsageInfo)
         {
             var referenceInfoMap = ReferenceInfoMap.Empty;
-            if (valueUsageInfo != ValueUsageInfo.None)
+            if (!symbolUsageInfo.Equals(SymbolUsageInfo.None))
             {
-                referenceInfoMap = referenceInfoMap.Add(nameof(ValueUsageInfo), valueUsageInfo.ToLocalizableValues());
+                referenceInfoMap = referenceInfoMap.Add(nameof(SymbolUsageInfo), symbolUsageInfo.ToLocalizableValues());
             }
 
             return referenceInfoMap;

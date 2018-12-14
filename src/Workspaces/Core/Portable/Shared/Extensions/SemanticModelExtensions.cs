@@ -324,31 +324,35 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
         }
 
-        public static ValueUsageInfo GetValueUsageInfo(
+        public static SymbolUsageInfo GetSymbolUsageInfo(
             this SemanticModel semanticModel,
             SyntaxNode node,
             ISyntaxFactsService syntaxFacts,
             ISemanticFactsService semanticFacts,
             CancellationToken cancellationToken)
         {
-            return syntaxFacts.IsInNamespaceOrTypeContext(node)
-                ? GetNamespaceOrTypeUsageInfo()
-                : GetValueUsageInfo();
+            if (syntaxFacts.IsInNamespaceOrTypeContext(node))
+            {
+                var typeOrNamespaceUsageInfo = GetTypeOrNamespaceUsageInfo();
+                return SymbolUsageInfo.Create(typeOrNamespaceUsageInfo);
+            }
+
+            return GetSymbolUsageInfoCommon();
 
             // Local functions.
-            ValueUsageInfo GetNamespaceOrTypeUsageInfo()
+            TypeOrNamespaceUsageInfo GetTypeOrNamespaceUsageInfo()
             {
                 var usageInfo = syntaxFacts.IsNodeOrAnyAncestorLeftSideOfDot(node) || syntaxFacts.IsLeftSideOfExplicitInterfaceSpecifier(node)
-                    ? ValueUsageInfo.DottedName
-                    : ValueUsageInfo.None;
+                    ? TypeOrNamespaceUsageInfo.DottedName
+                    : TypeOrNamespaceUsageInfo.None;
 
                 if (semanticFacts.IsNamespaceDeclarationNameContext(semanticModel, node.SpanStart, cancellationToken))
                 {
-                    usageInfo |= ValueUsageInfo.NamespaceDeclaration;
+                    usageInfo |= TypeOrNamespaceUsageInfo.NamespaceDeclaration;
                 }
                 else if (node.FirstAncestorOrSelf<SyntaxNode>(syntaxFacts.IsUsingOrExternOrImport) != null)
                 {
-                    usageInfo |= ValueUsageInfo.NamespaceOrTypeInUsing;
+                    usageInfo |= TypeOrNamespaceUsageInfo.NamespaceOrTypeInUsing;
                 }
 
                 while (syntaxFacts.IsQualifiedName(node.Parent))
@@ -358,37 +362,37 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
                 if (syntaxFacts.IsTypeArgument(node))
                 {
-                    usageInfo |= ValueUsageInfo.GenericTypeArgument;
+                    usageInfo |= TypeOrNamespaceUsageInfo.GenericTypeArgument;
                 }
                 else if (syntaxFacts.IsBaseTypeInBaseList(node))
                 {
-                    usageInfo |= ValueUsageInfo.BaseTypeOrInterface;
+                    usageInfo |= TypeOrNamespaceUsageInfo.BaseTypeOrInterface;
                 }
                 else if (syntaxFacts.IsObjectCreationExpressionType(node))
                 {
-                    usageInfo |= ValueUsageInfo.ObjectCreation;
+                    usageInfo |= TypeOrNamespaceUsageInfo.ObjectCreation;
                 }
 
                 return usageInfo;
             }
 
-            ValueUsageInfo GetValueUsageInfo()
+            SymbolUsageInfo GetSymbolUsageInfoCommon()
             {
                 if (semanticFacts.IsInOutContext(semanticModel, node, cancellationToken))
                 {
-                    return ValueUsageInfo.ValueWritableReference;
+                    return SymbolUsageInfo.Create(ValueUsageInfo.WritableReference);
                 }
                 else if (semanticFacts.IsInRefContext(semanticModel, node, cancellationToken))
                 {
-                    return ValueUsageInfo.ValueReadableWritableReference;
+                    return SymbolUsageInfo.Create(ValueUsageInfo.ReadableWritableReference);
                 }
                 else if (semanticFacts.IsInInContext(semanticModel, node, cancellationToken))
                 {
-                    return ValueUsageInfo.ValueReadableReference;
+                    return SymbolUsageInfo.Create(ValueUsageInfo.ReadableReference);
                 }
                 else if (semanticFacts.IsOnlyWrittenTo(semanticModel, node, cancellationToken))
                 {
-                    return ValueUsageInfo.ValueWrite;
+                    return SymbolUsageInfo.Create(ValueUsageInfo.Write);
                 }
                 else
                 {
@@ -398,63 +402,59 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                         case INameOfOperation _:
                         case ITypeOfOperation _:
                         case ISizeOfOperation _:
-                            return ValueUsageInfo.Name;
+                            return SymbolUsageInfo.Create(ValueUsageInfo.Name);
                     }
 
                     if (node.IsPartOfStructuredTrivia())
                     {
-                        return ValueUsageInfo.Name;
+                        return SymbolUsageInfo.Create(ValueUsageInfo.Name);
                     }
 
-                    var usageInfo = ValueUsageInfo.None;
                     var symbolInfo = semanticModel.GetSymbolInfo(node, cancellationToken);
                     if (symbolInfo.Symbol != null)
                     {
                         switch (symbolInfo.Symbol.Kind)
                         {
                             case SymbolKind.Namespace:
+                                var namespaceUsageInfo = TypeOrNamespaceUsageInfo.None;
                                 if (semanticFacts.IsNamespaceDeclarationNameContext(semanticModel, node.SpanStart, cancellationToken))
                                 {
-                                    usageInfo |= ValueUsageInfo.NamespaceDeclaration;
+                                    namespaceUsageInfo |= TypeOrNamespaceUsageInfo.NamespaceDeclaration;
                                 }
 
                                 if (syntaxFacts.IsNodeOrAnyAncestorLeftSideOfDot(node))
                                 {
-                                    usageInfo |= ValueUsageInfo.DottedName;
+                                    namespaceUsageInfo |= TypeOrNamespaceUsageInfo.DottedName;
                                 }
 
-                                break;
+                                return SymbolUsageInfo.Create(namespaceUsageInfo);
 
                             case SymbolKind.NamedType:
+                                var typeUsageInfo = TypeOrNamespaceUsageInfo.None;
                                 if (syntaxFacts.IsNodeOrAnyAncestorLeftSideOfDot(node))
                                 {
-                                    usageInfo |= ValueUsageInfo.DottedName;
+                                    typeUsageInfo |= TypeOrNamespaceUsageInfo.DottedName;
                                 }
 
-                                break;
+                                return SymbolUsageInfo.Create(typeUsageInfo);
 
                             case SymbolKind.Method:
-                                usageInfo = symbolInfo.Symbol.IsConstructor()
-                                    ? ValueUsageInfo.ObjectCreation
-                                    : ValueUsageInfo.ValueRead;
-                                break;
-
                             case SymbolKind.Property:
                             case SymbolKind.Field:
                             case SymbolKind.Event:
                             case SymbolKind.Parameter:
                             case SymbolKind.Local:
-                                usageInfo = ValueUsageInfo.ValueRead;
+                                var valueUsageInfo = ValueUsageInfo.Read;
                                 if (semanticFacts.IsWrittenTo(semanticModel, node, cancellationToken))
                                 {
-                                    usageInfo |= ValueUsageInfo.ValueWrite;
+                                    valueUsageInfo |= ValueUsageInfo.Write;
                                 }
 
-                                break;
+                                return SymbolUsageInfo.Create(valueUsageInfo);
                         }
                     }
 
-                    return usageInfo;
+                    return SymbolUsageInfo.None;
                 }
             }
         }

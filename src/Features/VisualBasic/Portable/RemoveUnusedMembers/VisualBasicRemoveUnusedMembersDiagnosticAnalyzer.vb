@@ -17,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnusedMembers
             ' not referenced directly.
             For Each method In DirectCast(context.Symbol, INamedTypeSymbol).GetMembers().OfType(Of IMethodSymbol)
                 If Not method.HandledEvents.IsEmpty Then
-                    onSymbolUsageFound(method, ValueUsageInfo.ValueRead)
+                    onSymbolUsageFound(method, ValueUsageInfo.Read)
                 End If
             Next
 
@@ -38,7 +38,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnusedMembers
             For Each node In context.Node.DescendantNodes()
                 Dim symbolInfo = context.SemanticModel.GetSymbolInfo(node, context.CancellationToken)
                 For Each symbol In symbolInfo.GetAllSymbols()
-                    onSymbolUsageFound(symbol, ValueUsageInfo.ValueRead)
+                    onSymbolUsageFound(symbol, ValueUsageInfo.Read)
                 Next
             Next
         End Sub

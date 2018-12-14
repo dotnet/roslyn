@@ -19,19 +19,19 @@ namespace Microsoft.CodeAnalysis
         /// Represents a value read.
         /// For example, reading the value of a local/field/parameter.
         /// </summary>
-        ValueRead = 0x1,
+        Read = 0x1,
 
         /// <summary>
         /// Represents a value write.
         /// For example, assigning a value to a local/field/parameter.
         /// </summary>
-        ValueWrite = 0x2,
+        Write = 0x2,
 
         /// <summary>
         /// Represents a reference being taken for the symbol.
         /// For example, passing an argument to an "in", "ref" or "out" parameter.
         /// </summary>
-        LocationReference = 0x4,
+        Reference = 0x4,
 
         /// <summary>
         /// Represents a name-only reference that neither reads nor writes the underlying value.
@@ -41,74 +41,37 @@ namespace Microsoft.CodeAnalysis
         Name = 0x8,
 
         /// <summary>
-        /// Represents a reference to a namespace or type on the left side of a dotted name (qualified name or member access).
-        /// For example, 'NS' in <code>NS.Type x = new NS.Type();</code> or <code>NS.Type.StaticMethod();</code> or 
-        /// 'Type' in <code>Type.NestedType x = new Type.NestedType();</code> or <code>Type.StaticMethod();</code>
-        /// </summary>
-        DottedName = 0x10,
-
-        /// <summary>
-        /// Represents a generic type argument reference.
-        /// For example, 'Type' in <code>Generic{Type} x = ...;</code> or <code>class Derived : Base{Type} { }</code>
-        /// </summary>
-        GenericTypeArgument = 0x20,
-
-        /// <summary>
-        /// Represents a base type or interface reference in the base list of a named type.
-        /// For example, 'Base' in <code>class Derived : Base { }</code>.
-        /// </summary>
-        BaseTypeOrInterface = 0x40,
-
-        /// <summary>
-        /// Represents a reference to a type whose instance is being created.
-        /// For example, 'C' in <code>var x = new C();</code>, where 'C' is a named type.
-        /// </summary>
-        ObjectCreation = 0x80,
-
-        /// <summary>
-        /// Represents a reference to a namespace or type within a using or imports directive.
-        /// For example, <code>using NS;</code> or <code>using static NS.Extensions</code> or <code>using Alias = MyType</code>.
-        /// </summary>
-        NamespaceOrTypeInUsing = 0x100,
-
-        /// <summary>
-        /// Represents a reference to a namespace name in a namespace declaration context.
-        /// For example, 'N1' or <code>namespaces N1.N2 { }</code>.
-        /// </summary>
-        NamespaceDeclaration = 0x200,
-
-        /// <summary>
         /// Represents a value read and/or write.
         /// For example, an increment or compound assignment operation.
         /// </summary>
-        ValueReadWrite = ValueRead | ValueWrite,
+        ReadWrite = Read | Write,
 
         /// <summary>
         /// Represents a readable reference being taken to the value.
         /// For example, passing an argument to an "in" or "ref readonly" parameter.
         /// </summary>
-        ValueReadableReference = ValueRead | LocationReference,
+        ReadableReference = Read | Reference,
 
         /// <summary>
         /// Represents a readable reference being taken to the value.
         /// For example, passing an argument to an "out" parameter.
         /// </summary>
-        ValueWritableReference = ValueWrite | LocationReference,
+        WritableReference = Write | Reference,
 
         /// <summary>
         /// Represents a value read or write.
         /// For example, passing an argument to a "ref" parameter.
         /// </summary>
-        ValueReadableWritableReference = ValueRead | ValueWrite | LocationReference
+        ReadableWritableReference = Read | Write | Reference
     }
 
     internal static class ValueUsageInfoExtensions
     {
         public static bool IsReadFrom(this ValueUsageInfo valueUsageInfo)
-            => (valueUsageInfo & ValueUsageInfo.ValueRead) != 0;
+            => (valueUsageInfo & ValueUsageInfo.Read) != 0;
 
         public static bool IsWrittenTo(this ValueUsageInfo valueUsageInfo)
-            => (valueUsageInfo & ValueUsageInfo.ValueWrite) != 0;
+            => (valueUsageInfo & ValueUsageInfo.Write) != 0;
 
         public static bool IsNameOnly(this ValueUsageInfo valueUsageInfo)
             => (valueUsageInfo & ValueUsageInfo.Name) != 0;
@@ -120,35 +83,17 @@ namespace Microsoft.CodeAnalysis
 
             switch (value)
             {
-                case ValueUsageInfo.ValueRead:
-                    return WorkspacesResources.ValueUsageInfo_ValueRead;
+                case ValueUsageInfo.Read:
+                    return WorkspacesResources.ValueUsageInfo_Read;
 
-                case ValueUsageInfo.ValueWrite:
-                    return WorkspacesResources.ValueUsageInfo_ValueWrite;
+                case ValueUsageInfo.Write:
+                    return WorkspacesResources.ValueUsageInfo_Write;
 
-                case ValueUsageInfo.LocationReference:
-                    return WorkspacesResources.ValueUsageInfo_ValueReference;
+                case ValueUsageInfo.Reference:
+                    return WorkspacesResources.ValueUsageInfo_Reference;
 
                 case ValueUsageInfo.Name:
                     return WorkspacesResources.ValueUsageInfo_Name;
-
-                case ValueUsageInfo.DottedName:
-                    return WorkspacesResources.ValueUsageInfo_DottedName;
-
-                case ValueUsageInfo.GenericTypeArgument:
-                    return WorkspacesResources.ValueUsageInfo_GenericTypeArgument;
-
-                case ValueUsageInfo.BaseTypeOrInterface:
-                    return WorkspacesResources.ValueUsageInfo_BaseTypeOrInterface;
-
-                case ValueUsageInfo.ObjectCreation:
-                    return WorkspacesResources.ValueUsageInfo_ObjectCreation;
-
-                case ValueUsageInfo.NamespaceOrTypeInUsing:
-                    return WorkspacesResources.ValueUsageInfo_NamespaceOrTypeInUsing;
-
-                case ValueUsageInfo.NamespaceDeclaration:
-                    return WorkspacesResources.ValueUsageInfo_NamespaceDeclaration;
 
                 default:
                     Debug.Fail($"Unhandled value: '{value.ToString()}'");
