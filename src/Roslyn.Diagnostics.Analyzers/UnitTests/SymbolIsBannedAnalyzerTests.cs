@@ -73,7 +73,26 @@ T:System.Console";
                 GetResultAt(
                     SymbolIsBannedAnalyzer.BannedSymbolsFileName,
                     SymbolIsBannedAnalyzer.DuplicateBannedSymbolRule.Id,
-                    string.Format(SymbolIsBannedAnalyzer.DuplicateBannedSymbolRule.MessageFormat.ToString(), "T:System.Console"),
+                    string.Format(SymbolIsBannedAnalyzer.DuplicateBannedSymbolRule.MessageFormat.ToString(), "System.Console"),
+                    "(3,1)", "(2,1)"));
+        }
+
+        [Fact]
+        public void DiagnosticReportedForDuplicateBannedApiLinesWithDifferentIds()
+        {
+            // The colon in the documentation ID is optional.
+            // Verify that it doesn't cause exceptions when building look ups.
+
+            var source = @"";
+            var bannedText = @"
+T:System.Console;Message 1
+TSystem.Console;Message 2";
+
+            VerifyCSharp(source, bannedText,
+                GetResultAt(
+                    SymbolIsBannedAnalyzer.BannedSymbolsFileName,
+                    SymbolIsBannedAnalyzer.DuplicateBannedSymbolRule.Id,
+                    string.Format(SymbolIsBannedAnalyzer.DuplicateBannedSymbolRule.MessageFormat.ToString(), "System.Console"),
                     "(3,1)", "(2,1)"));
         }
 
