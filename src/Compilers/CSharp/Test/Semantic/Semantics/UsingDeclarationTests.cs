@@ -81,6 +81,27 @@ class C
         }
 
         [Fact]
+        public void AllowGoToAroundUsingDeclarations()
+        {
+            var source = @"
+using System;
+class C
+{
+    static void Main()
+    {
+        goto label1;
+        label1:
+        using var x = (IDisposable)null;
+        goto label2;
+        label2:
+        return;
+    }
+}
+";
+            CreateCompilation(source).VerifyDiagnostics();
+        }
+
+        [Fact]
         public void AllowGoToAcrossUsingDeclarationsBackwardsWhenFromADifferentBlock()
         {
             var source = @"

@@ -1665,13 +1665,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var syntaxStatements = node.Statements;
             int nStatements = syntaxStatements.Count;
-
+            bool sawGotos = false;
             ArrayBuilder<BoundStatement> boundStatements = ArrayBuilder<BoundStatement>.GetInstance(nStatements);
 
             for (int i = 0; i < nStatements; i++)
             {
                 var boundStatement = BindStatement(syntaxStatements[i], diagnostics);
                 boundStatements.Add(boundStatement);
+
+                sawGotos |= boundStatement.Kind == BoundKind.GotoStatement;
             }
 
             var immutableBoundStatements = boundStatements.ToImmutableAndFree();
@@ -1699,8 +1701,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            // check there are no goto jumps across any using declarations declaration
-            CheckForInvalidGotos(immutableBoundStatements, diagnostics);
+            if (sawGotos)
+            {
+                // check there are no goto jumps across any using declarations declaration
+                CheckForInvalidGotos(immutableBoundStatements, diagnostics);
+            }
 
             return new BoundBlock(
                 node,
@@ -1711,30 +1716,62 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static void CheckForInvalidGotos(ImmutableArray<BoundStatement> immutableBoundStatements, DiagnosticBag diagnostics)
         {
-            // PROTOTYPE: Can we do this more efficiently than n^3?
+            // map the location of any goto / label pair, and using declarations
+            var labelDictionary = PooledDictionary<LabelSymbol, (int, int)>.GetInstance();
+            var usingStatementIndicies = PooledHashSet<int>.GetInstance();
             for (int i = 0; i < immutableBoundStatements.Length; i++)
             {
-                // look for any goto's. If we find one, go through the list again and see if there is a corresponding label
-                if (immutableBoundStatements[i] is BoundGotoStatement gotoStatement)
+                var statement = immutableBoundStatements[i];
+                switch (statement.Kind)
                 {
-                    for (int j = 0; j < immutableBoundStatements.Length; j++)
+                    case BoundKind.GotoStatement:
+                        var gotoStatement = (BoundGotoStatement)statement;
+                        var (_, labelIndex) = getLabelEntry(gotoStatement.Label);
+                        labelDictionary[gotoStatement.Label] = (i, labelIndex);
+                        break;
+                    case BoundKind.LabeledStatement:
+                        var labelStatement = (BoundLabeledStatement)statement;
+                        var (gotoIndex, _) = getLabelEntry(labelStatement.Label);
+                        labelDictionary[labelStatement.Label] = (gotoIndex, i);
+                        break;
+                }
+
+                if(statement.ContainsUsingDeclarationStatement(out var _))
+                {
+                    usingStatementIndicies.Add(i);
+                }
+            }
+
+            foreach((int gotoIndex, int labelIndex) in labelDictionary.Values)
+            {
+                // negative indicates we didn't see a goto or label for this LabelSymbol
+                if(gotoIndex == -1 || labelIndex == -1)
+                {
+                    continue;
+                }
+
+                int start = Math.Min(gotoIndex, labelIndex);
+                int end = Math.Max(gotoIndex, labelIndex);
+
+                //include start statement, as it could be a labled using, exclude the end because a labeled using is valid
+                for(int i = start; i < end; i++)
+                {
+                    if (usingStatementIndicies.Contains(i))
                     {
-                        if (immutableBoundStatements[j] is BoundLabeledStatement label && label.Label == gotoStatement.Label)
-                        {
-                            // we found a matching label in this block. lets see if any of the statements between the two are using declarations
-                            int startIndex = Math.Min(i, j);
-                            int endIndex = Math.Max(i, j);
-                            for (int k = startIndex; k < endIndex; k++)
-                            {
-                                if (immutableBoundStatements[k].ContainsUsingDeclarationStatement(out var _))
-                                {
-                                    // we're jumping across a using declaration in the same block, which is an error
-                                    diagnostics.Add(ErrorCode.ERR_GoToJumpOverUsingVar, gotoStatement.Syntax.Location);
-                                }
-                            }
-                        }
+                        // we're jumping across a using declaration in the same block, which is an error
+                        diagnostics.Add(ErrorCode.ERR_GoToJumpOverUsingVar, immutableBoundStatements[gotoIndex].Syntax.Location);
                     }
                 }
+            }
+
+            usingStatementIndicies.Free();
+            labelDictionary.Free();
+
+            (int, int) getLabelEntry(LabelSymbol symbol)
+            {
+                return labelDictionary.ContainsKey(symbol)
+                        ? labelDictionary[symbol]
+                        : (-1, -1);
             }
         }
 
