@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Types from return expressions. Used when inferring lambda return type in MethodTypeInferrer.
         /// </summary>
-        private readonly ArrayBuilder<(RefKind, TypeSymbolWithAnnotations)> _returnTypes;
+        private readonly ArrayBuilder<(RefKind, TypeSymbolWithAnnotations)> _returnTypesOpt;
 
         /// <summary>
         /// An optional callback for callers to receive notification of the inferred type and nullability
@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Instances being constructed.
         /// </summary>
-        private PooledDictionary<BoundExpression, ObjectCreationPlaceholderLocal> _placeholderLocals;
+        private PooledDictionary<BoundExpression, ObjectCreationPlaceholderLocal> _placeholderLocalsOpt;
 
         /// <summary>
         /// For methods with annotations, we'll need to visit the arguments twice.
@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected override void Free()
         {
             _variableTypes.Free();
-            _placeholderLocals?.Free();
+            _placeholderLocalsOpt?.Free();
             base.Free();
         }
 
@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool useMethodSignatureParameterTypes,
             MethodSymbol methodSignatureOpt,
             BoundNode node,
-            ArrayBuilder<(RefKind, TypeSymbolWithAnnotations)> returnTypes,
+            ArrayBuilder<(RefKind, TypeSymbolWithAnnotations)> returnTypesOpt,
             VariableState initialState,
             Action<BoundExpression, TypeSymbolWithAnnotations> callbackOpt)
             : base(compilation, method, node, new EmptyStructTypeCache(compilation, dev12CompilerCompatibility: false), trackUnassignments: true)
@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _useMethodSignatureReturnType = (object)methodSignatureOpt != null && useMethodSignatureReturnType;
             _useMethodSignatureParameterTypes = (object)methodSignatureOpt != null && useMethodSignatureParameterTypes;
             _methodSignatureOpt = methodSignatureOpt;
-            _returnTypes = returnTypes;
+            _returnTypesOpt = returnTypesOpt;
             if (initialState != null)
             {
                 var variableBySlot = initialState.VariableBySlot;
@@ -168,9 +168,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override ImmutableArray<PendingBranch> Scan(ref bool badRegion)
         {
-            if (_returnTypes != null)
+            if (_returnTypesOpt != null)
             {
-                _returnTypes.Clear();
+                _returnTypesOpt.Clear();
             }
             this.Diagnostics.Clear();
             ParameterSymbol methodThisParameter = MethodThisParameter;
@@ -439,7 +439,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.ObjectCreationExpression:
                 case BoundKind.DynamicObjectCreationExpression:
                 case BoundKind.AnonymousObjectCreationExpression:
-                    if (_placeholderLocals != null && _placeholderLocals.TryGetValue(node, out ObjectCreationPlaceholderLocal placeholder))
+                    if (_placeholderLocalsOpt != null && _placeholderLocalsOpt.TryGetValue(node, out ObjectCreationPlaceholderLocal placeholder))
                     {
                         return GetOrCreateSlot(placeholder);
                     }
@@ -1021,11 +1021,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-            if (_returnTypes != null)
+            if (_returnTypesOpt != null)
             {
                 // Inferring return type. Should not convert to method return type.
                 TypeSymbolWithAnnotations result = VisitRvalueWithResult(expr);
-                _returnTypes.Add((node.RefKind, result));
+                _returnTypesOpt.Add((node.RefKind, result));
                 return null;
             }
 
@@ -1258,20 +1258,20 @@ namespace Microsoft.CodeAnalysis.CSharp
         private ObjectCreationPlaceholderLocal GetOrCreateObjectCreationPlaceholder(BoundExpression node)
         {
             ObjectCreationPlaceholderLocal placeholder;
-            if (_placeholderLocals == null)
+            if (_placeholderLocalsOpt == null)
             {
-                _placeholderLocals = PooledDictionary<BoundExpression, ObjectCreationPlaceholderLocal>.GetInstance();
+                _placeholderLocalsOpt = PooledDictionary<BoundExpression, ObjectCreationPlaceholderLocal>.GetInstance();
                 placeholder = null;
             }
             else
             {
-                _placeholderLocals.TryGetValue(node, out placeholder);
+                _placeholderLocalsOpt.TryGetValue(node, out placeholder);
             }
 
             if ((object)placeholder == null)
             {
                 placeholder = new ObjectCreationPlaceholderLocal(_symbol, node);
-                _placeholderLocals.Add(node, placeholder);
+                _placeholderLocalsOpt.Add(node, placeholder);
             }
 
             return placeholder;
