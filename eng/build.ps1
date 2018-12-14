@@ -209,6 +209,12 @@ function TestUsingOptimizedRunner() {
 
     if ($testVsi) {
         Deploy-VsixViaTool
+
+        if ($ci) {
+            # Minimize all windows to avoid interference during integration test runs
+            $shell = New-Object -ComObject "Shell.Application"
+            $shell.MinimizeAll()
+        }
     }
 
     if ($testIOperation) {
