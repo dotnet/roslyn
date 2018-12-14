@@ -144,17 +144,39 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
             newProject = newProject.AddProjectReferences(allAddedProjectReferences);
 
             // Only consider insertion changes to reduce the chance of producing a
-            // badly merged final document. Alphabetize the new imports, this will not
-            // change the insertion point but will give a more correct result. The user
-            // may still need to use organize imports afterwards.
+            // badly merged final document. Check the imports at each span location
+            // and rewrite to remove extra newlines. Order to give a more
+            // correct result. The user may still need to use organize imports afterwards.
             var orderedTextInserts = allTextChanges.Where(change => change.Span.IsEmpty)
-                .OrderBy(change => change.NewText);
+                .GroupBy(change => change.Span)
+                .SelectMany(PrepareTextChangesForInsertion);
 
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             var newText = text.WithChanges(orderedTextInserts);
             var newDocument = newProject.GetDocument(document.Id).WithText(newText);
 
             return newDocument;
+        }
+
+        private IEnumerable<TextChange> PrepareTextChangesForInsertion(IGrouping<TextSpan, TextChange> changes)
+        {
+            var first = changes.First();
+            var newLine = first.NewText.EndsWith("\r\n") ? "\r\n" : "\n";
+            var doubleNewLine = newLine + newLine;
+
+            if (!changes.All(change => change.NewText.EndsWith(doubleNewLine)))
+            {
+                // Order to try and give a more correct result.
+                return changes.OrderBy(change => change.NewText);
+            }
+
+            // This span location had no pre-existing import statements.
+            // We need to compensate for each fix trying to add an additional
+            // newline to separate the imports from the rest of the code.
+            return changes.Select(change =>
+                    new TextChange(changes.Key, change.NewText.TrimEnd('\r', '\n') + newLine)) // Rewrite each text change to only apply a single newline.
+                    .OrderBy(change => change.NewText)                                         // Order to try and give a more correct result.
+                    .Concat(new[] { new TextChange(changes.Key, newLine) });                   // Add the newline intended to separate imports from code.
         }
 
         private async Task<(ProjectChanges, IEnumerable<TextChange>)> GetChangesForCodeActionAsync(
