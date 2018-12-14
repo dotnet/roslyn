@@ -1594,6 +1594,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_BadDynamicAwaitForEach = 8416,
         ERR_NoConvToIAsyncDispWrongAsync = 8417,
         ERR_NoConvToIDispWrongAsync = 8418,
+        ERR_PossibleAsyncIteratorWithoutYield = 8419,
+        ERR_PossibleAsyncIteratorWithoutYieldOrAwait = 8420,
 
         WRN_ConvertingNullableToNonNullable = 8600,
         WRN_NullReferenceAssignment = 8601,
