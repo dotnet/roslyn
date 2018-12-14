@@ -804,20 +804,20 @@
   <data name="ValueUsageInfo_Write" xml:space="preserve">
     <value>Write</value>
   </data>
-  <data name="TypeOrNamespaceUsageInfo_DottedName" xml:space="preserve">
+  <data name="TypeOrNamespaceUsageInfo_Qualified" xml:space="preserve">
     <value>Qualify</value>
   </data>
-  <data name="TypeOrNamespaceUsageInfo_GenericTypeArgument" xml:space="preserve">
+  <data name="TypeOrNamespaceUsageInfo_TypeArgument" xml:space="preserve">
     <value>Type Argument</value>
   </data>
-  <data name="TypeOrNamespaceUsageInfo_BaseTypeOrInterface" xml:space="preserve">
+  <data name="TypeOrNamespaceUsageInfo_Base" xml:space="preserve">
     <value>Base</value>
   </data>
   <data name="TypeOrNamespaceUsageInfo_ObjectCreation" xml:space="preserve">
     <value>new()</value>
   </data>
-  <data name="TypeOrNamespaceUsageInfo_NamespaceOrTypeInUsing" xml:space="preserve">
-    <value>Using</value>
+  <data name="TypeOrNamespaceUsageInfo_Import" xml:space="preserve">
+    <value>Import</value>
   </data>
   <data name="TypeOrNamespaceUsageInfo_NamespaceDeclaration" xml:space="preserve">
     <value>Declaration</value>

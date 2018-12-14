@@ -615,8 +615,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return SyntaxFacts.IsInNamespaceOrTypeContext(node)
         End Function
 
-        Public Function IsBaseTypeInBaseList(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsBaseTypeInBaseList
-            Return TryCast(node, TypeSyntax) IsNot Nothing AndAlso TryCast(node.Parent, InheritsOrImplementsStatementSyntax) IsNot Nothing
+        Public Function IsBaseTypeList(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsBaseTypeList
+            Return TryCast(node, InheritsOrImplementsStatementSyntax) IsNot Nothing
         End Function
 
         Public Function IsInStaticContext(node As Microsoft.CodeAnalysis.SyntaxNode) As Boolean Implements ISyntaxFactsService.IsInStaticContext
@@ -641,8 +641,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return argument IsNot Nothing AndAlso Not argument.IsNamed AndAlso Not argument.IsOmitted
         End Function
 
-        Public Function IsTypeArgument(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsTypeArgument
-            Return node.IsParentKind(SyntaxKind.TypeArgumentList)
+        Public Function IsTypeArgumentList(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsTypeArgumentList
+            Return node.IsKind(SyntaxKind.TypeArgumentList)
         End Function
 
         Public Function IsInConstantContext(node As Microsoft.CodeAnalysis.SyntaxNode) As Boolean Implements ISyntaxFactsService.IsInConstantContext
@@ -1289,10 +1289,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function IsLeftSideOfDot(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsLeftSideOfDot
             Return TryCast(node, ExpressionSyntax).IsLeftSideOfDot()
-        End Function
-
-        Public Overloads Function IsNodeOrAnyAncestorLeftSideOfDot(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsNodeOrAnyAncestorLeftSideOfDot
-            Return IsNodeOrAnyAncestorLeftSideOfDot(node, Me)
         End Function
 
         Public Function GetRightSideOfDot(node As SyntaxNode) As SyntaxNode Implements ISyntaxFactsService.GetRightSideOfDot

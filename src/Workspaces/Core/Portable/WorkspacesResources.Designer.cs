@@ -1785,27 +1785,18 @@ namespace Microsoft.CodeAnalysis {
         /// <summary>
         ///   Looks up a localized string similar to Base.
         /// </summary>
-        internal static string TypeOrNamespaceUsageInfo_BaseTypeOrInterface {
+        internal static string TypeOrNamespaceUsageInfo_Base {
             get {
-                return ResourceManager.GetString("TypeOrNamespaceUsageInfo_BaseTypeOrInterface", resourceCulture);
+                return ResourceManager.GetString("TypeOrNamespaceUsageInfo_Base", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Qualify.
+        ///   Looks up a localized string similar to Import.
         /// </summary>
-        internal static string TypeOrNamespaceUsageInfo_DottedName {
+        internal static string TypeOrNamespaceUsageInfo_Import {
             get {
-                return ResourceManager.GetString("TypeOrNamespaceUsageInfo_DottedName", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Type Argument.
-        /// </summary>
-        internal static string TypeOrNamespaceUsageInfo_GenericTypeArgument {
-            get {
-                return ResourceManager.GetString("TypeOrNamespaceUsageInfo_GenericTypeArgument", resourceCulture);
+                return ResourceManager.GetString("TypeOrNamespaceUsageInfo_Import", resourceCulture);
             }
         }
         
@@ -1819,20 +1810,29 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Using.
-        /// </summary>
-        internal static string TypeOrNamespaceUsageInfo_NamespaceOrTypeInUsing {
-            get {
-                return ResourceManager.GetString("TypeOrNamespaceUsageInfo_NamespaceOrTypeInUsing", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to new().
         /// </summary>
         internal static string TypeOrNamespaceUsageInfo_ObjectCreation {
             get {
                 return ResourceManager.GetString("TypeOrNamespaceUsageInfo_ObjectCreation", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Qualify.
+        /// </summary>
+        internal static string TypeOrNamespaceUsageInfo_Qualified {
+            get {
+                return ResourceManager.GetString("TypeOrNamespaceUsageInfo_Qualified", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Type Argument.
+        /// </summary>
+        internal static string TypeOrNamespaceUsageInfo_TypeArgument {
+            get {
+                return ResourceManager.GetString("TypeOrNamespaceUsageInfo_TypeArgument", resourceCulture);
             }
         }
         

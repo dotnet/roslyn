@@ -168,7 +168,6 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsOperandOfIncrementOrDecrementExpression(SyntaxNode node);
 
         bool IsLeftSideOfDot(SyntaxNode node);
-        bool IsNodeOrAnyAncestorLeftSideOfDot(SyntaxNode node);
         SyntaxNode GetRightSideOfDot(SyntaxNode node);
 
         bool IsRightSideOfQualifiedName(SyntaxNode node);
@@ -232,7 +231,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsSimpleArgument(SyntaxNode node);
         bool IsArgument(SyntaxNode node);
         RefKind GetRefKindOfArgument(SyntaxNode node);
-        bool IsTypeArgument(SyntaxNode node);
+        bool IsTypeArgumentList(SyntaxNode node);
 
         void GetNameAndArityOfSimpleName(SyntaxNode node, out string name, out int arity);
         bool LooksGeneric(SyntaxNode simpleName);
@@ -318,7 +317,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsUnsafeContext(SyntaxNode node);
 
         bool IsInNamespaceOrTypeContext(SyntaxNode node);
-        bool IsBaseTypeInBaseList(SyntaxNode node);
+
+        bool IsBaseTypeList(SyntaxNode node);
 
         bool IsAnonymousFunction(SyntaxNode n);
 

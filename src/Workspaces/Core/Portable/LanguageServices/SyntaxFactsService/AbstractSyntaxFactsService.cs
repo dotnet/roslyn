@@ -431,20 +431,5 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             => DocumentationCommentService.GetBannerText(documentationCommentTriviaSyntax, bannerLength, cancellationToken);
 
         protected abstract IDocumentationCommentService DocumentationCommentService { get; }
-
-        protected bool IsNodeOrAnyAncestorLeftSideOfDot(SyntaxNode node, ISyntaxFactsService syntaxFacts)
-        {
-            if (syntaxFacts.IsLeftSideOfDot(node))
-            {
-                return true;
-            }
-
-            if (syntaxFacts.IsRightSideOfQualifiedName(node) || syntaxFacts.IsNameOfMemberAccessExpression(node))
-            {
-                return syntaxFacts.IsLeftSideOfDot(node.Parent);
-            }
-
-            return false;
-        }
     }
 }

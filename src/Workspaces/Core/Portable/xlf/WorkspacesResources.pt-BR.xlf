@@ -152,19 +152,14 @@
         <target state="translated">Não há suporte para adicionar projetos.</target>
         <note />
       </trans-unit>
-      <trans-unit id="TypeOrNamespaceUsageInfo_BaseTypeOrInterface">
+      <trans-unit id="TypeOrNamespaceUsageInfo_Base">
         <source>Base</source>
         <target state="new">Base</target>
         <note />
       </trans-unit>
-      <trans-unit id="TypeOrNamespaceUsageInfo_DottedName">
-        <source>Qualify</source>
-        <target state="new">Qualify</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="TypeOrNamespaceUsageInfo_GenericTypeArgument">
-        <source>Type Argument</source>
-        <target state="new">Type Argument</target>
+      <trans-unit id="TypeOrNamespaceUsageInfo_Import">
+        <source>Import</source>
+        <target state="new">Import</target>
         <note />
       </trans-unit>
       <trans-unit id="TypeOrNamespaceUsageInfo_NamespaceDeclaration">
@@ -172,14 +167,19 @@
         <target state="new">Declaration</target>
         <note />
       </trans-unit>
-      <trans-unit id="TypeOrNamespaceUsageInfo_NamespaceOrTypeInUsing">
-        <source>Using</source>
-        <target state="new">Using</target>
-        <note />
-      </trans-unit>
       <trans-unit id="TypeOrNamespaceUsageInfo_ObjectCreation">
         <source>new()</source>
         <target state="new">new()</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="TypeOrNamespaceUsageInfo_Qualified">
+        <source>Qualify</source>
+        <target state="new">Qualify</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="TypeOrNamespaceUsageInfo_TypeArgument">
+        <source>Type Argument</source>
+        <target state="new">Type Argument</target>
         <note />
       </trans-unit>
       <trans-unit id="ValueUsageInfo_Name">

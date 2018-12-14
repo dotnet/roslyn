@@ -7,7 +7,12 @@ using System.Linq;
 
 namespace Microsoft.CodeAnalysis
 {
-    internal struct SymbolUsageInfo
+    /// <summary>
+    /// Provides information about the way a particular symbol is being used at a symbol reference node.
+    /// For namespaces and types, this corresponds to values from <see cref="TypeOrNamespaceUsageInfo"/>.
+    /// For methods, fields, properties, events, locals and parameters, this corresponds to values from <see cref="ValueUsageInfo"/>.
+    /// </summary>
+    internal readonly struct SymbolUsageInfo
     {
         public static readonly SymbolUsageInfo None = Create(ValueUsageInfo.None);
         public static readonly ImmutableArray<string> LocalizableStringsForAllAllowedValues = CreateLocalizableStringsForAllAllowedValues();

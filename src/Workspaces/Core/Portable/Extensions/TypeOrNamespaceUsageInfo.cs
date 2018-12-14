@@ -20,19 +20,19 @@ namespace Microsoft.CodeAnalysis
         /// For example, 'NS' in <code>NS.Type x = new NS.Type();</code> or <code>NS.Type.StaticMethod();</code> or 
         /// 'Type' in <code>Type.NestedType x = new Type.NestedType();</code> or <code>Type.StaticMethod();</code>
         /// </summary>
-        DottedName = 0x01,
+        Qualified = 0x01,
 
         /// <summary>
         /// Represents a generic type argument reference.
         /// For example, 'Type' in <code>Generic{Type} x = ...;</code> or <code>class Derived : Base{Type} { }</code>
         /// </summary>
-        GenericTypeArgument = 0x02,
+        TypeArgument = 0x02,
 
         /// <summary>
         /// Represents a base type or interface reference in the base list of a named type.
         /// For example, 'Base' in <code>class Derived : Base { }</code>.
         /// </summary>
-        BaseTypeOrInterface = 0x04,
+        Base = 0x04,
 
         /// <summary>
         /// Represents a reference to a type whose instance is being created.
@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis
         /// Represents a reference to a namespace or type within a using or imports directive.
         /// For example, <code>using NS;</code> or <code>using static NS.Extensions</code> or <code>using Alias = MyType</code>.
         /// </summary>
-        NamespaceOrTypeInUsing = 0x10,
+        Import = 0x10,
 
         /// <summary>
         /// Represents a reference to a namespace name in a namespace declaration context.
@@ -62,20 +62,20 @@ namespace Microsoft.CodeAnalysis
 
             switch (info)
             {
-                case TypeOrNamespaceUsageInfo.DottedName:
-                    return WorkspacesResources.TypeOrNamespaceUsageInfo_DottedName;
+                case TypeOrNamespaceUsageInfo.Qualified:
+                    return WorkspacesResources.TypeOrNamespaceUsageInfo_Qualified;
 
-                case TypeOrNamespaceUsageInfo.GenericTypeArgument:
-                    return WorkspacesResources.TypeOrNamespaceUsageInfo_GenericTypeArgument;
+                case TypeOrNamespaceUsageInfo.TypeArgument:
+                    return WorkspacesResources.TypeOrNamespaceUsageInfo_TypeArgument;
 
-                case TypeOrNamespaceUsageInfo.BaseTypeOrInterface:
-                    return WorkspacesResources.TypeOrNamespaceUsageInfo_BaseTypeOrInterface;
+                case TypeOrNamespaceUsageInfo.Base:
+                    return WorkspacesResources.TypeOrNamespaceUsageInfo_Base;
 
                 case TypeOrNamespaceUsageInfo.ObjectCreation:
                     return WorkspacesResources.TypeOrNamespaceUsageInfo_ObjectCreation;
 
-                case TypeOrNamespaceUsageInfo.NamespaceOrTypeInUsing:
-                    return WorkspacesResources.TypeOrNamespaceUsageInfo_NamespaceOrTypeInUsing;
+                case TypeOrNamespaceUsageInfo.Import:
+                    return WorkspacesResources.TypeOrNamespaceUsageInfo_Import;
 
                 case TypeOrNamespaceUsageInfo.NamespaceDeclaration:
                     return WorkspacesResources.TypeOrNamespaceUsageInfo_NamespaceDeclaration;
