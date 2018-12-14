@@ -302,7 +302,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                     {
                         Guid mvid;
                         if (TryReadMvid(assemblyFilePathOpt, out mvid) &&
-                            CorLightup.Desktop.GetModuleVersionId(loadedAssemblyWithEqualNameAndVersionOpt.Assembly.ManifestModule) == mvid)
+                            loadedAssemblyWithEqualNameAndVersionOpt.Assembly.ManifestModule.ModuleVersionId == mvid)
                         {
                             return loadedAssemblyWithEqualNameAndVersionOpt.Assembly;
                         }

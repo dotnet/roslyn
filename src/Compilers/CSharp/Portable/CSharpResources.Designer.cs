@@ -8179,6 +8179,24 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The body of an async-iterator method must contain a &apos;yield&apos; statement..
+        /// </summary>
+        internal static string ERR_PossibleAsyncIteratorWithoutYield {
+            get {
+                return ResourceManager.GetString("ERR_PossibleAsyncIteratorWithoutYield", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The body of an async-iterator method must contain a &apos;yield&apos; statement. Consider removing &apos;async&apos; from the method declaration or adding a &apos;yield&apos; statement..
+        /// </summary>
+        internal static string ERR_PossibleAsyncIteratorWithoutYieldOrAwait {
+            get {
+                return ResourceManager.GetString("ERR_PossibleAsyncIteratorWithoutYieldOrAwait", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to To cast a negative value, you must enclose the value in parentheses..
         /// </summary>
         internal static string ERR_PossibleBadNegCast {
