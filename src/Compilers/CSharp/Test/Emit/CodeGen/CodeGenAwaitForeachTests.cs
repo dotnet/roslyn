@@ -2961,6 +2961,7 @@ class C : IAsyncEnumerable<int>
             CompileAndVerify(comp, expectedOutput: "Try NextAsync(0) Current(1) Got(1) NextAsync(1) Current(2) Got(2) NextAsync(2) Current(3) Got(3) NextAsync(3) Dispose(4) Done", verify: Verification.Skipped);
         }
 
+        /// Covered in greater details by <see cref="CodeGenAsyncIteratorTests.TryFinally_AwaitForeachInFinally"/>
         [Fact]
         public void TestInFinally()
         {
@@ -2987,11 +2988,7 @@ class C : IAsyncEnumerable<int>
     }
 }";
             var comp = CreateCompilationWithTasksExtensions(source + s_IAsyncEnumerable);
-            comp.VerifyDiagnostics(
-                // (13,13): error CS0157: Control cannot leave the body of a finally clause
-                //             await foreach (var i in new C())
-                Diagnostic(ErrorCode.ERR_BadFinallyLeave, "await").WithLocation(13, 13)
-                );
+            comp.VerifyDiagnostics();
         }
 
         [ConditionalFact(typeof(WindowsDesktopOnly))]

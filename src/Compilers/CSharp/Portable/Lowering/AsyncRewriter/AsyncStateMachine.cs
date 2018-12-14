@@ -44,6 +44,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // IValueTaskSource<bool>
                 interfaces.Add(compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Sources_IValueTaskSource_T).Construct(compilation.GetSpecialType(SpecialType.System_Boolean)));
 
+                // IValueTaskSource
+                interfaces.Add(compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Sources_IValueTaskSource));
+
                 // IAsyncDisposable
                 interfaces.Add(compilation.GetWellKnownType(WellKnownType.System_IAsyncDisposable));
             }

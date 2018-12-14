@@ -160,8 +160,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             return (T)Activator.GetObject(typeof(T), $"{_integrationService.BaseUri}/{objectUri}");
         }
 
-        public void ActivateMainWindow(bool skipAttachingThreads = false)
-            => _inProc.ActivateMainWindow(skipAttachingThreads);
+        public void ActivateMainWindow()
+            => _inProc.ActivateMainWindow();
 
         public void WaitForApplicationIdle(CancellationToken cancellationToken)
         {

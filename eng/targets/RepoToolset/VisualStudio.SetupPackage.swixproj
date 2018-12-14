@@ -8,7 +8,7 @@
       IntermediateOutputPath      Intermediate output path.
       SwixBuildPath               SwixBuild package path.
   -->
-  
+
   <PropertyGroup>
     <OutputArchitecture>neutral</OutputArchitecture>
     <OutputLocalized>false</OutputLocalized>
@@ -22,7 +22,7 @@
   <ItemGroup>
     <_SwrProperties Include="$([MSBuild]::Unescape($(SwrProperties)))" />
   </ItemGroup>
-  
+
   <PropertyGroup>
     <PackagePreprocessorDefinitions>$(PackagePreprocessorDefinitions);@(_SwrProperties)</PackagePreprocessorDefinitions>
     <OutputPath>$(IntermediateOutputPath)</OutputPath>
