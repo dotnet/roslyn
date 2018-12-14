@@ -245,7 +245,7 @@ namespace Roslyn.Diagnostics.Analyzers
                 {
                     VerifyType(reportDiagnostic, typeSymbol, syntaxNode);
                 }
-                else
+                else if (symbol != null)
                 {
                     VerifySymbol(reportDiagnostic, symbol, syntaxNode);
                 }
