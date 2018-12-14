@@ -1843,6 +1843,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Invalid option &apos;{0}&apos; for /nullable; must be &apos;disabled&apos;, &apos;enabled&apos; or &apos;safeonly&apos;.
+        /// </summary>
+        internal static string ERR_BadNullableContextOption {
+            get {
+                return ResourceManager.GetString("ERR_BadNullableContextOption", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Declaration is not valid; use &apos;{0} operator &lt;dest-type&gt; (...&apos; instead.
         /// </summary>
         internal static string ERR_BadOperatorSyntax {
@@ -7531,7 +7540,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Expected enable or disable.
+        ///   Looks up a localized string similar to Expected &apos;enable&apos;, &apos;safeonly&apos;, &apos;disable&apos;, or &apos;restore&apos;.
         /// </summary>
         internal static string ERR_NullableDirectiveQualifierExpected {
             get {

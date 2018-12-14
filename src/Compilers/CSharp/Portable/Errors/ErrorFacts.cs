@@ -15,12 +15,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         private const string s_descriptionSuffix = "_Description";
         private static readonly Lazy<ImmutableDictionary<ErrorCode, string>> s_helpLinksMap = new Lazy<ImmutableDictionary<ErrorCode, string>>(CreateHelpLinks);
         private static readonly Lazy<ImmutableDictionary<ErrorCode, string>> s_categoriesMap = new Lazy<ImmutableDictionary<ErrorCode, string>>(CreateCategoriesMap);
-        public static readonly ImmutableHashSet<string> NullableFlowAnalysisWarnings;
+        public static readonly ImmutableHashSet<string> NullableFlowAnalysisSafetyWarnings;
+        public static readonly ImmutableHashSet<string> NullableFlowAnalysisNonSafetyWarnings;
 
         static ErrorFacts()
         {
             ImmutableHashSet<string>.Builder builder = ImmutableHashSet.CreateBuilder<string>();
-            builder.Add(getId(ErrorCode.WRN_ConvertingNullableToNonNullable));
             builder.Add(getId(ErrorCode.WRN_NullReferenceAssignment));
             builder.Add(getId(ErrorCode.WRN_NullReferenceReceiver));
             builder.Add(getId(ErrorCode.WRN_NullReferenceReturn));
@@ -37,11 +37,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             builder.Add(getId(ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint));
             builder.Add(getId(ErrorCode.WRN_CantInferNullabilityOfMethodTypeArgs));
             builder.Add(getId(ErrorCode.WRN_NoBestNullabilityArrayElements));
+
+            NullableFlowAnalysisSafetyWarnings = builder.ToImmutable();
+
+            builder.Clear();
+            builder.Add(getId(ErrorCode.WRN_ConvertingNullableToNonNullable));
             builder.Add(getId(ErrorCode.HDN_NullCheckIsProbablyAlwaysFalse));
             builder.Add(getId(ErrorCode.HDN_NullCheckIsProbablyAlwaysTrue));
             builder.Add(getId(ErrorCode.HDN_ExpressionIsProbablyNeverNull));
 
-            NullableFlowAnalysisWarnings = builder.ToImmutable();
+            NullableFlowAnalysisNonSafetyWarnings = builder.ToImmutable();
 
             string getId(ErrorCode errorCode)
             {
