@@ -2,6 +2,16 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="es" original="../ServicesVSResources.resx">
     <body>
+      <trans-unit id="Add_to_current_file">
+        <source>Add to _current file</source>
+        <target state="new">Add to _current file</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="All_methods">
+        <source>All methods</source>
+        <target state="new">All methods</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Always_for_clarity">
         <source>Always for clarity</source>
         <target state="translated">Siempre por claridad</target>
@@ -10,6 +20,21 @@
       <trans-unit id="Apply_0_keymapping_scheme">
         <source>Apply '{0}' keymapping scheme</source>
         <target state="translated">Aplicar esquema de asignaciones de teclado "{0}"</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Avoid_expression_statements_that_implicitly_ignore_value">
+        <source>Avoid expression statements that implicitly ignore value</source>
+        <target state="new">Avoid expression statements that implicitly ignore value</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Avoid_unused_parameters">
+        <source>Avoid unused parameters</source>
+        <target state="new">Avoid unused parameters</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Avoid_unused_value_assignments">
+        <source>Avoid unused value assignments</source>
+        <target state="new">Avoid unused value assignments</target>
         <note />
       </trans-unit>
       <trans-unit id="Colorize_regular_expressions">
@@ -52,6 +77,16 @@
         <target state="translated">Nunca si es innecesario</target>
         <note />
       </trans-unit>
+      <trans-unit id="Non_public_methods">
+        <source>Non-public methods</source>
+        <target state="new">Non-public methods</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Parameter_preferences_colon">
+        <source>Parameter preferences:</source>
+        <target state="new">Parameter preferences:</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Parentheses_preferences_colon">
         <source>Parentheses preferences:</source>
         <target state="translated">Preferencias de paréntesis:</target>
@@ -92,14 +127,39 @@
         <target state="new">Save .editorconfig file</target>
         <note />
       </trans-unit>
+      <trans-unit id="Select_destination">
+        <source>Select destination</source>
+        <target state="new">Select destination</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unused_value_is_explicitly_assigned_to_an_unused_local">
+        <source>Unused value is explicitly assigned to an unused local</source>
+        <target state="new">Unused value is explicitly assigned to an unused local</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unused_value_is_explicitly_assigned_to_discard">
+        <source>Unused value is explicitly assigned to discard</source>
+        <target state="new">Unused value is explicitly assigned to discard</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Use_expression_body_for_lambdas">
         <source>Use expression body for lambdas</source>
         <target state="new">Use expression body for lambdas</target>
         <note />
       </trans-unit>
+      <trans-unit id="Value_assigned_here_is_never_used">
+        <source>Value assigned here is never used</source>
+        <target state="new">Value assigned here is never used</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Value_returned_by_invocation_is_implicitly_ignored">
+        <source>Value returned by invocation is implicitly ignored</source>
+        <target state="new">Value returned by invocation is implicitly ignored</target>
+        <note />
+      </trans-unit>
       <trans-unit id="We_notice_you_suspended_0_Reset_keymappings_to_continue_to_navigate_and_refactor">
         <source>We notice you suspended '{0}'. Reset keymappings to continue to navigate and refactor.</source>
-        <target state="translated">Observamos que ha suspendido "{0}'. Restablezca las asignaciones de teclado para continuar navegando y refactorizando.</target>
+        <target state="translated">Observamos que ha suspendido "{0}". Restablezca las asignaciones de teclado para continuar navegando y refactorizando.</target>
         <note />
       </trans-unit>
       <trans-unit id="You_must_select_at_least_one_member">
@@ -626,7 +686,7 @@ Use la lista desplegable para ver y cambiar a otros proyectos a los que puede pe
       </trans-unit>
       <trans-unit id="_0_encountered_an_error_and_has_been_disabled">
         <source>'{0}' encountered an error and has been disabled.</source>
-        <target state="translated">'{0}' detectó un error y se ha deshabilitado.</target>
+        <target state="translated">"{0}" detectó un error y se ha deshabilitado.</target>
         <note />
       </trans-unit>
       <trans-unit id="Enable">

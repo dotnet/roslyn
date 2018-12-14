@@ -8,7 +8,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeLens
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeLens)>
         Public Async Function TestCount() As Task
-            Dim input = 
+            Dim input =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true" AssemblyName="Proj1">
         <Document FilePath="CurrentDocument.vb"><![CDATA[
@@ -34,7 +34,7 @@ End Class
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeLens)>
         Public Async Function TestCapping() As Task
-            Dim input = 
+            Dim input =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true" AssemblyName="Proj1">
         <Document FilePath="CurrentDocument.vb"><![CDATA[
@@ -60,7 +60,7 @@ End Class
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeLens)>
         Public Async Function TestDisplay() As Task
-            Dim input = 
+            Dim input =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true" AssemblyName="Proj1">
         <Document FilePath="CurrentDocument.vb"><![CDATA[
@@ -86,7 +86,7 @@ End Class
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeLens)>
         Public Async Function TestMethodReferences() As Task
-            Dim input = 
+            Dim input =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true" AssemblyName="Proj1">
         <Document FilePath="CurrentDocument.vb"><![CDATA[

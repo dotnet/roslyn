@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.Execution
             throw ExceptionUtilities.UnexpectedValue(reference.GetType());
         }
 
-        public Checksum CreateChecksum(AnalyzerReference reference, CancellationToken cancellationToken)
+        public Checksum CreateChecksum(AnalyzerReference reference, bool usePathFromAssembly, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.Execution
                 switch (reference)
                 {
                     case AnalyzerFileReference file:
-                        WriteAnalyzerFileReferenceMvid(file, writer, cancellationToken);
+                        WriteAnalyzerFileReferenceMvid(file, writer, usePathFromAssembly, cancellationToken);
                         break;
 
                     case UnresolvedAnalyzerReference unresolved:
@@ -157,48 +157,48 @@ namespace Microsoft.CodeAnalysis.Execution
             switch (reference)
             {
                 case AnalyzerFileReference file:
-                {
-                    // fail to load analyzer assembly
-                    var assemblyPath = usePathFromAssembly ? TryGetAnalyzerAssemblyPath(file) : file.FullPath;
-                    if (assemblyPath == null)
                     {
-                        WriteUnresolvedAnalyzerReferenceTo(reference, writer);
+                        // fail to load analyzer assembly
+                        var assemblyPath = usePathFromAssembly ? TryGetAnalyzerAssemblyPath(file) : file.FullPath;
+                        if (assemblyPath == null)
+                        {
+                            WriteUnresolvedAnalyzerReferenceTo(reference, writer);
+                            return;
+                        }
+
+                        writer.WriteString(nameof(AnalyzerFileReference));
+                        writer.WriteInt32((int)SerializationKinds.FilePath);
+
+                        // TODO: remove this kind of host specific knowledge from common layer.
+                        //       but think moving it to host layer where this implementation detail actually exist.
+                        //
+                        // analyzer assembly path to load analyzer acts like
+                        // snapshot version for analyzer (since it is based on shadow copy)
+                        // we can't send over bits and load analyzer from memory (image) due to CLR not being able
+                        // to find satellite dlls for analyzers.
+                        writer.WriteString(file.FullPath);
+                        writer.WriteString(assemblyPath);
                         return;
                     }
 
-                    writer.WriteString(nameof(AnalyzerFileReference));
-                    writer.WriteInt32((int)SerializationKinds.FilePath);
-
-                    // TODO: remove this kind of host specific knowledge from common layer.
-                    //       but think moving it to host layer where this implementation detail actually exist.
-                    //
-                    // analyzer assembly path to load analyzer acts like
-                    // snapshot version for analyzer (since it is based on shadow copy)
-                    // we can't send over bits and load analyzer from memory (image) due to CLR not being able
-                    // to find satellite dlls for analyzers.
-                    writer.WriteString(file.FullPath);
-                    writer.WriteString(assemblyPath);
-                    return;
-                }
-
                 case UnresolvedAnalyzerReference unresolved:
-                {
-                    WriteUnresolvedAnalyzerReferenceTo(unresolved, writer);
-                    return;
-                }
+                    {
+                        WriteUnresolvedAnalyzerReferenceTo(unresolved, writer);
+                        return;
+                    }
 
                 case AnalyzerReference analyzerReference when analyzerReference.GetType().FullName == VisualStudioUnresolvedAnalyzerReference:
-                {
-                    WriteUnresolvedAnalyzerReferenceTo(analyzerReference, writer);
-                    return;
-                }
+                    {
+                        WriteUnresolvedAnalyzerReferenceTo(analyzerReference, writer);
+                        return;
+                    }
 
                 case AnalyzerImageReference _:
-                {
-                    // TODO: think a way to support this or a way to deal with this kind of situation.
-                    // https://github.com/dotnet/roslyn/issues/15783
-                    throw new NotSupportedException(nameof(AnalyzerImageReference));
-                }
+                    {
+                        // TODO: think a way to support this or a way to deal with this kind of situation.
+                        // https://github.com/dotnet/roslyn/issues/15783
+                        throw new NotSupportedException(nameof(AnalyzerImageReference));
+                    }
 
                 default:
                     throw ExceptionUtilities.UnexpectedValue(reference);
@@ -231,11 +231,22 @@ namespace Microsoft.CodeAnalysis.Execution
             throw ExceptionUtilities.UnexpectedValue(type);
         }
 
-        private void WriteAnalyzerFileReferenceMvid(AnalyzerFileReference reference, ObjectWriter writer, CancellationToken cancellationToken)
+        private void WriteAnalyzerFileReferenceMvid(
+            AnalyzerFileReference file, ObjectWriter writer, bool usePathFromAssembly, CancellationToken cancellationToken)
         {
             try
             {
-                using (var stream = new FileStream(reference.FullPath, FileMode.Open, FileAccess.Read, FileShare.Read | FileShare.Delete))
+                cancellationToken.ThrowIfCancellationRequested();
+
+                // use actual assembly path rather than one returned from reference.FullPath if asked (usePathFromAssembly)
+                // 2 can be different if analyzer loader used for the reference do something like shadow copying
+                // otherwise, use reference.FullPath. we use usePathFromAssembly == false for vsix installed analyzer dlls
+                // to make sure we don't load them up front and they don't get shadow copied.
+                // TryGetAnalyzerAssemblyPath will load the given assembly to find out actual location where CLR
+                // picked up the dll
+                var assemblyPath = usePathFromAssembly ? TryGetAnalyzerAssemblyPath(file) : file.FullPath;
+
+                using (var stream = new FileStream(assemblyPath, FileMode.Open, FileAccess.Read, FileShare.Read | FileShare.Delete))
                 using (var peReader = new PEReader(stream))
                 {
                     var metadataReader = peReader.GetMetadataReader();
@@ -250,7 +261,7 @@ namespace Microsoft.CodeAnalysis.Execution
             {
                 // we can't load the assembly analyzer file reference is pointing to.
                 // rather than crashing, handle it gracefully
-                WriteUnresolvedAnalyzerReferenceTo(reference, writer);
+                WriteUnresolvedAnalyzerReferenceTo(file, writer);
             }
         }
 

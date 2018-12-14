@@ -116,13 +116,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                             diagnostics.Add(ErrorCode.ERR_RefValBoundMustBeFirst, syntax.GetFirstToken().GetLocation());
                         }
 
-                        SyntaxToken questionToken = ((ClassOrStructConstraintSyntax)syntax).QuestionToken;
+                        var constraintSyntax = (ClassOrStructConstraintSyntax)syntax;
+                        SyntaxToken questionToken = constraintSyntax.QuestionToken;
                         if (questionToken.IsKind(SyntaxKind.QuestionToken))
                         {
                             constraints |= TypeParameterConstraintKind.NullableReferenceType;
-                            diagnostics.Add(new LazyMissingNonNullTypesContextDiagnosticInfo(Compilation, NonNullTypesContext, type: default), questionToken.GetLocation());
+
+                            DiagnosticInfo info = LazyMissingNonNullTypesContextDiagnosticInfo.ReportNullableReferenceTypesIfNeeded(Compilation, IsNullableEnabled(questionToken));
+
+                            if (!(info is null))
+                            {
+                                diagnostics.Add(info, questionToken.GetLocation());
+                            }
                         }
-                        else
+                        else if (IsNullableEnabled(constraintSyntax.ClassOrStructKeyword))
+                        {
+                            constraints |= TypeParameterConstraintKind.NotNullableReferenceType;
+                        }
+                        else 
                         {
                             constraints |= TypeParameterConstraintKind.ReferenceType;
                         }
@@ -297,7 +308,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
 
                 case SpecialType.System_Object:
-                    if (typeWithAnnotations.IsAnnotated)
+                    if (typeWithAnnotations.NullableAnnotation == NullableAnnotation.Annotated)
                     {
                         // "Constraint cannot be special class '{0}'"
                         Error(diagnostics, ErrorCode.ERR_SpecialTypeAsBound, syntax, typeWithAnnotations);

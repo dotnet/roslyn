@@ -223,7 +223,7 @@ namespace Roslyn.Test.Utilities
 
     public class NoIOperationValidation : ExecutionCondition
     {
-        public override bool ShouldSkip => !CompilationExtensions.EnableVerifyIOperation;
+        public override bool ShouldSkip => CompilationExtensions.EnableVerifyIOperation;
         public override string SkipReason => "Test not supported in TEST_IOPERATION_INTERFACE";
     }
 

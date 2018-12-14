@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             IReadOnlyDictionary<string, object> conventionsDictionary,
             out SerializableNamingRule serializableNamingRule)
         {
-            if(!TryGetRuleSeverity(namingRuleTitle, conventionsDictionary, out var severity))
+            if (!TryGetRuleSeverity(namingRuleTitle, conventionsDictionary, out var severity))
             {
                 serializableNamingRule = null;
                 return false;

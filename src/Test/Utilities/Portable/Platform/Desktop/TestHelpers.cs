@@ -48,7 +48,7 @@ namespace Roslyn.Test.Utilities
                     where type.IsAssignableFrom(t)
                     select t).ToList();
         }
- 
+
         public static TempFile CreateCSharpAnalyzerAssemblyWithTestAnalyzer(TempDirectory dir, string assemblyName)
         {
             var analyzerSource = @"
@@ -67,6 +67,8 @@ public class TestAnalyzer : DiagnosticAnalyzer
             dir.CopyFile(typeof(System.Reflection.Metadata.MetadataReader).Assembly.Location);
             var immutable = dir.CopyFile(typeof(ImmutableArray).Assembly.Location);
             var analyzer = dir.CopyFile(typeof(DiagnosticAnalyzer).Assembly.Location);
+            dir.CopyFile(typeof(Memory<>).Assembly.Location);
+            dir.CopyFile(typeof(System.Runtime.CompilerServices.Unsafe).Assembly.Location);
 
             var analyzerCompilation = CSharpCompilation.Create(
                 assemblyName,
@@ -82,7 +84,7 @@ public class TestAnalyzer : DiagnosticAnalyzer
 
             return dir.CreateFile(assemblyName + ".dll").WriteAllBytes(analyzerCompilation.EmitToArray());
         }
-        
+
         public static ImmutableArray<byte> CreateCSharpAnalyzerNetStandard13(string analyzerAssemblyName)
         {
             var minSystemCollectionsImmutableSource = @"

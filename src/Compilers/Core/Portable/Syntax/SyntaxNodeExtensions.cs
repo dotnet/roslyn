@@ -429,7 +429,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal static SyntaxNode AsRootOfNewTreeWithOptionsFrom(this SyntaxNode node, SyntaxTree oldTree)
         {
-            return oldTree.WithRootAndOptions(node, oldTree.Options).GetRoot();
+            return node != null ? oldTree.WithRootAndOptions(node, oldTree.Options).GetRoot() : null;
         }
     }
 }

@@ -302,7 +302,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         goto noReuse;
                 }
             }
-            noReuse:;
+noReuse:;
 
             // if we did not piggy-back, then create a new decision tree node for the type.
             if (forType == null)

@@ -62,13 +62,28 @@ namespace Microsoft.CodeAnalysis.Execution
     /// </summary>
     internal sealed class WorkspaceAnalyzerReferenceAsset : CustomAsset
     {
+        // host analyzer is not shadow copied, no need to load assembly to get real path
+        // this also prevent us from loading assemblies for all vsix analyzers preemptively
+        private const bool usePathFromAssembly = false;
+
         private readonly AnalyzerReference _reference;
         private readonly ISerializerService _serializer;
 
-        public WorkspaceAnalyzerReferenceAsset(AnalyzerReference reference, ISerializerService serializer) :
-            base(
-                serializer.CreateChecksum(reference, CancellationToken.None),
-                WellKnownSynchronizationKind.AnalyzerReference)
+        public static WorkspaceAnalyzerReferenceAsset Create(
+            AnalyzerReference reference,
+            ISerializerService serializer,
+            IReferenceSerializationService hostSerializationService,
+            CancellationToken cancellationToken)
+        {
+            var checksum = Checksum.Create(
+                WellKnownSynchronizationKind.AnalyzerReference,
+                hostSerializationService.CreateChecksum(reference, usePathFromAssembly, cancellationToken));
+
+            return new WorkspaceAnalyzerReferenceAsset(reference, serializer, checksum);
+        }
+
+        private WorkspaceAnalyzerReferenceAsset(AnalyzerReference reference, ISerializerService serializer, Checksum checksum) :
+            base(checksum, WellKnownSynchronizationKind.AnalyzerReference)
         {
             _reference = reference;
             _serializer = serializer;
@@ -76,10 +91,6 @@ namespace Microsoft.CodeAnalysis.Execution
 
         public override Task WriteObjectToAsync(ObjectWriter writer, CancellationToken cancellationToken)
         {
-            // host analyzer is not shadow copied, no need to load assembly to get real path
-            // this also prevent us from loading assemblies for all vsix analyzers preemptively
-            const bool usePathFromAssembly = false;
-
             _serializer.SerializeAnalyzerReference(_reference, writer, usePathFromAssembly, cancellationToken);
             return Task.CompletedTask;
         }

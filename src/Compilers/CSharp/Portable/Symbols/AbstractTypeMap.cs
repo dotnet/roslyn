@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     break;
             }
 
-            return TypeSymbolWithAnnotations.Create(NonNullTypesNullContext.Instance, result);
+            return TypeSymbolWithAnnotations.Create(result);
         }
 
         internal TypeSymbolWithAnnotations SubstituteType(TypeSymbolWithAnnotations previous)
@@ -197,7 +197,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected virtual TypeSymbolWithAnnotations SubstituteTypeParameter(TypeParameterSymbol typeParameter)
         {
-            return TypeSymbolWithAnnotations.Create(NonNullTypesNullContext.Instance, typeParameter);
+            return TypeSymbolWithAnnotations.Create(typeParameter);
         }
 
         private ArrayTypeSymbol SubstituteArrayType(ArrayTypeSymbol t)
@@ -327,8 +327,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Substitute types, and return the results without duplicates, preserving the original order.
         /// </summary>
         internal void SubstituteTypesDistinctWithoutModifiers(
-            ImmutableArray<TypeSymbolWithAnnotations> original, 
-            ArrayBuilder<TypeSymbolWithAnnotations> result, 
+            ImmutableArray<TypeSymbolWithAnnotations> original,
+            ArrayBuilder<TypeSymbolWithAnnotations> result,
             HashSet<TypeParameterSymbol> ignoreTypesDependentOnTypeParametersOpt)
         {
             if (original.Length == 0)

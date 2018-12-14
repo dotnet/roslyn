@@ -50,7 +50,6 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
             // Note: if using 'var' would cause a problem, we will use the actual type
             // of the local.  This is necessary in some cases (for example, when the
             // type of the out-var-decl affects overload resolution or generic instantiation).
-
             var originalRoot = editor.OriginalRoot;
 
             var originalNodes = diagnostics.SelectAsArray(diagnostic => FindDiagnosticNodes(document, diagnostic, options, cancellationToken));
@@ -72,6 +71,17 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
 
         private (VariableDeclaratorSyntax declarator, IdentifierNameSyntax identifier, SyntaxNode invocationOrCreation) FindDiagnosticNodes(
             Document document, Diagnostic diagnostic, 
+            foreach (var diagnostic in diagnostics)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                await AddEditsAsync(
+                    document, editor, diagnostic,
+                    options, cancellationToken).ConfigureAwait(false);
+            }
+        }
+
+        private async Task AddEditsAsync(
+            Document document, SyntaxEditor editor, Diagnostic diagnostic,
             OptionSet options, CancellationToken cancellationToken)
         {
             // Recover the nodes we care about.

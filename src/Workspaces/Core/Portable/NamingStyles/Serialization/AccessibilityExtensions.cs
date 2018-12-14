@@ -28,27 +28,27 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             {
                 switch (currentSymbol.Kind)
                 {
-                case SymbolKind.Namespace:
-                    return Accessibility.Public;
+                    case SymbolKind.Namespace:
+                        return Accessibility.Public;
 
-                case SymbolKind.Parameter:
-                case SymbolKind.TypeParameter:
-                    continue;
+                    case SymbolKind.Parameter:
+                    case SymbolKind.TypeParameter:
+                        continue;
 
-                case SymbolKind.Method:
-                    switch (((IMethodSymbol)currentSymbol).MethodKind)
-                    {
-                    case MethodKind.AnonymousFunction:
-                    case MethodKind.LocalFunction:
-                        // Always treat anonymous and local functions as 'local'
-                        return Accessibility.NotApplicable;
+                    case SymbolKind.Method:
+                        switch (((IMethodSymbol)currentSymbol).MethodKind)
+                        {
+                            case MethodKind.AnonymousFunction:
+                            case MethodKind.LocalFunction:
+                                // Always treat anonymous and local functions as 'local'
+                                return Accessibility.NotApplicable;
+
+                            default:
+                                return currentSymbol.DeclaredAccessibility;
+                        }
 
                     default:
                         return currentSymbol.DeclaredAccessibility;
-                    }
-
-                default:
-                    return currentSymbol.DeclaredAccessibility;
                 }
             }
 

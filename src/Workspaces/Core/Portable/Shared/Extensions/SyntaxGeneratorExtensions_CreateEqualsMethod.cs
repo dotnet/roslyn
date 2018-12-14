@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             this SyntaxGenerator factory,
             Compilation compilation,
             INamedTypeSymbol containingType,
-            ImmutableArray<ISymbol> symbols, 
+            ImmutableArray<ISymbol> symbols,
             string localNameOpt,
             SyntaxAnnotation statementAnnotation,
             CancellationToken cancellationToken)

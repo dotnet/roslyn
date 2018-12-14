@@ -460,7 +460,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (left.HasAnyErrors || right.HasAnyErrors)
             {
                 // NOTE: no user-defined conversion candidates
-                return new BoundBinaryOperator(node, kind, left, right, ConstantValue.NotAvailable, null, LookupResultKind.Empty, GetBinaryOperatorErrorType(kind, diagnostics, node), true);
+                return new BoundBinaryOperator(node, kind, ConstantValue.NotAvailable, null, LookupResultKind.Empty, left, right, GetBinaryOperatorErrorType(kind, diagnostics, node), true);
             }
 
             TypeSymbol leftType = left.Type;
@@ -733,8 +733,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (left.HasAnyErrors || right.HasAnyErrors)
             {
                 // NOTE: no candidate user-defined operators.
-                return new BoundBinaryOperator(node, kind, left, right, ConstantValue.NotAvailable, methodOpt: null,
-                    resultKind: LookupResultKind.Empty, type: GetBinaryOperatorErrorType(kind, diagnostics, node), hasErrors: true);
+                return new BoundBinaryOperator(node, kind, ConstantValue.NotAvailable, methodOpt: null,
+                    resultKind: LookupResultKind.Empty, left, right, type: GetBinaryOperatorErrorType(kind, diagnostics, node), hasErrors: true);
             }
 
             // Let's take an easy out here. The vast majority of the time the operands will
@@ -747,8 +747,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var constantValue = FoldBinaryOperator(node, kind | BinaryOperatorKind.Bool, left, right, SpecialType.System_Boolean, diagnostics);
 
                 // NOTE: no candidate user-defined operators.
-                return new BoundBinaryOperator(node, kind | BinaryOperatorKind.Bool, left, right, constantValue, methodOpt: null,
-                    resultKind: LookupResultKind.Viable, type: left.Type, hasErrors: constantValue != null && constantValue.IsBad);
+                return new BoundBinaryOperator(node, kind | BinaryOperatorKind.Bool, constantValue, methodOpt: null,
+                    resultKind: LookupResultKind.Viable, left, right, type: left.Type, hasErrors: constantValue != null && constantValue.IsBad);
             }
 
             if (left.HasDynamicType() || right.HasDynamicType())
@@ -2040,18 +2040,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression BindSuppressNullableWarningExpression(PostfixUnaryExpressionSyntax node, DiagnosticBag diagnostics)
         {
-            if (this.Flags.Includes(BinderFlags.AttributeArgument))
-            {
-                diagnostics.Add(new LazyMissingNonNullTypesContextForSuppressionDiagnosticInfo(NonNullTypesContext), node.OperatorToken.GetLocation());
-            }
-            else if (NonNullTypesContext.NonNullTypes == null)
-            {
-                diagnostics.Add(ErrorCode.WRN_MissingNonNullTypesContext, node.OperatorToken.GetLocation());
-            }
-
             var expr = BindExpression(node.Operand, diagnostics);
             var type = expr.Type;
-            if (type?.IsValueType == true)
+            if (type?.IsValueType == true && !type.IsNullableType())
             {
                 Error(diagnostics, ErrorCode.WRN_SuppressionOperatorNotReferenceType, node);
             }
@@ -2701,7 +2692,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return operand.HasAnyErrors;
-            }
+        }
 
         private bool IsOperatorErrors(CSharpSyntaxNode node, TypeSymbol operandType, BoundTypeExpression typeExpression, DiagnosticBag diagnostics)
         {

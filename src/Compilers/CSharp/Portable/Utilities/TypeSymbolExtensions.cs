@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         var array = (ArrayTypeSymbol)type;
                         TypeSymbolWithAnnotations elementType = array.ElementType;
-                        return elementType.CustomModifiers.Any() || elementType.TypeSymbol.HasCustomModifiers(flagNonDefaultArraySizesOrLowerBounds) || 
+                        return elementType.CustomModifiers.Any() || elementType.TypeSymbol.HasCustomModifiers(flagNonDefaultArraySizesOrLowerBounds) ||
                                (flagNonDefaultArraySizesOrLowerBounds && !array.HasDefaultSizesAndLowerBounds);
                     }
                 case SymbolKind.PointerType:

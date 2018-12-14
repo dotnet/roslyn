@@ -250,7 +250,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Binder initializerBinder = this.GetBinder(initializerOpt);
             Debug.Assert(initializerBinder != null);
 
-            BoundExpression result = initializerBinder.BindVariableOrAutoPropInitializerValue(initializerOpt, RefKind.None, 
+            BoundExpression result = initializerBinder.BindVariableOrAutoPropInitializerValue(initializerOpt, RefKind.None,
                                                            field.GetFieldType(initializerBinder.FieldsBeingBound).TypeSymbol, diagnostics);
 
             return new BoundFieldEqualsValue(initializerOpt, field, initializerBinder.GetDeclaredLocalsForScope(initializerOpt), result);
@@ -1432,7 +1432,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private bool IsBadLocalOrParameterCapture(Symbol symbol, TypeSymbol type, RefKind refKind)
         {
-            if (refKind != RefKind.None || type.IsByRefLikeType )
+            if (refKind != RefKind.None || type.IsByRefLikeType)
             {
                 var containingMethod = this.ContainingMemberOrLambda as MethodSymbol;
                 if ((object)containingMethod != null && (object)symbol.ContainingSymbol != (object)containingMethod)
@@ -2631,11 +2631,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private BoundExpression BindArgumentExpression(DiagnosticBag diagnostics, ExpressionSyntax argumentExpression, RefKind refKind, bool allowArglist)
         {
-            BindValueKind valueKind = 
-                refKind == RefKind.None ? 
+            BindValueKind valueKind =
+                refKind == RefKind.None ?
                         BindValueKind.RValue :
                         refKind == RefKind.In ?
-                            BindValueKind.ReadonlyRef:
+                            BindValueKind.ReadonlyRef :
                             BindValueKind.RefOrOut;
 
             BoundExpression argument;
@@ -3703,9 +3703,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var typeWithAnnotations = BindType(node.Type, diagnostics);
             var type = typeWithAnnotations.TypeSymbol;
-            var originalType = type; 
+            var originalType = type;
 
-            if (typeWithAnnotations.IsAnnotated && !type.IsNullableType())
+            if (typeWithAnnotations.NullableAnnotation == NullableAnnotation.Annotated && !type.IsNullableType())
             {
                 diagnostics.Add(ErrorCode.ERR_AnnotationDisallowedInObjectCreation, node.Location, type);
             }
@@ -3737,7 +3737,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     goto case TypeKind.Class;
 
                 case TypeKind.Dynamic:
-                    // we didn't find any type called "dynamic" so we are using the builtin dynamic type, which has no constructors:
+                // we didn't find any type called "dynamic" so we are using the builtin dynamic type, which has no constructors:
                 case TypeKind.Array:
                     // ex: new ref[]
                     type = new ExtendedErrorTypeSymbol(type, LookupResultKind.NotCreatable,
@@ -4580,9 +4580,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 return new BoundDynamicCollectionElementInitializer(
                     elementInitializer,
-                    arguments: boundElementInitializerExpressions,
-                    implicitReceiver,
                     applicableMethods: ImmutableArray<MethodSymbol>.Empty,
+                    implicitReceiver,
+                    arguments: boundElementInitializerExpressions,
                     type: GetSpecialType(SpecialType.System_Void, diagnostics, elementInitializer),
                     hasErrors: hasErrors);
             }
@@ -4601,9 +4601,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var dynamicInvocation = (BoundDynamicInvocation)addMethodInvocation;
                 return new BoundDynamicCollectionElementInitializer(
                     elementInitializer,
-                    dynamicInvocation.Arguments,
-                    implicitReceiver,
                     dynamicInvocation.ApplicableMethods,
+                    implicitReceiver,
+                    dynamicInvocation.Arguments,
                     dynamicInvocation.Type,
                     hasErrors: dynamicInvocation.HasAnyErrors);
             }
@@ -6857,7 +6857,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (result is null && allowIndexAndRange)
             {
-                result = 
+                result =
                     TryImplicitConversionToArrayIndex(index, WellKnownType.System_Index, node, diagnostics) ??
                     TryImplicitConversionToArrayIndex(index, WellKnownType.System_Range, node, diagnostics);
             }
@@ -6968,7 +6968,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     Error(diagnostics, ErrorCode.ERR_PtrIndexSingle, node);
                 }
-                return new BoundPointerElementAccess(node, expr, BadExpression(node, BuildArgumentsForErrorRecovery(analyzedArguments)).MakeCompilerGenerated(), 
+                return new BoundPointerElementAccess(node, expr, BadExpression(node, BuildArgumentsForErrorRecovery(analyzedArguments)).MakeCompilerGenerated(),
                     CheckOverflowAtRuntime, pointedAtType, hasErrors: true);
             }
 

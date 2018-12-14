@@ -1154,6 +1154,9 @@ This version used in: {2}</value>
   <data name="Add_argument_name_0" xml:space="preserve">
     <value>Add argument name '{0}'</value>
   </data>
+  <data name="Add_tuple_element_name_0" xml:space="preserve">
+    <value>Add tuple element name '{0}'</value>
+  </data>
   <data name="Take_0" xml:space="preserve">
     <value>Take '{0}'</value>
   </data>
@@ -1436,11 +1439,29 @@ This version used in: {2}</value>
   <data name="Private_member_0_can_be_removed_as_the_value_assigned_to_it_is_never_read" xml:space="preserve">
     <value>Private member '{0}' can be removed as the value assigned to it is never read.</value>
   </data>
+  <data name="Private_method_0_can_be_removed_as_it_is_never_invoked" xml:space="preserve">
+    <value>Private method '{0}' can be removed as it is never invoked.</value>
+  </data>
   <data name="Code_Quality" xml:space="preserve">
     <value>Code Quality</value>
   </data>
   <data name="Modifying_source_file_will_prevent_the_debug_session_from_continuing_due_to_internal_error" xml:space="preserve">
     <value>Modifying source file {0} will prevent the debug session from continuing due to internal error: {1}.</value>
+  </data>
+  <data name="Change_namespace_to_0" xml:space="preserve">
+    <value>Change namespace to '{0}'</value>
+  </data>
+  <data name="Move_file_to_0" xml:space="preserve">
+    <value>Move file to '{0}'</value>
+  </data>
+  <data name="Move_file_to_project_root_folder" xml:space="preserve">
+    <value>Move file to project root folder</value>
+  </data>
+  <data name="Change_to_global_namespace" xml:space="preserve">
+    <value>Change to global namespace</value>
+  </data>
+  <data name="Warning_colon_changing_namespace_may_produce_invalid_code_and_change_code_meaning" xml:space="preserve">
+    <value>Warning: Changing namespace may produce invalid code and change code meaning.</value>
   </data>
   <data name="Use_compound_assignment" xml:space="preserve">
     <value>Use compound assignment</value>
@@ -1450,6 +1471,57 @@ This version used in: {2}</value>
   </data>
   <data name="Replace_0_with_1" xml:space="preserve">
     <value>Replace '{0}' with '{1}' </value>
+  </data>
+  <!--
+        protected override string Unwrap_list => FeaturesResources.Unwrap_parameter_list;
+    -->
+  <data name="Align_wrapped_parameters" xml:space="preserve">
+    <value>Align wrapped parameters</value>
+  </data>
+  <data name="Indent_all_parameters" xml:space="preserve">
+    <value>Indent all parameters</value>
+  </data>
+  <data name="Indent_wrapped_parameters" xml:space="preserve">
+    <value>Indent wrapped parameters</value>
+  </data>
+  <data name="Unwrap_all_parameters" xml:space="preserve">
+    <value>Unwrap all parameters</value>
+  </data>
+  <data name="Unwrap_and_indent_all_parameters" xml:space="preserve">
+    <value>Unwrap and indent all parameters</value>
+  </data>
+  <data name="Wrap_every_parameter" xml:space="preserve">
+    <value>Wrap every parameter</value>
+  </data>
+  <data name="Wrap_long_parameter_list" xml:space="preserve">
+    <value>Wrap long parameter list</value>
+  </data>
+  <data name="Unwrap_parameter_list" xml:space="preserve">
+    <value>Unwrap parameter list</value>
+  </data>
+  <data name="Align_wrapped_arguments" xml:space="preserve">
+    <value>Align wrapped arguments</value>
+  </data>
+  <data name="Indent_all_arguments" xml:space="preserve">
+    <value>Indent all arguments</value>
+  </data>
+  <data name="Indent_wrapped_arguments" xml:space="preserve">
+    <value>Indent wrapped arguments</value>
+  </data>
+  <data name="Unwrap_all_arguments" xml:space="preserve">
+    <value>Unwrap all arguments</value>
+  </data>
+  <data name="Unwrap_and_indent_all_arguments" xml:space="preserve">
+    <value>Unwrap and indent all arguments</value>
+  </data>
+  <data name="Wrap_every_argument" xml:space="preserve">
+    <value>Wrap every argument</value>
+  </data>
+  <data name="Wrap_long_argument_list" xml:space="preserve">
+    <value>Wrap long argument list</value>
+  </data>
+  <data name="Unwrap_argument_list" xml:space="preserve">
+    <value>Unwrap argument list</value>
   </data>
   <data name="Introduce_constant" xml:space="preserve">
     <value>Introduce constant</value>
@@ -1466,6 +1538,30 @@ This version used in: {2}</value>
   <data name="Failed_to_analyze_data_flow_for_0" xml:space="preserve">
     <value>Failed to analyze data-flow for: {0}</value>
   </data>
+  <data name="Expression_value_is_never_used" xml:space="preserve">
+    <value>Expression value is never used</value>
+  </data>
+  <data name="Value_assigned_to_0_is_never_used" xml:space="preserve">
+    <value>Value assigned to '{0}' is never used</value>
+  </data>
+  <data name="Value_assigned_to_symbol_is_never_used" xml:space="preserve">
+    <value>Value assigned to symbol is never used</value>
+  </data>
+  <data name="Use_discarded_local" xml:space="preserve">
+    <value>Use discarded local</value>
+  </data>
+  <data name="Use_discard_underscore" xml:space="preserve">
+    <value>Use discard '_'</value>
+  </data>
+  <data name="Remove_redundant_assignment" xml:space="preserve">
+    <value>Remove redundant assignment</value>
+  </data>
+  <data name="Remove_unused_parameter" xml:space="preserve">
+    <value>Remove unused parameter</value>
+  </data>
+  <data name="Remove_unused_parameter_0" xml:space="preserve">
+    <value>Remove unused parameter '{0}'</value>
+  </data>
   <data name="Fix_formatting" xml:space="preserve">
     <value>Fix formatting</value>
   </data>
@@ -1480,5 +1576,23 @@ This version used in: {2}</value>
   </data>
   <data name="_0_can_be_simplified" xml:space="preserve">
     <value>{0} can be simplified</value>
+  </data>
+  <data name="Unwrap_expression" xml:space="preserve">
+    <value>Unwrap expression</value>
+  </data>
+  <data name="Wrap_expression" xml:space="preserve">
+    <value>Wrap expression</value>
+  </data>
+  <data name="Wrap_expression_including_operators" xml:space="preserve">
+    <value>Wrap expression (including operators)</value>
+  </data>
+  <data name="Remove_unused_parameter_0_if_it_is_not_part_of_a_shipped_public_API" xml:space="preserve">
+    <value>Remove unused parameter '{0}' if it is not part of a shipped public API</value>
+  </data>
+  <data name="Remove_unused_parameter_0_if_it_is_not_part_of_a_shipped_public_API_its_initial_value_is_never_used" xml:space="preserve">
+    <value>Remove unused parameter '{0}' if it is not part of a shipped public API, its initial value is never used</value>
+  </data>
+  <data name="Remove_unused_parameter_0_its_initial_value_is_never_used" xml:space="preserve">
+    <value>Remove unused parameter '{0}', its initial value is never used</value>
   </data>
 </root>

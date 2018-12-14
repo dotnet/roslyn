@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy.Finders
         private async Task SearchAsync(Workspace workspace, CallHierarchySearchScope scope, ICallHierarchySearchCallback callback, CancellationToken cancellationToken)
         {
             var project = workspace.CurrentSolution.GetProject(_projectId);
-            
+
             if (project == null)
             {
                 throw new Exception(string.Format(WorkspacesResources.The_symbol_0_cannot_be_located_within_the_current_solution, SymbolName));
@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy.Finders
                     return null;
                 }
 
-                var activeDocument = documentTrackingService.GetActiveDocument();
+                var activeDocument = documentTrackingService.TryGetActiveDocument();
                 if (activeDocument != null)
                 {
                     if (scope == CallHierarchySearchScope.CurrentProject)

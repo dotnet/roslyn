@@ -2462,7 +2462,7 @@ public class Test
         [WorkItem(24262, "https://github.com/dotnet/roslyn/issues/24262")]
         public async Task DoNotSuggestVarForInterfaceVariableInDeclarationStatement()
         {
-    await TestMissingInRegularAndScriptAsync(@"
+            await TestMissingInRegularAndScriptAsync(@"
 public interface ITest
 {
     string Value { get; }

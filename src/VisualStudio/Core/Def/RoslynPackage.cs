@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Experiments;
+using Microsoft.CodeAnalysis.Logging;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Versions;
@@ -196,17 +197,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
 
         private void ReportSessionWideTelemetry()
         {
-            PersistedVersionStampLogger.LogSummary();
+            PersistedVersionStampLogger.ReportTelemetry();
             LinkedFileDiffMergingLogger.ReportTelemetry();
+            SolutionLogger.ReportTelemetry();
         }
 
         private void DisposeVisualStudioServices()
         {
             if (_workspace != null)
             {
-                var documentTrackingService = _workspace.Services.GetService<IDocumentTrackingService>() as VisualStudioDocumentTrackingService;
-                documentTrackingService.Dispose();
-
                 _workspace.Services.GetService<VisualStudioMetadataReferenceManager>().DisconnectFromVisualStudioNativeServices();
             }
         }

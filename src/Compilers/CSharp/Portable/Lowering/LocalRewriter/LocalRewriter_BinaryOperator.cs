@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (_inExpressionLambda)
             {
-                return node.Update(operatorKind, loweredLeft, loweredRight, node.LogicalOperator, node.TrueOperator, node.FalseOperator, node.ResultKind, type);
+                return node.Update(operatorKind, node.LogicalOperator, node.TrueOperator, node.FalseOperator, node.ResultKind, loweredLeft, loweredRight, type);
             }
 
             BoundAssignmentOperator tempAssignment;
@@ -473,8 +473,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return (oldNode != null) ?
-                oldNode.Update(operatorKind, loweredLeft, loweredRight, oldNode.ConstantValueOpt, oldNode.MethodOpt, oldNode.ResultKind, type) :
-                new BoundBinaryOperator(syntax, operatorKind, loweredLeft, loweredRight, null, null, LookupResultKind.Viable, type);
+                oldNode.Update(operatorKind, oldNode.ConstantValueOpt, oldNode.MethodOpt, oldNode.ResultKind, loweredLeft, loweredRight, type) :
+                new BoundBinaryOperator(syntax, operatorKind, null, null, LookupResultKind.Viable, loweredLeft, loweredRight, type);
         }
 
         private BoundExpression RewriteLiftedBinaryOperator(SyntaxNode syntax, BinaryOperatorKind operatorKind, BoundExpression loweredLeft, BoundExpression loweredRight, TypeSymbol type, MethodSymbol method)
@@ -1196,7 +1196,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundObjectCreationExpression(
                 syntax,
                 UnsafeGetNullableMethod(syntax, type, SpecialMember.System_Nullable_T__ctor),
-                null, 
+                null,
                 unliftedOp);
         }
 
@@ -1832,7 +1832,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (oldNode != null && (loweredLeft.ConstantValue == ConstantValue.Null || loweredRight.ConstantValue == ConstantValue.Null))
             {
-                return oldNode.Update(operatorKind, loweredLeft, loweredRight, oldNode.ConstantValueOpt, oldNode.MethodOpt, oldNode.ResultKind, type);
+                return oldNode.Update(operatorKind, oldNode.ConstantValueOpt, oldNode.MethodOpt, oldNode.ResultKind, loweredLeft, loweredRight, type);
             }
 
             var method = UnsafeGetSpecialTypeMethod(syntax, member);
@@ -1853,7 +1853,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // use reference equality in the absence of overloaded operators for System.Delegate.
                     operatorKind = (operatorKind & (~BinaryOperatorKind.Delegate)) | BinaryOperatorKind.Object;
-                    return new BoundBinaryOperator(syntax, operatorKind, loweredLeft, loweredRight, default(ConstantValue), null, LookupResultKind.Empty, type);
+                    return new BoundBinaryOperator(syntax, operatorKind, default(ConstantValue), null, LookupResultKind.Empty, loweredLeft, loweredRight, type);
                 }
             }
             else
@@ -1863,7 +1863,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert((object)method != null);
             BoundExpression call = _inExpressionLambda
-                ? new BoundBinaryOperator(syntax, operatorKind, loweredLeft, loweredRight, null, method, default(LookupResultKind), method.ReturnType.TypeSymbol)
+                ? new BoundBinaryOperator(syntax, operatorKind, null, method, default(LookupResultKind), loweredLeft, loweredRight, method.ReturnType.TypeSymbol)
                 : (BoundExpression)BoundCall.Synthesized(syntax, null, method, loweredLeft, loweredRight);
             BoundExpression result = method.ReturnType.SpecialType == SpecialType.System_Delegate ?
                 MakeConversionNode(syntax, call, Conversion.ExplicitReference, type, @checked: false) :
@@ -1988,11 +1988,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 loweredRight = new BoundBinaryOperator(
                     rightSyntax,
                     andOperatorKind,
-                    loweredRight,
-                    MakeLiteral(rightSyntax, ConstantValue.Create(rightMask), rightType),
                     null,
                     null,
                     LookupResultKind.Viable,
+                    loweredRight,
+                    MakeLiteral(rightSyntax, ConstantValue.Create(rightMask), rightType),
                     rightType);
             }
 
@@ -2000,19 +2000,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ? new BoundBinaryOperator(
                     syntax,
                     operatorKind,
-                    loweredLeft,
-                    loweredRight,
                     null,
                     null,
                     LookupResultKind.Viable,
+                    loweredLeft,
+                    loweredRight,
                     type)
                 : oldNode.Update(
                     operatorKind,
-                    loweredLeft,
-                    loweredRight,
                     null,
                     null,
                     oldNode.ResultKind,
+                    loweredLeft,
+                    loweredRight,
                     type);
         }
 
@@ -2047,11 +2047,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundBinaryOperator(
                             syntax,
                             kind,
-                            loweredLeft,
-                            loweredRight,
                             ConstantValue.NotAvailable,
                             null,
                             LookupResultKind.Viable,
+                            loweredLeft,
+                            loweredRight,
                             returnType);
         }
 

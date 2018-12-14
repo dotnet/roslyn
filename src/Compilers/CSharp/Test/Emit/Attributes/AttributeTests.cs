@@ -272,11 +272,11 @@ public class RefersToLibAttribute : Attribute
             compWithReferenceToLib.VerifyDiagnostics();
 
             var newLibComp = CreateCompilation(newLib_cs,
-                references: new[] { compWithReferenceToLib.EmitToImageReference(),  newComp.EmitToImageReference() }, assemblyName: "lib");
+                references: new[] { compWithReferenceToLib.EmitToImageReference(), newComp.EmitToImageReference() }, assemblyName: "lib");
             newLibComp.VerifyDiagnostics();
 
             var newLibComp2 = CreateCompilation(newLib_cs,
-                references: new[] { compWithReferenceToLib.ToMetadataReference(),  newComp.ToMetadataReference() }, assemblyName: "lib");
+                references: new[] { compWithReferenceToLib.ToMetadataReference(), newComp.ToMetadataReference() }, assemblyName: "lib");
             newLibComp2.VerifyDiagnostics();
         }
 
@@ -308,13 +308,13 @@ public class RefersToLibAttribute : C
             var compWithReferenceToLib = CreateCompilation(reference_cs, references: new[] { origLibComp.EmitToImageReference() });
             compWithReferenceToLib.VerifyDiagnostics();
 
-            var newLibComp = CreateCompilation(newLib_cs, references: new[] { compWithReferenceToLib.EmitToImageReference(),  newComp.EmitToImageReference() }, assemblyName: "lib");
+            var newLibComp = CreateCompilation(newLib_cs, references: new[] { compWithReferenceToLib.EmitToImageReference(), newComp.EmitToImageReference() }, assemblyName: "lib");
             newLibComp.VerifyDiagnostics();
 
-            var newLibComp2 = CreateCompilation(newLib_cs, references: new[] { compWithReferenceToLib.ToMetadataReference(),  newComp.ToMetadataReference() }, assemblyName: "lib");
+            var newLibComp2 = CreateCompilation(newLib_cs, references: new[] { compWithReferenceToLib.ToMetadataReference(), newComp.ToMetadataReference() }, assemblyName: "lib");
             newLibComp2.VerifyDiagnostics();
 
-            var newLibComp3 = CreateCompilation(newLib_cs, references: new[] { compWithReferenceToLib.EmitToImageReference(),  newComp.EmitToImageReference() }, assemblyName: "lib");
+            var newLibComp3 = CreateCompilation(newLib_cs, references: new[] { compWithReferenceToLib.EmitToImageReference(), newComp.EmitToImageReference() }, assemblyName: "lib");
             newLibComp3.SourceAssembly.GetAttributes();
             newLibComp3.VerifyDiagnostics();
         }
@@ -337,7 +337,7 @@ public class RefersToLibAttribute : C
             origLibComp.VerifyDiagnostics();
 
             var compWithDerivedAndReferenceToLib = CreateCompilation(typeForward_cs + derivedDefinition_cs, references: new[] { origLibComp.EmitToImageReference() });
-            compWithDerivedAndReferenceToLib .VerifyDiagnostics();
+            compWithDerivedAndReferenceToLib.VerifyDiagnostics();
 
             var compWithC = CreateCompilation(cDefinition_cs, assemblyName: "new");
             compWithC.VerifyDiagnostics();
@@ -382,11 +382,11 @@ public class RefersToLibAttribute : C
             compWithReferenceToLib.VerifyDiagnostics();
 
             var newLibComp = CreateCompilation(newLib_cs,
-                references: new[] { compWithReferenceToLib.EmitToImageReference(),  newComp.EmitToImageReference() }, assemblyName: "lib");
+                references: new[] { compWithReferenceToLib.EmitToImageReference(), newComp.EmitToImageReference() }, assemblyName: "lib");
             newLibComp.VerifyDiagnostics();
 
             var newLibComp2 = CreateCompilation(newLib_cs,
-                references: new[] { compWithReferenceToLib.ToMetadataReference(),  newComp.ToMetadataReference() }, assemblyName: "lib");
+                references: new[] { compWithReferenceToLib.ToMetadataReference(), newComp.ToMetadataReference() }, assemblyName: "lib");
             newLibComp2.VerifyDiagnostics();
         }
 
@@ -419,10 +419,10 @@ public class RefersToLibAttribute : Attribute
             var compWithReferenceToLib = CreateCompilation(reference_cs, references: new[] { origLibComp.EmitToImageReference() });
             compWithReferenceToLib.VerifyDiagnostics();
 
-            var newLibComp = CreateCompilation(newLib_cs, references: new[] { compWithReferenceToLib.EmitToImageReference(),  newComp.EmitToImageReference() }, assemblyName: "lib");
+            var newLibComp = CreateCompilation(newLib_cs, references: new[] { compWithReferenceToLib.EmitToImageReference(), newComp.EmitToImageReference() }, assemblyName: "lib");
             newLibComp.VerifyDiagnostics();
 
-            var newLibComp2 = CreateCompilation(newLib_cs, references: new[] { compWithReferenceToLib.ToMetadataReference(),  newComp.ToMetadataReference() }, assemblyName: "lib");
+            var newLibComp2 = CreateCompilation(newLib_cs, references: new[] { compWithReferenceToLib.ToMetadataReference(), newComp.ToMetadataReference() }, assemblyName: "lib");
             newLibComp2.VerifyDiagnostics();
         }
 
@@ -454,10 +454,10 @@ public class RefersToLibAttribute : C
             var compWithReferenceToLib = CreateCompilation(reference_cs, references: new[] { origLibComp.EmitToImageReference() });
             compWithReferenceToLib.VerifyDiagnostics();
 
-            var newLibComp = CreateCompilation(newLib_cs, references: new[] { compWithReferenceToLib.EmitToImageReference(),  newComp.EmitToImageReference() }, assemblyName: "lib");
+            var newLibComp = CreateCompilation(newLib_cs, references: new[] { compWithReferenceToLib.EmitToImageReference(), newComp.EmitToImageReference() }, assemblyName: "lib");
             newLibComp.VerifyDiagnostics();
 
-            var newLibComp2 = CreateCompilation(newLib_cs, references: new[] { compWithReferenceToLib.ToMetadataReference(),  newComp.ToMetadataReference() }, assemblyName: "lib");
+            var newLibComp2 = CreateCompilation(newLib_cs, references: new[] { compWithReferenceToLib.ToMetadataReference(), newComp.ToMetadataReference() }, assemblyName: "lib");
             newLibComp2.VerifyDiagnostics();
         }
 
@@ -8911,6 +8911,44 @@ internal sealed class CSharpCompilerDiagnosticAnalyzer
     // [DiagnosticAnalyzer(LanguageNames.CSharp)]
     Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "CSharp").WithArguments("xyz").WithLocation(2, 35)
                 );
+        }
+
+        [Fact, WorkItem(30833, "https://github.com/dotnet/roslyn/issues/30833")]
+        public void AttributeWithTaskDelegateParameter()
+        {
+            string code = @"
+using System;
+using System.Threading.Tasks;
+
+namespace a
+{
+    class Class1
+    {
+		[AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
+		class CommandAttribute : Attribute
+		{
+			public delegate Task FxCommand();
+
+			public CommandAttribute(FxCommand Fx)
+			{
+				this.Fx = Fx;
+			}
+
+			public FxCommand Fx { get; set; }
+		}
+		
+		[Command(UserInfo)]
+		public static async Task UserInfo()
+		{
+			await Task.CompletedTask;
+		}
+	}
+}
+";
+            CreateCompilationWithMscorlib46(code).VerifyDiagnostics(
+                // (22,4): error CS0181: Attribute constructor parameter 'Fx' has type 'Class1.CommandAttribute.FxCommand', which is not a valid attribute parameter type
+                // 		[Command(UserInfo)]
+                Diagnostic(ErrorCode.ERR_BadAttributeParamType, "Command").WithArguments("Fx", "a.Class1.CommandAttribute.FxCommand").WithLocation(22, 4));
         }
 
         #endregion
