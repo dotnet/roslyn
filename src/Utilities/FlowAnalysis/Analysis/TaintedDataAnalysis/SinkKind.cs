@@ -6,5 +6,6 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
     {
         Sql,
         Dll,
+        InformationDisclosure,
     }
 }
