@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             // Initialize the input of the entry block.
             // For context sensitive inter-procedural analysis, use the provided initial analysis data.
             // Otherwise, initialize with the default bottom value of the analysis domain.
-            var initialAnalysisData = analysisContext.InterproceduralAnalysisDataOpt?.InitialAnalysisData ?? AnalysisDomain.Bottom;
+            var initialAnalysisData = analysisContext.InterproceduralAnalysisDataOpt?.InitialAnalysisData ?? OperationVisitor.GetEmptyAnalysisData();
             UpdateInput(resultBuilder, entry, initialAnalysisData);
 
             // Add the block to the worklist.
@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                         }
                     }
 
-                    input = input ?? AnalysisDomain.Bottom;
+                    input = input ?? OperationVisitor.GetEmptyAnalysisData();
 
                     UpdateInput(resultBuilder, block, input);
                 }

@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                 DefaultPointsToValueGenerator defaultPointsToValueGenerator,
                 PointsToAnalysisDomain pointsToAnalysisDomain,
                 PointsToAnalysisContext analysisContext)
-                : base (analysisContext)
+                : base(analysisContext)
             {
                 _defaultPointsToValueGenerator = defaultPointsToValueGenerator;
                 _pointsToAnalysisDomain = pointsToAnalysisDomain;
@@ -36,11 +36,21 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
             public override PointsToAnalysisData Flow(IOperation statement, BasicBlock block, PointsToAnalysisData input)
             {
                 AssertValidPointsToAnalysisData(input);
+#if DEBUG
+                if (input != null &&
+                    block.Kind == BasicBlockKind.Exit)
+                {
+                    // No flow capture entities should be alive at the end of flow graph.
+                    input.AssertNoFlowCaptureEntitiesTracked();
+                }
+#endif
 
                 // Ensure PointsTo value is set for the "this" or "Me" instance.
-                if (input != null && !HasAbstractValue(AnalysisEntityFactory.ThisOrMeInstance))
+                if (input != null &&
+                    !HasAbstractValue(AnalysisEntityFactory.ThisOrMeInstance) &&
+                    input.ShouldBeTracked(AnalysisEntityFactory.ThisOrMeInstance))
                 {
-                    input.SetAbstractValue(AnalysisEntityFactory.ThisOrMeInstance, ThisOrMePointsToAbstractValue, IsLValueFlowCaptureEntity);
+                    input.SetAbstractValue(AnalysisEntityFactory.ThisOrMeInstance, ThisOrMePointsToAbstractValue);
                 }
 
                 var output = base.Flow(statement, block, input);
@@ -56,9 +66,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                 return result;
             }
 
-            private static bool ShouldBeTracked(ITypeSymbol typeSymbol) => typeSymbol.IsReferenceTypeOrNullableValueType();
-
-            private bool ShouldBeTracked(AnalysisEntity analysisEntity) => ShouldBeTracked(analysisEntity.Type) || IsLValueFlowCaptureEntity(analysisEntity);
+            private bool ShouldBeTracked(AnalysisEntity analysisEntity) => CurrentAnalysisData.ShouldBeTracked(analysisEntity);
 
             protected override void AddTrackedEntities(ImmutableArray<AnalysisEntity>.Builder builder)
             {
@@ -104,12 +112,14 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
 
             protected override PointsToAbstractValue GetPointsToAbstractValue(IOperation operation) => base.GetCachedAbstractValue(operation);
 
-            protected override PointsToAbstractValue GetAbstractDefaultValue(ITypeSymbol type) => !ShouldBeTracked(type) ? PointsToAbstractValue.NoLocation : PointsToAbstractValue.NullLocation;
+            protected override PointsToAbstractValue GetAbstractDefaultValue(ITypeSymbol type) => !PointsToAnalysisData.ShouldBeTracked(type) ? PointsToAbstractValue.NoLocation : PointsToAbstractValue.NullLocation;
 
             protected override bool HasAnyAbstractValue(PointsToAnalysisData data) => data.HasAnyAbstractValue;
 
             protected override void SetAbstractValue(AnalysisEntity analysisEntity, PointsToAbstractValue value)
             {
+                Debug.Assert(ShouldBeTracked(analysisEntity) || !HasAbstractValue(analysisEntity));
+
                 if (ShouldBeTracked(analysisEntity))
                 {
                     if (value.Kind == PointsToAbstractValueKind.Undefined)
@@ -121,7 +131,15 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                         return;
                     }
 
-                    CurrentAnalysisData.SetAbstractValue(analysisEntity, value, IsLValueFlowCaptureEntity);
+                    CurrentAnalysisData.SetAbstractValue(analysisEntity, value);
+                }
+            }
+
+            private void ResetAbstractValue(AnalysisEntity analysisEntity, PointsToAnalysisData pointsToAnalysisData)
+            {
+                if (pointsToAnalysisData.TryGetValue(analysisEntity, out var currentValue))
+                {
+                    pointsToAnalysisData.SetAbstractValue(analysisEntity, GetResetValue(analysisEntity, currentValue));
                 }
             }
 
@@ -130,8 +148,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                 NullAbstractValue nullState,
                 DefaultPointsToValueGenerator defaultPointsToValueGenerator,
                 PointsToAnalysisData sourceAnalysisData,
-                PointsToAnalysisData targetAnalysisData,
-                Func<AnalysisEntity, bool> isLValueFlowCaptureEntity)
+                PointsToAnalysisData targetAnalysisData)
             {
                 AssertValidPointsToAnalysisData(sourceAnalysisData);
                 AssertValidPointsToAnalysisData(targetAnalysisData);
@@ -162,13 +179,13 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                         throw new InvalidProgramException();
                 }
 
-                targetAnalysisData.SetAbstractValue(analysisEntity, newPointsToValue, isLValueFlowCaptureEntity);
+                targetAnalysisData.SetAbstractValue(analysisEntity, newPointsToValue);
                 AssertValidPointsToAnalysisData(targetAnalysisData);
             }
 
             // Create a dummy PointsTo value for each reference type parameter.
             protected override PointsToAbstractValue GetDefaultValueForParameterOnEntry(IParameterSymbol parameter, AnalysisEntity analysisEntity)
-                => ShouldBeTracked(parameter.Type) ?
+                => PointsToAnalysisData.ShouldBeTracked(parameter.Type) ?
                     PointsToAbstractValue.Create(
                         AbstractLocation.CreateSymbolLocation(parameter, DataFlowAnalysisContext.InterproceduralAnalysisDataOpt?.CallStack),
                         mayBeNull: true) :
@@ -181,8 +198,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
 
             private PointsToAbstractValue GetResetValue(AnalysisEntity analysisEntity, PointsToAbstractValue currentValue)
             {
-                Debug.Assert(CurrentAnalysisData[analysisEntity] == currentValue);
-
                 if (IsLValueFlowCaptureEntity(analysisEntity))
                 {
                     // LValue flow capture PointsToAbstractValue can never change.
@@ -196,7 +211,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
 
             protected override PointsToAbstractValue ComputeAnalysisValueForReferenceOperation(IOperation operation, PointsToAbstractValue defaultValue)
             {
-                if (ShouldBeTracked(operation.Type) &&
+                if (PointsToAnalysisData.ShouldBeTracked(operation.Type) &&
                     AnalysisEntityFactory.TryCreate(operation, out AnalysisEntity analysisEntity))
                 {
                     return GetAbstractValue(analysisEntity);
@@ -307,16 +322,14 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                         {
                             SetValueFromPredicate(analysisEntity, value, equals, inferInTargetAnalysisData,
                                 ref predicateValueKind, _defaultPointsToValueGenerator,
-                                sourceAnalysisData: CurrentAnalysisData, targetAnalysisData: targetAnalysisData,
-                                isLValueFlowCaptureEntity: IsLValueFlowCaptureEntity);
+                                sourceAnalysisData: CurrentAnalysisData, targetAnalysisData: targetAnalysisData);
                         }
                     }
                     else
                     {
                         SetValueFromPredicate(targetEntity, value, equals, inferInTargetAnalysisData,
                             ref predicateValueKind, _defaultPointsToValueGenerator,
-                            sourceAnalysisData: CurrentAnalysisData, targetAnalysisData: targetAnalysisData,
-                            isLValueFlowCaptureEntity: IsLValueFlowCaptureEntity);
+                            sourceAnalysisData: CurrentAnalysisData, targetAnalysisData: targetAnalysisData);
                     }
 
                     return true;
@@ -333,9 +346,16 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                 ref PredicateValueKind predicateValueKind,
                 DefaultPointsToValueGenerator defaultPointsToValueGenerator,
                 PointsToAnalysisData sourceAnalysisData,
-                PointsToAnalysisData targetAnalysisData,
-                Func<AnalysisEntity, bool> isLValueFlowCaptureEntity)
+                PointsToAnalysisData targetAnalysisData)
             {
+                if (!targetAnalysisData.ShouldBeTracked(key))
+                {
+                    Debug.Assert(!targetAnalysisData.HasAbstractValue(key));
+                    Debug.Assert(!sourceAnalysisData.ShouldBeTracked(key));
+                    Debug.Assert(!sourceAnalysisData.HasAbstractValue(key));
+                    return;
+                }
+
                 // Compute the negated value.
                 NullAbstractValue negatedValue = NegatePredicateValue(value);
 
@@ -379,8 +399,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                 if (inferInTargetAnalysisData)
                 {
                     // Set value for the CurrentAnalysisData.
-                    SetAbstractValueFromPredicate(key, value, defaultPointsToValueGenerator,
-                        sourceAnalysisData, targetAnalysisData, isLValueFlowCaptureEntity);
+                    SetAbstractValueFromPredicate(key, value, defaultPointsToValueGenerator, sourceAnalysisData, targetAnalysisData);
                 }
             }
 
@@ -405,13 +424,13 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
             protected override PointsToAnalysisData MergeAnalysisData(PointsToAnalysisData value1, PointsToAnalysisData value2)
                 => _pointsToAnalysisDomain.Merge(value1, value2);
             protected override PointsToAnalysisData MergeAnalysisDataForBackEdge(PointsToAnalysisData value1, PointsToAnalysisData value2)
-                => _pointsToAnalysisDomain.MergeAnalysisDataForBackEdge(value1, value2, GetChildAnalysisEntities);
+                => _pointsToAnalysisDomain.MergeAnalysisDataForBackEdge(value1, value2, GetChildAnalysisEntities, ResetAbstractValue);
             protected override PointsToAnalysisData GetClonedAnalysisData(PointsToAnalysisData analysisData)
                 => (PointsToAnalysisData)analysisData.Clone();
-            protected override PointsToAnalysisData GetEmptyAnalysisData()
-                => new PointsToAnalysisData();
+            public override PointsToAnalysisData GetEmptyAnalysisData()
+                => new PointsToAnalysisData(IsLValueFlowCaptureEntity);
             protected override PointsToAnalysisData GetAnalysisDataAtBlockEnd(PointsToAnalysisResult analysisResult, BasicBlock block)
-                => new PointsToAnalysisData(analysisResult[block].OutputData);
+                => new PointsToAnalysisData(analysisResult[block].OutputData, IsLValueFlowCaptureEntity);
             protected override bool Equals(PointsToAnalysisData value1, PointsToAnalysisData value2)
                 => value1.Equals(value2);
 
@@ -571,7 +590,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
 
             private PointsToAbstractValue VisitInvocationCommon(IOperation operation, IOperation instance)
             {
-                if (ShouldBeTracked(operation.Type))
+                if (PointsToAnalysisData.ShouldBeTracked(operation.Type))
                 {
                     if (TryGetInterproceduralAnalysisResult(operation, out var interproceduralResult))
                     {
