@@ -63,20 +63,18 @@ namespace Roslyn.Diagnostics.Analyzers
 
         private void OnCompilationStart(CompilationStartAnalysisContext compilationContext)
         {
-            var bannedSymbols = ReadBannedApis();
+            var entryBySymbol = ReadBannedApis();
 
-            if (bannedSymbols.Count == 0)
+            if (entryBySymbol == null || entryBySymbol.Count == 0)
             {
                 return;
             }
 
-            var messageByBannedSymbol = bannedSymbols.ToDictionary(s => s.symbol, s => s.message);
+            var entryByAttributeSymbol = entryBySymbol
+                .Where(pair => pair.Key is ITypeSymbol n && n.IsAttribute())
+                .ToDictionary(pair => pair.Key, pair => pair.Value);
 
-            var bannedAttributes = bannedSymbols
-                .Where(s => s.symbol is ITypeSymbol n && n.IsAttribute())
-                .ToImmutableDictionary(s => s.symbol, s => s.message);
-
-            if (bannedAttributes.Count > 0)
+            if (entryByAttributeSymbol.Count > 0)
             {
                 compilationContext.RegisterCompilationEndAction(
                     context =>
@@ -101,17 +99,17 @@ namespace Roslyn.Diagnostics.Analyzers
                     {
                         case IObjectCreationOperation objectCreation:
                             VerifySymbol(context.ReportDiagnostic, objectCreation.Constructor, context.Operation.Syntax);
-                            VerifyType(context.ReportDiagnostic, objectCreation.Type.OriginalDefinition, context.Operation.Syntax);
+                            VerifyType(context.ReportDiagnostic, objectCreation.Type, context.Operation.Syntax);
                             break;
 
                         case IInvocationOperation invocation:
                             VerifySymbol(context.ReportDiagnostic, invocation.TargetMethod, context.Operation.Syntax);
-                            VerifyType(context.ReportDiagnostic, invocation.TargetMethod.ContainingType.OriginalDefinition, context.Operation.Syntax);
+                            VerifyType(context.ReportDiagnostic, invocation.TargetMethod.ContainingType, context.Operation.Syntax);
                             break;
 
                         case IMemberReferenceOperation memberReference:
                             VerifySymbol(context.ReportDiagnostic, memberReference.Member, context.Operation.Syntax);
-                            VerifyType(context.ReportDiagnostic, memberReference.Member.ContainingType.OriginalDefinition, context.Operation.Syntax);
+                            VerifyType(context.ReportDiagnostic, memberReference.Member.ContainingType, context.Operation.Syntax);
                             break;
                     }
                 },
@@ -128,7 +126,7 @@ namespace Roslyn.Diagnostics.Analyzers
 
             return;
 
-            ImmutableHashSet<(ISymbol symbol, string message)> ReadBannedApis()
+            Dictionary<ISymbol, BanFileEntry> ReadBannedApis()
             {
                 var query =
                     from additionalFile in compilationContext.Options.AdditionalFiles
@@ -138,35 +136,35 @@ namespace Roslyn.Diagnostics.Analyzers
                     from line in sourceText.Lines
                     let text = line.ToString()
                     where !string.IsNullOrWhiteSpace(text)
-                    select new ApiLine(text, line.Span, sourceText, additionalFile.Path);
+                    select new BanFileEntry(text, line.Span, sourceText, additionalFile.Path);
 
-                var apiLines = query.ToList();
+                var entries = query.ToList();
 
-                if (apiLines.Count == 0)
+                if (entries.Count == 0)
                 {
-                    return ImmutableHashSet<(ISymbol, string)>.Empty;
+                    return null;
                 }
 
-                var lineById = new Dictionary<string, ApiLine>(StringComparer.Ordinal);
                 var errors = new List<Diagnostic>();
-                var builder = ImmutableHashSet.CreateBuilder<(ISymbol symbol, string message)>();
 
-                foreach (var line in apiLines)
+                var result = new Dictionary<ISymbol, BanFileEntry>();
+
+                foreach (var line in entries)
                 {
-                    if (lineById.TryGetValue(line.DeclarationId, out var existingLine))
-                    {
-                        errors.Add(Diagnostic.Create(SymbolIsBannedAnalyzer.DuplicateBannedSymbolRule, line.Location, new[] {existingLine.Location}, line.DeclarationId));
-                        continue;
-                    }
-
-                    lineById.Add(line.DeclarationId, line);
-
                     var symbols = DocumentationCommentId.GetSymbolsForDeclarationId(line.DeclarationId, compilationContext.Compilation);
+
                     if (!symbols.IsDefaultOrEmpty)
                     {
                         foreach (var symbol in symbols)
                         {
-                            builder.Add((symbol, line.Message));
+                            if (result.TryGetValue(symbol, out var existingLine))
+                            {
+                                errors.Add(Diagnostic.Create(SymbolIsBannedAnalyzer.DuplicateBannedSymbolRule, line.Location, new[] { existingLine.Location }, symbol.ToDisplayString()));
+                            }
+                            else
+                            {
+                                result.Add(symbol, line);
+                            }
                         }
                     }
                 }
@@ -183,14 +181,14 @@ namespace Roslyn.Diagnostics.Analyzers
                         });
                 }
 
-                return builder.ToImmutable();
+                return result;
             }
 
             void VerifyAttributes(Action<Diagnostic> reportDiagnostic, ImmutableArray<AttributeData> attributes)
             {
                 foreach (var attribute in attributes)
                 {
-                    if (bannedAttributes.TryGetValue(attribute.AttributeClass, out var message))
+                    if (entryByAttributeSymbol.TryGetValue(attribute.AttributeClass, out var entry))
                     {
                         var node = attribute.ApplicationSyntaxReference?.GetSyntax();
                         if (node != null)
@@ -199,7 +197,7 @@ namespace Roslyn.Diagnostics.Analyzers
                                 node.CreateDiagnostic(
                                     SymbolIsBannedAnalyzer.SymbolIsBannedRule,
                                     attribute.AttributeClass.ToDisplayString(),
-                                    string.IsNullOrWhiteSpace(message) ? "" : ": " + message));
+                                    string.IsNullOrWhiteSpace(entry.Message) ? "" : ": " + entry.Message));
                         }
                     }
                 }
@@ -207,33 +205,38 @@ namespace Roslyn.Diagnostics.Analyzers
 
             void VerifyType(Action<Diagnostic> reportDiagnostic, ITypeSymbol type, SyntaxNode syntaxNode)
             {
-                while (!(type is null))
+                type = type.OriginalDefinition;
+
+                do
                 {
-                    if (messageByBannedSymbol.TryGetValue(type, out var message))
+                    if (entryBySymbol.TryGetValue(type, out var entry))
                     {
                         reportDiagnostic(
                             Diagnostic.Create(
                                 SymbolIsBannedAnalyzer.SymbolIsBannedRule,
                                 syntaxNode.GetLocation(),
                                 type.ToDisplayString(SymbolDisplayFormat),
-                                string.IsNullOrWhiteSpace(message) ? "" : ": " + message));
+                                string.IsNullOrWhiteSpace(entry.Message) ? "" : ": " + entry.Message));
                         break;
                     }
 
                     type = type.ContainingType;
                 }
+                while (!(type is null));
             }
 
             void VerifySymbol(Action<Diagnostic> reportDiagnostic, ISymbol symbol, SyntaxNode syntaxNode)
             {
-                if (messageByBannedSymbol.TryGetValue(symbol, out var message))
+                symbol = symbol.OriginalDefinition;
+
+                if (entryBySymbol.TryGetValue(symbol, out var entry))
                 {
                     reportDiagnostic(
                         Diagnostic.Create(
                             SymbolIsBannedAnalyzer.SymbolIsBannedRule,
                             syntaxNode.GetLocation(),
                             symbol.ToDisplayString(SymbolDisplayFormat),
-                            string.IsNullOrWhiteSpace(message) ? "" : ": " + message));
+                            string.IsNullOrWhiteSpace(entry.Message) ? "" : ": " + entry.Message));
                 }
             }
 
@@ -252,7 +255,7 @@ namespace Roslyn.Diagnostics.Analyzers
             }
         }
 
-        private sealed class ApiLine
+        private sealed class BanFileEntry
         {
             public TextSpan Span { get; }
             public SourceText SourceText { get; }
@@ -260,7 +263,7 @@ namespace Roslyn.Diagnostics.Analyzers
             public string DeclarationId { get; }
             public string Message { get; }
 
-            public ApiLine(string text, TextSpan span, SourceText sourceText, string path)
+            public BanFileEntry(string text, TextSpan span, SourceText sourceText, string path)
             {
                 // Split the text on semicolon into declaration ID and message
                 var index = text.IndexOf(';');
