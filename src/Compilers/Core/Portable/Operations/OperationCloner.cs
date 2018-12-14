@@ -519,7 +519,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
         public override IOperation VisitConstantPattern(IConstantPatternOperation operation, object argument)
         {
-            return new ConstantPatternOperation(Visit(operation.Value), ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+            return new ConstantPatternOperation(Visit(operation.Value), ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.IsImplicit);
         }
 
         public override IOperation VisitDeclarationPattern(IDeclarationPatternOperation operation, object argument)

@@ -7835,8 +7835,8 @@ namespace Microsoft.CodeAnalysis.Operations
     /// </summary>
     internal abstract partial class BaseConstantPatternOperation : Operation, IConstantPatternOperation
     {
-        protected BaseConstantPatternOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(OperationKind.ConstantPattern, semanticModel, syntax, type, constantValue, isImplicit)
+        protected BaseConstantPatternOperation(SemanticModel semanticModel, SyntaxNode syntax, bool isImplicit) :
+            base(OperationKind.ConstantPattern, semanticModel, syntax, type: default, constantValue: default, isImplicit)
         {
         }
 
@@ -7869,8 +7869,8 @@ namespace Microsoft.CodeAnalysis.Operations
     /// </summary>
     internal sealed partial class ConstantPatternOperation : BaseConstantPatternOperation, IConstantPatternOperation
     {
-        public ConstantPatternOperation(IOperation value, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(semanticModel, syntax, type, constantValue, isImplicit)
+        public ConstantPatternOperation(IOperation value, SemanticModel semanticModel, SyntaxNode syntax, bool isImplicit) :
+            base(semanticModel, syntax, isImplicit)
         {
             Value = SetParentOperation(value, this);
         }
@@ -7885,8 +7885,8 @@ namespace Microsoft.CodeAnalysis.Operations
     {
         private IOperation _lazyValueInterlocked = s_unset;
 
-        public LazyConstantPatternOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-			base(semanticModel, syntax, type, constantValue, isImplicit)
+        public LazyConstantPatternOperation(SemanticModel semanticModel, SyntaxNode syntax, bool isImplicit) :
+            base(semanticModel, syntax, isImplicit)
         {
         }
 
