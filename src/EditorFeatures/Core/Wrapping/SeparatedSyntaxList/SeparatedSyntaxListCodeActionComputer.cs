@@ -141,7 +141,7 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.SeparatedSyntaxList
 
                 // MethodName(int a, int b, int c, int d, int e, int f, int g, int h, int i, int j)
                 unwrapActions.Add(await GetUnwrapAllCodeActionAsync(parentTitle, WrappingStyle.UnwrapFirst_IndentRest).ConfigureAwait(false));
-                
+
                 // MethodName(
                 //      int a, int b, int c, int d, int e, int f, int g, int h, int i, int j)
                 unwrapActions.Add(await GetUnwrapAllCodeActionAsync(parentTitle, WrappingStyle.WrapFirst_IndentRest).ConfigureAwait(false));
@@ -157,7 +157,7 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.SeparatedSyntaxList
                 var title = wrappingStyle == WrappingStyle.WrapFirst_IndentRest
                     ? Wrapper.Unwrap_and_indent_all_items
                     : Wrapper.Unwrap_all_items;
-                
+
                 return await TryCreateCodeActionAsync(edits, parentTitle, title).ConfigureAwait(false);
             }
 
