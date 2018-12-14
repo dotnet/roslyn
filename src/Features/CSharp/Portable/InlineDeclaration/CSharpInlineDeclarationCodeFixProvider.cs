@@ -57,8 +57,6 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
             await editor.ApplyExpressionLevelSemanticEditsAsync(
                 document,
                 originalNodes,
-                (_1, _2, _3) => true,
-                (semanticModel, currentRoot, t, currentNode) => ReplaceNode(options, semanticModel, currentRoot, t.declarator, t.identifier, t.invocationOrCreation, currentNode),
                 t => {
                     var additionalNodesToTrack = ArrayBuilder<SyntaxNode>.GetInstance(2);
                     additionalNodesToTrack.Add(t.identifier);
@@ -66,6 +64,8 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
 
                     return (t.invocationOrCreation, additionalNodesToTrack.ToImmutableAndFree());
                 },
+                (_1, _2, _3) => true,
+                (semanticModel, currentRoot, t, currentNode) => ReplaceIdentifierWithInlineDeclaration(options, semanticModel, currentRoot, t.declarator, t.identifier, t.invocationOrCreation, currentNode),
                 cancellationToken).ConfigureAwait(false);
         }
 
@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
             return (declarator, identifier, invocationOrCreation);
         }
 
-        private SyntaxNode ReplaceNode(
+        private SyntaxNode ReplaceIdentifierWithInlineDeclaration(
             OptionSet options, SemanticModel semanticModel, 
             SyntaxNode currentRoot, VariableDeclaratorSyntax declarator, 
             IdentifierNameSyntax identifier, SyntaxNode invocationOrCreation, 

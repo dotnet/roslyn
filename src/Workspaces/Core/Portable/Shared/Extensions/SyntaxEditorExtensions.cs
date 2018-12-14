@@ -22,18 +22,18 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static Task ApplyExpressionLevelSemanticEditsAsync<TType, TNode>(
             this SyntaxEditor editor, Document document,
             ImmutableArray<TType> originalNodes,
+            Func<TType, (TNode semanticNode, IEnumerable<TNode> additionalNodes)> selector,
             Func<SemanticModel, TType, TNode, bool> canReplace,
             Func<SemanticModel, SyntaxNode, TType, TNode, SyntaxNode> updateRoot,
-            Func<TType, (TNode semanticNode, IEnumerable<TNode> additionalNodes)> selector,
             CancellationToken cancellationToken) where TNode : SyntaxNode
         {
             return ApplySemanticEditsAsync(
                 editor, document,
                 originalNodes,
+                selector,
                 (syntaxFacts, node) => GetExpressionSemanticBoundary(syntaxFacts, node),
                 canReplace,
                 updateRoot,
-                selector,
                 cancellationToken);
         }
 
@@ -45,18 +45,18 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static Task ApplyExpressionLevelSemanticEditsAsync<TType, TNode>(
             this SyntaxEditor editor, Document document,
             ImmutableArray<TType> originalNodes,
+            Func<TType, TNode> selector,
             Func<SemanticModel, TType, TNode, bool> canReplace,
             Func<SemanticModel, SyntaxNode, TType, TNode, SyntaxNode> updateRoot,
-            Func<TType, TNode> selector,
             CancellationToken cancellationToken) where TNode : SyntaxNode
         {
             return ApplySemanticEditsAsync(
                 editor, document,
                 originalNodes,
+                t => (selector(t), Enumerable.Empty<TNode>()),
                 (syntaxFacts, node) => GetExpressionSemanticBoundary(syntaxFacts, node),
                 canReplace,
                 updateRoot,
-                t => (selector(t), Enumerable.Empty<TNode>()),
                 cancellationToken);
         }
 
@@ -75,9 +75,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return ApplyExpressionLevelSemanticEditsAsync(
                 editor, document,
                 originalNodes,
+                t => (t, Enumerable.Empty<TNode>()),
                 (semanticModel, _, node) => canReplace(semanticModel, node),
                 (semanticModel, currentRoot, _, node) => updateRoot(semanticModel, currentRoot, node),
-                t => (t, Enumerable.Empty<TNode>()),
                 cancellationToken);
         }
 
@@ -89,18 +89,18 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static Task ApplyMethodBodySemanticEditsAsync<TType, TNode>(
             this SyntaxEditor editor, Document document,
             ImmutableArray<TType> originalNodes,
+            Func<TType, (TNode semanticNode, IEnumerable<TNode> additionalNodes)> selector,
             Func<SemanticModel, TType, TNode, bool> canReplace,
             Func<SemanticModel, SyntaxNode, TType, TNode, SyntaxNode> updateRoot,
-            Func<TType, (TNode semanticNode, IEnumerable<TNode> additionalNodes)> selector,
             CancellationToken cancellationToken) where TNode : SyntaxNode
         {
             return ApplySemanticEditsAsync(
                 editor, document,
                 originalNodes,
+                selector,
                 (syntaxFacts, node) => GetMethodBodySemanticBoundary(syntaxFacts, node),
                 canReplace,
                 updateRoot,
-                selector,
                 cancellationToken);
         }
 
@@ -119,9 +119,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return ApplyMethodBodySemanticEditsAsync(
                 editor, document,
                 originalNodes,
+                t => (t, Enumerable.Empty<TNode>()),
                 (semanticModel, node, _) => canReplace(semanticModel, node),
                 (semanticModel, currentRoot, node, _) => updateRoot(semanticModel, currentRoot, node),
-                t => (t, Enumerable.Empty<TNode>()),
                 cancellationToken);
         }
 
@@ -146,10 +146,10 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         private static async Task ApplySemanticEditsAsync<TType, TNode>(
             this SyntaxEditor editor, Document document,
             ImmutableArray<TType> originalNodes,
+            Func<TType, (TNode semanticNode, IEnumerable<TNode> additionalNodes)> selector,
             Func<ISyntaxFactsService, SyntaxNode, SyntaxNode> getSemanticBoundary,
             Func<SemanticModel, TType, TNode, bool> canReplace,
             Func<SemanticModel, SyntaxNode, TType, TNode, SyntaxNode> updateRoot,
-            Func<TType, (TNode semanticNode, IEnumerable<TNode> additionalNodes)> selector,
             CancellationToken cancellationToken) where TNode : SyntaxNode
         {
             IEnumerable<(TType instance, (TNode semanticNode, IEnumerable<TNode> additionalNodes) nodes)> originalNodePairs = originalNodes.Select(n => (n, selector(n)));
