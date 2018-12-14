@@ -52,7 +52,8 @@ namespace Microsoft.CodeAnalysis.Classification
             }
         }
 
-        private static ImmutableArray<ClassifiedSpan> MergeClassifiedSpans(List<ClassifiedSpan> syntaxSpans, List<ClassifiedSpan> semanticSpans, TextSpan widenedSpan)
+        private static ImmutableArray<ClassifiedSpan> MergeClassifiedSpans(
+            List<ClassifiedSpan> syntaxSpans, List<ClassifiedSpan> semanticSpans, TextSpan widenedSpan)
         {
             // The spans produced by the language services may not be ordered
             // (indeed, this happens with semantic classification as different
@@ -127,7 +128,8 @@ namespace Microsoft.CodeAnalysis.Classification
             }
         }
 
-        public static void FillInClassifiedSpanGaps(int startPosition, IEnumerable<ClassifiedSpan> classifiedSpans, ArrayBuilder<ClassifiedSpan> result)
+        public static void FillInClassifiedSpanGaps(
+            int startPosition, IEnumerable<ClassifiedSpan> classifiedSpans, ArrayBuilder<ClassifiedSpan> result)
         {
             foreach (var span in classifiedSpans)
             {
