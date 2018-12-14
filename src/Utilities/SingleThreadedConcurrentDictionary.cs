@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Concurrent;
-using System.Diagnostics;
 
 namespace Analyzer.Utilities
 {
@@ -15,14 +14,17 @@ namespace Analyzer.Utilities
     internal class SingleThreadedConcurrentDictionary<TKey, TValue>
     {
         /// <summary>
-        /// Holds the real values.
+        /// An Entry itself serves a lock object, and contains the real value.
         /// </summary>
-        private ConcurrentDictionary<TKey, TValue> BackingDictionary = new ConcurrentDictionary<TKey, TValue>();
+        private class Entry
+        {
+            public TValue Value;
+        }
 
         /// <summary>
-        /// Holds the locks for when creating a value to be inserted.
+        /// Holds entries.
         /// </summary>
-        private ConcurrentDictionary<TKey, object> LockDictionary = new ConcurrentDictionary<TKey, object>();
+        private ConcurrentDictionary<TKey, Entry> BackingDictionary = new ConcurrentDictionary<TKey, Entry>();
 
         /// <summary>
         /// Adds a key/value pair using the specified function if the key does not already exist.  Returns the new value, or the existing value if the key exists.
@@ -32,29 +34,35 @@ namespace Analyzer.Utilities
         /// <returns>Value of the key, which will either be the existing value, or new value if the key was not in the dictionary.</returns>
         public TValue GetOrAdd(TKey key, Func<TKey, TValue> valueFactory)
         {
-            if (this.BackingDictionary.TryGetValue(key, out TValue value))
+            if (key == null)
             {
-                return value;
+                throw new ArgumentNullException(nameof(key));
+            }
+
+            if (valueFactory == null)
+            {
+                throw new ArgumentNullException(nameof(valueFactory));
             }
 
             // The return value of ConcurrentDictionary.GetOrAdd() is
             // consistent, i.e. the same instance no matter how many times
             // this valueFactory gets executed.  So for a given key, we'll
-            // always get back the same lockObject instance.
-            object lockObject = this.LockDictionary.GetOrAdd(key, (_) => new object());
-            lock (lockObject)
+            // always get back the same Entry instance.
+            Entry entry = this.BackingDictionary.GetOrAdd(key, (_) => new Entry());
+            if (entry.Value != null)
             {
-                if (this.BackingDictionary.TryGetValue(key, out value))
-                {
-                    return value;
-                }
-
-                value = valueFactory(key);
-
-                TValue getOrAddedValue = this.BackingDictionary.GetOrAdd(key, value);
-                Debug.Assert(Object.ReferenceEquals(getOrAddedValue, value), "Unexpected race condition");
-                return getOrAddedValue;
+                return entry.Value;
             }
+
+            lock (entry)
+            {
+                if (entry.Value == null)
+                {
+                    entry.Value = valueFactory(key);
+                }
+            }
+
+            return entry.Value;
         }
     }
 }
