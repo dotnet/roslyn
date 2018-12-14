@@ -6,7 +6,9 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis
@@ -496,6 +498,22 @@ namespace Microsoft.CodeAnalysis
 
             return count;
         }
+
+        private static class UnderlyingArrayHelper<T>
+        {
+            public static readonly Func<object, object> GetValue =
+                typeof(ImmutableArray<T>).GetField("array",
+                    BindingFlags.Instance | BindingFlags.NonPublic).GetValue;
+        }
+
+        internal static T[] DangerousGetUnderlyingArray<T>(this ImmutableArray<T> array)
+            => (T[])UnderlyingArrayHelper<T>.GetValue(array);
+
+        internal static ReadOnlySpan<T> AsSpan<T>(this ImmutableArray<T> array)
+            => DangerousGetUnderlyingArray(array).AsSpan();
+           
+        internal static ReadOnlyMemory<T> AsMemory<T>(this ImmutableArray<T> array)
+            => array.DangerousGetUnderlyingArray().AsMemory();
 
         internal static Dictionary<K, ImmutableArray<T>> ToDictionary<K, T>(this ImmutableArray<T> items, Func<T, K> keySelector, IEqualityComparer<K> comparer = null)
         {

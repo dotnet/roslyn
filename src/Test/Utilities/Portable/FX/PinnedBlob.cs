@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Runtime.InteropServices;
+using Microsoft.CodeAnalysis;
 using Roslyn.Utilities;
 
 namespace Roslyn.Test.Utilities
