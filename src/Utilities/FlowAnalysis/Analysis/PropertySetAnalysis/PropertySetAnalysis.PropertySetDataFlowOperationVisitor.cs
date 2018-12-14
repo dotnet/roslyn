@@ -76,7 +76,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                 => BinaryFormatterAnalysisDomainInstance.Merge(value1, value2);
             protected override PropertySetAnalysisData GetClonedAnalysisData(PropertySetAnalysisData analysisData)
                 => GetClonedAnalysisDataHelper(analysisData);
-            protected override PropertySetAnalysisData GetEmptyAnalysisData()
+            public override PropertySetAnalysisData GetEmptyAnalysisData()
                 => GetEmptyAnalysisDataHelper();
             protected override PropertySetAnalysisData GetAnalysisDataAtBlockEnd(PropertySetAnalysisResult analysisResult, BasicBlock block)
                 => GetClonedAnalysisDataHelper(analysisResult[block].OutputData);

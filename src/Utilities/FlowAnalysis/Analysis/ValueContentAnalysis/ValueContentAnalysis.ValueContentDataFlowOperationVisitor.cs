@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
                 => ValueContentAnalysisDomain.Instance.MergeAnalysisDataForBackEdge(value1, value2);
             protected override ValueContentAnalysisData GetClonedAnalysisData(ValueContentAnalysisData analysisData)
                 => (ValueContentAnalysisData)analysisData.Clone();
-            protected override ValueContentAnalysisData GetEmptyAnalysisData()
+            public override ValueContentAnalysisData GetEmptyAnalysisData()
                 => new ValueContentAnalysisData();
             protected override ValueContentAnalysisData GetAnalysisDataAtBlockEnd(ValueContentAnalysisResult analysisResult, BasicBlock block)
                 => new ValueContentAnalysisData(analysisResult[block].OutputData);

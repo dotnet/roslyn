@@ -279,7 +279,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
                 => s_AnalysisDomain.Merge(value1, value2);
             protected override CopyAnalysisData GetClonedAnalysisData(CopyAnalysisData analysisData)
                 => (CopyAnalysisData)analysisData.Clone();
-            protected override CopyAnalysisData GetEmptyAnalysisData()
+            public override CopyAnalysisData GetEmptyAnalysisData()
                 => new CopyAnalysisData();
             protected override CopyAnalysisData GetAnalysisDataAtBlockEnd(CopyAnalysisResult analysisResult, BasicBlock block)
                 => new CopyAnalysisData(analysisResult[block].OutputData);

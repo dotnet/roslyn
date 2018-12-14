@@ -13,5 +13,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         /// <param name="value"></param>
         /// <returns></returns>
         public abstract TAnalysisData Clone(TAnalysisData value);
+
+        public sealed override TAnalysisData Bottom => throw new System.NotSupportedException();
     }
 }

@@ -20,9 +20,11 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
             {
             }
 
-            public DefaultPointsToValueGenerator DefaultPointsToValueGenerator => ((CorePointsToAnalysisDataDomain)CoreDataAnalysisDomain).DefaultPointsToValueGenerator;
-
-            public PointsToAnalysisData MergeAnalysisDataForBackEdge(PointsToAnalysisData forwardEdgeAnalysisData, PointsToAnalysisData backEdgeAnalysisData, Func<PointsToAbstractValue, IEnumerable<AnalysisEntity>> getChildAnalysisEntities)
+            public PointsToAnalysisData MergeAnalysisDataForBackEdge(
+                PointsToAnalysisData forwardEdgeAnalysisData,
+                PointsToAnalysisData backEdgeAnalysisData,
+                Func<PointsToAbstractValue, IEnumerable<AnalysisEntity>> getChildAnalysisEntities,
+                Action<AnalysisEntity, PointsToAnalysisData> resetAbstractValue)
             {
                 if (!forwardEdgeAnalysisData.IsReachableBlockData && backEdgeAnalysisData.IsReachableBlockData)
                 {
@@ -35,9 +37,14 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
 
                 Debug.Assert(forwardEdgeAnalysisData.IsReachableBlockData == backEdgeAnalysisData.IsReachableBlockData);
 
-                var mergedCoreAnalysisData = ((CorePointsToAnalysisDataDomain)CoreDataAnalysisDomain).MergeAnalysisDataForBackEdge(forwardEdgeAnalysisData.CoreAnalysisData, backEdgeAnalysisData.CoreAnalysisData, getChildAnalysisEntities);
+                var mergedCoreAnalysisData = ((CorePointsToAnalysisDataDomain)CoreDataAnalysisDomain).MergeCoreAnalysisDataForBackEdge(
+                    forwardEdgeAnalysisData,
+                    backEdgeAnalysisData,
+                    getChildAnalysisEntities,
+                    resetAbstractValue);
                 return new PointsToAnalysisData(mergedCoreAnalysisData, forwardEdgeAnalysisData,
-                    backEdgeAnalysisData, forwardEdgeAnalysisData.IsReachableBlockData, CoreDataAnalysisDomain);
+                    backEdgeAnalysisData, forwardEdgeAnalysisData.IsReachableBlockData, CoreDataAnalysisDomain,
+                    forwardEdgeAnalysisData.IsLValueFlowCaptureEntity);
             }
         }
     }

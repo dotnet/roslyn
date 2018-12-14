@@ -188,7 +188,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
                 => ParameterValidationAnalysisDomainInstance.Merge(value1, value2);
             protected override ParameterValidationAnalysisData GetClonedAnalysisData(ParameterValidationAnalysisData analysisData)
                 => GetClonedAnalysisDataHelper(analysisData);
-            protected override ParameterValidationAnalysisData GetEmptyAnalysisData()
+            public override ParameterValidationAnalysisData GetEmptyAnalysisData()
                 => GetEmptyAnalysisDataHelper();
             protected override ParameterValidationAnalysisData GetAnalysisDataAtBlockEnd(ParameterValidationAnalysisResult analysisResult, BasicBlock block)
                 => GetClonedAnalysisDataHelper(analysisResult[block].OutputData);
