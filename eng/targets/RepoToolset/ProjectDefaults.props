@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
+<!-- All Rights Reserved. Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this file to you under the MIT license. See the LICENSE file in the project root for more information. -->
 <Project>
 
   <PropertyGroup>
     <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
   </PropertyGroup>
-  
+
   <PropertyGroup>
     <SignAssembly>true</SignAssembly>
     <StrongNameKeyId>MicrosoftShared</StrongNameKeyId>
@@ -24,7 +24,7 @@
     <!-- Disable the message indicating we are using a preview SDK. That is understood and by design -->
     <SuppressNETCoreSdkPreviewMessage>true</SuppressNETCoreSdkPreviewMessage>
 
-    <!-- By default do not build nuget package for a project. Project may override. -->
+    <!-- By default do not build NuGet package for a project. Project may override. -->
     <IsPackable>false</IsPackable>
 
     <!--
@@ -37,13 +37,10 @@
        - Embed PDBs to make it easier to debug Jenkins crash dumps.
 
       Developer build:
-       - Build Windows PDBs in order to provide stack traces in xUnit on .NET Framework (4.7.1)
-       - TODO: https://github.com/dotnet/roslyn/issues/25184
-         Use embedded PDBs once .NET Framework 4.7.2 is released and xUnit runner includes configuration switch to enable Portable PDBs
+       - Embed PDBs to be consistent with Jenkins builds.    
     -->
-    <DebugType>full</DebugType>
-    <DebugType Condition="'$(OfficialBuild)' == 'true'">portable</DebugType>
-    <DebugType Condition="'$(OfficialBuild)' != 'true' and '$(ContinuousIntegrationBuild)' == 'true'">embedded</DebugType>
+    <DebugType>portable</DebugType>
+    <DebugType Condition="'$(OfficialBuild)' != 'true'">embedded</DebugType>
 
     <!-- 
       This controls the places MSBuild will consult to resolve assembly references.  This is 
@@ -52,6 +49,7 @@
       list as they will not be the same from machine to machine.
     -->
     <AssemblySearchPaths>
+      {HintPathFromItem};
       {TargetFrameworkDirectory};
       {RawFileName};
     </AssemblySearchPaths>
@@ -90,25 +88,11 @@
     </When>
   </Choose>
 
-  <Import Project="|Build precondition failed: Unable to determine the language of the project. Consider adding Directory.Build.props that sets Language property to directory '$(MSBuildProjectDirectory)'.|"
-          Condition="'$(Language)' == '' and '$(MSBuildProjectExtension)' != '.shproj' and '$(MSBuildProjectExtension)' != '.swixproj' and '$(MSBuildProjectExtension)' != '.vsmanproj'"/>
-
   <Choose>
     <!-- C# specific settings -->
     <When Condition="'$(Language)' == 'C#'">
       <PropertyGroup>
-        <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
         <NoWarn>$(NoWarn);1701;1702;1705;1591</NoWarn>
-      </PropertyGroup>
-
-      <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
-        <DebugSymbols>true</DebugSymbols>
-        <DefineConstants>DEBUG;TRACE</DefineConstants>
-      </PropertyGroup>
-
-      <PropertyGroup Condition="'$(Configuration)' == 'Release'">
-        <DefineConstants>TRACE</DefineConstants>
-        <Optimize>true</Optimize>
       </PropertyGroup>
     </When>
 
@@ -117,22 +101,8 @@
       <PropertyGroup>
         <MyType>Empty</MyType>
         <OptionCompare>Binary</OptionCompare>
-        <OptionExplicit>On</OptionExplicit>
-        <OptionInfer>On</OptionInfer>
         <OptionStrict>On</OptionStrict>
-        <VBRuntime>Embed</VBRuntime>
         <RemoveIntegerChecks>true</RemoveIntegerChecks>
-      </PropertyGroup>
-
-      <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
-        <DebugSymbols>true</DebugSymbols>
-        <DefineDebug>true</DefineDebug>
-        <DefineTrace>true</DefineTrace>
-      </PropertyGroup>
-
-      <PropertyGroup Condition="'$(Configuration)' == 'Release'">
-        <DefineTrace>true</DefineTrace>
-        <Optimize>true</Optimize>
       </PropertyGroup>
     </When>
 
@@ -143,6 +113,20 @@
         <DeterministicSourcePaths>false</DeterministicSourcePaths>
       </PropertyGroup>
     </When>
+
+    <!-- C++ specific settings -->
+    <When Condition="'$(Language)' == 'C++'">
+      <PropertyGroup>
+        <OutDir>$(OutputPath)</OutDir>
+
+        <!-- 
+          Disable NuGet package resolution during build - PackageReferences are not fully supported 
+          Props and target files are still going to be imported from referenced packages.
+        -->
+        <ResolveNuGetPackages>false</ResolveNuGetPackages>
+      </PropertyGroup>
+    </When>
+
   </Choose>
 
   <!-- 
@@ -151,4 +135,5 @@
   <ItemGroup Condition="'$(UsingToolNetFrameworkReferenceAssemblies)' == 'true'">
     <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="$(MicrosoftNetFrameworkReferenceAssembliesVersion)" PrivateAssets="all" IsImplicitlyDefined="true" />
   </ItemGroup>
+
 </Project>

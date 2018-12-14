@@ -51,11 +51,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private readonly PooledDictionary<Symbol, TypeSymbolWithAnnotations> _variableTypes = PooledDictionary<Symbol, TypeSymbolWithAnnotations>.GetInstance();
 
-        /// <summary>
-        /// The current source assembly.
-        /// </summary>
-        private readonly SourceAssemblySymbol _sourceAssembly;
-
         private readonly Binder _binder;
 
         /// <summary>
@@ -138,7 +133,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             Action<BoundExpression, TypeSymbolWithAnnotations> callbackOpt)
             : base(compilation, method, node, new EmptyStructTypeCache(compilation, dev12CompilerCompatibility: false), trackUnassignments: true)
         {
-            _sourceAssembly = (method is null) ? null : (SourceAssemblySymbol)method.ContainingAssembly;
             _callbackOpt = callbackOpt;
             _binder = compilation.GetBinderFactory(node.SyntaxTree).GetBinder(node.Syntax);
             Debug.Assert(!_binder.Conversions.IncludeNullability);
@@ -164,8 +158,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        // For purpose of nullability analysis, awaits create pending branches, so async usings do too
-        public sealed override bool AwaitUsingAddsPendingBranch => true;
+        // For purpose of nullability analysis, awaits create pending branches, so async usings and foreachs do too
+        public sealed override bool AwaitUsingAndForeachAddsPendingBranch => true;
 
         protected override bool ConvertInsufficientExecutionStackExceptionToCancelledByStackGuardException()
         {
@@ -411,6 +405,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             switch (node.Kind)
             {
+                case BoundKind.ThisReference:
+                case BoundKind.BaseReference:
+                    {
+                        var method = getTopLevelMethod(_symbol as MethodSymbol);
+                        var thisParameter = method?.ThisParameter;
+                        return (object)thisParameter != null ? GetOrCreateSlot(thisParameter) : -1;
+                    }
                 case BoundKind.Conversion:
                     {
                         var conv = (BoundConversion)node;
@@ -453,6 +454,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
             }
             return base.MakeSlot(node);
+
+            MethodSymbol getTopLevelMethod(MethodSymbol method)
+            {
+                while ((object)method != null)
+                {
+                    var container = method.ContainingSymbol;
+                    if (container.Kind == SymbolKind.NamedType)
+                    {
+                        return method;
+                    }
+                    method = container as MethodSymbol;
+                }
+                return null;
+            }
         }
 
         private new void VisitLvalue(BoundExpression node)
@@ -871,7 +886,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void EnterParameters()
         {
-            var methodParameters = ((MethodSymbol)_member).Parameters;
+            var methodParameters = ((MethodSymbol)_symbol).Parameters;
             var signatureParameters = _useMethodSignatureParameterTypes ? _methodSignatureOpt.Parameters : methodParameters;
             Debug.Assert(signatureParameters.Length == methodParameters.Length);
             int n = methodParameters.Length;
@@ -1019,7 +1034,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private TypeSymbolWithAnnotations GetReturnType()
         {
-            var method = (MethodSymbol)_member;
+            var method = (MethodSymbol)_symbol;
             var returnType = (_useMethodSignatureReturnType ? _methodSignatureOpt : method).ReturnType;
             Debug.Assert((object)returnType != LambdaSymbol.ReturnTypeIsBeingInferred);
             if (method.IsGenericTaskReturningAsync(compilation))
@@ -1253,7 +1268,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if ((object)placeholder == null)
             {
-                placeholder = new ObjectCreationPlaceholderLocal(_member, node);
+                placeholder = new ObjectCreationPlaceholderLocal(_symbol, node);
                 _placeholderLocals.Add(node, placeholder);
             }
 
@@ -4965,7 +4980,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return null;
             }
-            var method = (MethodSymbol)_member;
+            var method = (MethodSymbol)_symbol;
             TypeSymbolWithAnnotations elementType = InMethodBinder.GetIteratorElementTypeFromReturnType(compilation, RefKind.None, method.ReturnType.TypeSymbol, errorLocationNode: null, diagnostics: null);
             VisitOptionalImplicitConversion(expr, elementType, useLegacyWarnings: false, AssignmentKind.Return);
             return null;

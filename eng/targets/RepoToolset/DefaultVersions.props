@@ -63,14 +63,14 @@
     <MicrosoftDiaSymReaderPdb2PdbVersion Condition="'$(MicrosoftDiaSymReaderPdb2PdbVersion)' == ''">1.1.0-beta1-62506-02</MicrosoftDiaSymReaderPdb2PdbVersion>
     <RoslynToolsModifyVsixManifestVersion Condition="'$(RoslynToolsModifyVsixManifestVersion)' == ''">1.0.0-beta2-63222-01</RoslynToolsModifyVsixManifestVersion>
     <RoslynToolsNuGetRepackVersion Condition="'$(RoslynToolsNuGetRepackVersion)' == ''">1.0.0-beta3.18526.1</RoslynToolsNuGetRepackVersion>
-    <MicrosoftDotNetSignToolVersion Condition="'$(MicrosoftDotNetSignToolVersion)' == ''">1.0.0-beta.18519.9</MicrosoftDotNetSignToolVersion>
+    <MicrosoftDotNetSignToolVersion Condition="'$(MicrosoftDotNetSignToolVersion)' == ''">1.0.0-beta.18604.15</MicrosoftDotNetSignToolVersion>
     <XliffTasksVersion Condition="'$(XliffTasksVersion)' == ''">0.2.0-beta-63004-01</XliffTasksVersion>
     <XUnitVersion Condition="'$(XUnitVersion)' == ''">2.4.1-pre.build.4059</XUnitVersion>
     <XUnitRunnerConsoleVersion Condition="'$(XUnitRunnerConsoleVersion)' == ''">$(XUnitVersion)</XUnitRunnerConsoleVersion>
     <XUnitRunnerVisualStudioVersion Condition="'$(XUnitRunnerVisualStudioVersion)' == ''">$(XUnitVersion)</XUnitRunnerVisualStudioVersion>
     <MicrosoftDotNetBuildTasksFeedVersion Condition="'$(MicrosoftDotNetBuildTasksFeedVersion)' == ''">2.2.0-beta.18475.5</MicrosoftDotNetBuildTasksFeedVersion>
     <MicrosoftSourceLinkVersion Condition="'$(MicrosoftSourceLinkVersion)' == ''">1.0.0-beta-63401-01</MicrosoftSourceLinkVersion>
-    <MicrosoftSymbolUploaderBuildTaskVersion Condition="'$(MicrosoftSymbolUploaderBuildTaskVersion)' == ''">1.0.0-beta-63412-03</MicrosoftSymbolUploaderBuildTaskVersion>
+    <MicrosoftSymbolUploaderBuildTaskVersion Condition="'$(MicrosoftSymbolUploaderBuildTaskVersion)' == ''">1.0.0-beta-63604-05</MicrosoftSymbolUploaderBuildTaskVersion>
     <VSWhereVersion Condition="'$(VSWhereVersion)' == ''">2.5.2</VSWhereVersion>
     <SNVersion Condition="'$(SNVersion)' == ''">1.0.0</SNVersion>
     <MicrosoftDotNetMaestroTasksVersion Condition="'$(MicrosoftDotNetMaestroTasksVersion)' == ''">1.0.0-beta.18478.2</MicrosoftDotNetMaestroTasksVersion>

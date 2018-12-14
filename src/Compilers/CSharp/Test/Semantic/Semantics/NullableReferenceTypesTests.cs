@@ -49738,22 +49738,136 @@ class B : A
         };
     }
 }";
-            // https://github.com/dotnet/roslyn/issues/29999: Should not report warning for
-            // dereference of `this.F` or `base.F` after assignment.
-            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (13,21): warning CS8602: Possible dereference of a null reference.
                 //             int n = this.F.Length; // 1
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "this.F").WithLocation(13, 21),
-                // (15,17): warning CS8602: Possible dereference of a null reference.
-                //             n = this.F.Length;
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "this.F").WithLocation(15, 17),
                 // (19,21): warning CS8602: Possible dereference of a null reference.
                 //             int n = base.F.Length; // 2
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "base.F").WithLocation(19, 21),
-                // (21,17): warning CS8602: Possible dereference of a null reference.
-                //             n = base.F.Length;
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "base.F").WithLocation(21, 17));
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "base.F").WithLocation(19, 21));
+        }
+
+        [Fact]
+        [WorkItem(29999, "https://github.com/dotnet/roslyn/issues/29999")]
+        public void ThisAndBaseMemberInLocalFunction()
+        {
+            var source =
+@"#pragma warning disable 8321
+class A
+{
+    internal string? F;
+}
+class B : A
+{
+    void M()
+    {
+        void f()
+        {
+            int n = this.F.Length; // 1
+            this.F = string.Empty;
+            n = this.F.Length;
+        }
+        void g()
+        {
+            int n = base.F.Length; // 2
+            base.F = string.Empty;
+            n = base.F.Length;
+        }
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (12,21): warning CS8602: Possible dereference of a null reference.
+                //             int n = this.F.Length; // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "this.F").WithLocation(12, 21),
+                // (18,21): warning CS8602: Possible dereference of a null reference.
+                //             int n = base.F.Length; // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "base.F").WithLocation(18, 21));
+        }
+
+        [WorkItem(31620, "https://github.com/dotnet/roslyn/issues/31620")]
+        [Fact]
+        public void InstanceMemberInLambda()
+        {
+            var source =
+@"using System;
+class Program
+{
+    private object? _f;
+    private object _g = null!;
+    private void F()
+    {
+        Func<bool, object> f = (bool b1) =>
+        {
+            Func<bool, object> g = (bool b2) =>
+            {
+                if (b2)
+                {
+                    _g = null; // 1
+                    return _g; // 2
+                }
+                return _g;
+            };
+            if (b1) return _f; // 3
+            _f = new object();
+            return _f;
+        };
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (14,26): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //                     _g = null; // 1
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(14, 26),
+                // (15,28): warning CS8603: Possible null reference return.
+                //                     return _g; // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "_g").WithLocation(15, 28),
+                // (19,28): warning CS8603: Possible null reference return.
+                //             if (b1) return _f; // 3
+                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "_f").WithLocation(19, 28));
+        }
+
+        [WorkItem(31620, "https://github.com/dotnet/roslyn/issues/31620")]
+        [Fact]
+        public void InstanceMemberInLocalFunction()
+        {
+            var source =
+@"#pragma warning disable 8321
+class Program
+{
+    private object? _f;
+    private object _g = null!;
+    private void F()
+    {
+        object f(bool b1)
+        {
+            if (b1) return _f; // 1
+            _f = new object();
+            return _f;
+            object g(bool b2)
+            {
+                if (b2)
+                {
+                    _g = null; // 2
+                    return _g; // 3
+                }
+                return _g;
+            }
+        }
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (10,28): warning CS8603: Possible null reference return.
+                //             if (b1) return _f; // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "_f").WithLocation(10, 28),
+                // (17,26): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //                     _g = null; // 2
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(17, 26),
+                // (18,28): warning CS8603: Possible null reference return.
+                //                     return _g; // 3
+                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "_g").WithLocation(18, 28));
         }
 
         [WorkItem(29049, "https://github.com/dotnet/roslyn/issues/29049")]
