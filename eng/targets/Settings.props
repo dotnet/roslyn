@@ -18,11 +18,7 @@
       NU5125 should be removed. See https://github.com/dotnet/roslyn/issues/31589 for details
     -->
     <NoWarn>$(NoWarn);NU5125</NoWarn>
-  </PropertyGroup>
 
-  <Import Project="RepoToolset\Settings.props" />
-
-  <PropertyGroup>
     <!-- Disable the implicit nuget fallback folder as it makes it hard to locate and copy ref assemblies to the test output folder -->
     <DisableImplicitNuGetFallbackFolder>true</DisableImplicitNuGetFallbackFolder>
     <ToolsetPackagesDir>$(RepoRoot)build\ToolsetPackages\</ToolsetPackagesDir>

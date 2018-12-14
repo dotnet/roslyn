@@ -7,8 +7,7 @@
     <_NuGetRepackAssembly Condition="'$(MSBuildRuntimeType)' == 'Core'">$(NuGetPackageRoot)roslyntools.nugetrepack.buildtasks\$(RoslynToolsNuGetRepackVersion)\tools\netcoreapp2.1\RoslynTools.NuGetRepack.BuildTasks.dll</_NuGetRepackAssembly>
   </PropertyGroup>
 
-  <UsingTask TaskName="RoslynTools.GetAssemblyFullName" AssemblyFile="$(RoslynToolsBuildTasksAssembly)" />
-  <UsingTask TaskName="RoslynTools.Unzip" AssemblyFile="$(RoslynToolsBuildTasksAssembly)" />
+  <UsingTask TaskName="Microsoft.DotNet.Arcade.Sdk.GetAssemblyFullName" AssemblyFile="$(ArcadeSdkBuildTasksAssembly)" />
   <UsingTask TaskName="Microsoft.NET.Build.Tasks.JoinItems" AssemblyFile="$(MicrosoftNETBuildTasksAssembly)" />
   <UsingTask TaskName="Roslyn.Tools.ReplacePackageParts" AssemblyFile="$(_NuGetRepackAssembly)" />
 
@@ -76,9 +75,9 @@
       </_CopyLocalDependency>
     </ItemGroup>
 
-    <RoslynTools.GetAssemblyFullName Items="@(_CopyLocalDependency)" PathMetadata="_AssemblyPath" FullNameMetadata="FusionName">
+    <Microsoft.DotNet.Arcade.Sdk.GetAssemblyFullName Items="@(_CopyLocalDependency)" PathMetadata="_AssemblyPath" FullNameMetadata="FusionName">
       <Output TaskParameter="ItemsWithFullName" ItemName="_Dependency"/>
-    </RoslynTools.GetAssemblyFullName>
+    </Microsoft.DotNet.Arcade.Sdk.GetAssemblyFullName>
 
     <!--     
       Exclude dependencies that are not inserted from Roslyn repo.
@@ -166,8 +165,8 @@
   <Target Name="_UnpackOptimizedDependencies" Condition="'@(_DependencyWithOptimizationData)' != ''">
     <MakeDir Directories="@(_DependencyWithOptimizationData->'%(_UnpackDir)')"/>
 
-    <RoslynTools.Unzip SourceFiles="%(_DependencyWithOptimizationData._NuGetPackageDir)%(_DependencyWithOptimizationData._NuGetPackageFileName)" 
-                       DestinationFolder="%(_DependencyWithOptimizationData._UnpackDir)" />
+    <Unzip SourceFiles="%(_DependencyWithOptimizationData._NuGetPackageDir)%(_DependencyWithOptimizationData._NuGetPackageFileName)" 
+           DestinationFolder="%(_DependencyWithOptimizationData._UnpackDir)" />
   </Target>
 
   <!--
