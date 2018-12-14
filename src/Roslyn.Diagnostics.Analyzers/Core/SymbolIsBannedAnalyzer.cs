@@ -101,17 +101,17 @@ namespace Roslyn.Diagnostics.Analyzers
                     {
                         case IObjectCreationOperation objectCreation:
                             VerifySymbol(context.ReportDiagnostic, objectCreation.Constructor, context.Operation.Syntax);
-                            VerifyType(context.ReportDiagnostic, objectCreation.Type.OriginalDefinition, context.Operation.Syntax);
+                            VerifyType(context.ReportDiagnostic, objectCreation.Type, context.Operation.Syntax);
                             break;
 
                         case IInvocationOperation invocation:
                             VerifySymbol(context.ReportDiagnostic, invocation.TargetMethod, context.Operation.Syntax);
-                            VerifyType(context.ReportDiagnostic, invocation.TargetMethod.ContainingType.OriginalDefinition, context.Operation.Syntax);
+                            VerifyType(context.ReportDiagnostic, invocation.TargetMethod.ContainingType, context.Operation.Syntax);
                             break;
 
                         case IMemberReferenceOperation memberReference:
                             VerifySymbol(context.ReportDiagnostic, memberReference.Member, context.Operation.Syntax);
-                            VerifyType(context.ReportDiagnostic, memberReference.Member.ContainingType.OriginalDefinition, context.Operation.Syntax);
+                            VerifyType(context.ReportDiagnostic, memberReference.Member.ContainingType, context.Operation.Syntax);
                             break;
                     }
                 },
@@ -207,7 +207,9 @@ namespace Roslyn.Diagnostics.Analyzers
 
             void VerifyType(Action<Diagnostic> reportDiagnostic, ITypeSymbol type, SyntaxNode syntaxNode)
             {
-                while (!(type is null))
+                type = type.OriginalDefinition;
+
+                do
                 {
                     if (messageByBannedSymbol.TryGetValue(type, out var message))
                     {
@@ -222,10 +224,13 @@ namespace Roslyn.Diagnostics.Analyzers
 
                     type = type.ContainingType;
                 }
+                while (!(type is null));
             }
 
             void VerifySymbol(Action<Diagnostic> reportDiagnostic, ISymbol symbol, SyntaxNode syntaxNode)
             {
+                symbol = symbol.OriginalDefinition;
+
                 if (messageByBannedSymbol.TryGetValue(symbol, out var message))
                 {
                     reportDiagnostic(

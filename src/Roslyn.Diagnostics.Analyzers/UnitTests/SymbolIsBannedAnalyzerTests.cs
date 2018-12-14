@@ -485,27 +485,67 @@ namespace N
     {
         public void Banned() {}
         public void Banned(int i) {}
+        public void Banned<T>(T t) {}
 
         void M()
         {
             Banned();
             Banned(1);
+            Banned<string>("""");
+        }
+    }
+
+    class D<T>
+    {
+        public void Banned() {}
+        public void Banned(int i) {}
+        public void Banned<U>(U u) {}
+
+        void M()
+        {
+            Banned();
+            Banned(1);
+            Banned<string>("""");
         }
     }
 }";
 
             var bannedText1 = @"M:N.C.Banned";
             var bannedText2 = @"M:N.C.Banned(System.Int32)";
+            var bannedText3 = @"M:N.C.Banned``1(``0)";
+            var bannedText4 = @"M:N.D`1.Banned()";
+            var bannedText5 = @"M:N.D`1.Banned(System.Int32)";
+            var bannedText6 = @"M:N.D`1.Banned``1(``0)";
 
             VerifyCSharp(
                 source,
                 bannedText1,
-                GetCSharpResultAt(11, 13, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C.Banned()", ""));
+                GetCSharpResultAt(12, 13, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C.Banned()", ""));
 
             VerifyCSharp(
                 source,
                 bannedText2,
-                GetCSharpResultAt(12, 13, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C.Banned(int)", ""));
+                GetCSharpResultAt(13, 13, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C.Banned(int)", ""));
+
+            VerifyCSharp(
+                source,
+                bannedText3,
+                GetCSharpResultAt(14, 13, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C.Banned<T>(T)", ""));
+
+            VerifyCSharp(
+                source,
+                bannedText4,
+                GetCSharpResultAt(26, 13, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "D<T>.Banned()", ""));
+
+            VerifyCSharp(
+                source,
+                bannedText5,
+                GetCSharpResultAt(27, 13, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "D<T>.Banned(int)", ""));
+
+            VerifyCSharp(
+                source,
+                bannedText6,
+                GetCSharpResultAt(28, 13, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "D<T>.Banned<U>(U)", ""));
         }
 
         [Fact]
