@@ -1,7 +1,3 @@
-# 
-# TODO: This file is currently a subset of Arcade's tools.ps1.
-# 
-
 # Initialize variables if they aren't already defined.
 # These may be defined as parameters of the importing script, or set after importing this script.
 
@@ -91,7 +87,7 @@ function Exec-Process([string]$command, [string]$commandArgs) {
 }
 
 function InitializeDotNetCli([bool]$install) {
-  if (Test-Path global:_DotNetInstallDir) {
+  if (Test-Path variable:global:_DotNetInstallDir) {
     return $global:_DotNetInstallDir
   }
 
@@ -174,7 +170,7 @@ function InstallDotNetSdk([string] $dotnetRoot, [string] $version) {
 # Throws on failure.
 #
 function InitializeVisualStudioMSBuild([bool]$install) {
-  if (Test-Path global:_MSBuildExe) {
+  if (Test-Path variable:global:_MSBuildExe) {
     return $global:_MSBuildExe
   }
 
@@ -260,8 +256,9 @@ function InstallXCopyMSBuild([string] $packageVersion) {
 # or $null if no instance meeting the requirements is found on the machine.
 #
 function LocateVisualStudio {
-  $vswhereVersion = Get-Member -InputObject $GlobalJson.tools -Name "vswhere"
-  if ($vsWhereVersion -eq $null) {
+  if (Get-Member -InputObject $GlobalJson.tools -Name "vswhere") {
+    $vswhereVersion = $GlobalJson.tools.vswhere
+  } else {
     $vswhereVersion = "2.5.2"
   }
 
@@ -300,7 +297,7 @@ function LocateVisualStudio {
 }
 
 function InitializeBuildTool() {
-  if (Test-Path global:_BuildTool) {
+  if (Test-Path variable:global:_BuildTool) {
     return $global:_BuildTool
   }
 
@@ -367,14 +364,40 @@ function GetNuGetPackageCachePath() {
 }
 
 function InitializeToolset() {
-  if (Test-Path global:_ToolsetBuildProj) {
+  if (Test-Path variable:global:_ToolsetBuildProj) {
     return $global:_ToolsetBuildProj
   }
 
   $nugetCache = GetNuGetPackageCachePath
 
-  # TODO: Restore Arcade SDK here.
-  $path = Join-Path $EngRoot "targets\RepoToolset\Build.proj"
+  $toolsetVersion = $GlobalJson.'msbuild-sdks'.'Microsoft.DotNet.Arcade.Sdk'
+  $toolsetLocationFile = Join-Path $ToolsetDir "$toolsetVersion.txt"
+
+  if (Test-Path $toolsetLocationFile) {
+    $path = Get-Content $toolsetLocationFile -TotalCount 1
+    if (Test-Path $path) {
+      return $global:_ToolsetBuildProj = $path
+    }
+  }
+
+  if (-not $restore) {
+    Write-Host  "Toolset version $toolsetVersion has not been restored."
+    ExitWithExitCode 1
+  }
+
+  $buildTool = InitializeBuildTool
+
+  $proj = Join-Path $ToolsetDir "restore.proj"
+  $bl = if ($binaryLog) { "/bl:" + (Join-Path $LogDir "ToolsetRestore.binlog") } else { "" }
+  
+  '<Project Sdk="Microsoft.DotNet.Arcade.Sdk"/>' | Set-Content $proj
+  MSBuild $proj $bl /t:__WriteToolsetLocation /noconsolelogger /p:__ToolsetLocationOutputFile=$toolsetLocationFile
+  
+  $path = Get-Content $toolsetLocationFile -TotalCount 1
+  if (!(Test-Path $path)) {
+    throw "Invalid toolset path: $path"
+  }
+  
   return $global:_ToolsetBuildProj = $path
 }
 
@@ -413,7 +436,7 @@ function MSBuild() {
   $cmdArgs = "$($buildTool.Command) /m /nologo /clp:Summary /v:$verbosity /nr:$nodeReuse"
 
   if ($warnAsError) { 
-    $cmdArgs += " /warnaserror /p:TreatWarningsAsErrors=true" 
+    $cmdArgs += " /p:TreatWarningsAsErrors=true" 
   }
 
   foreach ($arg in $args) {
@@ -462,6 +485,7 @@ $LogDir = Join-Path (Join-Path $ArtifactsDir "log") $configuration
 $TempDir = Join-Path (Join-Path $ArtifactsDir "tmp") $configuration
 $GlobalJson = Get-Content -Raw -Path (Join-Path $RepoRoot "global.json") | ConvertFrom-Json
 
+Create-Directory $ToolsetDir
 Create-Directory $TempDir
 Create-Directory $LogDir
 

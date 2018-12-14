@@ -90,7 +90,7 @@ jobs:
   - task: PowerShell@2
     inputs:
       filePath: eng\createrunsettings.ps1
-      arguments: -release
+      arguments: -configuration $(BuildConfiguration)
       failOnStderr: true
     displayName: 'OPTPROF - generate runsettings file'
     condition: succeededOrFailed()

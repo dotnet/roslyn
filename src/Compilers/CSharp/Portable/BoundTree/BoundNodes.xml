@@ -148,6 +148,12 @@
     <Field Name="ChildBoundNodes" Type="ImmutableArray&lt;BoundNode&gt;"/>
   </Node>
 
+  <!-- This node is used to wrap the BoundBlock for a finally extracted by AsyncExceptionHandlerRewriter.
+    It is processed and removed by AsyncIteratorRewriter. -->
+  <Node Name="BoundExtractedFinallyBlock" Base="BoundStatement">
+    <Field Name="FinallyBlock" Type="BoundBlock"/>
+  </Node>
+
   <Node Name="BoundTypeExpression" Base="BoundExpression">
     <!-- Non-null type is required for this node kind -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
@@ -710,8 +716,6 @@
     <Field Name="StatementOpt" Type="BoundStatement" Null="allow"/>
     <Field Name="Span" Type="TextSpan"/>
   </Node>
-
-  
   
   <!--  
   BoundBlock contains 
@@ -1000,10 +1004,17 @@
     <Field Name="TryBlock" Type="BoundBlock"/>
     <Field Name="CatchBlocks" Type="ImmutableArray&lt;BoundCatchBlock&gt;"/>
     <Field Name="FinallyBlockOpt" Type="BoundBlock" Null="allow"/>
-    
+
+    <!--
+    When lowering trys, we sometimes extract the finally clause out of the try.
+    For example, `try { } finally { await expr; }` becomes something like `try { } catch { ... } finallyLabel: { await expr; ... }`.
+    We need to save the label for the finally so that async-iterator rewriting can implement proper disposal.
+    -->
+    <Field Name="FinallyLabelOpt" Type="LabelSymbol" Null="allow"/>
+
     <!--
     PreferFaultHandler is a hint to the codegen to emit Finally in the following shape -
-    
+
     try
     {    
     }

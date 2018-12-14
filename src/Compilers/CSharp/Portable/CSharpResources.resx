@@ -2641,6 +2641,12 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
   <data name="ERR_AwaitForEachMissingMemberWrongAsync" xml:space="preserve">
     <value>Asynchronous foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public instance definition for '{1}'. Did you mean 'foreach' rather than 'await foreach'?</value>
   </data>
+  <data name="ERR_PossibleAsyncIteratorWithoutYield" xml:space="preserve">
+    <value>The body of an async-iterator method must contain a 'yield' statement.</value>
+  </data>
+  <data name="ERR_PossibleAsyncIteratorWithoutYieldOrAwait" xml:space="preserve">
+    <value>The body of an async-iterator method must contain a 'yield' statement. Consider removing 'async' from the method declaration or adding a 'yield' statement.</value>
+  </data>
   <data name="WRN_BadXMLRefParamType" xml:space="preserve">
     <value>Invalid type for parameter {0} in XML comment cref attribute: '{1}'</value>
   </data>

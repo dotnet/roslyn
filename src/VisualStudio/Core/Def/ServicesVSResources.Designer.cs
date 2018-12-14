@@ -162,6 +162,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Add to _current file.
+        /// </summary>
+        internal static string Add_to_current_file {
+            get {
+                return ResourceManager.GetString("Add_to_current_file", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Add to _existing file.
         /// </summary>
         internal static string Add_to_existing_file {
@@ -2364,6 +2373,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string Select_All {
             get {
                 return ResourceManager.GetString("Select_All", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Select destination.
+        /// </summary>
+        internal static string Select_destination {
+            get {
+                return ResourceManager.GetString("Select_destination", resourceCulture);
             }
         }
         
