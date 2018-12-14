@@ -3515,8 +3515,7 @@ class H
             }
         }
 
-#if !DEBUG // https://github.com/dotnet/roslyn/issues/25702
-        [Fact]
+        [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
         public void GlobalCode_LabeledStatement_06()
         {
             string source =
@@ -3556,7 +3555,6 @@ void Test()
             Assert.Equal(2, x1Ref.Length);
             VerifyModelForDeclarationField(model, x1Decl, x1Ref);
         }
-#endif
 
         [Fact]
         [CompilerTrait(CompilerFeature.Tuples)]

@@ -750,8 +750,7 @@ class C
             });
         }
 
-#if !DEBUG // https://github.com/dotnet/roslyn/issues/25702
-        [Fact]
+        [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
         public void LocalsAndPseudoVariables()
         {
             var source =
@@ -856,7 +855,6 @@ class C
                 Assert.Null(error);
             });
         }
-#endif
 
         [Fact]
         public void This()

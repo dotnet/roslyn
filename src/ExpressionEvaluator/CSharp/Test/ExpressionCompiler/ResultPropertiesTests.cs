@@ -321,8 +321,7 @@ class C
             });
         }
 
-#if !DEBUG // https://github.com/dotnet/roslyn/issues/25702
-        [Fact]
+        [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
         public void LocalDeclaration()
         {
             var source = @"
@@ -364,7 +363,6 @@ class C
                 Assert.Equal(default(DkmEvaluationResultTypeModifierFlags), resultProperties.ModifierFlags);
             });
         }
-#endif
 
         [Fact]
         public void Error()

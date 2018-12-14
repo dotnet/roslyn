@@ -353,8 +353,7 @@ class C
             });
         }
 
-#if !DEBUG // https://github.com/dotnet/roslyn/issues/25702
-        [Fact]
+        [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
         public void DeclareLocal()
         {
             var source =
@@ -418,10 +417,8 @@ class C
 }");
             });
         }
-#endif
 
-#if !DEBUG // https://github.com/dotnet/roslyn/issues/25702
-        [Fact]
+        [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
         [WorkItem(13589, "https://github.com/dotnet/roslyn/issues/13589")]
         public void Alias()
         {
@@ -485,10 +482,8 @@ class C
                 locals.Free();
             });
         }
-#endif
 
-#if !DEBUG // https://github.com/dotnet/roslyn/issues/25702
-        [Fact]
+        [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
         [WorkItem(13803, "https://github.com/dotnet/roslyn/issues/13803")]
         public void AliasElement_NoNames()
         {
@@ -555,6 +550,5 @@ class C
 }");
             });
         }
-#endif
     }
 }

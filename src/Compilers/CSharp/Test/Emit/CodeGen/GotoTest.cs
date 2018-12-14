@@ -849,8 +849,7 @@ False";
                 Diagnostic(ErrorCode.WRN_UnreferencedLabel, "L1").WithLocation(6, 5));
         }
 
-#if !DEBUG // https://github.com/dotnet/roslyn/issues/25702
-        [Fact]
+        [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
         public void AcrossScriptDeclarations()
         {
             string source =
@@ -873,7 +872,6 @@ if (Q < 4) goto L;";
             var compilation = CreateCompilationWithMscorlib45(source, references: new[] { SystemCoreRef }, parseOptions: TestOptions.Script, options: TestOptions.DebugExe);
             CompileAndVerify(compilation, expectedOutput: expectedOutput, verify: Verification.Fails);
         }
-#endif
 
         [Fact]
         public void AcrossSubmissions()
