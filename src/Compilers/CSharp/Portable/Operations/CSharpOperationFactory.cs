@@ -235,7 +235,7 @@ namespace Microsoft.CodeAnalysis.Operations
                     return CreateBoundDiscardPatternOperation((BoundDiscardPattern)boundNode);
                 case BoundKind.SwitchStatement:
                     return CreateBoundSwitchStatementOperation((BoundSwitchStatement)boundNode);
-                case BoundKind.PatternSwitchLabel:
+                case BoundKind.SwitchLabel:
                     return CreateBoundSwitchLabelOperation((BoundSwitchLabel)boundNode);
                 case BoundKind.IsPatternExpression:
                     return CreateBoundIsPatternExpressionOperation((BoundIsPatternExpression)boundNode);
