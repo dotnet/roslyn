@@ -413,7 +413,7 @@ function MSBuild() {
   $cmdArgs = "$($buildTool.Command) /m /nologo /clp:Summary /v:$verbosity /nr:$nodeReuse"
 
   if ($warnAsError) { 
-    $cmdArgs += " /warnaserror /p:TreatWarningsAsErrors=true" 
+    $cmdArgs += " /p:TreatWarningsAsErrors=true" 
   }
 
   foreach ($arg in $args) {

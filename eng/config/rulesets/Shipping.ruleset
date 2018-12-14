@@ -69,6 +69,9 @@
     <Rule Id="CA5350" Action="None" /> <!-- in some cases we must use legacy cryptographic hashes, so disable for now -->
     <Rule Id="CA5351" Action="None" /> <!-- in some cases we must use legacy cryptographic hashes, so disable for now -->
   </Rules>
+  <Rules AnalyzerId="Microsoft.CodeAnalysis.CodeStyle" RuleNamespace="Microsoft.CodeAnalysis.CodeStyle">
+    <Rule Id="IDE0055" Action="Warning" />
+  </Rules>
   <Rules AnalyzerId="Microsoft.CodeAnalysis.Analyzers" RuleNamespace="Microsoft.CodeAnalysis.Analyzers">
     <Rule Id="RS1001" Action="None" />
     <Rule Id="RS1002" Action="None" />
