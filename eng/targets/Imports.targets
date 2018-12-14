@@ -227,6 +227,11 @@
   <!--
     Ensure TargetFrameworkMonikerAssemblyAttributeText is treated as auto-generated
   -->
+  <PropertyGroup>
+    <!-- We generate per-project assembly attributes files, so we can safely delete them when cleaning the project -->
+    <TargetFrameworkMonikerAssemblyAttributesFileClean>true</TargetFrameworkMonikerAssemblyAttributesFileClean>
+  </PropertyGroup>
+
   <Target Name="TreatTargetFrameworkMonikerAssemblyAttributeTextAsGenerated"
           AfterTargets="_SetTargetFrameworkMonikerAttribute"
           Condition="'$(Language)' == 'VB'">
