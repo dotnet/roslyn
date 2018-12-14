@@ -394,11 +394,11 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                         // Bail out in following cases:
                         //   1. End user has configured the diagnostic to be suppressed.
                         //   2. Symbol has error type, hence the diagnostic could be noised
-                        //   3. Symbol is static. For example, assignment to static locals in VB
+                        //   3. Static local symbols. Assignment to static locals
                         //      is not unnecessary as the assigned value can be used on the next invocation.
                         if (_options.UnusedValueAssignmentSeverity == ReportDiagnostic.Suppress ||
                             symbol.GetSymbolType().IsErrorType() ||
-                            symbol.IsStatic)
+                            symbol.IsStatic && symbol.Kind == SymbolKind.Local)
                         {
                             return false;
                         }
