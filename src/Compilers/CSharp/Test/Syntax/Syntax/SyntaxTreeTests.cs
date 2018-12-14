@@ -1,14 +1,111 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Immutable;
 using System.Text;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
+using static Roslyn.Test.Utilities.TestHelpers;
+using KeyValuePair = Roslyn.Utilities.KeyValuePairUtil;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class SyntaxTreeTests
     {
+        [Fact]
+        public void CreateTreeWithDiagnostics()
+        {
+            var options = CreateImmutableDictionary(("CS0078", ReportDiagnostic.Suppress));
+            var tree = CSharpSyntaxTree.Create(SyntaxFactory.ParseCompilationUnit(""), diagnosticOptions: options);
+            Assert.Same(options, tree.DiagnosticOptions);
+        }
+
+        [Fact]
+        public void ParseTreeWithChangesPreservesDiagnosticOptions()
+        {
+            var options = CreateImmutableDictionary(("CS0078", ReportDiagnostic.Suppress));
+            var tree = CSharpSyntaxTree.ParseText(
+                SourceText.From(""),
+                diagnosticOptions: options);
+            Assert.Same(options, tree.DiagnosticOptions);
+            var newTree = tree.WithChangedText(SourceText.From("class C { }"));
+            Assert.Same(options, newTree.DiagnosticOptions);
+        }
+
+        [Fact]
+        public void ParseTreeNullDiagnosticOptions()
+        {
+            var tree = CSharpSyntaxTree.ParseText(
+                SourceText.From(""),
+                diagnosticOptions: null);
+            Assert.NotNull(tree.DiagnosticOptions);
+            Assert.True(tree.DiagnosticOptions.IsEmpty);
+            // The default options are case insensitive but the default empty ImmutableDictionary is not
+            Assert.NotSame(ImmutableDictionary<string, ReportDiagnostic>.Empty, tree.DiagnosticOptions);
+        }
+
+        [Fact]
+        public void ParseTreeEmptyDiagnosticOptions()
+        {
+            var tree = CSharpSyntaxTree.ParseText(
+                SourceText.From(""),
+                diagnosticOptions: ImmutableDictionary<string, ReportDiagnostic>.Empty);
+            Assert.NotNull(tree.DiagnosticOptions);
+            Assert.True(tree.DiagnosticOptions.IsEmpty);
+            Assert.Same(ImmutableDictionary<string, ReportDiagnostic>.Empty, tree.DiagnosticOptions);
+        }
+
+        [Fact]
+        public void ParseTreeCustomDiagnosticOptions()
+        {
+            var options = CreateImmutableDictionary(("CS0078", ReportDiagnostic.Suppress));
+            var tree = CSharpSyntaxTree.ParseText(
+                SourceText.From(""),
+                diagnosticOptions: options);
+            Assert.Same(options, tree.DiagnosticOptions);
+        }
+
+        [Fact]
+        public void DefaultTreeDiagnosticOptions()
+        {
+            var tree = SyntaxFactory.SyntaxTree(SyntaxFactory.CompilationUnit());
+            Assert.NotNull(tree.DiagnosticOptions);
+            Assert.True(tree.DiagnosticOptions.IsEmpty);
+        }
+
+        [Fact]
+        public void WithDiagnosticOptionsNull()
+        {
+            var tree = SyntaxFactory.SyntaxTree(SyntaxFactory.CompilationUnit());
+            var newTree = tree.WithDiagnosticOptions(null);
+            Assert.NotNull(newTree.DiagnosticOptions);
+            Assert.True(newTree.DiagnosticOptions.IsEmpty);
+            Assert.Same(tree, newTree);
+        }
+
+        [Fact]
+        public void WithDiagnosticOptionsEmpty()
+        {
+            var tree = SyntaxFactory.SyntaxTree(SyntaxFactory.CompilationUnit());
+            var newTree = tree.WithDiagnosticOptions(ImmutableDictionary<string, ReportDiagnostic>.Empty);
+            Assert.NotNull(tree.DiagnosticOptions);
+            Assert.True(newTree.DiagnosticOptions.IsEmpty);
+            // Default empty immutable dictionary is case sensitive
+            Assert.NotSame(tree.DiagnosticOptions, newTree.DiagnosticOptions);
+        }
+
+        [Fact]
+        public void PerTreeDiagnosticOptionsNewDict()
+        {
+            var tree = SyntaxFactory.SyntaxTree(SyntaxFactory.CompilationUnit());
+            var map = ImmutableDictionary.CreateRange(
+                new[] { KeyValuePair.Create("CS00778", ReportDiagnostic.Suppress) });
+            var newTree = tree.WithDiagnosticOptions(map);
+            Assert.NotNull(newTree.DiagnosticOptions);
+            Assert.Same(map, newTree.DiagnosticOptions);
+            Assert.NotEqual(tree, newTree);
+        }
+
         [Fact]
         public void WithRootAndOptions_ParsedTree()
         {
