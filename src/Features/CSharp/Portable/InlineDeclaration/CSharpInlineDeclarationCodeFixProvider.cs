@@ -70,19 +70,8 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
         }
 
         private (VariableDeclaratorSyntax declarator, IdentifierNameSyntax identifier, SyntaxNode invocationOrCreation) FindDiagnosticNodes(
-            Document document, Diagnostic diagnostic, 
-            foreach (var diagnostic in diagnostics)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-                await AddEditsAsync(
-                    document, editor, diagnostic,
-                    options, cancellationToken).ConfigureAwait(false);
-            }
-        }
-
-        private async Task AddEditsAsync(
-            Document document, SyntaxEditor editor, Diagnostic diagnostic,
-            OptionSet options, CancellationToken cancellationToken)
+                    Document document, Diagnostic diagnostic,
+                    OptionSet options, CancellationToken cancellationToken)
         {
             // Recover the nodes we care about.
             var declaratorLocation = diagnostic.AdditionalLocations[0];
