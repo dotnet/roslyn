@@ -15,7 +15,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
 {
     public class DeclarationTests : ExpressionCompilerTestBase
     {
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25702")]
+#if !DEBUG // https://github.com/dotnet/roslyn/issues/25702
+        [Fact]
         public void Declarations()
         {
             var source =
@@ -77,8 +78,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
 }");
             });
         }
+#endif
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25702")]
+#if !DEBUG // https://github.com/dotnet/roslyn/issues/25702
+        [Fact]
         public void DeconstructionDeclaration()
         {
             var source = @"
@@ -154,8 +157,10 @@ class C
 }");
                });
         }
+#endif
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25702")]
+#if !DEBUG // https://github.com/dotnet/roslyn/issues/25702
+        [Fact]
         public void DeconstructionDeclarationWithDiscard()
         {
             var source = @"
@@ -220,8 +225,10 @@ class C
 ");
                });
         }
+#endif
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25702")]
+#if !DEBUG // https://github.com/dotnet/roslyn/issues/25702
+        [Fact]
         public void ExpressionLocals_ExpressionStatement_01()
         {
             var source =
@@ -276,8 +283,10 @@ class C
 }");
             });
         }
+#endif
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25702")]
+#if !DEBUG // https://github.com/dotnet/roslyn/issues/25702
+        [Fact]
         [WorkItem(13159, "https://github.com/dotnet/roslyn/issues/13159")]
         public void ExpressionLocals_ExpressionStatement_02()
         {
@@ -343,8 +352,10 @@ class C
 }");
             });
         }
+#endif
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25702")]
+#if !DEBUG // https://github.com/dotnet/roslyn/issues/25702
+        [Fact]
         public void ExpressionLocals_Assignment_01()
         {
             var source =
@@ -400,8 +411,10 @@ class C
 }");
             });
         }
+#endif
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25702")]
+#if !DEBUG // https://github.com/dotnet/roslyn/issues/25702
+        [Fact]
         public void ExpressionLocals_LocalDeclarationStatement_01()
         {
             var source =
@@ -468,8 +481,10 @@ class C
 }");
             });
         }
+#endif
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25702")]
+#if !DEBUG // https://github.com/dotnet/roslyn/issues/25702
+        [Fact]
         public void References()
         {
             var source =
@@ -543,8 +558,10 @@ class C
 }");
             });
         }
+#endif
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25702")]
+#if !DEBUG // https://github.com/dotnet/roslyn/issues/25702
+        [Fact]
         public void Address()
         {
             var source =
@@ -583,6 +600,7 @@ class C
 }");
             });
         }
+#endif
 
         [Fact]
         public void TreatAsExpression()
@@ -649,7 +667,8 @@ class C
             });
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25702")]
+#if !DEBUG // https://github.com/dotnet/roslyn/issues/25702
+        [Fact]
         public void BaseType()
         {
             var source =
@@ -696,8 +715,10 @@ class C
 }");
             });
         }
+#endif
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25702")]
+#if !DEBUG // https://github.com/dotnet/roslyn/issues/25702
+        [Fact]
         public void Var()
         {
             var source =
@@ -738,9 +759,11 @@ class C
 }");
             });
         }
+#endif
 
+#if !DEBUG // https://github.com/dotnet/roslyn/issues/25702
+        [Fact]
         [WorkItem(1087216, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1087216")]
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25702")]
         public void Dynamic()
         {
             var source =
@@ -791,6 +814,7 @@ class C
 }");
             });
         }
+#endif
 
         [Fact]
         public void BindingError_Initializer()
@@ -891,7 +915,8 @@ class C
             });
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25702")]
+#if !DEBUG // https://github.com/dotnet/roslyn/issues/25702
+        [Fact]
         public void ReferenceInNextDeclaration()
         {
             var source =
@@ -951,9 +976,11 @@ class C
 }");
             });
         }
+#endif
 
+#if !DEBUG // https://github.com/dotnet/roslyn/issues/25702
+        [Fact]
         [WorkItem(1094107, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1094107")]
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25702")]
         public void ReferenceInSameDeclaration()
         {
             var source =
@@ -1037,6 +1064,7 @@ class C
 }");
             });
         }
+#endif
 
         [Fact]
         public void ReferenceInPreviousDeclaration()
@@ -1163,7 +1191,8 @@ class C
             });
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25702")]
+#if !DEBUG // https://github.com/dotnet/roslyn/issues/25702
+        [Fact]
         public void Keyword()
         {
             var source =
@@ -1216,8 +1245,10 @@ class C
 }");
             });
         }
+#endif
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25702")]
+#if !DEBUG // https://github.com/dotnet/roslyn/issues/25702
+        [Fact]
         public void Constant()
         {
             var source =
@@ -1262,8 +1293,10 @@ class C
 }");
             });
         }
+#endif
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25702")]
+#if !DEBUG // https://github.com/dotnet/roslyn/issues/25702
+        [Fact]
         public void Generic()
         {
             var source =
@@ -1306,6 +1339,7 @@ class C
 }");
             });
         }
+#endif
 
         /// <summary>
         /// Should not allow names with '$' prefix.
@@ -1361,11 +1395,12 @@ class C
             });
         }
 
+#if !DEBUG // https://github.com/dotnet/roslyn/issues/25702
         /// <summary>
         /// Local declarations inside a lambda should
         /// not be considered pseudo-variables.
         /// </summary>
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25702")]
+        [Fact]
         public void Lambda()
         {
             var source =
@@ -1416,6 +1451,7 @@ class C
 }");
             });
         }
+#endif
 
         [WorkItem(1094148, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1094148")]
         [Fact]
@@ -1442,8 +1478,9 @@ class C
             });
         }
 
+#if !DEBUG // https://github.com/dotnet/roslyn/issues/25702
+        [Fact]
         [WorkItem(3822, "https://github.com/dotnet/roslyn/issues/3822")]
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25702")]
         public void GenericType_Identifier()
         {
             var source = @"
@@ -1487,9 +1524,11 @@ class Generic<T>
 }");
             });
         }
+#endif
 
+#if !DEBUG // https://github.com/dotnet/roslyn/issues/25702
+        [Fact]
         [WorkItem(3822, "https://github.com/dotnet/roslyn/issues/3822")]
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25702")]
         public void GenericType_Keyword()
         {
             var source = @"
@@ -1533,9 +1572,11 @@ class Generic<T>
 }");
             });
         }
+#endif
 
+#if !DEBUG // https://github.com/dotnet/roslyn/issues/25702
+        [Fact]
         [WorkItem(3822, "https://github.com/dotnet/roslyn/issues/3822")]
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25702")]
         public void PointerType_Identifier()
         {
             var source = @"
@@ -1580,9 +1621,11 @@ struct S
 }");
             });
         }
+#endif
 
+#if !DEBUG // https://github.com/dotnet/roslyn/issues/25702
+        [Fact]
         [WorkItem(3822, "https://github.com/dotnet/roslyn/issues/3822")]
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25702")]
         public void PointerType_Keyword()
         {
             var source = @"
@@ -1623,9 +1666,11 @@ class C
 }");
             });
         }
+#endif
 
+#if !DEBUG // https://github.com/dotnet/roslyn/issues/25702
+        [Fact]
         [WorkItem(3822, "https://github.com/dotnet/roslyn/issues/3822")]
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25702")]
         public void NullableType_Identifier()
         {
             var source = @"
@@ -1672,9 +1717,11 @@ struct S
 }");
             });
         }
+#endif
 
+#if !DEBUG // https://github.com/dotnet/roslyn/issues/25702
+        [Fact]
         [WorkItem(3822, "https://github.com/dotnet/roslyn/issues/3822")]
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25702")]
         public void NullableType_Keyword()
         {
             var source = @"
@@ -1717,6 +1764,7 @@ class C
 }");
             });
         }
+#endif
 
         private static void CompileDeclaration(EvaluationContext context, string declaration, out DkmClrCompilationResultFlags flags, out CompilationTestData testData)
         {
@@ -1746,7 +1794,8 @@ class C
             flags = resultProperties.Flags;
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25702")]
+#if !DEBUG // https://github.com/dotnet/roslyn/issues/25702
+        [Fact]
         public void PatternLocals_Assignment_01()
         {
             var source =
@@ -1813,8 +1862,10 @@ class C
 }");
             });
         }
+#endif
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25702")]
+#if !DEBUG // https://github.com/dotnet/roslyn/issues/25702
+        [Fact]
         public void PatternLocals_Assignment_02()
         {
             var source =
@@ -1880,8 +1931,10 @@ class C
 }");
             });
         }
+#endif
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25702")]
+#if !DEBUG // https://github.com/dotnet/roslyn/issues/25702
+        [Fact]
         public void PatternLocals_Assignment_03()
         {
             var source =
@@ -1943,8 +1996,10 @@ class C
 }");
             });
         }
+#endif
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25702")]
+#if !DEBUG // https://github.com/dotnet/roslyn/issues/25702
+        [Fact]
         public void PatternLocals_Assignment_04()
         {
             var source =
@@ -2002,8 +2057,10 @@ class C
 }");
             });
         }
+#endif
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25702")]
+#if !DEBUG // https://github.com/dotnet/roslyn/issues/25702
+        [Fact]
         public void PatternLocals_Assignment_05()
         {
             var source =
@@ -2072,8 +2129,10 @@ class C
 }");
             });
         }
+#endif
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25702")]
+#if !DEBUG // https://github.com/dotnet/roslyn/issues/25702
+        [Fact]
         public void PatternLocals_LocalDeclarationStatement_01()
         {
             var source =
@@ -2150,6 +2209,7 @@ class C
 }");
             });
         }
+#endif
 
         [Fact]
         public void DuplicateDeclaration()

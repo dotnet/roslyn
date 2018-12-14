@@ -744,8 +744,9 @@ class Generic<T>
             });
         }
 
+#if !DEBUG // https://github.com/dotnet/roslyn/issues/25702
+        [Fact]
         [WorkItem(1087216, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1087216")]
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25702")]
         public void ComplexDynamicType()
         {
             var source =
@@ -839,8 +840,10 @@ public class Outer<T, U>
                 locals.Free();
             });
         }
+#endif
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25702")]
+#if !DEBUG // https://github.com/dotnet/roslyn/issues/25702
+        [Fact]
         public void DynamicAliases()
         {
             var source =
@@ -922,6 +925,7 @@ public class Outer<T, U>
             builder.Free();
             return CustomTypeInfo.Encode(bytes, null);
         }
+#endif
 
         [Fact]
         public void DynamicAttribute_NotAvailable()

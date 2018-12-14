@@ -1147,11 +1147,12 @@ IL_0005:  ret
             });
         }
 
+#if !DEBUG // https://github.com/dotnet/roslyn/issues/25702
         /// <summary>
         /// Intrinsic methods assembly should not be dropped.
         /// </summary>
         [WorkItem(4140, "https://github.com/dotnet/roslyn/issues/4140")]
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25702")]
+        [Fact]
         public void IntrinsicMethods()
         {
             var sourceA =
@@ -1243,6 +1244,7 @@ IL_002b:  castclass  ""string""
 IL_0030:  ret
 }");
         }
+#endif
 
         private const string CorLibAssemblyName = "System.Private.CoreLib";
 

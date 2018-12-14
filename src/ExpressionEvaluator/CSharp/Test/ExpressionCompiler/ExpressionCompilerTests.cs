@@ -6353,7 +6353,8 @@ class C
             });
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25702")]
+#if !DEBUG // https://github.com/dotnet/roslyn/issues/25702
+        [Fact]
         public void AssignDefaultToLocal()
         {
             var source = @"
@@ -6456,6 +6457,7 @@ class C
 }");
         });
         }
+#endif
 
         [Fact]
         public void InLambdasEvaluationWillSynthesizeRequiredAttributes_Parameters()
@@ -6648,7 +6650,8 @@ class C
             });
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25702")]
+#if !DEBUG // https://github.com/dotnet/roslyn/issues/25702
+        [Fact]
         public void OutVarInExpression()
         {
             var source =
@@ -6685,6 +6688,7 @@ class C
   IL_002d:  ret
 }");
         }
+#endif
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/30436")]
         [WorkItem(30436, "https://github.com/dotnet/roslyn/issues/30436")]

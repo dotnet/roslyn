@@ -271,7 +271,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
             });
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25702")]
+#if !DEBUG // https://github.com/dotnet/roslyn/issues/25702
+        [Fact]
         public void ObjectId()
         {
             var source =
@@ -317,9 +318,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
 }");
             });
         }
+#endif
 
+#if !DEBUG // https://github.com/dotnet/roslyn/issues/25702
+        [Fact]
         [WorkItem(1101017, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1101017")]
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25702")]
         public void NestedGenericValueType()
         {
             var source =
@@ -368,8 +371,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
 }");
             });
         }
+#endif
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25702")]
+#if !DEBUG // https://github.com/dotnet/roslyn/issues/25702
+        [Fact]
         public void ArrayType()
         {
             var source =
@@ -485,8 +490,10 @@ class C
                 Assert.Equal(error, "error CS0648: '' is a type not supported by the language");
             });
         }
+#endif
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25702")]
+#if !DEBUG // https://github.com/dotnet/roslyn/issues/25702
+        [Fact]
         public void Variables()
         {
             var source =
@@ -533,6 +540,7 @@ class C
                 Assert.Equal(error, string.Format("error CS0103: The name '{0}' does not exist in the current context", variableName));
             }
         }
+#endif
 
         [Fact]
         public void CheckViability()
@@ -676,8 +684,9 @@ class C
             });
         }
 
+#if !DEBUG // https://github.com/dotnet/roslyn/issues/25702
+        [Fact]
         [WorkItem(1100849, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1100849")]
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25702")]
         public void PassByRef()
         {
             var source =
@@ -800,8 +809,10 @@ class C
 }");
             });
         }
+#endif
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25702")]
+#if !DEBUG // https://github.com/dotnet/roslyn/issues/25702
+        [Fact]
         public void ValueType()
         {
             var source =
@@ -848,8 +859,10 @@ class C
 }");
             });
         }
+#endif
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25702")]
+#if !DEBUG // https://github.com/dotnet/roslyn/issues/25702
+        [Fact]
         public void CompoundAssignment()
         {
             var source =
@@ -897,13 +910,15 @@ class C
 }");
             });
         }
+#endif
 
+#if !DEBUG // https://github.com/dotnet/roslyn/issues/25702
         /// <summary>
         /// Assembly-qualified type names from the debugger refer to runtime assemblies
         /// which may be different versions than the assembly references in metadata.
         /// </summary>
         [WorkItem(1087458, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1087458")]
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25702")]
+        [Fact]
         public void DifferentAssemblyVersion()
         {
             var sourceA =
@@ -984,13 +999,15 @@ class C
 }");
             });
         }
+#endif
 
+#if !DEBUG // https://github.com/dotnet/roslyn/issues/25702
         /// <summary>
         /// The assembly-qualified type may reference an assembly
         /// outside of the current module and its references.
         /// </summary>
         [WorkItem(1092680, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1092680")]
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25702")]
+        [Fact]
         public void TypeOutsideModule()
         {
             var sourceA =
@@ -1089,6 +1106,7 @@ IL_000f:  stloc.0
 IL_0010:  ret
 }");
         }
+#endif
 
         [WorkItem(1140387, "DevDiv")]
         [Fact]
@@ -1130,8 +1148,9 @@ IL_0010:  ret
             });
         }
 
+#if !DEBUG // https://github.com/dotnet/roslyn/issues/25702
+        [Fact]
         [WorkItem(1140387, "DevDiv")]
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25702")]
         public void UserVariableOfPointerType()
         {
             var source =
@@ -1169,6 +1188,7 @@ IL_0010:  ret
 }");
             });
         }
+#endif
 
         private CompilationTestData Evaluate(
             RuntimeInstance runtime,

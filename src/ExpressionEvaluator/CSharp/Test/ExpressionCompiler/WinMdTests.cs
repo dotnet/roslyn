@@ -237,13 +237,13 @@ class C
             });
         }
 
+#if !DEBUG // https://github.com/dotnet/roslyn/issues/25702
         /// <summary>
         /// Assembly-qualified name containing "ContentType=WindowsRuntime",
         /// and referencing runtime assembly.
         /// </summary>
         [WorkItem(1116143, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1116143")]
-        //[ConditionalFact(typeof(OSVersionWin8))]
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25702")] // should be ConditionalFact, above, when fixed
+        [ConditionalFact(typeof(OSVersionWin8))]
         public void AssemblyQualifiedName()
         {
             var source =
@@ -291,6 +291,7 @@ class C
 }");
             });
         }
+#endif
 
         [WorkItem(1117084, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1117084")]
         [Fact]
