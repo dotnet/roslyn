@@ -1,12 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using Analyzer.Utilities;
 using Analyzer.Utilities.Extensions;
 
 namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
@@ -21,8 +21,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         where TAnalysisResult : DataFlowAnalysisResult<TBlockAnalysisResult, TAbstractAnalysisValue>
         where TBlockAnalysisResult : AbstractBlockAnalysisResult
     {
-        private static readonly ConditionalWeakTable<IOperation, ConcurrentDictionary<DataFlowOperationVisitor<TAnalysisData, TAnalysisContext, TAnalysisResult, TAbstractAnalysisValue>, TAnalysisResult>> s_resultCache =
-            new ConditionalWeakTable<IOperation, ConcurrentDictionary<DataFlowOperationVisitor<TAnalysisData, TAnalysisContext, TAnalysisResult, TAbstractAnalysisValue>, TAnalysisResult>>();
+        private static readonly ConditionalWeakTable<IOperation, SingleThreadedConcurrentDictionary<DataFlowOperationVisitor<TAnalysisData, TAnalysisContext, TAnalysisResult, TAbstractAnalysisValue>, TAnalysisResult>> s_resultCache =
+            new ConditionalWeakTable<IOperation, SingleThreadedConcurrentDictionary<DataFlowOperationVisitor<TAnalysisData, TAnalysisContext, TAnalysisResult, TAbstractAnalysisValue>, TAnalysisResult>>();
 
         protected DataFlowAnalysis(AbstractAnalysisDomain<TAnalysisData> analysisDomain, DataFlowOperationVisitor<TAnalysisData, TAnalysisContext, TAnalysisResult, TAbstractAnalysisValue> operationVisitor)
         {
