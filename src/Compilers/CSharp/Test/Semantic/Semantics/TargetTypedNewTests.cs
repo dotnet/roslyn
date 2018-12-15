@@ -286,25 +286,14 @@ class C
 }
 ";
             var comp = CreateCompilation(source, options: TestOptions.DebugExe);
-            comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "CS");
-
-            var tree = comp.SyntaxTrees.First();
-            var model = comp.GetSemanticModel(tree);
-            var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
-
-            validate(0, "new()", type: "C", convertedType: "C", symbol: "C..ctor()", ConversionKind.Identity);
-            validate(1, "new()", type: "S", convertedType: "S?", symbol: "S..ctor()", ConversionKind.ImplicitNullable);
-
-            void validate(int index, string expression, string type, string convertedType, string symbol, ConversionKind conversionKind)
-            {
-                var @new = nodes.OfType<ObjectCreationExpressionSyntax>().ElementAt(index);
-                Assert.Equal(expression, @new.ToString());
-                Assert.Equal(type, model.GetTypeInfo(@new).Type.ToTestDisplayString());
-                Assert.Equal(convertedType, model.GetTypeInfo(@new).ConvertedType.ToTestDisplayString());
-                Assert.Equal(symbol, model.GetSymbolInfo(@new).Symbol.ToTestDisplayString());
-                Assert.Equal(conversionKind, model.GetConversion(@new).Kind);
-            }
+            comp.VerifyDiagnostics(
+                // (12,23): error CS9365: The first operand of an 'as' operator may not be a target-typed 'new' expression
+                //         Console.Write(new() as C);
+                Diagnostic(ErrorCode.ERR_TypelessNewInAs, "new() as C").WithLocation(12, 23),
+                // (13,23): error CS9365: The first operand of an 'as' operator may not be a target-typed 'new' expression
+                //         Console.Write(new() as S?);
+                Diagnostic(ErrorCode.ERR_TypelessNewInAs, "new() as S?").WithLocation(13, 23)
+                );
         }
 
         [Fact]
@@ -328,7 +317,13 @@ class C
 }
 ";
             var comp = CreateCompilation(source, options: TestOptions.DebugExe);
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (13,23): error CS9365: The first operand of an 'as' operator may not be a target-typed 'new' expression
+                //         Console.Write(new() as int?);
+                Diagnostic(ErrorCode.ERR_TypelessNewInAs, "new() as int?").WithLocation(13, 23),
+                // (14,23): error CS9365: The first operand of an 'as' operator may not be a target-typed 'new' expression
+                //         Console.Write(new() as S?);
+                Diagnostic(ErrorCode.ERR_TypelessNewInAs, "new() as S?").WithLocation(14, 23));
         }
 
         [Fact]
