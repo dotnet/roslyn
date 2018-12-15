@@ -201,8 +201,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeNamespace
         ///     namespace to global namespace (i.e. remove the namespace declaration).    
         /// </summary>
         protected override CompilationUnitSyntax ChangeNamespaceDeclaration(
-            CompilationUnitSyntax root, 
-            ImmutableArray<string> declaredNamespaceParts, 
+            CompilationUnitSyntax root,
+            ImmutableArray<string> declaredNamespaceParts,
             ImmutableArray<string> targetNamespaceParts)
         {
             Debug.Assert(!declaredNamespaceParts.IsDefault && !targetNamespaceParts.IsDefault);
@@ -225,7 +225,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeNamespace
 
                 // Change namespace name
                 return root.ReplaceNode(
-                    namespaceDecl, 
+                    namespaceDecl,
                     namespaceDecl.WithName(
                         CreateNameSyntax(targetNamespaceParts, aliasQualifier: null, targetNamespaceParts.Length - 1)
                         .WithTriviaFrom(namespaceDecl.Name).WithAdditionalAnnotations(WarningAnnotation))
@@ -349,7 +349,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeNamespace
                 container = namespaceDecl;
             }
 
-            var containsPartial = 
+            var containsPartial =
                 await ContainsPartialTypeWithMultipleDeclarationsAsync(document, container, cancellationToken).ConfigureAwait(false);
 
             if (containsPartial)

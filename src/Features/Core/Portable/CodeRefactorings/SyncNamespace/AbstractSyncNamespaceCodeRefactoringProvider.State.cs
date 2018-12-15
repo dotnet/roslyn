@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
             /// which will be used to change namespace.
             /// </summary>
             public SyntaxNode Container { get; }
-                                                                                                       
+
             /// <summary>
             /// This is the new name we want to change the namespace to.
             /// Empty string means global namespace, whereas null means change namespace action is not available.
@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
             private State(
                 Document document,
                 SyntaxNode container,
-                string targetNamespace,                         
+                string targetNamespace,
                 string relativeDeclaredNamespace)
             {
                 Document = document;
@@ -138,8 +138,8 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
                 // For example, if the default namespace is `Microsoft.CodeAnalysis`, and declared
                 // namespace is `System.Diagnostics`, it's very likely this document is an outlier  
                 // in the project and user probably has some special rule for it.
-                var relativeNamespace = GetRelativeNamespace(defaultNamespace, declaredNamespace, syntaxFacts);                                                                           
-                                                                                                                          
+                var relativeNamespace = GetRelativeNamespace(defaultNamespace, declaredNamespace, syntaxFacts);
+
                 return new State(document, applicableNode, targetNamespace, relativeNamespace);
             }
 
