@@ -473,10 +473,10 @@ class C
             comp.VerifyDiagnostics(
                 // (7,16): error CS9366: The type 'I' may not be used as the target-type of 'new(...)'
                 //         I x0 = new();
-                Diagnostic(ErrorCode.ERR_IllegalTargetType, "new()").WithArguments("I").WithLocation(7, 16),
+                Diagnostic(ErrorCode.ERR_IllegalTargetTypeForNew, "new()").WithArguments("I").WithLocation(7, 16),
                 // (8,18): error CS9366: The type 'I' may not be used as the target-type of 'new(...)'
                 //         var x1 = (I)new();
-                Diagnostic(ErrorCode.ERR_IllegalTargetType, "(I)new()").WithArguments("I").WithLocation(8, 18)
+                Diagnostic(ErrorCode.ERR_IllegalTargetTypeForNew, "(I)new()").WithArguments("I").WithLocation(8, 18)
                 );
         }
 
@@ -498,10 +498,10 @@ class C
             comp.VerifyDiagnostics(
                 // (7,16): error CS9366: The type 'E' may not be used as the target-type of 'new(...)'
                 //         E x0 = new();
-                Diagnostic(ErrorCode.ERR_IllegalTargetType, "new()").WithArguments("E").WithLocation(7, 16),
+                Diagnostic(ErrorCode.ERR_IllegalTargetTypeForNew, "new()").WithArguments("E").WithLocation(7, 16),
                 // (8,18): error CS9366: The type 'E' may not be used as the target-type of 'new(...)'
                 //         var x1 = (E)new();
-                Diagnostic(ErrorCode.ERR_IllegalTargetType, "(E)new()").WithArguments("E").WithLocation(8, 18)
+                Diagnostic(ErrorCode.ERR_IllegalTargetTypeForNew, "(E)new()").WithArguments("E").WithLocation(8, 18)
                 );
         }
 
@@ -1784,7 +1784,7 @@ class C
                 Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "x = new()").WithArguments("new(...)").WithLocation(10, 20),
                 // (14,39): error CS9366: The type 'IDisposable' may not be used as the target-type of 'new'.
                 //         using (System.IDisposable x = new())
-                Diagnostic(ErrorCode.ERR_IllegalTargetType, "new()").WithArguments("System.IDisposable").WithLocation(14, 39)
+                Diagnostic(ErrorCode.ERR_IllegalTargetTypeForNew, "new()").WithArguments("System.IDisposable").WithLocation(14, 39)
                 );
 
             var tree = comp.SyntaxTrees.First();
@@ -2680,7 +2680,7 @@ class C
             comp.VerifyEmitDiagnostics(
                 // (6,11): error CS9366: The type 'object[]' may not be used as the target-type of 'new(...)'
                 //         M(new());
-                Diagnostic(ErrorCode.ERR_IllegalTargetType, "new()").WithArguments("object[]").WithLocation(6, 11)
+                Diagnostic(ErrorCode.ERR_IllegalTargetTypeForNew, "new()").WithArguments("object[]").WithLocation(6, 11)
                 );
         }
 
@@ -2750,10 +2750,10 @@ class C
             comp.VerifyEmitDiagnostics(
                 // (8,14): error CS9366: The type 'object[]' may not be used as the target-type of 'new'.
                 //         M(o, new());
-                Diagnostic(ErrorCode.ERR_IllegalTargetType, "new()").WithArguments("object[]").WithLocation(8, 14),
+                Diagnostic(ErrorCode.ERR_IllegalTargetTypeForNew, "new()").WithArguments("object[]").WithLocation(8, 14),
                 // (10,14): error CS9366: The type 'C[]' may not be used as the target-type of 'new'.
                 //         M(c, new());
-                Diagnostic(ErrorCode.ERR_IllegalTargetType, "new()").WithArguments("C[]").WithLocation(10, 14)
+                Diagnostic(ErrorCode.ERR_IllegalTargetTypeForNew, "new()").WithArguments("C[]").WithLocation(10, 14)
                 );
 
             var tree = comp.SyntaxTrees.First();

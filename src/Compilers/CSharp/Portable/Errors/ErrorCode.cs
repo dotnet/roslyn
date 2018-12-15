@@ -1583,7 +1583,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_FeatureNotAvailableInVersion8 = 8400,
 
         // PROTOTYPE(target-typed-new): compact error codes
-        ERR_IllegalTargetType = 9366,
+        ERR_IllegalTargetTypeForNew = 9366,
         ERR_BadDynamicMethodArgTypelessNew = 9368,
         ERR_TypelessNewNotValid = 9369,
         #endregion diagnostics introduced for C# 8.0

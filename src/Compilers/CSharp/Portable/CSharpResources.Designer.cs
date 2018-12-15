@@ -296,11 +296,11 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Operator &apos;{0}&apos; is ambiguous on operands &apos;default&apos; and &apos;default&apos;.
+        ///   Looks up a localized string similar to Operator &apos;{0}&apos; is ambiguous on operands &apos;{1}&apos; and &apos;{2}&apos;.
         /// </summary>
-        internal static string ERR_AmbigBinaryOpsOnDefault {
+        internal static string ERR_AmbigBinaryOpsOnTypelessExpression {
             get {
-                return ResourceManager.GetString("ERR_AmbigBinaryOpsOnDefault", resourceCulture);
+                return ResourceManager.GetString("ERR_AmbigBinaryOpsOnTypelessExpression", resourceCulture);
             }
         }
         
@@ -5174,15 +5174,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The default constructor of the value type &apos;{0}&apos; may not be used with &apos;new(...)&apos;; Use &apos;default&apos; or a literal expression instead.
-        /// </summary>
-        internal static string ERR_IllegalDefaultValueTypeCtor {
-            get {
-                return ResourceManager.GetString("ERR_IllegalDefaultValueTypeCtor", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Unrecognized escape sequence.
         /// </summary>
         internal static string ERR_IllegalEscape {
@@ -5239,9 +5230,9 @@ namespace Microsoft.CodeAnalysis.CSharp {
         /// <summary>
         ///   Looks up a localized string similar to The type &apos;{0}&apos; may not be used as the target-type of &apos;new(...)&apos;.
         /// </summary>
-        internal static string ERR_IllegalTargetType {
+        internal static string ERR_IllegalTargetTypeForNew {
             get {
-                return ResourceManager.GetString("ERR_IllegalTargetType", resourceCulture);
+                return ResourceManager.GetString("ERR_IllegalTargetTypeForNew", resourceCulture);
             }
         }
         

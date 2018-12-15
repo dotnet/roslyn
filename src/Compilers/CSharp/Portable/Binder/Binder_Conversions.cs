@@ -220,7 +220,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case TypeKind.Array:
                 case TypeKind.Enum:
                 case TypeKind.Interface:
-                    Error(diagnostics, ErrorCode.ERR_IllegalTargetType, syntax, type);
+                    Error(diagnostics, ErrorCode.ERR_IllegalTargetTypeForNew, syntax, type);
                     return true;
 
                 case TypeKind.Pointer:
