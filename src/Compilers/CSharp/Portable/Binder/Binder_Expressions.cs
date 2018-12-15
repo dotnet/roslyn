@@ -3621,7 +3621,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundExpression BindDelegateCreationExpression(ObjectCreationExpressionSyntax node, NamedTypeSymbol type, DiagnosticBag diagnostics)
         {
             var analyzedArguments = AnalyzedArguments.GetInstance();
-            BindArgumentsAndNames(node.ArgumentList, diagnostics, analyzedArguments);
+            BindArgumentsAndNames(node.ArgumentList, diagnostics, analyzedArguments, isDelegateCreation: true);
             BoundExpression result = BindDelegateCreationExpression(node, type, analyzedArguments, node.Initializer, diagnostics);
             analyzedArguments.Free();
             return result;
