@@ -3,7 +3,9 @@
 using System.Linq;
 using System.Threading.Tasks;
 using System.Threading;
-using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.OrderModifiers;
+using Microsoft.CodeAnalysis.OrderModifiers;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.HideBase
@@ -14,12 +16,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.HideBase
         {
             private readonly Document _document;
             private readonly SyntaxNode _node;
-
-            private static CSharpSyntaxFactsService SyntaxFacts => CSharpSyntaxFactsService.Instance;
-
-            private static Options.Option<CodeAnalysis.CodeStyle.CodeStyleOption<string>> PreferredModifierOrderOption => CodeStyle.CSharpCodeStyleOptions.PreferredModifierOrder;
-
-            private static OrderModifiers.CSharpOrderModifiersHelper OrderModifiersHelper => OrderModifiers.CSharpOrderModifiersHelper.Instance;
 
             public override string Title => CSharpFeaturesResources.Hide_base_member;
 
@@ -41,21 +37,22 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.HideBase
 
             private async Task<SyntaxNode> GetNewNodeAsync(SyntaxNode node, CancellationToken cancellationToken)
             {
-                var modifiers = SyntaxFacts.GetModifiers(node);
+                var syntaxFacts = CSharpSyntaxFactsService.Instance;
+                var modifiers = syntaxFacts.GetModifiers(node);
                 var newModifiers = modifiers.Add(SyntaxFactory.Token(SyntaxKind.NewKeyword));
 
                 var options = await _document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-                var option = options.GetOption(PreferredModifierOrderOption);
-                if (!OrderModifiersHelper.TryGetOrComputePreferredOrder(option.Value, out var preferredOrder) ||
-                    !CodeAnalysis.OrderModifiers.AbstractOrderModifiersHelpers.IsOrdered(preferredOrder, modifiers))
+                var option = options.GetOption(CSharpCodeStyleOptions.PreferredModifierOrder);
+                if (!CSharpOrderModifiersHelper.Instance.TryGetOrComputePreferredOrder(option.Value, out var preferredOrder) ||
+                    !AbstractOrderModifiersHelpers.IsOrdered(preferredOrder, modifiers))
                 {
-                    return SyntaxFacts.WithModifiers(node, newModifiers);
+                    return syntaxFacts.WithModifiers(node, newModifiers);
                 }
 
                 var orderedModifiers = new SyntaxTokenList(
                     newModifiers.OrderBy(CompareModifiers));
 
-                return SyntaxFacts.WithModifiers(node, orderedModifiers);
+                return syntaxFacts.WithModifiers(node, orderedModifiers);
 
                 int CompareModifiers(SyntaxToken left, SyntaxToken right)
                     => GetOrder(left) - GetOrder(right);
