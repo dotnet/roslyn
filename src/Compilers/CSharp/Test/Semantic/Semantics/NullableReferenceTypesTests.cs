@@ -145,6 +145,82 @@ class C
         }
 
         [Fact]
+        public void SpeakableInference_LambdaReturnTypeInference()
+        {
+            var source =
+@"class Program
+{
+    void M<T>(T t)
+    {
+        F(() =>
+        {
+            if (t == null) throw null;
+            bool b = true;
+            if (b) return t;
+            return t;
+        });
+        F<T>(() =>
+        {
+            if (t == null) throw null;
+            bool b = true;
+            if (b) return t;
+            return t;
+        });
+    }
+    void F<T>(System.Func<T> f) => throw null;
+}";
+            var comp = CreateCompilationWithIndexAndRange(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void SpeakableInference_LambdaReturnTypeInference2()
+        {
+            var source =
+@"class Program
+{
+    void M<T>(T t, T t2)
+    {
+        F(() =>
+        {
+            if (t == null) throw null;
+            bool b = true;
+            if (b) return t;
+            return t2;
+        });
+        F<T>(() =>
+        {
+            if (t == null) throw null;
+            bool b = true;
+            if (b) return t;
+            return t2;
+        });
+    }
+    void F<T>(System.Func<T> f) => throw null;
+}";
+            var comp = CreateCompilationWithIndexAndRange(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void SpeakableInference_VarInference()
+        {
+            var source =
+@"class Program
+{
+    void M<T>(T t)
+    {
+        if (t == null) throw null;
+        var t2 = t;
+        t2.ToString();
+    }
+}";
+            var comp = CreateCompilationWithIndexAndRange(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics();
+            // Once we have a public API, we should check that the declaration type of `t2` is `T` https://github.com/dotnet/roslyn/issues/26198
+        }
+
+        [Fact]
         public void Directive_Qualifiers()
         {
             var source =
@@ -57608,8 +57684,8 @@ class C<T> where T : class?
         if (y0 == null) return;
         T x0;
         x0 = null;
-        
-        M2(M1(x0), M1(y0)) = 
+
+        M2(M1(x0), M1(y0)) =
             (C<T> a, C<T> b) => throw null;
     }
 
@@ -57620,7 +57696,10 @@ class C<T> where T : class?
             comp.VerifyDiagnostics(
                 // (8,14): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         x0 = null;
-                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(8, 14)
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(8, 14),
+                // (10,15): warning CS8604: Possible null reference argument for parameter 'x' in 'C<T> C<T>.M1<T>(T x)'.
+                //         M2(M1(x0), M1(y0)) =
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x0").WithArguments("x", "C<T> C<T>.M1<T>(T x)").WithLocation(10, 15)
                 );
         }
 

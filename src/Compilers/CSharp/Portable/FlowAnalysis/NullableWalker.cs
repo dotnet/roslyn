@@ -2947,8 +2947,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 if (argument is BoundLocal local && local.DeclarationKind == BoundLocalDeclarationKind.WithInferredType)
                 {
-                    // TODO: the condition seems too lose. This might be a regular local, not an out var... Need to test
-
                     // 'out var' doesn't contribute to inference
                     return new BoundExpressionWithNullability(argument.Syntax, argument, NullableAnnotation.Unknown, type: null);
                 }

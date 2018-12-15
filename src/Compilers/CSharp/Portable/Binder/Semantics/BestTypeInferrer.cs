@@ -16,6 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             NullableAnnotation? result = null;
             foreach (var type in types)
             {
+                Debug.Assert(type.NullableAnnotation.IsSpeakable());
                 if (type.IsNull)
                 {
                     // https://github.com/dotnet/roslyn/issues/27961 Should ignore untyped
