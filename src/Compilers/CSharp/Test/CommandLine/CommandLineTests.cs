@@ -4388,6 +4388,31 @@ C:\*.cs(100,7): error CS0103: The name 'Goo' does not exist in the current conte
             parsedArgs = DefaultParse(new[] { "a.cs", "/langversion:7.3" }, WorkingDirectory);
             parsedArgs.Errors.Verify();
             Assert.Equal(NullableContextOptions.Disabled, parsedArgs.CompilationOptions.NullableContextOptions);
+
+            parsedArgs = DefaultParse(new[] { @"/nullable:""safeonly""", "/langversion:8", "a.cs" }, WorkingDirectory);
+            parsedArgs.Errors.Verify();
+            Assert.Equal(NullableContextOptions.SafeOnly, parsedArgs.CompilationOptions.NullableContextOptions);
+
+            parsedArgs = DefaultParse(new[] { @"/nullable:\""enable\""", "/langversion:8", "a.cs" }, WorkingDirectory);
+            parsedArgs.Errors.Verify(
+                // error CS8636: Invalid option '"enable"' for /nullable; must be 'disabled', 'enabled' or 'safeonly'
+                Diagnostic(ErrorCode.ERR_BadNullableContextOption).WithArguments(@"""enable""").WithLocation(1, 1)
+                );
+            Assert.Equal(NullableContextOptions.Disabled, parsedArgs.CompilationOptions.NullableContextOptions);
+
+            parsedArgs = DefaultParse(new[] { @"/nullable:\\disable\\", "/langversion:8", "a.cs" }, WorkingDirectory);
+            parsedArgs.Errors.Verify(
+                // error CS8636: Invalid option '\\disable\\' for /nullable; must be 'disabled', 'enabled' or 'safeonly'
+                Diagnostic(ErrorCode.ERR_BadNullableContextOption).WithArguments(@"\\disable\\").WithLocation(1, 1)
+                );
+            Assert.Equal(NullableContextOptions.Disabled, parsedArgs.CompilationOptions.NullableContextOptions);
+
+            parsedArgs = DefaultParse(new[] { @"/nullable:\\""enable\\""", "/langversion:8", "a.cs" }, WorkingDirectory);
+            parsedArgs.Errors.Verify(
+                // error CS8636: Invalid option '\enable\' for /nullable; must be 'disabled', 'enabled' or 'safeonly'
+                Diagnostic(ErrorCode.ERR_BadNullableContextOption).WithArguments(@"\enable\").WithLocation(1, 1)
+                );
+            Assert.Equal(NullableContextOptions.Disabled, parsedArgs.CompilationOptions.NullableContextOptions);
         }
 
         [Fact]
