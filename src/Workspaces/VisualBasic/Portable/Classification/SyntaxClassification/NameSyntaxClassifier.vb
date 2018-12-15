@@ -3,13 +3,14 @@
 Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Classification
+Imports Microsoft.CodeAnalysis.Classification.Classifiers
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Classification.Classifiers
     Friend Class NameSyntaxClassifier
-        Inherits AbstractSyntaxClassifier
+        Inherits AbstractNameSyntaxClassifier
 
         Public Overrides ReadOnly Property SyntaxNodeTypes As ImmutableArray(Of Type) = ImmutableArray.Create(
             GetType(NameSyntax),
@@ -48,6 +49,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification.Classifiers
                 Return
             End If
         End Sub
+
+        Protected Overrides Function GetRightmostNameArity(node As SyntaxNode) As Integer?
+            If TypeOf (node) Is ExpressionSyntax Then
+                Return DirectCast(node, ExpressionSyntax).GetRightmostName()?.Arity
+            End If
+
+            Return Nothing
+        End Function
+
+        Protected Overrides Function IsParentAnAttribute(node As SyntaxNode) As Boolean
+            Return node.IsParentKind(SyntaxKind.Attribute)
+        End Function
 
         Private Sub ClassifyNameSyntax(
                 node As NameSyntax,
@@ -181,34 +194,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification.Classifiers
             Return False
         End Function
 
-        Private Sub TryClassifyStaticSymbol(
-            symbol As ISymbol,
-            span As Text.TextSpan,
-            result As ArrayBuilder(Of ClassifiedSpan))
-
-            If symbol Is Nothing OrElse Not symbol.IsStatic Then
-                Return
-            End If
-
-            Dim isEnumMember = symbol.IsKind(SymbolKind.Field) AndAlso symbol.ContainingType?.IsEnumType() = True
-            If isEnumMember Then
-                ' EnumMembers are not classified as static since there is no
-                ' instance equivalent of the concept and they have their own
-                ' classification type.
-                Return
-            End If
-
-            Dim isNamespace = symbol.IsKind(SymbolKind.Namespace)
-            If isNamespace Then
-                ' Namespace names are not classified as static since there is no
-                ' instance equivalent of the concept and they have their own
-                ' classification type.
-                Return
-            End If
-
-            result.Add(New ClassifiedSpan(span, ClassificationTypeNames.StaticSymbol))
-        End Sub
-
         Private Function GetClassificationForField(fieldSymbol As IFieldSymbol) As String
             If fieldSymbol.IsConst Then
                 Return If(fieldSymbol.ContainingType.IsEnumType(), ClassificationTypeNames.EnumMemberName, ClassificationTypeNames.ConstantName)
@@ -246,45 +231,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification.Classifiers
             Return If(methodSymbol.IsReducedExtension(),
                       ClassificationTypeNames.ExtensionMethodName,
                       ClassificationTypeNames.MethodName)
-        End Function
-
-        Private Function TryGetSymbol(
-            node As NameSyntax,
-            symbolInfo As SymbolInfo,
-            semanticModel As SemanticModel) As ISymbol
-
-            Dim symbol = symbolInfo.Symbol
-
-            If symbol Is Nothing AndAlso symbolInfo.CandidateSymbols.Length > 0 Then
-                Dim firstSymbol = symbolInfo.CandidateSymbols(0)
-                Select Case symbolInfo.CandidateReason
-                    Case CandidateReason.NotCreatable
-                        ' Not creatable types are still classified as types.
-                        If firstSymbol.IsConstructor() OrElse TypeOf firstSymbol Is ITypeSymbol Then
-                            symbol = firstSymbol
-                        End If
-
-                    Case CandidateReason.OverloadResolutionFailure
-                        ' If we couldn't bind to a constructor, still classify the type.
-                        If firstSymbol.IsConstructor() Then
-                            symbol = firstSymbol
-                        End If
-
-                    Case CandidateReason.Inaccessible
-                        ' If we couldn't bind to a constructor, still classify the type if its accessible
-                        If firstSymbol.IsConstructor() AndAlso semanticModel.IsAccessible(node.SpanStart, firstSymbol.ContainingType) Then
-                            symbol = firstSymbol
-                        End If
-                End Select
-            End If
-
-            ' Classify a reference to an attribute constructor in an attribute location
-            ' as if we were classifying the attribute type itself.
-            If symbol.IsConstructor() AndAlso node.IsParentKind(SyntaxKind.Attribute) Then
-                symbol = symbol.ContainingType
-            End If
-
-            Return symbol
         End Function
 
         Private Sub ClassifyModifiedIdentifier(

@@ -524,7 +524,8 @@ sub test()
     dim m = Await
 end sub"
 
-            Await TestInClassAsync(code)
+            Await TestInClassAsync(code,
+                Method("Await"))
         End Function
 
         <WorkItem(21524, "https://github.com/dotnet/roslyn/issues/21524")>
