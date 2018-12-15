@@ -22,6 +22,9 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnusedParametersAndValues
         protected override bool SupportsDiscard(SyntaxTree tree)
             => ((CSharpParseOptions)tree.Options).LanguageVersion >= LanguageVersion.CSharp7;
 
+        protected override bool MethodHasHandlesClause(IMethodSymbol method)
+            => false;
+
         // C# does not have an explicit "call" statement syntax for invocations with explicit value discard.
         protected override bool IsCallStatement(IExpressionStatementOperation expressionStatement)
             => false;
