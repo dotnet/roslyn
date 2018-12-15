@@ -122,6 +122,26 @@
         <target state="new">An out variable cannot be declared as a ref local</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_PossibleAsyncIteratorWithoutYield">
+        <source>The body of an async-iterator method must contain a 'yield' statement.</source>
+        <target state="new">The body of an async-iterator method must contain a 'yield' statement.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PossibleAsyncIteratorWithoutYieldOrAwait">
+        <source>The body of an async-iterator method must contain a 'yield' statement. Consider removing 'async' from the method declaration or adding a 'yield' statement.</source>
+        <target state="new">The body of an async-iterator method must contain a 'yield' statement. Consider removing 'async' from the method declaration or adding a 'yield' statement.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RefAssignNarrower">
+        <source>Cannot ref-assign '{1}' to '{0}' because '{1}' has a narrower escape scope than '{0}'.</source>
+        <target state="new">Cannot ref-assign '{1}' to '{0}' because '{1}' has a narrower escape scope than '{0}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RefLocalOrParamExpected">
+        <source>The left-hand side of a ref assignment must be a ref local or parameter.</source>
+        <target state="new">The left-hand side of a ref assignment must be a ref local or parameter.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_TripleDotNotAllowed">
         <source>Unexpected character sequence '...'</source>
         <target state="new">Unexpected character sequence '...'</target>
@@ -9165,16 +9185,6 @@ Pokud chcete odstranit toto varování, můžete místo toho použít /reference
       <trans-unit id="IDS_FeatureRefForEach">
         <source>ref foreach iteration variables</source>
         <target state="translated">Iterační proměnné foreach odkazu</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_RefLocalOrParamExpected">
-        <source>The left-hand side of a ref assignment must be a ref local or parameter.</source>
-        <target state="translated">Levá strana přiřazení odkazu musí být lokální proměnná nebo parametr odkazu.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_RefAssignNarrower">
-        <source>Cannot ref-assign '{1}' to '{0}' because '{1}' has a narrower escape scope than '{0}'.</source>
-        <target state="translated">Přiřazení odkazu {1} k {0} nelze provést, protože {1} má užší řídicí obor než {0}.</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureEnumGenericTypeConstraint">

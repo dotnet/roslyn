@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -1197,6 +1198,161 @@ class C
                 // (7,9): error CS1622: Cannot return a value from an iterator. Use the yield return statement to return a value, or yield break to end the iteration.
                 //         return value;
                 Diagnostic(ErrorCode.ERR_ReturnInIterator, "return").WithLocation(7, 9)
+                );
+        }
+
+        [Fact]
+        [WorkItem(31552, "https://github.com/dotnet/roslyn/issues/31552")]
+        public void AsyncIterator_WithThrowOnly()
+        {
+            string source = @"
+class C
+{
+    public static async System.Collections.Generic.IAsyncEnumerable<int> M()
+    {
+        throw new System.NotImplementedException();
+    }
+}";
+            var comp = CreateCompilationWithAsyncIterator(source);
+            comp.VerifyDiagnostics(
+                // (4,74): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                //     public static async System.Collections.Generic.IAsyncEnumerable<int> M()
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M").WithLocation(4, 74)
+                );
+            comp.VerifyEmitDiagnostics(
+                // (4,74): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                //     public static async System.Collections.Generic.IAsyncEnumerable<int> M()
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M").WithLocation(4, 74),
+                // (4,74): error CS8420: The body of an async-iterator method must contain a 'yield' statement. Consider removing 'async' from the method declaration or adding a 'yield' statement.
+                //     public static async System.Collections.Generic.IAsyncEnumerable<int> M()
+                Diagnostic(ErrorCode.ERR_PossibleAsyncIteratorWithoutYieldOrAwait, "M").WithArguments("System.Collections.Generic.IAsyncEnumerable<int>").WithLocation(4, 74)
+                );
+
+            var m = comp.SourceModule.GlobalNamespace.GetMember<MethodSymbol>("C.M");
+            Assert.False(m.IsIterator);
+            Assert.True(m.IsAsync);
+        }
+
+        [Fact]
+        [WorkItem(31552, "https://github.com/dotnet/roslyn/issues/31552")]
+        public void AsyncIteratorReturningEnumerator_WithThrowOnly()
+        {
+            string source = @"
+class C
+{
+    public static async System.Collections.Generic.IAsyncEnumerator<int> M()
+    {
+        throw new System.NotImplementedException();
+    }
+}";
+            var comp = CreateCompilationWithAsyncIterator(source);
+            comp.VerifyDiagnostics(
+                // (4,74): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                //     public static async System.Collections.Generic.IAsyncEnumerator<int> M()
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M").WithLocation(4, 74)
+                );
+            comp.VerifyEmitDiagnostics(
+                // (4,74): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                //     public static async System.Collections.Generic.IAsyncEnumerator<int> M()
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M").WithLocation(4, 74),
+                // (4,74): error CS8420: The body of an async-iterator method must contain a 'yield' statement. Consider removing `async` from the method declaration.
+                //     public static async System.Collections.Generic.IAsyncEnumerator<int> M()
+                Diagnostic(ErrorCode.ERR_PossibleAsyncIteratorWithoutYieldOrAwait, "M").WithArguments("System.Collections.Generic.IAsyncEnumerator<int>").WithLocation(4, 74)
+                );
+        }
+
+        [Fact]
+        [WorkItem(31552, "https://github.com/dotnet/roslyn/issues/31552")]
+        public void AsyncIteratorReturningEnumerator_WithAwaitAndThrow()
+        {
+            string source = @"
+class C
+{
+    async System.Collections.Generic.IAsyncEnumerator<int> M()
+    {
+        await System.Threading.Tasks.Task.CompletedTask;
+        throw new System.NotImplementedException();
+    }
+}";
+            var comp = CreateCompilationWithAsyncIterator(source);
+            comp.VerifyDiagnostics();
+            comp.VerifyEmitDiagnostics(
+                // (4,60): error CS8419: The body of an async-iterator method must contain a 'yield' statement.
+                //     async System.Collections.Generic.IAsyncEnumerator<int> M()
+                Diagnostic(ErrorCode.ERR_PossibleAsyncIteratorWithoutYield, "M").WithArguments("System.Collections.Generic.IAsyncEnumerator<int>").WithLocation(4, 60)
+                );
+        }
+
+        [Fact]
+        [WorkItem(31552, "https://github.com/dotnet/roslyn/issues/31552")]
+        public void AsyncIteratorReturningEnumerator_WithThrow_WithAwaitInLambda()
+        {
+            string source = @"
+class C
+{
+    async System.Collections.Generic.IAsyncEnumerator<int> M()
+    {
+        System.Func<System.Threading.Tasks.Task> lambda = async () => { await System.Threading.Tasks.Task.CompletedTask; };
+        throw new System.NotImplementedException();
+    }
+}";
+            var comp = CreateCompilationWithAsyncIterator(source);
+            comp.VerifyDiagnostics(
+                // (4,60): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                //     async System.Collections.Generic.IAsyncEnumerator<int> M()
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M").WithLocation(4, 60)
+                );
+            comp.VerifyEmitDiagnostics(
+                // (4,60): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                //     async System.Collections.Generic.IAsyncEnumerator<int> M()
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M").WithLocation(4, 60),
+                // (4,60): error CS8420: The body of an async-iterator method must contain a 'yield' statement. Consider removing `async` from the method declaration.
+                //     async System.Collections.Generic.IAsyncEnumerator<int> M()
+                Diagnostic(ErrorCode.ERR_PossibleAsyncIteratorWithoutYieldOrAwait, "M").WithArguments("System.Collections.Generic.IAsyncEnumerator<int>").WithLocation(4, 60)
+                );
+        }
+
+        [Fact]
+        [WorkItem(31552, "https://github.com/dotnet/roslyn/issues/31552")]
+        public void AsyncIterator_WithEmptyBody()
+        {
+            string source = @"
+class C
+{
+    public static async System.Collections.Generic.IAsyncEnumerable<int> M()
+    {
+    }
+}";
+            var comp = CreateCompilationWithAsyncIterator(source);
+            comp.VerifyDiagnostics(
+                // (4,74): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                //     public static async System.Collections.Generic.IAsyncEnumerable<int> M()
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M").WithLocation(4, 74),
+                // (4,74): error CS0161: 'C.M()': not all code paths return a value
+                //     public static async System.Collections.Generic.IAsyncEnumerable<int> M()
+                Diagnostic(ErrorCode.ERR_ReturnExpected, "M").WithArguments("C.M()").WithLocation(4, 74)
+                );
+        }
+
+        [Fact]
+        [WorkItem(31552, "https://github.com/dotnet/roslyn/issues/31552")]
+        public void AsyncIteratorReturningEnumerator_WithoutBody()
+        {
+            string source = @"
+class C
+{
+    public static async System.Collections.Generic.IAsyncEnumerator<int> M()
+    {
+    }
+}";
+            var comp = CreateCompilationWithAsyncIterator(source);
+            comp.VerifyDiagnostics(
+                // (4,74): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                //     public static async System.Collections.Generic.IAsyncEnumerable<int> M()
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M").WithLocation(4, 74),
+                // (4,74): error CS0161: 'C.M()': not all code paths return a value
+                //     public static async System.Collections.Generic.IAsyncEnumerable<int> M()
+                Diagnostic(ErrorCode.ERR_ReturnExpected, "M").WithArguments("C.M()").WithLocation(4, 74)
                 );
         }
 

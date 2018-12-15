@@ -33,11 +33,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         [Output]
         public ITaskItem[] PotentialEditorConfigFiles { get; private set; }
 
-        static DiscoverEditorConfigFiles()
-        {
-            AssemblyResolution.Install();
-        }
-
         public DiscoverEditorConfigFiles()
         {
             TaskResources = ErrorString.ResourceManager;

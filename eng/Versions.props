@@ -39,11 +39,11 @@
     <FakeSignVersion>0.9.2</FakeSignVersion>
     <HumanizerCoreVersion>2.2.0</HumanizerCoreVersion>
     <ICSharpCodeDecompilerVersion>4.0.0.4285-beta1</ICSharpCodeDecompilerVersion>
-    <MicrosoftBuildVersion>15.1.0-preview-000458-02</MicrosoftBuildVersion>
-    <MicrosoftBuildFrameworkVersion>15.1.0-preview-000458-02</MicrosoftBuildFrameworkVersion>
+    <MicrosoftBuildVersion>15.1.548</MicrosoftBuildVersion>
+    <MicrosoftBuildFrameworkVersion>15.1.548</MicrosoftBuildFrameworkVersion>
     <MicrosoftBuildLocatorVersion>1.0.13</MicrosoftBuildLocatorVersion>
-    <MicrosoftBuildRuntimeVersion>15.1.0-preview-000458-02</MicrosoftBuildRuntimeVersion>
-    <MicrosoftBuildTasksCoreVersion>15.1.0-preview-000458-02</MicrosoftBuildTasksCoreVersion>
+    <MicrosoftBuildRuntimeVersion>15.1.548</MicrosoftBuildRuntimeVersion>
+    <MicrosoftBuildTasksCoreVersion>15.1.548</MicrosoftBuildTasksCoreVersion>
     <MicrosoftCodeAnalysisAnalyzersVersion>$(RoslynDiagnosticsNugetPackageVersion)</MicrosoftCodeAnalysisAnalyzersVersion>
     <MicrosoftCodeAnalysisBuildTasksVersion>2.0.0-rc2-61102-09</MicrosoftCodeAnalysisBuildTasksVersion>
     <MicrosoftCodeAnalysisCSharpCodeFixTestingXUnitVersion>$(MicrosoftCodeAnalysisTestingVersion)</MicrosoftCodeAnalysisCSharpCodeFixTestingXUnitVersion>
@@ -200,11 +200,6 @@
     <MicrosoftCodeAnalysisVisualBasicWorkspacesFixedVersion>$(CodeStyleLayerCodeAnalysisVersion)</MicrosoftCodeAnalysisVisualBasicWorkspacesFixedVersion>
   </PropertyGroup>
 
-  <!-- TODO: remove https://github.com/dotnet/roslyn/issues/31479 -->
-  <PropertyGroup>
-    <MicrosoftBuildFixedVersion>14.3.0</MicrosoftBuildFixedVersion>
-    <MicrosoftBuildTasksCoreFixedVersion>14.3.0</MicrosoftBuildTasksCoreFixedVersion>
-  </PropertyGroup>
   <!-- 
     The following packages are considered implementation details and will not be included 
     in the list of dependencies of Roslyn packages. They won't flow as package references 
