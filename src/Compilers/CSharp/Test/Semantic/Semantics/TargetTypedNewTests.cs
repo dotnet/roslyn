@@ -355,182 +355,318 @@ class C
         }
 
         [Fact]
-        public void TestBadTargetType_Assignment()
+        public void TestTargetType_Var()
         {
             var source = @"
-using System;
-
-struct Struct {}
-abstract class Abstract {}
-static class Static {}
-interface Interface {}
-enum Enumeration {}
-
-unsafe class C
+class C
 {
-    public void Test<T>()
+    void M()
     {
-        var v0 = new();
-        Struct v1 = new();
-        Action v2 = new();
-        Static v3 = new();
-        Abstract v4 = new();
-        Interface v5 = new();
-        Enumeration v6 = new();
-        int v7 = new();
-        int* v8 = new();
-        int? v9 = new();
-        (int, int) v10 = new();
-        dynamic v11 = new();
-        int[] v12 = new();
-        Error v13 = new();
-        T v14 = new();
-        ValueTuple<int, int> v15 = new();
-        ValueTuple<int, int> v16 = new(2, 3);
+        var x = new();
     }
 }
 ";
-            var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseDll);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (14,13): error CS0815: Cannot assign new(...) to an implicitly-typed variable
-                //         var v0 = new();
-                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "v0 = new()").WithArguments("new(...)").WithLocation(14, 13),
-                // (16,21): error CS9366: The type 'Action' may not be used as the target-type of 'new(...)'
-                //         Action v2 = new();
-                Diagnostic(ErrorCode.ERR_IllegalTargetType, "new()").WithArguments("System.Action").WithLocation(16, 21),
-                // (17,9): error CS0723: Cannot declare a variable of static type 'Static'
-                //         Static v3 = new();
-                Diagnostic(ErrorCode.ERR_VarDeclIsStaticClass, "Static").WithArguments("Static").WithLocation(17, 9),
-                // (17,21): error CS1729: 'Static' does not contain a constructor that takes 0 arguments
-                //         Static v3 = new();
-                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "new()").WithArguments("Static", "0").WithLocation(17, 21),
-                // (18,23): error CS0144: Cannot create an instance of the abstract class or interface 'Abstract'
-                //         Abstract v4 = new();
-                Diagnostic(ErrorCode.ERR_NoNewAbstract, "new()").WithArguments("Abstract").WithLocation(18, 23),
-                // (19,24): error CS9366: The type 'Interface' may not be used as the target-type of 'new(...)'
-                //         Interface v5 = new();
-                Diagnostic(ErrorCode.ERR_IllegalTargetType, "new()").WithArguments("Interface").WithLocation(19, 24),
-                // (20,26): error CS9366: The type 'Enumeration' may not be used as the target-type of 'new(...)'
-                //         Enumeration v6 = new();
-                Diagnostic(ErrorCode.ERR_IllegalTargetType, "new()").WithArguments("Enumeration").WithLocation(20, 26),
-                // (22,19): error CS1919: Unsafe type 'int*' cannot be used in object creation
-                //         int* v8 = new();
-                Diagnostic(ErrorCode.ERR_UnsafeTypeInObjectCreation, "new()").WithArguments("int*").WithLocation(22, 19),
-                // (25,23): error CS0143: The type 'dynamic' has no constructors defined
-                //         dynamic v11 = new();
-                Diagnostic(ErrorCode.ERR_NoConstructors, "new()").WithArguments("dynamic").WithLocation(25, 23),
-                // (26,21): error CS9366: The type 'int[]' may not be used as the target-type of 'new(...)'
-                //         int[] v12 = new();
-                Diagnostic(ErrorCode.ERR_IllegalTargetType, "new()").WithArguments("int[]").WithLocation(26, 21),
-                // (27,9): error CS0246: The type or namespace name 'Error' could not be found (are you missing a using directive or an assembly reference?)
-                //         Error v13 = new();
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Error").WithArguments("Error").WithLocation(27, 9),
-                // (28,17): error CS0304: Cannot create an instance of the variable type 'T' because it does not have the new() constraint
-                //         T v14 = new();
-                Diagnostic(ErrorCode.ERR_NoNewTyvar, "new()").WithArguments("T").WithLocation(28, 17),
-                // (15,16): warning CS0219: The variable 'v1' is assigned but its value is never used
-                //         Struct v1 = new();
-                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "v1").WithArguments("v1").WithLocation(15, 16),
-                // (21,13): warning CS0219: The variable 'v7' is assigned but its value is never used
-                //         int v7 = new();
-                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "v7").WithArguments("v7").WithLocation(21, 13),
-                // (23,14): warning CS0219: The variable 'v9' is assigned but its value is never used
-                //         int? v9 = new();
-                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "v9").WithArguments("v9").WithLocation(23, 14),
-                // (24,20): warning CS0219: The variable 'v10' is assigned but its value is never used
-                //         (int, int) v10 = new();
-                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "v10").WithArguments("v10").WithLocation(24, 20),
-                // (29,30): warning CS0219: The variable 'v15' is assigned but its value is never used
-                //         ValueTuple<int, int> v15 = new();
-                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "v15").WithArguments("v15").WithLocation(29, 30)
+                // (6,13): error CS0815: Cannot assign new(...) to an implicitly-typed variable
+                //         var x = new();
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "x = new()").WithArguments("new(...)").WithLocation(6, 13)
                 );
         }
 
         [Fact]
-        public void TestBadTargetType_Cast()
+        public void TestTargetType_Delegate()
         {
-            string source = @"
-using System;
-
-struct Struct {}
-abstract class Abstract {}
-static class Static {}
-interface Interface {}
-enum Enumeration {}
-
-unsafe class C
+            var source = @"
+delegate void D();
+class C
 {
-    public void Test<T>()
+    void M()
     {
-        var v1 = (Struct)new();
-        var v2 = (Action)new();
-        var v3 = (Static)new();
-        var v4 = (Abstract)new();
-        var v5 = (Interface)new();
-        var v6 = (Enumeration)new();
-        var v7 = (int)new();
-        var v8 = (int*)new();
-        var v9 = (int?)new();
-        var v10 = ((int,int))new();
-        var v11 = (dynamic)new();
-        var v12 = (int[])new();
-        var v13 = (Error)new();
-        var v14 = (T)new();
-        var v15 = (ValueTuple<int, int>)new();
-        var v16 = (ValueTuple<int, int>)new(2, 3);
+        D x0 = new();
+        D x1 = new(M); // ok
+        var x2 = (D)new();
+        var x3 = (D)new(M); // ok
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (7,16): error CS1729: 'D' does not contain a constructor that takes 0 arguments
+                //         D x0 = new();
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "new()").WithArguments("D", "0").WithLocation(7, 16),
+                // (9,21): error CS1729: 'D' does not contain a constructor that takes 0 arguments
+                //         var x2 = (D)new();
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "new()").WithArguments("D", "0").WithLocation(9, 21)
+                );
+        }
+
+        [Fact]
+        public void TestTargetType_Static()
+        {
+            var source = @"
+static class C
+{
+    static void M()
+    {
+        C x0 = new();
+        var x1 = (C)new();
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (6,9): error CS0723: Cannot declare a variable of static type 'C'
+                //         C x0 = new();
+                Diagnostic(ErrorCode.ERR_VarDeclIsStaticClass, "C").WithArguments("C").WithLocation(6, 9),
+                // (6,16): error CS1729: 'C' does not contain a constructor that takes 0 arguments
+                //         C x0 = new();
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "new()").WithArguments("C", "0").WithLocation(6, 16),
+                // (7,18): error CS0716: Cannot convert to static type 'C'
+                //         var x1 = (C)new();
+                Diagnostic(ErrorCode.ERR_ConvertToStaticClass, "(C)new()").WithArguments("C").WithLocation(7, 18),
+                // (7,9): error CS0723: Cannot declare a variable of static type 'C'
+                //         var x1 = (C)new();
+                Diagnostic(ErrorCode.ERR_VarDeclIsStaticClass, "var").WithArguments("C").WithLocation(7, 9)
+                );
+        }
+
+        [Fact]
+        public void TestTargetType_Abstract()
+        {
+            var source = @"
+abstract class C
+{
+    void M()
+    {
+        C x0 = new();
+        var x1 = (C)new();
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (6,16): error CS0144: Cannot create an instance of the abstract class or interface 'C'
+                //         C x0 = new();
+                Diagnostic(ErrorCode.ERR_NoNewAbstract, "new()").WithArguments("C").WithLocation(6, 16),
+                // (7,21): error CS0144: Cannot create an instance of the abstract class or interface 'C'
+                //         var x1 = (C)new();
+                Diagnostic(ErrorCode.ERR_NoNewAbstract, "new()").WithArguments("C").WithLocation(7, 21)
+                );
+        }
+
+        [Fact]
+        public void TestTargetType_Interface()
+        {
+            var source = @"
+interface I {}
+class C
+{
+    void M()
+    {
+        I x0 = new();
+        var x1 = (I)new();
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (7,16): error CS9366: The type 'I' may not be used as the target-type of 'new(...)'
+                //         I x0 = new();
+                Diagnostic(ErrorCode.ERR_IllegalTargetType, "new()").WithArguments("I").WithLocation(7, 16),
+                // (8,18): error CS9366: The type 'I' may not be used as the target-type of 'new(...)'
+                //         var x1 = (I)new();
+                Diagnostic(ErrorCode.ERR_IllegalTargetType, "(I)new()").WithArguments("I").WithLocation(8, 18)
+                );
+        }
+
+        [Fact]
+        public void TestTargetType_Enum()
+        {
+            var source = @"
+enum E {}
+class C
+{
+    void M()
+    {
+        E x0 = new();
+        var x1 = (E)new();
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (7,16): error CS9366: The type 'E' may not be used as the target-type of 'new(...)'
+                //         E x0 = new();
+                Diagnostic(ErrorCode.ERR_IllegalTargetType, "new()").WithArguments("E").WithLocation(7, 16),
+                // (8,18): error CS9366: The type 'E' may not be used as the target-type of 'new(...)'
+                //         var x1 = (E)new();
+                Diagnostic(ErrorCode.ERR_IllegalTargetType, "(E)new()").WithArguments("E").WithLocation(8, 18)
+                );
+        }
+
+        [Fact]
+        public void TestTargetType_Primitive()
+        {
+            var source = @"
+class C
+{
+    void M()
+    {
+        int x0 = new();
+        var x1 = (int)new();
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (6,13): warning CS0219: The variable 'x0' is assigned but its value is never used
+                //         int x0 = new();
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x0").WithArguments("x0").WithLocation(6, 13),
+                // (7,13): warning CS0219: The variable 'x1' is assigned but its value is never used
+                //         var x1 = (int)new();
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x1").WithArguments("x1").WithLocation(7, 13)
+                );
+        }
+
+        [Fact]
+        public void TestTargetType_TupleTyple()
+        {
+            var source = @"
+class C
+{
+    void M()
+    {
+        (int, int) x0 = new();
+        var x1 = ((int, int))new();
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (6,20): warning CS0219: The variable 'x0' is assigned but its value is never used
+                //         (int, int) x0 = new();
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x0").WithArguments("x0").WithLocation(6, 20),
+                // (7,13): warning CS0219: The variable 'x1' is assigned but its value is never used
+                //         var x1 = ((int, int))new();
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x1").WithArguments("x1").WithLocation(7, 13)
+                );
+        }
+
+        [Fact]
+        public void TestTargetType_ValueTuple()
+        {
+            var source = @"
+using System;
+class C
+{
+    void M()
+    {
+        ValueTuple<int, int> x0 = new();
+        ValueTuple<int, int> x1 = new(2, 3);
+        var x2 = (ValueTuple<int, int>)new();
+        var x3 = (ValueTuple<int, int>)new(2, 3);
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (7,30): warning CS0219: The variable 'x0' is assigned but its value is never used
+                //         ValueTuple<int, int> x0 = new();
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x0").WithArguments("x0").WithLocation(7, 30),
+                // (9,13): warning CS0219: The variable 'x2' is assigned but its value is never used
+                //         var x2 = (ValueTuple<int, int>)new();
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x2").WithArguments("x2").WithLocation(9, 13)
+                );
+        }
+
+        [Fact]
+        public void TestTargetType_TypeParameter()
+        {
+            var source = @"
+class C
+{
+    void M<T, TClass, TStruct, TNew>()
+        where TClass : class
+        where TStruct : struct
+        where TNew : new()
+    {
+        {
+            T x0 = new();
+            var x1 = (T)new();
+        }
+        {
+            TClass x0 = new();
+            var x1 = (TClass)new();
+        }
+        {
+            TStruct x0 = new(); // ok
+            var x1 = (TStruct)new(); // ok
+        }
+        {
+            
+            TNew x0 = new(); // ok
+            var x1 = (TNew)new(); // ok
+        }
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (10,20): error CS0304: Cannot create an instance of the variable type 'T' because it does not have the new() constraint
+                //             T x0 = new();
+                Diagnostic(ErrorCode.ERR_NoNewTyvar, "new()").WithArguments("T").WithLocation(10, 20),
+                // (11,25): error CS0304: Cannot create an instance of the variable type 'T' because it does not have the new() constraint
+                //             var x1 = (T)new();
+                Diagnostic(ErrorCode.ERR_NoNewTyvar, "new()").WithArguments("T").WithLocation(11, 25),
+                // (14,25): error CS0304: Cannot create an instance of the variable type 'TClass' because it does not have the new() constraint
+                //             TClass x0 = new();
+                Diagnostic(ErrorCode.ERR_NoNewTyvar, "new()").WithArguments("TClass").WithLocation(14, 25),
+                // (15,30): error CS0304: Cannot create an instance of the variable type 'TClass' because it does not have the new() constraint
+                //             var x1 = (TClass)new();
+                Diagnostic(ErrorCode.ERR_NoNewTyvar, "new()").WithArguments("TClass").WithLocation(15, 30)
+                );
+        }
+
+        [Fact]
+        public void TestTargetType_ErrorType()
+        {
+            var source = @"
+class C
+{
+    void M()
+    {
+        Missing x0 = new();
+        var x1 = (Missing)new();
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                );
+        }
+
+        [Fact]
+        public void TestTargetType_Pointer()
+        {
+            var source = @"
+class C
+{
+    unsafe void M()
+    {
+        int* x0 = new();
+        var x1 = (int*)new();
     }
 }
 ";
             var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseDll);
             comp.VerifyDiagnostics(
-                // (15,18): error CS9366: The type 'Action' may not be used as the target-type of 'new(...)'
-                //         var v2 = (Action)new();
-                Diagnostic(ErrorCode.ERR_IllegalTargetType, "(Action)new()").WithArguments("System.Action").WithLocation(15, 18),
-                // (16,18): error CS0716: Cannot convert to static type 'Static'
-                //         var v3 = (Static)new();
-                Diagnostic(ErrorCode.ERR_ConvertToStaticClass, "(Static)new()").WithArguments("Static").WithLocation(16, 18),
-                // (16,9): error CS0723: Cannot declare a variable of static type 'Static'
-                //         var v3 = (Static)new();
-                Diagnostic(ErrorCode.ERR_VarDeclIsStaticClass, "var").WithArguments("Static").WithLocation(16, 9),
-                // (17,28): error CS0144: Cannot create an instance of the abstract class or interface 'Abstract'
-                //         var v4 = (Abstract)new();
-                Diagnostic(ErrorCode.ERR_NoNewAbstract, "new()").WithArguments("Abstract").WithLocation(17, 28),
-                // (18,18): error CS9366: The type 'Interface' may not be used as the target-type of 'new(...)'
-                //         var v5 = (Interface)new();
-                Diagnostic(ErrorCode.ERR_IllegalTargetType, "(Interface)new()").WithArguments("Interface").WithLocation(18, 18),
-                // (19,18): error CS9366: The type 'Enumeration' may not be used as the target-type of 'new(...)'
-                //         var v6 = (Enumeration)new();
-                Diagnostic(ErrorCode.ERR_IllegalTargetType, "(Enumeration)new()").WithArguments("Enumeration").WithLocation(19, 18),
-                // (21,18): error CS1919: Unsafe type 'int*' cannot be used in object creation
-                //         var v8 = (int*)new();
-                Diagnostic(ErrorCode.ERR_UnsafeTypeInObjectCreation, "(int*)new()").WithArguments("int*").WithLocation(21, 18),
-                // (24,19): error CS0143: The type 'dynamic' has no constructors defined
-                //         var v11 = (dynamic)new();
-                Diagnostic(ErrorCode.ERR_NoConstructors, "(dynamic)new()").WithArguments("dynamic").WithLocation(24, 19),
-                // (25,19): error CS9366: The type 'int[]' may not be used as the target-type of 'new(...)'
-                //         var v12 = (int[])new();
-                Diagnostic(ErrorCode.ERR_IllegalTargetType, "(int[])new()").WithArguments("int[]").WithLocation(25, 19),
-                // (26,20): error CS0246: The type or namespace name 'Error' could not be found (are you missing a using directive or an assembly reference?)
-                //         var v13 = (Error)new();
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Error").WithArguments("Error").WithLocation(26, 20),
-                // (27,22): error CS0304: Cannot create an instance of the variable type 'T' because it does not have the new() constraint
-                //         var v14 = (T)new();
-                Diagnostic(ErrorCode.ERR_NoNewTyvar, "new()").WithArguments("T").WithLocation(27, 22),
-                // (14,13): warning CS0219: The variable 'v1' is assigned but its value is never used
-                //         var v1 = (Struct)new();
-                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "v1").WithArguments("v1").WithLocation(14, 13),
-                // (20,13): warning CS0219: The variable 'v7' is assigned but its value is never used
-                //         var v7 = (int)new();
-                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "v7").WithArguments("v7").WithLocation(20, 13),
-                // (22,13): warning CS0219: The variable 'v9' is assigned but its value is never used
-                //         var v9 = (int?)new();
-                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "v9").WithArguments("v9").WithLocation(22, 13),
-                // (23,13): warning CS0219: The variable 'v10' is assigned but its value is never used
-                //         var v10 = ((int,int))new();
-                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "v10").WithArguments("v10").WithLocation(23, 13),
-                // (28,13): warning CS0219: The variable 'v15' is assigned but its value is never used
-                //         var v15 = (ValueTuple<int, int>)new();
-                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "v15").WithArguments("v15").WithLocation(28, 13)
+                // (6,19): error CS1919: Unsafe type 'int*' cannot be used in object creation
+                //         int* x0 = new();
+                Diagnostic(ErrorCode.ERR_UnsafeTypeInObjectCreation, "new()").WithArguments("int*").WithLocation(6, 19),
+                // (7,18): error CS1919: Unsafe type 'int*' cannot be used in object creation
+                //         var x1 = (int*)new();
+                Diagnostic(ErrorCode.ERR_UnsafeTypeInObjectCreation, "(int*)new()").WithArguments("int*").WithLocation(7, 18)
                 );
         }
 
