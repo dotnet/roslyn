@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         //    T where T : class? => true
         //    T where T : IComparable => true
         //    T where T : IComparable? => true
-        public static bool IsUnconstrainedTypeParameter(this TypeSymbol type)
+        public static bool IsTypeParameterDisallowingAnnotation(this TypeSymbol type)
         {
             if (type.TypeKind != TypeKind.TypeParameter)
             {

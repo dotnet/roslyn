@@ -1082,7 +1082,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static bool IsUnconstrainedTypeParameter(TypeSymbol typeOpt)
         {
-            return typeOpt?.IsUnconstrainedTypeParameter() == true;
+            return typeOpt?.IsTypeParameterDisallowingAnnotation() == true;
         }
 
         public override BoundNode VisitLocal(BoundLocal node)
@@ -2859,6 +2859,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         private MethodSymbol InferMethodTypeArguments(BoundCall node, MethodSymbol method, ImmutableArray<BoundExpression> arguments)
         {
             Debug.Assert(method.IsGenericMethod);
+            Debug.Assert(arguments.All(a => a.GetTypeAndNullability().NullableAnnotation.IsSpeakable()));
+
             // https://github.com/dotnet/roslyn/issues/27961 OverloadResolution.IsMemberApplicableInNormalForm and
             // IsMemberApplicableInExpandedForm use the least overridden method. We need to do the same here.
             var definition = method.ConstructedFrom;
@@ -2867,6 +2869,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 refKinds.AddRange(node.ArgumentRefKindsOpt);
             }
+
             // https://github.com/dotnet/roslyn/issues/27961 Do we really need OverloadResolution.GetEffectiveParameterTypes?
             // Aren't we doing roughly the same calculations in GetCorrespondingParameter?
             OverloadResolution.GetEffectiveParameterTypes(
@@ -2883,6 +2886,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 expanded: node.Expanded,
                 parameterTypes: out ImmutableArray<TypeSymbolWithAnnotations> parameterTypes,
                 parameterRefKinds: out ImmutableArray<RefKind> parameterRefKinds);
+
             refKinds.Free();
             bool hadNullabilityMismatch;
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
@@ -2897,6 +2901,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 out hadNullabilityMismatch,
                 ref useSiteDiagnostics,
                 getNullableAnnotationOpt: expr => GetNullableAnnotation(expr));
+
             if (!result.Success)
             {
                 return method;
@@ -2938,10 +2943,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 if (argument is BoundLocal local && local.DeclarationKind == BoundLocalDeclarationKind.WithInferredType)
                 {
+                    // TODO: the condition seems too lose. This might be a regular local, not an out var... Need to test
+
                     // 'out var' doesn't contribute to inference
                     return new BoundExpressionWithNullability(argument.Syntax, argument, NullableAnnotation.Unknown, type: null);
                 }
-                return new BoundExpressionWithNullability(argument.Syntax, argument, argumentType.NullableAnnotation, argumentType.TypeSymbol);
+                return new BoundExpressionWithNullability(argument.Syntax, argument, argumentType.GetSpeakableNullableAnnotation(), argumentType.TypeSymbol);
             }
         }
 

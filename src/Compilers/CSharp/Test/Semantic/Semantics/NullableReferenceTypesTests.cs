@@ -51,6 +51,54 @@ class C
         }
 
         [Fact]
+        public void SpeakableInference()
+        {
+            var source =
+@"class Program
+{
+    void M<T>(T t)
+    {
+        if (t == null) throw null;
+        t.ToString();
+        var t2 = Copy(t);
+        t2.ToString(); // warn
+    }
+    static T Copy<T>(T t) => throw null;
+}";
+            var comp = CreateCompilationWithIndexAndRange(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (8,9): warning CS8602: Possible dereference of a null reference.
+                //         t2.ToString(); // warn
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t2").WithLocation(8, 9)
+                );
+        }
+
+        [Theory]
+        [InlineData("void M(int? t)")]
+        [InlineData("void M<T>(T? t) where T : struct")]
+        public void SpeakableInference_Nullable(string signature)
+        {
+            var source =
+@"class Program
+{
+    SIGNATURE
+    {
+        if (t == null) throw null;
+        t.Value.ToString();
+        var t2 = Copy(t);
+        t2.Value.ToString(); // warn
+    }
+    static T Copy<T>(T t) => throw null;
+}";
+            var comp = CreateCompilationWithIndexAndRange(source.Replace("SIGNATURE", signature), options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (8,9): warning CS8629: Nullable value type may be null.
+                //         t2.Value.ToString(); // warn
+                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "t2.Value").WithLocation(8, 9)
+                );
+        }
+
+        [Fact]
         public void Directive_Qualifiers()
         {
             var source =
@@ -48271,6 +48319,12 @@ class C
                 // (16,9): warning CS8602: Possible dereference of a null reference.
                 //         x3.ToString(); // 3
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x3").WithLocation(16, 9),
+                // (21,9): warning CS8602: Possible dereference of a null reference.
+                //         x4.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x4").WithLocation(21, 9),
+                // (24,9): warning CS8602: Possible dereference of a null reference.
+                //         x5.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x5").WithLocation(24, 9),
                 // (27,9): warning CS8602: Possible dereference of a null reference.
                 //         x6.ToString();
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x6").WithLocation(27, 9));
@@ -54253,7 +54307,7 @@ class Outer
     {
         if (x0 == null) return;
         M2(x0) = x0;
-        M2(x0) = y0;
+        M2<T>(x0) = y0;
     }
 
     void M1(object? x1, object? y1)
@@ -54266,11 +54320,14 @@ class Outer
     ref U M2<U>(U a) where U : object => throw null;
 }
 ";
-
+            // Note: you cannot pass a `T` to a `U : object` even if the `T` was null-tested
             CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics(
-                // (8,18): warning CS8601: Possible null reference assignment.
-                //         M2(x0) = y0;
-                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "y0").WithLocation(8, 18),
+                // (7,9): warning CS8631: The type 'T' cannot be used as type parameter 'U' in the generic type or method 'Outer.M2<U>(U)'. Nullability of type argument 'T' doesn't match constraint type 'object'.
+                //         M2(x0) = x0;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "M2").WithArguments("Outer.M2<U>(U)", "object", "U", "T").WithLocation(7, 9),
+                // (8,9): warning CS8631: The type 'T' cannot be used as type parameter 'U' in the generic type or method 'Outer.M2<U>(U)'. Nullability of type argument 'T' doesn't match constraint type 'object'.
+                //         M2<T>(x0) = y0;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "M2<T>").WithArguments("Outer.M2<U>(U)", "object", "U", "T").WithLocation(8, 9),
                 // (15,18): warning CS8601: Possible null reference assignment.
                 //         M2(x1) = y1;
                 Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "y1").WithLocation(15, 18)
@@ -54289,17 +54346,15 @@ class Outer
         if (y0 == null) return;
         M2(x0) = y0;
         M2(x0) = z0;
+        M2<T>(x0) = y0;
+        M2<T>(x0) = z0;
     }
 
     ref U M2<U>(U a) => throw null;
 }
 ";
 
-            CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics(
-                // (9,18): warning CS8601: Possible null reference assignment.
-                //         M2(x0) = z0;
-                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "z0").WithLocation(9, 18)
-                );
+            CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics();
         }
 
         [Fact]
@@ -55278,6 +55333,9 @@ class Outer
 ";
 
             CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics(
+                // (7,9): warning CS8631: The type 'T' cannot be used as type parameter 'T' in the generic type or method 'Outer.M1<T>(T)'. Nullability of type argument 'T' doesn't match constraint type 'object'.
+                //         M1(x);
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "M1").WithArguments("Outer.M1<T>(T)", "object", "T", "T").WithLocation(7, 9),
                 // (8,9): warning CS8631: The type 'T' cannot be used as type parameter 'T' in the generic type or method 'Outer.M1<T>(T)'. Nullability of type argument 'T' doesn't match constraint type 'object'.
                 //         M1<T>(x);
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "M1<T>").WithArguments("Outer.M1<T>(T)", "object", "T", "T").WithLocation(8, 9)
@@ -55330,6 +55388,9 @@ class Outer
 ";
 
             CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics(
+                // (7,9): warning CS8634: The type 'T' cannot be used as type parameter 'T' in the generic type or method 'Outer.M1<T>(T)'. Nullability of type argument 'T' doesn't match 'class' constraint.
+                //         M1(x);
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint, "M1").WithArguments("Outer.M1<T>(T)", "T", "T").WithLocation(7, 9),
                 // (8,9): warning CS8634: The type 'T' cannot be used as type parameter 'T' in the generic type or method 'Outer.M1<T>(T)'. Nullability of type argument 'T' doesn't match 'class' constraint.
                 //         M1<T>(x);
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint, "M1<T>").WithArguments("Outer.M1<T>(T)", "T", "T").WithLocation(8, 9)
@@ -55511,13 +55572,21 @@ class Outer
         if (x == null) return;
         if (y == null) return;
         M1(x, y).ToString();
+        M1<T>(x, y).ToString();
     }
 
     T M1<T>(T x, T y) => throw null;
 }
 ";
 
-            CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics();
+            CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics(
+                // (8,9): warning CS8602: Possible dereference of a null reference.
+                //         M1(x, y).ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "M1(x, y)").WithLocation(8, 9),
+                // (9,9): warning CS8602: Possible dereference of a null reference.
+                //         M1<T>(x, y).ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "M1<T>(x, y)").WithLocation(9, 9)
+                );
         }
 
         [Fact]
@@ -55609,17 +55678,14 @@ class Outer
         if (x0 == null) return;
         if (y0 == null) return;
         M2(x0, y0) = z0;
+        M2<T>(x0, y0) = z0;
     }
 
     ref U M2<U>(U a, U b) => throw null;
 }
 ";
 
-            CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics(
-                // (8,22): warning CS8601: Possible null reference assignment.
-                //         M2(x0, y0) = z0;
-                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "z0").WithLocation(8, 22)
-                );
+            CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics();
         }
 
         [Fact]
@@ -55713,7 +55779,9 @@ class Outer
     {
         if (x0 == null) return;
         M2(out M3(x0), out y0) = z0;
+        M2(out M3<T>(x0), out y0);
         M2<T>(out M3(x0), out y0);
+        M2<T>(out M3<T>(x0), out y0);
     }
 
     ref U M2<U>(out U a, out U b) => throw null;
@@ -55721,17 +55789,7 @@ class Outer
 }
 ";
 
-            CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics(
-                // (7,9): warning CS8638: The nullability of type arguments for method 'Outer.M2<U>(out U, out U)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
-                //         M2(out M3(x0), out y0) = z0;
-                Diagnostic(ErrorCode.WRN_CantInferNullabilityOfMethodTypeArgs, "M2(out M3(x0), out y0)").WithArguments("Outer.M2<U>(out U, out U)").WithLocation(7, 9),
-                // (7,16): warning CS8601: Possible null reference assignment.
-                //         M2(out M3(x0), out y0) = z0;
-                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "M3(x0)").WithLocation(7, 16),
-                // (8,19): warning CS8601: Possible null reference assignment.
-                //         M2<T>(out M3(x0), out y0);
-                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "M3(x0)").WithLocation(8, 19)
-                );
+            CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics();
         }
 
         [Fact]
@@ -55744,7 +55802,9 @@ class Outer
     {
         if (y0 == null) return;
         M2(out x0, out M3(y0)) = z0;
+        M2(out x0, out M3<T>(y0));
         M2<T>(out x0, out M3(y0));
+        M2<T>(out x0, out M3<T>(y0));
     }
 
     ref U M2<U>(out U a, out U b) => throw null;
@@ -55752,16 +55812,7 @@ class Outer
 }
 ";
 
-            CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics(
-                // (7,9): warning CS8638: The nullability of type arguments for method 'Outer.M2<U>(out U, out U)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
-                //         M2(out x0, out M3(y0)) = z0;
-                Diagnostic(ErrorCode.WRN_CantInferNullabilityOfMethodTypeArgs, "M2(out x0, out M3(y0))").WithArguments("Outer.M2<U>(out U, out U)").WithLocation(7, 9),
-                // (7,24): warning CS8601: Possible null reference assignment.
-                //         M2(out x0, out M3(y0)) = z0;
-                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "M3(y0)").WithLocation(7, 24),
-                // (8,27): warning CS8601: Possible null reference assignment.
-                //         M2<T>(out x0, out M3(y0));
-                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "M3(y0)").WithLocation(8, 27));
+            CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics();
         }
 
         [Fact]
@@ -55775,6 +55826,9 @@ class Outer
         if (x0 == null) return;
         if (y0 == null) return;
         M2(out M3(x0), out M3(y0)) = z0;
+        M2<T>(out M3(x0), out M3(y0)) = z0;
+        M2(out M3<T>(x0), out M3(y0)) = z0;
+        M2(out M3(x0), out M3<T>(y0)) = z0;
     }
 
     ref U M2<U>(out U a, out U b) => throw null;
@@ -55782,11 +55836,7 @@ class Outer
 }
 ";
 
-            CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics(
-                // (8,38): warning CS8601: Possible null reference assignment.
-                //         M2(out M3(x0), out M3(y0)) = z0;
-                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "z0").WithLocation(8, 38)
-                );
+            CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics();
         }
 
         [Fact]
@@ -55869,6 +55919,7 @@ class Outer
     {
         if (x0 == null) return;
         M2(M3(x0), M3(y0)) = z0;
+        M2<T>(M3<T>(x0), M3<T>(y0)) = z0;
     }
 
     ref U M2<U>(I1<U> a, I1<U> b) => throw null;
@@ -55878,11 +55929,7 @@ class Outer
 interface I1<in T> {}
 ";
 
-            CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics(
-                // (7,30): warning CS8601: Possible null reference assignment.
-                //         M2(M3(x0), M3(y0)) = z0;
-                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "z0").WithLocation(7, 30)
-                );
+            CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics();
         }
 
         [Fact]
@@ -55895,6 +55942,7 @@ class Outer
     {
         if (y0 == null) return;
         M2(M3(x0), M3(y0)) = z0;
+        M2<T>(M3(x0), M3(y0)) = z0;
     }
 
     ref U M2<U>(I1<U> a, I1<U> b) => throw null;
@@ -55904,11 +55952,7 @@ class Outer
 interface I1<in T> {}
 ";
 
-            CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics(
-                // (7,30): warning CS8601: Possible null reference assignment.
-                //         M2(M3(x0), M3(y0)) = z0;
-                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "z0").WithLocation(7, 30)
-                );
+            CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics();
         }
 
         [Fact]
@@ -55922,6 +55966,8 @@ class Outer
         if (x0 == null) return;
         if (y0 == null) return;
         M2(M3(x0), M3(y0)) = z0;
+        M2<T>(M3(x0), M3(y0)) = z0;
+        M2(M3<T>(x0), M3(y0)) = z0;
     }
 
     ref U M2<U>(I1<U> a, I1<U> b) => throw null;
@@ -55931,11 +55977,7 @@ class Outer
 interface I1<in T> {}
 ";
 
-            CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics(
-                // (8,30): warning CS8601: Possible null reference assignment.
-                //         M2(M3(x0), M3(y0)) = z0;
-                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "z0").WithLocation(8, 30)
-                );
+            CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics();
         }
 
         [Fact]
@@ -56063,17 +56105,7 @@ class Outer
 }
 ";
 
-            CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics(
-                // (7,9): warning CS8638: The nullability of type arguments for method 'Outer.M2<U>(ref U, ref U)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
-                //         M2(ref M3(x0), ref y0) = z0;
-                Diagnostic(ErrorCode.WRN_CantInferNullabilityOfMethodTypeArgs, "M2(ref M3(x0), ref y0)").WithArguments("Outer.M2<U>(ref U, ref U)").WithLocation(7, 9),
-                // (7,16): warning CS8601: Possible null reference assignment.
-                //         M2(ref M3(x0), ref y0) = z0;
-                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "M3(x0)").WithLocation(7, 16),
-                // (8,19): warning CS8601: Possible null reference assignment.
-                //         M2<T>(ref M3(x0), ref y0);
-                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "M3(x0)").WithLocation(8, 19)
-                );
+            CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics();
         }
 
         [Fact]
@@ -56094,17 +56126,7 @@ class Outer
 }
 ";
 
-            CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics(
-                // (7,9): warning CS8638: The nullability of type arguments for method 'Outer.M2<U>(ref U, ref U)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
-                //         M2(ref x0, ref M3(y0)) = z0;
-                Diagnostic(ErrorCode.WRN_CantInferNullabilityOfMethodTypeArgs, "M2(ref x0, ref M3(y0))").WithArguments("Outer.M2<U>(ref U, ref U)").WithLocation(7, 9),
-                // (7,24): warning CS8601: Possible null reference assignment.
-                //         M2(ref x0, ref M3(y0)) = z0;
-                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "M3(y0)").WithLocation(7, 24),
-                // (8,27): warning CS8601: Possible null reference assignment.
-                //         M2<T>(ref x0, ref M3(y0));
-                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "M3(y0)").WithLocation(8, 27)
-                );
+            CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics();
         }
 
         [Fact]
@@ -56118,6 +56140,7 @@ class Outer
         if (x0 == null) return;
         if (y0 == null) return;
         M2(ref M3(x0), ref M3(y0)) = z0;
+        M2<T>(ref M3(x0), ref M3(y0)) = z0;
     }
 
     ref U M2<U>(ref U a, ref U b) where U : object => throw null;
@@ -56126,9 +56149,12 @@ class Outer
 ";
 
             CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics(
-                // (8,38): warning CS8601: Possible null reference assignment.
+                // (8,9): warning CS8631: The type 'T' cannot be used as type parameter 'U' in the generic type or method 'Outer.M2<U>(ref U, ref U)'. Nullability of type argument 'T' doesn't match constraint type 'object'.
                 //         M2(ref M3(x0), ref M3(y0)) = z0;
-                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "z0").WithLocation(8, 38)
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "M2").WithArguments("Outer.M2<U>(ref U, ref U)", "object", "U", "T").WithLocation(8, 9),
+                // (9,9): warning CS8631: The type 'T' cannot be used as type parameter 'U' in the generic type or method 'Outer.M2<U>(ref U, ref U)'. Nullability of type argument 'T' doesn't match constraint type 'object'.
+                //         M2<T>(ref M3(x0), ref M3(y0)) = z0;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "M2<T>").WithArguments("Outer.M2<U>(ref U, ref U)", "object", "U", "T").WithLocation(9, 9)
                 );
         }
 
@@ -56143,6 +56169,7 @@ class Outer
     {
         if (x0 == null) return;
         M2(x0).M3(ref y0);
+        M2<T>(x0).M3(ref y0);
     }
 
     Other<U> M2<U>(U a) where U : object => throw null;
@@ -56154,9 +56181,12 @@ class Other<U> where U : object
 }
 ";
             CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics(
-                // (7,23): warning CS8604: Possible null reference argument for parameter 'a' in 'void Other<T>.M3(ref T a)'.
+                // (7,9): warning CS8631: The type 'T' cannot be used as type parameter 'U' in the generic type or method 'Outer.M2<U>(U)'. Nullability of type argument 'T' doesn't match constraint type 'object'.
                 //         M2(x0).M3(ref y0);
-                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "y0").WithArguments("a", "void Other<T>.M3(ref T a)").WithLocation(7, 23)
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "M2").WithArguments("Outer.M2<U>(U)", "object", "U", "T").WithLocation(7, 9),
+                // (8,9): warning CS8631: The type 'T' cannot be used as type parameter 'U' in the generic type or method 'Outer.M2<U>(U)'. Nullability of type argument 'T' doesn't match constraint type 'object'.
+                //         M2<T>(x0).M3(ref y0);
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "M2<T>").WithArguments("Outer.M2<U>(U)", "object", "U", "T").WithLocation(8, 9)
                 );
         }
 
@@ -56299,12 +56329,6 @@ interface I1<U> {}
 ";
 
             CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics(
-                // (7,9): warning CS8631: The type 'I1<T>' cannot be used as type parameter 'U' in the generic type or method 'Outer.M3<U, W>(U, W)'. Nullability of type argument 'I1<T>' doesn't match constraint type 'I1<T>'.
-                //         M3(M2(x0), a0);
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "M3").WithArguments("Outer.M3<U, W>(U, W)", "I1<T>", "U", "I1<T>").WithLocation(7, 9),
-                // (8,9): warning CS8631: The type 'I1<T>' cannot be used as type parameter 'U' in the generic type or method 'Outer.M3<U, W>(U, W)'. Nullability of type argument 'I1<T>' doesn't match constraint type 'I1<T>'.
-                //         M3(M2(a0), x0);
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "M3").WithArguments("Outer.M3<U, W>(U, W)", "I1<T>", "U", "I1<T>").WithLocation(8, 9),
                 // (9,9): warning CS8631: The type 'I1<object>' cannot be used as type parameter 'U' in the generic type or method 'Outer.M3<U, W>(U, W)'. Nullability of type argument 'I1<object>' doesn't match constraint type 'I1<object?>'.
                 //         M3<I1<object>, object?>(z0, null);
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "M3<I1<object>, object?>").WithArguments("Outer.M3<U, W>(U, W)", "I1<object?>", "U", "I1<object>").WithLocation(9, 9)
@@ -56321,6 +56345,8 @@ class Outer
     {
         if (x0 == null) return;
         M3(M2(x0));
+        M3(M2<T>(x0));
+        M3<I1<T>>(M2(x0));
         M3<I1<string>>(z0);
     }
 
@@ -56331,7 +56357,17 @@ class Outer
 interface I1<out U> {}
 ";
 
-            CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics();
+            CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics(
+                // (7,9): warning CS8631: The type 'I1<T>' cannot be used as type parameter 'U' in the generic type or method 'Outer.M3<U>(U)'. Nullability of type argument 'I1<T>' doesn't match constraint type 'I1<object>'.
+                //         M3(M2(x0));
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "M3").WithArguments("Outer.M3<U>(U)", "I1<object>", "U", "I1<T>").WithLocation(7, 9),
+                // (8,9): warning CS8631: The type 'I1<T>' cannot be used as type parameter 'U' in the generic type or method 'Outer.M3<U>(U)'. Nullability of type argument 'I1<T>' doesn't match constraint type 'I1<object>'.
+                //         M3(M2<T>(x0));
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "M3").WithArguments("Outer.M3<U>(U)", "I1<object>", "U", "I1<T>").WithLocation(8, 9),
+                // (9,9): warning CS8631: The type 'I1<T>' cannot be used as type parameter 'U' in the generic type or method 'Outer.M3<U>(U)'. Nullability of type argument 'I1<T>' doesn't match constraint type 'I1<object>'.
+                //         M3<I1<T>>(M2(x0));
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "M3<I1<T>>").WithArguments("Outer.M3<U>(U)", "I1<object>", "U", "I1<T>").WithLocation(9, 9)
+                );
         }
 
         [Fact]
@@ -56386,9 +56422,6 @@ interface I1<in U> {}
 ";
 
             CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics(
-                // (9,9): warning CS8631: The type 'I1<T>' cannot be used as type parameter 'U' in the generic type or method 'Outer.M3<U, W>(U, W)'. Nullability of type argument 'I1<T>' doesn't match constraint type 'I1<U>'.
-                //         M3(M2(x0), a0); // 1
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "M3").WithArguments("Outer.M3<U, W>(U, W)", "I1<U>", "U", "I1<T>").WithLocation(9, 9),
                 // (12,9): warning CS8631: The type 'I1<object>' cannot be used as type parameter 'U' in the generic type or method 'Outer.M3<U, W>(U, W)'. Nullability of type argument 'I1<object>' doesn't match constraint type 'I1<string?>'.
                 //         M3<I1<object>, string?>(z0, null);
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "M3<I1<object>, string?>").WithArguments("Outer.M3<U, W>(U, W)", "I1<string?>", "U", "I1<object>").WithLocation(12, 9)
@@ -56511,11 +56544,7 @@ class Outer
 }
 ";
 
-            CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics(
-                // (8,18): warning CS8601: Possible null reference assignment.
-                //         M1(z0) = x0;
-                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x0").WithLocation(8, 18)
-                );
+            CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics();
         }
 
         [Fact]
@@ -56685,11 +56714,7 @@ class Outer
 }
 ";
 
-            CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics(
-                // (7,18): warning CS8601: Possible null reference assignment.
-                //         M2(x0) = y0;
-                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "y0").WithLocation(7, 18)
-                );
+            CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics();
         }
 
         [Fact]
@@ -56730,11 +56755,7 @@ class Outer
 }
 ";
 
-            CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics(
-                // (7,18): warning CS8601: Possible null reference assignment.
-                //         M2(x0) = y0;
-                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "y0").WithLocation(7, 18)
-                );
+            CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics();
         }
 
         [Fact]
@@ -56758,12 +56779,7 @@ class Outer
     ref T M2<T>(T x) => throw null;
 }
 ";
-            // https://github.com/dotnet/roslyn/issues/30952 - Expect WRN_NullReferenceAssignment for [M2(y0) = z0;]
-            CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics(
-                // (8,22): warning CS8601: Possible null reference assignment.
-                //             M2(x0) = z0;
-                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "z0").WithLocation(8, 22)
-                );
+            CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics();
         }
 
         [Fact]
@@ -56972,9 +56988,6 @@ class Outer
                 // (7,16): hidden CS8607: Expression is probably never null.
                 //         T z0 = x0 ?? y0;
                 Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "x0").WithLocation(7, 16),
-                // (8,18): warning CS8601: Possible null reference assignment.
-                //         M1(z0) = y0;
-                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "y0").WithLocation(8, 18),
                 // (10,9): hidden CS8607: Expression is probably never null.
                 //         z0?.ToString();
                 Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "z0").WithLocation(10, 9)
@@ -57004,9 +57017,6 @@ class Outer
                 // (8,16): hidden CS8607: Expression is probably never null.
                 //         T z0 = x0 ?? y0;
                 Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "x0").WithLocation(8, 16),
-                // (9,18): warning CS8601: Possible null reference assignment.
-                //         M1(z0) = a0;
-                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "a0").WithLocation(9, 18),
                 // (10,9): hidden CS8607: Expression is probably never null.
                 //         z0?.ToString();
                 Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "z0").WithLocation(10, 9)
@@ -57054,11 +57064,7 @@ class Outer
 }
 ";
 
-            CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics(
-                // (10,18): warning CS8601: Possible null reference assignment.
-                //         M2(v0) = a0[1];
-                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "a0[1]").WithLocation(10, 18)
-                );
+            CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics();
         }
 
         [Fact]
@@ -57075,17 +57081,14 @@ class Outer
         if (v0 == null) return;
         a0[0] = v0;
         M2(v0) = a0[1];
+        M2<T>(v0) = a0[1];
     }
 
     ref T M2<T>(T x) => throw null;
 }
 ";
 
-            CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics(
-                // (11,18): warning CS8601: Possible null reference assignment.
-                //         M2(v0) = a0[1];
-                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "a0[1]").WithLocation(11, 18)
-                );
+            CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics();
         }
 
         [Fact]
@@ -57102,17 +57105,14 @@ class Outer
         if (v0 == null) return;
         a0[0] = v0;
         M2(v0) = a0[1];
+        M2<T>(v0) = a0[1];
     }
 
     ref T M2<T>(T x) => throw null;
 }
 ";
 
-            CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics(
-                // (11,18): warning CS8601: Possible null reference assignment.
-                //         M2(v0) = a0[1];
-                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "a0[1]").WithLocation(11, 18)
-                );
+            CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics();
         }
 
         [Fact]
@@ -57570,13 +57570,7 @@ class C<T> where T : class?
             comp.VerifyDiagnostics(
                 // (8,14): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         x0 = null;
-                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(8, 14),
-                // (11,13): warning CS8622: Nullability of reference types in type of parameter 'a' of 'lambda expression' doesn't match the target delegate 'Action<C<T>, C<T>>'.
-                //             (C<T> a, C<T> b) => throw null;
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, "(C<T> a, C<T> b) => throw null").WithArguments("a", "lambda expression", "System.Action<C<T>, C<T>>").WithLocation(11, 13),
-                // (11,13): warning CS8622: Nullability of reference types in type of parameter 'b' of 'lambda expression' doesn't match the target delegate 'Action<C<T>, C<T>>'.
-                //             (C<T> a, C<T> b) => throw null;
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, "(C<T> a, C<T> b) => throw null").WithArguments("b", "lambda expression", "System.Action<C<T>, C<T>>").WithLocation(11, 13)
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(8, 14)
                 );
         }
 
@@ -57611,6 +57605,7 @@ class Outer<T>
         if (y0 == null) return;
         T z0 = M2() ?? y0;
         M1(z0) = x0;
+        M1<T>(z0) = x0;
         z0.ToString();
     }
 
@@ -57621,11 +57616,7 @@ class Outer<T>
 }
 ";
 
-            CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics(
-                // (8,18): warning CS8601: Possible null reference assignment.
-                //         M1(z0) = x0;
-                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x0").WithLocation(8, 18)
-                );
+            CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics();
         }
 
         [Fact]
@@ -57639,6 +57630,7 @@ class Outer<T>
         if (y0 == null) return;
         T z0 = y0 ?? M2();
         M1(z0) = x0;
+        M1<T>(z0) = x0;
         z0.ToString();
     }
 
@@ -57652,10 +57644,7 @@ class Outer<T>
             CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics(
                 // (7,16): hidden CS8607: Expression is probably never null.
                 //         T z0 = y0 ?? M2();
-                Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "y0").WithLocation(7, 16),
-                // (8,18): warning CS8601: Possible null reference assignment.
-                //         M1(z0) = x0;
-                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x0").WithLocation(8, 18)
+                Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "y0").WithLocation(7, 16)
                 );
         }
 
@@ -57891,9 +57880,6 @@ class Outer
 ";
 
             CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics(
-                // (9,18): warning CS8601: Possible null reference assignment.
-                //         M1(z0) = a0;
-                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "a0").WithLocation(9, 18),
                 // (10,9): hidden CS8607: Expression is probably never null.
                 //         z0?.ToString();
                 Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "z0").WithLocation(10, 9)
@@ -58125,9 +58111,6 @@ class Outer
 ";
 
             CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics(
-                // (9,18): warning CS8601: Possible null reference assignment.
-                //         M1(z0) = a0;
-                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "a0").WithLocation(9, 18),
                 // (10,9): hidden CS8607: Expression is probably never null.
                 //         z0?.ToString();
                 Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "z0").WithLocation(10, 9)
@@ -58182,9 +58165,6 @@ class Outer<T>
 ";
 
             CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics(
-                // (8,18): warning CS8601: Possible null reference assignment.
-                //         M1(z0) = x0;
-                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x0").WithLocation(8, 18),
                 // (9,9): hidden CS8607: Expression is probably never null.
                 //         z0?.ToString();
                 Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "z0").WithLocation(9, 9)
@@ -58346,9 +58326,6 @@ class Outer
 ";
 
             CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics(
-                // (9,18): warning CS8601: Possible null reference assignment.
-                //         M1(z0) = a0;
-                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "a0").WithLocation(9, 18),
                 // (10,9): hidden CS8607: Expression is probably never null.
                 //         z0?.ToString();
                 Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "z0").WithLocation(10, 9)
@@ -58378,9 +58355,6 @@ class Outer<T>
 ";
 
             CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics(
-                // (8,18): warning CS8601: Possible null reference assignment.
-                //         M1(z0) = x0;
-                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x0").WithLocation(8, 18),
                 // (9,9): hidden CS8607: Expression is probably never null.
                 //         z0?.ToString();
                 Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "z0").WithLocation(9, 9)

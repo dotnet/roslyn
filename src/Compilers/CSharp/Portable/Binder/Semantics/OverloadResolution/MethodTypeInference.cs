@@ -1514,7 +1514,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
 
             // True if the type is nullable but not an unconstrained type parameter.
-            bool isNullableOnly(TypeSymbolWithAnnotations type) => type.NullableAnnotation.IsAnyNullable() && !type.TypeSymbol.IsUnconstrainedTypeParameter();
+            bool isNullableOnly(TypeSymbolWithAnnotations type) => type.NullableAnnotation.IsAnyNullable() && !type.TypeSymbol.IsTypeParameterDisallowingAnnotation();
         }
 
         private bool ExactNullableInference(TypeSymbolWithAnnotations source, TypeSymbolWithAnnotations target, ref HashSet<DiagnosticInfo> useSiteDiagnostics)

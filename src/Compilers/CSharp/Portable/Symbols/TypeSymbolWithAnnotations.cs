@@ -32,6 +32,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return annotation == NullableAnnotation.NotAnnotated || annotation == NullableAnnotation.NotNullable;
         }
 
+#if DEBUG
+        public static bool IsSpeakable(this NullableAnnotation annotation)
+        {
+            return annotation == NullableAnnotation.Unknown ||
+                annotation == NullableAnnotation.NotAnnotated ||
+                annotation == NullableAnnotation.Annotated;
+        }
+#endif
+
         /// <summary>
         /// Join nullable annotations from the set of lower bounds for fixing a type parameter.
         /// </summary>
@@ -334,6 +343,37 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _extensions = extensions;
         }
 
+        /// <summary>
+        /// This method projects nullable annotations onto a smaller set that can be expressed in source.
+        /// </summary>
+        public NullableAnnotation GetSpeakableNullableAnnotation()
+        {
+            var annotation = NullableAnnotation;
+            switch (annotation)
+            {
+                case NullableAnnotation.Unknown:
+                case NullableAnnotation.NotAnnotated:
+                case NullableAnnotation.Annotated:
+                    return annotation;
+
+                case NullableAnnotation.Nullable:
+                    if (TypeSymbol.IsTypeParameterDisallowingAnnotation())
+                    {
+                        return NullableAnnotation.NotAnnotated;
+                    }
+                    return NullableAnnotation.Annotated;
+
+                case NullableAnnotation.NotNullable:
+                    // Example of unspeakable types:
+                    // - a "tight T", which is an unconstrained T which was null-tested already
+                    // - a "tight int?"
+                    return NullableAnnotation.NotAnnotated;
+
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(annotation);
+            }
+        }
+
         public override string ToString() => TypeSymbol.ToString();
         public string Name => TypeSymbol.Name;
         public SymbolKind Kind => TypeSymbol.Kind;
@@ -560,13 +600,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier) &&
                     !IsNullableType() && !IsValueType &&
                     (NullableAnnotation == NullableAnnotation.Annotated ||
-                     (NullableAnnotation == NullableAnnotation.Nullable && !TypeSymbol.IsUnconstrainedTypeParameter())))
+                     (NullableAnnotation == NullableAnnotation.Nullable && !TypeSymbol.IsTypeParameterDisallowingAnnotation())))
                 {
                     return str + "?";
                 }
                 else if (format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.IncludeNonNullableTypeModifier) &&
                     !IsValueType &&
-                    NullableAnnotation.IsAnyNotNullable() && !TypeSymbol.IsUnconstrainedTypeParameter())
+                    NullableAnnotation.IsAnyNotNullable() && !TypeSymbol.IsTypeParameterDisallowingAnnotation())
                 {
                     return str + "!";
                 }
@@ -747,7 +787,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else if (NullableAnnotation != NullableAnnotation.Unknown)
             {
-                if (!typeSymbol.IsUnconstrainedTypeParameter())
+                if (!typeSymbol.IsTypeParameterDisallowingAnnotation())
                 {
                     newAnnotation = NullableAnnotation;
                 }
