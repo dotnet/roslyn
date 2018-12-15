@@ -84,11 +84,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
                 return AnalysisResult.Assignment(operation.Field);
             }
 
-            public override AnalysisResult VisitBlock(IBlockOperation operation, object unused)
-            {
-                return AnalysisResult.Failure;
-            }
-
             public override AnalysisResult VisitBranch(IBranchOperation operation, object unused)
             {
                 // Only `break` is allowed which gives Neutral result to be able to combine with other valid statements.
