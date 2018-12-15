@@ -176,6 +176,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                             diagnostics);
                         break;
 
+                    case TypeKind.Delegate:
+                        result = BindDelegateCreationExpression(
+                            node.Syntax,
+                            type: (NamedTypeSymbol)type,
+                            arguments,
+                            node.InitializerOpt,
+                            diagnostics);
+                        break;
+
                     case var value:
                         throw ExceptionUtilities.UnexpectedValue(value);
                 }
@@ -210,7 +219,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 case TypeKind.Array:
                 case TypeKind.Enum:
-                case TypeKind.Delegate:
                 case TypeKind.Interface:
                     Error(diagnostics, ErrorCode.ERR_IllegalTargetType, syntax, type);
                     return true;
@@ -225,6 +233,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case TypeKind.Struct:
                 case TypeKind.Class:
+                case TypeKind.Delegate:
                 case TypeKind.TypeParameter:
                     return false;
 
