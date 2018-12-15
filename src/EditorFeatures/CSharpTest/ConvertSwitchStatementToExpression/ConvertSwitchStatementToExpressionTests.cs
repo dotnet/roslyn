@@ -31,6 +31,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertSwitchStatementT
                 return 5;
             case 3:
                 return 6;
+            default:
+                return 7;
         }
     }
 }",
@@ -42,7 +44,58 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertSwitchStatementT
         {
             1 => 4,
             2 => 5,
-            3 => 6
+            3 => 6,
+            _ => 7
+        };
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
+        public async Task TestNested()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Program
+{
+    int M(int i, int j)
+    {
+        [||]switch (i)
+        {
+            case 1:
+                switch (j)
+                {
+                    case 7:
+                        return 10;
+                    case 8:
+                        return 11;
+                    case 9:
+                        return 12;
+                }
+                break;
+            case 2:
+                return 5;
+            case 3:
+                return 6;
+            default:
+                throw null;
+        }
+    }
+}",
+@"class Program
+{
+    int M(int i, int j)
+    {
+        return i switch
+        {
+            1 => j switch
+            {
+                7 => 10,
+                8 => 11,
+                9 => 12
+            },
+            2 => 5,
+            3 => 6,
+            _ => throw null
         };
     }
 }");

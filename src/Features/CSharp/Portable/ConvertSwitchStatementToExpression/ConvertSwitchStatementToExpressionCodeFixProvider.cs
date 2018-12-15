@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
@@ -20,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
     using static SyntaxFactory;
 
     [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
-    internal sealed class ConvertSwitchStatementToExpressionCodeFixProvider : SyntaxEditorBasedCodeFixProvider
+    internal sealed partial class ConvertSwitchStatementToExpressionCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
         public override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(IDEDiagnosticIds.ConvertSwitchStatementToExpressionDiagnosticId);
@@ -42,11 +43,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
                 editor.ReplaceNode(node, (currentStatement, _) =>
                 {
                     var switchStatement = (SwitchStatementSyntax)currentStatement;
-                    var switchSections = switchStatement.Sections;
-                    var switchArms = switchSections.Select(
-                        section => SwitchExpressionArm(GetPattern(section.Labels[0]), GetArmExpression(section.Statements)));
-                    var switchExpression = SwitchExpression(switchStatement.Expression, SeparatedList(switchArms));
-                    var finalStatement = GetFinalStatement(switchExpression, switchSections[0].Statements);
+                    var switchExpression = Rewriter.Rewrite(switchStatement, out var assignmentTargetsOpt);
+                    var finalStatement = GetFinalStatement(switchExpression, assignmentTargetsOpt);
                     return finalStatement.WithAdditionalAnnotations(Formatter.Annotation);
                 });
             }
@@ -54,83 +52,23 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
             return Task.CompletedTask;
         }
 
-        private StatementSyntax GetFinalStatement(SwitchExpressionSyntax switchExpression, SyntaxList<StatementSyntax> statements)
+        private StatementSyntax GetFinalStatement(ExpressionSyntax switchExpression, List<ExpressionSyntax> assignmentTargetsOpt)
         {
-            switch (statements.Count)
+            if (assignmentTargetsOpt is null)
             {
-                case 1:
-                case 2:
-                    switch (statements[0])
-                    {
-                        case ReturnStatementSyntax _:
-                            return ReturnStatement(switchExpression);
-                        case ExpressionStatementSyntax n:
-                            return ExpressionStatement(
-                                AssignmentExpression(SyntaxKind.SimpleAssignmentExpression, ((AssignmentExpressionSyntax)n.Expression).Left, switchExpression));
-                        case BlockSyntax n:
-                            return GetFinalStatement(switchExpression, n.Statements);
-                        case var value:
-                            throw ExceptionUtilities.UnexpectedValue(value.Kind());
-                    }
-
-                default:
-                    Debug.Assert(statements.Last() is BreakStatementSyntax);
-                    return ExpressionStatement(
-                        AssignmentExpression(SyntaxKind.SimpleAssignmentExpression, 
-                            TupleExpression(SeparatedList(statements.Remove(statements.Last()).Select(statement =>
-                            {
-                                var expressionStatement = (ExpressionStatementSyntax)statement;
-                                var assignment = (AssignmentExpressionSyntax)expressionStatement.Expression;
-                                return Argument(assignment.Left);
-                            }))), switchExpression));
+                return ReturnStatement(switchExpression);
             }
+
+            Debug.Assert(assignmentTargetsOpt.Count >= 1);
+            return ExpressionStatement(
+                AssignmentExpression(SyntaxKind.SimpleAssignmentExpression,
+                    left: assignmentTargetsOpt.Count == 1
+                        ? assignmentTargetsOpt[0]
+                        : TupleExpression(SeparatedList(assignmentTargetsOpt.Select(Argument))),
+                    right: switchExpression));
         }
 
-        private static PatternSyntax GetPattern(SwitchLabelSyntax switchLabel)
-        {
-            switch (switchLabel)
-            {
-                case CasePatternSwitchLabelSyntax n:
-                    return n.Pattern;
-                case CaseSwitchLabelSyntax n:
-                    return ConstantPattern(n.Value);
-                case DefaultSwitchLabelSyntax n:
-                    return DiscardPattern();
-                case var value:
-                    throw ExceptionUtilities.UnexpectedValue(value.Kind());
-            }
-        }
-
-        private static ExpressionSyntax GetArmExpression(SyntaxList<StatementSyntax> statements)
-        {
-            Debug.Assert(statements.Count > 0);
-            switch (statements.Count)
-            {
-                case 1:
-                case 2:
-                    switch (statements[0])
-                    {
-                        case ReturnStatementSyntax n:
-                            return n.Expression;
-                        case ExpressionStatementSyntax n:
-                            return ((AssignmentExpressionSyntax)n.Expression).Right;
-                        case BlockSyntax n:
-                            return GetArmExpression(n.Statements);
-                        case var value:
-                            throw ExceptionUtilities.UnexpectedValue(value.Kind());
-                    }
-                default:
-                    Debug.Assert(statements.Last() is BreakStatementSyntax);
-                    return TupleExpression(SeparatedList(statements.Remove(statements.Last()).Select(statement =>
-                    {
-                        var expressionStatement = (ExpressionStatementSyntax)statement;
-                        var assignment = (AssignmentExpressionSyntax)expressionStatement.Expression;
-                        return Argument(assignment.Right);
-                    })));
-            }
-        }
-
-        private class MyCodeAction : CodeAction.DocumentChangeAction
+        private sealed class MyCodeAction : CodeAction.DocumentChangeAction
         {
             public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument) :
                 base(CSharpFeaturesResources.Convert_switch_statement_to_expression, createChangedDocument)

@@ -86,8 +86,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
 
             public override AnalysisResult VisitBlock(IBlockOperation operation, object unused)
             {
-                // Visit all child statements and combine the result.
-                return VisitList(operation.Operations);
+                return AnalysisResult.Failure;
             }
 
             public override AnalysisResult VisitBranch(IBranchOperation operation, object unused)
@@ -104,7 +103,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
             public override AnalysisResult VisitThrow(IThrowOperation operation, object unused)
             {
                 // A "throw" statement can be converted to a throw expression.
-                return AnalysisResult.Neutral;
+                return operation.Exception is null ? AnalysisResult.Failure : AnalysisResult.Neutral;
             }
 
             public override AnalysisResult DefaultVisit(IOperation operation, object unused)
