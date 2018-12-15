@@ -1887,7 +1887,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (targetType.IsNullableType() &&
                 !operand.HasAnyErrors &&
-                !TypeSymbol.Equals(operand.Type, null, TypeCompareKind.ConsiderEverything2) &&
+                (object)operand.Type != null &&
                 !operand.Type.IsNullableType() &&
                 !TypeSymbol.Equals(targetType.GetNullableUnderlyingType(), operand.Type, TypeCompareKind.ConsiderEverything2))
             {
@@ -1910,7 +1910,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol intType = GetSpecialType(SpecialType.System_Int32, diagnostics, node);
             TypeSymbol indexType = GetWellKnownType(WellKnownType.System_Index, diagnostics, node);
 
-            if (!TypeSymbol.Equals(boundOperand.Type, null, TypeCompareKind.ConsiderEverything2) && boundOperand.Type.IsNullableType())
+            if ((object)boundOperand.Type != null && boundOperand.Type.IsNullableType())
             {
                 // Used in lowering to construct the nullable
                 GetSpecialTypeMember(SpecialMember.System_Nullable_T__ctor, diagnostics, node);
@@ -2188,7 +2188,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundExpression BindExplicitNullableCastFromNonNullable(ExpressionSyntax node, BoundExpression operand, TypeSymbolWithAnnotations targetType, DiagnosticBag diagnostics)
         {
             Debug.Assert(!targetType.IsNull && targetType.IsNullableType());
-            Debug.Assert(!TypeSymbol.Equals(operand.Type, null, TypeCompareKind.ConsiderEverything2) && !operand.Type.IsNullableType());
+            Debug.Assert(operand.Type != null && !operand.Type.IsNullableType());
 
             // Section 6.2.3 of the spec only applies when the non-null version of the types involved have a
             // built in conversion.
@@ -7566,7 +7566,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var receiverType = receiver.Type;
-            Debug.Assert(!TypeSymbol.Equals(receiverType, null, TypeCompareKind.ConsiderEverything2));
+            Debug.Assert(receiverType != null);
 
             // access cannot be a method group
             if (access.Kind == BoundKind.MethodGroup)

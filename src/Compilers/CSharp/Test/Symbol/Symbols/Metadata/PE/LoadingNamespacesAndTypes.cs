@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             {
                 NamedTypeSymbol t = c as NamedTypeSymbol;
 
-                if (!TypeSymbol.Equals(t, null, TypeCompareKind.ConsiderEverything2))
+                if ((object)t != null)
                 {
                     types.Add(t);
                 }

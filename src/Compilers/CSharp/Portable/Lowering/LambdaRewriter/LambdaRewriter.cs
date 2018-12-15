@@ -158,7 +158,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             : base(slotAllocatorOpt, compilationState, diagnostics)
         {
             Debug.Assert(analysis != null);
-            Debug.Assert(!TypeSymbol.Equals(thisType, null, TypeCompareKind.ConsiderEverything2));
+            Debug.Assert((object)thisType != null);
             Debug.Assert(method != null);
             Debug.Assert(compilationState != null);
             Debug.Assert(diagnostics != null);
@@ -480,7 +480,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </param>
         private SynthesizedClosureEnvironment GetStaticFrame(DiagnosticBag diagnostics, SyntaxNode syntax)
         {
-            if (TypeSymbol.Equals(_lazyStaticLambdaFrame, null, TypeCompareKind.ConsiderEverything2))
+            if ((object)_lazyStaticLambdaFrame == null)
             {
                 var isNonGeneric = !_topLevelMethod.IsGenericMethod;
                 if (isNonGeneric)
@@ -488,7 +488,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     _lazyStaticLambdaFrame = CompilationState.StaticLambdaFrame;
                 }
 
-                if (TypeSymbol.Equals(_lazyStaticLambdaFrame, null, TypeCompareKind.ConsiderEverything2))
+                if ((object)_lazyStaticLambdaFrame == null)
                 {
                     DebugId methodId;
                     if (isNonGeneric)
@@ -966,7 +966,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 realTypeArguments = realTypeArguments.Concat(typeArgumentsOpt);
             }
 
-            if (!TypeSymbol.Equals(containerAsFrame, null, TypeCompareKind.ConsiderEverything2) && containerAsFrame.Arity != 0)
+            if ((object)containerAsFrame != null && containerAsFrame.Arity != 0)
             {
                 var containerTypeArguments = ImmutableArray.Create(realTypeArguments, 0, containerAsFrame.Arity);
                 realTypeArguments = ImmutableArray.Create(realTypeArguments, containerAsFrame.Arity, realTypeArguments.Length - containerAsFrame.Arity);

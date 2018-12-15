@@ -215,8 +215,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Aside from default (which we fixed or ruled out above) and tuple literals,
             // we must have typed expressions at this point
-            Debug.Assert(!TypeSymbol.Equals(left.Type, null, TypeCompareKind.ConsiderEverything2) || left.Kind == BoundKind.TupleLiteral);
-            Debug.Assert(!TypeSymbol.Equals(right.Type, null, TypeCompareKind.ConsiderEverything2) || right.Kind == BoundKind.TupleLiteral);
+            Debug.Assert((object)left.Type != null || left.Kind == BoundKind.TupleLiteral);
+            Debug.Assert((object)right.Type != null || right.Kind == BoundKind.TupleLiteral);
 
             int leftCardinality = GetTupleCardinality(left);
             int rightCardinality = GetTupleCardinality(right);

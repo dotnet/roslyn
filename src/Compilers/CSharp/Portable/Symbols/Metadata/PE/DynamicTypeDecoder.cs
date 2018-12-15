@@ -272,7 +272,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             var underlying = tupleType.TupleUnderlyingType;
             var transformedUnderlying = TransformNamedType(underlying, isContaining);
 
-            if (TypeSymbol.Equals(transformedUnderlying, null, TypeCompareKind.ConsiderEverything2))
+            if ((object)transformedUnderlying == null)
             {
                 // Bail, something is wrong with the flags.
                 // the dynamic transformation should be ignored.

@@ -318,7 +318,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     return expected.Equals(arg.Value);
                 case TypedConstantKind.Type:
                     var typeSym = arg.Value as TypeSymbol;
-                    if (TypeSymbol.Equals(typeSym, null, TypeCompareKind.ConsiderEverything2))
+                    if ((object)typeSym == null)
                     {
                         return false;
                     }

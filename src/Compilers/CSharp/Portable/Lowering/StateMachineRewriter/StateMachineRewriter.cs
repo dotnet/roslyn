@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(body != null);
             Debug.Assert(method != null);
-            Debug.Assert(!TypeSymbol.Equals(stateMachineType, null, TypeCompareKind.ConsiderEverything2));
+            Debug.Assert((object)stateMachineType != null);
             Debug.Assert(compilationState != null);
             Debug.Assert(diagnostics != null);
 

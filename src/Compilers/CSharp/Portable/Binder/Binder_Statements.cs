@@ -1355,7 +1355,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundExpression InferTypeForDiscardAssignment(BoundDiscardExpression op1, BoundExpression op2, DiagnosticBag diagnostics)
         {
             var inferredType = op2.Type;
-            if (TypeSymbol.Equals(inferredType, null, TypeCompareKind.ConsiderEverything2))
+            if ((object)inferredType == null)
             {
                 return op1.FailInference(this, diagnostics);
             }

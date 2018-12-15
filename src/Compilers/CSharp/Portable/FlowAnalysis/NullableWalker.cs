@@ -2508,7 +2508,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var argument = arguments[i];
                 var argumentType = argument.Type;
-                if (TypeSymbol.Equals(argumentType, null, TypeCompareKind.ConsiderEverything2) || (argumentType.IsValueType && !argumentType.IsNullableType()))
+                if ((object)argumentType == null || (argumentType.IsValueType && !argumentType.IsNullableType()))
                 {
                     continue;
                 }
@@ -4830,7 +4830,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(node.Type.IsDynamic());
 
             // https://github.com/dotnet/roslyn/issues/29893 Update applicable members based on inferred argument types.
-            NullableAnnotation nullableAnnotation = !TypeSymbol.Equals(node.Type, null, TypeCompareKind.ConsiderEverything2) && !node.Type.IsValueType ?
+            NullableAnnotation nullableAnnotation = (object)node.Type != null && !node.Type.IsValueType ?
                 InferResultNullabilityFromApplicableCandidates(StaticCast<Symbol>.From(node.ApplicableIndexers)) :
                 NullableAnnotation.Unknown;
             _resultType = TypeSymbolWithAnnotations.Create(node.Type, nullableAnnotation);

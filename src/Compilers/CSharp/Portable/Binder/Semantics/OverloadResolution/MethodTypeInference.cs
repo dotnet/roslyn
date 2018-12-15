@@ -745,7 +745,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var destination = (NamedTypeSymbol)formalType.TypeSymbol;
 
-            Debug.Assert(TypeSymbol.Equals(argument.Type, null, TypeCompareKind.ConsiderEverything2), "should not need to dig into elements if tuple has natural type");
+            Debug.Assert((object)argument.Type == null, "should not need to dig into elements if tuple has natural type");
             var sourceArguments = argument.Arguments;
 
             // check if the type is actually compatible type for a tuple of given cardinality

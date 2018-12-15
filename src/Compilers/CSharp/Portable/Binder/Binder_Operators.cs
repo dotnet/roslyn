@@ -1034,7 +1034,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private bool HasApplicableBooleanOperator(NamedTypeSymbol containingType, string name, TypeSymbol argumentType, ref HashSet<DiagnosticInfo> useSiteDiagnostics, out MethodSymbol @operator)
         {
-            for (var type = containingType; !TypeSymbol.Equals(type, null, TypeCompareKind.ConsiderEverything2); type = type.BaseTypeWithDefinitionUseSiteDiagnostics(ref useSiteDiagnostics))
+            for (var type = containingType; (object)type != null; type = type.BaseTypeWithDefinitionUseSiteDiagnostics(ref useSiteDiagnostics))
             {
                 var operators = type.GetOperators(name);
                 for (var i = 0; i < operators.Length; i++)
@@ -3552,7 +3552,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // must be A (where A is the type of a), as it is where the result of the assignment will end up. Therefore,
             // we must ensure that B (where B is the type of b) is implicitly convertible to A.
             TypeSymbol leftType = leftOperand.Type;
-            Debug.Assert(!TypeSymbol.Equals(leftType, null, TypeCompareKind.ConsiderEverything2));
+            Debug.Assert((object)leftType != null);
 
             // If A is a non-nullable value type, a compile-time error occurs
             if (leftType.IsValueType && !leftType.IsNullableType())

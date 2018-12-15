@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public IteratorFinallyMethodSymbol(IteratorStateMachine stateMachineType, string name)
         {
-            Debug.Assert(!TypeSymbol.Equals(stateMachineType, null, TypeCompareKind.ConsiderEverything2));
+            Debug.Assert((object)stateMachineType != null);
             Debug.Assert(name != null);
 
             _stateMachineType = stateMachineType;

@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool isParams,
             RefKind refKind)
         {
-            Debug.Assert(!TypeSymbol.Equals(type.TypeSymbol, null, TypeCompareKind.ConsiderEverything2));
+            Debug.Assert((object)type.TypeSymbol != null);
             Debug.Assert(!refCustomModifiers.IsDefault);
 
             _type = type;

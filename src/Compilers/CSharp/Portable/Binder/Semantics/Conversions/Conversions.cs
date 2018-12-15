@@ -307,7 +307,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (sourceExpression.Syntax.IsVariableDeclarationInitialization())
             {
                 Debug.Assert((object)sourceExpression.Type == null);
-                Debug.Assert(!TypeSymbol.Equals(sourceExpression.ElementType, null, TypeCompareKind.ConsiderEverything2));
+                Debug.Assert((object)sourceExpression.ElementType != null);
 
                 var sourceAsPointer = new PointerTypeSymbol(TypeSymbolWithAnnotations.Create(sourceExpression.ElementType));
                 var pointerConversion = ClassifyImplicitConversionFromType(sourceAsPointer, destination, ref useSiteDiagnostics);

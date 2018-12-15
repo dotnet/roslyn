@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 elem.Add(new XAttribute("Of", typeParams));
             }
 
-            if (!TypeSymbol.Equals(t.BaseType(), null, TypeCompareKind.ConsiderEverything2))
+            if ((object)t.BaseType() != null)
             {
                 elem.Add(new XAttribute("base", t.BaseType().ToTestDisplayString()));
             }

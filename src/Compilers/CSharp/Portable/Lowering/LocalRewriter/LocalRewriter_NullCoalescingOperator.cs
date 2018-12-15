@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return new BoundNullCoalescingOperator(syntax, rewrittenLeft, rewrittenRight, rewrittenConversion, resultKind, rewrittenResultType);
             }
 
-            var isUnconstrainedTypeParameter = !TypeSymbol.Equals(rewrittenLeft.Type, null, TypeCompareKind.ConsiderEverything2) && !rewrittenLeft.Type.IsReferenceType && !rewrittenLeft.Type.IsValueType;
+            var isUnconstrainedTypeParameter = (object)rewrittenLeft.Type != null && !rewrittenLeft.Type.IsReferenceType && !rewrittenLeft.Type.IsValueType;
 
             // first we can make a small optimization:
             // If left is a constant then we already know whether it is null or not. If it is null then we
