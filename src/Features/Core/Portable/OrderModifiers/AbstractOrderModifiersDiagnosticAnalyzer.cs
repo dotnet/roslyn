@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.OrderModifiers
             SyntaxNode memberDeclaration)
         {
             var modifiers = _syntaxFacts.GetModifiers(memberDeclaration);
-            if (!IsOrdered(preferredOrder, modifiers))
+            if (!AbstractOrderModifiersHelpers.IsOrdered(preferredOrder, modifiers))
             {
                 if (severity.WithDefaultSeverity(DiagnosticSeverity.Hidden) == ReportDiagnostic.Hidden)
                 {
@@ -89,26 +89,6 @@ namespace Microsoft.CodeAnalysis.OrderModifiers
                         DiagnosticHelper.Create(Descriptor, modifiers.First().GetLocation(), severity, additionalLocations: null, properties: null));
                 }
             }
-        }
-
-        private bool IsOrdered(Dictionary<int, int> preferredOrder, SyntaxTokenList modifiers)
-        {
-            if (modifiers.Count >= 2)
-            {
-                var lastOrder = int.MinValue;
-                foreach (var modifier in modifiers)
-                {
-                    var currentOrder = preferredOrder.TryGetValue(modifier.RawKind, out var value) ? value : int.MaxValue;
-                    if (currentOrder < lastOrder)
-                    {
-                        return false;
-                    }
-
-                    lastOrder = currentOrder;
-                }
-            }
-
-            return true;
         }
     }
 }

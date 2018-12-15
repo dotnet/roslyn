@@ -72,7 +72,7 @@ class App : Application
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddNew)]
-        public async Task TestAddNewToMember()
+        public async Task TestAddNewToField()
         {
             await TestInRegularAndScriptAsync(
 @"class Application
@@ -132,5 +132,49 @@ class B : A { [|internal const int i = 1;|] }
 class B : A { internal new const int i = 1; }
 ");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddNew)]
+        public async Task TestAddNewToDisorderedModifiers() =>
+            await TestInRegularAndScript1Async(
+@"class Application
+{
+    public static string Test;
+}
+
+class App : Application
+{
+    [|static public int Test;|]
+}",
+@"class Application
+{
+    public static string Test;
+}
+
+class App : Application
+{
+    static public new int Test;
+}");
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddNew)]
+        public async Task TestAddNewToOrderedModifiersWithTrivia() =>
+            await TestInRegularAndScript1Async(
+@"class Application
+{
+    public string Test;
+}
+
+class App : Application
+{
+    [|/* start */ public /* middle */ readonly /* end */ int Test;|]
+}",
+@"class Application
+{
+    public string Test;
+}
+
+class App : Application
+{
+    /* start */ public /* middle */ new readonly /* end */ int Test;
+}");
     }
 }

@@ -41,25 +41,24 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.HideBase
 
             private async Task<SyntaxNode> GetNewNodeAsync(SyntaxNode node, CancellationToken cancellationToken)
             {
-                var generator = SyntaxGenerator.GetGenerator(_document);
-                var newNode = generator.WithModifiers(node, generator.GetModifiers(node).WithIsNew(true));
+                var modifiers = SyntaxFacts.GetModifiers(node);
+                var newModifiers = modifiers.Add(SyntaxFactory.Token(SyntaxKind.NewKeyword));
 
                 var options = await _document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
                 var option = options.GetOption(PreferredModifierOrderOption);
-                if (!OrderModifiersHelper.TryGetOrComputePreferredOrder(option.Value, out var preferredOrder))
+                if (!OrderModifiersHelper.TryGetOrComputePreferredOrder(option.Value, out var preferredOrder) ||
+                    !CodeAnalysis.OrderModifiers.AbstractOrderModifiersHelpers.IsOrdered(preferredOrder, modifiers))
                 {
-                    return newNode;
+                    return SyntaxFacts.WithModifiers(node, newModifiers);
                 }
 
-                var modifiers = SyntaxFacts.GetModifiers(newNode);
                 var orderedModifiers = new SyntaxTokenList(
-                    modifiers.OrderBy(CompareModifiers)
-                             .Select((t, i) => t.WithTriviaFrom(modifiers[i])));
+                    newModifiers.OrderBy(CompareModifiers));
 
-                return SyntaxFacts.WithModifiers(newNode, orderedModifiers);
+                return SyntaxFacts.WithModifiers(node, orderedModifiers);
 
-                int CompareModifiers(SyntaxToken t1, SyntaxToken t2)
-                    => GetOrder(t1) - GetOrder(t2);
+                int CompareModifiers(SyntaxToken left, SyntaxToken right)
+                    => GetOrder(left) - GetOrder(right);
 
                 int GetOrder(SyntaxToken token)
                     => preferredOrder.TryGetValue(token.RawKind, out var value) ? value : int.MaxValue;
