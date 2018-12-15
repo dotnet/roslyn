@@ -51,7 +51,7 @@ class C
         }
 
         [Fact]
-        public void SpeakableInference()
+        public void SpeakableInference_MethodTypeInference()
         {
             var source =
 @"class Program
@@ -76,7 +76,7 @@ class C
         [Theory]
         [InlineData("void M(int? t)")]
         [InlineData("void M<T>(T? t) where T : struct")]
-        public void SpeakableInference_Nullable(string signature)
+        public void SpeakableInference_MethodTypeInference_NullableValueType(string signature)
         {
             var source =
 @"class Program
@@ -95,6 +95,52 @@ class C
                 // (8,9): warning CS8629: Nullable value type may be null.
                 //         t2.Value.ToString(); // warn
                 Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "t2.Value").WithLocation(8, 9)
+                );
+        }
+
+        [Fact]
+        public void SpeakableInference_ArrayTypeInference()
+        {
+            var source =
+@"class Program
+{
+    void M<T>(T t)
+    {
+        if (t == null) throw null;
+        t.ToString();
+        var t2 = new[] { t };
+        t2[0].ToString(); // warn
+    }
+}";
+            var comp = CreateCompilationWithIndexAndRange(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (8,9): warning CS8602: Possible dereference of a null reference.
+                //         t2[0].ToString(); // warn
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t2[0]").WithLocation(8, 9)
+                );
+        }
+
+        [Theory]
+        [InlineData("void M(int? t)")]
+        [InlineData("void M<T>(T? t) where T : struct")]
+        public void SpeakableInference_ArrayTypeInference_NullableValueType(string signature)
+        {
+            var source =
+@"class Program
+{
+    SIGNATURE
+    {
+        if (t == null) throw null;
+        t.Value.ToString();
+        var t2 = new[] { t };
+        t2[0].Value.ToString(); // warn
+    }
+}";
+            var comp = CreateCompilationWithIndexAndRange(source.Replace("SIGNATURE", signature), options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (8,9): warning CS8629: Nullable value type may be null.
+                //         t2[0].Value.ToString(); // warn
+                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "t2[0].Value").WithLocation(8, 9)
                 );
         }
 
@@ -48407,7 +48453,7 @@ class C
         x3.ToString();
         x3!.ToString();
         var a3 = new[] { new T() };
-        a3[0].ToString();
+        a3[0].ToString(); // warn 6
     }
     static T F4<T>(T x4)
     {
@@ -48443,7 +48489,10 @@ class C
                 Diagnostic(ErrorCode.HDN_NullCheckIsProbablyAlwaysTrue, "x2 != null").WithLocation(21, 13),
                 // (24,9): warning CS8602: Possible dereference of a null reference.
                 //         a2[0].ToString(); // warn 5
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "a2[0]").WithLocation(24, 9));
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "a2[0]").WithLocation(24, 9),
+                // (32,9): warning CS8602: Possible dereference of a null reference.
+                //         a3[0].ToString(); // warn 6
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "a3[0]").WithLocation(32, 9));
         }
 
         [Fact]
@@ -57127,6 +57176,7 @@ class Outer
         if (y0 == null) return;
         var a0 = new[] {x0, y0};
         a0[0] = u0;
+        a0[0].ToString();
         if (v0 == null) return;
         a0[0] = v0;
         M2(v0) = a0[1];
@@ -57137,9 +57187,9 @@ class Outer
 ";
 
             CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics(
-                // (9,17): warning CS8601: Possible null reference assignment.
-                //         a0[0] = u0;
-                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "u0").WithLocation(9, 17)
+                // (10,9): warning CS8602: Possible dereference of a null reference.
+                //         a0[0].ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "a0[0]").WithLocation(10, 9)
                 );
         }
 

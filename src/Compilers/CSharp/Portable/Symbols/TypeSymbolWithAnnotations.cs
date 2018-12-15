@@ -343,6 +343,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _extensions = extensions;
         }
 
+        public TypeSymbolWithAnnotations AsSpeakable()
+        {
+            return Create(this.TypeSymbol, this.GetSpeakableNullableAnnotation(), this.CustomModifiers);
+        }
+
         /// <summary>
         /// This method projects nullable annotations onto a smaller set that can be expressed in source.
         /// </summary>
@@ -563,7 +568,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// The list of custom modifiers, if any, associated with the <see cref="TypeSymbol"/>.
         /// </summary>
-        public ImmutableArray<CustomModifier> CustomModifiers => _extensions.CustomModifiers;
+        public ImmutableArray<CustomModifier> CustomModifiers => _extensions is null ? default : _extensions.CustomModifiers;
 
         public bool IsReferenceType => TypeSymbol.IsReferenceType;
         public bool IsValueType => TypeSymbol.IsValueType;

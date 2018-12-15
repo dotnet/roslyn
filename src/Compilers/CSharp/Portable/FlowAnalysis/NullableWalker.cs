@@ -1378,12 +1378,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             int n = elementBuilder.Count;
             var conversionBuilder = ArrayBuilder<Conversion>.GetInstance(n);
             var resultBuilder = ArrayBuilder<TypeSymbolWithAnnotations>.GetInstance(n);
+            var speakableResultBuilder = ArrayBuilder<TypeSymbolWithAnnotations>.GetInstance(n);
             for (int i = 0; i < n; i++)
             {
                 (BoundExpression element, Conversion conversion) = RemoveConversion(elementBuilder[i], includeExplicitConversions: false);
                 elementBuilder[i] = element;
                 conversionBuilder.Add(conversion);
-                resultBuilder.Add(VisitRvalueWithResult(element));
+                var value = VisitRvalueWithResult(element);
+                resultBuilder.Add(value);
+                speakableResultBuilder.Add(value.AsSpeakable());
             }
 
             bool checkConversions = true;
@@ -1397,7 +1400,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var placeholderBuilder = ArrayBuilder<BoundExpression>.GetInstance(n);
                     for (int i = 0; i < n; i++)
                     {
-                        placeholderBuilder.Add(CreatePlaceholderIfNecessary(elementBuilder[i], resultBuilder[i]));
+                        placeholderBuilder.Add(CreatePlaceholderIfNecessary(elementBuilder[i], speakableResultBuilder[i]));
                     }
                     var placeholders = placeholderBuilder.ToImmutableAndFree();
                     bool hadNullabilityMismatch;
@@ -1416,7 +1419,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    elementType = TypeSymbolWithAnnotations.Create(bestType, BestTypeInferrer.GetNullableAnnotation(bestType, resultBuilder));
+                    elementType = TypeSymbolWithAnnotations.Create(bestType, BestTypeInferrer.GetNullableAnnotation(bestType, speakableResultBuilder));
                 }
                 arrayType = arrayType.WithElementType(elementType);
             }
@@ -1433,6 +1436,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             resultBuilder.Free();
+            speakableResultBuilder.Free();
             elementBuilder.Free();
             _resultType = _invalidType;
             return arrayType;
