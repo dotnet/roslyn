@@ -1200,6 +1200,8 @@ class C
         System.Console.Write(default == (default, default));
     }
 }";
+            // PROTOTYPE(target-typed-new): The last error is incorrect. Both operands are typeless.
+            // PROTOTYPE(target-typed-new): We should check for null on `operand.Type` in `ReportBinaryOperatorError`
             var comp = CreateCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
                 // (6,30): error CS8315: Operator '==' is ambiguous on operands 'default' and 'default'
