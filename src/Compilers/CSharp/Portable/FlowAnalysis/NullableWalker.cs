@@ -3058,10 +3058,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static Symbol AsMemberOfType(NamedTypeSymbol containingType, Symbol symbol)
         {
             Debug.Assert((object)symbol != null);
-            if (symbol is null)
-            {
-                return null;
-            }
             if (symbol.Kind == SymbolKind.Method)
             {
                 if (((MethodSymbol)symbol).MethodKind == MethodKind.LocalFunction)
